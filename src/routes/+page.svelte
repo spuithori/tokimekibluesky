@@ -8,9 +8,6 @@
 	let datum = [];
 	let datas = [];
 	let publishContent = '';
-	let direction = '';
-	let subject = '';
-	let uri = '';
 	let votes = {};
 	const myDid = $page.data.did;
 
@@ -19,7 +16,6 @@
 	//await agent.resumeSession(JSON.parse(token))
 
 	const publishKeypress = e => {
-		isTextareaEnabled = true;
 		if (e.charCode === 13) publish();
 	};
 	let publish = function () {};
@@ -93,6 +89,8 @@
 		gettl()
 
 		publish = async function () {
+			isTextareaEnabled = true;
+			
 			await agent.api.app.bsky.feed.post.create(
 					{ did: myDid },
 					{ text: publishContent, createdAt: new Date().toISOString() }
@@ -135,6 +133,10 @@
 			<li class="timeline__item">
 				{#if (data.reason)}
 					<p class="timeline-repost-message">{ data.reason.by.displayName } がリポスト</p>
+				{/if}
+
+				{#if (data.reply)}
+					<p class="timeline-repost-message">{ data.reply.parent.author.displayName } に返信</p>
 				{/if}
 
 				<div class="timeline__column">

@@ -110,10 +110,9 @@ svg {
 
 .timeline-image {
 	margin-top: 10px;
-	max-width: 200px;
 	display: grid;
-	grid-template-columns: repeat(4, 200px);
-	gap: 15px;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 10px;
 }
 
 .timeline-image img {
