@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect, Cookies } from '@sveltejs/kit';
-import AtpAgent, {AtpSessionEvent, AtpSessionData} from '@atproto/api';
+import {AtpAgent, AtpSessionEvent, AtpSessionData} from '@atproto/api';
 import { dev } from '$app/environment';
 
 export const actions: Actions = {

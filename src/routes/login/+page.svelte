@@ -1,5 +1,4 @@
 <script lang="ts">
-    import AtpAgent, {AtpSessionEvent, AtpSessionData} from '@atproto/api'
     import { enhance } from '$app/forms';
     /** @type {import('./$types').ActionData} */
     export let form;
