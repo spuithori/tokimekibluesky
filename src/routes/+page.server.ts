@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
-import AtpAgent, {AtpSessionEvent, AtpSessionData} from '@atproto/api';
+import {AtpAgent, AtpSessionEvent, AtpSessionData} from '@atproto/api';
 import { error, redirect, Cookies } from '@sveltejs/kit';
 
 export const load:  PageServerLoad = async ({cookies}) => {
@@ -16,7 +16,7 @@ export const load:  PageServerLoad = async ({cookies}) => {
         await agent.resumeSession(JSON.parse(token))
         return session
     } catch (e) {
-        console.log('ng')
+        console.log(e)
         throw redirect(302, '/login')
     }
 };
