@@ -106,7 +106,7 @@
 </script>
 
 <svelte:head>
-	<title>Home</title>
+	<title>Home - TokimekiBluesky</title>
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
 

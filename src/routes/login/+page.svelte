@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-  <title>Login</title>
+  <title>Login - TokimekiBluesky</title>
 </svelte:head>
 
 <h1>Bluesky Web Client Alpha</h1>
