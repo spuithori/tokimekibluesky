@@ -1,6 +1,10 @@
 <script lang="ts">
+    import "../../app.postcss";
+    import '../../theme.postcss';
+    import '@skeletonlabs/skeleton/styles/all.css';
+    import "../styles.css";
     import { enhance } from '$app/forms';
-    /** @type {import('./$types').ActionData} */
+    /** @type {import('../../../../.svelte-kit/types/src/routes').ActionData} */
     export let form;
 </script>
 

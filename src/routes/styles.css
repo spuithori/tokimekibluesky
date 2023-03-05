@@ -1,4 +1,4 @@
-@import "ress.css";
+@import "./ress.css";
 
 :root {
 	--font-body: 'Noto Sans JP', sans-serif;
@@ -44,64 +44,6 @@ a:hover {
 	margin-top: 40px;
 	padding: 20px;
 	background-color: #fafafa;
-}
-
-.timeline {
-	list-style: none;
-	margin-top: 15px;
-	padding-bottom: 200px;
-}
-
-.timeline__item {
-	border: 1px solid #aaa;
-	background-color: #fff;
-	margin-bottom: 20px;
-	padding: 10px;
-	position: relative;
-}
-
-.timeline-repost-message {
-	font-weight: bold;
-	margin-bottom: 5px;
-}
-
-.timeline-repost-message::before {
-	content: '';
-	display: block;
-	position: absolute;
-	left: 0;
-	top: 0;
-	bottom: 0;
-	width: 3px;
-	background-color: #4075a6;
-}
-
-.timeline__date {
-	color: #666;
-}
-
-.timeline__meta {
-	display: flex;
-	align-items: baseline;
-	gap: 15px;
-}
-
-.timeline__image {
-	border-radius: 30px;
-	overflow: hidden;
-}
-
-.timeline__column {
-	display: grid;
-	grid-template-columns: 60px 1fr;
-	align-items: flex-start;
-	gap: 20px;
-}
-
-.timeline__image img {
-	width: 100%;
-	height: auto;
-	vertical-align: middle;
 }
 
 svg {

@@ -1,19 +1,20 @@
 <script>
-  import "../app.postcss";
+  import "../../app.postcss";
   import Header from "./Header.svelte";
-  import '../theme.postcss';
+  import '../../theme.postcss';
   import '@skeletonlabs/skeleton/styles/all.css';
-  import "./styles.css";
+  import "../styles.css";
+  import { page } from '$app/stores';
+
+
 </script>
 
 <div class="app">
-  <header />
+  <Header />
 
   <main>
     <slot />
   </main>
-
-  <footer />
 </div>
 
 <style>

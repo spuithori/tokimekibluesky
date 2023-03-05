@@ -1,4 +1,4 @@
-import type { PageServerLoad, Actions } from './$types';
+import type { PageServerLoad, Actions } from '../../../../.svelte-kit/types/src/routes';
 import { fail, redirect, Cookies } from '@sveltejs/kit';
 import {AtpAgent, AtpSessionEvent, AtpSessionData} from '@atproto/api';
 import { dev } from '$app/environment';
@@ -27,7 +27,7 @@ export const actions: Actions = {
         await agent.login({identifier: formData.get('email'), password: formData.get('password')})
 
         cookies.set('auth_app', JSON.stringify(sessd), {
-            httpOnly: true,
+            httpOnly: false,
             path: '/',
             secure: true,
             sameSite: 'strict',
