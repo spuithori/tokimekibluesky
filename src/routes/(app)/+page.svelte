@@ -1,5 +1,5 @@
 <script>
-	import {onMount} from "svelte";
+	import { onMount } from "svelte";
 	import {format, subMinutes, subDays, parseISO} from 'date-fns'
 	import { page } from '$app/stores';
 	import { Agent } from "$lib/agent";
@@ -84,21 +84,6 @@
 		background-color: #fff;
 		border-top: 1px solid gray;
 		padding: 20px;
-	}
-
-	.publish-form {
-		max-width: 64rem;
-		margin: 0 auto;
-	}
-
-	.publish-form__input {
-		background-color: #fafafa;
-		border-radius: 5px;
-		height: 80px;
-		font-size: 16px;
-		vertical-align: middle;
-		width: 100%;
-		padding: 10px 20px;
 	}
 
 	@media (max-width: 767px) {
