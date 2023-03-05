@@ -5,13 +5,10 @@
 	import { Agent } from "$lib/agent";
 	import Cookies from 'js-cookie';
 	import Timeline from "./Timeline.svelte";
+	import { agent } from '$lib/stores';
+	import { timeline } from "$lib/stores";
 
-	let feeds = [];
 	let publishContent = '';
-	let votes = {};
-	let myDid = '';
-	let agent = {};
-
 	let isTextareaEnabled = false;
 
 	const publishKeypress = e => {
@@ -19,18 +16,22 @@
 	};
 	let publish = function () {};
 
+	async function refresh() {
+		timeline.set(await $agent.getTimeline());
+	}
+
 	onMount(async () => {
 		publish = async function () {
 			isTextareaEnabled = true;
 
-			await agent.api.app.bsky.feed.post.create(
-					{ did: myDid },
+			await $agent.agent.api.app.bsky.feed.post.create(
+					{ did: $agent.did() },
 					{ text: publishContent, createdAt: new Date().toISOString() }
 			);
 
 			isTextareaEnabled = false;
 			publishContent = '';
-			feeds = Agent.getTimeline(agent);
+			timeline.set(await $agent.getTimeline(agent));
 		}
 	})
 </script>
@@ -43,7 +44,7 @@
 <section>
 	<div class="flex gap-2">
 		<div class="refresh">
-			<button class="btn variant-filled-primary" on:click={null}>更新</button>
+			<button class="btn variant-filled-primary" on:click={refresh}>更新</button>
 		</div>
 
 		<div class="logout">

@@ -18,7 +18,7 @@ export const Agent = class {
         return data;
     }
 
-    async setVote(uri, cid) {
+    async setVote(cid, uri) {
         const alreadyVoted = await this.myVoteCheck(uri)
 
         await this.agent.api.app.bsky.feed.setVote(
@@ -26,7 +26,7 @@ export const Agent = class {
         );
     }
 
-    async setRepost(uri, cid) {
+    async setRepost(cid, uri) {
         await this.agent.api.app.bsky.feed.repost.create(
             { did: await this.did() },
             { subject: { cid: cid, uri: uri } , createdAt: new Date().toISOString() },

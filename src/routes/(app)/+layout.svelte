@@ -5,8 +5,10 @@
   import '@skeletonlabs/skeleton/styles/all.css';
   import "../styles.css";
   import { page } from '$app/stores';
+  import { agent } from '$lib/stores';
+  import { Agent } from "$lib/agent";
 
-
+  agent.set(new Agent($page.data.agent));
 </script>
 
 <div class="app">

@@ -1,20 +1,24 @@
 <script>
-  import {onMount} from "svelte";
+  import { onMount } from 'svelte';
   import { format, parseISO } from 'date-fns';
-  import {Agent} from "$lib/agent";
-  import { page } from '$app/stores';
+  import { agent } from '$lib/stores';
+  import { timeline } from "$lib/stores";
 
-  let feeds = [];
-  const agent = new Agent($page.data.agent)
+  async function vote(cid, uri) {
+      await $agent.setVote(cid, uri);
+      timeline.update(await $agent.getTimeline());
+  }
 
   onMount(async () => {
-      feeds = await agent.getTimeline();
-      console.log(feeds)
+      timeline.set(await $agent.getTimeline());
+      console.log(await $timeline)
+
+      console.log(await $agent.agent.api.app.bsky.feed.getPostThread({uri: "at://did:plc:j5cxpczcvzajlxhfuq7abivp/app.bsky.feed.post/3jq6yussvjk25", depth: 3}))
   });
 </script>
 
 <div class="timeline">
-  {#each feeds as data}
+  {#each $timeline as data}
     <article class="timeline__item">
       {#if (data.reason)}
         <p class="timeline-repost-message">{ data.reason.by.displayName } がリポスト</p>
@@ -48,8 +52,8 @@
             </div>
 
             <div class="timeline-reaction__item timeline-reaction__item--like">
-              <button class="timeline-reaction__icon" on:click="{() => agent.setVote(data.post.cid, data.post.uri)}">
-                {#await agent.myVoteCheck(data.post.uri)}
+              <button class="timeline-reaction__icon" on:click="{() => vote(data.post.cid, data.post.uri)}">
+                {#await $agent.myVoteCheck(data.post.uri)}
                   <svg xmlns="http://www.w3.org/2000/svg" width="21" height="19.08" viewBox="0 0 21 19.08">
                     <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(0.389 -0.605)" fill="#fff" stroke="#bbb" stroke-width="1"/>
                   </svg>
@@ -70,7 +74,7 @@
             </div>
 
             <div class="timeline-reaction__item timeline-reaction__item--repost">
-              <button class="timeline-reaction__icon" on:click="{() => agent.setRepost(data.post.cid, data.post.uri)}"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="13" viewBox="0 0 21 13">
+              <button class="timeline-reaction__icon" on:click="{() => $agent.setRepost(data.post.cid, data.post.uri)}"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="13" viewBox="0 0 21 13">
                 <path id="retweet" d="M13.333,17.667A.342.342,0,0,1,13,18H3c-.385,0-.333-.406-.333-.667v-6h-2A.671.671,0,0,1,0,10.667a.638.638,0,0,1,.156-.427l3.333-4a.683.683,0,0,1,1.021,0l3.333,4A.636.636,0,0,1,8,10.667a.671.671,0,0,1-.667.667h-2v4h6a.356.356,0,0,1,.261.115l1.667,2A.42.42,0,0,1,13.333,17.667ZM20,13.333a.638.638,0,0,1-.156.427l-3.333,4a.664.664,0,0,1-1.021,0l-3.333-4A.636.636,0,0,1,12,13.333a.671.671,0,0,1,.667-.667h2v-4h-6a.332.332,0,0,1-.261-.125l-1.667-2a.357.357,0,0,1-.073-.209A.342.342,0,0,1,7,6H17c.385,0,.333.406.333.667v6h2A.671.671,0,0,1,20,13.333Z" transform="translate(0.5 -5.5)" fill="#fff" stroke="#bbb" stroke-width="1"/>
               </svg>
               </button>
