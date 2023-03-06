@@ -13,6 +13,8 @@
   })
   ag.session = data.session;
 
+  console.log(ag.hasSession)
+
   agent.set(new Agent(ag));
 </script>
 

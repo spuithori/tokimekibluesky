@@ -8,15 +8,19 @@ export const load = async ({request, cookies, fetch}) => {
         throw redirect(302, '/login');
     }
 
-    const agent = new AtpAgent({
+    /* const agent = new AtpAgent({
         service: 'https://bsky.social',
     });
+
+    console.log(agent.hasSession)
 
     if (!agent.hasSession) {
         await agent.resumeSession(JSON.parse(token));
     }
 
+    console.log(agent.hasSession) */
+
     return {
-        session: agent.session,
+        session: JSON.parse(token),
     }
 }
