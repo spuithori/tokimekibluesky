@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import {AtpAgent} from "@atproto/api";
 
 export const agent = writable({});
 

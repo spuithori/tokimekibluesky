@@ -1,11 +1,19 @@
-<script>
+<script lang="ts">
   import Header from "./Header.svelte";
   import "../styles.css";
-  import { page } from '$app/stores';
   import { agent } from '$lib/stores';
   import { Agent } from "$lib/agent";
+  import type { LayoutData } from './$types';
+  import {onMount} from "svelte";
+  import {AtpAgent} from "@atproto/api";
 
-  agent.set(new Agent($page.data.agent));
+  export let data: LayoutData;
+  let ag = new AtpAgent({
+      service: 'https://bsky.social',
+  })
+  ag.session = data.session;
+
+  agent.set(new Agent(ag));
 </script>
 
 <div class="app">

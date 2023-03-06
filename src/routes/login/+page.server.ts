@@ -26,12 +26,12 @@ export const actions: Actions = {
 
         await agent.login({identifier: formData.get('email'), password: formData.get('password')})
 
-        cookies.set('auth_app', JSON.stringify(sessd), {
-            httpOnly: false,
+        cookies.set('session', JSON.stringify(sessd), {
+            httpOnly: true,
             path: '/',
             secure: true,
             sameSite: 'strict',
-            maxAge: 60 * 60 * 24 // 1 day
+            maxAge: 60 * 60 * 24,
         });
 
         throw redirect(302, '/')
