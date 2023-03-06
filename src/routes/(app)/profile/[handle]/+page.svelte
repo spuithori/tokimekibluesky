@@ -1,21 +1,23 @@
-<script>
+<script lang="ts">
     import { agent } from '$lib/stores';
-    import { page } from '$app/stores';
     import { onMount } from 'svelte';
     import UserTimeline from './UserTimeline.svelte';
     let profile = Promise;
 
+    import type { PageData } from './$types';
+    import {invalidateAll} from "$app/navigation";
+    import {browser} from "$app/environment";
 
+    export let data: PageData;
+
+    if (browser) {
+        invalidateAll()
+    }
     async function load() {
-        console.log($page)
-        let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: $page.params.handle});
+        let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: data.params.handle});
         return profile.data
     }
     profile = load();
-
-    onMount(() => {
-
-    })
 </script>
 
 <section class="profile">

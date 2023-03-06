@@ -35,7 +35,7 @@
 
   <div class="timeline__column">
     <div class="timeline__image">
-      <a href="/profile/{ data.post.author.handle }">
+      <a href="/profile/{ data.post.author.handle }" data-sveltekit-reload>
         <img src="{ data.post.author.avatar }" alt="">
       </a>
     </div>

@@ -13,6 +13,7 @@ export const load = (async () => {
     if (browser) {
         try {
             await agent.resumeSession(JSON.parse(token));
+
             return { agent: agent };
         } catch (e) {
             console.log(e)
