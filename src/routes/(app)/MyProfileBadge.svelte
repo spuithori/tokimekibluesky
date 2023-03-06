@@ -6,13 +6,11 @@
     onMount(async () => {
         profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: $agent.did()});
         profile = profile.data
-
-        console.log(profile)
     })
 </script>
 
 <div class="my-profile-badge">
-  <a href="/profile">
+  <a href="/profile/{profile.handle}">
     <img src="{profile.avatar}" alt="">
   </a>
 </div>

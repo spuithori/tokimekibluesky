@@ -2,6 +2,7 @@
     import { agent } from '$lib/stores';
     import { onMount } from 'svelte';
     let notifications = Promise;
+    import { fade, fly } from 'svelte/transition';
 
     async function load() {
         let n = await $agent.agent.api.app.bsky.notification.list();
@@ -11,7 +12,7 @@
     notifications = load();
 </script>
 
-<div class="notification">
+<div class="notification" in:fly="{{ y: 50, duration: 350 }}">
   {#await notifications}
   {:then list}
     {#each list as item}

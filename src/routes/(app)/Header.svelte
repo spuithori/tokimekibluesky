@@ -1,6 +1,7 @@
 <script>
     import MyProfileBadge from "./MyProfileBadge.svelte";
     import Notification from "./Notification.svelte";
+    import { fade, fly } from 'svelte/transition';
 
     let isNotificationOpen = false;
 
@@ -28,7 +29,10 @@
       </button>
 
       {#if isNotificationOpen}
-        <Notification></Notification>
+        <div >
+          <Notification></Notification>
+        </div>
+
       {/if}
     </div>
 

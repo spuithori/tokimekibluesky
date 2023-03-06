@@ -35,7 +35,9 @@
 
   <div class="timeline__column">
     <div class="timeline__image">
-      <img src="{ data.post.author.avatar }" alt="">
+      <a href="/profile/{ data.post.author.handle }">
+        <img src="{ data.post.author.avatar }" alt="">
+      </a>
     </div>
 
     <div class="timeline__content">
