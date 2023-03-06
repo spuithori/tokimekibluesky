@@ -8,4 +8,4 @@ export const load = (({ params, depends }) => {
    throw error(404, 'Not found');
 }) satisfies PageLoad;
 
-export const prerender = true;
+export const prerender = false;
