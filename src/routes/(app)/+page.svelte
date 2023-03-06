@@ -1,9 +1,5 @@
 <script>
 	import { onMount } from "svelte";
-	import {format, subMinutes, subDays, parseISO} from 'date-fns'
-	import { page } from '$app/stores';
-	import { Agent } from "$lib/agent";
-	import Cookies from 'js-cookie';
 	import Timeline from "./Timeline.svelte";
 	import { agent } from '$lib/stores';
 	import { timeline } from "$lib/stores";
@@ -64,11 +60,6 @@
 </section>
 
 <style>
-
-	.copyright {
-		margin-top: 40px;
-	}
-
 	.publish-group {
 		position: fixed;
 		left: 0;
@@ -81,21 +72,5 @@
 
 	.logout {
 		margin-left: auto;
-	}
-
-	@media (max-width: 767px) {
-		.stats-grid {
-			grid-template-columns: repeat(1, 1fr);
-			grid-auto-rows: 150px;
-			gap: 20px;
-		}
-
-		.second-title {
-			font-size: 20px;
-		}
-
-		.stats-number {
-			font-size: 40px;
-		}
 	}
 </style>

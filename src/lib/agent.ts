@@ -1,5 +1,3 @@
-import Cookies from 'js-cookie';
-
 export const Agent = class {
     public agent: object;
 

@@ -5,19 +5,18 @@
     let profile = Promise;
 
     import type { PageData } from './$types';
-    import {invalidateAll} from "$app/navigation";
-    import {browser} from "$app/environment";
 
     export let data: PageData;
 
-    if (browser) {
-        invalidateAll()
-    }
     async function load() {
         let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: data.params.handle});
         return profile.data
     }
     profile = load();
+
+    onMount(async () => {
+        console.log(data)
+    })
 </script>
 
 <section class="profile">
