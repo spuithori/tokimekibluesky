@@ -64,7 +64,7 @@
         <p class="timeline__date">{format(parseISO(data.post.record.createdAt), 'yyyy.MM.dd HH:mm:ss')}</p>
       </div>
 
-      <p>{ data.post.record.text }</p>
+      <p class="timeline__text">{ data.post.record.text }</p>
 
       <div class="timeline-reaction">
         <div class="timeline-reaction__item timeline-reaction__item--reply">
@@ -167,6 +167,10 @@
         grid-template-columns: 60px 1fr;
         align-items: flex-start;
         gap: 20px;
+    }
+
+    .timeline__text {
+        white-space: pre-wrap;
     }
 
     .timeline__image img {
