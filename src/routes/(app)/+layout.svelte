@@ -6,6 +6,7 @@
   import type { LayoutData } from './$types';
   import {onMount} from "svelte";
   import {AtpAgent} from "@atproto/api";
+  import {redirect} from "@sveltejs/kit";
 
   export let data: LayoutData;
   let ag = new AtpAgent({
@@ -13,7 +14,9 @@
   })
   ag.session = data.session;
 
-  console.log(ag.hasSession)
+  if (!ag.hasSession) {
+      throw redirect(302, '/login');
+  }
 
   agent.set(new Agent(ag));
 </script>

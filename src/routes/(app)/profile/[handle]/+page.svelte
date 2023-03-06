@@ -13,10 +13,6 @@
         return profile.data
     }
     profile = load();
-
-    onMount(async () => {
-        console.log(data)
-    })
 </script>
 
 <section class="profile">
