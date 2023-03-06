@@ -34,7 +34,7 @@ p {
 }
 
 a {
-	color: var(--color-theme-1);
+	color: var(--primary-color);
 	text-decoration: none;
 }
 

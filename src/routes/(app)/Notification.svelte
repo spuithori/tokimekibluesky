@@ -18,7 +18,7 @@
     {#each list as item}
       {#if (item.reason === 'vote')}
         <article class="notification-item">
-          <h2 class="notifications-item__title"><span class="notifications-item__name">{item.author.displayName}</span> がいいねしました</h2>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a target="_self" href="/profile/{item.author.handle}">{item.author.displayName}</a></span> がいいねしました</h2>
 
           {#await $agent.getFeed(item.record.subject.uri)}
           {:then feed}
@@ -27,7 +27,7 @@
         </article>
       {:else if (item.reason === 'reply')}
         <article class="notification-item">
-          <h2 class="notifications-item__title"><span class="notifications-item__name">{item.author.displayName}</span> が返信しました</h2>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName}</a></span> が返信しました</h2>
 
           <p class="notifications-item__content">{item.record.text}</p>
         </article>

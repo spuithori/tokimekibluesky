@@ -141,6 +141,7 @@
     .timeline__meta {
         display: flex;
         align-items: baseline;
+        flex-wrap: wrap;
         gap: 15px;
     }
 
