@@ -79,6 +79,10 @@
 		padding: 20px;
 	}
 
+	.logout {
+		margin-left: auto;
+	}
+
 	@media (max-width: 767px) {
 		.stats-grid {
 			grid-template-columns: repeat(1, 1fr);
