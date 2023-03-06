@@ -20,7 +20,12 @@ export const load = async ({request, cookies, fetch}) => {
 
     console.log(agent.hasSession) */
 
-    return {
-        session: JSON.parse(token),
+    try {
+        const session = JSON.parse(token)
+        return {
+            session: JSON.parse(token),
+        }
+    } catch (e) {
+        throw redirect(302, '/login');
     }
 }
