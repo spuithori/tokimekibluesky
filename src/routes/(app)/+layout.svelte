@@ -1,8 +1,5 @@
 <script>
-  import "../../app.postcss";
   import Header from "./Header.svelte";
-  import '../../theme.postcss';
-  import '@skeletonlabs/skeleton/styles/all.css';
   import "../styles.css";
   import { page } from '$app/stores';
   import { agent } from '$lib/stores';

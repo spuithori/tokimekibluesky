@@ -2,19 +2,11 @@
   import { onMount } from 'svelte';
   import { agent } from '$lib/stores';
   import { timeline } from "$lib/stores";
-  import Reply from "./Reply.svelte";
   import TimelineItem from "./TimelineItem.svelte";
-
-  let isReplyOpen = false;
-  let isOpen = false;
 
   async function vote(cid, uri) {
       await $agent.setVote(cid, uri);
       timeline.update(await $agent.getTimeline());
-  }
-
-  function replyOpen() {
-      isReplyOpen = isReplyOpen !== true;
   }
 
   onMount(async () => {
@@ -24,8 +16,8 @@
 </script>
 
 <div class="timeline">
-  {#each $timeline as data}
-    <TimelineItem data={ data }></TimelineItem>
+  {#each $timeline as data, index}
+    <TimelineItem data={ data } index={ index }></TimelineItem>
   {/each}
 </div>
 

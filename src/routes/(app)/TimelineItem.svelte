@@ -4,17 +4,24 @@
     import Reply from "./Reply.svelte";
     import { format, parseISO } from 'date-fns';
 
+    export let data = {};
+    export let index;
+
     let isReplyOpen = false;
 
     async function vote(cid, uri) {
         await $agent.setVote(cid, uri);
-        timeline.update(await $agent.getTimeline());
+
+        await timeline.asyncUpdate(async tl => {
+            const nf = await $agent.getFeed(uri);
+            tl[index] = {post: nf.post};
+            return tl;
+        });
     }
 
     function replyOpen() {
         isReplyOpen = isReplyOpen !== true;
     }
-  export let data;
 </script>
 
 <article class="timeline__item">

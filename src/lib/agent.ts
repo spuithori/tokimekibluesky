@@ -45,4 +45,10 @@ export const Agent = class {
         const found = votes.find(vote => vote.actor.did === this.did())
         return found;
     }
+
+    async getFeed(uri, depth = 0) {
+        const feed = await this.agent.api.app.bsky.feed.getPostThread({uri: uri, depth: depth})
+
+        return feed.data.thread
+    }
 }

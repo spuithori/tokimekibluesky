@@ -86,6 +86,12 @@
       overflow: hidden;
   }
 
+  .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+  }
+
   .profile-display-name {
       font-size: 24px !important;
       margin-bottom: 5px;

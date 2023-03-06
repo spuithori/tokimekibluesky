@@ -12,6 +12,8 @@
 	--column-margin-top: 4rem;
 	font-family: var(--font-body);
 	color: var(--color-text);
+
+	--primary-color: #1172f0;
 }
 
 body {
@@ -75,4 +77,27 @@ svg {
 	vertical-align: middle;
 	width: 100%;
 	padding: 10px 20px;
+}
+
+.button {
+	display: inline-flex;
+	height: 50px;
+	min-width: 240px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 25px;
+	background-color: var(--primary-color);
+	color: #fff;
+	font-weight: 600;
+}
+
+.button--border {
+	background-color: #fff;
+	border: 1px solid currentColor;
+	color: var(--primary-color);
+}
+
+.buttons-group {
+	display: flex;
+	gap: 20px;
 }
