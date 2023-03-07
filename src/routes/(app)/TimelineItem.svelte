@@ -120,35 +120,35 @@
 
       {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.external !== 'undefined')}
         <div class="timeline-external">
-          {#if (data.post.embed.external.thumb)}
             <div class="timeline-external__image">
-              <img src="{data.post.embed.external.thumb}" alt="">
+              {#if (data.post.embed.external.thumb)}
+                <img src="{data.post.embed.external.thumb}" alt="">
+              {/if}
             </div>
 
-            <div class="timeline-external__content">
-              <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener">{data.post.embed.external.title}</a></p>
-              <p class="timeline-external__description">
-                {data.post.embed.external.description}
-              </p>
-            </div>
-          {/if}
+          <div class="timeline-external__content">
+            <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener">{data.post.embed.external.title}</a></p>
+            <p class="timeline-external__description">
+              {data.post.embed.external.description}
+            </p>
+          </div>
         </div>
       {/if}
 
       {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.record !== 'undefined')}
         <div class="timeline-external timeline-external--record">
-          {#if (data.post.embed.record.author.avatar)}
-            <div class="timeline-external__image timeline-external__image--round">
+          <div class="timeline-external__image timeline-external__image--round">
+            {#if (data.post.embed.record.author.avatar)}
               <img src="{data.post.embed.record.author.avatar}" alt="">
-            </div>
+            {/if}
+          </div>
 
-            <div class="timeline-external__content">
-              <p class="timeline-external__title">{data.post.embed.record.author.displayName}</p>
-              <p class="timeline-external__description">
-                {data.post.embed.record.record.text}
-              </p>
-            </div>
-          {/if}
+          <div class="timeline-external__content">
+            <p class="timeline-external__title">{data.post.embed.record.author.displayName}</p>
+            <p class="timeline-external__description">
+              {data.post.embed.record.record.text}
+            </p>
+          </div>
         </div>
       {/if}
 
