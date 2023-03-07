@@ -10,9 +10,6 @@
     async function login() {
         const agent = new AtpAgent({
             service: 'https://bsky.social',
-            persistSession: (evt: AtpSessionEvent, sess?: AtpSessionData) => {
-
-            }
         });
 
         try {

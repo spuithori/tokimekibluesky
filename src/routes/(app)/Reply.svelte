@@ -9,7 +9,8 @@
   let publishContent = '';
   let isTextareaEnabled = '';
   const publishKeypress = e => {
-      if (e.charCode === 13) publish();
+      console.log(e)
+      if (e.keyCode === 13 && e.altKey) publish();
   };
   let publish = function () {};
 
@@ -36,7 +37,7 @@
 
 <div class="reply">
   <div class="publish-form">
-    <textarea type="text" class="publish-form__input" disabled={isTextareaEnabled} bind:value={publishContent} on:keypress={publishKeypress} placeholder="Alt + Enter"></textarea>
+    <textarea type="text" class="publish-form__input" disabled={isTextareaEnabled} bind:value={publishContent} on:keydown={publishKeypress} placeholder="Alt + Enter"></textarea>
   </div>
 </div>
 
