@@ -70,8 +70,8 @@
 
     <div class="timeline__content">
       <div class="timeline__meta">
-        <p class="timeline__user">{ data.post.author.displayName }</p>
-        <p class="timeline__date">{formatDistanceToNow(parseISO(data.post.record.createdAt), {locale: ja})}</p>
+        <p class="timeline__user" title="{data.post.author.handle}">{ data.post.author.displayName }</p>
+        <p class="timeline__date"><time datetime="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.record.createdAt), {locale: ja})}</time></p>
       </div>
 
       <p class="timeline__text">{ data.post.record.text }</p>
@@ -166,7 +166,7 @@
     .timeline__item {
         background-color: #FAFCFF;
         margin-bottom: 20px;
-        padding: 10px;
+        padding: 10px 20px;
         position: relative;
     }
 
