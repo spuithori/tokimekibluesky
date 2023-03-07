@@ -33,7 +33,6 @@
             finishLoading = true;
         }
         followers = raw.data.followers;
-        console.log(followers)
     })
 </script>
 

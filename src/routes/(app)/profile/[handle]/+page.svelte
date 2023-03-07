@@ -8,8 +8,7 @@ export let data: LayoutData;
 
 async function load() {
     let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: data.params.handle});
-    console.log(profile)
-    return profile.data
+    return profile.data;
 }
 profile = load();
 

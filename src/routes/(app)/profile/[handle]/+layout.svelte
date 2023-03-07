@@ -18,7 +18,6 @@
     function isActive() {
         const path = data.url.pathname;
         const paths = path.split('/');
-        console.log(paths[3]);
 
         switch (paths[3]) {
             case 'follow':
@@ -69,9 +68,9 @@
     </div>
 
     <ul class="profile-tab">
-      <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/">投稿</a></li>
-      <li class="profile-tab__item" on:click={() => currentPage = 'follow'} class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow">フォロー</a></li>
-      <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower">フォロワー</a></li>
+      <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>投稿</a></li>
+      <li class="profile-tab__item" on:click={() => currentPage = 'follow'} class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>フォロー</a></li>
+      <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>フォロワー</a></li>
     </ul>
 
     <slot></slot>

@@ -6,12 +6,9 @@
     export let author = '';
     let feeds = [];
 
-    console.log(author)
-
     onMount(async () => {
-        feeds = await $agent.agent.api.app.bsky.feed.getAuthorFeed({author: author})
-        feeds = feeds.data.feed
-        console.log(feeds)
+        feeds = await $agent.agent.api.app.bsky.feed.getAuthorFeed({author: author});
+        feeds = feeds.data.feed;
     });
 </script>
 
