@@ -15,3 +15,4 @@ function createTimeline () {
 }
 
 export const timeline = createTimeline();
+export const cursor = writable('');

@@ -1,13 +1,13 @@
 <script>
     import { agent } from '$lib/stores';
-    import { timeline } from "$lib/stores";
+    import { timeline, cursor } from "$lib/stores";
     import Reply from "./Reply.svelte";
     import {format, formatDistanceToNow, parseISO} from 'date-fns';
     import {onMount} from "svelte";
     import ja from 'date-fns/locale/ja/index';
 
     export let data = {};
-    export let index;
+    export let isPrivate = false;
 
     let votes = 0;
     let voteCount = 0;
@@ -36,8 +36,11 @@
     async function repost(cid, uri) {
         await $agent.setRepost(cid, uri);
 
-        const data = await $agent.getTimeline();
-        timeline.set(data.feed);
+        if (!isPrivate) {
+            const data = await $agent.getTimeline();
+            timeline.set(data.feed);
+            cursor.set(data.cursor);
+        }
     }
 
     function replyOpen() {

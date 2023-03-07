@@ -1,21 +1,20 @@
 <script>
   import { onMount } from 'svelte';
-  import { agent } from '$lib/stores';
+  import { agent, cursor } from '$lib/stores';
   import { timeline } from "$lib/stores";
   import TimelineItem from "./TimelineItem.svelte";
   import InfiniteScroll from 'svelte-infinite-scroll';
 
-  let cursor = '';
-
   onMount(async () => {
       const data = await $agent.getTimeline()
-      cursor = data.cursor
       timeline.set(data.feed);
-      console.log(data.feed)
+      cursor.set(data.cursor);
+
+      console.log(data.feed);
   });
 
   const handleLoadMore = async () => {
-      const data = await $agent.getTimeline(20, cursor)
+      const data = await $agent.getTimeline(20, $cursor)
       timeline.update(function (tl) {
           let newTl = tl
           for (const item of data.feed) {
@@ -24,7 +23,7 @@
 
           return newTl;
       });
-      cursor = data.cursor
+      cursor.set(data.cursor);
   }
 </script>
 

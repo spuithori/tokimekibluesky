@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from "svelte";
 	import Timeline from "./Timeline.svelte";
-	import { agent } from '$lib/stores';
+	import { agent, cursor } from '$lib/stores';
 	import { timeline } from "$lib/stores";
 	import {goto} from "$app/navigation";
 
@@ -14,9 +14,9 @@
 	let publish = function () {};
 
 	async function refresh() {
-		const data = await $agent.getTimeline()
-		timeline.set(data.feed)
-		// timeline.set(await $agent.getTimeline(20, ''));
+		const data = await $agent.getTimeline();
+		timeline.set(data.feed);
+		cursor.set(data.cursor);
 	}
 
 	async function logout() {

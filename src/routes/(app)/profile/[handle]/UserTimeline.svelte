@@ -17,6 +17,6 @@
 
 <div class="timeline">
   {#each feeds as data}
-    <TimelineItem data={ data }></TimelineItem>
+    <TimelineItem data={ data } isPrivate={ true }></TimelineItem>
   {/each}
 </div>
