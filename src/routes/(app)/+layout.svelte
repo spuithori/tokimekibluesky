@@ -6,6 +6,10 @@
   import {onMount} from "svelte";
   import {AtpAgent, AtpSessionData, AtpSessionEvent} from "@atproto/api";
   import {goto} from "$app/navigation";
+  import { dev } from '$app/environment';
+  import { inject } from '@vercel/analytics';
+
+  inject({ mode: dev ? 'development' : 'production' });
 
   const session = localStorage.getItem('session');
   if (!session) {
