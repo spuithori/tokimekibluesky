@@ -6,7 +6,7 @@
 
     async function load() {
         let n = await $agent.agent.api.app.bsky.notification.list();
-        console.log(n.data.notifications)
+        // console.log(n.data.notifications)
         return n.data.notifications
     }
     notifications = load();
