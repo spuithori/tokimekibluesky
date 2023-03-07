@@ -30,6 +30,7 @@
             $agent.getVotes(uri)
         ])
         voteCount = votes.length
+        data.post.upvoteCount = votes.length
     }
 
     async function repost(cid, uri) {
@@ -79,18 +80,21 @@
 
         <div class="timeline-reaction__item timeline-reaction__item--like">
           <button class="timeline-reaction__icon" on:click="{() => vote(data.post.cid, data.post.uri)}">
-            {#if (myVoteCheck)}
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17.872" viewBox="0 0 20 17.872">
-                <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(-0.111 -1.105)" fill="#1172f0"/>
-              </svg>
-            {:else}
-              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="19.08" viewBox="0 0 21 19.08">
-                <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(0.389 -0.605)" fill="#fff" stroke="#bbb" stroke-width="1"/>
-              </svg>
-            {/if}
+            {#await myVoteCheck}
+            {:then found}
+              {#if (found)}
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17.872" viewBox="0 0 20 17.872">
+                  <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(-0.111 -1.105)" fill="#1172f0"/>
+                </svg>
+              {:else}
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="19.08" viewBox="0 0 21 19.08">
+                  <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(0.389 -0.605)" fill="#fff" stroke="#bbb" stroke-width="1"/>
+                </svg>
+              {/if}
+            {/await}
           </button>
 
-          { voteCount || data.post.upvoteCount }
+          { data.post.upvoteCount }
         </div>
 
         <div class="timeline-reaction__item timeline-reaction__item--repost">

@@ -11,8 +11,8 @@
 </script>
 
 <div class="timeline">
-  {#each $timeline as data, index}
-    <TimelineItem data={ data } index={ index }></TimelineItem>
+  {#each $timeline as data (data)}
+    <TimelineItem data={ data }></TimelineItem>
   {/each}
 </div>
 
