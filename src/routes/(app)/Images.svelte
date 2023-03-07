@@ -53,6 +53,11 @@
         display: flex;
     }
 
+    .timeline-image button {
+        width: 100%;
+        height: 100%;
+    }
+
     .timeline-image:hover img {
         transform: scale(1.1);
     }

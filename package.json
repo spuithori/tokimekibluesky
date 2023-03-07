@@ -29,7 +29,6 @@
     "@vercel/analytics": "^0.1.11",
     "date-fns": "^2.29.3",
     "glightbox": "^3.2.0",
-    "svelte-infinite-scroll": "^2.0.1",
-    "svelte-photoswipe": "^0.0.2"
+    "svelte-infinite-scroll": "^2.0.1"
   }
 }
