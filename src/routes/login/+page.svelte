@@ -5,6 +5,7 @@
 
     let identifier = '';
     let password = '';
+    let errorMessage = '';
 
     async function login() {
         const agent = new AtpAgent({
@@ -19,7 +20,7 @@
             localStorage.setItem('session', JSON.stringify(agent.session))
             await goto('/');
         } catch (e) {
-
+            errorMessage = e.message;
         }
     }
 </script>
@@ -38,6 +39,10 @@
         </g>
       </svg>
     </div>
+
+    {#if (errorMessage)}
+      <p>{errorMessage}</p>
+    {/if}
 
     <dl class="input-group">
       <dt class="input-group__name">
