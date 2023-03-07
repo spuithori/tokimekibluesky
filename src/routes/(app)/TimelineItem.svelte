@@ -84,7 +84,7 @@
             {:then found}
               {#if (found)}
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17.872" viewBox="0 0 20 17.872">
-                  <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(-0.111 -1.105)" fill="#1172f0"/>
+                  <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(-0.111 -1.105)" fill="var(--color-theme-12)"/>
                 </svg>
               {:else}
                 <svg xmlns="http://www.w3.org/2000/svg" width="21" height="19.08" viewBox="0 0 21 19.08">
@@ -128,8 +128,7 @@
 
 <style>
     .timeline__item {
-        border: 1px solid #aaa;
-        background-color: #fff;
+        background-color: #FAFCFF;
         margin-bottom: 20px;
         padding: 10px;
         position: relative;
@@ -148,11 +147,11 @@
         top: 0;
         bottom: 0;
         width: 3px;
-        background-color: #4075a6;
+        background-color: var(--primary-color);
     }
 
     .timeline__date {
-        color: #666;
+        color: var(--color-theme-you);
         font-size: 15px;
     }
 

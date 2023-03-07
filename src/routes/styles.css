@@ -2,24 +2,39 @@
 
 :root {
 	--font-body: 'Noto Sans JP', sans-serif;
+
+	--color-theme-1: #ED7D95;
+	--color-theme-2: #E7D600;
+	--color-theme-3: #01B7ED;
+	--color-theme-4: #2A14B4;
+	--color-theme-5: #FF5800;
+	--color-theme-6: #9C5EDF;
+	--color-theme-7: #D81C2F;
+	--color-theme-8: #94C74C;
+	--color-theme-9: #FFFEFE;
+	--color-theme-10: #16B286;
+	--color-theme-11: #D6D5CA;
+	--color-theme-12: #ED958E;
+	--color-theme-you: #1D1D1D;
+
+	--primary-color: var(--color-theme-1);
+	--secondary-color: var(--color-theme-2);
+
 	--color-bg-0: rgb(202, 216, 228);
 	--color-bg-1: hsl(209, 36%, 86%);
 	--color-bg-2: hsl(224, 44%, 95%);
-	--color-theme-1: #ff3e00;
-	--color-theme-2: #4075a6;
+
 	--color-text: rgba(0, 0, 0, 1);
+
 	--column-width: 42rem;
 	--column-margin-top: 4rem;
-	font-family: var(--font-body);
-	color: var(--color-text);
-
-	--primary-color: #1172f0;
 }
 
 body {
 	min-height: 100vh;
 	margin: 0;
 	background-color: #fff;
+	color: var(--color-theme-you);
 	font-family: var(--font-body);
 	font-feature-settings: 'palt';
 }
@@ -34,7 +49,7 @@ p {
 }
 
 a {
-	color: var(--primary-color);
+	color: var(--color-theme-4);
 	text-decoration: none;
 }
 

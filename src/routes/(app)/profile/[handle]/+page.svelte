@@ -93,7 +93,7 @@
   }
 
   .profile-display-name {
-      font-size: 24px !important;
+      font-size: 24px;
       margin-bottom: 5px;
   }
 
@@ -102,13 +102,13 @@
   }
 
   .profile-relationship {
-      font-size: 20px !important;
+      font-size: 20px;
       font-weight: bold;
       line-height: 1.5;
   }
 
   .profile-relationship__item span {
-      color: var(--color-theme-2);
+      color: var(--color-theme-you);
   }
 
   .user-timeline {
