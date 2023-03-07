@@ -29,7 +29,8 @@
 
           isTextareaEnabled = false;
           publishContent = '';
-          timeline.set(await $agent.getTimeline(agent));
+          const data = await $agent.getTimeline();
+          timeline.set(data.feed);
       }
   })
 </script>

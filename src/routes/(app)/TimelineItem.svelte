@@ -36,7 +36,8 @@
     async function repost(cid, uri) {
         await $agent.setRepost(cid, uri);
 
-        timeline.set(await $agent.getTimeline());
+        const data = await $agent.getTimeline();
+        timeline.set(data.feed);
     }
 
     function replyOpen() {

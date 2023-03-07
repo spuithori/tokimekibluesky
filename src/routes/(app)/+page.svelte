@@ -14,7 +14,9 @@
 	let publish = function () {};
 
 	async function refresh() {
-		timeline.set(await $agent.getTimeline());
+		const data = await $agent.getTimeline()
+		timeline.set(data.feed)
+		// timeline.set(await $agent.getTimeline(20, ''));
 	}
 
 	async function logout() {
@@ -38,7 +40,8 @@
 
 			isTextareaEnabled = false;
 			publishContent = '';
-			timeline.set(await $agent.getTimeline(agent));
+			const data = await $agent.getTimeline();
+			timeline.set(data.feed);
 		}
 	})
 </script>
