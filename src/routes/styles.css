@@ -82,6 +82,7 @@ svg {
 .publish-form {
 	max-width: 64rem;
 	margin: 0 auto;
+	position: relative;
 }
 
 .publish-form__input {
@@ -91,7 +92,24 @@ svg {
 	font-size: 16px;
 	vertical-align: middle;
 	width: 100%;
-	padding: 10px 20px;
+	padding: 10px 40px 10px 20px;
+}
+
+.publish-form__submit {
+	position: absolute;
+	width: 30px;
+	height: 30px;
+	border-radius: 4px;
+	top: 10px;
+	right: 20px;
+	z-index: 10;
+	background-color: var(--color-theme-9);
+	padding: 5px;
+}
+
+.publish-form__submit svg {
+	width: 100%;
+	height: auto;
 }
 
 .button {

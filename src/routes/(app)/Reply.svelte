@@ -31,7 +31,7 @@
 
 <div class="reply">
   <div class="publish-form">
-    <textarea type="text" class="publish-form__input" disabled={isTextareaEnabled} bind:value={publishContent} on:keypress={publishKeypress} placeholder="PRESS ENTER..."></textarea>
+    <textarea type="text" class="publish-form__input" disabled={isTextareaEnabled} bind:value={publishContent} on:keypress={publishKeypress} placeholder="Alt + Enter"></textarea>
   </div>
 </div>
 
