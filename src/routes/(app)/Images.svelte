@@ -1,6 +1,5 @@
 <script>
     import GLightbox from 'glightbox';
-    import {onMount} from "svelte";
     export let images;
 
     let galleryImages = [];
@@ -15,12 +14,6 @@
     const gl = GLightbox({
         elements: galleryImages
     })
-
-    onMount(async () => {
-
-        console.log(gl)
-        console.log(galleryImages)
-    });
 
     function open(index) {
         gl.openAt(index);
