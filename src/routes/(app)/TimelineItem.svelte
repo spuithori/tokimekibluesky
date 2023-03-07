@@ -9,7 +9,7 @@
     export let index;
 
     let votes = 0;
-    let voteCount = data.post.upvoteCount
+    let voteCount = 0;
     let isReplyOpen = false;
     let myVoteCheck = false;
 
@@ -89,7 +89,7 @@
             {/if}
           </button>
 
-          { voteCount }
+          { voteCount || data.post.upvoteCount }
         </div>
 
         <div class="timeline-reaction__item timeline-reaction__item--repost">

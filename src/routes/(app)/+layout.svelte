@@ -12,17 +12,9 @@
   export let data: LayoutData;
   let ag = new AtpAgent({
       service: 'https://bsky.social',
-  })
-
-  if (!ag.hasSession) {
-      try {
-          ag.resumeSession(data.session);
-          agent.set(new Agent(ag));
-      } catch (e) {
-          console.log(e)
-          goto('/login');
-      }
-  }
+  });
+  ag.resumeSession(data.session);
+  agent.set(new Agent(ag));
 </script>
 
 <div class="app">
