@@ -108,7 +108,6 @@
       </div>
 
       {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.images !== 'undefined')}
-
         <div class="timeline-image">
           {#each data.post.embed.images as image}
             <div class="timeline-image__item">
@@ -116,7 +115,23 @@
             </div>
           {/each}
         </div>
+      {/if}
 
+      {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.external !== 'undefined')}
+        <div class="timeline-external">
+          {#if (data.post.embed.external.thumb)}
+            <div class="timeline-external__image">
+              <img src="{data.post.embed.external.thumb}" alt="">
+            </div>
+
+            <div class="timeline-external__content">
+              <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener">{data.post.embed.external.title}</a></p>
+              <p class="timeline-external__description">
+                {data.post.embed.external.description}
+              </p>
+            </div>
+          {/if}
+        </div>
       {/if}
 
       {#if (isReplyOpen)}
@@ -195,5 +210,38 @@
         display: flex;
         align-items: center;
         gap: 5px;
+    }
+
+    .timeline-external {
+        display: grid;
+        grid-template-columns: 80px 1fr;
+        gap: 10px;
+        background-color: #fff;
+        padding: 10px;
+        border: 1px solid #ccc;
+        position: relative;
+        margin-top: 10px;
+    }
+
+    .timeline-external__title {
+        margin-bottom: 5px;
+    }
+
+    .timeline-external__title a::before {
+        content: '';
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    .timeline-external__description {
+        font-size: 14px;
+    }
+
+    .timeline-external img {
+        width: 100%;
     }
 </style>

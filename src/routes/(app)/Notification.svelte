@@ -40,6 +40,11 @@
 
           <p class="notifications-item__content">{item.record.text}</p>
         </article>
+      {:else if (item.reason === 'follow')}
+        <article class="notification-item notification-item--follow">
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName}</a></span> にフォローされたよ</h2>
+          <button class="button button--ss">フォロー返し（工事中）</button>
+        </article>
       {:else}
       {/if}
     {/each}
@@ -77,6 +82,12 @@
   .notification-item {
       border-bottom: 1px solid #aaa;
       padding: 10px 0;
+  }
+
+  .notification-item--follow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
   }
 
   .notifications-item__title {
