@@ -1,6 +1,6 @@
 <script lang="ts">
     import "../styles.css";
-    import {AtpAgent} from "@atproto/api";
+    import {AtpAgent, AtpSessionEvent, AtpSessionData} from "@atproto/api";
     import {goto} from "$app/navigation";
 
     let identifier = '';
@@ -9,6 +9,9 @@
     async function login() {
         const agent = new AtpAgent({
             service: 'https://bsky.social',
+            persistSession: (evt: AtpSessionEvent, sess?: AtpSessionData) => {
+
+            }
         });
 
         try {

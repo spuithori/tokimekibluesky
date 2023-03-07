@@ -3,23 +3,30 @@
   import "../styles.css";
   import { agent } from '$lib/stores';
   import { Agent } from "$lib/agent";
-  import type { LayoutData } from './$types';
   import {onMount} from "svelte";
-  import {AtpAgent} from "@atproto/api";
-  import {redirect} from "@sveltejs/kit";
+  import {AtpAgent, AtpSessionData, AtpSessionEvent} from "@atproto/api";
   import {goto} from "$app/navigation";
 
-  let ag = new AtpAgent({
-      service: 'https://bsky.social',
-  });
-
-  try {
-      ag.resumeSession(JSON.parse(localStorage.getItem('session')));
-      agent.set(new Agent(ag));
-  } catch (e) {
+  const session = localStorage.getItem('session');
+  if (!session) {
       goto('/login');
   }
 
+  let ag = new AtpAgent({
+      service: 'https://bsky.social',
+      persistSession: (evt: AtpSessionEvent, sess?: AtpSessionData) => {
+          localStorage.setItem('session', JSON.stringify(sess))
+      }
+  });
+
+  if (!ag.session) {
+      try {
+          ag.resumeSession(JSON.parse(localStorage.getItem('session')));
+          agent.set(new Agent(ag));
+      } catch (e) {
+          goto('/login');
+      }
+  }
 </script>
 
 <div class="app">
