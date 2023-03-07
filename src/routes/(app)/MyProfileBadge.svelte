@@ -10,7 +10,7 @@
 </script>
 
 <div class="my-profile-badge">
-  <a href="/profile/{profile.handle}">
+  <a href="/profile/{profile.handle}" data-sveltekit-reload>
     <img src="{profile.avatar}" alt="">
   </a>
 </div>

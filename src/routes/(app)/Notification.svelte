@@ -3,10 +3,11 @@
     import { onMount } from 'svelte';
     let notifications = Promise;
     import { fade, fly } from 'svelte/transition';
+    import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
 
     async function load() {
         let n = await $agent.agent.api.app.bsky.notification.list();
-        // console.log(n.data.notifications)
+        console.log(n.data.notifications)
         return n.data.notifications
     }
     notifications = load();
@@ -18,7 +19,7 @@
     {#each list as item}
       {#if (item.reason === 'vote')}
         <article class="notification-item">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a target="_self" href="/profile/{item.author.handle}">{item.author.displayName}</a></span> がいいねしました</h2>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a  href="/profile/{item.author.handle}" data-sveltekit-reload>{item.author.displayName}</a></span> がいいねしました</h2>
 
           {#await $agent.getFeed(item.record.subject.uri)}
           {:then feed}
@@ -27,7 +28,7 @@
         </article>
       {:else if (item.reason === 'repost')}
         <article class="notification-item">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a target="_self" href="/profile/{item.author.handle}">{item.author.displayName}</a></span> がリポストしました</h2>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}" data-sveltekit-reload>{item.author.displayName}</a></span> がリポストしました</h2>
 
           {#await $agent.getFeed(item.record.subject.uri)}
           {:then feed}
@@ -36,14 +37,14 @@
         </article>
       {:else if (item.reason === 'reply')}
         <article class="notification-item">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName}</a></span> が返信しました</h2>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}" data-sveltekit-reload>{item.author.displayName}</a></span> が返信しました</h2>
 
           <p class="notifications-item__content">{item.record.text}</p>
         </article>
       {:else if (item.reason === 'follow')}
         <article class="notification-item notification-item--follow">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName}</a></span> にフォローされたよ</h2>
-          <button class="button button--ss">フォロー返し（工事中）</button>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}" data-sveltekit-reload>{item.author.displayName}</a></span> にフォローされたよ</h2>
+          <UserFollowButton following="{item.author.viewer?.following}" user={item.author}></UserFollowButton>
         </article>
       {:else}
       {/if}

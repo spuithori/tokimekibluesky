@@ -3,7 +3,7 @@
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
 	import { timeline } from "$lib/stores";
-	import {goto} from "$app/navigation";
+	import { goto } from "$app/navigation";
 
 	let publishContent = '';
 	let isTextareaEnabled = false;

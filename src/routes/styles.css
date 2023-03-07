@@ -116,6 +116,7 @@ svg {
 	color: #fff;
 	font-weight: 600;
 	transition: opacity .2s ease-in-out, transform .05s ease-in-out;
+	position: relative;
 }
 
 .button:hover {
@@ -132,11 +133,49 @@ svg {
 	color: var(--primary-color);
 }
 
+.button--following {
+	overflow: hidden;
+	background-color: var(--color-theme-11);
+}
+
+.button--following:hover {
+	opacity: 1;
+}
+
+.button--following::before {
+	content: 'フォロー解除';
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	background-color: var(--color-theme-7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	visibility: hidden;
+	transition: all .1s ease-in-out;
+}
+
+.button--following:hover::before {
+	opacity: 1;
+	visibility: visible;
+	transform: scale(1.2);
+}
+
 .button--ss {
 	height: 30px;
 	border-radius: 15px;
 	min-width: 150px;
 	font-size: 12px;
+}
+
+.button--sm {
+	height: 40px;
+	border-radius: 20px;
+	min-width: 150px;
+	font-size: 15px;
 }
 
 .buttons-group {
