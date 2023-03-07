@@ -137,7 +137,7 @@
       {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.record !== 'undefined')}
         <div class="timeline-external timeline-external--record">
           {#if (data.post.embed.record.author.avatar)}
-            <div class="timeline-external__image">
+            <div class="timeline-external__image timeline-external__image--round">
               <img src="{data.post.embed.record.author.avatar}" alt="">
             </div>
 
@@ -247,7 +247,7 @@
         background-position: right 10px top 10px;
     }
 
-    .timeline-external--record .timeline-external__image {
+    .timeline-external__image--round {
         display: flex;
         border-radius: 50%;
         overflow: hidden;
