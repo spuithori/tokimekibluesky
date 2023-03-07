@@ -9,9 +9,9 @@ export const Agent = class {
         return this.agent.session.did;
     }
 
-    async getTimeline() {
-        const dataRaw = await this.agent.api.app.bsky.feed.getTimeline({ limit: 20 });
-        const data = dataRaw.data.feed;
+    async getTimeline(limit = 20, before = '') {
+        const dataRaw = await this.agent.api.app.bsky.feed.getTimeline({ limit: limit, before: before });
+        const data = dataRaw.data;
 
         return data;
     }
