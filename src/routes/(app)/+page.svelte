@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from "svelte";
 	import Timeline from "./Timeline.svelte";
-	import { agent, cursor } from '$lib/stores';
+	import { agent, cursor, notificationCount } from '$lib/stores';
 	import { timeline } from "$lib/stores";
 	import {goto} from "$app/navigation";
 
@@ -17,6 +17,7 @@
 		const data = await $agent.getTimeline();
 		timeline.set(data.feed);
 		cursor.set(data.cursor);
+		notificationCount.set(await $agent.getNotificationCount());
 	}
 
 	async function logout() {

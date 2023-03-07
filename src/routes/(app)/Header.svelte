@@ -3,23 +3,21 @@
     import Notification from "./Notification.svelte";
     import { fade, fly } from 'svelte/transition';
     import {onMount} from "svelte";
-    import {agent} from "$lib/stores";
+    import {agent, notificationCount} from "$lib/stores";
 
     let isNotificationOpen = false;
-    let notificationCount = 0;
 
     async function notificationToggle() {
         isNotificationOpen = isNotificationOpen !== true;
 
         if (isNotificationOpen) {
             await $agent.agent.api.app.bsky.notification.updateSeen( {seenAt: new Date().toISOString()});
-            notificationCount = 0;
+            notificationCount.set(0);
         }
     }
 
     onMount(async () => {
-        const data = await $agent.agent.api.app.bsky.notification.getCount();
-        notificationCount = data.data.count;
+        notificationCount.set(await $agent.getNotificationCount());
     })
 </script>
 
@@ -38,8 +36,8 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="33.309" viewBox="0 0 30 33.309">
           <path id="notifications-outline" d="M40.333,13.781V25.447H53.667V13.781a6.667,6.667,0,1,0-13.333,0Zm3.383-9.45a3.238,3.238,0,0,1-.042-.525A3.333,3.333,0,1,1,50.3,4.35l0-.019a10.021,10.021,0,0,1,6.7,9.44v.011h0v10l5,3.333v1.667H32V27.114l5-3.333v-10a10,10,0,0,1,6.647-9.424l.07-.022Zm6.617,26.117a3.333,3.333,0,1,1-6.667,0h6.667Z" transform="translate(-32 -0.472)" fill="#525252"/>
         </svg>
-        {#if notificationCount}
-          <span class="notification-button__count">{notificationCount}</span>
+        {#if $notificationCount}
+          <span class="notification-button__count">{$notificationCount}</span>
         {/if}
       </button>
 

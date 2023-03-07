@@ -16,3 +16,5 @@ function createTimeline () {
 
 export const timeline = createTimeline();
 export const cursor = writable('');
+
+export const notificationCount = writable(0);

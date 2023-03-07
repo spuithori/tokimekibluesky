@@ -1,6 +1,6 @@
 <script>
     import { agent } from '$lib/stores';
-    import { timeline, cursor } from "$lib/stores";
+    import { timeline, cursor, notificationCount } from "$lib/stores";
     import Reply from "./Reply.svelte";
     import {format, formatDistanceToNow, parseISO} from 'date-fns';
     import {onMount} from "svelte";
@@ -36,11 +36,14 @@
     async function repost(cid, uri) {
         await $agent.setRepost(cid, uri);
 
+
         if (!isPrivate) {
             const data = await $agent.getTimeline();
             timeline.set(data.feed);
             cursor.set(data.cursor);
         }
+
+        notificationCount.set(await $agent.getNotificationCount());
     }
 
     function replyOpen() {

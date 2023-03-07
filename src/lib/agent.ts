@@ -47,6 +47,12 @@ export const Agent = class {
     async getFeed(uri, depth = 0) {
         const feed = await this.agent.api.app.bsky.feed.getPostThread({uri: uri, depth: depth})
 
-        return feed.data.thread
+        return feed.data.thread;
+    }
+
+    async getNotificationCount() {
+        const count = await this.agent.api.app.bsky.notification.getCount()
+
+        return count.data.count;
     }
 }
