@@ -13,7 +13,11 @@ export const load = async ({request, cookies, fetch}) => {
     });
 
     if (!agent.hasSession) {
-        await agent.resumeSession(JSON.parse(token));
+        try {
+            await agent.resumeSession(JSON.parse(token));
+        } catch (e) {
+            throw redirect(302, '/login');
+        }
     }
 
     return {
