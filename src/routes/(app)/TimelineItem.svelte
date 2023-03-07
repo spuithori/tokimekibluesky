@@ -4,7 +4,7 @@
     import Reply from "./Reply.svelte";
     import {format, formatDistanceToNow, parseISO} from 'date-fns';
     import {onMount} from "svelte";
-    import {ja} from "date-fns/locale";
+    import ja from 'date-fns/locale/ja/index';
 
     export let data = {};
     export let index;
