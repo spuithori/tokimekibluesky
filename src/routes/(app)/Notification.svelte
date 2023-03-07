@@ -25,6 +25,15 @@
             <p class="notifications-item__content">{feed.post.record.text}</p>
           {/await}
         </article>
+      {:else if (item.reason === 'repost')}
+        <article class="notification-item">
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a target="_self" href="/profile/{item.author.handle}">{item.author.displayName}</a></span> がリポストしました</h2>
+
+          {#await $agent.getFeed(item.record.subject.uri)}
+          {:then feed}
+            <p class="notifications-item__content">{feed.post.record.text}</p>
+          {/await}
+        </article>
       {:else if (item.reason === 'reply')}
         <article class="notification-item">
           <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName}</a></span> が返信しました</h2>

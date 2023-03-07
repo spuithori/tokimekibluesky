@@ -9,7 +9,6 @@
 	let isTextareaEnabled = false;
 
 	const publishKeypress = e => {
-		console.log(e)
 		if (e.keyCode === 13 && e.altKey) publish();
 	};
 	let publish = function () {};
