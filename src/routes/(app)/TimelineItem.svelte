@@ -134,6 +134,23 @@
         </div>
       {/if}
 
+      {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.record !== 'undefined')}
+        <div class="timeline-external timeline-external--record">
+          {#if (data.post.embed.record.author.avatar)}
+            <div class="timeline-external__image">
+              <img src="{data.post.embed.record.author.avatar}" alt="">
+            </div>
+
+            <div class="timeline-external__content">
+              <p class="timeline-external__title">{data.post.embed.record.author.displayName}</p>
+              <p class="timeline-external__description">
+                {data.post.embed.record.record.text}
+              </p>
+            </div>
+          {/if}
+        </div>
+      {/if}
+
       {#if (isReplyOpen)}
         <Reply post={data.post} replyRef={data.reply || undefined}></Reply>
       {/if}
@@ -221,6 +238,16 @@
         border: 1px solid #ccc;
         position: relative;
         margin-top: 10px;
+    }
+
+    .timeline-external--record {
+        grid-template-columns: 60px 1fr;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='17.534' height='15.557' viewBox='0 0 17.534 15.557'%3E%3Cpath id='パス_3' data-name='パス 3' d='M-21.621-46.169H-14.4V-42a16.107,16.107,0,0,1-4.43,11.391h-3.217a16.322,16.322,0,0,0,3.876-8.332h-3.454Zm9.94,0h7.172V-42a15.93,15.93,0,0,1-4.43,11.391H-12.1a15.562,15.562,0,0,0,3.823-8.332h-3.4Z' transform='translate(22.043 46.169)' fill='%23c9c9c9'/%3E%3C/svg%3E%0A");
+        background-position: right 10px top 10px;
+    }
+
+    .timeline-external--record .timeline-external__image img {
+        border-radius: 50%;
     }
 
     .timeline-external__title {
