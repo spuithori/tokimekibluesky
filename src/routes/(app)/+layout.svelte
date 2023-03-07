@@ -7,18 +7,22 @@
   import {onMount} from "svelte";
   import {AtpAgent} from "@atproto/api";
   import {redirect} from "@sveltejs/kit";
+  import {goto} from "$app/navigation";
 
   export let data: LayoutData;
   let ag = new AtpAgent({
       service: 'https://bsky.social',
   })
-  ag.session = data.session;
 
   if (!ag.hasSession) {
-      throw redirect(302, '/login');
+      try {
+          ag.resumeSession(data.session);
+          agent.set(new Agent(ag));
+      } catch (e) {
+          console.log(e)
+          goto('/login');
+      }
   }
-
-  agent.set(new Agent(ag));
 </script>
 
 <div class="app">
