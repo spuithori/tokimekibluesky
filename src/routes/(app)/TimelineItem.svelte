@@ -120,7 +120,7 @@
       {/if}
 
       {#if (isReplyOpen)}
-        <Reply post={data.post} replyRef={data.reply}></Reply>
+        <Reply post={data.post} replyRef={data.reply || undefined}></Reply>
       {/if}
     </div>
   </div>

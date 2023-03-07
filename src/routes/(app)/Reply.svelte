@@ -19,7 +19,7 @@
 
           await $agent.agent.api.app.bsky.feed.post.create(
               { did: $agent.did() },
-              { text: publishContent, createdAt: new Date().toISOString(), reply: { parent: post, root: replyRef.root } },
+              { text: publishContent, createdAt: new Date().toISOString(), reply: { parent: post, root: (replyRef ? replyRef.root : post) } },
           );
 
           isTextareaEnabled = false;
