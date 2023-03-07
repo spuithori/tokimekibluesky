@@ -24,16 +24,24 @@ export const actions: Actions = {
             }
         })
 
-        await agent.login({identifier: formData.get('email'), password: formData.get('password')})
+        try {
+            await agent.login({identifier: formData.get('email'), password: formData.get('password')})
 
-        cookies.set('session', JSON.stringify(sessd), {
-            httpOnly: true,
-            path: '/',
-            secure: true,
-            sameSite: 'strict',
-            maxAge: 60 * 60 * 24,
-        });
+            cookies.set('session', JSON.stringify(sessd), {
+                httpOnly: true,
+                path: '/',
+                secure: true,
+                sameSite: 'strict',
+                maxAge: 60 * 60 * 24,
+            });
+        } catch (e) {
+            console.log(e);
 
-        throw redirect(302, '/')
+            return {
+                log: 'メールアドレスまたはパスワードが異なります。'
+            }
+        }
+
+        throw redirect(302, '/');
     }
 };
