@@ -1,7 +1,6 @@
 <script lang="ts">
     import "../styles.css";
     import { enhance } from '$app/forms';
-    import {da} from "date-fns/locale";
     /** @type {import('../../../../.svelte-kit/types/src/routes').ActionData} */
     export let form;
 </script>

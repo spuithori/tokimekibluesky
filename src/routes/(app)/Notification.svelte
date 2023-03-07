@@ -53,6 +53,18 @@
       z-index: 200;
   }
 
+  @media (max-width: 767px) {
+      .notification {
+          position: fixed;
+          top: 70px;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: auto;
+          height: auto;
+      }
+  }
+
   .notification-item {
       border-bottom: 1px solid #aaa;
       padding: 10px 0;
