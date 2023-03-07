@@ -1,4 +1,5 @@
 @import "./ress.css";
+@import '../../node_modules/glightbox/dist/css/glightbox.min.css';
 
 :root {
 	--font-body: 'Noto Sans JP', sans-serif;
@@ -67,16 +68,8 @@ svg {
 	display: block;
 }
 
-.timeline-image {
+.timeline-images-wrap {
 	margin-top: 10px;
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-	gap: 10px;
-}
-
-.timeline-image img {
-	width: 100%;
-	height: auto;
 }
 
 .publish-form {
@@ -156,4 +149,9 @@ svg {
 		min-width: 0;
 		padding: 0 20px;
 	}
+}
+
+.pswp__img {
+	max-height: 90vh;
+	object-fit: contain;
 }

@@ -5,6 +5,7 @@
     import {format, formatDistanceToNow, parseISO} from 'date-fns';
     import {onMount} from "svelte";
     import ja from 'date-fns/locale/ja/index';
+    import Images from "./Images.svelte";
 
     export let data = {};
     export let isPrivate = false;
@@ -115,12 +116,8 @@
       </div>
 
       {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.images !== 'undefined')}
-        <div class="timeline-image">
-          {#each data.post.embed.images as image}
-            <div class="timeline-image__item">
-              <img src="{image.fullsize}" alt="" loading="lazy">
-            </div>
-          {/each}
+        <div class="timeline-images-wrap">
+          <Images images={data.post.embed.images}></Images>
         </div>
       {/if}
 
