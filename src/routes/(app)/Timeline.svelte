@@ -4,11 +4,6 @@
   import { timeline } from "$lib/stores";
   import TimelineItem from "./TimelineItem.svelte";
 
-  async function vote(cid, uri) {
-      await $agent.setVote(cid, uri);
-      timeline.update(await $agent.getTimeline());
-  }
-
   onMount(async () => {
       timeline.set(await $agent.getTimeline());
       console.log(await $timeline)

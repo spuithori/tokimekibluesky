@@ -2,8 +2,9 @@
     import { agent } from '$lib/stores';
     import { timeline } from "$lib/stores";
     import Reply from "./Reply.svelte";
-    import { format, parseISO } from 'date-fns';
+    import {format, formatDistanceToNow, parseISO} from 'date-fns';
     import {onMount} from "svelte";
+    import {ja} from "date-fns/locale";
 
     export let data = {};
     export let index;
@@ -61,7 +62,7 @@
     <div class="timeline__content">
       <div class="timeline__meta">
         <p class="timeline__user">{ data.post.author.displayName }</p>
-        <p class="timeline__date">{format(parseISO(data.post.record.createdAt), 'yyyy.MM.dd HH:mm:ss')}</p>
+        <p class="timeline__date">{formatDistanceToNow(parseISO(data.post.record.createdAt), {locale: ja})}</p>
       </div>
 
       <p class="timeline__text">{ data.post.record.text }</p>
@@ -148,13 +149,14 @@
 
     .timeline__date {
         color: #666;
+        font-size: 15px;
     }
 
     .timeline__meta {
         display: flex;
         align-items: baseline;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 10px;
     }
 
     .timeline__image {
