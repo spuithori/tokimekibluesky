@@ -233,6 +233,7 @@
         display: grid;
         grid-template-columns: 80px 1fr;
         gap: 10px;
+        align-items: flex-start;
         background-color: #fff;
         padding: 10px;
         border: 1px solid #ccc;
@@ -246,8 +247,10 @@
         background-position: right 10px top 10px;
     }
 
-    .timeline-external--record .timeline-external__image img {
+    .timeline-external--record .timeline-external__image {
+        display: flex;
         border-radius: 50%;
+        overflow: hidden;
     }
 
     .timeline-external__title {
