@@ -9,12 +9,17 @@
   import {redirect} from "@sveltejs/kit";
   import {goto} from "$app/navigation";
 
-  export let data: LayoutData;
   let ag = new AtpAgent({
       service: 'https://bsky.social',
   });
-  ag.resumeSession(data.session);
-  agent.set(new Agent(ag));
+
+  try {
+      ag.resumeSession(JSON.parse(localStorage.getItem('session')));
+      agent.set(new Agent(ag));
+  } catch (e) {
+      goto('/login');
+  }
+
 </script>
 
 <div class="app">

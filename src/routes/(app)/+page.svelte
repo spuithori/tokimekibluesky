@@ -3,6 +3,7 @@
 	import Timeline from "./Timeline.svelte";
 	import { agent } from '$lib/stores';
 	import { timeline } from "$lib/stores";
+	import {goto} from "$app/navigation";
 
 	let publishContent = '';
 	let isTextareaEnabled = false;
@@ -15,6 +16,11 @@
 
 	async function refresh() {
 		timeline.set(await $agent.getTimeline());
+	}
+
+	async function logout() {
+		localStorage.removeItem('session');
+		goto('/login');
 	}
 
 	onMount(async () => {
@@ -50,9 +56,7 @@
 		</div>
 
 		<div class="logout">
-			<form method="POST" action="?/logout">
-				<button class="button button--border button--white" type="submit" name="logout" value="true">ログアウト</button>
-			</form>
+			<button class="button button--border button--white" type="submit" name="logout" on:click={logout}>ログアウト</button>
 		</div>
 	</div>
 

@@ -1,8 +1,24 @@
 <script lang="ts">
     import "../styles.css";
-    import { enhance } from '$app/forms';
-    /** @type {import('../../../../.svelte-kit/types/src/routes').ActionData} */
-    export let form;
+    import {AtpAgent} from "@atproto/api";
+    import {goto} from "$app/navigation";
+
+    let identifier = '';
+    let password = '';
+
+    async function login() {
+        const agent = new AtpAgent({
+            service: 'https://bsky.social',
+        });
+
+        try {
+            await agent.login({identifier: identifier, password: password})
+            localStorage.setItem('session', JSON.stringify(agent.session))
+            await goto('/');
+        } catch (e) {
+
+        }
+    }
 </script>
 
 <svelte:head>
@@ -20,41 +36,29 @@
       </svg>
     </div>
 
-    {#if (form)}
-      {form.log}
-    {/if}
+    <dl class="input-group">
+      <dt class="input-group__name">
+        <label for="email">Email</label>
+      </dt>
 
-    <form method="POST" use:enhance>
-      <dl class="input-group">
-        <dt class="input-group__name">
-          <label for="email">Email</label>
-        </dt>
+      <dd class="input-group__content">
+        <input class="input-group__input" type="email" name="email" id="email" placeholder="Email" bind:value="{identifier}" required />
+      </dd>
+    </dl>
 
-        <dd class="input-group__content">
-          <input class="input-group__input" type="email" name="email" id="email" placeholder="Email" required />
-        </dd>
-      </dl>
+    <dl class="input-group">
+      <dt class="input-group__name">
+        <label for="password">Password</label>
+      </dt>
 
-      <dl class="input-group">
-        <dt class="input-group__name">
-          <label for="password">Password</label>
-        </dt>
+      <dd class="input-group__content">
+        <input class="input-group__input" type="password" name="password" id="password" placeholder="Password" bind:value="{password}" required />
+      </dd>
+    </dl>
 
-        <dd class="input-group__content">
-          <input class="input-group__input" type="password" name="password" id="password" placeholder="Password" required />
-        </dd>
-      </dl>
-
-      <div class="login-submit">
-        <button class="button button--login button--login-submit" type="submit">Login</button>
-      </div>
-
-      {#if form?.error}
-        <div class="notice error">
-          {form.error}
-        </div>
-      {/if}
-    </form>
+    <div class="login-submit">
+      <button class="button button--login button--login-submit" type="submit" on:click={login}>Login</button>
+    </div>
   </div>
 </section>
 
