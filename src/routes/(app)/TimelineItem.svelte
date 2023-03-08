@@ -272,7 +272,6 @@
     .timeline-external__image {
         background-color: #fafafa;
         aspect-ratio: 1 / 1;
-        height: 100%;
     }
 
     .timeline-external__image--round {
