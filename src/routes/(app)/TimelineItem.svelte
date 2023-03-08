@@ -3,9 +3,10 @@
     import { timeline, cursor, notificationCount } from "$lib/stores";
     import Reply from "./Reply.svelte";
     import {format, formatDistanceToNow, parseISO} from 'date-fns';
-    import {onMount} from "svelte";
+    import {afterUpdate, onMount} from "svelte";
     import ja from 'date-fns/locale/ja/index';
     import Images from "./Images.svelte";
+    import {postRecordFormatter} from "$lib/postRecordFormatter";
 
     export let data = {};
     export let isPrivate = false;
@@ -15,12 +16,17 @@
     let isReplyOpen = false;
     let myVoteCheck = false;
     let uriId = '';
+    let textArray = [];
 
     onMount(async () => {
         async function test () {
             return await $agent.myVoteCheck(data.post.uri) !== undefined;
         }
         myVoteCheck = await test();
+    })
+
+    afterUpdate(async() => {
+        textArray = postRecordFormatter(data.post.record);
     })
 
     async function vote(cid, uri) {
@@ -85,7 +91,15 @@
         <p class="timeline__date"><time datetime="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.record.createdAt), {locale: ja})}</time></p>
       </div>
 
-      <p class="timeline__text">{ data.post.record.text }</p>
+      <p class="timeline__text">
+        {#each textArray as item}
+          {#if (item.type === 'link')}
+            <a href="{item.url}" target="_blank" rel="noopener nofollow noreferrer">{item.content}</a><br>
+          {:else}
+            {item.content}<br>
+          {/if}
+        {/each}
+      </p>
 
       <div class="timeline-reaction">
         <div class="timeline-reaction__item timeline-reaction__item--reply">

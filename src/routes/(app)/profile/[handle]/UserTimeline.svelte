@@ -9,6 +9,7 @@
     onMount(async () => {
         feeds = await $agent.agent.api.app.bsky.feed.getAuthorFeed({author: author});
         feeds = feeds.data.feed;
+        console.log(feeds)
     });
 </script>
 
