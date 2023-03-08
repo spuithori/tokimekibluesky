@@ -10,12 +10,14 @@
   <article class="user-item__user">
     <div class="user-item__avatar">
       <a href="/profile/{user.handle}" data-sveltekit-reload>
-        <img src="{user.avatar}" alt="">
+        {#if (user.avatar)}
+          <img src="{user.avatar}" alt="">
+        {/if}
       </a>
     </div>
 
     <div class="user-item__content">
-      <h3 class="user-item__title">{user.displayName}</h3>
+      <h3 class="user-item__title">{user.displayName || user.handle}</h3>
       <p class="user-item__text">{user.handle}</p>
     </div>
   </article>
@@ -48,6 +50,8 @@
       display: flex;
       border-radius: 50%;
       overflow: hidden;
+      background-color: var(--primary-color);
+      aspect-ratio: 1 / 1;
   }
 
   .user-item__text {

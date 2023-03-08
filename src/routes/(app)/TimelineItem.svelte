@@ -81,13 +81,15 @@
   <div class="timeline__column">
     <div class="timeline__image">
       <a href="/profile/{ data.post.author.handle }" data-sveltekit-reload>
-        <img src="{ data.post.author.avatar }" alt="">
+        {#if (data.post.author.avatar)}
+          <img src="{ data.post.author.avatar }" alt="">
+        {/if}
       </a>
     </div>
 
     <div class="timeline__content">
       <div class="timeline__meta">
-        <p class="timeline__user" title="{data.post.author.handle}">{ data.post.author.displayName }</p>
+        <p class="timeline__user" title="{data.post.author.handle}">{ data.post.author.displayName || data.post.author.handle }</p>
         <p class="timeline__date"><time datetime="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.record.createdAt), {locale: ja})}</time></p>
       </div>
 
@@ -225,8 +227,22 @@
     }
 
     .timeline__image {
+        background-color: var(--primary-color);
+        aspect-ratio: 1 / 1;
         border-radius: 30px;
         overflow: hidden;
+        position: relative;
+    }
+
+    .timeline__image a::before {
+        content: '';
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 30px;
     }
 
     .timeline__column {

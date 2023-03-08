@@ -43,18 +43,24 @@
   {:then profile}
 
     <div class="profile-banner">
-      <img src="{profile.banner}" alt="" loading="lazy">
+      {#if (profile.banner)}
+        <img src="{profile.banner}" alt="" loading="lazy">
+      {/if}
     </div>
 
     <div class="profile-column">
       <div class="profile-meta">
         <div class="profile-avatar">
-          <img src="{profile.avatar}" alt="">
+          {#if (profile.avatar)}
+            <img src="{profile.avatar}" alt="">
+          {/if}
         </div>
 
         <div class="profile-content">
-          <h1 class="profile-display-name">{profile.displayName}</h1>
-          <p class="profile-handle">{profile.handle}</p>
+          <h1 class="profile-display-name">{profile.displayName || profile.handle}</h1>
+          {#if (profile.displayName)}
+            <p class="profile-handle">{profile.handle}</p>
+          {/if}
         </div>
       </div>
 
@@ -70,9 +76,11 @@
       </div>
     {/if}
 
-    <div class="profile-description">
-      <p class="profile-description__text">{profile.description}</p>
-    </div>
+    {#if (profile.description)}
+      <div class="profile-description">
+        <p class="profile-description__text">{profile.description}</p>
+      </div>
+    {/if}
 
     <ul class="profile-tab">
       <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>投稿</a></li>
@@ -116,6 +124,7 @@
         height: 100%;
         border-radius: 50%;
         overflow: hidden;
+        background-color: var(--primary-color);
     }
 
     .profile-avatar img {
