@@ -167,20 +167,22 @@
       {/if}
 
       {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.record !== 'undefined')}
-        <div class="timeline-external timeline-external--record">
-          <div class="timeline-external__image timeline-external__image--round">
-            {#if (data.post.embed.record.author.avatar)}
-              <img src="{data.post.embed.record.author.avatar}" alt="">
-            {/if}
-          </div>
+        <a href="/thread/{encodeURIComponent(data.post.embed.record.uri)}" class="block-link" data-sveltekit-reload>
+          <div class="timeline-external timeline-external--record">
+            <div class="timeline-external__image timeline-external__image--round">
+              {#if (data.post.embed.record.author.avatar)}
+                <img src="{data.post.embed.record.author.avatar}" alt="">
+              {/if}
+            </div>
 
-          <div class="timeline-external__content">
-            <p class="timeline-external__title">{data.post.embed.record.author.displayName}</p>
-            <p class="timeline-external__description">
-              {data.post.embed.record.record.text}
-            </p>
+            <div class="timeline-external__content">
+              <p class="timeline-external__title">{data.post.embed.record.author.displayName}</p>
+              <p class="timeline-external__description">
+                {data.post.embed.record.record.text}
+              </p>
+            </div>
           </div>
-        </div>
+        </a>
       {/if}
 
       {#if (isReplyOpen)}
@@ -330,5 +332,7 @@
 
     .timeline-external img {
         width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 </style>

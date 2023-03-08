@@ -198,3 +198,12 @@ img {
 	max-height: 90vh;
 	object-fit: contain;
 }
+
+.block-link {
+	color: inherit;
+	display: block;
+}
+
+.block-link:hover {
+	text-decoration: none;
+}
