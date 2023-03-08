@@ -68,6 +68,10 @@ svg {
 	display: block;
 }
 
+img {
+	vertical-align: middle;
+}
+
 .timeline-images-wrap {
 	margin-top: 10px;
 }

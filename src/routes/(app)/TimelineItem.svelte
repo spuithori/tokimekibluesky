@@ -14,6 +14,7 @@
     let voteCount = 0;
     let isReplyOpen = false;
     let myVoteCheck = false;
+    let uriId = '';
 
     onMount(async () => {
         async function test () {
@@ -47,6 +48,11 @@
         notificationCount.set(await $agent.getNotificationCount());
     }
 
+    function getUriId() {
+        return encodeURIComponent(data.post.uri)
+    }
+    uriId = getUriId();
+
     function replyOpen() {
         isReplyOpen = isReplyOpen !== true;
     }
@@ -60,6 +66,11 @@
   {#if (data.reply)}
     <p class="timeline-repost-message">{ data.reply.parent.author.displayName } に返信</p>
   {/if}
+
+  <a class="timeline__conv" href="/thread/{uriId}" data-sveltekit-reload><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+    <path id="conversation" d="M25.5,16.5V21L21,16.5H12a3,3,0,0,1-3-3H9V3a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V13.5a3,3,0,0,1-3,3H25.5Zm-4.5,3v3a3,3,0,0,1-3,3H9L4.5,30V25.5H3a3,3,0,0,1-3-3H0V12A3.009,3.009,0,0,1,3,9H6v4.5a6,6,0,0,0,6,6h9Z" fill="#90BAF0"/>
+  </svg>
+  </a>
 
   <div class="timeline__column">
     <div class="timeline__image">
@@ -132,7 +143,8 @@
           <div class="timeline-external__content">
             <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener">{data.post.embed.external.title}</a></p>
             <p class="timeline-external__description">
-              {data.post.embed.external.description}
+              {data.post.embed.external.description}<br>
+              {data.post.embed.external.uri}
             </p>
           </div>
         </div>
@@ -166,7 +178,7 @@
     .timeline__item {
         background-color: #FAFCFF;
         margin-bottom: 20px;
-        padding: 10px 20px;
+        padding: 10px 50px 10px 20px;
         position: relative;
     }
 
@@ -210,6 +222,12 @@
         gap: 20px;
     }
 
+    .timeline__conv {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
     .timeline__text {
         white-space: pre-wrap;
     }
@@ -249,6 +267,12 @@
         grid-template-columns: 60px 1fr;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='17.534' height='15.557' viewBox='0 0 17.534 15.557'%3E%3Cpath id='パス_3' data-name='パス 3' d='M-21.621-46.169H-14.4V-42a16.107,16.107,0,0,1-4.43,11.391h-3.217a16.322,16.322,0,0,0,3.876-8.332h-3.454Zm9.94,0h7.172V-42a15.93,15.93,0,0,1-4.43,11.391H-12.1a15.562,15.562,0,0,0,3.823-8.332h-3.4Z' transform='translate(22.043 46.169)' fill='%23c9c9c9'/%3E%3C/svg%3E%0A");
         background-position: right 10px top 10px;
+    }
+
+    .timeline-external__image {
+        background-color: #fafafa;
+        aspect-ratio: 1 / 1;
+        height: 100%;
     }
 
     .timeline-external__image--round {

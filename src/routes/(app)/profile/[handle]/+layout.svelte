@@ -5,6 +5,7 @@
     let profile = Promise;
 
     import type { LayoutData } from './$types';
+    import UserFollowButton from "./UserFollowButton.svelte";
 
     export let data: LayoutData;
     let currentPage = 'posts';
@@ -62,6 +63,12 @@
         <p class="profile-relationship__item"><span>{profile.followersCount}</span> フォロワー</p>
       </div>
     </div>
+
+    {#if (profile.did !== $agent.did())}
+      <div class="profile-follow-button">
+        <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
+      </div>
+    {/if}
 
     <div class="profile-description">
       <p class="profile-description__text">{profile.description}</p>
@@ -181,5 +188,9 @@
         left: 0;
         bottom: 0;
         right: 0;
+    }
+
+    .profile-follow-button {
+        margin-bottom: 10px;
     }
 </style>
