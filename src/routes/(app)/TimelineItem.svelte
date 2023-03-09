@@ -22,8 +22,6 @@
             return await $agent.myVoteCheck(data.post.uri) !== undefined;
         }
         myVoteCheck = await test();
-
-        // console.log(data)
     })
 
     afterUpdate(async() => {
@@ -45,7 +43,6 @@
     async function repost(cid, uri) {
         await $agent.setRepost(cid, uri);
 
-
         if (!isPrivate) {
             const data = await $agent.getTimeline();
             timeline.set(data.feed);
@@ -57,6 +54,19 @@
 
     function replyOpen() {
         isReplyOpen = isReplyOpen !== true;
+    }
+
+    async function deletePost (uri) {
+        const rkey = uri.split('/').slice(-1)[0]
+        await $agent.agent.api.app.bsky.feed.post.delete(
+            { did: $agent.did(), rkey: rkey }
+        );
+
+        if (!isPrivate) {
+            const data = await $agent.getTimeline();
+            timeline.set(data.feed);
+            cursor.set(data.cursor);
+        }
     }
 </script>
 
@@ -73,6 +83,12 @@
     <path id="conversation" d="M25.5,16.5V21L21,16.5H12a3,3,0,0,1-3-3H9V3a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V13.5a3,3,0,0,1-3,3H25.5Zm-4.5,3v3a3,3,0,0,1-3,3H9L4.5,30V25.5H3a3,3,0,0,1-3-3H0V12A3.009,3.009,0,0,1,3,9H6v4.5a6,6,0,0,0,6,6h9Z" fill="#90BAF0"/>
   </svg>
   </a>
+
+  {#if (data.post.author.did === $agent.did())}
+    <button class="timeline__delete" on:click={() => {deletePost(data.post.uri)}}><svg xmlns="http://www.w3.org/2000/svg" width="24" height="30" viewBox="0 0 24 30">
+      <path id="trash" d="M70,3l3-3h6l3,3h6V6H64V3ZM65.5,9h21L85,30H67ZM73,12V27h1.5V12Zm4.5,0V27H79V12Z" transform="translate(-64)" fill="#d81c2f"/>
+    </svg></button>
+  {/if}
 
   <div class="timeline__column">
     <div class="timeline__image">
@@ -153,7 +169,7 @@
             </div>
 
           <div class="timeline-external__content">
-            <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener">{data.post.embed.external.title}</a></p>
+            <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{data.post.embed.external.title}</a></p>
             <p class="timeline-external__description">
               {data.post.embed.external.description}<br>
               {data.post.embed.external.uri}
@@ -264,6 +280,12 @@
         width: 100%;
         height: auto;
         vertical-align: middle;
+    }
+
+    .timeline__delete {
+        position: absolute;
+        top: 50px;
+        right: 10px;
     }
 
     .timeline-reaction {
