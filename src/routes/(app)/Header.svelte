@@ -99,6 +99,11 @@
   .header__title {
       font-size: 20px !important;
       font-weight: 400;
+      min-width: 0;
+  }
+
+  .header__title svg {
+      width: 100%;
   }
 
   .header__notification {
