@@ -1,5 +1,7 @@
 @import "./ress.css";
 @import '../../node_modules/glightbox/dist/css/glightbox.min.css';
+@import '../../node_modules/filepond/dist/filepond.css';
+@import '../../node_modules/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 
 :root {
 	--font-body: 'Noto Sans JP', sans-serif;
@@ -77,7 +79,7 @@ img {
 }
 
 .publish-form {
-	max-width: 64rem;
+	max-width: 48rem;
 	margin: 0 auto;
 	position: relative;
 }
@@ -206,4 +208,9 @@ img {
 
 .block-link:hover {
 	text-decoration: none;
+}
+
+.filepond--root {
+	height: 300px !important;
+	max-height: 300px;
 }
