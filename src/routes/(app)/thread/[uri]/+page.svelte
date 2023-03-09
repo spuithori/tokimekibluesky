@@ -1,37 +1,23 @@
 <script lang="ts">
     import { agent } from '$lib/stores';
-    import {onMount} from "svelte";
-    import type { PageData } from './$types';
-    import TimelineItem from "../../TimelineItem.svelte";
+    import { page } from '$app/stores';
+    import { onMount } from 'svelte';
     import Thread from "./Thread.svelte";
+    import {afterNavigate} from "$app/navigation";
 
-    export let data: PageData;
-    let posts = [];
     let thread = Promise;
     let feeds = [];
-
-    async function getParent(parent) {
-        //feeds.unshift({feeds: parent})
-    }
-
-    async function getChild(replies) {
-        for (const reply of replies) {
-            //feeds.push({feeds: reply});
-        }
-    }
+    $: decodeUri = decodeURIComponent($page.params.uri);
 
     onMount(async() => {
-        const decodeUri = decodeURIComponent(data.params.uri)
-        const raw = await $agent.agent.api.app.bsky.feed.getPostThread({uri: decodeUri})
+        const raw = await $agent.agent.api.app.bsky.feed.getPostThread({uri: decodeUri});
         feeds = [ raw.data.thread ];
+    })
 
-        if (raw.data.thread.parent) {
-            getParent(raw.data.thread.parent);
-        }
-
-        if (raw.data.thread.replies) {
-            getChild(raw.data.thread.replies);
-        }
+    afterNavigate(async () => {
+        console.log(decodeUri)
+        const raw = await $agent.agent.api.app.bsky.feed.getPostThread({uri: decodeUri});
+        feeds = [ raw.data.thread ];
     })
 </script>
 
@@ -42,8 +28,8 @@
 </div>
 
 <style>
-  .thread-title {
-      text-align: center;
-      margin-bottom: 20px;
-  }
+    .thread-title {
+        text-align: center;
+        margin-bottom: 20px;
+    }
 </style>

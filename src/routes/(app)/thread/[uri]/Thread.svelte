@@ -1,12 +1,7 @@
 <script lang="ts">
   import TimelineItem from "../../TimelineItem.svelte";
-  import {afterUpdate, onMount} from "svelte";
 
   export let feeds = [];
-
-  afterUpdate(async () => {
-      // console.log(feeds);
-  })
 </script>
 
 <div class="thread">

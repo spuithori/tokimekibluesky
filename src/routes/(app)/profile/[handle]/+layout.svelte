@@ -1,20 +1,29 @@
 <script lang="ts">
     import { agent } from '$lib/stores';
-    import {afterUpdate, onMount} from 'svelte';
-    import UserTimeline from './UserTimeline.svelte';
+    import { afterUpdate, onMount } from 'svelte';
+    import { page } from '$app/stores';
     let profile = Promise;
 
     import type { LayoutData } from './$types';
     import UserFollowButton from "./UserFollowButton.svelte";
+    import {afterNavigate} from "$app/navigation";
 
     export let data: LayoutData;
     let currentPage = 'posts';
+    $: handle = $page.params.handle
 
     async function load() {
-        let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: data.params.handle});
+        let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
         return profile.data
     }
-    profile = load();
+
+    /* onMount(async () => {
+        profile = load();
+    }) */
+
+    afterNavigate(async() => {
+        profile = load();
+    })
 
     function isActive() {
         const path = data.url.pathname;

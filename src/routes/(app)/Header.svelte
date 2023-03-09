@@ -4,6 +4,7 @@
     import { fade, fly } from 'svelte/transition';
     import {onMount} from "svelte";
     import {agent, notificationCount} from "$lib/stores";
+    import {afterNavigate} from "$app/navigation";
 
     let isNotificationOpen = false;
 
@@ -18,6 +19,10 @@
 
     onMount(async () => {
         notificationCount.set(await $agent.getNotificationCount());
+    })
+
+    afterNavigate(async () => {
+        isNotificationOpen = false;
     })
 </script>
 
