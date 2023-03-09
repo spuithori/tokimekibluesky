@@ -169,7 +169,7 @@
             </div>
 
           <div class="timeline-external__content">
-            <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener">{data.post.embed.external.title}</a></p>
+            <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{data.post.embed.external.title}</a></p>
             <p class="timeline-external__description">
               {data.post.embed.external.description}<br>
               {data.post.embed.external.uri}
