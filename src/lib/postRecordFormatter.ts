@@ -1,5 +1,6 @@
 export function postRecordFormatter(record: object) {
     const text = record.text;
+    let entities = record.entities;
     let textArray = [];
 
     if (!record.entities?.length) {
@@ -9,8 +10,10 @@ export function postRecordFormatter(record: object) {
         }];
     }
 
+    entities.sort((a, b) => a.index.start - b.index.start);
+
     let cursor = 0;
-    for (const entity of record.entities) {
+    for (const entity of entities) {
         const typed = text.slice(entity.index.start, entity.index.end);
         let plain = text.slice(cursor, entity.index.end);
         plain = plain.replace(typed, '');
