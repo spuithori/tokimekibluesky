@@ -1,7 +1,7 @@
 <script lang="ts">
 import UserTimeline from "./UserTimeline.svelte";
 import type { LayoutData } from './$types';
-import {agent} from "$lib/stores";
+import {agent, isLogin} from "$lib/stores";
 let profile = Promise;
 
 export let data: LayoutData;

@@ -18,3 +18,5 @@ export const timeline = createTimeline();
 export const cursor = writable('');
 
 export const notificationCount = writable(0);
+
+export const isLogin = writable(false);

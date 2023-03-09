@@ -1,7 +1,7 @@
 <script lang="ts">
   import Header from "./Header.svelte";
   import "../styles.css";
-  import { agent } from '$lib/stores';
+  import { agent, isLogin } from '$lib/stores';
   import { Agent } from "$lib/agent";
   import {onMount} from "svelte";
   import {AtpAgent, AtpSessionData, AtpSessionEvent} from "@atproto/api";
