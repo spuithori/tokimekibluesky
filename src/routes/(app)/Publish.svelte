@@ -1,28 +1,59 @@
 <script lang="ts">
-import {onMount} from "svelte";
-import {agent, timeline} from "$lib/stores";
+import {onMount} from 'svelte';
+import {agent, timeline} from '$lib/stores';
+import FilePond, { registerPlugin } from 'svelte-filepond';
+import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
+import FilePondPluginImageResize from 'filepond-plugin-image-resize';
+import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
+import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
+import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
+
+registerPlugin(FilePondPluginImageResize);
+registerPlugin(FilePondPluginImagePreview);
+registerPlugin(FilePondPluginFileValidateSize);
+registerPlugin(FilePondPluginImageTransform);
+registerPlugin(FilePondPluginFileValidateType);
 
 let publish = function () {};
 let publishContent = '';
 let isTextareaEnabled = false;
-let file;
-let up = '';
+let files = [];
+let pond;
+let name = 'filepond';
+let isUploadShown = false;
 
 const publishKeypress = e => {
     if (e.keyCode === 13 && e.altKey) publish();
 };
 
-async function onFileSelected(e) {
-    let image = e.target.files[0];
-    let reader = new FileReader();
-    reader.readAsDataURL(image);
-    reader.onload = async (e) => {
-        file = e.target.result
-        up = await $agent.agent.api.com.atproto.blob.upload(image, {
-            encoding: 'image/jpeg',
-        });
-        console.log(up)
-    };
+function uploadShownToggle() {
+    isUploadShown = isUploadShown !== true;
+}
+
+async function onFileSelected(file, output) {
+    const image = await file.file;
+    const transformedImage = new File([await output], output.name, {
+        type: output.type,
+    });
+
+    const fileCid = await $agent.agent.api.com.atproto.blob.upload(transformedImage, {
+        encoding: 'image/jpeg',
+    });
+    files.push({
+        cid: fileCid.data.cid,
+        id: file.id,
+    });
+    files = files;
+}
+
+async function onFileDeleted(error, file) {
+    files = files.filter((item) => item.id !== file.id );
+}
+
+$: {
+    if (!isUploadShown) {
+       files = [];
+    }
 }
 
 onMount(async () => {
@@ -36,27 +67,36 @@ onMount(async () => {
 
         let postData = [{ did: $agent.did() }, { text: publishContent, createdAt: new Date().toISOString() }];
 
+        let embed;
+
+        if (files.length) {
+            embed = {
+                $type: 'app.bsky.embed.images',
+                images: [],
+            }
+
+            files.forEach(file => {
+                embed.images.push({
+                    image: {
+                        cid: file.cid,
+                        mimeType: 'image/jpeg',
+                    },
+                    alt: '',
+                })
+            })
+        }
+
         await $agent.agent.api.app.bsky.feed.post.create(
             { did: $agent.did() },
             {
-                embed: {
-                    $type: 'app.bsky.embed.images',
-                    images: [
-                        {
-                            image: {
-                                cid: up.data.cid,
-                                mimeType: 'image/jpeg',
-                            },
-                            alt: '',
-                        }
-                    ],
-                },
+                embed: embed,
                 text: publishContent,
                 createdAt: new Date().toISOString(),
             },
         );
 
         isTextareaEnabled = false;
+        isUploadShown = false;
         publishContent = '';
         const data = await $agent.getTimeline();
         timeline.set(data.feed);
@@ -75,7 +115,36 @@ onMount(async () => {
     </svg></button>
   </div>
 
-  <input type="file" on:change={(file) => {onFileSelected(file)}}>
+  <button class="publish-upload-toggle" class:shown="{isUploadShown}" on:click={uploadShownToggle}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24">
+    <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
+  </svg>
+  </button>
+
+  {#if (isUploadShown)}
+    <div class="publish-upload">
+      <FilePond
+          bind:this={pond}
+          {name}
+          allowMultiple={true}
+          maxFiles={4}
+          maxParallelUploads={4}
+          imageResizeTargetWidth={2000}
+          imageResizeTargetHeight={2000}
+          maxFileSize={'1MB'}
+          imageResizeMode={'contain'}
+          acceptedFileTypes={'image/jpeg, image/png'}
+          imageTransformOutputMimeType={'image/jpeg'}
+          onpreparefile={(file, output) => {onFileSelected(file, output)}}
+          onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
+          credits={null}
+          labelIdle="ドラッグアンドドロップ またはクリック"
+          labelMaxFileSizeExceeded="ファイルがでかすぎます"
+          labelMaxFileSize="最大: {'{'}filesize{'}'}"
+          labelFileTypeNotAllowed="アップロードできない形式です"
+          fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
+      />
+    </div>
+  {/if}
 </section>
 
 <style>
@@ -87,5 +156,51 @@ onMount(async () => {
         background-color: #fff;
         border-top: 1px solid gray;
         padding: 20px;
+    }
+
+    .publish-upload {
+        position: fixed;
+        bottom: 140px;
+        left: calc(50vw - 32rem);
+        width: 300px;
+        height: 300px;
+    }
+
+    .publish-upload-toggle {
+        position: absolute;
+        left: calc(50vw - 32rem);
+        top: 20px;
+        width: 40px;
+        height: 40px;
+        background-color: #fafafa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+    }
+
+    .publish-upload-toggle.shown {
+        background-color: var(--primary-color);
+    }
+
+    .publish-upload-toggle.shown svg {
+        fill: #fff;
+    }
+
+    @media (max-width: 767px) {
+        .publish-upload-toggle {
+            left: auto;
+            right: 40px;
+            top: 65px;
+            width: 30px;
+            height: 30px;
+            padding: 6px;
+            background-color: var(--primary-color);
+        }
+
+        .publish-upload {
+            left: auto;
+            right: 20px;
+        }
     }
 </style>

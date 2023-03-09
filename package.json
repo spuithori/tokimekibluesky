@@ -29,6 +29,11 @@
     "@vercel/analytics": "^0.1.11",
     "date-fns": "^2.29.3",
     "filepond": "^4.30.4",
+    "filepond-plugin-file-validate-size": "^2.2.8",
+    "filepond-plugin-file-validate-type": "^1.2.8",
+    "filepond-plugin-image-preview": "^4.6.11",
+    "filepond-plugin-image-resize": "^2.0.10",
+    "filepond-plugin-image-transform": "^3.8.7",
     "glightbox": "^3.2.0",
     "svelte-filepond": "^0.2.0",
     "svelte-infinite-scroll": "^2.0.1"
