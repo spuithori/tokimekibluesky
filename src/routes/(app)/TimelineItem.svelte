@@ -23,6 +23,8 @@
             return await $agent.myVoteCheck(data.post.uri) !== undefined;
         }
         myVoteCheck = await test();
+
+        // console.log(data)
     })
 
     afterUpdate(async() => {
@@ -55,7 +57,8 @@
     }
 
     function getUriId() {
-        return encodeURIComponent(data.post.uri)
+        const path = data.post.uri.split('/');
+        return path.slice(-1)[0];
     }
     uriId = getUriId();
 
@@ -73,7 +76,7 @@
     <p class="timeline-repost-message">{ data.reply.parent.author.displayName } に返信</p>
   {/if}
 
-  <a class="timeline__conv" href="/thread/{uriId}"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+  <a class="timeline__conv" href="/profile/{data.post.author.handle}/post/{uriId}"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
     <path id="conversation" d="M25.5,16.5V21L21,16.5H12a3,3,0,0,1-3-3H9V3a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V13.5a3,3,0,0,1-3,3H25.5Zm-4.5,3v3a3,3,0,0,1-3,3H9L4.5,30V25.5H3a3,3,0,0,1-3-3H0V12A3.009,3.009,0,0,1,3,9H6v4.5a6,6,0,0,0,6,6h9Z" fill="#90BAF0"/>
   </svg>
   </a>
@@ -167,7 +170,7 @@
       {/if}
 
       {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.record !== 'undefined')}
-        <a href="/thread/{encodeURIComponent(data.post.embed.record.uri)}" class="block-link">
+        <a href="/profile/{data.post.embed.record.author.handle}/post/{data.post.embed.record.uri.split('/').slice(-1)[0]}" class="block-link">
           <div class="timeline-external timeline-external--record">
             <div class="timeline-external__image timeline-external__image--round">
               {#if (data.post.embed.record.author.avatar)}
