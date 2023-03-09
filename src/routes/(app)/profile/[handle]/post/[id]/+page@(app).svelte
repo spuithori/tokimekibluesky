@@ -8,7 +8,7 @@
     let thread = Promise;
     let feeds = [];
     $: recordId = $page.params.id;
-    $: handle = $page.params.handle
+    $: handle = $page.params.handle;
 
     onMount(async() => {
         let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
