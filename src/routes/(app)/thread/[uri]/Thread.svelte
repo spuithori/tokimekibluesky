@@ -42,6 +42,6 @@
       top: 0;
       bottom: -20px;
       left: 20px;
-      background-color: #ccc;
+      background-color: var(--border-color-1);
   }
 </style>

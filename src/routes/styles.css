@@ -22,12 +22,24 @@
 
 	--primary-color: var(--color-theme-1);
 	--secondary-color: var(--color-theme-2);
+	--third-color: var(--color-theme-4);
 
-	--color-bg-0: rgb(202, 216, 228);
-	--color-bg-1: hsl(209, 36%, 86%);
-	--color-bg-2: hsl(224, 44%, 95%);
+	--success-color: var(--color-theme-8);
+	--danger-color: var(--color-theme-7);
 
-	--color-text: rgba(0, 0, 0, 1);
+	--follow-color: var(--color-theme-11);
+
+	--bg-color-1: #fff;
+	--bg-color-2: #fafafa;
+	--bg-color-3: var(--color-theme-9);
+
+	--border-color-1: #ccc;
+
+	--link-color: var(--color-theme-4);
+
+	--text-color-1: var(--color-theme-you);
+	--text-color-2: #222;
+	--text-color-3: #525252;
 
 	--column-width: 42rem;
 	--column-margin-top: 4rem;
@@ -36,10 +48,27 @@
 body {
 	min-height: 100vh;
 	margin: 0;
-	background-color: #fff;
-	color: var(--color-theme-you);
 	font-family: var(--font-body);
 	font-feature-settings: 'palt';
+}
+
+.theme-dark {
+	--bg-color-1: #000;
+	--bg-color-2: #111;
+	--bg-color-3: #222;
+
+	--border-color-1: #333;
+
+	--text-color-1: #fff;
+	--text-color-2: #fafafa;
+	--text-color-3: #888;
+
+	--link-color: var(--color-theme-3);
+}
+
+.app {
+	background-color: var(--bg-color-1);
+	color: var(--text-color-1);
 }
 
 h1 {
@@ -52,7 +81,7 @@ p {
 }
 
 a {
-	color: var(--color-theme-4);
+	color: var(--link-color);
 	text-decoration: none;
 }
 
@@ -63,7 +92,7 @@ a:hover {
 .timeline-group {
 	margin-top: 40px;
 	padding: 20px;
-	background-color: #fafafa;
+	background-color: var(--bg-color-2);
 }
 
 svg {
@@ -85,7 +114,7 @@ img {
 }
 
 .publish-form__input {
-	background-color: #fafafa;
+	background-color: var(--bg-color-2);
 	border-radius: 5px;
 	height: 80px;
 	font-size: 16px;
@@ -102,7 +131,7 @@ img {
 	top: 10px;
 	right: 20px;
 	z-index: 10;
-	background-color: var(--color-theme-9);
+	background-color: var(--bg-color-3);
 	padding: 5px;
 }
 
@@ -119,7 +148,7 @@ img {
 	justify-content: center;
 	border-radius: 25px;
 	background-color: var(--primary-color);
-	color: #fff;
+	color: var(--bg-color-1);
 	font-weight: 600;
 	transition: opacity .2s ease-in-out, transform .05s ease-in-out;
 	position: relative;
@@ -134,14 +163,14 @@ img {
 }
 
 .button--border {
-	background-color: #fff;
+	background-color: var(--bg-color-1);
 	border: 1px solid currentColor;
 	color: var(--primary-color);
 }
 
 .button--following {
 	overflow: hidden;
-	background-color: var(--color-theme-11);
+	background-color: var(--follow-color);
 }
 
 .button--following:hover {
@@ -155,7 +184,7 @@ img {
 	left: 0;
 	bottom: 0;
 	right: 0;
-	background-color: var(--color-theme-7);
+	background-color: var(--danger-color);
 	display: flex;
 	align-items: center;
 	justify-content: center;

@@ -158,7 +158,7 @@
     }
 
     .profile-relationship__item span {
-        color: var(--color-theme-you);
+        color: var(--text-color-2);
     }
 
     .user-timeline {
@@ -169,9 +169,9 @@
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         list-style: none;
-        border-left: 1px solid #ccc;
-        border-top: 1px solid #ccc;
-        border-right: 1px solid #ccc;
+        border-left: 1px solid var(--border-color-1);
+        border-top: 1px solid var(--border-color-1);
+        border-right: 1px solid var(--border-color-1);
         border-radius: 10px 10px 0 0;
         overflow: hidden;
         margin-bottom: 20px;
@@ -184,13 +184,13 @@
         align-items: center;
         justify-content: center;
         position: relative;
-        background-color: #FAFCFF;
+        background-color: var(--bg-color-2);
     }
 
     .profile-tab__item--active {
         font-weight: bold;
         background-color: var(--primary-color);
-        color: #fff;
+        color: var(--bg-color-1);
     }
 
     .profile-tab__item a {

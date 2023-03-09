@@ -60,9 +60,9 @@
       width: 500px;
       height: 600px;
       overflow: auto;
-      background-color: #fff;
+      background-color: var(--bg-color-1);
       border-radius: 8px;
-      border: 1px solid #aaa;
+      border: 1px solid var(--border-color-1);
       box-shadow: 0 0 16px rgba(0, 0, 0, .16);
       padding: 20px;
       z-index: 200;
@@ -81,7 +81,7 @@
   }
 
   .notification-item {
-      border-bottom: 1px solid #aaa;
+      border-bottom: 1px solid var(--border-color-1);
       padding: 10px 0;
   }
 

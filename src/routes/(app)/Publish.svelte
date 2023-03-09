@@ -115,7 +115,7 @@ onMount(async () => {
     </svg></button>
   </div>
 
-  <button class="publish-upload-toggle" class:shown="{isUploadShown}" on:click={uploadShownToggle}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24">
+  <button class="publish-upload-toggle" class:shown="{isUploadShown}" on:click={uploadShownToggle}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--text-color-3)">
     <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
   </svg>
   </button>
@@ -153,8 +153,8 @@ onMount(async () => {
         left: 0;
         bottom: 0;
         right: 0;
-        background-color: #fff;
-        border-top: 1px solid gray;
+        background-color: var(--bg-color-1);
+        border-top: 1px solid var(--border-color-1);
         padding: 20px;
     }
 
@@ -172,7 +172,7 @@ onMount(async () => {
         top: 20px;
         width: 40px;
         height: 40px;
-        background-color: #fafafa;
+        background-color: var(--bg-color-2);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -184,7 +184,7 @@ onMount(async () => {
     }
 
     .publish-upload-toggle.shown svg {
-        fill: #fff;
+        fill: var(--bg-color-1);
     }
 
     @media (max-width: 767px) {

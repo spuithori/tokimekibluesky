@@ -118,7 +118,7 @@
       <div class="timeline-reaction">
         <div class="timeline-reaction__item timeline-reaction__item--reply">
           <button class="timeline-reaction__icon" on:click={replyOpen}><svg xmlns="http://www.w3.org/2000/svg" width="21.292" height="25.277" viewBox="0 0 21.292 25.277">
-            <path id="reply" d="M10.9,17.974V23.73L2,14.831l8.9-8.9v5.882c10.353.242,9.909-7.04,7.273-11.815C24.677,7.032,23.3,18.3,10.9,17.974Z" transform="translate(-1.293 0.34)" fill="#fff" stroke="#bbb" stroke-width="1"/>
+            <path id="reply" d="M10.9,17.974V23.73L2,14.831l8.9-8.9v5.882c10.353.242,9.909-7.04,7.273-11.815C24.677,7.032,23.3,18.3,10.9,17.974Z" transform="translate(-1.293 0.34)" fill="var(--bg-color-1)" stroke="#bbb" stroke-width="1"/>
           </svg>
           </button>
 
@@ -131,11 +131,11 @@
             {:then found}
               {#if (found)}
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17.872" viewBox="0 0 20 17.872">
-                  <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(-0.111 -1.105)" fill="var(--color-theme-12)"/>
+                  <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(-0.111 -1.105)" fill="var(--primary-color)"/>
                 </svg>
               {:else}
                 <svg xmlns="http://www.w3.org/2000/svg" width="21" height="19.08" viewBox="0 0 21 19.08">
-                  <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(0.389 -0.605)" fill="#fff" stroke="#bbb" stroke-width="1"/>
+                  <path id="heart" d="M10.111,3.244l-.617-.607A5.562,5.562,0,0,0,1.629,10.5l0,0,8.484,8.484L18.6,10.483a5.562,5.562,0,0,0-7.87-7.855l0,0-.617.617Z" transform="translate(0.389 -0.605)" fill="var(--bg-color-1)" stroke="var(--border-color-1)" stroke-width="1"/>
                 </svg>
               {/if}
             {/await}
@@ -146,7 +146,7 @@
 
         <div class="timeline-reaction__item timeline-reaction__item--repost">
           <button class="timeline-reaction__icon" on:click="{() => repost(data.post.cid, data.post.uri)}"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="13" viewBox="0 0 21 13">
-            <path id="retweet" d="M13.333,17.667A.342.342,0,0,1,13,18H3c-.385,0-.333-.406-.333-.667v-6h-2A.671.671,0,0,1,0,10.667a.638.638,0,0,1,.156-.427l3.333-4a.683.683,0,0,1,1.021,0l3.333,4A.636.636,0,0,1,8,10.667a.671.671,0,0,1-.667.667h-2v4h6a.356.356,0,0,1,.261.115l1.667,2A.42.42,0,0,1,13.333,17.667ZM20,13.333a.638.638,0,0,1-.156.427l-3.333,4a.664.664,0,0,1-1.021,0l-3.333-4A.636.636,0,0,1,12,13.333a.671.671,0,0,1,.667-.667h2v-4h-6a.332.332,0,0,1-.261-.125l-1.667-2a.357.357,0,0,1-.073-.209A.342.342,0,0,1,7,6H17c.385,0,.333.406.333.667v6h2A.671.671,0,0,1,20,13.333Z" transform="translate(0.5 -5.5)" fill="#fff" stroke="#bbb" stroke-width="1"/>
+            <path id="retweet" d="M13.333,17.667A.342.342,0,0,1,13,18H3c-.385,0-.333-.406-.333-.667v-6h-2A.671.671,0,0,1,0,10.667a.638.638,0,0,1,.156-.427l3.333-4a.683.683,0,0,1,1.021,0l3.333,4A.636.636,0,0,1,8,10.667a.671.671,0,0,1-.667.667h-2v4h6a.356.356,0,0,1,.261.115l1.667,2A.42.42,0,0,1,13.333,17.667ZM20,13.333a.638.638,0,0,1-.156.427l-3.333,4a.664.664,0,0,1-1.021,0l-3.333-4A.636.636,0,0,1,12,13.333a.671.671,0,0,1,.667-.667h2v-4h-6a.332.332,0,0,1-.261-.125l-1.667-2a.357.357,0,0,1-.073-.209A.342.342,0,0,1,7,6H17c.385,0,.333.406.333.667v6h2A.671.671,0,0,1,20,13.333Z" transform="translate(0.5 -5.5)" fill="var(--bg-color-1)" stroke="var(--border-color-1)" stroke-width="1"/>
           </svg>
           </button>
 
@@ -206,7 +206,7 @@
 
 <style>
     .timeline__item {
-        background-color: #FAFCFF;
+        background-color: var(--bg-color-2);
         margin-bottom: 20px;
         padding: 10px 50px 10px 20px;
         position: relative;
@@ -229,7 +229,7 @@
     }
 
     .timeline__date {
-        color: var(--color-theme-you);
+        color: var(--text-color-2);
         font-size: 15px;
     }
 
@@ -306,9 +306,9 @@
         grid-template-columns: 80px 1fr;
         gap: 10px;
         align-items: flex-start;
-        background-color: #fff;
+        background-color: var(--bg-color-1);
         padding: 10px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border-color-1);
         position: relative;
         margin-top: 10px;
     }
@@ -320,7 +320,7 @@
     }
 
     .timeline-external__image {
-        background-color: #fafafa;
+        background-color: var(--bg-color-1);
         aspect-ratio: 1 / 1;
     }
 

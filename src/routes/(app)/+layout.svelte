@@ -1,11 +1,10 @@
 <script lang="ts">
-  import Header from "./Header.svelte";
-  import "../styles.css";
-  import { agent, isLogin } from '$lib/stores';
-  import { Agent } from "$lib/agent";
-  import {onMount} from "svelte";
-  import {AtpAgent, AtpSessionData, AtpSessionEvent} from "@atproto/api";
-  import {goto} from "$app/navigation";
+  import Header from './Header.svelte';
+  import '../styles.css';
+  import { agent, isLogin, theme } from '$lib/stores';
+  import { Agent } from '$lib/agent';
+  import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
+  import { goto } from '$app/navigation';
   import { dev } from '$app/environment';
   import { inject } from '@vercel/analytics';
 
@@ -33,7 +32,7 @@
   }
 </script>
 
-<div class="app">
+<div class="app theme-{$theme}">
   <Header />
 
   <main>

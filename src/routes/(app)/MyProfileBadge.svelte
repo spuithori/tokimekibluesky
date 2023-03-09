@@ -20,7 +20,7 @@
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      border: 1px solid #aaa;
+      border: 1px solid var(--border-color-1);
       overflow: hidden;
   }
 
