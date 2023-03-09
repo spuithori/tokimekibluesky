@@ -12,6 +12,7 @@
 
     async function notificationToggle() {
         isNotificationOpen = isNotificationOpen !== true;
+        isSettingsOpen = false;
 
         if (isNotificationOpen) {
             await $agent.agent.api.app.bsky.notification.updateSeen( {seenAt: new Date().toISOString()});
@@ -21,6 +22,7 @@
 
     function settingsToggle() {
         isSettingsOpen = isSettingsOpen !== true;
+        isNotificationOpen = false;
     }
 
     onMount(async () => {
