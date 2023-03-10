@@ -508,7 +508,7 @@
 
     .timeline-menu-toggle {
         position: absolute;
-        right: 25px;
+        right: 5px;
         top: 20px;
         width: 30px;
         height: 30px;
@@ -521,7 +521,6 @@
 
         @media (max-width: 767px) {
             top: 10px;
-            right: 5px;
         }
 
         &:hover {
@@ -531,8 +530,8 @@
 
     .timeline-menu {
         position: absolute;
-        right: 25px;
-        top: 55px;
+        right: 5px;
+        top: 60px;
         padding: 15px 10px 18px;
         box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
         border-radius: 6px;
@@ -544,7 +543,7 @@
         transition: all .2s ease-in-out;
 
         @media (max-width: 767px) {
-            right: 5px;
+
         }
 
         &--shown {
