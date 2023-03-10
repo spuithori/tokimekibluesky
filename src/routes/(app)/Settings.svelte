@@ -1,5 +1,6 @@
 <script lang="ts">
     import { theme, nonoto } from '$lib/stores';
+    import { goto } from '$app/navigation';
     let darkMode = localStorage.getItem('theme') === 'dark';
     let nonotoToggle = JSON.parse(localStorage.getItem('nonoto')) === true;
 
@@ -9,6 +10,11 @@
 
         localStorage.setItem('nonoto', nonotoToggle ? 'true' : 'false');
         nonoto.set(String(nonotoToggle));
+    }
+
+    async function logout() {
+        localStorage.removeItem('session');
+        goto('/login');
     }
 </script>
 
@@ -36,6 +42,10 @@
       </div>
     </dd>
   </dl>
+
+  <div class="logout">
+    <button class="button button--logout button--sm button--border button--white" type="submit" name="logout" on:click={logout}>ログアウト</button>
+  </div>
 </div>
 
 <style>
@@ -109,5 +119,9 @@
 
     .settings-group:first-child {
         border-top: 1px solid var(--border-color-1);
+    }
+
+    .logout {
+        margin-top: 20px;
     }
 </style>

@@ -12,11 +12,6 @@
 		cursor.set(data.cursor);
 		notificationCount.set(await $agent.getNotificationCount());
 	}
-
-	async function logout() {
-		localStorage.removeItem('session');
-		goto('/login');
-	}
 </script>
 
 <svelte:head>
@@ -28,10 +23,6 @@
 	<div class="buttons-group">
 		<div class="refresh">
 			<button class="button" on:click={refresh}>更新</button>
-		</div>
-
-		<div class="logout">
-			<button class="button button--border button--white" type="submit" name="logout" on:click={logout}>ログアウト</button>
 		</div>
 	</div>
 

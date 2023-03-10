@@ -218,6 +218,11 @@ img {
 	font-size: 15px;
 }
 
+.button--logout {
+	min-width: 0;
+	width: 100%;
+}
+
 .buttons-group {
 	display: flex;
 	gap: 20px;
