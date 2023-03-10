@@ -13,7 +13,7 @@
     notifications = load();
 </script>
 
-<div class="notification" in:fly="{{ y: 50, duration: 350 }}">
+<div>
   {#await notifications}
   {:then list}
     {#each list as item}
@@ -53,33 +53,6 @@
 </div>
 
 <style>
-  .notification {
-      position: absolute;
-      top: 80px;
-      right: 0;
-      width: 500px;
-      height: 600px;
-      overflow: auto;
-      background-color: var(--bg-color-1);
-      border-radius: 8px;
-      border: 1px solid var(--border-color-1);
-      box-shadow: 0 0 16px rgba(0, 0, 0, .16);
-      padding: 20px;
-      z-index: 200;
-  }
-
-  @media (max-width: 767px) {
-      .notification {
-          position: fixed;
-          top: 70px;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          width: auto;
-          height: auto;
-      }
-  }
-
   .notification-item {
       border-bottom: 1px solid var(--border-color-1);
       padding: 10px 0;

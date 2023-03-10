@@ -17,10 +17,6 @@
         return profile.data
     }
 
-    /* onMount(async () => {
-        profile = load();
-    }) */
-
     afterNavigate(async() => {
         profile = load();
     })
@@ -43,6 +39,7 @@
 
     afterUpdate(async() => {
         isActive();
+        console.log(await profile)
     })
 </script>
 
@@ -58,38 +55,40 @@
     </div>
 
     <div class="profile-column">
-      <div class="profile-meta">
-        <div class="profile-avatar">
-          {#if (profile.avatar)}
-            <img src="{profile.avatar}" alt="">
-          {/if}
-        </div>
-
-        <div class="profile-content">
-          <h1 class="profile-display-name">{profile.displayName || profile.handle}</h1>
-          {#if (profile.displayName)}
-            <p class="profile-handle">{profile.handle}</p>
-          {/if}
-        </div>
+      <div class="profile-avatar">
+        {#if (profile.avatar)}
+          <img src="{profile.avatar}" alt="">
+        {/if}
       </div>
 
-      <div class="profile-relationship">
-        <p class="profile-relationship__item"><span>{profile.followsCount}</span> フォロー</p>
-        <p class="profile-relationship__item"><span>{profile.followersCount}</span> フォロワー</p>
+      <div class="profile-content">
+        <h1 class="profile-display-name">{profile.displayName || profile.handle}</h1>
+        {#if (profile.displayName)}
+          <p class="profile-handle">{profile.handle}</p>
+        {/if}
+
+        {#if (profile.description)}
+          <div class="profile-description">
+            <p class="profile-description__text">{profile.description}</p>
+          </div>
+        {/if}
+
+        <div class="profile-relationship">
+          <p class="profile-relationship__item"><span>{profile.followsCount}</span> フォロー</p>
+          <p class="profile-relationship__item"><span>{profile.followersCount}</span> フォロワー</p>
+
+          {#if (profile.viewer?.followedBy)}
+            <p class="profile-relationship__by">あなたをフォローしています</p>
+          {/if}
+        </div>
+
+        {#if (profile.did !== $agent.did())}
+          <div class="profile-follow-button">
+            <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
+          </div>
+        {/if}
       </div>
     </div>
-
-    {#if (profile.did !== $agent.did())}
-      <div class="profile-follow-button">
-        <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
-      </div>
-    {/if}
-
-    {#if (profile.description)}
-      <div class="profile-description">
-        <p class="profile-description__text">{profile.description}</p>
-      </div>
-    {/if}
 
     <ul class="profile-tab">
       <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>投稿</a></li>
@@ -101,11 +100,16 @@
   {/await}
 </section>
 
-<style>
+<style lang="postcss">
     .profile-banner {
         border-radius: 20px;
         overflow: hidden;
-        margin-bottom: 20px;
+        margin-bottom: 30px;
+
+        @media (max-width: 767px) {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
     }
 
     .profile-banner img {
@@ -113,24 +117,21 @@
     }
 
     .profile-column {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 40px;
-        margin-bottom: 20px;
-    }
-
-    .profile-meta {
         display: grid;
         grid-template-columns: 112px 1fr;
-        align-items: center;
-        gap: 20px;
+        align-items: flex-start;
+        gap: 30px;
+        position: relative;
+
+        @media (max-width: 767px) {
+            grid-template-columns: 75px 1fr;
+            gap: 15px;
+        }
     }
 
     .profile-avatar {
         aspect-ratio: 1 / 1;
-        height: 100%;
+        width: 100%;
         border-radius: 50%;
         overflow: hidden;
         background-color: var(--primary-color);
@@ -143,48 +144,72 @@
     }
 
     .profile-display-name {
-        font-size: 24px;
-        margin-bottom: 5px;
+        font-size: 30px;
+        margin-bottom: 2px;
+        line-height: 1.5;
+        letter-spacing: .025em;
+
+        @media (max-width: 767px) {
+            font-size: 24px;
+        }
     }
 
     .profile-handle {
+        font-size: 16px;
+    }
 
+    .profile-description {
+        margin-top: 10px;
+
+        &__text {
+            line-height: 1.75;
+        }
     }
 
     .profile-relationship {
-        font-size: 20px;
-        font-weight: bold;
+        font-size: 18px;
+        font-weight: 600;
         line-height: 1.5;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0 15px;
+        margin-top: 6px;
+
+        &__by {
+            font-weight: 400;
+            font-size: 15px;
+        }
     }
 
     .profile-relationship__item span {
         color: var(--text-color-2);
     }
 
-    .user-timeline {
-        margin-top: 30px;
-    }
-
     .profile-tab {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         list-style: none;
-        border-left: 1px solid var(--border-color-1);
-        border-top: 1px solid var(--border-color-1);
-        border-right: 1px solid var(--border-color-1);
-        border-radius: 10px 10px 0 0;
+        border: 1px solid var(--border-color-1);
+        background-color: var(--bg-color-1);
+        border-radius: 10px;
         overflow: hidden;
-        margin-bottom: 20px;
-        margin-top: 30px;
+        margin: 30px 0;
+        font-size: 16px;
+        font-weight: 600;
     }
 
     .profile-tab__item {
-        height: 40px;
+        height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
-        background-color: var(--bg-color-2);
+        background-color: var(--bg-color-1);
+
+        &:not(:last-child) {
+            border-right: 1px solid var(--border-color-1);
+        }
     }
 
     .profile-tab__item--active {
@@ -209,6 +234,13 @@
     }
 
     .profile-follow-button {
-        margin-bottom: 10px;
+        position: absolute;
+        top: 0;
+        right: 0;
+
+        @media (max-width: 767px) {
+            position: static;
+            margin-top: 10px;
+        }
     }
 </style>

@@ -6,6 +6,7 @@
     import { agent, notificationCount } from '$lib/stores';
     import { afterNavigate } from '$app/navigation';
     import Settings from './Settings.svelte';
+    import { clickOutside } from '$lib/clickOutSide';
 
     let isNotificationOpen = false;
     let isSettingsOpen = false;
@@ -47,19 +48,25 @@
     <div class="header__settings">
       <button class="settings-toggle" on:click={settingsToggle}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-          <path id="cog" d="M4.728,7.8,2.664,4.368l1.7-1.7L7.8,4.728a8.49,8.49,0,0,1,2.04-.84L10.8,0h2.4l.96,3.888a8.49,8.49,0,0,1,2.04.84l3.432-2.064,1.7,1.7L19.272,7.8a8.49,8.49,0,0,1,.84,2.04L24,10.8v2.4l-3.888.96a8.49,8.49,0,0,1-.84,2.04l2.064,3.432-1.7,1.7L16.2,19.272a8.49,8.49,0,0,1-2.04.84L13.2,24H10.8l-.96-3.888a8.49,8.49,0,0,1-2.04-.84L4.368,21.336l-1.7-1.7L4.728,16.2a8.49,8.49,0,0,1-.84-2.04L0,13.2V10.8l3.888-.96a8.49,8.49,0,0,1,.84-2.04ZM12,15.6a3.6,3.6,0,1,0,0-7.2h0a3.6,3.6,0,0,0,0,7.2Z" transform="translate(0)" fill="var(--text-color-3)"/>
+          <path id="cog" d="M4.728,7.8,2.664,4.368l1.7-1.7L7.8,4.728a8.49,8.49,0,0,1,2.04-.84L10.8,0h2.4l.96,3.888a8.49,8.49,0,0,1,2.04.84l3.432-2.064,1.7,1.7L19.272,7.8a8.49,8.49,0,0,1,.84,2.04L24,10.8v2.4l-3.888.96a8.49,8.49,0,0,1-.84,2.04l2.064,3.432-1.7,1.7L16.2,19.272a8.49,8.49,0,0,1-2.04.84L13.2,24H10.8l-.96-3.888a8.49,8.49,0,0,1-2.04-.84L4.368,21.336l-1.7-1.7L4.728,16.2a8.49,8.49,0,0,1-.84-2.04L0,13.2V10.8l3.888-.96a8.49,8.49,0,0,1,.84-2.04ZM12,15.6a3.6,3.6,0,1,0,0-7.2h0a3.6,3.6,0,0,0,0,7.2Z" transform="translate(0 0)" fill="var(--text-color-3)"/>
         </svg>
       </button>
 
       {#if isSettingsOpen}
-        <Settings></Settings>
+        <div class="settings-box"
+             use:clickOutside={{ignoreElement: '.settings-toggle'}}
+             on:outclick={() => (isSettingsOpen = false)}
+             transition:fly="{{ y: 30, duration: 250 }}"
+        >
+          <Settings></Settings>
+        </div>
       {/if}
     </div>
 
     <div class="header__notification">
       <button class="notification-button" on:click={notificationToggle} aria-label="Notification">
-        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="33.309" viewBox="0 0 30 33.309">
-          <path id="notifications-outline" d="M40.333,13.781V25.447H53.667V13.781a6.667,6.667,0,1,0-13.333,0Zm3.383-9.45a3.238,3.238,0,0,1-.042-.525A3.333,3.333,0,1,1,50.3,4.35l0-.019a10.021,10.021,0,0,1,6.7,9.44v.011h0v10l5,3.333v1.667H32V27.114l5-3.333v-10a10,10,0,0,1,6.647-9.424l.07-.022Zm6.617,26.117a3.333,3.333,0,1,1-6.667,0h6.667Z" transform="translate(-32 -0.472)" fill="var(--text-color-3)"/>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="19.985" viewBox="0 0 18 19.985">
+          <path id="notifications" d="M4,8A6,6,0,0,1,8.03,2.33a2,2,0,1,1,3.95,0A6,6,0,0,1,16,8v6l3,2v1H1V16l3-2Zm8,10a2,2,0,0,1-4,0Z" transform="translate(-1 -0.015)" fill="var(--text-color-3)"/>
         </svg>
         {#if $notificationCount}
           <span class="notification-button__count">{$notificationCount}</span>
@@ -67,7 +74,11 @@
       </button>
 
       {#if isNotificationOpen}
-        <div>
+        <div class="notification"
+             use:clickOutside={{ignoreElement: '.notification-button'}}
+             on:outclick={() => (isNotificationOpen = false)}
+             transition:fly="{{ y: 30, duration: 250 }}"
+        >
           <Notification></Notification>
         </div>
       {/if}
@@ -85,9 +96,13 @@
       top: 0;
       left: 0;
       right: 0;
-      border-bottom: 1px solid var(--border-color-1);
       background-color: var(--bg-color-1);
       z-index: 100;
+      width: 740px;
+      max-width: 100%;
+      margin: 0 auto;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
+      border-radius: 0 0 10px 10px;
   }
 
   .header__wrap {
@@ -99,7 +114,7 @@
   }
 
   .header__title {
-      font-size: 20px !important;
+      font-size: 20px;
       font-weight: 400;
       min-width: 0;
   }
@@ -109,11 +124,10 @@
   }
 
   .header__notification {
-      position: relative;
+
   }
 
   .header__settings {
-      position: relative;
       margin-left: auto;
   }
 
@@ -122,21 +136,21 @@
   }
 
   .notification-button {
-      width: 50px;
-      height: 50px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      background-color: var(--bg-color-2);
+      background-color: var(--bg-color-1);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
       display: grid;
       place-content: center;
-      padding: 15px;
       position: relative;
   }
 
   .notification-button__count {
       position: absolute;
-      width: 20px;
-      height: 20px;
-      font-size: 12px;
+      width: 16px;
+      height: 16px;
+      font-size: 11px;
       font-weight: bold;
       border-radius: 50%;
       background-color: var(--danger-color);
@@ -154,13 +168,56 @@
   }
 
   .settings-toggle {
-      width: 50px;
-      height: 50px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      background-color: var(--bg-color-2);
+      background-color: var(--bg-color-1);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
       display: grid;
       place-content: center;
       padding: 15px;
       position: relative;
+  }
+
+  .settings-box {
+      position: absolute;
+      top: 80px;
+      right: 0;
+      width: 200px;
+      height: max-content;
+      overflow: auto;
+      background-color: var(--bg-color-1);
+      border-radius: 8px;
+      border: 1px solid var(--border-color-1);
+      box-shadow: 0 0 16px rgba(0, 0, 0, .16);
+      padding: 20px;
+      z-index: 200;
+  }
+
+  .notification {
+      position: absolute;
+      top: 80px;
+      right: 0;
+      width: 500px;
+      height: 600px;
+      overflow: auto;
+      background-color: var(--bg-color-1);
+      border-radius: 8px;
+      border: 1px solid var(--border-color-1);
+      box-shadow: 0 0 16px rgba(0, 0, 0, .16);
+      padding: 20px;
+      z-index: 200;
+  }
+
+  @media (max-width: 767px) {
+      .notification {
+          position: fixed;
+          top: 70px;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: auto;
+          height: auto;
+      }
   }
 </style>

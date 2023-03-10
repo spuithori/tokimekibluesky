@@ -32,9 +32,5 @@
 </div>
 
 <style>
-    .timeline {
-        list-style: none;
-        margin-top: 15px;
-        padding-bottom: 200px;
-    }
+
 </style>

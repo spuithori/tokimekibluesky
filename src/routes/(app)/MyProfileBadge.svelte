@@ -17,10 +17,9 @@
 
 <style>
   .my-profile-badge {
-      width: 50px;
-      height: 50px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      border: 1px solid var(--border-color-1);
       overflow: hidden;
   }
 
