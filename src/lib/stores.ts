@@ -22,3 +22,5 @@ export const notificationCount = writable(0);
 export const isLogin = writable(false);
 
 export const theme = writable(localStorage.getItem('theme') || 'default');
+
+export const nonoto = writable(localStorage.getItem('nonoto') || 'false');

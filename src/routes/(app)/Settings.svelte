@@ -1,10 +1,14 @@
 <script lang="ts">
-    import { theme } from '$lib/stores';
+    import { theme, nonoto } from '$lib/stores';
     let darkMode = localStorage.getItem('theme') === 'dark';
+    let nonotoToggle = JSON.parse(localStorage.getItem('nonoto')) === true;
 
     $: {
         localStorage.setItem('theme', darkMode ? 'dark' : 'default');
         theme.set(darkMode ? 'dark' : 'default');
+
+        localStorage.setItem('nonoto', nonotoToggle ? 'true' : 'false');
+        nonoto.set(String(nonotoToggle));
     }
 </script>
 
@@ -21,6 +25,17 @@
     </dd>
   </dl>
 
+  <dl class="settings-group">
+    <dt class="settings-group__name">
+      Noto Sansを使用しない
+    </dt>
+
+    <dd class="settings-group__content">
+      <div class="input-toggle">
+        <input class="input-toggle__input" type="checkbox" id="nonoto" bind:checked={nonotoToggle}><label class="input-toggle__label" for="nonoto"></label>
+      </div>
+    </dd>
+  </dl>
 </div>
 
 <style>
@@ -87,6 +102,8 @@
         justify-content: space-between;
         align-items: center;
         padding: 10px 0;
+        gap: 10px;
+        font-size: 14px;
         border-bottom: 1px solid var(--border-color-1);
     }
 

@@ -16,12 +16,7 @@
   const handleLoadMore = async () => {
       const data = await $agent.getTimeline(20, $cursor)
       timeline.update(function (tl) {
-          let newTl = tl
-          for (const item of data.feed) {
-              tl.push(item);
-          }
-
-          return newTl;
+          return [...tl, ...data.feed];
       });
       cursor.set(data.cursor);
   }

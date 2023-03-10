@@ -1,7 +1,7 @@
 <script lang="ts">
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, isLogin, theme } from '$lib/stores';
+  import { agent, isLogin, theme, nonoto } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -32,7 +32,7 @@
   }
 </script>
 
-<div class="app theme-{$theme}">
+<div class:nonoto={JSON.parse($nonoto)} class="app theme-{$theme}">
   <Header />
 
   <main>

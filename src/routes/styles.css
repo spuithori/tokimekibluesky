@@ -45,13 +45,6 @@
 	--column-margin-top: 4rem;
 }
 
-body {
-	min-height: 100vh;
-	margin: 0;
-	font-family: var(--font-body);
-	font-feature-settings: 'palt';
-}
-
 .theme-dark {
 	--bg-color-1: #000;
 	--bg-color-2: #111;
@@ -66,9 +59,20 @@ body {
 	--link-color: var(--color-theme-3);
 }
 
+.nonoto {
+	--font-body: sans-serif;
+}
+
+body {
+	min-height: 100vh;
+	margin: 0;
+	font-feature-settings: 'palt';
+}
+
 .app {
 	background-color: var(--bg-color-1);
 	color: var(--text-color-1);
+	font-family: var(--font-body);
 }
 
 h1 {
