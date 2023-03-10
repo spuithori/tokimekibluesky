@@ -39,9 +39,9 @@
       content: '';
       position: absolute;
       width: 2px;
-      top: 0;
+      top: 20px;
       bottom: -20px;
-      left: 20px;
+      left: 29px;
       background-color: var(--border-color-1);
   }
 </style>

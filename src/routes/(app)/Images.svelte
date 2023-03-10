@@ -34,7 +34,7 @@
     .timeline-images {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 15px;
+        gap: 20px;
     }
 
     .timeline-image {
@@ -42,7 +42,7 @@
         height: 100%;
         aspect-ratio: 1 / 1;
         overflow: hidden;
-        border-radius: 10px;
+        border-radius: 6px;
         display: flex;
     }
 
@@ -64,6 +64,7 @@
 
     @media (max-width: 767px) {
         .timeline-images {
+            gap: 5px;
             grid-template-columns: repeat(2, 1fr);
         }
     }
