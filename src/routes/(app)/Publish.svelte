@@ -106,7 +106,14 @@ onMount(async () => {
 
 <section class="publish-group">
   <div class="publish-form">
-    <textarea type="text" class="publish-form__input" disabled={isTextareaEnabled} bind:value={publishContent} on:keydown={publishKeypress} placeholder="ときめくメッセージを入力&#13;Alt + Enter で送信できます"></textarea>
+    <textarea
+        type="text"
+        class="publish-form__input"
+        disabled={isTextareaEnabled}
+        bind:value={publishContent}
+        on:keydown={publishKeypress}
+        placeholder="ときめくメッセージを入力&#13;Alt + Enter で送信できます"
+    ></textarea>
     <button class="publish-form__submit" on:click={publish}><svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
       <title></title>
       <g id="icomoon-ignore">
@@ -147,7 +154,7 @@ onMount(async () => {
   {/if}
 </section>
 
-<style>
+<style lang="postcss">
     .publish-group {
         position: fixed;
         left: 0;
@@ -155,8 +162,12 @@ onMount(async () => {
         right: 0;
         background-color: var(--bg-color-1);
         border-top: 1px solid var(--border-color-1);
-        padding: 20px;
+        padding: 20px 0 0;
         z-index: 2;
+
+        @media (max-width: 767px) {
+            padding: 20px;
+        }
     }
 
     .publish-upload {
