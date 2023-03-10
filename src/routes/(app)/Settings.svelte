@@ -53,7 +53,7 @@
     </dt>
 
     <dd class="settings-group__content">
-      <ul class="theme-picker">
+      <ul class="theme-picker theme-picker--{themePick}">
         <li class="theme-picker__item theme-picker__item--lightpink">
           <button class="theme-picker__button" on:click={() => {themePick = 'lightpink'}} aria-label="ライトピンク"></button>
         </li>
@@ -178,6 +178,78 @@
         gap: 6px;
         list-style: none;
         margin-top: 10px;
+
+        &--lightpink {
+            .theme-picker__item--lightpink button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
+
+        &--pastelyellow {
+            .theme-picker__item--pastelyellow button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
+
+        &--lightblue {
+            .theme-picker__item--lightblue button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
+
+        &--royalblue {
+            .theme-picker__item--royalblue button {
+                border: 2px solid var(--text-color-3);
+            }
+        }
+
+        &--superorange {
+            .theme-picker__item--superorange button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
+
+        &--violet {
+            .theme-picker__item--violet button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
+
+        &--scarlet {
+            .theme-picker__item--scarlet button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
+
+        &--lightgreen {
+            .theme-picker__item--lightgreen button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
+
+        &--paperwhite {
+            .theme-picker__item--paperwhite button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
+
+        &--jade {
+            .theme-picker__item--jade button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
+
+        &--platinumsilver {
+            .theme-picker__item--platinumsilver button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
+
+        &--pinkgold {
+            .theme-picker__item--pinkgold button {
+                border: 2px solid var(--text-color-1);
+            }
+        }
 
         &__item {
             aspect-ratio: 1 / 1;
