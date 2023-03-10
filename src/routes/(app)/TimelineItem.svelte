@@ -403,15 +403,15 @@
         border-radius: 14px;
         font-size: 14px;
         transition: background-color .2s ease-in-out;
-    }
 
-    .timeline-reaction__item:hover {
-        background-color: var(--border-color-1);
-        color: var(--bg-color-1);
-    }
+        &:hover {
+            background-color: var(--border-color-1);
+            color: var(--bg-color-1);
 
-    .timeline-reaction__item:hover svg path {
-        fill: var(--bg-color-1);
+            path {
+                fill: var(--bg-color-1);
+            }
+        }
     }
 
     .timeline-reaction__icon::before {
