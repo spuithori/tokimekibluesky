@@ -115,6 +115,7 @@ img {
 
 .publish-form__input {
 	background-color: var(--bg-color-2);
+	color: var(--text-color-1);
 	border-radius: 5px;
 	height: 80px;
 	font-size: 16px;
