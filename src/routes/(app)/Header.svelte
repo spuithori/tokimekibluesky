@@ -3,7 +3,7 @@
     import Notification from './Notification.svelte';
     import { fade, fly } from 'svelte/transition';
     import { onMount } from 'svelte';
-    import { agent, notificationCount } from '$lib/stores';
+    import { agent, notificationCount, isLogin } from '$lib/stores';
     import { afterNavigate } from '$app/navigation';
     import Settings from './Settings.svelte';
     import { clickOutside } from '$lib/clickOutSide';
@@ -27,11 +27,15 @@
     }
 
     onMount(async () => {
-        notificationCount.set(await $agent.getNotificationCount());
+        if ($isLogin) {
+            notificationCount.set(await $agent.getNotificationCount());
+        }
     })
 
     afterNavigate(async () => {
-        isNotificationOpen = false;
+        if ($isLogin) {
+            isNotificationOpen = false;
+        }
     })
 </script>
 
@@ -45,48 +49,52 @@
     </svg>
     </a></h1>
 
-    <div class="header__settings">
-      <button class="settings-toggle" on:click={settingsToggle}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-          <path id="cog" d="M4.728,7.8,2.664,4.368l1.7-1.7L7.8,4.728a8.49,8.49,0,0,1,2.04-.84L10.8,0h2.4l.96,3.888a8.49,8.49,0,0,1,2.04.84l3.432-2.064,1.7,1.7L19.272,7.8a8.49,8.49,0,0,1,.84,2.04L24,10.8v2.4l-3.888.96a8.49,8.49,0,0,1-.84,2.04l2.064,3.432-1.7,1.7L16.2,19.272a8.49,8.49,0,0,1-2.04.84L13.2,24H10.8l-.96-3.888a8.49,8.49,0,0,1-2.04-.84L4.368,21.336l-1.7-1.7L4.728,16.2a8.49,8.49,0,0,1-.84-2.04L0,13.2V10.8l3.888-.96a8.49,8.49,0,0,1,.84-2.04ZM12,15.6a3.6,3.6,0,1,0,0-7.2h0a3.6,3.6,0,0,0,0,7.2Z" transform="translate(0 0)" fill="var(--text-color-3)"/>
-        </svg>
-      </button>
+    {#if ($isLogin)}
 
-      {#if isSettingsOpen}
-        <div class="settings-box"
-             use:clickOutside={{ignoreElement: '.settings-toggle'}}
-             on:outclick={() => (isSettingsOpen = false)}
-             transition:fly="{{ y: 30, duration: 250 }}"
-        >
-          <Settings></Settings>
-        </div>
-      {/if}
-    </div>
+      <div class="header__settings">
+        <button class="settings-toggle" on:click={settingsToggle}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path id="cog" d="M4.728,7.8,2.664,4.368l1.7-1.7L7.8,4.728a8.49,8.49,0,0,1,2.04-.84L10.8,0h2.4l.96,3.888a8.49,8.49,0,0,1,2.04.84l3.432-2.064,1.7,1.7L19.272,7.8a8.49,8.49,0,0,1,.84,2.04L24,10.8v2.4l-3.888.96a8.49,8.49,0,0,1-.84,2.04l2.064,3.432-1.7,1.7L16.2,19.272a8.49,8.49,0,0,1-2.04.84L13.2,24H10.8l-.96-3.888a8.49,8.49,0,0,1-2.04-.84L4.368,21.336l-1.7-1.7L4.728,16.2a8.49,8.49,0,0,1-.84-2.04L0,13.2V10.8l3.888-.96a8.49,8.49,0,0,1,.84-2.04ZM12,15.6a3.6,3.6,0,1,0,0-7.2h0a3.6,3.6,0,0,0,0,7.2Z" transform="translate(0 0)" fill="var(--text-color-3)"/>
+          </svg>
+        </button>
 
-    <div class="header__notification">
-      <button class="notification-button" on:click={notificationToggle} aria-label="Notification">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="19.985" viewBox="0 0 18 19.985">
-          <path id="notifications" d="M4,8A6,6,0,0,1,8.03,2.33a2,2,0,1,1,3.95,0A6,6,0,0,1,16,8v6l3,2v1H1V16l3-2Zm8,10a2,2,0,0,1-4,0Z" transform="translate(-1 -0.015)" fill="var(--text-color-3)"/>
-        </svg>
-        {#if $notificationCount}
-          <span class="notification-button__count">{$notificationCount}</span>
+        {#if isSettingsOpen}
+          <div class="settings-box"
+               use:clickOutside={{ignoreElement: '.settings-toggle'}}
+               on:outclick={() => (isSettingsOpen = false)}
+               transition:fly="{{ y: 30, duration: 250 }}"
+          >
+            <Settings></Settings>
+          </div>
         {/if}
-      </button>
+      </div>
 
-      {#if isNotificationOpen}
-        <div class="notification"
-             use:clickOutside={{ignoreElement: '.notification-button'}}
-             on:outclick={() => (isNotificationOpen = false)}
-             transition:fly="{{ y: 30, duration: 250 }}"
-        >
-          <Notification></Notification>
-        </div>
-      {/if}
-    </div>
+      <div class="header__notification">
+        <button class="notification-button" on:click={notificationToggle} aria-label="Notification">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="19.985" viewBox="0 0 18 19.985">
+            <path id="notifications" d="M4,8A6,6,0,0,1,8.03,2.33a2,2,0,1,1,3.95,0A6,6,0,0,1,16,8v6l3,2v1H1V16l3-2Zm8,10a2,2,0,0,1-4,0Z" transform="translate(-1 -0.015)" fill="var(--text-color-3)"/>
+          </svg>
+          {#if $notificationCount}
+            <span class="notification-button__count">{$notificationCount}</span>
+          {/if}
+        </button>
 
-    <div class="header__me">
-      <MyProfileBadge></MyProfileBadge>
-    </div>
+        {#if isNotificationOpen}
+          <div class="notification"
+               use:clickOutside={{ignoreElement: '.notification-button'}}
+               on:outclick={() => (isNotificationOpen = false)}
+               transition:fly="{{ y: 30, duration: 250 }}"
+          >
+            <Notification></Notification>
+          </div>
+        {/if}
+      </div>
+
+      <div class="header__me">
+        <MyProfileBadge></MyProfileBadge>
+      </div>
+
+    {/if}
   </div>
 </header>
 

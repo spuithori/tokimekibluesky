@@ -2,6 +2,7 @@
 import UserTimeline from "./UserTimeline.svelte";
 import type { LayoutData } from './$types';
 import {agent, isLogin} from "$lib/stores";
+import {goto} from "$app/navigation";
 let profile = Promise;
 
 export let data: LayoutData;
@@ -11,7 +12,6 @@ async function load() {
     return profile.data;
 }
 profile = load();
-
 </script>
 
 <svelte:head>

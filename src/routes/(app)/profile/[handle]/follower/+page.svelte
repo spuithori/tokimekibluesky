@@ -1,9 +1,10 @@
 <script lang="ts">
     import type { LayoutData } from '../$types';
-    import {agent} from "$lib/stores";
+    import {agent, isLogin} from "$lib/stores";
     import UserItem from "../UserItem.svelte";
     import InfiniteScroll from "svelte-infinite-scroll";
     import {onMount} from "svelte";
+    import {goto} from "$app/navigation";
     let followers = [];
     let cursor = '';
     let finishLoading = false;
@@ -34,6 +35,10 @@
         }
         followers = raw.data.followers;
     })
+
+    if (!$isLogin) {
+        goto('/login');
+    }
 </script>
 
 <svelte:head>

@@ -26,8 +26,11 @@
       try {
           ag.resumeSession(JSON.parse(localStorage.getItem('session')));
           agent.set(new Agent(ag));
+          isLogin.set(true);
       } catch (e) {
-          goto('/login');
+          agent.set(new Agent(ag));
+          isLogin.set(false);
+          // goto('/login');
       }
   }
 </script>

@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { agent } from '$lib/stores';
+    import { agent, isLogin } from '$lib/stores';
     import { afterUpdate, onMount } from 'svelte';
     import { page } from '$app/stores';
     let profile = Promise;
 
     import type { LayoutData } from './$types';
     import UserFollowButton from "./UserFollowButton.svelte";
-    import {afterNavigate} from "$app/navigation";
+    import {afterNavigate, goto} from "$app/navigation";
 
     export let data: LayoutData;
     let currentPage = 'posts';
@@ -41,6 +41,10 @@
         isActive();
         console.log(await profile)
     })
+
+    if (!$isLogin) {
+        goto('/login');
+    }
 </script>
 
 <section class="profile">

@@ -1,7 +1,11 @@
 <script lang="ts">
-  import TimelineItem from "../../../../TimelineItem.svelte";
+  import TimelineItem from '../../../../TimelineItem.svelte';
+  import TimelineItemNologin from '../../../../TimelineItemNologin.svelte';
+  import { isLogin } from '$lib/stores';
 
   export let feeds = [];
+  export let profile = {};
+  export let handle = '';
 </script>
 
 <div class="thread">
@@ -12,7 +16,11 @@
       </div>
     {/if}
 
-    <TimelineItem data={data}></TimelineItem>
+    {#if ($isLogin)}
+      <TimelineItem data={data}></TimelineItem>
+    {:else}
+      <TimelineItemNologin data={data} profile={profile} handle={handle}></TimelineItemNologin>
+    {/if}
 
     {#if (data.replies?.length)}
       <div class="thread-replies">

@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from "svelte";
 	import Timeline from "./Timeline.svelte";
-	import { agent, cursor, notificationCount } from '$lib/stores';
+	import { agent, cursor, notificationCount, isLogin } from '$lib/stores';
 	import { timeline } from "$lib/stores";
 	import { goto } from "$app/navigation";
 	import Publish from "./Publish.svelte";
@@ -11,6 +11,10 @@
 		timeline.set(data.feed);
 		cursor.set(data.cursor);
 		notificationCount.set(await $agent.getNotificationCount());
+	}
+
+	if (!$isLogin) {
+		goto('/login');
 	}
 </script>
 
