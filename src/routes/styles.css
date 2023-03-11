@@ -350,8 +350,8 @@ img {
 }
 
 .filepond--root {
-	height: 300px !important;
-	max-height: 300px;
+	height: 400px !important;
+	max-height: 400px;
 }
 
 .text-danger {

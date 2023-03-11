@@ -7,6 +7,7 @@ import FilePondPluginImageResize from 'filepond-plugin-image-resize';
 import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
 import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
+import { fade, fly } from 'svelte/transition';
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -31,12 +32,16 @@ function uploadShownToggle() {
 }
 
 async function onFileSelected(file, output) {
-    const image = await file.file;
-    const transformedImage = new File([await output], output.name, {
+    let image = new File([await output], output.name, {
         type: output.type,
     });
+    console.log(image)
 
-    const fileCid = await $agent.agent.api.com.atproto.blob.upload(transformedImage, {
+    if (image.size > 1000000) {
+        console.log('デカすぎ')
+    }
+
+    const fileCid = await $agent.agent.api.com.atproto.blob.upload(image, {
         encoding: 'image/jpeg',
     });
     files.push({
@@ -128,7 +133,7 @@ onMount(async () => {
   </button>
 
   {#if (isUploadShown)}
-    <div class="publish-upload">
+    <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
       <FilePond
           bind:this={pond}
           {name}
@@ -137,10 +142,10 @@ onMount(async () => {
           maxParallelUploads={4}
           imageResizeTargetWidth={2000}
           imageResizeTargetHeight={2000}
-          maxFileSize={'1MB'}
           imageResizeMode={'contain'}
           acceptedFileTypes={'image/jpeg, image/png'}
           imageTransformOutputMimeType={'image/jpeg'}
+          imageTransformOutputQuality={'80'}
           onpreparefile={(file, output) => {onFileSelected(file, output)}}
           onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
           credits={null}
@@ -172,10 +177,14 @@ onMount(async () => {
 
     .publish-upload {
         position: fixed;
-        bottom: 140px;
-        left: calc(50vw - 440px);
+        bottom: 110px;
+        left: calc(50vw - 380px);
         width: 300px;
-        height: 300px;
+        height: 400px;
+
+        @media (max-width: 767px) {
+            bottom: 130px;
+        }
     }
 
     .publish-upload-toggle {
