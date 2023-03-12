@@ -212,6 +212,7 @@ img {
 
 .publish-form {
 	max-width: 740px;
+	width: 100%;
 	margin: 0 auto;
 	position: relative;
 }
@@ -229,20 +230,30 @@ img {
 }
 
 .publish-form__submit {
-	position: absolute;
-	width: 30px;
+	width: 82px;
 	height: 30px;
 	border-radius: 4px;
 	top: 10px;
 	right: 20px;
 	z-index: 10;
-	background-color: var(--bg-color-3);
+	background-color: var(--primary-color);
+	color: #fff;
+	font-weight: 600;
 	padding: 5px;
-}
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	letter-spacing: .025em;
+	gap: 5px;
 
-.publish-form__submit svg {
-	width: 100%;
-	height: auto;
+	&:disabled {
+		opacity: .6;
+	}
+
+	svg {
+		margin-top: 4px;
+	}
 }
 
 .button {
@@ -350,8 +361,38 @@ img {
 }
 
 .filepond--root {
-	height: 400px !important;
-	max-height: 400px;
+	height: 230px !important;
+	max-height: 230px;
+
+	@media (max-width: 767px) {
+		height: 100% !important;
+		max-height: 100%;
+	}
+}
+
+.filepond--item {
+	width: calc(25% - 0.5em);
+
+	@media (max-width: 767px) {
+		width: calc(50% - 0.5em);
+	}
+}
+
+.filepond--wrapper {
+	@media (max-width: 767px) {
+		height: 100%;
+	}
+}
+
+.filepond--panel-root {
+	background-color: var(--bg-color-1);
+	box-shadow: 0 0 6px rgba(0, 0, 0, .12);
+	border: 1px solid var(--border-color-1);
+
+	@media (max-width: 767px) {
+		box-shadow: none;
+		border: none;
+	}
 }
 
 .text-danger {
@@ -367,5 +408,17 @@ img {
 
 	@media (max-width: 767px) {
 		margin: 0 -20px;
+	}
+}
+
+.only-mobile {
+	@media (min-width: 768px) {
+		display: none;
+	}
+}
+
+.only-pc {
+	@media (max-width: 767px) {
+		display: none;
 	}
 }

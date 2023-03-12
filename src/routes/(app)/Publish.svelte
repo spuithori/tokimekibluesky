@@ -8,6 +8,7 @@ import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
 import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 import { fade, fly } from 'svelte/transition';
+import { clickOutside } from '$lib/clickOutSide';
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -22,6 +23,8 @@ let files = [];
 let pond;
 let name = 'filepond';
 let isUploadShown = false;
+let isFocus = false;
+let publishArea;
 
 const publishKeypress = e => {
     if (e.keyCode === 13 && e.altKey) publish();
@@ -29,6 +32,23 @@ const publishKeypress = e => {
 
 function uploadShownToggle() {
     isUploadShown = isUploadShown !== true;
+}
+
+function uploadContextOpen() {
+    pond.browse();
+}
+
+function onFocus() {
+    isFocus = true;
+    publishArea.focus();
+}
+
+function onBlur() {
+    //isFocus = false;
+}
+
+function close() {
+    isFocus = false;
 }
 
 async function onFileSelected(file, output) {
@@ -105,58 +125,84 @@ onMount(async () => {
         publishContent = '';
         const data = await $agent.getTimeline();
         timeline.set(data.feed);
+        isFocus = false;
     }
 })
 </script>
 
-<section class="publish-group">
-  <div class="publish-form">
+<section class="publish-group"
+         class:publish-group--expanded={isFocus}
+         tabindex="-1"
+         on:focusin={onFocus}
+         on:focusout={onBlur}
+         use:clickOutside={{ignoreElement: '.publish-sp-open'}}
+         on:outclick={() => (isFocus = false)}
+>
+  {#if (isFocus)}
+    <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={close}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+        <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="#fff"/>
+      </svg>
+    </button>
+  {:else}
+    <button class="publish-sp-open" aria-label="投稿ウィンドウを開く">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+        <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="#fff"/>
+      </svg>
+    </button>
+  {/if}
+
+  <div class="publish-wrap">
+    <div class="publish-buttons">
+      <button class="publish-form__submit" on:click={publish} disabled={isTextareaEnabled}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">
+        <path id="send" d="M0,0,17,6.375,0,12.75ZM0,5.1V7.65L8.5,6.375Z" fill="var(--bg-color-1)"/>
+      </svg>
+        送信</button>
+
+      <button class="publish-upload-toggle" on:click={uploadContextOpen}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--bg-color-1)">
+        <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
+      </svg>
+      </button>
+    </div>
+
+    <div class="publish-form">
     <textarea
         type="text"
         class="publish-form__input"
         disabled={isTextareaEnabled}
         bind:value={publishContent}
+        bind:this={publishArea}
         on:keydown={publishKeypress}
         placeholder="ときめくメッセージを入力&#13;Alt + Enter で送信できます"
     ></textarea>
-    <button class="publish-form__submit" on:click={publish}><svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-      <title></title>
-      <g id="icomoon-ignore">
-      </g>
-      <path fill="var(--primary-color)" d="M1009.376 5.12c-5.312-3.424-11.36-5.12-17.376-5.12-6.176 0-12.384 1.76-17.76 5.376l-960 640c-9.888 6.56-15.328 18.112-14.048 29.952 1.216 11.808 8.896 22.016 19.936 26.368l250.368 100.192 117.728 206.016c5.632 9.888 16.096 16 27.424 16.128 0.128 0 0.224 0 0.352 0 11.232 0 21.664-5.952 27.424-15.552l66.464-110.816 310.24 124.064c3.808 1.536 7.808 2.272 11.872 2.272 5.44 0 10.816-1.376 15.68-4.128 8.448-4.736 14.24-13.056 15.872-22.624l160-960c2.080-12.576-3.488-25.184-14.176-32.128zM100.352 664.864l741.6-494.432-539.2 577.184c-2.848-1.696-5.376-3.936-8.512-5.184l-193.888-77.568zM326.048 770.112c-0.064-0.128-0.16-0.192-0.224-0.32l606.176-648.8-516.768 805.184-89.184-156.064zM806.944 947.488l-273.312-109.312c-6.496-2.56-13.248-3.424-19.936-3.808l420.864-652.416-127.616 765.536z"></path>
-    </svg></button>
-  </div>
-
-  <button class="publish-upload-toggle" class:shown="{isUploadShown}" on:click={uploadShownToggle}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--text-color-3)">
-    <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
-  </svg>
-  </button>
-
-  {#if (isUploadShown)}
-    <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
-      <FilePond
-          bind:this={pond}
-          {name}
-          allowMultiple={true}
-          maxFiles={4}
-          maxParallelUploads={4}
-          imageResizeTargetWidth={2000}
-          imageResizeTargetHeight={2000}
-          imageResizeMode={'contain'}
-          acceptedFileTypes={'image/jpeg, image/png'}
-          imageTransformOutputMimeType={'image/jpeg'}
-          imageTransformOutputQuality={'80'}
-          onpreparefile={(file, output) => {onFileSelected(file, output)}}
-          onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
-          credits={null}
-          labelIdle="ドラッグアンドドロップ またはクリック"
-          labelMaxFileSizeExceeded="ファイルがでかすぎます"
-          labelMaxFileSize="最大: {'{'}filesize{'}'}"
-          labelFileTypeNotAllowed="アップロードできない形式です"
-          fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
-      />
     </div>
-  {/if}
+
+    {#if (isFocus)}
+      <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
+        <FilePond
+            bind:this={pond}
+            {name}
+            allowMultiple={true}
+            maxFiles={4}
+            maxParallelUploads={4}
+            imageResizeTargetWidth={2000}
+            imageResizeTargetHeight={2000}
+            imageResizeMode={'contain'}
+            acceptedFileTypes={'image/jpeg, image/png'}
+            imageTransformOutputMimeType={'image/jpeg'}
+            imageTransformOutputQuality={'80'}
+            onpreparefile={(file, output) => {onFileSelected(file, output)}}
+            onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
+            credits={null}
+            labelIdle="<span class='only-pc'>ドラッグアンドドロップで画像アップロード<br>またはここをクリック</span>"
+            labelMaxFileSizeExceeded="ファイルがでかすぎます"
+            labelMaxFileSize="最大: {'{'}filesize{'}'}"
+            labelFileTypeNotAllowed="アップロードできない形式です"
+            fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
+        />
+      </div>
+    {/if}
+  </div>
 </section>
 
 <style lang="postcss">
@@ -165,39 +211,117 @@ onMount(async () => {
         left: 0;
         bottom: 0;
         right: 0;
-        background-color: var(--bg-color-1);
-        border-top: 1px solid var(--border-color-1);
-        padding: 20px 0 0;
-        z-index: 2;
+        z-index: 11;
 
         @media (max-width: 767px) {
             padding: 20px;
         }
+
+        &--expanded {
+            .publish-form__input {
+                height: 160px;
+            }
+
+            @media (max-width: 767px) {
+                &::before {
+                    content: '';
+                    display: block;
+                    position: fixed;
+                    left: 0;
+                    top: 0;
+                    bottom: 0;
+                    right: 0;
+                    background-color: rgba(255, 255, 255, .7);
+                }
+
+                .publish-wrap {
+                    display: flex;
+                }
+            }
+        }
+    }
+
+    .publish-wrap {
+        background-color: var(--bg-color-1);
+        border-top: 1px solid var(--border-color-1);
+        padding: 20px 0 0;
+
+        @media (max-width: 767px) {
+            display: none;
+            position: fixed;
+            flex-direction: column-reverse;
+            gap: 20px;
+            top: 80px;
+            left: 20px;
+            right: 20px;
+            bottom: 80px;
+            padding: 20px;
+            background-color: var(--bg-color-1);
+            border: 1px solid var(--border-color-1);
+            box-shadow: 0 0 6px rgba(0, 0, 0, .12);
+            border-radius: 6px;
+        }
+    }
+
+    .publish-sp-open {
+        display: none;
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+
+        @media (max-width: 767px) {
+            display: flex;
+        }
+    }
+
+    .publish-buttons {
+        max-width: 740px;
+        margin: 0 auto 10px;
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
     }
 
     .publish-upload {
         position: fixed;
-        bottom: 110px;
+        bottom: calc(230px + 10px);
         left: calc(50vw - 380px);
-        width: 300px;
-        height: 400px;
+        width: 740px;
+        max-width: 100%;
+        height: 230px;
 
         @media (max-width: 767px) {
-            bottom: 130px;
+            position: static;
+            bottom: 100%;
+            width: calc(100vw - 80px);
+            margin: 0 auto;
+            height: auto;
+            flex: 1;
         }
     }
 
     .publish-upload-toggle {
-        position: absolute;
+        display: none;
         left: calc(50vw - 440px);
         top: 20px;
         width: 40px;
         height: 40px;
         background-color: var(--bg-color-2);
-        display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 4px;
+
+        @media (max-width: 767px) {
+            display: flex;
+            margin-left: auto;
+        }
     }
 
     .publish-upload-toggle.shown {
@@ -217,11 +341,6 @@ onMount(async () => {
             height: 30px;
             padding: 6px;
             background-color: var(--primary-color);
-        }
-
-        .publish-upload {
-            left: auto;
-            right: 20px;
         }
     }
 </style>

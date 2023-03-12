@@ -4,7 +4,6 @@
 	import { agent, cursor, notificationCount } from '$lib/stores';
 	import { timeline } from "$lib/stores";
 	import { goto } from "$app/navigation";
-	import Publish from "./Publish.svelte";
 
 	async function refresh() {
 		const data = await $agent.getTimeline();
@@ -25,8 +24,6 @@
 	</div>
 
 	<Timeline></Timeline>
-
-	<Publish></Publish>
 </section>
 
 <style lang="postcss">
