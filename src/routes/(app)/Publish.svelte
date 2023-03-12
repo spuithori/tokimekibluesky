@@ -131,18 +131,21 @@ onMount(async () => {
             }
         }
 
-        let entities = [];
+        let entities;
         const links = linkify.find(publishContent, 'url');
-        links.forEach(link => {
-            entities.push({
-                index: {
-                    start: link.start,
-                    end: link.end,
-                },
-                type: 'link',
-                value: link.href,
-            })
-        });
+        if (links.length) {
+            entities = [];
+            links.forEach(link => {
+                entities.push({
+                    index: {
+                        start: link.start,
+                        end: link.end,
+                    },
+                    type: 'link',
+                    value: link.href,
+                })
+            });
+        }
 
         await $agent.agent.api.app.bsky.feed.post.create(
             { did: $agent.did() },
