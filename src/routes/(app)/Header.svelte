@@ -90,7 +90,7 @@
   </div>
 </header>
 
-<style>
+<style lang="postcss">
   .header {
       position: sticky;
       top: 0;
@@ -144,6 +144,16 @@
       display: grid;
       place-content: center;
       position: relative;
+
+      svg {
+          transition: transform .15s ease-in-out;
+      }
+
+      &:hover {
+          svg {
+              transform: translateY(2px);
+          }
+      }
   }
 
   .notification-button__count {
@@ -177,6 +187,16 @@
       place-content: center;
       padding: 15px;
       position: relative;
+
+      svg {
+          transition: transform .15s ease-in-out;
+      }
+
+      &:hover {
+          svg {
+              transform: rotate(30deg);
+          }
+      }
   }
 
   .settings-box {
