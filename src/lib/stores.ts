@@ -26,3 +26,5 @@ export const isDarkMode = writable(localStorage.getItem('darkmode') || 'false');
 export const theme = writable(localStorage.getItem('theme') || 'lightpink');
 
 export const nonoto = writable(localStorage.getItem('nonoto') || 'false');
+
+export const quotePost = writable({});

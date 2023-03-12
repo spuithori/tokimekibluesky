@@ -1,0 +1,24 @@
+.only-mobile {
+    @media (min-width: 768px) {
+        display: none;
+    }
+}
+
+.only-pc {
+    @media (max-width: 767px) {
+        display: none;
+    }
+}
+
+.text-danger {
+    color: var(--danger-color);
+}
+
+.block-link {
+    color: inherit;
+    display: block;
+}
+
+.block-link:hover {
+    text-decoration: none;
+}
