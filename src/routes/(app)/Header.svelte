@@ -212,6 +212,10 @@
       box-shadow: 0 0 16px rgba(0, 0, 0, .16);
       padding: 20px;
       z-index: 200;
+
+      @media (max-width: 767px) {
+          right: 20px;
+      }
   }
 
   .notification {
