@@ -39,7 +39,7 @@
 
     afterUpdate(async() => {
         isActive();
-        console.log(await profile)
+        // console.log(await profile)
     })
 </script>
 

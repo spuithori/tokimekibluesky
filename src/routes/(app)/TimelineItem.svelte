@@ -20,7 +20,7 @@
     let myVoteCheck = false;
     let textArray = [];
 
-    afterUpdate(async() => {
+    onMount(async() => {
         textArray = postRecordFormatter(data.post.record);
     })
 
@@ -46,6 +46,25 @@
         }
 
         notificationCount.set(await $agent.getNotificationCount());
+    }
+
+    async function translation() {
+        let i = 0;
+
+        for (const item of textArray) {
+            if (item.type === 'text') {
+                const res = await fetch(`/api/translator`, {
+                    method: 'post',
+                    body: JSON.stringify({
+                        text: item.content
+                    })
+                });
+                const translation = await res.json();
+                textArray[i].content = await translation[0].translations[0].text;
+            }
+
+            i++;
+        }
     }
 
     function replyOpen() {
@@ -251,6 +270,15 @@
             </svg>
             スレッドを見る
           </a>
+        </li>
+
+        <li class="timeline-menu-list__item timeline-menu-list__item--translate">
+          <button class="timeline-menu-list__button" on:click={translation}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+              <path id="translate" d="M6.669,8.1l2.016,2.016-.747,1.8L5.4,9.36,2.43,12.33,1.17,11.052,4.122,8.1,3.33,7.308A5.387,5.387,0,0,1,2.16,5.4H4.14a2.533,2.533,0,0,0,.459.63l.8.81.792-.792A4.173,4.173,0,0,0,7.2,3.6H0V1.8H4.5V0H6.3V1.8h4.5V3.6H9A5.906,5.906,0,0,1,7.47,7.308L6.66,8.1Zm3.456,7.2L9,18H7.2L11.7,7.2h1.8L18,18H16.2l-1.125-2.7Zm.747-1.8h3.456L12.6,9.36Z" fill="var(--text-color-1)"/>
+            </svg>
+            翻訳
+          </button>
         </li>
       </ul>
     </nav>
