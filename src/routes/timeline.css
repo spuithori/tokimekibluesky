@@ -3,7 +3,6 @@
     box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
     padding: 20px;
     border-radius: 10px;
-    margin-bottom: 140px;
 
     @media (max-width: 767px) {
         margin: 0 -20px;

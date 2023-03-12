@@ -36,14 +36,14 @@
 <div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme}">
   <Header />
 
-  <main>
+  <main class="main">
     <slot />
   </main>
 
   <Publish></Publish>
 </div>
 
-<style>
+<style lang="postcss">
   .app {
     display: flex;
     flex-direction: column;
@@ -57,7 +57,11 @@
     width: 100%;
     max-width: 780px;
     padding: 30px 20px 0;
-    margin: 0 auto;
+    margin: 0 auto 160px;
     box-sizing: border-box;
+
+    @media (max-width: 767px) {
+        margin-bottom: 20px;
+    }
   }
 </style>
