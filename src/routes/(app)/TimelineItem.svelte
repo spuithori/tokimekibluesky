@@ -20,13 +20,6 @@
     let myVoteCheck = false;
     let textArray = [];
 
-    onMount(async () => {
-        async function test () {
-            return await $agent.myVoteCheck(data.post.uri) !== undefined;
-        }
-        myVoteCheck = await test();
-    })
-
     afterUpdate(async() => {
         textArray = postRecordFormatter(data.post.record);
     })
@@ -134,18 +127,15 @@
 
         <div class="timeline-reaction__item timeline-reaction__item--like">
           <button class="timeline-reaction__icon" on:click="{() => vote(data.post.cid, data.post.uri)}">
-            {#await myVoteCheck}
-            {:then found}
-              {#if (found)}
-                <svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
-                  <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--primary-color)"/>
-                </svg>
-              {:else}
-                <svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
-                  <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--border-color-1)"/>
-                </svg>
-              {/if}
-            {/await}
+            {#if (data.post.viewer?.upvote)}
+              <svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
+                <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--primary-color)"/>
+              </svg>
+            {:else}
+              <svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
+                <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--border-color-1)"/>
+              </svg>
+            {/if}
           </button>
 
           { data.post.upvoteCount }
