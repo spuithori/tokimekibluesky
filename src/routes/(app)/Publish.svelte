@@ -39,11 +39,14 @@ function uploadContextOpen() {
 }
 
 function onFocus() {
-    isFocus = true;
+    if (!isFocus) {
+        isFocus = true;
 
-    setTimeout(() => {
-        publishArea.focus();
-    }, 100)
+        setTimeout(() => {
+            publishArea.focus();
+        }, 100)
+    }
+
 }
 
 function onBlur() {
@@ -148,7 +151,7 @@ onMount(async () => {
       </svg>
     </button>
   {:else}
-    <button class="publish-sp-open" aria-label="投稿ウィンドウを開く">
+    <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" on:click={onFocus}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
         <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="#fff"/>
       </svg>

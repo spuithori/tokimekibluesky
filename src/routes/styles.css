@@ -384,6 +384,12 @@ img {
 	}
 }
 
+.filepond--drop-label {
+	@media (max-width: 767px) {
+		min-height: 0 !important;
+	}
+}
+
 .filepond--panel-root {
 	background-color: var(--bg-color-1);
 	box-shadow: 0 0 6px rgba(0, 0, 0, .12);
