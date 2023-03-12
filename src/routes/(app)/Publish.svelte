@@ -11,6 +11,7 @@ import { fade, fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
 import {format, formatDistanceToNow, parseISO} from 'date-fns';
 import ja from 'date-fns/locale/ja/index';
+import * as linkify from "linkifyjs";
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -63,7 +64,6 @@ async function onFileSelected(file, output) {
     let image = new File([await output], output.name, {
         type: output.type,
     });
-    console.log(image)
 
     if (image.size > 1000000) {
         console.log('デカすぎ')
@@ -131,10 +131,24 @@ onMount(async () => {
             }
         }
 
+        let entities = [];
+        const links = linkify.find(publishContent, 'url');
+        links.forEach(link => {
+            entities.push({
+                index: {
+                    start: link.start,
+                    end: link.end,
+                },
+                type: 'link',
+                value: link.href,
+            })
+        });
+
         await $agent.agent.api.app.bsky.feed.post.create(
             { did: $agent.did() },
             {
                 embed: embed,
+                entities: entities,
                 text: publishContent,
                 createdAt: new Date().toISOString(),
             },
