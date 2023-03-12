@@ -22,12 +22,14 @@ registerPlugin(FilePondPluginFileValidateType);
 let publish = function () {};
 let publishContent = '';
 let isTextareaEnabled = false;
+let isPublishEnabled = false;
 let files = [];
 let pond;
 let name = 'filepond';
 let isUploadShown = false;
 let isFocus = false;
 let publishArea;
+let publishButtonText = '送信';
 
 const publishKeypress = e => {
     if (e.keyCode === 13 && e.altKey) publish();
@@ -60,6 +62,11 @@ function close() {
     isFocus = false;
 }
 
+async function onFileAdded(file) {
+    isPublishEnabled = true;
+    publishButtonText = '処理中...';
+}
+
 async function onFileSelected(file, output) {
     let image = new File([await output], output.name, {
         type: output.type,
@@ -77,6 +84,8 @@ async function onFileSelected(file, output) {
         id: file.id,
     });
     files = files;
+    isPublishEnabled = false;
+    publishButtonText = '送信';
 }
 
 async function onFileDeleted(error, file) {
@@ -97,6 +106,7 @@ $: {
 onMount(async () => {
     publish = async function () {
         isTextareaEnabled = true;
+        isPublishEnabled = true;
 
         if (!publishContent) {
             isTextareaEnabled = false;
@@ -158,6 +168,7 @@ onMount(async () => {
         );
 
         isTextareaEnabled = false;
+        isPublishEnabled = false;
         isUploadShown = false;
         publishContent = '';
         const data = await $agent.getTimeline();
@@ -192,10 +203,10 @@ onMount(async () => {
 
   <div class="publish-wrap">
     <div class="publish-buttons">
-      <button class="publish-form__submit" on:click={publish} disabled={isTextareaEnabled}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">
+      <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">
         <path id="send" d="M0,0,17,6.375,0,12.75ZM0,5.1V7.65L8.5,6.375Z" fill="var(--bg-color-1)"/>
       </svg>
-        送信</button>
+        {publishButtonText}</button>
 
       {#if (!$quotePost.uri)}
         <button class="publish-upload-toggle" on:click={uploadContextOpen}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--bg-color-1)">
@@ -267,6 +278,7 @@ onMount(async () => {
             imageTransformOutputQuality={'80'}
             onpreparefile={(file, output) => {onFileSelected(file, output)}}
             onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
+            onaddfilestart={(file) => {onFileAdded(file)}}
             credits={null}
             labelIdle="<span class='only-pc'>ドラッグアンドドロップで画像アップロード<br>またはここをクリック</span>"
             labelMaxFileSizeExceeded="ファイルがでかすぎます"

@@ -59,7 +59,7 @@
 }
 
 .publish-form__submit {
-    width: 82px;
+    min-width: 82px;
     height: 30px;
     border-radius: 4px;
     top: 10px;
@@ -75,6 +75,7 @@
     font-size: 14px;
     letter-spacing: .025em;
     gap: 5px;
+    white-space: nowrap;
 
     @media (max-width: 767px) {
         margin-right: auto;
