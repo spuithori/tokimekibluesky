@@ -1,5 +1,7 @@
 {
   "name": "bluesky-test",
+  "author": "holybea",
+  "license": "MIT",
   "version": "0.0.1",
   "scripts": {
     "dev": "vite dev",
