@@ -40,7 +40,10 @@ function uploadContextOpen() {
 
 function onFocus() {
     isFocus = true;
-    publishArea.focus();
+
+    setTimeout(() => {
+        publishArea.focus();
+    }, 100)
 }
 
 function onBlur() {
@@ -235,7 +238,8 @@ onMount(async () => {
                 }
 
                 .publish-wrap {
-                    display: flex;
+                    opacity: 1;
+                    visibility: visible;
                 }
             }
         }
@@ -247,19 +251,21 @@ onMount(async () => {
         padding: 20px 0 0;
 
         @media (max-width: 767px) {
-            display: none;
+            display: flex;
+            opacity: 0;
+            visibility: hidden;
             position: fixed;
             flex-direction: column-reverse;
             gap: 20px;
-            top: 80px;
             left: 20px;
             right: 20px;
-            bottom: 80px;
+            bottom: 90px;
             padding: 20px;
             background-color: var(--bg-color-1);
             border: 1px solid var(--border-color-1);
             box-shadow: 0 0 6px rgba(0, 0, 0, .12);
             border-radius: 6px;
+            height: 60vh;
         }
     }
 
