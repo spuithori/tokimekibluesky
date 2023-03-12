@@ -110,6 +110,7 @@ onMount(async () => {
 
         if (!publishContent) {
             isTextareaEnabled = false;
+            isPublishEnabled = false;
             return false;
         }
 
