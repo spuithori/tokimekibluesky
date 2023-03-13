@@ -1,8 +1,6 @@
 <script>
     import { agent } from '$lib/stores';
-    import { onMount } from 'svelte';
     let notifications = Promise;
-    import { fade, fly } from 'svelte/transition';
     import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
 
     async function load() {

@@ -87,6 +87,13 @@
             cursor.set(data.cursor);
         }
     }
+
+    async function getHandleByDid(handle) {
+        const data = await $agent.agent.api.com.atproto.repo.describe(
+            {user: handle}
+        );
+        return data.data.handle;
+    }
 </script>
 
 <article class="timeline__item">
@@ -128,6 +135,12 @@
         {#each textArray as item}
           {#if (item.type === 'link')}
             <a href="{item.url}" target="_blank" rel="noopener nofollow noreferrer">{item.content}</a>
+          {:else if (item.type === 'mention')}
+            {#await getHandleByDid(item.url)}
+              <span>{item.content}</span>
+            {:then handle}
+              <a href="/profile/{handle}">{item.content}</a>
+            {/await}
           {:else}
             <span>{item.content}</span>
           {/if}
