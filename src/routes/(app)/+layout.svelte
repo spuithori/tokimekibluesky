@@ -1,7 +1,7 @@
 <script lang="ts">
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, isLogin, theme, nonoto, isDarkMode } from '$lib/stores';
+  import { agent, isLogin, theme, nonoto, isDarkMode, service } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -17,7 +17,7 @@
   }
 
   let ag = new AtpAgent({
-      service: 'https://bsky.social',
+      service: $service,
       persistSession: (evt: AtpSessionEvent, sess?: AtpSessionData) => {
           localStorage.setItem('session', JSON.stringify(sess))
       }

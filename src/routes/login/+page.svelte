@@ -1,7 +1,8 @@
 <script lang="ts">
-    import "../styles.css";
-    import {AtpAgent, AtpSessionEvent, AtpSessionData} from "@atproto/api";
-    import {goto} from "$app/navigation";
+    import '../styles.css';
+    import { AtpAgent, AtpSessionEvent, AtpSessionData } from '@atproto/api';
+    import { goto } from '$app/navigation';
+    import { service } from '$lib/stores';
 
     let identifier = '';
     let password = '';
@@ -9,12 +10,13 @@
 
     async function login() {
         const agent = new AtpAgent({
-            service: 'https://bsky.social',
+            service: $service,
         });
 
         try {
-            await agent.login({identifier: identifier, password: password})
-            localStorage.setItem('session', JSON.stringify(agent.session))
+            await agent.login({identifier: identifier, password: password});
+            localStorage.setItem('service', $service);
+            localStorage.setItem('session', JSON.stringify(agent.session));
             await goto('/');
         } catch (e) {
             errorMessage = e.message;
@@ -40,6 +42,16 @@
     {#if (errorMessage)}
       <p>{errorMessage}</p>
     {/if}
+
+    <dl class="input-group">
+      <dt class="input-group__name">
+        <label for="service">Service</label>
+      </dt>
+
+      <dd class="input-group__content">
+        <input class="input-group__input" type="text" name="service" id="service" placeholder="service" bind:value="{$service}" required />
+      </dd>
+    </dl>
 
     <dl class="input-group">
       <dt class="input-group__name">
