@@ -1,6 +1,6 @@
 <script>
     import { agent } from '$lib/stores';
-    import { timeline, cursor, notificationCount, quotePost } from "$lib/stores";
+    import { timeline, cursor, notificationCount, quotePost } from '$lib/stores';
     import Reply from './Reply.svelte';
     import {format, formatDistanceToNow, parseISO} from 'date-fns';
     import {afterUpdate, onMount} from "svelte";
@@ -9,6 +9,7 @@
     import {postRecordFormatter} from '$lib/postRecordFormatter';
     import { clickOutside } from '$lib/clickOutSide';
     import { fade, fly } from 'svelte/transition';
+    import Spotify from './Spotify.svelte';
 
     export let data = {};
     export let isPrivate = false;
@@ -19,10 +20,31 @@
     let isMenuOpen = false;
     let myVoteCheck = false;
     let textArray = [];
+    const embedServices = [
+        {
+            'service': Spotify,
+            'hostname': 'open.spotify.com'
+        },
+    ];
+    let embedItem;
 
     onMount(async() => {
         textArray = postRecordFormatter(data.post.record);
+        const embedItems = textArray.filter((item) => {
+            if (item.type !== 'link') {
+                return null;
+            }
+            const hostname = new URL(item.url).hostname;
+            const find = embedServices.find(service => service.hostname === hostname);
+            if (find) {
+                item.service = find.service;
+                return item;
+            }
+        });
+        embedItem = embedItems[0];
+        //console.log(embedItem.service)
     })
+
 
     async function vote(cid, uri) {
         myVoteCheck = !myVoteCheck
@@ -146,6 +168,10 @@
           {/if}
         {/each}
       </p>
+
+      {#if (embedItem)}
+        <svelte:component this={embedItem.service} uri={embedItem.url}></svelte:component>
+      {/if}
 
       <div class="timeline-reaction">
         <div class="timeline-reaction__item timeline-reaction__item--reply">
