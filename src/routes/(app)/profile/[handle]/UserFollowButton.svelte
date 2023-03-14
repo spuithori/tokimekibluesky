@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from 'svelte-i18n';
   import { onMount } from "svelte";
   import { agent } from "$lib/stores";
 
@@ -60,8 +61,8 @@
 
 <div>
   {#if !following}
-    <button class="button button--sm button--follow" on:click={follow} disabled={isDisabled}>フォロー</button>
+    <button class="button button--sm button--follow" on:click={follow} disabled={isDisabled}>{$_('follow_button')}</button>
   {:else }
-    <button class="button button--sm button--following" on:click={unfollow} disabled={isDisabled}>フォロー中</button>
+    <button class="button button--sm button--following" on:click={unfollow} disabled={isDisabled}>{$_('now_following_button')}</button>
   {/if}
 </div>

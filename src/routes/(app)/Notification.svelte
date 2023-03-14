@@ -1,4 +1,5 @@
 <script>
+    import { _ } from 'svelte-i18n';
     import { agent } from '$lib/stores';
     let notifications = Promise;
     import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
@@ -17,7 +18,7 @@
     {#each list as item}
       {#if (item.reason === 'vote')}
         <article class="notification-item">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a  href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> がいいねしました</h2>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a  href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('liked_your_post')}</h2>
 
           {#await $agent.getFeed(item.record.subject.uri)}
           {:then feed}
@@ -26,7 +27,7 @@
         </article>
       {:else if (item.reason === 'repost')}
         <article class="notification-item">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> がリポストしました</h2>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('reposted_your_post')}</h2>
 
           {#await $agent.getFeed(item.record.subject.uri)}
           {:then feed}
@@ -35,13 +36,13 @@
         </article>
       {:else if (item.reason === 'reply')}
         <article class="notification-item">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> が返信しました</h2>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('replied_your_post')}</h2>
 
           <p class="notifications-item__content">{item.record.text}</p>
         </article>
       {:else if (item.reason === 'follow')}
         <article class="notification-item notification-item--follow">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> にフォローされたよ</h2>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('followed_you')}</h2>
           <UserFollowButton following="{item.author.viewer?.following}" user={item.author}></UserFollowButton>
         </article>
       {:else}

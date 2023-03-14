@@ -1,14 +1,17 @@
 <script>
+    import { _ } from 'svelte-i18n'
     import { agent } from '$lib/stores';
-    import { timeline, cursor, notificationCount, quotePost } from "$lib/stores";
+    import { timeline, cursor, notificationCount, quotePost } from '$lib/stores';
     import Reply from './Reply.svelte';
     import {format, formatDistanceToNow, parseISO} from 'date-fns';
     import {afterUpdate, onMount} from "svelte";
     import ja from 'date-fns/locale/ja/index';
+    import en from 'date-fns/locale/en-US/index';
     import Images from "./Images.svelte";
     import {postRecordFormatter} from '$lib/postRecordFormatter';
     import { clickOutside } from '$lib/clickOutSide';
     import { fade, fly } from 'svelte/transition';
+    import Spotify from './Spotify.svelte';
 
     export let data = {};
     export let isPrivate = false;
@@ -19,10 +22,38 @@
     let isMenuOpen = false;
     let myVoteCheck = false;
     let textArray = [];
+    const embedServices = [
+        {
+            'service': Spotify,
+            'hostname': 'open.spotify.com'
+        },
+    ];
+    let embedItem;
+    let dateFnsLocale;
+
+    if (window.navigator.language === 'ja') {
+        dateFnsLocale = ja;
+    } else {
+        dateFnsLocale = en;
+    }
 
     onMount(async() => {
         textArray = postRecordFormatter(data.post.record);
+        const embedItems = textArray.filter((item) => {
+            if (item.type !== 'link') {
+                return null;
+            }
+            const hostname = new URL(item.url).hostname;
+            const find = embedServices.find(service => service.hostname === hostname);
+            if (find) {
+                item.service = find.service;
+                return item;
+            }
+        });
+        embedItem = embedItems[0];
+        //console.log(embedItem.service)
     })
+
 
     async function vote(cid, uri) {
         myVoteCheck = !myVoteCheck
@@ -56,7 +87,8 @@
                 const res = await fetch(`/api/translator`, {
                     method: 'post',
                     body: JSON.stringify({
-                        text: item.content
+                        text: item.content,
+                        to: window.navigator.language,
                     })
                 });
                 const translation = await res.json();
@@ -99,11 +131,11 @@
 <article class="timeline__item">
   <div class="timeline-repost-messages">
     {#if (data.reason)}
-      <p class="timeline-repost-message">{ data.reason.by.displayName || data.reason.by.handle } がリポスト</p>
+      <p class="timeline-repost-message">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle }})}</p>
     {/if}
 
     {#if (data.reply)}
-      <p class="timeline-repost-message">{ data.reply.parent.author.displayName || data.reply.parent.author.handle } に返信</p>
+      <p class="timeline-repost-message">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle }})}</p>
     {/if}
   </div>
 
@@ -125,9 +157,9 @@
     <div class="timeline__content">
       <div class="timeline__meta">
         <p class="timeline__user" title="{data.post.author.handle}">{ data.post.author.displayName || data.post.author.handle }</p>
-        <p class="timeline__date"><time datetime="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.record.createdAt), {locale: ja})}</time></p>
+        <p class="timeline__date"><time datetime="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.record.createdAt), {locale: dateFnsLocale})}</time></p>
         <p class="timeline__thread-link">
-          <a href="/profile/{data.post.author.handle}/post/{data.post.uri.split('/').slice(-1)[0]}">スレッドを見る</a>
+          <a href="/profile/{data.post.author.handle}/post/{data.post.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
         </p>
       </div>
 
@@ -146,6 +178,10 @@
           {/if}
         {/each}
       </p>
+
+      {#if (embedItem)}
+        <svelte:component this={embedItem.service} uri={embedItem.url}></svelte:component>
+      {/if}
 
       <div class="timeline-reaction">
         <div class="timeline-reaction__item timeline-reaction__item--reply">
@@ -221,9 +257,9 @@
           <div class="timeline-external__content">
             <div class="timeline__meta">
               <p class="timeline__user" title="{data.post.embed.record.author.handle}">{ data.post.embed.record.author.displayName || data.post.embed.record.author.handle }</p>
-              <p class="timeline__date"><time datetime="{format(parseISO(data.post.embed.record.record.createdAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.embed.record.record.createdAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.record.createdAt), {locale: ja})}</time></p>
+              <p class="timeline__date"><time datetime="{format(parseISO(data.post.embed.record.record.createdAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.embed.record.record.createdAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.record.createdAt), {locale: dateFnsLocale})}</time></p>
               <p class="timeline__thread-link">
-                <a href="/profile/{data.post.embed.record.author.handle}/post/{data.post.embed.record.uri.split('/').slice(-1)[0]}">スレッドを見る</a>
+                <a href="/profile/{data.post.embed.record.author.handle}/post/{data.post.embed.record.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
               </p>
             </div>
 
@@ -267,7 +303,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="15.2" height="19" viewBox="0 0 15.2 19">
                 <path id="trash" d="M67.8,1.9,69.7,0h3.8l1.9,1.9h3.8V3.8H64V1.9ZM64.95,5.7h13.3L77.3,19H65.9ZM69.7,7.6v9.5h.95V7.6Zm2.85,0v9.5h.95V7.6Z" transform="translate(-64)" fill="var(--danger-color)"/>
               </svg>
-              <span class="text-danger">ポストを削除</span>
+              <span class="text-danger">{$_('delete_post')}</span>
             </button>
           </li>
         {/if}
@@ -277,7 +313,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18.16" height="16.112" viewBox="0 0 18.16 16.112">
               <path id="パス_4" data-name="パス 4" d="M-21.606-46.169h7.482v4.315a16.682,16.682,0,0,1-4.588,11.8h-3.332a16.9,16.9,0,0,0,4.014-8.629h-3.577Zm10.3,0h7.428v4.315a16.5,16.5,0,0,1-4.588,11.8h-3.277a16.118,16.118,0,0,0,3.96-8.629h-3.523Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
             </svg>
-            引用ポスト
+            {$_('quote_post')}
           </button>
         </li>
 
@@ -286,7 +322,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
               <path id="conversation" d="M15.3,9.9v2.7L12.6,9.9H7.2A1.8,1.8,0,0,1,5.4,8.1h0V1.8A1.805,1.805,0,0,1,7.2,0h9A1.8,1.8,0,0,1,18,1.8h0V8.1a1.8,1.8,0,0,1-1.8,1.8h-.9Zm-2.7,1.8v1.8a1.8,1.8,0,0,1-1.8,1.8H5.4L2.7,18V15.3H1.8A1.8,1.8,0,0,1,0,13.5H0V7.2A1.805,1.805,0,0,1,1.8,5.4H3.6V8.1a3.6,3.6,0,0,0,3.6,3.6h5.4Z" fill="var(--primary-color)"/>
             </svg>
-            スレッドを見る
+            {$_('show_thread')}
           </a>
         </li>
 
@@ -295,7 +331,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
               <path id="translate" d="M6.669,8.1l2.016,2.016-.747,1.8L5.4,9.36,2.43,12.33,1.17,11.052,4.122,8.1,3.33,7.308A5.387,5.387,0,0,1,2.16,5.4H4.14a2.533,2.533,0,0,0,.459.63l.8.81.792-.792A4.173,4.173,0,0,0,7.2,3.6H0V1.8H4.5V0H6.3V1.8h4.5V3.6H9A5.906,5.906,0,0,1,7.47,7.308L6.66,8.1Zm3.456,7.2L9,18H7.2L11.7,7.2h1.8L18,18H16.2l-1.125-2.7Zm.747-1.8h3.456L12.6,9.36Z" fill="var(--text-color-1)"/>
             </svg>
-            翻訳
+            {$_('translation')}
           </button>
         </li>
       </ul>
