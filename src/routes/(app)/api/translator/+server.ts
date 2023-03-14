@@ -22,6 +22,6 @@ async function translator(text = '', to = 'ja') {
 export async function POST({ request }) {
     if (request.method === 'POST') {
         const textObj = await request.json();
-        return new Response(JSON.stringify(await translator(textObj.text)), { status: 200 });
+        return new Response(JSON.stringify(await translator(textObj.text, textObj.to)), { status: 200 });
     }
 }

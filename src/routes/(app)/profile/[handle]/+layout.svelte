@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from 'svelte-i18n';
     import { agent } from '$lib/stores';
     import { afterUpdate, onMount } from 'svelte';
     import { page } from '$app/stores';
@@ -74,11 +75,11 @@
         {/if}
 
         <div class="profile-relationship">
-          <p class="profile-relationship__item"><span>{profile.followsCount}</span> フォロー</p>
-          <p class="profile-relationship__item"><span>{profile.followersCount}</span> フォロワー</p>
+          <p class="profile-relationship__item"><span>{profile.followsCount}</span> {$_('follows')}</p>
+          <p class="profile-relationship__item"><span>{profile.followersCount}</span> {$_('followers')}</p>
 
           {#if (profile.viewer?.followedBy)}
-            <p class="profile-relationship__by">あなたをフォローしています</p>
+            <p class="profile-relationship__by">{$_('follows_you')}</p>
           {/if}
         </div>
 
@@ -91,9 +92,9 @@
     </div>
 
     <ul class="profile-tab">
-      <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>投稿</a></li>
-      <li class="profile-tab__item" on:click={() => currentPage = 'follow'} class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>フォロー</a></li>
-      <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>フォロワー</a></li>
+      <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
+      <li class="profile-tab__item" on:click={() => currentPage = 'follow'} class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
+      <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
     </ul>
 
     <slot></slot>

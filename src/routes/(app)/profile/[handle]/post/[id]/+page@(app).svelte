@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from 'svelte-i18n';
     import { agent } from '$lib/stores';
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
@@ -26,7 +27,7 @@
 </script>
 
 <div class="timeline">
-  <h1 class="thread-title">スレッド</h1>
+  <h1 class="thread-title">{$_('title_thread')}</h1>
 
   <Thread feeds={feeds}></Thread>
 </div>

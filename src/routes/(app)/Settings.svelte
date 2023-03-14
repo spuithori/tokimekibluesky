@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from 'svelte-i18n';
     import { theme, nonoto, isDarkMode } from '$lib/stores';
     import { goto } from '$app/navigation';
     let darkModeToggle = JSON.parse(localStorage.getItem('darkmode')) === true;
@@ -25,7 +26,7 @@
 <div>
   <dl class="settings-group">
     <dt class="settings-group__name">
-      ダークモード
+      {$_('darkmode')}
     </dt>
 
     <dd class="settings-group__content">
@@ -37,7 +38,7 @@
 
   <dl class="settings-group">
     <dt class="settings-group__name">
-      Noto Sansを使用しない
+      {$_('do_not_use_noto_sans')}
     </dt>
 
     <dd class="settings-group__content">
@@ -49,7 +50,7 @@
 
   <dl class="settings-group settings-group--column">
     <dt class="settings-group__name">
-      テーマ
+      {$_('theme')}
     </dt>
 
     <dd class="settings-group__content">
@@ -106,7 +107,7 @@
   </dl>
 
   <div class="logout">
-    <button class="button button--logout button--sm button--border button--white" type="submit" name="logout" on:click={logout}>ログアウト</button>
+    <button class="button button--logout button--sm button--border button--white" type="submit" name="logout" on:click={logout}>{$_('logout_button')}</button>
   </div>
 </div>
 

@@ -1,4 +1,5 @@
 <script>
+	import { _ } from 'svelte-i18n';
 	import { onMount } from "svelte";
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
@@ -20,7 +21,7 @@
 
 <section>
 	<div class="refresh">
-		<button class="refresh-button" on:click={refresh}>更新</button>
+		<button class="refresh-button" on:click={refresh}>{$_('refresh')}</button>
 	</div>
 
 	<Timeline></Timeline>

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from 'svelte-i18n';
     import type { LayoutData } from '../$types';
     import {agent} from "$lib/stores";
     import UserItem from "../UserItem.svelte";
@@ -37,7 +38,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.params.handle} のフォロワー - TokimekiBluesky</title>
+  <title>{data.params.handle} {$_('page_title_followers')} - TokimekiBluesky</title>
 </svelte:head>
 
 <div class="user-timeline">

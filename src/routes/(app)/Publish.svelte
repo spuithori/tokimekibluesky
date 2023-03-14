@@ -1,4 +1,5 @@
 <script lang="ts">
+import { _ } from 'svelte-i18n';
 import {onMount} from 'svelte';
 import {agent, timeline, quotePost} from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
@@ -29,7 +30,7 @@ let name = 'filepond';
 let isUploadShown = false;
 let isFocus = false;
 let publishArea;
-let publishButtonText = '送信';
+let publishButtonText = $_('publish_button_send');
 
 const publishKeypress = e => {
     if (e.keyCode === 13 && e.altKey) publish();
@@ -64,7 +65,7 @@ function close() {
 
 async function onFileAdded(file) {
     isPublishEnabled = true;
-    publishButtonText = '処理中...';
+    publishButtonText = $_('publish_button_progress');
 }
 
 async function onFileSelected(file, output) {
@@ -85,7 +86,7 @@ async function onFileSelected(file, output) {
     });
     files = files;
     isPublishEnabled = false;
-    publishButtonText = '送信';
+    publishButtonText = $_('publish_button_send');
 }
 
 async function onFileDeleted(error, file) {
@@ -259,7 +260,7 @@ onMount(async () => {
         bind:value={publishContent}
         bind:this={publishArea}
         on:keydown={publishKeypress}
-        placeholder="ときめくメッセージを入力&#13;Alt + Enter で送信できます"
+        placeholder="{$_('send_placeholder1')}&#13;{$_('send_placeholder2')}"
     ></textarea>
     </div>
 
@@ -281,10 +282,10 @@ onMount(async () => {
             onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
             onaddfilestart={(file) => {onFileAdded(file)}}
             credits={null}
-            labelIdle="<span class='only-pc'>ドラッグアンドドロップで画像アップロード<br>またはここをクリック</span>"
-            labelMaxFileSizeExceeded="ファイルがでかすぎます"
-            labelMaxFileSize="最大: {'{'}filesize{'}'}"
-            labelFileTypeNotAllowed="アップロードできない形式です"
+            labelIdle="<span class='only-pc'>{$_('upload_image_label1')}<br>{$_('upload_image_label2')}</span>"
+            labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
+            labelMaxFileSize="{$_('max_')} {'{'}filesize{'}'}"
+            labelFileTypeNotAllowed="{$_('unsupported_file')}"
             fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
         />
       </div>
