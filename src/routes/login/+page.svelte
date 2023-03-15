@@ -106,30 +106,6 @@
       margin-bottom: 30px;
   }
 
-  .input-group {
-      margin-bottom: 15px;
-      position: relative;
-  }
-
-  .input-group__name {
-      position: absolute;
-      width: 0;
-      height: 0;
-      color: transparent;
-      left: 0;
-      right: 0;
-  }
-
-  .input-group__content {
-
-  }
-
-  .input-group__input {
-      width: 100%;
-      border: 1px solid #333;
-      background-color: #fff;
-  }
-
   .login-submit {
       text-align: center;
       margin-top: 30px;

@@ -31,5 +31,17 @@
   "logout_button": "ログアウト",
   "title_thread": "スレッド",
   "page_title_followers": "のフォロワー",
-  "page_title_follows": "のフォロー"
+  "page_title_follows": "のフォロー",
+  "submit_button_submit": "変更する",
+  "submit_button_progress": "処理中...",
+  "upload_avatar_label1": "ドラッグアンドドロップ",
+  "upload_avatar_label2": "またはクリック",
+  "upload_banner_label1": "ドラッグアンドドロップ",
+  "upload_banner_label2": "またはクリック",
+  "edit_profile_button": "プロフィール編集",
+  "edit_avatar": "アバター画像",
+  "edit_banner": "バナー画像",
+  "edit_display_name": "ハンドルネーム",
+  "edit_description": "紹介文",
+  "edit_cancel_button": "キャンセル"
 }

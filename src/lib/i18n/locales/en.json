@@ -31,5 +31,17 @@
   "logout_button": "Logout",
   "title_thread": "Thread",
   "page_title_followers": "followers",
-  "page_title_follows": "follows"
+  "page_title_follows": "follows",
+  "submit_button_submit": "OK",
+  "submit_button_progress": "Preparing...",
+  "upload_avatar_label1": "Drag and drop",
+  "upload_avatar_label2": "or click",
+  "upload_banner_label1": "Drag and drop",
+  "upload_banner_label2": "or click",
+  "edit_profile_button": "Edit Profile",
+  "edit_avatar": "Avatar",
+  "edit_banner": "Banner",
+  "edit_display_name": "Display name",
+  "edit_description": "Description",
+  "edit_cancel_button": "Cancel"
 }

@@ -1,0 +1,87 @@
+.input-group {
+    margin-bottom: 15px;
+    position: relative;
+
+    label {
+        margin-bottom: 5px;
+    }
+
+    input {
+        border-radius: 4px;
+        height: 50px;
+        padding: 0 20px;
+    }
+
+    textarea {
+        border-radius: 4px;
+        height: 200px;
+        width: 100%;
+        padding: 14px 20px;
+        border: 1px solid var(--border-color-1);
+    }
+}
+
+.input-group__name {
+    position: absolute;
+    width: 0;
+    height: 0;
+    color: transparent;
+    left: 0;
+    right: 0;
+
+    &--show {
+        position: static;
+        margin-bottom: 10px;
+        color: var(--text-color-1);
+        width: auto;
+        height: auto;
+    }
+}
+
+.input-group__content {
+
+}
+
+.input-group__input {
+    width: 100%;
+    border: 1px solid #333;
+    background-color: #fff;
+}
+
+.edit-avatar {
+    .filepond--root {
+        width: 150px;
+        height: 150px !important;
+        max-height: 150px !important;
+    }
+
+    .filepond--drop-label {
+        background-color: rgba(0, 0, 0, .3);
+        color: #fff;
+        font-size: 12px;
+    }
+
+    .filepond--panel-root {
+        background-color: transparent;
+    }
+}
+
+.edit-banner {
+    .filepond--root {
+        width: 100%;
+        aspect-ratio: 3 / 1;
+        height: auto !important;
+        max-height: 100% !important;
+    }
+
+    .filepond--drop-label {
+        background-color: rgba(0, 0, 0, .3);
+        color: #fff;
+        font-size: 14px;
+        height: 100%;
+    }
+
+    .filepond--panel-root {
+        background-color: transparent;
+    }
+}

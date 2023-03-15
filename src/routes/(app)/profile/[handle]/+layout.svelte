@@ -3,19 +3,26 @@
     import { agent } from '$lib/stores';
     import { afterUpdate, onMount } from 'svelte';
     import { page } from '$app/stores';
-    let profile = Promise;
-
     import type { LayoutData } from './$types';
-    import UserFollowButton from "./UserFollowButton.svelte";
-    import {afterNavigate} from "$app/navigation";
+    import UserFollowButton from './UserFollowButton.svelte';
+    import { afterNavigate } from '$app/navigation';
+    import UserEdit from './UserEdit.svelte';
+
+    let profile = Promise;
 
     export let data: LayoutData;
     let currentPage = 'posts';
     $: handle = $page.params.handle
 
+    $:console.log(profile)
+
     async function load() {
         let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
         return profile.data
+    }
+
+    function onProfileUpdate() {
+        profile = load();
     }
 
     afterNavigate(async() => {
@@ -86,6 +93,10 @@
         {#if (profile.did !== $agent.did())}
           <div class="profile-follow-button">
             <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
+          </div>
+        {:else}
+          <div class="profile-follow-button profile-follow-button--me">
+            <UserEdit {profile} on:update={onProfileUpdate}></UserEdit>
           </div>
         {/if}
       </div>
