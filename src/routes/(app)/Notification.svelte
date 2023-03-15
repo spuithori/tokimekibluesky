@@ -69,6 +69,10 @@
       font-weight: 600;
   }
 
+  .notification-item__name {
+    word-break: break-all;
+  }
+
   .notifications-item__content {
       font-size: 14px !important;
   }

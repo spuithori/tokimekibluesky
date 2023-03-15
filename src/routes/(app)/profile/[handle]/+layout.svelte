@@ -130,6 +130,10 @@
         }
     }
 
+    .profile-content {
+      word-break: break-all;
+    }
+
     .profile-avatar {
         aspect-ratio: 1 / 1;
         width: 100%;
@@ -149,9 +153,11 @@
         margin-bottom: 2px;
         line-height: 1.5;
         letter-spacing: .025em;
+        padding-right: 170px;
 
         @media (max-width: 767px) {
             font-size: 24px;
+            padding-right: 0;
         }
     }
 
