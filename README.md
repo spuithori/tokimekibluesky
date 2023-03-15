@@ -18,5 +18,5 @@ Currently, only bsky.social is available.
 - [x] Quote post
 - [ ] Mention
 - [ ] Create post with entities formatting
-- [ ] Update profile
+- [x] Update profile
 - [ ] Create account
