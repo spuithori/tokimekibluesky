@@ -259,6 +259,7 @@
           width: max-content;
           height: max-content;
           max-height: 90vh;
+          max-width: calc(100% - 20px);
           overflow: auto;
           overscroll-behavior-y: none;
           background-color: var(--bg-color-1);
