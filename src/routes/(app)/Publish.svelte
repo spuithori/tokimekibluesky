@@ -383,7 +383,7 @@ onMount(async () => {
     .publish-upload {
         position: fixed;
         bottom: calc(230px + 10px);
-        left: calc(50vw - 380px);
+        left: calc(50vw - 378px);
         width: 740px;
         max-width: 100%;
         height: 230px;

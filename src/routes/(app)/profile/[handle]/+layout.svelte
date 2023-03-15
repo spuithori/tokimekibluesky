@@ -170,6 +170,7 @@
 
         &__text {
             line-height: 1.75;
+            white-space: pre-wrap;
         }
     }
 

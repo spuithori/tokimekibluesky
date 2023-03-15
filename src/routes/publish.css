@@ -31,7 +31,7 @@
 .filepond--panel-root {
     background-color: var(--bg-color-1);
     box-shadow: 0 0 6px rgba(0, 0, 0, .12);
-    border: 1px solid var(--border-color-1);
+    border: 2px solid var(--primary-color);
 
     @media (max-width: 767px) {
         box-shadow: none;
