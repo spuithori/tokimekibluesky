@@ -1,3 +1,10 @@
+a,
+button {
+    &:focus-visible {
+        outline: dashed var(--text-color-1);
+    }
+}
+
 .button {
     display: inline-flex;
     height: 50px;
