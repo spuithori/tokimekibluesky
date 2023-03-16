@@ -14,7 +14,6 @@
     async function handleLoadMore() {
         let raw = await $agent.agent.api.app.bsky.graph.getFollows({user: data.params.handle, limit: 20, before: cursor});
         cursor = raw.data.cursor
-        console.log('aaa')
 
         if (!cursor) {
             finishLoading = true;

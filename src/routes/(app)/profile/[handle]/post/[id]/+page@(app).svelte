@@ -6,7 +6,6 @@
     import Thread from "./Thread.svelte";
     import {afterNavigate} from "$app/navigation";
 
-    let thread = Promise;
     let feeds = [];
     $: recordId = $page.params.id;
     $: handle = $page.params.handle;

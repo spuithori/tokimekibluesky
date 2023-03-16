@@ -1,11 +1,10 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { agent } from '$lib/stores';
-    import { afterUpdate, onMount } from 'svelte';
+    import { afterUpdate } from 'svelte';
     import { page } from '$app/stores';
     import type { LayoutData } from './$types';
     import UserFollowButton from './UserFollowButton.svelte';
-    import { afterNavigate } from '$app/navigation';
     import UserEdit from './UserEdit.svelte';
 
     let profile = Promise;
@@ -13,8 +12,12 @@
     export let data: LayoutData;
     let currentPage = 'posts';
     $: handle = $page.params.handle
-
-    $:console.log(profile)
+    $: {
+        if (handle) {
+            profile = load();
+        }
+    }
+    // $:console.log(handle)
 
     async function load() {
         let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
@@ -24,10 +27,6 @@
     function onProfileUpdate() {
         profile = load();
     }
-
-    afterNavigate(async() => {
-        profile = load();
-    })
 
     function isActive() {
         const path = data.url.pathname;

@@ -93,6 +93,20 @@ async function onFileDeleted(error, file) {
     files = files.filter((item) => item.id !== file.id );
 }
 
+function handleKeydown(event) {
+    if (event.key === 'n' && !isFocus) {
+        isFocus = true;
+        setTimeout(() => {
+            publishArea.focus();
+        }, 100)
+    }
+
+    if (event.key === 'Escape' && isFocus) {
+        isFocus = false;
+        publishArea.blur();
+    }
+}
+
 $: {
     if (!isUploadShown) {
        files = [];
@@ -181,6 +195,8 @@ onMount(async () => {
 })
 </script>
 
+<svelte:window on:keydown={handleKeydown} />
+
 <section class="publish-group"
          class:publish-group--expanded={isFocus}
          tabindex="-1"
@@ -256,6 +272,7 @@ onMount(async () => {
       <textarea
         type="text"
         class="publish-form__input"
+        name="content"
         disabled={isTextareaEnabled}
         bind:value={publishContent}
         bind:this={publishArea}
