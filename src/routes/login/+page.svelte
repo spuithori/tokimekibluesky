@@ -2,21 +2,34 @@
     import '../styles.css';
     import { AtpAgent, AtpSessionEvent, AtpSessionData } from '@atproto/api';
     import { goto } from '$app/navigation';
-    import { service } from '$lib/stores';
 
     let identifier = '';
     let password = '';
     let errorMessage = '';
+    let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+    const currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
+    let service = accounts[currentAccount]?.service || 'https://bsky.social';
 
     async function login() {
         const agent = new AtpAgent({
-            service: $service,
+            service: service,
         });
 
         try {
             await agent.login({identifier: identifier, password: password});
-            localStorage.setItem('service', $service);
-            localStorage.setItem('session', JSON.stringify(agent.session));
+            if (accounts.length > currentAccount) {
+                accounts[currentAccount].session = agent.session;
+                accounts[currentAccount].service = service;
+            } else {
+                accounts.push({
+                    name: service,
+                    session: agent.session,
+                    service: service,
+                });
+            }
+            // localStorage.setItem('service', $service);
+            localStorage.setItem('accounts', JSON.stringify(accounts));
+            localStorage.setItem('currentAccount', JSON.stringify(currentAccount));
             await goto('/');
         } catch (e) {
             errorMessage = e.message;
@@ -49,7 +62,7 @@
       </dt>
 
       <dd class="input-group__content">
-        <input class="input-group__input" type="text" name="service" id="service" placeholder="service" bind:value="{$service}" required />
+        <input class="input-group__input" type="text" name="service" id="service" placeholder="service" bind:value="{service}" required />
       </dd>
     </dl>
 

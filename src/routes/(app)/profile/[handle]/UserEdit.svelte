@@ -219,7 +219,7 @@
             </dt>
 
             <dd class="input-group__content">
-              <input class="input-group__input" type="text" name="displayName" id="display_name" placeholder="Email" bind:value="{displayName}" required />
+              <input class="input-group__input" type="text" name="displayName" id="display_name" placeholder="" bind:value="{displayName}" required />
             </dd>
           </dl>
 

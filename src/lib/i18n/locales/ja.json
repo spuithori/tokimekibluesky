@@ -43,5 +43,7 @@
   "edit_banner": "バナー画像",
   "edit_display_name": "ハンドルネーム",
   "edit_description": "紹介文",
-  "edit_cancel_button": "キャンセル"
+  "edit_cancel_button": "キャンセル",
+  "switch_account": "アカウント切り替え",
+  "add_account": "アカウント追加"
 }

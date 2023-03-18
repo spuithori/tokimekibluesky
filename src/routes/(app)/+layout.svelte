@@ -11,25 +11,32 @@
 
   inject({ mode: dev ? 'development' : 'production' });
 
-  const session = localStorage.getItem('session');
+  let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+  let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
+
+  if (accounts.length <= currentAccount) {
+      currentAccount = currentAccount - 1;
+      localStorage.setItem('currentAccount', String(currentAccount))
+  }
+
+  const session = accounts[currentAccount]?.session;
   if (!session) {
       goto('/login');
   }
 
-  let ag = new AtpAgent({
-      service: $service,
-      persistSession: (evt: AtpSessionEvent, sess?: AtpSessionData) => {
-          localStorage.setItem('session', JSON.stringify(sess))
-      }
-  });
+  try {
+      let ag = new AtpAgent({
+          service: accounts[currentAccount].service,
+          persistSession: (evt: AtpSessionEvent, sess?: AtpSessionData) => {
+              accounts[currentAccount].session = sess;
+              localStorage.setItem('accounts', JSON.stringify(accounts))
+          }
+      });
 
-  if (!ag.session) {
-      try {
-          ag.resumeSession(JSON.parse(localStorage.getItem('session')));
-          agent.set(new Agent(ag));
-      } catch (e) {
-          goto('/login');
-      }
+      ag.resumeSession(accounts[currentAccount].session);
+      agent.set(new Agent(ag));
+  } catch (e) {
+      goto('/login');
   }
 </script>
 

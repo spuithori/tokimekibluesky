@@ -1,6 +1,9 @@
 import { writable } from 'svelte/store';
 
 export const service = writable(localStorage.getItem('service') || 'https://bsky.social');
+export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) || []);
+
+export const currentAccount = writable(localStorage.getItem('currentAccount') || '0');
 export const agent = writable({});
 
 function createTimeline () {
