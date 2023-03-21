@@ -26,7 +26,7 @@
                 accounts[currentAccount].service = service;
             } else {
                 accounts.push({
-                    name: service,
+                    name: agent.session.handle,
                     session: agent.session,
                     service: service,
                 });
