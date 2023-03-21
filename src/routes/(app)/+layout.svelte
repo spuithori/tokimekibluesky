@@ -14,7 +14,7 @@
   let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
   let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
 
-  if (accounts.length < currentAccount) {
+  if (accounts.length <= currentAccount && currentAccount > 0) {
       currentAccount = currentAccount - 1;
       localStorage.setItem('currentAccount', String(currentAccount))
   }
