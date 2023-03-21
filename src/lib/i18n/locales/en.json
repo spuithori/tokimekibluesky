@@ -43,5 +43,10 @@
   "edit_banner": "Banner",
   "edit_display_name": "Display name",
   "edit_description": "Description",
-  "edit_cancel_button": "Cancel"
+  "edit_cancel_button": "Cancel",
+  "switch_account": "Switch account",
+  "add_account": "Add account",
+  "current": "Current",
+  "switch": "Switch",
+  "close_button": "Close"
 }

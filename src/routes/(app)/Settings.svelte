@@ -2,9 +2,15 @@
     import { _ } from 'svelte-i18n';
     import { theme, nonoto, isDarkMode } from '$lib/stores';
     import { goto } from '$app/navigation';
+    import { fade, fly } from 'svelte/transition';
+    import AccountSwitcher from './AccountSwitcher.svelte';
+
     let darkModeToggle = JSON.parse(localStorage.getItem('darkmode')) === true;
     let nonotoToggle = JSON.parse(localStorage.getItem('nonoto')) === true;
     let themePick = localStorage.getItem('theme');
+    let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+    let isAccountSwitcherOpen = false;
+    const currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
 
     $: {
         localStorage.setItem('darkmode', darkModeToggle ? 'true' : 'false');
@@ -18,12 +24,41 @@
     }
 
     async function logout() {
-        localStorage.removeItem('session');
+        accounts.splice(currentAccount, 1)
+        localStorage.setItem('accounts', JSON.stringify(accounts));
+
+        if (accounts.length > 0) {
+            localStorage.setItem('currentAccount', String(Number(accounts.length - 1)));
+            location.reload();
+        } else {
+            goto('/login');
+        }
+    }
+
+    async function addAccount() {
+        const setAccount = accounts.length;
+        localStorage.setItem('currentAccount', String(setAccount));
         goto('/login');
+    }
+
+    function accountSwitcherToggle() {
+        accounts = accounts;
+        isAccountSwitcherOpen = isAccountSwitcherOpen !== true;
     }
 </script>
 
 <div>
+  <dl class="settings-group settings-group--column">
+    <dt class="settings-group__name">
+      現在のアカウント:
+    </dt>
+
+    <dd class="settings-group__content">
+      <strong class="primary-color">{accounts[currentAccount].name}</strong><br>
+      {accounts[currentAccount].service}
+    </dd>
+  </dl>
+
   <dl class="settings-group">
     <dt class="settings-group__name">
       {$_('darkmode')}
@@ -106,8 +141,31 @@
     </dd>
   </dl>
 
+  <div class="account-switcher">
+    <div class="account-switcher-toggle">
+      <button class="button button--logout button--sm button--border button--white" type="submit" name="add_account" on:click={accountSwitcherToggle}>{$_('switch_account')}</button>
+
+      {#if (isAccountSwitcherOpen)}
+        <div class="account-switcher-box" transition:fly="{{ y: 30, duration: 250 }}">
+          <div class="account-switcher-box__content">
+            <AccountSwitcher {accounts} {currentAccount}></AccountSwitcher>
+
+            <div class="account-switcher-box__buttons">
+              <button class="button" on:click={accountSwitcherToggle}>{$_('close_button')}</button>
+            </div>
+          </div>
+        </div>
+      {/if}
+    </div>
+
+  </div>
+
+  <div class="other-account">
+    <button class="button button--logout button--sm button--border button--white" type="submit" name="add_account" on:click={addAccount}>{$_('add_account')}</button>
+  </div>
+
   <div class="logout">
-    <button class="button button--logout button--sm button--border button--white" type="submit" name="logout" on:click={logout}>{$_('logout_button')}</button>
+    <button class="button button--logout button--sm button--border button--white button--danger" type="submit" name="logout" on:click={logout}>{$_('logout_button')}</button>
   </div>
 </div>
 
@@ -339,5 +397,47 @@
 
     .logout {
         margin-top: 20px;
+    }
+
+
+
+    .account-switcher-box {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, .6);
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+
+        &__content {
+            width: max-content;
+            height: max-content;
+            max-height: 90svh;
+            max-width: calc(100% - 20px);
+            overflow: auto;
+            overscroll-behavior-y: none;
+            background-color: var(--bg-color-1);
+            border-radius: 6px;
+            padding: 30px;
+        }
+
+        &__buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+    }
+
+    .account-switcher {
+        margin-top: 20px;
+        margin-bottom: 10px;
+
+        @media (max-width: 767px) {
+            .button {
+                width: 100%;
+            }
+        }
     }
 </style>

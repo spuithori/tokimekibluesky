@@ -46,7 +46,7 @@
     </a></h1>
 
     <div class="header__settings">
-      <button class="settings-toggle" on:click={settingsToggle}>
+      <button class="settings-toggle" aria-label="設定メニューを開く" on:click={settingsToggle}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
           <path id="cog" d="M4.728,7.8,2.664,4.368l1.7-1.7L7.8,4.728a8.49,8.49,0,0,1,2.04-.84L10.8,0h2.4l.96,3.888a8.49,8.49,0,0,1,2.04.84l3.432-2.064,1.7,1.7L19.272,7.8a8.49,8.49,0,0,1,.84,2.04L24,10.8v2.4l-3.888.96a8.49,8.49,0,0,1-.84,2.04l2.064,3.432-1.7,1.7L16.2,19.272a8.49,8.49,0,0,1-2.04.84L13.2,24H10.8l-.96-3.888a8.49,8.49,0,0,1-2.04-.84L4.368,21.336l-1.7-1.7L4.728,16.2a8.49,8.49,0,0,1-.84-2.04L0,13.2V10.8l3.888-.96a8.49,8.49,0,0,1,.84-2.04ZM12,15.6a3.6,3.6,0,1,0,0-7.2h0a3.6,3.6,0,0,0,0,7.2Z" transform="translate(0 0)" fill="var(--text-color-3)"/>
         </svg>
@@ -205,6 +205,8 @@
       right: 0;
       width: 200px;
       height: max-content;
+      max-height: 85svh;
+      overscroll-behavior-y: none;
       overflow: auto;
       background-color: var(--bg-color-1);
       border-radius: 8px;

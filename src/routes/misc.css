@@ -22,3 +22,7 @@
 .block-link:hover {
     text-decoration: none;
 }
+
+.primary-color {
+    color: var(--primary-color);
+}
