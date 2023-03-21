@@ -151,7 +151,7 @@
             <AccountSwitcher {accounts} {currentAccount}></AccountSwitcher>
 
             <div class="account-switcher-box__buttons">
-              <button class="button" on:click={accountSwitcherToggle}>とじる</button>
+              <button class="button" on:click={accountSwitcherToggle}>{$_('close_button')}</button>
             </div>
           </div>
         </div>

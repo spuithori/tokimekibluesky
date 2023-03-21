@@ -45,5 +45,8 @@
   "edit_description": "紹介文",
   "edit_cancel_button": "キャンセル",
   "switch_account": "アカウント切り替え",
-  "add_account": "アカウント追加"
+  "add_account": "アカウント追加",
+  "current": "現在",
+  "switch": "切り替え",
+  "close_button": "とじる"
 }

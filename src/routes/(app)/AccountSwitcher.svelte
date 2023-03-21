@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from 'svelte-i18n';
     import { agent } from '$lib/stores';
     export let accounts;
     export let currentAccount;
@@ -48,11 +49,11 @@
 
           {#if (account.session.did === $agent.did())}
             <div class="account-switch-item__buttons">
-              <button class="button button--sm" disabled>現在</button>
+              <button class="button button--sm" disabled>{$_('current')}</button>
             </div>
           {:else}
             <div class="account-switch-item__buttons">
-              <button class="button button--sm" on:click={() => {accountSwitch(index)}}>切り替え</button>
+              <button class="button button--sm" on:click={() => {accountSwitch(index)}}>{$_('switch')}</button>
             </div>
           {/if}
         </div>
