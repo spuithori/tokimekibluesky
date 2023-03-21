@@ -30,11 +30,15 @@
   {/each}
 </div>
 
-<style>
+<style lang="postcss">
     .timeline-images {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 20px;
+
+        &:has(.timeline-image:only-child) {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
     .timeline-image {
@@ -44,6 +48,10 @@
         overflow: hidden;
         border-radius: 6px;
         display: flex;
+
+        &:only-child {
+            aspect-ratio: auto;
+        }
     }
 
     .timeline-image button {
