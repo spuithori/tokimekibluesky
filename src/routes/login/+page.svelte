@@ -7,8 +7,12 @@
     let password = '';
     let errorMessage = '';
     let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-    const currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
+    let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
     let service = accounts[currentAccount]?.service || 'https://bsky.social';
+
+    if (currentAccount < 0) {
+        currentAccount = 0;
+    }
 
     async function login() {
         const agent = new AtpAgent({
