@@ -94,12 +94,12 @@ async function onFileDeleted(error, file) {
 }
 
 function handleKeydown(event) {
-    if (event.key === 'n' && !isFocus) {
+    /* if (event.key === 'n' && !isFocus) {
         isFocus = true;
         setTimeout(() => {
             publishArea.focus();
         }, 100)
-    }
+    } */
 
     if (event.key === 'Escape' && isFocus) {
         isFocus = false;
