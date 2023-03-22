@@ -1,10 +1,9 @@
 <script>
 	import { _ } from 'svelte-i18n';
-	import { onMount } from "svelte";
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
 	import { timeline } from "$lib/stores";
-	import { goto } from "$app/navigation";
+	import SearchForm from "./SearchForm.svelte";
 
 	async function refresh() {
 		const data = await $agent.getTimeline();
@@ -20,6 +19,8 @@
 </svelte:head>
 
 <section>
+	<SearchForm></SearchForm>
+
 	<div class="refresh">
 		<button class="refresh-button" on:click={refresh}>{$_('refresh')}</button>
 	</div>

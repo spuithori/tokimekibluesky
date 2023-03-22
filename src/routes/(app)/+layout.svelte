@@ -11,8 +11,6 @@
 
   inject({ mode: dev ? 'development' : 'production' });
 
-  let search = '';
-
   const session = localStorage.getItem('session');
   if (!session) {
       goto('/login');
@@ -37,13 +35,6 @@
 
 <div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme}">
   <Header />
-
-  <div class="search">
-    <form action="/search" method="get">
-      <input type="text" name="q" required bind:value={search}>
-      <button type="submit" class="button button--sm">検索</button>
-    </form>
-  </div>
 
   <main class="main">
     <slot />
@@ -72,29 +63,5 @@
     @media (max-width: 767px) {
         margin-bottom: 20px;
     }
-  }
-
-  .search {
-      margin: 20px auto 0;
-      max-width: 780px;
-      width: 100%;
-      padding: 0 20px;
-
-      form {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 20px;
-      }
-
-      input {
-          background-color: var(--bg-color-1);
-          border: 1px solid var(--border-color-1);
-          height: 40px;
-          padding: 0 10px;
-          border-radius: 6px;
-          flex: 1;
-          width: 100%;
-      }
   }
 </style>
