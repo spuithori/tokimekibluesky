@@ -1,12 +1,6 @@
 <script lang="ts">
     import { page } from '$app/stores';
-    let search = '';
-
-    $: {
-        if ($page.url.searchParams.get('q')) {
-            search = $page.url.searchParams.get('q')
-        }
-    }
+    let search = $page.url.searchParams.get('q') || '';
 </script>
 
 <div class="search">
