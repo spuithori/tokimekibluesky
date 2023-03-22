@@ -80,7 +80,7 @@
     white-space: nowrap;
 
     @media (max-width: 767px) {
-        margin-right: auto;
+
     }
 
     &:disabled {

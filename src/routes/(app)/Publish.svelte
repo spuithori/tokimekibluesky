@@ -32,6 +32,11 @@ let isFocus = false;
 let publishArea;
 let publishButtonText = $_('publish_button_send');
 
+$: publishContentLength = publishContent.length;
+$: {
+    isPublishEnabled = publishContentLength > 256;
+}
+
 const publishKeypress = e => {
     if (e.keyCode === 13 && e.altKey) publish();
 };
@@ -221,6 +226,10 @@ onMount(async () => {
 
   <div class="publish-wrap">
     <div class="publish-buttons">
+      <p class="publish-length">
+        <span class="publish-length__current" class:over={publishContentLength > 256}>{publishContentLength}</span> / 256
+      </p>
+
       <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">
         <path id="send" d="M0,0,17,6.375,0,12.75ZM0,5.1V7.65L8.5,6.375Z" fill="var(--bg-color-1)"/>
       </svg>
@@ -394,6 +403,7 @@ onMount(async () => {
         margin: 0 auto 10px;
         display: flex;
         justify-content: flex-end;
+        align-items: center;
         width: 100%;
     }
 
@@ -449,6 +459,7 @@ onMount(async () => {
             height: 30px;
             padding: 6px;
             background-color: var(--primary-color);
+            order: 3;
         }
     }
 
@@ -467,6 +478,24 @@ onMount(async () => {
             right: 15px;
             top: 20px;
             z-index: 2;
+        }
+    }
+
+    .publish-length {
+        margin-right: auto;
+        color: var(--text-color-3);
+
+        @media (max-width: 767px) {
+           order: 2;
+            margin-right: 0;
+            margin-left: 15px;
+        }
+
+        &__current {
+            &.over {
+                font-weight: 600;
+                color: var(--danger-color);
+            }
         }
     }
 </style>
