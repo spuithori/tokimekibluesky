@@ -40,6 +40,7 @@
     "filepond-plugin-image-resize": "^2.0.10",
     "filepond-plugin-image-transform": "^3.8.7",
     "glightbox": "^3.2.0",
+    "linkify-plugin-mention": "^4.1.0",
     "linkifyjs": "^4.1.0",
     "postcss-nested": "5.0.1",
     "postcss-preset-env": "*",

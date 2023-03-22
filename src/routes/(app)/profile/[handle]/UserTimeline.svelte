@@ -11,7 +11,6 @@
 
     onMount(async () => {
         const raw = await $agent.agent.api.app.bsky.feed.getAuthorFeed({author: author, limit: 30});
-        console.log(raw.data.cursor)
         feeds = raw.data.feed;
         cursor = raw.data.cursor;
     });
