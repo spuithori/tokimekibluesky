@@ -14,7 +14,7 @@
 </script>
 
 <svelte:head>
-	<title>Home - TokimekiBluesky</title>
+	<title>Home - TOKIMEKI Bluesky</title>
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
 

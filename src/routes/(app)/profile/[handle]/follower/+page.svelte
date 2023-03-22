@@ -38,7 +38,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.params.handle} {$_('page_title_followers')} - TokimekiBluesky</title>
+  <title>{data.params.handle} {$_('page_title_followers')} - TOKIMEKI Bluesky</title>
 </svelte:head>
 
 <div class="user-timeline">

@@ -42,7 +42,7 @@
 </script>
 
 <svelte:head>
-  <title>Login - TokimekiBluesky</title>
+  <title>Login - TOKIMEKI Bluesky</title>
 </svelte:head>
 
 <section class="login">
