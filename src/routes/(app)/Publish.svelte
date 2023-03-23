@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
-import {onMount} from 'svelte';
-import {agent, timeline, quotePost} from '$lib/stores';
+import { onMount } from 'svelte';
+import { agent, timeline, quotePost } from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -10,7 +10,7 @@ import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 import { fade, fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
-import {format, formatDistanceToNow, parseISO} from 'date-fns';
+import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import ja from 'date-fns/locale/ja/index';
 import * as linkify from "linkifyjs";
 
@@ -57,7 +57,6 @@ function onFocus() {
             publishArea.focus();
         }, 100)
     }
-
 }
 
 function onBlur() {
@@ -99,12 +98,14 @@ async function onFileDeleted(error, file) {
 }
 
 function handleKeydown(event) {
-    /* if (event.key === 'n' && !isFocus) {
+    const activeElement = document.activeElement?.tagName;
+
+    if (event.key === 'n' && activeElement === 'BODY') {
         isFocus = true;
         setTimeout(() => {
             publishArea.focus();
         }, 100)
-    } */
+    }
 
     if (event.key === 'Escape' && isFocus) {
         isFocus = false;
