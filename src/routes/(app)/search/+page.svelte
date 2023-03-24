@@ -12,7 +12,7 @@
     async function getSearchFeeds(query) {
         feeds = [];
 
-        const res = await fetch('https://search.bsky.social/search/posts?q=' + query)
+        const res = await fetch('https://search.bsky.social/search/posts?q=' + encodeURIComponent(query))
             .then(response => response.json())
             .then(data => searchFeeds = data);
 
