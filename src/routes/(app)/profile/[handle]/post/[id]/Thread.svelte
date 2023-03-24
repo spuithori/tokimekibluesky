@@ -5,7 +5,7 @@
 </script>
 
 <div class="thread">
-  {#each feeds as data}
+  {#each feeds as data (data)}
     {#if (data.parent)}
       <div class="thread-parent">
         <svelte:self feeds={[data.parent]}></svelte:self>

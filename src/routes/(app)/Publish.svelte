@@ -89,6 +89,7 @@ async function onFileSelected(file, output) {
         id: file.id,
     });
     files = files;
+    console.log(files);
     isPublishEnabled = false;
     publishButtonText = $_('publish_button_send');
 }

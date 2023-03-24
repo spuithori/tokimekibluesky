@@ -40,7 +40,7 @@
   <SearchForm></SearchForm>
 
   <div class="timeline">
-    {#each feeds as data}
+    {#each feeds as data (data)}
       <TimelineItem data={ data } isPrivate={ true }></TimelineItem>
     {:else}
     {/each}
