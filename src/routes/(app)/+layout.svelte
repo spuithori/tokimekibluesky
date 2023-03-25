@@ -8,6 +8,10 @@
   import { dev } from '$app/environment';
   import { inject } from '@vercel/analytics';
   import Publish from "./Publish.svelte";
+  import { pwaInfo } from 'virtual:pwa-info';
+  import {onMount} from 'svelte';
+
+  $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : ''
 
   inject({ mode: dev ? 'development' : 'production' });
 
@@ -38,7 +42,30 @@
   } catch (e) {
       goto('/login');
   }
+
+  onMount(async() => {
+      if (pwaInfo) {
+          const { registerSW } = await import('virtual:pwa-register')
+          registerSW({
+              immediate: true,
+              onRegistered(r) {
+                 r && setInterval(() => {
+                     r.update()
+                 }, 20000)
+
+                  console.log(`SW Registered`)
+              },
+              onRegisterError(error) {
+                  console.log('SW registration error', error)
+              }
+          })
+      }
+  })
 </script>
+
+<svelte:head>
+  {@html webManifest}
+</svelte:head>
 
 <div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme}">
   <Header />
