@@ -51,12 +51,14 @@ function uploadContextOpen() {
 
 function onFocus() {
     if (!isFocus) {
-        isFocus = true;
 
-        setTimeout(() => {
-            publishArea.focus();
-        }, 100)
     }
+
+    isFocus = true;
+
+    setTimeout(() => {
+        publishArea.focus();
+    }, 100)
 }
 
 function onBlur() {
@@ -330,7 +332,9 @@ onMount(async () => {
         z-index: 11;
 
         @media (max-width: 767px) {
-            padding: 20px;
+            overflow: auto;
+            overscroll-behavior: contain;
+            z-index: 2000;
         }
 
         &--expanded {
@@ -339,20 +343,10 @@ onMount(async () => {
             }
 
             @media (max-width: 767px) {
-                &::before {
-                    content: '';
-                    display: block;
-                    position: fixed;
-                    left: 0;
-                    top: 0;
-                    bottom: 0;
-                    right: 0;
-                    background-color: rgba(255, 255, 255, .7);
-                }
+                top: 0;
 
                 .publish-wrap {
-                    opacity: 1;
-                    visibility: visible;
+                   display: flex;
                 }
             }
         }
@@ -364,21 +358,14 @@ onMount(async () => {
         padding: 20px 0 0;
 
         @media (max-width: 767px) {
-            display: flex;
-            opacity: 0;
-            visibility: hidden;
-            position: fixed;
+            display: none;
             flex-direction: column-reverse;
             gap: 20px;
-            left: 20px;
-            right: 20px;
-            bottom: 90px;
-            padding: 20px;
+            padding: 20px 20px 90px;
             background-color: var(--bg-color-1);
             border: 1px solid var(--border-color-1);
-            box-shadow: 0 0 6px rgba(0, 0, 0, .12);
-            border-radius: 6px;
-            height: 60vh;
+            border-radius: 0;
+            height: calc(100vh + 1px);
         }
     }
 
@@ -418,9 +405,9 @@ onMount(async () => {
         height: 230px;
 
         @media (max-width: 767px) {
+            overflow: hidden;
             position: static;
             bottom: 100%;
-            width: calc(100vw - 80px);
             margin: 0 auto;
             height: auto;
             flex: 1;
