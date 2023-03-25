@@ -51,14 +51,12 @@ function uploadContextOpen() {
 
 function onFocus() {
     if (!isFocus) {
+        isFocus = true;
 
+        setTimeout(() => {
+            publishArea.focus();
+        }, 100)
     }
-
-    isFocus = true;
-
-    setTimeout(() => {
-        publishArea.focus();
-    }, 100)
 }
 
 function onBlur() {
@@ -282,7 +280,9 @@ onMount(async () => {
         </div>
       {/if}
 
+      <label class="publish-form__label" for="publishTextarea"></label>
       <textarea
+        id="publishTextarea"
         type="text"
         class="publish-form__input"
         name="content"
@@ -394,6 +394,7 @@ onMount(async () => {
         justify-content: flex-end;
         align-items: center;
         width: 100%;
+        z-index: 12;
     }
 
     .publish-upload {
@@ -403,6 +404,7 @@ onMount(async () => {
         width: 740px;
         max-width: 100%;
         height: 230px;
+        z-index: 12;
 
         @media (max-width: 767px) {
             overflow: hidden;
@@ -466,7 +468,7 @@ onMount(async () => {
             position: absolute;
             right: 15px;
             top: 20px;
-            z-index: 2;
+            z-index: 12;
         }
     }
 
@@ -486,5 +488,24 @@ onMount(async () => {
                 color: var(--danger-color);
             }
         }
+    }
+
+    .publish-form__label {
+        display: none;
+
+        @media (max-width: 767px) {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 10;
+        }
+    }
+
+    .publish-form__input {
+        z-index: 12;
+        position: relative;
     }
 </style>
