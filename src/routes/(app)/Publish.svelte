@@ -193,11 +193,11 @@ onMount(async () => {
         isTextareaEnabled = false;
         isPublishEnabled = false;
         isUploadShown = false;
+        isFocus = false;
         publishContent = '';
         const data = await $agent.getTimeline();
         timeline.set(data.feed);
         quotePost.set({});
-        isFocus = false;
     }
 })
 </script>
