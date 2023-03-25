@@ -365,7 +365,7 @@ onMount(async () => {
             background-color: var(--bg-color-1);
             border: 1px solid var(--border-color-1);
             border-radius: 0;
-            min-height: calc(100vh + 1px);
+            height: calc(100vh + 1px);
         }
     }
 
