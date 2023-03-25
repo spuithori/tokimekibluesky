@@ -359,13 +359,13 @@ onMount(async () => {
 
         @media (max-width: 767px) {
             display: none;
-            flex-direction: column-reverse;
+            flex-direction: column;
             gap: 20px;
             padding: 20px 20px 90px;
             background-color: var(--bg-color-1);
             border: 1px solid var(--border-color-1);
             border-radius: 0;
-            height: calc(100vh + 1px);
+            min-height: calc(100vh + 1px);
         }
     }
 
@@ -394,7 +394,6 @@ onMount(async () => {
         justify-content: flex-end;
         align-items: center;
         width: 100%;
-        z-index: 12;
     }
 
     .publish-upload {
@@ -426,10 +425,10 @@ onMount(async () => {
         align-items: center;
         justify-content: center;
         border-radius: 4px;
+        z-index: 12;
 
         @media (max-width: 767px) {
             display: flex;
-            margin-left: auto;
         }
     }
 
@@ -450,7 +449,7 @@ onMount(async () => {
             height: 30px;
             padding: 6px;
             background-color: var(--primary-color);
-            order: 3;
+            order: 1;
         }
     }
 
@@ -478,8 +477,8 @@ onMount(async () => {
 
         @media (max-width: 767px) {
            order: 2;
-            margin-right: 0;
-            margin-left: 15px;
+            margin-right: 15px;
+            margin-left: auto;
         }
 
         &__current {
@@ -507,5 +506,13 @@ onMount(async () => {
     .publish-form__input {
         z-index: 12;
         position: relative;
+    }
+
+    .publish-form__submit {
+        z-index: 12;
+
+        @media (max-width: 767px) {
+            order: 3;
+        }
     }
 </style>
