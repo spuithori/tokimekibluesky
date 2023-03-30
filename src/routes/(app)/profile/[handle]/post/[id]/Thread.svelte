@@ -6,18 +6,20 @@
 
 <div class="thread">
   {#each feeds as data (data)}
-    {#if (data.parent)}
-      <div class="thread-parent">
-        <svelte:self feeds={[data.parent]}></svelte:self>
-      </div>
-    {/if}
+    {#if (!data.notFound)}
+      {#if (data.parent)}
+        <div class="thread-parent">
+          <svelte:self feeds={[data.parent]}></svelte:self>
+        </div>
+      {/if}
 
-    <TimelineItem data={data}></TimelineItem>
+      <TimelineItem data={data}></TimelineItem>
 
-    {#if (data.replies?.length)}
-      <div class="thread-replies">
-        <svelte:self feeds={data.replies}></svelte:self>
-      </div>
+      {#if (data.replies?.length)}
+        <div class="thread-replies">
+          <svelte:self feeds={data.replies}></svelte:self>
+        </div>
+      {/if}
     {/if}
   {/each}
 </div>
