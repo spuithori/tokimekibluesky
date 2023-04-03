@@ -12,7 +12,7 @@
     export let data: LayoutData;
 
     async function handleLoadMore() {
-        let raw = await $agent.agent.api.app.bsky.graph.getFollowers({user: data.params.handle, limit: 20, before: cursor});
+        let raw = await $agent.agent.api.app.bsky.graph.getFollowers({actor: data.params.handle, limit: 20, cursor: cursor});
         cursor = raw.data.cursor;
 
         if (!cursor) {
@@ -28,7 +28,7 @@
     }
 
     onMount(async () => {
-        let raw = await $agent.agent.api.app.bsky.graph.getFollowers({user: data.params.handle, limit: 20});
+        let raw = await $agent.agent.api.app.bsky.graph.getFollowers({actor: data.params.handle, limit: 20});
         cursor = raw.data.cursor;
         if (!cursor) {
             finishLoading = true;

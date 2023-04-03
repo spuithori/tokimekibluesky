@@ -5,7 +5,7 @@
     import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
 
     async function load() {
-        let n = await $agent.agent.api.app.bsky.notification.list();
+        let n = await $agent.agent.api.app.bsky.notification.listNotifications();
         console.log(n.data.notifications)
         return n.data.notifications
     }
@@ -16,7 +16,7 @@
   {#await notifications}
   {:then list}
     {#each list as item}
-      {#if (item.reason === 'vote')}
+      {#if (item.reason === 'like')}
         <article class="notification-item">
           <h2 class="notifications-item__title"><span class="notifications-item__name"><a  href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('liked_your_post')}</h2>
 

@@ -10,13 +10,13 @@
     let cursor = '';
 
     onMount(async () => {
-        const raw = await $agent.agent.api.app.bsky.feed.getAuthorFeed({author: author, limit: 30});
+        const raw = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: author, limit: 30});
         feeds = raw.data.feed;
         cursor = raw.data.cursor;
     });
 
     const handleLoadMore = async () => {
-        const raw = await $agent.agent.api.app.bsky.feed.getAuthorFeed({author: author, limit: 30, before: cursor});
+        const raw = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: author, limit: 30, cursor: cursor});
         cursor = raw.data.cursor;
 
         if (!cursor) {

@@ -23,7 +23,7 @@
           }
 
           await $agent.agent.api.app.bsky.feed.post.create(
-              { did: $agent.did() },
+              { repo: $agent.did() },
               { text: publishContent, createdAt: new Date().toISOString(), reply: { parent: post, root: (replyRef ? replyRef.root : post) } },
           );
 

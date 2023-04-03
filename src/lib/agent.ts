@@ -9,37 +9,43 @@ export const Agent = class {
         return this.agent.session.did;
     }
 
-    async getTimeline(limit = 20, before = '') {
-        const dataRaw = await this.agent.api.app.bsky.feed.getTimeline({ limit: limit, before: before });
+    async getTimeline(limit = 20, cursor = '') {
+        const dataRaw = await this.agent.api.app.bsky.feed.getTimeline({ limit: limit, cursor: cursor });
         const data = dataRaw.data;
 
         return data;
     }
 
-    async setVote(cid, uri) {
-        const alreadyVoted = await this.myVoteCheck(uri)
+    async setVote(cid, uri, likeUri = '') {
+        if (!likeUri) {
+            return await this.agent.api.app.bsky.feed.like.create(
+                {repo: this.did()},
+                {subject: {cid: cid, uri: uri}, createdAt: new Date().toISOString()},
+            );
+        } else {
+            const rkey = likeUri.split('/').slice(-1)[0];
 
-        await this.agent.api.app.bsky.feed.setVote(
-            { direction: alreadyVoted ? 'none' : 'up', subject: { cid: cid, uri: uri } }
-        );
+            return await this.agent.api.app.bsky.feed.like.delete(
+                {repo: this.did(), rkey: rkey},
+                {subject: {cid: cid, uri: uri}, createdAt: new Date().toISOString()},
+            );
+        }
     }
 
     async setRepost(cid, uri) {
         await this.agent.api.app.bsky.feed.repost.create(
-            { did: await this.did() },
+            { repo: this.did() },
             { subject: { cid: cid, uri: uri } , createdAt: new Date().toISOString() },
         );
     }
 
     async getVotes(uri) {
-        const datum = await this.agent.api.app.bsky.feed.getVotes({uri: uri});
-        // console.log(datum.data.votes)
-        return datum.data.votes;
+        const datum = await this.agent.api.app.bsky.feed.getLikes({uri: uri});
+        return datum.data.likes;
     }
 
     async myVoteCheck(uri) {
         const votes = await this.getVotes(uri);
-
         const found = votes.find(vote => vote.actor.did === this.did())
         return found;
     }
@@ -51,7 +57,7 @@ export const Agent = class {
     }
 
     async getNotificationCount() {
-        const count = await this.agent.api.app.bsky.notification.getCount()
+        const count = await this.agent.api.app.bsky.notification.getUnreadCount()
 
         return count.data.count;
     }

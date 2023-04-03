@@ -20,7 +20,7 @@
     let voteCount = 0;
     let isReplyOpen = false;
     let isMenuOpen = false;
-    let myVoteCheck = false;
+    let myVoteCheck = data.post.viewer?.like || false;
     let textArray = [];
     const embedServices = [
         {
@@ -57,14 +57,16 @@
 
     async function vote(cid, uri) {
         myVoteCheck = !myVoteCheck
-        await $agent.setVote(cid, uri);
+        const like = await $agent.setVote(cid, uri, data.post.viewer.like || '');
 
         [myVoteCheck, votes] = await Promise.all([
             $agent.myVoteCheck(uri),
             $agent.getVotes(uri)
-        ])
-        voteCount = votes.length
-        data.post.upvoteCount = votes.length
+        ]);
+
+        voteCount = votes.length;
+        data.post.likeCount = votes.length;
+        data.post.viewer.like = like?.uri || undefined;
     }
 
     async function repost(cid, uri) {
@@ -110,7 +112,7 @@
     async function deletePost (uri) {
         const rkey = uri.split('/').slice(-1)[0]
         await $agent.agent.api.app.bsky.feed.post.delete(
-            { did: $agent.did(), rkey: rkey }
+            { repo: $agent.did(), rkey: rkey }
         );
 
         if (!isPrivate) {
@@ -121,8 +123,8 @@
     }
 
     async function getHandleByDid(handle) {
-        const data = await $agent.agent.api.com.atproto.repo.describe(
-            {user: handle}
+        const data = await $agent.agent.api.com.atproto.repo.describeRepo(
+            {repo: handle}
         );
         return data.data.handle;
     }
@@ -195,7 +197,7 @@
 
         <div class="timeline-reaction__item timeline-reaction__item--like">
           <button class="timeline-reaction__icon" on:click="{() => vote(data.post.cid, data.post.uri)}" aria-label="いいね">
-            {#if (data.post.viewer?.upvote || myVoteCheck)}
+            {#if (myVoteCheck)}
               <svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
                 <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--primary-color)"/>
               </svg>
@@ -206,7 +208,7 @@
             {/if}
           </button>
 
-          { data.post.upvoteCount }
+          { data.post.likeCount }
         </div>
 
         <div class="timeline-reaction__item timeline-reaction__item--repost">
@@ -246,25 +248,25 @@
         </div>
       {/if}
 
-      {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.record !== 'undefined')}
+      {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.record?.record !== 'undefined')}
         <div class="timeline-external timeline-external--record">
           <div class="timeline-external__image timeline-external__image--round">
-            {#if (data.post.embed.record.author.avatar)}
-              <img src="{data.post.embed.record.author.avatar}" alt="">
+            {#if (data.post.embed.record.record.author.avatar)}
+              <img src="{data.post.embed.record.record.author.avatar}" alt="">
             {/if}
           </div>
 
           <div class="timeline-external__content">
             <div class="timeline__meta">
-              <p class="timeline__user" title="{data.post.embed.record.author.handle}">{ data.post.embed.record.author.displayName || data.post.embed.record.author.handle }</p>
-              <p class="timeline__date"><time datetime="{format(parseISO(data.post.embed.record.record.createdAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.embed.record.record.createdAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.record.createdAt), {locale: dateFnsLocale})}</time></p>
+              <p class="timeline__user" title="{data.post.embed.record.record.author.handle}">{ data.post.embed.record.record.author.displayName || data.post.embed.record.record.author.handle }</p>
+              <p class="timeline__date"><time datetime="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.record.indexedAt), {locale: dateFnsLocale})}</time></p>
               <p class="timeline__thread-link">
-                <a href="/profile/{data.post.embed.record.author.handle}/post/{data.post.embed.record.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
+                <a href="/profile/{data.post.embed.record.record.author.handle}/post/{data.post.embed.record.record.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
               </p>
             </div>
 
             <p class="timeline-external__description">
-              {data.post.embed.record.record.text}
+              {data.post.embed.record.record.value.text}
             </p>
           </div>
 

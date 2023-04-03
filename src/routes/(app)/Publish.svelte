@@ -81,15 +81,13 @@ async function onFileSelected(file, output) {
         console.log('デカすぎ')
     }
 
-    const fileCid = await $agent.agent.api.com.atproto.blob.upload(image, {
+    const fileBlob = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
         encoding: 'image/jpeg',
     });
     files.push({
-        cid: fileCid.data.cid,
-        id: file.id,
+       blob: fileBlob,
     });
     files = files;
-    console.log(files);
     isPublishEnabled = false;
     publishButtonText = $_('publish_button_send');
 }
@@ -148,10 +146,7 @@ onMount(async () => {
 
             files.forEach(file => {
                 embed.images.push({
-                    image: {
-                        cid: file.cid,
-                        mimeType: 'image/jpeg',
-                    },
+                    image: file.blob.data.blob,
                     alt: '',
                 })
             })
@@ -181,7 +176,7 @@ onMount(async () => {
         }
 
         await $agent.agent.api.app.bsky.feed.post.create(
-            { did: $agent.did() },
+            { repo: $agent.did() },
             {
                 embed: embed,
                 entities: entities,
