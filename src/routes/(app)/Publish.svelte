@@ -13,6 +13,7 @@ import { clickOutside } from '$lib/clickOutSide';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import ja from 'date-fns/locale/ja/index';
 import * as linkify from "linkifyjs";
+import runes from 'runes2';
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -32,9 +33,9 @@ let isFocus = false;
 let publishArea;
 let publishButtonText = $_('publish_button_send');
 
-$: publishContentLength = publishContent.length;
+$: publishContentLength = runes(publishContent).length;
 $: {
-    isPublishEnabled = publishContentLength > 256;
+    isPublishEnabled = publishContentLength > 300;
 }
 
 const publishKeypress = e => {
@@ -159,18 +160,23 @@ onMount(async () => {
             }
         }
 
-        let entities;
+        let facets;
         const links = linkify.find(publishContent, 'url');
         if (links.length) {
-            entities = [];
+            facets = [];
+
             links.forEach(link => {
-                entities.push({
+                facets.push({
                     index: {
-                        start: link.start,
-                        end: link.end,
+                        byteStart: new TextEncoder().encode(publishContent.substring(0, link.start)).length,
+                        byteEnd: new TextEncoder().encode(publishContent.substring(0, link.end)).length,
                     },
-                    type: 'link',
-                    value: link.href,
+                    features: [
+                        {
+                            $type: 'app.bsky.richtext.facet#link',
+                            uri: link.href,
+                        }
+                    ],
                 })
             });
         }
@@ -179,7 +185,7 @@ onMount(async () => {
             { repo: $agent.did() },
             {
                 embed: embed,
-                entities: entities,
+                facets: facets,
                 text: publishContent,
                 createdAt: new Date().toISOString(),
             },
@@ -224,7 +230,7 @@ onMount(async () => {
   <div class="publish-wrap">
     <div class="publish-buttons">
       <p class="publish-length">
-        <span class="publish-length__current" class:over={publishContentLength > 256}>{publishContentLength}</span> / 256
+        <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
       </p>
 
       <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">

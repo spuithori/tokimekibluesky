@@ -40,7 +40,7 @@
     onMount(async() => {
         textArray = postRecordFormatter(data.post.record);
         const embedItems = textArray.filter((item) => {
-            if (item.type !== 'link') {
+            if (item.type !== 'app.bsky.richtext.facet#link') {
                 return null;
             }
             const hostname = new URL(item.url).hostname;
@@ -124,7 +124,7 @@
 
     async function getHandleByDid(handle) {
         const data = await $agent.agent.api.com.atproto.repo.describeRepo(
-            {repo: handle}
+            { repo: handle }
         );
         return data.data.handle;
     }
@@ -167,9 +167,9 @@
 
       <p class="timeline__text">
         {#each textArray as item}
-          {#if (item.type === 'link')}
+          {#if (item.type === 'app.bsky.richtext.facet#link')}
             <a href="{item.url}" target="_blank" rel="noopener nofollow noreferrer">{item.content}</a>
-          {:else if (item.type === 'mention')}
+          {:else if (item.type === 'app.bsky.richtext.facet#mention')}
             {#await getHandleByDid(item.url)}
               <span>{item.content}</span>
             {:then handle}
