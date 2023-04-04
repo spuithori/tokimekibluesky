@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
-    import { createEventDispatcher } from 'svelte';
-    import { fade, fly } from 'svelte/transition';
-    import { agent } from '$lib/stores';
-    import FilePond, { registerPlugin } from 'svelte-filepond';
+    import {_} from 'svelte-i18n';
+    import {createEventDispatcher} from 'svelte';
+    import {fly} from 'svelte/transition';
+    import {agent} from '$lib/stores';
+    import FilePond, {registerPlugin} from 'svelte-filepond';
     import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
     import FilePondPluginImageResize from 'filepond-plugin-image-resize';
     import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
@@ -58,12 +58,7 @@
     }
 
     async function onAvatarSelected(file, output) {
-        const cid = await fileUpload(output);
-
-        avatar = {
-            cid: cid,
-            mimeType: 'image/jpeg',
-        };
+        avatar = await fileUpload(output);
     }
 
     async function onAvatarDeleted(error, file) {
@@ -77,12 +72,7 @@
     }
 
     async function onBannerSelected(file, output) {
-        const cid = await fileUpload(output);
-
-        banner = {
-            cid: cid,
-            mimeType: 'image/jpeg',
-        };
+        banner = await fileUpload(output);
     }
 
     async function onBannerDeleted(error, file) {
@@ -99,18 +89,22 @@
             console.log('デカすぎ')
         }
 
-        const fileCid = await $agent.agent.api.com.atproto.blob.upload(image, {
+        const fileBlob = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
             encoding: 'image/jpeg',
         });
         isSubmitDisabled = false;
         submitButtonText = $_('submit_button_submit');
-        return fileCid.data.cid;
+        return fileBlob.data.blob
     }
 
     async function submit() {
+        const currentProfile = await $agent.agent.api.app.bsky.actor.profile.get({ repo: $agent.did(), rkey: 'self' });
+
         let profileObj = {
             displayName: displayName,
             description: description,
+            avatar: currentProfile.value.avatar,
+            banner: currentProfile.value.banner,
         }
         if (avatar) {
             profileObj.avatar = avatar;
@@ -120,9 +114,17 @@
         }
 
         try {
-            await $agent.agent.api.app.bsky.actor.updateProfile(profileObj)
+            await $agent.agent.api.com.atproto.repo.putRecord(
+                {
+                    repo: $agent.did(),
+                    rkey: 'self',
+                    collection: 'app.bsky.actor.profile',
+                    record: profileObj,
+                }
+            )
             dispatch('update');
         } catch (e) {
+            console.error(e)
             errorMessage = e.message;
         }
     }

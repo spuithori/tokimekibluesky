@@ -39,7 +39,6 @@ export function postRecordFormatter(record: object) {
             content:  new TextDecoder().decode(textBytesArray.slice(cursor)),
         })
     }
-    console.log(textArray)
 
     return textArray;
 }

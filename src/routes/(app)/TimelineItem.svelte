@@ -51,7 +51,6 @@
             }
         });
         embedItem = embedItems[0];
-        //console.log(embedItem.service)
     })
 
 
