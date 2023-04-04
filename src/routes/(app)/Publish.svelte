@@ -12,7 +12,8 @@ import { fade, fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import ja from 'date-fns/locale/ja/index';
-import * as linkify from "linkifyjs";
+import * as linkify from 'linkifyjs';
+import '$lib/linkifyMentionPlugin';
 import runes from 'runes2';
 
 registerPlugin(FilePondPluginImageResize);
@@ -113,6 +114,13 @@ function handleKeydown(event) {
     }
 }
 
+async function getDidByHandle(did) {
+    const data = await $agent.agent.api.com.atproto.repo.describeRepo(
+        { repo: did }
+    );
+    return data.data.did;
+}
+
 $: {
     if (!isUploadShown) {
        files = [];
@@ -160,11 +168,9 @@ onMount(async () => {
             }
         }
 
-        let facets;
+        let facets: Array<Object> = [];
         const links = linkify.find(publishContent, 'url');
         if (links.length) {
-            facets = [];
-
             links.forEach(link => {
                 facets.push({
                     index: {
@@ -179,6 +185,29 @@ onMount(async () => {
                     ],
                 })
             });
+        }
+
+        const mentions = linkify.find(publishContent, 'mention');
+        if (mentions.length) {
+            for (const mention of mentions) {
+                try {
+                    const did = await getDidByHandle(mention.value.replace(/@/g, ''));
+                    facets.push({
+                        index: {
+                            byteStart: new TextEncoder().encode(publishContent.substring(0, mention.start)).length,
+                            byteEnd: new TextEncoder().encode(publishContent.substring(0, mention.end)).length,
+                        },
+                        features: [
+                            {
+                                $type: 'app.bsky.richtext.facet#mention',
+                                did: did,
+                            }
+                        ],
+                    })
+                } catch(e) {
+                    console.error(e);
+                }
+            }
         }
 
         await $agent.agent.api.app.bsky.feed.post.create(
