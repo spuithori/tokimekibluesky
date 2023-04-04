@@ -247,6 +247,36 @@
         </div>
       {/if}
 
+      {#if (typeof data.post.embed !== 'undefined' && data.post.embed.$type === 'app.bsky.embed.record#view') }
+        <div class="timeline-external timeline-external--record">
+          <div class="timeline-external__image timeline-external__image--round">
+            {#if (data.post.embed.record.author.avatar)}
+              <img src="{data.post.embed.record.author.avatar}" alt="">
+            {/if}
+          </div>
+
+          <div class="timeline-external__content">
+            <div class="timeline__meta">
+              <p class="timeline__user" title="{data.post.embed.record.author.handle}">{ data.post.embed.record.author.displayName || data.post.embed.record.author.handle }</p>
+              <p class="timeline__date"><time datetime="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.indexedAt), {locale: dateFnsLocale})}</time></p>
+              <p class="timeline__thread-link">
+                <a href="/profile/{data.post.embed.record.author.handle}/post/{data.post.embed.record.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
+              </p>
+            </div>
+
+            <p class="timeline-external__description">
+              {data.post.embed.record.value.text}
+            </p>
+          </div>
+
+          <span class="timeline-external__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
+              <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
+            </svg>
+            </span>
+        </div>
+      {/if}
+
       {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.record?.record !== 'undefined')}
         <div class="timeline-external timeline-external--record">
           <div class="timeline-external__image timeline-external__image--round">
