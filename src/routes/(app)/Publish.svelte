@@ -12,9 +12,6 @@ import { fade, fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import ja from 'date-fns/locale/ja/index';
-import * as linkify from 'linkifyjs';
-import '$lib/linkifyMentionPlugin';
-import runes from 'runes2';
 import { RichText } from '@atproto/api';
 
 registerPlugin(FilePondPluginImageResize);
@@ -35,7 +32,7 @@ let isFocus = false;
 let publishArea;
 let publishButtonText = $_('publish_button_send');
 
-$: publishContentLength = runes(publishContent).length;
+$: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: {
     isPublishEnabled = publishContentLength > 300;
 }

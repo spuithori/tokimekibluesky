@@ -41,10 +41,8 @@
     "filepond-plugin-image-resize": "^2.0.10",
     "filepond-plugin-image-transform": "^3.8.7",
     "glightbox": "^3.2.0",
-    "linkifyjs": "^4.1.0",
     "postcss-nested": "5.0.1",
     "postcss-preset-env": "*",
-    "runes2": "^1.0.10",
     "svelte-filepond": "^0.2.0",
     "svelte-i18n": "^3.6.0",
     "svelte-infinite-scroll": "^2.0.1"
