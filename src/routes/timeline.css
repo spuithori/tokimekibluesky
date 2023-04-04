@@ -185,7 +185,7 @@
 }
 
 .timeline__text {
-    white-space: pre-wrap;
+    white-space: pre-line;
     line-height: 1.75;
 }
 
