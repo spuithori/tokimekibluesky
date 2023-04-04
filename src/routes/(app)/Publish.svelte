@@ -15,6 +15,7 @@ import ja from 'date-fns/locale/ja/index';
 import * as linkify from 'linkifyjs';
 import '$lib/linkifyMentionPlugin';
 import runes from 'runes2';
+import { RichText } from '@atproto/api';
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -168,6 +169,7 @@ onMount(async () => {
             }
         }
 
+        /*
         let facets: Array<Object> = [];
         const links = linkify.find(publishContent, 'url');
         if (links.length) {
@@ -209,13 +211,17 @@ onMount(async () => {
                 }
             }
         }
+        */
+
+        const rt = new RichText({text: publishContent});
+        await rt.detectFacets($agent.agent);
 
         await $agent.agent.api.app.bsky.feed.post.create(
             { repo: $agent.did() },
             {
                 embed: embed,
-                facets: facets,
-                text: publishContent,
+                facets: rt.facets,
+                text: rt.text,
                 createdAt: new Date().toISOString(),
             },
         );

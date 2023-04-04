@@ -3,15 +3,15 @@
     import { agent } from '$lib/stores';
     import { timeline, cursor, notificationCount, quotePost } from '$lib/stores';
     import Reply from './Reply.svelte';
-    import {format, formatDistanceToNow, parseISO} from 'date-fns';
-    import {afterUpdate, onMount} from "svelte";
+    import { format, formatDistanceToNow, parseISO } from 'date-fns';
+    import { afterUpdate, onMount } from 'svelte';
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
     import Images from "./Images.svelte";
-    import {postRecordFormatter} from '$lib/postRecordFormatter';
     import { clickOutside } from '$lib/clickOutSide';
     import { fade, fly } from 'svelte/transition';
     import Spotify from './Spotify.svelte';
+    import { RichText } from '@atproto/api'
 
     export let data = {};
     export let isPrivate = false;
@@ -38,7 +38,7 @@
     }
 
     onMount(async() => {
-        textArray = postRecordFormatter(data.post.record);
+        /* textArray = postRecordFormatter(data.post.record);
         const embedItems = textArray.filter((item) => {
             if (item.type !== 'app.bsky.richtext.facet#link') {
                 return null;
@@ -50,9 +50,18 @@
                 return item;
             }
         });
-        embedItem = embedItems[0];
-    })
+        embedItem = embedItems[0]; */
 
+        const rt = new RichText({
+            text: data.post.record.text,
+            facets: data.post.record.facets,
+        })
+        const textSegments = rt.segments();
+        for (const segment of textSegments) {
+            textArray.push(segment);
+        }
+        textArray = textArray;
+    })
 
     async function vote(cid, uri) {
         myVoteCheck = !myVoteCheck
@@ -166,16 +175,16 @@
 
       <p class="timeline__text">
         {#each textArray as item}
-          {#if (item.type === 'app.bsky.richtext.facet#link')}
-            <a href="{item.url}" target="_blank" rel="noopener nofollow noreferrer">{item.content}</a>
-          {:else if (item.type === 'app.bsky.richtext.facet#mention')}
-            {#await getHandleByDid(item.url)}
-              <span>{item.content}</span>
+          {#if (item.isLink())}
+            <a href="{item.link?.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+          {:else if (item.isMention())}
+            {#await getHandleByDid(item.mention?.did)}
+              <span>{item.text}</span>
             {:then handle}
-              <a href="/profile/{handle}">{item.content}</a>
+              <a href="/profile/{handle}">{item.text}</a>
             {/await}
           {:else}
-            <span>{item.content}</span>
+            <span>{item.text}</span>
           {/if}
         {/each}
       </p>
