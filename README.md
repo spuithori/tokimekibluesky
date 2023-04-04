@@ -2,7 +2,7 @@
 
 An unofficial Bluesky web client.
 
-Currently, only bsky.social is available.
+Supporting multiple PDS servers.
 
 ## Features
 
@@ -16,7 +16,7 @@ Currently, only bsky.social is available.
 - [x] Repost
 - [x] Upload images
 - [x] Quote post
-- [ ] Mention
+- [x] Mention
 - [ ] Create post with entities formatting
 - [x] Update profile
 - [ ] Create account
