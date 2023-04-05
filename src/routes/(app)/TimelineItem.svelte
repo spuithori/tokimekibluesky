@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { _ } from 'svelte-i18n'
     import { agent } from '$lib/stores';
     import { timeline, cursor, notificationCount, quotePost } from '$lib/stores';
@@ -11,25 +11,24 @@
     import { clickOutside } from '$lib/clickOutSide';
     import { fade, fly } from 'svelte/transition';
     import Spotify from './Spotify.svelte';
-    import { RichText } from '@atproto/api'
+    import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedImages, AppBskyFeedPost, AppBskyFeedDefs, RichText, RichTextSegment, AppBskyEmbedRecordWithMedia } from '@atproto/api'
 
-    export let data = {};
+    export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
 
-    let votes = 0;
-    let voteCount = 0;
+    let textArray: RichTextSegment[] = [];
+    let votes;
+    let voteCount: number = 0;
     let isReplyOpen = false;
     let isMenuOpen = false;
-    let myVoteCheck = data.post.viewer?.like || false;
-    let textArray = [];
-    const embedServices = [
+    let myVoteCheck: boolean = typeof data.post.viewer?.like === 'string';
+    /* const embedServices = [
         {
             'service': Spotify,
             'hostname': 'open.spotify.com'
         },
-    ];
-    let embedItem;
-    let dateFnsLocale;
+    ]; */
+    let dateFnsLocale: Locale;
 
     if (window.navigator.language === 'ja') {
         dateFnsLocale = ja;
@@ -37,35 +36,24 @@
         dateFnsLocale = en;
     }
 
-    onMount(async() => {
-        /* textArray = postRecordFormatter(data.post.record);
-        const embedItems = textArray.filter((item) => {
-            if (item.type !== 'app.bsky.richtext.facet#link') {
-                return null;
-            }
-            const hostname = new URL(item.url).hostname;
-            const find = embedServices.find(service => service.hostname === hostname);
-            if (find) {
-                item.service = find.service;
-                return item;
-            }
-        });
-        embedItem = embedItems[0]; */
-
-        const rt = new RichText({
+    if (AppBskyFeedPost.isRecord(data.post.record)) {
+      const rt: RichText = new RichText({
             text: data.post.record.text,
             facets: data.post.record.facets,
-        })
-        const textSegments = rt.segments();
-        for (const segment of textSegments) {
-            textArray.push(segment);
-        }
-        textArray = textArray;
-    })
+        });
+      for (const segment of rt.segments()) {
+        textArray.push(segment);
+      }
+      textArray = textArray;
+    }
+    
+    const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
+      return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
+    }
 
-    async function vote(cid, uri) {
+    async function vote(cid: string, uri: string) {
         myVoteCheck = !myVoteCheck
-        const like = await $agent.setVote(cid, uri, data.post.viewer.like || '');
+        const like = await $agent.setVote(cid, uri, data.post.viewer?.like || '');
 
         [myVoteCheck, votes] = await Promise.all([
             $agent.myVoteCheck(uri),
@@ -74,10 +62,10 @@
 
         voteCount = votes.length;
         data.post.likeCount = votes.length;
-        data.post.viewer.like = like?.uri || undefined;
+        data.post.viewer!.like = like?.uri || undefined;
     }
 
-    async function repost(cid, uri) {
+    async function repost(cid: string, uri: string) {
         await $agent.setRepost(cid, uri);
 
         if (!isPrivate) {
@@ -90,23 +78,18 @@
     }
 
     async function translation() {
-        let i = 0;
-
         for (const item of textArray) {
-            if (item.type === 'text') {
-                const res = await fetch(`/api/translator`, {
-                    method: 'post',
-                    body: JSON.stringify({
-                        text: item.content,
-                        to: window.navigator.language,
-                    })
-                });
-                const translation = await res.json();
-                textArray[i].content = await translation[0].translations[0].text;
-            }
-
-            i++;
+          const res = await fetch(`/api/translator`, {
+              method: 'post',
+              body: JSON.stringify({
+                  text: item.text,
+                  to: window.navigator.language,
+              })
+          });
+          const translation = await res.json();
+          item.text = await translation[0].translations[0].text;
         }
+        textArray = textArray;
     }
 
     function replyOpen() {
@@ -117,7 +100,7 @@
         isMenuOpen = isMenuOpen !== true;
     }
 
-    async function deletePost (uri) {
+    async function deletePost (uri: string) {
         const rkey = uri.split('/').slice(-1)[0]
         await $agent.agent.api.app.bsky.feed.post.delete(
             { repo: $agent.did(), rkey: rkey }
@@ -130,7 +113,7 @@
         }
     }
 
-    async function getHandleByDid(handle) {
+    async function getHandleByDid(handle: string) {
         const data = await $agent.agent.api.com.atproto.repo.describeRepo(
             { repo: handle }
         );
@@ -140,7 +123,7 @@
 
 <article class="timeline__item">
   <div class="timeline-repost-messages">
-    {#if (data.reason)}
+    {#if (isReasonRepost(data.reason))}
       <p class="timeline-repost-message">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle }})}</p>
     {/if}
 
@@ -167,7 +150,7 @@
     <div class="timeline__content">
       <div class="timeline__meta">
         <p class="timeline__user" title="{data.post.author.handle}">{ data.post.author.displayName || data.post.author.handle }</p>
-        <p class="timeline__date"><time datetime="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.record.createdAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.record.createdAt), {locale: dateFnsLocale})}</time></p>
+        <p class="timeline__date"><time datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.indexedAt), {locale: dateFnsLocale})}</time></p>
         <p class="timeline__thread-link">
           <a href="/profile/{data.post.author.handle}/post/{data.post.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
         </p>
@@ -175,10 +158,10 @@
 
       <p class="timeline__text">
         {#each textArray as item}
-          {#if (item.isLink())}
-            <a href="{item.link?.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
-          {:else if (item.isMention())}
-            {#await getHandleByDid(item.mention?.did)}
+          {#if (item.isLink() && item.link)}
+            <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+          {:else if (item.isMention() && item.mention)}
+            {#await getHandleByDid(item.mention.did)}
               <span>{item.text}</span>
             {:then handle}
               <a href="/profile/{handle}">{item.text}</a>
@@ -188,10 +171,6 @@
           {/if}
         {/each}
       </p>
-
-      {#if (embedItem)}
-        <svelte:component this={embedItem.service} uri={embedItem.url}></svelte:component>
-      {/if}
 
       <div class="timeline-reaction">
         <div class="timeline-reaction__item timeline-reaction__item--reply">
@@ -234,13 +213,13 @@
         </div>
       </div>
 
-      {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.images !== 'undefined')}
+      {#if (AppBskyEmbedImages.isView(data.post.embed))}
         <div class="timeline-images-wrap">
           <Images images={data.post.embed.images}></Images>
         </div>
       {/if}
 
-      {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.external !== 'undefined')}
+      {#if (AppBskyEmbedExternal.isView(data.post.embed))}
         <div class="timeline-external">
             <div class="timeline-external__image">
               {#if (data.post.embed.external.thumb)}
@@ -256,7 +235,7 @@
         </div>
       {/if}
 
-      {#if (typeof data.post.embed !== 'undefined' && data.post.embed.$type === 'app.bsky.embed.record#view') }
+      {#if (AppBskyEmbedRecord.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record)) }
         <div class="timeline-external timeline-external--record">
           <div class="timeline-external__image timeline-external__image--round">
             {#if (data.post.embed.record.author.avatar)}
@@ -273,9 +252,11 @@
               </p>
             </div>
 
-            <p class="timeline-external__description">
-              {data.post.embed.record.value.text}
-            </p>
+            {#if (AppBskyFeedPost.isRecord(data.post.embed.record.value))}
+              <p class="timeline-external__description">
+                {data.post.embed.record.value.text}
+              </p>
+            {/if}
           </div>
 
           <span class="timeline-external__icon">
@@ -286,7 +267,13 @@
         </div>
       {/if}
 
-      {#if (typeof data.post.embed !== 'undefined' && typeof data.post.embed.record?.record !== 'undefined')}
+      {#if (AppBskyEmbedRecordWithMedia.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record.record)) }
+        {#if (AppBskyEmbedImages.isView(data.post.embed.media))}
+          <div class="timeline-images-wrap">
+            <Images images={data.post.embed.media.images}></Images>
+          </div>
+        {/if}
+
         <div class="timeline-external timeline-external--record">
           <div class="timeline-external__image timeline-external__image--round">
             {#if (data.post.embed.record.record.author.avatar)}
@@ -303,9 +290,11 @@
               </p>
             </div>
 
-            <p class="timeline-external__description">
-              {data.post.embed.record.record.value.text}
-            </p>
+            {#if (AppBskyFeedPost.isRecord(data.post.embed.record.record.value))}
+              <p class="timeline-external__description">
+                {data.post.embed.record.record.value.text}
+              </p>
+            {/if}
           </div>
 
           <span class="timeline-external__icon">
@@ -317,7 +306,7 @@
       {/if}
 
       {#if (isReplyOpen)}
-        <Reply post={data.post} replyRef={data.reply || undefined}></Reply>
+        <Reply post={data.post} replyRef={data.reply}></Reply>
       {/if}
     </div>
   </div>

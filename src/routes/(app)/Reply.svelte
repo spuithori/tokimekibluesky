@@ -1,14 +1,15 @@
-<script>
+<script lang="ts">
   import {onMount} from 'svelte';
   import { agent } from '$lib/stores';
   import { timeline } from "$lib/stores";
+  import type { AppBskyFeedDefs } from '@atproto/api';
 
-  export let replyRef;
-  export let post;
+  export let replyRef: AppBskyFeedDefs.ReplyRef | undefined;
+  export let post: AppBskyFeedDefs.PostView;
 
   let publishContent = '';
-  let isTextareaEnabled = '';
-  const publishKeypress = e => {
+  let isTextareaEnabled = false;
+  const publishKeypress = (e: { keyCode: number; altKey: any; }) => {
       if (e.keyCode === 13 && e.altKey) publish();
   };
   let publish = function () {};
@@ -37,7 +38,7 @@
 
 <div class="reply">
   <div class="publish-form">
-    <textarea type="text" class="publish-form__input" disabled={isTextareaEnabled} bind:value={publishContent} on:keydown={publishKeypress} placeholder="Alt + Enter"></textarea>
+    <textarea class="publish-form__input" disabled={isTextareaEnabled} bind:value={publishContent} on:keydown={publishKeypress} placeholder="Alt + Enter"></textarea>
     <button class="publish-form__submit" on:click={publish}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">
       <path id="send" d="M0,0,17,6.375,0,12.75ZM0,5.1V7.65L8.5,6.375Z" fill="var(--bg-color-1)"/>
     </svg>

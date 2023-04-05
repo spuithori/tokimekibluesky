@@ -12,7 +12,7 @@ import { fade, fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import ja from 'date-fns/locale/ja/index';
-import { RichText } from '@atproto/api';
+import { type AppBskyFeedPost, RichText, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia } from '@atproto/api';
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -24,20 +24,28 @@ let publish = function () {};
 let publishContent = '';
 let isTextareaEnabled = false;
 let isPublishEnabled = false;
-let files = [];
-let pond;
+let files: any[] = [];
+let pond: any;
 let name = 'filepond';
 let isUploadShown = false;
 let isFocus = false;
-let publishArea;
+let publishArea: HTMLTextAreaElement;
 let publishButtonText = $_('publish_button_send');
+
+let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | undefined;
+let embedImages: AppBskyEmbedImages.Main = {
+    $type: 'app.bsky.embed.images',
+    images: [],
+};
+let embedRecord: AppBskyEmbedRecord.Main;
+let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
 
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: {
     isPublishEnabled = publishContentLength > 300;
 }
 
-const publishKeypress = e => {
+const publishKeypress = (e: { keyCode: number; altKey: any; }) => {
     if (e.keyCode === 13 && e.altKey) publish();
 };
 
@@ -67,12 +75,12 @@ function close() {
     isFocus = false;
 }
 
-async function onFileAdded(file) {
+async function onFileAdded(file: any) {
     isPublishEnabled = true;
     publishButtonText = $_('publish_button_progress');
 }
 
-async function onFileSelected(file, output) {
+async function onFileSelected(file: any, output: any) {
     let image = new File([await output], output.name, {
         type: output.type,
     });
@@ -81,22 +89,27 @@ async function onFileSelected(file, output) {
         console.log('デカすぎ')
     }
 
-    const fileBlob = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
+    const res = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
         encoding: 'image/jpeg',
     });
-    files.push({
-       blob: fileBlob,
+
+    embedImages.images.push({
+       image: res.data.blob,
+       alt: '',
+       id: file.id
     });
-    files = files;
-    isPublishEnabled = false;
+    embedImages = embedImages;
+    
+    isPublishEnabled = !res.success;
     publishButtonText = $_('publish_button_send');
 }
 
-async function onFileDeleted(error, file) {
-    files = files.filter((item) => item.id !== file.id );
+async function onFileDeleted(error: any, file: any) {
+    embedImages.images = embedImages.images.filter((image) => image.id !== file.id );
+    embedImages = embedImages;
 }
 
-function handleKeydown(event) {
+function handleKeydown(event: { key: string; }) {
     const activeElement = document.activeElement?.tagName;
 
     if (event.key === 'n' && activeElement === 'BODY') {
@@ -112,7 +125,7 @@ function handleKeydown(event) {
     }
 }
 
-async function getDidByHandle(did) {
+async function getDidByHandle(did: string) {
     const data = await $agent.agent.api.com.atproto.repo.describeRepo(
         { repo: did }
     );
@@ -121,12 +134,17 @@ async function getDidByHandle(did) {
 
 $: {
     if (!isUploadShown) {
-       files = [];
+        embedImages.images = [];
     }
 
-    if ($quotePost.uri) {
+    if ($quotePost?.uri) {
         isFocus = true;
         publishArea.focus();
+
+        embedRecord = {
+            $type: 'app.bsky.embed.record',
+            record: $quotePost,
+        }
     }
 }
 
@@ -143,26 +161,21 @@ onMount(async () => {
 
         let postData = [{ did: $agent.did() }, { text: publishContent, createdAt: new Date().toISOString() }];
 
-        let embed;
-
-        if (files.length) {
-            embed = {
-                $type: 'app.bsky.embed.images',
-                images: [],
+        if (embedImages.images.length && $quotePost?.uri) {
+            embedRecordWithMedia = {
+                $type: 'app.bsky.embed.recordWithMedia',
+                media: embedImages,
+                record: embedRecord,
             }
 
-            files.forEach(file => {
-                embed.images.push({
-                    image: file.blob.data.blob,
-                    alt: '',
-                })
-            })
-        }
+            embed = embedRecordWithMedia;
+        } else {
+            if (embedImages.images.length) {
+                embed = embedImages;
+            }
 
-        if ($quotePost.uri) {
-            embed = {
-                $type: 'app.bsky.embed.record',
-                record: $quotePost,
+            if ($quotePost?.uri) {
+                embed = embedRecord;
             }
         }
 
@@ -230,7 +243,7 @@ onMount(async () => {
         publishContent = '';
         const data = await $agent.getTimeline();
         timeline.set(data.feed);
-        quotePost.set({});
+        quotePost.set(undefined);
     }
 })
 </script>
@@ -270,18 +283,16 @@ onMount(async () => {
       </svg>
         {publishButtonText}</button>
 
-      {#if (!$quotePost.uri)}
         <button class="publish-upload-toggle" on:click={uploadContextOpen}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--bg-color-1)">
-          <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
-        </svg>
+            <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
+          </svg>
         </button>
-      {/if}
     </div>
 
     <div class="publish-form">
-      {#if $quotePost.uri}
+      {#if $quotePost?.uri}
         <div class="publish-quote">
-          <button class="publish-quote__delete" on:click={() => {quotePost.set({})}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+          <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined)}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
             <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
           </svg>
           </button>
@@ -316,7 +327,6 @@ onMount(async () => {
       <label class="publish-form__label" for="publishTextarea"></label>
       <textarea
         id="publishTextarea"
-        type="text"
         class="publish-form__input"
         name="content"
         disabled={isTextareaEnabled}
@@ -327,7 +337,7 @@ onMount(async () => {
     ></textarea>
     </div>
 
-    {#if (isFocus && !$quotePost.uri)}
+    {#if (isFocus)}
       <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
         <FilePond
             bind:this={pond}
@@ -430,8 +440,8 @@ onMount(async () => {
     }
 
     .publish-upload {
-        position: fixed;
-        bottom: calc(230px + 10px);
+        position: absolute;
+        bottom: calc(100% + 20px);
         left: calc(50vw - 378px);
         width: 740px;
         max-width: 100%;

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { agent, cursor } from '$lib/stores';
   import { timeline } from "$lib/stores";
@@ -28,7 +28,7 @@
       <TimelineItem data={ data }></TimelineItem>
     {/each}
   </div>
-  <InfiniteScroll window threshold="300" on:loadMore={handleLoadMore} ></InfiniteScroll>
+  <InfiniteScroll window threshold={300} on:loadMore={handleLoadMore} ></InfiniteScroll>
 </div>
 
 <style>

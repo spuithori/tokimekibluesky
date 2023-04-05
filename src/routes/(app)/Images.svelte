@@ -1,6 +1,7 @@
-<script>
+<script lang="ts">
+    // @ts-ignore
     import GLightbox from 'glightbox';
-    export let images;
+    export let images: any[];
 
     let galleryImages = [];
 
@@ -15,7 +16,7 @@
         elements: galleryImages
     })
 
-    function open(index) {
+    function open(index: any) {
         gl.openAt(index);
     }
 </script>

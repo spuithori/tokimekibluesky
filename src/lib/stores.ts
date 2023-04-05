@@ -1,13 +1,15 @@
 import { writable } from 'svelte/store';
+import type { Agent } from '$lib/agent';
+import type { AppBskyFeedDefs } from '@atproto/api';
 
 export const service = writable(localStorage.getItem('service') || 'https://bsky.social');
 export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) || []);
 
 export const currentAccount = writable(localStorage.getItem('currentAccount') || '0');
-export const agent = writable({});
+export const agent = writable<Agent>();
 
 function createTimeline () {
-    const { subscribe, set, update } = writable([]);
+    const { subscribe, set, update } = writable<AppBskyFeedDefs.FeedViewPost[]>([]);
 
     return {
         subscribe,
@@ -20,7 +22,7 @@ function createTimeline () {
 }
 
 export const timeline = createTimeline();
-export const cursor = writable('');
+export const cursor = writable<string | undefined>('');
 
 export const notificationCount = writable(0);
 
@@ -32,4 +34,4 @@ export const theme = writable(localStorage.getItem('theme') || 'lightblue');
 
 export const nonoto = writable(localStorage.getItem('nonoto') || 'false');
 
-export const quotePost = writable({});
+export const quotePost = writable<AppBskyFeedDefs.PostView | undefined>();
