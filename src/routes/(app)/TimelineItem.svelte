@@ -169,7 +169,11 @@
       <p class="timeline__text">
         {#each textArray as item}
           {#if (item.isLink() && item.link)}
-            <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+            {#if (new URL(item.link.uri).hostname === 'bsky.app' || new URL(item.link.uri).hostname === 'staging.bsky.app')}
+              <a href="{new URL(item.link.uri).pathname}">{item.text} </a>
+            {:else}
+              <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+            {/if}
           {:else if (item.isMention() && item.mention)}
             {#await getHandleByDid(item.mention.did)}
               <span>{item.text}</span>
