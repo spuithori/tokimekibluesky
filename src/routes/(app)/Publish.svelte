@@ -241,9 +241,10 @@ onMount(async () => {
         isUploadShown = false;
         isFocus = false;
         publishContent = '';
+        quotePost.set(undefined);
+        embed = undefined;
         const data = await $agent.getTimeline();
         timeline.set(data.feed);
-        quotePost.set(undefined);
     }
 })
 </script>
