@@ -15,6 +15,7 @@ export const load: LayoutLoad = async () => {
     }
 
     locale.set(window.navigator.language);
+    console.log('current language: ' + window.navigator.language);
     await waitLocale();
 }
 
