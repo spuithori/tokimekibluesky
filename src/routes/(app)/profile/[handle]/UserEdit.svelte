@@ -98,13 +98,18 @@
     }
 
     async function submit() {
-        const currentProfile = await $agent.agent.api.app.bsky.actor.getProfile({actor: $agent.did()})
+        let currentProfile;
+        try {
+            currentProfile = await $agent.agent.api.app.bsky.actor.profile.get({ repo: $agent.did(), rkey: 'self' });
+        } catch(e) {
+           console.log(e)
+        }
 
         let profileObj = {
             displayName: displayName,
             description: description,
-            avatar: currentProfile.data.avatar,
-            banner: currentProfile.data.banner,
+            avatar: currentProfile?.value.avatar,
+            banner: currentProfile?.value.banner,
         }
         if (avatar) {
             profileObj.avatar = avatar;
