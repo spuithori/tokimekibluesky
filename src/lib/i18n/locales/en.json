@@ -49,5 +49,9 @@
   "add_account": "Add account",
   "current": "Current",
   "switch": "Switch",
-  "close_button": "Close"
+  "close_button": "Close",
+  "document": "Documents",
+  "current_account": "Current account",
+  "search_button": "Search",
+  "keywords_search_experimental": "Keywords search（experimental）"
 }

@@ -49,5 +49,9 @@
   "add_account": "アカウント追加",
   "current": "現在",
   "switch": "切り替え",
-  "close_button": "とじる"
+  "close_button": "とじる",
+  "document": "ドキュメント",
+  "current_account": "現在のアカウント",
+  "search_button": "検索",
+  "keywords_search_experimental": "キーワード検索（試験的）"
 }

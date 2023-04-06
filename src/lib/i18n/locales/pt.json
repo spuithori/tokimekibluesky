@@ -49,5 +49,9 @@
   "add_account": "Adicionar Conta",
   "current": "Atual",
   "switch": "Trocar",
-  "close_button": "Fechar"
+  "close_button": "Fechar",
+  "document": "Documentos",
+  "current_account": "Conta corrente",
+  "search_button": "Procurar",
+  "keywords_search_experimental": "Pesquisa de palavras-chave (experimental)"
 }

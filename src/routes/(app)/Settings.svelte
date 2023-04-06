@@ -48,9 +48,11 @@
 </script>
 
 <div>
+  <p class="setting-docs"><a href="https://tokimekibluesky-docs.vercel.app/" target="_blank" rel="noopener">{$_('document')}</a></p>
+
   <dl class="settings-group settings-group--column">
     <dt class="settings-group__name">
-      現在のアカウント:
+      {$_('current_account')}:
     </dt>
 
     <dd class="settings-group__content">
@@ -439,5 +441,10 @@
                 width: 100%;
             }
         }
+    }
+
+    .setting-docs {
+        border-bottom: 1px solid var(--border-color-1);
+        padding-bottom: 10px;
     }
 </style>

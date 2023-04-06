@@ -1,12 +1,13 @@
 <script lang="ts">
+    import { _ } from 'svelte-i18n';
     import { page } from '$app/stores';
     let search = $page.url.searchParams.get('q') || '';
 </script>
 
 <div class="search">
   <form action="/search" method="get">
-    <input type="text" name="q" required bind:value={search} placeholder="キーワード検索（試験的）">
-    <button type="submit" class="button button--sm">検索</button>
+    <input type="text" name="q" required bind:value={search} placeholder="{$_('keywords_search_experimental')}">
+    <button type="submit" class="button button--sm">{$_('search_button')}</button>
   </form>
 </div>
 
