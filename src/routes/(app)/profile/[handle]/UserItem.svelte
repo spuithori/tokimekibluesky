@@ -29,7 +29,7 @@
   {/if}
 </div>
 
-<style>
+<style lang="postcss">
   .user-item {
       display: flex;
       justify-content: space-between;
@@ -52,6 +52,7 @@
       overflow: hidden;
       background-color: var(--primary-color);
       aspect-ratio: 1 / 1;
+      position: relative;
   }
 
   .user-item__text {
@@ -60,6 +61,16 @@
 
   .user-item__avatar a {
       display: flex;
+
+      &::before {
+          content: '';
+          display: block;
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+      }
   }
 
   .user-item__avatar img {
