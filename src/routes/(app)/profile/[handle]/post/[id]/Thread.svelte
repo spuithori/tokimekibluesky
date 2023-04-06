@@ -14,7 +14,7 @@
         </div>
       {/if}
 
-      <TimelineItem data={data}></TimelineItem>
+      <TimelineItem data={data} isSingle={true}></TimelineItem>
 
       {#if (data.replies?.length)}
         <div class="thread-replies">

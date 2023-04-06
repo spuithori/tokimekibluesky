@@ -11,10 +11,14 @@
     import { clickOutside } from '$lib/clickOutSide';
     import { fade, fly } from 'svelte/transition';
     import Spotify from './Spotify.svelte';
-    import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedImages, AppBskyFeedPost, AppBskyFeedDefs, RichText, RichTextSegment, AppBskyEmbedRecordWithMedia } from '@atproto/api'
+    import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedImages, AppBskyFeedPost, AppBskyFeedDefs, RichText, RichTextSegment, AppBskyEmbedRecordWithMedia, AppBskyFeedGetLikes } from '@atproto/api'
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
+    export let isSingle: boolean = false;
+    if (isSingle) {
+      getLikes();
+    }
 
     let textArray: RichTextSegment[] = [];
     let votes;
@@ -29,6 +33,7 @@
         },
     ]; */
     let dateFnsLocale: Locale;
+    let likes: AppBskyFeedGetLikes.OutputSchema;
 
     if (window.navigator.language === 'ja') {
         dateFnsLocale = ja;
@@ -118,6 +123,11 @@
             { repo: handle }
         );
         return data.data.handle;
+    }
+
+    async function getLikes() {
+      const res = await $agent.agent.api.app.bsky.feed.getLikes({uri: data.post.uri});
+      likes = res.data;
     }
 </script>
 
@@ -302,6 +312,26 @@
               <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
             </svg>
             </span>
+        </div>
+      {/if}
+
+      {#if (isSingle && likes?.likes.length)}
+        <div class="likes-wrap">
+          <h3 class="likes-heading">いいねした人</h3>
+
+          <div class="likes">
+            {#each likes.likes as like }
+              <div class="likes__item">
+                <div class="likes__avatar">
+                  {#if (like.actor.avatar)}
+                    <img src="{ like.actor.avatar }" alt="">
+                  {/if}
+                </div>
+
+                <p class="likes__text"><a href="/profile/{ like.actor.handle }">{ like.actor.displayName || like.actor.handle }</a></p>
+              </div>
+            {/each}
+          </div>
         </div>
       {/if}
 
