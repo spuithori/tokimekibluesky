@@ -17,7 +17,6 @@
             profile = load();
         }
     }
-    // $:console.log(handle)
 
     async function load() {
         let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
@@ -46,7 +45,6 @@
 
     afterUpdate(async() => {
         isActive();
-        // console.log(await profile)
     })
 </script>
 

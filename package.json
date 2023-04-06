@@ -41,6 +41,7 @@
     "filepond-plugin-image-resize": "^2.0.10",
     "filepond-plugin-image-transform": "^3.8.7",
     "glightbox": "^3.2.0",
+    "intl-segmenter-polyfill": "^0.4.4",
     "postcss-nested": "5.0.1",
     "postcss-preset-env": "*",
     "svelte-filepond": "^0.2.0",
