@@ -7,7 +7,7 @@
 
     let darkModeToggle = JSON.parse(localStorage.getItem('darkmode')) === true;
     let nonotoToggle = JSON.parse(localStorage.getItem('nonoto')) === true;
-    let themePick: string = localStorage.getItem('theme') || '';
+    let themePick: string = localStorage.getItem('theme') || 'lightblue';
     let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
     let isAccountSwitcherOpen = false;
     const currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
