@@ -53,5 +53,6 @@
   "document": "ドキュメント",
   "current_account": "現在のアカウント",
   "search_button": "検索",
-  "keywords_search_experimental": "キーワード検索（試験的）"
+  "keywords_search_experimental": "キーワード検索（試験的）",
+  "likes": "いいね"
 }

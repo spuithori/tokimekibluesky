@@ -38,6 +38,9 @@
             case 'follower':
                 currentPage = 'follower';
                 break;
+            case 'likes':
+                currentPage = 'likes';
+                break;
             default:
                 currentPage = 'posts';
         }
@@ -103,6 +106,7 @@
       <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
       <li class="profile-tab__item" on:click={() => currentPage = 'follow'} class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
       <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
+      <li class="profile-tab__item" on:click={() => currentPage = 'likes'} class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
     </ul>
 
     <slot></slot>
@@ -204,7 +208,7 @@
 
     .profile-tab {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         list-style: none;
         border: 1px solid var(--border-color-1);
         background-color: var(--bg-color-1);
@@ -213,6 +217,10 @@
         margin: 30px 0;
         font-size: 16px;
         font-weight: 600;
+
+        @media (max-width: 767px) {
+            font-size: 14px;
+        }
     }
 
     .profile-tab__item {
@@ -222,6 +230,10 @@
         justify-content: center;
         position: relative;
         background-color: var(--bg-color-1);
+
+        @media (max-width: 767px) {
+            height: 42px;
+        }
 
         &:not(:last-child) {
             border-right: 1px solid var(--border-color-1);
