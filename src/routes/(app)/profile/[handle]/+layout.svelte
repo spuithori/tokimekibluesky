@@ -6,11 +6,13 @@
     import type { LayoutData } from './$types';
     import UserFollowButton from './UserFollowButton.svelte';
     import UserEdit from './UserEdit.svelte';
+    import { format, formatDistanceToNow, parseISO } from 'date-fns';
 
     let profile = Promise;
 
     export let data: LayoutData;
     let currentPage = 'posts';
+    let firstPostDate = '';
     $: handle = $page.params.handle
     $: {
         if (handle) {
@@ -21,6 +23,14 @@
     async function load() {
         let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
         return profile.data
+    }
+
+    async function getFirstRecord() {
+        return await $agent.agent.api.com.atproto.repo.listRecords({
+            collection: "app.bsky.feed.post",
+            limit: 1,
+            reverse: true,
+            repo: data.params.handle});
     }
 
     function onProfileUpdate() {
@@ -48,6 +58,8 @@
 
     afterUpdate(async() => {
         isActive();
+        const firstPostDateRaw = (await getFirstRecord()).data.records[0].value.createdAt;
+        firstPostDate = format(parseISO(firstPostDateRaw), 'yyyy/MM/dd');
     })
 </script>
 
@@ -98,6 +110,10 @@
           <div class="profile-follow-button profile-follow-button--me">
             <UserEdit {profile} on:update={onProfileUpdate}></UserEdit>
           </div>
+        {/if}
+
+        {#if (firstPostDate)}
+          <p class="profile-first">{$_('first_post_date', {values: {date: firstPostDate }})}</p>
         {/if}
       </div>
     </div>
@@ -270,5 +286,11 @@
             position: static;
             margin-top: 10px;
         }
+    }
+
+    .profile-first {
+        color: var(--text-color-3);
+        font-size: 14px;
+        margin-top: 5px;
     }
 </style>

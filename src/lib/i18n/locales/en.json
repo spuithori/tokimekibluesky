@@ -54,5 +54,6 @@
   "current_account": "Current account",
   "search_button": "Search",
   "keywords_search_experimental": "Keywords search（experimental）",
-  "likes": "Likes"
+  "likes": "Likes",
+  "first_post_date": "First submitted on {date}"
 }
