@@ -246,6 +246,7 @@ onMount(async () => {
         publishContent = '';
         quotePost.set(undefined);
         embed = undefined;
+        embedImages.images = [];
         const data = await $agent.getTimeline();
         timeline.set(data.feed);
     }
