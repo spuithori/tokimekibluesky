@@ -101,7 +101,10 @@ async function onFileSelected(file: any, output: any) {
     embedImages = embedImages;
     
     isPublishEnabled = !res.success;
-    publishButtonText = $_('publish_button_send');
+
+    if (res.success) {
+        publishButtonText = $_('publish_button_send');
+    }
 }
 
 async function onFileDeleted(error: any, file: any) {
