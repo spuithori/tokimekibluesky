@@ -102,6 +102,10 @@
           {/if}
         </div>
 
+        {#if (firstPostDate)}
+          <p class="profile-first">{$_('first_post_date', {values: {date: firstPostDate }})}</p>
+        {/if}
+
         {#if (profile.did !== $agent.did())}
           <div class="profile-follow-button">
             <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
@@ -110,10 +114,6 @@
           <div class="profile-follow-button profile-follow-button--me">
             <UserEdit {profile} on:update={onProfileUpdate}></UserEdit>
           </div>
-        {/if}
-
-        {#if (firstPostDate)}
-          <p class="profile-first">{$_('first_post_date', {values: {date: firstPostDate }})}</p>
         {/if}
       </div>
     </div>
@@ -198,7 +198,7 @@
 
         &__text {
             line-height: 1.75;
-            white-space: pre-wrap;
+            white-space: pre-line;
         }
     }
 
