@@ -55,5 +55,8 @@
   "search_button": "検索",
   "keywords_search_experimental": "キーワード検索（試験的）",
   "likes": "いいね",
-  "first_post_date": "{date} にはじめて投稿しました。"
+  "first_post_date": "{date} にはじめて投稿しました。",
+  "failed_to_like": "いいねに失敗しました。もう一度やり直すか、しばらく待ってみてください。",
+  "failed_to_post": "投稿に失敗しました。もう一度やり直すか、しばらく待ってみてください。",
+  "success_to_post": "投稿に成功しました。"
 }

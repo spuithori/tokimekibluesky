@@ -26,3 +26,7 @@
 .primary-color {
     color: var(--primary-color);
 }
+
+.infinite-nomore {
+    margin-top: 15px;
+}

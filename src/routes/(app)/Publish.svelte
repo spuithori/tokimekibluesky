@@ -13,6 +13,7 @@ import { clickOutside } from '$lib/clickOutSide';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import ja from 'date-fns/locale/ja/index';
 import { type AppBskyFeedPost, RichText, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia } from '@atproto/api';
+import toast from 'svelte-french-toast'
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -99,7 +100,9 @@ async function onFileSelected(file: any, output: any) {
        id: file.id
     });
     embedImages = embedImages;
-    
+
+    console.log(embedImages)
+
     isPublishEnabled = !res.success;
 
     if (res.success) {
@@ -110,6 +113,8 @@ async function onFileSelected(file: any, output: any) {
 async function onFileDeleted(error: any, file: any) {
     embedImages.images = embedImages.images.filter((image) => image.id !== file.id );
     embedImages = embedImages;
+
+    console.log(embedImages)
 }
 
 function handleKeydown(event: { key: string; }) {
@@ -182,62 +187,23 @@ onMount(async () => {
             }
         }
 
-        /*
-        let facets: Array<Object> = [];
-        const links = linkify.find(publishContent, 'url');
-        if (links.length) {
-            links.forEach(link => {
-                facets.push({
-                    index: {
-                        byteStart: new TextEncoder().encode(publishContent.substring(0, link.start)).length,
-                        byteEnd: new TextEncoder().encode(publishContent.substring(0, link.end)).length,
-                    },
-                    features: [
-                        {
-                            $type: 'app.bsky.richtext.facet#link',
-                            uri: link.href,
-                        }
-                    ],
-                })
-            });
-        }
-
-        const mentions = linkify.find(publishContent, 'mention');
-        if (mentions.length) {
-            for (const mention of mentions) {
-                try {
-                    const did = await getDidByHandle(mention.value.replace(/@/g, ''));
-                    facets.push({
-                        index: {
-                            byteStart: new TextEncoder().encode(publishContent.substring(0, mention.start)).length,
-                            byteEnd: new TextEncoder().encode(publishContent.substring(0, mention.end)).length,
-                        },
-                        features: [
-                            {
-                                $type: 'app.bsky.richtext.facet#mention',
-                                did: did,
-                            }
-                        ],
-                    })
-                } catch(e) {
-                    console.error(e);
-                }
-            }
-        }
-        */
-
         const rt = new RichText({text: publishContent});
         await rt.detectFacets($agent.agent);
 
-        await $agent.agent.api.app.bsky.feed.post.create(
-            { repo: $agent.did() },
-            {
-                embed: embed,
-                facets: rt.facets,
-                text: rt.text,
-                createdAt: new Date().toISOString(),
-            },
-        );
+        try {
+            await $agent.agent.api.app.bsky.feed.post.create(
+                { repo: $agent.did() },
+                {
+                    embed: embed,
+                    facets: rt.facets,
+                    text: rt.text,
+                    createdAt: new Date().toISOString(),
+                },
+            );
+            toast.success($_('success_to_post'));
+        } catch (e) {
+            toast.error($_('failed_to_post'));
+        }
 
         isTextareaEnabled = false;
         isPublishEnabled = false;

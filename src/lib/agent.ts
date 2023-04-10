@@ -1,4 +1,5 @@
-import type { AppBskyFeedGetTimeline, AtpAgent } from '@atproto/api';
+import type {AppBskyFeedGetTimeline, AtpAgent} from '@atproto/api';
+import toast from "svelte-french-toast";
 
 export class Agent {
     public agent: AtpAgent;
@@ -13,11 +14,15 @@ export class Agent {
         }
     }
 
-    async getTimeline(limit: number = 20, cursor: string = ''): Promise<AppBskyFeedGetTimeline.Response["data"]> {
-        const dataRaw = await this.agent.api.app.bsky.feed.getTimeline({ limit: limit, cursor: cursor });
-        const data = dataRaw.data;
-
-        return data;
+    async getTimeline(limit: number = 20, cursor: string = ''): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
+        try {
+            const res = await this.agent.api.app.bsky.feed.getTimeline({ limit: limit, cursor: cursor });
+            return res.data;
+        } catch (e) {
+            toast.error('Error');
+            console.error(e);
+            return undefined;
+        }
     }
 
     async setVote(cid: string, uri: string, likeUri = '') {
@@ -44,25 +49,22 @@ export class Agent {
     }
 
     async getVotes(uri: string) {
-        const datum = await this.agent.api.app.bsky.feed.getLikes({uri: uri});
-        return datum.data.likes;
+        const res = await this.agent.api.app.bsky.feed.getLikes({uri: uri});
+        return res.data.likes;
     }
 
     async myVoteCheck(uri: string): Promise<boolean> {
-        const votes = await this.getVotes(uri);
-        const found = votes.some(vote => vote.actor.did === this.did())
-        return found;
+        const res = await this.getVotes(uri);
+        return res.some(vote => vote.actor.did === this.did());
     }
 
     async getFeed(uri: string, depth: number = 0) {
-        const feed = await this.agent.api.app.bsky.feed.getPostThread({uri: uri, depth: depth})
-
-        return feed.data.thread;
+        const res = await this.agent.api.app.bsky.feed.getPostThread({uri: uri, depth: depth});
+        return res.data.thread;
     }
 
     async getNotificationCount() {
-        const count = await this.agent.api.app.bsky.notification.getUnreadCount()
-
-        return count.data.count;
+        const res = await this.agent.api.app.bsky.notification.getUnreadCount();
+        return res.data.count;
     }
 }

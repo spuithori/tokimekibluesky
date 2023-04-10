@@ -25,7 +25,7 @@
   {#each images as image, index}
     <div class="timeline-image">
       <button on:click={() => open(index)} aria-label="画像を拡大する">
-        <img src="{image.thumb}" alt="">
+        <img src="{image.thumb}" alt="" loading="lazy">
       </button>
     </div>
   {/each}

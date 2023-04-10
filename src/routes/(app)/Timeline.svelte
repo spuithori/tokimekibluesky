@@ -1,24 +1,22 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { agent, cursor } from '$lib/stores';
   import { timeline } from "$lib/stores";
   import TimelineItem from "./TimelineItem.svelte";
-  import InfiniteScroll from 'svelte-infinite-scroll';
+  import InfiniteLoading from 'svelte-infinite-loading';
 
-  onMount(async () => {
-      const data = await $agent.getTimeline()
-      timeline.set(data.feed);
+  const handleLoadMore = async ({ detail: { loaded, complete } }) => {
+      const data = await $agent.getTimeline(20, $cursor);
       cursor.set(data.cursor);
 
-      console.log(data.feed);
-  });
+      if ($cursor) {
+          timeline.update(function (tl) {
+              return [...tl, ...data.feed];
+          });
 
-  const handleLoadMore = async () => {
-      const data = await $agent.getTimeline(20, $cursor)
-      timeline.update(function (tl) {
-          return [...tl, ...data.feed];
-      });
-      cursor.set(data.cursor);
+          loaded();
+      } else {
+          complete();
+      }
   }
 </script>
 
@@ -28,7 +26,10 @@
       <TimelineItem data={ data }></TimelineItem>
     {/each}
   </div>
-  <InfiniteScroll window threshold={300} on:loadMore={handleLoadMore} ></InfiniteScroll>
+
+  <InfiniteLoading on:infinite={handleLoadMore}>
+    <p slot="noMore" class="infinite-nomore">もうないよ</p>
+  </InfiniteLoading>
 </div>
 
 <style>

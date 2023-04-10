@@ -10,6 +10,7 @@
   import Publish from "./Publish.svelte";
   import { pwaInfo } from 'virtual:pwa-info';
   import {onMount} from 'svelte';
+  import toast, {Toaster} from 'svelte-french-toast'
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : ''
 
@@ -75,6 +76,7 @@
   </main>
 
   <Publish></Publish>
+  <Toaster></Toaster>
 </div>
 
 <style lang="postcss">

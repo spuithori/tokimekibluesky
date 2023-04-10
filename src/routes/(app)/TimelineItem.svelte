@@ -12,6 +12,7 @@
     import { fade, fly } from 'svelte/transition';
     import Spotify from './Spotify.svelte';
     import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedImages, AppBskyFeedPost, AppBskyFeedDefs, RichText, RichTextSegment, AppBskyEmbedRecordWithMedia, AppBskyFeedGetLikes } from '@atproto/api'
+    import toast from "svelte-french-toast";
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
@@ -57,17 +58,28 @@
     }
 
     async function vote(cid: string, uri: string) {
-        myVoteCheck = !myVoteCheck
-        const like = await $agent.setVote(cid, uri, data.post.viewer?.like || '');
+        myVoteCheck = !myVoteCheck;
 
-        [myVoteCheck, votes] = await Promise.all([
-            $agent.myVoteCheck(uri),
-            $agent.getVotes(uri)
-        ]);
+        try {
+            const like = await $agent.setVote(cid, uri, data.post.viewer?.like || '');
 
-        voteCount = votes.length;
-        data.post.likeCount = votes.length;
-        data.post.viewer!.like = like?.uri || undefined;
+            try {
+                [myVoteCheck, votes] = await Promise.all([
+                    $agent.myVoteCheck(uri),
+                    $agent.getVotes(uri)
+                ]);
+
+                voteCount = votes.length;
+                data.post.likeCount = votes.length;
+                data.post.viewer!.like = like?.uri || undefined;
+            } catch(e) {
+                toast.error($_('failed_to_like_after_reload'));
+            }
+        } catch (e) {
+            toast.error($_('failed_to_like'));
+            console.error(e);
+            myVoteCheck = !myVoteCheck;
+        }
     }
 
     async function repost(cid: string, uri: string) {
@@ -152,7 +164,7 @@
     <div class="timeline__image">
       <a href="/profile/{ data.post.author.handle }">
         {#if (data.post.author.avatar)}
-          <img src="{ data.post.author.avatar }" alt="">
+          <img src="{ data.post.author.avatar }" alt="" loading="lazy">
         {/if}
       </a>
     </div>

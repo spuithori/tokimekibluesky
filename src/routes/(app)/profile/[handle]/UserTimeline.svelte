@@ -2,32 +2,25 @@
     import { agent } from '$lib/stores';
     import { onMount } from 'svelte';
     import TimelineItem from '../../TimelineItem.svelte';
-    import InfiniteScroll from 'svelte-infinite-scroll';
+    import InfiniteLoading from 'svelte-infinite-loading';
 
     export let author = '';
     let feeds = [];
-    let finishLoading = false;
     let cursor = '';
 
-    onMount(async () => {
-        const raw = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: author, limit: 30});
-        feeds = raw.data.feed;
-        cursor = raw.data.cursor;
-    });
-
-    const handleLoadMore = async () => {
+    const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         const raw = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: author, limit: 30, cursor: cursor});
         cursor = raw.data.cursor;
 
-        if (!cursor) {
-            finishLoading = true;
-        }
-
-        if (!finishLoading) {
+        if (cursor) {
             for (const item of raw.data.feed) {
                 feeds.push(item);
             }
             feeds = feeds;
+
+            loaded();
+        } else {
+            complete();
         }
     }
 </script>
@@ -37,5 +30,7 @@
     <TimelineItem data={ data } isPrivate={ true }></TimelineItem>
   {/each}
 
-  <InfiniteScroll window threshold="300" on:loadMore={handleLoadMore} ></InfiniteScroll>
+  <InfiniteLoading on:infinite={handleLoadMore}>
+    <p slot="noMore" class="infinite-nomore">もうないよ</p>
+  </InfiniteLoading>
 </div>
