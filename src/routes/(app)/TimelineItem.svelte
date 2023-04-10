@@ -146,11 +146,11 @@
 <article class="timeline__item">
   <div class="timeline-repost-messages">
     {#if (isReasonRepost(data.reason))}
-      <p class="timeline-repost-message">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle }})}</p>
+      <p class="timeline-repost-message"><a href="/profile/{data.reason.by.handle}">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle }})}</a></p>
     {/if}
 
     {#if (data.reply)}
-      <p class="timeline-repost-message">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle }})}</p>
+      <p class="timeline-repost-message"><a href="/profile/{data.reply.parent.author.handle}">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle }})}</a></p>
     {/if}
   </div>
 

@@ -4,13 +4,36 @@
     import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
     import { type AppBskyNotificationListNotifications, AppBskyFeedPost, AppBskyFeedLike, AppBskyFeedRepost, AppBskyFeedDefs } from '@atproto/api';
     import { onMount } from 'svelte';
+    import InfiniteLoading from 'svelte-infinite-loading';
 
     let notifications: AppBskyNotificationListNotifications.Notification[] = [];
+    let cursor = '';
 
-    onMount(async () => {
-        const res = await $agent.agent.api.app.bsky.notification.listNotifications();
+    /* onMount(async () => {
+        const res = await $agent.agent.api.app.bsky.notification.listNotifications({
+            limit: 20,
+        });
         notifications = res.data.notifications;
-    })
+    }) */
+
+    const handleLoadMore = async ({ detail: { loaded, complete } }) => {
+        const res = await $agent.agent.api.app.bsky.notification.listNotifications({
+            limit: 20,
+            cursor: cursor,
+        });
+        cursor = res.data.cursor;
+
+        if (cursor) {
+            for (const item of res.data.notifications) {
+                notifications.push(item);
+            }
+            notifications = notifications;
+
+            loaded();
+        } else {
+            complete();
+        }
+    }
 </script>
 
 <div>
@@ -70,6 +93,10 @@
       <!-- svelte-ignore empty-block -->
     {/if}
   {/each}
+
+  <InfiniteLoading on:infinite={handleLoadMore}>
+    <p slot="noMore" class="infinite-nomore">もうないよ</p>
+  </InfiniteLoading>
 </div>
 
 <style lang="postcss">
