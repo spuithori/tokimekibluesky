@@ -72,11 +72,11 @@
 
     <dl class="input-group">
       <dt class="input-group__name">
-        <label for="email">Email</label>
+        <label for="email">Email or handle</label>
       </dt>
 
       <dd class="input-group__content">
-        <input class="input-group__input" type="email" name="email" id="email" placeholder="Email" bind:value="{identifier}" required />
+        <input class="input-group__input" type="email" name="email" id="email" placeholder="Email or handle" bind:value="{identifier}" required />
       </dd>
     </dl>
 
