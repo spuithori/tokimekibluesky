@@ -41,7 +41,6 @@
 
         if (cursor) {
             feeds = [...feeds, ...await getFeedsFromRecords(likesArrayRes.data.records)];
-            console.log(feeds);
             loaded();
         } else {
             complete();

@@ -140,7 +140,6 @@
     async function getLikes() {
       const res = await $agent.agent.api.app.bsky.feed.getLikes({uri: data.post.uri});
       likes = res.data;
-        console.log(likes);
     }
 </script>
 

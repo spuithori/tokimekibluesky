@@ -2,7 +2,6 @@
   import TimelineItem from "../../../../TimelineItem.svelte";
 
   export let feeds = [];
-  console.log(feeds)
 </script>
 
 <div class="thread">
@@ -25,7 +24,7 @@
   {/each}
 </div>
 
-<style>
+<style lang="postcss">
   .thread {
       position: relative;
   }
