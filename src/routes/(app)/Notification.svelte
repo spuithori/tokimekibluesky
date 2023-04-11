@@ -52,25 +52,25 @@
     </li>
 
     <li class="notifications-filter-list__item">
-      <button class="notifications-filter-button" on:click={() => {getNotifications('reply_mention_quote')}} class:notifications-filter-button--active={filter === 'reply_mention_quote'}><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13.001" viewBox="0 0 13 13.001">
+      <button class="notifications-filter-button" on:click={() => {getNotifications('reply_mention_quote')}} class:notifications-filter-button--active={filter === 'reply_mention_quote'} aria-label="Reply, Mention, and Quotes"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13.001" viewBox="0 0 13 13.001">
         <path id="at-symbol" d="M8.84,8.759A3.25,3.25,0,1,1,8.45,3.9v-.65h1.3V7.478a.975.975,0,1,0,1.95,0V6.5a5.2,5.2,0,1,0-2.873,4.654l.585,1.163A6.5,6.5,0,1,1,13,6.5h-.006v.975a2.275,2.275,0,0,1-4.16,1.28ZM6.5,8.453A1.95,1.95,0,1,0,4.55,6.5,1.95,1.95,0,0,0,6.5,8.453Z" transform="translate(0 -0.009)" fill="var(--primary-color)"/>
       </svg></button>
     </li>
 
     <li class="notifications-filter-list__item">
-      <button class="notifications-filter-button" on:click={() => {getNotifications('like')}} class:notifications-filter-button--active={filter === 'like'}><svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
+      <button class="notifications-filter-button" on:click={() => {getNotifications('like')}} class:notifications-filter-button--active={filter === 'like'} aria-label="Like"><svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
         <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--primary-color)"/>
       </svg></button>
     </li>
 
     <li class="notifications-filter-list__item">
-      <button class="notifications-filter-button" on:click={() => {getNotifications('repost')}} class:notifications-filter-button--active={filter === 'repost'}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="12" viewBox="0 0 20 12">
+      <button class="notifications-filter-button" on:click={() => {getNotifications('repost')}} class:notifications-filter-button--active={filter === 'repost'} aria-label="Repost"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="12" viewBox="0 0 20 12">
         <path id="retweet" d="M13.333,17.667A.342.342,0,0,1,13,18H3c-.385,0-.333-.406-.333-.667v-6h-2A.671.671,0,0,1,0,10.667a.638.638,0,0,1,.156-.427l3.333-4a.683.683,0,0,1,1.021,0l3.333,4A.636.636,0,0,1,8,10.667a.671.671,0,0,1-.667.667h-2v4h6a.356.356,0,0,1,.261.115l1.667,2A.42.42,0,0,1,13.333,17.667ZM20,13.333a.638.638,0,0,1-.156.427l-3.333,4a.664.664,0,0,1-1.021,0l-3.333-4A.636.636,0,0,1,12,13.333a.671.671,0,0,1,.667-.667h2v-4h-6a.332.332,0,0,1-.261-.125l-1.667-2a.357.357,0,0,1-.073-.209A.342.342,0,0,1,7,6H17c.385,0,.333.406.333.667v6h2A.671.671,0,0,1,20,13.333Z" transform="translate(0 -6)" fill="var(--primary-color)"/>
       </svg></button>
     </li>
 
     <li class="notifications-filter-list__item">
-      <button class="notifications-filter-button" on:click={() => {getNotifications('follow')}} class:notifications-filter-button--active={filter === 'follow'}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="11.25" viewBox="0 0 15 11.25">
+      <button class="notifications-filter-button" on:click={() => {getNotifications('follow')}} class:notifications-filter-button--active={filter === 'follow'} aria-label="Follow"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="11.25" viewBox="0 0 15 11.25">
         <path id="user-add" d="M1.5,5.25H0v1.5H1.5v1.5H3V6.75H4.5V5.25H3V3.75H1.5Zm5.25,0a2.25,2.25,0,0,1,4.5,0v1.5a2.25,2.25,0,0,1-4.5,0ZM15,12.105a12.017,12.017,0,0,0-12,0V14.25H15Z" transform="translate(0 -3)" fill="var(--primary-color)"/>
       </svg></button>
     </li>

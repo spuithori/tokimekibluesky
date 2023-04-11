@@ -357,6 +357,10 @@ onMount(async () => {
                 height: 160px;
             }
 
+            .publish-wrap {
+                display: block;
+            }
+
             @media (max-width: 767px) {
                 top: 0;
 
@@ -371,6 +375,7 @@ onMount(async () => {
         background-color: var(--bg-color-1);
         border-top: 1px solid var(--border-color-1);
         padding: 20px 0 0;
+        display: none;
 
         @media (max-width: 767px) {
             display: none;
@@ -385,7 +390,7 @@ onMount(async () => {
     }
 
     .publish-sp-open {
-        display: none;
+        display: flex;
         position: fixed;
         right: 20px;
         bottom: 20px;
