@@ -83,6 +83,8 @@
             })
             notifications = notifications;
 
+            console.log(notifications)
+
             loaded();
         } else {
             complete();
@@ -153,7 +155,7 @@
         </article>
       {:else if ((item.reason === 'reply' && AppBskyFeedPost.isRecord(item.record)) && (filter === 'all' || filter === 'reply_mention_quote'))}
         <article class="notifications-item notifications-item--reply">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('replied_your_post')}</h2>
+          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('replied_your_post')}・<a href="/profile/{item.author.handle}/post/{item.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a></h2>
 
           <p class="notifications-item__content">{item.record.text}</p>
         </article>
