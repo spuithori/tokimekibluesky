@@ -58,5 +58,7 @@
   "first_post_date": "Apresentada pela primeira vez a {date}",
   "failed_to_like": "Falha ao gostar. Por favor, tente novamente ou espere um pouco.",
   "failed_to_post": "Falha no envio. Por favor, tente novamente ou espere um pouco.",
-  "success_to_post": "Envio bem-sucedido."
+  "success_to_post": "Envio bem-sucedido.",
+  "mentioned_your_post": "Mencionou sua postagem",
+  "all": "Todos"
 }

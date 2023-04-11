@@ -58,5 +58,7 @@
   "first_post_date": "First submitted on {date}",
   "failed_to_like": "Failed to like. Please try again or wait a while.",
   "failed_to_post": "Submission failed. Please try again or wait a while.",
-  "success_to_post": "Submission succeeded."
+  "success_to_post": "Submission succeeded.",
+  "mentioned_your_post": "Mentioned your post",
+  "all": "All"
 }

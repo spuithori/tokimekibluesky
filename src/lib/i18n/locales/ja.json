@@ -58,5 +58,7 @@
   "first_post_date": "{date} にはじめて投稿しました。",
   "failed_to_like": "いいねに失敗しました。もう一度やり直すか、しばらく待ってみてください。",
   "failed_to_post": "投稿に失敗しました。もう一度やり直すか、しばらく待ってみてください。",
-  "success_to_post": "投稿に成功しました。"
+  "success_to_post": "投稿に成功しました。",
+  "mentioned_your_post": "があなたにメンションしました",
+  "all": "すべて"
 }

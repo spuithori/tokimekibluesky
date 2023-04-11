@@ -305,6 +305,7 @@ onMount(async () => {
         bind:this={publishArea}
         on:keydown={publishKeypress}
         placeholder="{$_('send_placeholder1')}&#13;{$_('send_placeholder2')}"
+        autocomplete="nope"
     ></textarea>
     </div>
 
