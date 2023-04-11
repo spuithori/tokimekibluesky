@@ -1,42 +1,89 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { agent, notifications } from '$lib/stores';
+    import { agent } from '$lib/stores';
     import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
-    import { type AppBskyNotificationListNotifications, AppBskyFeedPost, AppBskyFeedLike, AppBskyFeedRepost, AppBskyFeedDefs } from '@atproto/api';
-    import { onMount } from 'svelte';
+    import { type AppBskyNotificationListNotifications, AppBskyFeedPost, AppBskyFeedLike, AppBskyFeedRepost } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
-
-    // let notifications: AppBskyNotificationListNotifications.Notification[] = [];
+    
+    let notifications: AppBskyNotificationListNotifications.Notification[] = [];
     let cursor = '';
 
     type Filter = 'all' | 'reply_mention_quote' | 'like' | 'repost' | 'follow';
     let filter: Filter = 'all';
+    let feedPromises = [];
+    let reasonSubjects = [];
+    let feeds = [];
     let il;
 
-    notifications.set([]);
+    /* $: {
+        if (isNotificationOpen) {
+            getNotifications('all');
+        }
+    } */
 
     async function getNotifications(setFilter: Filter) {
         filter = setFilter;
-        notifications.set([]);
+        notifications = [];
+        feedPromises = [];
         cursor = '';
         il.$$.update();
     }
 
+    async function getFeedAll(promises) {
+        await Promise.allSettled(promises)
+            .then((results) => {
+                results.forEach((result, index) => {
+                    if (result.status === 'fulfilled' && result.value !== null) {
+                        feeds[result.value.post.uri] = result.value.post;
+                    }
+                })
+            })
+    }
+
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         const res = await $agent.agent.api.app.bsky.notification.listNotifications({
-            limit: 20,
+            limit: 30,
             cursor: cursor,
         });
         cursor = res.data.cursor;
 
         if (cursor) {
-            for (const item of res.data.notifications) {
-                if (!item.author.viewer.muted) {
-                    notifications.update(function (current) {
-                        return [...current, item];
-                    });
+            res.data.notifications.forEach((item, index) => {
+                if (item.reasonSubject) {
+                    reasonSubjects.push(item.reasonSubject);
                 }
-            }
+
+                if (!item.author.viewer.muted) {
+                    if (AppBskyFeedLike.isRecord(item.record) && (filter === 'like' || filter === 'all')) {
+                        notifications = [...notifications, item];
+                    } else if (AppBskyFeedRepost.isRecord(item.record) && (filter === 'repost' || filter === 'all')) {
+                        notifications = [...notifications, item];
+                    } else if ((item.reason === 'quote' && typeof item.reasonSubject === 'string') && (filter === 'reply_mention_quote' || filter === 'all')) {
+                        notifications = [...notifications, item];
+                    } else {
+                        reasonSubjects[index] = null;
+                        notifications = [...notifications, item];
+                    }
+                }
+            });
+
+            reasonSubjects = [...new Set(reasonSubjects)];
+            let reasonSubjectsPromises = [];
+            reasonSubjects.forEach(subject => {
+                if (subject !== null) {
+                    reasonSubjectsPromises.push($agent.getFeed(subject));
+                }
+            })
+
+            await getFeedAll(reasonSubjectsPromises);
+            reasonSubjects = [];
+
+            notifications.forEach(item => {
+                if (item.reasonSubject) {
+                    item.feed = feeds[item.reasonSubject];
+                }
+            })
+            notifications = notifications;
 
             loaded();
         } else {
@@ -77,30 +124,22 @@
   </ul>
 
   <div class="notifications-list">
-    {#each $notifications as item}
+    {#each notifications as item}
       {#if (AppBskyFeedLike.isRecord(item.record) && (filter === 'all' || filter === 'like'))}
         <article class="notifications-item notifications-item--like">
           <h2 class="notifications-item__title"><span class="notifications-item__name"><a  href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('liked_your_post')}</h2>
 
-          {#await $agent.getFeed(item.record.subject.uri)}
-            <p class="notifications-item__content"></p>
-          {:then feed}
-            {#if (AppBskyFeedDefs.isThreadViewPost(feed) && AppBskyFeedPost.isRecord(feed.post.record))}
-              <p class="notifications-item__content">{feed.post.record.text}</p>
-            {/if}
-          {/await}
+          {#if (item.feed)}
+            <p class="notifications-item__content">{item.feed.record.text}</p>
+          {/if}
         </article>
       {:else if (AppBskyFeedRepost.isRecord(item.record) && (filter === 'all' || filter === 'repost'))}
         <article class="notifications-item notifications-item--repost">
           <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('reposted_your_post')}</h2>
 
-          {#await $agent.getFeed(item.record.subject.uri)}
-            <p class="notifications-item__content"></p>
-          {:then feed}
-            {#if (AppBskyFeedDefs.isThreadViewPost(feed) && AppBskyFeedPost.isRecord(feed.post.record))}
-              <p class="notifications-item__content">{feed.post.record.text}</p>
-            {/if}
-          {/await}
+          {#if (item.feed)}
+            <p class="notifications-item__content">{item.feed.record.text}</p>
+          {/if}
         </article>
       {:else if ((item.reason === 'quote' && typeof item.reasonSubject === 'string') && (filter === 'all' || filter === 'reply_mention_quote'))}
         <article class="notifications-item notifications-item--quote">
@@ -110,13 +149,9 @@
             <p class="notifications-item__content">{item.record.text}</p>
           {/if}
 
-          {#await $agent.getFeed(item.reasonSubject)}
-            <p class="notifications-item__content"></p>
-          {:then feed}
-            {#if (AppBskyFeedDefs.isThreadViewPost(feed) && AppBskyFeedPost.isRecord(feed.post.record))}
-              <p class="notifications-item__quote">{feed.post.record.text}</p>
-            {/if}
-          {/await}
+          {#if (item.feed)}
+            <p class="notifications-item__quote">{item.feed.record.text}</p>
+          {/if}
         </article>
       {:else if ((item.reason === 'reply' && AppBskyFeedPost.isRecord(item.record)) && (filter === 'all' || filter === 'reply_mention_quote'))}
         <article class="notifications-item notifications-item--reply">
@@ -159,11 +194,6 @@
 
       &__content {
           font-size: 14px;
-          display: -webkit-box;
-          overflow: hidden;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 2;
-          height: 42px;
       }
 
       &__quote {

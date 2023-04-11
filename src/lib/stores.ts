@@ -1,7 +1,10 @@
 import { writable } from 'svelte/store';
 import type { Agent } from '$lib/agent';
-import type { AppBskyFeedDefs } from '@atproto/api';
-import {AppBskyNotificationListNotifications} from "@atproto/api";
+import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications } from '@atproto/api';
+
+type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification & {
+    feed?: AppBskyFeedPost
+}
 
 export const service = writable(localStorage.getItem('service') || 'https://bsky.social');
 export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) || []);
@@ -27,7 +30,7 @@ export const cursor = writable<string | undefined>('');
 
 export const notificationCount = writable(0);
 
-export const notifications = writable<AppBskyNotificationListNotifications.Notification[]>([]);
+export const notifications = writable<NotificationWithFeed[]>([]);
 
 export const isLogin = writable(false);
 
