@@ -283,6 +283,12 @@
                 {data.post.embed.record.value.text}
               </p>
             {/if}
+
+            {#if (AppBskyEmbedImages.isView(data.post.embed.record?.embeds[0]))}
+              <div class="timeline-images-wrap timeline-images-wrap--record">
+                <Images images={data.post.embed.record.embeds[0].images}></Images>
+              </div>
+            {/if}
           </div>
 
           <span class="timeline-external__icon">

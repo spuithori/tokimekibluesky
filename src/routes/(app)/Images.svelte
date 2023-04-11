@@ -32,16 +32,6 @@
 </div>
 
 <style lang="postcss">
-    .timeline-images {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-
-        &:has(.timeline-image:only-child) {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
     .timeline-image {
         width: 100%;
         height: 100%;
@@ -69,12 +59,5 @@
         height: 100%;
         object-fit: cover;
         transition: transform .2s ease-in-out;
-    }
-
-    @media (max-width: 767px) {
-        .timeline-images {
-            gap: 5px;
-            grid-template-columns: repeat(2, 1fr);
-        }
     }
 </style>

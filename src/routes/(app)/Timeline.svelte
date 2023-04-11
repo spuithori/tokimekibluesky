@@ -12,6 +12,7 @@
           timeline.update(function (tl) {
               return [...tl, ...data.feed];
           });
+          console.log($timeline);
 
           loaded();
       } else {
