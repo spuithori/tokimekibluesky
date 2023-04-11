@@ -120,7 +120,7 @@ async function onFileDeleted(error: any, file: any) {
 function handleKeydown(event: { key: string; }) {
     const activeElement = document.activeElement?.tagName;
 
-    if (event.key === 'n' && activeElement === 'BODY') {
+    if (event.key === 'n' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
         isFocus = true;
         setTimeout(() => {
             publishArea.focus();
