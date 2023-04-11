@@ -4,13 +4,12 @@
     import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
     import { type AppBskyNotificationListNotifications, AppBskyFeedPost, AppBskyFeedLike, AppBskyFeedRepost } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
-    
+
     let notifications: AppBskyNotificationListNotifications.Notification[] = [];
     let cursor = '';
 
     type Filter = 'all' | 'reply_mention_quote' | 'like' | 'repost' | 'follow';
     let filter: Filter = 'all';
-    let feedPromises = [];
     let reasonSubjects = [];
     let feeds = [];
     let il;
@@ -24,7 +23,6 @@
     async function getNotifications(setFilter: Filter) {
         filter = setFilter;
         notifications = [];
-        feedPromises = [];
         cursor = '';
         il.$$.update();
     }

@@ -60,6 +60,12 @@
     async function vote(cid: string, uri: string) {
         myVoteCheck = !myVoteCheck;
 
+        if (myVoteCheck) {
+            data.post.likeCount = data.post.likeCount + 1;
+        } else {
+            data.post.likeCount = data.post.likeCount - 1;
+        }
+
         try {
             const like = await $agent.setVote(cid, uri, data.post.viewer?.like || '');
 
@@ -79,6 +85,12 @@
             toast.error($_('failed_to_like'));
             console.error(e);
             myVoteCheck = !myVoteCheck;
+
+            if (myVoteCheck) {
+                data.post.likeCount = data.post.likeCount - 1;
+            } else {
+                data.post.likeCount = data.post.likeCount + 1;
+            }
         }
     }
 
