@@ -140,6 +140,7 @@
     async function getLikes() {
       const res = await $agent.agent.api.app.bsky.feed.getLikes({uri: data.post.uri});
       likes = res.data;
+        console.log(likes);
     }
 </script>
 
@@ -343,15 +344,17 @@
 
           <div class="likes">
             {#each likes.likes as like }
-              <div class="likes__item">
-                <div class="likes__avatar">
-                  {#if (like.actor.avatar)}
-                    <img src="{ like.actor.avatar }" alt="">
-                  {/if}
-                </div>
+              {#if (!like.actor.viewer?.muted)}
+                <div class="likes__item">
+                  <div class="likes__avatar">
+                    {#if (like.actor.avatar)}
+                      <img src="{ like.actor.avatar }" alt="">
+                    {/if}
+                  </div>
 
-                <p class="likes__text"><a href="/profile/{ like.actor.handle }">{ like.actor.displayName || like.actor.handle }</a></p>
-              </div>
+                  <p class="likes__text"><a href="/profile/{ like.actor.handle }">{ like.actor.displayName || like.actor.handle }</a></p>
+                </div>
+              {/if}
             {/each}
           </div>
         </div>

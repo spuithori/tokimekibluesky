@@ -25,9 +25,11 @@
 
         if (cursor) {
             for (const item of res.data.notifications) {
-                notifications.push(item);
+                if (!item.author.viewer.muted) {
+                    notifications = [...notifications, item];
+                }
             }
-            notifications = notifications;
+            console.log(notifications);
 
             loaded();
         } else {
