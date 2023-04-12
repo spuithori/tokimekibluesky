@@ -95,12 +95,14 @@
     }
 
     async function repost(cid: string, uri: string) {
-        await $agent.setRepost(cid, uri);
+        await $agent.setRepost(cid, uri, data.post.viewer?.repost || '');
 
         if (!isPrivate) {
             const data = await $agent.getTimeline();
             timeline.set(data.feed);
             cursor.set(data.cursor);
+        } else {
+            toast.success('ページをリロードしてリポスト操作を確認してください。')
         }
 
         notificationCount.set(await $agent.getNotificationCount());

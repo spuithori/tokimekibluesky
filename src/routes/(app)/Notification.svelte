@@ -82,8 +82,7 @@
                 }
             })
             notifications = notifications;
-
-            console.log(notifications)
+            //console.log(notifications)
 
             loaded();
         } else {
@@ -166,9 +165,18 @@
           <p class="notifications-item__content">{item.record.text}</p>
         </article>
       {:else if (item.reason === 'follow' && (filter === 'all' || filter === 'follow'))}
-        <article class="notifications-item notifications-item--follow">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('followed_you')}</h2>
-          <UserFollowButton following="{item.author.viewer?.following}" user={item.author}></UserFollowButton>
+        <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
+          <div class="notifications-item__contents">
+            <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('followed_you')}</h2>
+
+            {#if (filter === 'follow' && item.author.description)}
+              <p class="notifications-item__description">{item.author.description}</p>
+            {/if}
+          </div>
+
+          <div class="notifications-item__buttons">
+            <UserFollowButton following="{item.author.viewer?.following}" user={item.author}></UserFollowButton>
+          </div>
         </article>
       {:else}
         <!-- svelte-ignore empty-block -->
@@ -185,6 +193,13 @@
   .notifications-item {
       border-bottom: 1px solid var(--border-color-1);
       padding: 10px 0;
+
+      &__contents {
+          min-height: 40px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+      }
 
       &__title {
           font-size: 15px;
@@ -203,10 +218,24 @@
           margin-top: 10px;
       }
 
+      &__description {
+          font-size: 13px;
+          margin-top: 5px;
+      }
+
       &--follow {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          gap: 10px;
+      }
+
+      &--filter-follow {
+          align-items: flex-start;
+
+          .notifications-item__title {
+              line-height: 1.3;
+          }
       }
 
       &--reply {
