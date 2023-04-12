@@ -180,10 +180,16 @@
     }
 
     async function getHandleByDid(handle: string) {
-        const data = await $agent.agent.api.com.atproto.repo.describeRepo(
-            { repo: handle }
-        );
-        return data.data.handle;
+        try {
+            const res = await $agent.agent.api.com.atproto.repo.describeRepo(
+                { repo: handle }
+            );
+
+            return res.data.handle;
+        } catch(e) {
+            console.log(e)
+            return null;
+        }
     }
 
     async function getLikes() {
@@ -232,16 +238,16 @@
       <p class="timeline__text" dir="auto">
         {#each textArray as item}
           {#if (item.isLink() && item.link)}
-            {#if (new URL(item.link.uri).hostname === 'bsky.app' || new URL(item.link.uri).hostname === 'staging.bsky.app')}
-              <a href="{new URL(item.link.uri).pathname}">{item.text} </a>
-            {:else}
-              <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
-            {/if}
+            <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
           {:else if (item.isMention() && item.mention)}
             {#await getHandleByDid(item.mention.did)}
               <span>{item.text}</span>
             {:then handle}
-              <a href="/profile/{handle}">{item.text}</a>
+              {#if handle}
+                <a href="/profile/{handle}">{item.text}</a>
+              {:else}
+                {item.text}
+              {/if}
             {/await}
           {:else}
             <span>{item.text}</span>
