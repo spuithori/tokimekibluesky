@@ -68,5 +68,6 @@
   "copy_handle": "Copy ID",
   "success_copy_url": "URL copied to clipboard.",
   "success_copy_handle": "ID copied to clipboard.",
-  "failed_copy": "Copy to clipboard failed."
+  "failed_copy": "Copy to clipboard failed.",
+  "media": "Media"
 }

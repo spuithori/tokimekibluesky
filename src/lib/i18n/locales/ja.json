@@ -68,5 +68,6 @@
   "copy_handle": "IDをコピー",
   "success_copy_url": "クリップボードにURLをコピーしました。",
   "success_copy_handle": "クリップボードにIDをコピーしました。",
-  "failed_copy": "クリップボードへのコピーに失敗しました。"
+  "failed_copy": "クリップボードへのコピーに失敗しました。",
+  "media": "メディア"
 }

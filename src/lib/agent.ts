@@ -14,7 +14,7 @@ export class Agent {
         }
     }
 
-    async getTimeline(limit: number = 20, cursor: string = ''): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
+    async getTimeline(limit: number = 25, cursor: string = ''): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
         try {
             const res = await this.agent.api.app.bsky.feed.getTimeline({ limit: limit, cursor: cursor });
             return res.data;

@@ -48,6 +48,9 @@
             case 'follower':
                 currentPage = 'follower';
                 break;
+            case 'media':
+                currentPage = 'media';
+                break;
             case 'likes':
                 currentPage = 'likes';
                 break;
@@ -122,6 +125,7 @@
       <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
       <li class="profile-tab__item" on:click={() => currentPage = 'follow'} class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
       <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
+      <li class="profile-tab__item" on:click={() => currentPage = 'media'} class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{$_('media')}</a></li>
       <li class="profile-tab__item" on:click={() => currentPage = 'likes'} class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
     </ul>
 
@@ -224,7 +228,7 @@
 
     .profile-tab {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         list-style: none;
         border: 1px solid var(--border-color-1);
         background-color: var(--bg-color-1);
@@ -236,6 +240,7 @@
 
         @media (max-width: 767px) {
             font-size: 14px;
+            grid-template-columns: repeat(3, 1fr);
         }
     }
 
@@ -249,6 +254,16 @@
 
         @media (max-width: 767px) {
             height: 42px;
+            border-bottom: 1px solid var(--border-color-1);
+            border-right: 1px solid var(--border-color-1);
+
+            &:nth-child(3n) {
+                border-right: none !important;
+            }
+
+            &:nth-child(n + 4) {
+                border-bottom: none;
+            }
         }
 
         &:not(:last-child) {

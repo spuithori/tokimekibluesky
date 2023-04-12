@@ -5,7 +5,7 @@
   import InfiniteLoading from 'svelte-infinite-loading';
 
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-      const data = await $agent.getTimeline(20, $cursor);
+      const data = await $agent.getTimeline(25, $cursor);
       cursor.set(data.cursor);
 
       if ($cursor) {
