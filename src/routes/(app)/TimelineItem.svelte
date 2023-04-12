@@ -196,6 +196,15 @@
       const res = await $agent.agent.api.app.bsky.feed.getLikes({uri: data.post.uri});
       likes = res.data;
     }
+
+    function isUriLocal(uri: string) {
+        try {
+            return new URL(uri).hostname === 'bsky.app' || new URL(uri).hostname === 'staging.bsky.app';
+        } catch (e) {
+            console.log(e);
+            return false;
+        }
+    }
 </script>
 
 <article class="timeline__item"
@@ -238,7 +247,11 @@
       <p class="timeline__text" dir="auto">
         {#each textArray as item}
           {#if (item.isLink() && item.link)}
-            <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+            {#if (isUriLocal(item.link.uri))}
+              <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
+            {:else}
+              <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+            {/if}
           {:else if (item.isMention() && item.mention)}
             {#await getHandleByDid(item.mention.did)}
               <span>{item.text}</span>
