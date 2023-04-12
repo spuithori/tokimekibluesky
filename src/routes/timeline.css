@@ -372,6 +372,12 @@
             text-decoration: none;
         }
     }
+
+    svg {
+        width: 18px;
+        object-fit: contain;
+        object-position: center;
+    }
 }
 
 .likes-wrap {

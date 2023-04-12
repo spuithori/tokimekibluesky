@@ -63,5 +63,10 @@
   "all": "すべて",
   "timeline_settings": "タイムライン設定",
   "hide_repost": "リポストを隠す",
-  "hide_reply": "リプライを隠す"
+  "hide_reply": "リプライを隠す",
+  "copy_url": "URLをコピー",
+  "copy_handle": "IDをコピー",
+  "success_copy_url": "クリップボードにURLをコピーしました。",
+  "success_copy_handle": "クリップボードにIDをコピーしました。",
+  "failed_copy": "クリップボードへのコピーに失敗しました。"
 }

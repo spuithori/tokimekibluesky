@@ -63,5 +63,10 @@
   "all": "All",
   "timeline_settings": "Timeline Settings",
   "hide_repost": "Hide reposts",
-  "hide_reply": "Hide replies"
+  "hide_reply": "Hide replies",
+  "copy_url": "Copy URL",
+  "copy_handle": "Copy ID",
+  "success_copy_url": "URL copied to clipboard.",
+  "success_copy_handle": "ID copied to clipboard.",
+  "failed_copy": "Copy to clipboard failed."
 }

@@ -63,5 +63,10 @@
   "all": "Todos",
   "timeline_settings": "Configurações da linha do tempo",
   "hide_repost": "Ocultar republicações",
-  "hide_reply": "Ocultar respostas"
+  "hide_reply": "Ocultar respostas",
+  "copy_url": "Copiar URL",
+  "copy_handle": "Copiar ID",
+  "success_copy_url": "URL copiado para a área de transferência.",
+  "success_copy_handle": "ID copiado para a área de transferência.",
+  "failed_copy": "A cópia para a área de transferência falhou."
 }
