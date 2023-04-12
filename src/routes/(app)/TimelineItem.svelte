@@ -7,6 +7,7 @@
     import { afterUpdate, onMount } from 'svelte';
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
+    import pt from 'date-fns/locale/pt-BR/index';
     import Images from "./Images.svelte";
     import { clickOutside } from '$lib/clickOutSide';
     import { fade, fly } from 'svelte/transition';
@@ -37,8 +38,10 @@
     let dateFnsLocale: Locale;
     let likes: AppBskyFeedGetLikes.OutputSchema;
 
-    if (window.navigator.language === 'ja') {
+    if (window.navigator.language === 'ja' || window.navigator.language === 'ja-JP') {
         dateFnsLocale = ja;
+    } else if (window.navigator.language === 'pt' || window.navigator.language === 'pt-BR') {
+        dateFnsLocale = pt;
     } else {
         dateFnsLocale = en;
     }
@@ -226,7 +229,7 @@
         </p>
       </div>
 
-      <p class="timeline__text">
+      <p class="timeline__text" dir="auto">
         {#each textArray as item}
           {#if (item.isLink() && item.link)}
             {#if (new URL(item.link.uri).hostname === 'bsky.app' || new URL(item.link.uri).hostname === 'staging.bsky.app')}
