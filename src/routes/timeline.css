@@ -119,6 +119,15 @@
     a {
         color: inherit;
     }
+
+    &__you {
+        color: var(--bg-color-1);
+        background-color: var(--primary-color);
+        font-size: 12px;
+        border-radius: 4px;
+        padding: 2px 4px;
+        margin-left: 5px;
+    }
 }
 
 .timeline-repost-message:last-child {

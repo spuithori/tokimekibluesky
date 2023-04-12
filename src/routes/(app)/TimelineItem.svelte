@@ -209,14 +209,20 @@
 
 <article class="timeline__item"
          class:timeline__item--repost={isReasonRepost(data.reason)}
-         class:timeline__item--reply={data.reply}>
+         class:timeline__item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}>
   <div class="timeline-repost-messages">
     {#if (isReasonRepost(data.reason))}
       <p class="timeline-repost-message"><a href="/profile/{data.reason.by.handle}">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle }})}</a></p>
     {/if}
 
     {#if (data.reply)}
-      <p class="timeline-repost-message"><a href="/profile/{data.reply.parent.author.handle}">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle }})}</a></p>
+      <p class="timeline-repost-message">
+        <a href="/profile/{data.reply.parent.author.handle}">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle }})}</a>
+
+        {#if (data.reply.parent.author.did === $agent.did())}
+          <span class="timeline-repost-message__you">{$_('you')}</span>
+        {/if}
+      </p>
     {/if}
   </div>
 
