@@ -4,6 +4,7 @@
 	import { agent, cursor, notificationCount } from '$lib/stores';
 	import { timeline } from "$lib/stores";
 	import SearchForm from "./SearchForm.svelte";
+	import TimelineSettings from "./TimelineSettings.svelte";
 
 	async function refresh() {
 		const data = await $agent.getTimeline();
@@ -25,15 +26,17 @@
 		<button class="refresh-button" on:click={refresh}>{$_('refresh')}</button>
 	</div>
 
+	<TimelineSettings></TimelineSettings>
+
 	<Timeline></Timeline>
 </section>
 
 <style lang="postcss">
 	.refresh {
-		margin-bottom: 50px;
+		margin-bottom: 20px;
 
 		@media (max-width: 767px) {
-			margin-bottom: 30px;
+			margin-bottom: 20px;
 		}
 	}
 

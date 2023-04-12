@@ -162,7 +162,9 @@
     }
 </script>
 
-<article class="timeline__item">
+<article class="timeline__item"
+         class:timeline__item--repost={isReasonRepost(data.reason)}
+         class:timeline__item--reply={data.reply}>
   <div class="timeline-repost-messages">
     {#if (isReasonRepost(data.reason))}
       <p class="timeline-repost-message"><a href="/profile/{data.reason.by.handle}">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle }})}</a></p>

@@ -40,4 +40,8 @@ export const theme = writable(localStorage.getItem('theme') || 'lightblue');
 
 export const nonoto = writable(localStorage.getItem('nonoto') || 'false');
 
+export const hideRepost = writable(localStorage.getItem('hideRepost') || 'false');
+
+export const hideReply = writable(localStorage.getItem('hideReply') || 'false');
+
 export const quotePost = writable<AppBskyFeedDefs.PostView | undefined>();

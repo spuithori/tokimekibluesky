@@ -1,6 +1,6 @@
 <script lang="ts">
   import { agent, cursor } from '$lib/stores';
-  import { timeline } from "$lib/stores";
+  import { timeline, hideRepost, hideReply } from "$lib/stores";
   import TimelineItem from "./TimelineItem.svelte";
   import InfiniteLoading from 'svelte-infinite-loading';
 
@@ -21,7 +21,7 @@
   }
 </script>
 
-<div class="timeline">
+<div class="timeline timeline--main" class:hide-repost={$hideRepost === 'true'} class:hide-reply={$hideReply === 'true'}>
   <div>
     {#each $timeline as data (data)}
       <TimelineItem data={ data }></TimelineItem>

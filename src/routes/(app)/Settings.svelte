@@ -172,67 +172,6 @@
 </div>
 
 <style lang="postcss">
-    input[type=checkbox]{
-        display: block;
-        height: 0;
-        width: 0;
-        visibility: hidden;
-    }
-
-    .input-toggle__label {
-        position: relative;
-        text-indent: -9999px;
-        width: 50px;
-        height: 30px;
-        background: var(--border-color-1);
-        display: block;
-        border-radius: 15px;
-        cursor: pointer;
-    }
-
-    .input-toggle__label:after {
-        content: '';
-        position: absolute;
-        top: 5px;
-        left: 5px;
-        width: 20px;
-        height: 20px;
-        background: var(--bg-color-1);
-        border-radius: 50%;
-        transition: all 0.25s ease-in-out;
-    }
-
-    .input-toggle__input:checked + .input-toggle__label {
-        background: var(--primary-color);
-    }
-
-    .input-toggle__input:checked + .input-toggle__label:after {
-        left: calc(100% - 5px);
-        transform: translateX(-100%);
-    }
-
-    .input-toggle__label:active:after {
-        width: 20px;
-    }
-
-    .settings-group {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 0;
-        gap: 10px;
-        font-size: 14px;
-        border-bottom: 1px solid var(--border-color-1);
-
-        &--column {
-          display: block;
-       }
-    }
-
-    .settings-group:first-child {
-        border-top: 1px solid var(--border-color-1);
-    }
-
     .theme-picker {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -400,8 +339,6 @@
     .logout {
         margin-top: 20px;
     }
-
-
 
     .account-switcher-box {
         position: fixed;

@@ -60,5 +60,8 @@
   "failed_to_post": "Submission failed. Please try again or wait a while.",
   "success_to_post": "Submission succeeded.",
   "mentioned_your_post": "Mentioned your post",
-  "all": "All"
+  "all": "All",
+  "timeline_settings": "Timeline Settings",
+  "hide_repost": "Hide reposts",
+  "hide_reply": "Hide replies"
 }

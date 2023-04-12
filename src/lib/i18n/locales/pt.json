@@ -60,5 +60,8 @@
   "failed_to_post": "Falha no envio. Por favor, tente novamente ou espere um pouco.",
   "success_to_post": "Envio bem-sucedido.",
   "mentioned_your_post": "Mencionou sua postagem",
-  "all": "Todos"
+  "all": "Todos",
+  "timeline_settings": "Configurações da linha do tempo",
+  "hide_repost": "Ocultar republicações",
+  "hide_reply": "Ocultar respostas"
 }

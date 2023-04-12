@@ -445,3 +445,15 @@
         }
     }
 }
+
+.hide-repost {
+    .timeline__item--repost {
+        display: none;
+    }
+}
+
+.hide-reply {
+    .timeline__item--reply {
+        display: none;
+    }
+}

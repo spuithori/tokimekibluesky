@@ -60,5 +60,8 @@
   "failed_to_post": "投稿に失敗しました。もう一度やり直すか、しばらく待ってみてください。",
   "success_to_post": "投稿に成功しました。",
   "mentioned_your_post": "があなたにメンションしました",
-  "all": "すべて"
+  "all": "すべて",
+  "timeline_settings": "タイムライン設定",
+  "hide_repost": "リポストを隠す",
+  "hide_reply": "リプライを隠す"
 }
