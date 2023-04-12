@@ -27,6 +27,7 @@
     let isReplyOpen = false;
     let isMenuOpen = false;
     let myVoteCheck: boolean = typeof data.post.viewer?.like === 'string';
+    let isLikeProcessed: boolean = false;
     /* const embedServices = [
         {
             'service': Spotify,
@@ -59,6 +60,7 @@
 
     async function vote(cid: string, uri: string) {
         myVoteCheck = !myVoteCheck;
+        isLikeProcessed = true;
 
         if (myVoteCheck) {
             data.post.likeCount = data.post.likeCount + 1;
@@ -75,16 +77,19 @@
                     $agent.getVotes(uri)
                 ]);
 
+                isLikeProcessed = false;
                 voteCount = votes.length;
                 data.post.likeCount = votes.length;
                 data.post.viewer!.like = like?.uri || undefined;
             } catch(e) {
                 toast.error($_('failed_to_like_after_reload'));
+                isLikeProcessed = false;
             }
         } catch (e) {
             toast.error($_('failed_to_like'));
             console.error(e);
             myVoteCheck = !myVoteCheck;
+            isLikeProcessed = false;
 
             if (myVoteCheck) {
                 data.post.likeCount = data.post.likeCount - 1;
@@ -223,7 +228,7 @@
         </div>
 
         <div class="timeline-reaction__item timeline-reaction__item--like">
-          <button class="timeline-reaction__icon" on:click="{() => vote(data.post.cid, data.post.uri)}" aria-label="いいね">
+          <button class="timeline-reaction__icon" disabled="{isLikeProcessed}" on:click="{() => vote(data.post.cid, data.post.uri)}" aria-label="いいね">
             {#if (myVoteCheck)}
               <svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
                 <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--primary-color)"/>
