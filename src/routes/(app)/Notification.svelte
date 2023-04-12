@@ -218,6 +218,10 @@
           margin-top: 10px;
       }
 
+      &__buttons {
+          flex-shrink: 0;
+      }
+
       &__description {
           font-size: 13px;
           margin-top: 5px;
