@@ -1,0 +1,36 @@
+.only-mobile {
+    @media (min-width: 768px) {
+        display: none;
+    }
+}
+
+.only-pc {
+    @media (max-width: 767px) {
+        display: none;
+    }
+}
+
+.text-danger {
+    color: var(--danger-color);
+}
+
+.block-link {
+    color: inherit;
+    display: block;
+}
+
+.block-link:hover {
+    text-decoration: none;
+}
+
+.primary-color {
+    color: var(--primary-color);
+}
+
+.infinite-nomore {
+    margin-top: 15px;
+}
+
+.mb10 {
+    margin-bottom: 10px;
+}

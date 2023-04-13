@@ -1,0 +1,114 @@
+a,
+button {
+    &:focus-visible {
+        outline: dashed var(--text-color-1);
+    }
+}
+
+.button {
+    display: inline-flex;
+    height: 50px;
+    min-width: 240px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 25px;
+    background-color: var(--primary-color);
+    color: var(--bg-color-1);
+    font-weight: 600;
+    transition: opacity .2s ease-in-out, transform .05s ease-in-out;
+    position: relative;
+
+    &:disabled {
+        opacity: .6;
+
+        &:hover {
+            opacity: .6;
+        }
+
+        &:active {
+            transform: none;
+        }
+    }
+}
+
+.button:hover {
+    opacity: .8;
+}
+
+.button:active {
+    transform: scale(.975);
+}
+
+.button--border {
+    background-color: var(--bg-color-1);
+    border: 1px solid currentColor;
+    color: var(--text-color-primary-colored);
+}
+
+.button--following {
+    overflow: hidden;
+    background-color: var(--follow-color);
+}
+
+.button--following:hover {
+    opacity: 1;
+}
+
+.button--following::before {
+    content: 'フォロー解除';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: var(--danger-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all .1s ease-in-out;
+}
+
+.button--following:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1.2);
+}
+
+.button--ss {
+    height: 30px;
+    border-radius: 15px;
+    min-width: 150px;
+    font-size: 12px;
+}
+
+.button--sm {
+    height: 40px;
+    border-radius: 20px;
+    min-width: 150px;
+    font-size: 15px;
+}
+
+.button--danger {
+    color: var(--danger-color);
+    border-color: currentColor;
+}
+
+.button--logout {
+    min-width: 0;
+    width: 100%;
+}
+
+.buttons-group {
+    display: flex;
+    gap: 20px;
+}
+
+@media (max-width: 767px) {
+    .button {
+        min-width: 0;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+}
