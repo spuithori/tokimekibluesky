@@ -31,6 +31,8 @@
                     feed.post.embed.images.forEach(image => {
                         image.pageUrl = '/profile/' + feed.post.author.handle + '/post/' + feed.post.uri.split('/').slice(-1)[0];
 
+                        image.feed = feed;
+
                         if (isReasonRepost(feed.reason)) {
                             image.isRepost = true;
                         }
@@ -42,6 +44,7 @@
                 }
             }
 
+            console.log(media)
             feeds = [];
             loaded();
         } else {

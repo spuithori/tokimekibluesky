@@ -1,40 +1,18 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n'
-    import { agent } from '$lib/stores';
-    import { timeline, cursor, notificationCount, quotePost } from '$lib/stores';
-    import { afterUpdate, onMount } from 'svelte';
-    import Images from "./Images.svelte";
-    import { fade, fly } from 'svelte/transition';
-    import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedImages, AppBskyFeedPost, AppBskyFeedDefs, RichText, RichTextSegment, AppBskyEmbedRecordWithMedia, AppBskyFeedGetLikes } from '@atproto/api'
-    import toast from "svelte-french-toast";
-    // @ts-ignore
-    import GLightbox from 'glightbox';
+    import { fade, scale } from 'svelte/transition';
+    import TimelineItem from "./TimelineItem.svelte";
 
     export let item;
+    let isOpen = false;
 
-    let galleryImage = {
-        'href': item.fullsize,
-        'type': 'image',
-    };
-
-    const gl = GLightbox({
-        elements: [galleryImage]
-    })
-
-    function open(index?: any) {
-        gl.open();
+    function modalToggle() {
+        isOpen = isOpen !== true;
     }
 </script>
 
-<div class="media-item">
+<div>
   <div class="media-item">
-    <a href="{item.pageUrl}" class="media-item__post" title="投稿を見る">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-        <path id="edit-pencil" d="M9.84,2.96l3.2,3.2L3.2,16H0V12.8Zm1.12-1.12L12.8,0,16,3.2,14.16,5.04Z" fill="#ffffff"/>
-      </svg>
-    </a>
-
-    <button on:click={() => open()} aria-label="画像を拡大する">
+    <button on:click={modalToggle} aria-label="画像を拡大する">
       <img src="{item.thumb}" alt="" loading="lazy">
 
       {#if (item.isRepost)}
@@ -46,6 +24,22 @@
       {/if}
     </button>
   </div>
+
+  {#if (isOpen)}
+    <div class="media-content-wrap" transition:fade="{{ duration: 300 }}">
+      <button on:click={modalToggle} class="media-content-close gclose gbtn" aria-label="Close" data-taborder="3"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" xml:space="preserve"><g><g><path d="M505.943,6.058c-8.077-8.077-21.172-8.077-29.249,0L6.058,476.693c-8.077,8.077-8.077,21.172,0,29.249C10.096,509.982,15.39,512,20.683,512c5.293,0,10.586-2.019,14.625-6.059L505.943,35.306C514.019,27.23,514.019,14.135,505.943,6.058z"></path></g></g><g><g><path d="M505.942,476.694L35.306,6.059c-8.076-8.077-21.172-8.077-29.248,0c-8.077,8.076-8.077,21.171,0,29.248l470.636,470.636c4.038,4.039,9.332,6.058,14.625,6.058c5.293,0,10.587-2.019,14.624-6.057C514.018,497.866,514.018,484.771,505.942,476.694z"></path></g></g></svg></button>
+
+      <div class="media-content" transition:scale="{{duration: 350, opacity: 0.5, start: 0.8}}">
+        <div class="media-content__image">
+          <img src="{item.fullsize}" alt="">
+        </div>
+
+        <div class="media-content__content">
+          <TimelineItem data={item.feed} isMedia={true}></TimelineItem>
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style lang="postcss">
@@ -122,6 +116,82 @@
                   width: 60px;
                   height: auto;
               }
+          }
+      }
+  }
+
+  .media-content-wrap {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      height: 100vh;
+      z-index: 1000;
+      background-color: rgba(0, 0, 0, .8);
+      display: grid;
+      place-content: center;
+      padding: 0 40px;
+
+      @media (max-width: 767px) {
+          padding: 10px;
+      }
+  }
+
+  .media-content-close {
+      position: fixed;
+      right: 20px;
+      top: 15px;
+      z-index: 50;
+      background-color: rgba(0, 0, 0, .32);
+      opacity: .7;
+      width: 35px;
+      height: 35px;
+
+      svg {
+          width: 18px;
+          height: auto;
+          display: block;
+          fill: #fff;
+      }
+  }
+
+  .media-content {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      background-color: #fff;
+      padding: 40px;
+      gap: 40px;
+      border-radius: 10px;
+      overflow: auto;
+      overscroll-behavior: contain;
+
+      @media (max-width: 767px) {
+          display: block;
+          padding: 10px;
+          border-radius: 4px;
+      }
+
+      &__image {
+          height: 100%;
+
+          @media (max-width: 767px) {
+              height: auto;
+          }
+      }
+
+      &__content {
+
+      }
+
+      img {
+          width: 100%;
+          height: max-content;
+          max-height: 80vh;
+          object-fit: contain;
+
+          @media (max-width: 767px) {
+              height: auto;
           }
       }
   }

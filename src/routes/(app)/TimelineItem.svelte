@@ -17,6 +17,7 @@
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
     export let isSingle: boolean = false;
+    export let isMedia: boolean = false;
     if (isSingle) {
       getLikes();
     }
@@ -314,7 +315,7 @@
         </div>
       </div>
 
-      {#if (AppBskyEmbedImages.isView(data.post.embed))}
+      {#if (AppBskyEmbedImages.isView(data.post.embed) && !isMedia)}
         <div class="timeline-images-wrap">
           <Images images={data.post.embed.images}></Images>
         </div>
