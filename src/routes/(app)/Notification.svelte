@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { agent } from '$lib/stores';
+    import { agent, replyRef } from '$lib/stores';
     import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
     import { type AppBskyNotificationListNotifications, AppBskyFeedPost, AppBskyFeedLike, AppBskyFeedRepost } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
@@ -82,7 +82,7 @@
                 }
             })
             notifications = notifications;
-            //console.log(notifications)
+            console.log(notifications)
 
             loaded();
         } else {
@@ -154,7 +154,15 @@
         </article>
       {:else if ((item.reason === 'reply' && AppBskyFeedPost.isRecord(item.record)) && (filter === 'all' || filter === 'reply_mention_quote'))}
         <article class="notifications-item notifications-item--reply">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('replied_your_post')}・<a href="/profile/{item.author.handle}/post/{item.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a></h2>
+          <div class="notifications-item__heading">
+            <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('replied_your_post')}・<a href="/profile/{item.author.handle}/post/{item.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a></h2>
+
+            <div class="notifications-item-buttons">
+              <button class="notifications-item-button" on:click={() => {$replyRef = item.uri}} aria-label="返信"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="14" viewBox="0 0 15 14">
+                <path id="reply" d="M77,110v-2.99s0-.006,0-.01a4,4,0,0,0-4-4H70v5l-6-6,6-6v5h3a6,6,0,0,1,6,6h0v3Z" transform="translate(-64 -96)" fill="var(--primary-color)"/>
+              </svg></button>
+            </div>
+          </div>
 
           <p class="notifications-item__content">{item.record.text}</p>
         </article>
@@ -216,6 +224,12 @@
           padding: 10px;
           font-size: 13px;
           margin-top: 10px;
+      }
+
+      &__heading {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px 5px;
       }
 
       &__buttons {
@@ -292,5 +306,9 @@
               fill: var(--bg-color-1);
           }
       }
+  }
+
+  .notifications-item-buttons {
+
   }
 </style>

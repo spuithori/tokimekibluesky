@@ -45,3 +45,5 @@ export const hideRepost = writable(localStorage.getItem('hideRepost') || 'false'
 export const hideReply = writable(localStorage.getItem('hideReply') || 'false');
 
 export const quotePost = writable<AppBskyFeedDefs.PostView | undefined>();
+
+export const replyRef = writable<AppBskyFeedDefs.ReplyRef | string | undefined>();

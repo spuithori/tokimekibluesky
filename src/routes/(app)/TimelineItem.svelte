@@ -1,7 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n'
     import { agent } from '$lib/stores';
-    import { timeline, cursor, notificationCount, quotePost } from '$lib/stores';
+    import { timeline, cursor, notificationCount, quotePost, replyRef } from '$lib/stores';
     import Reply from './Reply.svelte';
     import { format, formatDistanceToNow, parseISO } from 'date-fns';
     import { afterUpdate, onMount } from 'svelte';
@@ -276,7 +276,7 @@
 
       <div class="timeline-reaction">
         <div class="timeline-reaction__item timeline-reaction__item--reply">
-          <button class="timeline-reaction__icon" on:click={replyOpen} aria-label="返信"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="14" viewBox="0 0 15 14">
+          <button class="timeline-reaction__icon" on:click={() => {$replyRef = { parent: data.post, root: (data.reply ? data.reply.root : data.post) }}} aria-label="返信"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="14" viewBox="0 0 15 14">
             <path id="reply" d="M77,110v-2.99s0-.006,0-.01a4,4,0,0,0-4-4H70v5l-6-6,6-6v5h3a6,6,0,0,1,6,6h0v3Z" transform="translate(-64 -96)" fill="var(--border-color-1)"/>
           </svg>
           </button>

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
-import { onMount } from 'svelte';
-import { agent, timeline, quotePost } from '$lib/stores';
+import {afterUpdate, onMount, tick} from 'svelte';
+import { agent, timeline, quotePost, replyRef } from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -12,7 +12,14 @@ import { fade, fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import ja from 'date-fns/locale/ja/index';
-import { type AppBskyFeedPost, RichText, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia } from '@atproto/api';
+import {
+    type AppBskyFeedPost,
+    RichText,
+    AppBskyEmbedImages,
+    AppBskyEmbedRecord,
+    AppBskyEmbedRecordWithMedia,
+    AppBskyFeedDefs
+} from '@atproto/api';
 import toast from 'svelte-french-toast'
 
 registerPlugin(FilePondPluginImageResize);
@@ -147,14 +154,38 @@ $: {
 
     if ($quotePost?.uri) {
         isFocus = true;
-        publishArea.focus();
+        setTimeout(() => {
+            publishArea.focus();
+        }, 100)
 
         embedRecord = {
             $type: 'app.bsky.embed.record',
             record: $quotePost,
         }
     }
+
+    if ($replyRef) {
+        isFocus = true;
+        setTimeout(() => {
+            publishArea.focus();
+        }, 100)
+    }
 }
+
+afterUpdate(async() => {
+    if (typeof $replyRef === 'string') {
+        const res = await $agent.getFeed($replyRef);
+        let root = res.parent;
+        while (root.parent) {
+            root = root.parent;
+        }
+
+        $replyRef = {
+            parent: res.post,
+            root: root.post,
+        }
+    }
+})
 
 onMount(async () => {
     publish = async function () {
@@ -198,6 +229,7 @@ onMount(async () => {
                     facets: rt.facets,
                     text: rt.text,
                     createdAt: new Date().toISOString(),
+                    reply: $replyRef || undefined,
                 },
             );
             toast.success($_('success_to_post'));
@@ -211,6 +243,7 @@ onMount(async () => {
         isFocus = false;
         publishContent = '';
         quotePost.set(undefined);
+        replyRef.set(undefined);
         embed = undefined;
         embedImages.images = [];
         const data = await $agent.getTimeline();
@@ -290,6 +323,37 @@ onMount(async () => {
               <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
               <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
             </svg>
+            </span>
+          </div>
+        </div>
+      {/if}
+
+      {#if ($replyRef && typeof $replyRef !== 'string')}
+        <div class="publish-quote publish-quote--reply">
+          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined)}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
+          </svg>
+          </button>
+
+          <div class="timeline-external timeline-external--record">
+            <div class="timeline-external__image timeline-external__image--round">
+              {#if ($replyRef.parent.author.avatar)}
+                <img src="{$replyRef.parent.author.avatar}" alt="">
+              {/if}
+            </div>
+
+            <div class="timeline-external__content">
+              <div class="timeline__meta">
+                <p class="timeline__user">{$_('reply_to', {values: {name: $replyRef.parent.author.displayName || $replyRef.parent.author.handle }})}</p>
+              </div>
+
+              <p class="timeline-external__description">
+                {$replyRef.parent.record.text}
+              </p>
+            </div>
+
+            <span class="timeline-external__icon">
+
             </span>
           </div>
         </div>
@@ -476,6 +540,13 @@ onMount(async () => {
     .publish-quote {
         margin-bottom: 10px;
         position: relative;
+
+        &--reply {
+            .timeline-external {
+                border: 2px solid var(--primary-color);
+            }
+
+        }
 
         .timeline__date {
             &::after {
