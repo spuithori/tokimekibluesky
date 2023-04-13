@@ -408,7 +408,7 @@ onMount(async () => {
         left: 0;
         bottom: 0;
         right: 0;
-        z-index: 11;
+        z-index: 2000;
 
         @media (max-width: 767px) {
             overflow: auto;
