@@ -36,12 +36,11 @@
                         }
                     })
 
-                    media = [...media, ...feed.post.embed.images];
+                    if ((!isReasonRepost(feed.reason) && data.params.handle !== $agent.agent.session.handle) || (data.params.handle === $agent.agent.session.handle)) {
+                        media = [...media, ...feed.post.embed.images];
+                    }
                 }
             }
-
-            console.log(media)
-            console.log(feeds);
 
             feeds = [];
             loaded();

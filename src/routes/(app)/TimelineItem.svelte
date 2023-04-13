@@ -2,7 +2,6 @@
     import { _ } from 'svelte-i18n'
     import { agent } from '$lib/stores';
     import { timeline, cursor, notificationCount, quotePost, replyRef } from '$lib/stores';
-    import Reply from './Reply.svelte';
     import { format, formatDistanceToNow, parseISO } from 'date-fns';
     import { afterUpdate, onMount } from 'svelte';
     import ja from 'date-fns/locale/ja/index';
@@ -433,10 +432,6 @@
             {/each}
           </div>
         </div>
-      {/if}
-
-      {#if (isReplyOpen)}
-        <Reply post={data.post} replyRef={data.reply}></Reply>
       {/if}
     </div>
   </div>
