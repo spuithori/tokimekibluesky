@@ -7,6 +7,7 @@
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
     import pt from 'date-fns/locale/pt-BR/index';
+    import ko from 'date-fns/locale/ko/index';
     import Images from "./Images.svelte";
     import { clickOutside } from '$lib/clickOutSide';
     import { fade, fly } from 'svelte/transition';
@@ -42,6 +43,8 @@
         dateFnsLocale = ja;
     } else if (window.navigator.language === 'pt' || window.navigator.language === 'pt-BR') {
         dateFnsLocale = pt;
+    } else if (window.navigator.language === 'ko' || window.navigator.language === 'ko-KR') {
+        dateFnsLocale = ko;
     } else {
         dateFnsLocale = en;
     }
