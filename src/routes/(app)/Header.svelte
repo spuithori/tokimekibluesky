@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import MyProfileBadge from './MyProfileBadge.svelte';
     import Notification from './Notification.svelte';
     import { fade, fly } from 'svelte/transition';

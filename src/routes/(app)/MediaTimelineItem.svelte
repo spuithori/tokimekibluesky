@@ -158,7 +158,7 @@
 
   .media-content {
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: auto 320px;
       background-color: #fff;
       padding: 40px;
       gap: 40px;
@@ -166,7 +166,7 @@
       overflow: auto;
       overscroll-behavior: contain;
 
-      @media (max-width: 767px) {
+      @media (max-width: 959px) {
           display: block;
           padding: 10px;
           border-radius: 4px;
@@ -175,7 +175,7 @@
       &__image {
           height: 100%;
 
-          @media (max-width: 767px) {
+          @media (max-width: 959px) {
               height: auto;
           }
       }
@@ -190,7 +190,7 @@
           max-height: 80vh;
           object-fit: contain;
 
-          @media (max-width: 767px) {
+          @media (max-width: 959px) {
               height: auto;
           }
       }
