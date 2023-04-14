@@ -1,34 +1,36 @@
-<script>
-  import { onMount } from 'svelte';
+<script lang="ts">
   import { agent, cursor } from '$lib/stores';
-  import { timeline } from "$lib/stores";
+  import { timeline, hideRepost, hideReply } from "$lib/stores";
   import TimelineItem from "./TimelineItem.svelte";
-  import InfiniteScroll from 'svelte-infinite-scroll';
+  import InfiniteLoading from 'svelte-infinite-loading';
 
-  onMount(async () => {
-      const data = await $agent.getTimeline()
-      timeline.set(data.feed);
+  const handleLoadMore = async ({ detail: { loaded, complete } }) => {
+      const data = await $agent.getTimeline(25, $cursor);
       cursor.set(data.cursor);
 
-      console.log(data.feed);
-  });
+      if ($cursor) {
+          timeline.update(function (tl) {
+              return [...tl, ...data.feed];
+          });
+          console.log($timeline);
 
-  const handleLoadMore = async () => {
-      const data = await $agent.getTimeline(20, $cursor)
-      timeline.update(function (tl) {
-          return [...tl, ...data.feed];
-      });
-      cursor.set(data.cursor);
+          loaded();
+      } else {
+          complete();
+      }
   }
 </script>
 
-<div class="timeline">
+<div class="timeline timeline--main" class:hide-repost={$hideRepost === 'true'} class:hide-reply={$hideReply === 'true'}>
   <div>
     {#each $timeline as data (data)}
       <TimelineItem data={ data }></TimelineItem>
     {/each}
   </div>
-  <InfiniteScroll window threshold="300" on:loadMore={handleLoadMore} ></InfiniteScroll>
+
+  <InfiniteLoading on:infinite={handleLoadMore}>
+    <p slot="noMore" class="infinite-nomore">もうないよ</p>
+  </InfiniteLoading>
 </div>
 
 <style>

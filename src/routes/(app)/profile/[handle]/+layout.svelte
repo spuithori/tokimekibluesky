@@ -1,26 +1,41 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { agent } from '$lib/stores';
-    import { afterUpdate, onMount } from 'svelte';
+    import { afterUpdate } from 'svelte';
     import { page } from '$app/stores';
-    let profile = Promise;
-
     import type { LayoutData } from './$types';
-    import UserFollowButton from "./UserFollowButton.svelte";
-    import {afterNavigate} from "$app/navigation";
+    import UserFollowButton from './UserFollowButton.svelte';
+    import UserEdit from './UserEdit.svelte';
+    import { format, formatDistanceToNow, parseISO } from 'date-fns';
+
+    let profile = Promise;
 
     export let data: LayoutData;
     let currentPage = 'posts';
+    let firstPostDate = '';
     $: handle = $page.params.handle
+    $: {
+        if (handle) {
+            profile = load();
+        }
+    }
 
     async function load() {
         let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
         return profile.data
     }
 
-    afterNavigate(async() => {
+    async function getFirstRecord() {
+        return await $agent.agent.api.com.atproto.repo.listRecords({
+            collection: "app.bsky.feed.post",
+            limit: 1,
+            reverse: true,
+            repo: data.params.handle});
+    }
+
+    function onProfileUpdate() {
         profile = load();
-    })
+    }
 
     function isActive() {
         const path = data.url.pathname;
@@ -33,6 +48,12 @@
             case 'follower':
                 currentPage = 'follower';
                 break;
+            case 'media':
+                currentPage = 'media';
+                break;
+            case 'likes':
+                currentPage = 'likes';
+                break;
             default:
                 currentPage = 'posts';
         }
@@ -40,7 +61,8 @@
 
     afterUpdate(async() => {
         isActive();
-        // console.log(await profile)
+        const firstPostDateRaw = (await getFirstRecord()).data.records[0].value.createdAt;
+        firstPostDate = format(parseISO(firstPostDateRaw), 'yyyy/MM/dd');
     })
 </script>
 
@@ -83,9 +105,17 @@
           {/if}
         </div>
 
+        {#if (firstPostDate)}
+          <p class="profile-first">{$_('first_post_date', {values: {date: firstPostDate }})}</p>
+        {/if}
+
         {#if (profile.did !== $agent.did())}
           <div class="profile-follow-button">
             <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
+          </div>
+        {:else}
+          <div class="profile-follow-button profile-follow-button--me">
+            <UserEdit {profile} on:update={onProfileUpdate}></UserEdit>
           </div>
         {/if}
       </div>
@@ -95,6 +125,8 @@
       <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
       <li class="profile-tab__item" on:click={() => currentPage = 'follow'} class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
       <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
+      <li class="profile-tab__item" on:click={() => currentPage = 'media'} class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{$_('media')}</a></li>
+      <li class="profile-tab__item" on:click={() => currentPage = 'likes'} class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
     </ul>
 
     <slot></slot>
@@ -170,6 +202,7 @@
 
         &__text {
             line-height: 1.75;
+            white-space: pre-line;
         }
     }
 
@@ -195,7 +228,7 @@
 
     .profile-tab {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         list-style: none;
         border: 1px solid var(--border-color-1);
         background-color: var(--bg-color-1);
@@ -204,6 +237,11 @@
         margin: 30px 0;
         font-size: 16px;
         font-weight: 600;
+
+        @media (max-width: 767px) {
+            font-size: 14px;
+            grid-template-columns: repeat(3, 1fr);
+        }
     }
 
     .profile-tab__item {
@@ -213,6 +251,20 @@
         justify-content: center;
         position: relative;
         background-color: var(--bg-color-1);
+
+        @media (max-width: 767px) {
+            height: 42px;
+            border-bottom: 1px solid var(--border-color-1);
+            border-right: 1px solid var(--border-color-1);
+
+            &:nth-child(3n) {
+                border-right: none !important;
+            }
+
+            &:nth-child(n + 4) {
+                border-bottom: none;
+            }
+        }
 
         &:not(:last-child) {
             border-right: 1px solid var(--border-color-1);
@@ -249,5 +301,11 @@
             position: static;
             margin-top: 10px;
         }
+    }
+
+    .profile-first {
+        color: var(--text-color-3);
+        font-size: 14px;
+        margin-top: 5px;
     }
 </style>

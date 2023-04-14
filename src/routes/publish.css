@@ -1,41 +1,43 @@
-.filepond--root {
-    height: 230px !important;
-    max-height: 230px;
+.publish-upload {
+    .filepond--root {
+        height: 230px !important;
+        max-height: 230px;
 
-    @media (max-width: 767px) {
-        height: 100% !important;
-        max-height: 100%;
+        @media (max-width: 767px) {
+            height: 100% !important;
+            max-height: 100%;
+        }
     }
-}
 
-.filepond--item {
-    width: calc(25% - 0.5em);
+    .filepond--item {
+        width: calc(25% - 0.5em);
 
-    @media (max-width: 767px) {
-        width: calc(50% - 0.5em);
+        @media (max-width: 767px) {
+            width: calc(50% - 0.5em);
+        }
     }
-}
 
-.filepond--wrapper {
-    @media (max-width: 767px) {
-        height: 100%;
+    .filepond--wrapper {
+        @media (max-width: 767px) {
+            height: 100%;
+        }
     }
-}
 
-.filepond--drop-label {
-    @media (max-width: 767px) {
-        min-height: 0 !important;
+    .filepond--drop-label {
+        @media (max-width: 767px) {
+            min-height: 0 !important;
+        }
     }
-}
 
-.filepond--panel-root {
-    background-color: var(--bg-color-1);
-    box-shadow: 0 0 6px rgba(0, 0, 0, .12);
-    border: 1px solid var(--border-color-1);
+    .filepond--panel-root {
+        background-color: var(--bg-color-1);
+        box-shadow: 0 0 6px rgba(0, 0, 0, .12);
+        border: 2px solid var(--primary-color);
 
-    @media (max-width: 767px) {
-        box-shadow: none;
-        border: none;
+        @media (max-width: 767px) {
+            box-shadow: none;
+            border: none;
+        }
     }
 }
 
@@ -78,7 +80,7 @@
     white-space: nowrap;
 
     @media (max-width: 767px) {
-        margin-right: auto;
+
     }
 
     &:disabled {

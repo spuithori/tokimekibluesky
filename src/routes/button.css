@@ -1,3 +1,10 @@
+a,
+button {
+    &:focus-visible {
+        outline: dashed var(--text-color-1);
+    }
+}
+
 .button {
     display: inline-flex;
     height: 50px;
@@ -10,6 +17,18 @@
     font-weight: 600;
     transition: opacity .2s ease-in-out, transform .05s ease-in-out;
     position: relative;
+
+    &:disabled {
+        opacity: .6;
+
+        &:hover {
+            opacity: .6;
+        }
+
+        &:active {
+            transform: none;
+        }
+    }
 }
 
 .button:hover {
@@ -71,6 +90,11 @@
     font-size: 15px;
 }
 
+.button--danger {
+    color: var(--danger-color);
+    border-color: currentColor;
+}
+
 .button--logout {
     min-width: 0;
     width: 100%;
@@ -84,6 +108,7 @@
 @media (max-width: 767px) {
     .button {
         min-width: 0;
-        padding: 0 20px;
+        padding: 0 10px;
+        font-size: 13px;
     }
 }

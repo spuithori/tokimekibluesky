@@ -5,24 +5,26 @@
 </script>
 
 <div class="thread">
-  {#each feeds as data}
-    {#if (data.parent)}
-      <div class="thread-parent">
-        <svelte:self feeds={[data.parent]}></svelte:self>
-      </div>
-    {/if}
+  {#each feeds as data (data)}
+    {#if (!data.notFound)}
+      {#if (data.parent)}
+        <div class="thread-parent">
+          <svelte:self feeds={[data.parent]}></svelte:self>
+        </div>
+      {/if}
 
-    <TimelineItem data={data}></TimelineItem>
+      <TimelineItem data={data} isSingle={true}></TimelineItem>
 
-    {#if (data.replies?.length)}
-      <div class="thread-replies">
-        <svelte:self feeds={data.replies}></svelte:self>
-      </div>
+      {#if (data.replies?.length)}
+        <div class="thread-replies">
+          <svelte:self feeds={data.replies}></svelte:self>
+        </div>
+      {/if}
     {/if}
   {/each}
 </div>
 
-<style>
+<style lang="postcss">
   .thread {
       position: relative;
   }

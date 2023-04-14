@@ -1,6 +1,7 @@
-<script>
+<script lang="ts">
+    // @ts-ignore
     import GLightbox from 'glightbox';
-    export let images;
+    export let images: any[];
 
     let galleryImages = [];
 
@@ -15,7 +16,7 @@
         elements: galleryImages
     })
 
-    function open(index) {
+    function open(index: any) {
         gl.openAt(index);
     }
 </script>
@@ -23,20 +24,14 @@
 <div class="timeline-images">
   {#each images as image, index}
     <div class="timeline-image">
-      <button on:click={() => open(index)}>
-        <img src="{image.thumb}" alt="">
+      <button on:click={() => open(index)} aria-label="画像を拡大する">
+        <img src="{image.thumb}" alt="" loading="lazy">
       </button>
     </div>
   {/each}
 </div>
 
-<style>
-    .timeline-images {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-    }
-
+<style lang="postcss">
     .timeline-image {
         width: 100%;
         height: 100%;
@@ -44,6 +39,10 @@
         overflow: hidden;
         border-radius: 6px;
         display: flex;
+
+        &:only-child {
+            aspect-ratio: auto;
+        }
     }
 
     .timeline-image button {
@@ -60,12 +59,5 @@
         height: 100%;
         object-fit: cover;
         transition: transform .2s ease-in-out;
-    }
-
-    @media (max-width: 767px) {
-        .timeline-images {
-            gap: 5px;
-            grid-template-columns: repeat(2, 1fr);
-        }
     }
 </style>

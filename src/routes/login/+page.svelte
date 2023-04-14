@@ -2,21 +2,38 @@
     import '../styles.css';
     import { AtpAgent, AtpSessionEvent, AtpSessionData } from '@atproto/api';
     import { goto } from '$app/navigation';
-    import { service } from '$lib/stores';
 
     let identifier = '';
     let password = '';
     let errorMessage = '';
+    let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+    let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
+    let service = accounts[currentAccount]?.service || 'https://bsky.social';
+
+    if (currentAccount < 0) {
+        currentAccount = 0;
+    }
 
     async function login() {
         const agent = new AtpAgent({
-            service: $service,
+            service: service,
         });
 
         try {
             await agent.login({identifier: identifier, password: password});
-            localStorage.setItem('service', $service);
-            localStorage.setItem('session', JSON.stringify(agent.session));
+            if (accounts.length > currentAccount) {
+                accounts[currentAccount].session = agent.session;
+                accounts[currentAccount].service = service;
+            } else {
+                accounts.push({
+                    name: agent.session.handle,
+                    session: agent.session,
+                    service: service,
+                });
+            }
+            // localStorage.setItem('service', $service);
+            localStorage.setItem('accounts', JSON.stringify(accounts));
+            localStorage.setItem('currentAccount', JSON.stringify(currentAccount));
             await goto('/');
         } catch (e) {
             errorMessage = e.message;
@@ -25,7 +42,7 @@
 </script>
 
 <svelte:head>
-  <title>Login - TokimekiBluesky</title>
+  <title>Login - TOKIMEKI Bluesky</title>
 </svelte:head>
 
 <section class="login">
@@ -49,17 +66,17 @@
       </dt>
 
       <dd class="input-group__content">
-        <input class="input-group__input" type="text" name="service" id="service" placeholder="service" bind:value="{$service}" required />
+        <input class="input-group__input" type="text" name="service" id="service" placeholder="service" bind:value="{service}" required />
       </dd>
     </dl>
 
     <dl class="input-group">
       <dt class="input-group__name">
-        <label for="email">Email</label>
+        <label for="email">Email or handle</label>
       </dt>
 
       <dd class="input-group__content">
-        <input class="input-group__input" type="email" name="email" id="email" placeholder="Email" bind:value="{identifier}" required />
+        <input class="input-group__input" type="email" name="email" id="email" placeholder="Email or handle" bind:value="{identifier}" required />
       </dd>
     </dl>
 
@@ -104,30 +121,6 @@
 
   .login-logo {
       margin-bottom: 30px;
-  }
-
-  .input-group {
-      margin-bottom: 15px;
-      position: relative;
-  }
-
-  .input-group__name {
-      position: absolute;
-      width: 0;
-      height: 0;
-      color: transparent;
-      left: 0;
-      right: 0;
-  }
-
-  .input-group__content {
-
-  }
-
-  .input-group__input {
-      width: 100%;
-      border: 1px solid #333;
-      background-color: #fff;
   }
 
   .login-submit {

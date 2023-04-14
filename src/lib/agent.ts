@@ -1,58 +1,78 @@
-export const Agent = class {
-    public agent: object;
+import type {AppBskyFeedGetTimeline, AtpAgent} from '@atproto/api';
+import toast from "svelte-french-toast";
 
-    constructor(agent) {
+export class Agent {
+    public agent: AtpAgent;
+
+    constructor(agent: AtpAgent) {
         this.agent = agent;
     }
 
-    did() {
-        return this.agent.session.did;
+    did(): string | undefined {
+        if (this.agent.session) {
+            return this.agent.session.did;
+        }
     }
 
-    async getTimeline(limit = 20, before = '') {
-        const dataRaw = await this.agent.api.app.bsky.feed.getTimeline({ limit: limit, before: before });
-        const data = dataRaw.data;
-
-        return data;
+    async getTimeline(limit: number = 25, cursor: string = ''): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
+        try {
+            const res = await this.agent.api.app.bsky.feed.getTimeline({ limit: limit, cursor: cursor });
+            return res.data;
+        } catch (e) {
+            toast.error('Error');
+            console.error(e);
+            return undefined;
+        }
     }
 
-    async setVote(cid, uri) {
-        const alreadyVoted = await this.myVoteCheck(uri)
+    async setVote(cid: string, uri: string, likeUri = '') {
+        if (!likeUri) {
+            return await this.agent.api.app.bsky.feed.like.create(
+                {repo: this.did()},
+                {subject: {cid: cid, uri: uri}, createdAt: new Date().toISOString()},
+            );
+        } else {
+            const rkey = likeUri.split('/').slice(-1)[0];
 
-        await this.agent.api.app.bsky.feed.setVote(
-            { direction: alreadyVoted ? 'none' : 'up', subject: { cid: cid, uri: uri } }
-        );
+            return await this.agent.api.app.bsky.feed.like.delete(
+                {repo: this.did(), rkey: rkey},
+                {subject: {cid: cid, uri: uri}, createdAt: new Date().toISOString()},
+            );
+        }
     }
 
-    async setRepost(cid, uri) {
-        await this.agent.api.app.bsky.feed.repost.create(
-            { did: await this.did() },
-            { subject: { cid: cid, uri: uri } , createdAt: new Date().toISOString() },
-        );
+    async setRepost(cid: string, uri: string, repostUri: string = '') {
+        if (!repostUri) {
+            await this.agent.api.app.bsky.feed.repost.create(
+                { repo: this.did() },
+                { subject: { cid: cid, uri: uri } , createdAt: new Date().toISOString() },
+            );
+        } else {
+            const rkey = repostUri.split('/').slice(-1)[0];
+
+            await this.agent.api.app.bsky.feed.repost.delete(
+                {rkey: rkey, repo: this.did() },
+            );
+        }
     }
 
-    async getVotes(uri) {
-        const datum = await this.agent.api.app.bsky.feed.getVotes({uri: uri});
-        // console.log(datum.data.votes)
-        return datum.data.votes;
+    async getVotes(uri: string) {
+        const res = await this.agent.api.app.bsky.feed.getLikes({uri: uri});
+        return res.data.likes;
     }
 
-    async myVoteCheck(uri) {
-        const votes = await this.getVotes(uri);
-
-        const found = votes.find(vote => vote.actor.did === this.did())
-        return found;
+    async myVoteCheck(uri: string): Promise<boolean> {
+        const res = await this.getVotes(uri);
+        return res.some(vote => vote.actor.did === this.did());
     }
 
-    async getFeed(uri, depth = 0) {
-        const feed = await this.agent.api.app.bsky.feed.getPostThread({uri: uri, depth: depth})
-
-        return feed.data.thread;
+    async getFeed(uri: string, depth: number = 0) {
+        const res = await this.agent.api.app.bsky.feed.getPostThread({uri: uri, depth: depth});
+        return res.data.thread;
     }
 
     async getNotificationCount() {
-        const count = await this.agent.api.app.bsky.notification.getCount()
-
-        return count.data.count;
+        const res = await this.agent.api.app.bsky.notification.getUnreadCount();
+        return res.data.count;
     }
 }
