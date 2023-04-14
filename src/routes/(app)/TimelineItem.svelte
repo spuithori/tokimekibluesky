@@ -25,7 +25,6 @@
 
     let textArray: RichTextSegment[] = [];
     let votes;
-    let voteCount: number = 0;
     let isReplyOpen = false;
     let isMenuOpen = false;
     let myVoteCheck: boolean = typeof data.post.viewer?.like === 'string';
@@ -78,17 +77,24 @@
             const like = await $agent.setVote(cid, uri, data.post.viewer?.like || '');
 
             try {
-                [myVoteCheck, votes] = await Promise.all([
-                    $agent.myVoteCheck(uri),
-                    $agent.getVotes(uri)
-                ]);
+                const latest = await $agent.getFeed(data.post.uri);
 
                 isLikeProcessed = false;
-                voteCount = votes.length;
-                data.post.likeCount = votes.length;
+                data.post.likeCount = latest.post.likeCount;
                 data.post.viewer!.like = like?.uri || undefined;
+
+                timeline.update(function (tl) {
+                    tl.forEach(item => {
+                        if (item.post.uri === data.post.uri) {
+                            item.post.likeCount = latest.post.likeCount;
+                            item.post.viewer.like = like?.uri || undefined;
+                        }
+                    });
+                    return tl;
+                });
             } catch(e) {
                 toast.error($_('failed_to_like_after_reload'));
+                console.log(e)
                 isLikeProcessed = false;
             }
         } catch (e) {
@@ -289,7 +295,7 @@
 
         <div class="timeline-reaction__item timeline-reaction__item--like">
           <button class="timeline-reaction__icon" disabled="{isLikeProcessed}" on:click="{() => vote(data.post.cid, data.post.uri)}" aria-label="いいね">
-            {#if (myVoteCheck)}
+            {#if (myVoteCheck || data.post.viewer?.like)}
               <svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
                 <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--primary-color)"/>
               </svg>
