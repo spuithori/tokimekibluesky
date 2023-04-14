@@ -70,5 +70,9 @@
   "success_copy_handle": "ID copiado para a área de transferência.",
   "failed_copy": "A cópia para a área de transferência falhou.",
   "media": "Mídia",
-  "you": "Você"
+  "you": "Você",
+  "about_text1": "TOKIMEKI Bluesky is an unofficial web application of Bluesky.\nIt is under development and may encounter unexpected bugs. Please use at your own risk and send us your feedback!",
+  "about_text2": "Feedback",
+  "author": "Author",
+  "about_subhead": " "
 }

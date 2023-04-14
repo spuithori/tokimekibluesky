@@ -70,5 +70,9 @@
   "success_copy_handle": "ID copied to clipboard.",
   "failed_copy": "Copy to clipboard failed.",
   "media": "Media",
-  "you": "You"
+  "you": "You",
+  "about_text1": "TOKIMEKI Bluesky is an unofficial web application of Bluesky.\nIt is under development and may encounter unexpected bugs. Please use at your own risk and send us your feedback!",
+  "about_text2": "Feedback",
+  "author": "Author",
+  "about_subhead": " "
 }
