@@ -13,6 +13,7 @@
     export let data: LayoutData;
     let currentPage = 'posts';
     let firstPostDate = '';
+    let firstPostUri = '';
     $: handle = $page.params.handle
     $: {
         if (handle) {
@@ -61,8 +62,10 @@
 
     afterUpdate(async() => {
         isActive();
-        const firstPostDateRaw = (await getFirstRecord()).data.records[0].value.createdAt;
+        const firstPost = await getFirstRecord();
+        const firstPostDateRaw = firstPost.data.records[0].value.createdAt;
         firstPostDate = format(parseISO(firstPostDateRaw), 'yyyy/MM/dd');
+        firstPostUri = '/profile/' + data.params.handle + '/post/' + firstPost.data.records[0].uri.split('/').slice(-1)[0];
     })
 </script>
 
@@ -106,7 +109,7 @@
         </div>
 
         {#if (firstPostDate)}
-          <p class="profile-first">{$_('first_post_date', {values: {date: firstPostDate }})}</p>
+          <p class="profile-first"><a href="{firstPostUri}">{$_('first_post_date', {values: {date: firstPostDate }})}</a></p>
         {/if}
 
         {#if (profile.did !== $agent.did())}
@@ -307,5 +310,9 @@
         color: var(--text-color-3);
         font-size: 14px;
         margin-top: 5px;
+
+        a {
+            color: inherit;
+        }
     }
 </style>
