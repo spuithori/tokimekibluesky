@@ -12,8 +12,6 @@
   import {onMount} from 'svelte';
   import toast, {Toaster} from 'svelte-french-toast'
 
-  $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : ''
-
   inject({ mode: dev ? 'development' : 'production' });
 
   let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
@@ -65,7 +63,6 @@
 </script>
 
 <svelte:head>
-  {@html webManifest}
 </svelte:head>
 
 <div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme}">
