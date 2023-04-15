@@ -12,7 +12,7 @@
   })
 </script>
 
-<section class="about">
+<section class="about" dir="ltr">
   <p class="about-subhead">{$_('about_subhead')}</p>
 
   <h2 class="about-logo">

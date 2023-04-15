@@ -117,6 +117,7 @@
       font-size: 20px;
       font-weight: 400;
       min-width: 0;
+      margin-right: auto;
   }
 
   .header__title svg {
@@ -128,7 +129,7 @@
   }
 
   .header__settings {
-      margin-left: auto;
+
   }
 
   .header__me {
