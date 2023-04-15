@@ -1,6 +1,6 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
-import {afterUpdate, onMount, tick} from 'svelte';
+import { onMount } from 'svelte';
 import { agent, timeline, quotePost, replyRef } from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
@@ -147,6 +147,19 @@ async function getDidByHandle(did: string) {
     return data.data.did;
 }
 
+async function getReplyRefByUri() {
+    const res = await $agent.getFeed($replyRef);
+    let root = res.parent;
+    while (root.parent) {
+        root = root.parent;
+    }
+
+    $replyRef = {
+        parent: res.post,
+        root: root.post,
+    }
+}
+
 $: {
     if (!isUploadShown) {
         embedImages.images = [];
@@ -169,23 +182,14 @@ $: {
         setTimeout(() => {
             publishArea.focus();
         }, 100)
+
+        console.log('replyRef: ' + $replyRef);
+    }
+
+    if (typeof $replyRef === 'string') {
+        getReplyRefByUri();
     }
 }
-
-afterUpdate(async() => {
-    if (typeof $replyRef === 'string') {
-        const res = await $agent.getFeed($replyRef);
-        let root = res.parent;
-        while (root.parent) {
-            root = root.parent;
-        }
-
-        $replyRef = {
-            parent: res.post,
-            root: root.post,
-        }
-    }
-})
 
 onMount(async () => {
     publish = async function () {
