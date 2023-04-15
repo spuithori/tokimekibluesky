@@ -108,8 +108,6 @@ async function onFileSelected(file: any, output: any) {
     });
     embedImages = embedImages;
 
-    console.log(embedImages)
-
     isPublishEnabled = !res.success;
 
     if (res.success) {
