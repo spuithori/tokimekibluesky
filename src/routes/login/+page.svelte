@@ -12,6 +12,8 @@
     import { pwaInfo } from 'virtual:pwa-info';
     import { onMount } from 'svelte';
 
+    $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : '';
+
     if (currentAccount < 0) {
         currentAccount = 0;
     }
@@ -63,6 +65,7 @@
 </script>
 
 <svelte:head>
+  {@html webManifest}
   <title>Login - TOKIMEKI Bluesky</title>
 </svelte:head>
 
