@@ -5,6 +5,8 @@ declare let self: ServiceWorkerGlobalScope
 
 cleanupOutdatedCaches();
 
+precacheAndRoute(self.__WB_MANIFEST);
+
 self.addEventListener('push', (event) => {
     if (!self.Notification || self.Notification.permission !== 'granted') {
         return;
