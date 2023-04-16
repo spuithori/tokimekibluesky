@@ -12,8 +12,11 @@ export default defineConfig({
 	plugins: [
 		sveltekit(),
 		SvelteKitPWA({
+			srcDir: './src',
+			mode: 'production',
+			strategies: 'injectManifest',
+			filename: 'sw.ts',
 			workbox: {
-				mode: 'production',
 				runtimeCaching: [
 					{
 						urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

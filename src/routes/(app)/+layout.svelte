@@ -10,8 +10,8 @@
   import { inject } from '@vercel/analytics';
   import Publish from "./Publish.svelte";
   import { pwaInfo } from 'virtual:pwa-info';
-  import {onMount} from 'svelte';
-  import toast, {Toaster} from 'svelte-french-toast'
+  import { onMount } from 'svelte';
+  import toast, { Toaster } from 'svelte-french-toast';
 
   inject({ mode: dev ? 'development' : 'production' });
 
@@ -60,11 +60,30 @@
               }
           })
       }
+
+      await Notification.requestPermission();
+
+      try {
+          const swRegistration = await navigator.serviceWorker.ready;
+          let subscription: PushSubscriptionJSON = await swRegistration.pushManager.getSubscription();
+
+          if (!subscription) {
+              const applicationServerKey = import.meta.env.VITE_NOTIFICATION_SERVER_KEY;
+              subscription = (await swRegistration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey })).toJSON();
+          }
+
+          const res = await fetch(`/api/send-subscription`, {
+              method: 'post',
+              body: JSON.stringify({
+                  subscription: subscription,
+                  did: $agent.did(),
+              })
+          });
+      } catch (e) {
+          console.log(e);
+      }
   })
 </script>
-
-<svelte:head>
-</svelte:head>
 
 <div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme} {$_('dir', {default: 'ltr'})}" dir="{$_('dir', {default: 'ltr'})}">
   <Header />
