@@ -3,6 +3,7 @@
     import { theme, nonoto, isDarkMode } from '$lib/stores';
     import { goto } from '$app/navigation';
     import { fade, fly } from 'svelte/transition';
+    import { unsub } from '$lib/pushSubscription';
     import AccountSwitcher from './AccountSwitcher.svelte';
     import About from "./About.svelte";
 
@@ -28,6 +29,7 @@
     async function logout() {
         accounts.splice(currentAccount, 1)
         localStorage.setItem('accounts', JSON.stringify(accounts));
+        await unsub();
 
         if (accounts.length > 0) {
             localStorage.setItem('currentAccount', String(Number(accounts.length - 1)));

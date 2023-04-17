@@ -10,8 +10,8 @@
   import { inject } from '@vercel/analytics';
   import Publish from "./Publish.svelte";
   import { pwaInfo } from 'virtual:pwa-info';
-  import {onMount} from 'svelte';
-  import toast, {Toaster} from 'svelte-french-toast'
+  import { onMount } from 'svelte';
+  import toast, { Toaster } from 'svelte-french-toast';
 
   inject({ mode: dev ? 'development' : 'production' });
 
@@ -62,9 +62,6 @@
       }
   })
 </script>
-
-<svelte:head>
-</svelte:head>
 
 <div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme} {$_('dir', {default: 'ltr'})}" dir="{$_('dir', {default: 'ltr'})}">
   <Header />

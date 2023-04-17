@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
