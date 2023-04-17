@@ -74,5 +74,17 @@
   "about_text1": "TOKIMEKI Bluesky는 Bluesky의 비공식 웹 어플리케이션입니다.\n개발에 따라 예기치 못한 일이 일어날 수도 있습니다. 자기의 책임 아래 이용하여야 하며 꼭 의견을 보내 주시기 바랍니다!",
   "about_text2": "의견 보내기",
   "author": "제작자",
-  "about_subhead": "하늘에 퍼지는 도키메키"
+  "about_subhead": "하늘에 퍼지는 도키메키",
+  "push_toggle_switch": "Enable push notifications",
+  "push_notes": "Notes",
+  "push_text_1": "The following information is sent to the database",
+  "push_text_2": "（No data is sent or received that requires authentication.）",
+  "push_text_3": "Currently, You will also receive notifications from users you have muted.",
+  "push_text_4": "App/browser notification settings must be allowed.",
+  "push_text_5": "Please read the documentation for information on supported environments.",
+  "push_text_6": "",
+  "push_settings": "Push settings",
+  "push_subscription_success": "Subscription is successful.",
+  "push_subscription_failed": "Subscription is failed.",
+  "push_subscription_unsubscribe": "Unsubscribed."
 }

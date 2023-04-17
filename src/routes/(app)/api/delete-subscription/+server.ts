@@ -6,34 +6,28 @@ const supabase = createClient(
     SUPABASE_ANON_KEY
 );
 
-async function subscription(subscription, did) {
-    const addDatabase = async () => {
+async function subscription(subscription) {
+    const deleteDatabase = async () => {
         const { error } = await supabase
             .from('notification')
-            .insert(
-                {
-                    subscription: subscription,
-                    did: did,
-                }
-            )
-            .single()
+            .delete()
+            .eq('subscription', JSON.stringify(subscription));
 
-        if (error && error.code !== '23505') {
+        if (error) {
             console.log(error);
         }
     }
 
-    await addDatabase();
+    await deleteDatabase();
 }
 
 export async function POST ({ request }) {
     if (request.method === 'POST') {
         const textObj = await request.json();
-        // console.log(textObj);
 
-        await subscription(textObj.subscription, textObj.did);
+        await subscription(textObj.subscription);
+        console.log('Subscription deleted.')
 
-        // await subscription(subscription, did);
         return new Response('200', { status: 200 });
     }
 }

@@ -60,28 +60,6 @@
               }
           })
       }
-
-      await Notification.requestPermission();
-
-      try {
-          const swRegistration = await navigator.serviceWorker.ready;
-          let subscription: PushSubscriptionJSON = await swRegistration.pushManager.getSubscription();
-
-          if (!subscription) {
-              const applicationServerKey = import.meta.env.VITE_NOTIFICATION_SERVER_KEY;
-              subscription = (await swRegistration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey })).toJSON();
-          }
-
-          const res = await fetch(`/api/send-subscription`, {
-              method: 'post',
-              body: JSON.stringify({
-                  subscription: subscription,
-                  did: $agent.did(),
-              })
-          });
-      } catch (e) {
-          console.log(e);
-      }
   })
 </script>
 

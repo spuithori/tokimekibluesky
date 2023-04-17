@@ -74,5 +74,17 @@
   "about_text1": "TOKIMEKI Blueskyは、Blueskyの非公式Webアプリケーションです。\n開発中のため予期せぬ不具合に遭遇する可能性があります。自己責任でご利用のうえ、ぜひフィードバックをお寄せください！\n一緒にときめいていきましょう🌈🌈🌈",
   "about_text2": "フィードバック",
   "author": "作者",
-  "about_subhead": "青空に響け、ときめきーー"
+  "about_subhead": "青空に響け、ときめきーー",
+  "push_toggle_switch": "プッシュ通知を有効にする",
+  "push_notes": "注意事項",
+  "push_text_1": "次の情報がデータベースに送信されます",
+  "push_text_2": "（認証を必要とするデータを送受信することはありません）",
+  "push_text_3": "現状、ミュートしているユーザーからも通知が届きます。",
+  "push_text_4": "アプリ/ブラウザの通知設定を許可する必要があります。",
+  "push_text_5": "対応環境などの情報は、ドキュメントをお読みください。",
+  "push_text_6": "",
+  "push_settings": "プッシュ通知設定",
+  "push_subscription_success": "サブスクリプションに成功しました。",
+  "push_subscription_failed": "サブスクリプションに失敗しました。",
+  "push_subscription_unsubscribe": "サブスクリプションを解除しました。"
 }

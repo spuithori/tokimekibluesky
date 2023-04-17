@@ -18,7 +18,30 @@ self.addEventListener('push', (event) => {
         event.waitUntil(
             self.registration.showNotification(data.from + ' ' + data.type, {
                 body: data.text,
+                badge: '/pwa-192x192.png',
+                actions: [
+                    {
+                        action: 'open',
+                        title: 'Open'
+                    }
+                ]
             })
         );
     }
 });
+
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+
+    if (event.action === 'open') {
+        const targetUrl = '/';
+
+        event.waitUntil(clients.matchAll({ type: 'window' }).then(clientsArr => {
+            const hadWindowToFocus = clientsArr.some(windowClient => windowClient.url === targetUrl ? (windowClient.focus(), true) : false);
+
+            if (!hadWindowToFocus) clients.openWindow(targetUrl).then(windowClient => windowClient ? windowClient.focus() : null);
+        }));
+    } else {
+        clients.openWindow('/');
+    }
+}, false);
