@@ -18,7 +18,7 @@ import {
     AppBskyEmbedImages,
     AppBskyEmbedRecord,
     AppBskyEmbedRecordWithMedia,
-    AppBskyFeedDefs
+    AppBskyFeedDefs, AppBskyEmbedExternal
 } from '@atproto/api';
 import toast from 'svelte-french-toast'
 
@@ -35,30 +35,55 @@ let isPublishEnabled = false;
 let files: any[] = [];
 let pond: any;
 let name = 'filepond';
-let isUploadShown = false;
 let isFocus = false;
 let publishArea: HTMLTextAreaElement;
 let publishButtonText = $_('publish_button_send');
+let timer;
+let links: string[] = [];
+let externalImageBlob: Blob;
 
-let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | undefined;
+let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
 let embedImages: AppBskyEmbedImages.Main = {
     $type: 'app.bsky.embed.images',
     images: [],
 };
 let embedRecord: AppBskyEmbedRecord.Main;
 let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
+let embedExternal: AppBskyEmbedExternal.Main | undefined;
 
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: {
     isPublishEnabled = publishContentLength > 300;
 }
 
+function onPublishContentChange() {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        detectRichText(publishContent)
+            .then(result => {
+                links = [];
+
+                if (result.facets) {
+                    result.facets.forEach(facet => {
+                        if (facet.features && facet.features[0]['$type'] === 'app.bsky.richtext.facet#link' && !links.includes(facet.features[0].uri)) {
+                            links.push(facet.features[0].uri);
+                            links = links;
+                        }
+                    })
+                }
+            });
+    }, 500)
+}
+
 const publishKeypress = (e: { keyCode: number; altKey: any; }) => {
     if (e.keyCode === 13 && e.altKey) publish();
 };
 
-function uploadShownToggle() {
-    isUploadShown = isUploadShown !== true;
+async function detectRichText(text) {
+    const rt = new RichText({text: text});
+    await rt.detectFacets($agent.agent);
+
+    return rt;
 }
 
 function uploadContextOpen() {
@@ -108,6 +133,8 @@ async function onFileSelected(file: any, output: any) {
     });
     embedImages = embedImages;
 
+    console.log(embedImages);
+
     isPublishEnabled = !res.success;
 
     if (res.success) {
@@ -118,8 +145,6 @@ async function onFileSelected(file: any, output: any) {
 async function onFileDeleted(error: any, file: any) {
     embedImages.images = embedImages.images.filter((image) => image.id !== file.id );
     embedImages = embedImages;
-
-    console.log(embedImages)
 }
 
 function handleKeydown(event: { key: string; }) {
@@ -158,8 +183,53 @@ async function getReplyRefByUri() {
     }
 }
 
+async function addLinkCard(uri: string) {
+    try {
+        const res = await fetch(`/api/get-ogp`, {
+            method: 'post',
+            body: JSON.stringify({
+                uri: uri,
+            })
+        });
+        const data = await res.formData();
+
+        embedExternal = {
+            $type: 'app.bsky.embed.external',
+            external: {
+                uri: uri,
+                title: data.get('title') as string,
+                description: data.get('description') as string,
+            }
+        }
+
+        const imageBlob = data.get('imageBlob');
+        if (imageBlob && typeof imageBlob !== 'string') {
+            externalImageBlob = imageBlob;
+
+            const res = await $agent.agent.api.com.atproto.repo.uploadBlob(imageBlob, {
+                encoding: 'image/jpeg',
+            });
+            embedExternal.external.thumb = res.data.blob;
+        }
+    } catch (e) {
+        toast.error('Error!' + e)
+    }
+}
+
+async function getImageDataFromBlob(blob) {
+    let reader = new FileReader();
+    reader.readAsDataURL(blob);
+
+    await new Promise(resolve => {
+        reader.onload = (() => {
+            resolve();
+        });
+    });
+    return reader.result;
+}
+
 $: {
-    if (!isUploadShown) {
+    if (!isFocus) {
         embedImages.images = [];
     }
 
@@ -218,6 +288,10 @@ onMount(async () => {
             if ($quotePost?.uri) {
                 embed = embedRecord;
             }
+
+            if (embedExternal && !embedImages.images.length && !$quotePost?.uri) {
+                embed = embedExternal;
+            }
         }
 
         const rt = new RichText({text: publishContent});
@@ -241,13 +315,13 @@ onMount(async () => {
 
         isTextareaEnabled = false;
         isPublishEnabled = false;
-        isUploadShown = false;
         isFocus = false;
         publishContent = '';
         quotePost.set(undefined);
         replyRef.set(undefined);
         embed = undefined;
         embedImages.images = [];
+        embedExternal = undefined;
         const data = await $agent.getTimeline();
         timeline.set(data.feed);
     }
@@ -330,6 +404,32 @@ onMount(async () => {
         </div>
       {/if}
 
+      {#if (embedExternal && !embedImages.images.length && !$quotePost?.uri)}
+        <div class="publish-quote publish-quote--external">
+          <button class="publish-quote__delete" on:click={() => {embedExternal = undefined}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
+          </svg>
+          </button>
+
+          <div class="timeline-external timeline-external--record">
+            <div class="timeline-external__image">
+              {#if (embedExternal.external.thumb && externalImageBlob)}
+                {#await (getImageDataFromBlob(externalImageBlob))}
+                {:then thumb}
+                  <img src="{thumb}" alt="">
+                {/await}
+              {/if}
+            </div>
+
+            <div class="timeline-external__content">
+              <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
+              <p class="timeline-external__description">{embedExternal.external.description}</p>
+              <p class="timeline-external__url">{embedExternal.external.uri}</p>
+            </div>
+          </div>
+        </div>
+      {/if}
+
       {#if ($replyRef && typeof $replyRef !== 'string')}
         <div class="publish-quote publish-quote--reply">
           <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined)}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
@@ -361,6 +461,14 @@ onMount(async () => {
         </div>
       {/if}
 
+      {#if (!embedExternal && links.length && !embedImages.images.length && !$quotePost?.uri)}
+        <div class="link-card-registerer">
+          {#each links as link}
+              <button class="link-card-registerer-button" on:click={() => {addLinkCard(link)}}>{$_('link_card_embed')}: {link}</button>
+          {/each}
+        </div>
+      {/if}
+
       <label class="publish-form__label" for="publishTextarea"></label>
       <textarea
         id="publishTextarea"
@@ -370,6 +478,7 @@ onMount(async () => {
         bind:value={publishContent}
         bind:this={publishArea}
         on:keydown={publishKeypress}
+        on:input={onPublishContentChange}
         placeholder="{$_('send_placeholder1')}&#13;{$_('send_placeholder2')}"
         autocomplete="nope"
     ></textarea>
@@ -607,5 +716,22 @@ onMount(async () => {
         @media (max-width: 767px) {
             order: 3;
         }
+    }
+
+    .link-card-registerer {
+
+    }
+
+    .link-card-registerer-button {
+        border: 1px solid var(--border-color-1);
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        position: relative;
+        z-index: 11;
     }
 </style>

@@ -19,6 +19,7 @@
     "autoprefixer": "^10.4.7",
     "filepond-plugin-file-poster": "^2.5.1",
     "filepond-plugin-image-crop": "^2.0.6",
+    "ogp-parser": "^0.7.1",
     "postcss": "^8.4.14",
     "postcss-load-config": "^4.0.1",
     "svelte": "^3.54.0",

@@ -86,5 +86,6 @@
   "push_settings": "プッシュ通知設定",
   "push_subscription_success": "サブスクリプションに成功しました。",
   "push_subscription_failed": "サブスクリプションに失敗しました。",
-  "push_subscription_unsubscribe": "サブスクリプションを解除しました。"
+  "push_subscription_unsubscribe": "サブスクリプションを解除しました。",
+  "link_card_embed": "リンクを埋め込む"
 }
