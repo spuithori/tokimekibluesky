@@ -302,7 +302,8 @@
   .notifications-filter-list {
       list-style: none;
       display: flex;
-      flex-wrap: wrap;
+      overflow: auto;
+      white-space: nowrap;
       align-items: center;
       gap: 5px 10px;
       margin-bottom: 15px;
