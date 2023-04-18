@@ -55,7 +55,29 @@
     }
 </script>
 
-<div>
+{#if (isAboutOpen)}
+  <div class="about-box" transition:fly="{{ y: 30, duration: 250 }}">
+    <button class="about-box__close" on:click={aboutToggle}></button>
+
+    <div class="about-box__content">
+      <About></About>
+    </div>
+  </div>
+{/if}
+
+{#if (isAccountSwitcherOpen)}
+  <div class="account-switcher-box" transition:fly="{{ y: 30, duration: 250 }}">
+    <div class="account-switcher-box__content">
+      <AccountSwitcher {accounts} {currentAccount}></AccountSwitcher>
+
+      <div class="account-switcher-box__buttons">
+        <button class="button" on:click={accountSwitcherToggle}>{$_('close_button')}</button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<div class="settings-content">
   <div class="settings-row">
     <p class="setting-docs"><a href="https://tokimekibluesky-docs.vercel.app/" target="_blank" rel="noopener">{$_('document')}</a></p>
 
@@ -66,16 +88,6 @@
       </g>
     </svg>
     </button>
-
-    {#if (isAboutOpen)}
-      <div class="about-box" transition:fly="{{ y: 30, duration: 250 }}">
-        <button class="about-box__close" on:click={aboutToggle}></button>
-
-        <div class="about-box__content">
-          <About></About>
-        </div>
-      </div>
-    {/if}
   </div>
 
   <dl class="settings-group settings-group--column">
@@ -174,18 +186,6 @@
   <div class="account-switcher">
     <div class="account-switcher-toggle">
       <button class="button button--logout button--sm button--border button--white" type="submit" name="add_account" on:click={accountSwitcherToggle}>{$_('switch_account')}</button>
-
-      {#if (isAccountSwitcherOpen)}
-        <div class="account-switcher-box" transition:fly="{{ y: 30, duration: 250 }}">
-          <div class="account-switcher-box__content">
-            <AccountSwitcher {accounts} {currentAccount}></AccountSwitcher>
-
-            <div class="account-switcher-box__buttons">
-              <button class="button" on:click={accountSwitcherToggle}>{$_('close_button')}</button>
-            </div>
-          </div>
-        </div>
-      {/if}
     </div>
 
   </div>
@@ -200,6 +200,19 @@
 </div>
 
 <style lang="postcss">
+    .settings-content {
+        width: 200px;
+        height: max-content;
+        max-height: 85svh;
+        overscroll-behavior-y: none;
+        overflow: auto;
+        background-color: var(--bg-color-1);
+        border-radius: 8px;
+        border: 1px solid var(--border-color-1);
+        box-shadow: 0 0 16px rgba(0, 0, 0, .16);
+        padding: 20px;
+    }
+
     .theme-picker {
         display: grid;
         grid-template-columns: repeat(3, 1fr);

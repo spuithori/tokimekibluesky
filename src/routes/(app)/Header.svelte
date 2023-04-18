@@ -204,16 +204,6 @@
       position: absolute;
       top: 80px;
       right: 0;
-      width: 200px;
-      height: max-content;
-      max-height: 85svh;
-      overscroll-behavior-y: none;
-      overflow: auto;
-      background-color: var(--bg-color-1);
-      border-radius: 8px;
-      border: 1px solid var(--border-color-1);
-      box-shadow: 0 0 16px rgba(0, 0, 0, .16);
-      padding: 20px;
       z-index: 200;
 
       @media (max-width: 767px) {
