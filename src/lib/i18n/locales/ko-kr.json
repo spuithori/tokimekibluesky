@@ -86,5 +86,6 @@
   "push_settings": "Push settings",
   "push_subscription_success": "Subscription is successful.",
   "push_subscription_failed": "Subscription is failed.",
-  "push_subscription_unsubscribe": "Unsubscribed."
+  "push_subscription_unsubscribe": "Unsubscribed.",
+  "link_card_embed": "Embed link"
 }
