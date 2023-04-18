@@ -1,4 +1,8 @@
 export async function unsub() {
+    if (!('Notification' in window)) {
+        return true;
+    }
+
     try {
         const swRegistration = await navigator.serviceWorker.ready;
         let subscription: PushSubscriptionJSON = await swRegistration.pushManager.getSubscription();

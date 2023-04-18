@@ -12,6 +12,7 @@
   import { pwaInfo } from 'virtual:pwa-info';
   import { onMount } from 'svelte';
   import toast, { Toaster } from 'svelte-french-toast';
+  import viewPortSetting from '$lib/viewport';
 
   inject({ mode: dev ? 'development' : 'production' });
 
@@ -60,7 +61,9 @@
               }
           })
       }
-  })
+  });
+
+  viewPortSetting();
 </script>
 
 <div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme} {$_('dir', {default: 'ltr'})}" dir="{$_('dir', {default: 'ltr'})}">
