@@ -129,7 +129,8 @@
 
   .login-wrap {
       height: 500px;
-      width: 400px;
+      width: 100%;
+      max-width: 400px;
       background-color: rgba(255, 255, 255, .85);
       padding: 30px;
       display: flex;
