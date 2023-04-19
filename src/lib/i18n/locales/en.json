@@ -53,7 +53,7 @@
   "document": "Documents",
   "current_account": "Current account",
   "search_button": "Search",
-  "keywords_search_experimental": "Keywords search（experimental）",
+  "keywords_search_experimental": "Keywords search",
   "likes": "Likes",
   "first_post_date": "First submitted on {date}",
   "failed_to_like": "Failed to like. Please try again or wait a while.",

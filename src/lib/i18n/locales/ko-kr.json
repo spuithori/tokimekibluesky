@@ -53,7 +53,7 @@
   "document": "설명서",
   "current_account": "현재 계정",
   "search_button": "찾기",
-  "keywords_search_experimental": "키워드 검색(실험 기능)",
+  "keywords_search_experimental": "키워드 검색",
   "likes": "좋아요",
   "first_post_date": "{date}에 첫 글을 썼습니다",
   "failed_to_like": "좋아요가 실패했습니다. 다시 시도하거나 잠시만 기다려 주세요.",
