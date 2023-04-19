@@ -111,5 +111,6 @@
       padding: 20px;
       border-radius: 6px;
       z-index: 20;
+      width: max-content;
   }
 </style>
