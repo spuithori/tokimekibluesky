@@ -8,6 +8,14 @@
 
 	let isRefreshing = false;
 
+	function handleKeydown(event: { key: string; }) {
+		const activeElement = document.activeElement?.tagName;
+
+		if (event.key === 'r' && (activeElement === 'BODY' || activeElement === 'BUTTON') && !isRefreshing) {
+			refresh();
+		}
+	}
+
 	async function refresh() {
 		isRefreshing = true;
 		const data = await $agent.getTimeline();
@@ -22,6 +30,8 @@
 	<title>Home - TOKIMEKI Bluesky</title>
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <section>
 	<div class="home-navs">
