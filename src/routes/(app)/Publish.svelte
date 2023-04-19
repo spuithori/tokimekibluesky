@@ -41,6 +41,7 @@ let publishButtonText = $_('publish_button_send');
 let timer;
 let links: string[] = [];
 let externalImageBlob: Blob;
+let searchActors = [];
 
 let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
 let embedImages: AppBskyEmbedImages.Main = {
@@ -56,9 +57,17 @@ $: {
     isPublishEnabled = publishContentLength > 300;
 }
 
+function getActorTypeAhead() {
+    const front = publishContent.slice(0, publishArea.selectionStart);
+    const splitted = front.split(/[ \n]/g);
+    const found = splitted ? splitted[splitted.length - 1].match(/@[^ ]*/g) : '';
+
+    return found ? found[found.length - 1] : null;
+}
+
 function onPublishContentChange() {
     clearTimeout(timer);
-    timer = setTimeout(() => {
+    timer = setTimeout(async () => {
         detectRichText(publishContent)
             .then(result => {
                 links = [];
@@ -72,6 +81,20 @@ function onPublishContentChange() {
                     })
                 }
             });
+
+        const front = publishContent.slice(0, publishArea.selectionStart);
+        const splitted = front.split(/[ \n]/g);
+        const found = splitted ? splitted[splitted.length - 1].match(/@[^ ]*/g) : '';
+
+        const mention = getActorTypeAhead();
+        if (mention) {
+            const res = await $agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: mention.slice(1), limit: 4})
+            searchActors = res.data.actors;
+
+            console.log(searchActors)
+        } else {
+            searchActors = [];
+        }
     }, 500)
 }
 
@@ -256,6 +279,15 @@ $: {
 
     if (typeof $replyRef === 'string') {
         getReplyRefByUri();
+    }
+}
+
+function putActorSuggestion(actor: string) {
+    const current = getActorTypeAhead();
+    if (current) {
+        publishContent = publishContent.replace(current, '@' + actor);
+        searchActors = [];
+        publishArea.focus();
     }
 }
 
@@ -465,6 +497,16 @@ onMount(async () => {
         <div class="link-card-registerer">
           {#each links as link}
               <button class="link-card-registerer-button" on:click={() => {addLinkCard(link)}}>{$_('link_card_embed')}: {link}</button>
+          {/each}
+        </div>
+      {/if}
+
+      {#if searchActors.length}
+        <div class="search-actor-list">
+          {#each searchActors as actor}
+            <button class="search-actor-item" on:click={() => {putActorSuggestion(actor.handle)}}>
+              @{actor.handle}
+            </button>
           {/each}
         </div>
       {/if}
@@ -719,12 +761,14 @@ onMount(async () => {
     }
 
     .link-card-registerer {
-
+        display: flex;
+        flex-direction: column;
     }
 
     .link-card-registerer-button {
         border: 1px solid var(--border-color-1);
-        padding: 10px;
+        padding: 6px 10px;
+        font-size: 14px;
         border-radius: 6px;
         margin-bottom: 10px;
         white-space: nowrap;
@@ -733,5 +777,30 @@ onMount(async () => {
         max-width: 100%;
         position: relative;
         z-index: 11;
+        text-align: left;
+    }
+
+    .search-actor-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 11;
+
+        @media (max-width: 767px) {
+            flex-wrap: nowrap;
+            overflow: auto;
+        }
+    }
+
+    .search-actor-item {
+        background-color: var(--bg-color-2);
+        padding: 3px 6px;
+        color: var(--text-color-3);
+        font-size: 14px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color-1);
+        white-space: nowrap;
     }
 </style>
