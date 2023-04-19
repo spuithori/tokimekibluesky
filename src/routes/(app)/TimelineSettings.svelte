@@ -81,7 +81,7 @@
 <style lang="postcss">
   .timeline-settings {
       position: relative;
-      margin-bottom: 20px;
+      flex-shrink: 0;
   }
 
   .timeline-settings-heading {
@@ -99,6 +99,7 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
+      height: 40px;
   }
 
   .timeline-settings-box {
