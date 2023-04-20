@@ -90,5 +90,6 @@
   "push_subscription_unsubscribe": "Unsubscribed.",
   "images_uploading": "Images uploading",
   "images_upload_success": "Images upload successful.",
-  "images_upload_failed": "Images upload failed."
+  "images_upload_failed": "Images upload failed.",
+  "donation": "Donations"
 }

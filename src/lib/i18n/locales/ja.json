@@ -90,5 +90,6 @@
   "link_card_embed": "リンクを埋め込む",
   "images_uploading": "画像アップロード中",
   "images_upload_success": "画像のアップロードに成功しました",
-  "images_upload_failed": "画像のアップロードに失敗しました"
+  "images_upload_failed": "画像のアップロードに失敗しました",
+  "donation": "寄付"
 }
