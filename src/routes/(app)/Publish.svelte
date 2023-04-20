@@ -21,6 +21,7 @@ import {
     AppBskyFeedDefs, AppBskyEmbedExternal
 } from '@atproto/api';
 import toast from 'svelte-french-toast'
+import { goto } from '$app/navigation';
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -293,6 +294,7 @@ function putActorSuggestion(actor: string) {
 
 onMount(async () => {
     if ($sharedText) {
+        await goto('/');
         publishContent = $sharedText;
         isFocus = true;
 
