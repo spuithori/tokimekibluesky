@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
 import { onMount } from 'svelte';
-import { agent, timeline, quotePost, replyRef } from '$lib/stores';
+import { agent, timeline, quotePost, replyRef, sharedText } from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -21,6 +21,7 @@ import {
     AppBskyFeedDefs, AppBskyEmbedExternal
 } from '@atproto/api';
 import toast from 'svelte-french-toast'
+import { goto } from '$app/navigation';
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -292,6 +293,17 @@ function putActorSuggestion(actor: string) {
 }
 
 onMount(async () => {
+    if ($sharedText) {
+        await goto('/');
+        publishContent = $sharedText;
+        isFocus = true;
+
+        setTimeout(() => {
+            publishArea.focus();
+            sharedText.set('');
+        }, 100)
+    }
+
     publish = async function () {
         isTextareaEnabled = true;
         isPublishEnabled = true;
