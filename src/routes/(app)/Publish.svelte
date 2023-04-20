@@ -44,6 +44,12 @@ let links: string[] = [];
 let externalImageBlob: Blob;
 let searchActors = [];
 
+type BeforeUploadImage = {
+    image: Blob | File,
+    id: string,
+}
+let images: BeforeUploadImage[] = [];
+
 let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
 let embedImages: AppBskyEmbedImages.Main = {
     $type: 'app.bsky.embed.images',
@@ -146,29 +152,38 @@ async function onFileSelected(file: any, output: any) {
         console.log('デカすぎ')
     }
 
-    const res = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
+    /* const res = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
         encoding: 'image/jpeg',
-    });
+    }); */
 
-    embedImages.images.push({
+    /* embedImages.images.push({
        image: res.data.blob,
        alt: '',
        id: file.id
     });
-    embedImages = embedImages;
+    embedImages = embedImages; */
 
-    console.log(embedImages);
+    images.push({
+        image: image,
+        id: file.id,
+    });
+    images = images;
 
-    isPublishEnabled = !res.success;
-
-    if (res.success) {
-        publishButtonText = $_('publish_button_send');
-    }
+    isPublishEnabled = false;
+    publishButtonText = $_('publish_button_send');
 }
 
 async function onFileDeleted(error: any, file: any) {
-    embedImages.images = embedImages.images.filter((image) => image.id !== file.id );
-    embedImages = embedImages;
+    images = images.filter((image) => image.id !== file.id );
+    images = images;
+}
+
+async function onFileReordered(files, origin, target) {
+    const sorter = files.map(file => file.id);
+    images.sort((a, b) => {
+        return sorter.indexOf(a.id) - sorter.indexOf(b.id);
+    });
+    images = images;
 }
 
 function handleKeydown(event: { key: string; }) {
@@ -314,7 +329,33 @@ onMount(async () => {
             return false;
         }
 
-        let postData = [{ did: $agent.did() }, { text: publishContent, createdAt: new Date().toISOString() }];
+        if (images.length) {
+            const filePromises = images.map(image => {
+                return $agent.agent.api.com.atproto.repo.uploadBlob(image.image, {
+                    encoding: 'image/jpeg',
+                });
+            });
+
+
+            const promise = Promise.all(filePromises)
+                .then(results => results.forEach(result => {
+                    embedImages.images.push({
+                        image: result.data.blob,
+                        alt: '',
+                    });
+                }))
+                .catch(error => {
+                    isTextareaEnabled = false;
+                    isPublishEnabled = false;
+                    throw new Error(error);
+                })
+
+            await toast.promise(promise, {
+                loading: $_('images_uploading'),
+                success: $_('images_upload_success'),
+                error: $_('images_upload_failed')
+            })
+        }
 
         if (embedImages.images.length && $quotePost?.uri) {
             embedRecordWithMedia = {
@@ -364,6 +405,7 @@ onMount(async () => {
         quotePost.set(undefined);
         replyRef.set(undefined);
         embed = undefined;
+        images = [];
         embedImages.images = [];
         embedExternal = undefined;
         const data = await $agent.getTimeline();
@@ -448,7 +490,7 @@ onMount(async () => {
         </div>
       {/if}
 
-      {#if (embedExternal && !embedImages.images.length && !$quotePost?.uri)}
+      {#if (embedExternal && !images.length && !$quotePost?.uri)}
         <div class="publish-quote publish-quote--external">
           <button class="publish-quote__delete" on:click={() => {embedExternal = undefined}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
             <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
@@ -505,7 +547,7 @@ onMount(async () => {
         </div>
       {/if}
 
-      {#if (!embedExternal && links.length && !embedImages.images.length && !$quotePost?.uri)}
+      {#if (!embedExternal && links.length && !images.length && !$quotePost?.uri)}
         <div class="link-card-registerer">
           {#each links as link}
               <button class="link-card-registerer-button" on:click={() => {addLinkCard(link)}}>{$_('link_card_embed')}: {link}</button>
@@ -544,6 +586,7 @@ onMount(async () => {
             bind:this={pond}
             {name}
             allowMultiple={true}
+            allowReorder={true}
             maxFiles={4}
             maxParallelUploads={4}
             imageResizeTargetWidth={2000}
@@ -555,6 +598,7 @@ onMount(async () => {
             onpreparefile={(file, output) => {onFileSelected(file, output)}}
             onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
             onaddfilestart={(file) => {onFileAdded(file)}}
+            onreorderfiles={(files, origin, target) => {onFileReordered(files, origin, target)}}
             credits={null}
             labelIdle="<span class='only-pc'>{$_('upload_image_label1')}<br>{$_('upload_image_label2')}</span>"
             labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
