@@ -87,5 +87,8 @@
   "push_settings": "Push settings",
   "push_subscription_success": "Subscription is successful.",
   "push_subscription_failed": "Subscription is failed.",
-  "push_subscription_unsubscribe": "Unsubscribed."
+  "push_subscription_unsubscribe": "Unsubscribed.",
+  "images_uploading": "Images uploading",
+  "images_upload_success": "Images upload successful.",
+  "images_upload_failed": "Images upload failed."
 }
