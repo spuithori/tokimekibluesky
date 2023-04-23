@@ -2,9 +2,15 @@
     import { _ } from 'svelte-i18n';
     import { theme, nonoto, isDarkMode } from '$lib/stores';
     import { goto } from '$app/navigation';
+    import { fade, fly } from 'svelte/transition';
+    import AccountSwitcher from './AccountSwitcher.svelte';
+
     let darkModeToggle = JSON.parse(localStorage.getItem('darkmode')) === true;
     let nonotoToggle = JSON.parse(localStorage.getItem('nonoto')) === true;
-    let themePick = localStorage.getItem('theme');
+    let themePick: string = localStorage.getItem('theme') || 'lightblue';
+    let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+    let isAccountSwitcherOpen = false;
+    const currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
 
     $: {
         localStorage.setItem('darkmode', darkModeToggle ? 'true' : 'false');
@@ -18,12 +24,43 @@
     }
 
     async function logout() {
-        localStorage.removeItem('session');
+        accounts.splice(currentAccount, 1)
+        localStorage.setItem('accounts', JSON.stringify(accounts));
+
+        if (accounts.length > 0) {
+            localStorage.setItem('currentAccount', String(Number(accounts.length - 1)));
+            location.reload();
+        } else {
+            goto('/login');
+        }
+    }
+
+    async function addAccount() {
+        const setAccount = accounts.length;
+        localStorage.setItem('currentAccount', String(setAccount));
         goto('/login');
+    }
+
+    function accountSwitcherToggle() {
+        accounts = accounts;
+        isAccountSwitcherOpen = isAccountSwitcherOpen !== true;
     }
 </script>
 
 <div>
+  <p class="setting-docs"><a href="https://tokimekibluesky-docs.vercel.app/" target="_blank" rel="noopener">{$_('document')}</a></p>
+
+  <dl class="settings-group settings-group--column">
+    <dt class="settings-group__name">
+      {$_('current_account')}:
+    </dt>
+
+    <dd class="settings-group__content">
+      <strong class="primary-color">{accounts[currentAccount].name}</strong><br>
+      {accounts[currentAccount].service}
+    </dd>
+  </dl>
+
   <dl class="settings-group">
     <dt class="settings-group__name">
       {$_('darkmode')}
@@ -106,73 +143,35 @@
     </dd>
   </dl>
 
+  <div class="account-switcher">
+    <div class="account-switcher-toggle">
+      <button class="button button--logout button--sm button--border button--white" type="submit" name="add_account" on:click={accountSwitcherToggle}>{$_('switch_account')}</button>
+
+      {#if (isAccountSwitcherOpen)}
+        <div class="account-switcher-box" transition:fly="{{ y: 30, duration: 250 }}">
+          <div class="account-switcher-box__content">
+            <AccountSwitcher {accounts} {currentAccount}></AccountSwitcher>
+
+            <div class="account-switcher-box__buttons">
+              <button class="button" on:click={accountSwitcherToggle}>{$_('close_button')}</button>
+            </div>
+          </div>
+        </div>
+      {/if}
+    </div>
+
+  </div>
+
+  <div class="other-account">
+    <button class="button button--logout button--sm button--border button--white" type="submit" name="add_account" on:click={addAccount}>{$_('add_account')}</button>
+  </div>
+
   <div class="logout">
-    <button class="button button--logout button--sm button--border button--white" type="submit" name="logout" on:click={logout}>{$_('logout_button')}</button>
+    <button class="button button--logout button--sm button--border button--white button--danger" type="submit" name="logout" on:click={logout}>{$_('logout_button')}</button>
   </div>
 </div>
 
 <style lang="postcss">
-    input[type=checkbox]{
-        display: block;
-        height: 0;
-        width: 0;
-        visibility: hidden;
-    }
-
-    .input-toggle__label {
-        position: relative;
-        text-indent: -9999px;
-        width: 50px;
-        height: 30px;
-        background: var(--border-color-1);
-        display: block;
-        border-radius: 15px;
-        cursor: pointer;
-    }
-
-    .input-toggle__label:after {
-        content: '';
-        position: absolute;
-        top: 5px;
-        left: 5px;
-        width: 20px;
-        height: 20px;
-        background: var(--bg-color-1);
-        border-radius: 50%;
-        transition: all 0.25s ease-in-out;
-    }
-
-    .input-toggle__input:checked + .input-toggle__label {
-        background: var(--primary-color);
-    }
-
-    .input-toggle__input:checked + .input-toggle__label:after {
-        left: calc(100% - 5px);
-        transform: translateX(-100%);
-    }
-
-    .input-toggle__label:active:after {
-        width: 20px;
-    }
-
-    .settings-group {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 0;
-        gap: 10px;
-        font-size: 14px;
-        border-bottom: 1px solid var(--border-color-1);
-
-        &--column {
-          display: block;
-       }
-    }
-
-    .settings-group:first-child {
-        border-top: 1px solid var(--border-color-1);
-    }
-
     .theme-picker {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -339,5 +338,50 @@
 
     .logout {
         margin-top: 20px;
+    }
+
+    .account-switcher-box {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, .6);
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+
+        &__content {
+            width: max-content;
+            height: max-content;
+            max-height: 90svh;
+            max-width: calc(100% - 20px);
+            overflow: auto;
+            overscroll-behavior-y: none;
+            background-color: var(--bg-color-1);
+            border-radius: 6px;
+            padding: 30px;
+        }
+
+        &__buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+    }
+
+    .account-switcher {
+        margin-top: 20px;
+        margin-bottom: 10px;
+
+        @media (max-width: 767px) {
+            .button {
+                width: 100%;
+            }
+        }
+    }
+
+    .setting-docs {
+        border-bottom: 1px solid var(--border-color-1);
+        padding-bottom: 10px;
     }
 </style>

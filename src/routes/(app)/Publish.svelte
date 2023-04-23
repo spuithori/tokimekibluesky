@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
-import {onMount} from 'svelte';
-import {agent, timeline, quotePost} from '$lib/stores';
+import {afterUpdate, onMount, tick} from 'svelte';
+import { agent, timeline, quotePost, replyRef } from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -10,9 +10,17 @@ import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 import { fade, fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
-import {format, formatDistanceToNow, parseISO} from 'date-fns';
+import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import ja from 'date-fns/locale/ja/index';
-import * as linkify from "linkifyjs";
+import {
+    type AppBskyFeedPost,
+    RichText,
+    AppBskyEmbedImages,
+    AppBskyEmbedRecord,
+    AppBskyEmbedRecordWithMedia,
+    AppBskyFeedDefs
+} from '@atproto/api';
+import toast from 'svelte-french-toast'
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -24,15 +32,28 @@ let publish = function () {};
 let publishContent = '';
 let isTextareaEnabled = false;
 let isPublishEnabled = false;
-let files = [];
-let pond;
+let files: any[] = [];
+let pond: any;
 let name = 'filepond';
 let isUploadShown = false;
 let isFocus = false;
-let publishArea;
+let publishArea: HTMLTextAreaElement;
 let publishButtonText = $_('publish_button_send');
 
-const publishKeypress = e => {
+let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | undefined;
+let embedImages: AppBskyEmbedImages.Main = {
+    $type: 'app.bsky.embed.images',
+    images: [],
+};
+let embedRecord: AppBskyEmbedRecord.Main;
+let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
+
+$: publishContentLength = new RichText({text: publishContent}).graphemeLength;
+$: {
+    isPublishEnabled = publishContentLength > 300;
+}
+
+const publishKeypress = (e: { keyCode: number; altKey: any; }) => {
     if (e.keyCode === 13 && e.altKey) publish();
 };
 
@@ -52,7 +73,6 @@ function onFocus() {
             publishArea.focus();
         }, 100)
     }
-
 }
 
 function onBlur() {
@@ -63,12 +83,12 @@ function close() {
     isFocus = false;
 }
 
-async function onFileAdded(file) {
+async function onFileAdded(file: any) {
     isPublishEnabled = true;
     publishButtonText = $_('publish_button_progress');
 }
 
-async function onFileSelected(file, output) {
+async function onFileSelected(file: any, output: any) {
     let image = new File([await output], output.name, {
         type: output.type,
     });
@@ -77,32 +97,95 @@ async function onFileSelected(file, output) {
         console.log('デカすぎ')
     }
 
-    const fileCid = await $agent.agent.api.com.atproto.blob.upload(image, {
+    const res = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
         encoding: 'image/jpeg',
     });
-    files.push({
-        cid: fileCid.data.cid,
-        id: file.id,
+
+    embedImages.images.push({
+       image: res.data.blob,
+       alt: '',
+       id: file.id
     });
-    files = files;
-    isPublishEnabled = false;
-    publishButtonText = $_('publish_button_send');
+    embedImages = embedImages;
+
+    console.log(embedImages)
+
+    isPublishEnabled = !res.success;
+
+    if (res.success) {
+        publishButtonText = $_('publish_button_send');
+    }
 }
 
-async function onFileDeleted(error, file) {
-    files = files.filter((item) => item.id !== file.id );
+async function onFileDeleted(error: any, file: any) {
+    embedImages.images = embedImages.images.filter((image) => image.id !== file.id );
+    embedImages = embedImages;
+
+    console.log(embedImages)
+}
+
+function handleKeydown(event: { key: string; }) {
+    const activeElement = document.activeElement?.tagName;
+
+    if (event.key === 'n' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
+        isFocus = true;
+        setTimeout(() => {
+            publishArea.focus();
+        }, 100)
+    }
+
+    if (event.key === 'Escape' && isFocus) {
+        isFocus = false;
+        publishArea.blur();
+    }
+}
+
+async function getDidByHandle(did: string) {
+    const data = await $agent.agent.api.com.atproto.repo.describeRepo(
+        { repo: did }
+    );
+    return data.data.did;
 }
 
 $: {
     if (!isUploadShown) {
-       files = [];
+        embedImages.images = [];
     }
 
-    if ($quotePost.uri) {
+    if ($quotePost?.uri) {
         isFocus = true;
-        publishArea.focus();
+        setTimeout(() => {
+            publishArea.focus();
+        }, 100)
+
+        embedRecord = {
+            $type: 'app.bsky.embed.record',
+            record: $quotePost,
+        }
+    }
+
+    if ($replyRef) {
+        isFocus = true;
+        setTimeout(() => {
+            publishArea.focus();
+        }, 100)
     }
 }
+
+afterUpdate(async() => {
+    if (typeof $replyRef === 'string') {
+        const res = await $agent.getFeed($replyRef);
+        let root = res.parent;
+        while (root.parent) {
+            root = root.parent;
+        }
+
+        $replyRef = {
+            parent: res.post,
+            root: root.post,
+        }
+    }
+})
 
 onMount(async () => {
     publish = async function () {
@@ -117,69 +200,59 @@ onMount(async () => {
 
         let postData = [{ did: $agent.did() }, { text: publishContent, createdAt: new Date().toISOString() }];
 
-        let embed;
-
-        if (files.length) {
-            embed = {
-                $type: 'app.bsky.embed.images',
-                images: [],
+        if (embedImages.images.length && $quotePost?.uri) {
+            embedRecordWithMedia = {
+                $type: 'app.bsky.embed.recordWithMedia',
+                media: embedImages,
+                record: embedRecord,
             }
 
-            files.forEach(file => {
-                embed.images.push({
-                    image: {
-                        cid: file.cid,
-                        mimeType: 'image/jpeg',
-                    },
-                    alt: '',
-                })
-            })
-        }
+            embed = embedRecordWithMedia;
+        } else {
+            if (embedImages.images.length) {
+                embed = embedImages;
+            }
 
-        if ($quotePost.uri) {
-            embed = {
-                $type: 'app.bsky.embed.record',
-                record: $quotePost,
+            if ($quotePost?.uri) {
+                embed = embedRecord;
             }
         }
 
-        let entities;
-        const links = linkify.find(publishContent, 'url');
-        if (links.length) {
-            entities = [];
-            links.forEach(link => {
-                entities.push({
-                    index: {
-                        start: link.start,
-                        end: link.end,
-                    },
-                    type: 'link',
-                    value: link.href,
-                })
-            });
-        }
+        const rt = new RichText({text: publishContent});
+        await rt.detectFacets($agent.agent);
 
-        await $agent.agent.api.app.bsky.feed.post.create(
-            { did: $agent.did() },
-            {
-                embed: embed,
-                entities: entities,
-                text: publishContent,
-                createdAt: new Date().toISOString(),
-            },
-        );
+        try {
+            await $agent.agent.api.app.bsky.feed.post.create(
+                { repo: $agent.did() },
+                {
+                    embed: embed,
+                    facets: rt.facets,
+                    text: rt.text,
+                    createdAt: new Date().toISOString(),
+                    reply: $replyRef || undefined,
+                },
+            );
+            toast.success($_('success_to_post'));
+        } catch (e) {
+            toast.error($_('failed_to_post'));
+        }
 
         isTextareaEnabled = false;
         isPublishEnabled = false;
         isUploadShown = false;
+        isFocus = false;
         publishContent = '';
+        quotePost.set(undefined);
+        replyRef.set(undefined);
+        embed = undefined;
+        embedImages.images = [];
         const data = await $agent.getTimeline();
         timeline.set(data.feed);
-        quotePost.set({});
-        isFocus = false;
     }
 })
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <section class="publish-group"
          class:publish-group--expanded={isFocus}
@@ -205,23 +278,25 @@ onMount(async () => {
 
   <div class="publish-wrap">
     <div class="publish-buttons">
+      <p class="publish-length">
+        <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
+      </p>
+
       <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">
         <path id="send" d="M0,0,17,6.375,0,12.75ZM0,5.1V7.65L8.5,6.375Z" fill="var(--bg-color-1)"/>
       </svg>
         {publishButtonText}</button>
 
-      {#if (!$quotePost.uri)}
         <button class="publish-upload-toggle" on:click={uploadContextOpen}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--bg-color-1)">
-          <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
-        </svg>
+            <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
+          </svg>
         </button>
-      {/if}
     </div>
 
     <div class="publish-form">
-      {#if $quotePost.uri}
+      {#if $quotePost?.uri}
         <div class="publish-quote">
-          <button class="publish-quote__delete" on:click={() => {quotePost.set({})}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+          <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined)}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
             <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
           </svg>
           </button>
@@ -253,18 +328,52 @@ onMount(async () => {
         </div>
       {/if}
 
+      {#if ($replyRef && typeof $replyRef !== 'string')}
+        <div class="publish-quote publish-quote--reply">
+          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined)}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
+          </svg>
+          </button>
+
+          <div class="timeline-external timeline-external--record">
+            <div class="timeline-external__image timeline-external__image--round">
+              {#if ($replyRef.parent.author.avatar)}
+                <img src="{$replyRef.parent.author.avatar}" alt="">
+              {/if}
+            </div>
+
+            <div class="timeline-external__content">
+              <div class="timeline__meta">
+                <p class="timeline__user">{$_('reply_to', {values: {name: $replyRef.parent.author.displayName || $replyRef.parent.author.handle }})}</p>
+              </div>
+
+              <p class="timeline-external__description">
+                {$replyRef.parent.record.text}
+              </p>
+            </div>
+
+            <span class="timeline-external__icon">
+
+            </span>
+          </div>
+        </div>
+      {/if}
+
+      <label class="publish-form__label" for="publishTextarea"></label>
       <textarea
-        type="text"
+        id="publishTextarea"
         class="publish-form__input"
+        name="content"
         disabled={isTextareaEnabled}
         bind:value={publishContent}
         bind:this={publishArea}
         on:keydown={publishKeypress}
         placeholder="{$_('send_placeholder1')}&#13;{$_('send_placeholder2')}"
+        autocomplete="nope"
     ></textarea>
     </div>
 
-    {#if (isFocus && !$quotePost.uri)}
+    {#if (isFocus)}
       <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
         <FilePond
             bind:this={pond}
@@ -299,10 +408,12 @@ onMount(async () => {
         left: 0;
         bottom: 0;
         right: 0;
-        z-index: 11;
+        z-index: 2000;
 
         @media (max-width: 767px) {
-            padding: 20px;
+            overflow: auto;
+            overscroll-behavior: contain;
+            z-index: 2000;
         }
 
         &--expanded {
@@ -310,21 +421,15 @@ onMount(async () => {
                 height: 160px;
             }
 
+            .publish-wrap {
+                display: block;
+            }
+
             @media (max-width: 767px) {
-                &::before {
-                    content: '';
-                    display: block;
-                    position: fixed;
-                    left: 0;
-                    top: 0;
-                    bottom: 0;
-                    right: 0;
-                    background-color: rgba(255, 255, 255, .7);
-                }
+                top: 0;
 
                 .publish-wrap {
-                    opacity: 1;
-                    visibility: visible;
+                   display: flex;
                 }
             }
         }
@@ -334,28 +439,22 @@ onMount(async () => {
         background-color: var(--bg-color-1);
         border-top: 1px solid var(--border-color-1);
         padding: 20px 0 0;
+        display: none;
 
         @media (max-width: 767px) {
-            display: flex;
-            opacity: 0;
-            visibility: hidden;
-            position: fixed;
-            flex-direction: column-reverse;
+            display: none;
+            flex-direction: column;
             gap: 20px;
-            left: 20px;
-            right: 20px;
-            bottom: 90px;
-            padding: 20px;
+            padding: 20px 20px 90px;
             background-color: var(--bg-color-1);
             border: 1px solid var(--border-color-1);
-            box-shadow: 0 0 6px rgba(0, 0, 0, .12);
-            border-radius: 6px;
-            height: 60vh;
+            border-radius: 0;
+            height: calc(100% + 1px);
         }
     }
 
     .publish-sp-open {
-        display: none;
+        display: flex;
         position: fixed;
         right: 20px;
         bottom: 20px;
@@ -377,21 +476,23 @@ onMount(async () => {
         margin: 0 auto 10px;
         display: flex;
         justify-content: flex-end;
+        align-items: center;
         width: 100%;
     }
 
     .publish-upload {
-        position: fixed;
-        bottom: calc(230px + 10px);
-        left: calc(50vw - 380px);
+        position: absolute;
+        bottom: calc(100% + 20px);
+        left: calc(50vw - 378px);
         width: 740px;
         max-width: 100%;
         height: 230px;
+        z-index: 12;
 
         @media (max-width: 767px) {
+            overflow: hidden;
             position: static;
             bottom: 100%;
-            width: calc(100vw - 80px);
             margin: 0 auto;
             height: auto;
             flex: 1;
@@ -408,10 +509,10 @@ onMount(async () => {
         align-items: center;
         justify-content: center;
         border-radius: 4px;
+        z-index: 12;
 
         @media (max-width: 767px) {
             display: flex;
-            margin-left: auto;
         }
     }
 
@@ -432,12 +533,20 @@ onMount(async () => {
             height: 30px;
             padding: 6px;
             background-color: var(--primary-color);
+            order: 1;
         }
     }
 
     .publish-quote {
         margin-bottom: 10px;
         position: relative;
+
+        &--reply {
+            .timeline-external {
+                border: 2px solid var(--primary-color);
+            }
+
+        }
 
         .timeline__date {
             &::after {
@@ -449,7 +558,52 @@ onMount(async () => {
             position: absolute;
             right: 15px;
             top: 20px;
-            z-index: 2;
+            z-index: 12;
+        }
+    }
+
+    .publish-length {
+        margin-right: auto;
+        color: var(--text-color-3);
+
+        @media (max-width: 767px) {
+           order: 2;
+            margin-right: 15px;
+            margin-left: auto;
+        }
+
+        &__current {
+            &.over {
+                font-weight: 600;
+                color: var(--danger-color);
+            }
+        }
+    }
+
+    .publish-form__label {
+        display: none;
+
+        @media (max-width: 767px) {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 10;
+        }
+    }
+
+    .publish-form__input {
+        z-index: 12;
+        position: relative;
+    }
+
+    .publish-form__submit {
+        z-index: 12;
+
+        @media (max-width: 767px) {
+            order: 3;
         }
     }
 </style>

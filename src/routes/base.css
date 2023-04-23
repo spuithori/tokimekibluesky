@@ -1,5 +1,5 @@
 :root {
-    --font-body: 'Noto Sans JP', sans-serif;
+    --font-body: 'Noto Sans JP', 'Noto Color Emoji', sans-serif;
 
     --color-theme-1: #ED7D95;
     --color-theme-2: #E7D600;
@@ -180,6 +180,7 @@ h1 {
 p {
     line-height: 1.5;
     word-break: break-all;
+    overflow-wrap: anywhere;
 }
 
 a {

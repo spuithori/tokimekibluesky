@@ -22,3 +22,15 @@
 .block-link:hover {
     text-decoration: none;
 }
+
+.primary-color {
+    color: var(--primary-color);
+}
+
+.infinite-nomore {
+    margin-top: 15px;
+}
+
+.mb10 {
+    margin-bottom: 10px;
+}

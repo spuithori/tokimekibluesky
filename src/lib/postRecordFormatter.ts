@@ -1,42 +1,42 @@
 export function postRecordFormatter(record: object) {
     const text = record.text;
-    let entities = record.entities;
+    const textBytesArray = new TextEncoder().encode(text);
+    let facets = record.facets;
     let textArray = [];
 
-    if (!record.entities?.length) {
+    if (!record.facets?.length) {
         return [{
             type: 'text',
             content: record.text
         }];
     }
 
-    entities.sort((a, b) => a.index.start - b.index.start);
+    facets.sort((a, b) => a.index.byteStart - b.index.byteEnd);
 
     let cursor = 0;
-    for (const entity of entities) {
-        const typed = text.slice(entity.index.start, entity.index.end);
-        let plain = text.slice(cursor, entity.index.end);
-        plain = plain.replace(typed, '');
+    for (const facet of facets) {
+        const typed = textBytesArray.slice(facet.index.byteStart, facet.index.byteEnd);
+        let plain = textBytesArray.slice(cursor, facet.index.byteStart);
 
         const plainObj = {
             type: 'text',
-            content: plain,
+            content: new TextDecoder().decode(plain),
         }
         const typedObj = {
-            type: entity.type,
-            content: typed,
-            url: entity.value,
+            type: facet.features[0].$type,
+            content: new TextDecoder().decode(typed),
+            url: facet.features[0].uri || facet.features[0].did,
         };
 
         textArray.push(plainObj, typedObj)
 
-        cursor = entity.index.end;
+        cursor = facet.index.byteEnd;
     }
 
-    if (cursor < text.length) {
+    if (cursor < textBytesArray.length) {
         textArray.push({
             type: 'text',
-            content: text.slice(cursor),
+            content:  new TextDecoder().decode(textBytesArray.slice(cursor)),
         })
     }
 

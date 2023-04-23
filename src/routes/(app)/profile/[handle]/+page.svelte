@@ -15,7 +15,7 @@ profile = load();
 </script>
 
 <svelte:head>
-  <title>{data.params.handle} - TokimekiBluesky</title>
+  <title>{data.params.handle} - TOKIMEKI Bluesky</title>
 </svelte:head>
 
 <div class="user-timeline">

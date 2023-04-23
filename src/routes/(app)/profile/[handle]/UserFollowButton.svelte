@@ -35,12 +35,9 @@
       follow = async function () {
           isDisabled = true;
           await $agent.agent.api.app.bsky.graph.follow.create(
-              { did: $agent.did() },
+              { repo: $agent.did() },
               {
-                  subject: {
-                      did: user.did,
-                      declarationCid: user.declaration.cid,
-                  },
+                  subject: user.did,
                   createdAt: new Date().toISOString(),
               },
           );
@@ -50,7 +47,7 @@
       unfollow = async function () {
           isDisabled = true;
           await $agent.agent.api.app.bsky.graph.follow.delete({
-              did: $agent.did(),
+              repo: $agent.did(),
               rkey: rkey,
               },
           );
