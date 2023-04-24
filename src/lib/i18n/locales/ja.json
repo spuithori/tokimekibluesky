@@ -91,5 +91,10 @@
   "images_uploading": "画像アップロード中",
   "images_upload_success": "画像のアップロードに成功しました",
   "images_upload_failed": "画像のアップロードに失敗しました",
-  "donation": "寄付"
+  "donation": "寄付",
+  "muting_this_user": "このユーザーをミュートしています",
+  "mute_user": "ミュートする",
+  "unmute_user": "ミュートを解除する",
+  "copy_did": "DIDをコピー",
+  "success_copy_did": "クリップボードにDIDをコピーしました。"
 }

@@ -91,5 +91,10 @@
   "images_uploading": "영상 올리는 중",
   "images_upload_success": "영상 올리기를 성공했습니다.",
   "images_upload_failed": "영상 올리기를 실패했습니다.",
-  "donation": "후원"
+  "donation": "후원",
+  "muting_this_user": "You have muted this user",
+  "mute_user": "Mute",
+  "unmute_user": "Unmute",
+  "copy_did": "Copy DID",
+  "success_copy_did": "DID copied to clipboard."
 }

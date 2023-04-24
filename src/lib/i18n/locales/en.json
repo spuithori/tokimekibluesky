@@ -91,5 +91,10 @@
   "images_uploading": "Images uploading",
   "images_upload_success": "Images upload successful.",
   "images_upload_failed": "Images upload failed.",
-  "donation": "Donate"
+  "donation": "Donate",
+  "muting_this_user": "You have muted this user",
+  "mute_user": "Mute",
+  "unmute_user": "Unmute",
+  "copy_did": "Copy DID",
+  "success_copy_did": "DID copied to clipboard."
 }
