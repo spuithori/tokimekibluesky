@@ -17,6 +17,7 @@
     import toast from "svelte-french-toast";
     import ProfileCard from "./ProfileCard.svelte";
     import Avatar from "./Avatar.svelte";
+    import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
@@ -32,7 +33,6 @@
     let isMenuOpen = false;
     let myVoteCheck: boolean = typeof data.post.viewer?.like === 'string';
     let isLikeProcessed: boolean = false;
-    let isProfileShown = false;
     /* const embedServices = [
         {
             'service': Spotify,
@@ -220,27 +220,6 @@
             return false;
         }
     }
-
-    let avatarMouseOverTimeId;
-    async function handleAvatarMouseOver() {
-        if (avatarMouseOverTimeId) {
-            clearTimeout(avatarMouseOverTimeId);
-        }
-
-        avatarMouseOverTimeId = setTimeout(() => {
-            isProfileShown = true;
-        }, 750)
-    }
-
-    async function handleAvatarMouseLeave() {
-        if (avatarMouseOverTimeId) {
-            clearTimeout(avatarMouseOverTimeId);
-        }
-
-        avatarMouseOverTimeId = setTimeout(() => {
-            isProfileShown = false;
-        }, 750)
-    }
 </script>
 
 <article class="timeline__item"
@@ -248,12 +227,18 @@
          class:timeline__item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}>
   <div class="timeline-repost-messages">
     {#if (isReasonRepost(data.reason))}
-      <p class="timeline-repost-message"><a href="/profile/{data.reason.by.handle}">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle }})}</a></p>
+        <p class="timeline-repost-message">
+          <ProfileCardWrapper handle="{data.reason.by.handle}">
+            <a href="/profile/{data.reason.by.handle}">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle }})}</a>
+          </ProfileCardWrapper>
+        </p>
     {/if}
 
     {#if (data.reply)}
       <p class="timeline-repost-message">
-        <a href="/profile/{data.reply.parent.author.handle}">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle }})}</a>
+        <ProfileCardWrapper handle="{data.reply.parent.author.handle}">
+          <a href="/profile/{data.reply.parent.author.handle}">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle }})}</a>
+        </ProfileCardWrapper>
 
         {#if (data.reply.parent.author.did === $agent.did())}
           <span class="timeline-repost-message__you">{$_('you')}</span>
@@ -295,7 +280,9 @@
               <span>{item.text}</span>
             {:then handle}
               {#if handle}
-                <a href="/profile/{handle}">{item.text}</a>
+                <ProfileCardWrapper handle="{handle}">
+                  <a href="/profile/{handle}">{item.text}</a>
+                </ProfileCardWrapper>
               {:else}
                 {item.text}
               {/if}

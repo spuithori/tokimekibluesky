@@ -109,8 +109,13 @@
     position: relative;
 }
 
+.timeline-repost-messages {
+    &:has(*) {
+        margin-bottom: 15px;
+    }
+}
+
 .timeline-repost-message {
-    font-weight: 600;
     font-size: 14px;
     letter-spacing: .025em;
     line-height: 1.5;
@@ -118,6 +123,7 @@
 
     a {
         color: inherit;
+        font-weight: 600;
     }
 
     &__you {
@@ -128,10 +134,6 @@
         padding: 2px 4px;
         margin-left: 5px;
     }
-}
-
-.timeline-repost-message:last-child {
-    margin-bottom: 15px;
 }
 
 .timeline-repost-message::before {

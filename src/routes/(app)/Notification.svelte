@@ -7,6 +7,7 @@
     import InfiniteLoading from 'svelte-infinite-loading';
     import About from "./About.svelte";
     import PushSettings from "./PushSettings.svelte";
+    import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
 
     let notifications: AppBskyNotificationListNotifications.Notification[] = [];
     let cursor = '';
@@ -150,7 +151,13 @@
     {#each notifications as item}
       {#if (AppBskyFeedLike.isRecord(item.record) && (filter === 'all' || filter === 'like'))}
         <article class="notifications-item notifications-item--like">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a  href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('liked_your_post')}</h2>
+          <h2 class="notifications-item__title">
+            <span class="notifications-item__name">
+              <ProfileCardWrapper handle="{item.author.handle}">
+                <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+              </ProfileCardWrapper>
+            </span> {$_('liked_your_post')}
+          </h2>
 
           {#if (item.feed)}
             <p class="notifications-item__content">{item.feed.record.text}</p>
@@ -158,7 +165,13 @@
         </article>
       {:else if (AppBskyFeedRepost.isRecord(item.record) && (filter === 'all' || filter === 'repost'))}
         <article class="notifications-item notifications-item--repost">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('reposted_your_post')}</h2>
+          <h2 class="notifications-item__title">
+             <span class="notifications-item__name">
+              <ProfileCardWrapper handle="{item.author.handle}">
+                <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+              </ProfileCardWrapper>
+            </span> {$_('reposted_your_post')}
+          </h2>
 
           {#if (item.feed)}
             <p class="notifications-item__content">{item.feed.record.text}</p>
@@ -166,7 +179,13 @@
         </article>
       {:else if ((item.reason === 'quote' && typeof item.reasonSubject === 'string') && (filter === 'all' || filter === 'reply_mention_quote'))}
         <article class="notifications-item notifications-item--quote">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('quoted_your_post')}</h2>
+          <h2 class="notifications-item__title">
+            <span class="notifications-item__name">
+              <ProfileCardWrapper handle="{item.author.handle}">
+                <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+              </ProfileCardWrapper>
+            </span> {$_('quoted_your_post')}
+          </h2>
 
           {#if (AppBskyFeedPost.isRecord(item.record))}
             <p class="notifications-item__content">{item.record.text}</p>
@@ -179,7 +198,12 @@
       {:else if ((item.reason === 'reply' && AppBskyFeedPost.isRecord(item.record)) && (filter === 'all' || filter === 'reply_mention_quote'))}
         <article class="notifications-item notifications-item--reply">
           <div class="notifications-item__heading">
-            <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('replied_your_post')}・<a href="/profile/{item.author.handle}/post/{item.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a></h2>
+            <h2 class="notifications-item__title">
+              <span class="notifications-item__name">
+                <ProfileCardWrapper handle="{item.author.handle}">
+                  <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+                </ProfileCardWrapper>
+              </span> {$_('replied_your_post')}・<a href="/profile/{item.author.handle}/post/{item.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a></h2>
 
             <div class="notifications-item-buttons">
               <button class="notifications-item-button" on:click={() => {$replyRef = item.uri}} aria-label="返信"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="14" viewBox="0 0 15 14">
@@ -192,14 +216,25 @@
         </article>
       {:else if ((item.reason === 'mention' && AppBskyFeedPost.isRecord(item.record)) && (filter === 'all' || filter === 'reply_mention_quote'))}
         <article class="notifications-item notifications-item--reply">
-          <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('mentioned_your_post')}</h2>
+          <h2 class="notifications-item__title">
+            <span class="notifications-item__name">
+              <ProfileCardWrapper handle="{item.author.handle}">
+                <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+              </ProfileCardWrapper>
+          </span> {$_('mentioned_your_post')}</h2>
 
           <p class="notifications-item__content">{item.record.text}</p>
         </article>
       {:else if (item.reason === 'follow' && (filter === 'all' || filter === 'follow'))}
         <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
           <div class="notifications-item__contents">
-            <h2 class="notifications-item__title"><span class="notifications-item__name"><a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a></span> {$_('followed_you')}</h2>
+            <h2 class="notifications-item__title">
+              <span class="notifications-item__name">
+                <ProfileCardWrapper handle="{item.author.handle}">
+                  <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+              </ProfileCardWrapper>
+              </span> {$_('followed_you')}
+            </h2>
 
             {#if (filter === 'follow' && item.author.description)}
               <p class="notifications-item__description">{item.author.description}</p>

@@ -57,9 +57,10 @@
 
 <style lang="postcss">
   .profile-card {
+      font-weight: initial;
       position: absolute;
       left: 0;
-      top: calc(100% + 15px);
+      top: calc(100% + 10px);
       background-color: var(--bg-color-1);
       box-shadow: 0 0 12px rgba(0, 0, 0, .08);
       padding: 20px;
