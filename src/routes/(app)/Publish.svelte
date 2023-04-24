@@ -307,6 +307,18 @@ function putActorSuggestion(actor: string) {
     }
 }
 
+function handlePaste(e) {
+    if (e.target === publishArea) {
+        const items = e.clipboardData.items;
+
+        for (const item of items) {
+            if (item.type === 'image/png' || item.type === 'image/jpeg') {
+                pond.addFile(item.getAsFile());
+            }
+        }
+    }
+}
+
 onMount(async () => {
     if ($sharedText) {
         await goto('/');
@@ -415,6 +427,7 @@ onMount(async () => {
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
+<svelte:document on:paste|preventDefault={handlePaste} />
 
 <section class="publish-group"
          class:publish-group--expanded={isFocus}
@@ -587,6 +600,7 @@ onMount(async () => {
             {name}
             allowMultiple={true}
             allowReorder={true}
+            allowPaste={false}
             maxFiles={4}
             maxParallelUploads={4}
             imageResizeTargetWidth={2000}
