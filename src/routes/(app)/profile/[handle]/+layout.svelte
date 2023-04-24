@@ -121,6 +121,18 @@
       {/if}
     </div>
 
+    {#if (profile.labels?.length)}
+      <dl class="profile-reported">
+        <dt class="profile-reported__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="19.999" viewBox="0 0 20 19.999">
+          <path id="exclamation-solid" d="M2.93,17.07a10,10,0,1,1,14.142,0,10,10,0,0,1-14.142,0ZM9,5v6h2V5Zm0,8v2h2V13Z" transform="translate(0)" fill="#ffffff"/>
+        </svg>{$_('reporting_this_user')}: </dt>
+
+        {#each profile.labels as label}
+          <dd class="profile-reported__content">{$_(label.val)}</dd>
+        {/each}
+      </dl>
+    {/if}
+
     {#if (profile.viewer?.muted)}
       <p class="profile-muted">{$_('muting_this_user')}</p>
     {/if}
@@ -449,5 +461,44 @@
         margin-bottom: 15px;
         border-radius: 6px;
         border: 1px solid var(--border-color-1);
+    }
+
+    .profile-reported {
+        background-color: var(--danger-color);
+        color: #fff;
+        font-weight: 600;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        display: flex;
+        gap: 0 5px;
+        font-size: 18px;
+
+        @media (max-width: 767px) {
+            font-size: 15px;
+            display: block;
+        }
+
+        &__name {
+            display: flex;
+            align-items: center;
+            gap: 0 4px;
+            white-space: nowrap;
+
+            @media (max-width: 767px) {
+               white-space: normal;
+            }
+
+            svg {
+                margin-top: 2px;
+                flex-shrink: 0;
+            }
+        }
+
+        &__content {
+            @media (max-width: 767px) {
+                margin-left: 25px;
+            }
+        }
     }
 </style>

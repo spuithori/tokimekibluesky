@@ -96,5 +96,7 @@
   "mute_user": "ミュートする",
   "unmute_user": "ミュートを解除する",
   "copy_did": "DIDをコピー",
-  "success_copy_did": "クリップボードにDIDをコピーしました。"
+  "success_copy_did": "クリップボードにDIDをコピーしました。",
+  "reporting_this_user": "このユーザーは次の報告がされています",
+  "impersonation": "なりすまし"
 }
