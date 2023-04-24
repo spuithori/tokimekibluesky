@@ -178,6 +178,7 @@
     font-size: 14px;
     margin-bottom: 6px;
     margin-top: 6px;
+    padding-right: 35px;
 }
 
 .timeline__user {
@@ -470,5 +471,13 @@
 .hide-reply {
     .timeline__item--reply {
         display: none;
+    }
+}
+
+.media-content {
+    .timeline-repost-message {
+        &::before {
+            content: none;
+        }
     }
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
-import {afterUpdate, onMount, tick} from 'svelte';
-import { agent, timeline, quotePost, replyRef } from '$lib/stores';
+import { onMount } from 'svelte';
+import { agent, timeline, quotePost, replyRef, sharedText } from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -18,9 +18,10 @@ import {
     AppBskyEmbedImages,
     AppBskyEmbedRecord,
     AppBskyEmbedRecordWithMedia,
-    AppBskyFeedDefs
+    AppBskyFeedDefs, AppBskyEmbedExternal
 } from '@atproto/api';
 import toast from 'svelte-french-toast'
+import { goto } from '$app/navigation';
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -35,30 +36,84 @@ let isPublishEnabled = false;
 let files: any[] = [];
 let pond: any;
 let name = 'filepond';
-let isUploadShown = false;
 let isFocus = false;
 let publishArea: HTMLTextAreaElement;
 let publishButtonText = $_('publish_button_send');
+let timer;
+let links: string[] = [];
+let externalImageBlob: Blob;
+let searchActors = [];
 
-let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | undefined;
+type BeforeUploadImage = {
+    image: Blob | File,
+    id: string,
+}
+let images: BeforeUploadImage[] = [];
+
+let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
 let embedImages: AppBskyEmbedImages.Main = {
     $type: 'app.bsky.embed.images',
     images: [],
 };
 let embedRecord: AppBskyEmbedRecord.Main;
 let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
+let embedExternal: AppBskyEmbedExternal.Main | undefined;
 
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: {
     isPublishEnabled = publishContentLength > 300;
 }
 
-const publishKeypress = (e: { keyCode: number; altKey: any; }) => {
-    if (e.keyCode === 13 && e.altKey) publish();
+function getActorTypeAhead() {
+    const front = publishContent.slice(0, publishArea.selectionStart);
+    const splitted = front.split(/[ \n]/g);
+    const found = splitted ? splitted[splitted.length - 1].match(/@[^ ]*/g) : '';
+
+    return found ? found[found.length - 1] : null;
+}
+
+function onPublishContentChange() {
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+        detectRichText(publishContent)
+            .then(result => {
+                links = [];
+
+                if (result.facets) {
+                    result.facets.forEach(facet => {
+                        if (facet.features && facet.features[0]['$type'] === 'app.bsky.richtext.facet#link' && !links.includes(facet.features[0].uri)) {
+                            links.push(facet.features[0].uri);
+                            links = links;
+                        }
+                    })
+                }
+            });
+
+        const front = publishContent.slice(0, publishArea.selectionStart);
+        const splitted = front.split(/[ \n]/g);
+        const found = splitted ? splitted[splitted.length - 1].match(/@[^ ]*/g) : '';
+
+        const mention = getActorTypeAhead();
+        if (mention) {
+            const res = await $agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: mention.slice(1), limit: 4})
+            searchActors = res.data.actors;
+
+            console.log(searchActors)
+        } else {
+            searchActors = [];
+        }
+    }, 500)
+}
+
+const publishKeypress = (e: { keyCode: number; ctrlKey: any; }) => {
+    if (e.keyCode === 13 && e.ctrlKey) publish();
 };
 
-function uploadShownToggle() {
-    isUploadShown = isUploadShown !== true;
+async function detectRichText(text) {
+    const rt = new RichText({text: text});
+    await rt.detectFacets($agent.agent);
+
+    return rt;
 }
 
 function uploadContextOpen() {
@@ -97,31 +152,38 @@ async function onFileSelected(file: any, output: any) {
         console.log('デカすぎ')
     }
 
-    const res = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
+    /* const res = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
         encoding: 'image/jpeg',
-    });
+    }); */
 
-    embedImages.images.push({
+    /* embedImages.images.push({
        image: res.data.blob,
        alt: '',
        id: file.id
     });
-    embedImages = embedImages;
+    embedImages = embedImages; */
 
-    console.log(embedImages)
+    images.push({
+        image: image,
+        id: file.id,
+    });
+    images = images;
 
-    isPublishEnabled = !res.success;
-
-    if (res.success) {
-        publishButtonText = $_('publish_button_send');
-    }
+    isPublishEnabled = false;
+    publishButtonText = $_('publish_button_send');
 }
 
 async function onFileDeleted(error: any, file: any) {
-    embedImages.images = embedImages.images.filter((image) => image.id !== file.id );
-    embedImages = embedImages;
+    images = images.filter((image) => image.id !== file.id );
+    images = images;
+}
 
-    console.log(embedImages)
+async function onFileReordered(files, origin, target) {
+    const sorter = files.map(file => file.id);
+    images.sort((a, b) => {
+        return sorter.indexOf(a.id) - sorter.indexOf(b.id);
+    });
+    images = images;
 }
 
 function handleKeydown(event: { key: string; }) {
@@ -147,8 +209,66 @@ async function getDidByHandle(did: string) {
     return data.data.did;
 }
 
+async function getReplyRefByUri() {
+    const res = await $agent.getFeed($replyRef);
+    let root = res.parent;
+    while (root.parent) {
+        root = root.parent;
+    }
+
+    $replyRef = {
+        parent: res.post,
+        root: root.post,
+    }
+}
+
+async function addLinkCard(uri: string) {
+    try {
+        const res = await fetch(`/api/get-ogp`, {
+            method: 'post',
+            body: JSON.stringify({
+                uri: uri,
+            })
+        });
+        const data = await res.formData();
+
+        embedExternal = {
+            $type: 'app.bsky.embed.external',
+            external: {
+                uri: uri,
+                title: data.get('title') as string,
+                description: data.get('description') as string,
+            }
+        }
+
+        const imageBlob = data.get('imageBlob');
+        if (imageBlob && typeof imageBlob !== 'string') {
+            externalImageBlob = imageBlob;
+
+            const res = await $agent.agent.api.com.atproto.repo.uploadBlob(imageBlob, {
+                encoding: 'image/jpeg',
+            });
+            embedExternal.external.thumb = res.data.blob;
+        }
+    } catch (e) {
+        toast.error('Error!' + e)
+    }
+}
+
+async function getImageDataFromBlob(blob) {
+    let reader = new FileReader();
+    reader.readAsDataURL(blob);
+
+    await new Promise(resolve => {
+        reader.onload = (() => {
+            resolve();
+        });
+    });
+    return reader.result;
+}
+
 $: {
-    if (!isUploadShown) {
+    if (!isFocus) {
         embedImages.images = [];
     }
 
@@ -169,25 +289,36 @@ $: {
         setTimeout(() => {
             publishArea.focus();
         }, 100)
+
+        console.log('replyRef: ' + $replyRef);
+    }
+
+    if (typeof $replyRef === 'string') {
+        getReplyRefByUri();
     }
 }
 
-afterUpdate(async() => {
-    if (typeof $replyRef === 'string') {
-        const res = await $agent.getFeed($replyRef);
-        let root = res.parent;
-        while (root.parent) {
-            root = root.parent;
-        }
-
-        $replyRef = {
-            parent: res.post,
-            root: root.post,
-        }
+function putActorSuggestion(actor: string) {
+    const current = getActorTypeAhead();
+    if (current) {
+        publishContent = publishContent.replace(current, '@' + actor);
+        searchActors = [];
+        publishArea.focus();
     }
-})
+}
 
 onMount(async () => {
+    if ($sharedText) {
+        await goto('/');
+        publishContent = $sharedText;
+        isFocus = true;
+
+        setTimeout(() => {
+            publishArea.focus();
+            sharedText.set('');
+        }, 100)
+    }
+
     publish = async function () {
         isTextareaEnabled = true;
         isPublishEnabled = true;
@@ -198,7 +329,33 @@ onMount(async () => {
             return false;
         }
 
-        let postData = [{ did: $agent.did() }, { text: publishContent, createdAt: new Date().toISOString() }];
+        if (images.length) {
+            const filePromises = images.map(image => {
+                return $agent.agent.api.com.atproto.repo.uploadBlob(image.image, {
+                    encoding: 'image/jpeg',
+                });
+            });
+
+
+            const promise = Promise.all(filePromises)
+                .then(results => results.forEach(result => {
+                    embedImages.images.push({
+                        image: result.data.blob,
+                        alt: '',
+                    });
+                }))
+                .catch(error => {
+                    isTextareaEnabled = false;
+                    isPublishEnabled = false;
+                    throw new Error(error);
+                })
+
+            await toast.promise(promise, {
+                loading: $_('images_uploading'),
+                success: $_('images_upload_success'),
+                error: $_('images_upload_failed')
+            })
+        }
 
         if (embedImages.images.length && $quotePost?.uri) {
             embedRecordWithMedia = {
@@ -215,6 +372,10 @@ onMount(async () => {
 
             if ($quotePost?.uri) {
                 embed = embedRecord;
+            }
+
+            if (embedExternal && !embedImages.images.length && !$quotePost?.uri) {
+                embed = embedExternal;
             }
         }
 
@@ -239,13 +400,14 @@ onMount(async () => {
 
         isTextareaEnabled = false;
         isPublishEnabled = false;
-        isUploadShown = false;
         isFocus = false;
         publishContent = '';
         quotePost.set(undefined);
         replyRef.set(undefined);
         embed = undefined;
+        images = [];
         embedImages.images = [];
+        embedExternal = undefined;
         const data = await $agent.getTimeline();
         timeline.set(data.feed);
     }
@@ -328,6 +490,32 @@ onMount(async () => {
         </div>
       {/if}
 
+      {#if (embedExternal && !images.length && !$quotePost?.uri)}
+        <div class="publish-quote publish-quote--external">
+          <button class="publish-quote__delete" on:click={() => {embedExternal = undefined}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
+          </svg>
+          </button>
+
+          <div class="timeline-external timeline-external--record">
+            <div class="timeline-external__image">
+              {#if (embedExternal.external.thumb && externalImageBlob)}
+                {#await (getImageDataFromBlob(externalImageBlob))}
+                {:then thumb}
+                  <img src="{thumb}" alt="">
+                {/await}
+              {/if}
+            </div>
+
+            <div class="timeline-external__content">
+              <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
+              <p class="timeline-external__description">{embedExternal.external.description}</p>
+              <p class="timeline-external__url">{embedExternal.external.uri}</p>
+            </div>
+          </div>
+        </div>
+      {/if}
+
       {#if ($replyRef && typeof $replyRef !== 'string')}
         <div class="publish-quote publish-quote--reply">
           <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined)}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
@@ -359,6 +547,24 @@ onMount(async () => {
         </div>
       {/if}
 
+      {#if (!embedExternal && links.length && !images.length && !$quotePost?.uri)}
+        <div class="link-card-registerer">
+          {#each links as link}
+              <button class="link-card-registerer-button" on:click={() => {addLinkCard(link)}}>{$_('link_card_embed')}: {link}</button>
+          {/each}
+        </div>
+      {/if}
+
+      {#if searchActors.length}
+        <div class="search-actor-list">
+          {#each searchActors as actor}
+            <button class="search-actor-item" on:click={() => {putActorSuggestion(actor.handle)}}>
+              @{actor.handle}
+            </button>
+          {/each}
+        </div>
+      {/if}
+
       <label class="publish-form__label" for="publishTextarea"></label>
       <textarea
         id="publishTextarea"
@@ -368,6 +574,7 @@ onMount(async () => {
         bind:value={publishContent}
         bind:this={publishArea}
         on:keydown={publishKeypress}
+        on:input={onPublishContentChange}
         placeholder="{$_('send_placeholder1')}&#13;{$_('send_placeholder2')}"
         autocomplete="nope"
     ></textarea>
@@ -379,6 +586,7 @@ onMount(async () => {
             bind:this={pond}
             {name}
             allowMultiple={true}
+            allowReorder={true}
             maxFiles={4}
             maxParallelUploads={4}
             imageResizeTargetWidth={2000}
@@ -390,6 +598,7 @@ onMount(async () => {
             onpreparefile={(file, output) => {onFileSelected(file, output)}}
             onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
             onaddfilestart={(file) => {onFileAdded(file)}}
+            onreorderfiles={(files, origin, target) => {onFileReordered(files, origin, target)}}
             credits={null}
             labelIdle="<span class='only-pc'>{$_('upload_image_label1')}<br>{$_('upload_image_label2')}</span>"
             labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
@@ -605,5 +814,49 @@ onMount(async () => {
         @media (max-width: 767px) {
             order: 3;
         }
+    }
+
+    .link-card-registerer {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .link-card-registerer-button {
+        border: 1px solid var(--border-color-1);
+        padding: 6px 10px;
+        font-size: 14px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        position: relative;
+        z-index: 11;
+        text-align: left;
+    }
+
+    .search-actor-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 11;
+
+        @media (max-width: 767px) {
+            flex-wrap: nowrap;
+            overflow: auto;
+        }
+    }
+
+    .search-actor-item {
+        background-color: var(--bg-color-2);
+        padding: 3px 6px;
+        color: var(--text-color-3);
+        font-size: 14px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color-1);
+        white-space: nowrap;
     }
 </style>

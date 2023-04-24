@@ -1,6 +1,8 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { agent } from '$lib/stores';
+    import { unsub } from '$lib/pushSubscription';
+
     export let accounts;
     export let currentAccount;
 
@@ -12,10 +14,11 @@
         localStorage.setItem('accounts', JSON.stringify(accounts));
     }
 
-    function accountSwitch(index) {
+    async function accountSwitch(index) {
         currentAccount = index;
         localStorage.setItem('currentAccount', String(currentAccount));
-        location.reload()
+        await unsub();
+        location.reload();
     }
 
     function handleKeydown(event) {

@@ -9,6 +9,8 @@
     let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
     let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
     let service = accounts[currentAccount]?.service || 'https://bsky.social';
+    import { pwaInfo } from 'virtual:pwa-info';
+    import { onMount } from 'svelte';
 
     if (currentAccount < 0) {
         currentAccount = 0;
@@ -39,6 +41,25 @@
             errorMessage = e.message;
         }
     }
+
+    onMount(async() => {
+        if (pwaInfo) {
+            const { registerSW } = await import('virtual:pwa-register')
+            registerSW({
+                immediate: true,
+                onRegistered(r) {
+                    r && setInterval(() => {
+                        r.update()
+                    }, 20000)
+
+                    console.log(`SW Registered`)
+                },
+                onRegisterError(error) {
+                    console.log('SW registration error', error)
+                }
+            })
+        }
+    })
 </script>
 
 <svelte:head>
@@ -108,7 +129,8 @@
 
   .login-wrap {
       height: 500px;
-      width: 400px;
+      width: 100%;
+      max-width: 400px;
       background-color: rgba(255, 255, 255, .85);
       padding: 30px;
       display: flex;

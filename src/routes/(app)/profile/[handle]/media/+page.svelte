@@ -54,8 +54,6 @@
 </script>
 
 <div class="timeline">
-  <p class="mb10">注: 試験的機能です。 Experimental feature.</p>
-
   <div class="media-list">
     {#each media as item}
       <MediaTimelineItem item={item}></MediaTimelineItem>

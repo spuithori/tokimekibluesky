@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
   import { agent, isLogin, theme, nonoto, isDarkMode, service } from '$lib/stores';
@@ -9,10 +10,9 @@
   import { inject } from '@vercel/analytics';
   import Publish from "./Publish.svelte";
   import { pwaInfo } from 'virtual:pwa-info';
-  import {onMount} from 'svelte';
-  import toast, {Toaster} from 'svelte-french-toast'
-
-  $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : ''
+  import { onMount } from 'svelte';
+  import toast, { Toaster } from 'svelte-french-toast';
+  import viewPortSetting from '$lib/viewport';
 
   inject({ mode: dev ? 'development' : 'production' });
 
@@ -61,14 +61,12 @@
               }
           })
       }
-  })
+  });
+
+  viewPortSetting();
 </script>
 
-<svelte:head>
-  {@html webManifest}
-</svelte:head>
-
-<div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme}">
+<div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme} {$_('dir', {default: 'ltr'})}" dir="{$_('dir', {default: 'ltr'})}">
   <Header />
 
   <main class="main">

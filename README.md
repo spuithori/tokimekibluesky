@@ -17,6 +17,6 @@ Supporting multiple PDS servers.
 - [x] Upload images
 - [x] Quote post
 - [x] Mention
-- [ ] Create post with entities formatting
+- [x] Create post with entities formatting
 - [x] Update profile
 - [ ] Create account

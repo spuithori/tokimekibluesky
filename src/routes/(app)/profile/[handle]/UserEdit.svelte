@@ -263,10 +263,10 @@
       place-items: center;
 
       &__content {
-          width: max-content;
+          width: calc(100% - 20px);
           height: max-content;
           max-height: 90vh;
-          max-width: calc(100% - 20px);
+          max-width: max-content;
           overflow: auto;
           overscroll-behavior-y: none;
           background-color: var(--bg-color-1);
@@ -284,10 +284,13 @@
   .input-group {
       input {
           border: 1px solid var(--border-color-1);
+          color: var(--text-color-1);
+          background-color: var(--bg-color-1);
       }
 
       textarea {
           resize: none;
+          color: var(--text-color-1);
       }
   }
 

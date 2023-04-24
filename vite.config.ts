@@ -12,8 +12,11 @@ export default defineConfig({
 	plugins: [
 		sveltekit(),
 		SvelteKitPWA({
+			srcDir: './src',
+			mode: 'production',
+			strategies: 'injectManifest',
+			filename: 'sw.ts',
 			workbox: {
-				mode: 'production',
 				runtimeCaching: [
 					{
 						urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -64,7 +67,16 @@ export default defineConfig({
 						sizes: '512x512',
 						type: 'image/png'
 					}
-				]
+				],
+				share_target: {
+					"action": "/shared",
+					"method": "GET",
+					"params": {
+						"title": "title",
+						"text": "text",
+						"url": "url"
+					}
+				}
 			},
 			devOptions: {
 				enabled: true,

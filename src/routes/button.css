@@ -110,5 +110,13 @@ button {
         min-width: 0;
         padding: 0 10px;
         font-size: 13px;
+
+        &--sm {
+            min-width: 100px;
+        }
+
+        &--login {
+            min-width: 150px;
+        }
     }
 }
