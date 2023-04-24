@@ -102,7 +102,7 @@ function onPublishContentChange() {
         } else {
             searchActors = [];
         }
-    }, 500)
+    }, 250)
 }
 
 const publishKeypress = (e: { keyCode: number; ctrlKey: any; }) => {
@@ -418,6 +418,8 @@ onMount(async () => {
         replyRef.set(undefined);
         embed = undefined;
         images = [];
+        links = [];
+        searchActors = [];
         embedImages.images = [];
         embedExternal = undefined;
         const data = await $agent.getTimeline();
