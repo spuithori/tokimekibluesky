@@ -427,7 +427,7 @@ onMount(async () => {
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
-<svelte:document on:paste|preventDefault={handlePaste} />
+<svelte:document on:paste={handlePaste} />
 
 <section class="publish-group"
          class:publish-group--expanded={isFocus}
