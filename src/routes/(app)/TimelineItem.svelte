@@ -15,6 +15,8 @@
     import Spotify from './Spotify.svelte';
     import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedImages, AppBskyFeedPost, AppBskyFeedDefs, RichText, RichTextSegment, AppBskyEmbedRecordWithMedia, AppBskyFeedGetLikes } from '@atproto/api'
     import toast from "svelte-french-toast";
+    import ProfileCard from "./ProfileCard.svelte";
+    import Avatar from "./Avatar.svelte";
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
@@ -30,6 +32,7 @@
     let isMenuOpen = false;
     let myVoteCheck: boolean = typeof data.post.viewer?.like === 'string';
     let isLikeProcessed: boolean = false;
+    let isProfileShown = false;
     /* const embedServices = [
         {
             'service': Spotify,
@@ -217,6 +220,27 @@
             return false;
         }
     }
+
+    let avatarMouseOverTimeId;
+    async function handleAvatarMouseOver() {
+        if (avatarMouseOverTimeId) {
+            clearTimeout(avatarMouseOverTimeId);
+        }
+
+        avatarMouseOverTimeId = setTimeout(() => {
+            isProfileShown = true;
+        }, 750)
+    }
+
+    async function handleAvatarMouseLeave() {
+        if (avatarMouseOverTimeId) {
+            clearTimeout(avatarMouseOverTimeId);
+        }
+
+        avatarMouseOverTimeId = setTimeout(() => {
+            isProfileShown = false;
+        }, 750)
+    }
 </script>
 
 <article class="timeline__item"
@@ -246,11 +270,7 @@
 
   <div class="timeline__column">
     <div class="timeline__image">
-      <a href="/profile/{ data.post.author.handle }">
-        {#if (data.post.author.avatar)}
-          <img src="{ data.post.author.avatar }" alt="" loading="lazy">
-        {/if}
-      </a>
+      <Avatar href="/profile/{ data.post.author.handle }" avatar={data.post.author.avatar} handle={data.post.author.handle}></Avatar>
     </div>
 
     <div class="timeline__content">
@@ -351,11 +371,7 @@
 
       {#if (AppBskyEmbedRecord.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record)) }
         <div class="timeline-external timeline-external--record">
-          <div class="timeline-external__image timeline-external__image--round">
-            {#if (data.post.embed.record.author.avatar)}
-              <img src="{data.post.embed.record.author.avatar}" alt="">
-            {/if}
-          </div>
+          <Avatar href="/profile/{ data.post.embed.record.author.handle }" avatar={data.post.embed.record.author.avatar} handle={data.post.embed.record.author.handle}></Avatar>
 
           <div class="timeline-external__content">
             <div class="timeline__meta">

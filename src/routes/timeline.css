@@ -187,22 +187,7 @@
 }
 
 .timeline__image {
-    background-color: var(--primary-color);
-    aspect-ratio: 1 / 1;
-    border-radius: 50%;
-    overflow: hidden;
-    position: relative;
-}
 
-.timeline__image a::before {
-    content: '';
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 30px;
 }
 
 .timeline__column {
@@ -219,12 +204,6 @@
 .timeline__text {
     white-space: pre-line;
     line-height: 1.75;
-}
-
-.timeline__image img {
-    width: 100%;
-    height: auto;
-    vertical-align: middle;
 }
 
 .timeline__delete {

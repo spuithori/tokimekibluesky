@@ -1,6 +1,7 @@
 <script lang="ts">
   import UserFollowButton from "./UserFollowButton.svelte";
   import {agent} from "$lib/stores";
+  import Avatar from "../../Avatar.svelte";
 
   export let user;
 
@@ -8,13 +9,7 @@
 
 <div class="user-item">
   <article class="user-item__user">
-    <div class="user-item__avatar">
-      <a href="/profile/{user.handle}">
-        {#if (user.avatar)}
-          <img src="{user.avatar}" alt="">
-        {/if}
-      </a>
-    </div>
+    <Avatar href="/profile/{ user.handle }" avatar={user.avatar} handle={user.handle}></Avatar>
 
     <div class="user-item__content">
       <h3 class="user-item__title">{user.displayName || user.handle}</h3>
