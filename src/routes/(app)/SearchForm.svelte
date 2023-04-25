@@ -19,6 +19,7 @@
     .search {
         width: 100%;
         position: relative;
+        margin-bottom: 20px;
 
         form {
             display: flex;

@@ -1,5 +1,6 @@
 import type {AppBskyFeedGetTimeline, AtpAgent} from '@atproto/api';
 import toast from "svelte-french-toast";
+import {AppBskyEmbedImages} from "@atproto/api";
 
 export class Agent {
     public agent: AtpAgent;
@@ -23,6 +24,17 @@ export class Agent {
             console.error(e);
             return undefined;
         }
+    }
+
+    async getMediaTimeline(limit: number = 25, cursor: string = ''): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
+        const data = await this.getTimeline(limit, cursor);
+
+        const filtered = data.feed.filter(item => {
+            return item.post.embed && AppBskyEmbedImages.isView(item.post.embed);
+        });
+
+        data.feed = filtered;
+        return data;
     }
 
     async setVote(cid: string, uri: string, likeUri = '') {

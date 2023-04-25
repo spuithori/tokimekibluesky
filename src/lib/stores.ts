@@ -28,6 +28,8 @@ function createTimeline () {
 export const timeline = createTimeline();
 export const cursor = writable<string | undefined>('');
 
+export const timelineStyle = writable(localStorage.getItem('timelineStyle') || 'default');
+
 export const notificationCount = writable(0);
 
 export const notifications = writable<NotificationWithFeed[]>([]);

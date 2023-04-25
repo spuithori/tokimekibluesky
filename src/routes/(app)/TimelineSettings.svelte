@@ -89,17 +89,25 @@
   }
 
   .timeline-settings-toggle {
-      text-align: right;
+      text-align: center;
       background-color: var(--bg-color-1);
-      padding: 8px 16px;
+      padding: 8px 4px;
       font-size: 14px;
       border-radius: 6px;
       border: 1px solid var(--primary-color);
       color: var(--text-color-2);
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      justify-content: center;
+      gap: 3px;
       height: 40px;
+      width: 155px;
+      letter-spacing: -.05em;
+
+      svg {
+          width: 16px;
+          height: auto;
+      }
   }
 
   .timeline-settings-box {

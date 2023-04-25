@@ -1,47 +1,83 @@
 <script lang="ts">
     import { fade, scale } from 'svelte/transition';
     import TimelineItem from "./TimelineItem.svelte";
+    import {agent} from "$lib/stores";
+    import {AppBskyFeedDefs} from "@atproto/api";
+    import { Splide, SplideSlide } from '@splidejs/svelte-splide';
+    import '@splidejs/svelte-splide/css';
 
-    export let item;
+    export let data;
     let isOpen = false;
+
+    const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
+        return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
+    }
 
     function modalToggle() {
         isOpen = isOpen !== true;
     }
 </script>
 
-<div>
-  <div class="media-item">
-    <button on:click={modalToggle} aria-label="画像を拡大する">
-      <img src="{item.thumb}" alt="" loading="lazy">
+<div class="media-item" class:timeline__item--repost={isReasonRepost(data.reason)}
+     class:timeline__item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}>
+  <button on:click={modalToggle} aria-label="画像を拡大する">
+    <img src="{data.post.embed.images[0].thumb}" alt="" loading="lazy">
 
-      {#if (item.isRepost)}
-        <div class="media-item__is-repost">
-          <svg xmlns="http://www.w3.org/2000/svg" width="65.627" height="40.176" viewBox="0 0 65.627 40.176">
-            <path id="retweet" d="M42.418,43.116a1.089,1.089,0,0,1-1.06,1.06H9.544c-1.226,0-1.06-1.292-1.06-2.121V22.967H2.121A2.135,2.135,0,0,1,0,20.846a2.028,2.028,0,0,1,.5-1.36L11.1,6.761a2.174,2.174,0,0,1,3.249,0l10.6,12.725a2.025,2.025,0,0,1,.5,1.36,2.135,2.135,0,0,1-2.121,2.121H16.967V35.693H36.055a1.134,1.134,0,0,1,.829.365l5.3,6.363A1.335,1.335,0,0,1,42.418,43.116ZM63.627,29.33a2.028,2.028,0,0,1-.5,1.36l-10.6,12.725a2.114,2.114,0,0,1-3.249,0l-10.6-12.725a2.025,2.025,0,0,1-.5-1.36A2.135,2.135,0,0,1,40.3,27.209H46.66V14.484H27.572a1.057,1.057,0,0,1-.829-.4l-5.3-6.363a1.136,1.136,0,0,1-.231-.664A1.089,1.089,0,0,1,22.269,6H54.083c1.226,0,1.06,1.292,1.06,2.121V27.209h6.363A2.135,2.135,0,0,1,63.627,29.33Z" transform="translate(1 -5)" fill="#ffffff" stroke="var(--primary-color)" stroke-width="2"/>
-          </svg>
-        </div>
-      {/if}
-    </button>
-  </div>
+    {#if (data.post.embed.images.length > 1)}
+      <div class="media-item__count">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
+          <g id="グループ_88" data-name="グループ 88" transform="translate(-77 -224)">
+            <rect id="長方形_73" data-name="長方形 73" width="11" height="11" rx="1" transform="translate(80 224)" fill="#fff"/>
+            <rect id="長方形_74" data-name="長方形 74" width="2" height="11" rx="1" transform="translate(77 227)" fill="#fff"/>
+            <rect id="長方形_75" data-name="長方形 75" width="2" height="11" rx="1" transform="translate(77 238) rotate(-90)" fill="#fff"/>
+          </g>
+        </svg>
+        {data.post.embed.images.length}</div>
+    {/if}
 
-  {#if (isOpen)}
-    <div class="media-content-wrap" transition:fade="{{ duration: 300 }}">
-      <button on:click={modalToggle} class="media-content-close gclose gbtn" aria-label="Close" data-taborder="3"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" xml:space="preserve"><g><g><path d="M505.943,6.058c-8.077-8.077-21.172-8.077-29.249,0L6.058,476.693c-8.077,8.077-8.077,21.172,0,29.249C10.096,509.982,15.39,512,20.683,512c5.293,0,10.586-2.019,14.625-6.059L505.943,35.306C514.019,27.23,514.019,14.135,505.943,6.058z"></path></g></g><g><g><path d="M505.942,476.694L35.306,6.059c-8.076-8.077-21.172-8.077-29.248,0c-8.077,8.076-8.077,21.171,0,29.248l470.636,470.636c4.038,4.039,9.332,6.058,14.625,6.058c5.293,0,10.587-2.019,14.624-6.057C514.018,497.866,514.018,484.771,505.942,476.694z"></path></g></g></svg></button>
-      <button on:click={modalToggle} class="media-content-close-bg"></button>
+    {#if (data.isRepost)}
+      <div class="media-item__is-repost">
+        <svg xmlns="http://www.w3.org/2000/svg" width="65.627" height="40.176" viewBox="0 0 65.627 40.176">
+          <path id="retweet" d="M42.418,43.116a1.089,1.089,0,0,1-1.06,1.06H9.544c-1.226,0-1.06-1.292-1.06-2.121V22.967H2.121A2.135,2.135,0,0,1,0,20.846a2.028,2.028,0,0,1,.5-1.36L11.1,6.761a2.174,2.174,0,0,1,3.249,0l10.6,12.725a2.025,2.025,0,0,1,.5,1.36,2.135,2.135,0,0,1-2.121,2.121H16.967V35.693H36.055a1.134,1.134,0,0,1,.829.365l5.3,6.363A1.335,1.335,0,0,1,42.418,43.116ZM63.627,29.33a2.028,2.028,0,0,1-.5,1.36l-10.6,12.725a2.114,2.114,0,0,1-3.249,0l-10.6-12.725a2.025,2.025,0,0,1-.5-1.36A2.135,2.135,0,0,1,40.3,27.209H46.66V14.484H27.572a1.057,1.057,0,0,1-.829-.4l-5.3-6.363a1.136,1.136,0,0,1-.231-.664A1.089,1.089,0,0,1,22.269,6H54.083c1.226,0,1.06,1.292,1.06,2.121V27.209h6.363A2.135,2.135,0,0,1,63.627,29.33Z" transform="translate(1 -5)" fill="#ffffff" stroke="var(--primary-color)" stroke-width="2"/>
+        </svg>
+      </div>
+    {/if}
+  </button>
+</div>
 
-      <div class="media-content" transition:scale="{{duration: 350, opacity: 0.5, start: 0.8}}">
-        <div class="media-content__image">
-          <img src="{item.fullsize}" alt="">
-        </div>
+{#if (isOpen)}
+  <div class="media-content-wrap" transition:fade="{{ duration: 300 }}">
+    <button on:click={modalToggle} class="media-content-close gclose gbtn" aria-label="Close" data-taborder="3"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" xml:space="preserve"><g><g><path d="M505.943,6.058c-8.077-8.077-21.172-8.077-29.249,0L6.058,476.693c-8.077,8.077-8.077,21.172,0,29.249C10.096,509.982,15.39,512,20.683,512c5.293,0,10.586-2.019,14.625-6.059L505.943,35.306C514.019,27.23,514.019,14.135,505.943,6.058z"></path></g></g><g><g><path d="M505.942,476.694L35.306,6.059c-8.076-8.077-21.172-8.077-29.248,0c-8.077,8.076-8.077,21.171,0,29.248l470.636,470.636c4.038,4.039,9.332,6.058,14.625,6.058c5.293,0,10.587-2.019,14.624-6.057C514.018,497.866,514.018,484.771,505.942,476.694z"></path></g></g></svg></button>
+    <button on:click={modalToggle} class="media-content-close-bg"></button>
 
-        <div class="media-content__content">
-          <TimelineItem data={item.feed} isMedia={true}></TimelineItem>
-        </div>
+    <div class="media-content" transition:scale="{{duration: 350, opacity: 0.5, start: 0.8}}">
+      <div class="media-content__image">
+
+
+        {#if (data.post.embed.images.length > 1)}
+
+          <Splide options={ {
+              gap   : '20px',
+          } }>
+            {#each data.post.embed.images as image}
+              <SplideSlide>
+                <img src="{image.fullsize}" alt="">
+              </SplideSlide>
+            {/each}
+          </Splide>
+        {:else}
+          {#each data.post.embed.images as image}
+            <img src="{image.fullsize}" alt="">
+          {/each}
+        {/if}
+      </div>
+
+      <div class="media-content__content">
+        <TimelineItem data={data} isMedia={true}></TimelineItem>
       </div>
     </div>
-  {/if}
-</div>
+  </div>
+{/if}
 
 <style lang="postcss">
   .media-list {
@@ -100,6 +136,27 @@
           svg {
               width: 100%;
               height: auto;
+          }
+      }
+
+      &__count {
+          color: #fff;
+          background-color: rgba(0, 0, 0, .5);
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          font-size: 13px;
+          width: 40px;
+          height: 24px;
+          border-radius: 12px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+
+          svg {
+              transform: scale(.8);
           }
       }
 
@@ -196,7 +253,7 @@
 
       img {
           width: 100%;
-          height: max-content;
+          height: 100%;
           max-height: 80vh;
           object-fit: contain;
 

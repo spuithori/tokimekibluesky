@@ -22,30 +22,12 @@
 
         if (cursor) {
             for (const item of res.data.feed) {
-                feeds.push(item);
+                if (item.post.embed && AppBskyEmbedImages.isView(item.post.embed)) {
+                    feeds.push(item);
+                }
             }
             feeds = feeds;
 
-            for (const feed of feeds) {
-                if (feed.post.embed && AppBskyEmbedImages.isView(feed.post.embed)) {
-                    feed.post.embed.images.forEach(image => {
-                        image.pageUrl = '/profile/' + feed.post.author.handle + '/post/' + feed.post.uri.split('/').slice(-1)[0];
-
-                        image.feed = feed;
-
-                        if (isReasonRepost(feed.reason)) {
-                            image.isRepost = true;
-                        }
-                    })
-
-                    if ((!isReasonRepost(feed.reason) && data.params.handle !== $agent.agent.session.handle) || (data.params.handle === $agent.agent.session.handle)) {
-                        media = [...media, ...feed.post.embed.images];
-                    }
-                }
-            }
-
-            console.log(media)
-            feeds = [];
             loaded();
         } else {
             complete();
@@ -55,8 +37,8 @@
 
 <div class="timeline">
   <div class="media-list">
-    {#each media as item}
-      <MediaTimelineItem item={item}></MediaTimelineItem>
+    {#each feeds as data}
+      <MediaTimelineItem data={data}></MediaTimelineItem>
     {/each}
   </div>
 
