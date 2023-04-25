@@ -82,7 +82,7 @@
       <p>{errorMessage}</p>
     {/if}
 
-    <form action="#" on:submit={login}>
+    <div>
       <dl class="input-group">
         <dt class="input-group__name">
           <label for="service">Service</label>
@@ -114,9 +114,9 @@
       </dl>
 
       <div class="login-submit">
-        <button class="button button--login button--login-submit" type="submit">{$_('login')}</button>
+        <button class="button button--login button--login-submit" type="submit" on:click={login}>{$_('login')}</button>
       </div>
-    </form>
+    </div>
   </div>
 
   <div class="app-password-recommend">
