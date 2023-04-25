@@ -35,7 +35,7 @@
     }
 </script>
 
-<div class="timeline">
+<div class="timeline hide-repost">
   <div class="media-list">
     {#each feeds as data}
       <MediaTimelineItem data={data}></MediaTimelineItem>

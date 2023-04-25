@@ -1,0 +1,11 @@
+.hide-repost {
+    .media-item--repost {
+        display: none;
+    }
+}
+
+.hide-reply {
+    .media-item--reply {
+        display: none;
+    }
+}

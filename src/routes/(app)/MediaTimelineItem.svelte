@@ -18,8 +18,8 @@
     }
 </script>
 
-<div class="media-item" class:timeline__item--repost={isReasonRepost(data.reason)}
-     class:timeline__item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}>
+<div class="media-item" class:media-item--repost={isReasonRepost(data.reason)}
+     class:media-item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}>
   <button on:click={modalToggle} aria-label="画像を拡大する">
     <img src="{data.post.embed.images[0].thumb}" alt="" loading="lazy">
 
@@ -35,7 +35,7 @@
         {data.post.embed.images.length}</div>
     {/if}
 
-    {#if (data.isRepost)}
+    {#if (isReasonRepost(data.reason))}
       <div class="media-item__is-repost">
         <svg xmlns="http://www.w3.org/2000/svg" width="65.627" height="40.176" viewBox="0 0 65.627 40.176">
           <path id="retweet" d="M42.418,43.116a1.089,1.089,0,0,1-1.06,1.06H9.544c-1.226,0-1.06-1.292-1.06-2.121V22.967H2.121A2.135,2.135,0,0,1,0,20.846a2.028,2.028,0,0,1,.5-1.36L11.1,6.761a2.174,2.174,0,0,1,3.249,0l10.6,12.725a2.025,2.025,0,0,1,.5,1.36,2.135,2.135,0,0,1-2.121,2.121H16.967V35.693H36.055a1.134,1.134,0,0,1,.829.365l5.3,6.363A1.335,1.335,0,0,1,42.418,43.116ZM63.627,29.33a2.028,2.028,0,0,1-.5,1.36l-10.6,12.725a2.114,2.114,0,0,1-3.249,0l-10.6-12.725a2.025,2.025,0,0,1-.5-1.36A2.135,2.135,0,0,1,40.3,27.209H46.66V14.484H27.572a1.057,1.057,0,0,1-.829-.4l-5.3-6.363a1.136,1.136,0,0,1-.231-.664A1.089,1.089,0,0,1,22.269,6H54.083c1.226,0,1.06,1.292,1.06,2.121V27.209h6.363A2.135,2.135,0,0,1,63.627,29.33Z" transform="translate(1 -5)" fill="#ffffff" stroke="var(--primary-color)" stroke-width="2"/>
