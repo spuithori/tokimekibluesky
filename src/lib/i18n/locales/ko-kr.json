@@ -44,7 +44,7 @@
   "edit_banner": "배너 그림",
   "edit_display_name": "사용자 이름",
   "edit_description": "설명",
-  "edit_cancel_button": "취소하기",
+  "edit_cancel_button": "그만하기",
   "switch_account": "계정 바꾸기",
   "add_account": "계정 더하기",
   "current": "현재",
@@ -104,6 +104,6 @@
   "details": "더 보기",
   "url_app_password": "https://tokimekibluesky-docs.vercel.app/apppassword",
   "unfollow_button": "팔로우 그만하기",
-  "liked_users": "좋아요를 한 사용자",
-  "disable_algorithm": "Disable custom algorithm"
+  "liked_users": "좋아요를 누른 사용자",
+  "disable_algorithm": "사용자 지정 알고리듬 숨기기"
 }
