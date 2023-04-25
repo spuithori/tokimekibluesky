@@ -3,10 +3,8 @@
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
 	import { timeline, timelineStyle } from "$lib/stores";
-	import SearchForm from "./SearchForm.svelte";
 	import TimelineSettings from "./TimelineSettings.svelte";
 	import MediaTimeline from "./MediaTimeline.svelte";
-	import {is} from "date-fns/locale";
 
 	let isRefreshing = false;
 

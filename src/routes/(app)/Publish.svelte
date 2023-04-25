@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
 import { onMount } from 'svelte';
-import { agent, timeline, quotePost, replyRef, sharedText } from '$lib/stores';
+import { agent, timeline, quotePost, replyRef, sharedText, timelineStyle } from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -422,8 +422,8 @@ onMount(async () => {
         searchActors = [];
         embedImages.images = [];
         embedExternal = undefined;
-        const data = await $agent.getTimeline();
-        timeline.set(data.feed);
+        // const data = await $agent.getTimeline();
+        // timeline.set(data.feed);
     }
 })
 </script>

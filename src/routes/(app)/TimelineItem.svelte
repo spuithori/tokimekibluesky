@@ -32,7 +32,9 @@
     let isReplyOpen = false;
     let isMenuOpen = false;
     let myVoteCheck: boolean = typeof data.post.viewer?.like === 'string';
+    let myRepostCheck: boolean = typeof data.post.repost?.like === 'string';
     let isLikeProcessed: boolean = false;
+    let isRepostProcessed: boolean = false;
     /* const embedServices = [
         {
             'service': Spotify,
@@ -118,17 +120,51 @@
     }
 
     async function repost(cid: string, uri: string) {
-        await $agent.setRepost(cid, uri, data.post.viewer?.repost || '');
+        myRepostCheck = !myRepostCheck;
+        isRepostProcessed = true;
 
-        if (!isPrivate) {
-            const data = await $agent.getTimeline();
-            timeline.set(data.feed);
-            cursor.set(data.cursor);
+        if (myRepostCheck) {
+            data.post.repostCount = data.post.repostCount + 1;
         } else {
-            toast.success('ページをリロードしてリポスト操作を確認してください。')
+            data.post.repostCount = data.post.repostCount - 1;
         }
 
-        notificationCount.set(await $agent.getNotificationCount());
+        try {
+            const repost = await $agent.setRepost(cid, uri, data.post.viewer?.repost || '');
+
+            try {
+                const latest = await $agent.getFeed(data.post.uri);
+
+                isRepostProcessed = false;
+                data.post.repostCount = latest.post.repostCount;
+                data.post.viewer!.repost = repost?.uri || undefined;
+
+                timeline.update(function (tl) {
+                    tl.forEach(item => {
+                        if (item.post.uri === data.post.uri) {
+                            item.post.repostCount = latest.post.repostCount;
+                            item.post.viewer.repost = repost?.uri || undefined;
+                        }
+                    });
+                    return tl;
+                });
+            } catch(e) {
+                toast.error($_('failed_to_repost_after_reload'));
+                console.log(e)
+                isRepostProcessed = false;
+            }
+        } catch (e) {
+            toast.error($_('failed_to_repost'));
+            console.error(e);
+            myRepostCheck = !myRepostCheck;
+            isRepostProcessed = false;
+
+            if (myRepostCheck) {
+                data.post.repostCount = data.post.repostCount - 1;
+            } else {
+                data.post.repostCount = data.post.repostCount + 1;
+            }
+        }
     }
 
     async function translation() {
@@ -320,8 +356,8 @@
         </div>
 
         <div class="timeline-reaction__item timeline-reaction__item--repost">
-          <button class="timeline-reaction__icon" on:click="{() => repost(data.post.cid, data.post.uri)}" aria-label="リポスト">
-            {#if (data.post.viewer?.repost)}
+          <button class="timeline-reaction__icon" disabled="{isRepostProcessed}" on:click="{() => repost(data.post.cid, data.post.uri)}" aria-label="リポスト">
+            {#if (myRepostCheck || data.post.viewer?.repost)}
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="12" viewBox="0 0 20 12">
             <path id="retweet" d="M13.333,17.667A.342.342,0,0,1,13,18H3c-.385,0-.333-.406-.333-.667v-6h-2A.671.671,0,0,1,0,10.667a.638.638,0,0,1,.156-.427l3.333-4a.683.683,0,0,1,1.021,0l3.333,4A.636.636,0,0,1,8,10.667a.671.671,0,0,1-.667.667h-2v4h6a.356.356,0,0,1,.261.115l1.667,2A.42.42,0,0,1,13.333,17.667ZM20,13.333a.638.638,0,0,1-.156.427l-3.333,4a.664.664,0,0,1-1.021,0l-3.333-4A.636.636,0,0,1,12,13.333a.671.671,0,0,1,.667-.667h2v-4h-6a.332.332,0,0,1-.261-.125l-1.667-2a.357.357,0,0,1-.073-.209A.342.342,0,0,1,7,6H17c.385,0,.333.406.333.667v6h2A.671.671,0,0,1,20,13.333Z" transform="translate(0 -6)" fill="var(--primary-color)"/></svg>
             {:else}
