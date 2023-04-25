@@ -225,7 +225,7 @@
   .media-content {
       display: grid;
       grid-template-columns: auto 320px;
-      background-color: #fff;
+      background-color: var(--bg-color-1);
       padding: 40px;
       gap: 40px;
       border-radius: 10px;
