@@ -30,6 +30,10 @@ export const cursor = writable<string | undefined>('');
 
 export const timelineStyle = writable(localStorage.getItem('timelineStyle') || 'default');
 
+export const currentAlgorithm = writable(localStorage.getItem('currentAlgorithm') || '');
+
+export const disableAlgorithm = writable(localStorage.getItem('disableAlgorithm') || 'false');
+
 export const notificationCount = writable(0);
 
 export const notifications = writable<NotificationWithFeed[]>([]);

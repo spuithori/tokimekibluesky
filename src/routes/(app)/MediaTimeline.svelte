@@ -1,6 +1,6 @@
 <script lang="ts">
     import { agent, cursor } from '$lib/stores';
-    import { timeline, hideRepost, hideReply } from '$lib/stores';
+    import { timeline, hideRepost, hideReply, currentAlgorithm } from '$lib/stores';
     import InfiniteLoading from 'svelte-infinite-loading';
     import MediaTimelineItem from './MediaTimelineItem.svelte';
     import { afterUpdate } from 'svelte';
@@ -10,7 +10,7 @@
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         if (!isRefreshing) {
-            const data = await $agent.getMediaTimeline(25, $cursor);
+            const data = await $agent.getMediaTimeline({limit: 25, cursor: $cursor, algorithm: $currentAlgorithm});
             cursor.set(data.cursor);
 
             if ($cursor) {

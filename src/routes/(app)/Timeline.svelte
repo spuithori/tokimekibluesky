@@ -1,11 +1,11 @@
 <script lang="ts">
   import { agent, cursor } from '$lib/stores';
-  import { timeline, hideRepost, hideReply } from "$lib/stores";
+  import { timeline, hideRepost, hideReply, currentAlgorithm } from "$lib/stores";
   import TimelineItem from "./TimelineItem.svelte";
   import InfiniteLoading from 'svelte-infinite-loading';
 
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-      const data = await $agent.getTimeline(25, $cursor);
+      const data = await $agent.getTimeline({limit: 25, cursor: $cursor, algorithm: $currentAlgorithm});
       cursor.set(data.cursor);
 
       if ($cursor) {

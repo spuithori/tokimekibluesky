@@ -2,11 +2,13 @@
 	import { _ } from 'svelte-i18n';
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
-	import { timeline, timelineStyle } from "$lib/stores";
+	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm } from "$lib/stores";
 	import TimelineSettings from "./TimelineSettings.svelte";
 	import MediaTimeline from "./MediaTimeline.svelte";
 
 	let isRefreshing = false;
+
+	let isAlgoNavOpen = false;
 
 	function handleKeydown(event: { key: string; }) {
 		const activeElement = document.activeElement?.tagName;
@@ -16,14 +18,28 @@
 		}
 	}
 
+	$: {
+		if (isAlgoNavOpen) {
+			document.body.classList.add('scroll-lock');
+		} else {
+			document.body.classList.remove('scroll-lock');
+			refresh($timelineStyle);
+		}
+
+		if ($disableAlgorithm === 'true') {
+			currentAlgorithm.set('');
+			localStorage.setItem('currentAlgorithm', '');
+		}
+	}
+
 	async function refresh(style: 'default' | 'media') {
 		isRefreshing = true;
 		let data;
 
 		if (style === 'default') {
-			data = await $agent.getTimeline();
+			data = await $agent.getTimeline({limit: 25, cursor: '', algorithm: $currentAlgorithm});
 		} else {
-			data = await $agent.getMediaTimeline();
+			data = await $agent.getMediaTimeline({limit: 25, cursor: '', algorithm: $currentAlgorithm});
 		}
 
 		timeline.set(data.feed);
@@ -36,6 +52,12 @@
 		timelineStyle.set(style);
 		localStorage.setItem('timelineStyle', style);
 		refresh($timelineStyle);
+	}
+
+	function openAlgoNav(algorithm: string) {
+		isAlgoNavOpen = isAlgoNavOpen !== true;
+		currentAlgorithm.set(algorithm);
+		localStorage.setItem('currentAlgorithm', algorithm);
 	}
 </script>
 
@@ -68,11 +90,44 @@
 			</div>
 		</div>
 
-		<div class="timeline-algo-nav">
-			<select class="algo-nav">
-				<option value="HOME">HOME</option>
-			</select>
-		</div>
+		{#if ($disableAlgorithm === 'false')}
+			<div class="timeline-algo-nav">
+				<div class="algo-nav" class:algo-nav--open={isAlgoNavOpen}>
+					<div class="algo-nav-bg"></div>
+
+					<ul class="algo-nav-list">
+						<li class="algo-nav-list__item">
+							<button class="algo-nav-button" data-algo-genre="default" data-algo-label="home" class:algo-nav-button--current={$currentAlgorithm === ''} on:click={() => {openAlgoNav('')}}>HOME</button>
+						</li>
+
+						<li class="algo-nav-list__item">
+							<button class="algo-nav-button" data-algo-genre="custom" data-algo-label="whatshot" on:click={() => {openAlgoNav('whatshot')}} class:algo-nav-button--current={$currentAlgorithm === 'whatshot'} >What's Hot<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+								<g id="グループ_89" data-name="グループ 89" transform="translate(-1059 -638)">
+									<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 638)" fill="var(--danger-color)"/>
+									<path id="パス_23" data-name="パス 23" d="M-4.216-12.446v-.781c0-1.385-1.208-2.063-2.859-2.063a4.99,4.99,0,0,0-5.157,5.3A4.893,4.893,0,0,0-7.251-4.961c1.4,0,3.006-.589,3.006-1.975v-.751h-.074a3.975,3.975,0,0,1-2.667.973c-1.9,0-3.212-1.194-3.212-3.566A3.065,3.065,0,0,1-7.06-13.537a3.617,3.617,0,0,1,2.77,1.09Z" transform="translate(1075.028 655.929)" fill="#fff"/>
+								</g>
+							</svg></button>
+						</li>
+
+						<li class="algo-nav-list__item">
+							<button class="algo-nav-button" data-algo-name="" disabled on:click={() => {openAlgoNav('')}}>- empty slot -</button>
+						</li>
+
+						<li class="algo-nav-list__item">
+							<button class="algo-nav-button" disabled on:click={() => {openAlgoNav('')}}>- empty slot -</button>
+						</li>
+
+						<li class="algo-nav-list__item">
+							<button class="algo-nav-button" disabled on:click={() => {openAlgoNav('')}}>- empty slot -</button>
+						</li>
+
+						<li class="algo-nav-list__item">
+							<button class="algo-nav-button" disabled on:click={() => {openAlgoNav('')}}>- empty slot -</button>
+						</li>
+					</ul>
+				</div>
+			</div>
+		{/if}
 
 		<TimelineSettings></TimelineSettings>
 	</nav>
@@ -130,7 +185,8 @@
 		margin-bottom: 20px;
 
 		@media (max-width: 767px) {
-			gap: 5px;
+			gap: 15px 5px;
+			flex-wrap: wrap;
 		}
 	}
 
@@ -139,7 +195,80 @@
 		100% { transform: rotate(360deg); }
 	}
 
+	.timeline-algo-nav {
+		@media (max-width: 767px) {
+			order: -1;
+			width: 100%;
+			height: 40px;
+		}
+	}
+
 	.algo-nav {
+		position: relative;
+
+		&--open {
+			position: fixed;
+			z-index: 10000;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+
+			.algo-nav-list {
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 100px;
+				margin: auto;
+				display: flex;
+				flex-direction: column;
+				gap: 20px;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.algo-nav-bg {
+				opacity: 1;
+				visibility: visible;
+			}
+
+			.algo-nav-button {
+				&:not(.algo-nav-button--current) {
+					display: flex;
+				}
+			}
+		}
+	}
+
+	.algo-nav-bg {
+		opacity: 0;
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		top: 0;
+		visibility: hidden;
+		backdrop-filter: blur(5px);
+		background-color: rgba(0, 8, 25, .8);
+		transition: all .3s ease-in-out;
+	}
+
+	.algo-nav-list {
+		list-style: none;
+
+		&__item {
+			@media (max-width: 767px) {
+				display: flex;
+				justify-content: center;
+			}
+
+			&:has(.algo-nav-button--current) {
+				order: -1;
+			}
+		}
+	}
+
+	.algo-nav-button {
 		width: 170px;
 		height: 40px;
 		display: flex;
@@ -151,9 +280,30 @@
 		box-shadow: 0 2px 14px rgba(0, 0, 0, .08);
 		color: var(--text-color-3);
 		cursor: pointer;
+		transition: box-shadow .2s ease-in-out;
+		letter-spacing: .05em;
+		position: relative;
 
-		@media (max-width: 767px) {
+		svg {
+			position: absolute;
+			left: 15px;
+			top: 0;
+			bottom: 0;
+			margin: auto;
+		}
+
+		&:hover {
+			box-shadow: 0 2px 24px rgba(0, 0, 0, .16);
+		}
+
+		&:not(.algo-nav-button--current) {
 			display: none;
+		}
+
+		&--current {
+			&[data-algo-genre='custom'] {
+				border: 2px solid var(--primary-color);
+			}
 		}
 	}
 

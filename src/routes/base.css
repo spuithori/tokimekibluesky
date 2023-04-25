@@ -210,3 +210,7 @@ img {
     max-height: 90vh;
     object-fit: contain;
 }
+
+.scroll-lock {
+    overflow: hidden;
+}

@@ -104,5 +104,6 @@
   "details": "詳しい情報",
   "url_app_password": "https://tokimekibluesky-docs.vercel.app/ja/apppassword",
   "unfollow_button": "フォロー解除",
-  "liked_users": "いいねした人"
+  "liked_users": "いいねした人",
+  "disable_algorithm": "カスタムアルゴリズムを無効化"
 }

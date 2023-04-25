@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { theme, nonoto, isDarkMode } from '$lib/stores';
+    import { theme, nonoto, isDarkMode, currentAlgorithm, disableAlgorithm } from '$lib/stores';
     import { goto } from '$app/navigation';
     import { fade, fly } from 'svelte/transition';
     import { unsub } from '$lib/pushSubscription';
@@ -9,6 +9,7 @@
 
     let darkModeToggle = JSON.parse(localStorage.getItem('darkmode')) === true;
     let nonotoToggle = JSON.parse(localStorage.getItem('nonoto')) === true;
+    let disableAlgorithmToggle = JSON.parse(localStorage.getItem('disableAlgorithm')) === true;
     let themePick: string = localStorage.getItem('theme') || 'lightblue';
     let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
     let isAccountSwitcherOpen = false;
@@ -21,6 +22,14 @@
 
         localStorage.setItem('nonoto', nonotoToggle ? 'true' : 'false');
         nonoto.set(String(nonotoToggle));
+
+        localStorage.setItem('disableAlgorithm', disableAlgorithmToggle ? 'true' : 'false');
+        disableAlgorithm.set(String(disableAlgorithmToggle));
+
+        if ($disableAlgorithm === 'true') {
+            currentAlgorithm.set('');
+            localStorage.setItem('currentAlgorithm', '');
+        }
 
         localStorage.setItem('theme', themePick);
         theme.set(themePick);
@@ -121,6 +130,18 @@
     <dd class="settings-group__content">
       <div class="input-toggle">
         <input class="input-toggle__input" type="checkbox" id="nonoto" bind:checked={nonotoToggle}><label class="input-toggle__label" for="nonoto"></label>
+      </div>
+    </dd>
+  </dl>
+
+  <dl class="settings-group">
+    <dt class="settings-group__name">
+      {$_('disable_algorithm')}
+    </dt>
+
+    <dd class="settings-group__content">
+      <div class="input-toggle">
+        <input class="input-toggle__input" type="checkbox" id="disableAlgo" bind:checked={disableAlgorithmToggle}><label class="input-toggle__label" for="disableAlgo"></label>
       </div>
     </dd>
   </dl>

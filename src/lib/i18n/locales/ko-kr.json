@@ -104,5 +104,6 @@
   "details": "더 보기",
   "url_app_password": "https://tokimekibluesky-docs.vercel.app/apppassword",
   "unfollow_button": "팔로우 그만하기",
-  "liked_users": "좋아요를 한 사용자"
+  "liked_users": "좋아요를 한 사용자",
+  "disable_algorithm": "Disable custom algorithm"
 }

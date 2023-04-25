@@ -1,6 +1,13 @@
 import type {AppBskyFeedGetTimeline, AtpAgent} from '@atproto/api';
 import toast from "svelte-french-toast";
 import {AppBskyEmbedImages} from "@atproto/api";
+import {cursor} from "./stores";
+
+type timelineOpt = {
+    limit: number,
+    cursor: string,
+    algorithm?: string,
+}
 
 export class Agent {
     public agent: AtpAgent;
@@ -15,9 +22,16 @@ export class Agent {
         }
     }
 
-    async getTimeline(limit: number = 25, cursor: string = ''): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
+    async getTimeline(timelineOpt: timelineOpt = {limit: 25, cursor: ''}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
         try {
-            const res = await this.agent.api.app.bsky.feed.getTimeline({ limit: limit, cursor: cursor });
+            let res;
+
+            if (timelineOpt.algorithm === '') {
+                res = await this.agent.api.app.bsky.feed.getTimeline({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
+            } else {
+                res = await this.agent.api.app.bsky.unspecced.getPopular({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
+            }
+
             return res.data;
         } catch (e) {
             toast.error('Error');
@@ -26,8 +40,8 @@ export class Agent {
         }
     }
 
-    async getMediaTimeline(limit: number = 25, cursor: string = ''): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
-        const data = await this.getTimeline(limit, cursor);
+    async getMediaTimeline(timelineOpt: timelineOpt = {limit: 25, cursor: ''}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
+        const data = await this.getTimeline({limit: timelineOpt.limit, cursor: timelineOpt.cursor});
 
         const filtered = data.feed.filter(item => {
             return item.post.embed && AppBskyEmbedImages.isView(item.post.embed);
