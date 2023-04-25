@@ -430,7 +430,7 @@
 
       {#if (isSingle && likes?.likes.length)}
         <div class="likes-wrap">
-          <h3 class="likes-heading">いいねした人</h3>
+          <h3 class="likes-heading">{$_('liked_users')}</h3>
 
           <div class="likes">
             {#each likes.likes as like }

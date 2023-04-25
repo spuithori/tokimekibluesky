@@ -55,7 +55,7 @@ button {
 }
 
 .button--following::before {
-    content: 'フォロー解除';
+    content: attr(data-unfollow-name);
     position: absolute;
     top: 0;
     left: 0;

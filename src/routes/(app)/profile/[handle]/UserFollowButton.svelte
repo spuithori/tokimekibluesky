@@ -60,6 +60,6 @@
   {#if !following}
     <button class="button button--sm button--follow" on:click={follow} disabled={isDisabled}>{$_('follow_button')}</button>
   {:else }
-    <button class="button button--sm button--following" on:click={unfollow} disabled={isDisabled}>{$_('now_following_button')}</button>
+    <button class="button button--sm button--following" on:click={unfollow} disabled={isDisabled} data-unfollow-name="{$_('unfollow_button')}">{$_('now_following_button')}</button>
   {/if}
 </div>

@@ -102,5 +102,7 @@
   "login": "Login",
   "recommend_use_app_password": "We recommend using the app password.",
   "details": "Learn more",
-  "url_app_password": "https://tokimekibluesky-docs.vercel.app/apppassword"
+  "url_app_password": "https://tokimekibluesky-docs.vercel.app/apppassword",
+  "unfollow_button": "Unfollow",
+  "liked_users": "Liked users"
 }
