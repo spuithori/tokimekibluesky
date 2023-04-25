@@ -40,8 +40,8 @@ export class Agent {
         }
     }
 
-    async getMediaTimeline(timelineOpt: timelineOpt = {limit: 25, cursor: ''}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
-        const data = await this.getTimeline({limit: timelineOpt.limit, cursor: timelineOpt.cursor});
+    async getMediaTimeline(timelineOpt: timelineOpt = {limit: 25, cursor: '', algorithm: ''}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
+        const data = await this.getTimeline({limit: timelineOpt.limit, cursor: timelineOpt.cursor, algorithm: timelineOpt.algorithm});
 
         const filtered = data.feed.filter(item => {
             return item.post.embed && AppBskyEmbedImages.isView(item.post.embed);
