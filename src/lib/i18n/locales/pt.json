@@ -97,5 +97,9 @@
   "copy_did": "Copy DID",
   "success_copy_did": "DID copied to clipboard.",
   "reporting_this_user": "This user has reported the following",
-  "impersonation": "Impersonation"
+  "impersonation": "Impersonation",
+  "login": "Login",
+  "recommend_use_app_password": "We recommend using the app password.",
+  "details": "Learn more",
+  "url_app_password": "https://tokimekibluesky-docs.vercel.app/apppassword"
 }

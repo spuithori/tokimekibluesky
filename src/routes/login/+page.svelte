@@ -1,5 +1,6 @@
 <script lang="ts">
     import '../styles.css';
+    import { _ } from 'svelte-i18n'
     import { AtpAgent, AtpSessionEvent, AtpSessionData } from '@atproto/api';
     import { goto } from '$app/navigation';
 
@@ -81,45 +82,52 @@
       <p>{errorMessage}</p>
     {/if}
 
-    <dl class="input-group">
-      <dt class="input-group__name">
-        <label for="service">Service</label>
-      </dt>
+    <form action="#" on:submit={login}>
+      <dl class="input-group">
+        <dt class="input-group__name">
+          <label for="service">Service</label>
+        </dt>
 
-      <dd class="input-group__content">
-        <input class="input-group__input" type="text" name="service" id="service" placeholder="service" bind:value="{service}" required />
-      </dd>
-    </dl>
+        <dd class="input-group__content">
+          <input class="input-group__input" type="text" name="service" id="service" placeholder="service" bind:value="{service}" required />
+        </dd>
+      </dl>
 
-    <dl class="input-group">
-      <dt class="input-group__name">
-        <label for="email">Email or handle</label>
-      </dt>
+      <dl class="input-group">
+        <dt class="input-group__name">
+          <label for="email">Email or handle</label>
+        </dt>
 
-      <dd class="input-group__content">
-        <input class="input-group__input" type="email" name="email" id="email" placeholder="Email or handle" bind:value="{identifier}" required />
-      </dd>
-    </dl>
+        <dd class="input-group__content">
+          <input class="input-group__input" type="email" name="email" id="email" placeholder="Email or handle" bind:value="{identifier}" required />
+        </dd>
+      </dl>
 
-    <dl class="input-group">
-      <dt class="input-group__name">
-        <label for="password">Password</label>
-      </dt>
+      <dl class="input-group">
+        <dt class="input-group__name">
+          <label for="password">Password</label>
+        </dt>
 
-      <dd class="input-group__content">
-        <input class="input-group__input" type="password" name="password" id="password" placeholder="Password" bind:value="{password}" required />
-      </dd>
-    </dl>
+        <dd class="input-group__content">
+          <input class="input-group__input" type="password" name="password" id="password" placeholder="Password" bind:value="{password}" required />
+        </dd>
+      </dl>
 
-    <div class="login-submit">
-      <button class="button button--login button--login-submit" type="submit" on:click={login}>Login</button>
-    </div>
+      <div class="login-submit">
+        <button class="button button--login button--login-submit" type="submit">{$_('login')}</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="app-password-recommend">
+    <p>{$_('recommend_use_app_password')}<br><a href="{$_('url_app_password')}" target="_blank" rel="noopener">{$_('details')}</a></p>
   </div>
 </section>
 
 <style>
   .login {
-      height: 100vh;
+      min-height: 100vh;
+      padding: 40px 0;
       background-image: url($lib/images/login-bg.jpg);
       background-size: cover;
       background-position: center;
@@ -162,5 +170,15 @@
       border-radius: 4px;
       height: 50px;
       padding: 0 20px;
+  }
+
+  .app-password-recommend {
+      text-align: center;
+      background-color: rgba(255, 255, 255, .85);
+      color: var(--text-color-2);
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 20px;
+      font-size: 14px;
   }
 </style>
