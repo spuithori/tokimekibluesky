@@ -374,6 +374,7 @@
 			border-radius: 20px;
 			display: grid;
 			place-content: center;
+			width: 100%;
 		}
 	}
 </style>
