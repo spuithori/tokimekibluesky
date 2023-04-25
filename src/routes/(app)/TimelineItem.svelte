@@ -32,7 +32,7 @@
     let isReplyOpen = false;
     let isMenuOpen = false;
     let myVoteCheck: boolean = typeof data.post.viewer?.like === 'string';
-    let myRepostCheck: boolean = typeof data.post.repost?.like === 'string';
+    let myRepostCheck: boolean = typeof data.post.viewer?.repost === 'string';
     let isLikeProcessed: boolean = false;
     let isRepostProcessed: boolean = false;
     /* const embedServices = [
