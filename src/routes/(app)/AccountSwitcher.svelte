@@ -41,7 +41,7 @@
         <div class="account-switch-item__content">
           <div class="account-switch-item__name-wrap">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-            <path id="edit-pencil" d="M9.84,2.96l3.2,3.2L3.2,16H0V12.8Zm1.12-1.12L12.8,0,16,3.2,14.16,5.04Z"/>
+            <path id="edit-pencil" d="M9.84,2.96l3.2,3.2L3.2,16H0V12.8Zm1.12-1.12L12.8,0,16,3.2,14.16,5.04Z" fill="var(--text-color-1)"/>
             </svg>
             <input class="account-switch-item__name" bind:value={account.name} on:input={() => accountNameUpdate()} maxlength="30" required>
           </div>
@@ -119,6 +119,7 @@
           font-weight: 600;
           flex: 1;
           white-space: nowrap;
+          color: var(--text-color-1);
       }
 
       &__service {
