@@ -156,6 +156,10 @@
     --text-color-primary-colored: #fff;
 }
 
+.lang-ko {
+    --font-body: 'Noto Sans KR', 'Noto Color Emoji', sans-serif;
+}
+
 .nonoto {
     --font-body: sans-serif;
 }

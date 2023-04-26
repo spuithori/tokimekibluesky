@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n'
+  import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
   import { agent, isLogin, theme, nonoto, isDarkMode, service } from '$lib/stores';
@@ -66,7 +66,7 @@
   viewPortSetting();
 </script>
 
-<div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme} {$_('dir', {default: 'ltr'})}" dir="{$_('dir', {default: 'ltr'})}">
+<div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme} {$_('dir', {default: 'ltr'})} lang-{$locale}" dir="{$_('dir', {default: 'ltr'})}">
   <Header />
 
   <main class="main">
