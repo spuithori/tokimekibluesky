@@ -25,7 +25,7 @@
     }
 
     async function getDidByHandle(handle) {
-        const res = await $agent.agent.api.com.atproto.repo.describeRepo({ repo: handle });
+        const res = await $agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
         return res.data.did;
     }
 
