@@ -3,7 +3,6 @@
     import { agent } from '$lib/stores';
     import { timeline, cursor, notificationCount, quotePost, replyRef } from '$lib/stores';
     import { format, formatDistanceToNow, parseISO } from 'date-fns';
-    import { afterUpdate, onMount } from 'svelte';
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
     import pt from 'date-fns/locale/pt-BR/index';
@@ -15,9 +14,11 @@
     import Spotify from './Spotify.svelte';
     import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedImages, AppBskyFeedPost, AppBskyFeedDefs, RichText, RichTextSegment, AppBskyEmbedRecordWithMedia, AppBskyFeedGetLikes } from '@atproto/api'
     import toast from "svelte-french-toast";
-    import ProfileCard from "./ProfileCard.svelte";
     import Avatar from "./Avatar.svelte";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
+    import Like from "$lib/components/post/Like.svelte";
+    import Repost from "$lib/components/post/Repost.svelte";
+    import Reply from "$lib/components/post/Reply.svelte";
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
@@ -28,13 +29,7 @@
     }
 
     let textArray: RichTextSegment[] = [];
-    let votes;
-    let isReplyOpen = false;
     let isMenuOpen = false;
-    let myVoteCheck: boolean = typeof data.post.viewer?.like === 'string';
-    let myRepostCheck: boolean = typeof data.post.viewer?.repost === 'string';
-    let isLikeProcessed: boolean = false;
-    let isRepostProcessed: boolean = false;
     /* const embedServices = [
         {
             'service': Spotify,
@@ -69,102 +64,6 @@
     
     const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
       return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
-    }
-
-    async function vote(cid: string, uri: string) {
-        myVoteCheck = !myVoteCheck;
-        isLikeProcessed = true;
-
-        if (myVoteCheck) {
-            data.post.likeCount = data.post.likeCount + 1;
-        } else {
-            data.post.likeCount = data.post.likeCount - 1;
-        }
-
-        try {
-            const like = await $agent.setVote(cid, uri, data.post.viewer?.like || '');
-
-            try {
-                const latest = await $agent.getFeed(data.post.uri);
-
-                isLikeProcessed = false;
-                data.post.likeCount = latest.post.likeCount;
-                data.post.viewer!.like = like?.uri || undefined;
-
-                timeline.update(function (tl) {
-                    tl.forEach(item => {
-                        if (item.post.uri === data.post.uri) {
-                            item.post.likeCount = latest.post.likeCount;
-                            item.post.viewer.like = like?.uri || undefined;
-                        }
-                    });
-                    return tl;
-                });
-            } catch(e) {
-                toast.error($_('failed_to_like_after_reload'));
-                console.log(e)
-                isLikeProcessed = false;
-            }
-        } catch (e) {
-            toast.error($_('failed_to_like'));
-            console.error(e);
-            myVoteCheck = !myVoteCheck;
-            isLikeProcessed = false;
-
-            if (myVoteCheck) {
-                data.post.likeCount = data.post.likeCount - 1;
-            } else {
-                data.post.likeCount = data.post.likeCount + 1;
-            }
-        }
-    }
-
-    async function repost(cid: string, uri: string) {
-        myRepostCheck = !myRepostCheck;
-        isRepostProcessed = true;
-
-        if (myRepostCheck) {
-            data.post.repostCount = data.post.repostCount + 1;
-        } else {
-            data.post.repostCount = data.post.repostCount - 1;
-        }
-
-        try {
-            const repost = await $agent.setRepost(cid, uri, data.post.viewer?.repost || '');
-
-            try {
-                const latest = await $agent.getFeed(data.post.uri);
-
-                isRepostProcessed = false;
-                data.post.repostCount = latest.post.repostCount;
-                data.post.viewer!.repost = repost?.uri || undefined;
-
-                timeline.update(function (tl) {
-                    tl.forEach(item => {
-                        if (item.post.uri === data.post.uri) {
-                            item.post.repostCount = latest.post.repostCount;
-                            item.post.viewer.repost = repost?.uri || undefined;
-                        }
-                    });
-                    return tl;
-                });
-            } catch(e) {
-                toast.error($_('failed_to_repost_after_reload'));
-                console.log(e)
-                isRepostProcessed = false;
-            }
-        } catch (e) {
-            toast.error($_('failed_to_repost'));
-            console.error(e);
-            myRepostCheck = !myRepostCheck;
-            isRepostProcessed = false;
-
-            if (myRepostCheck) {
-                data.post.repostCount = data.post.repostCount - 1;
-            } else {
-                data.post.repostCount = data.post.repostCount + 1;
-            }
-        }
     }
 
     async function translation() {
@@ -207,10 +106,6 @@
             });
 
         isMenuOpen = false;
-    }
-
-    function replyOpen() {
-        isReplyOpen = isReplyOpen !== true;
     }
 
     function menuOpen() {
@@ -330,44 +225,27 @@
       </p>
 
       <div class="timeline-reaction">
-        <div class="timeline-reaction__item timeline-reaction__item--reply">
-          <button class="timeline-reaction__icon" on:click={() => {$replyRef = { parent: data.post, root: (data.reply ? data.reply.root : data.post) }}} aria-label="返信"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="14" viewBox="0 0 15 14">
-            <path id="reply" d="M77,110v-2.99s0-.006,0-.01a4,4,0,0,0-4-4H70v5l-6-6,6-6v5h3a6,6,0,0,1,6,6h0v3Z" transform="translate(-64 -96)" fill="var(--border-color-1)"/>
-          </svg>
-          </button>
+        <Reply
+            post={data.post}
+            reply={data.post.record.reply}
+            count={data.post.replyCount}
+        ></Reply>
 
-          { data.post.replyCount }
-        </div>
+        <Like
+            cid={data.post.cid}
+            uri={data.post.uri}
+            likeViewer={data.post.viewer?.like}
+            count={data.post.likeCount}
+            on:like
+        ></Like>
 
-        <div class="timeline-reaction__item timeline-reaction__item--like">
-          <button class="timeline-reaction__icon" disabled="{isLikeProcessed}" on:click="{() => vote(data.post.cid, data.post.uri)}" aria-label="いいね">
-            {#if (myVoteCheck || data.post.viewer?.like)}
-              <svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
-                <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--primary-color)"/>
-              </svg>
-            {:else}
-              <svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
-                <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--border-color-1)"/>
-              </svg>
-            {/if}
-          </button>
-
-          { data.post.likeCount }
-        </div>
-
-        <div class="timeline-reaction__item timeline-reaction__item--repost">
-          <button class="timeline-reaction__icon" disabled="{isRepostProcessed}" on:click="{() => repost(data.post.cid, data.post.uri)}" aria-label="リポスト">
-            {#if (myRepostCheck || data.post.viewer?.repost)}
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="12" viewBox="0 0 20 12">
-            <path id="retweet" d="M13.333,17.667A.342.342,0,0,1,13,18H3c-.385,0-.333-.406-.333-.667v-6h-2A.671.671,0,0,1,0,10.667a.638.638,0,0,1,.156-.427l3.333-4a.683.683,0,0,1,1.021,0l3.333,4A.636.636,0,0,1,8,10.667a.671.671,0,0,1-.667.667h-2v4h6a.356.356,0,0,1,.261.115l1.667,2A.42.42,0,0,1,13.333,17.667ZM20,13.333a.638.638,0,0,1-.156.427l-3.333,4a.664.664,0,0,1-1.021,0l-3.333-4A.636.636,0,0,1,12,13.333a.671.671,0,0,1,.667-.667h2v-4h-6a.332.332,0,0,1-.261-.125l-1.667-2a.357.357,0,0,1-.073-.209A.342.342,0,0,1,7,6H17c.385,0,.333.406.333.667v6h2A.671.671,0,0,1,20,13.333Z" transform="translate(0 -6)" fill="var(--primary-color)"/></svg>
-            {:else}
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="12" viewBox="0 0 20 12">
-                <path id="retweet" d="M13.333,17.667A.342.342,0,0,1,13,18H3c-.385,0-.333-.406-.333-.667v-6h-2A.671.671,0,0,1,0,10.667a.638.638,0,0,1,.156-.427l3.333-4a.683.683,0,0,1,1.021,0l3.333,4A.636.636,0,0,1,8,10.667a.671.671,0,0,1-.667.667h-2v4h6a.356.356,0,0,1,.261.115l1.667,2A.42.42,0,0,1,13.333,17.667ZM20,13.333a.638.638,0,0,1-.156.427l-3.333,4a.664.664,0,0,1-1.021,0l-3.333-4A.636.636,0,0,1,12,13.333a.671.671,0,0,1,.667-.667h2v-4h-6a.332.332,0,0,1-.261-.125l-1.667-2a.357.357,0,0,1-.073-.209A.342.342,0,0,1,7,6H17c.385,0,.333.406.333.667v6h2A.671.671,0,0,1,20,13.333Z" transform="translate(0 -6)" fill="var(--border-color-1)"/></svg>
-            {/if}
-          </button>
-
-          { data.post.repostCount }
-        </div>
+        <Repost
+            cid={data.post.cid}
+            uri={data.post.uri}
+            repostViewer={data.post.viewer?.repost}
+            count={data.post.repostCount}
+            on:repost
+        ></Repost>
       </div>
 
       {#if (AppBskyEmbedImages.isView(data.post.embed) && !isMedia)}

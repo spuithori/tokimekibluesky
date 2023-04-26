@@ -69,14 +69,14 @@ export class Agent {
 
     async setRepost(cid: string, uri: string, repostUri: string = '') {
         if (!repostUri) {
-            await this.agent.api.app.bsky.feed.repost.create(
+            return await this.agent.api.app.bsky.feed.repost.create(
                 { repo: this.did() },
                 { subject: { cid: cid, uri: uri } , createdAt: new Date().toISOString() },
             );
         } else {
             const rkey = repostUri.split('/').slice(-1)[0];
 
-            await this.agent.api.app.bsky.feed.repost.delete(
+            return await this.agent.api.app.bsky.feed.repost.delete(
                 {rkey: rkey, repo: this.did() },
             );
         }

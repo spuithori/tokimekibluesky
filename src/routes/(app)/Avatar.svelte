@@ -15,7 +15,7 @@
 
       avatarMouseOverTimeId = setTimeout(() => {
           isProfileShown = true;
-      }, 750)
+      }, 500)
   }
 
   async function handleAvatarMouseLeave() {
@@ -25,7 +25,7 @@
 
       avatarMouseOverTimeId = setTimeout(() => {
           isProfileShown = false;
-      }, 750)
+      }, 350)
   }
 </script>
 

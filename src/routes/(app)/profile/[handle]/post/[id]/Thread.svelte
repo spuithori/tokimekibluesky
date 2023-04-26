@@ -2,6 +2,8 @@
   import TimelineItem from "../../../../TimelineItem.svelte";
 
   export let feeds = [];
+
+  console.log(feeds);
 </script>
 
 <div class="thread">
