@@ -101,6 +101,23 @@
             complete();
         }
     }
+
+    function getReasonText(reason: string) {
+        switch (reason) {
+            case 'quote':
+                return 'quoted_your_post';
+            case 'reply':
+                return 'replied_your_post';
+            case 'mention':
+                return 'mentioned_your_post';
+            case 'like':
+                return 'liked_your_post';
+            case 'repost':
+                return 'reposted_your_post';
+            default:
+                return 'liked_your_post';
+        }
+    }
 </script>
 
 <div class="notifications-wrap">
@@ -152,174 +169,81 @@
 
   <div class="notifications-list">
     {#each notifications as item}
-      {#if (AppBskyFeedLike.isRecord(item.record) && filter.includes('like'))}
-        <article class="notifications-item notifications-item--like">
-          <h2 class="notifications-item__title">
-            <span class="notifications-item__name">
-              <ProfileCardWrapper handle="{item.author.handle}">
-                <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
-              </ProfileCardWrapper>
-            </span> {$_('liked_your_post')}
-          </h2>
-
-          {#if (item.feed)}
-            <p class="notifications-item__content">{item.feed.record.text}</p>
-          {/if}
-        </article>
-      {:else if (AppBskyFeedRepost.isRecord(item.record) && filter.includes('repost'))}
-        <article class="notifications-item notifications-item--repost">
-          <h2 class="notifications-item__title">
-             <span class="notifications-item__name">
-              <ProfileCardWrapper handle="{item.author.handle}">
-                <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
-              </ProfileCardWrapper>
-            </span> {$_('reposted_your_post')}
-          </h2>
-
-          {#if (item.feed)}
-            <p class="notifications-item__content">{item.feed.record.text}</p>
-          {/if}
-        </article>
-      {:else if ((item.reason === 'quote' && typeof item.reasonSubject === 'string') && (filter.includes('quote')))}
-        <article class="notifications-item notifications-item--quote">
-          <h2 class="notifications-item__title">
-            <span class="notifications-item__name">
-              <ProfileCardWrapper handle="{item.author.handle}">
-                <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
-              </ProfileCardWrapper>
-            </span> {$_('quoted_your_post')}
-          </h2>
-
-          {#if (AppBskyFeedPost.isRecord(item.record))}
-            <p class="notifications-item__content">{item.record.text}</p>
-          {/if}
-
-          {#if (item.feed)}
-            <p class="notifications-item__quote">{item.feed.record.text}</p>
-          {/if}
-
-          <div class="timeline-reaction timeline-reaction--notification">
-            {#if item.feedThis}
-              <Reply
-                  post={item.feedThis}
-                  reply={item.feedThis.record.reply}
-                  count={item.feedThis.replyCount}
-              ></Reply>
-
-              <Like
-                  cid={item.feedThis.cid}
-                  uri={item.feedThis.uri}
-                  likeViewer={item.feedThis.viewer?.like}
-                  count={item.feedThis.likeCount}
-                  on:like
-              ></Like>
-
-              <Repost
-                  cid={item.feedThis.cid}
-                  uri={item.feedThis.uri}
-                  repostViewer={item.feedThis.viewer?.repost}
-                  count={item.feedThis.repostCount}
-                  on:repost
-              ></Repost>
+      {#if (filter.includes(item.reason))}
+        {#if (item.reason !== 'follow')}
+          <article class="notifications-item notifications-item--{item.reason}">
+            {#if (!item.isRead)}
+              <div class="notifications-new" aria-label="New Notification"></div>
             {/if}
-          </div>
-        </article>
-      {:else if ((item.reason === 'reply' && AppBskyFeedPost.isRecord(item.record)) && filter.includes('reply'))}
-        <article class="notifications-item notifications-item--reply">
-          <div class="notifications-item__heading">
+
             <h2 class="notifications-item__title">
-              <span class="notifications-item__name">
-                <ProfileCardWrapper handle="{item.author.handle}">
-                  <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
-                </ProfileCardWrapper>
-              </span> {$_('replied_your_post')}・<a href="/profile/{item.author.handle}/post/{item.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a></h2>
-          </div>
-
-          <p class="notifications-item__content">{item.record.text}</p>
-
-          <div class="timeline-reaction timeline-reaction--notification">
-            {#if item.feedThis}
-              <Reply
-                  post={item.feedThis}
-                  reply={item.feedThis.record.reply}
-                  count={item.feedThis.replyCount}
-              ></Reply>
-
-              <Like
-                  cid={item.feedThis.cid}
-                  uri={item.feedThis.uri}
-                  likeViewer={item.feedThis.viewer?.like}
-                  count={item.feedThis.likeCount}
-                  on:like
-              ></Like>
-
-              <Repost
-                  cid={item.feedThis.cid}
-                  uri={item.feedThis.uri}
-                  repostViewer={item.feedThis.viewer?.repost}
-                  count={item.feedThis.repostCount}
-                  on:repost
-              ></Repost>
-            {/if}
-          </div>
-        </article>
-      {:else if ((item.reason === 'mention' && AppBskyFeedPost.isRecord(item.record)) && filter.includes('mention'))}
-        <article class="notifications-item notifications-item--reply">
-          <h2 class="notifications-item__title">
             <span class="notifications-item__name">
               <ProfileCardWrapper handle="{item.author.handle}">
                 <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
               </ProfileCardWrapper>
-          </span> {$_('mentioned_your_post')}</h2>
+            </span> {$_(getReasonText(item.reason))}
+              {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+                ・<a href="/profile/{item.author.handle}/post/{item.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
+              {/if}
+            </h2>
 
-          <p class="notifications-item__content">{item.record.text}</p>
-
-          <div class="timeline-reaction timeline-reaction--notification">
-            {#if item.feedThis}
-              <Reply
-                  post={item.feedThis}
-                  reply={item.feedThis.record.reply}
-                  count={item.feedThis.replyCount}
-              ></Reply>
-
-              <Like
-                  cid={item.feedThis.cid}
-                  uri={item.feedThis.uri}
-                  likeViewer={item.feedThis.viewer?.like}
-                  count={item.feedThis.likeCount}
-                  on:like
-              ></Like>
-
-              <Repost
-                  cid={item.feedThis.cid}
-                  uri={item.feedThis.uri}
-                  repostViewer={item.feedThis.viewer?.repost}
-                  count={item.feedThis.repostCount}
-                  on:repost
-              ></Repost>
+            {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+              <p class="notifications-item__content">{item.record.text}</p>
+            {:else}
+              {#if (item.feed)}
+                <p class="notifications-item__content">{item.feed.record.text}</p>
+              {/if}
             {/if}
-          </div>
-        </article>
-      {:else if (item.reason === 'follow' && filter.includes('follow'))}
-        <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
-          <div class="notifications-item__contents">
-            <h2 class="notifications-item__title">
+
+            {#if (item.reason === 'quote' && item.feed)}
+              <p class="notifications-item__quote">{item.feed.record.text}</p>
+            {/if}
+
+            {#if item.feedThis}
+              <div class="timeline-reaction timeline-reaction--notification">
+                <Reply
+                    post={item.feedThis}
+                    reply={item.feedThis.record.reply}
+                    count={item.feedThis.replyCount}
+                ></Reply>
+
+                <Like
+                    cid={item.feedThis.cid}
+                    uri={item.feedThis.uri}
+                    likeViewer={item.feedThis.viewer?.like}
+                    count={item.feedThis.likeCount}
+                    on:like
+                ></Like>
+
+                <Repost
+                    cid={item.feedThis.cid}
+                    uri={item.feedThis.uri}
+                    repostViewer={item.feedThis.viewer?.repost}
+                    count={item.feedThis.repostCount}
+                    on:repost
+                ></Repost>
+              </div>
+            {/if}
+          </article>
+        {:else}
+          <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
+            <div class="notifications-item__contents">
+              <h2 class="notifications-item__title">
               <span class="notifications-item__name">
                 <ProfileCardWrapper handle="{item.author.handle}">
                   <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
               </ProfileCardWrapper>
               </span> {$_('followed_you')}
-            </h2>
+              </h2>
 
-            <p class="notifications-item__description">{item.author.description}</p>
-          </div>
+              <p class="notifications-item__description">{item.author.description}</p>
+            </div>
 
-          <div class="notifications-item__buttons">
-            <UserFollowButton following="{item.author.viewer?.following}" user={item.author}></UserFollowButton>
-          </div>
-        </article>
-      {:else}
-        <!-- svelte-ignore empty-block -->
+            <div class="notifications-item__buttons">
+              <UserFollowButton following="{item.author.viewer?.following}" user={item.author}></UserFollowButton>
+            </div>
+          </article>
+        {/if}
       {/if}
     {/each}
   </div>
@@ -333,6 +257,7 @@
   .notifications-item {
       border-bottom: 1px solid var(--border-color-1);
       padding: 10px 0;
+      position: relative;
 
       &__contents {
           min-height: 40px;
@@ -395,6 +320,15 @@
           padding-left: 20px;
           padding-right: 20px;
       }
+  }
+
+  .notifications-new {
+      position: absolute;
+      width: 3px;
+      background-color: var(--primary-color);
+      left: -20px;
+      top: 0;
+      bottom: 0;
   }
 
   .notifications-wrap {
