@@ -23,7 +23,6 @@
 			document.body.classList.add('scroll-lock');
 		} else {
 			document.body.classList.remove('scroll-lock');
-			refresh($timelineStyle);
 		}
 
 		if ($disableAlgorithm === 'true') {
@@ -58,6 +57,10 @@
 		isAlgoNavOpen = isAlgoNavOpen !== true;
 		currentAlgorithm.set(algorithm);
 		localStorage.setItem('currentAlgorithm', algorithm);
+
+		if (!isAlgoNavOpen) {
+			refresh($timelineStyle);
+		}
 	}
 </script>
 
