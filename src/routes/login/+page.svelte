@@ -99,7 +99,7 @@
         </dt>
 
         <dd class="input-group__content">
-          <input class="input-group__input" type="email" name="email" id="email" placeholder="Email or handle" bind:value="{identifier}" required />
+          <input class="input-group__input" type="text" name="email" id="email" placeholder="Email or handle" bind:value="{identifier}" required />
         </dd>
       </dl>
 
