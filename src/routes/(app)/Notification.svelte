@@ -73,8 +73,6 @@
             reasonSubjects = [...new Set(reasonSubjects)];
             reasonSubjects = reasonSubjects.filter(v => v);
 
-            console.log(reasonSubjects);
-
             if (reasonSubjects.length) {
                 const postsRes = await $agent.agent.api.app.bsky.feed.getPosts({uris: reasonSubjects});
 
@@ -86,13 +84,7 @@
                             notification.feed = item;
                         }
 
-                        if (notification.reason === 'reply' || notification.reason === 'mention') {
-                            if (notification.uri === item.uri) {
-                                notification.feed = item;
-                            }
-                        }
-
-                        if (notification.reason === 'quote') {
+                        if (notification.reason === 'reply' || notification.reason === 'mention' || notification.reason === 'quote') {
                             if (notification.uri === item.uri) {
                                 notification.feedThis = item;
                             }
@@ -246,26 +238,26 @@
           <p class="notifications-item__content">{item.record.text}</p>
 
           <div class="timeline-reaction timeline-reaction--notification">
-            {#if item.feed}
+            {#if item.feedThis}
               <Reply
-                  post={item.feed}
-                  reply={item.record.reply}
-                  count={item.feed.replyCount}
+                  post={item.feedThis}
+                  reply={item.feedThis.record.reply}
+                  count={item.feedThis.replyCount}
               ></Reply>
 
               <Like
-                  cid={item.feed.cid}
-                  uri={item.feed.uri}
-                  likeViewer={item.feed.viewer?.like}
-                  count={item.feed.likeCount}
+                  cid={item.feedThis.cid}
+                  uri={item.feedThis.uri}
+                  likeViewer={item.feedThis.viewer?.like}
+                  count={item.feedThis.likeCount}
                   on:like
               ></Like>
 
               <Repost
-                  cid={item.feed.cid}
-                  uri={item.feed.uri}
-                  repostViewer={item.feed.viewer?.repost}
-                  count={item.feed.repostCount}
+                  cid={item.feedThis.cid}
+                  uri={item.feedThis.uri}
+                  repostViewer={item.feedThis.viewer?.repost}
+                  count={item.feedThis.repostCount}
                   on:repost
               ></Repost>
             {/if}
@@ -283,26 +275,26 @@
           <p class="notifications-item__content">{item.record.text}</p>
 
           <div class="timeline-reaction timeline-reaction--notification">
-            {#if item.feed}
+            {#if item.feedThis}
               <Reply
-                  post={item.feed}
-                  reply={item.record.reply}
-                  count={item.feed.replyCount}
+                  post={item.feedThis}
+                  reply={item.feedThis.record.reply}
+                  count={item.feedThis.replyCount}
               ></Reply>
 
               <Like
-                  cid={item.feed.cid}
-                  uri={item.feed.uri}
-                  likeViewer={item.feed.viewer?.like}
-                  count={item.feed.likeCount}
+                  cid={item.feedThis.cid}
+                  uri={item.feedThis.uri}
+                  likeViewer={item.feedThis.viewer?.like}
+                  count={item.feedThis.likeCount}
                   on:like
               ></Like>
 
               <Repost
-                  cid={item.feed.cid}
-                  uri={item.feed.uri}
-                  repostViewer={item.feed.viewer?.repost}
-                  count={item.feed.repostCount}
+                  cid={item.feedThis.cid}
+                  uri={item.feedThis.uri}
+                  repostViewer={item.feedThis.viewer?.repost}
+                  count={item.feedThis.repostCount}
                   on:repost
               ></Repost>
             {/if}
