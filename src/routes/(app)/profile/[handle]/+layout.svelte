@@ -159,6 +159,7 @@
         <div class="profile-relationship">
           <p class="profile-relationship__item"><span>{profile.followsCount}</span> {$_('follows')}</p>
           <p class="profile-relationship__item"><span>{profile.followersCount}</span> {$_('followers')}</p>
+          <p class="profile-relationship__item"><span>{profile.postsCount}</span> {$_('posts')}</p>
 
           {#if (profile.viewer?.followedBy)}
             <p class="profile-relationship__by">{$_('follows_you')}</p>
