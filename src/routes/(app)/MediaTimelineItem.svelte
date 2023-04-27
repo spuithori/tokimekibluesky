@@ -5,6 +5,7 @@
     import {AppBskyFeedDefs} from "@atproto/api";
     import { Splide, SplideSlide } from '@splidejs/svelte-splide';
     import '@splidejs/svelte-splide/css';
+    import { onDestroy } from 'svelte';
 
     export let data;
     let isOpen = false;
@@ -15,7 +16,12 @@
 
     function modalToggle() {
         isOpen = isOpen !== true;
+        document.body.classList.toggle('scroll-lock', isOpen);
     }
+
+    onDestroy(async () => {
+        document.body.classList.remove('scroll-lock');
+    })
 </script>
 
 <div class="media-item" class:media-item--repost={isReasonRepost(data.reason)}
