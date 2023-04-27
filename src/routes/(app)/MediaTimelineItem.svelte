@@ -17,7 +17,7 @@
         document.body.classList.toggle('scroll-lock', isOpen);
 
         if (isOpen) {
-            goto('#open');
+            goto('#open', {noScroll: true});
         }
     }
 
