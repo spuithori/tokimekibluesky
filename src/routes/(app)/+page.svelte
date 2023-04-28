@@ -127,6 +127,10 @@
 						<li class="algo-nav-list__item">
 							<button class="algo-nav-button" disabled on:click={() => {openAlgoNav('')}}>- empty slot -</button>
 						</li>
+
+						<li class="algo-nav-list__item">
+							<button class="algo-nav-button algo-nav-button--add" disabled>リストを作成</button>
+						</li>
 					</ul>
 				</div>
 			</div>
@@ -307,6 +311,12 @@
 			&[data-algo-genre='custom'] {
 				border: 2px solid var(--primary-color);
 			}
+		}
+
+		&--add {
+			background-color: var(--primary-color);
+			color: var(--bg-color-1);
+			font-weight: 600;
 		}
 	}
 
