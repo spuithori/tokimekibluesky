@@ -40,13 +40,8 @@
         })
     }
 
-    /* onMount(async() => {
-        await getPostThread();
-    }) */
-
     beforeNavigate(async () => {
         isMuteDisplay = false;
-        console.log(isMuteDisplay);
     })
 
     afterNavigate(async () => {
@@ -66,7 +61,7 @@
 
   <h1 class="thread-title">{$_('title_thread')}</h1>
 
-  <Thread feeds={feeds}></Thread>
+  <Thread feeds={feeds} depth={0}></Thread>
 </div>
 
 <style lang="postcss">
