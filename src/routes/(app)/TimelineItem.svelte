@@ -192,7 +192,7 @@
     <div class="timeline__content">
       <div class="timeline__meta">
         <p class="timeline__user" title="{data.post.author.handle}">{ data.post.author.displayName || data.post.author.handle }</p>
-        <p class="timeline__date"><time datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}" title="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.indexedAt), {locale: dateFnsLocale})}</time></p>
+        <p class="timeline__date"><time datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.indexedAt), {locale: dateFnsLocale})}</time> <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span></p>
         <p class="timeline__thread-link">
           <a href="/profile/{data.post.author.handle}/post/{data.post.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
         </p>
