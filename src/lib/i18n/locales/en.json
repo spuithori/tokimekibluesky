@@ -20,7 +20,7 @@
   "publish_button_send": "Post",
   "publish_button_progress": "Preparing...",
   "refresh": "Refresh",
-  "follows": "Follows",
+  "follows": "Following",
   "followers": "Followers",
   "follows_you": "Follows you",
   "posts": "Posts",
@@ -32,7 +32,7 @@
   "logout_button": "Logout",
   "title_thread": "Thread",
   "page_title_followers": "followers",
-  "page_title_follows": "follows",
+  "page_title_follows": "following",
   "submit_button_submit": "OK",
   "submit_button_progress": "Preparing...",
   "upload_avatar_label1": "Drag and drop",
@@ -106,5 +106,4 @@
   "unfollow_button": "Unfollow",
   "liked_users": "Liked users",
   "disable_algorithm": "Disable custom algorithm"
-
 }
