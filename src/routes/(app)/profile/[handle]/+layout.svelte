@@ -67,6 +67,44 @@
         }
     }
 
+    async function getDidByHandle(handle) {
+        const res = await $agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
+        return res.data.did;
+    }
+
+    async function block() {
+        try {
+            const did = await getDidByHandle(data.params.handle);
+            const block = await $agent.agent.api.app.bsky.graph.block.create(
+                { repo: $agent.did() },
+                {
+                    subject: did,
+                    createdAt: new Date().toISOString(),
+                });
+            profile = load();
+            isMenuOpen = false;
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
+    async function unblock(uri) {
+        try {
+            const did = await getDidByHandle(data.params.handle);
+            const rkey = uri.split('/').slice(-1)[0];
+            const block = await $agent.agent.api.app.bsky.graph.block.delete(
+                {rkey: rkey, repo: $agent.did() },
+                {
+                    subject: did,
+                    createdAt: new Date().toISOString(),
+                });
+            profile = load();
+            isMenuOpen = false;
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
     function isActive() {
         const path = data.url.pathname;
         const paths = path.split('/');
@@ -131,6 +169,16 @@
           <dd class="profile-reported__content">{$_(label.val)}</dd>
         {/each}
       </dl>
+    {/if}
+
+    {#if (profile.viewer?.blocking)}
+      {#if (profile.viewer.blocking.split('/').slice(-3)[0] === $agent.did())}
+        <p class="profile-muted">{$_('blocking_this_user')}</p>
+      {/if}
+    {/if}
+
+    {#if (profile.viewer?.blockedBy)}
+      <p class="profile-muted">{$_('blocked_by_this_user')}</p>
     {/if}
 
     {#if (profile.viewer?.muted)}
@@ -219,6 +267,26 @@
                           </g>
                         </svg>
                         <span class="text-danger">{$_('unmute_user')}</span>
+                      </button>
+                    </li>
+                  {/if}
+
+                  {#if (!profile.viewer?.blocking)}
+                    <li class="timeline-menu-list__item timeline-menu-list__item--mute">
+                      <button class="timeline-menu-list__button" on:click={block}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+                          <path id="block" d="M0,9a9,9,0,1,1,9,9A9,9,0,0,1,0,9ZM14.688,4.59,4.581,14.679a7.2,7.2,0,0,0,10.107-10.1ZM13.419,3.312A7.2,7.2,0,0,0,3.312,13.419L13.419,3.312Z" fill="var(--danger-color)"/>
+                        </svg>
+                        <span class="text-danger">{$_('block_user')}</span>
+                      </button>
+                    </li>
+                  {:else}
+                    <li class="timeline-menu-list__item timeline-menu-list__item--mute">
+                      <button class="timeline-menu-list__button" on:click={() => {unblock(profile.viewer.blocking)}}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+                          <path id="block" d="M0,9a9,9,0,1,1,9,9A9,9,0,0,1,0,9ZM14.688,4.59,4.581,14.679a7.2,7.2,0,0,0,10.107-10.1ZM13.419,3.312A7.2,7.2,0,0,0,3.312,13.419L13.419,3.312Z" fill="var(--danger-color)"/>
+                        </svg>
+                        <span class="text-danger">{$_('unblock_user')}</span>
                       </button>
                     </li>
                   {/if}

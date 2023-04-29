@@ -105,5 +105,11 @@
   "url_app_password": "https://tokimekibluesky-docs.vercel.app/apppassword",
   "unfollow_button": "Unfollow",
   "liked_users": "Liked users",
-  "disable_algorithm": "Disable custom algorithm"
+  "disable_algorithm": "Disable custom algorithm",
+  "blocking_this_user": "You are blocking this user",
+  "blocked_by_this_user": "You are blocked by this user",
+  "block_user": "Block",
+  "unblock_user": "Unblock",
+  "error_get_posts_because_blocking": "You have blocked this user and could not retrieve the post.",
+  "error_get_posts_because_blocked": "You are blocked by this user and could not retrieve the post."
 }
