@@ -110,5 +110,6 @@
   "block_user": "Block",
   "unblock_user": "Unblock",
   "error_get_posts_because_blocking": "You have blocked this user and could not retrieve the post.",
-  "error_get_posts_because_blocked": "You are blocked by this user and could not retrieve the post."
+  "error_get_posts_because_blocked": "You are blocked by this user and could not retrieve the post.",
+  "error_get_posts_because_blocked_or_blocking": "You are or have been blocked by this user and could not retrieve your submission."
 }

@@ -111,5 +111,6 @@
   "block_user": "ブロックする",
   "unblock_user": "ブロックを解除する",
   "error_get_posts_because_blocking": "あなたはこのユーザーをブロックしているため、投稿を取得できませんでした。",
-  "error_get_posts_because_blocked": "あなたはこのユーザーにブロックされているため、投稿を取得できませんでした。"
+  "error_get_posts_because_blocked": "あなたはこのユーザーにブロックされているため、投稿を取得できませんでした。",
+  "error_get_posts_because_blocked_or_blocking": "あなたはこのユーザーにブロックされている、またはしているため、投稿を取得できませんでした。"
 }

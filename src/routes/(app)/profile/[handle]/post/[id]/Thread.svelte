@@ -29,7 +29,7 @@
         {#if (!data.blocked)}
           <TimelineItem data={data} isSingle={true}></TimelineItem>
         {:else}
-          <p class="thread-blocked">{$_('error_get_posts_because_blocked')}</p>
+          <p class="thread-blocked">{$_('error_get_posts_because_blocked_or_blocking')}</p>
         {/if}
       </div>
 
