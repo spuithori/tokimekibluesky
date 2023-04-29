@@ -1,6 +1,7 @@
 <script lang="ts">
   import TimelineItem from "../../../../TimelineItem.svelte";
   import { afterUpdate } from "svelte";
+  import {_} from "svelte-i18n";
 
   export let feeds = [];
   export let depth = 0;
@@ -25,7 +26,11 @@
       {/if}
 
       <div class="thread-item" data-depth={depth} bind:this={item}>
-        <TimelineItem data={data} isSingle={true}></TimelineItem>
+        {#if (!data.blocked)}
+          <TimelineItem data={data} isSingle={true}></TimelineItem>
+        {:else}
+          <p class="thread-blocked">{$_('error_get_posts_because_blocked')}</p>
+        {/if}
       </div>
 
       {#if (data.replies?.length)}
@@ -68,5 +73,9 @@
       bottom: -20px;
       left: 29px;
       background-color: var(--border-color-1);
+  }
+
+  .thread-blocked {
+      padding: 10px;
   }
 </style>

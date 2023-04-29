@@ -36,7 +36,9 @@
         feeds = [ raw.data.thread ];
 
         feeds.forEach(feed => {
-            isMutedIncludes(feed);
+            if (!feed.blocked) {
+                isMutedIncludes(feed);
+            }
         })
     }
 
