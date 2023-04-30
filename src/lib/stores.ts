@@ -36,11 +36,9 @@ export const cursor = writable<string | undefined>('');
 
 export const timelineStyle = writable(localStorage.getItem('timelineStyle') || 'default');
 
-export const currentAlgorithm = writable<currentAlgorithm>(localStorage.getItem('currentAlgorithm')
-    ? JSON.parse(localStorage.getItem('currentAlgorithm'))
-    : {
-        type: 'default',
-    });
+export const currentAlgorithm = writable<currentAlgorithm>({
+    type: 'default',
+});
 
 export const disableAlgorithm = writable(localStorage.getItem('disableAlgorithm') || 'false');
 

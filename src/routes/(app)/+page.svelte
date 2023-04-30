@@ -8,6 +8,15 @@
 	import ListModal from "../../lib/components/list/ListModal.svelte";
 	import ListTimeline from "./ListTimeline.svelte";
 
+	try {
+		const algo = JSON.parse(localStorage.getItem('currentAlgorithm'));
+		currentAlgorithm.set(algo);
+	} catch (e) {
+		console.log(e)
+		currentAlgorithm.set({type: 'default'});
+		localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
+	}
+
 	let isRefreshing = false;
 
 	let isAlgoNavOpen = false;
