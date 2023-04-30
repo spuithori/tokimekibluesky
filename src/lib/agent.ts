@@ -1,12 +1,15 @@
 import type {AppBskyFeedGetTimeline, AtpAgent} from '@atproto/api';
-import toast from "svelte-french-toast";
 import {AppBskyEmbedImages} from "@atproto/api";
-import {cursor} from "./stores";
+import toast from "svelte-french-toast";
+import {time} from "svelte-i18n";
+import type { currentAlgorithm } from "../app.d.ts";
 
 type timelineOpt = {
     limit: number,
     cursor: string,
-    algorithm?: string,
+    algorithm?: currentAlgorithm,
+    type: 'default' | 'media',
+    actors?: [],
 }
 
 export class Agent {
@@ -22,17 +25,18 @@ export class Agent {
         }
     }
 
-    async getTimeline(timelineOpt: timelineOpt = {limit: 25, cursor: ''}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
+    async getTimeline(timelineOpt: timelineOpt = {limit: 20, cursor: '', type: 'default'}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
         try {
             let res;
+            res = await this.getTimelineByAlgo(timelineOpt);
 
-            if (timelineOpt.algorithm === '') {
-                res = await this.agent.api.app.bsky.feed.getTimeline({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
-            } else {
-                res = await this.agent.api.app.bsky.unspecced.getPopular({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
+            if (timelineOpt.type === 'media') {
+                res.data.feed = res.data.feed.filter(item => {
+                    return item.post.embed && AppBskyEmbedImages.isView(item.post.embed);
+                });
             }
 
-            return res.data;
+            return res;
         } catch (e) {
             toast.error('Error');
             console.error(e);
@@ -40,15 +44,41 @@ export class Agent {
         }
     }
 
-    async getMediaTimeline(timelineOpt: timelineOpt = {limit: 25, cursor: '', algorithm: ''}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
-        const data = await this.getTimeline({limit: timelineOpt.limit, cursor: timelineOpt.cursor, algorithm: timelineOpt.algorithm});
+    async getTimelineByAlgo(timelineOpt: timelineOpt) {
+        switch (timelineOpt.algorithm.type) {
+            case 'custom':
+                return await this.agent.api.app.bsky.unspecced.getPopular({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
+            case 'list':
+                return await this.getAuthorsFeed(timelineOpt.actors);
+            default:
+                return await this.agent.api.app.bsky.feed.getTimeline({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
+        }
+    }
 
-        const filtered = data.feed.filter(item => {
-            return item.post.embed && AppBskyEmbedImages.isView(item.post.embed);
-        });
+    async getAuthorsFeed(actors) {
+        let promises = [];
+        actors.forEach(member => {
+            if (member.cursor !== undefined) {
+                const res = this.agent.api.app.bsky.feed.getAuthorFeed({
+                    actor: member.actor,
+                    limit: member.limit || 20,
+                    cursor: member.cursor || '',
+                })
+                promises.push(res);
+            }
+        })
 
-        data.feed = filtered;
-        return data;
+        let res = [];
+        await Promise.allSettled(promises)
+            .then((results) => {
+                results.forEach((result, index) => {
+                    if (result.status === 'fulfilled') {
+                        res.push(result.value)
+                    }
+                })
+            });
+
+        return res;
     }
 
     async setVote(cid: string, uri: string, likeUri = '') {

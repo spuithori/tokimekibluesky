@@ -478,6 +478,16 @@
     }
 }
 
+.media-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+
+    @media (max-width: 767px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 .timeline-tooltip {
     background-color: rgba(0, 0, 0, .75);
     color: #fff;

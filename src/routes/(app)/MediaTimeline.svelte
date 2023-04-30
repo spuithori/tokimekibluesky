@@ -45,13 +45,5 @@
 </div>
 
 <style lang="postcss">
-    .media-list {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 2px;
 
-        @media (max-width: 767px) {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
 </style>
