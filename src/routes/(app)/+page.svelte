@@ -11,6 +11,11 @@
 	try {
 		const algo = JSON.parse(localStorage.getItem('currentAlgorithm'));
 		currentAlgorithm.set(algo);
+
+		if (!algo) {
+			currentAlgorithm.set({type: 'default'});
+			localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
+		}
 	} catch (e) {
 		console.log(e)
 		currentAlgorithm.set({type: 'default'});
