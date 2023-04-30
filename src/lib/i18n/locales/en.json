@@ -105,6 +105,17 @@
   "url_app_password": "https://tokimekibluesky-docs.vercel.app/apppassword",
   "unfollow_button": "Unfollow",
   "liked_users": "Liked users",
-  "disable_algorithm": "Disable custom algorithm"
-
+  "disable_algorithm": "Disable custom algorithm",
+  "list_add_management": "List Add/Management",
+  "list_name": "List name",
+  "list_member": "List members(Up to 10 people recommended)",
+  "user_search": "User search",
+  "import_export": "Import/Export",
+  "export_clipboard_copy": "Export(Copy to clipboard)",
+  "import": "Import",
+  "overwrite_current_member": "Existing list members are overwritten.",
+  "remove": "Remove",
+  "success_import_list": "Successfully imported the list.",
+  "error_invalid_text": "Error: Invalid string.",
+  "create_list": "Create list"
 }

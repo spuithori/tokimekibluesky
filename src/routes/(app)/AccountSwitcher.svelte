@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { agent } from '$lib/stores';
+    import { agent, currentAlgorithm } from '$lib/stores';
     import { unsub } from '$lib/pushSubscription';
 
     export let accounts;
@@ -18,6 +18,8 @@
         currentAccount = index;
         localStorage.setItem('currentAccount', String(currentAccount));
         await unsub();
+        currentAlgorithm.set({type: 'default'});
+        localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
         location.reload();
     }
 

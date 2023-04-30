@@ -105,5 +105,17 @@
   "url_app_password": "https://tokimekibluesky-docs.vercel.app/ja/apppassword",
   "unfollow_button": "フォロー解除",
   "liked_users": "いいねした人",
-  "disable_algorithm": "カスタムアルゴリズムを無効化"
+  "disable_algorithm": "カスタムアルゴリズムを無効化",
+  "list_add_management": "リスト追加・管理",
+  "list_name": "リスト名",
+  "list_member": "リストメンバー（10人まで推奨）",
+  "user_search": "ユーザー検索",
+  "import_export": "インポート・エクスポート",
+  "export_clipboard_copy": "エクスポート（クリップボードにコピー）",
+  "import": "インポート",
+  "overwrite_current_member": "既存のリストメンバーは上書きされます。",
+  "remove": "削除する",
+  "success_import_list": "リストのインポートに成功しました。",
+  "error_invalid_text": "エラー: 不正な文字列です。",
+  "create_list": "リストを作成"
 }

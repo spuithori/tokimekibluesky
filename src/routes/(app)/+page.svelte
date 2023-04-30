@@ -2,13 +2,18 @@
 	import { _ } from 'svelte-i18n';
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
-	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm } from "$lib/stores";
+	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm, userLists } from "$lib/stores";
 	import TimelineSettings from "./TimelineSettings.svelte";
 	import MediaTimeline from "./MediaTimeline.svelte";
+	import ListModal from "../../lib/components/list/ListModal.svelte";
+	import ListTimeline from "./ListTimeline.svelte";
 
 	let isRefreshing = false;
 
 	let isAlgoNavOpen = false;
+
+	let isListModalOpen = false;
+	let listModalId;
 
 	function handleKeydown(event: { key: string; }) {
 		const activeElement = document.activeElement?.tagName;
@@ -26,24 +31,28 @@
 		}
 
 		if ($disableAlgorithm === 'true') {
-			currentAlgorithm.set('');
-			localStorage.setItem('currentAlgorithm', '');
+			currentAlgorithm.set({type: 'default'});
+			localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
+		}
+
+		if ($currentAlgorithm.type === 'list' && $currentAlgorithm.list && $userLists.some(list => list.id === $currentAlgorithm.list.id)) {
+			currentAlgorithm.set({type: 'list', list: $userLists.find(list => list.id === $currentAlgorithm.list.id)});
+			localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
 		}
 	}
 
 	async function refresh(style: 'default' | 'media') {
 		isRefreshing = true;
-		let data;
+		if ($currentAlgorithm.type !== 'list') {
+			const res = await $agent.getTimeline({limit: 25, cursor: '', algorithm: $currentAlgorithm});
 
-		if (style === 'default') {
-			data = await $agent.getTimeline({limit: 25, cursor: '', algorithm: $currentAlgorithm});
+			timeline.set(res.data.feed);
+			cursor.set(res.data.cursor);
+			notificationCount.set(await $agent.getNotificationCount());
 		} else {
-			data = await $agent.getMediaTimeline({limit: 25, cursor: '', algorithm: $currentAlgorithm});
+			location.reload();
 		}
 
-		timeline.set(data.feed);
-		cursor.set(data.cursor);
-		notificationCount.set(await $agent.getNotificationCount());
 		isRefreshing = false;
 	}
 
@@ -53,14 +62,39 @@
 		refresh($timelineStyle);
 	}
 
-	function openAlgoNav(algorithm: string) {
+	function openAlgoNav(currentAlgo) {
 		isAlgoNavOpen = isAlgoNavOpen !== true;
-		currentAlgorithm.set(algorithm);
-		localStorage.setItem('currentAlgorithm', algorithm);
+		currentAlgorithm.set(currentAlgo);
+		localStorage.setItem('currentAlgorithm', JSON.stringify(currentAlgo));
 
 		if (!isAlgoNavOpen) {
 			refresh($timelineStyle);
 		}
+	}
+
+	function listAdd(id = undefined) {
+		listModalId = id;
+		isListModalOpen = true;
+	}
+
+	function handleListRemove(event) {
+		if ($currentAlgorithm.type === 'list' && $currentAlgorithm.list && event.detail.id === $currentAlgorithm.list.id) {
+			currentAlgorithm.set({type: 'default'});
+			localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
+		}
+
+		userLists.update(lists => {
+			return lists.filter(list => list.id !== event.detail.id);
+		});
+		localStorage.setItem('lists', JSON.stringify($userLists));
+
+		refresh($timelineStyle);
+
+		isListModalOpen = false;
+	}
+
+	function handleListModalClose() {
+		location.reload();
 	}
 </script>
 
@@ -100,11 +134,11 @@
 
 					<ul class="algo-nav-list">
 						<li class="algo-nav-list__item">
-							<button class="algo-nav-button" data-algo-genre="default" data-algo-label="home" class:algo-nav-button--current={$currentAlgorithm === ''} on:click={() => {openAlgoNav('')}}>HOME</button>
+							<button class="algo-nav-button" data-algo-genre="default" data-algo-label="home" class:algo-nav-button--current={$currentAlgorithm.type === 'default'} on:click={() => {openAlgoNav({type: 'default'})}}>HOME</button>
 						</li>
 
 						<li class="algo-nav-list__item">
-							<button class="algo-nav-button" data-algo-genre="custom" data-algo-label="whatshot" on:click={() => {openAlgoNav('whatshot')}} class:algo-nav-button--current={$currentAlgorithm === 'whatshot'} >What's Hot<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+							<button class="algo-nav-button" data-algo-genre="custom" data-algo-label="whatshot" on:click={() => {openAlgoNav({type: 'custom', algorithm: 'whatshot'})}} class:algo-nav-button--current={$currentAlgorithm.algorithm === 'whatshot'} >What's Hot<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
 								<g id="グループ_89" data-name="グループ 89" transform="translate(-1059 -638)">
 									<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 638)" fill="var(--danger-color)"/>
 									<path id="パス_23" data-name="パス 23" d="M-4.216-12.446v-.781c0-1.385-1.208-2.063-2.859-2.063a4.99,4.99,0,0,0-5.157,5.3A4.893,4.893,0,0,0-7.251-4.961c1.4,0,3.006-.589,3.006-1.975v-.751h-.074a3.975,3.975,0,0,1-2.667.973c-1.9,0-3.212-1.194-3.212-3.566A3.065,3.065,0,0,1-7.06-13.537a3.617,3.617,0,0,1,2.77,1.09Z" transform="translate(1075.028 655.929)" fill="#fff"/>
@@ -112,28 +146,36 @@
 							</svg></button>
 						</li>
 
-						<li class="algo-nav-list__item">
-							<button class="algo-nav-button" data-algo-name="" disabled on:click={() => {openAlgoNav('')}}>- empty slot -</button>
-						</li>
+						{#each $userLists as list}
+							{#if (list.owner === $agent.did())}
+								<li class="algo-nav-list__item">
+									<button class="algo-nav-button" data-algo-genre="list" data-algo-label="{list.name}" on:click={() => {openAlgoNav({type: 'list', list: list})}} class:algo-nav-button--current={$currentAlgorithm.type === 'list' && $currentAlgorithm.list.id === list.id}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+										<g id="グループ_100" data-name="グループ 100" transform="translate(-1059 -662)">
+											<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 662)" fill="#2a14b4"/>
+											<path id="パス_26" data-name="パス 26" d="M-.075-1.395v-.7a6.107,6.107,0,0,1-2.145.375h-.525c-1.545,0-1.905-.57-1.905-2.13v-4.92c0-1.02-.435-1.5-1.275-1.5h-.84V-3.72c0,2.46,1.335,3.81,3.75,3.81h.8C-.525.09-.075-.5-.075-1.395Z" transform="translate(1070.42 675.093)" fill="#fff"/>
+										</g>
+									</svg>
+										{list.name}</button>
+									<button class="algo-nav-edit" on:click={() => {listAdd(list.id || undefined)}} aria-label="Edit list"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+										<g id="グループ_99" data-name="グループ 99" transform="translate(-210 -1863)">
+											<circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(210 1863)" fill="#b3b3b3"/>
+											<path id="edit-pencil" d="M7.38,2.22l2.4,2.4L2.4,12H0V9.6Zm.84-.84L9.6,0,12,2.4,10.62,3.78Z" transform="translate(216 1869)" fill="#fff"/>
+										</g>
+									</svg></button>
+								</li>
+							{/if}
+						{/each}
 
 						<li class="algo-nav-list__item">
-							<button class="algo-nav-button" disabled on:click={() => {openAlgoNav('')}}>- empty slot -</button>
-						</li>
-
-						<li class="algo-nav-list__item">
-							<button class="algo-nav-button" disabled on:click={() => {openAlgoNav('')}}>- empty slot -</button>
-						</li>
-
-						<li class="algo-nav-list__item">
-							<button class="algo-nav-button" disabled on:click={() => {openAlgoNav('')}}>- empty slot -</button>
-						</li>
-
-						<li class="algo-nav-list__item">
-							<button class="algo-nav-button algo-nav-button--add" disabled>リストを作成</button>
+							<button class="algo-nav-button algo-nav-button--add" on:click={() => {listAdd(undefined)}}>{$_('create_list')}</button>
 						</li>
 					</ul>
 				</div>
 			</div>
+		{/if}
+
+		{#if (isListModalOpen)}
+			<ListModal id={listModalId} on:close={handleListModalClose} on:remove={handleListRemove}></ListModal>
 		{/if}
 
 		<TimelineSettings></TimelineSettings>
@@ -147,10 +189,12 @@
 		</button>
 	</div>
 
-	{#if ($timelineStyle === 'default')}
-		<Timeline isRefreshing={isRefreshing}></Timeline>
+	{#if ($currentAlgorithm.type === 'list')}
+		{#if ($currentAlgorithm.list.members.length)}
+			<ListTimeline isRefreshing={isRefreshing}></ListTimeline>
+		{/if}
 	{:else}
-		<MediaTimeline isRefreshing={isRefreshing}></MediaTimeline>
+		<Timeline isRefreshing={isRefreshing}></Timeline>
 	{/if}
 </section>
 
@@ -215,11 +259,12 @@
 
 		&--open {
 			position: fixed;
-			z-index: 10000;
+			z-index: 9998;
 			top: 0;
 			left: 0;
 			right: 0;
 			bottom: 0;
+			overflow: auto;
 
 			.algo-nav-list {
 				position: absolute;
@@ -232,11 +277,19 @@
 				gap: 20px;
 				align-items: center;
 				justify-content: center;
+
+				@media (max-width: 767px) {
+
+				}
 			}
 
 			.algo-nav-bg {
 				opacity: 1;
 				visibility: visible;
+			}
+
+			.algo-nav-edit {
+				display: block;
 			}
 
 			.algo-nav-button {
@@ -249,7 +302,7 @@
 
 	.algo-nav-bg {
 		opacity: 0;
-		position: absolute;
+		position: fixed;
 		left: 0;
 		right: 0;
 		bottom: 0;
@@ -264,9 +317,14 @@
 		list-style: none;
 
 		&__item {
+			position: relative;
+
 			@media (max-width: 767px) {
 				display: flex;
 				justify-content: center;
+				width: 170px;
+				margin-left: auto;
+				margin-right: auto;
 			}
 
 			&:has(.algo-nav-button--current) {
@@ -278,7 +336,6 @@
 	.algo-nav-button {
 		width: 170px;
 		height: 40px;
-		display: flex;
 		align-items: center;
 		justify-content: center;
 		text-align: center;
@@ -290,6 +347,14 @@
 		transition: box-shadow .2s ease-in-out;
 		letter-spacing: .05em;
 		position: relative;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		padding: 0 35px;
+
+		@media (max-width: 767px) {
+
+		}
 
 		svg {
 			position: absolute;
@@ -311,6 +376,10 @@
 			&[data-algo-genre='custom'] {
 				border: 2px solid var(--primary-color);
 			}
+
+			& + .algo-nav-edit {
+				display: block;
+			}
 		}
 
 		&--add {
@@ -318,6 +387,15 @@
 			color: var(--bg-color-1);
 			font-weight: 600;
 		}
+	}
+
+	.algo-nav-edit {
+		position: absolute;
+		right: 10px;
+		top: 0;
+		bottom: 0;
+		margin: auto;
+		display: none;
 	}
 
 	.style-nav {

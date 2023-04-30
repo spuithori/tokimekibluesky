@@ -6,9 +6,14 @@ declare global {
 		// interface Locals {}
 		// interface PageData {}
 		// interface Platform {}
+
+		interface currentAlgorithm {
+			type: 'default' | 'custom' | 'list',
+			algorithm?: string,
+			list?: object,
+		}
 	}
 }
-
 declare module 'svelte-filepond';
 
 export {};

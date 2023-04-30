@@ -27,8 +27,8 @@
         disableAlgorithm.set(String(disableAlgorithmToggle));
 
         if ($disableAlgorithm === 'true') {
-            currentAlgorithm.set('');
-            localStorage.setItem('currentAlgorithm', '');
+            currentAlgorithm.set({type: 'default'});
+            localStorage.setItem('currentAlgorithm', $currentAlgorithm);
         }
 
         localStorage.setItem('theme', themePick);
@@ -39,6 +39,8 @@
         accounts.splice(currentAccount, 1)
         localStorage.setItem('accounts', JSON.stringify(accounts));
         await unsub();
+        currentAlgorithm.set({type: 'default'});
+        localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
 
         if (accounts.length > 0) {
             localStorage.setItem('currentAccount', String(Number(accounts.length - 1)));

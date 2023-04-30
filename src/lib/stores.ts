@@ -6,6 +6,12 @@ type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification 
     feed?: AppBskyFeedPost
 }
 
+type currentAlgorithm = {
+    type: 'default' | 'custom' | 'list',
+    algorithm?: string,
+    list?: object,
+}
+
 export const service = writable(localStorage.getItem('service') || 'https://bsky.social');
 export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) || []);
 
@@ -30,7 +36,11 @@ export const cursor = writable<string | undefined>('');
 
 export const timelineStyle = writable(localStorage.getItem('timelineStyle') || 'default');
 
-export const currentAlgorithm = writable(localStorage.getItem('currentAlgorithm') || '');
+export const currentAlgorithm = writable<currentAlgorithm>(localStorage.getItem('currentAlgorithm')
+    ? JSON.parse(localStorage.getItem('currentAlgorithm'))
+    : {
+        type: 'default',
+    });
 
 export const disableAlgorithm = writable(localStorage.getItem('disableAlgorithm') || 'false');
 
@@ -55,3 +65,7 @@ export const quotePost = writable<AppBskyFeedDefs.PostView | undefined>();
 export const replyRef = writable<AppBskyFeedDefs.ReplyRef | string | undefined>();
 
 export const sharedText = writable<string>('');
+
+export const userLists = writable(localStorage.getItem('lists')
+    ? JSON.parse(localStorage.getItem('lists'))
+    : [])
