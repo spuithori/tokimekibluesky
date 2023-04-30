@@ -58,12 +58,14 @@ export class Agent {
     async getAuthorsFeed(actors) {
         let promises = [];
         actors.forEach(member => {
-            const res = this.agent.api.app.bsky.feed.getAuthorFeed({
-                actor: member.actor,
-                limit: member.limit || 20,
-                cursor: member.cursor || '',
-            })
-            promises.push(res);
+            if (member.cursor !== undefined) {
+                const res = this.agent.api.app.bsky.feed.getAuthorFeed({
+                    actor: member.actor,
+                    limit: member.limit || 20,
+                    cursor: member.cursor || '',
+                })
+                promises.push(res);
+            }
         })
 
         let res = [];

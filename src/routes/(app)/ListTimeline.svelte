@@ -44,18 +44,39 @@
             })
             cursors = cursors;
             feedPool = feedPool.sort((a, b) => {
-                return parseISO(b.post.indexedAt).getTime() - parseISO(a.post.indexedAt).getTime();
+                if (a.reason) {
+                    if ( parseISO(a.reason.indexedAt).getTime() < parseISO(b.post.indexedAt).getTime()) {
+                        return 1;
+                    }
+                }
+
+                if (b.reason) {
+                    if ( parseISO(a.post.indexedAt).getTime() < parseISO(b.reason.indexedAt).getTime()) {
+                        return 1;
+                    }
+                }
+
+                if ( parseISO(a.post.indexedAt).getTime() < parseISO(b.post.indexedAt).getTime()) {
+                    return 1;
+                }
+
+                if ( parseISO(a.post.indexedAt).getTime() > parseISO(b.post.indexedAt).getTime()) {
+                    return -1;
+                }
+
+                return 0;
             });
             feed = feedPool.slice(0, 20);
             feedPool = feedPool.slice(20);
             console.log(feedPool);
 
-            if (cursors.every(item => item.cursor !== undefined)) {
+            if (cursors.some(item => item.cursor !== undefined)) {
                 await poolRecalc(feedPool);
 
                 timeline.update(function (tl) {
                     return [...tl, ...feed];
                 });
+                console.log($timeline)
 
                 loaded();
             } else {
@@ -66,10 +87,9 @@
 
     async function poolRecalc(currentPool: []) {
         let feedPerActorMap = new Map();
-        const list = $currentAlgorithm.list;
-        list.members.forEach(member => {
-            feedPerActorMap.set(member, []);
-        })
+        actors.forEach(actor => {
+            feedPerActorMap.set(actor.actor, []);
+        });
 
         currentPool.forEach(feed => {
             if (feed.reason) {
@@ -85,7 +105,7 @@
                 actors.push({
                     actor: key,
                     limit: 20 - value.length,
-                    cursor: cursors.find(item => item.actor === key).cursor
+                    cursor: cursors.find(item => item.actor === key)?.cursor || undefined
                 })
                 cursors = cursors.filter(item => item.actor !== key);
             }
