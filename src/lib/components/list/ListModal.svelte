@@ -234,8 +234,8 @@
     </details>
 
     <div class="list-modal-close">
-      <button class="button" on:click={close}>{$_('close_button')}</button>
-      <button class="button button--border button--danger" on:click={remove}>{$_('remove')}</button>
+      <button class="button button--sm" on:click={close}>{$_('close_button')}</button>
+      <button class="button button--sm button--border button--danger" on:click={remove}>{$_('remove')}</button>
     </div>
   </div>
 </div>
@@ -280,7 +280,7 @@
       gap: 30px;
 
       @media (max-width: 767px) {
-          grid-template-columns: 1fr;
+          display: block;
       }
   }
 
@@ -292,6 +292,10 @@
   }
 
   .list-modal-group {
+      @media (max-width: 767px) {
+          margin-bottom: 20px;
+      }
+
       &__name {
           font-size: 14px;
           margin-bottom: 6px;
@@ -303,6 +307,10 @@
 
       &--name {
           margin-bottom: 30px;
+
+          @media (max-width: 767px) {
+              margin-bottom: 20px;
+          }
       }
 
       &__input {
