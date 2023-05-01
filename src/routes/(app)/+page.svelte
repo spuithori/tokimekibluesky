@@ -308,7 +308,7 @@
 
 			.algo-nav-button {
 				&:not(.algo-nav-button--current) {
-					display: flex;
+					display: block;
 				}
 			}
 		}
