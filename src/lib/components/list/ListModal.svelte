@@ -211,7 +211,7 @@
             <div class="list-modal-import-export-group">
               <input type="text" readonly class="list-modal-group__input" bind:value={exportText}>
               <button class="button button--sm" on:click={exporting}><svg xmlns="http://www.w3.org/2000/svg" width="14.417" height="18" viewBox="0 0 14.417 18">
-                <path id="clipboard" d="M6.532,2.345a2.7,2.7,0,0,1,5.352,0l1.829.36v.9h.9a1.8,1.8,0,0,1,1.8,1.8V16.221a1.8,1.8,0,0,1-1.8,1.8H3.8a1.8,1.8,0,0,1-1.8-1.8V5.409a1.807,1.807,0,0,1,1.8-1.8h.9v-.9l1.829-.36ZM4.7,5.409H3.8V16.221H14.615V5.409h-.9v.9H4.7Zm4.505-1.8a.9.9,0,1,0-.9-.9A.9.9,0,0,0,9.208,3.606Z" transform="translate(-2 -0.023)" fill="#fff"/>
+                <path id="clipboard" d="M6.532,2.345a2.7,2.7,0,0,1,5.352,0l1.829.36v.9h.9a1.8,1.8,0,0,1,1.8,1.8V16.221a1.8,1.8,0,0,1-1.8,1.8H3.8a1.8,1.8,0,0,1-1.8-1.8V5.409a1.807,1.807,0,0,1,1.8-1.8h.9v-.9l1.829-.36ZM4.7,5.409H3.8V16.221H14.615V5.409h-.9v.9H4.7Zm4.505-1.8a.9.9,0,1,0-.9-.9A.9.9,0,0,0,9.208,3.606Z" transform="translate(-2 -0.023)" fill="var(--bg-color-1)"/>
               </svg></button>
             </div>
           </dd>
@@ -320,6 +320,7 @@
           padding: 0 10px;
           width: 100%;
           background-color: var(--bg-color-2);
+          color: var(--text-color-1);
       }
   }
 
@@ -340,6 +341,10 @@
       align-items: center;
       margin-bottom: 10px;
       overflow: hidden;
+
+      &__input {
+          color: var(--text-color-1);
+      }
 
       &:focus-within {
           border-color: var(--text-color-1);
@@ -379,6 +384,7 @@
       height: 40px;
       padding: 0 10px 0 40px;
       width: 100%;
+      color: var(--text-color-1);
   }
 
   .list-modal-import-export {

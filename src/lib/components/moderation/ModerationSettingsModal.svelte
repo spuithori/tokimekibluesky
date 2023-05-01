@@ -285,6 +285,7 @@
             padding: 0 10px;
             cursor: pointer;
             position: relative;
+            color: var(--text-color-1);
         }
     }
 </style>
