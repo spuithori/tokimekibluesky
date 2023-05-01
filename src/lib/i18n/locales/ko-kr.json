@@ -112,5 +112,17 @@
   "unblock_user": "차단 그만하기",
   "error_get_posts_because_blocking": "이 사용자를 차단하여 포스트를 볼 수 없습니다.",
   "error_get_posts_because_blocked": "나를 차단하여 포스트를 볼 수 없습니다.",
-  "error_get_posts_because_blocked_or_blocking": "내가 차단했거나 나를 차단하여 포스트를 볼 수 없습니다."
+  "error_get_posts_because_blocked_or_blocking": "내가 차단했거나 나를 차단하여 포스트를 볼 수 없습니다.",
+  "list_add_management": "List Add/Management",
+  "list_name": "List name",
+  "list_member": "List members(Up to 10 people recommended)",
+  "user_search": "User search",
+  "import_export": "Import/Export",
+  "export_clipboard_copy": "Export(Copy to clipboard)",
+  "import": "Import",
+  "overwrite_current_member": "Existing list members are overwritten.",
+  "remove": "Remove",
+  "success_import_list": "Successfully imported the list.",
+  "error_invalid_text": "Error: Invalid string.",
+  "create_list": "Create list"
 }
