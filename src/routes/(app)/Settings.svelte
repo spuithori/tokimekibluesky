@@ -28,7 +28,7 @@
 
         if ($disableAlgorithm === 'true') {
             currentAlgorithm.set({type: 'default'});
-            localStorage.setItem('currentAlgorithm', $currentAlgorithm);
+            localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
         }
 
         localStorage.setItem('theme', themePick);
