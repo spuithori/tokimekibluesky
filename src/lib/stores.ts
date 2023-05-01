@@ -67,3 +67,7 @@ export const sharedText = writable<string>('');
 export const userLists = writable(localStorage.getItem('lists')
     ? JSON.parse(localStorage.getItem('lists'))
     : [])
+
+export const contentLabels = writable(localStorage.getItem('contentLabels')
+    ? localStorage.getItem('contentLabels')
+    : '')

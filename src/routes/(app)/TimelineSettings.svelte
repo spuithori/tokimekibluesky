@@ -3,10 +3,13 @@
     import { clickOutside } from '$lib/clickOutSide';
     import { fade, fly } from 'svelte/transition';
     import { hideRepost, hideReply } from '$lib/stores';
+    import ModerationSettingsModal from "../../lib/components/moderation/ModerationSettingsModal.svelte";
 
     let repostToggle = JSON.parse(localStorage.getItem('hideRepost')) === true;
     let replyToggle = JSON.parse(localStorage.getItem('hideReply')) === true;
     let toggle = false;
+
+    let isModerationSettingsToggle = false;
 
     $: {
         localStorage.setItem('hideRepost', repostToggle ? 'true' : 'false');
@@ -14,10 +17,20 @@
 
         localStorage.setItem('hideReply', replyToggle ? 'true' : 'false');
         hideReply.set(String(replyToggle));
+
+        if (isModerationSettingsToggle) {
+            document.body.classList.add('scroll-lock');
+        } else {
+            document.body.classList.remove('scroll-lock');
+        }
     }
 
     function settingsToggle() {
         toggle = toggle !== true;
+    }
+
+    function toggleModerationSettings() {
+        isModerationSettingsToggle = !isModerationSettingsToggle;
     }
 </script>
 
@@ -74,6 +87,24 @@
           </div>
         </dd>
       </dl>
+
+      <dl class="settings-group settings-group--column">
+        <dt class="settings-group__name mb10">
+          {$_('content_moderation_settings')}
+        </dt>
+
+        <dd class="settings-group__content">
+          <button class="button button--sm" on:click={toggleModerationSettings}>{$_('go_settings')}</button>
+        </dd>
+      </dl>
+    </div>
+  {/if}
+
+  {#if (isModerationSettingsToggle)}
+    <div >
+      <ModerationSettingsModal>
+        <button class="button button--sm" on:click={toggleModerationSettings}>{$_('close_button')}</button>
+      </ModerationSettingsModal>
     </div>
   {/if}
 </div>
