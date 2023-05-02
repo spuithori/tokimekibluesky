@@ -20,6 +20,7 @@
     import Repost from "$lib/components/post/Repost.svelte";
     import Reply from "$lib/components/post/Reply.svelte";
     import {onMount} from "svelte";
+    import Bookmark from "../../lib/components/post/Bookmark.svelte";
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
@@ -275,7 +276,7 @@
             {/each}
           </p>
 
-          <div class="timeline-reaction">
+          <div class="timeline-reaction" class:timeline-reaction--media={isMedia}>
             <Reply
                 post={data.post}
                 reply={data.post.record.reply}
@@ -297,6 +298,8 @@
                 count={data.post.repostCount}
                 on:repost
             ></Repost>
+
+            <Bookmark post={data.post} bookmarkId={data?.bookmarkId}></Bookmark>
           </div>
 
           {#if (AppBskyEmbedImages.isView(data.post.embed) && !isMedia)}
