@@ -243,6 +243,18 @@
         gap: 10px;
         margin-top: 10px;
     }
+
+    &--media {
+        gap: 10px;
+
+        .timeline-reaction__item {
+            min-width: 55px;
+
+            &--bookmark {
+                min-width: 40px;
+            }
+        }
+    }
 }
 
 .timeline-reaction__item {
@@ -393,6 +405,10 @@
         flex: 1;
         text-decoration: none;
         color: inherit;
+
+        &--bookmark {
+            min-width: 120px;
+        }
 
         &:hover {
             background-color: var(--bg-color-2);

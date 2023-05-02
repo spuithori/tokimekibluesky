@@ -10,6 +10,7 @@
 	import { liveQuery } from "dexie";
 	import { db } from '$lib/db'
 	import BookmarkModal from "../../lib/components/bookmark/BookmarkModal.svelte";
+	import BookmarkTimeline from "./BookmarkTimeline.svelte";
 
 	try {
 		const algo = JSON.parse(localStorage.getItem('currentAlgorithm'));
@@ -59,16 +60,21 @@
 			currentAlgorithm.set({type: 'list', list: $userLists.find(list => list.id === $currentAlgorithm.list.id)});
 			localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
 		}
+
+		console.log($currentAlgorithm)
 	}
 
 	async function refresh(style: 'default' | 'media') {
 		isRefreshing = true;
-		if ($currentAlgorithm.type !== 'list') {
+		if ($currentAlgorithm.type === 'default' || $currentAlgorithm.type === 'custom') {
 			const res = await $agent.getTimeline({limit: 25, cursor: '', algorithm: $currentAlgorithm});
 
 			timeline.set(res.data.feed);
 			cursor.set(res.data.cursor);
 			notificationCount.set(await $agent.getNotificationCount());
+		} else if ($currentAlgorithm.type === 'bookmark') {
+			timeline.set([]);
+			cursor.set(0);
 		} else {
 			location.reload();
 		}
@@ -104,6 +110,12 @@
 
 	function handleBookmarkClose(event) {
 		isBookmarkModalOpen = false;
+
+		if (event.detail.clear) {
+			currentAlgorithm.set({type: 'default'});
+			localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
+			refresh($timelineStyle);
+		}
 	}
 
 	function handleListRemove(event) {
@@ -197,30 +209,32 @@
 
 						{#if ($bookmarks)}
 							{#each $bookmarks as bookmark}
-								<li class="algo-nav-list__item">
-									<button class="algo-nav-button" data-algo-genre="list" data-algo-label="{bookmark.name}" on:click={() => {openAlgoNav({type: 'bookmark'})}} class:algo-nav-button--current={$currentAlgorithm.type === 'bookmark' && $currentAlgorithm.list.id === bookmark.id}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-										<g id="グループ_102" data-name="グループ 102" transform="translate(-1059 -686)">
-											<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 686)" fill="#94c74c"/>
-											<path id="パス_28" data-name="パス 28" d="M-.63-2.968c0-1.288-.854-2.2-2.6-2.562-1.792-.378-2.24-.728-2.24-1.3,0-.742.546-1.232,2.03-1.232a3.272,3.272,0,0,1,2.492.938H-.9v-.882c0-.8-.644-1.75-2.884-1.75a3.292,3.292,0,0,0-3.6,3.108c0,1.3.924,2.114,2.548,2.464,2.03.434,2.282.728,2.282,1.386,0,.77-.462,1.26-1.9,1.26A3.912,3.912,0,0,1-7.126-2.576h-.042v.854c0,1.134.994,1.89,2.926,1.89C-1.918.168-.63-1.078-.63-2.968Z" transform="translate(1071.004 698.795)" fill="#fff"/>
-										</g>
-									</svg>
-										{bookmark.name}</button>
-									<button class="algo-nav-edit" on:click={() => {bookmarkAdd(bookmark || undefined)}} aria-label="Edit list"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-										<g id="グループ_99" data-name="グループ 99" transform="translate(-210 -1863)">
-											<circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(210 1863)" fill="#b3b3b3"/>
-											<path id="edit-pencil" d="M7.38,2.22l2.4,2.4L2.4,12H0V9.6Zm.84-.84L9.6,0,12,2.4,10.62,3.78Z" transform="translate(216 1869)" fill="#fff"/>
-										</g>
-									</svg></button>
-								</li>
+								{#if (bookmark.owner === $agent.did())}
+									<li class="algo-nav-list__item">
+										<button class="algo-nav-button" data-algo-genre="bookmark" data-algo-label="{bookmark.name}" on:click={() => {openAlgoNav({type: 'bookmark', list: String(bookmark.id)})}} class:algo-nav-button--current={$currentAlgorithm.type === 'bookmark' && $currentAlgorithm.list === String(bookmark.id)}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+											<g id="グループ_103" data-name="グループ 103" transform="translate(-1082 -686)">
+												<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1082 686)" fill="#94c74c"/>
+												<path id="パス_29" data-name="パス 29" d="M-.615-3.18A2.557,2.557,0,0,0-2.43-5.43,2.117,2.117,0,0,0-.795-7.605c0-1.68-1.4-2.715-3.36-2.715H-5.4a10.581,10.581,0,0,0-2.715.465V-2.4C-8.115-.8-7.17.045-5.25.045h1.11A3.248,3.248,0,0,0-.615-3.18ZM-2.85-7.425c0,.885-.75,1.245-1.665,1.245H-6.09V-8.505a6.435,6.435,0,0,1,.885-.1h.765C-3.675-8.61-2.85-8.325-2.85-7.425Zm.165,4.305c0,.78-.54,1.29-1.65,1.29h-.84c-.51,0-.9-.285-.9-.645V-4.59H-4.44C-3.24-4.59-2.685-4.23-2.685-3.12Z" transform="translate(1094.365 699.138)" fill="#fff"/>
+											</g>
+										</svg>
+											{bookmark.name}</button>
+										<button class="algo-nav-edit" on:click={() => {bookmarkAdd(bookmark || undefined)}} aria-label="Edit list"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+											<g id="グループ_99" data-name="グループ 99" transform="translate(-210 -1863)">
+												<circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(210 1863)" fill="#b3b3b3"/>
+												<path id="edit-pencil" d="M7.38,2.22l2.4,2.4L2.4,12H0V9.6Zm.84-.84L9.6,0,12,2.4,10.62,3.78Z" transform="translate(216 1869)" fill="#fff"/>
+											</g>
+										</svg></button>
+									</li>
+								{/if}
 							{/each}
 						{/if}
 
 						<li class="algo-nav-list__item">
-							<button class="algo-nav-button algo-nav-button--add" on:click={() => {listAdd(undefined)}}>{$_('create_list')}</button>
+							<button class="algo-nav-button algo-nav-button--add algo-nav-button--add-list" on:click={() => {listAdd(undefined)}}>{$_('create_list')}</button>
 						</li>
 
 						<li class="algo-nav-list__item">
-							<button class="algo-nav-button algo-nav-button--add" on:click={() => {bookmarkAdd(undefined)}}>{$_('create_bookmark')}</button>
+							<button class="algo-nav-button algo-nav-button--add algo-nav-button--add-bookmark" on:click={() => {bookmarkAdd(undefined)}}>{$_('create_bookmark')}</button>
 						</li>
 					</ul>
 				</div>
@@ -238,18 +252,24 @@
 		<TimelineSettings></TimelineSettings>
 	</nav>
 
-	<div class="refresh">
-		<button class="refresh-button" aria-label="Refresh" class:is-refreshing={isRefreshing} on:click={() => {refresh($timelineStyle)}}>
-			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
-				<path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
-			</svg>
-		</button>
-	</div>
+	{#if ($currentAlgorithm.type !== 'bookmark')}
+		<div class="refresh">
+			<button class="refresh-button" aria-label="Refresh" class:is-refreshing={isRefreshing} on:click={() => {refresh($timelineStyle)}}>
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
+					<path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
+				</svg>
+			</button>
+		</div>
+	{/if}
 
 	{#if ($currentAlgorithm.type === 'list')}
 		{#if ($currentAlgorithm.list.members.length)}
 			<ListTimeline isRefreshing={isRefreshing}></ListTimeline>
 		{/if}
+	{:else if ($currentAlgorithm.type === 'bookmark')}
+		{#key $currentAlgorithm}
+			<BookmarkTimeline isRefreshing={isRefreshing}></BookmarkTimeline>
+		{/key}
 	{:else}
 		<Timeline isRefreshing={isRefreshing}></Timeline>
 	{/if}
@@ -391,7 +411,7 @@
 	}
 
 	.algo-nav-button {
-		width: 170px;
+		width: 200px;
 		height: 40px;
 		align-items: center;
 		justify-content: center;
@@ -410,7 +430,7 @@
 		padding: 0 35px;
 
 		@media (max-width: 767px) {
-
+			width: 170px;
 		}
 
 		svg {
@@ -443,6 +463,14 @@
 			background-color: var(--primary-color);
 			color: var(--bg-color-1);
 			font-weight: 600;
+		}
+
+		&--add-list {
+			background-color: var(--color-theme-4);
+		}
+
+		&--add-bookmark {
+			background-color: var(--color-theme-8);
 		}
 	}
 

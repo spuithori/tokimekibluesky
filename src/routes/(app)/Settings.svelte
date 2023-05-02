@@ -53,6 +53,8 @@
     async function addAccount() {
         const setAccount = accounts.length;
         localStorage.setItem('currentAccount', String(setAccount));
+        currentAlgorithm.set({type: 'default'});
+        localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
         goto('/login');
     }
 

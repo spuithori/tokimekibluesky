@@ -276,7 +276,7 @@
             {/each}
           </p>
 
-          <div class="timeline-reaction">
+          <div class="timeline-reaction" class:timeline-reaction--media={isMedia}>
             <Reply
                 post={data.post}
                 reply={data.post.record.reply}
@@ -299,7 +299,7 @@
                 on:repost
             ></Repost>
 
-            <Bookmark post={data.post}></Bookmark>
+            <Bookmark post={data.post} bookmarkId={data?.bookmarkId}></Bookmark>
           </div>
 
           {#if (AppBskyEmbedImages.isView(data.post.embed) && !isMedia)}

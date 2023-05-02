@@ -1,10 +1,9 @@
 <script lang="ts">
     import { db } from '$lib/db';
-    import {agent} from '$lib/stores';
-    import {onMount} from "svelte";
+    import { agent } from '$lib/stores';
     import {createEventDispatcher} from 'svelte';
-    import toast from "svelte-french-toast";
-    import {_} from "svelte-i18n";
+    import toast from 'svelte-french-toast';
+    import { _ } from 'svelte-i18n';
     const dispatch = createEventDispatcher();
 
     export let bookmark;
@@ -22,15 +21,39 @@
                 createdAt: Date.now(),
             })
 
-            toast.success('Success');
-            dispatch('close');
+            toast.success($_('bookmark_save_success'));
+            dispatch('close', {
+                clear: false,
+            });
         } catch (e) {
             toast.error('Error: ' + e);
         }
     }
 
     async function remove () {
-        dispatch('close');
+        if (bookmark?.id) {
+            try {
+                const id = await db.bookmarks.delete(bookmark.id);
+                await db.feeds
+                    .where('bookmark')
+                    .equals(bookmark.id)
+                    .delete()
+                    .then((deleteCount) => {
+                        console.log(deleteCount + ' bookmarks deleted.')
+                    });
+
+                toast.success($_('bookmark_delete_success'));
+                dispatch('close', {
+                    clear: true,
+                });
+            } catch (e) {
+                toast.error('Error: ' + e);
+            }
+        } else {
+            dispatch('close', {
+                clear: true,
+            });
+        }
     }
 </script>
 
