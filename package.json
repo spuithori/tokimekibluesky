@@ -37,6 +37,7 @@
     "@supabase/supabase-js": "^2.20.0",
     "@vercel/analytics": "^0.1.11",
     "date-fns": "^2.29.3",
+    "dexie": "^4.0.1-alpha.10",
     "filepond": "^4.30.4",
     "filepond-plugin-file-validate-size": "^2.2.8",
     "filepond-plugin-file-validate-type": "^1.2.8",

@@ -235,6 +235,10 @@
     margin-top: 16px;
     color: var(--text-color-3);
 
+    @media (max-width: 767px) {
+        gap: 10px;
+    }
+
     &--notification {
         gap: 10px;
         margin-top: 10px;
@@ -255,6 +259,10 @@
     transition: background-color .2s ease-in-out;
     background-color: var(--bg-color-1);
 
+    @media (max-width: 767px) {
+        min-width: 60px;
+    }
+
     &:hover {
         @media (min-width: 768px) {
             background-color: var(--border-color-1);
@@ -264,6 +272,11 @@
                 fill: var(--bg-color-1);
             }
         }
+    }
+
+    &--bookmark {
+        min-width: 45px;
+        justify-content: center;
     }
 }
 
@@ -355,6 +368,10 @@
     &--shown {
         opacity: 1;
         visibility: visible;
+    }
+
+    &--bookmark {
+        top: 40px;
     }
 }
 

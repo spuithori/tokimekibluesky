@@ -20,6 +20,7 @@
     import Repost from "$lib/components/post/Repost.svelte";
     import Reply from "$lib/components/post/Reply.svelte";
     import {onMount} from "svelte";
+    import Bookmark from "../../lib/components/post/Bookmark.svelte";
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
@@ -297,6 +298,8 @@
                 count={data.post.repostCount}
                 on:repost
             ></Repost>
+
+            <Bookmark post={data.post}></Bookmark>
           </div>
 
           {#if (AppBskyEmbedImages.isView(data.post.embed) && !isMedia)}

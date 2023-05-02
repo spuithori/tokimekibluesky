@@ -2,11 +2,14 @@
 	import { _ } from 'svelte-i18n';
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
-	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm, userLists } from "$lib/stores";
+	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm, userLists, bookmarksStore } from "$lib/stores";
 	import TimelineSettings from "./TimelineSettings.svelte";
 	import MediaTimeline from "./MediaTimeline.svelte";
 	import ListModal from "../../lib/components/list/ListModal.svelte";
 	import ListTimeline from "./ListTimeline.svelte";
+	import { liveQuery } from "dexie";
+	import { db } from '$lib/db'
+	import BookmarkModal from "../../lib/components/bookmark/BookmarkModal.svelte";
 
 	try {
 		const algo = JSON.parse(localStorage.getItem('currentAlgorithm'));
@@ -28,6 +31,9 @@
 
 	let isListModalOpen = false;
 	let listModalId;
+
+	let bookmarks = liveQuery(() => db.bookmarks.toArray());
+	let isBookmarkModalOpen = false;
 
 	function handleKeydown(event: { key: string; }) {
 		const activeElement = document.activeElement?.tagName;
@@ -89,6 +95,15 @@
 	function listAdd(id = undefined) {
 		listModalId = id;
 		isListModalOpen = true;
+	}
+
+	function bookmarkAdd(bookmark = undefined) {
+		isBookmarkModalOpen = true;
+		bookmarksStore.set(bookmark);
+	}
+
+	function handleBookmarkClose(event) {
+		isBookmarkModalOpen = false;
 	}
 
 	function handleListRemove(event) {
@@ -180,8 +195,32 @@
 							{/if}
 						{/each}
 
+						{#if ($bookmarks)}
+							{#each $bookmarks as bookmark}
+								<li class="algo-nav-list__item">
+									<button class="algo-nav-button" data-algo-genre="list" data-algo-label="{bookmark.name}" on:click={() => {openAlgoNav({type: 'bookmark'})}} class:algo-nav-button--current={$currentAlgorithm.type === 'bookmark' && $currentAlgorithm.list.id === bookmark.id}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+										<g id="グループ_102" data-name="グループ 102" transform="translate(-1059 -686)">
+											<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 686)" fill="#94c74c"/>
+											<path id="パス_28" data-name="パス 28" d="M-.63-2.968c0-1.288-.854-2.2-2.6-2.562-1.792-.378-2.24-.728-2.24-1.3,0-.742.546-1.232,2.03-1.232a3.272,3.272,0,0,1,2.492.938H-.9v-.882c0-.8-.644-1.75-2.884-1.75a3.292,3.292,0,0,0-3.6,3.108c0,1.3.924,2.114,2.548,2.464,2.03.434,2.282.728,2.282,1.386,0,.77-.462,1.26-1.9,1.26A3.912,3.912,0,0,1-7.126-2.576h-.042v.854c0,1.134.994,1.89,2.926,1.89C-1.918.168-.63-1.078-.63-2.968Z" transform="translate(1071.004 698.795)" fill="#fff"/>
+										</g>
+									</svg>
+										{bookmark.name}</button>
+									<button class="algo-nav-edit" on:click={() => {bookmarkAdd(bookmark || undefined)}} aria-label="Edit list"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+										<g id="グループ_99" data-name="グループ 99" transform="translate(-210 -1863)">
+											<circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(210 1863)" fill="#b3b3b3"/>
+											<path id="edit-pencil" d="M7.38,2.22l2.4,2.4L2.4,12H0V9.6Zm.84-.84L9.6,0,12,2.4,10.62,3.78Z" transform="translate(216 1869)" fill="#fff"/>
+										</g>
+									</svg></button>
+								</li>
+							{/each}
+						{/if}
+
 						<li class="algo-nav-list__item">
 							<button class="algo-nav-button algo-nav-button--add" on:click={() => {listAdd(undefined)}}>{$_('create_list')}</button>
+						</li>
+
+						<li class="algo-nav-list__item">
+							<button class="algo-nav-button algo-nav-button--add" on:click={() => {bookmarkAdd(undefined)}}>{$_('create_bookmark')}</button>
 						</li>
 					</ul>
 				</div>
@@ -190,6 +229,10 @@
 
 		{#if (isListModalOpen)}
 			<ListModal id={listModalId} on:close={handleListModalClose} on:remove={handleListRemove}></ListModal>
+		{/if}
+
+		{#if (isBookmarkModalOpen)}
+			<BookmarkModal bookmark={$bookmarksStore} on:close={handleBookmarkClose}></BookmarkModal>
 		{/if}
 
 		<TimelineSettings></TimelineSettings>
