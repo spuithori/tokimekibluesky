@@ -467,10 +467,20 @@
 
 		&--add-list {
 			background-color: var(--color-theme-4);
+
+			@media (max-width: 767px) {
+				font-size: 14px;
+				padding: 0 10px;
+			}
 		}
 
 		&--add-bookmark {
 			background-color: var(--color-theme-8);
+
+			@media (max-width: 767px) {
+				font-size: 14px;
+				padding: 0 10px;
+			}
 		}
 	}
 
