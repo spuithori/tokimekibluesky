@@ -151,5 +151,15 @@
   "nsfw": "NSFW",
   "spam": "Spam",
   "suggestive": "Suggestive",
-  "go_settings": "Go settings"
+  "go_settings": "Go settings",
+  "create_bookmark": "Create folder",
+  "bookmark_add_management": "Bookmark folder Add/Management",
+  "bookmark_name": "Title",
+  "bookmark_description": "Description",
+  "no_bookmark_folder": "No folder",
+  "save_button": "Save",
+  "bookmark_save_success": "Bookmark successfully saved.",
+  "bookmark_delete_success": "Bookmark successfully deleted.",
+  "bookmark_add_success": "Bookmark successfully added.",
+  "error_may_duplicate_bookmark": "Failed to add bookmark. It appears it has already been added."
 }

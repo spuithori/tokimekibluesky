@@ -50,7 +50,7 @@ export const isLogin = writable(false);
 
 export const isDarkMode = writable(localStorage.getItem('darkmode') || 'false');
 
-export const theme = writable(localStorage.getItem('theme') || 'lightblue');
+export const theme = writable(localStorage.getItem('theme') || 'superorange');
 
 export const nonoto = writable(localStorage.getItem('nonoto') || 'false');
 

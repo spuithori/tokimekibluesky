@@ -10,7 +10,7 @@
     let darkModeToggle = JSON.parse(localStorage.getItem('darkmode')) === true;
     let nonotoToggle = JSON.parse(localStorage.getItem('nonoto')) === true;
     let disableAlgorithmToggle = JSON.parse(localStorage.getItem('disableAlgorithm')) === true;
-    let themePick: string = localStorage.getItem('theme') || 'lightblue';
+    let themePick: string = localStorage.getItem('theme') || 'superorange';
     let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
     let isAccountSwitcherOpen = false;
     let isAboutOpen = false;
