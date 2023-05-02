@@ -406,8 +406,12 @@ onMount(async () => {
                 },
             );
             toast.success($_('success_to_post'));
-        } catch (e) {
-            toast.error($_('failed_to_post'));
+        } catch (error) {
+            console.log(error.message)
+            toast.error($_('failed_to_post') + ':' + error.message);
+            isTextareaEnabled = false;
+            isPublishEnabled = false;
+            throw new Error(error);
         }
 
         isTextareaEnabled = false;

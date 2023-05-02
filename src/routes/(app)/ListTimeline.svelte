@@ -87,9 +87,11 @@
 
     async function poolRecalc(currentPool: []) {
         let feedPerActorMap = new Map();
-        actors.forEach(actor => {
-            feedPerActorMap.set(actor.actor, []);
+        list.members.forEach(member => {
+            feedPerActorMap.set(member, []);
         });
+
+        console.log(feedPerActorMap)
 
         currentPool.forEach(feed => {
             if (feed.reason) {
