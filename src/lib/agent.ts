@@ -9,6 +9,7 @@ type timelineOpt = {
     cursor: string,
     algorithm?: currentAlgorithm,
     type: 'default' | 'media',
+    uris?: [],
     actors?: [],
 }
 
@@ -50,6 +51,8 @@ export class Agent {
                 return await this.agent.api.app.bsky.unspecced.getPopular({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
             case 'list':
                 return await this.getAuthorsFeed(timelineOpt.actors);
+            case 'bookmark':
+                return await this.agent.api.app.bsky.feed.getPosts({uris: timelineOpt.uris || []});
             default:
                 return await this.agent.api.app.bsky.feed.getTimeline({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
         }

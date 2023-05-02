@@ -152,5 +152,15 @@
   "nsfw": "NSFW",
   "spam": "スパム",
   "suggestive": "挑発的なセクシー",
-  "go_settings": "設定する"
+  "go_settings": "設定する",
+  "create_bookmark": "フォルダを作成",
+  "bookmark_add_management": "ブックマークフォルダの作成・管理",
+  "bookmark_name": "タイトル",
+  "bookmark_description": "説明",
+  "no_bookmark_folder": "フォルダがありません",
+  "save_button": "保存",
+  "bookmark_save_success": "ブックマークの保存に成功しました。",
+  "bookmark_delete_success": "ブックマークの削除に成功しました。",
+  "bookmark_add_success": "ブックマークの追加に成功しました。",
+  "error_may_duplicate_bookmark": "ブックマークの追加に失敗しました。既に追加済みのようです。"
 }

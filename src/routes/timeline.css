@@ -235,9 +235,25 @@
     margin-top: 16px;
     color: var(--text-color-3);
 
+    @media (max-width: 767px) {
+        gap: 10px;
+    }
+
     &--notification {
         gap: 10px;
         margin-top: 10px;
+    }
+
+    &--media {
+        gap: 10px;
+
+        .timeline-reaction__item {
+            min-width: 55px;
+
+            &--bookmark {
+                min-width: 40px;
+            }
+        }
     }
 }
 
@@ -255,6 +271,10 @@
     transition: background-color .2s ease-in-out;
     background-color: var(--bg-color-1);
 
+    @media (max-width: 767px) {
+        min-width: 60px;
+    }
+
     &:hover {
         @media (min-width: 768px) {
             background-color: var(--border-color-1);
@@ -264,6 +284,11 @@
                 fill: var(--bg-color-1);
             }
         }
+    }
+
+    &--bookmark {
+        min-width: 45px;
+        justify-content: center;
     }
 }
 
@@ -356,6 +381,10 @@
         opacity: 1;
         visibility: visible;
     }
+
+    &--bookmark {
+        top: 40px;
+    }
 }
 
 .timeline-menu-list {
@@ -376,6 +405,10 @@
         flex: 1;
         text-decoration: none;
         color: inherit;
+
+        &--bookmark {
+            min-width: 120px;
+        }
 
         &:hover {
             background-color: var(--bg-color-2);
