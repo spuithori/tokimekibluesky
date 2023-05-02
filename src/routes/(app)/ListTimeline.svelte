@@ -91,8 +91,6 @@
             feedPerActorMap.set(member, []);
         });
 
-        console.log(feedPerActorMap)
-
         currentPool.forEach(feed => {
             if (feed.reason) {
                 feedPerActorMap.set(feed.reason.by.did, [...feedPerActorMap.get(feed.reason.by.did), feed])
