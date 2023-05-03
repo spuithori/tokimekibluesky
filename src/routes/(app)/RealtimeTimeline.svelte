@@ -41,9 +41,7 @@
     }
 
     export async function connect() {
-        if (!socket) {
-            socket = new WebSocket('wss://bsky.social/xrpc/com.atproto.sync.subscribeRepos');
-        }
+        socket = new WebSocket('wss://bsky.social/xrpc/com.atproto.sync.subscribeRepos');
 
         /*
           Inspired by blue-skies-ahead (MIT License).
@@ -145,6 +143,8 @@
     }
 
     onMount(async () => {
+        timeline.set([]);
+
         if (!follows.length) {
             await getFollows();
         }

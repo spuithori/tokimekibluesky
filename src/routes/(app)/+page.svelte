@@ -83,7 +83,6 @@
 			timeline.set([]);
 			cursor.set(0);
 		} else if ($currentAlgorithm.type === 'realtime') {
-			timeline.set([]);
 			realtimeConnect();
 			return;
 		} else {
@@ -107,7 +106,7 @@
 		currentAlgorithm.set(currentAlgo);
 		localStorage.setItem('currentAlgorithm', JSON.stringify(currentAlgo));
 
-		if (!isAlgoNavOpen) {
+		if (!isAlgoNavOpen && $currentAlgorithm.type !== 'realtime') {
 			refresh($timelineStyle);
 		}
 	}
