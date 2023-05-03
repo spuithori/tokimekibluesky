@@ -152,17 +152,6 @@ async function onFileSelected(file: any, output: any) {
         console.log('デカすぎ')
     }
 
-    /* const res = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
-        encoding: 'image/jpeg',
-    }); */
-
-    /* embedImages.images.push({
-       image: res.data.blob,
-       alt: '',
-       id: file.id
-    });
-    embedImages = embedImages; */
-
     images.push({
         image: image,
         id: file.id,
@@ -395,6 +384,7 @@ onMount(async () => {
         await rt.detectFacets($agent.agent);
 
         try {
+            console.log(embed);
             await $agent.agent.api.app.bsky.feed.post.create(
                 { repo: $agent.did() },
                 {
@@ -423,6 +413,7 @@ onMount(async () => {
         embed = undefined;
         images = [];
         links = [];
+        pond.removeFiles();
         searchActors = [];
         embedImages.images = [];
         embedExternal = undefined;
@@ -599,35 +590,33 @@ onMount(async () => {
     ></textarea>
     </div>
 
-    {#if (isFocus)}
-      <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
-        <FilePond
-            bind:this={pond}
-            {name}
-            allowMultiple={true}
-            allowReorder={true}
-            allowPaste={false}
-            maxFiles={4}
-            maxParallelUploads={4}
-            imageResizeTargetWidth={2000}
-            imageResizeTargetHeight={2000}
-            imageResizeMode={'contain'}
-            acceptedFileTypes={'image/jpeg, image/png'}
-            imageTransformOutputMimeType={'image/jpeg'}
-            imageTransformOutputQuality={'80'}
-            onpreparefile={(file, output) => {onFileSelected(file, output)}}
-            onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
-            onaddfilestart={(file) => {onFileAdded(file)}}
-            onreorderfiles={(files, origin, target) => {onFileReordered(files, origin, target)}}
-            credits={null}
-            labelIdle="<span class='only-pc'>{$_('upload_image_label1')}<br>{$_('upload_image_label2')}</span>"
-            labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
-            labelMaxFileSize="{$_('max_')} {'{'}filesize{'}'}"
-            labelFileTypeNotAllowed="{$_('unsupported_file')}"
-            fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
-        />
-      </div>
-    {/if}
+    <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
+      <FilePond
+          bind:this={pond}
+          {name}
+          allowMultiple={true}
+          allowReorder={true}
+          allowPaste={false}
+          maxFiles={4}
+          maxParallelUploads={4}
+          imageResizeTargetWidth={2000}
+          imageResizeTargetHeight={2000}
+          imageResizeMode={'contain'}
+          acceptedFileTypes={'image/jpeg, image/png'}
+          imageTransformOutputMimeType={'image/jpeg'}
+          imageTransformOutputQuality={'75'}
+          onpreparefile={(file, output) => {onFileSelected(file, output)}}
+          onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
+          onaddfilestart={(file) => {onFileAdded(file)}}
+          onreorderfiles={(files, origin, target) => {onFileReordered(files, origin, target)}}
+          credits={null}
+          labelIdle="<span class='only-pc'>{$_('upload_image_label1')}<br>{$_('upload_image_label2')}</span>"
+          labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
+          labelMaxFileSize="{$_('max_')} {'{'}filesize{'}'}"
+          labelFileTypeNotAllowed="{$_('unsupported_file')}"
+          fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
+      />
+    </div>
   </div>
 </section>
 
