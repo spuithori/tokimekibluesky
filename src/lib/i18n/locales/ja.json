@@ -171,5 +171,6 @@
   "realtime_connecting": "接続中",
   "realtime_open": "接続",
   "realtime_closing": "切断中",
-  "realtime_closed": "切断"
+  "realtime_closed": "切断",
+  "continuous_mode": "連続モード"
 }

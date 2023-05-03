@@ -171,5 +171,6 @@
   "realtime_connecting": "Connecting",
   "realtime_open": "Connected",
   "realtime_closing": "Closing",
-  "realtime_closed": "Closed"
+  "realtime_closed": "Closed",
+  "continuous_mode": "Continuous Mode"
 }

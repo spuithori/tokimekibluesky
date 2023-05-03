@@ -466,7 +466,7 @@ onMount(async () => {
       <div class="publish-form-continue-mode">
         <div class="publish-form-continue-mode-input" class:checked={isContinueMode}>
           <input id="continue_mode" type="checkbox" bind:checked={isContinueMode}>
-          <label for="continue_mode">連続モード</label>
+          <label for="continue_mode">{$_('continuous_mode')}</label>
         </div>
       </div>
 

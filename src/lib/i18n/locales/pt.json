@@ -161,5 +161,15 @@
   "bookmark_save_success": "Bookmark successfully saved.",
   "bookmark_delete_success": "Bookmark successfully deleted.",
   "bookmark_add_success": "Bookmark successfully added.",
-  "error_may_duplicate_bookmark": "Failed to add bookmark. It appears it has already been added."
+  "error_may_duplicate_bookmark": "Failed to add bookmark. It appears it has already been added.",
+  "realtime": "REALTIME",
+  "realtime_connect_status": "Realtime connecting status",
+  "realtime_connect_closed": "Connection has been lost.",
+  "realtime_success_get_follows": "Successfully retrieved follow list",
+  "realtime_failed_get_follows": "Failed to retrieve the follow list.",
+  "realtime_connecting": "Connecting",
+  "realtime_open": "Connected",
+  "realtime_closing": "Closing",
+  "realtime_closed": "Closed",
+  "continuous_mode": "Continuous Mode"
 }
