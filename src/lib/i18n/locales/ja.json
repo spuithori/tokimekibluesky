@@ -162,5 +162,14 @@
   "bookmark_save_success": "ブックマークの保存に成功しました。",
   "bookmark_delete_success": "ブックマークの削除に成功しました。",
   "bookmark_add_success": "ブックマークの追加に成功しました。",
-  "error_may_duplicate_bookmark": "ブックマークの追加に失敗しました。既に追加済みのようです。"
+  "error_may_duplicate_bookmark": "ブックマークの追加に失敗しました。既に追加済みのようです。",
+  "realtime": "リアルタイム",
+  "realtime_connect_status": "リアルタイム接続ステータス",
+  "realtime_connect_closed": "接続が切断されました。",
+  "realtime_success_get_follows": "フォロー一覧の取得に成功",
+  "realtime_failed_get_follows": "フォロー一覧の取得に失敗しました。",
+  "realtime_connecting": "接続中",
+  "realtime_open": "接続",
+  "realtime_closing": "切断中",
+  "realtime_closed": "切断"
 }

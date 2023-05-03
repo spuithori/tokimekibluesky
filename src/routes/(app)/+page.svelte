@@ -11,6 +11,7 @@
 	import { db } from '$lib/db'
 	import BookmarkModal from "../../lib/components/bookmark/BookmarkModal.svelte";
 	import BookmarkTimeline from "./BookmarkTimeline.svelte";
+	import RealtimeTimeline from "./RealtimeTimeline.svelte";
 
 	try {
 		const algo = JSON.parse(localStorage.getItem('currentAlgorithm'));
@@ -35,6 +36,8 @@
 
 	let bookmarks = liveQuery(() => db.bookmarks.toArray());
 	let isBookmarkModalOpen = false;
+
+	let realtimeConnect;
 
 	function handleKeydown(event: { key: string; }) {
 		const activeElement = document.activeElement?.tagName;
@@ -61,6 +64,10 @@
 			localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
 		}
 
+		if ($currentAlgorithm.type === 'realtime') {
+			isRefreshing = true;
+		}
+
 		console.log($currentAlgorithm)
 	}
 
@@ -75,6 +82,10 @@
 		} else if ($currentAlgorithm.type === 'bookmark') {
 			timeline.set([]);
 			cursor.set(0);
+		} else if ($currentAlgorithm.type === 'realtime') {
+			timeline.set([]);
+			realtimeConnect();
+			return;
 		} else {
 			location.reload();
 		}
@@ -85,7 +96,10 @@
 	function toggleStyle(style: 'default' | 'media') {
 		timelineStyle.set(style);
 		localStorage.setItem('timelineStyle', style);
-		refresh($timelineStyle);
+
+		if ($currentAlgorithm.type !== 'realtime') {
+			refresh($timelineStyle);
+		}
 	}
 
 	function openAlgoNav(currentAlgo) {
@@ -137,6 +151,10 @@
 	function handleListModalClose() {
 		location.reload();
 	}
+
+	function handleRealtimeDisconnect() {
+		isRefreshing = false;
+	}
 </script>
 
 <svelte:head>
@@ -177,6 +195,12 @@
 						<li class="algo-nav-list__item">
 							<button class="algo-nav-button" data-algo-genre="default" data-algo-label="home" class:algo-nav-button--current={$currentAlgorithm.type === 'default'} on:click={() => {openAlgoNav({type: 'default'})}}>HOME</button>
 						</li>
+
+						{#if ($agent.agent.service.host === 'bsky.social')}
+							<li class="algo-nav-list__item">
+								<button class="algo-nav-button" data-algo-genre="realtime" data-algo-label="home" class:algo-nav-button--current={$currentAlgorithm.type === 'realtime'} on:click={() => {openAlgoNav({type: 'realtime'})}}>{$_('realtime')}</button>
+							</li>
+						{/if}
 
 						<li class="algo-nav-list__item">
 							<button class="algo-nav-button" data-algo-genre="custom" data-algo-label="whatshot" on:click={() => {openAlgoNav({type: 'custom', algorithm: 'whatshot'})}} class:algo-nav-button--current={$currentAlgorithm.algorithm === 'whatshot'} >What's Hot<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
@@ -254,7 +278,7 @@
 
 	{#if ($currentAlgorithm.type !== 'bookmark')}
 		<div class="refresh">
-			<button class="refresh-button" aria-label="Refresh" class:is-refreshing={isRefreshing} on:click={() => {refresh($timelineStyle)}}>
+			<button class="refresh-button" aria-label="Refresh" class:is-refreshing={isRefreshing} on:click={() => {refresh($timelineStyle)}} disabled={isRefreshing}>
 				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
 					<path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
 				</svg>
@@ -270,6 +294,8 @@
 		{#key $currentAlgorithm}
 			<BookmarkTimeline isRefreshing={isRefreshing}></BookmarkTimeline>
 		{/key}
+	{:else if ($currentAlgorithm.type === 'realtime')}
+		<RealtimeTimeline isRefreshing={isRefreshing} on:disconnect={handleRealtimeDisconnect} bind:connect={realtimeConnect}></RealtimeTimeline>
 	{:else}
 		<Timeline isRefreshing={isRefreshing}></Timeline>
 	{/if}
