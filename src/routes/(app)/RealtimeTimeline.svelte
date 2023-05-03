@@ -199,7 +199,7 @@
       </div>
     {/if}
 
-    <p class="realtime-note">実験的機能。通信量にご注意ください。リポストは表示されません。<br>フォロー数1000まで。1000人以上いる場合は直近のフォローが取得されます。<br>取得漏れが発生する可能性があります。<br>Experimental feature. Please note the amount of traffic. Reposts are not shown.<br>Up to 1000 followers; if there are more than 1000 followers, the most recent followings will be retrieved.<br>Failure to retrieve submissions may occur.</p>
+    <p class="realtime-note">実験的機能。通信量にご注意ください。<br>フォロー数1000まで。1000人以上いる場合は直近のフォローが取得されます。<br>取得漏れが発生する可能性があります。<br>Experimental feature. Please note the amount of traffic.<br>Up to 1000 followers; if there are more than 1000 followers, the most recent followings will be retrieved.<br>Failure to retrieve submissions may occur.</p>
   </div>
 </div>
 
