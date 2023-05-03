@@ -43,6 +43,7 @@ let timer;
 let links: string[] = [];
 let externalImageBlob: Blob;
 let searchActors = [];
+let isContinueMode = false;
 
 type BeforeUploadImage = {
     image: Blob | File,
@@ -406,7 +407,9 @@ onMount(async () => {
 
         isTextareaEnabled = false;
         isPublishEnabled = false;
-        isFocus = false;
+        if (!isContinueMode) {
+            isFocus = false;
+        }
         publishContent = '';
         quotePost.set(undefined);
         replyRef.set(undefined);
@@ -419,6 +422,12 @@ onMount(async () => {
         embedExternal = undefined;
         // const data = await $agent.getTimeline();
         // timeline.set(data.feed);
+
+        if (isContinueMode) {
+            setTimeout(() => {
+                publishArea.focus();
+            }, 100)
+        }
     }
 })
 </script>
@@ -453,6 +462,13 @@ onMount(async () => {
       <p class="publish-length">
         <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
       </p>
+
+      <div class="publish-form-continue-mode">
+        <div class="publish-form-continue-mode-input" class:checked={isContinueMode}>
+          <input id="continue_mode" type="checkbox" bind:checked={isContinueMode}>
+          <label for="continue_mode">連続モード</label>
+        </div>
+      </div>
 
       <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">
         <path id="send" d="M0,0,17,6.375,0,12.75ZM0,5.1V7.65L8.5,6.375Z" fill="var(--bg-color-1)"/>
@@ -867,5 +883,55 @@ onMount(async () => {
         border-radius: 4px;
         border: 1px solid var(--border-color-1);
         white-space: nowrap;
+    }
+
+    .publish-form-continue-mode {
+        margin-right: 20px;
+    }
+
+    .publish-form-continue-mode-input {
+        border: 1px solid var(--border-color-1);
+        color: var(--text-color-3);
+        padding: 0 10px;
+        font-size: 14px;
+        height: 30px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        cursor: pointer;
+        position: relative;
+
+        label {
+            cursor: pointer;
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                right: 0;
+            }
+        }
+
+        &::before {
+            content: '';
+            display: block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--border-color-1);
+        }
+
+        &.checked {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+
+            &::before {
+                background-color: var(--primary-color);
+            }
+        }
     }
 </style>

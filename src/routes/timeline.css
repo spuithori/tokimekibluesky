@@ -569,3 +569,12 @@
 .timeline-warn-list {
     list-style: none;
 }
+
+.timeline-shortcut-number {
+    position: absolute;
+    font-weight: 600;
+    font-size: 20px;
+    top: 0;
+    left: 0;
+    color: var(--primary-color);
+}

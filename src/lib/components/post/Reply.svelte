@@ -1,9 +1,15 @@
 <script lang="ts">
-    import { replyRef } from '$lib/stores';
+  export let post;
+  export let reply;
+  export let count;
+</script>
 
-    export let post;
-    export let reply;
-    export let count;
+<script lang="ts" context="module">
+  import { replyRef } from '$lib/stores';
+
+  export function replyFunc(post, reply) {
+      replyRef.set({ parent: post, root: (reply ? reply.root : post) })
+  }
 </script>
 
 <div class="timeline-reaction__item timeline-reaction__item--reply">

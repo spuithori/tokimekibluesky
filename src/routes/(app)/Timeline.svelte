@@ -34,12 +34,12 @@
 
 <div class="timeline timeline--main" class:hide-repost={$hideRepost === 'true'} class:hide-reply={$hideReply === 'true'}>
   {#if ($timelineStyle === 'default')}
-    {#each $timeline as data (data)}
-      <TimelineItem data={ data }></TimelineItem>
+    {#each $timeline as data, index (data)}
+      <TimelineItem data={ data } index={index}></TimelineItem>
     {/each}
   {:else}
     <div class="media-list">
-      {#each $timeline as data (data)}
+      {#each $timeline as data, index (data)}
         {#if (data.post.embed?.images)}
           <MediaTimelineItem data={data}></MediaTimelineItem>
         {/if}
