@@ -41,7 +41,9 @@
     }
 
     export async function connect() {
-        socket = new WebSocket('wss://bsky.social/xrpc/com.atproto.sync.subscribeRepos');
+        if (!socket) {
+            socket = new WebSocket('wss://bsky.social/xrpc/com.atproto.sync.subscribeRepos');
+        }
 
         /*
           Inspired by blue-skies-ahead (MIT License).
