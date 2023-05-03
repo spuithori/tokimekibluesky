@@ -887,6 +887,10 @@ onMount(async () => {
 
     .publish-form-continue-mode {
         margin-right: 20px;
+
+        @media (max-width: 767px) {
+            display: none;
+        }
     }
 
     .publish-form-continue-mode-input {

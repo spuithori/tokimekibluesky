@@ -162,8 +162,8 @@
 <div class="realtime-wrap">
   <div class="timeline timeline--main" class:hide-repost={$hideRepost === 'true'} class:hide-reply={$hideReply === 'true'}>
     {#if ($timelineStyle === 'default')}
-      {#each $timeline as data (data)}
-        <TimelineItem data={ data }></TimelineItem>
+      {#each $timeline as data, index (data)}
+        <TimelineItem data={ data } index={index}></TimelineItem>
       {/each}
     {:else}
       <div class="media-list">

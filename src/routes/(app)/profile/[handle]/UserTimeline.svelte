@@ -40,8 +40,8 @@
 </script>
 
 <div class="timeline">
-  {#each feeds as data}
-    <TimelineItem data={ data } isPrivate={ true }></TimelineItem>
+  {#each feeds as data, index}
+    <TimelineItem data={ data } isPrivate={ true } index={index}></TimelineItem>
   {/each}
 
   <InfiniteLoading on:infinite={handleLoadMore}>
