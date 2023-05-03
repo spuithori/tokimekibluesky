@@ -85,6 +85,7 @@
                 if (!op.cid) continue;
                 const block = await car.get(op.cid);
                 const record = decode(block.bytes);
+
                 if (record.$type === 'app.bsky.feed.post' && typeof record.text === 'string') {
                     const path = op.path;
                     const repo = body.repo;
@@ -94,17 +95,40 @@
                         await getRecord(uri);
                     }
                 }
+
+                if (record.$type === 'app.bsky.feed.repost') {
+                    const subject = record.subject.uri;
+                    const repo = body.repo;
+
+                    const repost = {
+                        repo: repo,
+                        indexedAt: record.createdAt,
+                    }
+
+                    if (follows.some(follow => follow === repo)) {
+                        await getRecord(subject, repost);
+                    }
+                }
             }
         });
     }
 
-    async function getRecord(uri) {
+    async function getRecord(uri, repost = undefined) {
         const res = await $agent.agent.api.app.bsky.feed.getPostThread({depth: 0, uri: uri});
         let thread = res.data.thread;
 
         if (thread?.parent) {
             thread.reply = {
                 parent: thread.parent.post,
+            }
+        }
+
+        if (repost) {
+            const rres = await $agent.agent.api.app.bsky.actor.getProfile({actor: repost.repo})
+            thread.reason = {
+                $type: 'app.bsky.feed.defs#reasonRepost',
+                indexedAt: repost.indexedAt,
+                by: rres.data,
             }
         }
 
