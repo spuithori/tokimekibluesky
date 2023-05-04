@@ -94,7 +94,7 @@
         </dt>
 
         <dd class="settings-group__content">
-          <button class="button button--sm" on:click={toggleModerationSettings}>{$_('go_settings')}</button>
+          <button class="button button--sm button--fullwidth" on:click={toggleModerationSettings}>{$_('go_settings')}</button>
         </dd>
       </dl>
     </div>

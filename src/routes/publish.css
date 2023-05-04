@@ -91,3 +91,14 @@
         margin-top: 4px;
     }
 }
+
+.publish-upload-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+
+    @media (max-width: 767px) {
+        display: none;
+    }
+}

@@ -172,5 +172,8 @@
   "realtime_open": "接続",
   "realtime_closing": "切断中",
   "realtime_closed": "切断",
-  "continuous_mode": "連続モード"
+  "continuous_mode": "連続モード",
+  "publish_upload_close_description": "画像アップロードエリアは、ページリロード後に再度表示されます。",
+  "post_delete_success": "投稿の削除に成功しました。",
+  "post_delete_failed": "投稿の削除に失敗しました。"
 }

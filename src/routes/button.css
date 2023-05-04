@@ -90,6 +90,10 @@ button {
     font-size: 15px;
 }
 
+.button--fullwidth {
+    width: 100%;
+}
+
 .button--danger {
     color: var(--danger-color);
     border-color: currentColor;

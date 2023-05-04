@@ -20,8 +20,6 @@
     function open(index: any) {
         gl.openAt(index);
     }
-
-    console.log(images)
 </script>
 
 <div class="timeline-images">

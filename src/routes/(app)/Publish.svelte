@@ -44,6 +44,7 @@ let links: string[] = [];
 let externalImageBlob: Blob;
 let searchActors = [];
 let isContinueMode = false;
+let isPublishUploadClose = false;
 
 type BeforeUploadImage = {
     image: Blob | File,
@@ -98,8 +99,6 @@ function onPublishContentChange() {
         if (mention) {
             const res = await $agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: mention.slice(1), limit: 4})
             searchActors = res.data.actors;
-
-            console.log(searchActors)
         } else {
             searchActors = [];
         }
@@ -148,10 +147,6 @@ async function onFileSelected(file: any, output: any) {
     let image = new File([await output], output.name, {
         type: output.type,
     });
-
-    if (image.size > 1000000) {
-        console.log('デカすぎ')
-    }
 
     images.push({
         image: image,
@@ -279,8 +274,6 @@ $: {
         setTimeout(() => {
             publishArea.focus();
         }, 100)
-
-        console.log('replyRef: ' + $replyRef);
     }
 
     if (typeof $replyRef === 'string') {
@@ -307,6 +300,15 @@ function handlePaste(e) {
             }
         }
     }
+}
+
+function publishUploadClose() {
+    if (pond) {
+        pond.removeFiles();
+    }
+
+    isPublishUploadClose = true;
+    toast.success($_('publish_upload_close_description'));
 }
 
 onMount(async () => {
@@ -385,7 +387,6 @@ onMount(async () => {
         await rt.detectFacets($agent.agent);
 
         try {
-            console.log(embed);
             await $agent.agent.api.app.bsky.feed.post.create(
                 { repo: $agent.did() },
                 {
@@ -416,7 +417,9 @@ onMount(async () => {
         embed = undefined;
         images = [];
         links = [];
-        pond.removeFiles();
+        if (pond) {
+            pond.removeFiles();
+        }
         searchActors = [];
         embedImages.images = [];
         embedExternal = undefined;
@@ -606,33 +609,41 @@ onMount(async () => {
     ></textarea>
     </div>
 
-    <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
-      <FilePond
-          bind:this={pond}
-          {name}
-          allowMultiple={true}
-          allowReorder={true}
-          allowPaste={false}
-          maxFiles={4}
-          maxParallelUploads={4}
-          imageResizeTargetWidth={2000}
-          imageResizeTargetHeight={2000}
-          imageResizeMode={'contain'}
-          acceptedFileTypes={'image/jpeg, image/png'}
-          imageTransformOutputMimeType={'image/jpeg'}
-          imageTransformOutputQuality={'75'}
-          onpreparefile={(file, output) => {onFileSelected(file, output)}}
-          onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
-          onaddfilestart={(file) => {onFileAdded(file)}}
-          onreorderfiles={(files, origin, target) => {onFileReordered(files, origin, target)}}
-          credits={null}
-          labelIdle="<span class='only-pc'>{$_('upload_image_label1')}<br>{$_('upload_image_label2')}</span>"
-          labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
-          labelMaxFileSize="{$_('max_')} {'{'}filesize{'}'}"
-          labelFileTypeNotAllowed="{$_('unsupported_file')}"
-          fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
-      />
-    </div>
+    {#if (!isPublishUploadClose)}
+      <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
+        <button class="publish-upload-close" aria-hidden="true" on:click={publishUploadClose}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
+          </svg>
+        </button>
+
+        <FilePond
+            bind:this={pond}
+            {name}
+            allowMultiple={true}
+            allowReorder={true}
+            allowPaste={false}
+            maxFiles={4}
+            maxParallelUploads={4}
+            imageResizeTargetWidth={2000}
+            imageResizeTargetHeight={2000}
+            imageResizeMode={'contain'}
+            acceptedFileTypes={'image/jpeg, image/png'}
+            imageTransformOutputMimeType={'image/jpeg'}
+            imageTransformOutputQuality={'75'}
+            onpreparefile={(file, output) => {onFileSelected(file, output)}}
+            onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
+            onaddfilestart={(file) => {onFileAdded(file)}}
+            onreorderfiles={(files, origin, target) => {onFileReordered(files, origin, target)}}
+            credits={null}
+            labelIdle="<span class='only-pc'>{$_('upload_image_label1')}<br>{$_('upload_image_label2')}</span>"
+            labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
+            labelMaxFileSize="{$_('max_')} {'{'}filesize{'}'}"
+            labelFileTypeNotAllowed="{$_('unsupported_file')}"
+            fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
+        />
+      </div>
+    {/if}
   </div>
 </section>
 

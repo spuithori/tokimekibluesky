@@ -10,7 +10,8 @@
 
   afterUpdate(() => {
       if (item && item.dataset.depth === '0') {
-          scrollTo(0, item.scrollHeight);
+          const scroll = item.getBoundingClientRect().top + window.pageYOffset;
+          scrollTo(0, scroll - 70);
           scrolled = true;
       }
   });
@@ -27,7 +28,36 @@
 
       <div class="thread-item" data-depth={depth} bind:this={item}>
         {#if (!data.blocked)}
-          <TimelineItem data={data} isSingle={true}></TimelineItem>
+          <TimelineItem data={data} isSingle={true} let:likes={likes}>
+            <details class="likes-wrap" slot="likes">
+              <summary class="likes-heading">
+                {$_('liked_users')}
+
+                <svg xmlns="http://www.w3.org/2000/svg" width="14.814" height="8.821" viewBox="0 0 14.814 8.821">
+                  <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l6.7,6.7,6.7-6.7" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--text-color-3)" stroke-width="2"/>
+                </svg>
+              </summary>
+
+              <div class="likes">
+                {#if (likes?.likes.length)}
+                  {#each likes.likes as like }
+                    {#if (!like.actor.viewer?.muted)}
+                      <div class="likes__item">
+                        <div class="likes__avatar">
+                          {#if (like.actor.avatar)}
+                            <img src="{ like.actor.avatar }" alt="">
+                          {/if}
+                        </div>
+
+                        <p class="likes__text"><a
+                            href="/profile/{ like.actor.handle }">{ like.actor.displayName || like.actor.handle }</a></p>
+                      </div>
+                    {/if}
+                  {/each}
+                {/if}
+              </div>
+            </details>
+          </TimelineItem>
         {:else}
           <p class="thread-blocked">{$_('error_get_posts_because_blocked_or_blocking')}</p>
         {/if}

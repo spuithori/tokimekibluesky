@@ -172,5 +172,8 @@
   "realtime_open": "Connected",
   "realtime_closing": "Closing",
   "realtime_closed": "Closed",
-  "continuous_mode": "Continuous Mode"
+  "continuous_mode": "Continuous Mode",
+  "publish_upload_close_description": "The image upload area will reappear after page reload.",
+  "post_delete_success": "Post was successfully deleted.",
+  "post_delete_failed": "Failed to delete post."
 }

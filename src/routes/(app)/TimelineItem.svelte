@@ -175,15 +175,21 @@
     }
 
     async function deletePost(uri: string) {
-        const rkey = uri.split('/').slice(-1)[0]
-        await $agent.agent.api.app.bsky.feed.post.delete(
-            {repo: $agent.did(), rkey: rkey}
-        );
+        const rkey = uri.split('/').slice(-1)[0];
+        isMenuOpen = false;
 
-        if (!isPrivate) {
-            const data = await $agent.getTimeline();
-            timeline.set(data.feed);
-            cursor.set(data.cursor);
+        try {
+            await $agent.agent.api.app.bsky.feed.post.delete(
+                {repo: $agent.did(), rkey: rkey}
+            );
+
+            timeline.update(function (tl) {
+                return tl.filter(data => data.post.uri !== uri);
+            });
+
+            toast.success($_('post_delete_success'));
+        } catch (e) {
+            toast.error($_('post_delete_failed') + ': ' + e);
         }
     }
 
@@ -494,27 +500,8 @@
           </div>
         {/if}
 
-        {#if (isSingle && likes?.likes.length)}
-          <div class="likes-wrap">
-            <h3 class="likes-heading">{$_('liked_users')}</h3>
-
-            <div class="likes">
-              {#each likes.likes as like }
-                {#if (!like.actor.viewer?.muted)}
-                  <div class="likes__item">
-                    <div class="likes__avatar">
-                      {#if (like.actor.avatar)}
-                        <img src="{ like.actor.avatar }" alt="">
-                      {/if}
-                    </div>
-
-                    <p class="likes__text"><a
-                        href="/profile/{ like.actor.handle }">{ like.actor.displayName || like.actor.handle }</a></p>
-                  </div>
-                {/if}
-              {/each}
-            </div>
-          </div>
+        {#if (isSingle)}
+          <slot name="likes" likes={likes}></slot>
         {/if}
       </div>
     </div>
