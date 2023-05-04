@@ -48,6 +48,15 @@
     }
 
     $: {
+        let labelsAlt = new Map();
+        labelsAlt.set('nsfw', ['porn']);
+
+        labelsAlt.forEach((value, key) => {
+            value.forEach(item => {
+                labels[item] = labels[key];
+            })
+        });
+
         contentLabels.set(JSON.stringify(labels));
         localStorage.setItem('contentLabels', $contentLabels);
     }
