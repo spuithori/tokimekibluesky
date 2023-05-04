@@ -9,6 +9,7 @@
         galleryImages.push({
             'href': image.fullsize,
             'type': 'image',
+            'description': image.alt ? 'ALT: ' + image.alt : '',
         })
     }
 
@@ -19,13 +20,15 @@
     function open(index: any) {
         gl.openAt(index);
     }
+
+    console.log(images)
 </script>
 
 <div class="timeline-images">
   {#each images as image, index}
     <div class="timeline-image">
       <button on:click={() => open(index)} aria-label="画像を拡大する">
-        <img src="{image.thumb}" alt="" loading="lazy">
+        <img src="{image.thumb}" alt="{image.alt}" loading="lazy">
       </button>
     </div>
   {/each}
