@@ -195,6 +195,7 @@
 .timeline__user {
     font-weight: 600;
     letter-spacing: .025em;
+    cursor: default;
 }
 
 .timeline__image {
@@ -552,23 +553,7 @@
 }
 
 .timeline-tooltip {
-    background-color: rgba(0, 0, 0, .75);
-    color: #fff;
-    position: absolute;
-    width: max-content;
-    padding: 0 10px;
-    font-size: 13px;
-    height: 24px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    bottom: calc(100% + 2px);
-    left: 50%;
-    transform: translateX(-50%);
-    visibility: hidden;
-    opacity: 0;
-    transition: all .2s ease-in-out;
+
 }
 
 .timeline-warn {

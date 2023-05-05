@@ -1,7 +1,9 @@
 export function clickOutside(node, options) {
     const handleClick = (event) => {
 
-        const ignore = document.querySelector(options.ignoreElement);
+        const ignore = typeof options.ignoreElement === 'string'
+            ? document.querySelector(options.ignoreElement)
+            : options.ignoreElement;
 
         if (ignore?.contains(event.target)) {
             return;
