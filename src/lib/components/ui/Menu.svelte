@@ -5,6 +5,7 @@
     import { clickOutside } from '$lib/clickOutSide';
 
     export let isMenuOpen = false;
+    export let buttonClassName = 'timeline-menu-toggle'
     let toggle;
 
     const [ floatingRef, floatingContent ] = createFloatingActions({
@@ -28,7 +29,7 @@
 
 <div>
   <button
-      class="timeline-menu-toggle"
+      class={buttonClassName}
       aria-label="Open menu."
       bind:this={toggle}
       on:click={menuOpen}

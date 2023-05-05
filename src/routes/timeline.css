@@ -362,8 +362,6 @@
 
 .timeline-menu {
     position: absolute;
-    right: 5px;
-    top: 60px;
     padding: 15px 10px 18px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
     border-radius: 6px;
@@ -588,4 +586,18 @@
     top: 0;
     left: 0;
     color: var(--primary-color);
+}
+
+.profile-menu-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bg-color-2);
+    display: grid;
+    place-content: center;
+    transition: background-color .2s ease-in-out;
+
+    &:hover {
+        background-color: var(--border-color-1);
+    }
 }
