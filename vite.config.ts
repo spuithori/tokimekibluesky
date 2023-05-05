@@ -49,7 +49,7 @@ export default defineConfig({
 				]
 			},
 			manifest: {
-				name: 'TOKIMEKI Bluesky',
+				name: 'TOKIMEKI',
 				short_name: 'TOKIMEKI',
 				start_url: '/',
 				scope: '/',
