@@ -311,6 +311,12 @@ function publishUploadClose() {
     toast.success($_('publish_upload_close_description'));
 }
 
+function handleOutClick() {
+    if (!isContinueMode) {
+        isFocus = false;
+    }
+}
+
 onMount(async () => {
     if ($sharedText) {
         await goto('/');
@@ -444,7 +450,7 @@ onMount(async () => {
          on:focusin={onFocus}
          on:focusout={onBlur}
          use:clickOutside={{ignoreElement: '.publish-sp-open'}}
-         on:outclick={() => (isFocus = false)}
+         on:outclick={handleOutClick}
 >
   {#if (isFocus)}
     <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={close}>
