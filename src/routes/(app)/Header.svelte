@@ -74,11 +74,7 @@
           </g>
         </g>
       </svg>
-      <svg xmlns="http://www.w3.org/2000/svg" width="33.954" height="30.342" viewBox="0 0 33.954 30.342" class="header-logo-sp">
-        <g id="グループ_3" data-name="グループ 3" transform="translate(-1129.063 -606.326)">
-          <path id="heart" d="M17.088,4.736l-1.047-1.03A9.442,9.442,0,0,0,2.688,17.048l0-.005,14.4,14.4,14.4-14.421A9.443,9.443,0,0,0,18.13,3.69l.005,0L17.088,4.734Z" transform="translate(1128.952 605.221)" fill="var(--primary-color)"/>
-        </g>
-      </svg>
+      <svg class="header-logo-sp" xmlns="http://www.w3.org/2000/svg" width="55.545" height="40.103" viewBox="0 0 55.545 40.103"><defs><linearGradient id="a" x1=".5" x2=".5" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#caecee"/><stop offset="1" stop-color="#8c56d3"/></linearGradient><linearGradient id="c" x1="1" y1=".4" x2="-.112" y2=".391" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#ffa3b2"/><stop offset=".268" stop-color="#ec86d6"/><stop offset=".536" stop-color="#73f08d"/><stop offset=".789" stop-color="#75c0e5"/><stop offset="1" stop-color="#923ec9"/></linearGradient><linearGradient id="d" x1=".5" x2=".5" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#afe2ff"/><stop offset="1" stop-color="#fff"/></linearGradient><clipPath id="b"><path data-name="長方形 87" fill="url(#a)" d="M0 0h55.545v40.103H0z"/></clipPath></defs><g data-name="マスクグループ 7" clip-path="url(#b)"><g data-name="グループ 109"><circle data-name="楕円形 33" cx="27.772" cy="27.772" r="27.772" opacity=".61" fill="url(#c)"/><path data-name="パス 37" d="M22.165 0A22.165 22.165 0 1 1 0 22.165 22.165 22.165 0 0 1 22.165 0Z" transform="translate(5.641 7.917)" fill="url(#d)"/><circle data-name="楕円形 34" cx="16.539" cy="16.539" r="16.539" transform="translate(11.234 15.882)" fill="url(#d)"/><circle data-name="楕円形 35" cx="11.078" cy="11.078" r="11.078" transform="translate(16.851 23.823)" fill="var(--bg-color-1)"/></g></g></svg>
     </a></h1>
 
     <div class="header__search">
