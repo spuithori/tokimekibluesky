@@ -175,7 +175,7 @@
   }
 
   .header__title svg {
-      width: 100%;
+     
   }
 
   .header__notification {
