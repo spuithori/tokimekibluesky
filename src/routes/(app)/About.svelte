@@ -34,6 +34,9 @@
       {#if (me)}
         <UserItem user={me}></UserItem>
       {/if}
+
+      <h3 class="about-title">{$_('donation')}:</h3>
+      <a href="https://www.buymeacoffee.com/spuithori" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
     </div>
   </div>
 </section>
