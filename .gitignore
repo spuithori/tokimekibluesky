@@ -11,5 +11,5 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .idea/cssdialects.xml
-dexie-cloud.json
 dexie-cloud.key
+dexie-cloud.json
