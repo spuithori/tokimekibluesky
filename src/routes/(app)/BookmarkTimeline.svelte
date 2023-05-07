@@ -21,7 +21,7 @@
         const feeds = await db.feeds
             .orderBy('indexedAt')
             .reverse()
-            .filter(feed => feed.bookmark === Number($currentAlgorithm.list))
+            .filter(feed => feed.bookmark === $currentAlgorithm.list)
             .offset(paged * 20)
             .limit(20)
             .toArray();

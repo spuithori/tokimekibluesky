@@ -41,6 +41,7 @@
     "cbor-x": "^1.5.2",
     "date-fns": "^2.29.3",
     "dexie": "^4.0.1-alpha.10",
+    "dexie-cloud-addon": "^4.0.1-beta.39",
     "filepond": "^4.30.4",
     "filepond-plugin-file-validate-size": "^2.2.8",
     "filepond-plugin-file-validate-type": "^1.2.8",
