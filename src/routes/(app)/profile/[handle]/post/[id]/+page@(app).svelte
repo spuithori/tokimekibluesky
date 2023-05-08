@@ -2,15 +2,13 @@
     import { _ } from 'svelte-i18n';
     import { agent } from '$lib/stores';
     import { page } from '$app/stores';
-    import { onMount } from 'svelte';
     import Thread from "./Thread.svelte";
-    import {afterNavigate, beforeNavigate} from "$app/navigation";
+    import { beforeNavigate } from "$app/navigation";
 
-    let feeds = [];
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
-    $: recordId = $page.params.id;
-    $: handle = $page.params.handle;
+
+    $: feeds = getPostThread($page.params.id, $page.params.handle);
 
     function isMutedIncludes(feed) {
         isMuted = feed.post.author?.viewer.muted;
@@ -29,26 +27,23 @@
         return res.data.did;
     }
 
-    async function getPostThread() {
+    async function getPostThread(id, handle) {
         const did = await getDidByHandle(handle);
-        const uri = 'at://' + did + '/app.bsky.feed.post/' + recordId;
+        const uri = 'at://' + did + '/app.bsky.feed.post/' + id;
         const raw = await $agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-        feeds = [ raw.data.thread ];
+        let feeds = [ raw.data.thread ];
 
         feeds.forEach(feed => {
             if (!feed.blocked) {
                 isMutedIncludes(feed);
             }
-        })
+        });
+
+        return feeds;
     }
 
     beforeNavigate(async () => {
         isMuteDisplay = false;
-    })
-
-    afterNavigate(async () => {
-        feeds = [];
-        await getPostThread();
     })
 </script>
 
@@ -63,7 +58,10 @@
 
   <h1 class="thread-title">{$_('title_thread')}</h1>
 
-  <Thread feeds={feeds} depth={0}></Thread>
+  {#await feeds}
+  {:then feeds}
+    <Thread feeds={feeds} depth={0}></Thread>
+  {/await}
 </div>
 
 <style lang="postcss">

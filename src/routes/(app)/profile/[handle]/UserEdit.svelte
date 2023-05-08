@@ -127,6 +127,7 @@
                     record: profileObj,
                 }
             )
+            isEditOpen = false;
             dispatch('update');
         } catch (e) {
             console.error(e)
