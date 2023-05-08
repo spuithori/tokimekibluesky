@@ -41,15 +41,6 @@
       gap: 15px;
   }
 
-  .user-item__avatar {
-      display: flex;
-      border-radius: 50%;
-      overflow: hidden;
-      background-color: var(--primary-color);
-      aspect-ratio: 1 / 1;
-      position: relative;
-  }
-
   .user-item__text {
       line-height: 1.3;
   }
