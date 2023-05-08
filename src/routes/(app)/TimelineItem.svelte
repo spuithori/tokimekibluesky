@@ -347,17 +347,9 @@
                   <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
                 {/if}
               {:else if (item.isMention() && item.mention)}
-                {#await getHandleByDid(item.mention.did)}
-                  <span>{item.text}</span>
-                {:then handle}
-                  {#if handle}
-                    <ProfileCardWrapper handle="{handle}">
-                      <a href="/profile/{handle}">{item.text}</a>
-                    </ProfileCardWrapper>
-                  {:else}
-                    {item.text}
-                  {/if}
-                {/await}
+                <ProfileCardWrapper handle="{item.text.slice(1)}">
+                  <a href="/profile/{item.text.slice(1)}">{item.text}</a>
+                </ProfileCardWrapper>
               {:else}
                 <span>{item.text}</span>
               {/if}

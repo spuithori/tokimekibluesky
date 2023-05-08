@@ -12,18 +12,18 @@
     export let data: LayoutData;
 
     async function getFeedsFromRecords(records) {
-        const promises = records.map(record => {
-            return $agent.getFeed(record.value.subject.uri);
+        const uris = records.map(record => {
+            return record.value.subject.uri;
         })
 
-        const array = [];
-        await Promise.allSettled(promises)
-            .then((results) => results.forEach((result) => {
-                if (result.status === 'fulfilled') {
-                    array.push(result.value);
-                }
-            }))
-        return array;
+        const res = await $agent.agent.api.app.bsky.feed.getPosts({uris: uris});
+        let feeds = [];
+        res.data.posts.forEach(post => {
+            feeds.push({
+                post: post,
+            })
+        });
+        return  feeds;
     }
 
     async function getRecords() {
@@ -41,6 +41,7 @@
 
         if (cursor) {
             feeds = [...feeds, ...await getFeedsFromRecords(likesArrayRes.data.records)];
+            console.log(feeds)
             loaded();
         } else {
             complete();
