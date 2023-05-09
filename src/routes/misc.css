@@ -34,3 +34,7 @@
 .mb10 {
     margin-bottom: 10px;
 }
+
+.supabase-auth-ui_ui-input {
+    color: var(--text-color-1) !important;
+}

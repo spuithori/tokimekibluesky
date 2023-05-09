@@ -2,16 +2,14 @@
 	import { _ } from 'svelte-i18n';
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
-	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm, userLists, bookmarksStore } from "$lib/stores";
+	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm, userLists, bookmarksStore, supabase, supabaseSession, bookmarks, lists, listsStore } from "$lib/stores";
 	import TimelineSettings from "./TimelineSettings.svelte";
-	import MediaTimeline from "./MediaTimeline.svelte";
 	import ListModal from "../../lib/components/list/ListModal.svelte";
 	import ListTimeline from "./ListTimeline.svelte";
-	import { liveQuery } from "dexie";
-	import { db } from '$lib/db'
 	import BookmarkModal from "../../lib/components/bookmark/BookmarkModal.svelte";
 	import BookmarkTimeline from "./BookmarkTimeline.svelte";
 	import RealtimeTimeline from "./RealtimeTimeline.svelte";
+	import { onMount } from "svelte";
 
 	try {
 		const algo = JSON.parse(localStorage.getItem('currentAlgorithm'));
@@ -32,9 +30,7 @@
 	let isAlgoNavOpen = false;
 
 	let isListModalOpen = false;
-	let listModalId;
 
-	let bookmarks = liveQuery(() => db.bookmarks.toArray());
 	let isBookmarkModalOpen = false;
 
 	let realtimeConnect;
@@ -46,6 +42,26 @@
 			refresh($timelineStyle);
 		}
 	}
+
+	onMount(async () => {
+		const bookmarkRes = await $supabase.from('bookmarks').select();
+		bookmarks.set(bookmarkRes.data);
+
+		const listRes = await $supabase.from('lists').select();
+		lists.set(listRes.data);
+
+		$supabase
+				.channel('any')
+				.on('postgres_changes', { event: '*', schema: '*' }, async payload => {
+					console.log('Database changed.');
+					const bookmarkRes = await $supabase.from('bookmarks').select();
+					bookmarks.set(bookmarkRes.data);
+
+					const listRes = await $supabase.from('lists').select();
+					lists.set(listRes.data);
+				})
+				.subscribe();
+	});
 
 	$: {
 		if (isAlgoNavOpen) {
@@ -59,16 +75,14 @@
 			localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
 		}
 
-		if ($currentAlgorithm.type === 'list' && $currentAlgorithm.list && $userLists.some(list => list.id === $currentAlgorithm.list.id)) {
+		/* if ($currentAlgorithm.type === 'list' && $currentAlgorithm.list && $userLists.some(list => list.id === $currentAlgorithm.list.id)) {
 			currentAlgorithm.set({type: 'list', list: $userLists.find(list => list.id === $currentAlgorithm.list.id)});
 			localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
-		}
+		} */
 
 		if ($currentAlgorithm.type === 'realtime') {
 			isRefreshing = true;
 		}
-
-		console.log($currentAlgorithm)
 	}
 
 	async function refresh(style: 'default' | 'media') {
@@ -111,9 +125,9 @@
 		}
 	}
 
-	function listAdd(id = undefined) {
-		listModalId = id;
+	function listAdd(list = undefined) {
 		isListModalOpen = true;
+		listsStore.set(list);
 	}
 
 	function bookmarkAdd(bookmark = undefined) {
@@ -121,7 +135,7 @@
 		bookmarksStore.set(bookmark);
 	}
 
-	function handleBookmarkClose(event) {
+	async function handleBookmarkClose(event) {
 		isBookmarkModalOpen = false;
 
 		if (event.detail.clear) {
@@ -147,8 +161,15 @@
 		isListModalOpen = false;
 	}
 
-	function handleListModalClose() {
-		location.reload();
+	function handleListModalClose(event) {
+		// location.reload();
+		isListModalOpen = false;
+
+		if (event.detail.clear) {
+			currentAlgorithm.set({type: 'default'});
+			localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
+			refresh($timelineStyle);
+		}
 	}
 
 	function handleRealtimeDisconnect() {
@@ -210,25 +231,27 @@
 							</svg></button>
 						</li>
 
-						{#each $userLists as list}
-							{#if (list.owner === $agent.did())}
-								<li class="algo-nav-list__item">
-									<button class="algo-nav-button" data-algo-genre="list" data-algo-label="{list.name}" on:click={() => {openAlgoNav({type: 'list', list: list})}} class:algo-nav-button--current={$currentAlgorithm.type === 'list' && $currentAlgorithm.list.id === list.id}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-										<g id="グループ_100" data-name="グループ 100" transform="translate(-1059 -662)">
-											<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 662)" fill="#2a14b4"/>
-											<path id="パス_26" data-name="パス 26" d="M-.075-1.395v-.7a6.107,6.107,0,0,1-2.145.375h-.525c-1.545,0-1.905-.57-1.905-2.13v-4.92c0-1.02-.435-1.5-1.275-1.5h-.84V-3.72c0,2.46,1.335,3.81,3.75,3.81h.8C-.525.09-.075-.5-.075-1.395Z" transform="translate(1070.42 675.093)" fill="#fff"/>
-										</g>
-									</svg>
-										{list.name}</button>
-									<button class="algo-nav-edit" on:click={() => {listAdd(list.id || undefined)}} aria-label="Edit list"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-										<g id="グループ_99" data-name="グループ 99" transform="translate(-210 -1863)">
-											<circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(210 1863)" fill="#b3b3b3"/>
-											<path id="edit-pencil" d="M7.38,2.22l2.4,2.4L2.4,12H0V9.6Zm.84-.84L9.6,0,12,2.4,10.62,3.78Z" transform="translate(216 1869)" fill="#fff"/>
-										</g>
-									</svg></button>
-								</li>
-							{/if}
-						{/each}
+						{#if ($lists)}
+							{#each $lists as list}
+								{#if (list.owner === $agent.did())}
+									<li class="algo-nav-list__item">
+										<button class="algo-nav-button" data-algo-genre="list" data-algo-label="{list.name}" on:click={() => {openAlgoNav({type: 'list', list: list})}} class:algo-nav-button--current={$currentAlgorithm.type === 'list' && $currentAlgorithm.list.id === list.id}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+											<g id="グループ_100" data-name="グループ 100" transform="translate(-1059 -662)">
+												<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 662)" fill="#2a14b4"/>
+												<path id="パス_26" data-name="パス 26" d="M-.075-1.395v-.7a6.107,6.107,0,0,1-2.145.375h-.525c-1.545,0-1.905-.57-1.905-2.13v-4.92c0-1.02-.435-1.5-1.275-1.5h-.84V-3.72c0,2.46,1.335,3.81,3.75,3.81h.8C-.525.09-.075-.5-.075-1.395Z" transform="translate(1070.42 675.093)" fill="#fff"/>
+											</g>
+										</svg>
+											{list.name}</button>
+										<button class="algo-nav-edit" on:click={() => {listAdd(list || undefined)}} aria-label="Edit list"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+											<g id="グループ_99" data-name="グループ 99" transform="translate(-210 -1863)">
+												<circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(210 1863)" fill="#b3b3b3"/>
+												<path id="edit-pencil" d="M7.38,2.22l2.4,2.4L2.4,12H0V9.6Zm.84-.84L9.6,0,12,2.4,10.62,3.78Z" transform="translate(216 1869)" fill="#fff"/>
+											</g>
+										</svg></button>
+									</li>
+								{/if}
+							{/each}
+						{/if}
 
 						{#if ($bookmarks)}
 							{#each $bookmarks as bookmark}
@@ -252,20 +275,22 @@
 							{/each}
 						{/if}
 
-						<li class="algo-nav-list__item">
-							<button class="algo-nav-button algo-nav-button--add algo-nav-button--add-list" on:click={() => {listAdd(undefined)}}>{$_('create_list')}</button>
-						</li>
+						{#if ($supabaseSession)}
+							<li class="algo-nav-list__item">
+								<button class="algo-nav-button algo-nav-button--add algo-nav-button--add-list" on:click={() => {listAdd(undefined)}}>{$_('create_list')}</button>
+							</li>
 
-						<li class="algo-nav-list__item">
-							<button class="algo-nav-button algo-nav-button--add algo-nav-button--add-bookmark" on:click={() => {bookmarkAdd(undefined)}}>{$_('create_bookmark')}</button>
-						</li>
+							<li class="algo-nav-list__item">
+								<button class="algo-nav-button algo-nav-button--add algo-nav-button--add-bookmark" on:click={() => {bookmarkAdd(undefined)}}>{$_('create_bookmark')}</button>
+							</li>
+						{/if}
 					</ul>
 				</div>
 			</div>
 		{/if}
 
 		{#if (isListModalOpen)}
-			<ListModal id={listModalId} on:close={handleListModalClose} on:remove={handleListRemove}></ListModal>
+			<ListModal list={$listsStore} on:close={handleListModalClose}></ListModal>
 		{/if}
 
 		{#if (isBookmarkModalOpen)}

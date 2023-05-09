@@ -19,9 +19,6 @@
     timeline.set([]);
 
     let list = $currentAlgorithm.list;
-    if (!list.members.length) {
-        throw new Error('Empty List.');
-    }
 
     list.members.forEach(member => {
         actors.push({
@@ -114,7 +111,7 @@
     }
 
     afterUpdate(async() => {
-        il.$$.update();
+        // il.$$.update();
     })
 </script>
 

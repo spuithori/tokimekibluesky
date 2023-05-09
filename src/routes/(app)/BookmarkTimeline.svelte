@@ -1,6 +1,6 @@
 <script lang="ts">
     import { agent, cursor } from '$lib/stores';
-    import { timeline, hideRepost, hideReply, currentAlgorithm, timelineStyle } from '$lib/stores';
+    import { timeline, hideRepost, hideReply, currentAlgorithm, timelineStyle, supabase } from '$lib/stores';
     import TimelineItem from './TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
     import {afterUpdate, onMount} from 'svelte';
@@ -18,15 +18,22 @@
     }
 
     async function getQuery(paged) {
-        const feeds = await db.feeds
+        /* const feeds = await db.feeds
             .orderBy('indexedAt')
             .reverse()
             .filter(feed => feed.bookmark === Number($currentAlgorithm.list))
             .offset(paged * 20)
             .limit(20)
-            .toArray();
+            .toArray(); */
 
-        return feeds;
+        const {data, error} = await $supabase
+            .from('feeds')
+            .select()
+            .eq('bookmark', $currentAlgorithm.list)
+            .order('indexed_at', {ascending: false})
+            .range(paged * 20, paged * 20 + 19)
+
+        return data;
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {

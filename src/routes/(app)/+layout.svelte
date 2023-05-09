@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, isLogin, theme, nonoto, isDarkMode, service } from '$lib/stores';
+  import { agent, isLogin, theme, nonoto, isDarkMode, service, supabase, supabaseSession } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -13,6 +13,8 @@
   import { onMount } from 'svelte';
   import toast, { Toaster } from 'svelte-french-toast';
   import viewPortSetting from '$lib/viewport';
+  import type { LayoutData } from './$types';
+  import { invalidate } from '$app/navigation';
 
   inject({ mode: dev ? 'development' : 'production' });
 
@@ -23,6 +25,10 @@
       currentAccount = currentAccount - 1;
       localStorage.setItem('currentAccount', String(currentAccount))
   }
+
+  export let data: LayoutData;
+  supabase.set(data.supabase);
+  supabaseSession.set(data.session);
 
   const session = accounts[currentAccount]?.session;
   if (!session) {
@@ -63,6 +69,11 @@
       }
   });
 
+  async function syncSignOut() {
+      await $supabase.auth.signOut();
+      location.reload();
+  }
+
   viewPortSetting();
 </script>
 
@@ -70,6 +81,15 @@
   <Header />
 
   <main class="main">
+    <div class="sync-nav">
+      {#if ($supabaseSession)}
+        TOKIMEKI Sync version private beta.<br>
+        同期サービスログイン中 / <button style="color: var(--primary-color);" on:click={syncSignOut}>ログアウト</button>
+      {:else}
+        <a href="/sync/login/">同期サービスにログイン</a>
+      {/if}
+    </div>
+
     <slot />
   </main>
 
@@ -97,5 +117,10 @@
     @media (max-width: 767px) {
         margin-bottom: 20px;
     }
+  }
+
+  .sync-nav {
+      text-align: center;
+      margin-bottom: 15px;
   }
 </style>

@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { db } from '$lib/db';
   import {_} from "svelte-i18n";
-  import { liveQuery } from 'dexie';
-  import { agent, timeline } from '$lib/stores';
+  import { agent, timeline, supabase, supabaseSession, bookmarks } from '$lib/stores';
   import toast from "svelte-french-toast";
   import { clickOutside } from '$lib/clickOutSide';
   import { fade, fly } from 'svelte/transition';
@@ -11,27 +9,26 @@
   export let bookmarkId = undefined;
   let isMenuOpen = false;
 
-  $: bookmarks = liveQuery(async () => {
-      const bookmarks = await db.bookmarks
-          .where('owner')
-          .equals($agent.did())
-          .toArray();
-
-      return bookmarks;
-  })
-
   async function add(bookmarkId: string) {
       try {
-          const id = await db.feeds.add({
-              bookmark: bookmarkId,
-              owner: $agent.did(),
-              cid: post.cid,
-              indexedAt: Date.now(),
-              createdAt: post.record.createdAt,
-              text: post.record.text,
-              author: post.author.did,
-              uri: post.uri,
-          })
+          const { error } = await $supabase
+              .from('feeds')
+              .upsert({
+                  bookmark: bookmarkId,
+                  owner: $agent.did(),
+                  cid: post.cid,
+                  indexed_at: Date.now(),
+                  created_at: post.record.createdAt,
+                  text: post.record.text,
+                  author: post.author.did,
+                  uri: post.uri,
+                  user_id: $supabaseSession.user.id
+              }, {onConflict: 'bookmark, cid'})
+              .single()
+
+          if (error) {
+              console.log(error);
+          }
 
           toast.success($_('bookmark_add_success'));
       } catch (e) {
@@ -48,7 +45,15 @@
   async function deleteBookmark() {
       try {
           console.log(bookmarkId)
-          const id = await db.feeds.delete(bookmarkId);
+
+          const { error } = await $supabase
+              .from('feeds')
+              .delete()
+              .eq('id', bookmarkId)
+
+          if (error) {
+              console.log(error);
+          }
 
           timeline.update(function (tl) {
               return tl.filter(data => data.bookmarkId !== bookmarkId);

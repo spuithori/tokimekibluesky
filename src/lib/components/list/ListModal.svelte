@@ -1,12 +1,13 @@
 <script lang="ts">
-    import {agent, userLists} from '$lib/stores';
-    import {AppBskyActorProfile} from "@atproto/api";
+    import {agent, supabase, supabaseSession, userLists} from '$lib/stores';
     import {onMount} from "svelte";
     import ListMember from "./ListMember.svelte";
     import {createEventDispatcher} from 'svelte';
     import toast from "svelte-french-toast";
     import {_} from "svelte-i18n";
     const dispatch = createEventDispatcher();
+
+    export let list;
 
     type list = {
         id: string,
@@ -15,44 +16,73 @@
         owner: string,
     }
 
-    let lists: list[] = localStorage.getItem('lists')
-        ? JSON.parse(localStorage.getItem('lists'))
-        : [];
-    export let id = new Date().getTime().toString();
-    let name = '';
-    let owner = '';
-    let members = [];
+    let name = list?.name || '';
+    let owner = list?.owner || '';
+    let members = list?.members || [];
     let search = '';
     let searchMembers = [];
     let timer;
-    let currentIndex = 0;
     let ready = false;
     let exportText;
     let importText = '';
 
-    $: {
-        if (ready) {
-            handleNameChange(name)
+    async function save () {
+        members = members.map(member => {
+            return member.did
+        });
+
+        try {
+            const { error } = await $supabase
+                .from('lists')
+                .upsert({
+                    id: list?.id || undefined,
+                    members: members,
+                    name: name,
+                    owner: $agent.did() || '',
+                    user_id: $supabaseSession.user.id
+                })
+                .single()
+
+            if (error) {
+                console.log(error);
+            }
+
+            toast.success($_('list_save_success'));
+            dispatch('close', {
+                clear: false,
+            });
+        } catch (e) {
+            toast.error('Error: ' + e);
+        }
+    }
+
+    async function remove () {
+        if (list?.id) {
+            try {
+                const { error } = await $supabase
+                    .from('lists')
+                    .delete()
+                    .eq('id', list.id)
+
+                if (error) {
+                    console.log(error);
+                }
+
+                toast.success($_('list_delete_success'));
+                dispatch('close', {
+                    clear: true,
+                });
+            } catch (e) {
+                toast.error('Error: ' + e);
+            }
+        } else {
+            dispatch('close', {
+                clear: true,
+            });
         }
     }
 
     onMount(async () => {
-        const index = lists.findIndex(list => list.id === id);
-        if (index !== -1) {
-            currentIndex = index;
-            members = lists[currentIndex].members;
-            name = lists[currentIndex].name;
-            owner = lists[currentIndex].owner;
-        } else {
-            currentIndex = lists.length;
-            lists[lists.length] = {
-                id: id,
-                name: '',
-                members: [],
-                owner: $agent.did()
-            }
-        }
-
         if (members.length) {
             const res = await $agent.agent.api.app.bsky.actor.getProfiles({actors: members})
             members = res.data.profiles;
@@ -62,21 +92,6 @@
 
         ready = true;
     })
-
-    function handleListChange() {
-        lists[currentIndex].members = members.map(member => {
-            return member.did
-        });
-        exportText = JSON.stringify(members.map(member => member.did))
-        localStorage.setItem('lists', JSON.stringify(lists));
-        userLists.set(lists);
-    }
-
-    function handleNameChange(name) {
-        lists[currentIndex].name = name;
-        localStorage.setItem('lists', JSON.stringify(lists));
-        userLists.set(lists);
-    }
 
     async function handleKeyDown() {
         clearTimeout(timer);
@@ -91,22 +106,14 @@
             return member.did !== event.detail.member.did;
         });
         members = members.filter(v => v);
-        handleListChange();
     }
 
     function handleAdd(event) {
         members = [...members, event.detail.member];
-        handleListChange();
     }
 
     function close() {
         dispatch('close');
-    }
-
-    function remove() {
-        dispatch('remove', {
-            id: id,
-        });
     }
 
     function exporting() {
@@ -123,8 +130,6 @@
             const importObj = JSON.parse(importText);
             const res = await $agent.agent.api.app.bsky.actor.getProfiles({actors: importObj});
             members = res.data.profiles;
-
-            handleListChange();
 
             toast.success($_('success_import_list'));
         } catch(e) {
@@ -234,183 +239,183 @@
     </details>
 
     <div class="list-modal-close">
-      <button class="button button--sm" on:click={close}>{$_('close_button')}</button>
+      <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
       <button class="button button--sm button--border button--danger" on:click={remove}>{$_('remove')}</button>
     </div>
   </div>
 </div>
 
 <style lang="postcss">
-  .list-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      z-index: 9999;
-      background-color: rgba(0, 0, 0, .5);
-      overflow: auto;
-      padding: 50px 0;
+    .list-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        z-index: 9999;
+        background-color: rgba(0, 0, 0, .5);
+        overflow: auto;
+        padding: 50px 0;
 
-      @media (max-width: 767px) {
-          display: block;
-          overscroll-behavior-y: none;
-          padding: 20px;
-      }
-  }
+        @media (max-width: 767px) {
+            display: block;
+            overscroll-behavior-y: none;
+            padding: 20px;
+        }
+    }
 
-  .list-modal-contents {
-      padding: 30px;
-      border-radius: 10px;
-      background-color: var(--bg-color-1);
-      width: 740px;
-      max-width: 100%;
+    .list-modal-contents {
+        padding: 30px;
+        border-radius: 10px;
+        background-color: var(--bg-color-1);
+        width: 740px;
+        max-width: 100%;
 
-      @media (max-width: 767px) {
-          width: 100%;
-      }
-  }
+        @media (max-width: 767px) {
+            width: 100%;
+        }
+    }
 
-  .list-modal-column {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 30px;
+    .list-modal-column {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
 
-      @media (max-width: 767px) {
-          display: block;
-      }
-  }
+        @media (max-width: 767px) {
+            display: block;
+        }
+    }
 
-  .list-modal-title {
-      font-weight: 900;
-      font-size: 20px;
-      line-height: 1.5;
-      margin-bottom: 26px;
-  }
+    .list-modal-title {
+        font-weight: 900;
+        font-size: 20px;
+        line-height: 1.5;
+        margin-bottom: 26px;
+    }
 
-  .list-modal-group {
-      @media (max-width: 767px) {
-          margin-bottom: 20px;
-      }
+    .list-modal-group {
+        @media (max-width: 767px) {
+            margin-bottom: 20px;
+        }
 
-      &__name {
-          font-size: 14px;
-          margin-bottom: 6px;
-      }
+        &__name {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
 
-      &__content {
+        &__content {
 
-      }
+        }
 
-      &--name {
-          margin-bottom: 30px;
+        &--name {
+            margin-bottom: 30px;
 
-          @media (max-width: 767px) {
-              margin-bottom: 20px;
-          }
-      }
+            @media (max-width: 767px) {
+                margin-bottom: 20px;
+            }
+        }
 
-      &__input {
-          border: 1px solid var(--border-color-1);
-          border-radius: 4px;
-          height: 40px;
-          padding: 0 10px;
-          width: 100%;
-          background-color: var(--bg-color-2);
-          color: var(--text-color-1);
-      }
-  }
+        &__input {
+            border: 1px solid var(--border-color-1);
+            border-radius: 4px;
+            height: 40px;
+            padding: 0 10px;
+            width: 100%;
+            background-color: var(--bg-color-2);
+            color: var(--text-color-1);
+        }
+    }
 
-  .list-modal-members {
-      border: 1px solid var(--border-color-1);
-      border-radius: 6px;
-      padding: 20px 16px;
-  }
+    .list-modal-members {
+        border: 1px solid var(--border-color-1);
+        border-radius: 6px;
+        padding: 20px 16px;
+    }
 
-  .list-modal-name {
-      position: relative;
-      border: 1px solid var(--border-color-1);
-      border-radius: 4px;
-      height: 40px;
-      padding: 0 10px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 10px;
-      overflow: hidden;
+    .list-modal-name {
+        position: relative;
+        border: 1px solid var(--border-color-1);
+        border-radius: 4px;
+        height: 40px;
+        padding: 0 10px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+        overflow: hidden;
 
-      &__input {
-          color: var(--text-color-1);
-      }
+        &__input {
+            color: var(--text-color-1);
+        }
 
-      &:focus-within {
-          border-color: var(--text-color-1);
-      }
+        &:focus-within {
+            border-color: var(--text-color-1);
+        }
 
-      svg {
-          flex-shrink: 0;
-      }
-  }
+        svg {
+            flex-shrink: 0;
+        }
+    }
 
-  .list-modal-close {
-      text-align: center;
-      margin-top: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-  }
+    .list-modal-close {
+        text-align: center;
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+    }
 
-  .list-modal-search {
-      position: relative;
-      margin-bottom: 20px;
+    .list-modal-search {
+        position: relative;
+        margin-bottom: 20px;
 
-      svg {
-          position: absolute;
-          left: 10px;
-          top: 0;
-          bottom: 0;
-          margin: auto;
-      }
-  }
+        svg {
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+        }
+    }
 
-  .list-modal-search-input {
-      border: 1px solid var(--border-color-1);
-      border-radius: 4px;
-      background-color: var(--bg-color-2);
-      height: 40px;
-      padding: 0 10px 0 40px;
-      width: 100%;
-      color: var(--text-color-1);
-  }
+    .list-modal-search-input {
+        border: 1px solid var(--border-color-1);
+        border-radius: 4px;
+        background-color: var(--bg-color-2);
+        height: 40px;
+        padding: 0 10px 0 40px;
+        width: 100%;
+        color: var(--text-color-1);
+    }
 
-  .list-modal-import-export {
-      margin-top: 20px;
-  }
+    .list-modal-import-export {
+        margin-top: 20px;
+    }
 
-  .list-modal-accordion {
-      border: 1px solid var(--border-color-1);
-      border-radius: 4px;
-      padding: 10px;
+    .list-modal-accordion {
+        border: 1px solid var(--border-color-1);
+        border-radius: 4px;
+        padding: 10px;
 
-      &__title {
-          cursor: pointer;
-      }
+        &__title {
+            cursor: pointer;
+        }
 
-      &__content {
-          margin-top: 20px;
-      }
-  }
+        &__content {
+            margin-top: 20px;
+        }
+    }
 
-  .list-modal-export {
-      margin-bottom: 15px;
-  }
+    .list-modal-export {
+        margin-bottom: 15px;
+    }
 
-  .list-modal-import-export-group {
-      display: flex;
-      gap: 10px;
-  }
+    .list-modal-import-export-group {
+        display: flex;
+        gap: 10px;
+    }
 </style>

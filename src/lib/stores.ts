@@ -73,3 +73,13 @@ export const contentLabels = writable(localStorage.getItem('contentLabels')
     : '')
 
 export const bookmarksStore = writable(undefined);
+
+export const supabase = writable(undefined);
+
+export const supabaseSession = writable(undefined);
+
+export const bookmarks = writable([]);
+
+export const lists = writable([]);
+
+export const listsStore = writable(undefined);

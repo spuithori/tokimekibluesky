@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { db } from '$lib/db';
-    import { agent } from '$lib/stores';
+    import { agent, supabase, supabaseSession } from '$lib/stores';
     import {createEventDispatcher} from 'svelte';
     import toast from 'svelte-french-toast';
     import { _ } from 'svelte-i18n';
@@ -13,13 +12,21 @@
 
     async function save () {
         try {
-            const id = await db.bookmarks.put({
-                id: bookmark?.id || undefined,
-                name: name,
-                text: text,
-                owner: $agent.did(),
-                createdAt: Date.now(),
-            })
+            const { error } = await $supabase
+                .from('bookmarks')
+                .upsert({
+                  id: bookmark?.id || undefined,
+                  name: name,
+                  text: text,
+                  owner: $agent.did(),
+                  created_at: Date.now(),
+                  user_id: $supabaseSession.user.id
+                })
+                .single()
+
+            if (error) {
+                console.log(error);
+            }
 
             toast.success($_('bookmark_save_success'));
             dispatch('close', {
@@ -33,14 +40,14 @@
     async function remove () {
         if (bookmark?.id) {
             try {
-                const id = await db.bookmarks.delete(bookmark.id);
-                await db.feeds
-                    .where('bookmark')
-                    .equals(bookmark.id)
+                const { error } = await $supabase
+                    .from('bookmarks')
                     .delete()
-                    .then((deleteCount) => {
-                        console.log(deleteCount + ' bookmarks deleted.')
-                    });
+                    .eq('id', bookmark.id)
+
+                if (error) {
+                    console.log(error);
+                }
 
                 toast.success($_('bookmark_delete_success'));
                 dispatch('close', {
