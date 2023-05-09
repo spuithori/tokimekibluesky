@@ -1,6 +1,5 @@
 <script>
     import { agent } from '$lib/stores';
-    import { onMount } from 'svelte';
     import TimelineItem from '../../TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
     import toast from "svelte-french-toast";
@@ -9,6 +8,7 @@
     export let author = '';
     let feeds = [];
     let cursor = '';
+    let il;
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         try {
@@ -44,7 +44,7 @@
     <TimelineItem data={ data } isPrivate={ true } index={index}></TimelineItem>
   {/each}
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
+  <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
     <p slot="noMore" class="infinite-nomore">もうないよ</p>
   </InfiniteLoading>
 </div>
