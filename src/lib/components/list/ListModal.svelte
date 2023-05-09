@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { db } from '$lib/db';
     import {agent, userLists} from '$lib/stores';
     import {AppBskyActorProfile} from "@atproto/api";
     import {onMount} from "svelte";
@@ -7,6 +8,8 @@
     import toast from "svelte-french-toast";
     import {_} from "svelte-i18n";
     const dispatch = createEventDispatcher();
+
+    export let list;
 
     type list = {
         id: string,
@@ -18,10 +21,10 @@
     let lists: list[] = localStorage.getItem('lists')
         ? JSON.parse(localStorage.getItem('lists'))
         : [];
-    export let id = new Date().getTime().toString();
-    let name = '';
-    let owner = '';
-    let members = [];
+
+    let name = list?.name || '';
+    let owner = list?.owner || '';
+    let members = list?.members || [];
     let search = '';
     let searchMembers = [];
     let timer;
@@ -32,12 +35,53 @@
 
     $: {
         if (ready) {
-            handleNameChange(name)
+            // handleNameChange(name)
+        }
+    }
+
+    async function save () {
+        members = members.map(member => {
+            return member.did
+        });
+
+        try {
+            const id = await db.lists.put({
+                id: list?.id || undefined,
+                members: members,
+                name: name,
+                owner: $agent.did() || '',
+            })
+
+            toast.success($_('list_save_success'));
+            dispatch('close', {
+                clear: false,
+            });
+        } catch (e) {
+            toast.error('Error: ' + e);
+        }
+    }
+
+    async function remove () {
+        if (list?.id) {
+            try {
+                const id = await db.lists.delete(list.id);
+
+                toast.success($_('list_delete_success'));
+                dispatch('close', {
+                    clear: true,
+                });
+            } catch (e) {
+                toast.error('Error: ' + e);
+            }
+        } else {
+            dispatch('close', {
+                clear: true,
+            });
         }
     }
 
     onMount(async () => {
-        const index = lists.findIndex(list => list.id === id);
+        /* const index = lists.findIndex(list => list.id === id);
         if (index !== -1) {
             currentIndex = index;
             members = lists[currentIndex].members;
@@ -51,7 +95,7 @@
                 members: [],
                 owner: $agent.did()
             }
-        }
+        } */
 
         if (members.length) {
             const res = await $agent.agent.api.app.bsky.actor.getProfiles({actors: members})
@@ -91,23 +135,23 @@
             return member.did !== event.detail.member.did;
         });
         members = members.filter(v => v);
-        handleListChange();
+        // handleListChange();
     }
 
     function handleAdd(event) {
         members = [...members, event.detail.member];
-        handleListChange();
+        // handleListChange();
     }
 
     function close() {
         dispatch('close');
     }
 
-    function remove() {
+    /* function remove() {
         dispatch('remove', {
             id: id,
         });
-    }
+    } */
 
     function exporting() {
         navigator.clipboard.writeText(exportText)
@@ -124,7 +168,7 @@
             const res = await $agent.agent.api.app.bsky.actor.getProfiles({actors: importObj});
             members = res.data.profiles;
 
-            handleListChange();
+            // handleListChange();
 
             toast.success($_('success_import_list'));
         } catch(e) {
@@ -234,7 +278,7 @@
     </details>
 
     <div class="list-modal-close">
-      <button class="button button--sm" on:click={close}>{$_('close_button')}</button>
+      <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
       <button class="button button--sm button--border button--danger" on:click={remove}>{$_('remove')}</button>
     </div>
   </div>

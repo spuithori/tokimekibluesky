@@ -73,3 +73,5 @@ export const contentLabels = writable(localStorage.getItem('contentLabels')
     : '')
 
 export const bookmarksStore = writable(undefined);
+
+export const listsStore = writable(undefined);

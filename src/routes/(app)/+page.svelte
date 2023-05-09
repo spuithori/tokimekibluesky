@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
-	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm, userLists, bookmarksStore } from "$lib/stores";
+	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm, userLists, bookmarksStore, listsStore } from "$lib/stores";
 	import TimelineSettings from "./TimelineSettings.svelte";
 	import MediaTimeline from "./MediaTimeline.svelte";
 	import ListModal from "../../lib/components/list/ListModal.svelte";
@@ -34,6 +34,8 @@
 	let isListModalOpen = false;
 	let listModalId;
 
+	let lists = liveQuery(() => db.lists.toArray());
+
 	let bookmarks = liveQuery(() => db.bookmarks.toArray());
 	let isBookmarkModalOpen = false;
 
@@ -59,10 +61,10 @@
 			localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
 		}
 
-		if ($currentAlgorithm.type === 'list' && $currentAlgorithm.list && $userLists.some(list => list.id === $currentAlgorithm.list.id)) {
+		/* if ($currentAlgorithm.type === 'list' && $currentAlgorithm.list && $userLists.some(list => list.id === $currentAlgorithm.list.id)) {
 			currentAlgorithm.set({type: 'list', list: $userLists.find(list => list.id === $currentAlgorithm.list.id)});
 			localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
-		}
+		} */
 
 		if ($currentAlgorithm.type === 'realtime') {
 			isRefreshing = true;
@@ -82,6 +84,8 @@
 		} else if ($currentAlgorithm.type === 'bookmark') {
 			timeline.set([]);
 			cursor.set(0);
+		} else if ($currentAlgorithm.type === 'list') {
+			timeline.set([]);
 		} else if ($currentAlgorithm.type === 'realtime') {
 			realtimeConnect();
 			return;
@@ -111,9 +115,9 @@
 		}
 	}
 
-	function listAdd(id = undefined) {
-		listModalId = id;
+	function listAdd(list = undefined) {
 		isListModalOpen = true;
+		listsStore.set(list);
 	}
 
 	function bookmarkAdd(bookmark = undefined) {
@@ -147,8 +151,15 @@
 		isListModalOpen = false;
 	}
 
-	function handleListModalClose() {
-		location.reload();
+	function handleListModalClose(event) {
+		// location.reload();
+		isListModalOpen = false;
+
+		if (event.detail.clear) {
+			currentAlgorithm.set({type: 'default'});
+			localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
+			refresh($timelineStyle);
+		}
 	}
 
 	function handleRealtimeDisconnect() {
@@ -210,25 +221,27 @@
 							</svg></button>
 						</li>
 
-						{#each $userLists as list}
-							{#if (list.owner === $agent.did())}
-								<li class="algo-nav-list__item">
-									<button class="algo-nav-button" data-algo-genre="list" data-algo-label="{list.name}" on:click={() => {openAlgoNav({type: 'list', list: list})}} class:algo-nav-button--current={$currentAlgorithm.type === 'list' && $currentAlgorithm.list.id === list.id}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-										<g id="グループ_100" data-name="グループ 100" transform="translate(-1059 -662)">
-											<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 662)" fill="#2a14b4"/>
-											<path id="パス_26" data-name="パス 26" d="M-.075-1.395v-.7a6.107,6.107,0,0,1-2.145.375h-.525c-1.545,0-1.905-.57-1.905-2.13v-4.92c0-1.02-.435-1.5-1.275-1.5h-.84V-3.72c0,2.46,1.335,3.81,3.75,3.81h.8C-.525.09-.075-.5-.075-1.395Z" transform="translate(1070.42 675.093)" fill="#fff"/>
-										</g>
-									</svg>
-										{list.name}</button>
-									<button class="algo-nav-edit" on:click={() => {listAdd(list.id || undefined)}} aria-label="Edit list"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-										<g id="グループ_99" data-name="グループ 99" transform="translate(-210 -1863)">
-											<circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(210 1863)" fill="#b3b3b3"/>
-											<path id="edit-pencil" d="M7.38,2.22l2.4,2.4L2.4,12H0V9.6Zm.84-.84L9.6,0,12,2.4,10.62,3.78Z" transform="translate(216 1869)" fill="#fff"/>
-										</g>
-									</svg></button>
-								</li>
-							{/if}
-						{/each}
+						{#if ($lists)}
+							{#each $lists as list}
+								{#if (list.owner === $agent.did())}
+									<li class="algo-nav-list__item">
+										<button class="algo-nav-button" data-algo-genre="list" data-algo-label="{list.name}" on:click={() => {openAlgoNav({type: 'list', list: list})}} class:algo-nav-button--current={$currentAlgorithm.type === 'list' && $currentAlgorithm.list.id === String(list.id)}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+											<g id="グループ_100" data-name="グループ 100" transform="translate(-1059 -662)">
+												<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 662)" fill="#2a14b4"/>
+												<path id="パス_26" data-name="パス 26" d="M-.075-1.395v-.7a6.107,6.107,0,0,1-2.145.375h-.525c-1.545,0-1.905-.57-1.905-2.13v-4.92c0-1.02-.435-1.5-1.275-1.5h-.84V-3.72c0,2.46,1.335,3.81,3.75,3.81h.8C-.525.09-.075-.5-.075-1.395Z" transform="translate(1070.42 675.093)" fill="#fff"/>
+											</g>
+										</svg>
+											{list.name}</button>
+										<button class="algo-nav-edit" on:click={() => {listAdd(list || undefined)}} aria-label="Edit list"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+											<g id="グループ_99" data-name="グループ 99" transform="translate(-210 -1863)">
+												<circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(210 1863)" fill="#b3b3b3"/>
+												<path id="edit-pencil" d="M7.38,2.22l2.4,2.4L2.4,12H0V9.6Zm.84-.84L9.6,0,12,2.4,10.62,3.78Z" transform="translate(216 1869)" fill="#fff"/>
+											</g>
+										</svg></button>
+									</li>
+								{/if}
+							{/each}
+						{/if}
 
 						{#if ($bookmarks)}
 							{#each $bookmarks as bookmark}
@@ -265,7 +278,7 @@
 		{/if}
 
 		{#if (isListModalOpen)}
-			<ListModal id={listModalId} on:close={handleListModalClose} on:remove={handleListRemove}></ListModal>
+			<ListModal list={$listsStore} on:close={handleListModalClose}></ListModal>
 		{/if}
 
 		{#if (isBookmarkModalOpen)}
@@ -275,7 +288,7 @@
 		<TimelineSettings></TimelineSettings>
 	</nav>
 
-	{#if ($currentAlgorithm.type !== 'bookmark')}
+	{#if ($currentAlgorithm.type !== 'bookmark' && $currentAlgorithm.type !== 'list')}
 		<div class="refresh">
 			<button class="refresh-button" aria-label="Refresh" class:is-refreshing={isRefreshing} on:click={() => {refresh($timelineStyle)}} disabled={isRefreshing}>
 				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
@@ -286,9 +299,9 @@
 	{/if}
 
 	{#if ($currentAlgorithm.type === 'list')}
-		{#if ($currentAlgorithm.list.members.length)}
+		{#key $lists}
 			<ListTimeline isRefreshing={isRefreshing}></ListTimeline>
-		{/if}
+		{/key}
 	{:else if ($currentAlgorithm.type === 'bookmark')}
 		{#key $currentAlgorithm}
 			<BookmarkTimeline isRefreshing={isRefreshing}></BookmarkTimeline>

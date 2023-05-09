@@ -6,6 +6,8 @@
     import { afterUpdate, onMount } from 'svelte';
     import { parseISO } from 'date-fns';
     import MediaTimelineItem from "./MediaTimelineItem.svelte";
+    import { db } from '$lib/db';
+    import {liveQuery} from "dexie";
 
     export let isRefreshing;
 
@@ -13,23 +15,54 @@
     let cursors = [];
     let il;
 
+    let ready = false;
+
     let feedPool = [];
     let feed = [];
 
     timeline.set([]);
 
-    let list = $currentAlgorithm.list;
-    if (!list.members.length) {
-        throw new Error('Empty List.');
+    // let list = $currentAlgorithm.list;
+    let list;
+
+    /* onMount(async () => {
+        await init();
+
+        console.log(actors);
+
+        ready = true;
+    }) */
+
+    $: lists = liveQuery(async () => {
+        const lists = await db.lists
+            .filter(list => list.id === $currentAlgorithm.list.id)
+            .toArray();
+        return lists;
+    })
+
+    $: {
+        if ($lists) {
+            console.log($lists);
+            init($lists);
+        }
     }
 
-    list.members.forEach(member => {
-        actors.push({
-            actor: member,
-            limit: 20,
-            cursor: '',
-        })
-    })
+
+    function init(lists) {
+        list = $lists[0];
+
+        if (!list.members.length) {
+            throw new Error('Empty List.');
+        }
+
+        list.members.forEach(member => {
+            actors.push({
+                actor: member,
+                limit: 20,
+                cursor: '',
+            })
+        });
+    }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         if (!isRefreshing) {
@@ -114,7 +147,7 @@
     }
 
     afterUpdate(async() => {
-        il.$$.update();
+        // il.$$.update();
     })
 </script>
 
@@ -133,9 +166,11 @@
     </div>
   {/if}
 
-  <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-  </InfiniteLoading>
+  {#if $lists}
+    <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
+      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+    </InfiniteLoading>
+  {/if}
 </div>
 
 <style>

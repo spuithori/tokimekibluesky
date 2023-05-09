@@ -21,16 +21,30 @@ export interface Bookmark {
     owner: string,
 }
 
+export interface List {
+    id?: string,
+    members: string[],
+    name: string,
+    owner: string,
+}
+
 export class BookmarkSubClassedDexie extends Dexie {
     feeds!: Table<Feed>;
     bookmarks!: Table<Bookmark>;
+    lists!: Table<List>;
 
     constructor() {
         super('bookmarkDatabase', {addons: [dexieCloud]});
         this.version(1).stores({
             feeds: '@id, bookmark, owner, &cid, indexedAt, createdAt, text, author, uri',
             bookmarks: '@id, createdAt, name, text, owner',
-        })
+        });
+
+        this.version(2).stores({
+            feeds: '@id, bookmark, owner, &cid, indexedAt, createdAt, text, author, uri',
+            bookmarks: '@id, createdAt, name, text, owner',
+            lists: '@id, members, name, owner',
+        });
     }
 }
 
