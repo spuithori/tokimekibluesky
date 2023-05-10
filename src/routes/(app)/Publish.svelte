@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
 import { onMount } from 'svelte';
-import {agent, timeline, quotePost, replyRef, sharedText, timelineStyle, currentAlgorithm} from '$lib/stores';
+import { agent, quotePost, replyRef, sharedText } from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
