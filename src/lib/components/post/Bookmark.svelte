@@ -78,9 +78,11 @@
       <ul class="timeline-menu-list">
         {#if ($bookmarks)}
           {#each $bookmarks as bookmark}
-            <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-              <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" on:click={() => {add(bookmark.id)}}>{bookmark.name}</button>
-            </li>
+            {#if (bookmark.owner === $agent.did())}
+              <li class="timeline-menu-list__item timeline-menu-list__item--mute">
+                <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" on:click={() => {add(bookmark.id)}}>{bookmark.name}</button>
+              </li>
+            {/if}
           {:else}
             <li class="timeline-menu-list__item timeline-menu-list__item--mute">
               <button class="timeline-menu-list__button timeline-menu-list__button--bookmark">{$_('no_bookmark_folder')}</button>
