@@ -183,8 +183,8 @@ h1 {
 
 p {
     line-height: 1.5;
-    word-break: break-all;
     overflow-wrap: anywhere;
+    hyphens: auto;
 }
 
 a {
