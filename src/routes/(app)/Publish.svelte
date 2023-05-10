@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
 import { onMount } from 'svelte';
-import { agent, timeline, quotePost, replyRef, sharedText, timelineStyle } from '$lib/stores';
+import { agent, quotePost, replyRef, sharedText } from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -22,6 +22,8 @@ import {
 } from '@atproto/api';
 import toast from 'svelte-french-toast'
 import { goto } from '$app/navigation';
+import { db } from '$lib/db';
+import DraftModal from "$lib/components/draft/DraftModal.svelte";
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -45,6 +47,7 @@ let externalImageBlob: Blob;
 let searchActors = [];
 let isContinueMode = false;
 let isPublishUploadClose = false;
+let isDraftModalOpen = false;
 
 type BeforeUploadImage = {
     image: Blob | File,
@@ -64,6 +67,12 @@ let embedExternal: AppBskyEmbedExternal.Main | undefined;
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: {
     isPublishEnabled = publishContentLength > 300;
+
+    if (isDraftModalOpen) {
+        document.body.classList.add('scroll-lock');
+    } else {
+        document.body.classList.remove('scroll-lock');
+    }
 }
 
 function getActorTypeAhead() {
@@ -317,6 +326,76 @@ function handleOutClick() {
     }
 }
 
+async function saveDraft() {
+    try {
+        const id = await db.drafts.add({
+            createdAt: Date.now(),
+            text: publishContent,
+            quotePost: $quotePost || undefined,
+            replyRef: $replyRef || undefined,
+            images: images,
+            owner: $agent.did(),
+        });
+
+        if (!isContinueMode) {
+            isFocus = false;
+        }
+        publishContent = '';
+        quotePost.set(undefined);
+        replyRef.set(undefined);
+        embed = undefined;
+        images = [];
+        links = [];
+        if (pond) {
+            pond.removeFiles();
+        }
+        searchActors = [];
+        embedImages.images = [];
+        embedExternal = undefined;
+
+        toast.success($_('draft_add_success'));
+    } catch (e) {
+        toast.error($_('error') + ': ' + e);
+    }
+}
+
+function handleDraftUse(event) {
+    isDraftModalOpen = false;
+
+    publishContent = '';
+    quotePost.set(undefined);
+    replyRef.set(undefined);
+    images = [];
+    links = [];
+    if (pond) {
+        pond.removeFiles();
+    }
+    searchActors = [];
+
+    const draft = event.detail.draft;
+    publishContent = draft.text;
+
+    if (draft.images.length) {
+        isPublishUploadClose = false;
+
+        setTimeout(() => {
+            for (const image of draft.images) {
+                if (image.image.type === 'image/png' || image.image.type === 'image/jpeg') {
+                    pond.addFile(image.image);
+                }
+            }
+        }, 250)
+    }
+
+    if (draft.quotePost) {
+        quotePost.set(draft.quotePost);
+    }
+
+    if (draft.replyRef) {
+        replyRef.set(draft.replyRef);
+    }
+}
+
 onMount(async () => {
     if ($sharedText) {
         await goto('/');
@@ -468,6 +547,12 @@ onMount(async () => {
 
   <div class="publish-wrap">
     <div class="publish-buttons">
+      {#if (publishContent)}
+        <button class="publish-draft-button publish-save-draft" on:click={saveDraft} disabled={isPublishEnabled}>{$_('drafts_save')}</button>
+      {:else}
+        <button class="publish-draft-button publish-view-draft" on:click={() => {isDraftModalOpen = true}}>{$_('drafts')}</button>
+      {/if}
+
       <p class="publish-length">
         <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
       </p>
@@ -651,6 +736,10 @@ onMount(async () => {
       </div>
     {/if}
   </div>
+
+  {#if (isDraftModalOpen)}
+    <DraftModal on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
+  {/if}
 </section>
 
 <style lang="postcss">
@@ -953,6 +1042,31 @@ onMount(async () => {
             &::before {
                 background-color: var(--primary-color);
             }
+        }
+    }
+
+    .publish-draft-button {
+        position: relative;
+        min-width: 82px;
+        height: 30px;
+        border-radius: 4px;
+        z-index: 12;
+        background-color: var(--bg-color-1);
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        font-weight: 600;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        letter-spacing: .025em;
+        gap: 5px;
+        white-space: nowrap;
+        margin-right: 10px;
+
+        @media (max-width: 767px) {
+
         }
     }
 </style>
