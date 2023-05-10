@@ -38,11 +38,17 @@ export class BookmarkSubClassedDexie extends Dexie {
 
     constructor() {
         super('bookmarkDatabase');
+
+        this.version(1).stores({
+            feeds: '++id, bookmark, owner, &cid, indexedAt, createdAt, text, author, uri',
+            bookmarks: '++id, createdAt, name, text, owner',
+        });
+
         this.version(2).stores({
             feeds: '++id, bookmark, owner, &cid, indexedAt, createdAt, text, author, uri',
             bookmarks: '++id, createdAt, name, text, owner',
             drafts: '++id, createdAt, text, quotePost, replyRef, images, owner',
-        })
+        });
     }
 }
 
