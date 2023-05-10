@@ -11,51 +11,45 @@
     let text = bookmark?.text || '';
 
     async function save () {
-        try {
-            const { error } = await $supabase
-                .from('bookmarks')
-                .upsert({
-                  id: bookmark?.id || undefined,
-                  name: name,
-                  text: text,
-                  owner: $agent.did(),
-                  created_at: Date.now(),
-                  user_id: $supabaseSession.user.id
-                })
-                .single()
+        const { error } = await $supabase
+            .from('bookmarks')
+            .upsert({
+                id: bookmark?.id || undefined,
+                name: name,
+                text: text,
+                owner: $agent.did(),
+                created_at: Date.now(),
+                user_id: $supabaseSession.user.id
+            })
+            .single();
 
-            if (error) {
-                console.log(error);
-            }
-
-            toast.success($_('bookmark_save_success'));
-            dispatch('close', {
-                clear: false,
-            });
-        } catch (e) {
-            toast.error('Error: ' + e);
+        if (error) {
+            toast.error('Error: ' + error.message);
+            throw new Error(error.message);
         }
+
+        toast.success($_('bookmark_save_success'));
+        dispatch('close', {
+            clear: false,
+        });
     }
 
     async function remove () {
         if (bookmark?.id) {
-            try {
-                const { error } = await $supabase
-                    .from('bookmarks')
-                    .delete()
-                    .eq('id', bookmark.id)
+            const { error } = await $supabase
+                .from('bookmarks')
+                .delete()
+                .eq('id', bookmark.id)
 
-                if (error) {
-                    console.log(error);
-                }
-
-                toast.success($_('bookmark_delete_success'));
-                dispatch('close', {
-                    clear: true,
-                });
-            } catch (e) {
-                toast.error('Error: ' + e);
+            if (error) {
+                toast.error('Error: ' + error.message);
+                throw new Error(error.message);
             }
+
+            toast.success($_('bookmark_delete_success'));
+            dispatch('close', {
+                clear: true,
+            });
         } else {
             dispatch('close', {
                 clear: true,

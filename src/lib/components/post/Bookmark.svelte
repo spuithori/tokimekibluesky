@@ -10,59 +10,47 @@
   let isMenuOpen = false;
 
   async function add(bookmarkId: string) {
-      try {
-          const { error } = await $supabase
-              .from('feeds')
-              .upsert({
-                  bookmark: bookmarkId,
-                  owner: $agent.did(),
-                  cid: post.cid,
-                  indexed_at: Date.now(),
-                  created_at: post.record.createdAt,
-                  text: post.record.text,
-                  author: post.author.did,
-                  uri: post.uri,
-                  user_id: $supabaseSession.user.id
-              }, {onConflict: 'bookmark, cid'})
-              .single()
+      const { error } = await $supabase
+          .from('feeds')
+          .upsert({
+              bookmark: bookmarkId,
+              owner: $agent.did(),
+              cid: post.cid,
+              indexed_at: Date.now(),
+              created_at: post.record.createdAt,
+              text: post.record.text,
+              author: post.author.did,
+              uri: post.uri,
+              user_id: $supabaseSession.user.id
+          }, {onConflict: 'bookmark, cid'})
+          .single()
 
-          if (error) {
-              console.log(error);
-          }
-
-          toast.success($_('bookmark_add_success'));
-      } catch (e) {
-          if (e.name === 'ConstraintError') {
-              toast.error($_('error_may_duplicate_bookmark'));
-          } else {
-              toast.error($_('error') + ': ' + e);
-          }
+      if (error) {
+          toast.error($_('error') + ': ' + error.message);
+          throw new Error(error.message);
       }
+
+      toast.success($_('bookmark_add_success'));
 
       isMenuOpen = false;
   }
 
   async function deleteBookmark() {
-      try {
-          console.log(bookmarkId)
+      const { error } = await $supabase
+          .from('feeds')
+          .delete()
+          .eq('id', bookmarkId)
 
-          const { error } = await $supabase
-              .from('feeds')
-              .delete()
-              .eq('id', bookmarkId)
-
-          if (error) {
-              console.log(error);
-          }
-
-          timeline.update(function (tl) {
-              return tl.filter(data => data.bookmarkId !== bookmarkId);
-          });
-
-          toast.success($_('bookmark_delete_success'));
-      } catch (e) {
-          toast.error($_('error') + ': ' + e);
+      if (error) {
+          toast.error($_('error') + ': ' + error.message);
+          throw new Error(error.message);
       }
+
+      toast.success($_('bookmark_delete_success'));
+
+      timeline.update(function (tl) {
+          return tl.filter(data => data.bookmarkId !== bookmarkId);
+      });
   }
 
   function toggleMenu() {

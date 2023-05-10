@@ -31,50 +31,44 @@
             return member.did
         });
 
-        try {
-            const { error } = await $supabase
-                .from('lists')
-                .upsert({
-                    id: list?.id || undefined,
-                    members: members,
-                    name: name,
-                    owner: $agent.did() || '',
-                    user_id: $supabaseSession.user.id
-                })
-                .single()
+        const { error } = await $supabase
+            .from('lists')
+            .upsert({
+                id: list?.id || undefined,
+                members: members,
+                name: name,
+                owner: $agent.did() || '',
+                user_id: $supabaseSession.user.id
+            })
+            .single()
 
-            if (error) {
-                console.log(error);
-            }
-
-            toast.success($_('list_save_success'));
-            dispatch('close', {
-                clear: false,
-            });
-        } catch (e) {
-            toast.error('Error: ' + e);
+        if (error) {
+            toast.error('Error: ' + error.message);
+            throw new Error(error.message)
         }
+
+        toast.success($_('list_save_success'));
+        dispatch('close', {
+            clear: false,
+        });
     }
 
     async function remove () {
         if (list?.id) {
-            try {
-                const { error } = await $supabase
-                    .from('lists')
-                    .delete()
-                    .eq('id', list.id)
+            const { error } = await $supabase
+                .from('lists')
+                .delete()
+                .eq('id', list.id)
 
-                if (error) {
-                    console.log(error);
-                }
-
-                toast.success($_('list_delete_success'));
-                dispatch('close', {
-                    clear: true,
-                });
-            } catch (e) {
-                toast.error('Error: ' + e);
+            if (error) {
+                toast.error('Error: ' + error.message);
+                throw new Error(error.message)
             }
+
+            toast.success($_('list_delete_success'));
+            dispatch('close', {
+                clear: true,
+            });
         } else {
             dispatch('close', {
                 clear: true,
