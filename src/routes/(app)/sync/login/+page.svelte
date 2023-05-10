@@ -12,7 +12,7 @@
             const { error } = await $supabase.auth.signInWithOtp({ email })
             if (error) throw error
 
-            toast.error('Check your email for login link!');
+            toast.success('メールを送信しました。メールのリンクをクリックするとログインできます。');
         } catch (error) {
             if (error instanceof Error) {
                 toast.error(error.message)
