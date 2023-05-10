@@ -174,5 +174,12 @@
   "continuous_mode": "Continuous Mode",
   "publish_upload_close_description": "The image upload area will reappear after page reload.",
   "post_delete_success": "Post was successfully deleted.",
-  "post_delete_failed": "Failed to delete post."
+  "post_delete_failed": "Failed to delete post.",
+  "drafts": "Drafts",
+  "drafts_quote": "Quote",
+  "drafts_reply": "Reply",
+  "drafts_save": "Draft save",
+  "drafts_nothing": "Nothing.",
+  "draft_add_success": "Draft saved.",
+  "draft_delete_success": "Successfully deleted the draft."
 }

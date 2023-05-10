@@ -175,5 +175,12 @@
   "continuous_mode": "連続モード",
   "publish_upload_close_description": "画像アップロードエリアは、ページリロード後に再度表示されます。",
   "post_delete_success": "投稿の削除に成功しました。",
-  "post_delete_failed": "投稿の削除に失敗しました。"
+  "post_delete_failed": "投稿の削除に失敗しました。",
+  "drafts": "下書き",
+  "drafts_quote": "引用",
+  "drafts_reply": "返信",
+  "drafts_save": "下書き保存",
+  "drafts_nothing": "ないよ",
+  "draft_add_success": "下書きを保存しました。",
+  "draft_delete_success": "下書きの削除に成功しました。"
 }
