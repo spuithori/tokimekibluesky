@@ -13,8 +13,9 @@
   import { onMount } from 'svelte';
   import toast, { Toaster } from 'svelte-french-toast';
   import viewPortSetting from '$lib/viewport';
-  import type { LayoutData } from './$types';
-  import { invalidate } from '$app/navigation';
+  import {PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL} from "$env/static/public";
+  import { createClient } from '@supabase/supabase-js'
+
 
   inject({ mode: dev ? 'development' : 'production' });
 
@@ -26,14 +27,21 @@
       localStorage.setItem('currentAccount', String(currentAccount))
   }
 
-  export let data: LayoutData;
-  supabase.set(data.supabase);
-  supabaseSession.set(data.session);
-
   const session = accounts[currentAccount]?.session;
   if (!session) {
       goto('/login');
   }
+
+  const sbClient = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+  supabase.set(sbClient);
+
+  sbClient.auth.getSession().then(({ data }) => {
+      supabaseSession.set(data.session);
+  });
+
+  sbClient.auth.onAuthStateChange((_event, _session) => {
+      supabaseSession.set(_session);
+  });
 
   try {
       let ag = new AtpAgent({

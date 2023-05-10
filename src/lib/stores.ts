@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 import type { Agent } from '$lib/agent';
 import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications } from '@atproto/api';
+import type {AuthSession, Session, SupabaseClient} from '@supabase/supabase-js'
 
 type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification & {
     feed?: AppBskyFeedPost
@@ -74,9 +75,9 @@ export const contentLabels = writable(localStorage.getItem('contentLabels')
 
 export const bookmarksStore = writable(undefined);
 
-export const supabase = writable(undefined);
+export const supabase = writable<SupabaseClient | undefined>(undefined);
 
-export const supabaseSession = writable(undefined);
+export const supabaseSession = writable<Session | null>(null);
 
 export const bookmarks = writable([]);
 
