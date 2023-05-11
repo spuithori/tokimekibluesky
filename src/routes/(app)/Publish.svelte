@@ -496,6 +496,7 @@ onMount(async () => {
                     text: rt.text,
                     createdAt: new Date().toISOString(),
                     reply: $replyRef || undefined,
+                    via: 'TOKIMEKI',
                 },
             );
             toast.success($_('success_to_post'));
