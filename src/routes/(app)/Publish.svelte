@@ -24,6 +24,7 @@ import toast from 'svelte-french-toast'
 import { goto } from '$app/navigation';
 import { db } from '$lib/db';
 import DraftModal from "$lib/components/draft/DraftModal.svelte";
+import AltModal from "$lib/components/alt/AltModal.svelte";
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -48,9 +49,11 @@ let searchActors = [];
 let isContinueMode = false;
 let isPublishUploadClose = false;
 let isDraftModalOpen = false;
+let isAltModalOpen = false;
 
 type BeforeUploadImage = {
     image: Blob | File,
+    alt: string,
     id: string,
 }
 let images: BeforeUploadImage[] = [];
@@ -67,6 +70,12 @@ let embedExternal: AppBskyEmbedExternal.Main | undefined;
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: {
     isPublishEnabled = publishContentLength > 300;
+
+    if (isDraftModalOpen) {
+        document.body.classList.add('scroll-lock');
+    } else {
+        document.body.classList.remove('scroll-lock');
+    }
 
     if (isDraftModalOpen) {
         document.body.classList.add('scroll-lock');
@@ -159,6 +168,7 @@ async function onFileSelected(file: any, output: any) {
 
     images.push({
         image: image,
+        alt: '',
         id: file.id,
     });
     images = images;
@@ -396,6 +406,12 @@ function handleDraftUse(event) {
     }
 }
 
+function handleAltClose(event) {
+    images = event.detail.images;
+    isAltModalOpen = false;
+    console.log(images);
+}
+
 onMount(async () => {
     if ($sharedText) {
         await goto('/');
@@ -427,10 +443,10 @@ onMount(async () => {
 
 
             const promise = Promise.all(filePromises)
-                .then(results => results.forEach(result => {
+                .then(results => results.forEach((result, index) => {
                     embedImages.images.push({
                         image: result.data.blob,
-                        alt: '',
+                        alt: images[index].alt || '',
                     });
                 }))
                 .catch(error => {
@@ -708,6 +724,10 @@ onMount(async () => {
           </svg>
         </button>
 
+        {#if (images.length)}
+          <button class="publish-alt-text-button" on:click={() => {isAltModalOpen = true}}>{$_('add_alt_text')}</button>
+        {/if}
+
         <FilePond
             bind:this={pond}
             {name}
@@ -736,6 +756,10 @@ onMount(async () => {
       </div>
     {/if}
   </div>
+
+  {#if (isAltModalOpen)}
+    <AltModal images={images} on:close={handleAltClose}></AltModal>
+  {/if}
 
   {#if (isDraftModalOpen)}
     <DraftModal on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
@@ -1067,6 +1091,36 @@ onMount(async () => {
 
         @media (max-width: 767px) {
 
+        }
+    }
+
+    .publish-alt-text-button {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background-color: var(--primary-color);
+        color: var(--bg-color-1);
+        border-radius: 4px;
+        font-size: 14px;
+        width: 740px;
+        height: 30px;
+        z-index: 10;
+        font-weight: bold;
+        transition: opacity .2s ease-in-out, transform .05s ease-in-out;
+
+        &:hover {
+            opacity: .8;
+        }
+
+        &:active {
+            transform: scale(.99);
+        }
+
+        @media (max-width: 767px) {
+            position: relative;
+            top: auto;
+            left: auto;
+            width: 100%;
         }
     }
 </style>
