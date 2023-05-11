@@ -102,3 +102,9 @@
         display: none;
     }
 }
+
+.filepond--browser {
+    @media (max-width: 767px) {
+        pointer-events: none;
+    }
+}
