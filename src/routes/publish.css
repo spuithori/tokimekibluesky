@@ -108,3 +108,9 @@
         pointer-events: none;
     }
 }
+
+.filepond--drop-label {
+    @media (max-width: 767px) {
+        pointer-events: none;
+    }
+}
