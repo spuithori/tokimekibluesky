@@ -181,5 +181,7 @@
   "drafts_save": "Draft save",
   "drafts_nothing": "Nothing.",
   "draft_add_success": "Draft saved.",
-  "draft_delete_success": "Successfully deleted the draft."
+  "draft_delete_success": "Successfully deleted the draft.",
+  "alt_insert": "Insert ALT Text",
+  "add_alt_text": "Enter ALT text in the image"
 }
