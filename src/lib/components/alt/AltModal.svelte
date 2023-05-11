@@ -122,6 +122,7 @@
         width: 100%;
         height: 100%;
         padding: 10px;
+        color: var(--text-color-1);
 
         @media (max-width: 767px) {
             font-size: 14px;
