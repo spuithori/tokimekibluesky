@@ -207,14 +207,6 @@
                     count={item.feedThis.replyCount}
                 ></Reply>
 
-                <Like
-                    cid={item.feedThis.cid}
-                    uri={item.feedThis.uri}
-                    likeViewer={item.feedThis.viewer?.like}
-                    count={item.feedThis.likeCount}
-                    on:like
-                ></Like>
-
                 <Repost
                     cid={item.feedThis.cid}
                     uri={item.feedThis.uri}
@@ -222,6 +214,14 @@
                     count={item.feedThis.repostCount}
                     on:repost
                 ></Repost>
+
+                <Like
+                    cid={item.feedThis.cid}
+                    uri={item.feedThis.uri}
+                    likeViewer={item.feedThis.viewer?.like}
+                    count={item.feedThis.likeCount}
+                    on:like
+                ></Like>
               </div>
             {/if}
           </article>

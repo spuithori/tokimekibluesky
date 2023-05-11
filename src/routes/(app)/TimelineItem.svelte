@@ -363,15 +363,6 @@
                 count={data.post.replyCount}
             ></Reply>
 
-            <Like
-                cid={data.post.cid}
-                uri={data.post.uri}
-                likeViewer={data.post.viewer?.like}
-                count={data.post.likeCount}
-                on:like
-                bind:vote={voteFunc}
-            ></Like>
-
             <Repost
                 cid={data.post.cid}
                 uri={data.post.uri}
@@ -380,6 +371,15 @@
                 on:repost
                 bind:repost={repostFunc}
             ></Repost>
+
+            <Like
+                cid={data.post.cid}
+                uri={data.post.uri}
+                likeViewer={data.post.viewer?.like}
+                count={data.post.likeCount}
+                on:like
+                bind:vote={voteFunc}
+            ></Like>
 
             <Bookmark post={data.post} bookmarkId={data?.bookmarkId}></Bookmark>
           </div>

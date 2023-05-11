@@ -31,6 +31,9 @@
           <TimelineItem data={data} isSingle={true} let:likes={likes}>
             <details class="likes-wrap" slot="likes">
               <summary class="likes-heading">
+                {#if (data.post.record.via)}
+                  <span class="timeline-via">via {data.post.record.via}</span>
+                {/if}
                 {$_('liked_users')}
 
                 <svg xmlns="http://www.w3.org/2000/svg" width="14.814" height="8.821" viewBox="0 0 14.814 8.821">

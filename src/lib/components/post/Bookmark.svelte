@@ -4,8 +4,7 @@
   import { liveQuery } from 'dexie';
   import { agent, timeline } from '$lib/stores';
   import toast from "svelte-french-toast";
-  import { clickOutside } from '$lib/clickOutSide';
-  import { fade, fly } from 'svelte/transition';
+  import Menu from "$lib/components/ui/Menu.svelte";
 
   export let post;
   export let bookmarkId = undefined;
@@ -18,6 +17,17 @@
           .toArray();
 
       return bookmarks;
+  })
+
+  $: alreadyBookmarks = liveQuery(async () => {
+      if (isMenuOpen) {
+          const feeds = await db.feeds
+              .where('uri')
+              .equals(post.uri)
+              .toArray();
+
+          return feeds;
+      }
   })
 
   async function add(bookmarkId: string) {
@@ -66,43 +76,41 @@
 </script>
 
 <div class="bookmark-wrap">
-  <div class="timeline-reaction__item timeline-reaction__item--bookmark">
-    <button class="timeline-reaction__icon bookmark-menu-toggle--{post.cid}" on:click="{toggleMenu}" aria-label="Bookmark">
-      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="15" viewBox="0 0 12 15">
-        <path id="bookmark" d="M2,1.5A1.5,1.5,0,0,1,3.5,0h9A1.5,1.5,0,0,1,14,1.5V15L8,12,2,15Z" transform="translate(-2)" fill="var(--border-color-1)"/>
-      </svg>
-    </button>
-  </div>
+  <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="timeline-reaction__item timeline-reaction__item--bookmark">
+    <svg slot="ref" xmlns="http://www.w3.org/2000/svg" width="12" height="15" viewBox="0 0 12 15">
+      <path id="bookmark" d="M2,1.5A1.5,1.5,0,0,1,3.5,0h9A1.5,1.5,0,0,1,14,1.5V15L8,12,2,15Z" transform="translate(-2)" fill="var(--border-color-1)"/>
+    </svg>
 
-  {#if isMenuOpen}
-    <nav
-        class="timeline-menu timeline-menu--bookmark"
-        class:timeline-menu--shown={isMenuOpen}
-        use:clickOutside={{ignoreElement: '.bookmark-menu-toggle--' + post.cid}}
-        on:outclick={() => (isMenuOpen = false)}
-        transition:fly="{{ y: 30, duration: 250 }}"
-    >
-      <ul class="timeline-menu-list">
-        {#if ($bookmarks)}
-          {#each $bookmarks as bookmark}
-            <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-              <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" on:click={() => {add(bookmark.id)}}>{bookmark.name}</button>
-            </li>
-          {:else}
-            <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-              <button class="timeline-menu-list__button timeline-menu-list__button--bookmark">{$_('no_bookmark_folder')}</button>
-            </li>
-          {/each}
-        {/if}
-
-        {#if (bookmarkId)}
+    <ul slot="content" class="timeline-menu-list">
+      {#if ($bookmarks)}
+        {#each $bookmarks as bookmark}
           <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-            <button class="timeline-menu-list__button timeline-menu-list__button--bookmark"  on:click={deleteBookmark}><span class="text-danger">{$_('delete_bookmark')}</span></button>
+            <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" on:click={() => {add(bookmark.id)}}>
+              {bookmark.name}
+
+              {#if ($alreadyBookmarks)}
+                {#if ($alreadyBookmarks.some(already => already.bookmark === bookmark.id))}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="9.75" viewBox="0 0 13 9.75">
+                    <path id="checkmark" d="M0,8.2,1.3,6.9l3.25,3.25L11.7,3,13,4.3,4.55,12.75Z" transform="translate(0 -3)" fill="var(--color-theme-10)"/>
+                  </svg>
+                {/if}
+              {/if}
+            </button>
           </li>
-        {/if}
-      </ul>
-    </nav>
-  {/if}
+        {:else}
+          <li class="timeline-menu-list__item timeline-menu-list__item--mute">
+            <button class="timeline-menu-list__button timeline-menu-list__button--bookmark">{$_('no_bookmark_folder')}</button>
+          </li>
+        {/each}
+      {/if}
+
+      {#if (bookmarkId)}
+        <li class="timeline-menu-list__item timeline-menu-list__item--mute">
+          <button class="timeline-menu-list__button timeline-menu-list__button--bookmark"  on:click={deleteBookmark}><span class="text-danger">{$_('delete_bookmark')}</span></button>
+        </li>
+      {/if}
+    </ul>
+  </Menu>
 </div>
 
 <style lang="postcss">

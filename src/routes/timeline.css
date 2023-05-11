@@ -449,9 +449,9 @@
     color: var(--text-color-3);
     white-space: nowrap;
     cursor: pointer;
-    display: block;
-    gap: 5px;
     position: relative;
+    display: flex;
+    align-items: center;
 
     svg {
         position: absolute;
@@ -599,5 +599,17 @@
 
     &:hover {
         background-color: var(--border-color-1);
+    }
+}
+
+.timeline-via {
+    display: inline-block;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &::after {
+        content: '・';
     }
 }
