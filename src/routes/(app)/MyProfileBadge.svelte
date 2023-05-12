@@ -15,12 +15,17 @@
   </a>
 </div>
 
-<style>
+<style lang="postcss">
   .my-profile-badge {
       width: 42px;
       height: 42px;
       border-radius: 50%;
       overflow: hidden;
+
+      @media (max-width: 767px) {
+          width: 38px;
+          height: 38px;
+      }
   }
 
   .my-profile-badge img  {

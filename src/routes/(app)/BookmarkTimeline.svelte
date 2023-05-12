@@ -1,6 +1,6 @@
 <script lang="ts">
     import { agent, cursor } from '$lib/stores';
-    import { timeline, hideRepost, hideReply, currentAlgorithm, timelineStyle } from '$lib/stores';
+    import { timeline, settings, currentAlgorithm, timelineStyle } from '$lib/stores';
     import TimelineItem from './TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
     import {afterUpdate, onMount} from 'svelte';
@@ -61,7 +61,7 @@
     })
 </script>
 
-<div class="timeline timeline--main" class:hide-repost={$hideRepost === 'true'} class:hide-reply={$hideReply === 'true'}>
+<div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
   {#if ($timelineStyle === 'default')}
     {#each $timeline as data, index (data)}
       <TimelineItem data={ data } index={index}></TimelineItem>

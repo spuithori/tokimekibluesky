@@ -150,22 +150,8 @@
           <path id="user-add" d="M1.5,5.25H0v1.5H1.5v1.5H3V6.75H4.5V5.25H3V3.75H1.5Zm5.25,0a2.25,2.25,0,0,1,4.5,0v1.5a2.25,2.25,0,0,1-4.5,0ZM15,12.105a12.017,12.017,0,0,0-12,0V14.25H15Z" transform="translate(0 -3)" fill="var(--primary-color)"/>
         </svg></button>
       </li>
-
-      <li class="notifications-filter-list__item notifications-filter-list__item--push">
-        <button class="notifications-filter-button notifications-push-settings" on:click={pushToggle}>{$_('push_settings')}</button>
-      </li>
     </ul>
   </div>
-
-  {#if (isPushOpen)}
-    <div class="push-box" transition:fly="{{ y: 30, duration: 250 }}">
-      <button class="push-box__close" on:click={pushToggle}></button>
-
-      <div class="push-box__content">
-        <PushSettings></PushSettings>
-      </div>
-    </div>
-  {/if}
 
   <div class="notifications-list">
     {#each notifications as item}

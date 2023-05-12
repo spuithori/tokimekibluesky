@@ -56,7 +56,7 @@
     </div>
   {/if}
 
-  <h1 class="thread-title">{$_('title_thread')}</h1>
+  <h1 class="page-nav-title">{$_('title_thread')}</h1>
 
   {#await feeds}
   {:then feeds}

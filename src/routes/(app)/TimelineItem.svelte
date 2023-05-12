@@ -1,7 +1,7 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
     import {agent} from '$lib/stores';
-    import {timeline, cursor, notificationCount, quotePost, replyRef, contentLabels} from '$lib/stores';
+    import {timeline, cursor, notificationCount, quotePost, replyRef, contentLabels, settings} from '$lib/stores';
     import {format, formatDistanceToNow, parseISO} from 'date-fns';
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
@@ -93,14 +93,15 @@
         textArray = textArray;
     }
 
-    let labels;
-    try {
-        if (localStorage.getItem('contentLabels')) {
-            labels = JSON.parse(localStorage.getItem('contentLabels'));
-        }
-    } catch (e) {
-        console.log(e)
-    }
+    let labels = $settings?.moderation.contentLabels || {
+        gore: 'show',
+        hate: 'show',
+        impersonation: 'show',
+        nsfw: 'show',
+        nudity: 'show',
+        spam: 'show',
+        suggestive: 'show',
+    };
 
     let isHide = false;
     let isWarn = false;

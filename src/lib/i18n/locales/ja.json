@@ -184,5 +184,15 @@
   "draft_add_success": "下書きを保存しました。",
   "draft_delete_success": "下書きの削除に成功しました。",
   "alt_insert": "ALTテキストの挿入",
-  "add_alt_text": "画像にALTテキストを入力する"
+  "add_alt_text": "画像にALTテキストを入力する",
+  "settings_general": "全般",
+  "settings_design": "デザイン",
+  "settings_timeline": "タイムライン設定",
+  "settings_moderation": "表示するコンテンツの制御",
+  "settings_blocks": "ブロック一覧",
+  "settings_mutes": "ミュート一覧",
+  "settings_push_notification": "プッシュ通知",
+  "settings": "設定",
+  "language_settings": "言語",
+  "mentions": "メンション"
 }
