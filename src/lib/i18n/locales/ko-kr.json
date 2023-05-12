@@ -176,13 +176,13 @@
   "publish_upload_close_description": "영상 올리기 부분은 화면 다시 불러오기를 한 뒤에 도로 보입니다.",
   "post_delete_success": "포스트를 성공적으로 지웠습니다.",
   "post_delete_failed": "포스트를 지우는데 실패했습니다.",
-  "drafts": "Drafts",
-  "drafts_quote": "Quote",
-  "drafts_reply": "Reply",
-  "drafts_save": "Draft save",
-  "drafts_nothing": "Nothing.",
-  "draft_add_success": "Draft saved.",
-  "draft_delete_success": "Successfully deleted the draft.",
-  "alt_insert": "Insert ALT Text",
-  "add_alt_text": "Enter ALT text in the image"
+  "drafts": "임시 글",
+  "drafts_quote": "인용",
+  "drafts_reply": "답글",
+  "drafts_save": "임시 글 저장하기",
+  "drafts_nothing": "없음.",
+  "draft_add_success": "임시 글을 저장했습니다.",
+  "draft_delete_success": "임시 글을 성공적으로 지웠습니다.",
+  "alt_insert": "대체 텍스트 넣기",
+  "add_alt_text": "영상에 대체 텍스트 쓰기"
 }
