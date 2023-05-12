@@ -232,6 +232,7 @@
 .timeline-reaction {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 20px;
     margin-top: 16px;
     color: var(--text-color-3);
@@ -243,6 +244,7 @@
     &--notification {
         gap: 10px;
         margin-top: 10px;
+        justify-content: flex-start;
     }
 
     &--media {
