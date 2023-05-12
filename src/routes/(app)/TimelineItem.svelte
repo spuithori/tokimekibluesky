@@ -357,34 +357,6 @@
             {/each}
           </p>
 
-          <div class="timeline-reaction" class:timeline-reaction--media={isMedia}>
-            <Reply
-                post={data.post}
-                reply={data.post.record.reply}
-                count={data.post.replyCount}
-            ></Reply>
-
-            <Repost
-                cid={data.post.cid}
-                uri={data.post.uri}
-                repostViewer={data.post.viewer?.repost}
-                count={data.post.repostCount}
-                on:repost
-                bind:repost={repostFunc}
-            ></Repost>
-
-            <Like
-                cid={data.post.cid}
-                uri={data.post.uri}
-                likeViewer={data.post.viewer?.like}
-                count={data.post.likeCount}
-                on:like
-                bind:vote={voteFunc}
-            ></Like>
-
-            <Bookmark post={data.post} bookmarkId={data?.bookmarkId}></Bookmark>
-          </div>
-
           {#if (AppBskyEmbedImages.isView(data.post.embed) && !isMedia)}
             <div class="timeline-images-wrap">
               <Images images={data.post.embed.images}></Images>
@@ -495,6 +467,34 @@
             </span>
           </div>
         {/if}
+
+        <div class="timeline-reaction" class:timeline-reaction--media={isMedia}>
+          <Reply
+              post={data.post}
+              reply={data.post.record.reply}
+              count={data.post.replyCount}
+          ></Reply>
+
+          <Repost
+              cid={data.post.cid}
+              uri={data.post.uri}
+              repostViewer={data.post.viewer?.repost}
+              count={data.post.repostCount}
+              on:repost
+              bind:repost={repostFunc}
+          ></Repost>
+
+          <Like
+              cid={data.post.cid}
+              uri={data.post.uri}
+              likeViewer={data.post.viewer?.like}
+              count={data.post.likeCount}
+              on:like
+              bind:vote={voteFunc}
+          ></Like>
+
+          <Bookmark post={data.post} bookmarkId={data?.bookmarkId}></Bookmark>
+        </div>
 
         {#if (isSingle)}
           <slot name="likes" likes={likes}></slot>
