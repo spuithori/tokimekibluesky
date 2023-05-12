@@ -84,3 +84,24 @@ export const bookmarks = writable([]);
 export const lists = writable([]);
 
 export const listsStore = writable(undefined);
+
+const defaultSettings = {
+    general: {
+        language: window.navigator.language,
+        disableAlgorithm: false,
+    },
+    design: {
+        theme: 'superorange',
+        nonoto: false,
+        darkmode: false,
+    },
+    timeline: {
+        hideRepost: false,
+        hideReply: false,
+    },
+    moderation: {
+        contentLabels: {},
+    }
+}
+const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);
+export const settings = writable(JSON.parse(storageSettings));

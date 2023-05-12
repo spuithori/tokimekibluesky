@@ -4,6 +4,7 @@
     import SearchForm from '../SearchForm.svelte';
     import { agent } from '$lib/stores';
     import { parseISO } from 'date-fns';
+    import {_} from "svelte-i18n";
     let searchFeeds = [];
     let feeds = [];
 
@@ -39,6 +40,8 @@
 </script>
 
 <div>
+  <h1 class="page-nav-title">{$_('search_button')}</h1>
+
   <SearchForm></SearchForm>
 
   <div class="timeline">

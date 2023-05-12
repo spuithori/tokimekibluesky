@@ -2,7 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
-	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm, userLists, bookmarksStore, supabase, supabaseSession, bookmarks, lists, listsStore } from "$lib/stores";
+	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm, userLists, bookmarksStore, supabase, supabaseSession, bookmarks, lists, listsStore, settings } from "$lib/stores";
 	import TimelineSettings from "./TimelineSettings.svelte";
 	import ListModal from "../../lib/components/list/ListModal.svelte";
 	import ListTimeline from "./ListTimeline.svelte";
@@ -186,27 +186,7 @@
 
 <section>
 	<nav class="home-navs">
-		<div class="timeline-style-nav">
-			<div class="style-nav" data-current="{$timelineStyle}">
-				<div class="style-nav__item style-nav__item--active style-nav__item--default">
-					<button aria-label="Default Timeline" class="style-nav__button" on:click={() => {toggleStyle('default')}}>
-						<svg xmlns="http://www.w3.org/2000/svg" width="21.387" height="18" viewBox="0 0 21.387 18">
-							<path id="view-list" d="M0,3H21.387V5.571H0ZM0,8.143H21.387v2.571H0Zm0,5.143H21.387v2.571H0Zm0,5.143H21.387V21H0Z" transform="translate(0 -3)" fill="var(--text-color-3)"/>
-						</svg>
-					</button>
-				</div>
-
-				<div class="style-nav__item style-nav__item--media">
-					<button aria-label="Media Timeline" class="style-nav__button" on:click={() => {toggleStyle('media')}}>
-						<svg xmlns="http://www.w3.org/2000/svg" width="22.5" height="18" viewBox="0 0 22.5 18">
-							<path id="photo" d="M0,4.25A2.257,2.257,0,0,1,2.25,2h18A2.25,2.25,0,0,1,22.5,4.25v13.5A2.25,2.25,0,0,1,20.25,20h-18A2.25,2.25,0,0,1,0,17.75ZM12.375,14.375,9,11,2.25,17.75h18l-5.625-5.625Zm4.5-4.5a2.25,2.25,0,1,0-2.25-2.25A2.25,2.25,0,0,0,16.875,9.875Z" transform="translate(0 -2)" fill="var(--text-color-3)"/>
-						</svg>
-					</button>
-				</div>
-			</div>
-		</div>
-
-		{#if ($disableAlgorithm === 'false')}
+		{#if (!$settings.general.disableAlgorithm)}
 			<div class="timeline-algo-nav">
 				<div class="algo-nav" class:algo-nav--open={isAlgoNavOpen}>
 					<div class="algo-nav-bg"></div>
@@ -296,19 +276,39 @@
 		{#if (isBookmarkModalOpen)}
 			<BookmarkModal bookmark={$bookmarksStore} on:close={handleBookmarkClose}></BookmarkModal>
 		{/if}
-
-		<TimelineSettings></TimelineSettings>
 	</nav>
 
-	{#if ($currentAlgorithm.type !== 'bookmark')}
-		<div class="refresh">
-			<button class="refresh-button" aria-label="Refresh" class:is-refreshing={isRefreshing} on:click={() => {refresh($timelineStyle)}} disabled={isRefreshing}>
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
-					<path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
-				</svg>
-			</button>
+	<div class="home-nav">
+		<div class="timeline-style-nav">
+			<div class="style-nav" data-current="{$timelineStyle}">
+				<div class="style-nav__item style-nav__item--active style-nav__item--default">
+					<button aria-label="Default Timeline" class="style-nav__button" on:click={() => {toggleStyle('default')}}>
+						<svg xmlns="http://www.w3.org/2000/svg" width="21.387" height="18" viewBox="0 0 21.387 18">
+							<path id="view-list" d="M0,3H21.387V5.571H0ZM0,8.143H21.387v2.571H0Zm0,5.143H21.387v2.571H0Zm0,5.143H21.387V21H0Z" transform="translate(0 -3)" fill="var(--text-color-3)"/>
+						</svg>
+					</button>
+				</div>
+
+				<div class="style-nav__item style-nav__item--media">
+					<button aria-label="Media Timeline" class="style-nav__button" on:click={() => {toggleStyle('media')}}>
+						<svg xmlns="http://www.w3.org/2000/svg" width="22.5" height="18" viewBox="0 0 22.5 18">
+							<path id="photo" d="M0,4.25A2.257,2.257,0,0,1,2.25,2h18A2.25,2.25,0,0,1,22.5,4.25v13.5A2.25,2.25,0,0,1,20.25,20h-18A2.25,2.25,0,0,1,0,17.75ZM12.375,14.375,9,11,2.25,17.75h18l-5.625-5.625Zm4.5-4.5a2.25,2.25,0,1,0-2.25-2.25A2.25,2.25,0,0,0,16.875,9.875Z" transform="translate(0 -2)" fill="var(--text-color-3)"/>
+						</svg>
+					</button>
+				</div>
+			</div>
 		</div>
-	{/if}
+
+		{#if ($currentAlgorithm.type !== 'bookmark')}
+			<div class="refresh">
+				<button class="refresh-button" aria-label="Refresh" class:is-refreshing={isRefreshing} on:click={() => {refresh($timelineStyle)}} disabled={isRefreshing}>
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
+						<path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
+					</svg>
+				</button>
+			</div>
+		{/if}
+	</div>
 
 	{#if ($currentAlgorithm.type === 'list')}
 		{#if ($currentAlgorithm.list.members.length)}
@@ -327,27 +327,18 @@
 
 <style lang="postcss">
 	.refresh {
-		margin-bottom: -10px;
+
 	}
 
 	.refresh-button {
-		background-color: var(--bg-color-2);
-		color: var(--text-color-primary-colored);
+		width: 160px;
+		background-color: var(--bg-color-1);
+		height: 40px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border: 1px solid var(--text-color-primary-colored);
-		font-weight: 600;
-		letter-spacing: .05em;
-		font-size: 18px;
-		border-radius: 6px 6px 0 0;
-		width: 100%;
-		height: 55px;
-		padding-bottom: 8px;
-
-		@media (max-width: 767px) {
-			background-color: var(--bg-color-1);
-		}
+		border-radius: 20px;
+		box-shadow: 0 0 10px rgba(0, 0, 0, .09);
 
 		&.is-refreshing {
 			svg {
@@ -357,15 +348,7 @@
 	}
 
 	.home-navs {
-		display: flex;
-		justify-content: space-between;
-		gap: 20px;
-		margin-bottom: 20px;
 
-		@media (max-width: 767px) {
-			gap: 15px 5px;
-			flex-wrap: wrap;
-		}
 	}
 
 	@keyframes rotation {
@@ -374,10 +357,25 @@
 	}
 
 	.timeline-algo-nav {
+		order: -1;
+		width: 200px;
+		margin: auto;
+		height: 40px;
+		position: fixed;
+		z-index: 100;
+		left: 0;
+		right: 0;
+		top: 15px;
+
 		@media (max-width: 767px) {
 			order: -1;
-			width: 100%;
+			width: 170px;
+			margin: auto;
 			height: 40px;
+			position: fixed;
+			left: 0;
+			right: 0;
+			top: 20px;
 		}
 	}
 
@@ -397,7 +395,7 @@
 				position: absolute;
 				left: 0;
 				right: 0;
-				top: 100px;
+				top: 15px;
 				margin: auto;
 				display: flex;
 				flex-direction: column;
@@ -406,7 +404,7 @@
 				justify-content: center;
 
 				@media (max-width: 767px) {
-
+					top: 20px;
 				}
 			}
 
@@ -469,7 +467,8 @@
 		border-radius: 20px;
 		background-color: var(--bg-color-1);
 		box-shadow: 0 2px 14px rgba(0, 0, 0, .08);
-		color: var(--text-color-3);
+		color: var(--text-color-1);
+		font-weight: 900;
 		cursor: pointer;
 		transition: box-shadow .2s ease-in-out;
 		letter-spacing: .05em;
@@ -500,8 +499,20 @@
 		}
 
 		&--current {
-			&[data-algo-genre='custom'] {
-				border: 2px solid var(--primary-color);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 6px;
+
+			&::after {
+				content: '';
+				display: block;
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11.599' height='7.421' viewBox='0 0 11.599 7.421'%3E%3Cpath id='パス_27' data-name='パス 27' d='M4393.408,794.858l4.389,5.01,4.388-5.01' transform='translate(-4391.997 -793.447)' fill='none' stroke='%231d1d1d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/%3E%3C/svg%3E%0A");
+				width: 12px;
+				height: 8px;
+				background-size: contain;
+				margin-top: 2px;
+				flex-shrink: 0;
 			}
 
 			& + .algo-nav-edit {
@@ -612,5 +623,11 @@
 			place-content: center;
 			width: 100%;
 		}
+	}
+
+	.home-nav {
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: 20px;
 	}
 </style>

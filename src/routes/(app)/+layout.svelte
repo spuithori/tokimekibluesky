@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, isLogin, theme, nonoto, isDarkMode, service, supabase, supabaseSession } from '$lib/stores';
+  import { agent, isLogin, theme, nonoto, isDarkMode, service, supabase, supabaseSession, settings } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -16,11 +16,14 @@
   import {PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL} from "$env/static/public";
   import { createClient } from '@supabase/supabase-js'
 
+  import {scrollDirection} from "$lib/scrollDirection";
+  import Footer from "./Footer.svelte";
 
   inject({ mode: dev ? 'development' : 'production' });
 
   let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
   let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
+  let direction = 'up';
 
   if (accounts.length <= currentAccount && currentAccount > 0) {
       currentAccount = currentAccount - 1;
@@ -43,6 +46,10 @@
       supabaseSession.set(_session);
   });
 
+  if ($settings?.general.language) {
+      locale.set($settings.general.language);
+  }
+
   try {
       let ag = new AtpAgent({
           service: accounts[currentAccount].service,
@@ -56,6 +63,12 @@
       agent.set(new Agent(ag));
   } catch (e) {
       goto('/login');
+  }
+
+  $: {
+      localStorage.setItem('settings', JSON.stringify($settings));
+      localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
+      locale.set($settings.general.language);
   }
 
   onMount(async() => {
@@ -82,10 +95,25 @@
       location.reload();
   }
 
+  function handleScroll(event) {
+      const scroll = scrollDirection(event);
+
+      if (scroll) {
+          direction = scroll;
+      }
+  }
+
   viewPortSetting();
 </script>
 
-<div class:nonoto={JSON.parse($nonoto)} class:darkmode={JSON.parse($isDarkMode)} class="app theme-{$theme} {$_('dir', {default: 'ltr'})} lang-{$locale}" dir="{$_('dir', {default: 'ltr'})}">
+<svelte:window on:scroll={handleScroll}></svelte:window>
+
+<div
+    class:nonoto={$settings?.design.nonoto || false}
+    class:darkmode={$settings?.design.darkmode || false}
+    class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
+    dir="{$_('dir', {default: 'ltr'})}"
+>
   <Header />
 
   <main class="main">
@@ -100,6 +128,8 @@
 
     <slot />
   </main>
+
+  <Footer></Footer>
 
   <Publish></Publish>
   <Toaster></Toaster>
