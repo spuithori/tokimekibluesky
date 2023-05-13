@@ -153,8 +153,7 @@
 </script>
 
 {#key currentPage}
-  <h1 class="page-nav-title" in:fly={{ x: 10, duration: 100, delay: 100 }}
-      out:fly={{ x: -10, duration: 100 }}>{$_(currentPage)}</h1>
+  <h1 class="page-nav-title" in:fly={{ x: 10, duration: 100, delay: 100 }}>{$_(currentPage)}</h1>
 {/key}
 
 <section class="profile">
