@@ -41,8 +41,7 @@
 </script>
 
 <div>
-  <h1 class="page-nav-title" in:fly={{ x: 10, duration: 100, delay: 100 }}
-      out:fly={{ x: -10, duration: 100 }}>{$_('search_button')}</h1>
+  <h1 class="page-nav-title" in:fly={{ x: 10, duration: 100, delay: 100 }}>{$_('search_button')}</h1>
 
   <SearchForm></SearchForm>
 
