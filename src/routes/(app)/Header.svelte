@@ -74,6 +74,17 @@
       {/if}
     </div>
 
+    <div class="header__mention only-pc">
+      <a href="/mention" class="header-mention">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20.915" height="20.789" viewBox="0 0 20.915 20.789">
+          <g id="at" transform="translate(-78.311 -77.27)">
+            <path id="パス_49" data-name="パス 49" d="M183.333,178.54a4.331,4.331,0,0,1-4.3,4.27c-2.158,0-3.594-1.912-3.387-4.27a4.441,4.441,0,0,1,4.139-4.27A3.713,3.713,0,0,1,183.333,178.54Z" transform="translate(-91.171 -90.876)" fill="none" stroke="var(--text-color-1)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+            <path id="パス_50" data-name="パス 50" d="M92.15,96.285a9.426,9.426,0,0,1-4.232.774,8.466,8.466,0,0,1-8.566-9.394A10.465,10.465,0,0,1,89.574,78.27c5.844,0,9.057,3.829,8.605,8.953-.337,3.825-2.781,4.928-4.061,4.7-1.2-.214-2.2-1.3-2.014-3.389l.453-5.137" transform="translate(0)" fill="none" stroke="var(--text-color-1)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          </g>
+        </svg>
+      </a>
+    </div>
+
     <div class="header__search only-pc">
       <a href="/search" class="header-search">
         <svg xmlns="http://www.w3.org/2000/svg" width="20.332" height="20.332" viewBox="0 0 20.332 20.332">
@@ -262,7 +273,22 @@
   }
 
   .header__search {
+
+  }
+
+  .header__mention {
       margin-left: auto;
+  }
+
+  .header-mention {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background-color: var(--bg-color-1);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
+      display: grid;
+      place-content: center;
+      position: relative;
   }
 
   .header-search {

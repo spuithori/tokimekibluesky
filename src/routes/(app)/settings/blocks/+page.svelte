@@ -7,6 +7,10 @@
     }
 </script>
 
+<svelte:head>
+  <title>Blocks - TOKIMEKI Bluesky</title>
+</svelte:head>
+
 <div>
   <div class="settings-heading">
     <a href="/settings" class="settings-back"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="16.97" viewBox="0 0 20 16.97">

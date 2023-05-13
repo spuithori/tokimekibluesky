@@ -194,5 +194,7 @@
   "settings_push_notification": "プッシュ通知",
   "settings": "設定",
   "language_settings": "言語",
-  "mentions": "メンション"
+  "mentions": "メンション",
+  "follow": "フォロー",
+  "follower": "フォロワー"
 }
