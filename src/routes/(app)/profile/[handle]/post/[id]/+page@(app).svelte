@@ -4,6 +4,7 @@
     import { page } from '$app/stores';
     import Thread from "./Thread.svelte";
     import { beforeNavigate } from "$app/navigation";
+    import { fly } from 'svelte/transition';
 
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
@@ -56,7 +57,7 @@
     </div>
   {/if}
 
-  <h1 class="page-nav-title">{$_('title_thread')}</h1>
+  <h1 class="page-nav-title" in:fly={{ x: 10, duration: 100, delay: 100 }}>{$_('title_thread')}</h1>
 
   {#await feeds}
   {:then feeds}
