@@ -70,13 +70,13 @@
     let voteFunc;
     let repostFunc;
 
-    if (window.navigator.language === 'ja' || window.navigator.language === 'ja-JP') {
+    if ($settings.general.language === 'ja' || window.navigator.language === 'ja-JP') {
         dateFnsLocale = ja;
-    } else if (window.navigator.language === 'pt' || window.navigator.language === 'pt-BR') {
+    } else if ($settings.general.language === 'pt' || window.navigator.language === 'pt-BR') {
         dateFnsLocale = pt;
-    } else if (window.navigator.language === 'ko' || window.navigator.language === 'ko-KR') {
+    } else if ($settings.general.language === 'ko' || window.navigator.language === 'ko-KR') {
         dateFnsLocale = ko;
-    } else if (window.navigator.language === 'fa' || window.navigator.language === 'fa-IR') {
+    } else if ($settings.general.language === 'fa' || window.navigator.language === 'fa-IR') {
         dateFnsLocale = fa;
     } else {
         dateFnsLocale = en;
