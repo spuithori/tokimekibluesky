@@ -83,7 +83,7 @@
 
     <li class="timeline-menu-list__item">
       <a class="timeline-menu-list__button" href="/settings/timeline" on:click={close}>
-        <span class="">{$_('settings_timeline')}</span>
+        <span class="">{$_('timeline_settings')}</span>
       </a>
     </li>
 

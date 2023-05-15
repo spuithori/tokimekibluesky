@@ -100,7 +100,15 @@ const defaultSettings = {
         hideReply: false,
     },
     moderation: {
-        contentLabels: {},
+        contentLabels: {
+            gore: 'show',
+            hate: 'show',
+            impersonation: 'show',
+            nsfw: 'show',
+            nudity: 'show',
+            spam: 'show',
+            suggestive: 'show',
+        },
     }
 }
 const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);

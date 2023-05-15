@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, isLogin, theme, nonoto, isDarkMode, service, supabase, supabaseSession, settings } from '$lib/stores';
+  import { agent, isLogin, theme, nonoto, isDarkMode, service, supabase, supabaseSession, settings, currentAlgorithm } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -24,6 +24,7 @@
   let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
   let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
   let direction = 'up';
+  let scrolly;
 
   if (accounts.length <= currentAccount && currentAccount > 0) {
       currentAccount = currentAccount - 1;
@@ -67,7 +68,6 @@
 
   $: {
       localStorage.setItem('settings', JSON.stringify($settings));
-      localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
       locale.set($settings.general.language);
   }
 
@@ -106,11 +106,12 @@
   viewPortSetting();
 </script>
 
-<svelte:window on:scroll={handleScroll}></svelte:window>
+<svelte:window on:scroll={handleScroll} bind:scrollY={scrolly}></svelte:window>
 
 <div
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={$settings?.design.darkmode || false}
+    class:scrolled={scrolly > 100}
     class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
     dir="{$_('dir', {default: 'ltr'})}"
 >
