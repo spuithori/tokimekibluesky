@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, settings } from '$lib/stores';
+  import { agent, settings, currentAlgorithm } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -53,7 +53,6 @@
 
   $: {
       localStorage.setItem('settings', JSON.stringify($settings));
-      localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
       locale.set($settings.general.language);
   }
 

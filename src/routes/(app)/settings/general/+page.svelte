@@ -29,6 +29,7 @@ $: {
 
     if ($settings.general.disableAlgorithm === 'true') {
         currentAlgorithm.set({type: 'default'});
+        localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
     }
 }
 </script>

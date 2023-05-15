@@ -12,6 +12,7 @@
 	import BookmarkModal from "../../lib/components/bookmark/BookmarkModal.svelte";
 	import BookmarkTimeline from "./BookmarkTimeline.svelte";
 	import RealtimeTimeline from "./RealtimeTimeline.svelte";
+	import CustomTimeline from "./CustomTimeline.svelte";
 
 	try {
 		const algo = JSON.parse(localStorage.getItem('currentAlgorithm'));
@@ -295,6 +296,8 @@
 		{/key}
 	{:else if ($currentAlgorithm.type === 'realtime')}
 		<RealtimeTimeline isRefreshing={isRefreshing} on:disconnect={handleRealtimeDisconnect} bind:connect={realtimeConnect}></RealtimeTimeline>
+	{:else if ($currentAlgorithm.type === 'custom' && $currentAlgorithm.algorithm !== 'whatshot')}
+		<CustomTimeline isRefreshing={isRefreshing}></CustomTimeline>
 	{:else}
 		<Timeline isRefreshing={isRefreshing}></Timeline>
 	{/if}
