@@ -21,6 +21,7 @@
   let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
   let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
   let direction = 'up';
+  let scrolly;
 
   if (accounts.length <= currentAccount && currentAccount > 0) {
       currentAccount = currentAccount - 1;
@@ -86,11 +87,12 @@
   viewPortSetting();
 </script>
 
-<svelte:window on:scroll={handleScroll}></svelte:window>
+<svelte:window on:scroll={handleScroll} bind:scrollY={scrolly}></svelte:window>
 
 <div
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={$settings?.design.darkmode || false}
+    class:scrolled={scrolly > 100}
     class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
     dir="{$_('dir', {default: 'ltr'})}"
 >

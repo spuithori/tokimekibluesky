@@ -308,30 +308,8 @@
 
 	}
 
-	.refresh-button {
-		width: 160px;
-		background-color: var(--bg-color-1);
-		height: 40px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 20px;
-		box-shadow: 0 0 10px rgba(0, 0, 0, .09);
-
-		&.is-refreshing {
-			svg {
-				animation: rotation .8s linear infinite;
-			}
-		}
-	}
-
 	.home-navs {
 
-	}
-
-	@keyframes rotation {
-		0%   { transform: rotate(0deg); }
-		100% { transform: rotate(360deg); }
 	}
 
 	.timeline-algo-nav {
@@ -535,7 +513,7 @@
 	.style-nav {
 		width: 155px;
 		border: 1px solid var(--border-color-1);
-		border-radius: 20px;
+		border-radius: 20px 20px 0 0;
 		height: 40px;
 		background-color: var(--bg-color-1);
 		display: flex;
@@ -550,9 +528,11 @@
 			bottom: 0;
 			height: 40px;
 			width: 84px;
-			border-radius: 20px;
+			border-radius: 20px 20px 0 0;
 			background-color: var(--bg-color-1);
-			border: 1px solid var(--primary-color);
+			border-left: 1px solid var(--primary-color);
+			border-top: 1px solid var(--primary-color);
+			border-right: 1px solid var(--primary-color);
 			transition: all .2s ease-in-out;
 		}
 
@@ -606,6 +586,5 @@
 	.home-nav {
 		display: flex;
 		justify-content: space-between;
-		margin-bottom: 20px;
 	}
 </style>
