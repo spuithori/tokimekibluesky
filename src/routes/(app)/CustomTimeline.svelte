@@ -14,7 +14,7 @@
             const res = await fetch('/api/get-custom-feed', {
                 method: 'post',
                 body: JSON.stringify({
-                    feed: 'illusts',
+                    feed: $currentAlgorithm.algorithm,
                 })
             })
             let raw = await res.json();

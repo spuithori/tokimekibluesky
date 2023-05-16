@@ -45,6 +45,12 @@
               disabled: false,
           },
           {
+              name: 'invite-codes',
+              path: '/settings/invite-codes',
+              display: $_('settings_invite_codes'),
+              disabled: false,
+          },
+          {
               name: 'push-notification',
               path: '/settings/push-notification',
               display: $_('settings_push_notification'),
