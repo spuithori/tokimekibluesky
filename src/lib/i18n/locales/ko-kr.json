@@ -184,5 +184,19 @@
   "draft_add_success": "임시 글을 저장했습니다.",
   "draft_delete_success": "임시 글을 성공적으로 지웠습니다.",
   "alt_insert": "대체 텍스트 넣기",
-  "add_alt_text": "영상에 대체 텍스트 쓰기"
+  "add_alt_text": "영상에 대체 텍스트 쓰기",
+  "settings_general": "General",
+  "settings_design": "Design",
+  "settings_timeline": "Timeline",
+  "settings_moderation": "Content moderation",
+  "settings_blocks": "Blocks",
+  "settings_mutes": "Mutes",
+  "settings_push_notification": "Push notification",
+  "settings": "Settings",
+  "language_settings": "Language",
+  "mentions": "Mentions",
+  "follow": "Follow",
+  "follower": "Follower",
+  "active_codes": "Active invite codes",
+  "settings_invite_codes": "Invite codes"
 }

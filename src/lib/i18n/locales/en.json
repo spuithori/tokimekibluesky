@@ -193,5 +193,10 @@
   "settings_mutes": "Mutes",
   "settings_push_notification": "Push notification",
   "settings": "Settings",
-  "language_settings": "Language"
+  "language_settings": "Language",
+  "mentions": "Mentions",
+  "follow": "Follow",
+  "follower": "Follower",
+  "active_codes": "Active invite codes",
+  "settings_invite_codes": "Invite codes"
 }

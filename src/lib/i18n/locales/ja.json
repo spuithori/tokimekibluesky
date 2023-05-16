@@ -196,5 +196,7 @@
   "language_settings": "言語",
   "mentions": "メンション",
   "follow": "フォロー",
-  "follower": "フォロワー"
+  "follower": "フォロワー",
+  "active_codes": "有効な招待コード",
+  "settings_invite_codes": "招待コード"
 }

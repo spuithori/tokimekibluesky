@@ -88,7 +88,7 @@
 
 	async function refresh(style: 'default' | 'media') {
 		isRefreshing = true;
-		if ($currentAlgorithm.type === 'default' || $currentAlgorithm.type === 'custom') {
+		if ($currentAlgorithm.type === 'default' || ($currentAlgorithm.type === 'custom' && $currentAlgorithm.algorithm === 'whatshot')) {
 			const res = await $agent.getTimeline({limit: 25, cursor: '', algorithm: $currentAlgorithm});
 
 			timeline.set(res.data.feed);
