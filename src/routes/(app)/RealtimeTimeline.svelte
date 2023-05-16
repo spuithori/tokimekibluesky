@@ -117,9 +117,10 @@
         const res = await $agent.agent.api.app.bsky.feed.getPostThread({depth: 0, uri: uri});
         let thread = res.data.thread;
 
-        if (thread?.parent) {
+        if (thread?.parent && thread.post.record.reply) {
             thread.reply = {
                 parent: thread.parent.post,
+                root: thread.post.record.reply.root,
             }
         }
 
