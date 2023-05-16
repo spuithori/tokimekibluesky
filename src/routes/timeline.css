@@ -654,3 +654,41 @@
         left: 24px;
     }
 }
+
+.thread-replies {
+    margin-left: 20px;
+
+    @media (max-width: 767px) {
+        margin-left: 0;
+
+        .thread-item {
+            position: relative;
+
+            &::before {
+                content: '';
+                position: absolute;
+                width: 2px;
+                top: 0;
+                bottom: 0;
+                left: 24px;
+                background-color: var(--border-color-1);
+            }
+        }
+    }
+}
+
+.thread:not(:has(.thread)) {
+    @media (max-width: 767px) {
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            top: 70px;
+            bottom: 0;
+            left: 24px;
+            background-color: var(--bg-color-1);
+        }
+    }
+}
