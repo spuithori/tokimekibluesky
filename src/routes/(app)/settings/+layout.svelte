@@ -96,6 +96,11 @@
                   border-right: none;
               }
           }
+
+          .settings-content {
+              background-image: url(/settings-logo-bg.png);
+              background-position: center;
+          }
       }
   }
 

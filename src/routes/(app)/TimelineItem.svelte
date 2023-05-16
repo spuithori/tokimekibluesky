@@ -93,6 +93,19 @@
         textArray = textArray;
     }
 
+    function getTextArray(record) {
+        let array = [];
+        const rt: RichText = new RichText({
+            text: record.text,
+            facets: record.facets,
+        });
+        for (const segment of rt.segments()) {
+            array.push(segment);
+        }
+
+        return array;
+    }
+
     let labels = $settings?.moderation.contentLabels || {
         gore: 'show',
         hate: 'show',
@@ -270,18 +283,6 @@
           </ProfileCardWrapper>
         </p>
       {/if}
-
-      {#if (data.reply)}
-        <p class="timeline-repost-message">
-          <ProfileCardWrapper handle="{data.reply.parent.author.handle}">
-            <a href="/profile/{data.reply.parent.author.handle}">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle}})}</a>
-          </ProfileCardWrapper>
-
-          {#if (data.reply.parent.author.did === $agent.did())}
-            <span class="timeline-repost-message__you">{$_('you')}</span>
-          {/if}
-        </p>
-      {/if}
     </div>
 
     {#if (data.post.author.did === $agent.did())}
@@ -291,6 +292,81 @@
                 transform="translate(-64)" fill="#d81c2f"/>
         </svg>
       </button>
+    {/if}
+
+    {#if (data.reply && !isSingle)}
+      <div class="timeline__column timeline__column--reply">
+        {#if (data.reply.parent.uri !== data.reply.root.uri)}
+          <span class="timeline-reply-bar"></span>
+        {/if}
+
+        <div class="timeline__image">
+          <Avatar href="/profile/{ data.reply.parent.author.handle }" avatar={data.reply.parent.author.avatar}
+                  handle={data.reply.parent.author.handle}></Avatar>
+        </div>
+
+        <div class="timeline__content">
+          <div class="timeline__meta">
+            <p class="timeline__user">
+              <Tooltip>
+                <span slot="ref">{ data.reply.parent.author.displayName || data.reply.parent.author.handle }</span>
+                <span slot="content" aria-hidden="true">@{ data.reply.parent.author.handle }</span>
+              </Tooltip></p>
+
+            <p class="timeline__date timeline__date--noafter">
+              <Tooltip>
+                <time slot="ref"
+                      datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.reply.parent.indexedAt), {locale: dateFnsLocale})}</time>
+                <span slot="content" aria-hidden="true"
+                      class="timeline-tooltip">{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+              </Tooltip>
+            </p>
+          </div>
+
+          <div class="timeline__warn-wrap">
+            {#if (isWarn)}
+              <div class="timeline-warn">
+                <div class="timeline-warn-heading">
+                  <p class="timeline-warn-title">{$_('this_content_warn')}: </p>
+                  <ul class="timeline-warn-list">
+                    {#each warnLabels as label}
+                      <li>{$_(label)}</li>
+                    {/each}
+                  </ul>
+                </div>
+
+                <div class="timeline-warn-button">
+                  <button class="button button--sm" on:click={() => {isWarn = false}}>{$_('show_button')}</button>
+                </div>
+              </div>
+            {/if}
+
+            <p class="timeline__text" dir="auto">
+              {#each getTextArray(data.reply.parent.record) as item}
+                {#if (item.isLink() && item.link)}
+                  {#if (isUriLocal(item.link.uri))}
+                    <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
+                  {:else}
+                    <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+                  {/if}
+                {:else if (item.isMention() && item.mention)}
+                  <ProfileCardWrapper handle="{item.text.slice(1)}">
+                    <a href="/profile/{item.text.slice(1)}">{item.text}</a>
+                  </ProfileCardWrapper>
+                {:else}
+                  <span>{item.text}</span>
+                {/if}
+              {/each}
+            </p>
+
+            {#if (AppBskyEmbedImages.isView(data.reply.parent.embed) && !isMedia)}
+              <div class="timeline-images-wrap">
+                <Images images={data.reply.parent.embed.images}></Images>
+              </div>
+            {/if}
+          </div>
+        </div>
+      </div>
     {/if}
 
     <div class="timeline__column">

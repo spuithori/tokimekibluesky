@@ -53,6 +53,9 @@
 
     --column-width: 42rem;
     --column-margin-top: 4rem;
+
+    --box-shadow-color-1: rgba(61, 120, 209, .16);
+    --box-shadow-color-2: rgba(61, 120, 209, .12);
 }
 
 .theme-lightpink {
@@ -148,6 +151,9 @@
     --text-color-1: #fff;
     --text-color-2: #fafafa;
     --text-color-3: #888;
+
+    --box-shadow-color-1: rgba(255, 255, 255, .16);
+    --box-shadow-color-2: rgba(255, 255, 255, .12);
 }
 
 .darkmode.theme-paperwhite {

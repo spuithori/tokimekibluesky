@@ -200,7 +200,7 @@
           height: 42px;
           border-radius: 50%;
           background-color: var(--bg-color-1);
-          box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
+          box-shadow: 0 3px 8px var(--box-shadow-color-2);
           display: grid;
           place-content: center;
           position: relative;
@@ -218,7 +218,7 @@
       height: 42px;
       border-radius: 50%;
       background-color: var(--bg-color-1);
-      box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
+      box-shadow: 0 3px 8px var(--box-shadow-color-2);
       display: grid;
       place-content: center;
       position: relative;
@@ -259,7 +259,7 @@
       height: 42px;
       border-radius: 50%;
       background-color: var(--bg-color-1);
-      box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
+      box-shadow: 0 3px 8px var(--box-shadow-color-2);
       display: grid;
       place-content: center;
       padding: 15px;
@@ -285,7 +285,7 @@
       height: 42px;
       border-radius: 50%;
       background-color: var(--bg-color-1);
-      box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
+      box-shadow: 0 3px 8px var(--box-shadow-color-2);
       display: grid;
       place-content: center;
       position: relative;
@@ -296,7 +296,7 @@
       height: 42px;
       border-radius: 50%;
       background-color: var(--bg-color-1);
-      box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
+      box-shadow: 0 3px 8px var(--box-shadow-color-2);
       display: grid;
       place-content: center;
       position: relative;
@@ -333,7 +333,7 @@
       background-color: var(--bg-color-1);
       border-radius: 8px;
       border: 1px solid var(--border-color-1);
-      box-shadow: 0 0 16px rgba(0, 0, 0, .16);
+      box-shadow: 0 0 16px var(--box-shadow-color-1);
       padding: 20px;
       z-index: 200;
   }

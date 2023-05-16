@@ -92,6 +92,24 @@
 
   .thread-replies {
       margin-left: 20px;
+
+      @media (max-width: 767px) {
+          margin-left: 0;
+
+          .thread-item {
+              position: relative;
+
+              &::before {
+                  content: '';
+                  position: absolute;
+                  width: 2px;
+                  top: 0;
+                  bottom: -20px;
+                  left: 24px;
+                  background-color: var(--border-color-1);
+              }
+          }
+      }
   }
 
   .thread-parent {
@@ -106,6 +124,10 @@
       bottom: -20px;
       left: 29px;
       background-color: var(--border-color-1);
+
+      @media (max-width: 767px) {
+          left: 24px;
+      }
   }
 
   .thread-blocked {
