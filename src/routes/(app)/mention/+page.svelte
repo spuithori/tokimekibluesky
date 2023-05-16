@@ -70,6 +70,8 @@
     }
 </script>
 
+<h1 class="page-nav-title" in:fly={{ x: 10, duration: 100, delay: 100 }}>{$_('mentions')}</h1>
+
 <div class="timeline">
   {#each feeds as data, index (data)}
     <TimelineItem data={ data } index={index}></TimelineItem>

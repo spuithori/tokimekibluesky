@@ -106,6 +106,10 @@
       bottom: -20px;
       left: 29px;
       background-color: var(--border-color-1);
+
+      @media (max-width: 767px) {
+          left: 24px;
+      }
   }
 
   .thread-blocked {
