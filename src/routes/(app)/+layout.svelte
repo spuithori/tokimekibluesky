@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, isLogin, theme, nonoto, isDarkMode, service, supabase, supabaseSession, settings, currentAlgorithm } from '$lib/stores';
+  import { agent, isLogin, theme, nonoto, service, supabase, supabaseSession, settings, currentAlgorithm } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
