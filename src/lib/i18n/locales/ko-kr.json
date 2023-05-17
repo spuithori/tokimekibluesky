@@ -198,5 +198,8 @@
   "follow": "팔로우",
   "follower": "팔로워",
   "active_codes": "쓸 수 있는 초대 코드",
-  "settings_invite_codes": "초대 코드"
+  "settings_invite_codes": "초대 코드",
+  "light": "Light",
+  "dark": "Dark",
+  "prefer": "Use system settings"
 }
