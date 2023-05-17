@@ -201,5 +201,6 @@
   "settings_invite_codes": "Invite codes",
   "light": "Light",
   "dark": "Dark",
-  "prefer": "Use system settings"
+  "prefer": "Use system settings",
+  "sample": "Sample"
 }

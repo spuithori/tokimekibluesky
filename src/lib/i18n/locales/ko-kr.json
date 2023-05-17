@@ -201,5 +201,6 @@
   "settings_invite_codes": "초대 코드",
   "light": "Light",
   "dark": "Dark",
-  "prefer": "Use system settings"
+  "prefer": "Use system settings",
+  "sample": "Sample"
 }

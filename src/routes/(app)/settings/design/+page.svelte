@@ -1,9 +1,30 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
+    import TimelineItem from "../../TimelineItem.svelte";
     let themePick: string = $settings?.design.theme || 'superorange';
     let darkmode = $settings?.design.darkmode || false;
     let nonoto = $settings?.design.nonoto || false;
+
+    const samplePost = {
+        post: {
+            author: {
+                did: 'did:example:tokimekidummy',
+                displayName: 'Ayumu',
+                handle: 'ayumu.example.tokimeki.blue',
+            },
+            indexedAt: '2023-05-17T05:03:26.304Z',
+            likeCount: 10,
+            replyCount: 10,
+            repostCount: 10,
+            record: {
+                $type: 'app.bsky.feed.post',
+                createdAt: '2023-05-17T05:03:25.905Z',
+                text: 'Dreams will not escape us if we do not give up step by step, even on an endless road.'
+            },
+            uri: 'at://did:example:tokimekidummy/app.bsky.feed.post/kdaosidoewo'
+        }
+    }
 
     $: {
         $settings.design.theme = themePick;
@@ -26,6 +47,11 @@
   </div>
 
   <div class="settings-wrap">
+    <aside class="sample-post" tabindex="-1">
+      <p>{$_('sample')}</p>
+      <TimelineItem data={samplePost}></TimelineItem>
+    </aside>
+
     <dl class="settings-group">
       <dt class="settings-group__name">
         {$_('theme')}

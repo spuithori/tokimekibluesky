@@ -201,5 +201,6 @@
   "settings_invite_codes": "招待コード",
   "light": "ライト",
   "dark": "ダーク",
-  "prefer": "システム設定に従う"
+  "prefer": "システム設定に従う",
+  "sample": "みほん"
 }
