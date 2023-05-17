@@ -154,12 +154,12 @@
 
     --box-shadow-color-1: rgba(255, 255, 255, .16);
     --box-shadow-color-2: rgba(255, 255, 255, .12);
-}
 
-.darkmode.theme-paperwhite {
-    --link-color: #fff;
-    --primary-color: #fff;
-    --text-color-primary-colored: #fff;
+    &.theme-paperwhite {
+        --link-color: #fff;
+        --primary-color: #fff;
+        --text-color-primary-colored: #fff;
+    }
 }
 
 .lang-ko {

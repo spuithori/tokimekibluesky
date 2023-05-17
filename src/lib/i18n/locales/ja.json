@@ -198,5 +198,8 @@
   "follow": "フォロー",
   "follower": "フォロワー",
   "active_codes": "有効な招待コード",
-  "settings_invite_codes": "招待コード"
+  "settings_invite_codes": "招待コード",
+  "light": "ライト",
+  "dark": "ダーク",
+  "prefer": "システム設定に従う"
 }

@@ -22,6 +22,7 @@
   let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
   let direction = 'up';
   let scrolly;
+  let isDarkMode = false;
 
   if (accounts.length <= currentAccount && currentAccount > 0) {
       currentAccount = currentAccount - 1;
@@ -55,7 +56,21 @@
   $: {
       localStorage.setItem('settings', JSON.stringify($settings));
       locale.set($settings.general.language);
+
+      if ($settings?.design.darkmode === true) {
+          isDarkMode = true;
+      } else if ($settings?.design.darkmode === 'prefer') {
+          isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } else {
+          isDarkMode = false;
+      }
   }
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+      if ($settings?.design.darkmode === 'prefer') {
+          isDarkMode = event.matches
+      }
+  })
 
   onMount(async() => {
       if (pwaInfo) {
@@ -91,7 +106,7 @@
 
 <div
     class:nonoto={$settings?.design.nonoto || false}
-    class:darkmode={$settings?.design.darkmode || false}
+    class:darkmode={isDarkMode}
     class:scrolled={scrolly > 100}
     class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
     dir="{$_('dir', {default: 'ltr'})}"

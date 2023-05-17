@@ -90,8 +90,21 @@
       </dt>
 
       <dd class="settings-group__content">
-        <div class="input-toggle">
-          <input class="input-toggle__input" type="checkbox" id="darkMode" bind:checked={darkmode}><label class="input-toggle__label" for="darkMode"></label>
+        <div class="radio-group">
+          <div class="radio">
+            <input type="radio" bind:group={darkmode} id="darkmodeFalse" name="darkmode" value={false}>
+            <label for="darkmodeFalse"><span class="radio__ui"></span>{$_('light')}</label>
+          </div>
+
+          <div class="radio">
+            <input type="radio" bind:group={darkmode} id="darkmodeTrue" name="darkmode" value={true}>
+            <label for="darkmodeTrue"><span class="radio__ui"></span>{$_('dark')}</label>
+          </div>
+
+          <div class="radio">
+            <input type="radio" bind:group={darkmode} id="darkmodePrefer" name="darkmode" value={'prefer'}>
+            <label for="darkmodePrefer"><span class="radio__ui"></span>{$_('prefer')}</label>
+          </div>
         </div>
       </dd>
     </dl>

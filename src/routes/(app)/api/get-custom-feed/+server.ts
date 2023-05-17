@@ -4,7 +4,8 @@ export async function POST ({ request }) {
     if (request.method === 'POST') {
         const json = await request.json();
         const feed = json.feed;
-        const res = await fetch(CUSTOM_FEED_API + feed, {
+        const cursor = json.cursor;
+        const res = await fetch(CUSTOM_FEED_API + feed + '&limit=20&cursor=' + cursor , {
             method: 'GET',
         });
 

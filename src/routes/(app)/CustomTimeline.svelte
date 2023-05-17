@@ -15,17 +15,18 @@
                 method: 'post',
                 body: JSON.stringify({
                     feed: $currentAlgorithm.algorithm,
+                    cursor: $cursor,
                 })
             })
             let raw = await res.json();
             cursor.set(raw.cursor);
-            raw.feed = raw.feed.slice(0, 20);
+
+            console.log($cursor);
 
             const uris = raw.feed.map(data => data.post);
 
             if ($cursor) {
                 const postsRes = await $agent.agent.api.app.bsky.feed.getPosts({uris: uris});
-                console.log($cursor)
 
                 timeline.update(function (tl) {
                     let posts = [];
@@ -36,8 +37,8 @@
                 });
                 console.log($timeline);
 
-                // loaded();
-                complete();
+                loaded();
+                // complete();
             } else {
                 complete();
             }
