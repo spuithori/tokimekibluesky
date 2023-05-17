@@ -94,6 +94,8 @@
 
 .radio {
     position: relative;
+    display: flex;
+    align-items: center;
 
     input {
         width: 0;
@@ -102,6 +104,7 @@
         position: absolute;
         top: 0;
         left: 0;
+        cursor: pointer;
 
         &:checked {
             & + label .radio__ui {
@@ -116,6 +119,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        cursor: pointer;
 
         &::before {
 
