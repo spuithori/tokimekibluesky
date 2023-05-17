@@ -197,5 +197,9 @@
   "follow": "Follow",
   "follower": "Follower",
   "active_codes": "Active invite codes",
-  "settings_invite_codes": "Invite codes"
+  "settings_invite_codes": "Invite codes",
+  "light": "Light",
+  "dark": "Dark",
+  "prefer": "Use system settings",
+  "sample": "Sample"
 }

@@ -692,3 +692,8 @@
         }
     }
 }
+
+.sample-post {
+    pointer-events: none;
+    margin-bottom: 20px;
+}

@@ -1,9 +1,30 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
+    import TimelineItem from "../../TimelineItem.svelte";
     let themePick: string = $settings?.design.theme || 'superorange';
     let darkmode = $settings?.design.darkmode || false;
     let nonoto = $settings?.design.nonoto || false;
+
+    const samplePost = {
+        post: {
+            author: {
+                did: 'did:example:tokimekidummy',
+                displayName: 'Ayumu',
+                handle: 'ayumu.example.tokimeki.blue',
+            },
+            indexedAt: '2023-05-17T05:03:26.304Z',
+            likeCount: 10,
+            replyCount: 10,
+            repostCount: 10,
+            record: {
+                $type: 'app.bsky.feed.post',
+                createdAt: '2023-05-17T05:03:25.905Z',
+                text: 'Dreams will not escape us if we do not give up step by step, even on an endless road.'
+            },
+            uri: 'at://did:example:tokimekidummy/app.bsky.feed.post/kdaosidoewo'
+        }
+    }
 
     $: {
         $settings.design.theme = themePick;
@@ -26,6 +47,11 @@
   </div>
 
   <div class="settings-wrap">
+    <aside class="sample-post" tabindex="-1">
+      <p>{$_('sample')}</p>
+      <TimelineItem data={samplePost}></TimelineItem>
+    </aside>
+
     <dl class="settings-group">
       <dt class="settings-group__name">
         {$_('theme')}
@@ -90,8 +116,21 @@
       </dt>
 
       <dd class="settings-group__content">
-        <div class="input-toggle">
-          <input class="input-toggle__input" type="checkbox" id="darkMode" bind:checked={darkmode}><label class="input-toggle__label" for="darkMode"></label>
+        <div class="radio-group">
+          <div class="radio">
+            <input type="radio" bind:group={darkmode} id="darkmodeFalse" name="darkmode" value={false}>
+            <label for="darkmodeFalse"><span class="radio__ui"></span>{$_('light')}</label>
+          </div>
+
+          <div class="radio">
+            <input type="radio" bind:group={darkmode} id="darkmodeTrue" name="darkmode" value={true}>
+            <label for="darkmodeTrue"><span class="radio__ui"></span>{$_('dark')}</label>
+          </div>
+
+          <div class="radio">
+            <input type="radio" bind:group={darkmode} id="darkmodePrefer" name="darkmode" value={'prefer'}>
+            <label for="darkmodePrefer"><span class="radio__ui"></span>{$_('prefer')}</label>
+          </div>
         </div>
       </dd>
     </dl>

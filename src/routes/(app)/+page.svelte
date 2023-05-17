@@ -36,6 +36,21 @@
 
 	let realtimeConnect;
 
+	let customFeeds = [
+		{
+			uri: 'at://did:web:custom-feeds.tokimeki.blue/app.bsky.feed.generator/illusts',
+			name: '#イラスト'
+		},
+		{
+			uri: 'at://did:web:custom-feeds.tokimeki.blue/app.bsky.feed.generator/ja-images',
+			name: '日本語+画像'
+		},
+		{
+			uri: 'at://did:web:custom-feeds.tokimeki.blue/app.bsky.feed.generator/ko-images',
+			name: '한국어+이미지'
+		},
+	]
+
 	function handleKeydown(event: { key: string; }) {
 		const activeElement = document.activeElement?.tagName;
 
@@ -204,13 +219,26 @@
 						{/if}
 
 						<li class="algo-nav-list__item">
-							<button class="algo-nav-button" data-algo-genre="custom" data-algo-label="whatshot" on:click={() => {openAlgoNav({type: 'custom', algorithm: 'whatshot'})}} class:algo-nav-button--current={$currentAlgorithm.algorithm === 'whatshot'} >What's Hot<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+							<button class="algo-nav-button" data-algo-genre="custom" on:click={() => {openAlgoNav({type: 'custom', algorithm: 'whatshot'})}} class:algo-nav-button--current={$currentAlgorithm.algorithm === 'whatshot'} >What's Hot<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
 								<g id="グループ_89" data-name="グループ 89" transform="translate(-1059 -638)">
 									<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 638)" fill="var(--danger-color)"/>
 									<path id="パス_23" data-name="パス 23" d="M-4.216-12.446v-.781c0-1.385-1.208-2.063-2.859-2.063a4.99,4.99,0,0,0-5.157,5.3A4.893,4.893,0,0,0-7.251-4.961c1.4,0,3.006-.589,3.006-1.975v-.751h-.074a3.975,3.975,0,0,1-2.667.973c-1.9,0-3.212-1.194-3.212-3.566A3.065,3.065,0,0,1-7.06-13.537a3.617,3.617,0,0,1,2.77,1.09Z" transform="translate(1075.028 655.929)" fill="#fff"/>
 								</g>
 							</svg></button>
 						</li>
+
+						{#if ($agent.agent.service.host === 'bsky.social')}
+							{#each customFeeds as feed}
+								<li class="algo-nav-list__item">
+									<button class="algo-nav-button" data-algo-genre="custom" on:click={() => {openAlgoNav({type: 'custom', algorithm: feed.uri})}} class:algo-nav-button--current={$currentAlgorithm.algorithm === feed.uri} >{feed.name}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+										<g id="グループ_89" data-name="グループ 89" transform="translate(-1059 -638)">
+											<rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 638)" fill="var(--danger-color)"/>
+											<path id="パス_23" data-name="パス 23" d="M-4.216-12.446v-.781c0-1.385-1.208-2.063-2.859-2.063a4.99,4.99,0,0,0-5.157,5.3A4.893,4.893,0,0,0-7.251-4.961c1.4,0,3.006-.589,3.006-1.975v-.751h-.074a3.975,3.975,0,0,1-2.667.973c-1.9,0-3.212-1.194-3.212-3.566A3.065,3.065,0,0,1-7.06-13.537a3.617,3.617,0,0,1,2.77,1.09Z" transform="translate(1075.028 655.929)" fill="#fff"/>
+										</g>
+									</svg></button>
+								</li>
+							{/each}
+						{/if}
 
 						{#if ($lists)}
 							{#each $lists as list}
