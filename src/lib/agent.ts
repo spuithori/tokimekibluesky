@@ -48,7 +48,8 @@ export class Agent {
     async getTimelineByAlgo(timelineOpt: timelineOpt) {
         switch (timelineOpt.algorithm.type) {
             case 'custom':
-                return await this.agent.api.app.bsky.unspecced.getPopular({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
+                return await this.agent.api.app.bsky.feed.getFeed({
+                    limit: timelineOpt.limit, cursor: timelineOpt.cursor, feed: timelineOpt.algorithm.algorithm});
             case 'list':
                 return await this.getAuthorsFeed(timelineOpt.actors);
             case 'bookmark':

@@ -14,6 +14,8 @@
           const res = await $agent.getTimeline({limit: 20, cursor: $cursor, algorithm: $currentAlgorithm});
           cursor.set(res.data.cursor);
 
+          console.log($cursor)
+
           if ($cursor) {
               timeline.update(function (tl) {
                   return [...tl, ...res.data.feed];
@@ -28,7 +30,7 @@
   }
 
   afterUpdate(async() => {
-      il.$$.update();
+      // il.$$.update();
   })
 </script>
 
