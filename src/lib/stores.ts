@@ -83,6 +83,7 @@ const defaultSettings = {
         theme: 'superorange',
         nonoto: false,
         darkmode: false,
+        layout: 'default',
     },
     timeline: {
         hideRepost: false,

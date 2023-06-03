@@ -5,6 +5,7 @@
     let themePick: string = $settings?.design.theme || 'superorange';
     let darkmode = $settings?.design.darkmode || false;
     let nonoto = $settings?.design.nonoto || false;
+    let layout = $settings?.design.layout || 'default';
 
     const samplePost = {
         post: {
@@ -30,6 +31,7 @@
         $settings.design.theme = themePick;
         $settings.design.darkmode = darkmode;
         $settings.design.nonoto = nonoto;
+        $settings.design.layout = layout;
     }
 </script>
 
@@ -51,6 +53,26 @@
       <p>{$_('sample')}</p>
       <TimelineItem data={samplePost}></TimelineItem>
     </aside>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('layout')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="radio-group">
+          <div class="radio">
+            <input type="radio" bind:group={layout} id="layoutDefault" name="default" value={'default'}>
+            <label for="layoutDefault"><span class="radio__ui"></span>{$_('default')}</label>
+          </div>
+
+          <div class="radio">
+            <input type="radio" bind:group={layout} id="layoutDecks" name="decks" value={'decks'}>
+            <label for="layoutDecks"><span class="radio__ui"></span>{$_('decks')}</label>
+          </div>
+        </div>
+      </dd>
+    </dl>
 
     <dl class="settings-group">
       <dt class="settings-group__name">
