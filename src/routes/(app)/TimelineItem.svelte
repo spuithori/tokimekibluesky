@@ -314,12 +314,21 @@
               </Tooltip></p>
 
             <p class="timeline__date timeline__date--noafter">
-              <Tooltip>
-                <time slot="ref"
-                      datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.reply.parent.indexedAt), {locale: dateFnsLocale})}</time>
-                <span slot="content" aria-hidden="true"
-                      class="timeline-tooltip">{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-              </Tooltip>
+              {#if $settings?.design.absoluteTime}
+                <Tooltip>
+                  <time slot="ref"
+                        datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(data.reply.parent.indexedAt), 'HH:mm:ss')}</time>
+                  <span slot="content" aria-hidden="true"
+                        class="timeline-tooltip">{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+                </Tooltip>
+              {:else}
+                <Tooltip>
+                  <time slot="ref"
+                        datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.reply.parent.indexedAt), {locale: dateFnsLocale})}</time>
+                  <span slot="content" aria-hidden="true"
+                        class="timeline-tooltip">{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+                </Tooltip>
+              {/if}
             </p>
           </div>
 
@@ -384,12 +393,21 @@
             </Tooltip></p>
 
           <p class="timeline__date">
-            <Tooltip>
-              <time slot="ref"
-                    datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.indexedAt), {locale: dateFnsLocale})}</time>
-              <span slot="content" aria-hidden="true"
-                    class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-            </Tooltip>
+            {#if $settings?.design.absoluteTime}
+              <Tooltip>
+                <time slot="ref"
+                      datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(data.post.indexedAt), 'HH:mm:ss')}</time>
+                <span slot="content" aria-hidden="true"
+                      class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+              </Tooltip>
+            {:else}
+              <Tooltip>
+                <time slot="ref"
+                      datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.indexedAt), {locale: dateFnsLocale})}</time>
+                <span slot="content" aria-hidden="true"
+                      class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+              </Tooltip>
+            {/if}
           </p>
 
           <p class="timeline__thread-link">

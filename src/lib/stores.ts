@@ -84,6 +84,7 @@ const defaultSettings = {
         theme: 'royalblue',
         nonoto: false,
         darkmode: false,
+        absoluteTime: false,
     },
     timeline: {
         hideRepost: false,

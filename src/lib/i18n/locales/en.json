@@ -212,5 +212,6 @@
   "feed_show_button": "Show feed",
   "feeds_toggle_creator": "Show creator",
   "popular_feeds": "Popular Feeds",
-  "tokimeki_feeds": "Made by TOKIMEKI\uD83D\uDC99"
+  "tokimeki_feeds": "Made by TOKIMEKI\uD83D\uDC99",
+  "use_absolute_time": "Use absolute time"
 }

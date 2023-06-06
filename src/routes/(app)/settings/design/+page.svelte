@@ -5,6 +5,7 @@
     let themePick: string = $settings?.design.theme || 'royalblue';
     let darkmode = $settings?.design.darkmode || false;
     let nonoto = $settings?.design.nonoto || false;
+    let absoluteTime = $settings?.design.absoluteTime || false;
 
     const samplePost = {
         post: {
@@ -30,6 +31,7 @@
         $settings.design.theme = themePick;
         $settings.design.darkmode = darkmode;
         $settings.design.nonoto = nonoto;
+        $settings.design.absoluteTime = absoluteTime;
     }
 </script>
 
@@ -143,6 +145,18 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="nonoto" bind:checked={nonoto}><label class="input-toggle__label" for="nonoto"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('use_absolute_time')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="absoluteTime" bind:checked={absoluteTime}><label class="input-toggle__label" for="absoluteTime"></label>
         </div>
       </dd>
     </dl>
