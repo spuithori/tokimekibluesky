@@ -56,6 +56,12 @@
               display: $_('settings_push_notification'),
               disabled: false,
           },
+          {
+              name: 'about',
+              path: '/settings/about',
+              display: $_('settings_about'),
+              disabled: false,
+          },
       ]
   }
 </script>

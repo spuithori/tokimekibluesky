@@ -202,5 +202,6 @@
   "light": "Light",
   "dark": "Dark",
   "prefer": "Use system settings",
-  "sample": "Sample"
+  "sample": "Sample",
+  "settings_about": "About TOKIMEKI"
 }

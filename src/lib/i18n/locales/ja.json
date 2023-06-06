@@ -202,5 +202,6 @@
   "light": "ライト",
   "dark": "ダーク",
   "prefer": "システム設定に従う",
-  "sample": "みほん"
+  "sample": "みほん",
+  "settings_about": "TOKIMEKIについて"
 }
