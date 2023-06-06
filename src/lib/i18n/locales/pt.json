@@ -202,5 +202,14 @@
   "dark": "Dark",
   "prefer": "Use system settings",
   "sample": "Sample",
-  "settings_about": "About TOKIMEKI"
+  "settings_about": "About TOKIMEKI",
+  "open_feed_store": "Feed Store",
+  "feeds_add_management": "Management custom feeds",
+  "subscribe_button": "Subscribe",
+  "unsubscribe_button": "Unsubscribe",
+  "subscribed_button": "Subscribing",
+  "feed_show_button": "Show feed",
+  "feeds_toggle_creator": "Show creator",
+  "popular_feeds": "Popular Feeds",
+  "tokimeki_feeds": "Made by TOKIMEKI\uD83D\uDC99"
 }

@@ -2,7 +2,7 @@
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
     import TimelineItem from "../../TimelineItem.svelte";
-    let themePick: string = $settings?.design.theme || 'superorange';
+    let themePick: string = $settings?.design.theme || 'royalblue';
     let darkmode = $settings?.design.darkmode || false;
     let nonoto = $settings?.design.nonoto || false;
 

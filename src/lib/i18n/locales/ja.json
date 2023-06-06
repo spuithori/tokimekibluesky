@@ -203,5 +203,14 @@
   "dark": "ダーク",
   "prefer": "システム設定に従う",
   "sample": "みほん",
-  "settings_about": "TOKIMEKIについて"
+  "settings_about": "TOKIMEKIについて",
+  "open_feed_store": "フィードストア",
+  "feeds_add_management": "🌈カスタムフィードで広がる虹のWA！",
+  "subscribe_button": "購読",
+  "unsubscribe_button": "購読解除",
+  "subscribed_button": "購読済み",
+  "feed_show_button": "フィードを見る",
+  "feeds_toggle_creator": "作者を表示",
+  "popular_feeds": "人気のフィード",
+  "tokimeki_feeds": "Made by TOKIMEKI\uD83D\uDC99"
 }

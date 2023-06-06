@@ -9,6 +9,7 @@ type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification 
 type currentAlgorithm = {
     type: 'default' | 'custom' | 'list',
     algorithm?: string,
+    name?: string,
     list?: object,
 }
 
@@ -80,7 +81,7 @@ const defaultSettings = {
         disableAlgorithm: false,
     },
     design: {
-        theme: 'superorange',
+        theme: 'royalblue',
         nonoto: false,
         darkmode: false,
     },
@@ -102,3 +103,5 @@ const defaultSettings = {
 }
 const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);
 export const settings = writable(JSON.parse(storageSettings));
+
+export const preferences = writable();

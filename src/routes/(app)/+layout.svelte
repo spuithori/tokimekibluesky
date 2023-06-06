@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, settings, currentAlgorithm } from '$lib/stores';
+  import { agent, settings, currentAlgorithm, preferences } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -89,6 +89,9 @@
               }
           })
       }
+
+      const prefRes = await $agent.agent.api.app.bsky.actor.getPreferences();
+      preferences.set(prefRes.data.preferences);
   });
 
   function handleScroll(event) {
