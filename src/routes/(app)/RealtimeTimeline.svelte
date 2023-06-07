@@ -178,7 +178,8 @@
     }
 
     onMount(async () => {
-        timeline.set([]);
+        const res = await $agent.getTimeline({limit: 20, cursor: '', algorithm: $currentAlgorithm});
+        timeline.set(res.data.feed);
 
         if (localStorage.getItem('follows')) {
             follows = JSON.parse(localStorage.getItem('follows'))
