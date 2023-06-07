@@ -213,5 +213,7 @@
   "feeds_toggle_creator": "Show creator",
   "popular_feeds": "Popular Feeds",
   "tokimeki_feeds": "Made by TOKIMEKI\uD83D\uDC99",
-  "use_absolute_time": "Use absolute time"
+  "use_absolute_time": "Use absolute time",
+  "realtime_follows_count": "Follows count",
+  "realtime_follows_refresh": "Refresh follows"
 }

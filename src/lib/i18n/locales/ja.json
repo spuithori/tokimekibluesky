@@ -213,5 +213,7 @@
   "feeds_toggle_creator": "作者を表示",
   "popular_feeds": "人気のフィード",
   "tokimeki_feeds": "Made by TOKIMEKI\uD83D\uDC99",
-  "use_absolute_time": "絶対時間を表示する"
+  "use_absolute_time": "絶対時間を表示する",
+  "realtime_follows_count": "フォロー数",
+  "realtime_follows_refresh": "フォローリストを更新"
 }

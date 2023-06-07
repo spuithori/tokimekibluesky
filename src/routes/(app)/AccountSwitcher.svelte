@@ -20,6 +20,7 @@
         await unsub();
         currentAlgorithm.set({type: 'default'});
         localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
+        localStorage.removeItem('follows');
         location.reload();
     }
 
