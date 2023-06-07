@@ -15,6 +15,7 @@
     let follows = [];
     let isFollowsListRefreshing = false;
     let socket;
+    let timeId;
 
     const stateMessage = [
         $_('realtime_connecting'),
@@ -33,10 +34,17 @@
 
     async function handleVisibilityChange(event) {
         if (event.target.visibilityState === 'hidden') {
-            socket.close();
+            if (timeId) {
+                clearTimeout(timeId);
+            }
+
+            timeId = setTimeout(() => {
+                socket.close();
+            }, 180000)
         }
 
         if (event.target.visibilityState === 'visible') {
+            clearTimeout(timeId);
             toast.success($_('realtime_connect_status') + ': ' + stateMessage[socket.readyState]);
         }
     }
