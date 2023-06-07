@@ -45,7 +45,7 @@ onMount(async () => {
       position: relative;
 
       @media (max-width: 767px) {
-          margin: 0 -20px 20px;
+          margin: 0 -15px 20px;
       }
   }
 
