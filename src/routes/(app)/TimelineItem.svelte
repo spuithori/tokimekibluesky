@@ -317,7 +317,7 @@
               {#if $settings?.design.absoluteTime}
                 <Tooltip>
                   <time slot="ref"
-                        datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(data.reply.parent.indexedAt), 'HH:mm:ss')}</time>
+                        datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(data.reply.parent.indexedAt), 'yy/MM/dd HH:mm')}</time>
                   <span slot="content" aria-hidden="true"
                         class="timeline-tooltip">{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
                 </Tooltip>
@@ -396,7 +396,7 @@
             {#if $settings?.design.absoluteTime}
               <Tooltip>
                 <time slot="ref"
-                      datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(data.post.indexedAt), 'HH:mm:ss')}</time>
+                      datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(data.post.indexedAt), 'yy/MM/dd HH:mm')}</time>
                 <span slot="content" aria-hidden="true"
                       class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
               </Tooltip>
