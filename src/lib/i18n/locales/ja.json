@@ -215,5 +215,6 @@
   "tokimeki_feeds": "Made by TOKIMEKI\uD83D\uDC99",
   "use_absolute_time": "絶対時間を表示する",
   "realtime_follows_count": "フォロー数",
-  "realtime_follows_refresh": "フォローリストを更新"
+  "realtime_follows_refresh": "フォローリストを更新",
+  "feature_request_form": "機能リクエストフォーム"
 }

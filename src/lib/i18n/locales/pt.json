@@ -214,5 +214,6 @@
   "tokimeki_feeds": "Made by TOKIMEKI\uD83D\uDC99",
   "use_absolute_time": "Use absolute time",
   "realtime_follows_count": "Follows count",
-  "realtime_follows_refresh": "Refresh follows"
+  "realtime_follows_refresh": "Refresh follows",
+  "feature_request_form": "Feature request form"
 }

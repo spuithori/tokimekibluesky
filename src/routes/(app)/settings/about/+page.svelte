@@ -50,6 +50,8 @@
         <a href="https://www.buymeacoffee.com/spuithori" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
         <p class="about-pp"><a href="https://tokimekibluesky-docs.vercel.app/privacy" target="_blank" rel="noopener">Privacy Policy</a></p>
+
+        <p class="about-pp"><a href="https://forms.gle/U86Ndm2UUA5Tk4eu9" target="_blank" rel="noopener">{$_('feature_request_form')}</a></p>
       </div>
     </div>
   </div>
