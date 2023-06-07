@@ -697,3 +697,9 @@
     pointer-events: none;
     margin-bottom: 20px;
 }
+
+.sticky {
+    .timeline__item {
+        border-bottom: none;
+    }
+}
