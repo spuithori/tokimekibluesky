@@ -200,6 +200,10 @@ function handleKeydown(event: { key: string; }) {
         }, 100)
     }
 
+    if (event.key === '/' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
+        goto('/search');
+    }
+
     if (event.key === 'Escape' && isFocus) {
         isFocus = false;
         publishArea.blur();

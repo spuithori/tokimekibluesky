@@ -103,14 +103,12 @@
 			} else {
 				const topEl = document.querySelector('.timeline > .timeline__item:first-child');
 
-				timeline.update(function (tl) {
+				await timeline.update(function (tl) {
 					return [...newFeeds, ...tl];
 				});
 
 				topEl.scrollIntoView();
-				setTimeout(() => {
-					window.scrollBy(0, -156)
-				}, 0);
+				window.scrollBy(0, -156);
 			}
 
 			notificationCount.set(await $agent.getNotificationCount());
