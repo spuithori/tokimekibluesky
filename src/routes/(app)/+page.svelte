@@ -3,8 +3,6 @@
 	import Timeline from "./Timeline.svelte";
 	import { agent, cursor, notificationCount } from '$lib/stores';
 	import { timeline, timelineStyle, currentAlgorithm, disableAlgorithm, userLists, bookmarksStore, settings, preferences } from "$lib/stores";
-	import TimelineSettings from "./TimelineSettings.svelte";
-	import MediaTimeline from "./MediaTimeline.svelte";
 	import ListModal from "../../lib/components/list/ListModal.svelte";
 	import ListTimeline from "./ListTimeline.svelte";
 	import { liveQuery } from "dexie";
@@ -12,7 +10,6 @@
 	import BookmarkModal from "../../lib/components/bookmark/BookmarkModal.svelte";
 	import BookmarkTimeline from "./BookmarkTimeline.svelte";
 	import RealtimeTimeline from "./RealtimeTimeline.svelte";
-	import CustomTimeline from "./CustomTimeline.svelte";
 	import FeedsModal from "$lib/components/feeds/FeedsModal.svelte";
 
 	try {
@@ -30,20 +27,15 @@
 	}
 
 	let isRefreshing = false;
-
 	let isAlgoNavOpen = false;
-
 	let isListModalOpen = false;
 	let listModalId;
-
 	let bookmarks = liveQuery(() => db.bookmarks.toArray());
 	let isBookmarkModalOpen = false;
-
 	let isFeedsModalOpen = false;
-
 	let realtimeConnect;
-
 	let customFeeds = [];
+	let unique = Symbol();
 
 	async function getSavedFeeds() {
 		const savedFeeds = $preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')[0]?.saved;
@@ -100,10 +92,27 @@
 	async function refresh(style: 'default' | 'media') {
 		isRefreshing = true;
 		if ($currentAlgorithm.type === 'default' || $currentAlgorithm.type === 'custom') {
-			const res = await $agent.getTimeline({limit: 25, cursor: '', algorithm: $currentAlgorithm});
+			const res = await $agent.getTimeline({limit: 20, cursor: '', algorithm: $currentAlgorithm});
+			const newFeeds = res.data.feed.filter(feed => {
+				return !$timeline.some(item => feed.reason ? item.post.uri === feed.post.uri && item.reason?.indexedAt === feed.reason.indexedAt : item.post.uri === feed.post.uri);
+			});
 
-			timeline.set(res.data.feed);
-			cursor.set(res.data.cursor);
+			if (newFeeds.length === 20) {
+				timeline.set(res.data.feed);
+				cursor.set(res.data.cursor);
+			} else {
+				const topEl = document.querySelector('.timeline > .timeline__item:first-child');
+
+				timeline.update(function (tl) {
+					return [...newFeeds, ...tl];
+				});
+
+				topEl.scrollIntoView();
+				setTimeout(() => {
+					window.scrollBy(0, -156)
+				}, 0);
+			}
+
 			notificationCount.set(await $agent.getNotificationCount());
 		} else if ($currentAlgorithm.type === 'bookmark') {
 			timeline.set([]);
@@ -123,7 +132,9 @@
 		localStorage.setItem('timelineStyle', style);
 
 		if ($currentAlgorithm.type !== 'realtime') {
-			refresh($timelineStyle);
+			timeline.set([]);
+			cursor.set(undefined);
+			unique = Symbol();
 		}
 	}
 
@@ -134,7 +145,9 @@
 			localStorage.setItem('currentAlgorithm', JSON.stringify(currentAlgo));
 
 			if (!isAlgoNavOpen && $currentAlgorithm.type !== 'realtime') {
-				refresh($timelineStyle);
+				timeline.set([]);
+				cursor.set(undefined);
+				unique = Symbol();
 			}
 		}
 	}
@@ -377,10 +390,10 @@
 		{/key}
 	{:else if ($currentAlgorithm.type === 'realtime')}
 		<RealtimeTimeline isRefreshing={isRefreshing} on:disconnect={handleRealtimeDisconnect} bind:connect={realtimeConnect}></RealtimeTimeline>
-	{:else if ($currentAlgorithm.type === 'custom')}
-		<Timeline isRefreshing={isRefreshing}></Timeline>
 	{:else}
-		<Timeline isRefreshing={isRefreshing}></Timeline>
+		{#key unique}
+			<Timeline isRefreshing={isRefreshing}></Timeline>
+		{/key}
 	{/if}
 </section>
 
