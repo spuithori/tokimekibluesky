@@ -107,8 +107,8 @@
 					return [...newFeeds, ...tl];
 				});
 
-				topEl.scrollIntoView();
-				window.scrollBy(0, -156);
+				//topEl.scrollIntoView();
+				window.scrollTo(0, topEl.getBoundingClientRect().top - 156);
 			}
 
 			notificationCount.set(await $agent.getNotificationCount());

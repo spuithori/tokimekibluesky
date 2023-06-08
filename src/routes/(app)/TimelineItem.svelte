@@ -31,6 +31,7 @@
     import Bookmark from "../../lib/components/post/Bookmark.svelte";
     import Tooltip from "$lib/components/ui/Tooltip.svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
+    import { getTextArray, isUriLocal } from '$lib/richtext';
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
@@ -91,19 +92,6 @@
             textArray.push(segment);
         }
         textArray = textArray;
-    }
-
-    function getTextArray(record) {
-        let array = [];
-        const rt: RichText = new RichText({
-            text: record.text,
-            facets: record.facets,
-        });
-        for (const segment of rt.segments()) {
-            array.push(segment);
-        }
-
-        return array;
     }
 
     let labels = $settings?.moderation.contentLabels || {
@@ -219,15 +207,6 @@
     async function getLikes() {
         const res = await $agent.agent.api.app.bsky.feed.getLikes({uri: data.post.uri});
         likes = res.data;
-    }
-
-    function isUriLocal(uri: string) {
-        try {
-            return new URL(uri).hostname === 'bsky.app' || new URL(uri).hostname === 'staging.bsky.app';
-        } catch (e) {
-            console.log(e);
-            return false;
-        }
     }
 
     let keys = [];
