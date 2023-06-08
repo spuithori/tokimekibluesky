@@ -744,7 +744,7 @@ onMount(async () => {
             imageResizeTargetWidth={2000}
             imageResizeTargetHeight={2000}
             imageResizeMode={'contain'}
-            acceptedFileTypes={'image/jpeg, image/png'}
+            acceptedFileTypes={'image/jpeg, image/png, image/webp'}
             imageTransformOutputMimeType={'image/jpeg'}
             imageTransformOutputQuality={'75'}
             onpreparefile={(file, output) => {onFileSelected(file, output)}}
