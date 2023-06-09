@@ -48,3 +48,33 @@
         padding-bottom: 0;
     }
 }
+
+.accordion {
+    &[open] {
+        .accordion__heading {
+            svg {
+                transform: rotate(180deg);
+            }
+        }
+    }
+
+    &__heading {
+        font-weight: 400;
+        font-size: 14px;
+        color: var(--text-color-3);
+        white-space: nowrap;
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        svg {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            transition: transform .2s ease-in-out;
+        }
+    }
+}

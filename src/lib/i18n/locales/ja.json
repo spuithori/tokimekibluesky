@@ -217,5 +217,11 @@
   "realtime_follows_count": "フォロー数",
   "realtime_follows_refresh": "フォローリストを更新",
   "feature_request_form": "機能リクエストフォーム",
-  "sticky_post": "固定された投稿"
+  "sticky_post": "固定された投稿",
+  "settings_keyword_mutes": "キーワードミュート",
+  "keyword": "キーワード",
+  "keyword_period": "ミュートする時間帯",
+  "keyword_period_setting": "時間設定",
+  "add_keyword": "キーワードを追加",
+  "mute_keywords_nothing": "ミュートしているキーワードはありません。"
 }

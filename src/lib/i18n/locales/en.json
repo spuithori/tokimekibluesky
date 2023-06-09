@@ -216,5 +216,12 @@
   "use_absolute_time": "Use absolute time",
   "realtime_follows_count": "Follows count",
   "realtime_follows_refresh": "Refresh follows",
-  "feature_request_form": "Feature request form"
+  "feature_request_form": "Feature request form",
+  "sticky_post": "Sticky post",
+  "settings_keyword_mutes": "Keyword Mutes",
+  "keyword": "Keyword",
+  "keyword_period": "Time to mute",
+  "keyword_period_setting": "Time settings",
+  "add_keyword": "Add keyword",
+  "mute_keywords_nothing": "There are no muted keywords."
 }

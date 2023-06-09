@@ -45,6 +45,12 @@
               disabled: false,
           },
           {
+              name: 'keyword-mutes',
+              path: '/settings/keyword-mutes',
+              display: $_('settings_keyword_mutes'),
+              disabled: false,
+          },
+          {
               name: 'invite-codes',
               path: '/settings/invite-codes',
               display: $_('settings_invite_codes'),

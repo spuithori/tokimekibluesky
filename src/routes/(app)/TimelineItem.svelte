@@ -2,7 +2,8 @@
     import {_} from 'svelte-i18n'
     import {agent} from '$lib/stores';
     import {timeline, cursor, notificationCount, quotePost, replyRef, contentLabels, settings} from '$lib/stores';
-    import {format, formatDistanceToNow, parseISO} from 'date-fns';
+    import {format, formatDistanceToNow, parseISO, isMatch, parse} from 'date-fns';
+    import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
     import pt from 'date-fns/locale/pt-BR/index';
@@ -121,6 +122,36 @@
                     console.log('should warn: ' + label.val)
                     warnLabels = [...warnLabels, label.val];
                     isWarn = true;
+                }
+            })
+        }
+
+        if ($settings?.keywordMutes) {
+            $settings.keywordMutes.forEach(keyword => {
+                const timeIsValid = isMatch(keyword.period.start, 'HH:mm') && isMatch(keyword.period.end, 'HH:mm');
+                if (!timeIsValid || keyword.word === '') {
+                    return false;
+                }
+
+                const start = keyword.period.start;
+                const end = keyword.period.end;
+
+                const isIntervalWithin = start < end
+                    ? isWithinInterval(parseISO(data.post.indexedAt), {
+                        start: parse(start, 'HH:mm', new Date),
+                        end: parse(end + ':59', 'HH:mm:ss', new Date),
+                    })
+                    : isWithinInterval(parseISO(data.post.indexedAt), {
+                        start: parse('00:00', 'HH:mm', new Date),
+                        end: parse(end + ':59', 'HH:mm:ss', new Date),
+                      }) ||
+                      isWithinInterval(parseISO(data.post.indexedAt), {
+                          start: parse(start, 'HH:mm', new Date),
+                          end: parse('23:59:59', 'HH:mm:ss', new Date),
+                      });
+
+                if (isIntervalWithin && data.post.record.text.includes(keyword.word)) {
+                    isHide = true;
                 }
             })
         }
