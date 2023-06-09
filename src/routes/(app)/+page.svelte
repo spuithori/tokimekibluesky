@@ -380,7 +380,9 @@
 
 	{#if ($currentAlgorithm.type === 'list')}
 		{#if ($currentAlgorithm.list.members.length)}
-			<ListTimeline isRefreshing={isRefreshing}></ListTimeline>
+			{#key unique}
+				<ListTimeline isRefreshing={isRefreshing}></ListTimeline>
+			{/key}
 		{/if}
 	{:else if ($currentAlgorithm.type === 'bookmark')}
 		{#key $currentAlgorithm}
