@@ -152,6 +152,7 @@
             border-radius: 4px;
             padding: 0 10px;
             height: 40px;
+            color: var(--text-color-1);
         }
     }
 
