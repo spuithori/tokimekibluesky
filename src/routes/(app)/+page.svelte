@@ -169,6 +169,7 @@
 
 		if (event.detail.allClose) {
 			isAlgoNavOpen = false;
+			unique = Symbol();
 		}
 	}
 

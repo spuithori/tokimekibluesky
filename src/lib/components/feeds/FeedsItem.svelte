@@ -19,10 +19,8 @@
       });
       localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
 
-      const res = await $agent.getTimeline({limit: 25, cursor: '', algorithm: $currentAlgorithm});
-
-      timeline.set(res.data.feed);
-      cursor.set(res.data.cursor);
+      timeline.set([]);
+      cursor.set(undefined);
 
       dispatch('close', {
           clear: false,

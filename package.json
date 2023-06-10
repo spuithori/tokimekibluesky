@@ -33,7 +33,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@atproto/api": "^0.3.8",
+    "@atproto/api": "^0.3.12",
     "@ipld/car": "^5.1.1",
     "@splidejs/svelte-splide": "^0.2.9",
     "@supabase/supabase-js": "^2.20.0",
