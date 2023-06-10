@@ -223,5 +223,12 @@
   "keyword_period": "Time to mute",
   "keyword_period_setting": "Time settings",
   "add_keyword": "Add keyword",
-  "mute_keywords_nothing": "There are no muted keywords."
+  "mute_keywords_nothing": "There are no muted keywords.",
+  "posts_layout": "Posts density",
+  "posts_image_layout": "Images density",
+  "default": "Normal",
+  "compact": "Compact",
+  "minimum": "Minimum",
+  "folding": "Folding",
+  "one_image_no_crop": "No cropping when there is only one image"
 }

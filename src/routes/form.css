@@ -156,3 +156,67 @@
         }
     }
 }
+
+.icons-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.icons-radio {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    input {
+        width: 0;
+        height: 0;
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        cursor: pointer;
+
+        &:checked {
+            & + label .icons-radio__ui {
+                .icons-radio__g {
+                    stroke: var(--primary-color);
+                }
+
+                .icons-radio__r {
+                    fill: var(--primary-color);
+                }
+
+                circle,
+                path {
+                    fill: var(--primary-color);
+                }
+            }
+        }
+    }
+
+    label {
+        text-align: center;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+
+        &::after {
+            content: none;
+            display: block;
+        }
+    }
+
+    &__ui {
+        width: 75px;
+        height: 75px;
+
+        svg {
+            display: block;
+            width: 100%;
+        }
+    }
+}

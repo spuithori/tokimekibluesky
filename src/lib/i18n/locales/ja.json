@@ -223,5 +223,12 @@
   "keyword_period": "ミュートする時間帯",
   "keyword_period_setting": "時間設定",
   "add_keyword": "キーワードを追加",
-  "mute_keywords_nothing": "ミュートしているキーワードはありません。"
+  "mute_keywords_nothing": "ミュートしているキーワードはありません。",
+  "posts_layout": "投稿の表示間隔",
+  "posts_image_layout": "画像の表示間隔",
+  "default": "ふつう",
+  "compact": "コンパクト",
+  "minimum": "最小",
+  "folding": "折りたたむ",
+  "one_image_no_crop": "画像が1枚のとき、トリミングしない"
 }

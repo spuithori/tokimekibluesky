@@ -280,7 +280,10 @@
 {#if (!isHide)}
   <article class="timeline__item"
            class:timeline__item--repost={isReasonRepost(data.reason)}
-           class:timeline__item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}>
+           class:timeline__item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}
+           class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
+           class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
+  >
     {#if (isShortCutNumberShown && index < 9)}
       <p class="timeline-shortcut-number">{index + 1}</p>
     {/if}
@@ -311,8 +314,10 @@
         {/if}
 
         <div class="timeline__image">
-          <Avatar href="/profile/{ data.reply.parent.author.handle }" avatar={data.reply.parent.author.avatar}
+          {#if $settings?.design.postsLayout !== 'minimum'}
+            <Avatar href="/profile/{ data.reply.parent.author.handle }" avatar={data.reply.parent.author.avatar}
                   handle={data.reply.parent.author.handle}></Avatar>
+          {/if}
         </div>
 
         <div class="timeline__content">
@@ -390,8 +395,10 @@
 
     <div class="timeline__column">
       <div class="timeline__image">
-        <Avatar href="/profile/{ data.post.author.handle }" avatar={data.post.author.avatar}
+        {#if $settings?.design.postsLayout !== 'minimum'}
+          <Avatar href="/profile/{ data.post.author.handle }" avatar={data.post.author.avatar}
                 handle={data.post.author.handle}></Avatar>
+        {/if}
       </div>
 
       <div class="timeline__content">
@@ -471,7 +478,7 @@
         {#if (AppBskyEmbedExternal.isView(data.post.embed))}
           <div class="timeline-external">
             <div class="timeline-external__image">
-              {#if (data.post.embed.external.thumb)}
+              {#if (data.post.embed.external.thumb && $settings?.design.postsLayout !== 'minimum')}
                 <img src="{data.post.embed.external.thumb}" alt="">
               {/if}
             </div>
@@ -487,9 +494,11 @@
 
         {#if (AppBskyEmbedRecord.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record)) }
           <div class="timeline-external timeline-external--record">
-            <Avatar href="/profile/{ data.post.embed.record.author.handle }"
+            {#if $settings?.design.postsLayout !== 'minimum'}
+              <Avatar href="/profile/{ data.post.embed.record.author.handle }"
                     avatar={data.post.embed.record.author.avatar}
                     handle={data.post.embed.record.author.handle}></Avatar>
+            {/if}
 
             <div class="timeline-external__content">
               <div class="timeline__meta">
@@ -535,11 +544,13 @@
           {/if}
 
           <div class="timeline-external timeline-external--record">
-            <div class="timeline-external__image timeline-external__image--round">
-              {#if (data.post.embed.record.record.author.avatar)}
-                <img src="{data.post.embed.record.record.author.avatar}" alt="">
-              {/if}
-            </div>
+            {#if $settings?.design.postsLayout !== 'minimum'}
+              <div class="timeline-external__image timeline-external__image--round">
+                {#if (data.post.embed.record.record.author.avatar)}
+                  <img src="{data.post.embed.record.record.author.avatar}" alt="">
+                {/if}
+              </div>
+            {/if}
 
             <div class="timeline-external__content">
               <div class="timeline__meta">
