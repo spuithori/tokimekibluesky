@@ -8,7 +8,7 @@ export const load: LayoutLoad = async () => {
         
         const IntlSegmenterPolyfill = await import('intl-segmenter-polyfill');
         const Segmenter = await IntlSegmenterPolyfill.createIntlSegmenterPolyfill(
-          fetch('./break_iterator.wasm')
+          fetch('/break_iterator.wasm')
         )
 
         Intl.Segmenter = Segmenter;

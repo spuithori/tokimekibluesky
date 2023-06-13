@@ -2,7 +2,8 @@
     import {_} from 'svelte-i18n'
     import {agent} from '$lib/stores';
     import {timeline, cursor, notificationCount, quotePost, replyRef, contentLabels, settings} from '$lib/stores';
-    import {format, formatDistanceToNow, parseISO} from 'date-fns';
+    import {format, formatDistanceToNow, parseISO, isMatch, parse} from 'date-fns';
+    import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
     import pt from 'date-fns/locale/pt-BR/index';
@@ -31,6 +32,7 @@
     import Bookmark from "../../lib/components/post/Bookmark.svelte";
     import Tooltip from "$lib/components/ui/Tooltip.svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
+    import { getTextArray, isUriLocal } from '$lib/richtext';
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
@@ -93,19 +95,6 @@
         textArray = textArray;
     }
 
-    function getTextArray(record) {
-        let array = [];
-        const rt: RichText = new RichText({
-            text: record.text,
-            facets: record.facets,
-        });
-        for (const segment of rt.segments()) {
-            array.push(segment);
-        }
-
-        return array;
-    }
-
     let labels = $settings?.moderation.contentLabels || {
         gore: 'show',
         hate: 'show',
@@ -133,6 +122,36 @@
                     console.log('should warn: ' + label.val)
                     warnLabels = [...warnLabels, label.val];
                     isWarn = true;
+                }
+            })
+        }
+
+        if ($settings?.keywordMutes) {
+            $settings.keywordMutes.forEach(keyword => {
+                const timeIsValid = isMatch(keyword.period.start, 'HH:mm') && isMatch(keyword.period.end, 'HH:mm');
+                if (!timeIsValid || keyword.word === '') {
+                    return false;
+                }
+
+                const start = keyword.period.start;
+                const end = keyword.period.end;
+
+                const isIntervalWithin = start < end
+                    ? isWithinInterval(parseISO(data.post.indexedAt), {
+                        start: parse(start, 'HH:mm', new Date),
+                        end: parse(end + ':59', 'HH:mm:ss', new Date),
+                    })
+                    : isWithinInterval(parseISO(data.post.indexedAt), {
+                        start: parse('00:00', 'HH:mm', new Date),
+                        end: parse(end + ':59', 'HH:mm:ss', new Date),
+                      }) ||
+                      isWithinInterval(parseISO(data.post.indexedAt), {
+                          start: parse(start, 'HH:mm', new Date),
+                          end: parse('23:59:59', 'HH:mm:ss', new Date),
+                      });
+
+                if (isIntervalWithin && data.post.record.text.includes(keyword.word)) {
+                    isHide = true;
                 }
             })
         }
@@ -221,15 +240,6 @@
         likes = res.data;
     }
 
-    function isUriLocal(uri: string) {
-        try {
-            return new URL(uri).hostname === 'bsky.app' || new URL(uri).hostname === 'staging.bsky.app';
-        } catch (e) {
-            console.log(e);
-            return false;
-        }
-    }
-
     let keys = [];
 
     function handleKeydown(event) {
@@ -270,7 +280,10 @@
 {#if (!isHide)}
   <article class="timeline__item"
            class:timeline__item--repost={isReasonRepost(data.reason)}
-           class:timeline__item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}>
+           class:timeline__item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}
+           class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
+           class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
+  >
     {#if (isShortCutNumberShown && index < 9)}
       <p class="timeline-shortcut-number">{index + 1}</p>
     {/if}
@@ -301,8 +314,10 @@
         {/if}
 
         <div class="timeline__image">
-          <Avatar href="/profile/{ data.reply.parent.author.handle }" avatar={data.reply.parent.author.avatar}
+          {#if $settings?.design.postsLayout !== 'minimum'}
+            <Avatar href="/profile/{ data.reply.parent.author.handle }" avatar={data.reply.parent.author.avatar}
                   handle={data.reply.parent.author.handle}></Avatar>
+          {/if}
         </div>
 
         <div class="timeline__content">
@@ -314,12 +329,21 @@
               </Tooltip></p>
 
             <p class="timeline__date timeline__date--noafter">
-              <Tooltip>
-                <time slot="ref"
-                      datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.reply.parent.indexedAt), {locale: dateFnsLocale})}</time>
-                <span slot="content" aria-hidden="true"
-                      class="timeline-tooltip">{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-              </Tooltip>
+              {#if $settings?.design.absoluteTime}
+                <Tooltip>
+                  <time slot="ref"
+                        datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(data.reply.parent.indexedAt), 'yy/MM/dd HH:mm')}</time>
+                  <span slot="content" aria-hidden="true"
+                        class="timeline-tooltip">{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+                </Tooltip>
+              {:else}
+                <Tooltip>
+                  <time slot="ref"
+                        datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.reply.parent.indexedAt), {locale: dateFnsLocale})}</time>
+                  <span slot="content" aria-hidden="true"
+                        class="timeline-tooltip">{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+                </Tooltip>
+              {/if}
             </p>
           </div>
 
@@ -371,8 +395,10 @@
 
     <div class="timeline__column">
       <div class="timeline__image">
-        <Avatar href="/profile/{ data.post.author.handle }" avatar={data.post.author.avatar}
+        {#if $settings?.design.postsLayout !== 'minimum'}
+          <Avatar href="/profile/{ data.post.author.handle }" avatar={data.post.author.avatar}
                 handle={data.post.author.handle}></Avatar>
+        {/if}
       </div>
 
       <div class="timeline__content">
@@ -384,12 +410,21 @@
             </Tooltip></p>
 
           <p class="timeline__date">
-            <Tooltip>
-              <time slot="ref"
-                    datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.indexedAt), {locale: dateFnsLocale})}</time>
-              <span slot="content" aria-hidden="true"
-                    class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-            </Tooltip>
+            {#if $settings?.design.absoluteTime}
+              <Tooltip>
+                <time slot="ref"
+                      datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(data.post.indexedAt), 'yy/MM/dd HH:mm')}</time>
+                <span slot="content" aria-hidden="true"
+                      class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+              </Tooltip>
+            {:else}
+              <Tooltip>
+                <time slot="ref"
+                      datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.indexedAt), {locale: dateFnsLocale})}</time>
+                <span slot="content" aria-hidden="true"
+                      class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+              </Tooltip>
+            {/if}
           </p>
 
           <p class="timeline__thread-link">
@@ -443,7 +478,7 @@
         {#if (AppBskyEmbedExternal.isView(data.post.embed))}
           <div class="timeline-external">
             <div class="timeline-external__image">
-              {#if (data.post.embed.external.thumb)}
+              {#if (data.post.embed.external.thumb && $settings?.design.postsLayout !== 'minimum')}
                 <img src="{data.post.embed.external.thumb}" alt="">
               {/if}
             </div>
@@ -459,9 +494,11 @@
 
         {#if (AppBskyEmbedRecord.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record)) }
           <div class="timeline-external timeline-external--record">
-            <Avatar href="/profile/{ data.post.embed.record.author.handle }"
+            {#if $settings?.design.postsLayout !== 'minimum'}
+              <Avatar href="/profile/{ data.post.embed.record.author.handle }"
                     avatar={data.post.embed.record.author.avatar}
                     handle={data.post.embed.record.author.handle}></Avatar>
+            {/if}
 
             <div class="timeline-external__content">
               <div class="timeline__meta">
@@ -507,11 +544,13 @@
           {/if}
 
           <div class="timeline-external timeline-external--record">
-            <div class="timeline-external__image timeline-external__image--round">
-              {#if (data.post.embed.record.record.author.avatar)}
-                <img src="{data.post.embed.record.record.author.avatar}" alt="">
-              {/if}
-            </div>
+            {#if $settings?.design.postsLayout !== 'minimum'}
+              <div class="timeline-external__image timeline-external__image--round">
+                {#if (data.post.embed.record.record.author.avatar)}
+                  <img src="{data.post.embed.record.record.author.avatar}" alt="">
+                {/if}
+              </div>
+            {/if}
 
             <div class="timeline-external__content">
               <div class="timeline__meta">

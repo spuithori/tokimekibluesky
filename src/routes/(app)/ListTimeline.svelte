@@ -32,56 +32,54 @@
     })
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        if (!isRefreshing) {
-            const ress = await $agent.getTimeline({limit: 20, cursor: '', algorithm: $currentAlgorithm, actors: actors});
+        const ress = await $agent.getTimeline({limit: 20, cursor: '', algorithm: $currentAlgorithm, actors: actors});
 
-            ress.forEach((res, index) => {
-                feedPool.push(...res.data.feed);
-                cursors.push({
-                    actor: actors[index].actor,
-                    cursor: res.data.cursor,
-                })
+        ress.forEach((res, index) => {
+            feedPool.push(...res.data.feed);
+            cursors.push({
+                actor: actors[index].actor,
+                cursor: res.data.cursor,
             })
-            cursors = cursors;
-            feedPool = feedPool.sort((a, b) => {
-                if (a.reason) {
-                    if ( parseISO(a.reason.indexedAt).getTime() < parseISO(b.post.indexedAt).getTime()) {
-                        return 1;
-                    }
-                }
-
-                if (b.reason) {
-                    if ( parseISO(a.post.indexedAt).getTime() < parseISO(b.reason.indexedAt).getTime()) {
-                        return 1;
-                    }
-                }
-
-                if ( parseISO(a.post.indexedAt).getTime() < parseISO(b.post.indexedAt).getTime()) {
+        })
+        cursors = cursors;
+        feedPool = feedPool.sort((a, b) => {
+            if (a.reason) {
+                if ( parseISO(a.reason.indexedAt).getTime() < parseISO(b.post.indexedAt).getTime()) {
                     return 1;
                 }
-
-                if ( parseISO(a.post.indexedAt).getTime() > parseISO(b.post.indexedAt).getTime()) {
-                    return -1;
-                }
-
-                return 0;
-            });
-            feed = feedPool.slice(0, 20);
-            feedPool = feedPool.slice(20);
-            console.log(feedPool);
-
-            if (cursors.some(item => item.cursor !== undefined)) {
-                await poolRecalc(feedPool);
-
-                timeline.update(function (tl) {
-                    return [...tl, ...feed];
-                });
-                console.log($timeline)
-
-                loaded();
-            } else {
-                complete();
             }
+
+            if (b.reason) {
+                if ( parseISO(a.post.indexedAt).getTime() < parseISO(b.reason.indexedAt).getTime()) {
+                    return 1;
+                }
+            }
+
+            if ( parseISO(a.post.indexedAt).getTime() < parseISO(b.post.indexedAt).getTime()) {
+                return 1;
+            }
+
+            if ( parseISO(a.post.indexedAt).getTime() > parseISO(b.post.indexedAt).getTime()) {
+                return -1;
+            }
+
+            return 0;
+        });
+        feed = feedPool.slice(0, 20);
+        feedPool = feedPool.slice(20);
+        console.log(feedPool);
+
+        if (cursors.some(item => item.cursor !== undefined)) {
+            await poolRecalc(feedPool);
+
+            timeline.update(function (tl) {
+                return [...tl, ...feed];
+            });
+            console.log($timeline)
+
+            loaded();
+        } else {
+            complete();
         }
     }
 
@@ -114,7 +112,7 @@
     }
 
     afterUpdate(async() => {
-        il.$$.update();
+       // il.$$.update();
     })
 </script>
 

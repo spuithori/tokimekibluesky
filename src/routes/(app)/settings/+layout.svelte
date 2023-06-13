@@ -45,6 +45,12 @@
               disabled: false,
           },
           {
+              name: 'keyword-mutes',
+              path: '/settings/keyword-mutes',
+              display: $_('settings_keyword_mutes'),
+              disabled: false,
+          },
+          {
               name: 'invite-codes',
               path: '/settings/invite-codes',
               display: $_('settings_invite_codes'),
@@ -54,6 +60,12 @@
               name: 'push-notification',
               path: '/settings/push-notification',
               display: $_('settings_push_notification'),
+              disabled: false,
+          },
+          {
+              name: 'about',
+              path: '/settings/about',
+              display: $_('settings_about'),
               disabled: false,
           },
       ]

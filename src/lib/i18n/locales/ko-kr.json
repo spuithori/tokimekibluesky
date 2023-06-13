@@ -202,5 +202,19 @@
   "light": "Light",
   "dark": "Dark",
   "prefer": "Use system settings",
-  "sample": "Sample"
+  "sample": "Sample",
+  "settings_about": "About TOKIMEKI",
+  "open_feed_store": "Feed Store",
+  "feeds_add_management": "Management custom feeds",
+  "subscribe_button": "Subscribe",
+  "unsubscribe_button": "Unsubscribe",
+  "subscribed_button": "Subscribing",
+  "feed_show_button": "Show feed",
+  "feeds_toggle_creator": "Show creator",
+  "popular_feeds": "Popular Feeds",
+  "tokimeki_feeds": "Made by TOKIMEKI\uD83D\uDC99",
+  "use_absolute_time": "Use absolute time",
+  "realtime_follows_count": "Follows count",
+  "realtime_follows_refresh": "Refresh follows",
+  "feature_request_form": "Feature request form"
 }

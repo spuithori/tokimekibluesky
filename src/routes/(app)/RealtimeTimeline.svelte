@@ -13,7 +13,9 @@
     import {_} from "svelte-i18n";
 
     let follows = [];
+    let isFollowsListRefreshing = false;
     let socket;
+    let timeId;
 
     const stateMessage = [
         $_('realtime_connecting'),
@@ -32,10 +34,17 @@
 
     async function handleVisibilityChange(event) {
         if (event.target.visibilityState === 'hidden') {
-            socket.close();
+            if (timeId) {
+                clearTimeout(timeId);
+            }
+
+            timeId = setTimeout(() => {
+                socket.close();
+            }, 180000)
         }
 
         if (event.target.visibilityState === 'visible') {
+            clearTimeout(timeId);
             toast.success($_('realtime_connect_status') + ': ' + stateMessage[socket.readyState]);
         }
     }
@@ -141,6 +150,7 @@
     }
 
     async function getFollows() {
+        isFollowsListRefreshing = true;
         let cursor = '';
         let count = 0;
         follows = [];
@@ -148,7 +158,7 @@
         try {
             follows = [...follows, $agent.did()];
 
-            while(cursor !== undefined && count < 10) {
+            while(cursor !== undefined && count < 30) {
                 const res = await $agent.agent.api.app.bsky.graph.getFollows({actor: $agent.did(), limit: 100, cursor: cursor});
 
                 res.data.follows.forEach(follow => {
@@ -159,18 +169,29 @@
                 cursor = res.data.cursor;
             }
 
+            localStorage.setItem('follows', JSON.stringify(follows));
+
             toast.success($_('realtime_success_get_follows') + ': ' + follows.length);
+            isFollowsListRefreshing = false;
         } catch(e) {
             toast.error($_('realtime_failed_get_follows'));
             dispatch('disconnect');
+            isFollowsListRefreshing = false;
             throw new Error(e);
         }
     }
 
-    onMount(async () => {
-        timeline.set([]);
+    async function refreshFollowsList() {
+        await getFollows();
+    }
 
-        if (!follows.length) {
+    onMount(async () => {
+        const res = await $agent.getTimeline({limit: 20, cursor: '', algorithm: $currentAlgorithm});
+        timeline.set(res.data.feed);
+
+        if (localStorage.getItem('follows')) {
+            follows = JSON.parse(localStorage.getItem('follows'))
+        } else {
             await getFollows();
         }
 
@@ -186,6 +207,12 @@
 
 <div class="realtime-wrap">
   <div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
+    <div class="realtime-follows">
+      <p class="realtime-follows__count">{$_('realtime_follows_count')}: {follows.length}</p>
+
+      <button class="button button--ss" disabled={isFollowsListRefreshing} on:click={refreshFollowsList}>{$_('realtime_follows_refresh')}</button>
+    </div>
+
     {#if ($timelineStyle === 'default')}
       {#each $timeline as data, index (data)}
         <TimelineItem data={ data } index={index}></TimelineItem>
@@ -200,7 +227,7 @@
       </div>
     {/if}
 
-    <p class="realtime-note">実験的機能。通信量にご注意ください。<br>フォロー数1000まで。1000人以上いる場合は直近のフォローが取得されます。<br>取得漏れが発生する可能性があります。<br>Experimental feature. Please note the amount of traffic.<br>Up to 1000 followers; if there are more than 1000 followers, the most recent followings will be retrieved.<br>Failure to retrieve submissions may occur.</p>
+    <p class="realtime-note">実験的機能。通信量にご注意ください。<br>フォロー数3000まで。3000人以上いる場合は直近のフォローが取得されます。<br>取得漏れが発生する可能性があります。<br>Experimental feature. Please note the amount of traffic.<br>Up to 1000 followers; if there are more than 1000 followers, the most recent followings will be retrieved.<br>Failure to retrieve submissions may occur.</p>
   </div>
 </div>
 
@@ -208,5 +235,12 @@
   .realtime-note {
       font-size: 14px;
       margin-top: 20px;
+  }
+
+  .realtime-follows {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
   }
 </style>

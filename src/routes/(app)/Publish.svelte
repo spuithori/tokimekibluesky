@@ -200,6 +200,10 @@ function handleKeydown(event: { key: string; }) {
         }, 100)
     }
 
+    if (event.key === '/' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
+        goto('/search');
+    }
+
     if (event.key === 'Escape' && isFocus) {
         isFocus = false;
         publishArea.blur();
@@ -740,7 +744,7 @@ onMount(async () => {
             imageResizeTargetWidth={2000}
             imageResizeTargetHeight={2000}
             imageResizeMode={'contain'}
-            acceptedFileTypes={'image/jpeg, image/png'}
+            acceptedFileTypes={'image/jpeg, image/png, image/webp'}
             imageTransformOutputMimeType={'image/jpeg'}
             imageTransformOutputQuality={'75'}
             onpreparefile={(file, output) => {onFileSelected(file, output)}}

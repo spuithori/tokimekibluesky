@@ -10,8 +10,12 @@
     import toast from "svelte-french-toast";
     import Menu from "$lib/components/ui/Menu.svelte";
     import { fly } from 'svelte/transition';
+    import {RichText} from '@atproto/api';
+    import ProfileCardWrapper from '../../ProfileCardWrapper.svelte';
+    import { getTextArray, isUriLocal } from '$lib/richtext';
 
     let profile;
+    let textArray;
 
     export let data: LayoutData;
     let currentPage = 'posts';
@@ -34,6 +38,9 @@
 
         const res = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
         profile = res.data;
+
+        textArray = new RichText({text: profile.description});
+        await textArray.detectFacets($agent.agent);
     }
 
     async function getFirstRecord(handle) {
@@ -206,7 +213,23 @@
 
           {#if (profile.description)}
             <div class="profile-description">
-              <p class="profile-description__text">{profile.description}</p>
+              <p class="profile-description__text">
+                {#each getTextArray(textArray) as item}
+                  {#if (item.isLink() && item.link)}
+                    {#if (isUriLocal(item.link.uri))}
+                      <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
+                    {:else}
+                      <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+                    {/if}
+                  {:else if (item.isMention() && item.mention)}
+                    <ProfileCardWrapper handle="{item.text.slice(1)}">
+                      <a href="/profile/{item.text.slice(1)}">{item.text}</a>
+                    </ProfileCardWrapper>
+                  {:else}
+                    <span>{item.text}</span>
+                  {/if}
+                {/each}
+              </p>
             </div>
           {/if}
 

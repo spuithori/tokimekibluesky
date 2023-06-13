@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, settings, currentAlgorithm } from '$lib/stores';
+  import { agent, settings, currentAlgorithm, preferences } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -16,7 +16,17 @@
   import {scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
 
-  inject({ mode: dev ? 'development' : 'production' });
+  inject(
+      {
+          mode: dev ? 'development' : 'production',
+          beforeSend: event => {
+              if (event.url.includes('/settings') || event.url.includes('/login') || event.url.includes('/search') || event.url.includes('/shared')) {
+                  return null;
+              }
+              return event;
+          }
+      },
+  );
 
   let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
   let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
@@ -89,6 +99,9 @@
               }
           })
       }
+
+      const prefRes = await $agent.agent.api.app.bsky.actor.getPreferences();
+      preferences.set(prefRes.data.preferences);
   });
 
   function handleScroll(event) {
