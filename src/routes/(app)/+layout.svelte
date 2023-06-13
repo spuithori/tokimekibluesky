@@ -16,7 +16,17 @@
   import {scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
 
-  inject({ mode: dev ? 'development' : 'production' });
+  inject(
+      {
+          mode: dev ? 'development' : 'production',
+          beforeSend: event => {
+              if (event.url.includes('/settings') || event.url.includes('/login') || event.url.includes('/search') || event.url.includes('/shared')) {
+                  return null;
+              }
+              return event;
+          }
+      },
+  );
 
   let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
   let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
