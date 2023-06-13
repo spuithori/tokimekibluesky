@@ -5,6 +5,7 @@
     import TimelineItem from "../../../../TimelineItem.svelte";
     import InfiniteLoading from 'svelte-infinite-loading';
     import MediaTimelineItem from "../../../../MediaTimelineItem.svelte";
+    import {beforeNavigate} from "$app/navigation";
 
     timeline.set([]);
     cursor.set(undefined);
@@ -28,6 +29,11 @@
             complete();
         }
     }
+
+    beforeNavigate(async() => {
+        timeline.set([]);
+        cursor.set(undefined);
+    })
 </script>
 
 <div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
