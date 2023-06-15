@@ -1,27 +1,26 @@
 <script lang="ts">
-    import { agent, cursor } from '$lib/stores';
-    import { timeline, settings, currentAlgorithm, timelineStyle } from '$lib/stores';
+    import { agent, timelines, cursors, settings } from '$lib/stores';
     import TimelineItem from './TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import {afterUpdate, onMount} from 'svelte';
     import MediaTimelineItem from './MediaTimelineItem.svelte';
     import { db } from '$lib/db';
 
-    export let isRefreshing;
+    export let column;
+    export let index;
     let il;
 
     let paged = 0;
     let feeds;
 
-    if (typeof $cursor !== 'number') {
-        cursor.set(0);
+    if (typeof $cursors[index] !== 'number') {
+        $cursors[index] = 0;
     }
 
     async function getQuery(paged) {
         const feeds = await db.feeds
             .orderBy('indexedAt')
             .reverse()
-            .filter(feed => feed.bookmark === Number($currentAlgorithm.list))
+            .filter(feed => feed.bookmark === Number(column.algorithm.list))
             .offset(paged * 20)
             .limit(20)
             .toArray();
@@ -30,45 +29,38 @@
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        if (!isRefreshing) {
-            feeds = await getQuery($cursor);
+        feeds = await getQuery($cursors[index]);
 
-            if (feeds?.length) {
-                const uris = feeds.map(feed => feed.uri);
-                console.log(uris)
-                const res = await $agent.getTimeline({algorithm: $currentAlgorithm, uris: uris});
-                timeline.update(function (tl) {
-                    let posts = [];
-                    res.data.posts.forEach(post => {
-                        const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
-                        posts.push({post: post, bookmarkId: id});
-                    })
-                    return [...tl, ...posts];
-                });
+        if (feeds?.length) {
+            const uris = feeds.map(feed => feed.uri);
+            console.log(uris)
+            const res = await $agent.getTimeline({algorithm: column.algorithm, uris: uris});
 
-                console.log($timeline);
+            const posts = res.data.posts.map(post => {
+                const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
+                return { post: post, bookmarkId: id };
+            })
+            $timelines[index] = [...$timelines[index], ...posts];
 
-                cursor.set($cursor + 1);
-                loaded();
-            } else {
-                complete();
-            }
+            console.log($timelines[index]);
+
+            //cursor.set($cursor + 1);
+            $cursors[index] = $cursors[index] + 1;
+            loaded();
+        } else {
+            complete();
         }
     }
-
-    afterUpdate(async() => {
-        il.$$.update();
-    })
 </script>
 
 <div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
-  {#if ($timelineStyle === 'default')}
-    {#each $timeline as data, index (data)}
+  {#if (column.style === 'default')}
+    {#each $timelines[index] as data, index (data)}
       <TimelineItem data={ data } index={index}></TimelineItem>
     {/each}
   {:else}
     <div class="media-list">
-      {#each $timeline as data (data)}
+      {#each $timelines[index] as data (data)}
         {#if (data.post.embed?.images)}
           <MediaTimelineItem data={data}></MediaTimelineItem>
         {/if}

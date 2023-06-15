@@ -98,6 +98,17 @@
     z-index: 10;
     border: 2px solid var(--primary-color);
 
+    &--decks {
+        position: absolute;
+        left: auto;
+        bottom: auto;
+        top: 40px;
+        right: 10px;
+        width: 40px;
+        border: none;
+        box-shadow: none;
+    }
+
     @media (max-width: 767px) {
         bottom: 100px;
         right: 0;

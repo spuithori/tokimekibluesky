@@ -13,6 +13,29 @@ type currentAlgorithm = {
     list?: object,
 }
 
+type columns = {
+    id?: string,
+    algorithm: currentAlgorithm,
+    style: 'default' | 'media',
+}
+
+type cursor = string | number | undefined;
+
+const defaultColumns = [{
+    algorithm: {
+        type: 'default',
+        name: 'HOME'
+    },
+    style: 'default'
+}];
+const storageColumns = localStorage.getItem('columns') || JSON.stringify(defaultColumns);
+export const columns = writable<columns[]>(JSON.parse(storageColumns));
+
+export const timelines = writable([]);
+export const cursors = writable<cursor[]>([]);
+
+export const currentTimeline = writable<number>(0);
+
 export const service = writable(localStorage.getItem('service') || 'https://bsky.social');
 export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) || []);
 
@@ -41,19 +64,9 @@ export const currentAlgorithm = writable<currentAlgorithm>({
     type: 'default',
 });
 
-export const disableAlgorithm = writable(localStorage.getItem('disableAlgorithm') || 'false');
-
 export const notificationCount = writable(0);
 
 export const notifications = writable<NotificationWithFeed[]>([]);
-
-export const isLogin = writable(false);
-
-export const isDarkMode = writable(localStorage.getItem('darkmode') || 'false');
-
-export const theme = writable(localStorage.getItem('theme') || 'superorange');
-
-export const nonoto = writable(localStorage.getItem('nonoto') || 'false');
 
 export const hideRepost = writable(localStorage.getItem('hideRepost') || 'false');
 
@@ -67,11 +80,7 @@ export const sharedText = writable<string>('');
 
 export const userLists = writable(localStorage.getItem('lists')
     ? JSON.parse(localStorage.getItem('lists'))
-    : [])
-
-export const contentLabels = writable(localStorage.getItem('contentLabels')
-    ? localStorage.getItem('contentLabels')
-    : '')
+    : []);
 
 export const bookmarksStore = writable(undefined);
 
