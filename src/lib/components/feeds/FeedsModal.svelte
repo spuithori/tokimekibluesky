@@ -39,11 +39,13 @@
     onMount(async () => {
         await getSavedFeeds();
 
-        const popularRes = await $agent.agent.api.app.bsky.unspecced.getPopularFeedGenerators();
-        popularFeeds = popularRes.data.feeds;
-        console.log(popularFeeds)
-
-        const tokimekiRes = await $agent.agent.api.app.bsky.feed.getActorFeeds({actor: 'holybea.bsky.social'});
+        if ($agent.agent.service.host === 'bsky.social') {
+            const popularRes = await $agent.agent.api.app.bsky.unspecced.getPopularFeedGenerators();
+            popularFeeds = popularRes.data.feeds;
+            console.log(popularFeeds)
+        }
+        
+        const tokimekiRes = await $agent.agent.api.app.bsky.feed.getActorFeeds({actor: $agent.agent.service.host === 'bsky.social' ? 'holybea.bsky.social' : 'holybea.nextsky.tokimeki.blue'});
         tokimekiFeeds = tokimekiRes.data.feeds;
     })
 </script>
@@ -62,15 +64,17 @@
       </div>
     </div>
 
-    <div class="feeds-group">
-      <h3 class="feeds-group-title">{$_('popular_feeds')}</h3>
+    {#if ($agent.agent.service.host === 'bsky.social')}
+      <div class="feeds-group">
+        <h3 class="feeds-group-title">{$_('popular_feeds')}</h3>
 
-      <div class="feeds-list">
-        {#each popularFeeds as feed}
-          <FeedsItem feed={feed} subscribed={isSaved(feed)} on:close></FeedsItem>
-        {/each}
+        <div class="feeds-list">
+          {#each popularFeeds as feed}
+            <FeedsItem feed={feed} subscribed={isSaved(feed)} on:close></FeedsItem>
+          {/each}
+        </div>
       </div>
-    </div>
+    {/if}
 
     <div class="feeds-modal-close">
       <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
