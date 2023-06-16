@@ -39,7 +39,7 @@
         }
     }
 
-    if (Array.isArray(columns) && !columns.length) {
+    if (Array.isArray($columns) && !$columns.length) {
         columns.set([
             {
                 algorithm: {

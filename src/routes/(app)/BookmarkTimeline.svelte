@@ -16,6 +16,10 @@
         $cursors[index] = 0;
     }
 
+    if(!$timelines[index]) {
+        $timelines[index] = [];
+    }
+
     async function getQuery(paged) {
         const feeds = await db.feeds
             .orderBy('indexedAt')

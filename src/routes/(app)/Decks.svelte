@@ -2,43 +2,35 @@
     import {agent, columns, currentAlgorithm, cursor, notificationCount, timeline} from '$lib/stores';
     import {_} from "svelte-i18n";
     import TimelineSelector from "./TimelineSelector.svelte";
+    import ColumnModal from "$lib/components/column/ColumnModal.svelte";
+    let isColumnModalOpen = false;
 
-    columns.set([
-        {
-            algorithm: {
-                type: 'default',
-                name: 'HOME'
+    function handleColumnModalClose() {
+        isColumnModalOpen = false;
+    }
+
+    if (Array.isArray($columns) && !$columns.length) {
+        columns.set([
+            {
+                algorithm: {
+                    type: 'default',
+                    name: 'HOME'
+                },
+                style: 'default'
             },
-            style: 'default'
-        },
-        {
-            algorithm: {
-                type: 'custom',
-                name: 'Mentions',
-                algorithm: 'at://did:plc:wzsilnxf24ehtmmc3gssy5bu/app.bsky.feed.generator/mentions'
-            },
-            style: 'default'
-        },
-        {
-            algorithm: {
-                type: 'custom',
-                name: 'Japanese Language',
-                algorithm: 'at://did:plc:q6gjnaw2blty4crticxkmujt/app.bsky.feed.generator/cl-japanese'
-            },
-            style: 'default'
-        },
-        {
-            algorithm: {
-                type: 'custom',
-                name: 'Japanese and Images',
-                algorithm: 'at://did:plc:hiptcrt4k63szzz4ty3dhwcp/app.bsky.feed.generator/ja-images'
-            },
-            style: 'media'
-        }
-    ]);
+        ]);
+    }
 </script>
 
 <h1 class="page-nav-title">DECKS</h1>
+
+{#if isColumnModalOpen}
+  <ColumnModal on:close={handleColumnModalClose}></ColumnModal>
+{/if}
+
+<div class="decks-nav">
+  <button class="button" on:click={() => {isColumnModalOpen = true}}>せってい</button>
+</div>
 
 <div class="deck-wrap">
   <div class="deck">
@@ -123,5 +115,11 @@
           border-radius: 10px 10px 0 0;
           letter-spacing: .025em;
       }
+  }
+
+  .decks-nav {
+      position: absolute;
+      left: 0;
+      top: 0;
   }
 </style>
