@@ -84,7 +84,7 @@
       padding-top: 40px;
 
       @media (max-width: 767px) {
-          width: calc(100vw);
+          width: 100vw;
           scroll-snap-align: start;
           box-shadow: none;
       }

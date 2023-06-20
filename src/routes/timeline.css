@@ -864,5 +864,9 @@
         position: absolute !important;
         z-index: 20;
         top: 4px;
+
+        @media (max-width: 767px) {
+            margin-left: 20px !important;
+        }
     }
 }
