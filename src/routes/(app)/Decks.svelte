@@ -71,6 +71,8 @@
 
       @media (max-width: 767px) {
           scroll-snap-type: x mandatory;
+          top: 85px;
+          padding-bottom: 45px;
       }
   }
 
@@ -82,7 +84,7 @@
       padding-top: 40px;
 
       @media (max-width: 767px) {
-          width: calc(100vw - 20px);
+          width: calc(100vw);
           scroll-snap-align: start;
           box-shadow: none;
       }
@@ -123,6 +125,10 @@
           z-index: 10;
           border-radius: 10px 10px 0 0;
           letter-spacing: .025em;
+
+          @media (max-width: 767px) {
+              font-size: 15px;
+          }
       }
   }
 
