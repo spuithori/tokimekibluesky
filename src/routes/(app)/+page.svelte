@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { agent, columns, userLists, settings, preferences } from '$lib/stores';
+	import { columns, settings } from '$lib/stores';
 	import Decks from "./Decks.svelte";
 	import Single from "./Single.svelte";
 
@@ -13,12 +13,6 @@
 				style: 'default'
 			}];
 		}
-
-		/* if ($columns[$currentTimeline].algorithm.type === 'list' && $columns[$currentTimeline].algorithm.list && $userLists.some(list => list.id === $columns[$currentTimeline].algorithm.list.id)) {
-			$columns[$currentTimeline].algorithm = {type: 'list', list: $userLists.find(list => list.id === $columns[$currentTimeline].algorithm.list.id)}
-		} */
-
-		// console.log($columns[$currentTimeline].algorithm)
 	}
 </script>
 

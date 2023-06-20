@@ -68,15 +68,15 @@
       </dt>
 
       <dd class="settings-group__content">
-        <div class="radio-group">
-          <div class="radio">
-            <input type="radio" bind:group={layout} id="layoutDefault" name="default" value={'default'}>
-            <label for="layoutDefault"><span class="radio__ui"></span>{$_('default')}</label>
+        <div class="icons-radio-group">
+          <div class="icons-radio">
+            <input type="radio" bind:group={layout} id="layoutDefault" name="layout" value={'default'}>
+            <label for="layoutDefault"><span class="icons-radio__ui"><svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><defs><linearGradient id="a" x1=".5" x2=".5" y2=".749" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="var(--bg-color-1)" stop-opacity="0"/><stop offset="1" stop-color="var(--bg-color-1)"/></linearGradient></defs><g data-name="グループ 123" transform="translate(-663 -677)"><g class="icons-radio__g" data-name="長方形 117" transform="translate(663 677)" fill="var(--bg-color-1)" stroke="var(--border-color-1)"><rect width="75" height="75" rx="4" stroke="none"/><rect x=".5" y=".5" width="74" height="74" rx="3.5" fill="none"/></g><rect data-name="長方形 155" width="34" height="55" rx="4" transform="translate(684 690)" fill="#d5d5d5"/><rect data-name="長方形 130" width="73" height="26" rx="4" transform="translate(664 725)" fill="url(#a)"/></g></svg></span>{$_('default')}</label>
           </div>
 
-          <div class="radio">
-            <input type="radio" bind:group={layout} id="layoutDecks" name="decks" value={'decks'}>
-            <label for="layoutDecks"><span class="radio__ui"></span>{$_('decks')}</label>
+          <div class="icons-radio">
+            <input type="radio" bind:group={layout} id="layoutDecks" name="layout" value={'decks'}>
+            <label for="layoutDecks"><span class="icons-radio__ui icons-radio__ui--ignorefill"><svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><defs><clipPath id="a"><rect data-name="長方形 156" width="75" height="75" rx="4" transform="translate(847 679)" fill="var(--bg-color-1)" stroke="var(--border-color-1)"/></clipPath></defs><g  data-name="グループ 124"><g class="icons-radio__g" data-name="長方形 110" fill="var(--bg-color-1)" stroke="var(--border-color-1)"><rect width="75" height="75" rx="4" stroke="none"/><rect x=".5" y=".5" width="74" height="74" rx="3.5" fill="none"/></g><path data-name="パス 52" d="M25.507 12.825s12.346 13.294 0 25.753 0 23.6 0 23.6" fill="none" stroke="#e0e0e0" stroke-width="2"/><path data-name="パス 53" d="M37.481 12.825s12.346 13.294 0 25.753 0 23.6 0 23.6" fill="none" stroke="#e0e0e0" stroke-width="2"/><path data-name="パス 54" d="M49.494 12.825s12.346 13.294 0 25.753 0 23.6 0 23.6" fill="none" stroke="#e0e0e0" stroke-width="2"/><g data-name="マスクグループ 8" transform="translate(-847 -679)" clip-path="url(#a)"><path data-name="パス 55" d="M922 679v33.17L888.83 679Z" fill="#01b7ed"/></g><g fill="var(--bg-color-1)"><path data-name="パス 56" d="M61.226 4h8.9a.511.511 0 0 1 .527.518.6.6 0 0 1-.143.363l-.022.031a2.008 2.008 0 0 0-.284.883v8.531a2.248 2.248 0 0 1-2.245 2.245h-5.386a2.248 2.248 0 0 1-2.245-2.245V6.918c0-.476-.059-.553-.96-.678a.449.449 0 0 1-.387-.44c0-.726.6-1.8 2.245-1.8Zm8.274.9h-8.274c-.766 0-1.1.285-1.239.534a1.351 1.351 0 0 1 1.239 1.487v7.408a1.349 1.349 0 0 0 1.347 1.347h5.388a1.349 1.349 0 0 0 1.347-1.347V5.8a2.47 2.47 0 0 1 .191-.9Z"/><path data-name="線 27" d="M69.757 8.492h-8.98a.449.449 0 0 1-.449-.451.449.449 0 0 1 .449-.449h8.98a.449.449 0 0 1 .449.449.449.449 0 0 1-.449.451Z"/></g></g></svg></span>{$_('decks')}</label>
           </div>
         </div>
       </dd>

@@ -230,5 +230,7 @@
   "compact": "コンパクト",
   "minimum": "最小",
   "folding": "折りたたむ",
-  "one_image_no_crop": "画像が1枚のとき、トリミングしない"
+  "one_image_no_crop": "画像が1枚のとき、トリミングしない",
+  "layout": "レイアウト",
+  "decks": "DECKS"
 }
