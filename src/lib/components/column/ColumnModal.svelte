@@ -7,6 +7,7 @@
     import { liveQuery } from 'dexie';
     import { db } from '$lib/db';
     import ColumnList from "$lib/components/column/ColumnList.svelte";
+    import spinner from '$lib/images/loading.svg';
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
     let isLoading = true;
@@ -106,9 +107,23 @@
   <div class="column-modal-contents">
     <h2 class="column-modal-title">{$_('column_settings')}</h2>
 
-    <div class="column-group">
-      <ColumnList items={allColumns}></ColumnList>
-      <ColumnList bind:items={_columns}></ColumnList>
+    <div class="column-group-wrap">
+      {#if (isLoading)}
+        <div class="column-group-loading">
+          <img src={spinner} alt="">
+        </div>
+      {/if}
+
+      <div class="column-group">
+        <div class="column-group__item">
+          <ColumnList items={allColumns}></ColumnList>
+        </div>
+
+        <div class="column-group__item column-group__item--active">
+          <h3 class="column-group__title">{$_('active_columns')}</h3>
+          <ColumnList bind:items={_columns}></ColumnList>
+        </div>
+      </div>
     </div>
 
     <div class="column-modal-close">
@@ -167,28 +182,55 @@
         gap: 20px;
     }
 
-    .column-list {
-        display: grid;
-        gap: 15px;
-
-        &__item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            box-shadow: 0 0 10px var(--box-shadow-color-1);
-            border-radius: 6px;
-        }
-    }
-
-    .column-group-title {
-        margin-bottom: 15px;
-    }
-
     .column-group {
         margin-top: 30px;
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
+
+        @media (max-width: 767px) {
+            grid-template-columns: 1fr;
+        }
+
+        &__item {
+            display: flex;
+            flex-direction: column;
+
+            &--active {
+                padding: 20px;
+                border-radius: 6px;
+                border: 2px solid var(--primary-color);
+                background-color: var(--base-bg-color);
+
+                @media (max-width: 767px) {
+                    padding: 10px;
+                }
+            }
+        }
+
+        &__title {
+            margin-bottom: 20px;
+        }
+    }
+
+    .column-group-wrap {
+        position: relative;
+    }
+
+    .column-group-loading {
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        bottom: -10px;
+        right: -10px;
+        background-color: var(--bg-color-1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        img {
+            width: 50px;
+            height: 50px;
+        }
     }
 </style>

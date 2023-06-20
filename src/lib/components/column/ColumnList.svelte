@@ -24,6 +24,7 @@
         display: grid;
         gap: 15px;
         grid-auto-rows: min-content;
+        height: 100%;
 
         &__item {
             display: flex;
@@ -33,6 +34,7 @@
             box-shadow: 0 0 10px var(--box-shadow-color-1);
             border-radius: 6px;
             font-weight: 600;
+            background-color: var(--bg-color-1);
         }
     }
 </style>
