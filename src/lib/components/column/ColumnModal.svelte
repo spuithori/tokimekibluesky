@@ -1,41 +1,50 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import { agent, columns, userLists, bookmarksStore } from '$lib/stores';
+    import {agent, columns, userLists, timelines, cursors} from '$lib/stores';
     import { createEventDispatcher, onMount } from 'svelte';
     import toast from "svelte-french-toast";
     const dispatch = createEventDispatcher();
     import { liveQuery } from 'dexie';
     import { db } from '$lib/db';
+    import ColumnList from "$lib/components/column/ColumnList.svelte";
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
+    let isLoading = true;
 
     let _columns = $columns;
     let allColumns = [
         {
+            id: 1,
             algorithm: {
                 type: 'default',
                 name: 'HOME',
             },
             style: 'default',
         },
-        {
+    ];
+    if ($agent.agent.service.host === 'bsky.social') {
+        allColumns = [...allColumns, {
+            id: 2,
             algorithm: {
                 type: 'realtime',
                 name: 'REALTIME',
             },
             style: 'default',
-        },
-    ];
+        },]
+    }
     let savedFeeds = [];
-    let selected = [];
 
     function save() {
         try {
-            $columns = allColumns.filter((column, index) => selected[index]);
+            $columns = _columns;
+            $timelines = [];
+            $cursors = [];
+
             dispatch('close', {
                 clear: false,
             });
         } catch (e) {
+            console.error(e);
             toast.error('Error: ' + e);
         }
     }
@@ -45,6 +54,7 @@
 
         savedFeeds.forEach(feed => {
             allColumns = [...allColumns, {
+                id: self.crypto.randomUUID(),
                 algorithm: {
                     type: 'custom',
                     algorithm: feed.uri,
@@ -55,33 +65,40 @@
         })
 
         $bookmarks.forEach(bookmark => {
-            allColumns = [...allColumns, {
-                algorithm: {
-                    type: 'bookmark',
-                    algorithm: String(bookmark.id),
-                    name: bookmark.name,
-                    list: String(bookmark.id),
-                },
-                style: 'default',
-            }]
+            if (bookmark.owner === $agent.did()) {
+                allColumns = [...allColumns, {
+                    id: self.crypto.randomUUID(),
+                    algorithm: {
+                        type: 'bookmark',
+                        algorithm: String(bookmark.id),
+                        name: bookmark.name,
+                        list: String(bookmark.id),
+                    },
+                    style: 'default',
+                }]
+            }
         })
 
         $userLists.forEach(list => {
-            allColumns = [...allColumns, {
-                algorithm: {
-                    type: 'list',
-                    algorithm: String(list.id),
-                    name: list.name,
-                    list: String(list.id),
-                },
-                style: 'default',
-            }]
+            if (list.owner === $agent.did()) {
+                allColumns = [...allColumns, {
+                    id: self.crypto.randomUUID(),
+                    algorithm: {
+                        type: 'list',
+                        algorithm: String(list.id),
+                        name: list.name,
+                        list: String(list.id),
+                    },
+                    style: 'default',
+                }]
+            }
         })
 
-        selected = allColumns.map(column => _columns.some(_column => _column.algorithm.algorithm === column.algorithm.algorithm && _column.algorithm.type === column.algorithm.type))
+        allColumns = allColumns.filter(item => !$columns.some(column => item.algorithm.algorithm === column.algorithm.algorithm && item.algorithm.type === column.algorithm.type));
+        //allColumns = allColumns.filter(item => $columns.some(column => item.algorithm.type === column.algorithm.type ));
 
         console.log(allColumns)
-        console.log(selected)
+        isLoading = false;
     })
 </script>
 
@@ -90,23 +107,8 @@
     <h2 class="column-modal-title">{$_('column_settings')}</h2>
 
     <div class="column-group">
-      <div class="column-list">
-        {#each allColumns as column, index}
-          <div class="column-list__item">
-            <p class="column-list__title">{column.algorithm.name}</p>
-
-
-            <div class="input-toggle">
-              <input
-                  class="input-toggle__input"
-                  id={index} type="checkbox"
-                  bind:checked={selected[index]}
-              >
-              <label class="input-toggle__label" for={index}></label>
-            </div>
-          </div>
-        {/each}
-      </div>
+      <ColumnList items={allColumns}></ColumnList>
+      <ColumnList bind:items={_columns}></ColumnList>
     </div>
 
     <div class="column-modal-close">
@@ -185,5 +187,8 @@
 
     .column-group {
         margin-top: 30px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
 </style>

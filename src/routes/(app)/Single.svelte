@@ -1,9 +1,8 @@
 <script lang="ts">
     import {
         agent,
-        columns,
         currentTimeline,
-        settings, userLists, bookmarksStore, timelines, cursors, preferences
+        settings, userLists, bookmarksStore, timelines, cursors, preferences, singleColumn
     } from '$lib/stores';
     import {_} from "svelte-i18n";
     import TimelineSelector from "./TimelineSelector.svelte";
@@ -39,18 +38,6 @@
         }
     }
 
-    if (Array.isArray($columns) && !$columns.length) {
-        columns.set([
-            {
-                algorithm: {
-                    type: 'default',
-                    name: 'HOME'
-                },
-                style: 'default'
-            },
-        ]);
-    }
-
     $: {
         if (isAlgoNavOpen) {
             document.body.classList.add('scroll-lock');
@@ -75,9 +62,9 @@
     function openAlgoNav(currentAlgo) {
         isAlgoNavOpen = isAlgoNavOpen !== true;
         if (currentAlgo) {
-            $columns[$currentTimeline].algorithm = currentAlgo;
+            $singleColumn.algorithm = currentAlgo;
 
-            if (!isAlgoNavOpen && $columns[$currentTimeline].algorithm.type !== 'realtime') {
+            if (!isAlgoNavOpen && $singleColumn.algorithm.type !== 'realtime') {
                 $timelines[$currentTimeline] = [];
                 $cursors[$currentTimeline] = undefined;
                 unique = Symbol();
@@ -112,18 +99,13 @@
         isBookmarkModalOpen = false;
 
         if (event.detail.clear) {
-            $columns[$currentTimeline].algorithm.type = 'default';
-            //currentAlgorithm.set({type: 'default'});
-            //localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
-            //refresh();
+            resetColumnDefault();
         }
     }
 
     function handleListRemove(event) {
-        if ($columns[$currentTimeline].algorithm.type === 'list' && $columns[$currentTimeline].algorithm.list && event.detail.id === $columns[$currentTimeline].algorithm.list.id) {
-            $columns[$currentTimeline].algorithm.type = 'default';
-            //currentAlgorithm.set({type: 'default'});
-            //localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
+        if ($singleColumn.algorithm.type === 'list' && $singleColumn.algorithm.list && event.detail.id === $singleColumn.algorithm.list) {
+            resetColumnDefault();
         }
 
         userLists.update(lists => {
@@ -137,7 +119,21 @@
     }
 
     function handleListModalClose() {
-        location.reload();
+        isListModalOpen = false;
+    }
+
+    function resetColumnDefault() {
+        $singleColumn = {
+            id: 1,
+            algorithm: {
+                type: 'default',
+                name: 'HOME'
+            },
+            style: 'default'
+        };
+        $timelines[$currentTimeline] = [];
+        $cursors[$currentTimeline] = undefined;
+        unique = Symbol();
     }
 </script>
 
@@ -151,11 +147,11 @@
           <div class="algo-nav-bg"></div>
 
           <ul class="algo-nav-list">
-            {#if ($columns[$currentTimeline].algorithm.type === 'custom')}
+            {#if ($singleColumn.algorithm.type === 'custom')}
               <li class="algo-nav-list__item">
                 <button
                     class="algo-nav-button algo-nav-button--current"
-                    on:click={() => {openAlgoNav(undefined)}}>{$columns[$currentTimeline].algorithm.name}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                    on:click={() => {openAlgoNav(undefined)}}>{$singleColumn.algorithm.name}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
                   <g id="グループ_89" data-name="グループ 89" transform="translate(-1059 -638)">
                     <rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 638)" fill="var(--danger-color)"/>
                     <path id="パス_23" data-name="パス 23" d="M-4.216-12.446v-.781c0-1.385-1.208-2.063-2.859-2.063a4.99,4.99,0,0,0-5.157,5.3A4.893,4.893,0,0,0-7.251-4.961c1.4,0,3.006-.589,3.006-1.975v-.751h-.074a3.975,3.975,0,0,1-2.667.973c-1.9,0-3.212-1.194-3.212-3.566A3.065,3.065,0,0,1-7.06-13.537a3.617,3.617,0,0,1,2.77,1.09Z" transform="translate(1075.028 655.929)" fill="#fff"/>
@@ -165,12 +161,12 @@
             {/if}
 
             <li class="algo-nav-list__item">
-              <button class="algo-nav-button" data-algo-genre="default" data-algo-label="home" class:algo-nav-button--current={$columns[$currentTimeline].algorithm.type === 'default'} on:click={() => {openAlgoNav({type: 'default'})}}>HOME</button>
+              <button class="algo-nav-button" data-algo-genre="default" data-algo-label="home" class:algo-nav-button--current={$singleColumn.algorithm.type === 'default'} on:click={() => {openAlgoNav({type: 'default'})}}>HOME</button>
             </li>
 
             {#if ($agent.agent.service.host === 'bsky.social')}
               <li class="algo-nav-list__item">
-                <button class="algo-nav-button" data-algo-genre="realtime" data-algo-label="home" class:algo-nav-button--current={$columns[$currentTimeline].algorithm.type === 'realtime'} on:click={() => {openAlgoNav({type: 'realtime'})}}>{$_('realtime')}</button>
+                <button class="algo-nav-button" data-algo-genre="realtime" data-algo-label="home" class:algo-nav-button--current={$singleColumn.algorithm.type === 'realtime'} on:click={() => {openAlgoNav({type: 'realtime'})}}>{$_('realtime')}</button>
               </li>
             {/if}
 
@@ -190,7 +186,7 @@
             {#each $userLists as list}
               {#if (list.owner === $agent.did())}
                 <li class="algo-nav-list__item">
-                  <button class="algo-nav-button" data-algo-genre="list" data-algo-label="{list.name}" on:click={() => {openAlgoNav({type: 'list', list: list})}} class:algo-nav-button--current={$columns[$currentTimeline].algorithm.type === 'list' && $columns[$currentTimeline].algorithm.list.id === list.id}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                  <button class="algo-nav-button" data-algo-genre="list" data-algo-label="{list.name}" on:click={() => {openAlgoNav({type: 'list', list: list.id})}} class:algo-nav-button--current={$singleColumn.algorithm.type === 'list' && $singleColumn.algorithm.list === list.id}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
                     <g id="グループ_100" data-name="グループ 100" transform="translate(-1059 -662)">
                       <rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 662)" fill="#2a14b4"/>
                       <path id="パス_26" data-name="パス 26" d="M-.075-1.395v-.7a6.107,6.107,0,0,1-2.145.375h-.525c-1.545,0-1.905-.57-1.905-2.13v-4.92c0-1.02-.435-1.5-1.275-1.5h-.84V-3.72c0,2.46,1.335,3.81,3.75,3.81h.8C-.525.09-.075-.5-.075-1.395Z" transform="translate(1070.42 675.093)" fill="#fff"/>
@@ -211,7 +207,7 @@
               {#each $bookmarks as bookmark}
                 {#if (bookmark.owner === $agent.did())}
                   <li class="algo-nav-list__item">
-                    <button class="algo-nav-button" data-algo-genre="bookmark" data-algo-label="{bookmark.name}" on:click={() => {openAlgoNav({type: 'bookmark', list: String(bookmark.id)})}} class:algo-nav-button--current={$columns[$currentTimeline].algorithm.type === 'bookmark' && $columns[$currentTimeline].algorithm.list === String(bookmark.id)}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                    <button class="algo-nav-button" data-algo-genre="bookmark" data-algo-label="{bookmark.name}" on:click={() => {openAlgoNav({type: 'bookmark', list: String(bookmark.id)})}} class:algo-nav-button--current={$singleColumn.algorithm.type === 'bookmark' && $singleColumn.algorithm.list === String(bookmark.id)}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
                       <g id="グループ_103" data-name="グループ 103" transform="translate(-1082 -686)">
                         <rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1082 686)" fill="#94c74c"/>
                         <path id="パス_29" data-name="パス 29" d="M-.615-3.18A2.557,2.557,0,0,0-2.43-5.43,2.117,2.117,0,0,0-.795-7.605c0-1.68-1.4-2.715-3.36-2.715H-5.4a10.581,10.581,0,0,0-2.715.465V-2.4C-8.115-.8-7.17.045-5.25.045h1.11A3.248,3.248,0,0,0-.615-3.18ZM-2.85-7.425c0,.885-.75,1.245-1.665,1.245H-6.09V-8.505a6.435,6.435,0,0,1,.885-.1h.765C-3.675-8.61-2.85-8.325-2.85-7.425Zm.165,4.305c0,.78-.54,1.29-1.65,1.29h-.84c-.51,0-.9-.285-.9-.645V-4.59H-4.44C-3.24-4.59-2.685-4.23-2.685-3.12Z" transform="translate(1094.365 699.138)" fill="#fff"/>
@@ -270,7 +266,7 @@
 
   <div class="single-timeline-wrap">
     {#key $currentTimeline}
-      <TimelineSelector column={$columns[$currentTimeline]} index={$currentTimeline} unique={unique} bind:refresh={refresh}></TimelineSelector>
+      <TimelineSelector column={$singleColumn} index={$currentTimeline} unique={unique} bind:refresh={refresh}></TimelineSelector>
     {/key}
   </div>
 </div>

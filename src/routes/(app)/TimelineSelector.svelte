@@ -125,11 +125,9 @@
 {/if}
 
 {#if (column.algorithm.type === 'list')}
-  {#if (column.algorithm.list.members.length)}
     {#key unique}
       <ListTimeline column={column} index={index}></ListTimeline>
     {/key}
-  {/if}
 {:else if (column.algorithm.type === 'bookmark')}
     {#key unique}
       <BookmarkTimeline column={column} index={index}></BookmarkTimeline>

@@ -4,7 +4,7 @@
     import toast from 'svelte-french-toast';
     import { _ } from 'svelte-i18n';
     import { db } from '$lib/db';
-    import {agent, timeline} from "$lib/stores";
+    import { agent } from "$lib/stores";
     import {liveQuery} from "dexie";
     const dispatch = createEventDispatcher();
     import { format } from 'date-fns';

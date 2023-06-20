@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, settings, preferences, columns } from '$lib/stores';
+  import {agent, settings, preferences, columns, singleColumn} from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -68,6 +68,7 @@
       locale.set($settings.general.language);
 
       localStorage.setItem('columns', JSON.stringify($columns));
+      localStorage.setItem('singleColumn', JSON.stringify($singleColumn));
 
       if ($settings?.design.darkmode === true) {
           isDarkMode = true;

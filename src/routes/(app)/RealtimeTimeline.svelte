@@ -15,6 +15,10 @@
     export let column;
     export let index;
 
+    if(!$timelines[index]) {
+        $timelines[index] = [];
+    }
+
     let follows = [];
     let isFollowsListRefreshing = false;
     let socket;

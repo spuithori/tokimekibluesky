@@ -53,6 +53,7 @@
     "multiformats": "^11.0.2",
     "postcss-nested": "5.0.1",
     "postcss-preset-env": "*",
+    "svelte-dnd-action": "^0.9.22",
     "svelte-filepond": "^0.2.0",
     "svelte-french-toast": "^1.0.4-beta.0",
     "svelte-i18n": "^3.6.0",

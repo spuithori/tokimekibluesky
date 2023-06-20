@@ -18,7 +18,7 @@
     //timeline.set([]);
     $timelines[index] = [];
 
-    let list = column.algorithm.list;
+    let list = $userLists.find(item => column.algorithm.list === item.id);
     if (!list.members.length) {
         throw new Error('Empty List.');
     }

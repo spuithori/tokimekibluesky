@@ -14,7 +14,7 @@ type currentAlgorithm = {
 }
 
 type columns = {
-    id?: string,
+    id?: string | number,
     algorithm: currentAlgorithm,
     style: 'default' | 'media',
 }
@@ -22,6 +22,7 @@ type columns = {
 type cursor = string | number | undefined;
 
 const defaultColumns = [{
+    id: 1,
     algorithm: {
         type: 'default',
         name: 'HOME'
@@ -34,6 +35,10 @@ export const columns = writable<columns[]>(JSON.parse(storageColumns));
 export const timelines = writable([]);
 export const cursors = writable<cursor[]>([]);
 
+const storageSingleColumn = localStorage.getItem('singleColumn') || JSON.stringify(defaultColumns[0]);
+
+export const singleColumn = writable<columns>(JSON.parse(storageSingleColumn));
+
 export const currentTimeline = writable<number>(0);
 
 export const service = writable(localStorage.getItem('service') || 'https://bsky.social');
@@ -41,24 +46,6 @@ export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) ||
 
 export const currentAccount = writable(localStorage.getItem('currentAccount') || '0');
 export const agent = writable<Agent>();
-
-function createTimeline () {
-    const { subscribe, set, update } = writable<AppBskyFeedDefs.FeedViewPost[]>([]);
-
-    return {
-        subscribe,
-        set,
-        update,
-        asyncUpdate: async () => {
-            await update(n => n);
-        },
-    };
-}
-
-export const timeline = createTimeline();
-export const cursor = writable<string | undefined>('');
-
-export const timelineStyle = writable(localStorage.getItem('timelineStyle') || 'default');
 
 export const currentAlgorithm = writable<currentAlgorithm>({
     type: 'default',

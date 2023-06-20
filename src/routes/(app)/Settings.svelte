@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { currentAlgorithm } from '$lib/stores';
+    import {columns, singleColumn} from '$lib/stores';
     import { goto } from '$app/navigation';
     import { fade, fly } from 'svelte/transition';
     import { unsub } from '$lib/pushSubscription';
@@ -18,9 +18,16 @@
         accounts.splice(currentAccount, 1)
         localStorage.setItem('accounts', JSON.stringify(accounts));
         await unsub();
-        currentAlgorithm.set({type: 'default'});
-        localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
         localStorage.removeItem('follows');
+
+        $columns = [];
+        $singleColumn = {
+            algorithm: {
+                type: 'default',
+                name: 'HOME'
+            },
+            style: 'default'
+        }
 
         if (accounts.length > 0) {
             localStorage.setItem('currentAccount', String(Number(accounts.length - 1)));
@@ -33,8 +40,16 @@
     async function addAccount() {
         const setAccount = accounts.length;
         localStorage.setItem('currentAccount', String(setAccount));
-        currentAlgorithm.set({type: 'default'});
-        localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
+
+        $columns = [];
+        $singleColumn = {
+            algorithm: {
+                type: 'default',
+                name: 'HOME'
+            },
+            style: 'default'
+        }
+
         goto('/login');
     }
 
