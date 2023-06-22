@@ -65,7 +65,9 @@
             realtimeConnect();
             return;
         } else {
-            location.reload();
+            $timelines[index] = [];
+            $cursors[index] = undefined;
+            unique = Symbol();
         }
 
         isRefreshing = false;

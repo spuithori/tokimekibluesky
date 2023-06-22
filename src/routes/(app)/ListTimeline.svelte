@@ -19,9 +19,6 @@
     $timelines[index] = [];
 
     let list = $userLists.find(item => column.algorithm.list === item.id);
-    if (!list.members.length) {
-        throw new Error('Empty List.');
-    }
 
     list.members.forEach(member => {
         actors.push({
@@ -113,25 +110,31 @@
     }
 </script>
 
-<div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
-  {#if (column.style === 'default')}
-    {#each $timelines[index] as data, index (data)}
-      <TimelineItem data={ data } index={index}></TimelineItem>
-    {/each}
-  {:else}
-    <div class="media-list">
-      {#each $timelines[index] as data (data)}
-        {#if (data.post.embed?.images)}
-          <MediaTimelineItem data={data}></MediaTimelineItem>
-        {/if}
+{#if (list.members.length)}
+  <div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
+    {#if (column.style === 'default')}
+      {#each $timelines[index] as data, index (data)}
+        <TimelineItem data={ data } index={index}></TimelineItem>
       {/each}
-    </div>
-  {/if}
+    {:else}
+      <div class="media-list">
+        {#each $timelines[index] as data (data)}
+          {#if (data.post.embed?.images)}
+            <MediaTimelineItem data={data}></MediaTimelineItem>
+          {/if}
+        {/each}
+      </div>
+    {/if}
 
-  <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-  </InfiniteLoading>
-</div>
+    <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
+      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+    </InfiniteLoading>
+  </div>
+{:else}
+  <div class="timeline timeline--main">
+    空のリスト
+  </div>
+{/if}
 
 <style>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import {agent, columns, userLists, timelines, cursors} from '$lib/stores';
+    import {agent, columns, userLists, timelines, cursors, listModal, bookmarkModal, feedsModal} from '$lib/stores';
     import { createEventDispatcher, onMount } from 'svelte';
     import toast from "svelte-french-toast";
     const dispatch = createEventDispatcher();
@@ -8,6 +8,9 @@
     import { db } from '$lib/db';
     import ColumnList from "$lib/components/column/ColumnList.svelte";
     import spinner from '$lib/images/loading.svg';
+    import FeedsObserver from "$lib/components/feeds/FeedsObserver.svelte";
+    import BookmarkObserver from "$lib/components/bookmark/BookmarkObserver.svelte";
+    import ListObserver from "$lib/components/list/ListObserver.svelte";
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
     let isLoading = true;
@@ -35,6 +38,8 @@
     }
     let savedFeeds = [];
 
+
+
     function save() {
         try {
             $columns = _columns;
@@ -50,22 +55,34 @@
         }
     }
 
-    onMount(async () => {
-        savedFeeds = await $agent.getSavedFeeds();
+    function handleFeedsClose() {
+        updateFeeds();
+    }
 
-        savedFeeds.forEach(feed => {
-            allColumns = [...allColumns, {
-                id: self.crypto.randomUUID(),
-                algorithm: {
-                    type: 'custom',
-                    algorithm: feed.uri,
-                    name: feed.name,
-                },
-                style: 'default',
-            }]
-        })
+    function handleBookmarkClose(event) {
+        if (event.detail.id) {
+            _columns = _columns.filter(_column => _column.algorithm.type !== 'bookmark' || Number(_column.algorithm.algorithm) !== event.detail.id)
+        }
+    }
 
-        $bookmarks.forEach(bookmark => {
+    function handleListClose(event) {
+        if (event.detail.id) {
+            console.log(event.detail.id)
+            _columns = _columns.filter(_column => _column.algorithm.type !== 'list' || _column.algorithm.algorithm !== event.detail.id)
+        }
+    }
+
+    $: updateBookmark($bookmarks);
+    $: updateList($userLists);
+
+    function updateBookmark(bookmarks) {
+        if (!bookmarks) {
+            return false;
+        }
+
+        allColumns = allColumns.filter(column => column.algorithm.type !== 'bookmark');
+
+        bookmarks.forEach(bookmark => {
             if (bookmark.owner === $agent.did()) {
                 allColumns = [...allColumns, {
                     id: self.crypto.randomUUID(),
@@ -78,9 +95,19 @@
                     style: 'default',
                 }]
             }
-        })
+        });
 
-        $userLists.forEach(list => {
+        margeAllColumns();
+    }
+
+    function updateList(lists) {
+        if (!lists) {
+            return false;
+        }
+
+        allColumns = allColumns.filter(column => column.algorithm.type !== 'list');
+
+        lists.forEach(list => {
             if (list.owner === $agent.did()) {
                 allColumns = [...allColumns, {
                     id: self.crypto.randomUUID(),
@@ -93,10 +120,40 @@
                     style: 'default',
                 }]
             }
-        })
+        });
 
-        allColumns = allColumns.filter(item => !$columns.some(column => item.algorithm.algorithm === column.algorithm.algorithm && item.algorithm.type === column.algorithm.type));
-        //allColumns = allColumns.filter(item => $columns.some(column => item.algorithm.type === column.algorithm.type ));
+        margeAllColumns();
+    }
+
+    async function updateFeeds() {
+        savedFeeds = await $agent.getSavedFeeds();
+
+        if (allColumns.length) {
+            allColumns = allColumns.filter(column => column.algorithm.type !== 'custom');
+        }
+
+        savedFeeds.forEach(feed => {
+            allColumns = [...allColumns, {
+                id: self.crypto.randomUUID(),
+                algorithm: {
+                    type: 'custom',
+                    algorithm: feed.uri,
+                    name: feed.name,
+                },
+                style: 'default',
+            }]
+        });
+
+        margeAllColumns();
+    }
+
+    function margeAllColumns() {
+        allColumns = allColumns.filter(item => !_columns.some(column => item.algorithm.algorithm === column.algorithm.algorithm && item.algorithm.type === column.algorithm.type));
+    }
+
+    onMount(async () => {
+        await updateFeeds();
+        margeAllColumns();
 
         console.log(allColumns)
         isLoading = false;
@@ -106,6 +163,12 @@
 <div class="column-modal">
   <div class="column-modal-contents">
     <h2 class="column-modal-title">{$_('column_settings')}</h2>
+
+    <div class="column-add-buttons">
+      <button class="column-add-button" on:click={() => {listModal.set({open: true, data: undefined })}}>{$_('create_list')}</button>
+      <button class="column-add-button" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('create_bookmark')}</button>
+      <button class="column-add-button" on:click={() => {$feedsModal.open = true}}>{$_('open_feed_store')}</button>
+    </div>
 
     <div class="column-group-wrap">
       {#if (isLoading)}
@@ -130,6 +193,10 @@
       <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
     </div>
   </div>
+
+  <FeedsObserver on:close={handleFeedsClose}></FeedsObserver>
+  <BookmarkObserver on:close={handleBookmarkClose}></BookmarkObserver>
+  <ListObserver on:close={handleListClose}></ListObserver>
 </div>
 
 <style lang="postcss">
@@ -227,10 +294,37 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        z-index: 10;
 
         img {
             width: 50px;
             height: 50px;
+        }
+    }
+
+    .column-add-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+
+        @media (max-width: 767px) {
+            gap: 10px;
+        }
+    }
+
+    .column-add-button {
+        display: grid;
+        place-content: center;
+        height: 40px;
+        width: 100%;
+        background-color: var(--bg-color-1);
+        box-shadow: 0 0 10px var(--box-shadow-color-1);
+        border-radius: 6px;
+        font-weight: 600;
+
+        @media (max-width: 767px) {
+            font-size: 12px;
+            letter-spacing: -.05em;
         }
     }
 </style>

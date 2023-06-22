@@ -103,3 +103,18 @@ const storageSettings = localStorage.getItem('settings') || JSON.stringify(defau
 export const settings = writable(JSON.parse(storageSettings));
 
 export const preferences = writable();
+
+export const bookmarkModal = writable({
+    open: false,
+    data: undefined,
+})
+
+export const listModal = writable({
+    open: false,
+    data: undefined,
+})
+
+export const feedsModal = writable({
+    open: false,
+    data: undefined,
+})

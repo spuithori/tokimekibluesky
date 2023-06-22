@@ -2,52 +2,38 @@
     import {
         agent,
         currentTimeline,
-        settings, userLists, bookmarksStore, timelines, cursors, preferences, singleColumn
+        settings,
+        userLists,
+        timelines,
+        cursors,
+        singleColumn,
+        bookmarkModal,
+        listModal, feedsModal
     } from '$lib/stores';
     import {_} from "svelte-i18n";
     import TimelineSelector from "./TimelineSelector.svelte";
     import {liveQuery} from "dexie";
     import {db} from "$lib/db";
-    import ListModal from "$lib/components/list/ListModal.svelte";
-    import BookmarkModal from "$lib/components/bookmark/BookmarkModal.svelte";
-    import FeedsModal from "$lib/components/feeds/FeedsModal.svelte";
+    import BookmarkObserver from '$lib/components/bookmark/BookmarkObserver.svelte';
+    import ListObserver from '$lib/components/list/ListObserver.svelte';
+    import IconColumnsList from "$lib/icons/columns/IconColumnsList.svelte";
+    import IconColumnsBookmark from "$lib/icons/columns/IconColumnsBookmark.svelte";
+    import IconColumnsFeed from "$lib/icons/columns/IconColumnsFeed.svelte";
+    import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
+    import FeedsObserver from "$lib/components/feeds/FeedsObserver.svelte";
 
     let isRefreshing = false;
     let isAlgoNavOpen = false;
-    let isListModalOpen = false;
-    let listModalId;
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
-    let isBookmarkModalOpen = false;
-    let isFeedsModalOpen = false;
     let unique = Symbol();
     let refresh;
-    let customFeeds = [];
-
-    async function getSavedFeeds() {
-        const savedFeeds = $preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')[0]?.saved;
-
-        if (savedFeeds) {
-            const res = await $agent.agent.api.app.bsky.feed.getFeedGenerators({feeds: savedFeeds});
-            customFeeds = [];
-            res.data.feeds.forEach(feed => {
-                customFeeds = [...customFeeds, {
-                    uri: feed.uri,
-                    name: feed.displayName,
-                }]
-            })
-        }
-    }
+    let customFeeds = $agent.getSavedFeeds();
 
     $: {
         if (isAlgoNavOpen) {
             document.body.classList.add('scroll-lock');
         } else {
             document.body.classList.remove('scroll-lock');
-        }
-
-        if ($preferences) {
-            customFeeds = [];
-            getSavedFeeds()
         }
     }
 
@@ -72,22 +58,8 @@
         }
     }
 
-    function listAdd(id = undefined) {
-        listModalId = id;
-        isListModalOpen = true;
-    }
-
-    function bookmarkAdd(bookmark = undefined) {
-        isBookmarkModalOpen = true;
-        bookmarksStore.set(bookmark);
-    }
-
-    function feedAdd() {
-        isFeedsModalOpen = true;
-    }
-
-    function handleFeedsModalClose(event) {
-        isFeedsModalOpen = false;
+    function handleFeedsClose(event) {
+        customFeeds = $agent.getSavedFeeds();
 
         if (event.detail.allClose) {
             isAlgoNavOpen = false;
@@ -96,30 +68,17 @@
     }
 
     function handleBookmarkClose(event) {
-        isBookmarkModalOpen = false;
-
         if (event.detail.clear) {
             resetColumnDefault();
+            unique = Symbol();
         }
     }
 
-    function handleListRemove(event) {
+    function handleListClose(event) {
         if ($singleColumn.algorithm.type === 'list' && $singleColumn.algorithm.list && event.detail.id === $singleColumn.algorithm.list) {
             resetColumnDefault();
+            unique = Symbol();
         }
-
-        userLists.update(lists => {
-            return lists.filter(list => list.id !== event.detail.id);
-        });
-        localStorage.setItem('lists', JSON.stringify($userLists));
-
-        //refresh();
-
-        isListModalOpen = false;
-    }
-
-    function handleListModalClose() {
-        isListModalOpen = false;
     }
 
     function resetColumnDefault() {
@@ -133,7 +92,6 @@
         };
         $timelines[$currentTimeline] = [];
         $cursors[$currentTimeline] = undefined;
-        unique = Symbol();
     }
 </script>
 
@@ -161,44 +119,54 @@
             {/if}
 
             <li class="algo-nav-list__item">
-              <button class="algo-nav-button" data-algo-genre="default" data-algo-label="home" class:algo-nav-button--current={$singleColumn.algorithm.type === 'default'} on:click={() => {openAlgoNav({type: 'default'})}}>HOME</button>
+              <button
+                  class="algo-nav-button"
+                  class:algo-nav-button--current={$singleColumn.algorithm.type === 'default'}
+                  on:click={() => {openAlgoNav({type: 'default'})}}
+              >HOME</button>
             </li>
 
             {#if ($agent.agent.service.host === 'bsky.social')}
               <li class="algo-nav-list__item">
-                <button class="algo-nav-button" data-algo-genre="realtime" data-algo-label="home" class:algo-nav-button--current={$singleColumn.algorithm.type === 'realtime'} on:click={() => {openAlgoNav({type: 'realtime'})}}>{$_('realtime')}</button>
+                <button
+                    class="algo-nav-button"
+                    class:algo-nav-button--current={$singleColumn.algorithm.type === 'realtime'}
+                    on:click={() => {openAlgoNav({type: 'realtime'})}}
+                >{$_('realtime')}</button>
               </li>
             {/if}
 
             {#if ($agent.agent.service.host === 'bsky.social')}
-              {#each customFeeds as feed}
-                <li class="algo-nav-list__item">
-                  <button class="algo-nav-button" on:click={() => {openAlgoNav({type: 'custom', algorithm: feed.uri, name: feed.name})}} >{feed.name}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                    <g id="グループ_89" data-name="グループ 89" transform="translate(-1059 -638)">
-                      <rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 638)" fill="var(--danger-color)"/>
-                      <path id="パス_23" data-name="パス 23" d="M-4.216-12.446v-.781c0-1.385-1.208-2.063-2.859-2.063a4.99,4.99,0,0,0-5.157,5.3A4.893,4.893,0,0,0-7.251-4.961c1.4,0,3.006-.589,3.006-1.975v-.751h-.074a3.975,3.975,0,0,1-2.667.973c-1.9,0-3.212-1.194-3.212-3.566A3.065,3.065,0,0,1-7.06-13.537a3.617,3.617,0,0,1,2.77,1.09Z" transform="translate(1075.028 655.929)" fill="#fff"/>
-                    </g>
-                  </svg></button>
-                </li>
-              {/each}
+              {#await customFeeds}
+              {:then feeds}
+                {#each feeds as feed}
+                  <li class="algo-nav-list__item">
+                    <button class="algo-nav-button" on:click={() => {openAlgoNav({type: 'custom', algorithm: feed.uri, name: feed.name})}}>
+                      <IconColumnsFeed></IconColumnsFeed>
+                      {feed.name}</button>
+                  </li>
+                {/each}
+              {/await}
             {/if}
 
             {#each $userLists as list}
               {#if (list.owner === $agent.did())}
                 <li class="algo-nav-list__item">
-                  <button class="algo-nav-button" data-algo-genre="list" data-algo-label="{list.name}" on:click={() => {openAlgoNav({type: 'list', list: list.id})}} class:algo-nav-button--current={$singleColumn.algorithm.type === 'list' && $singleColumn.algorithm.list === list.id}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                    <g id="グループ_100" data-name="グループ 100" transform="translate(-1059 -662)">
-                      <rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1059 662)" fill="#2a14b4"/>
-                      <path id="パス_26" data-name="パス 26" d="M-.075-1.395v-.7a6.107,6.107,0,0,1-2.145.375h-.525c-1.545,0-1.905-.57-1.905-2.13v-4.92c0-1.02-.435-1.5-1.275-1.5h-.84V-3.72c0,2.46,1.335,3.81,3.75,3.81h.8C-.525.09-.075-.5-.075-1.395Z" transform="translate(1070.42 675.093)" fill="#fff"/>
-                    </g>
-                  </svg>
-                    {list.name}</button>
-                  <button class="algo-nav-edit" on:click={() => {listAdd(list.id || undefined)}} aria-label="Edit list"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                    <g id="グループ_99" data-name="グループ 99" transform="translate(-210 -1863)">
-                      <circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(210 1863)" fill="#b3b3b3"/>
-                      <path id="edit-pencil" d="M7.38,2.22l2.4,2.4L2.4,12H0V9.6Zm.84-.84L9.6,0,12,2.4,10.62,3.78Z" transform="translate(216 1869)" fill="#fff"/>
-                    </g>
-                  </svg></button>
+                  <button
+                      class="algo-nav-button"
+                      on:click={() => {openAlgoNav({type: 'list', list: list.id})}}
+                      class:algo-nav-button--current={$singleColumn.algorithm.type === 'list' && $singleColumn.algorithm.list === list.id}
+                  >
+                    <IconColumnsList></IconColumnsList>
+                    {list.name}
+                  </button>
+                  <button
+                      class="algo-nav-edit"
+                      on:click={() => {listModal.set({open: true, data: list.id })}}
+                      aria-label="Edit list"
+                  >
+                    <IconColumnsEdit></IconColumnsEdit>
+                  </button>
                 </li>
               {/if}
             {/each}
@@ -207,34 +175,36 @@
               {#each $bookmarks as bookmark}
                 {#if (bookmark.owner === $agent.did())}
                   <li class="algo-nav-list__item">
-                    <button class="algo-nav-button" data-algo-genre="bookmark" data-algo-label="{bookmark.name}" on:click={() => {openAlgoNav({type: 'bookmark', list: String(bookmark.id)})}} class:algo-nav-button--current={$singleColumn.algorithm.type === 'bookmark' && $singleColumn.algorithm.list === String(bookmark.id)}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                      <g id="グループ_103" data-name="グループ 103" transform="translate(-1082 -686)">
-                        <rect id="長方形_76" data-name="長方形 76" width="16" height="16" transform="translate(1082 686)" fill="#94c74c"/>
-                        <path id="パス_29" data-name="パス 29" d="M-.615-3.18A2.557,2.557,0,0,0-2.43-5.43,2.117,2.117,0,0,0-.795-7.605c0-1.68-1.4-2.715-3.36-2.715H-5.4a10.581,10.581,0,0,0-2.715.465V-2.4C-8.115-.8-7.17.045-5.25.045h1.11A3.248,3.248,0,0,0-.615-3.18ZM-2.85-7.425c0,.885-.75,1.245-1.665,1.245H-6.09V-8.505a6.435,6.435,0,0,1,.885-.1h.765C-3.675-8.61-2.85-8.325-2.85-7.425Zm.165,4.305c0,.78-.54,1.29-1.65,1.29h-.84c-.51,0-.9-.285-.9-.645V-4.59H-4.44C-3.24-4.59-2.685-4.23-2.685-3.12Z" transform="translate(1094.365 699.138)" fill="#fff"/>
-                      </g>
-                    </svg>
-                      {bookmark.name}</button>
-                    <button class="algo-nav-edit" on:click={() => {bookmarkAdd(bookmark || undefined)}} aria-label="Edit list"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                      <g id="グループ_99" data-name="グループ 99" transform="translate(-210 -1863)">
-                        <circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(210 1863)" fill="#b3b3b3"/>
-                        <path id="edit-pencil" d="M7.38,2.22l2.4,2.4L2.4,12H0V9.6Zm.84-.84L9.6,0,12,2.4,10.62,3.78Z" transform="translate(216 1869)" fill="#fff"/>
-                      </g>
-                    </svg></button>
+                    <button
+                        class="algo-nav-button"
+                        on:click={() => {openAlgoNav({type: 'bookmark', list: String(bookmark.id)})}}
+                        class:algo-nav-button--current={$singleColumn.algorithm.type === 'bookmark' && $singleColumn.algorithm.list === String(bookmark.id)}
+                    >
+                      <IconColumnsBookmark></IconColumnsBookmark>
+                      {bookmark.name}
+                    </button>
+                    <button
+                        class="algo-nav-edit"
+                        on:click={() => {bookmarkModal.set({open: true, data: bookmark.id})}}
+                        aria-label="Edit list"
+                    >
+                      <IconColumnsEdit></IconColumnsEdit>
+                    </button>
                   </li>
                 {/if}
               {/each}
             {/if}
 
             <li class="algo-nav-list__item">
-              <button class="algo-nav-button algo-nav-button--add algo-nav-button--add-list" on:click={() => {listAdd(undefined)}}>{$_('create_list')}</button>
+              <button class="algo-nav-button algo-nav-button--add algo-nav-button--add-list" on:click={() => {listModal.set({open: true, data: undefined })}}>{$_('create_list')}</button>
             </li>
 
             <li class="algo-nav-list__item">
-              <button class="algo-nav-button algo-nav-button--add algo-nav-button--add-bookmark" on:click={() => {bookmarkAdd(undefined)}}>{$_('create_bookmark')}</button>
+              <button class="algo-nav-button algo-nav-button--add algo-nav-button--add-bookmark" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('create_bookmark')}</button>
             </li>
 
             <li class="algo-nav-list__item">
-              <button class="algo-nav-button algo-nav-button--add algo-nav-button--add-feed" on:click={feedAdd}>{$_('open_feed_store')}<svg xmlns="http://www.w3.org/2000/svg" width="19.334" height="18.042" viewBox="0 0 19.334 18.042">
+              <button class="algo-nav-button algo-nav-button--add algo-nav-button--add-feed" on:click={() => {$feedsModal.open = true}}>{$_('open_feed_store')}<svg xmlns="http://www.w3.org/2000/svg" width="19.334" height="18.042" viewBox="0 0 19.334 18.042">
                 <g id="storefront-outline" transform="translate(-15.96 -32)">
                   <path id="線_27" data-name="線 27" d="M-15.356-6.335A.644.644,0,0,1-16-6.979v-8.377A.644.644,0,0,1-15.356-16a.644.644,0,0,1,.644.644v8.377A.644.644,0,0,1-15.356-6.335Z" transform="translate(48.715 55.732)" fill="#fff"/>
                   <path id="線_28" data-name="線 28" d="M-15.356-6.335A.644.644,0,0,1-16-6.979v-8.377A.644.644,0,0,1-15.356-16a.644.644,0,0,1,.644.644v8.377A.644.644,0,0,1-15.356-6.335Z" transform="translate(33.251 55.732)" fill="#fff"/>
@@ -251,17 +221,9 @@
       </div>
     {/if}
 
-    {#if (isListModalOpen)}
-      <ListModal id={listModalId} on:close={handleListModalClose} on:remove={handleListRemove}></ListModal>
-    {/if}
-
-    {#if (isBookmarkModalOpen)}
-      <BookmarkModal bookmark={$bookmarksStore} on:close={handleBookmarkClose}></BookmarkModal>
-    {/if}
-
-    {#if (isFeedsModalOpen)}
-      <FeedsModal on:close={handleFeedsModalClose}></FeedsModal>
-    {/if}
+    <FeedsObserver on:close={handleFeedsClose}></FeedsObserver>
+    <BookmarkObserver on:close={handleBookmarkClose}></BookmarkObserver>
+    <ListObserver on:close={handleListClose}></ListObserver>
   </nav>
 
   <div class="single-timeline-wrap">
