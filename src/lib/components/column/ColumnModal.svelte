@@ -321,6 +321,7 @@
         box-shadow: 0 0 10px var(--box-shadow-color-1);
         border-radius: 6px;
         font-weight: 600;
+        color: var(--text-color-1);
 
         @media (max-width: 767px) {
             font-size: 12px;
