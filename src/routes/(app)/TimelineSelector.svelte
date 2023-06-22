@@ -5,7 +5,7 @@
         notificationCount,
         timelines,
         settings,
-        columns,
+        columns, singleColumn,
     } from "$lib/stores";
     import RealtimeTimeline from "./RealtimeTimeline.svelte";
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
@@ -74,7 +74,12 @@
     }
 
     function toggleStyle(style: 'default' | 'media') {
-        $columns[index].style = style;
+        if ($settings?.design.layout === 'decks') {
+            $columns[index].style = style;
+        } else {
+            $singleColumn.style = style;
+        }
+
 
         if (column.algorithm.type !== 'realtime') {
             $timelines[index] = [];
