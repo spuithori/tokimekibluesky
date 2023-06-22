@@ -1,13 +1,12 @@
 <script lang="ts">
-    import { agent, cursor } from '$lib/stores';
-    import { timeline, settings, currentAlgorithm, userLists, timelineStyle } from '$lib/stores';
+    import { agent, settings, userLists, timelines } from '$lib/stores';
     import TimelineItem from './TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import { afterUpdate, onMount } from 'svelte';
     import { parseISO } from 'date-fns';
     import MediaTimelineItem from "./MediaTimelineItem.svelte";
 
-    export let isRefreshing;
+    export let column;
+    export let index;
 
     let actors = [];
     let cursors = [];
@@ -16,12 +15,10 @@
     let feedPool = [];
     let feed = [];
 
-    timeline.set([]);
+    //timeline.set([]);
+    $timelines[index] = [];
 
-    let list = $currentAlgorithm.list;
-    if (!list.members.length) {
-        throw new Error('Empty List.');
-    }
+    let list = $userLists.find(item => column.algorithm.list === item.id);
 
     list.members.forEach(member => {
         actors.push({
@@ -32,7 +29,7 @@
     })
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        const ress = await $agent.getTimeline({limit: 20, cursor: '', algorithm: $currentAlgorithm, actors: actors});
+        const ress = await $agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm, actors: actors});
 
         ress.forEach((res, index) => {
             feedPool.push(...res.data.feed);
@@ -72,10 +69,11 @@
         if (cursors.some(item => item.cursor !== undefined)) {
             await poolRecalc(feedPool);
 
-            timeline.update(function (tl) {
+            /* timeline.update(function (tl) {
                 return [...tl, ...feed];
             });
-            console.log($timeline)
+            console.log($timeline) */
+            $timelines[index] = [...$timelines[index], ...feed];
 
             loaded();
         } else {
@@ -110,31 +108,33 @@
         })
         actors = actors;
     }
-
-    afterUpdate(async() => {
-       // il.$$.update();
-    })
 </script>
 
-<div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
-  {#if ($timelineStyle === 'default')}
-    {#each $timeline as data, index (data)}
-      <TimelineItem data={ data } index={index}></TimelineItem>
-    {/each}
-  {:else}
-    <div class="media-list">
-      {#each $timeline as data (data)}
-        {#if (data.post.embed?.images)}
-          <MediaTimelineItem data={data}></MediaTimelineItem>
-        {/if}
+{#if (list.members.length)}
+  <div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
+    {#if (column.style === 'default')}
+      {#each $timelines[index] as data, index (data)}
+        <TimelineItem data={ data } index={index}></TimelineItem>
       {/each}
-    </div>
-  {/if}
+    {:else}
+      <div class="media-list">
+        {#each $timelines[index] as data (data)}
+          {#if (data.post.embed?.images)}
+            <MediaTimelineItem data={data}></MediaTimelineItem>
+          {/if}
+        {/each}
+      </div>
+    {/if}
 
-  <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-  </InfiniteLoading>
-</div>
+    <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
+      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+    </InfiniteLoading>
+  </div>
+{:else}
+  <div class="timeline timeline--main">
+    空のリスト
+  </div>
+{/if}
 
 <style>
 

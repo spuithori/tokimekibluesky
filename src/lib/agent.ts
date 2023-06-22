@@ -3,6 +3,7 @@ import {AppBskyEmbedImages} from "@atproto/api";
 import toast from "svelte-french-toast";
 import {time} from "svelte-i18n";
 import type { currentAlgorithm } from "../app.d.ts";
+import {agent, preferences} from "$lib/stores";
 
 type timelineOpt = {
     limit: number,
@@ -134,5 +135,27 @@ export class Agent {
     async getNotificationCount() {
         const res = await this.agent.api.app.bsky.notification.getUnreadCount();
         return res.data.count;
+    }
+
+    async getPreferences() {
+        const res = await this.agent.api.app.bsky.actor.getPreferences();
+        return res.data.preferences;
+    }
+
+    async getSavedFeeds() {
+        const preferences = await this.getPreferences();
+        const savedFeeds = preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')[0]?.saved;
+
+        if (savedFeeds) {
+            const res = await this.agent.api.app.bsky.feed.getFeedGenerators({feeds: savedFeeds});
+            let customFeeds = [];
+            res.data.feeds.forEach(feed => {
+                customFeeds = [...customFeeds, {
+                    uri: feed.uri,
+                    name: feed.displayName,
+                }]
+            })
+            return customFeeds;
+        }
     }
 }

@@ -1,15 +1,26 @@
 <script lang="ts">
     import { db } from '$lib/db';
+    import {liveQuery} from 'dexie';
     import { agent } from '$lib/stores';
     import {createEventDispatcher} from 'svelte';
     import toast from 'svelte-french-toast';
     import { _ } from 'svelte-i18n';
     const dispatch = createEventDispatcher();
 
-    export let bookmark;
+    export let id;
+    let bookmark = undefined;
+    let name = '';
+    let text = '';
+    let bookmarks = liveQuery(() => db.bookmarks.toArray());
 
-    let name = bookmark?.name || '';
-    let text = bookmark?.text || '';
+    $: getData($bookmarks);
+
+    function getData(bookmarks) {
+        if (!bookmarks) return false;
+        bookmark = bookmarks.find(bookmark => bookmark.id === id);
+        name = bookmark?.name ?? '';
+        text = bookmark?.text ?? '';
+    }
 
     async function save () {
         try {
@@ -31,12 +42,12 @@
     }
 
     async function remove () {
-        if (bookmark?.id) {
+        if (id) {
             try {
-                const id = await db.bookmarks.delete(bookmark.id);
+                const bid = await db.bookmarks.delete(id);
                 await db.feeds
                     .where('bookmark')
-                    .equals(bookmark.id)
+                    .equals(id)
                     .delete()
                     .then((deleteCount) => {
                         console.log(deleteCount + ' bookmarks deleted.')
@@ -45,6 +56,7 @@
                 toast.success($_('bookmark_delete_success'));
                 dispatch('close', {
                     clear: true,
+                    id: id,
                 });
             } catch (e) {
                 toast.error('Error: ' + e);

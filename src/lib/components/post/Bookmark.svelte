@@ -2,7 +2,7 @@
   import { db } from '$lib/db';
   import {_} from "svelte-i18n";
   import { liveQuery } from 'dexie';
-  import { agent, timeline } from '$lib/stores';
+  import { agent, timelines } from '$lib/stores';
   import toast from "svelte-french-toast";
   import Menu from "$lib/components/ui/Menu.svelte";
 
@@ -60,8 +60,10 @@
           console.log(bookmarkId)
           const id = await db.feeds.delete(bookmarkId);
 
-          timeline.update(function (tl) {
-              return tl.filter(data => data.bookmarkId !== bookmarkId);
+          timelines.update(function (tls) {
+              return tls.map(tl => {
+                  return tl.filter(data => data.bookmarkId !== bookmarkId);
+              });
           });
 
           toast.success($_('bookmark_delete_success'));

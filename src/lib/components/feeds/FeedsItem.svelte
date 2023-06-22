@@ -3,7 +3,7 @@
   import { slide } from 'svelte/transition';
   import { _ } from 'svelte-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
-  import {agent, currentAlgorithm, cursor, timeline} from "$lib/stores";
+  import { agent, currentAlgorithm } from '$lib/stores';
   import {createEventDispatcher} from 'svelte';
   const dispatch = createEventDispatcher();
 
@@ -12,15 +12,15 @@
   let isCreatorOpen = false;
 
   async function setCurrentFeed () {
-      currentAlgorithm.set({
+      /* currentAlgorithm.set({
           type: 'custom',
           algorithm: feed.uri,
           name: feed.displayName,
       });
-      localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm));
+      localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm)); */
 
-      timeline.set([]);
-      cursor.set(undefined);
+      // timeline.set([]);
+      // cursor.set(undefined);
 
       dispatch('close', {
           clear: false,
@@ -44,7 +44,7 @@
       <div class="feed__buttons">
         <FeedSubscribeButton feed={feed} subscribed={subscribed}></FeedSubscribeButton>
 
-        <button class="button button--border button--ss" on:click={setCurrentFeed}>{$_('feed_show_button')}</button>
+        <a href="/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" on:click={setCurrentFeed} class="button button--border button--ss">{$_('feed_show_button')}</a>
       </div>
     </div>
   </div>

@@ -852,3 +852,21 @@
         display: none;
     }
 }
+
+.deck {
+    .timeline {
+        @media (max-width: 767px) {
+            margin: 0;
+        }
+    }
+
+    .style-nav {
+        position: absolute !important;
+        z-index: 20;
+        top: 4px;
+
+        @media (max-width: 767px) {
+            margin-left: 20px !important;
+        }
+    }
+}

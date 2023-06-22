@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { agent, cursor } from '$lib/stores';
-    import { timeline, settings, currentAlgorithm, timelineStyle } from "$lib/stores";
+    import { agent } from '$lib/stores';
+    import { settings, timelines, cursors } from "$lib/stores";
     import TimelineItem from "./TimelineItem.svelte";
     import {createEventDispatcher, onDestroy, onMount} from 'svelte';
     import MediaTimelineItem from "./MediaTimelineItem.svelte";
@@ -12,6 +12,13 @@
     import toast from "svelte-french-toast";
     import {_} from "svelte-i18n";
 
+    export let column;
+    export let index;
+
+    if(!$timelines[index]) {
+        $timelines[index] = [];
+    }
+
     let follows = [];
     let isFollowsListRefreshing = false;
     let socket;
@@ -22,9 +29,7 @@
         $_('realtime_open'),
         $_('realtime_closing'),
         $_('realtime_closed')
-    ]
-
-    export let isRefreshing;
+    ];
 
     $: {
         if (socket && socket.readyState) {
@@ -78,6 +83,7 @@
 
         socket.addEventListener('open', (event) => {
             toast.success($_('realtime_connect_status') + ': ' + stateMessage[socket.readyState]);
+            dispatch('connect');
         });
 
         socket.addEventListener('message', async (event) => {
@@ -142,11 +148,14 @@
             }
         }
 
-        timeline.update(function (tl) {
+        /* timeline.update(function (tl) {
             tl.forEach(item => item.post.indexedAt = item.post.indexedAt);
             return [ thread, ...tl];
-        });
-        console.log($timeline);
+        }); */
+
+        $timelines[index].forEach(item => item.post.indexedAt = item.post.indexedAt);
+        $timelines[index] = [thread, ...$timelines[index]];
+        // console.log($timeline);
     }
 
     async function getFollows() {
@@ -186,8 +195,9 @@
     }
 
     onMount(async () => {
-        const res = await $agent.getTimeline({limit: 20, cursor: '', algorithm: $currentAlgorithm});
-        timeline.set(res.data.feed);
+        const res = await $agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
+        $timelines[index] = res.data.feed;
+        // timeline.set(res.data.feed);
 
         if (localStorage.getItem('follows')) {
             follows = JSON.parse(localStorage.getItem('follows'))
@@ -213,13 +223,13 @@
       <button class="button button--ss" disabled={isFollowsListRefreshing} on:click={refreshFollowsList}>{$_('realtime_follows_refresh')}</button>
     </div>
 
-    {#if ($timelineStyle === 'default')}
-      {#each $timeline as data, index (data)}
+    {#if (column.style === 'default')}
+      {#each $timelines[index] as data, index (data)}
         <TimelineItem data={ data } index={index}></TimelineItem>
       {/each}
     {:else}
       <div class="media-list">
-        {#each $timeline as data (data)}
+        {#each $timelines[index] as data (data)}
           {#if (data.post.embed?.images)}
             <MediaTimelineItem data={data}></MediaTimelineItem>
           {/if}

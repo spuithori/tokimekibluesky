@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { agent, timeline } from '$lib/stores';
+  import { agent, timelines } from '$lib/stores';
   import toast from 'svelte-french-toast';
   import { _ } from 'svelte-i18n';
   import { createEventDispatcher } from 'svelte';
@@ -34,14 +34,16 @@
               count = latest.post.likeCount;
               likeViewer = like?.uri || undefined;
 
-              timeline.update(function (tl) {
-                  tl.forEach(item => {
-                      if (item.post.uri === uri) {
-                          item.post.likeCount = latest.post.likeCount;
-                          item.post.viewer.like = like?.uri || undefined;
-                      }
+              timelines.update(function (tls) {
+                  return tls.map(tl => {
+                      tl.forEach(item => {
+                          if (item.post.uri === uri) {
+                              item.post.likeCount = latest.post.likeCount;
+                              item.post.viewer.like = like?.uri || undefined;
+                          }
+                      });
+                      return tl;
                   });
-                  return tl;
               });
 
               dispatch('like', {

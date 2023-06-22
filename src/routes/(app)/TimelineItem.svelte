@@ -1,7 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {agent} from '$lib/stores';
-    import {timeline, cursor, notificationCount, quotePost, replyRef, contentLabels, settings} from '$lib/stores';
+    import {agent, quotePost, settings} from '$lib/stores';
     import {format, formatDistanceToNow, parseISO, isMatch, parse} from 'date-fns';
     import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';

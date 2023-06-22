@@ -230,5 +230,10 @@
   "compact": "コンパクト",
   "minimum": "最小",
   "folding": "折りたたむ",
-  "one_image_no_crop": "画像が1枚のとき、トリミングしない"
+  "one_image_no_crop": "画像が1枚のとき、トリミングしない",
+  "layout": "レイアウト",
+  "decks": "DECKS",
+  "column_settings": "カラム設定",
+  "active_columns": "アクティブなカラム",
+  "inactive_columns": "非アクティブなカラム"
 }

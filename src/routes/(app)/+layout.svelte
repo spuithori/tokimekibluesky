@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import { agent, settings, currentAlgorithm, preferences } from '$lib/stores';
+  import {agent, settings, preferences, columns, singleColumn} from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -67,6 +67,9 @@
       localStorage.setItem('settings', JSON.stringify($settings));
       locale.set($settings.general.language);
 
+      localStorage.setItem('columns', JSON.stringify($columns));
+      localStorage.setItem('singleColumn', JSON.stringify($singleColumn));
+
       if ($settings?.design.darkmode === true) {
           isDarkMode = true;
       } else if ($settings?.design.darkmode === 'prefer') {
@@ -126,7 +129,7 @@
 >
   <Header />
 
-  <main class="main">
+  <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
     <slot />
   </main>
 

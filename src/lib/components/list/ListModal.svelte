@@ -1,6 +1,5 @@
 <script lang="ts">
     import {agent, userLists} from '$lib/stores';
-    import {AppBskyActorProfile} from "@atproto/api";
     import {onMount} from "svelte";
     import ListMember from "./ListMember.svelte";
     import {createEventDispatcher} from 'svelte';

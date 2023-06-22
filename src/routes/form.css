@@ -187,9 +187,11 @@
                     fill: var(--primary-color);
                 }
 
-                circle,
-                path {
-                    fill: var(--primary-color);
+                &:not(.icons-radio__ui--ignorefill) {
+                    circle,
+                    path {
+                        fill: var(--primary-color);
+                    }
                 }
             }
         }
