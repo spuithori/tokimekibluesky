@@ -5,6 +5,7 @@
     import Thread from "./Thread.svelte";
     import { beforeNavigate } from "$app/navigation";
     import { fly } from 'svelte/transition';
+    import spinner from '$lib/images/loading.svg';
 
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
@@ -60,6 +61,9 @@
   <h1 class="page-nav-title" in:fly={{ x: 10, duration: 100, delay: 100 }}>{$_('title_thread')}</h1>
 
   {#await feeds}
+    <div class="thread-loading">
+      <img src={spinner} alt="">
+    </div>
   {:then feeds}
     <Thread feeds={feeds} depth={0}></Thread>
   {/await}
@@ -68,11 +72,6 @@
 <style lang="postcss">
     .thread-wrap {
         position: relative;
-    }
-
-    .thread-title {
-        text-align: center;
-        margin-bottom: 20px;
     }
 
     .thread-notice {
@@ -96,6 +95,15 @@
 
         &--shown {
             display: none;
+        }
+    }
+
+    .thread-loading {
+        text-align: center;
+
+        img {
+            width: 50px;
+            height: 50px;
         }
     }
 </style>

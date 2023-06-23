@@ -1,7 +1,7 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
     import {agent, quotePost, settings} from '$lib/stores';
-    import {format, formatDistanceToNow, parseISO, isMatch, parse} from 'date-fns';
+    import {format, formatDistanceToNow, isMatch, parse, parseISO} from 'date-fns';
     import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
@@ -9,17 +9,16 @@
     import ko from 'date-fns/locale/ko/index';
     import fa from 'date-fns/locale/fa-IR/index';
     import Images from "./Images.svelte";
-    import Spotify from './Spotify.svelte';
     import {
         AppBskyEmbedExternal,
-        AppBskyEmbedRecord,
         AppBskyEmbedImages,
-        AppBskyFeedPost,
-        AppBskyFeedDefs,
-        RichText,
-        RichTextSegment,
+        AppBskyEmbedRecord,
         AppBskyEmbedRecordWithMedia,
-        AppBskyFeedGetLikes
+        AppBskyFeedDefs,
+        AppBskyFeedGetLikes,
+        AppBskyFeedPost,
+        RichText,
+        RichTextSegment
     } from '@atproto/api'
     import toast from "svelte-french-toast";
     import Avatar from "./Avatar.svelte";
@@ -31,15 +30,12 @@
     import Bookmark from "../../lib/components/post/Bookmark.svelte";
     import Tooltip from "$lib/components/ui/Tooltip.svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
-    import { getTextArray, isUriLocal } from '$lib/richtext';
+    import {getTextArray, isUriLocal} from '$lib/richtext';
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
     export let isSingle: boolean = false;
     export let isMedia: boolean = false;
-    if (isSingle) {
-        getLikes();
-    }
 
     export let index = 0;
 
@@ -52,7 +48,15 @@
         },
     ]; */
     let dateFnsLocale: Locale;
-    let likes: AppBskyFeedGetLikes.OutputSchema;
+    let likes: Promise<Like[]>;
+    if (isSingle) {
+        likes = getLikes();
+    }
+
+    async function getLikes() {
+        const res = await $agent.agent.api.app.bsky.feed.getLikes({uri: data.post.uri});
+        return res.data.likes;
+    }
 
     let isShortCutNumberShown = false;
 
@@ -232,11 +236,6 @@
             console.log(e)
             return null;
         }
-    }
-
-    async function getLikes() {
-        const res = await $agent.agent.api.app.bsky.feed.getLikes({uri: data.post.uri});
-        likes = res.data;
     }
 
     let keys = [];
@@ -611,7 +610,11 @@
         </div>
 
         {#if (isSingle)}
-          <slot name="likes" {likes}></slot>
+          {#await likes}
+            <slot name="likes" likes={[]}></slot>
+          {:then likes}
+            <slot name="likes" {likes}></slot>
+          {/await}
         {/if}
       </div>
     </div>

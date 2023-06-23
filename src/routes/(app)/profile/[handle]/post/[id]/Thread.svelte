@@ -42,8 +42,8 @@
               </summary>
 
               <div class="likes">
-                {#if (likes?.likes.length)}
-                  {#each likes.likes as like }
+                {#if (likes?.length)}
+                  {#each likes as like }
                     {#if (!like.actor.viewer?.muted)}
                       <div class="likes__item">
                         <div class="likes__avatar">
