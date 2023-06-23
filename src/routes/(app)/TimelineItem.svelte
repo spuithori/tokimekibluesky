@@ -611,7 +611,7 @@
         </div>
 
         {#if (isSingle)}
-          <slot name="likes" likes={likes}></slot>
+          <slot name="likes" {likes}></slot>
         {/if}
       </div>
     </div>

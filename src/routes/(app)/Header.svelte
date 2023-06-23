@@ -155,31 +155,6 @@
       }
   }
 
-  .header__title {
-      font-size: 20px;
-      font-weight: 400;
-      min-width: 0;
-      margin-right: auto;
-
-
-  }
-
-  .header-logo-pc {
-      @media (max-width: 767px) {
-          display: none;
-      }
-  }
-
-  .header-logo-sp {
-      @media (min-width: 767px) {
-          display: none;
-      }
-  }
-
-  .header__title svg {
-     
-  }
-
   .header__notification {
       @media (max-width: 767px) {
           margin-left: auto;
@@ -347,23 +322,6 @@
           right: 0;
           width: auto;
           height: auto;
-      }
-  }
-
-  .logo-temp {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-  }
-
-  .logo-icon {
-      img {
-          width: 46px;
-          height: auto;
-
-          @media (max-width: 767px) {
-              width: 38px;
-          }
       }
   }
 </style>

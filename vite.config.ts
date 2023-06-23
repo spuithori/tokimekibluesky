@@ -12,7 +12,7 @@ export default defineConfig({
 	plugins: [
 		sveltekit(),
 		SvelteKitPWA({
-			srcDir: './src',
+			srcDir: 'src',
 			mode: 'production',
 			strategies: 'injectManifest',
 			filename: 'sw.ts',

@@ -5,13 +5,11 @@
     import { fade, fly } from 'svelte/transition';
     import { unsub } from '$lib/pushSubscription';
     import AccountSwitcher from './AccountSwitcher.svelte';
-    import About from "./About.svelte";
     import {createEventDispatcher} from 'svelte';
     const dispatch = createEventDispatcher();
 
     let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
     let isAccountSwitcherOpen = false;
-    let isAboutOpen = false;
     const currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
 
     async function logout() {
@@ -58,24 +56,10 @@
         isAccountSwitcherOpen = isAccountSwitcherOpen !== true;
     }
 
-    function aboutToggle() {
-        isAboutOpen = isAboutOpen !== true;
-    }
-
     function close() {
         dispatch('close');
     }
 </script>
-
-{#if (isAboutOpen)}
-  <div class="about-box" transition:fly="{{ y: 30, duration: 250 }}">
-    <button class="about-box__close" on:click={aboutToggle}></button>
-
-    <div class="about-box__content">
-      <About></About>
-    </div>
-  </div>
-{/if}
 
 {#if (isAccountSwitcherOpen)}
   <div class="account-switcher-box" transition:fly="{{ y: 30, duration: 250 }}">
@@ -150,68 +134,6 @@
         &__buttons {
             text-align: center;
             margin-top: 20px;
-        }
-    }
-
-    .account-switcher {
-        margin-top: 20px;
-        margin-bottom: 10px;
-
-        @media (max-width: 767px) {
-            .button {
-                width: 100%;
-            }
-        }
-    }
-
-    .setting-docs {
-    }
-
-    .settings-row {
-        border-bottom: 1px solid var(--border-color-1);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-bottom: 10px;
-    }
-
-    .about-box {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, .6);
-        z-index: 5000;
-        display: grid;
-        place-items: center;
-
-        &__content {
-            width: calc(100% - 20px);
-            height: max-content;
-            max-height: 90svh;
-            max-width: 740px;
-            overflow: auto;
-            overscroll-behavior-y: none;
-            background-color: var(--bg-color-1);
-            border-radius: 6px;
-            padding: 30px;
-            position: relative;
-        }
-
-        &__buttons {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        &__close {
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
         }
     }
 </style>
