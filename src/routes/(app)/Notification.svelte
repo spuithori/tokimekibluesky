@@ -1,12 +1,9 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { agent, replyRef } from '$lib/stores';
-    import { fade, fly } from 'svelte/transition';
     import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
     import { type AppBskyNotificationListNotifications, AppBskyFeedPost, AppBskyFeedLike, AppBskyFeedRepost } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import About from "./About.svelte";
-    import PushSettings from "./PushSettings.svelte";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
     import Repost from "$lib/components/post/Repost.svelte";
     import Like from "$lib/components/post/Like.svelte";
@@ -19,7 +16,6 @@
     let filter: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
     let reasonSubjects = [];
     let feeds = [];
-    let isPushOpen = false;
     let il;
 
     async function getNotifications(setFilter: Filter[]) {
@@ -38,10 +34,6 @@
                     }
                 })
             })
-    }
-
-    function pushToggle() {
-        isPushOpen = isPushOpen !== true;
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {

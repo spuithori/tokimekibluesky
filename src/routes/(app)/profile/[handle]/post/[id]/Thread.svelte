@@ -28,8 +28,8 @@
 
       <div class="thread-item" data-depth={depth} bind:this={item}>
         {#if (!data.blocked)}
-          <TimelineItem data={data} isSingle={true} let:likes={likes}>
-            <details class="likes-wrap" slot="likes">
+          <TimelineItem data={data} isSingle={true}>
+            <details class="likes-wrap" slot="likes" let:likes>
               <summary class="likes-heading">
                 {#if (data.post.record.via)}
                   <span class="timeline-via">via {data.post.record.via}</span>

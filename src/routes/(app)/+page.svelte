@@ -28,7 +28,3 @@
 		<Decks></Decks>
 	{/if}
 </section>
-
-<style lang="postcss">
-
-</style>
