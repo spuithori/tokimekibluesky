@@ -136,18 +136,16 @@
               </li>
             {/if}
 
-            {#if ($agent.agent.service.host === 'bsky.social')}
-              {#await customFeeds}
-              {:then feeds}
-                {#each feeds as feed}
-                  <li class="algo-nav-list__item">
-                    <button class="algo-nav-button" on:click={() => {openAlgoNav({type: 'custom', algorithm: feed.uri, name: feed.name})}}>
-                      <IconColumnsFeed></IconColumnsFeed>
-                      {feed.name}</button>
-                  </li>
-                {/each}
-              {/await}
-            {/if}
+            {#await customFeeds}
+            {:then feeds}
+              {#each feeds as feed}
+                <li class="algo-nav-list__item">
+                  <button class="algo-nav-button" on:click={() => {openAlgoNav({type: 'custom', algorithm: feed.uri, name: feed.name})}}>
+                    <IconColumnsFeed></IconColumnsFeed>
+                    {feed.name}</button>
+                </li>
+              {/each}
+            {/await}
 
             {#each $userLists as list}
               {#if (list.owner === $agent.did())}
