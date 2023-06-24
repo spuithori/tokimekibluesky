@@ -114,3 +114,9 @@
         pointer-events: none;
     }
 }
+
+.publish-quote {
+    .timeline-external__title {
+        padding-right: 26px;
+    }
+}

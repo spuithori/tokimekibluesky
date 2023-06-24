@@ -25,6 +25,7 @@ import { goto } from '$app/navigation';
 import { db } from '$lib/db';
 import DraftModal from "$lib/components/draft/DraftModal.svelte";
 import AltModal from "$lib/components/alt/AltModal.svelte";
+import spinner from '$lib/images/loading.svg';
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -50,6 +51,7 @@ let isContinueMode = false;
 let isPublishUploadClose = false;
 let isDraftModalOpen = false;
 let isAltModalOpen = false;
+let isLinkCardAdding = false;
 const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
 const isVirtualKeyboardSupported = 'virtualKeyboard' in navigator;
 if (isVirtualKeyboardSupported) {
@@ -254,6 +256,8 @@ async function getReplyRefByUri() {
 }
 
 async function addLinkCard(uri: string) {
+    isLinkCardAdding = true;
+
     try {
         const res = await fetch(`/api/get-ogp`, {
             method: 'post',
@@ -281,8 +285,11 @@ async function addLinkCard(uri: string) {
             });
             embedExternal.external.thumb = res.data.blob;
         }
+
+        isLinkCardAdding = false;
     } catch (e) {
-        toast.error('Error!' + e)
+        toast.error('Error!' + e);
+        isLinkCardAdding = false;
     }
 }
 
@@ -720,7 +727,16 @@ function handleClick() {
       {#if (!embedExternal && links.length && !images.length && !$quotePost?.uri)}
         <div class="link-card-registerer">
           {#each links as link}
-              <button class="link-card-registerer-button" on:click={() => {addLinkCard(link)}}>{$_('link_card_embed')}: {link}</button>
+              <button
+                  disabled={isLinkCardAdding}
+                  class="link-card-registerer-button"
+                  on:click={() => {addLinkCard(link)}}
+              >
+                {#if (isLinkCardAdding)}
+                  <img class="loading-spinner" src={spinner} alt="">
+                {/if}
+                {$_('link_card_embed')}: {link}
+              </button>
           {/each}
         </div>
       {/if}
@@ -1012,7 +1028,7 @@ function handleClick() {
 
     .link-card-registerer-button {
         border: 1px solid var(--border-color-1);
-        padding: 6px 10px;
+        padding: 6px 26px 6px 10px;
         font-size: 14px;
         border-radius: 6px;
         margin-bottom: 10px;
@@ -1023,6 +1039,16 @@ function handleClick() {
         position: relative;
         z-index: 11;
         text-align: left;
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            position: absolute;
+            right: 10px;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+        }
     }
 
     .search-actor-list {
