@@ -34,8 +34,6 @@
   let scrolly;
   let isDarkMode = false;
 
-  console.log($isMobileDataConnection);
-
   if (navigator.connection) {
       navigator.connection.addEventListener('change', () => {
           isMobileDataConnection.set(navigator.connection.type === 'cellular');

@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {agent, quotePost, settings, timelines} from '$lib/stores';
+    import {agent, isDataSaving, quotePost, settings, timelines} from '$lib/stores';
     import {format, formatDistanceToNow, isMatch, parse, parseISO} from 'date-fns';
     import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';
@@ -545,11 +545,9 @@
 
           <div class="timeline-external timeline-external--record">
             {#if $settings?.design.postsLayout !== 'minimum'}
-              <div class="timeline-external__image timeline-external__image--round">
-                {#if (data.post.embed.record.record.author.avatar)}
-                  <img src="{data.post.embed.record.record.author.avatar}" alt="">
-                {/if}
-              </div>
+              <Avatar href="/profile/{ data.post.embed.record.record.author.handle }"
+                      avatar={data.post.embed.record.record.author.avatar}
+                      handle={data.post.embed.record.record.author.handle}></Avatar>
             {/if}
 
             <div class="timeline-external__content">

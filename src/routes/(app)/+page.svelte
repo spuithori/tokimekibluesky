@@ -1,5 +1,5 @@
 <script lang="ts">
-	import {columns, isMobileDataConnection, settings} from '$lib/stores';
+	import {columns, settings} from '$lib/stores';
 	import Decks from "./Decks.svelte";
 	import Single from "./Single.svelte";
 
@@ -22,8 +22,6 @@
 </svelte:head>
 
 <section>
-	{$isMobileDataConnection}
-
 	{#if $settings.design.layout !== 'decks'}
 		<Single></Single>
 	{:else}
