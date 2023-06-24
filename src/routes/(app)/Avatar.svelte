@@ -1,5 +1,6 @@
 <script lang="ts">
   import ProfileCard from "./ProfileCard.svelte";
+  import {isDataSaving} from '$lib/stores';
 
   export let avatar;
   export let handle;
@@ -31,7 +32,7 @@
 
 <div class="avatar">
   <a href={href} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave}>
-    {#if (avatar)}
+    {#if (avatar && !$isDataSaving)}
       <img src="{avatar}" alt="" loading="lazy">
     {/if}
   </a>

@@ -55,6 +55,12 @@ input[type=checkbox]{
     &__name {
         margin-bottom: 10px;
     }
+
+    &__description {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--text-color-3);
+    }
 }
 
 .settings-title {

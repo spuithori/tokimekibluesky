@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import {derived, writable} from 'svelte/store';
 import type { Agent } from '$lib/agent';
 import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications } from '@atproto/api';
 
@@ -118,3 +118,9 @@ export const feedsModal = writable({
     open: false,
     data: undefined,
 })
+
+export const isMobileDataConnection = writable(navigator.connection ? navigator.connection.type === 'cellular' : false);
+
+export const isDataSaving = derived([settings, isMobileDataConnection], ([$settings, $isMobileDataConnection], set) => {
+    set($settings?.general.dataSaver && $isMobileDataConnection)
+}, false)

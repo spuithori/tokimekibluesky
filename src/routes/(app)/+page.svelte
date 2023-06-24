@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { columns, settings } from '$lib/stores';
+	import {columns, settings} from '$lib/stores';
 	import Decks from "./Decks.svelte";
 	import Single from "./Single.svelte";
 

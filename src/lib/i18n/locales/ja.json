@@ -235,5 +235,7 @@
   "decks": "DECKS",
   "column_settings": "カラム設定",
   "active_columns": "アクティブなカラム",
-  "inactive_columns": "非アクティブなカラム"
+  "inactive_columns": "非アクティブなカラム",
+  "data_saver": "データセーバー",
+  "data_saver_description": "Android Chrome系のみ対応。\nモバイル通信時、画像を折りたたみアバター画像を非表示にします。"
 }

@@ -3,6 +3,7 @@
     import { settings, currentAlgorithm } from '$lib/stores';
     let disableAlgorithm = $settings?.general.disableAlgorithm || false;
     let language = $settings?.general.language || window.navigator.language;
+    let dataSaver = $settings?.general.dataSaver || false;
 
 const languages = [
     {
@@ -26,6 +27,7 @@ const languages = [
 $: {
     $settings.general.disableAlgorithm = disableAlgorithm;
     $settings.general.language = language;
+    $settings.general.dataSaver = dataSaver;
 
     if ($settings.general.disableAlgorithm === 'true') {
         currentAlgorithm.set({type: 'default'});
@@ -77,6 +79,20 @@ $: {
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="disableAlgo" bind:checked={disableAlgorithm}><label class="input-toggle__label" for="disableAlgo"></label>
         </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('data_saver')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="dataSaver" bind:checked={dataSaver}><label class="input-toggle__label" for="dataSaver"></label>
+        </div>
+
+        <p class="settings-group__description">{$_('data_saver_description')}</p>
       </dd>
     </dl>
   </div>
