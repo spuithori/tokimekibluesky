@@ -569,7 +569,7 @@ onMount(async () => {
 
 function handleClick() {
     if (isVirtualKeyboardSupported) {
-        // navigator.virtualKeyboard.show();
+        navigator.virtualKeyboard.show();
     }
 }
 </script>
