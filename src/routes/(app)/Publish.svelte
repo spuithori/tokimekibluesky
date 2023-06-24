@@ -52,6 +52,7 @@ let isPublishUploadClose = false;
 let isDraftModalOpen = false;
 let isAltModalOpen = false;
 let isLinkCardAdding = false;
+let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
 const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
 const isVirtualKeyboardSupported = 'virtualKeyboard' in navigator;
 if (isVirtualKeyboardSupported) {
@@ -122,12 +123,16 @@ function onPublishContentChange() {
 
         const mention = getActorTypeAhead();
         if (mention) {
-            const res = await $agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: mention.slice(1), limit: 4})
-            searchActors = res.data.actors;
+            const res = await $agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: mention.slice(1), limit: 4});
+            searchActors = res.data.actors.length ? res.data.actors : mentionsHistory;
         } else {
             searchActors = [];
         }
-    }, 250)
+    }, 200)
+
+    if (getActorTypeAhead() && searchActors.length === 0) {
+        searchActors = mentionsHistory;
+    }
 }
 
 const publishKeypress = (e: { keyCode: number; ctrlKey: any; }) => {
@@ -543,6 +548,38 @@ onMount(async () => {
             throw new Error(error);
         }
 
+        if (Array.isArray(rt.facets)) {
+            try {
+                const dids: string[] = rt.facets.map(facet => {
+                    if (facet.features[0].did) {
+                        return facet.features[0].did as string
+                    }
+                }).filter(results => results !== undefined);
+                const promises = dids.map(did => $agent.agent.com.atproto.repo.describeRepo({repo: did}));
+                let actors = [];
+
+                await Promise.all(promises)
+                    .then(ress => {
+                        actors = ress.map(res => {
+                            return {
+                                did: res.data.did,
+                                handle: res.data.handle,
+                                isHistory: true,
+                            }
+                        });
+                    })
+
+                mentionsHistory = [...actors, ...mentionsHistory];
+                mentionsHistory = [...new Set(mentionsHistory)];
+                if (mentionsHistory.length > 4) {
+                    mentionsHistory = mentionsHistory.slice(0, 4);
+                }
+                localStorage.setItem('mentionsHistory', JSON.stringify(mentionsHistory));
+            } catch (e) {
+                // do nothing.
+            }
+        }
+
         isTextareaEnabled = false;
         isPublishEnabled = false;
         if (!isContinueMode) {
@@ -745,6 +782,14 @@ function handleClick() {
         <div class="search-actor-list">
           {#each searchActors as actor}
             <button class="search-actor-item" on:click={() => {putActorSuggestion(actor.handle)}}>
+              {#if (actor.isHistory)}
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
+                  <g id="timer-outline" transform="translate(-47.988 -47.998)">
+                    <path id="パス_58" data-name="パス 58" d="M55,62h-.014a7,7,0,0,1-5.216-11.667.538.538,0,0,1,.8.718,5.93,5.93,0,0,0,4.415,9.871H55A5.912,5.912,0,0,0,60.911,55a5.962,5.962,0,0,0-5.384-5.9v2.4a.538.538,0,0,1-1.077,0V48.683A.685.685,0,0,1,55.157,48a7.04,7.04,0,0,1,6.831,7A6.989,6.989,0,0,1,55,62Z" transform="translate(0 0)" fill="var(--text-color-3)"/>
+                    <path id="パス_59" data-name="パス 59" d="M155.649,157.118l-2.683-3.837a.276.276,0,0,1,.384-.384l3.837,2.683a1.1,1.1,0,1,1-1.265,1.809A1.128,1.128,0,0,1,155.649,157.118Z" transform="translate(-101.413 -101.336)" fill="var(--text-color-3)"/>
+                  </g>
+                </svg>
+              {/if}
               @{actor.handle}
             </button>
           {/each}
@@ -1073,6 +1118,9 @@ function handleClick() {
         border-radius: 4px;
         border: 1px solid var(--border-color-1);
         white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
     .publish-form-continue-mode {
