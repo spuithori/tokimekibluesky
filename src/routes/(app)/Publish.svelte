@@ -53,7 +53,10 @@ let isAltModalOpen = false;
 const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
 const isVirtualKeyboardSupported = 'virtualKeyboard' in navigator;
 if (isVirtualKeyboardSupported) {
+    toast.success('support');
     navigator.virtualKeyboard.overlaysContent = true;
+} else {
+    toast.error('unsupport');
 }
 
 type BeforeUploadImage = {
@@ -563,6 +566,12 @@ onMount(async () => {
         }
     }
 })
+
+function handleClick() {
+    if (isVirtualKeyboardSupported) {
+        // navigator.virtualKeyboard.show();
+    }
+}
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:popstate={handlePopstate} />
@@ -575,6 +584,7 @@ onMount(async () => {
          on:focusout={onBlur}
          use:clickOutside={{ignoreElement: '.publish-sp-open'}}
          on:outclick={handleOutClick}
+         on:click={handleClick}
 >
   {#if (isFocus)}
     <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={onClose}>
