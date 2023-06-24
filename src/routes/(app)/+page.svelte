@@ -22,6 +22,8 @@
 </svelte:head>
 
 <section>
+	{navigator.connection.type}
+
 	{#if $settings.design.layout !== 'decks'}
 		<Single></Single>
 	{:else}

@@ -118,3 +118,5 @@ export const feedsModal = writable({
     open: false,
     data: undefined,
 })
+
+export const isMobileDataConnection = writable(false);
