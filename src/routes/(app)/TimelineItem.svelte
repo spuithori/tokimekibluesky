@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {agent, quotePost, settings} from '$lib/stores';
+    import {agent, quotePost, settings, timelines} from '$lib/stores';
     import {format, formatDistanceToNow, isMatch, parse, parseISO} from 'date-fns';
     import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';
@@ -215,8 +215,10 @@
                 {repo: $agent.did(), rkey: rkey}
             );
 
-            timeline.update(function (tl) {
-                return tl.filter(data => data.post.uri !== uri);
+            timelines.update(function (tls) {
+                return tls.map(tl => {
+                    return tl.filter(data => data.post.uri !== uri);
+                });
             });
 
             toast.success($_('post_delete_success'));

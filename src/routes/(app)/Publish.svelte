@@ -50,6 +50,7 @@ let isContinueMode = false;
 let isPublishUploadClose = false;
 let isDraftModalOpen = false;
 let isAltModalOpen = false;
+const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
 
 type BeforeUploadImage = {
     image: Blob | File,
@@ -144,7 +145,29 @@ function onFocus() {
 
         setTimeout(() => {
             publishArea.focus();
-        }, 100)
+        }, 100);
+
+        if (isMobile) {
+            goto('#post', {noScroll: true});
+        }
+    }
+}
+
+function onClose() {
+    if (isFocus) {
+        isFocus = false;
+        publishArea.blur();
+
+        if (isMobile && window.location.hash === '#post') {
+            history.back();
+        }
+    }
+}
+
+function handlePopstate(e) {
+    if (isFocus) {
+        isFocus = false;
+        publishArea.blur();
     }
 }
 
@@ -194,10 +217,7 @@ function handleKeydown(event: { key: string; }) {
     const activeElement = document.activeElement?.tagName;
 
     if (event.key === 'n' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
-        isFocus = true;
-        setTimeout(() => {
-            publishArea.focus();
-        }, 100)
+        onFocus();
     }
 
     if (event.key === '/' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
@@ -205,8 +225,7 @@ function handleKeydown(event: { key: string; }) {
     }
 
     if (event.key === 'Escape' && isFocus) {
-        isFocus = false;
-        publishArea.blur();
+        onClose();
     }
 }
 
@@ -280,27 +299,28 @@ $: {
         embedImages.images = [];
     }
 
-    if ($quotePost?.uri) {
-        isFocus = true;
-        setTimeout(() => {
-            publishArea.focus();
-        }, 100)
+    if (typeof $replyRef === 'string') {
+        getReplyRefByUri();
+    }
+}
+
+$: quotePostObserve($quotePost);
+$: replyRefObserve($replyRef);
+
+function quotePostObserve(quotePost) {
+    if (quotePost?.uri) {
+        onFocus();
 
         embedRecord = {
             $type: 'app.bsky.embed.record',
             record: $quotePost,
         }
     }
+}
 
-    if ($replyRef) {
-        isFocus = true;
-        setTimeout(() => {
-            publishArea.focus();
-        }, 100)
-    }
-
-    if (typeof $replyRef === 'string') {
-        getReplyRefByUri();
+function replyRefObserve(replyRef) {
+    if (replyRef) {
+        onFocus();
     }
 }
 
@@ -336,7 +356,7 @@ function publishUploadClose() {
 
 function handleOutClick() {
     if (!isContinueMode) {
-        isFocus = false;
+        onClose();
     }
 }
 
@@ -515,7 +535,7 @@ onMount(async () => {
         isTextareaEnabled = false;
         isPublishEnabled = false;
         if (!isContinueMode) {
-            isFocus = false;
+            onClose();
         }
         publishContent = '';
         quotePost.set(undefined);
@@ -541,7 +561,7 @@ onMount(async () => {
 })
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window on:keydown={handleKeydown} on:popstate={handlePopstate} />
 <svelte:document on:paste={handlePaste} />
 
 <section class="publish-group"
@@ -553,7 +573,7 @@ onMount(async () => {
          on:outclick={handleOutClick}
 >
   {#if (isFocus)}
-    <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={close}>
+    <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={onClose}>
       <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
         <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
       </svg>

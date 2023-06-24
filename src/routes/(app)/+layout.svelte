@@ -20,7 +20,7 @@
       {
           mode: dev ? 'development' : 'production',
           beforeSend: event => {
-              if (event.url.includes('/settings') || event.url.includes('/login') || event.url.includes('/search') || event.url.includes('/shared')) {
+              if (event.url.includes('/settings') || event.url.includes('/login') || event.url.includes('/search') || event.url.includes('/shared') || event.url.includes('#post')) {
                   return null;
               }
               return event;
