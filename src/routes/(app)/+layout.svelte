@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import {agent, settings, preferences, columns, singleColumn} from '$lib/stores';
+  import {agent, settings, preferences, columns, singleColumn, isMobileDataConnection} from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -33,6 +33,14 @@
   let direction = 'up';
   let scrolly;
   let isDarkMode = false;
+
+  console.log($isMobileDataConnection);
+
+  if (navigator.connection) {
+      navigator.connection.addEventListener('change', () => {
+          isMobileDataConnection.set(navigator.connection.type === 'cellular');
+      })
+  }
 
   if (accounts.length <= currentAccount && currentAccount > 0) {
       currentAccount = currentAccount - 1;

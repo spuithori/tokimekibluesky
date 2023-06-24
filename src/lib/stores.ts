@@ -119,4 +119,4 @@ export const feedsModal = writable({
     data: undefined,
 })
 
-export const isMobileDataConnection = writable(false);
+export const isMobileDataConnection = writable(navigator.connection ? navigator.connection.type === 'cellular' : false);
