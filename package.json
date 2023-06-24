@@ -16,6 +16,7 @@
     "@sveltejs/kit": "^1.20.4",
     "@types/cookie": "^0.5.1",
     "@vite-pwa/sveltekit": "^0.2.5",
+    "@vitejs/plugin-basic-ssl": "^1.0.1",
     "autoprefixer": "^10.4.7",
     "filepond-plugin-file-poster": "^2.5.1",
     "filepond-plugin-image-crop": "^2.0.6",

@@ -51,6 +51,10 @@ let isPublishUploadClose = false;
 let isDraftModalOpen = false;
 let isAltModalOpen = false;
 const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
+const isVirtualKeyboardSupported = 'virtualKeyboard' in navigator;
+if (isVirtualKeyboardSupported) {
+    navigator.virtualKeyboard.overlaysContent = true;
+}
 
 type BeforeUploadImage = {
     image: Blob | File,
@@ -559,6 +563,10 @@ onMount(async () => {
         }
     }
 })
+
+function handleClick() {
+
+}
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:popstate={handlePopstate} />
@@ -571,6 +579,7 @@ onMount(async () => {
          on:focusout={onBlur}
          use:clickOutside={{ignoreElement: '.publish-sp-open'}}
          on:outclick={handleOutClick}
+         on:click={handleClick}
 >
   {#if (isFocus)}
     <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={onClose}>
@@ -846,7 +855,7 @@ onMount(async () => {
         display: flex;
         position: fixed;
         right: 20px;
-        bottom: 20px;
+        bottom: calc(20px + env(keyboard-inset-height, 0px));
         width: 52px;
         height: 52px;
         border-radius: 50%;

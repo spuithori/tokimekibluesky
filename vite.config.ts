@@ -1,6 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import { defineConfig } from 'vite';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig({
 	define: {
@@ -10,6 +11,7 @@ export default defineConfig({
 	},
 
 	plugins: [
+		// basicSsl(),
 		sveltekit(),
 		SvelteKitPWA({
 			srcDir: 'src',
