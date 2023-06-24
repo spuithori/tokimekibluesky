@@ -53,10 +53,7 @@ let isAltModalOpen = false;
 const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
 const isVirtualKeyboardSupported = 'virtualKeyboard' in navigator;
 if (isVirtualKeyboardSupported) {
-    toast.success('support');
     navigator.virtualKeyboard.overlaysContent = true;
-} else {
-    toast.error('unsupport');
 }
 
 type BeforeUploadImage = {
@@ -568,9 +565,7 @@ onMount(async () => {
 })
 
 function handleClick() {
-    if (isVirtualKeyboardSupported) {
-        navigator.virtualKeyboard.show();
-    }
+
 }
 </script>
 
@@ -860,7 +855,7 @@ function handleClick() {
         display: flex;
         position: fixed;
         right: 20px;
-        bottom: 20px;
+        bottom: calc(20px + env(keyboard-inset-height, 0px));
         width: 52px;
         height: 52px;
         border-radius: 50%;
