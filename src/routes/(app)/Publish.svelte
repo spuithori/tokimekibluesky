@@ -51,6 +51,10 @@ let isPublishUploadClose = false;
 let isDraftModalOpen = false;
 let isAltModalOpen = false;
 const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
+const isVirtualKeyboardSupported = 'virtualKeyboard' in navigator;
+if (isVirtualKeyboardSupported) {
+    navigator.virtualKeyboard.overlaysContent = true;
+}
 
 type BeforeUploadImage = {
     image: Blob | File,
