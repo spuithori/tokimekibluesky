@@ -343,7 +343,12 @@ function replyRefObserve(replyRef) {
 function putActorSuggestion(actor: string) {
     const current = getActorTypeAhead();
     if (current) {
-        publishContent = publishContent.replace(current, '@' + actor);
+        const cursor = publishArea.selectionStart;
+        const before = publishContent.substring(0, cursor);
+        const after = publishContent.substring(cursor);
+        const replace = before.substring(0, before.length - current.length);
+
+        publishContent = replace + '@' + actor + after + ' ';
         searchActors = [];
         publishArea.focus();
     }
