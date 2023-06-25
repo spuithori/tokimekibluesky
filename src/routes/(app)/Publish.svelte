@@ -575,7 +575,9 @@ onMount(async () => {
                     })
 
                 mentionsHistory = [...actors, ...mentionsHistory];
-                mentionsHistory = [...new Set(mentionsHistory)];
+                mentionsHistory = Array.from(new Set(mentionsHistory.map(a => a.did))).map(did => {
+                        return mentionsHistory.find(a => a.did === did)
+                    });
                 if (mentionsHistory.length > 4) {
                     mentionsHistory = mentionsHistory.slice(0, 4);
                 }
