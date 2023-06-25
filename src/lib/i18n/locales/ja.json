@@ -237,5 +237,7 @@
   "active_columns": "アクティブなカラム",
   "inactive_columns": "非アクティブなカラム",
   "data_saver": "データセーバー",
-  "data_saver_description": "Android Chrome系のみ対応。\nモバイル通信時、画像を折りたたみアバター画像を非表示にします。"
+  "data_saver_description": "Android Chrome系のみ対応。\nモバイル通信時、画像を折りたたみアバター画像を非表示にします。",
+  "add_single_list": "単独リストを作成",
+  "success_add_single_list": "単独リストを作成しました。"
 }
