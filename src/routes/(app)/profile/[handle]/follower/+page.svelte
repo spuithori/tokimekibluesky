@@ -3,11 +3,22 @@
     import type { LayoutData } from '../$types';
     import {agent} from "$lib/stores";
     import UserItem from "../UserItem.svelte";
-    import {onMount} from "svelte";
     import InfiniteLoading from 'svelte-infinite-loading';
+    import type { Snapshot } from './$types';
     let followers = [];
     let cursor = '';
+    let scrollY = 0;
 
+    export const snapshot: Snapshot = {
+        capture: () => [followers, cursor, window.scrollY],
+        restore: (value) => {
+            [followers, cursor, scrollY] = value;
+
+            setTimeout(() => {
+                window.scroll(0, scrollY)
+            }, 0)
+        }
+    };
     export let data: LayoutData;
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
@@ -15,10 +26,7 @@
         cursor = raw.data.cursor;
 
         if (cursor) {
-            for (const item of raw.data.followers) {
-                followers.push(item);
-            }
-            followers = followers;
+            followers = [...followers, ...raw.data.followers];
 
             loaded();
         } else {

@@ -783,37 +783,40 @@ function handleClick() {
         </div>
       {/if}
 
-      {#if searchActors.length}
-        <div class="search-actor-list">
-          {#each searchActors as actor}
-            <button class="search-actor-item" on:click={() => {putActorSuggestion(actor.handle)}}>
-              {#if (actor.isHistory)}
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
-                  <g id="timer-outline" transform="translate(-47.988 -47.998)">
-                    <path id="パス_58" data-name="パス 58" d="M55,62h-.014a7,7,0,0,1-5.216-11.667.538.538,0,0,1,.8.718,5.93,5.93,0,0,0,4.415,9.871H55A5.912,5.912,0,0,0,60.911,55a5.962,5.962,0,0,0-5.384-5.9v2.4a.538.538,0,0,1-1.077,0V48.683A.685.685,0,0,1,55.157,48a7.04,7.04,0,0,1,6.831,7A6.989,6.989,0,0,1,55,62Z" transform="translate(0 0)" fill="var(--text-color-3)"/>
-                    <path id="パス_59" data-name="パス 59" d="M155.649,157.118l-2.683-3.837a.276.276,0,0,1,.384-.384l3.837,2.683a1.1,1.1,0,1,1-1.265,1.809A1.128,1.128,0,0,1,155.649,157.118Z" transform="translate(-101.413 -101.336)" fill="var(--text-color-3)"/>
-                  </g>
-                </svg>
-              {/if}
-              @{actor.handle}
-            </button>
-          {/each}
-        </div>
-      {/if}
-
       <label class="publish-form__label" for="publishTextarea"></label>
-      <textarea
-        id="publishTextarea"
-        class="publish-form__input"
-        name="content"
-        disabled={isTextareaEnabled}
-        bind:value={publishContent}
-        bind:this={publishArea}
-        on:keydown={publishKeypress}
-        on:input={onPublishContentChange}
-        placeholder="{$_('send_placeholder1')}&#13;{$_('send_placeholder2')}"
-        autocomplete="nope"
-    ></textarea>
+
+      <div class="publish-actor-list-input-group">
+        <textarea
+            id="publishTextarea"
+            class="publish-form__input"
+            name="content"
+            disabled={isTextareaEnabled}
+            bind:value={publishContent}
+            bind:this={publishArea}
+            on:keydown={publishKeypress}
+            on:input={onPublishContentChange}
+            placeholder="{$_('send_placeholder1')}&#13;{$_('send_placeholder2')}"
+            autocomplete="nope"
+        ></textarea>
+
+        {#if searchActors.length}
+          <div class="search-actor-list">
+            {#each searchActors as actor}
+              <button class="search-actor-item" on:click={() => {putActorSuggestion(actor.handle)}}>
+                {#if (actor.isHistory)}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
+                    <g id="timer-outline" transform="translate(-47.988 -47.998)">
+                      <path id="パス_58" data-name="パス 58" d="M55,62h-.014a7,7,0,0,1-5.216-11.667.538.538,0,0,1,.8.718,5.93,5.93,0,0,0,4.415,9.871H55A5.912,5.912,0,0,0,60.911,55a5.962,5.962,0,0,0-5.384-5.9v2.4a.538.538,0,0,1-1.077,0V48.683A.685.685,0,0,1,55.157,48a7.04,7.04,0,0,1,6.831,7A6.989,6.989,0,0,1,55,62Z" transform="translate(0 0)" fill="var(--text-color-3)"/>
+                      <path id="パス_59" data-name="パス 59" d="M155.649,157.118l-2.683-3.837a.276.276,0,0,1,.384-.384l3.837,2.683a1.1,1.1,0,1,1-1.265,1.809A1.128,1.128,0,0,1,155.649,157.118Z" transform="translate(-101.413 -101.336)" fill="var(--text-color-3)"/>
+                    </g>
+                  </svg>
+                {/if}
+                @{actor.handle}
+              </button>
+            {/each}
+          </div>
+        {/if}
+      </div>
     </div>
 
     {#if (!isPublishUploadClose)}
@@ -1126,6 +1129,13 @@ function handleClick() {
         display: flex;
         align-items: center;
         gap: 4px;
+
+        &:focus-visible {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+            outline: none;
+        }
     }
 
     .publish-form-continue-mode {

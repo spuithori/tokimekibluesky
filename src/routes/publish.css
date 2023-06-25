@@ -120,3 +120,8 @@
         padding-right: 26px;
     }
 }
+
+.publish-actor-list-input-group {
+    display: flex;
+    flex-direction: column-reverse;
+}
