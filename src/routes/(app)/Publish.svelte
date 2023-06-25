@@ -618,6 +618,11 @@ onMount(async () => {
 function handleClick() {
 
 }
+
+function tempYu() {
+    publishContent = 'ﾋﾄﾘﾀﾞｹﾅﾝﾃｴﾗﾍﾞﾅｲﾖｰ';
+    publishArea.focus();
+}
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:popstate={handlePopstate} />
@@ -647,6 +652,10 @@ function handleClick() {
   {/if}
 
   <div class="publish-wrap">
+    <button on:click={tempYu} class="temp-yu" tabindex="-1" aria-hidden="true">
+      <img src="/yuu.svg" alt="">
+    </button>
+
     <div class="publish-buttons">
       {#if (publishContent)}
         <button class="publish-draft-button publish-save-draft" on:click={saveDraft} disabled={isPublishEnabled}>{$_('drafts_save')}</button>
@@ -1246,6 +1255,16 @@ function handleClick() {
             top: auto;
             left: auto;
             width: 100%;
+        }
+    }
+
+    .temp-yu {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+
+        @media (max-width: 767px) {
+            display: none;
         }
     }
 </style>
