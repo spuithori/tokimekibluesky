@@ -25,6 +25,10 @@
     function menuOpen() {
         isMenuOpen = isMenuOpen !== true;
     }
+
+    function handleOutClick(event) {
+        isMenuOpen = false
+    }
 </script>
 
 <div>
@@ -49,7 +53,7 @@
         class="timeline-menu"
         class:timeline-menu--shown={isMenuOpen}
         use:clickOutside={{ignoreElement: toggle}}
-        on:outclick={() => (isMenuOpen = false)}
+        on:outclick={handleOutClick}
         transition:fly="{{ y: 30, duration: 250 }}"
         use:floatingContent
     >

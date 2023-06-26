@@ -31,11 +31,14 @@
     import Tooltip from "$lib/components/ui/Tooltip.svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
     import {getTextArray, isUriLocal} from '$lib/richtext';
+    import {goto} from "$app/navigation";
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
     export let isSingle: boolean = false;
     export let isMedia: boolean = false;
+
+    let selectionText = '';
 
     export let index = 0;
 
@@ -273,9 +276,26 @@
 
         keys = [];
     }
+
+    function handleClick(event) {
+        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external')) {
+            return false;
+        }
+
+        if (selectionText) {
+            return false;
+        }
+
+        goto('/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]);
+    }
+
+    function handleSelectStart(event) {
+        selectionText = document.getSelection().toString();
+    }
 </script>
 
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup}/>
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
+<svelte:document on:selectionchange={handleSelectStart} />
 
 {#if (!isHide)}
   <article class="timeline__item"
@@ -283,6 +303,7 @@
            class:timeline__item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}
            class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
            class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
+           on:click={handleClick}
   >
     {#if (isShortCutNumberShown && index < 9)}
       <p class="timeline-shortcut-number">{index + 1}</p>
@@ -426,10 +447,6 @@
               </Tooltip>
             {/if}
           </p>
-
-          <p class="timeline__thread-link">
-            <a href="/profile/{data.post.author.handle}/post/{data.post.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
-          </p>
         </div>
 
         <div class="timeline__warn-wrap">
@@ -508,9 +525,6 @@
                   <time datetime="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
                         title="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.indexedAt), {locale: dateFnsLocale})}</time>
                 </p>
-                <p class="timeline__thread-link">
-                  <a href="/profile/{data.post.embed.record.author.handle}/post/{data.post.embed.record.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
-                </p>
               </div>
 
               {#if (AppBskyFeedPost.isRecord(data.post.embed.record.value))}
@@ -558,9 +572,6 @@
                   <time
                       datetime="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
                       title="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.record.indexedAt), {locale: dateFnsLocale})}</time>
-                </p>
-                <p class="timeline__thread-link">
-                  <a href="/profile/{data.post.embed.record.record.author.handle}/post/{data.post.embed.record.record.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
                 </p>
               </div>
 
