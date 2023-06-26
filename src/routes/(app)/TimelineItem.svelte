@@ -656,18 +656,6 @@
           </button>
         </li>
 
-        <li class="timeline-menu-list__item timeline-menu-list__item--thread">
-          <a href="/profile/{data.post.author.handle}/post/{data.post.uri.split('/').slice(-1)[0]}"
-             class="timeline-menu-list__button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-              <path id="conversation"
-                    d="M15.3,9.9v2.7L12.6,9.9H7.2A1.8,1.8,0,0,1,5.4,8.1h0V1.8A1.805,1.805,0,0,1,7.2,0h9A1.8,1.8,0,0,1,18,1.8h0V8.1a1.8,1.8,0,0,1-1.8,1.8h-.9Zm-2.7,1.8v1.8a1.8,1.8,0,0,1-1.8,1.8H5.4L2.7,18V15.3H1.8A1.8,1.8,0,0,1,0,13.5H0V7.2A1.805,1.805,0,0,1,1.8,5.4H3.6V8.1a3.6,3.6,0,0,0,3.6,3.6h5.4Z"
-                    fill="var(--primary-color)"/>
-            </svg>
-            {$_('show_thread')}
-          </a>
-        </li>
-
         <li class="timeline-menu-list__item timeline-menu-list__item--translate">
           <button class="timeline-menu-list__button" on:click={translation}>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">

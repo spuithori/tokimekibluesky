@@ -110,6 +110,7 @@
     border-bottom: 1px solid var(--border-color-1);
     position: relative;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .timeline-repost-messages {
