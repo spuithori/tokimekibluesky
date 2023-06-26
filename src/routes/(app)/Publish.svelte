@@ -652,9 +652,11 @@ function tempYu() {
   {/if}
 
   <div class="publish-wrap">
-    <button on:click={tempYu} class="temp-yu" tabindex="-1" aria-hidden="true">
-      <img src="/yuu.svg" alt="">
-    </button>
+    {#if $agent.did() === 'did:plc:hiptcrt4k63szzz4ty3dhwcp'}
+      <button on:click={tempYu} class="temp-yu" tabindex="-1" aria-hidden="true">
+        <img src="/yuu.svg" alt="">
+      </button>
+    {/if}
 
     <div class="publish-buttons">
       {#if (publishContent)}
