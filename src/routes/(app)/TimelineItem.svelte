@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {agent, isDataSaving, quotePost, settings, timelines} from '$lib/stores';
+    import {agent, isDataSaving, quotePost, settings, timelines, isPreventEvent} from '$lib/stores';
     import {format, formatDistanceToNow, isMatch, parse, parseISO} from 'date-fns';
     import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';
@@ -248,7 +248,6 @@
     function handleKeydown(event) {
         isShortCutNumberShown = !!(event.ctrlKey && event.altKey);
         keys.push(event.keyCode);
-
     }
 
     function handleKeyup(event) {
@@ -278,7 +277,7 @@
     }
 
     function handleClick(event) {
-        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external')) {
+        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external') || event.target.closest('.likes-wrap')) {
             return false;
         }
 
@@ -286,7 +285,16 @@
             return false;
         }
 
-        goto('/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]);
+        if ($isPreventEvent) {
+            isPreventEvent.set(false);
+            return false;
+        }
+
+        const uri = '/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0];
+
+        if (uri !== location.pathname) {
+            goto('/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]);
+        }
     }
 
     function handleSelectStart(event) {
@@ -547,6 +555,8 @@
                     transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
             </svg>
             </span>
+
+            <a class="timeline-external-link" href="/profile/{data.post.embed.record.author.handle}/post/{data.post.embed.record.uri.split('/').slice(-1)[0]}" aria-label="{$_('show_thread')}"></a>
           </div>
         {/if}
 
@@ -589,6 +599,8 @@
                     transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
             </svg>
             </span>
+
+            <a class="timeline-external-link" href="/profile/{data.post.embed.record.record.author.handle}/post/{data.post.embed.record.record.uri.split('/').slice(-1)[0]}" aria-label="{$_('show_thread')}"></a>
           </div>
         {/if}
 

@@ -124,3 +124,5 @@ export const isMobileDataConnection = writable(navigator.connection ? navigator.
 export const isDataSaving = derived([settings, isMobileDataConnection], ([$settings, $isMobileDataConnection], set) => {
     set($settings?.general.dataSaver && $isMobileDataConnection)
 }, false)
+
+export const isPreventEvent = writable<boolean>(false);

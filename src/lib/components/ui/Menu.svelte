@@ -3,6 +3,7 @@
     import { createFloatingActions } from 'svelte-floating-ui';
     import { fade, fly } from 'svelte/transition';
     import { clickOutside } from '$lib/clickOutSide';
+    import {isPreventEvent} from "$lib/stores";
 
     export let isMenuOpen = false;
     export let buttonClassName = 'timeline-menu-toggle'
@@ -27,7 +28,12 @@
     }
 
     function handleOutClick(event) {
-        isMenuOpen = false
+        isPreventEvent.set(true);
+        isMenuOpen = false;
+    }
+
+    function handleOutroEnd() {
+        isPreventEvent.set(false);
     }
 </script>
 
@@ -56,6 +62,7 @@
         on:outclick={handleOutClick}
         transition:fly="{{ y: 30, duration: 250 }}"
         use:floatingContent
+        on:outroend={handleOutroEnd}
     >
       <slot name="content"></slot>
     </nav>
