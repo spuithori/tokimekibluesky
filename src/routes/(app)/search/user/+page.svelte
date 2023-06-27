@@ -24,7 +24,7 @@
     }
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
-        let raw = await $agent.agent.api.app.bsky.actor.searchActors({term: encodeURIComponent($page.url.searchParams.get('q') || ''), limit: 20, cursor: cursor});
+        let raw = await $agent.agent.api.app.bsky.actor.searchActors({term: $page.url.searchParams.get('q') || '', limit: 20, cursor: cursor});
         cursor = raw.data.cursor;
 
         if (cursor) {
