@@ -239,5 +239,7 @@
   "data_saver": "Data saver",
   "data_saver_description": "Available only with Android Chrome series.\nCollapses the image and hides the avatar image during mobile communication.",
   "add_single_list": "Add single list",
-  "success_add_single_list": "Single list has added."
+  "success_add_single_list": "Single list has added.",
+  "/search_search": "Keyword(s) search",
+  "/search/user_search": "User search"
 }

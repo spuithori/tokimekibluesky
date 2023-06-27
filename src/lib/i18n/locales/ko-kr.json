@@ -216,5 +216,7 @@
   "use_absolute_time": "Use absolute time",
   "realtime_follows_count": "Follows count",
   "realtime_follows_refresh": "Refresh follows",
-  "feature_request_form": "Feature request form"
+  "feature_request_form": "Feature request form",
+  "/search_search": "키워드 검색",
+  "/search/user_search": "User search"
 }
