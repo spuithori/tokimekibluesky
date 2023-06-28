@@ -3,6 +3,7 @@
     import {_} from "svelte-i18n";
     import TimelineSelector from "./TimelineSelector.svelte";
     import ColumnModal from "$lib/components/column/ColumnModal.svelte";
+    import NotificationTimeline from "./NotificationTimeline.svelte";
     let isColumnModalOpen = false;
     let unique = Symbol();
 
@@ -44,10 +45,14 @@
           <div class="deck-row__title">{column.algorithm.name}</div>
 
           <div class="deck-row__content" bind:this={column.scrollElement}>
-            <TimelineSelector
-                column={column}
-                index={index}
-            ></TimelineSelector>
+            {#if (column.algorithm.type === 'notification')}
+              <NotificationTimeline column={column} index={index}></NotificationTimeline>
+            {:else}
+              <TimelineSelector
+                  column={column}
+                  index={index}
+              ></TimelineSelector>
+            {/if}
           </div>
         </div>
       {/each}

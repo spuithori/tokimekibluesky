@@ -242,5 +242,6 @@
   "success_add_single_list": "単独リストを作成しました。",
   "user": "ユーザー",
   "/search_search": "キーワード検索",
-  "/search/user_search": "ユーザー検索"
+  "/search/user_search": "ユーザー検索",
+  "notifications": "通知"
 }

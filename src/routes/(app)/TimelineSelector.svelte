@@ -16,15 +16,6 @@
     export let index;
     export let unique;
     let isRefreshing = false;
-    let realtimeConnect;
-
-    function handleRealtimeConnect() {
-        isRefreshing = true;
-    }
-
-    function handleRealtimeDisconnect() {
-        isRefreshing = false;
-    }
 
     export async function refresh() {
         isRefreshing = true;
@@ -62,7 +53,6 @@
             $timelines[index] = [];
             $cursors[index] = 0;
         } else if (column.algorithm.type === 'realtime') {
-            realtimeConnect();
             return;
         } else {
             $timelines[index] = [];
@@ -116,7 +106,7 @@
   </div>
 </div>
 
-{#if (column.algorithm.type !== 'bookmark')}
+{#if (column.algorithm.type !== 'bookmark' && column.algorithm.type !== 'realtime')}
   <button
       class="refresh-button"
       class:refresh-button--decks={$settings.design.layout === 'decks'}
@@ -141,9 +131,6 @@
     {/key}
 {:else if (column.algorithm.type === 'realtime')}
   <RealtimeTimeline
-      on:disconnect={handleRealtimeDisconnect}
-      on:connect={handleRealtimeConnect}
-      bind:connect={realtimeConnect}
       column={column}
       index={index}></RealtimeTimeline>
 {:else}

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { agent } from '$lib/stores';
-    import { settings, timelines, cursors } from "$lib/stores";
+    import { settings, timelines, cursors, realtime } from "$lib/stores";
     import TimelineItem from "./TimelineItem.svelte";
     import {createEventDispatcher, onDestroy, onMount} from 'svelte';
     import MediaTimelineItem from "./MediaTimelineItem.svelte";
@@ -11,6 +11,7 @@
     import { decode, decodeMultiple, addExtension } from 'cbor-x';
     import toast from "svelte-french-toast";
     import {_} from "svelte-i18n";
+    import {connect, disconnect} from "$lib/realtime";
 
     export let column;
     export let index;
@@ -21,6 +22,7 @@
 
     let follows = [];
     let isFollowsListRefreshing = false;
+    let isFollowsListFinished = false;
     let socket;
     let timeId;
 
@@ -37,30 +39,10 @@
         }
     }
 
-    async function handleVisibilityChange(event) {
-        if (event.target.visibilityState === 'hidden') {
-            if (timeId) {
-                clearTimeout(timeId);
-            }
+    $: getRealtime($realtime.data);
 
-            timeId = setTimeout(() => {
-                socket.close();
-            }, 180000)
-        }
-
-        if (event.target.visibilityState === 'visible') {
-            clearTimeout(timeId);
-            toast.success($_('realtime_connect_status') + ': ' + stateMessage[socket.readyState]);
-        }
-    }
-
-    export async function connect() {
+    /* export async function connect() {
         socket = new WebSocket('wss://bsky.social/xrpc/com.atproto.sync.subscribeRepos');
-
-        /*
-          Inspired by blue-skies-ahead (MIT License).
-          https://glitch.com/~blue-skies-ahead
-         */
 
         addExtension({
             Class: CID,
@@ -126,7 +108,7 @@
                 }
             }
         });
-    }
+    } */
 
     async function getRecord(uri, repost = undefined) {
         const res = await $agent.agent.api.app.bsky.feed.getPostThread({depth: 0, uri: uri});
@@ -156,6 +138,40 @@
         $timelines[index].forEach(item => item.post.indexedAt = item.post.indexedAt);
         $timelines[index] = [thread, ...$timelines[index]];
         // console.log($timeline);
+    }
+
+    async function getRealtime(data) {
+        if (!$realtime.isConnected) {
+            await connect();
+        }
+
+        if (!isFollowsListFinished) {
+            return false;
+        }
+
+        if (data.record.$type === 'app.bsky.feed.post' && typeof data.record.text === 'string') {
+            const path = data.op.path;
+            const repo = data.body.repo;
+            const uri = 'at://' + repo + '/' + path
+
+            if (follows.some(follow => follow === repo)) {
+                await getRecord(uri);
+            }
+        }
+
+        if (data.record.$type === 'app.bsky.feed.repost') {
+            const subject = data.record.subject.uri;
+            const repo = data.body.repo;
+
+            const repost = {
+                repo: repo,
+                indexedAt: data.record.createdAt,
+            }
+
+            if (follows.some(follow => follow === repo)) {
+                await getRecord(subject, repost);
+            }
+        }
     }
 
     async function getFollows() {
@@ -205,19 +221,20 @@
             await getFollows();
         }
 
-        await connect();
+        isFollowsListFinished = true;
     })
 
     onDestroy(async() => {
-        socket.close();
+         //socket.close();
+        await disconnect();
     })
 </script>
-
-<svelte:document on:visibilitychange={handleVisibilityChange} />
 
 <div class="realtime-wrap">
   <div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
     <div class="realtime-follows">
+      <div class="realtime-status" class:realtime-status--connected={$realtime.isConnected}></div>
+
       <p class="realtime-follows__count">{$_('realtime_follows_count')}: {follows.length}</p>
 
       <button class="button button--ss" disabled={isFollowsListRefreshing} on:click={refreshFollowsList}>{$_('realtime_follows_refresh')}</button>
@@ -241,7 +258,7 @@
   </div>
 </div>
 
-<style>
+<style lang="postcss">
   .realtime-note {
       font-size: 14px;
       margin-top: 20px;
@@ -249,8 +266,50 @@
 
   .realtime-follows {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
+
+      &__count {
+          margin-right: auto;
+      }
+  }
+
+  .realtime-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-theme-7);
+      position: relative;
+      margin-top: 2px;
+
+      &::before {
+          content: '';
+          display: block;
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          box-shadow: 0 0 0 4px var(--color-theme-7);
+          opacity: .3;
+          animation: 1s ease-in-out infinite alternate status-dot;
+      }
+
+      &--connected {
+          background-color: var(--color-theme-8);
+
+          &::before {
+              box-shadow: 0 0 0 4px var(--color-theme-8);
+          }
+      }
+  }
+
+  @keyframes status-dot {
+      0% {
+          opacity: .3;
+      }
+
+      100% {
+          opacity: .2;
+      }
   }
 </style>

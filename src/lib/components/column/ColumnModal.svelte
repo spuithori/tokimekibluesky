@@ -36,6 +36,14 @@
             style: 'default',
         },]
     }
+    allColumns = [...allColumns, {
+        id: 3,
+        algorithm: {
+            type: 'notification',
+            name: $_('notifications'),
+        },
+        style: 'default',
+    }]
     let savedFeeds = [];
 
 

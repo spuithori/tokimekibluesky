@@ -241,5 +241,6 @@
   "add_single_list": "Add single list",
   "success_add_single_list": "Single list has added.",
   "/search_search": "Keyword(s) search",
-  "/search/user_search": "User search"
+  "/search/user_search": "User search",
+  "notifications": "Notifications"
 }

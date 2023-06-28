@@ -126,3 +126,16 @@ export const isDataSaving = derived([settings, isMobileDataConnection], ([$setti
 }, false)
 
 export const isPreventEvent = writable<boolean>(false);
+
+type Realtime = {
+    isConnected: boolean,
+    data: any,
+}
+export const realtime = writable<Realtime>({
+    isConnected: false,
+    data: {
+        record: undefined,
+        op: undefined,
+        body: undefined,
+    }
+});

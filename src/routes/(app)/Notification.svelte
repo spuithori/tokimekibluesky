@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { agent, replyRef } from '$lib/stores';
+    import {agent, notificationCount, realtime} from '$lib/stores';
     import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
     import { type AppBskyNotificationListNotifications, AppBskyFeedPost, AppBskyFeedLike, AppBskyFeedRepost } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
@@ -8,6 +8,8 @@
     import Repost from "$lib/components/post/Repost.svelte";
     import Like from "$lib/components/post/Like.svelte";
     import Reply from "$lib/components/post/Reply.svelte";
+
+    export let isPage = false;
 
     let notifications: AppBskyNotificationListNotifications.Notification[] = [];
     let cursor = '';
@@ -25,15 +27,74 @@
         il.$$.update();
     }
 
-    async function getFeedAll(promises) {
-        await Promise.allSettled(promises)
-            .then((results) => {
-                results.forEach((result, index) => {
-                    if (result.status === 'fulfilled' && result.value !== null) {
-                        feeds[result.value.post.uri] = result.value.post;
+    $: putNotifications($notificationCount);
+
+    async function putNotifications(count) {
+        if (!$realtime.isConnected) {
+            return false;
+        }
+
+        if (!isPage) {
+            return false;
+        }
+
+        const res = await $agent.agent.api.app.bsky.notification.listNotifications({
+            limit: 20,
+            cursor: '',
+        });
+        cursor = res.data.cursor;
+        const newNotifications = res.data.notifications;
+        await updateNotifications(newNotifications, true);
+    }
+
+    async function updateNotifications(ctx, putBefore = false) {
+        if (putBefore) {
+            notifications = [];
+        }
+
+        ctx.forEach((item, index) => {
+            if (!item.author.viewer.muted) {
+                notifications = [...notifications, item];
+
+                if (filter.includes(item.reason)) {
+                    if (item.reason === 'reply' || item.reason === 'mention') {
+                        reasonSubjects.push(item.uri);
+                    } else {
+                        reasonSubjects.push(item.reasonSubject);
                     }
-                })
-            })
+
+                    if (item.reason === 'quote') {
+                        reasonSubjects.push(item.uri);
+                    }
+                }
+            }
+        });
+
+        reasonSubjects = [...new Set(reasonSubjects)];
+        reasonSubjects = reasonSubjects.filter(v => v);
+
+        if (reasonSubjects.length) {
+            const postsRes = await $agent.agent.api.app.bsky.feed.getPosts({uris: reasonSubjects});
+
+            reasonSubjects = [];
+
+            notifications.forEach(notification => {
+                postsRes.data.posts.forEach(item => {
+                    if (notification.reasonSubject === item.uri) {
+                        notification.feed = item;
+                    }
+
+                    if (notification.reason === 'reply' || notification.reason === 'mention' || notification.reason === 'quote') {
+                        if (notification.uri === item.uri) {
+                            notification.feedThis = item;
+                        }
+                    }
+                });
+            });
+            notifications = notifications;
+        }
+
+        console.log(notifications)
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
@@ -44,49 +105,7 @@
         cursor = res.data.cursor;
 
         if (cursor) {
-            res.data.notifications.forEach((item, index) => {
-                if (!item.author.viewer.muted) {
-                    notifications = [...notifications, item];
-
-                    if (filter.includes(item.reason)) {
-                        if (item.reason === 'reply' || item.reason === 'mention') {
-                            reasonSubjects.push(item.uri);
-                        } else {
-                            reasonSubjects.push(item.reasonSubject);
-                        }
-
-                        if (item.reason === 'quote') {
-                            reasonSubjects.push(item.uri);
-                        }
-                    }
-                }
-            });
-
-            reasonSubjects = [...new Set(reasonSubjects)];
-            reasonSubjects = reasonSubjects.filter(v => v);
-
-            if (reasonSubjects.length) {
-                const postsRes = await $agent.agent.api.app.bsky.feed.getPosts({uris: reasonSubjects});
-
-                reasonSubjects = [];
-
-                notifications.forEach(notification => {
-                    postsRes.data.posts.forEach(item => {
-                        if (notification.reasonSubject === item.uri) {
-                            notification.feed = item;
-                        }
-
-                        if (notification.reason === 'reply' || notification.reason === 'mention' || notification.reason === 'quote') {
-                            if (notification.uri === item.uri) {
-                                notification.feedThis = item;
-                            }
-                        }
-                    });
-                });
-                notifications = notifications;
-            }
-
-            console.log(notifications);
+            await updateNotifications(res.data.notifications);
 
             loaded();
         } else {

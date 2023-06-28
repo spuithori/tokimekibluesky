@@ -7,6 +7,7 @@
     import IconColumnsHome from "$lib/icons/columns/IconColumnsHome.svelte";
     import {bookmarkModal, listModal} from "$lib/stores";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
+    import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     export let items;
     const flipDurationMs = 300;
     function handleDndConsider(e) {
@@ -44,6 +45,8 @@
         >
           <IconColumnsEdit></IconColumnsEdit>
         </button>
+      {:else if (column.algorithm.type === 'notification')}
+        <IconColumnsNotification></IconColumnsNotification>
       {:else}
         <IconColumnsHome></IconColumnsHome>
       {/if}
