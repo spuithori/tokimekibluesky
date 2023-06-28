@@ -1,17 +1,9 @@
 import {addExtension, decode, decodeMultiple} from "cbor-x";
 import {CID} from "multiformats";
 import toast from "svelte-french-toast";
-import {_} from "svelte-i18n";
 import {CarReader} from "@ipld/car";
 import { get } from 'svelte/store';
 import {realtime, agent, notificationCount} from '$lib/stores';
-
-const stateMessage = [
-    get(_)('realtime_connecting'),
-    get(_)('realtime_open'),
-    get(_)('realtime_closing'),
-    get(_)('realtime_closed')
-];
 
 let timeId;
 let socket;
@@ -39,12 +31,12 @@ export async function connect() {
     });
 
     socket.addEventListener('close', (event) => {
-        toast.error(get(_)('realtime_connect_closed'));
+        //toast.error(get(_)('realtime_connect_closed'));
         // dispatch('disconnect');
     });
 
     socket.addEventListener('open', (event) => {
-        toast.success(get(_)('realtime_connect_status') + ': ' + stateMessage[socket.readyState]);
+        //.success(get(_)('realtime_connect_status') + ': ' + stateMessage[socket.readyState]);
         // dispatch('connect');
     });
 
