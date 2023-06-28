@@ -15,6 +15,7 @@
   import viewPortSetting from '$lib/viewport';
   import {scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
+  import {page} from "$app/stores";
 
   inject(
       {
@@ -132,7 +133,7 @@
     class:scrolled={scrolly > 100}
     class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
     dir="{$_('dir', {default: 'ltr'})}"
-    class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide}
+    class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}
 >
   <Header />
 
