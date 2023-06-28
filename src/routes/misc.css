@@ -78,3 +78,26 @@
         }
     }
 }
+
+@media (min-width: 768px) {
+    .header-hide {
+        .header {
+            transform: translateY(-80px);
+        }
+
+        .deck {
+            height: 100vh !important;
+        }
+
+        .decks-button {
+            transform: translateY(-80px);
+        }
+
+        .header-collapse-button {
+            transform: translateY(-70px);
+            svg {
+                transform: none !important;
+            }
+        }
+    }
+}

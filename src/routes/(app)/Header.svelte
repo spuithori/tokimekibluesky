@@ -3,11 +3,12 @@
     import Notification from './Notification.svelte';
     import { fade, fly } from 'svelte/transition';
     import { onMount } from 'svelte';
-    import { agent, notificationCount } from '$lib/stores';
+    import { agent, notificationCount, settings } from '$lib/stores';
     import { afterNavigate } from '$app/navigation';
     import Settings from './Settings.svelte';
     import { clickOutside } from '$lib/clickOutSide';
 
+    let headerHide = $settings?.design.headerHide || false;
     let isNotificationOpen = false;
     let isSettingsOpen = false;
 
@@ -33,6 +34,10 @@
     afterNavigate(async () => {
         isNotificationOpen = false;
     })
+
+    $: {
+        $settings.design.headerHide = headerHide;
+    }
 </script>
 
 <header class="header">
@@ -118,6 +123,14 @@
     </div>
   </div>
 </header>
+
+{#if ($settings?.design.layout === 'decks')}
+  <button on:click={() => {headerHide = !headerHide}} class="header-collapse-button" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" width="29.086" height="14.949" viewBox="0 0 29.086 14.949">
+      <path id="パス_62" data-name="パス 62" d="M4034,587.19l13.129,12.535,13.129-12.535" transform="translate(-4032.586 -585.776)" fill="none" stroke="var(--bg-color-1)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    </svg>
+  </button>
+{/if}
 
 <style lang="postcss">
   .header {
@@ -322,6 +335,30 @@
           right: 0;
           width: auto;
           height: auto;
+      }
+  }
+
+  .header-collapse-button {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      top: 50px;
+      left: 0;
+      right: 0;
+      margin: auto;
+      background-color: var(--border-color-1);
+      border-radius: 50%;
+      display: grid;
+      place-content: center;
+      z-index: 10;
+      padding-top: 15px;
+
+      @media (max-width: 767px) {
+          display: none;
+      }
+
+      svg {
+          transform: scale(1, -1);
       }
   }
 </style>
