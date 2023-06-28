@@ -12,6 +12,14 @@
         unique = Symbol();
     }
 
+    function handleHeaderClick(el) {
+        el.scroll({
+            top: 0,
+            left: 0,
+            behavior: 'smooth',
+        })
+    }
+
     if (Array.isArray($columns) && !$columns.length) {
         columns.set([
             {
@@ -42,7 +50,7 @@
     {#key unique}
       {#each $columns as column, index (column)}
         <div class="deck-row">
-          <div class="deck-row__title">{column.algorithm.name}</div>
+          <div role="button" aria-label="Back to top." class="deck-row__title" on:click={() => {handleHeaderClick(column.scrollElement)}}>{column.algorithm.name}</div>
 
           <div class="deck-row__content" bind:this={column.scrollElement}>
             {#if (column.algorithm.type === 'notification')}
@@ -130,6 +138,7 @@
           z-index: 10;
           border-radius: 10px 10px 0 0;
           letter-spacing: .025em;
+          cursor: pointer;
 
           @media (max-width: 767px) {
               font-size: 15px;
