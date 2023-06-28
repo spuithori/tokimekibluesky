@@ -242,5 +242,7 @@
   "success_add_single_list": "Single list has added.",
   "/search_search": "Keyword(s) search",
   "/search/user_search": "User search",
-  "notifications": "Notifications"
+  "notifications": "Notifications",
+  "play_se": "Sound effect for real-time notifications",
+  "play_se_description": "Valid only when using REALTIME and Notifications columns in DECKS layout."
 }

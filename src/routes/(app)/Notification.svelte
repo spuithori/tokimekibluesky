@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, notificationCount, realtime} from '$lib/stores';
+    import {agent, notificationCount, realtime, settings} from '$lib/stores';
     import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
     import { type AppBskyNotificationListNotifications, AppBskyFeedPost, AppBskyFeedLike, AppBskyFeedRepost } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
@@ -44,7 +44,14 @@
         });
         cursor = res.data.cursor;
         const newNotifications = res.data.notifications;
+
         await updateNotifications(newNotifications, true);
+
+        if ($settings?.general.se) {
+            const se = new Audio('https://holybea.com/wp-content/uploads/2023/06/noti.mp3');
+            se.volume = 0.5;
+            se.play();
+        }
     }
 
     async function updateNotifications(ctx, putBefore = false) {

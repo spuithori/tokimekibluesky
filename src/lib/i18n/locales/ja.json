@@ -243,5 +243,7 @@
   "user": "ユーザー",
   "/search_search": "キーワード検索",
   "/search/user_search": "ユーザー検索",
-  "notifications": "通知"
+  "notifications": "通知",
+  "play_se": "リアルタイム通知の効果音を鳴らす",
+  "play_se_description": "DECKSレイアウトでREALTIMEコラムと通知コラムを使用している場合のみ有効。"
 }

@@ -4,6 +4,7 @@
     let disableAlgorithm = $settings?.general.disableAlgorithm || false;
     let language = $settings?.general.language || window.navigator.language;
     let dataSaver = $settings?.general.dataSaver || false;
+    let se = $settings?.general.se || false;
 
 const languages = [
     {
@@ -28,6 +29,7 @@ $: {
     $settings.general.disableAlgorithm = disableAlgorithm;
     $settings.general.language = language;
     $settings.general.dataSaver = dataSaver;
+    $settings.general.se = se;
 
     if ($settings.general.disableAlgorithm === 'true') {
         currentAlgorithm.set({type: 'default'});
@@ -93,6 +95,20 @@ $: {
         </div>
 
         <p class="settings-group__description">{$_('data_saver_description')}</p>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('play_se')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="se" bind:checked={se}><label class="input-toggle__label" for="se"></label>
+        </div>
+
+        <p class="settings-group__description">{$_('play_se_description')}</p>
       </dd>
     </dl>
   </div>
