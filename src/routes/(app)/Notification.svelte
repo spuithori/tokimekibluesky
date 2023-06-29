@@ -47,7 +47,7 @@
 
         await updateNotifications(newNotifications, true);
 
-        if ($settings?.general.se) {
+        if ($settings?.general.se && count > 0) {
             const se = new Audio('https://holybea.com/wp-content/uploads/2023/06/noti.mp3');
             se.volume = 0.5;
             se.play();
