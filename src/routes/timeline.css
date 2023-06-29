@@ -164,6 +164,12 @@
         }
     }
 
+    &:not(:last-child) {
+        &::after {
+            content: '・';
+        }
+    }
+
     &--noafter {
         &::after {
             content: none !important;
@@ -874,4 +880,17 @@
     top: 0;
     bottom: 0;
     right: 0;
+}
+
+.timeline-translate-button {
+    color: var(--primary-color);
+    letter-spacing: .025em;
+
+    &:hover {
+        text-decoration: underline;
+    }
+
+    &--hidden {
+        visibility: hidden;
+    }
 }

@@ -62,6 +62,7 @@
     }
 
     let isShortCutNumberShown = false;
+    let isTranslated = false;
 
     const keycodeNumbers = [
         49,
@@ -173,7 +174,7 @@
                 method: 'post',
                 body: JSON.stringify({
                     text: item.text,
-                    to: window.navigator.language,
+                    to: $settings.general.language || window.navigator.language,
                 })
             });
             const translation = await res.json();
@@ -181,6 +182,7 @@
         }
         textArray = textArray;
         isMenuOpen = false;
+        isTranslated = true;
     }
 
     function copyThreadUrl() {
@@ -455,6 +457,13 @@
               </Tooltip>
             {/if}
           </p>
+
+          {#if (data.post.record.langs && !data.post.record.langs.includes($settings.general.language))}
+            <button
+                class="timeline-translate-button"
+                class:timeline-translate-button--hidden={isTranslated}
+                on:click={translation}>{$_('translation')}</button>
+          {/if}
         </div>
 
         <div class="timeline__warn-wrap">

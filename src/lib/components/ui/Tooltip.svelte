@@ -20,7 +20,7 @@
     let isShown: boolean = false;
 </script>
 
-<span on:mouseenter={() => isShown = true} on:mouseleave={() => isShown = false} use:floatingRef>
+<span class="tooltip-wrap" on:mouseenter={() => isShown = true} on:mouseleave={() => isShown = false} use:floatingRef>
   <span class="tooltip-ref">
      <slot name="ref"></slot>
   </span>
@@ -33,6 +33,10 @@
 </span>
 
 <style lang="postcss">
+    .tooltip-wrap {
+        display: inline-block;
+    }
+
   .tooltip-content {
       background-color: rgba(0, 0, 0, .75);
       color: #fff;
