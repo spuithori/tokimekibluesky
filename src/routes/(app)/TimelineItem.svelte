@@ -719,6 +719,22 @@
         </li>
       </ul>
     </Menu>
+
+    {#if ($settings?.general.devMode)}
+      <div class="timeline-dev">
+        <p>langs: {data.post.record?.langs ?? ' '}</p>
+        <p>via: {data.post.record?.via ?? ' '}</p>
+
+        {#if data.post.labels && data.post.labels.length}
+          <div class="timeline-dev__group">
+            <p>labels: </p>
+            {#each data.post.labels as label}
+              <p>{label.val}</p>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    {/if}
   </article>
 {/if}
 

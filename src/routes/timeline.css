@@ -894,3 +894,20 @@
         visibility: hidden;
     }
 }
+
+.timeline-dev {
+    padding: 10px 20px;
+    background-color: var(--bg-color-2);
+    border-radius: 6px;
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    color: var(--text-color-3);
+
+    &__group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 5px;
+    }
+}

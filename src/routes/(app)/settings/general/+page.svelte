@@ -5,6 +5,7 @@
     let language = $settings?.general.language || window.navigator.language;
     let dataSaver = $settings?.general.dataSaver || false;
     let se = $settings?.general.se || false;
+    let devMode = $settings?.general.devMode || false;
 
 const languages = [
     {
@@ -30,6 +31,7 @@ $: {
     $settings.general.language = language;
     $settings.general.dataSaver = dataSaver;
     $settings.general.se = se;
+    $settings.general.devMode = devMode;
 
     if ($settings.general.disableAlgorithm === 'true') {
         currentAlgorithm.set({type: 'default'});
@@ -109,6 +111,18 @@ $: {
         </div>
 
         <p class="settings-group__description">{$_('play_se_description')}</p>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('dev_mode')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="devMode" bind:checked={devMode}><label class="input-toggle__label" for="devMode"></label>
+        </div>
       </dd>
     </dl>
   </div>
