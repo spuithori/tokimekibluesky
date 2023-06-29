@@ -75,6 +75,8 @@ let embedRecord: AppBskyEmbedRecord.Main;
 let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
 let embedExternal: AppBskyEmbedExternal.Main | undefined;
 
+let lang =[];
+
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: {
     isPublishEnabled = publishContentLength > 300;
@@ -128,6 +130,8 @@ function onPublishContentChange() {
         } else {
             searchActors = [];
         }
+
+        await languageDetect(publishContent);
     }, 200)
 
     if (getActorTypeAhead() && searchActors.length === 0) {
@@ -457,6 +461,27 @@ function handleAltClose(event) {
     console.log(images);
 }
 
+async function languageDetect(text = publishContent) {
+    try {
+        const res = await fetch(`/api/language-detect`, {
+            method: 'post',
+            body: JSON.stringify({
+                text: text,
+            })
+        });
+        const langs: [] = await res.json() as [];
+
+        if (langs.length) {
+            lang = langs.map(lg => lg.lang);
+        }
+
+        console.log(lang);
+    } catch (e) {
+        console.error(e);
+        lang = [];
+    }
+}
+
 onMount(async () => {
     if ($sharedText) {
         await goto('/');
@@ -542,6 +567,7 @@ onMount(async () => {
                     createdAt: new Date().toISOString(),
                     reply: $replyRef || undefined,
                     via: 'TOKIMEKI',
+                    langs: lang || [],
                 },
             );
             toast.success($_('success_to_post'));
