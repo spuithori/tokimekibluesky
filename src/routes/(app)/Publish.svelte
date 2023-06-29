@@ -130,8 +130,6 @@ function onPublishContentChange() {
         } else {
             searchActors = [];
         }
-
-        await languageDetect(publishContent);
     }, 200)
 
     if (getActorTypeAhead() && searchActors.length === 0) {
@@ -473,9 +471,9 @@ async function languageDetect(text = publishContent) {
 
         if (langs.length) {
             lang = langs.map(lg => lg.lang);
+        } else {
+            lang = [];
         }
-
-        console.log(lang);
     } catch (e) {
         console.error(e);
         lang = [];
@@ -556,6 +554,8 @@ onMount(async () => {
 
         const rt = new RichText({text: publishContent});
         await rt.detectFacets($agent.agent);
+
+        await languageDetect(publishContent);
 
         try {
             await $agent.agent.api.app.bsky.feed.post.create(
