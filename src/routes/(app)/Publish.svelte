@@ -75,6 +75,8 @@ let embedRecord: AppBskyEmbedRecord.Main;
 let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
 let embedExternal: AppBskyEmbedExternal.Main | undefined;
 
+let lang =[];
+
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: {
     isPublishEnabled = publishContentLength > 300;
@@ -457,6 +459,27 @@ function handleAltClose(event) {
     console.log(images);
 }
 
+async function languageDetect(text = publishContent) {
+    try {
+        const res = await fetch(`/api/language-detect`, {
+            method: 'post',
+            body: JSON.stringify({
+                text: text,
+            })
+        });
+        const langs: [] = await res.json() as [];
+
+        if (langs.length) {
+            lang = langs.map(lg => lg.lang);
+        } else {
+            lang = [];
+        }
+    } catch (e) {
+        console.error(e);
+        lang = [];
+    }
+}
+
 onMount(async () => {
     if ($sharedText) {
         await goto('/');
@@ -532,6 +555,8 @@ onMount(async () => {
         const rt = new RichText({text: publishContent});
         await rt.detectFacets($agent.agent);
 
+        await languageDetect(publishContent);
+
         try {
             await $agent.agent.api.app.bsky.feed.post.create(
                 { repo: $agent.did() },
@@ -542,6 +567,7 @@ onMount(async () => {
                     createdAt: new Date().toISOString(),
                     reply: $replyRef || undefined,
                     via: 'TOKIMEKI',
+                    langs: lang || [],
                 },
             );
             toast.success($_('success_to_post'));
