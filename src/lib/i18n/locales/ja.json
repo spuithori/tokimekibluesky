@@ -245,5 +245,7 @@
   "/search/user_search": "ユーザー検索",
   "notifications": "通知",
   "play_se": "リアルタイム通知の効果音を鳴らす",
-  "play_se_description": "DECKSレイアウトでREALTIMEコラムと通知コラムを使用している場合のみ有効。"
+  "play_se_description": "DECKSレイアウトでREALTIMEコラムと通知コラムを使用している場合のみ有効。",
+  "settings_lang_filter": "言語フィルター",
+  "lang_filter_description": "いずれにもチェックを入れていない場合、すべての投稿が表示されます。\n投稿につけられた言語ラベルで判定します。古いバージョンの公式アプリや、対応していないクライアントからの投稿はフィルタリングされません。"
 }

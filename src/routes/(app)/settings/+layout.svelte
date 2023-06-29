@@ -51,6 +51,12 @@
               disabled: false,
           },
           {
+              name: 'lang-filter',
+              path: '/settings/lang-filter',
+              display: $_('settings_lang_filter'),
+              disabled: false,
+          },
+          {
               name: 'invite-codes',
               path: '/settings/invite-codes',
               display: $_('settings_invite_codes'),

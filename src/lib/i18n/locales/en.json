@@ -244,5 +244,7 @@
   "/search/user_search": "User search",
   "notifications": "Notifications",
   "play_se": "Sound effect for real-time notifications",
-  "play_se_description": "Valid only when using REALTIME and Notifications columns in DECKS layout."
+  "play_se_description": "Valid only when using REALTIME and Notifications columns in DECKS layout.",
+  "settings_lang_filter": "Languages Filter",
+  "lang_filter_description": "If none of the above are checked, all posts will be displayed.\nJudging is based on the language label attached to the post. Posts from older versions of official apps or unsupported clients will not be filtered."
 }

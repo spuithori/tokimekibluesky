@@ -162,6 +162,14 @@
                 }
             })
         }
+
+        if ($settings.langFilter && $settings.langFilter.length && data.post.record.langs) {
+            const isLangMatched = $settings.langFilter.some(lang => data.post.record.langs.includes(lang));
+
+            if (!isLangMatched) {
+                isHide = true;
+            }
+        }
     })
 
     const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {

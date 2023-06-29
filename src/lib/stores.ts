@@ -97,7 +97,8 @@ const defaultSettings = {
             spam: 'show',
             suggestive: 'show',
         },
-    }
+    },
+    langFilter: [],
 }
 const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);
 export const settings = writable(JSON.parse(storageSettings));

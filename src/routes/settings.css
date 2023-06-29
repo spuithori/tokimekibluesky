@@ -119,3 +119,10 @@ input[type=checkbox]{
         margin-top: 2px;
     }
 }
+
+.settings-description {
+    margin-bottom: 20px;
+    color: var(--text-color-3);
+    font-size: 14px;
+    white-space: pre-line;
+}

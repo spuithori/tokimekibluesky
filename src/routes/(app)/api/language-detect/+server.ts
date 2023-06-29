@@ -3,7 +3,7 @@ import type { Config } from '@sveltejs/adapter-vercel';
 
 async function languageDetect(text = '') {
     const detect = detectAll(text);
-    return detect;
+    return detect.slice(0, 3);
 }
 
 export async function POST ({ request }) {
