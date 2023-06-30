@@ -8,6 +8,7 @@
     import Repost from "$lib/components/post/Repost.svelte";
     import Like from "$lib/components/post/Like.svelte";
     import Reply from "$lib/components/post/Reply.svelte";
+    import Avatar from "./Avatar.svelte";
 
     export let isPage = false;
 
@@ -180,54 +181,63 @@
               <div class="notifications-new" aria-label="New Notification"></div>
             {/if}
 
-            <h2 class="notifications-item__title">
-            <span class="notifications-item__name">
-              <ProfileCardWrapper handle="{item.author.handle}">
-                <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
-              </ProfileCardWrapper>
-            </span> {$_(getReasonText(item.reason))}
-              {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-                ・<a href="/profile/{item.author.handle}/post/{item.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
+            <div class="notification-column">
+              {#if $settings?.design.postsLayout !== 'minimum'}
+                <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}
+                        handle={item.author.handle}></Avatar>
               {/if}
-            </h2>
 
-            {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-              <p class="notifications-item__content">{item.record.text}</p>
-            {:else}
-              {#if (item.feed)}
-                <p class="notifications-item__content">{item.feed.record.text}</p>
-              {/if}
-            {/if}
+              <div class="notification-column__content">
+                <h2 class="notifications-item__title">
+                <span class="notifications-item__name">
+                  <ProfileCardWrapper handle="{item.author.handle}">
+                    <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+                  </ProfileCardWrapper>
+                </span> {$_(getReasonText(item.reason))}
+                  {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+                    ・<a href="/profile/{item.author.handle}/post/{item.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
+                  {/if}
+                </h2>
 
-            {#if (item.reason === 'quote' && item.feed)}
-              <p class="notifications-item__quote">{item.feed.record.text}</p>
-            {/if}
+                {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+                  <p class="notifications-item__content">{item.record.text}</p>
+                {:else}
+                  {#if (item.feed)}
+                    <p class="notifications-item__content">{item.feed.record.text}</p>
+                  {/if}
+                {/if}
 
-            {#if item.feedThis}
-              <div class="timeline-reaction timeline-reaction--notification">
-                <Reply
-                    post={item.feedThis}
-                    reply={item.feedThis.record.reply}
-                    count={item.feedThis.replyCount}
-                ></Reply>
+                {#if (item.reason === 'quote' && item.feed)}
+                  <p class="notifications-item__quote">{item.feed.record.text}</p>
+                {/if}
 
-                <Repost
-                    cid={item.feedThis.cid}
-                    uri={item.feedThis.uri}
-                    repostViewer={item.feedThis.viewer?.repost}
-                    count={item.feedThis.repostCount}
-                    on:repost
-                ></Repost>
+                {#if item.feedThis}
+                  <div class="timeline-reaction timeline-reaction--notification">
+                    <Reply
+                        post={item.feedThis}
+                        reply={item.feedThis.record.reply}
+                        count={item.feedThis.replyCount}
+                    ></Reply>
 
-                <Like
-                    cid={item.feedThis.cid}
-                    uri={item.feedThis.uri}
-                    likeViewer={item.feedThis.viewer?.like}
-                    count={item.feedThis.likeCount}
-                    on:like
-                ></Like>
+                    <Repost
+                        cid={item.feedThis.cid}
+                        uri={item.feedThis.uri}
+                        repostViewer={item.feedThis.viewer?.repost}
+                        count={item.feedThis.repostCount}
+                        on:repost
+                    ></Repost>
+
+                    <Like
+                        cid={item.feedThis.cid}
+                        uri={item.feedThis.uri}
+                        likeViewer={item.feedThis.viewer?.like}
+                        count={item.feedThis.likeCount}
+                        on:like
+                    ></Like>
+                  </div>
+                {/if}
               </div>
-            {/if}
+            </div>
           </article>
         {:else}
           <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
@@ -274,6 +284,7 @@
           font-size: 15px;
           line-height: 1.5;
           font-weight: 600;
+          margin-bottom: 5px;
       }
 
       &__content {
@@ -387,51 +398,9 @@
       }
   }
 
-  .notifications-item-buttons {
-
-  }
-
-  .notifications-push-settings {
-      font-size: 13px;
-  }
-
-  .push-box {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, .6);
-      z-index: 5000;
+  .notification-column {
       display: grid;
-      place-items: center;
-
-      &__content {
-          width: calc(100% - 20px);
-          height: max-content;
-          max-height: 90svh;
-          max-width: 740px;
-          overflow: auto;
-          overscroll-behavior-y: none;
-          background-color: var(--bg-color-1);
-          border-radius: 6px;
-          padding: 30px;
-          position: relative;
-      }
-
-      &__buttons {
-          text-align: center;
-          margin-top: 20px;
-      }
-
-      &__close {
-          position: absolute;
-          left: 0;
-          bottom: 0;
-          right: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-      }
+      grid-template-columns: 40px 1fr;
+      gap: 10px;
   }
 </style>

@@ -235,7 +235,7 @@
     <div class="realtime-follows">
       <div class="realtime-status" class:realtime-status--connected={$realtime.isConnected}></div>
 
-      <p class="realtime-follows__count">{$_('realtime_follows_count')}: {follows.length}</p>
+      <p class="realtime-follows__count"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users-2" aria-label="{$_('realtime_follows_count')}"><path d="M14 19a6 6 0 0 0-12 0"/><circle cx="8" cy="9" r="4"/><path d="M22 19a6 6 0 0 0-6-6 4 4 0 1 0 0-8"/></svg> {follows.length}</p>
 
       <button class="button button--ss" disabled={isFollowsListRefreshing} on:click={refreshFollowsList}>{$_('realtime_follows_refresh')}</button>
     </div>
@@ -271,6 +271,9 @@
 
       &__count {
           margin-right: auto;
+          display: flex;
+          align-items: center;
+          gap: 4px;
       }
   }
 

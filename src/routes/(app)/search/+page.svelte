@@ -53,6 +53,7 @@
                         tempFeeds.push(result.value.data.thread)
                     }
                 }));
+            tempFeeds = tempFeeds.filter(feed => feed.post?.indexedAt);
 
             tempFeeds.sort((a, b) => {
                 return parseISO(b.post.indexedAt).getTime() - parseISO(a.post.indexedAt).getTime();
