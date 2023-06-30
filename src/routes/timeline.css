@@ -128,6 +128,13 @@
     a {
         color: inherit;
         font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+
+        svg {
+            flex-shrink: 0;
+        }
     }
 
     &__you {
@@ -138,17 +145,6 @@
         padding: 2px 4px;
         margin-left: 5px;
     }
-}
-
-.timeline-repost-message::before {
-    content: '';
-    display: block;
-    position: absolute;
-    left: -20px;
-    top: 20px;
-    bottom: 20px;
-    width: 4px;
-    background-color: var(--primary-color);
 }
 
 .timeline__date {
@@ -286,12 +282,28 @@
             }
         }
     }
+
+    &__count {
+        display: flex;
+        align-items: center;
+        left: 36px;
+        letter-spacing: -.025em;
+        font-weight: 400;
+
+        @media (max-width: 767px) {
+            font-size: 13px;
+        }
+    }
+
+    &__icon {
+        z-index: 1;
+    }
 }
 
 .timeline-reaction__item {
     display: flex;
     align-items: center;
-    padding: 0 13px;
+    padding: 0 12px;
     gap: 6px;
     min-width: 70px;
     height: 28px;
@@ -301,25 +313,27 @@
     font-size: 14px;
     transition: background-color .2s ease-in-out;
     background-color: var(--bg-color-1);
+    font-family: var(--ui-font);
 
     @media (max-width: 767px) {
         min-width: 60px;
-    }
-
-    &:hover {
-        @media (min-width: 768px) {
-            background-color: var(--border-color-1);
-            color: var(--bg-color-1);
-
-            path {
-                fill: var(--bg-color-1);
-            }
-        }
+        padding: 0 10px;
     }
 
     &--bookmark {
         min-width: 45px;
         justify-content: center;
+
+        &:hover {
+            @media (min-width: 768px) {
+                background-color: var(--border-color-1);
+                color: var(--bg-color-1);
+
+                path {
+                    fill: var(--bg-color-1);
+                }
+            }
+        }
     }
 }
 
@@ -802,6 +816,11 @@
             height: 20px;
             min-width: 64px;
             font-size: 13px;
+        }
+
+        &__count {
+            font-size: 12px;
+            position: static;
         }
     }
 
