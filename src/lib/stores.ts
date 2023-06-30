@@ -47,6 +47,8 @@ export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) ||
 export const currentAccount = writable(localStorage.getItem('currentAccount') || '0');
 export const agent = writable<Agent>();
 
+export const agents = writable<Agent[]>([]);
+
 export const currentAlgorithm = writable<currentAlgorithm>({
     type: 'default',
 });

@@ -15,7 +15,11 @@
   import viewPortSetting from '$lib/viewport';
   import {scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
-  import {page} from "$app/stores";
+  import { page } from '$app/stores';
+  import { liveQuery } from 'dexie';
+  import {accountsDb, db} from '$lib/db';
+
+  let loaded = false;
 
   inject(
       {
@@ -29,8 +33,76 @@
       },
   );
 
-  let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-  let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
+  let accounts = liveQuery(
+      () => accountsDb.accounts.toArray()
+  );
+
+  let profiles = liveQuery(
+      () => accountsDb.profiles.toArray()
+  );
+
+  $: {
+      if ($profiles) {
+          initProfile($profiles);
+      }
+  }
+
+  async function initProfile(profiles) {
+      console.log('yea')
+      if (loaded) {
+          return false;
+      }
+
+      if (!profiles.length) {
+          console.log('Profiles are empty.');
+          await goto('/login');
+          return false;
+      }
+
+      const currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
+      const profile = profiles.find(profile => profile.id === currentProfile);
+      const accounts = await accountsDb.accounts
+          .where('id')
+          .anyOf(profile.accounts)
+          .toArray();
+
+      if (!accounts && !profile) {
+          console.log('Accounts are empty.');
+          await goto('/login');
+          return false;
+      }
+
+      if (!profile.accounts.length) {
+          console.log('There is no account in this profile.');
+          await goto('/login');
+          return false;
+      }
+
+      for (const account of accounts) {
+          const ag = new AtpAgent({
+              service: account.service,
+              persistSession: async (evt: AtpSessionEvent, sess?: AtpSessionData) => {
+                  if (sess) {
+                      account.session = sess;
+                  }
+
+                  const id = await accountsDb.accounts.put({
+                      id: account.id,
+                      session: account.session,
+                      did: sess.did,
+                      service: account.service
+                  })
+              }
+          })
+
+          await ag.resumeSession(account.session);
+      }
+
+      loaded = true;
+  }
+
+  //let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+  // let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
   let direction = 'up';
   let scrolly;
   let isDarkMode = false;
@@ -41,7 +113,7 @@
       })
   }
 
-  if (accounts.length <= currentAccount && currentAccount > 0) {
+  /* if (accounts.length <= currentAccount && currentAccount > 0) {
       currentAccount = currentAccount - 1;
       localStorage.setItem('currentAccount', String(currentAccount))
   }
@@ -49,13 +121,13 @@
   const session = accounts[currentAccount]?.session;
   if (!session) {
       goto('/login');
-  }
+  } */
 
   if ($settings?.general.language) {
       locale.set($settings.general.language);
   }
 
-  try {
+  /* try {
       let ag = new AtpAgent({
           service: accounts[currentAccount].service,
           persistSession: (evt: AtpSessionEvent, sess?: AtpSessionData) => {
@@ -68,7 +140,7 @@
       agent.set(new Agent(ag));
   } catch (e) {
       goto('/login');
-  }
+  } */
 
   $: {
       localStorage.setItem('settings', JSON.stringify($settings));
@@ -127,25 +199,31 @@
 
 <svelte:window on:scroll={handleScroll} bind:scrollY={scrolly}></svelte:window>
 
-<div
-    class:nonoto={$settings?.design.nonoto || false}
-    class:darkmode={isDarkMode}
-    class:scrolled={scrolly > 100}
-    class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
-    dir="{$_('dir', {default: 'ltr'})}"
-    class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}
->
-  <Header />
+{#if (loaded)}
+  <div
+      class:nonoto={$settings?.design.nonoto || false}
+      class:darkmode={isDarkMode}
+      class:scrolled={scrolly > 100}
+      class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
+      dir="{$_('dir', {default: 'ltr'})}"
+      class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}
+  >
+    <Header />
 
-  <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
-    <slot />
-  </main>
+    <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
+      <slot />
+    </main>
 
-  <Footer></Footer>
+    <Footer></Footer>
 
-  <Publish></Publish>
-  <Toaster></Toaster>
-</div>
+    <Publish></Publish>
+    <Toaster></Toaster>
+  </div>
+{:else}
+  <div>
+
+  </div>
+{/if}
 
 <style lang="postcss">
   .app {

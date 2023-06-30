@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import { AppBskyFeedDefs } from '@atproto/api';
+import {AppBskyFeedDefs, AtpSessionData} from '@atproto/api';
 
 export interface Feed {
     id?: number;
@@ -53,3 +53,37 @@ export class BookmarkSubClassedDexie extends Dexie {
 }
 
 export const db = new BookmarkSubClassedDexie();
+
+export interface Profile {
+    id?: number,
+    name: string,
+    createdAt: string,
+    accounts: number[],
+    primary: number,
+    columns: any[],
+}
+
+export interface Account {
+    id?: number,
+    service: string,
+    session: AtpSessionData,
+    did: string,
+    avatar?: string,
+    name?: string,
+}
+
+export class AccountSubClassDexie extends Dexie {
+    profiles: Table<Profile>;
+    accounts: Table<Account>;
+
+    constructor() {
+        super('accountDatabase');
+
+        this.version(1).stores({
+            profiles: '++id, name, createdAt, accounts, primary, columns',
+            accounts: '++id, service, session, &did, avatar, name',
+        });
+    }
+}
+
+export const accountsDb = new AccountSubClassDexie();
