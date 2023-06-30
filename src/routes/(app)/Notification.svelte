@@ -182,11 +182,13 @@
             {/if}
 
             <div class="notification-column">
-              {#if $settings?.design.postsLayout !== 'minimum'}
-                <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}
-                        handle={item.author.handle}></Avatar>
-              {/if}
-
+              <div>
+                {#if $settings?.design.postsLayout !== 'minimum'}
+                  <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}
+                          handle={item.author.handle}></Avatar>
+                {/if}
+              </div>
+              
               <div class="notification-column__content">
                 <h2 class="notifications-item__title">
                 <span class="notifications-item__name">
