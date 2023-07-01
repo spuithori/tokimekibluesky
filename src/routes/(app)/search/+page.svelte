@@ -35,29 +35,43 @@
         }
     }
 
+    function splitUris(uris, q = 20) {
+        const length = Math.ceil(uris.length / q)
+        return new Array(length)
+            .fill()
+            .map((_, i) => uris.slice(i * q, (i + 1) * q));
+    }
+
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         const res = await fetch('https://search.bsky.social/search/posts?q=' + encodeURIComponent($page.url.searchParams.get('q')) + '&offset=' + cursor)
             .then(response => response.json())
             .then(data => searchFeeds = data);
 
         if ($page.url.searchParams.get('q') && searchFeeds.length) {
-            const threads = [];
-            for (const feed of searchFeeds) {
-                const uri = 'at://' + feed.user.did + '/' + feed.tid;
-                threads.push($agent.agent.api.app.bsky.feed.getPostThread({uri: uri}));
-            }
+            const uris = searchFeeds.map(feed => {
+                return 'at://' + feed.user.did + '/' + feed.tid;
+            });
+
             let tempFeeds = [];
-            await Promise.allSettled(threads)
+            const urisArray = splitUris(uris);
+            const ress = await Promise.allSettled(urisArray.map(uris => {
+                return $agent.agent.api.app.bsky.feed.getPosts({uris: uris})
+            }))
                 .then(results => results.forEach(result => {
                     if (result.status === 'fulfilled') {
-                        tempFeeds.push(result.value.data.thread)
+                        console.log(result.value)
+                        result.value.data.posts.forEach(post => {
+                            tempFeeds.push({
+                                post: post,
+                            })
+                        })
                     }
-                }));
-            tempFeeds = tempFeeds.filter(feed => feed.post?.indexedAt);
+                }))
 
+            tempFeeds = tempFeeds.filter(feed => feed.post?.indexedAt);
             tempFeeds.sort((a, b) => {
                 return parseISO(b.post.indexedAt).getTime() - parseISO(a.post.indexedAt).getTime();
-            })
+            });
 
             feeds = [...feeds, ...tempFeeds];
 
