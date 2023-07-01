@@ -2,7 +2,7 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import {agent, settings, preferences, columns, singleColumn, isMobileDataConnection} from '$lib/stores';
+  import {agent, agents, settings, preferences, columns, singleColumn, isMobileDataConnection} from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -17,7 +17,7 @@
   import Footer from "./Footer.svelte";
   import { page } from '$app/stores';
   import { liveQuery } from 'dexie';
-  import {accountsDb, db} from '$lib/db';
+  import {accountsDb} from '$lib/db';
 
   let loaded = false;
 
@@ -48,57 +48,82 @@
   }
 
   async function initProfile(profiles) {
-      console.log('yea')
-      if (loaded) {
-          return false;
-      }
+    const anyAccounts = await accountsDb.accounts
+            .toArray();
 
-      if (!profiles.length) {
-          console.log('Profiles are empty.');
-          await goto('/login');
-          return false;
-      }
+    if (!anyAccounts.length) {
+      console.log('Accounts are nothing');
+      await goto('/login');
+      return false;
+    }
 
-      const currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
-      const profile = profiles.find(profile => profile.id === currentProfile);
-      const accounts = await accountsDb.accounts
-          .where('id')
-          .anyOf(profile.accounts)
-          .toArray();
+    if (loaded) {
+        return false;
+    }
 
-      if (!accounts && !profile) {
-          console.log('Accounts are empty.');
-          await goto('/login');
-          return false;
-      }
+    if (!profiles.length) {
+        console.log('Profiles are empty. create new profile.');
+        const id = await accountsDb.profiles.put({
+          accounts: anyAccounts.map(account => account.id) as number[],
+          columns: [],
+          createdAt: "",
+          name: "",
+          primary: 0
+        })
+      localStorage.setItem('currentProfile', id);
+    }
 
-      if (!profile.accounts.length) {
-          console.log('There is no account in this profile.');
-          await goto('/login');
-          return false;
-      }
+    const currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
+    const profile = profiles.find(profile => profile.id === currentProfile);
+    console.log(profile);
+    const accounts = await accountsDb.accounts
+        .where('id')
+        .anyOf(profile.accounts)
+        .toArray();
 
-      for (const account of accounts) {
-          const ag = new AtpAgent({
-              service: account.service,
-              persistSession: async (evt: AtpSessionEvent, sess?: AtpSessionData) => {
-                  if (sess) {
-                      account.session = sess;
-                  }
+    if (!accounts && !profile) {
+        console.log('Account is empty in this profile.');
+        // await goto('/login');
+        return false;
+    }
 
-                  const id = await accountsDb.accounts.put({
-                      id: account.id,
-                      session: account.session,
-                      did: sess.did,
-                      service: account.service
-                  })
-              }
-          })
+    if (!profile.accounts.length) {
+        console.log('There is no account in this profile.');
+        // await goto('/login');
+        return false;
+    }
 
-          await ag.resumeSession(account.session);
-      }
+    let agentsArray = [];
 
-      loaded = true;
+    for (const account of accounts) {
+        const ag = new AtpAgent({
+            service: account.service,
+            persistSession: async (evt: AtpSessionEvent, sess?: AtpSessionData) => {
+                if (sess) {
+                    account.session = sess;
+                }
+
+                const id = await accountsDb.accounts.put({
+                    id: account.id,
+                    session: account.session,
+                    did: sess.did,
+                    service: account.service
+                })
+            }
+        })
+
+        await ag.resumeSession(account.session);
+
+        //agentsMap.set(account.id, new Agent(ag));
+      agentsArray = [...agentsArray, new Agent(ag)];
+    }
+
+    agents.set(agentsArray);
+    agent.set(agentsArray[0]);
+
+    console.log($agent);
+
+    loaded = true;
   }
 
   //let accounts = JSON.parse(localStorage.getItem('accounts')) || [];

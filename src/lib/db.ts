@@ -80,7 +80,7 @@ export class AccountSubClassDexie extends Dexie {
         super('accountDatabase');
 
         this.version(1).stores({
-            profiles: '++id, name, createdAt, accounts, primary, columns',
+            profiles: '++id, name, createdAt, *accounts, primary, *columns',
             accounts: '++id, service, session, &did, avatar, name',
         });
     }

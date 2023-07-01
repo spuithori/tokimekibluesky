@@ -3,6 +3,7 @@
     import { _ } from 'svelte-i18n'
     import { AtpAgent, AtpSessionEvent, AtpSessionData } from '@atproto/api';
     import { goto } from '$app/navigation';
+    import { accountsDb } from '$lib/db';
 
     let identifier = '';
     let password = '';
@@ -24,7 +25,15 @@
 
         try {
             await agent.login({identifier: identifier, password: password});
-            if (accounts.length > currentAccount) {
+
+            const id = await accountsDb.accounts.put({
+                id: undefined,
+                session: agent.session as AtpSessionData,
+                did: agent.session?.did || '',
+                service: service,
+            })
+
+            /* if (accounts.length > currentAccount) {
                 accounts[currentAccount].session = agent.session;
                 accounts[currentAccount].service = service;
             } else {
@@ -33,10 +42,12 @@
                     session: agent.session,
                     service: service,
                 });
-            }
+            } */
             // localStorage.setItem('service', $service);
-            localStorage.setItem('accounts', JSON.stringify(accounts));
-            localStorage.setItem('currentAccount', JSON.stringify(currentAccount));
+            //localStorage.setItem('accounts', JSON.stringify(accounts));
+            //localStorage.setItem('currentAccount', JSON.stringify(currentAccount));
+
+
             await goto('/');
         } catch (e) {
             errorMessage = e.message;
