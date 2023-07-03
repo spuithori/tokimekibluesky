@@ -222,3 +222,37 @@
         }
     }
 }
+
+.form-select {
+    position: relative;
+
+    svg {
+        position: absolute;
+        right: 15px;
+        top: 0;
+        bottom: 0;
+        margin: auto;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    &__select {
+        border: 1px solid var(--border-color-1);
+        background-color: var(--base-bg-color);
+        height: 40px;
+        border-radius: 4px;
+        width: 100%;
+        padding: 0 10px;
+        cursor: pointer;
+        position: relative;
+        color: var(--text-color-1);
+    }
+}
+
+.form-textarea {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color-1);
+    width: 100%;
+    color: var(--text-color-1);
+}

@@ -140,3 +140,16 @@ export const realtime = writable<Realtime>({
         body: undefined,
     }
 });
+
+type ReportModal = {
+    open: boolean,
+    data: {
+        uri: string,
+        cid: string
+    } | undefined,
+}
+
+export const reportModal = writable<ReportModal>({
+    open: false,
+    data: {uri: '', cid: ''} || undefined,
+})

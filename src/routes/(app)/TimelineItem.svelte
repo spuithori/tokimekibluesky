@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {agent, isDataSaving, quotePost, settings, timelines, isPreventEvent} from '$lib/stores';
+    import {agent, isDataSaving, quotePost, settings, timelines, isPreventEvent, reportModal} from '$lib/stores';
     import {format, formatDistanceToNow, isMatch, parse, parseISO} from 'date-fns';
     import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';
@@ -309,6 +309,16 @@
 
     function handleSelectStart(event) {
         selectionText = document.getSelection().toString();
+    }
+
+    function report() {
+      $reportModal = {
+        open: true,
+        data: {
+          uri: data.post.uri,
+          cid: data.post.cid,
+        }
+      }
     }
 </script>
 
@@ -715,6 +725,13 @@
                     transform="translate(0 -0.009)" fill="var(--text-color-3)"/>
             </svg>
             {$_('copy_handle')}
+          </button>
+        </li>
+
+        <li class="timeline-menu-list__item timeline-menu-list__item--report">
+          <button class="timeline-menu-list__button" on:click={report}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
+            {$_('report')}
           </button>
         </li>
       </ul>

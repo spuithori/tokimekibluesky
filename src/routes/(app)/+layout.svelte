@@ -16,6 +16,7 @@
   import {scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
   import {page} from "$app/stores";
+  import ReportObserver from "$lib/components/report/ReportObserver.svelte";
 
   inject(
       {
@@ -145,6 +146,7 @@
 
   <Publish></Publish>
   <Toaster></Toaster>
+  <ReportObserver></ReportObserver>
 </div>
 
 <style lang="postcss">

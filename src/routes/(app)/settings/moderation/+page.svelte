@@ -209,6 +209,8 @@
                 top: 0;
                 bottom: 0;
                 margin: auto;
+                z-index: 1;
+              pointer-events: none;
             }
         }
 
@@ -226,6 +228,7 @@
 
         select {
             border: 1px solid var(--border-color-1);
+            background-color: var(--base-bg-color);
             height: 40px;
             border-radius: 4px;
             width: 100%;
