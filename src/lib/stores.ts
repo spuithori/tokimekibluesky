@@ -84,8 +84,8 @@ const defaultSettings = {
         layout: 'default',
     },
     timeline: {
-        hideRepost: false,
-        hideReply: false,
+        hideRepost: 'all',
+        hideReply: 'all',
     },
     moderation: {
         contentLabels: {

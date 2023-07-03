@@ -32,7 +32,7 @@
     })
 </script>
 
-<div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
+<div class="timeline timeline--main">
   {#each timeline as data, index (data)}
     <TimelineItem data={ data } index={index}></TimelineItem>
   {/each}

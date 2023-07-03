@@ -231,7 +231,7 @@
 </script>
 
 <div class="realtime-wrap">
-  <div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
+  <div class="timeline timeline--main">
     <div class="realtime-follows">
       <div class="realtime-status" class:realtime-status--connected={$realtime.isConnected}></div>
 

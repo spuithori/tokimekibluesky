@@ -268,5 +268,15 @@
   "report_reason_title": "詳細（任意）",
   "report_send": "送信",
   "cancel": "キャンセル",
-  "report_send_success": "報告を送信しました。"
+  "report_send_success": "報告を送信しました。",
+  "repost_settings_all": "すべて表示 (100%)",
+  "repost_settings_many": "たくさん (75%)",
+  "repost_settings_soso": "それなり (50%)",
+  "repost_settings_less": "すくなめ (25%)",
+  "repost_settings_none": "表示しない (0%)",
+  "reply_settings_all": "すべて表示",
+  "reply_settings_following": "フォロー中宛のみ",
+  "reply_settings_me": "自分宛のみ",
+  "hide_repost_frequency": "リポストの表示頻度",
+  "hide_reply_frequency": "リプライの表示頻度"
 }

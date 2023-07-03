@@ -111,7 +111,7 @@
 </script>
 
 {#if (list.members.length)}
-  <div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
+  <div class="timeline timeline--main">
     {#if (column.style === 'default')}
       {#each $timelines[index] as data, index (data)}
         <TimelineItem data={ data } index={index}></TimelineItem>

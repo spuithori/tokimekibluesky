@@ -76,6 +76,10 @@
         57
     ];
 
+    const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
+      return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
+    }
+
     let voteFunc;
     let repostFunc;
 
@@ -116,6 +120,10 @@
     let isWarn = false;
     let isWarnOpened = false;
     let warnLabels = [];
+
+    function probability(n) {
+      return Math.random() < n / 100;
+    }
 
     onMount(() => {
         if (labels) {
@@ -163,6 +171,48 @@
             })
         }
 
+        switch ($settings.timeline.hideReply) {
+          case 'all':
+            break;
+          case 'following':
+            if (data.reply && (data.reply.parent.author.did !== $agent.did() && !data.reply?.parent.author.viewer.following)) {
+              isHide = true;
+            }
+            break;
+          case 'me':
+            if (data.reply && data.reply.parent.author.did !== $agent.did()) {
+              isHide = true;
+            }
+            break;
+          default:
+        }
+
+        if (isReasonRepost(data.reason)) {
+          switch ($settings.timeline.hideRepost) {
+            case 'all':
+              break;
+            case 'many':
+              if (probability(25)) {
+                isHide = true;
+              }
+              break;
+            case 'soso':
+              if (probability(50)) {
+                isHide = true;
+              }
+              break;
+            case 'less':
+              if (probability(75)) {
+                isHide = true;
+              }
+              break;
+            case 'none':
+              isHide = true;
+              break;
+            default:
+          }
+        }
+
         if ($settings.langFilter && $settings.langFilter.length && data.post.record.langs) {
             const isLangMatched = $settings.langFilter.some(lang => data.post.record.langs.includes(lang));
 
@@ -171,10 +221,6 @@
             }
         }
     })
-
-    const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
-        return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
-    }
 
     async function translation() {
         for (const item of textArray) {

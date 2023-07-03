@@ -113,6 +113,8 @@
 
       const prefRes = await $agent.agent.api.app.bsky.actor.getPreferences();
       preferences.set(prefRes.data.preferences);
+
+      sessionStorage.clear();
   });
 
   function handleScroll(event) {
