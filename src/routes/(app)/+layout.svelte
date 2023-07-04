@@ -2,7 +2,15 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import {agent, settings, preferences, columns, singleColumn, isMobileDataConnection} from '$lib/stores';
+  import {
+    agent,
+    settings,
+    preferences,
+    columns,
+    singleColumn,
+    isMobileDataConnection,
+    isAfterReload
+  } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -115,6 +123,7 @@
       preferences.set(prefRes.data.preferences);
 
       sessionStorage.clear();
+      isAfterReload.set(false);
   });
 
   function handleScroll(event) {

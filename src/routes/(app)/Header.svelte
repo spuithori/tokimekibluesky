@@ -4,10 +4,12 @@
     import { fade, fly } from 'svelte/transition';
     import { onMount } from 'svelte';
     import { agent, notificationCount, settings } from '$lib/stores';
-    import { afterNavigate } from '$app/navigation';
+    import {afterNavigate, goto} from '$app/navigation';
     import Settings from './Settings.svelte';
     import { clickOutside } from '$lib/clickOutSide';
     import { page } from '$app/stores';
+
+    const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
 
     let headerHide = $settings?.design.headerHide || false;
     let isNotificationOpen = false;
@@ -18,8 +20,16 @@
         isSettingsOpen = false;
 
         if (isNotificationOpen) {
+            if (isMobile) {
+              goto('#notfication', {noScroll: true});
+            }
+
             await $agent.agent.api.app.bsky.notification.updateSeen( {seenAt: new Date().toISOString()});
             notificationCount.set(0);
+        } else {
+            if (isMobile && window.location.hash === '#notfication') {
+              history.back();
+            }
         }
     }
 
@@ -28,18 +38,28 @@
         isNotificationOpen = false;
     }
 
+    function handlePopstate(e) {
+      if (isNotificationOpen) {
+        isNotificationOpen = false;
+      }
+    }
+
     onMount(async () => {
         notificationCount.set(await $agent.getNotificationCount());
     })
 
-    afterNavigate(async () => {
-        isNotificationOpen = false;
+    afterNavigate(async ({ type }) => {
+        if (type === 'link') {
+          isNotificationOpen = false;
+        }
     })
 
     $: {
         $settings.design.headerHide = headerHide;
     }
 </script>
+
+<svelte:window on:popstate={handlePopstate} />
 
 <header class="header">
   <div class="header__wrap">

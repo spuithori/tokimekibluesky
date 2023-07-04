@@ -153,3 +153,5 @@ export const reportModal = writable<ReportModal>({
     open: false,
     data: {uri: '', cid: ''} || undefined,
 })
+
+export const isAfterReload = writable(true);
