@@ -1131,6 +1131,11 @@ function tempYu() {
         position: relative;
         z-index: 11;
         text-align: left;
+        color: var(--text-color-1);
+
+        &:disabled {
+          color: var(--text-color-3);
+        }
 
         .loading-spinner {
             width: 16px;
