@@ -101,3 +101,27 @@
         }
     }
 }
+
+.header-collapse-button {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    top: 50px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    background-color: var(--border-color-1);
+    border-radius: 50%;
+    display: grid;
+    place-content: center;
+    z-index: 10;
+    padding-top: 15px;
+
+    @media (max-width: 767px) {
+        display: none;
+    }
+
+    svg {
+        transform: scale(1, -1);
+    }
+}

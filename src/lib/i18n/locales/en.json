@@ -277,5 +277,14 @@
   "reply_settings_following": "Only following",
   "reply_settings_me": "Only addressing myself",
   "hide_repost_frequency": "Frequency of reposts displayed",
-  "hide_reply_frequency": "Frequency of replies displayed"
+  "hide_reply_frequency": "Frequency of replies displayed",
+  "deck_settings": "Individual column settings",
+  "deck_settings_description": "Global settings are overwritten.",
+  "settings_inherit": "Inherit global settings",
+  "lang_filter_overwritten": "Override language filters",
+  "auto_refresh": "Automatic refresh",
+  "auto_refresh_nothing": "Nothing",
+  "auto_refresh_10s": "10 seconds",
+  "auto_refresh_30s": "30 seconds",
+  "auto_refresh_60s": "60 seconds"
 }

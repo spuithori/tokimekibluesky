@@ -1,6 +1,15 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {agent, isDataSaving, quotePost, settings, timelines, isPreventEvent, reportModal} from '$lib/stores';
+    import {
+      agent,
+      isDataSaving,
+      quotePost,
+      settings,
+      timelines,
+      isPreventEvent,
+      reportModal,
+      columns
+    } from '$lib/stores';
     import {format, formatDistanceToNow, isMatch, parse, parseISO} from 'date-fns';
     import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';
@@ -40,6 +49,7 @@
 
     let selectionText = '';
 
+    export let column = undefined;
     export let index = 0;
 
     let textArray: RichTextSegment[] = [];
@@ -121,6 +131,14 @@
     let isWarnOpened = false;
     let warnLabels = [];
 
+    let hideReply = column && column.settings?.timeline.hideReply
+                  ? column.settings?.timeline.hideReply
+                  : $settings.timeline?.hideReply || 'all';
+
+    let hideRepost = column && column.settings?.timeline.hideRepost
+            ? column.settings?.timeline.hideRepost
+            : $settings.timeline?.hideRepost || 'all';
+
     function probability(n) {
       return Math.random() < n / 100;
     }
@@ -171,24 +189,26 @@
             })
         }
 
-        switch ($settings.timeline.hideReply) {
-          case 'all':
-            break;
-          case 'following':
-            if (data.reply && (data.reply.parent.author.did !== $agent.did() && !data.reply?.parent.author.viewer.following)) {
-              isHide = true;
-            }
-            break;
-          case 'me':
-            if (data.reply && data.reply.parent.author.did !== $agent.did()) {
-              isHide = true;
-            }
-            break;
-          default:
+        if (data.post.author.did !== $agent.did()) {
+          switch (hideReply) {
+            case 'all':
+              break;
+            case 'following':
+              if (data.reply && (data.reply.parent.author.did !== $agent.did() && !data.reply?.parent.author.viewer.following)) {
+                isHide = true;
+              }
+              break;
+            case 'me':
+              if (data.reply && data.reply.parent.author.did !== $agent.did()) {
+                isHide = true;
+              }
+              break;
+            default:
+          }
         }
 
         if (isReasonRepost(data.reason)) {
-          switch ($settings.timeline.hideRepost) {
+          switch (hideRepost) {
             case 'all':
               break;
             case 'many':
@@ -213,8 +233,9 @@
           }
         }
 
-        if ($settings.langFilter && $settings.langFilter.length && data.post.record.langs) {
-            const isLangMatched = $settings.langFilter.some(lang => data.post.record.langs.includes(lang));
+        const langFilter = column && column.settings?.langFilterEnabled ? column.settings.langFilter : $settings.langFilter;
+        if (langFilter && langFilter.length && data.post.record.langs) {
+            const isLangMatched = langFilter.some(lang => data.post.record.langs.includes(lang));
 
             if (!isLangMatched) {
                 isHide = true;

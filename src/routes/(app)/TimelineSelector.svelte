@@ -11,6 +11,7 @@
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
     import ListTimeline from "./ListTimeline.svelte";
     import Timeline from "./Timeline.svelte";
+    import TimerEvent from "$lib/components/utils/TimerEvent.svelte";
 
     export let column;
     export let index;
@@ -25,7 +26,7 @@
                 return !$timelines[index].some(item => feed.reason ? item.post.uri === feed.post.uri && item.reason?.indexedAt === feed.reason.indexedAt : item.post.uri === feed.post.uri);
             });
 
-            if (newFeeds.length === 20 || column.style === 'media') {
+            if (newFeeds.length === 20) {
                 $timelines[index] = res.data.feed;
                 $cursors[index] = res.data.cursor;
             } else {
@@ -41,10 +42,12 @@
                     })
                 });
 
-                if (column.scrollElement) {
+                if (column.style !== 'media'){
+                  if (column.scrollElement) {
                     column.scrollElement.scrollTo(0, topEl.getBoundingClientRect().top - 200);
-                } else {
+                  } else {
                     window.scrollTo(0, topEl.getBoundingClientRect().top - 156);
+                  }
                 }
             }
 
@@ -52,8 +55,9 @@
         } else if (column.algorithm.type === 'bookmark') {
             $timelines[index] = [];
             $cursors[index] = 0;
+            unique = Symbol();
         } else if (column.algorithm.type === 'realtime') {
-            return;
+            return false;
         } else {
             $timelines[index] = [];
             $cursors[index] = undefined;
@@ -76,6 +80,10 @@
             $cursors[index] = undefined;
             unique = Symbol();
         }
+    }
+
+    function handleTimer() {
+      refresh();
     }
 </script>
 
@@ -137,6 +145,10 @@
   {#key unique}
     <Timeline column={column} index={index}></Timeline>
   {/key}
+{/if}
+
+{#if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0)}
+  <TimerEvent delay={Number(column.settings.autoRefresh) * 1000} on:timer={handleTimer}></TimerEvent>
 {/if}
 
 <style lang="postcss">

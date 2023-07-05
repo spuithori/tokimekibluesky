@@ -1,23 +1,13 @@
 <script lang="ts">
     import { columns } from '$lib/stores';
-    import {_} from "svelte-i18n";
-    import TimelineSelector from "./TimelineSelector.svelte";
     import ColumnModal from "$lib/components/column/ColumnModal.svelte";
-    import NotificationTimeline from "./NotificationTimeline.svelte";
+    import DeckRow from "./DeckRow.svelte";
     let isColumnModalOpen = false;
     let unique = Symbol();
 
     function handleColumnModalClose() {
         isColumnModalOpen = false;
         unique = Symbol();
-    }
-
-    function handleHeaderClick(el) {
-        el.scroll({
-            top: 0,
-            left: 0,
-            behavior: 'smooth',
-        })
     }
 
     if (Array.isArray($columns) && !$columns.length) {
@@ -48,21 +38,8 @@
 <div class="deck-wrap">
   <div class="deck">
     {#key unique}
-      {#each $columns as column, index (column)}
-        <div class="deck-row">
-          <div role="button" aria-label="Back to top." class="deck-row__title" on:click={() => {handleHeaderClick(column.scrollElement)}}>{column.algorithm.name}</div>
-
-          <div class="deck-row__content" bind:this={column.scrollElement}>
-            {#if (column.algorithm.type === 'notification')}
-              <NotificationTimeline column={column} index={index}></NotificationTimeline>
-            {:else}
-              <TimelineSelector
-                  column={column}
-                  index={index}
-              ></TimelineSelector>
-            {/if}
-          </div>
-        </div>
+      {#each $columns as column, index (column.id)}
+        <DeckRow {column} {index}></DeckRow>
       {/each}
     {/key}
   </div>
@@ -86,63 +63,6 @@
           scroll-snap-type: x mandatory;
           top: 85px;
           padding-bottom: 45px;
-      }
-  }
-
-  .deck-row {
-      width: 450px;
-      flex-shrink: 0;
-      height: 100%;
-      position: relative;
-      padding-top: 40px;
-
-      @media (max-width: 767px) {
-          width: 100vw;
-          scroll-snap-align: start;
-          box-shadow: none;
-      }
-
-      &__content {
-          height: calc(100% - 40px);
-          overflow-y: scroll;
-          box-shadow: 0 0 10px var(--box-shadow-color-1);
-          background-color: var(--bg-color-1);
-          scrollbar-color: var(--primary-color) var(--bg-color-3);
-
-          &::-webkit-scrollbar {
-              width: 6px;
-          }
-
-          &::-webkit-scrollbar-thumb {
-              background: var(--primary-color);
-              border-radius: 6px;
-          }
-
-          &::-webkit-scrollbar-track {
-              background: var(--bg-color-3);
-              border-radius: 6px;
-          }
-      }
-
-      &__title {
-          text-align: center;
-          font-weight: 900;
-          font-size: 18px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 40px;
-          position: sticky;
-          top: 36px;
-          background-color: var(--bg-color-1);
-          z-index: 10;
-          border-radius: 10px 10px 0 0;
-          letter-spacing: .025em;
-          cursor: pointer;
-
-          @media (max-width: 767px) {
-              font-size: 15px;
-          }
       }
   }
 

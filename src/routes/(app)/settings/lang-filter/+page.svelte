@@ -41,39 +41,3 @@
     </div>
   </div>
 </div>
-
-<style lang="postcss">
-  .lang-filter-list {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-
-      &__item {
-          padding: 10px;
-          border-bottom: 1px solid var(--border-color-1);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          position: relative;
-
-          &:nth-child(2n - 1) {
-              border-right: 1px solid var(--border-color-1);
-          }
-      }
-
-      &__name {
-          label {
-              cursor: pointer;
-
-              &::before {
-                  content: '';
-                  display: block;
-                  position: absolute;
-                  left: 0;
-                  top: 0;
-                  right: 0;
-                  bottom: 0;
-              }
-          }
-      }
-  }
-</style>

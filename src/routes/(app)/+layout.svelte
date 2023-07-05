@@ -25,6 +25,7 @@
   import Footer from "./Footer.svelte";
   import {page} from "$app/stores";
   import ReportObserver from "$lib/components/report/ReportObserver.svelte";
+  import HeaderCollapseButton from "$lib/components/header/HeaderCollapseButton.svelte";
 
   inject(
       {
@@ -148,6 +149,10 @@
     class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}
 >
   <Header />
+
+  {#if ($settings.design?.layout === 'decks' && $page.url.pathname === '/')}
+    <HeaderCollapseButton></HeaderCollapseButton>
+  {/if}
 
   <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
     <slot />

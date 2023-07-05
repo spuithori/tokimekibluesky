@@ -278,5 +278,14 @@
   "reply_settings_following": "フォロー中宛のみ",
   "reply_settings_me": "自分宛のみ",
   "hide_repost_frequency": "リポストの表示頻度",
-  "hide_reply_frequency": "リプライの表示頻度"
+  "hide_reply_frequency": "リプライの表示頻度",
+  "deck_settings": "カラムの個別設定",
+  "deck_settings_description": "グローバル設定が上書きされます。",
+  "settings_inherit": "グローバル設定を継承する",
+  "lang_filter_overwritten": "言語フィルターを上書きする",
+  "auto_refresh": "自動更新",
+  "auto_refresh_nothing": "しない",
+  "auto_refresh_10s": "10秒",
+  "auto_refresh_30s": "30秒",
+  "auto_refresh_60s": "60秒"
 }

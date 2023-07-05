@@ -1,6 +1,7 @@
 import {derived, writable} from 'svelte/store';
 import type { Agent } from '$lib/agent';
 import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications } from '@atproto/api';
+import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 
 type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification & {
     feed?: AppBskyFeedPost
@@ -27,7 +28,8 @@ const defaultColumns = [{
         type: 'default',
         name: 'HOME'
     },
-    style: 'default'
+    style: 'default',
+    settings: defaultDeckSettings,
 }];
 const storageColumns = localStorage.getItem('columns') || JSON.stringify(defaultColumns);
 export const columns = writable<columns[]>(JSON.parse(storageColumns));

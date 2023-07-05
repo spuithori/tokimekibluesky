@@ -11,6 +11,7 @@
     import FeedsObserver from "$lib/components/feeds/FeedsObserver.svelte";
     import BookmarkObserver from "$lib/components/bookmark/BookmarkObserver.svelte";
     import ListObserver from "$lib/components/list/ListObserver.svelte";
+    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
     let isLoading = true;
@@ -24,6 +25,7 @@
                 name: 'HOME',
             },
             style: 'default',
+            settings: defaultDeckSettings,
         },
     ];
     if ($agent.agent.service.host === 'bsky.social') {
@@ -34,6 +36,7 @@
                 name: 'REALTIME',
             },
             style: 'default',
+            settings: defaultDeckSettings,
         },]
     }
     allColumns = [...allColumns, {
@@ -43,6 +46,7 @@
             name: $_('notifications'),
         },
         style: 'default',
+        settings: defaultDeckSettings,
     }]
     let savedFeeds = [];
 
@@ -101,6 +105,7 @@
                         list: String(bookmark.id),
                     },
                     style: 'default',
+                    settings: defaultDeckSettings,
                 }]
             }
         });
@@ -126,6 +131,7 @@
                         list: String(list.id),
                     },
                     style: 'default',
+                    settings: defaultDeckSettings,
                 }]
             }
         });
@@ -149,6 +155,7 @@
                     name: feed.name,
                 },
                 style: 'default',
+                settings: defaultDeckSettings,
             }]
         });
 

@@ -242,7 +242,7 @@
 
     {#if (column.style === 'default')}
       {#each $timelines[index] as data, index (data)}
-        <TimelineItem data={ data } index={index}></TimelineItem>
+        <TimelineItem data={ data } index={index} column={column}></TimelineItem>
       {/each}
     {:else}
       <div class="media-list">
