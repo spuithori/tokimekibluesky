@@ -45,7 +45,7 @@
             console.log(popularFeeds)
         }
         
-        const tokimekiRes = await $agent.agent.api.app.bsky.feed.getActorFeeds({actor: $agent.agent.service.host === 'bsky.social' ? 'holybea.bsky.social' : 'holybea.nextsky.tokimeki.blue'});
+        const tokimekiRes = await $agent.agent.api.app.bsky.feed.getActorFeeds({actor: $agent.agent.service.host === 'bsky.social' ? 'holybea.social' : 'holybea.nextsky.tokimeki.blue'});
         tokimekiFeeds = tokimekiRes.data.feeds;
     })
 </script>
