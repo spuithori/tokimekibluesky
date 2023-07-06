@@ -286,5 +286,9 @@
   "auto_refresh_nothing": "Nothing",
   "auto_refresh_10s": "10 seconds",
   "auto_refresh_30s": "30 seconds",
-  "auto_refresh_60s": "60 seconds"
+  "auto_refresh_60s": "60 seconds",
+  "column_width": "Column width",
+  "width_small": "Small",
+  "width_medium": "Medium",
+  "width_large": "Large"
 }

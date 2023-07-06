@@ -100,6 +100,12 @@
     </li>
 
     <li class="timeline-menu-list__item">
+      <a class="timeline-menu-list__button" href="/settings/about" on:click={close}>
+        <span class="">{$_('settings_about')}</span>
+      </a>
+    </li>
+
+    <li class="timeline-menu-list__item">
       <button class="timeline-menu-list__button" type="submit" name="logout" on:click={logout}>
         <span class="text-danger">{$_('logout_button')}</span>
       </button>

@@ -287,5 +287,9 @@
   "auto_refresh_nothing": "しない",
   "auto_refresh_10s": "10秒",
   "auto_refresh_30s": "30秒",
-  "auto_refresh_60s": "60秒"
+  "auto_refresh_60s": "60秒",
+  "column_width": "カラムの幅",
+  "width_small": "狭い",
+  "width_medium": "ふつう",
+  "width_large": "広い"
 }

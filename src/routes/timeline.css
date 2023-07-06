@@ -930,3 +930,34 @@
         gap: 0 5px;
     }
 }
+
+.small {
+    .timeline-reaction {
+        margin-left: -75px;
+        gap: 10px;
+
+        @media (max-width: 767px) {
+            margin-left: 0;
+        }
+    }
+
+    .timeline__item--compact {
+       .timeline-reaction {
+           margin-left: -56px;
+
+           @media (max-width: 767px) {
+               margin-left: 0;
+           }
+       }
+    }
+
+    .timeline__item--minimum {
+        .timeline-reaction {
+            margin-left: 0;
+
+            @media (max-width: 767px) {
+                margin-left: 0;
+            }
+        }
+    }
+}

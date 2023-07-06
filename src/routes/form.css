@@ -256,3 +256,41 @@
     width: 100%;
     color: var(--text-color-1);
 }
+
+.radio-v-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--border-color-1);
+    border-radius: 6px;
+    font-size: 13px;
+    overflow: hidden;
+
+    &__item {
+        color: var(--text-color-1);
+
+        &:not(:last-child) {
+            border-right: 1px solid var(--border-color-1);
+        }
+
+        label {
+            display: flex;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        input {
+            visibility: hidden;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+
+            &:checked + label {
+                background-color: var(--primary-color);
+                color: var(--bg-color-1);
+            }
+        }
+    }
+}

@@ -27,7 +27,7 @@
     }
 </script>
 
-<div class="deck-row">
+<div class="deck-row {column.settings?.width || 'medium'}">
     <div role="button" aria-label="Back to top." class="deck-row__title" on:click={() => {handleHeaderClick(column.scrollElement)}}>{column.algorithm.name}</div>
 
     {#if (column.algorithm.type !== 'notification')}
@@ -108,6 +108,30 @@
 
             @media (max-width: 767px) {
                 font-size: 15px;
+            }
+        }
+
+        &.small {
+            width: 350px;
+
+            @media (max-width: 767px) {
+                width: 100vw;
+            }
+        }
+
+        &.medium {
+            width: 450px;
+
+            @media (max-width: 767px) {
+                width: 100vw;
+            }
+        }
+
+        &.large {
+            width: 550px;
+
+            @media (max-width: 767px) {
+                width: 100vw;
             }
         }
     }

@@ -12,6 +12,7 @@
     let langFilterEnabled = column.settings?.langFilterEnabled || false;
     let langFilter = column.settings?.langFilter || [];
     let autoRefresh = column.settings?.autoRefresh || 0;
+    let width = column.settings?.width || 'medium';
 
     $: _settings = {
         timeline: {
@@ -21,6 +22,7 @@
         langFilterEnabled: langFilterEnabled,
         langFilter: langFilter,
         autoRefresh: autoRefresh,
+        width: width,
     }
 
     $: apply(_settings);
@@ -106,14 +108,20 @@
         },
     ];
 
-    $: {
-        /* $columns[index].settings.timeline.hideRepost = hideRepost;
-        $columns[index].settings.timeline.hideReply = hideReply;
-        $columns[index].settings.langFilterEnabled = langFilterEnabled;
-        $columns[index].settings.langFilter = langFilter;
-        $columns[index].settings.autoRefresh = autoRefresh; */
-
-    }
+    const widthSettings = [
+        {
+            name: $_('width_small'),
+            value: 'small',
+        },
+        {
+            name: $_('width_medium'),
+            value: 'medium',
+        },
+        {
+            name: $_('width_large'),
+            value: 'large',
+        },
+    ];
 
     function handleClickClose() {
         dispatch('close');
@@ -126,6 +134,22 @@
         <p class="deck-settings-description">{$_('deck_settings_description')}</p>
 
         <div class="deck-settings-groups">
+            <dl class="settings-group">
+                <dt class="settings-group__name">
+                    {$_('column_width')}
+                </dt>
+
+                <dd class="settings-group__content">
+                    <div class="radio-v-group">
+                        {#each widthSettings as option}
+                            <div class="radio-v-group__item">
+                                <input type="radio" id={column.id + option.value} bind:group={width} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
+                            </div>
+                        {/each}
+                    </div>
+                </dd>
+            </dl>
+
             <dl class="settings-group">
                 <dt class="settings-group__name">
                     {$_('auto_refresh')}
