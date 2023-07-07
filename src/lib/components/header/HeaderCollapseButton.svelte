@@ -1,11 +1,21 @@
-<script>
+<script lang="ts">
     import { settings } from '$lib/stores';
     let headerHide = $settings.design?.headerHide || false;
 
     $: {
         $settings.design.headerHide = headerHide;
     }
+
+    function handleKeydown(event: { key: string; }) {
+        const activeElement = document.activeElement?.tagName;
+
+        if (event.key === 'h' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
+            headerHide = !headerHide
+        }
+    }
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <button
         class="header-collapse-button"
