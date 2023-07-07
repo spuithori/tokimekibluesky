@@ -153,6 +153,11 @@
           </div>
 
           <div class="radio">
+            <input type="radio" bind:group={darkmode} id="darkmodeTwilight" name="darkmode" value={'twilight'}>
+            <label for="darkmodeTwilight"><span class="radio__ui"></span>{$_('twilight')}</label>
+          </div>
+
+          <div class="radio">
             <input type="radio" bind:group={darkmode} id="darkmodeTrue" name="darkmode" value={true}>
             <label for="darkmodeTrue"><span class="radio__ui"></span>{$_('dark')}</label>
           </div>
