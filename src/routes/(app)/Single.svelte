@@ -22,11 +22,9 @@
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
     import FeedsObserver from "$lib/components/feeds/FeedsObserver.svelte";
 
-    let isRefreshing = false;
     let isAlgoNavOpen = false;
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
     let unique = Symbol();
-    let refresh;
     let customFeeds = $agent.getSavedFeeds();
 
     $: {
@@ -34,14 +32,6 @@
             document.body.classList.add('scroll-lock');
         } else {
             document.body.classList.remove('scroll-lock');
-        }
-    }
-
-    function handleKeydown(event: { key: string; }) {
-        const activeElement = document.activeElement?.tagName;
-
-        if (event.key === 'r' && (activeElement === 'BODY' || activeElement === 'BUTTON') && !isRefreshing) {
-            refresh();
         }
     }
 
@@ -94,8 +84,6 @@
         $cursors[$currentTimeline] = undefined;
     }
 </script>
-
-<svelte:window on:keydown={handleKeydown} />
 
 <div class="single-wrap">
   <nav class="home-navs">
@@ -226,7 +214,7 @@
 
   <div class="single-timeline-wrap">
     {#key $currentTimeline}
-      <TimelineSelector column={$singleColumn} index={$currentTimeline} unique={unique} bind:refresh={refresh}></TimelineSelector>
+      <TimelineSelector column={$singleColumn} index={$currentTimeline} unique={unique}></TimelineSelector>
     {/key}
   </div>
 </div>

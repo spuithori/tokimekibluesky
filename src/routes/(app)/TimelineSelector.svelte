@@ -85,7 +85,17 @@
     function handleTimer() {
       refresh();
     }
+
+    function handleKeydown(event: { key: string; }) {
+      const activeElement = document.activeElement?.tagName;
+
+      if (event.key === 'r' && (activeElement === 'BODY' || activeElement === 'BUTTON') && !isRefreshing) {
+        refresh();
+      }
+    }
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <div class="timeline-style-nav">
   <div class="style-nav" data-current="{column.style}">
