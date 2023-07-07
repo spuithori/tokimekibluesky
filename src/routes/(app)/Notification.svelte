@@ -252,7 +252,9 @@
               </span> {$_('followed_you')}
               </h2>
 
-              <p class="notifications-item__description">{item.author.description}</p>
+              {#if (item.author.description)}
+                <p class="notifications-item__description">{item.author.description}</p>
+              {/if}
             </div>
 
             <div class="notifications-item__buttons">

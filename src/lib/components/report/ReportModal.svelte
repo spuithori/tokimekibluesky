@@ -105,6 +105,8 @@
             <button class="button button--sm button--border button--danger" on:click={cancel}>{$_('cancel')}</button>
         </div>
     </div>
+
+    <button class="modal-background-close" aria-hidden="true" on:click={cancel}></button>
 </div>
 
 <style lang="postcss">
@@ -135,6 +137,8 @@
         background-color: var(--bg-color-1);
         width: 740px;
         max-width: 100%;
+        position: relative;
+        z-index: 2;
 
         @media (max-width: 767px) {
             width: 100%;

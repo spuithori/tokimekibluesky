@@ -209,6 +209,8 @@
     </div>
   </div>
 
+  <button class="modal-background-close" aria-hidden="true" on:click={save}></button>
+
   <FeedsObserver on:close={handleFeedsClose}></FeedsObserver>
   <BookmarkObserver on:close={handleBookmarkClose}></BookmarkObserver>
   <ListObserver on:close={handleListClose}></ListObserver>
@@ -242,6 +244,8 @@
         background-color: var(--bg-color-1);
         width: 740px;
         max-width: 100%;
+        position: relative;
+        z-index: 2;
 
         @media (max-width: 767px) {
             width: 100%;
