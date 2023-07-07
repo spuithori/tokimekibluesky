@@ -87,6 +87,7 @@
   "push_subscription_success": "Inscrição ativa.",
   "push_subscription_failed": "Falha ao se inscrever.",
   "push_subscription_unsubscribe": "Inscrição cancelada.",
+  "link_card_embed": "Embed link",
   "images_uploading": "Fazendo upload das imagens",
   "images_upload_success": "Imagens enviadas com sucesso.",
   "images_upload_failed": "Upload das imagens falhou.",

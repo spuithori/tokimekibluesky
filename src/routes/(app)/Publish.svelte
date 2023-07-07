@@ -42,7 +42,6 @@ let pond: any;
 let name = 'filepond';
 let isFocus = false;
 let publishArea: HTMLTextAreaElement;
-let publishButtonText = $_('publish_button_send');
 let timer;
 let links: string[] = [];
 let externalImageBlob: Blob;
@@ -194,7 +193,6 @@ function close() {
 
 async function onFileAdded(file: any) {
     isPublishEnabled = true;
-    publishButtonText = $_('publish_button_progress');
 }
 
 async function onFileSelected(file: any, output: any) {
@@ -210,7 +208,6 @@ async function onFileSelected(file: any, output: any) {
     images = images;
 
     isPublishEnabled = false;
-    publishButtonText = $_('publish_button_send');
 }
 
 async function onFileDeleted(error: any, file: any) {
@@ -705,7 +702,7 @@ function tempYu() {
       <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">
         <path id="send" d="M0,0,17,6.375,0,12.75ZM0,5.1V7.65L8.5,6.375Z" fill="var(--bg-color-1)"/>
       </svg>
-        {publishButtonText}</button>
+        {$_('publish_button_send')}</button>
 
         <button class="publish-upload-toggle" on:click={uploadContextOpen}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--bg-color-1)">
             <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>

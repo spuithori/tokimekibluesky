@@ -95,7 +95,7 @@
 
     if ($settings.general.language === 'ja' || window.navigator.language === 'ja-JP') {
         dateFnsLocale = ja;
-    } else if ($settings.general.language === 'pt' || window.navigator.language === 'pt-BR') {
+    } else if ($settings.general.language === 'pt-BR' || window.navigator.language === 'pt-BR') {
         dateFnsLocale = pt;
     } else if ($settings.general.language === 'ko' || window.navigator.language === 'ko-KR') {
         dateFnsLocale = ko;
