@@ -8,8 +8,6 @@
     let isSettingsOpen = false;
     let unique = Symbol();
 
-    console.log(index);
-
     function handleHeaderClick(el) {
         el.scroll({
             top: 0,
