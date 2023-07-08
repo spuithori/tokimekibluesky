@@ -34,6 +34,7 @@
             algorithm: {
                 type: 'realtime',
                 name: 'REALTIME',
+                algorithm: 'following'
             },
             style: 'default',
             settings: defaultDeckSettings,
@@ -166,6 +167,20 @@
         allColumns = allColumns.filter(item => !_columns.some(column => item.algorithm.algorithm === column.algorithm.algorithm && item.algorithm.type === column.algorithm.type));
     }
 
+    function addEmptyRealtimeSearch() {
+        _columns = [..._columns, {
+            id: self.crypto.randomUUID(),
+            algorithm: {
+                type: 'realtime',
+                name: 'REALTIME(SEARCH)',
+                search: '',
+                algorithm: 'search',
+            },
+            style: 'default',
+            settings: defaultDeckSettings,
+        }]
+    }
+
     onMount(async () => {
         await updateFeeds();
         margeAllColumns();
@@ -176,44 +191,45 @@
 </script>
 
 <div class="column-modal">
-  <div class="column-modal-contents">
-    <h2 class="column-modal-title">{$_('column_settings')}</h2>
+    <div class="column-modal-contents">
+        <h2 class="column-modal-title">{$_('column_settings')}</h2>
 
-    <div class="column-add-buttons">
-      <button class="column-add-button" on:click={() => {listModal.set({open: true, data: undefined })}}>{$_('create_list')}</button>
-      <button class="column-add-button" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('create_bookmark')}</button>
-      <button class="column-add-button" on:click={() => {$feedsModal.open = true}}>{$_('open_feed_store')}</button>
-    </div>
-
-    <div class="column-group-wrap">
-      {#if (isLoading)}
-        <div class="column-group-loading">
-          <img src={spinner} alt="">
-        </div>
-      {/if}
-
-      <div class="column-group">
-        <div class="column-group__item">
-          <ColumnList items={allColumns}></ColumnList>
+        <div class="column-add-buttons">
+            <button class="column-add-button" on:click={() => {listModal.set({open: true, data: undefined })}}>{$_('create_list')}</button>
+            <button class="column-add-button" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('create_bookmark')}</button>
+            <button class="column-add-button" on:click={() => {$feedsModal.open = true}}>{$_('open_feed_store')}</button>
+            <button class="column-add-button" on:click={addEmptyRealtimeSearch}>{$_('add_realtime_search')}</button>
         </div>
 
-        <div class="column-group__item column-group__item--active">
-          <h3 class="column-group__title">{$_('active_columns')}</h3>
-          <ColumnList bind:items={_columns}></ColumnList>
+        <div class="column-group-wrap">
+            {#if (isLoading)}
+                <div class="column-group-loading">
+                    <img src={spinner} alt="">
+                </div>
+            {/if}
+
+            <div class="column-group">
+                <div class="column-group__item">
+                    <ColumnList items={allColumns}></ColumnList>
+                </div>
+
+                <div class="column-group__item column-group__item--active">
+                    <h3 class="column-group__title">{$_('active_columns')}</h3>
+                    <ColumnList bind:items={_columns}></ColumnList>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <div class="column-modal-close">
+            <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
+        </div>
     </div>
 
-    <div class="column-modal-close">
-      <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
-    </div>
-  </div>
+    <button class="modal-background-close" aria-hidden="true" on:click={save}></button>
 
-  <button class="modal-background-close" aria-hidden="true" on:click={save}></button>
-
-  <FeedsObserver on:close={handleFeedsClose}></FeedsObserver>
-  <BookmarkObserver on:close={handleBookmarkClose}></BookmarkObserver>
-  <ListObserver on:close={handleListClose}></ListObserver>
+    <FeedsObserver on:close={handleFeedsClose}></FeedsObserver>
+    <BookmarkObserver on:close={handleBookmarkClose}></BookmarkObserver>
+    <ListObserver on:close={handleListClose}></ListObserver>
 </div>
 
 <style lang="postcss">

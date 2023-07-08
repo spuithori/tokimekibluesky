@@ -292,5 +292,6 @@
   "width_small": "狭い",
   "width_medium": "ふつう",
   "width_large": "広い",
-  "twilight": "トワイライト"
+  "twilight": "トワイライト",
+  "add_realtime_search": "リアルタイム検索を追加(β)"
 }

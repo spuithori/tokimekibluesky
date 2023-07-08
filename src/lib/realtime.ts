@@ -9,6 +9,11 @@ let timeId;
 let socket;
 
 export async function connect() {
+    if (socket) {
+        return false;
+    }
+
+    socket = undefined;
     socket = new WebSocket('wss://bsky.social/xrpc/com.atproto.sync.subscribeRepos');
 
     /*
@@ -70,6 +75,7 @@ export async function connect() {
 
 export async function disconnect() {
     socket.close();
+    socket = undefined;
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     realtime.set({
         isConnected: false,
