@@ -150,93 +150,95 @@
                 </dd>
             </dl>
 
-            <dl class="settings-group">
-                <dt class="settings-group__name">
-                    {$_('auto_refresh')}
-                </dt>
+            {#if (column.algorithm?.type !== 'notification')}
+                <dl class="settings-group">
+                    <dt class="settings-group__name">
+                        {$_('auto_refresh')}
+                    </dt>
 
-                <dd class="settings-group__content">
-                    <div class="form-select">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
-                            <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l10.2,10.2,10.2-10.2" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
-                        </svg>
+                    <dd class="settings-group__content">
+                        <div class="form-select">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
+                                <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l10.2,10.2,10.2-10.2" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
+                            </svg>
 
-                        <select class="form-select__select" bind:value={autoRefresh}>
-                            {#each autoRefreshSettings as option}
-                                <option value="{option.value}">{option.name}</option>
-                            {/each}
-                        </select>
-                    </div>
-                </dd>
-            </dl>
+                            <select class="form-select__select" bind:value={autoRefresh}>
+                                {#each autoRefreshSettings as option}
+                                    <option value="{option.value}">{option.name}</option>
+                                {/each}
+                            </select>
+                        </div>
+                    </dd>
+                </dl>
 
-            <dl class="settings-group">
-                <dt class="settings-group__name">
-                    {$_('hide_repost_frequency')}
-                </dt>
+                <dl class="settings-group">
+                    <dt class="settings-group__name">
+                        {$_('hide_repost_frequency')}
+                    </dt>
 
-                <dd class="settings-group__content">
-                    <div class="form-select">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
-                            <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l10.2,10.2,10.2-10.2" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
-                        </svg>
+                    <dd class="settings-group__content">
+                        <div class="form-select">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
+                                <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l10.2,10.2,10.2-10.2" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
+                            </svg>
 
-                        <select class="form-select__select" bind:value={hideRepost}>
-                            {#each repostSettings as option}
-                                <option value="{option.value}">{option.name}</option>
-                            {/each}
-                        </select>
-                    </div>
-                </dd>
-            </dl>
+                            <select class="form-select__select" bind:value={hideRepost}>
+                                {#each repostSettings as option}
+                                    <option value="{option.value}">{option.name}</option>
+                                {/each}
+                            </select>
+                        </div>
+                    </dd>
+                </dl>
 
-            <dl class="settings-group">
-                <dt class="settings-group__name">
-                    {$_('hide_reply_frequency')}
-                </dt>
+                <dl class="settings-group">
+                    <dt class="settings-group__name">
+                        {$_('hide_reply_frequency')}
+                    </dt>
 
-                <dd class="settings-group__content">
-                    <div class="form-select">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
-                            <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l10.2,10.2,10.2-10.2" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
-                        </svg>
+                    <dd class="settings-group__content">
+                        <div class="form-select">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
+                                <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l10.2,10.2,10.2-10.2" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
+                            </svg>
 
-                        <select class="form-select__select" bind:value={hideReply}>
-                            {#each replySettings as option}
-                                <option value="{option.value}">{option.name}</option>
-                            {/each}
-                        </select>
-                    </div>
-                </dd>
-            </dl>
+                            <select class="form-select__select" bind:value={hideReply}>
+                                {#each replySettings as option}
+                                    <option value="{option.value}">{option.name}</option>
+                                {/each}
+                            </select>
+                        </div>
+                    </dd>
+                </dl>
 
-            <dl class="settings-group">
-                <dt class="settings-group__name">
-                    {$_('lang_filter_overwritten')}
-                </dt>
+                <dl class="settings-group">
+                    <dt class="settings-group__name">
+                        {$_('lang_filter_overwritten')}
+                    </dt>
 
-                <dd class="settings-group__content">
-                    <div class="input-toggle">
-                        <input class="input-toggle__input" type="checkbox" id={column.id + 'langFilterEnabled'} bind:checked={langFilterEnabled}><label class="input-toggle__label" for={column.id + 'langFilterEnabled'}></label>
-                    </div>
-                </dd>
-            </dl>
+                    <dd class="settings-group__content">
+                        <div class="input-toggle">
+                            <input class="input-toggle__input" type="checkbox" id={column.id + 'langFilterEnabled'} bind:checked={langFilterEnabled}><label class="input-toggle__label" for={column.id + 'langFilterEnabled'}></label>
+                        </div>
+                    </dd>
+                </dl>
 
-            {#if langFilterEnabled}
-                <div class="lang-filter-wrap">
-                    <div class="lang-filter-list">
-                        {#each languageMap as [k, v]}
-                            <div class="lang-filter-list__item">
-                                <p class="lang-filter-list__name"><label for={k}>{$_(v.name)}</label></p>
+                {#if langFilterEnabled}
+                    <div class="lang-filter-wrap">
+                        <div class="lang-filter-list">
+                            {#each languageMap as [k, v]}
+                                <div class="lang-filter-list__item">
+                                    <p class="lang-filter-list__name"><label for={k}>{$_(v.name)}</label></p>
 
-                                <div class="input-toggle">
-                                    <input class="input-toggle__input" type="checkbox" id={k}
-                                           value={k} name="Languages" bind:group={langFilter}><label class="input-toggle__label" for={k}></label>
+                                    <div class="input-toggle">
+                                        <input class="input-toggle__input" type="checkbox" id={k}
+                                               value={k} name="Languages" bind:group={langFilter}><label class="input-toggle__label" for={k}></label>
+                                    </div>
                                 </div>
-                            </div>
-                        {/each}
+                            {/each}
+                        </div>
                     </div>
-                </div>
+                {/if}
             {/if}
         </div>
     </div>

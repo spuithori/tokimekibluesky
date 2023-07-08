@@ -932,12 +932,18 @@
 }
 
 .small {
-    .timeline-reaction {
-        margin-left: -75px;
-        gap: 10px;
+    .notifications-item--follow {
+        flex-direction: column;
+    }
 
-        @media (max-width: 767px) {
-            margin-left: 0;
+    .timeline__item {
+        .timeline-reaction {
+            margin-left: -75px;
+            gap: 10px;
+
+            @media (max-width: 767px) {
+                margin-left: 0;
+            }
         }
     }
 
