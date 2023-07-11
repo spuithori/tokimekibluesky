@@ -2,6 +2,7 @@
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import TimelineSelector from "./TimelineSelector.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
+    import ThreadTimeline from "./ThreadTimeline.svelte";
 
     export let column;
     export let index;
@@ -40,6 +41,8 @@
         <div class="deck-row__content" bind:this={column.scrollElement}>
             {#if (column.algorithm.type === 'notification')}
                 <NotificationTimeline column={column} index={index}></NotificationTimeline>
+            {:else if (column.algorithm.type === 'thread')}
+                <ThreadTimeline column={column} index={index}></ThreadTimeline>
             {:else}
                 <TimelineSelector
                         column={column}

@@ -148,6 +148,8 @@
     class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
     dir="{$_('dir', {default: 'ltr'})}"
     class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}
+    class:compact={$settings.design?.postsLayout === 'compact'}
+    class:minimum={$settings.design?.postsLayout === 'minimum'}
 >
   <Header />
 

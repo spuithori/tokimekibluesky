@@ -189,6 +189,11 @@
     --font-body: 'Noto Sans KR', 'Noto Color Emoji', sans-serif;
 }
 
+.lang-en,
+.lang-pt-BR {
+    --font-body: var(--ui-font);
+}
+
 .nonoto {
     --font-body: sans-serif;
 }

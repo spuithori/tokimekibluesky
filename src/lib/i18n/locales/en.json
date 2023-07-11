@@ -292,5 +292,8 @@
   "width_medium": "Medium",
   "width_large": "Large",
   "twilight": "Twilight",
-  "add_realtime_search": "Add realtime search (β)"
+  "add_realtime_search": "Add realtime search (β)",
+  "add_thread_column": "Add to column",
+  "read_more_thread": "Read more thread",
+  "show_replies": "Show replies"
 }

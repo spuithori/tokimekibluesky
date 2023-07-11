@@ -2,11 +2,13 @@
   import TimelineItem from "../../../../TimelineItem.svelte";
   import { afterUpdate } from "svelte";
   import {_} from "svelte-i18n";
+  import Likes from "$lib/components/thread/Likes.svelte";
 
   export let feeds = [];
   export let depth = 0;
   let item;
   let scrolled = false;
+  const isRoot = !feeds[0].post.record.reply;
 
   afterUpdate(() => {
       if (item && item.dataset.depth === '0') {
@@ -22,52 +24,38 @@
     {#if (!data.notFound)}
       {#if (data.parent)}
         <div class="thread-parent">
-          <svelte:self feeds={[data.parent]} depth={depth + 1}></svelte:self>
+          <svelte:self feeds={[data.parent]} depth={depth - 1}></svelte:self>
         </div>
       {/if}
 
-      <div class="thread-item" data-depth={depth} bind:this={item}>
+      <div
+          class="thread-item"
+          data-depth={depth}
+          bind:this={item}
+          class:is-root={isRoot}
+          class:is-final={data.post.replyCount === 0}
+          class:has-child={data.post.replyCount > 0}
+          class:is-author-child={data.post.record.reply?.root ? data.post.author.did === data.post.record.reply.root.uri.split('/')[2] : false}
+      >
         {#if (!data.blocked)}
           <TimelineItem data={data} isSingle={true}>
-            <details class="likes-wrap" slot="likes" let:likes>
-              <summary class="likes-heading">
-                {#if (data.post.record.via)}
-                  <span class="timeline-via">via {data.post.record.via}</span>
-                {/if}
-                {$_('liked_users')}
-
-                <svg xmlns="http://www.w3.org/2000/svg" width="14.814" height="8.821" viewBox="0 0 14.814 8.821">
-                  <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l6.7,6.7,6.7-6.7" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--text-color-3)" stroke-width="2"/>
-                </svg>
-              </summary>
-
-              <div class="likes">
-                {#if (likes?.length)}
-                  {#each likes as like }
-                    {#if (!like.actor.viewer?.muted)}
-                      <div class="likes__item">
-                        <div class="likes__avatar">
-                          {#if (like.actor.avatar)}
-                            <img src="{ like.actor.avatar }" alt="">
-                          {/if}
-                        </div>
-
-                        <p class="likes__text"><a
-                            href="/profile/{ like.actor.handle }">{ like.actor.displayName || like.actor.handle }</a></p>
-                      </div>
-                    {/if}
-                  {/each}
-                {/if}
-              </div>
-            </details>
+            {#if (data.post.likeCount > 0)}
+              <Likes uri={data.post.uri}></Likes>
+            {/if}
           </TimelineItem>
         {:else}
           <p class="thread-blocked">{$_('error_get_posts_because_blocked_or_blocking')}</p>
+        {/if}
+
+        {#if (data.post.replyCount > 0 && depth === 6)}
+          <a href={'/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
         {/if}
       </div>
 
       {#if (data.replies?.length)}
         <div class="thread-replies">
+          <button class="thread-replies-more" class:thread-replies-more--open={data.repliesOpen} on:click={() => {data.repliesOpen = true}}>{$_('show_replies')}</button>
+
           <svelte:self feeds={data.replies} depth={depth + 1}></svelte:self>
         </div>
       {/if}
@@ -87,46 +75,6 @@
           padding-left: 20px;
           padding-right: 20px;
           background-color: var(--bg-color-2);
-      }
-  }
-
-  .thread-replies {
-      margin-left: 20px;
-
-      @media (max-width: 767px) {
-          margin-left: 0;
-
-          .thread-item {
-              position: relative;
-
-              &::before {
-                  content: '';
-                  position: absolute;
-                  width: 2px;
-                  top: 0;
-                  bottom: -20px;
-                  left: 24px;
-                  background-color: var(--border-color-1);
-              }
-          }
-      }
-  }
-
-  .thread-parent {
-      position: relative;
-  }
-
-  .thread-parent::before {
-      content: '';
-      position: absolute;
-      width: 2px;
-      top: 20px;
-      bottom: -20px;
-      left: 29px;
-      background-color: var(--border-color-1);
-
-      @media (max-width: 767px) {
-          left: 24px;
       }
   }
 

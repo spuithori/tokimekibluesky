@@ -150,7 +150,7 @@
                 </dd>
             </dl>
 
-            {#if (column.algorithm?.type !== 'notification')}
+            {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread')}
                 <dl class="settings-group">
                     <dt class="settings-group__name">
                         {$_('auto_refresh')}

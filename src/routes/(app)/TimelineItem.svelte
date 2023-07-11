@@ -61,15 +61,6 @@
         },
     ]; */
     let dateFnsLocale: Locale;
-    let likes: Promise<Like[]>;
-    if (isSingle) {
-        likes = getLikes();
-    }
-
-    async function getLikes() {
-        const res = await $agent.agent.api.app.bsky.feed.getLikes({uri: data.post.uri});
-        return res.data.likes;
-    }
 
     let isShortCutNumberShown = false;
     let isTranslated = false;
@@ -376,6 +367,19 @@
 
     function handleSelectStart(event) {
         selectionText = document.getSelection().toString();
+    }
+
+    async function addThreadColumn() {
+        const uri = data.post.uri;
+        $columns = [...$columns, {
+            id: self.crypto.randomUUID(),
+            algorithm: {
+                type: 'thread',
+                algorithm: uri,
+                name: 'Thread',
+            },
+            style: 'default',
+        }]
     }
 
     function report() {
@@ -726,13 +730,7 @@
           <Bookmark post={data.post} bookmarkId={data?.bookmarkId}></Bookmark>
         </div>
 
-        {#if (isSingle)}
-          {#await likes}
-            <slot name="likes" likes={[]}></slot>
-          {:then likes}
-            <slot name="likes" {likes}></slot>
-          {/await}
-        {/if}
+        <slot></slot>
       </div>
     </div>
 
@@ -794,6 +792,15 @@
             {$_('copy_handle')}
           </button>
         </li>
+
+        {#if ($settings.design?.layout === 'decks')}
+          <li class="timeline-menu-list__item timeline-menu-list__item--report">
+            <button class="timeline-menu-list__button" on:click={addThreadColumn}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-plus"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg>
+              {$_('add_thread_column')}
+            </button>
+          </li>
+        {/if}
 
         <li class="timeline-menu-list__item timeline-menu-list__item--report">
           <button class="timeline-menu-list__button" on:click={report}>
