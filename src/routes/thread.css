@@ -127,7 +127,7 @@
         order: -2;
 
         & + .thread-replies {
-            order: -1;
+            order: -2;
 
             .thread-item {
                 &:not(.is-author-child) {
