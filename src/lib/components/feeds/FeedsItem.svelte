@@ -3,25 +3,15 @@
   import { slide } from 'svelte/transition';
   import { _ } from 'svelte-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
-  import { agent, currentAlgorithm } from '$lib/stores';
-  import {createEventDispatcher} from 'svelte';
+  import { createEventDispatcher } from 'svelte';
   const dispatch = createEventDispatcher();
 
   export let feed;
   export let subscribed = false;
+  export let layout = 'default';
   let isCreatorOpen = false;
 
   async function setCurrentFeed () {
-      /* currentAlgorithm.set({
-          type: 'custom',
-          algorithm: feed.uri,
-          name: feed.displayName,
-      });
-      localStorage.setItem('currentAlgorithm', JSON.stringify($currentAlgorithm)); */
-
-      // timeline.set([]);
-      // cursor.set(undefined);
-
       dispatch('close', {
           clear: false,
           allClose: true,
@@ -29,7 +19,7 @@
   }
 </script>
 
-<section class="feed">
+<section class="feed feed--{layout}">
   <div class="feed__column">
     <div class="feed__avatar">
       {#if (feed.avatar)}
@@ -44,7 +34,9 @@
       <div class="feed__buttons">
         <FeedSubscribeButton feed={feed} subscribed={subscribed}></FeedSubscribeButton>
 
-        <a href="/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" on:click={setCurrentFeed} class="button button--border button--ss">{$_('feed_show_button')}</a>
+        {#if (layout === 'default')}
+         <a href="/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" on:click={setCurrentFeed} class="button button--border button--ss">{$_('feed_show_button')}</a>
+        {/if}
       </div>
     </div>
   </div>
@@ -55,7 +47,7 @@
 
   {#if isCreatorOpen}
     <div class="feed-creator" transition:slide={{ duration: 200 }}>
-      <UserItem user={feed.creator}></UserItem>
+      <UserItem user={feed.creator} layout={'noborder'}></UserItem>
     </div>
   {/if}
 </section>
@@ -63,9 +55,9 @@
 <style lang="postcss">
   .feed {
       margin-bottom: 15px;
-      border-radius: 6px;
+      border-radius: 10px;
       box-shadow: 0 0 10px var(--box-shadow-color-1);
-      overflow: hidden;
+      background-color: var(--bg-color-1);
 
       &__column {
           display: grid;
@@ -116,6 +108,7 @@
       align-items: center;
       justify-content: center;
       gap: 5px;
+      border-radius: 0 0 10px 10px;
 
       svg {
           transition: transform .2s ease-in-out;

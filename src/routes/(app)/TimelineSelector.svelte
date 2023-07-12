@@ -30,7 +30,8 @@
                 $timelines[index] = res.data.feed;
                 $cursors[index] = res.data.cursor;
             } else {
-                const el = column.scrollElement ?? document;
+                const el = column.scrollElement ?? document.documentElement;
+                const elInitialPosition = el.scrollTop;
                 const topEl = el.querySelector('.timeline > .timeline__item:first-child');
 
                 await timelines.update(function (tls) {
@@ -42,12 +43,14 @@
                     })
                 });
 
-                if (column.style !== 'media'){
-                  if (column.scrollElement) {
-                    column.scrollElement.scrollTo(0, topEl.getBoundingClientRect().top - 200);
-                  } else {
-                    window.scrollTo(0, topEl.getBoundingClientRect().top - 156);
-                  }
+                if (elInitialPosition === 0) {
+                    if (column.style !== 'media'){
+                        if (column.scrollElement) {
+                            column.scrollElement.scrollTo(0, topEl.getBoundingClientRect().top - 200);
+                        } else {
+                            window.scrollTo(0, topEl.getBoundingClientRect().top - 156);
+                        }
+                    }
                 }
             }
 

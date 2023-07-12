@@ -44,6 +44,10 @@
               display: none;
           }
       }
+
+      &--noborder {
+          border-bottom: none;
+      }
   }
 
   .user-item__user {
