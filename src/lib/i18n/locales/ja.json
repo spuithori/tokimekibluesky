@@ -296,5 +296,6 @@
   "add_realtime_search": "リアルタイム検索を追加(β)",
   "add_thread_column": "カラムに追加",
   "read_more_thread": "スレッドをさらに読む",
-  "show_replies": "リプライを表示"
+  "show_replies": "リプライを表示",
+  "auto_scroll": "自動スクロール"
 }

@@ -12,6 +12,7 @@
     let langFilterEnabled = column.settings?.langFilterEnabled || false;
     let langFilter = column.settings?.langFilter || [];
     let autoRefresh = column.settings?.autoRefresh || 0;
+    let autoScroll = column.settings?.autoScroll || false;
     let width = column.settings?.width || 'medium';
 
     $: _settings = {
@@ -22,6 +23,7 @@
         langFilterEnabled: langFilterEnabled,
         langFilter: langFilter,
         autoRefresh: autoRefresh,
+        autoScroll: autoScroll,
         width: width,
     }
 
@@ -40,6 +42,7 @@
             langFilterEnabled: false,
             langFilter: [],
             autoRefresh: 0,
+            autoScroll: false,
         }
     }
 
@@ -167,6 +170,18 @@
                                     <option value="{option.value}">{option.name}</option>
                                 {/each}
                             </select>
+                        </div>
+                    </dd>
+                </dl>
+
+                <dl class="settings-group">
+                    <dt class="settings-group__name">
+                        {$_('auto_scroll')}
+                    </dt>
+
+                    <dd class="settings-group__content">
+                        <div class="input-toggle">
+                            <input class="input-toggle__input" type="checkbox" id={column.id + 'autoScroll'} bind:checked={autoScroll}><label class="input-toggle__label" for={column.id + 'autoScroll'}></label>
                         </div>
                     </dd>
                 </dl>

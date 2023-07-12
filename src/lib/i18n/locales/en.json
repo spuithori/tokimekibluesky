@@ -295,5 +295,6 @@
   "add_realtime_search": "Add realtime search (β)",
   "add_thread_column": "Add to column",
   "read_more_thread": "Read more thread",
-  "show_replies": "Show replies"
+  "show_replies": "Show replies",
+  "auto_scroll": "Auto scroll"
 }

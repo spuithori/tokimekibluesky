@@ -6,17 +6,49 @@
         timelines,
         settings,
         columns, singleColumn,
-    } from "$lib/stores";
-    import RealtimeTimeline from "./RealtimeTimeline.svelte";
-    import BookmarkTimeline from "./BookmarkTimeline.svelte";
-    import ListTimeline from "./ListTimeline.svelte";
-    import Timeline from "./Timeline.svelte";
-    import TimerEvent from "$lib/components/utils/TimerEvent.svelte";
+    } from '$lib/stores';
+    import RealtimeTimeline from './RealtimeTimeline.svelte';
+    import BookmarkTimeline from './BookmarkTimeline.svelte';
+    import ListTimeline from './ListTimeline.svelte';
+    import Timeline from './Timeline.svelte';
+    import TimerEvent from '$lib/components/utils/TimerEvent.svelte';
+    import { onDestroy, onMount } from 'svelte';
 
     export let column;
     export let index;
     export let unique;
     let isRefreshing = false;
+    let scrollId;
+
+    $: scrolling(column.settings?.autoScroll);
+
+    onDestroy(() => {
+        clearInterval(scrollId);
+    });
+
+    onMount(() => {
+        if (column.settings?.autoScroll) {
+            scrolling(column.settings.autoScroll);
+        }
+    });
+
+    function scrolling(isScroll) {
+        if (scrollId) {
+            clearInterval(scrollId);
+        }
+
+        if (!isScroll) {
+            return false;
+        }
+
+        if (isScroll) {
+            scrollId = setInterval(() => {
+                column.scrollElement.scrollBy(0, -1);
+            }, 24);
+        } else {
+            clearInterval(scrollId);
+        }
+    }
 
     export async function refresh() {
         isRefreshing = true;
@@ -96,6 +128,16 @@
         refresh();
       }
     }
+
+    function handleMouseEnter() {
+        clearInterval(scrollId);
+    }
+
+    function handleMouseLeave() {
+        if (column.settings?.autoScroll) {
+            scrolling(column.settings.autoScroll);
+        }
+    }
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -142,23 +184,25 @@
   </button>
 {/if}
 
-{#if (column.algorithm.type === 'list')}
+<div class="timeline-selector-wrap" on:mouseenter={handleMouseEnter} on:mouseleave={handleMouseLeave}>
+  {#if (column.algorithm.type === 'list')}
     {#key unique}
       <ListTimeline column={column} index={index}></ListTimeline>
     {/key}
-{:else if (column.algorithm.type === 'bookmark')}
+  {:else if (column.algorithm.type === 'bookmark')}
     {#key unique}
       <BookmarkTimeline column={column} index={index}></BookmarkTimeline>
     {/key}
-{:else if (column.algorithm.type === 'realtime')}
-  <RealtimeTimeline
-      column={column}
-      index={index}></RealtimeTimeline>
-{:else}
-  {#key unique}
-    <Timeline column={column} index={index}></Timeline>
-  {/key}
-{/if}
+  {:else if (column.algorithm.type === 'realtime')}
+    <RealtimeTimeline
+        column={column}
+        index={index}></RealtimeTimeline>
+  {:else}
+    {#key unique}
+      <Timeline column={column} index={index}></Timeline>
+    {/key}
+  {/if}
+</div>
 
 {#if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0)}
   <TimerEvent delay={Number(column.settings.autoRefresh) * 1000} on:timer={handleTimer}></TimerEvent>

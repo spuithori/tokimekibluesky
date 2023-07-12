@@ -6,6 +6,7 @@ type defaultDeckSettings = {
     langFilterEnabled?: boolean,
     langFilter?: string[],
     autoRefresh?: number,
+    autoScroll?: boolean,
     width?: 'large' | 'medium' | 'small',
 }
 
@@ -17,5 +18,6 @@ export const defaultDeckSettings: defaultDeckSettings = {
     langFilterEnabled: false,
     langFilter: [],
     autoRefresh: 0,
+    autoScroll: false,
     width: 'medium',
 }
