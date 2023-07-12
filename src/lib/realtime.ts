@@ -1,9 +1,8 @@
 import {addExtension, decode, decodeMultiple} from "cbor-x";
 import {CID} from "multiformats";
-import toast from "svelte-french-toast";
 import {CarReader} from "@ipld/car";
 import { get } from 'svelte/store';
-import {realtime, agent, notificationCount} from '$lib/stores';
+import {realtime, agent, notificationCount, isRealtimeConnected} from '$lib/stores';
 
 let timeId;
 let socket;
@@ -38,11 +37,13 @@ export async function connect() {
     socket.addEventListener('close', (event) => {
         //toast.error(get(_)('realtime_connect_closed'));
         // dispatch('disconnect');
+        isRealtimeConnected.set(false);
     });
 
     socket.addEventListener('open', (event) => {
         //.success(get(_)('realtime_connect_status') + ': ' + stateMessage[socket.readyState]);
         // dispatch('connect');
+        isRealtimeConnected.set(true);
     });
 
     socket.addEventListener('message', async (event) => {

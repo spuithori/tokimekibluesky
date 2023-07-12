@@ -9,6 +9,7 @@
     import Like from "$lib/components/post/Like.svelte";
     import Reply from "$lib/components/post/Reply.svelte";
     import Avatar from "./Avatar.svelte";
+    import UserItem from "./profile/[handle]/UserItem.svelte";
 
     export let isPage = false;
 
@@ -258,7 +259,7 @@
             </div>
 
             <div class="notifications-item__buttons">
-              <UserFollowButton following="{item.author.viewer?.following}" user={item.author}></UserFollowButton>
+              <UserItem user={item.author} layout={'notification'}></UserItem>
             </div>
           </article>
         {/if}

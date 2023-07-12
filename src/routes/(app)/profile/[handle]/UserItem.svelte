@@ -4,10 +4,14 @@
   import Avatar from "../../Avatar.svelte";
 
   export let user;
+  export let layout = 'default';
 
+  function handleFollowChange(event) {
+      user.viewer.following = event.detail.following;
+  }
 </script>
 
-<div class="user-item">
+<div class="user-item user-item--{layout}">
   <article class="user-item__user">
     <Avatar href="/profile/{ user.handle }" avatar={user.avatar} handle={user.handle}></Avatar>
 
@@ -19,7 +23,7 @@
 
   {#if (user.did !== $agent.did())}
     <div class="user-item__buttons">
-      <UserFollowButton following="{user.viewer?.following}" user={user}></UserFollowButton>
+      <UserFollowButton following="{user.viewer?.following}" user={user} on:followchange={handleFollowChange}></UserFollowButton>
     </div>
   {/if}
 </div>
@@ -32,6 +36,14 @@
       padding: 10px 0;
       border-bottom: 1px solid var(--border-color-1);
       gap: 15px;
+
+      &--notification {
+          border-bottom: none;
+
+          .user-item__user {
+              display: none;
+          }
+      }
   }
 
   .user-item__user {

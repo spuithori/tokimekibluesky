@@ -1,6 +1,6 @@
 <script lang="ts">
     import {agent, columns} from '$lib/stores';
-    import { settings, timelines, cursors, realtime } from "$lib/stores";
+    import { settings, timelines, cursors, realtime, isRealtimeConnected } from "$lib/stores";
     import TimelineItem from "./TimelineItem.svelte";
     import {createEventDispatcher, onDestroy, onMount} from 'svelte';
     import MediaTimelineItem from "./MediaTimelineItem.svelte";
@@ -157,7 +157,7 @@
 
 <div class="realtime-wrap">
     <div class="timeline timeline--main">
-        <div class="realtime-status" class:realtime-status--connected={$realtime.isConnected}></div>
+        <div class="realtime-status" class:realtime-status--connected={$isRealtimeConnected}></div>
 
         {#if (column.algorithm.algorithm === 'following' || column.algorithm.algorithm === undefined)}
             <div class="realtime-follows">

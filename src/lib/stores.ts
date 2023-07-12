@@ -143,6 +143,8 @@ export const realtime = writable<Realtime>({
     }
 });
 
+export const isRealtimeConnected = writable(false);
+
 type ReportModal = {
     open: boolean,
     data: {
@@ -157,3 +159,5 @@ export const reportModal = writable<ReportModal>({
 })
 
 export const isAfterReload = writable(true);
+
+export const changedFollowData = writable(undefined);
