@@ -1,6 +1,7 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
   import LikesModal from "$lib/components/thread/LikesModal.svelte";
+  import {onDestroy} from "svelte";
 
   export let uri;
   let isOpen = false;
@@ -16,6 +17,10 @@
           document.body.classList.remove('scroll-lock');
       }
   }
+
+  onDestroy(() => {
+      document.body.classList.remove('scroll-lock');
+  })
 </script>
 
 <button class="likes-heading" on:click={() => {isOpen = true}}>{$_('liked_users')}</button>
