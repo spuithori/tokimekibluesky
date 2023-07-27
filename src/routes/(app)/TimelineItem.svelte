@@ -359,9 +359,19 @@
         }
 
         const uri = '/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0];
+        const isColumn = column ? column.algorithm?.algorithm : undefined;
 
-        if (uri !== location.pathname) {
-            goto('/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]);
+        if (isColumn) {
+            if (data.post.uri !== isColumn) {
+                addThreadColumn();
+                setTimeout(() => {
+                    document.querySelector('.deck').scrollLeft = 9999;
+                }, 0);
+            }
+        } else {
+            if (uri !== location.pathname) {
+                goto('/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]);
+            }
         }
     }
 
@@ -628,8 +638,13 @@
                 <p class="timeline__user"
                    title="{data.post.embed.record.author.handle}">{ data.post.embed.record.author.displayName || data.post.embed.record.author.handle }</p>
                 <p class="timeline__date">
-                  <time datetime="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
-                        title="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.indexedAt), {locale: dateFnsLocale})}</time>
+                  {#if $settings?.design.absoluteTime}
+                    <time datetime="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
+                          title="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{format(parseISO(data.post.embed.record.indexedAt), 'yy/MM/dd HH:mm')}</time>
+                  {:else}
+                    <time datetime="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
+                          title="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.indexedAt), {locale: dateFnsLocale})}</time>
+                  {/if}
                 </p>
               </div>
 
@@ -677,9 +692,15 @@
                 <p class="timeline__user"
                    title="{data.post.embed.record.record.author.handle}">{ data.post.embed.record.record.author.displayName || data.post.embed.record.record.author.handle }</p>
                 <p class="timeline__date">
-                  <time
-                      datetime="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
-                      title="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.record.indexedAt), {locale: dateFnsLocale})}</time>
+                  {#if $settings?.design.absoluteTime}
+                    <time
+                        datetime="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
+                        title="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{format(parseISO(data.post.embed.record.record.indexedAt), 'yy/MM/dd HH:mm')}</time>
+                  {:else}
+                    <time
+                        datetime="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
+                        title="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.record.indexedAt), {locale: dateFnsLocale})}</time>
+                  {/if}
                 </p>
               </div>
 
@@ -795,10 +816,10 @@
 
         {#if ($settings.design?.layout === 'decks')}
           <li class="timeline-menu-list__item timeline-menu-list__item--report">
-            <button class="timeline-menu-list__button" on:click={addThreadColumn}>
+            <a href="/profile/{data.post.author.handle}/post/{data.post.uri.split('/').slice(-1)[0]}" class="timeline-menu-list__button">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-plus"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg>
-              {$_('add_thread_column')}
-            </button>
+              {$_('show_thread')}
+            </a>
           </li>
         {/if}
 

@@ -35,7 +35,7 @@
       <img src={spinner} alt="">
     </div>
   {:else}
-    <Thread feeds={feeds} depth={0}></Thread>
+    <Thread feeds={feeds} depth={0} column={column}></Thread>
   {/if}
 </div>
 

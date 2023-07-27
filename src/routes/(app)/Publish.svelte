@@ -136,8 +136,14 @@ function onPublishContentChange() {
     }
 }
 
-const publishKeypress = (e: { keyCode: number; ctrlKey: any; }) => {
-    if (e.keyCode === 13 && e.ctrlKey) publish();
+const publishKeypress = (e: { keyCode: number; ctrlKey: any; metaKey: any; }) => {
+    if (e.keyCode === 13 && e.ctrlKey) {
+        publish();
+    }
+
+    if (e.keyCode === 13 && e.metaKey) {
+        publish();
+    }
 };
 
 async function detectRichText(text) {

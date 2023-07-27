@@ -66,6 +66,10 @@
     overflow: hidden;
 }
 
+.timeline-external__content {
+    min-width: 0;
+}
+
 .timeline-external__title {
     margin-bottom: 8px;
 }
@@ -97,6 +101,9 @@
 
 .timeline-external__url {
     color: var(--text-color-3);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .timeline-external img {

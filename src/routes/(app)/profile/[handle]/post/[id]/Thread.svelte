@@ -6,6 +6,7 @@
 
   export let feeds = [];
   export let depth = 0;
+  export let column = undefined;
   let item;
   let scrolled = false;
   const isRoot = !feeds[0].post.record.reply;
@@ -24,7 +25,7 @@
     {#if (!data.notFound)}
       {#if (data.parent)}
         <div class="thread-parent">
-          <svelte:self feeds={[data.parent]} depth={depth - 1}></svelte:self>
+          <svelte:self feeds={[data.parent]} depth={depth - 1} column={column}></svelte:self>
         </div>
       {/if}
 
@@ -38,7 +39,7 @@
           class:is-author-child={data.post.record.reply?.root ? data.post.author.did === data.post.record.reply.root.uri.split('/')[2] : false}
       >
         {#if (!data.blocked)}
-          <TimelineItem data={data} isSingle={true}>
+          <TimelineItem data={data} isSingle={true} column={column}>
             {#if (data.post.likeCount > 0)}
               <Likes uri={data.post.uri}></Likes>
             {/if}
@@ -56,7 +57,7 @@
         <div class="thread-replies">
           <button class="thread-replies-more" class:thread-replies-more--open={data.repliesOpen} on:click={() => {data.repliesOpen = true}}>{$_('show_replies')}</button>
 
-          <svelte:self feeds={data.replies} depth={depth + 1}></svelte:self>
+          <svelte:self feeds={data.replies} depth={depth + 1} column={column}></svelte:self>
         </div>
       {/if}
     {/if}
