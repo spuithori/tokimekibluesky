@@ -361,7 +361,7 @@
         const uri = '/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0];
         const isColumn = column ? column.algorithm?.algorithm : undefined;
 
-        if (isColumn) {
+        if ($settings.design.layout === 'decks' && column.algorithm) {
             if (data.post.uri !== isColumn) {
                 addThreadColumn();
                 setTimeout(() => {
