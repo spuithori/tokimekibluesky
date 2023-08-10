@@ -296,5 +296,6 @@
   "add_thread_column": "Add to column",
   "read_more_thread": "Read more thread",
   "show_replies": "Show replies",
-  "auto_scroll": "Auto scroll"
+  "auto_scroll": "Auto scroll",
+  "error_thread_notfound": "Could not load thread. The post may have been deleted or you may have blocked/blocking by the root posting user."
 }

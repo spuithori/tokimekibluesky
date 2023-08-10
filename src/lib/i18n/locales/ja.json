@@ -297,5 +297,6 @@
   "add_thread_column": "カラムに追加",
   "read_more_thread": "スレッドをさらに読む",
   "show_replies": "リプライを表示",
-  "auto_scroll": "自動スクロール"
+  "auto_scroll": "自動スクロール",
+  "error_thread_notfound": "スレッドを読み込めませんでした。投稿が削除されたか、ルートの投稿ユーザーをブロックしている・されている可能性があります。"
 }

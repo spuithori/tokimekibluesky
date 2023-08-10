@@ -66,6 +66,12 @@
     </div>
   {:then feeds}
     <Thread feeds={feeds} depth={0}></Thread>
+  {:catch error}
+    {#if (error.error === 'NotFound')}
+      <p class="thread-error">{$_('error_thread_notfound')}</p>
+    {:else}
+      {error.message}
+    {/if}
   {/await}
 </div>
 

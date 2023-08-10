@@ -3,6 +3,7 @@
     import spinner from '$lib/images/loading.svg';
     import Thread from './profile/[handle]/post/[id]/Thread.svelte';
     import {onMount} from "svelte";
+    import {_} from "svelte-i18n";
 
     export let column;
     export let index;
@@ -10,8 +11,13 @@
 
     async function getPostThread() {
         const uri = column.algorithm.algorithm;
-        const raw = await $agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-        feeds = [ raw.data.thread ];
+
+        try {
+            const raw = await $agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
+            feeds = [ raw.data.thread ];
+        } catch (e) {
+            feeds = 'NotFound';
+        }
     }
 
     function close() {
@@ -34,6 +40,8 @@
     <div class="thread-loading">
       <img src={spinner} alt="">
     </div>
+  {:else if (feeds === 'NotFound')}
+    <p class="thread-error">{$_('error_thread_notfound')}</p>
   {:else}
     <Thread feeds={feeds} depth={0} column={column}></Thread>
   {/if}
