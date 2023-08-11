@@ -8,6 +8,20 @@
     export let column;
     export let index;
     let feeds;
+    let isMuted: boolean = false;
+    let isMuteDisplay: boolean = false;
+
+    function isMutedIncludes(feed) {
+        isMuted = feed.post.author?.viewer.muted;
+
+        if (feed.parent && !isMuted) {
+            isMutedIncludes(feed.parent);
+        }
+
+        if (feed.replies?.length && !isMuted) {
+            isMutedIncludes(feed.replies[0]);
+        }
+    }
 
     async function getPostThread() {
         const uri = column.algorithm.algorithm;
@@ -15,6 +29,12 @@
         try {
             const raw = await $agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
             feeds = [ raw.data.thread ];
+
+            feeds.forEach(feed => {
+                if (!feed.blocked) {
+                    isMutedIncludes(feed);
+                }
+            });
         } catch (e) {
             feeds = 'NotFound';
         }
@@ -36,6 +56,14 @@
 </button>
 
 <div class="timeline thread-wrap">
+  {#if (isMuted && !isMuteDisplay)}
+    <div class="thread-notice" class:thread-notice--shown={isMuteDisplay}>
+      <p class="thread-notice__text">{$_('muted_user_thread')}</p>
+
+      <button class="button button--sm" on:click={() => {isMuteDisplay = true}}>{$_('show_button')}</button>
+    </div>
+  {/if}
+
   {#if !feeds}
     <div class="thread-loading">
       <img src={spinner} alt="">

@@ -124,3 +124,12 @@ button {
         }
     }
 }
+
+.text-button {
+    display: inline-block;
+    color: var(--primary-color);
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

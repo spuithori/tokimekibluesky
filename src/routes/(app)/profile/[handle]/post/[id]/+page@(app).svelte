@@ -52,9 +52,9 @@
 <div class="timeline thread-wrap">
   {#if (isMuted && !isMuteDisplay)}
     <div class="thread-notice" class:thread-notice--shown={isMuteDisplay}>
-      <p class="thread-notice__text">スレッドにミュートしているユーザーが含まれています。</p>
+      <p class="thread-notice__text">{$_('muted_user_thread')}</p>
 
-      <button class="button button--sm" on:click={() => {isMuteDisplay = true}}>表示する</button>
+      <button class="button button--sm" on:click={() => {isMuteDisplay = true}}>{$_('show_button')}</button>
     </div>
   {/if}
 
@@ -78,30 +78,6 @@
 <style lang="postcss">
     .thread-wrap {
         position: relative;
-    }
-
-    .thread-notice {
-        position: absolute;
-        bottom: 0;
-        top: 0;
-        left: 0;
-        right: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background-color: var(--bg-color-2);
-        z-index: 1;
-        text-align: center;
-        padding: 20px;
-
-        &__text {
-            margin-bottom: 20px;
-        }
-
-        &--shown {
-            display: none;
-        }
     }
 
     .thread-loading {

@@ -9,7 +9,7 @@
   export let column = undefined;
   let item;
   let scrolled = false;
-  
+
   afterUpdate(() => {
       if (item && item.dataset.depth === '0') {
           const scroll = item.getBoundingClientRect().top + window.pageYOffset;
@@ -74,7 +74,7 @@
           margin-right: -20px;
           padding-left: 20px;
           padding-right: 20px;
-          background-color: var(--bg-color-2);
+          border-left: 4px solid var(--primary-color);
       }
   }
 
