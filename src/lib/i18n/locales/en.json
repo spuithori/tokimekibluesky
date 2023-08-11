@@ -299,5 +299,13 @@
   "auto_scroll": "Auto scroll",
   "error_thread_notfound": "Could not load thread. The post may have been deleted or you may have blocked/blocking by the root posting user.",
   "muted_user_embed": "This is a post by a muted user.",
-  "muted_user_thread": "Thread contains muted users."
+  "muted_user_thread": "Thread contains muted users.",
+  "lang_selector_button_auto": "Auto",
+  "lang_selector_button_display": "Displayed",
+  "lang_selector_button_manual": "Manual",
+  "lang_selector_auto": "Auto detect",
+  "lang_selector_display": "Displayed",
+  "lang_selector_manual": "Manual",
+  "self_moderation_button": "Labeling",
+  "self_moderation_warning": "This post is labeled. May not be visible to some users."
 }

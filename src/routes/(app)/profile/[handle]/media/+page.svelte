@@ -19,7 +19,7 @@
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         try {
-            const res = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: data.params.handle, limit: 30, cursor: cursor});
+            const res = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: data.params.handle, limit: 30, cursor: cursor, filter: 'posts_with_media'});
             cursor = res.data.cursor;
 
             if (cursor) {

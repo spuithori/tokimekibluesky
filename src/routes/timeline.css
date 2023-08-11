@@ -575,6 +575,10 @@
 
 .timeline-warn-wrap {
     position: relative;
+
+    &--warned {
+        min-height: 140px;
+    }
 }
 
 .timeline-warn {

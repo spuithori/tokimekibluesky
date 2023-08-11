@@ -56,7 +56,7 @@
     font-size: 16px;
     vertical-align: middle;
     width: 100%;
-    padding: 15px 20px;
+    padding: 15px 20px 50px;
     resize: none;
 }
 
@@ -124,4 +124,5 @@
 .publish-actor-list-input-group {
     display: flex;
     flex-direction: column-reverse;
+    position: relative;
 }

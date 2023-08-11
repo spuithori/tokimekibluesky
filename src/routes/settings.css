@@ -5,6 +5,13 @@ input[type=checkbox]{
     visibility: hidden;
 }
 
+.input-toggle__input {
+    display: block;
+    height: 0;
+    width: 0;
+    visibility: hidden;
+}
+
 .input-toggle__label {
     position: relative;
     text-indent: -9999px;

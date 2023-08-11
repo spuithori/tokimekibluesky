@@ -543,7 +543,7 @@
           {/if}
         </div>
 
-        <div class="timeline-warn-wrap">
+        <div class="timeline-warn-wrap" class:timeline-warn-wrap--warned={isWarn}>
           {#if (isWarn)}
             <div class="timeline-warn">
               <div class="timeline-warn-heading">

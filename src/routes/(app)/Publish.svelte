@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
 import { onMount } from 'svelte';
-import { agent, quotePost, replyRef, sharedText } from '$lib/stores';
+import {agent, quotePost, replyRef, settings, sharedText} from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -26,6 +26,8 @@ import { db } from '$lib/db';
 import DraftModal from "$lib/components/draft/DraftModal.svelte";
 import AltModal from "$lib/components/alt/AltModal.svelte";
 import spinner from '$lib/images/loading.svg';
+import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
+import {languageMap} from "$lib/langs/languageMap";
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -75,6 +77,30 @@ let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
 let embedExternal: AppBskyEmbedExternal.Main | undefined;
 
 let lang =[];
+
+let langSettings = [
+    {
+        name: $_('lang_selector_auto'),
+        value: 'auto',
+    },
+    /* {
+        name: $_('lang_selector_display'),
+        value: 'display',
+    }, */
+    {
+        name: $_('lang_selector_manual'),
+        value: 'manual',
+    },
+];
+let langSetting = 'auto';
+let isLangSelectorOpen = false;
+
+if (!$settings.langSelector) {
+    $settings.langSelector = 'auto';
+}
+
+let selfLabels = [];
+let isSelfLabeling = false;
 
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: {
@@ -555,10 +581,22 @@ onMount(async () => {
             }
         }
 
+        if (isSelfLabeling) {
+            selfLabels = [
+                {
+                    val: 'nsfw',
+                }
+            ]
+        }
+
         const rt = new RichText({text: publishContent});
         await rt.detectFacets($agent.agent);
 
-        await languageDetect(publishContent);
+        if (!$settings.langSelector || $settings.langSelector === 'auto') {
+            await languageDetect(publishContent);
+        } else {
+            lang = [ $settings.langSelector ];
+        }
 
         try {
             await $agent.agent.api.app.bsky.feed.post.create(
@@ -571,6 +609,10 @@ onMount(async () => {
                     reply: $replyRef || undefined,
                     via: 'TOKIMEKI',
                     langs: lang || [],
+                    labels: {
+                        $type: 'com.atproto.label.defs#selfLabels',
+                        values: selfLabels || [],
+                    },
                 },
             );
             toast.success($_('success_to_post'));
@@ -633,6 +675,7 @@ onMount(async () => {
         searchActors = [];
         embedImages.images = [];
         embedExternal = undefined;
+        isSelfLabeling = false;
         // const data = await $agent.getTimeline();
         // timeline.set(data.feed);
 
@@ -841,6 +884,10 @@ function tempYu() {
             autocomplete="nope"
         ></textarea>
 
+        {#if (isSelfLabeling)}
+          <p class="publish-self-labeling-warning">{$_('self_moderation_warning')}</p>
+        {/if}
+
         {#if searchActors.length}
           <div class="search-actor-list">
             {#each searchActors as actor}
@@ -858,6 +905,34 @@ function tempYu() {
             {/each}
           </div>
         {/if}
+
+        <div class="publish-bottom-buttons">
+          <div class="publish-form-moderation">
+            <button
+                class="publish-form-moderation-button"
+                class:publish-form-moderation-button--active={isSelfLabeling}
+                on:click={() => {isSelfLabeling = !isSelfLabeling}}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              NSFW
+            </button>
+          </div>
+
+          <div class="publish-form-lang-selector">
+            <button class="publish-form-lang-selector-button" on:click={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              {#if ($settings.langSelector === 'auto')}
+                {$_('lang_selector_button_auto')}
+              {:else}
+                {$_(languageMap.get($settings.langSelector).name)}
+              {/if}
+            </button>
+
+            {#if (isLangSelectorOpen)}
+              <LangSelectorModal on:close={() => {isLangSelectorOpen = false}}></LangSelectorModal>
+            {/if}
+          </div>
+        </div>
       </div>
     </div>
 
@@ -987,6 +1062,7 @@ function tempYu() {
         justify-content: flex-end;
         align-items: center;
         width: 100%;
+        flex-wrap: wrap;
     }
 
     .publish-upload {
@@ -1302,5 +1378,89 @@ function tempYu() {
         @media (max-width: 767px) {
             display: none;
         }
+    }
+
+    .publish-form-lang-selector {
+        position: relative;
+    }
+
+    .publish-form-lang-selector-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border: 1px solid var(--border-color-1);
+        background-color: var(--bg-color-1);
+        color: var(--primary-color);
+        padding: 0 10px;
+        font-size: 14px;
+        height: 30px;
+        border-radius: 4px;
+    }
+
+    .publish-form-lang-selector-modal {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 10px);
+        transform: translateX(-50%);
+        z-index: 100;
+
+        .radio-v-group {
+            white-space: nowrap;
+        }
+    }
+
+    .publish-form-moderation {
+        position: relative;
+    }
+
+    .publish-form-moderation-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border: 1px solid var(--border-color-1);
+        background-color: var(--bg-color-1);
+        padding: 0 10px;
+        font-size: 14px;
+        height: 30px;
+        border-radius: 4px;
+
+        &--active {
+            background-color: var(--danger-color);
+            color: #fff;
+            font-weight: bold;
+            border: none;
+        }
+    }
+
+    .publish-self-labeling-warning {
+        margin-bottom: 10px;
+        color: var(--text-color-3);
+    }
+
+    .publish-bottom-buttons {
+        position: absolute;
+        display: flex;
+        gap: 10px;
+        bottom: 10px;
+        right: 10px;
+        z-index: 13;
+    }
+
+    .lang-selector-manual-settings-button {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 8px;
+        margin: auto;
+        z-index: 1;
+        height: 24px;
+        width: 24px;
+        border-radius: 2px;
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 </style>

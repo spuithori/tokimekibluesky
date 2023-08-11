@@ -267,6 +267,7 @@
 
     &__item {
         color: var(--text-color-1);
+        position: relative;
 
         &:not(:last-child) {
             border-right: 1px solid var(--border-color-1);
@@ -278,6 +279,8 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            background-color: var(--bg-color-1);
+            padding: 0 10px;
         }
 
         input {
@@ -290,6 +293,12 @@
             &:checked + label {
                 background-color: var(--primary-color);
                 color: var(--bg-color-1);
+            }
+        }
+
+        &--has-button {
+            label {
+                padding-right: 40px;
             }
         }
     }
