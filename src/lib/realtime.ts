@@ -125,7 +125,7 @@ async function handleVisibilityChange(event) {
         return false;
     }
 
-    if (event.target.visibilityState === 'hidden') {
+    /* if (event.target.visibilityState === 'hidden') {
         if (timeId) {
             clearTimeout(timeId);
         }
@@ -136,7 +136,7 @@ async function handleVisibilityChange(event) {
                 return {...r, isConnected: false}
             })
         }, 180000)
-    }
+    } */
 
     if (event.target.visibilityState === 'visible') {
         clearTimeout(timeId);
