@@ -9,8 +9,7 @@
   export let column = undefined;
   let item;
   let scrolled = false;
-  const isRoot = !feeds[0].post.record.reply;
-
+  
   afterUpdate(() => {
       if (item && item.dataset.depth === '0') {
           const scroll = item.getBoundingClientRect().top + window.pageYOffset;
@@ -21,7 +20,7 @@
 </script>
 
 <div class="thread">
-  {#each feeds as data (data)}
+  {#each feeds as data, index (data)}
     {#if (!data.notFound)}
       {#if (data.parent)}
         <div class="thread-parent">
@@ -33,7 +32,7 @@
           class="thread-item"
           data-depth={depth}
           bind:this={item}
-          class:is-root={isRoot}
+          class:is-root={!feeds[0].post.record.reply}
           class:is-final={data.post.replyCount === 0}
           class:has-child={data.post.replyCount > 0}
           class:is-author-child={data.post.record.reply?.root ? data.post.author.did === data.post.record.reply.root.uri.split('/')[2] : false}
