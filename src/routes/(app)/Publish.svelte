@@ -1421,6 +1421,7 @@ function tempYu() {
         gap: 4px;
         border: 1px solid var(--border-color-1);
         background-color: var(--bg-color-1);
+        color: var(--text-color-1);
         padding: 0 10px;
         font-size: 14px;
         height: 30px;
