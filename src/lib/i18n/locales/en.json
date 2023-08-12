@@ -310,5 +310,11 @@
   "self_moderation_warning": "This post is labeled. May not be visible to some users.",
   "self_labels_spoiler": "Spoiler",
   "self_labels_porn": "Porn",
-  "self_labels_warn": "Warning"
+  "self_labels_warning": "Warning",
+  "self_labels_description_1": "All users will be warned.",
+  "self_labels_description_2": "In some clients, such as official apps, only the image is hidden.",
+  "self_labels_description_3": "This may not apply to some clients, such as official apps.",
+  "labeling_spoiler": "Spoiler",
+  "labeling_!warn": "Warning",
+  "labeling_porn": "Porn"
 }
