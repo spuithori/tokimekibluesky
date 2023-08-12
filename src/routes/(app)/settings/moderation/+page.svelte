@@ -14,13 +14,13 @@
     }
 
     let labels: contentLabels = $settings.moderation.contentLabels || {
-        gore: 'show',
-        hate: 'show',
-        impersonation: 'show',
-        nsfw: 'show',
-        nudity: 'show',
-        spam: 'show',
-        suggestive: 'show',
+        gore: 'warn',
+        hate: 'warn',
+        impersonation: 'warn',
+        nsfw: 'warn',
+        nudity: 'warn',
+        spam: 'warn',
+        suggestive: 'warn',
     };
 
     const contentLabelsSelections = [
