@@ -56,7 +56,7 @@
     font-size: 16px;
     vertical-align: middle;
     width: 100%;
-    padding: 15px 20px 50px;
+    padding: 15px 20px;
     resize: none;
 }
 
@@ -125,4 +125,23 @@
     display: flex;
     flex-direction: column-reverse;
     position: relative;
+}
+
+.publish-form-moderation-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--text-color-1);
+    padding: 0 5px;
+    font-size: 14px;
+    height: 30px;
+    border-radius: 4px;
+}
+.publish-form-moderation {
+    &--active {
+        .publish-form-moderation-button {
+            color: var(--danger-color);
+        }
+    }
 }

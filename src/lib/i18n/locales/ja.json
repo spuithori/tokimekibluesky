@@ -308,5 +308,14 @@
   "lang_selector_display": "表示言語にあわせる",
   "lang_selector_manual": "手動選択",
   "self_moderation_button": "ラベルを付与",
-  "self_moderation_warning": "ラベルを付与しています。一部のユーザーには表示されない可能性があります。"
+  "self_moderation_warning": "ラベルを付与しています。一部のユーザーには表示されない可能性があります。",
+  "self_labels_spoiler": "ネタバレ",
+  "self_labels_porn": "性的",
+  "self_labels_warning": "警告表示",
+  "self_labels_description_1": "すべてのユーザーに警告表示されます。",
+  "self_labels_description_2": "公式アプリなど一部のクライアントでは、画像のみ隠されます。",
+  "self_labels_description_3": "公式アプリなど一部のクライアントでは適用されない可能性があります。",
+  "labeling_spoiler": "ネタバレ",
+  "labeling_!warn": "警告ラベル",
+  "labeling_porn": "性的コンテンツ"
 }

@@ -435,7 +435,7 @@
     border-radius: 6px;
     width: max-content;
     background-color: var(--bg-color-1);
-    z-index: 11;
+    z-index: 14;
     visibility: hidden;
     opacity: 0;
     transition: all .2s ease-in-out;
@@ -577,7 +577,7 @@
     position: relative;
 
     &--warned {
-        min-height: 140px;
+        min-height: 110px;
     }
 }
 
@@ -604,9 +604,9 @@
 .timeline-warn-heading {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 0 10px;
-    margin-bottom: 15px;
+    align-items: center;
+    gap: 0 5px;
+    margin-bottom: 10px;
 }
 
 .timeline-warn-list {

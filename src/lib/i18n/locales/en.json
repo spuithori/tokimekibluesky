@@ -307,5 +307,8 @@
   "lang_selector_display": "Displayed",
   "lang_selector_manual": "Manual",
   "self_moderation_button": "Labeling",
-  "self_moderation_warning": "This post is labeled. May not be visible to some users."
+  "self_moderation_warning": "This post is labeled. May not be visible to some users.",
+  "self_labels_spoiler": "Spoiler",
+  "self_labels_porn": "Porn",
+  "self_labels_warn": "Warning"
 }
