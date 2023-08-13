@@ -542,7 +542,6 @@ function setSelfLabel(index) {
 
 onMount(async () => {
     if ($sharedText) {
-        await goto('/');
         publishContent = $sharedText;
         isFocus = true;
 
