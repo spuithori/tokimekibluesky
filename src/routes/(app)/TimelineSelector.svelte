@@ -104,7 +104,7 @@
                     }
                 }
 
-                if (column.scrollElement && column.settings.autoScrollSpeed === 'auto') {
+                if (column.scrollElement && column.settings?.autoScrollSpeed === 'auto') {
                     scrollSpeedAutoPos = column.scrollElement.scrollTop;
                     scrollSpeedAutoPos = Math.abs(scrollSpeedAutoPos);
 

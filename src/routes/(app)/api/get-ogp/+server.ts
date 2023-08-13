@@ -1,4 +1,5 @@
 import ogp from 'ogp-parser';
+import sharp from 'sharp';
 
 type result = {
     title: string,
@@ -18,7 +19,16 @@ async function ogpParser(uri: string) {
     let blob;
     if (image) {
         try {
-            blob = await fetch(image).then(r => r.blob());
+            const orig = await fetch(image).then(r => r.arrayBuffer());
+            const compress = await sharp(orig)
+                .resize({
+                    width: 512,
+                    height: 512,
+                    fit: 'inside',
+                })
+                .jpeg({ mozjpeg: true })
+                .toBuffer({ resolveWithObject: true });
+            blob = new Blob([compress.data], {type: 'image/jpeg'});
         } catch (e) {
             blob = '';
         }
