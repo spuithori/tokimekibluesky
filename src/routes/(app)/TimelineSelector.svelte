@@ -19,8 +19,11 @@
     export let unique;
     let isRefreshing = false;
     let scrollId;
+    let scrollSpeed = 24;
+    let scrollSpeedAutoPos = 0;
 
     $: scrolling(column.settings?.autoScroll);
+    $: scrollSpeedChange(column.settings?.autoScrollSpeed);
 
     onDestroy(() => {
         clearInterval(scrollId);
@@ -31,6 +34,22 @@
             scrolling(column.settings.autoScroll);
         }
     });
+
+    function scrollSpeedChange(autoScrollSpeed) {
+        switch (autoScrollSpeed) {
+            case 'slow':
+                scrollSpeed = 24;
+                break;
+            case 'normal':
+                scrollSpeed = 16;
+                break;
+            case 'fast':
+                scrollSpeed = 8;
+                break;
+        }
+
+        scrolling(column.settings?.autoScroll);
+    }
 
     function scrolling(isScroll) {
         if (scrollId) {
@@ -44,7 +63,7 @@
         if (isScroll) {
             scrollId = setInterval(() => {
                 column.scrollElement.scrollBy(0, -1);
-            }, 24);
+            }, scrollSpeed);
         } else {
             clearInterval(scrollId);
         }
@@ -76,12 +95,25 @@
                 });
 
                 if (elInitialPosition === 0) {
-                    if (column.style !== 'media'){
+                    if (column.style !== 'media') {
                         if (column.scrollElement) {
                             column.scrollElement.scrollTo(0, topEl.getBoundingClientRect().top - 200);
                         } else {
                             window.scrollTo(0, topEl.getBoundingClientRect().top - 156);
                         }
+                    }
+                }
+
+                if (column.scrollElement && column.settings.autoScrollSpeed === 'auto') {
+                    scrollSpeedAutoPos = column.scrollElement.scrollTop;
+                    scrollSpeedAutoPos = Math.abs(scrollSpeedAutoPos);
+
+                    if (scrollSpeedAutoPos > 0 && column.settings?.autoRefresh) {
+                        scrollSpeed = column.settings.autoRefresh * 1000 / scrollSpeedAutoPos;
+                        console.log(scrollSpeed);
+                        scrolling(column.settings?.autoScroll);
+                    } else {
+                        scrollSpeed = 24;
                     }
                 }
             }

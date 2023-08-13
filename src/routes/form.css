@@ -265,6 +265,10 @@
     font-size: 13px;
     overflow: hidden;
 
+    &--4columns {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
     &__item {
         color: var(--text-color-1);
         position: relative;

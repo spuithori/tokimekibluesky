@@ -13,6 +13,7 @@
     let langFilter = column.settings?.langFilter || [];
     let autoRefresh = column.settings?.autoRefresh || 0;
     let autoScroll = column.settings?.autoScroll || false;
+    let autoScrollSpeed = column.settings?.autoScrollSpeed || 'normal';
     let width = column.settings?.width || 'medium';
 
     $: _settings = {
@@ -24,6 +25,7 @@
         langFilter: langFilter,
         autoRefresh: autoRefresh,
         autoScroll: autoScroll,
+        autoScrollSpeed: autoScrollSpeed,
         width: width,
     }
 
@@ -43,6 +45,7 @@
             langFilter: [],
             autoRefresh: 0,
             autoScroll: false,
+            autoScrollSpeed: 'auto',
         }
     }
 
@@ -126,6 +129,25 @@
         },
     ];
 
+    const autoScrollSpeedSettings = [
+        {
+            name: $_('auto_scroll_speed_auto'),
+            value: 'auto',
+        },
+        {
+            name: $_('auto_scroll_speed_slow'),
+            value: 'slow',
+        },
+        {
+            name: $_('auto_scroll_speed_normal'),
+            value: 'normal',
+        },
+        {
+            name: $_('auto_scroll_speed_fast'),
+            value: 'fast',
+        },
+    ];
+
     function handleClickClose() {
         dispatch('close');
     }
@@ -185,6 +207,24 @@
                         </div>
                     </dd>
                 </dl>
+
+                {#if (autoScroll)}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('auto_scroll_speed')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="radio-v-group radio-v-group--4columns">
+                                {#each autoScrollSpeedSettings as option}
+                                    <div class="radio-v-group__item">
+                                        <input type="radio" id={column.id + option.value} bind:group={autoScrollSpeed} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
+                                    </div>
+                                {/each}
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
 
                 <dl class="settings-group">
                     <dt class="settings-group__name">

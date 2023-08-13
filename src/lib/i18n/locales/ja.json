@@ -317,5 +317,10 @@
   "self_labels_description_3": "公式アプリなど一部のクライアントでは適用されない可能性があります。",
   "labeling_spoiler": "ネタバレ",
   "labeling_!warn": "警告ラベル",
-  "labeling_porn": "性的コンテンツ"
+  "labeling_porn": "性的コンテンツ",
+  "auto_scroll_speed": "自動スクロールの速度",
+  "auto_scroll_speed_auto": "自動",
+  "auto_scroll_speed_slow": "おそい",
+  "auto_scroll_speed_normal": "ふつう",
+  "auto_scroll_speed_fast": "はやい"
 }

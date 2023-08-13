@@ -316,5 +316,10 @@
   "self_labels_description_3": "This may not apply to some clients, such as official apps.",
   "labeling_spoiler": "Spoiler",
   "labeling_!warn": "Warning",
-  "labeling_porn": "Porn"
+  "labeling_porn": "Porn",
+  "auto_scroll_speed": "Auto scroll speed",
+  "auto_scroll_speed_auto": "Auto",
+  "auto_scroll_speed_slow": "Slow",
+  "auto_scroll_speed_normal": "Normal",
+  "auto_scroll_speed_fast": "Fast"
 }
