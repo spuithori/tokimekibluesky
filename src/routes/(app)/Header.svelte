@@ -54,7 +54,7 @@
 
 <svelte:window on:popstate={handlePopstate} />
 
-<header class="header">
+<header class="header" class:header--side={$settings.design?.publishPosition === 'left'}>
   <div class="header__wrap">
     <div class="header__me only-pc">
       <MyProfileBadge></MyProfileBadge>
@@ -158,6 +158,27 @@
           width: calc(100% - 40px);
           border-radius: 10px;
           box-shadow: 0 3px 6px rgba(0, 0, 0, .09);
+      }
+
+      &--side {
+          @media (min-width: 768px) {
+              position: fixed;
+              left: 0;
+              right: auto;
+              width: 360px;
+              margin: 0;
+              z-index: 102;
+
+              .header__wrap {
+                  gap: 10px;
+              }
+
+              .notification {
+                  left: 0;
+                  width: 360px;
+                  height: calc(100vh - 80px);
+              }
+          }
       }
   }
 
@@ -294,16 +315,6 @@
       display: grid;
       place-content: center;
       position: relative;
-
-      svg {
-          transition: transform .15s ease-in-out;
-      }
-
-      &:hover {
-          svg {
-              transform: translateY(2px);
-          }
-      }
   }
 
   .settings-box {

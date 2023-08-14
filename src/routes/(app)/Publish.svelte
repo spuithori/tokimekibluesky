@@ -137,6 +137,10 @@ $: {
     } else {
         document.body.classList.remove('scroll-lock');
     }
+
+    if ($settings.design?.publishPosition === 'left') {
+        isContinueMode = true;
+    }
 }
 
 function getActorTypeAhead() {
@@ -722,8 +726,23 @@ function tempYu() {
 <svelte:window on:keydown={handleKeydown} on:popstate={handlePopstate} />
 <svelte:document on:paste={handlePaste} />
 
+{#if (isFocus)}
+  <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+      <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
+    </svg>
+  </button>
+{:else}
+  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" on:click={onFocus} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+      <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="var(--bg-color-1)"/>
+    </svg>
+  </button>
+{/if}
+
 <section class="publish-group"
          class:publish-group--expanded={isFocus}
+         class:publish-group--left={$settings.design?.publishPosition === 'left'}
          tabindex="-1"
          on:focusin={onFocus}
          on:focusout={onBlur}
@@ -731,19 +750,17 @@ function tempYu() {
          on:outclick={handleOutClick}
          on:click={handleClick}
 >
-  {#if (isFocus)}
-    <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={onClose}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-        <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
-      </svg>
-    </button>
-  {:else}
-    <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" on:click={onFocus}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
-        <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="var(--bg-color-1)"/>
-      </svg>
-    </button>
-  {/if}
+  <div class="publish-position-switcher">
+    {#if ($settings.design?.publishPosition !== 'left')}
+      <button class="publish-position-switcher__button" on:click={() => {$settings.design.publishPosition = 'left'}}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/></svg>
+      </button>
+    {:else}
+      <button class="publish-position-switcher__button" on:click={() => {$settings.design.publishPosition = 'bottom'}}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-bottom"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="15" y2="15"/></svg>
+      </button>
+    {/if}
+  </div>
 
   <div class="publish-wrap">
     {#if $agent.did() === 'did:plc:hiptcrt4k63szzz4ty3dhwcp'}
@@ -758,10 +775,6 @@ function tempYu() {
       {:else}
         <button class="publish-draft-button publish-view-draft" on:click={() => {isDraftModalOpen = true}}>{$_('drafts')}</button>
       {/if}
-
-      <p class="publish-length">
-        <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
-      </p>
 
       <div class="publish-form-continue-mode">
         <div class="publish-form-continue-mode-input" class:checked={isContinueMode}>
@@ -894,6 +907,10 @@ function tempYu() {
 
       <div class="publish-actor-list-input-group">
         <div class="publish-bottom-buttons">
+          <p class="publish-length">
+            <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
+          </p>
+
           <div class="publish-form-moderation"  class:publish-form-moderation--active={selfLabels.length}>
             <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
               <svg slot="ref" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
@@ -915,10 +932,6 @@ function tempYu() {
                 {$_(languageMap.get($settings.langSelector).name)}
               {/if}
             </button>
-
-            {#if (isLangSelectorOpen)}
-              <LangSelectorModal on:close={() => {isLangSelectorOpen = false}}></LangSelectorModal>
-            {/if}
           </div>
         </div>
 
@@ -1003,15 +1016,19 @@ function tempYu() {
       </div>
     {/if}
   </div>
-
-  {#if (isAltModalOpen)}
-    <AltModal images={images} on:close={handleAltClose}></AltModal>
-  {/if}
-
-  {#if (isDraftModalOpen)}
-    <DraftModal on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
-  {/if}
 </section>
+
+{#if (isAltModalOpen)}
+  <AltModal images={images} on:close={handleAltClose}></AltModal>
+{/if}
+
+{#if (isDraftModalOpen)}
+  <DraftModal on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
+{/if}
+
+{#if (isLangSelectorOpen)}
+  <LangSelectorModal on:close={() => {isLangSelectorOpen = false}}></LangSelectorModal>
+{/if}
 
 <style lang="postcss">
     .publish-group {
@@ -1028,10 +1045,6 @@ function tempYu() {
         }
 
         &--expanded {
-            .publish-form__input {
-                height: 120px;
-            }
-
             .publish-wrap {
                 display: block;
             }
@@ -1041,6 +1054,58 @@ function tempYu() {
 
                 .publish-wrap {
                    display: flex;
+                }
+            }
+        }
+
+        &--left {
+            @media (min-width: 768px) {
+                top: 0;
+                right: auto;
+                z-index: 100;
+
+                .publish-form__input {
+                    height: 160px;
+                }
+
+                .publish-wrap {
+                    display: block;
+                    height: 100vh;
+                    width: 360px;
+                    border-top: none;
+                    border-right: 1px solid var(--border-color-1);
+                    padding: 120px 20px 20px;
+                }
+
+                .publish-position-switcher {
+                    left: auto;
+                    right: 16px;
+                    top: 80px;
+                }
+
+                .publish-draft-button {
+
+                }
+
+                .publish-upload {
+                    position: relative;
+                    bottom: auto;
+                    left: auto;
+                    margin-top: 20px;
+                }
+
+                .publish-upload-close {
+                    display: none;
+                }
+
+                .publish-form-continue-mode {
+                    display: none;
+                }
+
+                .publish-alt-text-button {
+                    position: static;
+                    width: 100%;
+                    margin-bottom: 10px;
                 }
             }
         }
@@ -1075,10 +1140,16 @@ function tempYu() {
         background-color: var(--primary-color);
         align-items: center;
         justify-content: center;
-        z-index: 20;
+        z-index: 2001;
 
         @media (max-width: 767px) {
             display: flex;
+        }
+
+        &--left {
+            @media (min-width: 768px) {
+                display: none;
+            }
         }
     }
 
@@ -1125,6 +1196,7 @@ function tempYu() {
 
         @media (max-width: 767px) {
             display: flex;
+            margin-right: 15px;
         }
     }
 
@@ -1177,11 +1249,11 @@ function tempYu() {
     .publish-length {
         margin-right: auto;
         color: var(--text-color-3);
+        display: flex;
+        align-items: center;
 
         @media (max-width: 767px) {
-           order: 2;
-            margin-right: 15px;
-            margin-left: auto;
+
         }
 
         &__current {
@@ -1360,7 +1432,7 @@ function tempYu() {
         letter-spacing: .025em;
         gap: 5px;
         white-space: nowrap;
-        margin-right: 10px;
+        margin-right: auto;
 
         @media (max-width: 767px) {
 

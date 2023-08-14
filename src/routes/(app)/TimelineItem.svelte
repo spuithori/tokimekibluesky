@@ -97,7 +97,7 @@
         dateFnsLocale = en;
     }
 
-    if (AppBskyFeedPost.isRecord(data.post.record)) {
+    if (AppBskyFeedPost.isRecord(data.post?.record)) {
         const rt: RichText = new RichText({
             text: data.post.record.text,
             facets: data.post.record.facets,

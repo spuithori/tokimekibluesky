@@ -84,6 +84,7 @@ const defaultSettings = {
         darkmode: false,
         absoluteTime: false,
         layout: 'default',
+        publishPosition: 'bottom'
     },
     timeline: {
         hideRepost: 'all',

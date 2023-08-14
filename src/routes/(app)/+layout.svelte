@@ -145,6 +145,7 @@
     class:darkmode={isDarkMode}
     class:twilight={$settings.design?.darkmode === 'twilight'}
     class:scrolled={scrolly > 100}
+    class:sidebar={$settings.design?.publishPosition === 'left'}
     class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
     dir="{$_('dir', {default: 'ltr'})}"
     class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}
@@ -153,17 +154,19 @@
 >
   <Header />
 
-  {#if ($settings.design?.layout === 'decks' && $page.url.pathname === '/')}
+  {#if ($settings.design?.layout === 'decks' && $page.url.pathname === '/') && $settings.design?.publishPosition !== 'left'}
     <HeaderCollapseButton></HeaderCollapseButton>
   {/if}
 
-  <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
-    <slot />
-  </main>
+  <div class="wrap" class:layout-sidebar={$settings.design?.publishPosition === 'left'}>
+    <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
+      <slot />
+    </main>
+
+    <Publish></Publish>
+  </div>
 
   <Footer></Footer>
-
-  <Publish></Publish>
   <Toaster></Toaster>
   <ReportObserver></ReportObserver>
 </div>
