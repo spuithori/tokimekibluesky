@@ -587,7 +587,7 @@
             </div>
           {/if}
 
-          {#if (AppBskyEmbedExternal.isView(data.post.embed))}
+          {#if (AppBskyEmbedExternal.isView(data.post?.embed))}
             <div class="timeline-external">
               <div class="timeline-external__image">
                 {#if (data.post.embed.external.thumb && $settings?.design.postsLayout !== 'minimum')}

@@ -510,7 +510,7 @@ function handleDraftUse(event) {
 function handleAltClose(event) {
     images = event.detail.images;
     isAltModalOpen = false;
-    console.log(images);
+    onFocus();
 }
 
 async function languageDetect(text = publishContent) {
@@ -1030,7 +1030,7 @@ function tempYu() {
 {/if}
 
 {#if (isLangSelectorOpen)}
-  <LangSelectorModal on:close={() => {isLangSelectorOpen = false}}></LangSelectorModal>
+  <LangSelectorModal on:close={() => {isLangSelectorOpen = false; onFocus();}}></LangSelectorModal>
 {/if}
 
 <style lang="postcss">
