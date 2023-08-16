@@ -322,5 +322,6 @@
   "auto_scroll_speed_auto": "自動",
   "auto_scroll_speed_slow": "おそい",
   "auto_scroll_speed_normal": "ふつう",
-  "auto_scroll_speed_fast": "はやい"
+  "auto_scroll_speed_fast": "はやい",
+  "thread_members": "人のメンバー"
 }

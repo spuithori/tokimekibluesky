@@ -494,7 +494,7 @@
             {/each}
           </p>
 
-          {#if (AppBskyEmbedImages.isView(data.reply.parent.embed) && !isMedia)}
+          {#if (AppBskyEmbedImages.isView(data.reply?.parent.embed) && !isMedia && data.reply?.parent.embed)}
             <div class="timeline-images-wrap">
               <Images images={data.reply.parent.embed.images}></Images>
             </div>

@@ -321,5 +321,6 @@
   "auto_scroll_speed_auto": "Auto",
   "auto_scroll_speed_slow": "Slow",
   "auto_scroll_speed_normal": "Normal",
-  "auto_scroll_speed_fast": "Fast"
+  "auto_scroll_speed_fast": "Fast",
+  "thread_members": " members"
 }

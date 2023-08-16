@@ -29,6 +29,7 @@ import spinner from '$lib/images/loading.svg';
 import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
 import {languageMap} from "$lib/langs/languageMap";
 import Menu from "$lib/components/ui/Menu.svelte";
+import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -870,8 +871,10 @@ function tempYu() {
             </div>
 
             <div class="timeline-external__content">
-              <div class="timeline__meta">
+              <div class="timeline__meta timeline__meta--member">
                 <p class="timeline__user">{$_('reply_to', {values: {name: $replyRef.parent.author.displayName || $replyRef.parent.author.handle }})}</p>
+
+                <ThreadMembersList uri={$replyRef.parent.uri}></ThreadMembersList>
               </div>
 
               <p class="timeline-external__description">

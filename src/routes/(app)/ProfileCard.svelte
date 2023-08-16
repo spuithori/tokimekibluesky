@@ -65,7 +65,7 @@
       box-shadow: 0 0 12px rgba(0, 0, 0, .08);
       padding: 20px;
       border-radius: 6px;
-      z-index: 10;
+      z-index: 14;
       width: 300px;
   }
 

@@ -8,7 +8,7 @@
     import toast from "svelte-french-toast";
     import {_} from "svelte-i18n";
     import {connect, disconnect} from "$lib/realtime";
-    import Timeline from "./Timeline.svelte";
+    import VirtualScroll from "svelte-virtual-scroll-list"
 
     export let column;
     export let index;
@@ -156,7 +156,7 @@
 </script>
 
 <div class="realtime-wrap">
-    <div class="timeline timeline--main">
+    <div class="timeline timeline--main timeline--virtual">
         <div class="realtime-status" class:realtime-status--connected={$isRealtimeConnected}></div>
 
         {#if (column.algorithm.algorithm === 'following' || column.algorithm.algorithm === undefined)}
@@ -177,6 +177,18 @@
             {#each $timelines[index] as data, index (data)}
                 <TimelineItem data={ data } index={index} column={column}></TimelineItem>
             {/each}
+
+            <!-- <div class="vs-wrap">
+                <VirtualScroll
+                    data={$timelines[index]}
+                    key="post"
+                    let:data
+                    let:index
+                >
+                    <TimelineItem data={data} index={index} column={column}></TimelineItem>
+
+                </VirtualScroll>
+            </div> -->
         {:else}
             <div class="media-list">
                 {#each $timelines[index] as data (data)}
@@ -185,14 +197,6 @@
                     {/if}
                 {/each}
             </div>
-        {/if}
-
-        {#if (column.algorithm.algorithm === 'following' || column.algorithm.algorithm === undefined)}
-            <p class="realtime-note">通信量にご注意ください。<br>フォロー数3000まで。3000人以上いる場合は直近のフォローが取得されます。<br>取得漏れが発生する可能性があります。<br>Please note the amount of traffic.<br>Up to 3000 followers; if there are more than 3000 followers, the most recent followings will be retrieved.<br>Failure to retrieve submissions may occur.</p>
-        {/if}
-
-        {#if (column.algorithm.algorithm === 'search')}
-            <p class="realtime-note">通信量にご注意ください。過去の投稿は取得されません。<br>Please note the amount of traffic. Past postings will not be retrieved.</p>
         {/if}
     </div>
 </div>
@@ -269,5 +273,19 @@
             font-size: 13px;
             color: var(--text-color-1);
         }
+    }
+
+    .realtime-wrap {
+        height: 100%;
+    }
+
+    .timeline--virtual {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .vs-wrap {
+        height: 100%;
     }
 </style>

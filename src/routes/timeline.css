@@ -203,6 +203,10 @@
     margin-bottom: 6px;
     margin-top: 6px;
     padding-right: 35px;
+
+    &--member {
+        gap: 0 10px;
+    }
 }
 
 .timeline__user {

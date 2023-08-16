@@ -71,7 +71,8 @@
               padding-left: 20px;
               width: calc(100vw - 360px);
               height: 100vh;
-              z-index: 1000;
+              z-index: auto;
+              position: absolute;
           }
       }
   }
