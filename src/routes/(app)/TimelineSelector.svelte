@@ -6,16 +6,68 @@
         timelines,
         settings,
         columns, singleColumn,
-    } from "$lib/stores";
-    import RealtimeTimeline from "./RealtimeTimeline.svelte";
-    import BookmarkTimeline from "./BookmarkTimeline.svelte";
-    import ListTimeline from "./ListTimeline.svelte";
-    import Timeline from "./Timeline.svelte";
+    } from '$lib/stores';
+    import RealtimeTimeline from './RealtimeTimeline.svelte';
+    import BookmarkTimeline from './BookmarkTimeline.svelte';
+    import ListTimeline from './ListTimeline.svelte';
+    import Timeline from './Timeline.svelte';
+    import TimerEvent from '$lib/components/utils/TimerEvent.svelte';
+    import { onDestroy, onMount } from 'svelte';
 
     export let column;
     export let index;
     export let unique;
     let isRefreshing = false;
+    let scrollId;
+    let scrollSpeed = 24;
+    let scrollSpeedAutoPos = 0;
+
+    $: scrolling(column.settings?.autoScroll);
+    $: scrollSpeedChange(column.settings?.autoScrollSpeed);
+
+    onDestroy(() => {
+        clearInterval(scrollId);
+    });
+
+    onMount(() => {
+        if (column.settings?.autoScroll) {
+            scrolling(column.settings.autoScroll);
+        }
+    });
+
+    function scrollSpeedChange(autoScrollSpeed) {
+        switch (autoScrollSpeed) {
+            case 'slow':
+                scrollSpeed = 24;
+                break;
+            case 'normal':
+                scrollSpeed = 16;
+                break;
+            case 'fast':
+                scrollSpeed = 8;
+                break;
+        }
+
+        scrolling(column.settings?.autoScroll);
+    }
+
+    function scrolling(isScroll) {
+        if (scrollId) {
+            clearInterval(scrollId);
+        }
+
+        if (!isScroll) {
+            return false;
+        }
+
+        if (isScroll) {
+            scrollId = setInterval(() => {
+                column.scrollElement.scrollBy(0, -1);
+            }, scrollSpeed);
+        } else {
+            clearInterval(scrollId);
+        }
+    }
 
     export async function refresh() {
         isRefreshing = true;
@@ -25,11 +77,12 @@
                 return !$timelines[index].some(item => feed.reason ? item.post.uri === feed.post.uri && item.reason?.indexedAt === feed.reason.indexedAt : item.post.uri === feed.post.uri);
             });
 
-            if (newFeeds.length === 20 || column.style === 'media') {
+            if (newFeeds.length === 20) {
                 $timelines[index] = res.data.feed;
                 $cursors[index] = res.data.cursor;
             } else {
-                const el = column.scrollElement ?? document;
+                const el = column.scrollElement ?? document.documentElement;
+                const elInitialPosition = el.scrollTop;
                 const topEl = el.querySelector('.timeline > .timeline__item:first-child');
 
                 await timelines.update(function (tls) {
@@ -41,10 +94,27 @@
                     })
                 });
 
-                if (column.scrollElement) {
-                    column.scrollElement.scrollTo(0, topEl.getBoundingClientRect().top - 200);
-                } else {
-                    window.scrollTo(0, topEl.getBoundingClientRect().top - 156);
+                if (elInitialPosition === 0) {
+                    if (column.style !== 'media') {
+                        if (column.scrollElement) {
+                            column.scrollElement.scrollTo(0, topEl.getBoundingClientRect().top - 200);
+                        } else {
+                            window.scrollTo(0, topEl.getBoundingClientRect().top - 156);
+                        }
+                    }
+                }
+
+                if (column.scrollElement && column.settings?.autoScrollSpeed === 'auto') {
+                    scrollSpeedAutoPos = column.scrollElement.scrollTop;
+                    scrollSpeedAutoPos = Math.abs(scrollSpeedAutoPos);
+
+                    if (scrollSpeedAutoPos > 0 && column.settings?.autoRefresh) {
+                        scrollSpeed = column.settings.autoRefresh * 1000 / scrollSpeedAutoPos;
+                        console.log(scrollSpeed);
+                        scrolling(column.settings?.autoScroll);
+                    } else {
+                        scrollSpeed = 24;
+                    }
                 }
             }
 
@@ -52,8 +122,9 @@
         } else if (column.algorithm.type === 'bookmark') {
             $timelines[index] = [];
             $cursors[index] = 0;
+            unique = Symbol();
         } else if (column.algorithm.type === 'realtime') {
-            return;
+            return false;
         } else {
             $timelines[index] = [];
             $cursors[index] = undefined;
@@ -77,7 +148,31 @@
             unique = Symbol();
         }
     }
+
+    function handleTimer() {
+      refresh();
+    }
+
+    function handleKeydown(event: { key: string; }) {
+      const activeElement = document.activeElement?.tagName;
+
+      if (event.key === 'r' && (activeElement === 'BODY' || activeElement === 'BUTTON') && !isRefreshing) {
+        refresh();
+      }
+    }
+
+    function handleMouseEnter() {
+        clearInterval(scrollId);
+    }
+
+    function handleMouseLeave() {
+        if (column.settings?.autoScroll) {
+            scrolling(column.settings.autoScroll);
+        }
+    }
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <div class="timeline-style-nav">
   <div class="style-nav" data-current="{column.style}">
@@ -121,22 +216,28 @@
   </button>
 {/if}
 
-{#if (column.algorithm.type === 'list')}
+<div class="timeline-selector-wrap" on:mouseenter={handleMouseEnter} on:mouseleave={handleMouseLeave}>
+  {#if (column.algorithm.type === 'list')}
     {#key unique}
       <ListTimeline column={column} index={index}></ListTimeline>
     {/key}
-{:else if (column.algorithm.type === 'bookmark')}
+  {:else if (column.algorithm.type === 'bookmark')}
     {#key unique}
       <BookmarkTimeline column={column} index={index}></BookmarkTimeline>
     {/key}
-{:else if (column.algorithm.type === 'realtime')}
-  <RealtimeTimeline
-      column={column}
-      index={index}></RealtimeTimeline>
-{:else}
-  {#key unique}
-    <Timeline column={column} index={index}></Timeline>
-  {/key}
+  {:else if (column.algorithm.type === 'realtime')}
+    <RealtimeTimeline
+        column={column}
+        index={index}></RealtimeTimeline>
+  {:else}
+    {#key unique}
+      <Timeline column={column} index={index}></Timeline>
+    {/key}
+  {/if}
+</div>
+
+{#if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0)}
+  <TimerEvent delay={Number(column.settings.autoRefresh) * 1000} on:timer={handleTimer}></TimerEvent>
 {/if}
 
 <style lang="postcss">

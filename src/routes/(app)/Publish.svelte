@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
 import { onMount } from 'svelte';
-import { agent, quotePost, replyRef, sharedText } from '$lib/stores';
+import {agent, quotePost, replyRef, settings, sharedText} from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -26,6 +26,10 @@ import { db } from '$lib/db';
 import DraftModal from "$lib/components/draft/DraftModal.svelte";
 import AltModal from "$lib/components/alt/AltModal.svelte";
 import spinner from '$lib/images/loading.svg';
+import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
+import {languageMap} from "$lib/langs/languageMap";
+import Menu from "$lib/components/ui/Menu.svelte";
+import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -42,7 +46,6 @@ let pond: any;
 let name = 'filepond';
 let isFocus = false;
 let publishArea: HTMLTextAreaElement;
-let publishButtonText = $_('publish_button_send');
 let timer;
 let links: string[] = [];
 let externalImageBlob: Blob;
@@ -77,6 +80,49 @@ let embedExternal: AppBskyEmbedExternal.Main | undefined;
 
 let lang =[];
 
+let langSettings = [
+    {
+        name: $_('lang_selector_auto'),
+        value: 'auto',
+    },
+    /* {
+        name: $_('lang_selector_display'),
+        value: 'display',
+    }, */
+    {
+        name: $_('lang_selector_manual'),
+        value: 'manual',
+    },
+];
+let langSetting = 'auto';
+let isLangSelectorOpen = false;
+
+if (!$settings.langSelector) {
+    $settings.langSelector = 'auto';
+}
+
+const selfLabelsChoices = [
+    {
+        name: $_('self_labels_spoiler'),
+        description: $_('self_labels_description_3'),
+        val: 'spoiler',
+    },
+    {
+        name: $_('self_labels_porn'),
+        description: $_('self_labels_description_2'),
+        val: 'porn',
+    },
+    {
+        name: $_('self_labels_warning'),
+        description: $_('self_labels_description_1'),
+        val: '!warn',
+    },
+];
+
+let selfLabels = [];
+let currentSelfLabel = undefined;
+let isSelfLabelingMenuOpen = false;
+
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: {
     isPublishEnabled = publishContentLength > 300;
@@ -91,6 +137,10 @@ $: {
         document.body.classList.add('scroll-lock');
     } else {
         document.body.classList.remove('scroll-lock');
+    }
+
+    if ($settings.design?.publishPosition === 'left') {
+        isContinueMode = true;
     }
 }
 
@@ -137,8 +187,14 @@ function onPublishContentChange() {
     }
 }
 
-const publishKeypress = (e: { keyCode: number; ctrlKey: any; }) => {
-    if (e.keyCode === 13 && e.ctrlKey) publish();
+const publishKeypress = (e: { keyCode: number; ctrlKey: any; metaKey: any; }) => {
+    if (e.keyCode === 13 && e.ctrlKey) {
+        publish();
+    }
+
+    if (e.keyCode === 13 && e.metaKey) {
+        publish();
+    }
 };
 
 async function detectRichText(text) {
@@ -194,7 +250,6 @@ function close() {
 
 async function onFileAdded(file: any) {
     isPublishEnabled = true;
-    publishButtonText = $_('publish_button_progress');
 }
 
 async function onFileSelected(file: any, output: any) {
@@ -210,7 +265,6 @@ async function onFileSelected(file: any, output: any) {
     images = images;
 
     isPublishEnabled = false;
-    publishButtonText = $_('publish_button_send');
 }
 
 async function onFileDeleted(error: any, file: any) {
@@ -456,7 +510,7 @@ function handleDraftUse(event) {
 function handleAltClose(event) {
     images = event.detail.images;
     isAltModalOpen = false;
-    console.log(images);
+    onFocus();
 }
 
 async function languageDetect(text = publishContent) {
@@ -480,9 +534,19 @@ async function languageDetect(text = publishContent) {
     }
 }
 
+function setSelfLabel(index) {
+    currentSelfLabel = index;
+    selfLabels = [
+        {
+            val: selfLabelsChoices[index].val,
+        }
+    ];
+    isSelfLabelingMenuOpen = false;
+    publishArea.focus();
+}
+
 onMount(async () => {
     if ($sharedText) {
-        await goto('/');
         publishContent = $sharedText;
         isFocus = true;
 
@@ -555,7 +619,11 @@ onMount(async () => {
         const rt = new RichText({text: publishContent});
         await rt.detectFacets($agent.agent);
 
-        await languageDetect(publishContent);
+        if (!$settings.langSelector || $settings.langSelector === 'auto') {
+            await languageDetect(publishContent);
+        } else {
+            lang = [ $settings.langSelector ];
+        }
 
         try {
             await $agent.agent.api.app.bsky.feed.post.create(
@@ -568,6 +636,10 @@ onMount(async () => {
                     reply: $replyRef || undefined,
                     via: 'TOKIMEKI',
                     langs: lang || [],
+                    labels: {
+                        $type: 'com.atproto.label.defs#selfLabels',
+                        values: selfLabels || [],
+                    },
                 },
             );
             toast.success($_('success_to_post'));
@@ -630,6 +702,7 @@ onMount(async () => {
         searchActors = [];
         embedImages.images = [];
         embedExternal = undefined;
+        selfLabels = [];
         // const data = await $agent.getTimeline();
         // timeline.set(data.feed);
 
@@ -654,8 +727,23 @@ function tempYu() {
 <svelte:window on:keydown={handleKeydown} on:popstate={handlePopstate} />
 <svelte:document on:paste={handlePaste} />
 
+{#if (isFocus)}
+  <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+      <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
+    </svg>
+  </button>
+{:else}
+  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" on:click={onFocus} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+      <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="var(--bg-color-1)"/>
+    </svg>
+  </button>
+{/if}
+
 <section class="publish-group"
          class:publish-group--expanded={isFocus}
+         class:publish-group--left={$settings.design?.publishPosition === 'left'}
          tabindex="-1"
          on:focusin={onFocus}
          on:focusout={onBlur}
@@ -663,19 +751,17 @@ function tempYu() {
          on:outclick={handleOutClick}
          on:click={handleClick}
 >
-  {#if (isFocus)}
-    <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={onClose}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-        <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
-      </svg>
-    </button>
-  {:else}
-    <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" on:click={onFocus}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
-        <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="var(--bg-color-1)"/>
-      </svg>
-    </button>
-  {/if}
+  <div class="publish-position-switcher">
+    {#if ($settings.design?.publishPosition !== 'left')}
+      <button class="publish-position-switcher__button" on:click={() => {$settings.design.publishPosition = 'left'}}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/></svg>
+      </button>
+    {:else}
+      <button class="publish-position-switcher__button" on:click={() => {$settings.design.publishPosition = 'bottom'}}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-bottom"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="15" y2="15"/></svg>
+      </button>
+    {/if}
+  </div>
 
   <div class="publish-wrap">
     {#if $agent.did() === 'did:plc:hiptcrt4k63szzz4ty3dhwcp'}
@@ -691,10 +777,6 @@ function tempYu() {
         <button class="publish-draft-button publish-view-draft" on:click={() => {isDraftModalOpen = true}}>{$_('drafts')}</button>
       {/if}
 
-      <p class="publish-length">
-        <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
-      </p>
-
       <div class="publish-form-continue-mode">
         <div class="publish-form-continue-mode-input" class:checked={isContinueMode}>
           <input id="continue_mode" type="checkbox" bind:checked={isContinueMode}>
@@ -705,7 +787,7 @@ function tempYu() {
       <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">
         <path id="send" d="M0,0,17,6.375,0,12.75ZM0,5.1V7.65L8.5,6.375Z" fill="var(--bg-color-1)"/>
       </svg>
-        {publishButtonText}</button>
+        {$_('publish_button_send')}</button>
 
         <button class="publish-upload-toggle" on:click={uploadContextOpen}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--bg-color-1)">
             <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
@@ -789,8 +871,10 @@ function tempYu() {
             </div>
 
             <div class="timeline-external__content">
-              <div class="timeline__meta">
+              <div class="timeline__meta timeline__meta--member">
                 <p class="timeline__user">{$_('reply_to', {values: {name: $replyRef.parent.author.displayName || $replyRef.parent.author.handle }})}</p>
+
+                <ThreadMembersList uri={$replyRef.parent.uri}></ThreadMembersList>
               </div>
 
               <p class="timeline-external__description">
@@ -825,6 +909,35 @@ function tempYu() {
       <label class="publish-form__label" for="publishTextarea"></label>
 
       <div class="publish-actor-list-input-group">
+        <div class="publish-bottom-buttons">
+          <p class="publish-length">
+            <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
+          </p>
+
+          <div class="publish-form-moderation"  class:publish-form-moderation--active={selfLabels.length}>
+            <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
+              <svg slot="ref" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+
+              <ul slot="content" class="timeline-menu-list">
+                {#each selfLabelsChoices as choice, index}
+                  <li class="timeline-menu-list__item">
+                    <button class="timeline-menu-list__button" on:click={() => setSelfLabel(index)}>{choice.name}</button>
+                  </li>
+                {/each}
+              </ul>
+            </Menu>
+          </div>
+
+          <div class="publish-form-lang-selector">
+            <button class="publish-form-lang-selector-button" on:click={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              {#if ($settings.langSelector !== 'auto')}
+                {$_(languageMap.get($settings.langSelector).name)}
+              {/if}
+            </button>
+          </div>
+        </div>
+
         <textarea
             id="publishTextarea"
             class="publish-form__input"
@@ -837,6 +950,14 @@ function tempYu() {
             placeholder="{$_('send_placeholder1')}&#13;{$_('send_placeholder2')}"
             autocomplete="nope"
         ></textarea>
+
+        {#if (selfLabels.length)}
+          <p class="publish-self-labeling-warning">
+            <svg  xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            <span>{selfLabelsChoices[currentSelfLabel].name}: {selfLabelsChoices[currentSelfLabel].description}</span>
+            <button class="publish-self-labeling-warning__close text-button" on:click={() => {selfLabels = []}}>取り消し</button>
+          </p>
+        {/if}
 
         {#if searchActors.length}
           <div class="search-actor-list">
@@ -898,15 +1019,19 @@ function tempYu() {
       </div>
     {/if}
   </div>
-
-  {#if (isAltModalOpen)}
-    <AltModal images={images} on:close={handleAltClose}></AltModal>
-  {/if}
-
-  {#if (isDraftModalOpen)}
-    <DraftModal on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
-  {/if}
 </section>
+
+{#if (isAltModalOpen)}
+  <AltModal images={images} on:close={handleAltClose}></AltModal>
+{/if}
+
+{#if (isDraftModalOpen)}
+  <DraftModal on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
+{/if}
+
+{#if (isLangSelectorOpen)}
+  <LangSelectorModal on:close={() => {isLangSelectorOpen = false; onFocus();}}></LangSelectorModal>
+{/if}
 
 <style lang="postcss">
     .publish-group {
@@ -923,10 +1048,6 @@ function tempYu() {
         }
 
         &--expanded {
-            .publish-form__input {
-                height: 160px;
-            }
-
             .publish-wrap {
                 display: block;
             }
@@ -936,6 +1057,58 @@ function tempYu() {
 
                 .publish-wrap {
                    display: flex;
+                }
+            }
+        }
+
+        &--left {
+            @media (min-width: 768px) {
+                top: 0;
+                right: auto;
+                z-index: 100;
+
+                .publish-form__input {
+                    height: 160px;
+                }
+
+                .publish-wrap {
+                    display: block;
+                    height: 100vh;
+                    width: 360px;
+                    border-top: none;
+                    border-right: 1px solid var(--border-color-1);
+                    padding: 120px 20px 20px;
+                }
+
+                .publish-position-switcher {
+                    left: auto;
+                    right: 16px;
+                    top: 80px;
+                }
+
+                .publish-draft-button {
+
+                }
+
+                .publish-upload {
+                    position: relative;
+                    bottom: auto;
+                    left: auto;
+                    margin-top: 20px;
+                }
+
+                .publish-upload-close {
+                    display: none;
+                }
+
+                .publish-form-continue-mode {
+                    display: none;
+                }
+
+                .publish-alt-text-button {
+                    position: static;
+                    width: 100%;
+                    margin-bottom: 10px;
                 }
             }
         }
@@ -970,10 +1143,16 @@ function tempYu() {
         background-color: var(--primary-color);
         align-items: center;
         justify-content: center;
-        z-index: 20;
+        z-index: 2001;
 
         @media (max-width: 767px) {
             display: flex;
+        }
+
+        &--left {
+            @media (min-width: 768px) {
+                display: none;
+            }
         }
     }
 
@@ -984,6 +1163,7 @@ function tempYu() {
         justify-content: flex-end;
         align-items: center;
         width: 100%;
+        flex-wrap: wrap;
     }
 
     .publish-upload {
@@ -1019,6 +1199,7 @@ function tempYu() {
 
         @media (max-width: 767px) {
             display: flex;
+            margin-right: 15px;
         }
     }
 
@@ -1071,11 +1252,11 @@ function tempYu() {
     .publish-length {
         margin-right: auto;
         color: var(--text-color-3);
+        display: flex;
+        align-items: center;
 
         @media (max-width: 767px) {
-           order: 2;
-            margin-right: 15px;
-            margin-left: auto;
+
         }
 
         &__current {
@@ -1131,6 +1312,11 @@ function tempYu() {
         position: relative;
         z-index: 11;
         text-align: left;
+        color: var(--text-color-1);
+
+        &:disabled {
+          color: var(--text-color-3);
+        }
 
         .loading-spinner {
             width: 16px;
@@ -1249,7 +1435,7 @@ function tempYu() {
         letter-spacing: .025em;
         gap: 5px;
         white-space: nowrap;
-        margin-right: 10px;
+        margin-right: auto;
 
         @media (max-width: 767px) {
 
@@ -1294,5 +1480,52 @@ function tempYu() {
         @media (max-width: 767px) {
             display: none;
         }
+    }
+
+    .publish-form-lang-selector {
+        position: relative;
+    }
+
+    .publish-form-lang-selector-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: var(--text-color-1);
+        padding: 0 5px;
+        font-size: 14px;
+        height: 30px;
+    }
+
+    .publish-form-moderation {
+        position: relative;
+    }
+
+    .publish-self-labeling-warning {
+        margin-bottom: 10px;
+        color: var(--text-color-3);
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        gap: 5px;
+        position: relative;
+        z-index: 12;
+
+        @media (max-width: 767px) {
+            display: grid;
+            grid-template-columns: 20px 1fr 70px;
+            font-size: 12px;
+        }
+    }
+
+    .publish-bottom-buttons {
+        display: flex;
+        justify-content: flex-end;
+        padding: 10px 15px;
+        bottom: 10px;
+        right: 10px;
+        z-index: 13;
+        background-color: var(--bg-color-2);
+        gap: 5px;
     }
 </style>

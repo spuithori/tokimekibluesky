@@ -1,12 +1,15 @@
 <script lang="ts">
   import { _ } from 'svelte-i18n';
-  import { onMount } from "svelte";
-  import { agent } from "$lib/stores";
+  import {createEventDispatcher, onMount} from "svelte";
+  import {agent, changedFollowData} from "$lib/stores";
+  const dispatch = createEventDispatcher();
 
   export let following;
   export let user;
   let rkey;
   let isDisabled = false;
+
+  $: handleFollowChange($changedFollowData);
 
   function generateRkey(following) {
       const followingPath = following.split('/');
@@ -15,43 +18,59 @@
   }
 
   if (following) {
-      rkey = generateRkey(following)
+      rkey = generateRkey(following);
   }
 
   let follow = function () {};
   let unfollow = function () {};
 
-  async function refreshFollowing() {
-      let profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: user.handle});
-      following = profile.data.viewer.following;
-      if (following) {
-          rkey = generateRkey(following)
+  async function handleFollowChange(data) {
+      if (!data) {
+          return false;
       }
 
-      isDisabled = false;
+      if (data.did === user.did) {
+          following = data.following;
+
+          dispatch('followchange', {
+              did: user.did,
+              following: following,
+          });
+      }
   }
 
   onMount(async () => {
       follow = async function () {
           isDisabled = true;
-          await $agent.agent.api.app.bsky.graph.follow.create(
+          const res = await $agent.agent.api.app.bsky.graph.follow.create(
               { repo: $agent.did() },
               {
                   subject: user.did,
                   createdAt: new Date().toISOString(),
               },
           );
-          refreshFollowing();
+          generateRkey(res.uri);
+          isDisabled = false;
+
+          changedFollowData.set({
+              did: user.did,
+              following: res.uri,
+          });
       }
 
       unfollow = async function () {
           isDisabled = true;
-          await $agent.agent.api.app.bsky.graph.follow.delete({
+          const res = await $agent.agent.api.app.bsky.graph.follow.delete({
               repo: $agent.did(),
               rkey: rkey,
               },
           );
-          refreshFollowing();
+          isDisabled = false;
+
+          changedFollowData.set({
+              did: user.did,
+              following: undefined,
+          });
       }
   })
 </script>

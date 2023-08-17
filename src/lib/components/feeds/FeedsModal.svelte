@@ -45,7 +45,7 @@
             console.log(popularFeeds)
         }
         
-        const tokimekiRes = await $agent.agent.api.app.bsky.feed.getActorFeeds({actor: $agent.agent.service.host === 'bsky.social' ? 'holybea.bsky.social' : 'holybea.nextsky.tokimeki.blue'});
+        const tokimekiRes = await $agent.agent.api.app.bsky.feed.getActorFeeds({actor: $agent.agent.service.host === 'bsky.social' ? 'holybea.social' : 'holybea.nextsky.tokimeki.blue'});
         tokimekiFeeds = tokimekiRes.data.feeds;
     })
 </script>
@@ -80,6 +80,8 @@
       <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
     </div>
   </div>
+
+  <button class="modal-background-close" aria-hidden="true" on:click={save}></button>
 </div>
 
 <style lang="postcss">
@@ -110,6 +112,8 @@
         background-color: var(--bg-color-1);
         width: 740px;
         max-width: 100%;
+        position: relative;
+        z-index: 2;
 
         @media (max-width: 767px) {
             width: 100%;

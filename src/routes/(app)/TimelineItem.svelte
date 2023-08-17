@@ -1,6 +1,15 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {agent, isDataSaving, quotePost, settings, timelines, isPreventEvent} from '$lib/stores';
+    import {
+      agent,
+      isDataSaving,
+      quotePost,
+      settings,
+      timelines,
+      isPreventEvent,
+      reportModal,
+      columns
+    } from '$lib/stores';
     import {format, formatDistanceToNow, isMatch, parse, parseISO} from 'date-fns';
     import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';
@@ -32,6 +41,7 @@
     import Menu from "$lib/components/ui/Menu.svelte";
     import {getTextArray, isUriLocal} from '$lib/richtext';
     import {goto} from "$app/navigation";
+    import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
 
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
@@ -40,6 +50,7 @@
 
     let selectionText = '';
 
+    export let column = undefined;
     export let index = 0;
 
     let textArray: RichTextSegment[] = [];
@@ -51,15 +62,6 @@
         },
     ]; */
     let dateFnsLocale: Locale;
-    let likes: Promise<Like[]>;
-    if (isSingle) {
-        likes = getLikes();
-    }
-
-    async function getLikes() {
-        const res = await $agent.agent.api.app.bsky.feed.getLikes({uri: data.post.uri});
-        return res.data.likes;
-    }
 
     let isShortCutNumberShown = false;
     let isTranslated = false;
@@ -76,12 +78,16 @@
         57
     ];
 
+    const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
+      return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
+    }
+
     let voteFunc;
     let repostFunc;
 
     if ($settings.general.language === 'ja' || window.navigator.language === 'ja-JP') {
         dateFnsLocale = ja;
-    } else if ($settings.general.language === 'pt' || window.navigator.language === 'pt-BR') {
+    } else if ($settings.general.language === 'pt-BR' || window.navigator.language === 'pt-BR') {
         dateFnsLocale = pt;
     } else if ($settings.general.language === 'ko' || window.navigator.language === 'ko-KR') {
         dateFnsLocale = ko;
@@ -91,7 +97,7 @@
         dateFnsLocale = en;
     }
 
-    if (AppBskyFeedPost.isRecord(data.post.record)) {
+    if (AppBskyFeedPost.isRecord(data.post?.record)) {
         const rt: RichText = new RichText({
             text: data.post.record.text,
             facets: data.post.record.facets,
@@ -103,19 +109,34 @@
     }
 
     let labels = $settings?.moderation.contentLabels || {
-        gore: 'show',
-        hate: 'show',
-        impersonation: 'show',
-        nsfw: 'show',
-        nudity: 'show',
-        spam: 'show',
-        suggestive: 'show',
+        gore: 'warn',
+        hate: 'warn',
+        impersonation: 'warn',
+        nsfw: 'warn',
+        nudity: 'warn',
+        spam: 'warn',
+        suggestive: 'warn',
     };
+    labels['!warn'] = 'warn';
+    labels.spoiler = 'warn';
 
     let isHide = false;
     let isWarn = false;
+    let isMute = false;
     let isWarnOpened = false;
     let warnLabels = [];
+
+    let hideReply = column && column.settings?.timeline.hideReply
+                  ? column.settings?.timeline.hideReply
+                  : $settings.timeline?.hideReply || 'all';
+
+    let hideRepost = column && column.settings?.timeline.hideRepost
+            ? column.settings?.timeline.hideRepost
+            : $settings.timeline?.hideRepost || 'all';
+
+    function probability(n) {
+      return Math.random() < n / 100;
+    }
 
     onMount(() => {
         if (labels) {
@@ -163,18 +184,63 @@
             })
         }
 
-        if ($settings.langFilter && $settings.langFilter.length && data.post.record.langs) {
-            const isLangMatched = $settings.langFilter.some(lang => data.post.record.langs.includes(lang));
+        if (data.post.author.did !== $agent.did()) {
+          switch (hideReply) {
+            case 'all':
+              break;
+            case 'following':
+              if (data.reply && (data.reply.parent.author.did !== $agent.did() && !data.reply?.parent.author.viewer.following)) {
+                isHide = true;
+              }
+              break;
+            case 'me':
+              if (data.reply && data.reply.parent.author.did !== $agent.did()) {
+                isHide = true;
+              }
+              break;
+            default:
+          }
+        }
+
+        if (isReasonRepost(data.reason)) {
+          switch (hideRepost) {
+            case 'all':
+              break;
+            case 'many':
+              if (probability(25)) {
+                isHide = true;
+              }
+              break;
+            case 'soso':
+              if (probability(50)) {
+                isHide = true;
+              }
+              break;
+            case 'less':
+              if (probability(75)) {
+                isHide = true;
+              }
+              break;
+            case 'none':
+              isHide = true;
+              break;
+            default:
+          }
+        }
+
+        const langFilter = column && column.settings?.langFilterEnabled ? column.settings.langFilter : $settings.langFilter;
+        if (langFilter && langFilter.length && data.post.record.langs) {
+            const isLangMatched = langFilter.some(lang => data.post.record.langs.includes(lang));
 
             if (!isLangMatched) {
                 isHide = true;
             }
         }
-    })
 
-    const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
-        return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
-    }
+        if (data.post.author.viewer?.muted) {
+            isHide = true;
+        }
+    })
 
     async function translation() {
         for (const item of textArray) {
@@ -301,14 +367,47 @@
         }
 
         const uri = '/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0];
+        const isColumn = column ? column.algorithm?.algorithm : undefined;
 
-        if (uri !== location.pathname) {
-            goto('/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]);
+        if ($settings.design.layout === 'decks' && column) {
+            if (data.post.uri !== isColumn) {
+                addThreadColumn();
+                setTimeout(() => {
+                    document.querySelector('.deck').scrollLeft = 9999;
+                }, 0);
+            }
+        } else {
+            if (uri !== location.pathname) {
+                goto('/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]);
+            }
         }
     }
 
     function handleSelectStart(event) {
         selectionText = document.getSelection().toString();
+    }
+
+    async function addThreadColumn() {
+        const uri = data.post.uri;
+        $columns = [...$columns, {
+            id: self.crypto.randomUUID(),
+            algorithm: {
+                type: 'thread',
+                algorithm: uri,
+                name: 'Thread',
+            },
+            style: 'default',
+        }]
+    }
+
+    function report() {
+      $reportModal = {
+        open: true,
+        data: {
+          uri: data.post.uri,
+          cid: data.post.cid,
+        }
+      }
     }
 </script>
 
@@ -337,15 +436,6 @@
       {/if}
     </div>
 
-    {#if (data.post.author.did === $agent.did())}
-      <button class="timeline__delete" on:click={() => {deletePost(data.post.uri)}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="30" viewBox="0 0 24 30">
-          <path id="trash" d="M70,3l3-3h6l3,3h6V6H64V3ZM65.5,9h21L85,30H67ZM73,12V27h1.5V12Zm4.5,0V27H79V12Z"
-                transform="translate(-64)" fill="#d81c2f"/>
-        </svg>
-      </button>
-    {/if}
-
     {#if (data.reply && !isSingle)}
       <div class="timeline__column timeline__column--reply">
         {#if (data.reply.parent.uri !== data.reply.root.uri)}
@@ -355,7 +445,7 @@
         <div class="timeline__image">
           {#if $settings?.design.postsLayout !== 'minimum'}
             <Avatar href="/profile/{ data.reply.parent.author.handle }" avatar={data.reply.parent.author.avatar}
-                  handle={data.reply.parent.author.handle}></Avatar>
+                    handle={data.reply.parent.author.handle}></Avatar>
           {/if}
         </div>
 
@@ -386,48 +476,29 @@
             </p>
           </div>
 
-          <div class="timeline__warn-wrap">
-            {#if (isWarn)}
-              <div class="timeline-warn">
-                <div class="timeline-warn-heading">
-                  <p class="timeline-warn-title">{$_('this_content_warn')}: </p>
-                  <ul class="timeline-warn-list">
-                    {#each warnLabels as label}
-                      <li>{$_(label)}</li>
-                    {/each}
-                  </ul>
-                </div>
-
-                <div class="timeline-warn-button">
-                  <button class="button button--sm" on:click={() => {isWarn = false}}>{$_('show_button')}</button>
-                </div>
-              </div>
-            {/if}
-
-            <p class="timeline__text" dir="auto">
-              {#each getTextArray(data.reply.parent.record) as item}
-                {#if (item.isLink() && item.link)}
-                  {#if (isUriLocal(item.link.uri))}
-                    <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
-                  {:else}
-                    <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
-                  {/if}
-                {:else if (item.isMention() && item.mention)}
-                  <ProfileCardWrapper handle="{item.text.slice(1)}">
-                    <a href="/profile/{item.text.slice(1)}">{item.text}</a>
-                  </ProfileCardWrapper>
+          <p class="timeline__text" dir="auto">
+            {#each getTextArray(data.reply.parent.record) as item}
+              {#if (item.isLink() && item.link)}
+                {#if (isUriLocal(item.link.uri))}
+                  <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
                 {:else}
-                  <span>{item.text}</span>
+                  <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
                 {/if}
-              {/each}
-            </p>
+              {:else if (item.isMention() && item.mention)}
+                <ProfileCardWrapper handle="{item.text.slice(1)}">
+                  <a href="/profile/{item.text.slice(1)}">{item.text}</a>
+                </ProfileCardWrapper>
+              {:else}
+                <span>{item.text}</span>
+              {/if}
+            {/each}
+          </p>
 
-            {#if (AppBskyEmbedImages.isView(data.reply.parent.embed) && !isMedia)}
-              <div class="timeline-images-wrap">
-                <Images images={data.reply.parent.embed.images}></Images>
-              </div>
-            {/if}
-          </div>
+          {#if (AppBskyEmbedImages.isView(data.reply?.parent.embed) && !isMedia && data.reply?.parent.embed)}
+            <div class="timeline-images-wrap">
+              <Images images={data.reply.parent.embed.images}></Images>
+            </div>
+          {/if}
         </div>
       </div>
     {/if}
@@ -436,7 +507,7 @@
       <div class="timeline__image">
         {#if $settings?.design.postsLayout !== 'minimum'}
           <Avatar href="/profile/{ data.post.author.handle }" avatar={data.post.author.avatar}
-                handle={data.post.author.handle}></Avatar>
+                  handle={data.post.author.handle}></Avatar>
         {/if}
       </div>
 
@@ -474,14 +545,14 @@
           {/if}
         </div>
 
-        <div class="timeline__warn-wrap">
+        <div class="timeline-warn-wrap" class:timeline-warn-wrap--warned={isWarn}>
           {#if (isWarn)}
             <div class="timeline-warn">
               <div class="timeline-warn-heading">
-                <p class="timeline-warn-title">{$_('this_content_warn')}: </p>
+                <p class="timeline-warn-title"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></p>
                 <ul class="timeline-warn-list">
                   {#each warnLabels as label}
-                    <li>{$_(label)}</li>
+                    <li>{$_('labeling_' + label)}</li>
                   {/each}
                 </ul>
               </div>
@@ -515,111 +586,38 @@
               <Images images={data.post.embed.images}></Images>
             </div>
           {/if}
-        </div>
 
-        {#if (AppBskyEmbedExternal.isView(data.post.embed))}
-          <div class="timeline-external">
-            <div class="timeline-external__image">
-              {#if (data.post.embed.external.thumb && $settings?.design.postsLayout !== 'minimum')}
-                <img src="{data.post.embed.external.thumb}" alt="">
-              {/if}
-            </div>
-
-            <div class="timeline-external__content">
-              <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{data.post.embed.external.title}</a>
-              </p>
-              <p class="timeline-external__description">{data.post.embed.external.description}</p>
-              <p class="timeline-external__url">{data.post.embed.external.uri}</p>
-            </div>
-          </div>
-        {/if}
-
-        {#if (AppBskyEmbedRecord.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record)) }
-          <div class="timeline-external timeline-external--record">
-            {#if $settings?.design.postsLayout !== 'minimum'}
-              <Avatar href="/profile/{ data.post.embed.record.author.handle }"
-                    avatar={data.post.embed.record.author.avatar}
-                    handle={data.post.embed.record.author.handle}></Avatar>
-            {/if}
-
-            <div class="timeline-external__content">
-              <div class="timeline__meta">
-                <p class="timeline__user"
-                   title="{data.post.embed.record.author.handle}">{ data.post.embed.record.author.displayName || data.post.embed.record.author.handle }</p>
-                <p class="timeline__date">
-                  <time datetime="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
-                        title="{format(parseISO(data.post.embed.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.indexedAt), {locale: dateFnsLocale})}</time>
-                </p>
+          {#if (AppBskyEmbedExternal.isView(data.post?.embed))}
+            <div class="timeline-external">
+              <div class="timeline-external__image">
+                {#if (data.post.embed.external.thumb && $settings?.design.postsLayout !== 'minimum')}
+                  <img src="{data.post.embed.external.thumb}" alt="">
+                {/if}
               </div>
 
-              {#if (AppBskyFeedPost.isRecord(data.post.embed.record.value))}
-                <p class="timeline-external__description">
-                  {data.post.embed.record.value.text}
+              <div class="timeline-external__content">
+                <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{data.post.embed.external.title}</a>
                 </p>
-              {/if}
-
-              {#if (AppBskyEmbedImages.isView(data.post.embed.record?.embeds[0]))}
-                <div class="timeline-images-wrap timeline-images-wrap--record">
-                  <Images images={data.post.embed.record.embeds[0].images}></Images>
-                </div>
-              {/if}
-            </div>
-
-            <span class="timeline-external__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
-              <path id="パス_3" data-name="パス 3"
-                    d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z"
-                    transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
-            </svg>
-            </span>
-
-            <a class="timeline-external-link" href="/profile/{data.post.embed.record.author.handle}/post/{data.post.embed.record.uri.split('/').slice(-1)[0]}" aria-label="{$_('show_thread')}"></a>
-          </div>
-        {/if}
-
-        {#if (AppBskyEmbedRecordWithMedia.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record.record)) }
-          {#if (AppBskyEmbedImages.isView(data.post.embed.media))}
-            <div class="timeline-images-wrap">
-              <Images images={data.post.embed.media.images}></Images>
+                <p class="timeline-external__description">{data.post.embed.external.description}</p>
+                <p class="timeline-external__url">{data.post.embed.external.uri}</p>
+              </div>
             </div>
           {/if}
 
-          <div class="timeline-external timeline-external--record">
-            {#if $settings?.design.postsLayout !== 'minimum'}
-              <Avatar href="/profile/{ data.post.embed.record.record.author.handle }"
-                      avatar={data.post.embed.record.record.author.avatar}
-                      handle={data.post.embed.record.record.author.handle}></Avatar>
+          {#if (AppBskyEmbedRecord.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record)) }
+            <EmbedRecord record={data.post.embed.record} locale={dateFnsLocale}></EmbedRecord>
+          {/if}
+
+          {#if (AppBskyEmbedRecordWithMedia.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record.record)) }
+            {#if (AppBskyEmbedImages.isView(data.post.embed.media))}
+              <div class="timeline-images-wrap">
+                <Images images={data.post.embed.media.images}></Images>
+              </div>
             {/if}
 
-            <div class="timeline-external__content">
-              <div class="timeline__meta">
-                <p class="timeline__user"
-                   title="{data.post.embed.record.record.author.handle}">{ data.post.embed.record.record.author.displayName || data.post.embed.record.record.author.handle }</p>
-                <p class="timeline__date">
-                  <time
-                      datetime="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
-                      title="{format(parseISO(data.post.embed.record.record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.embed.record.record.indexedAt), {locale: dateFnsLocale})}</time>
-                </p>
-              </div>
-
-              {#if (AppBskyFeedPost.isRecord(data.post.embed.record.record.value))}
-                <p class="timeline-external__description">
-                  {data.post.embed.record.record.value.text}
-                </p>
-              {/if}
-            </div>
-
-            <span class="timeline-external__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
-              <path id="パス_3" data-name="パス 3"
-                    d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z"
-                    transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
-            </svg>
-            </span>
-
-            <a class="timeline-external-link" href="/profile/{data.post.embed.record.record.author.handle}/post/{data.post.embed.record.record.uri.split('/').slice(-1)[0]}" aria-label="{$_('show_thread')}"></a>
-          </div>
-        {/if}
+            <EmbedRecord record={data.post.embed.record.record} locale={dateFnsLocale}></EmbedRecord>
+          {/if}
+        </div>
 
         <div class="timeline-reaction" class:timeline-reaction--media={isMedia}>
           <Reply
@@ -649,13 +647,7 @@
           <Bookmark post={data.post} bookmarkId={data?.bookmarkId}></Bookmark>
         </div>
 
-        {#if (isSingle)}
-          {#await likes}
-            <slot name="likes" likes={[]}></slot>
-          {:then likes}
-            <slot name="likes" {likes}></slot>
-          {/await}
-        {/if}
+        <slot></slot>
       </div>
     </div>
 
@@ -715,6 +707,22 @@
                     transform="translate(0 -0.009)" fill="var(--text-color-3)"/>
             </svg>
             {$_('copy_handle')}
+          </button>
+        </li>
+
+        {#if ($settings.design?.layout === 'decks')}
+          <li class="timeline-menu-list__item timeline-menu-list__item--report">
+            <a href="/profile/{data.post.author.handle}/post/{data.post.uri.split('/').slice(-1)[0]}" class="timeline-menu-list__button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-plus"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg>
+              {$_('show_thread')}
+            </a>
+          </li>
+        {/if}
+
+        <li class="timeline-menu-list__item timeline-menu-list__item--report">
+          <button class="timeline-menu-list__button" on:click={report}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
+            {$_('report')}
           </button>
         </li>
       </ul>

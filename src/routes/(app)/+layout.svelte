@@ -2,7 +2,13 @@
   import { _, locale  } from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import {agent, agents, settings, preferences, columns, singleColumn, isMobileDataConnection} from '$lib/stores';
+  import {agent, agents, settings,
+    preferences,
+    columns,
+    singleColumn,
+    isMobileDataConnection,
+    isAfterReload
+  } from '$lib/stores';
   import { Agent } from '$lib/agent';
   import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
@@ -18,6 +24,8 @@
   import { page } from '$app/stores';
   import { liveQuery } from 'dexie';
   import {accountsDb} from '$lib/db';
+  import ReportObserver from "$lib/components/report/ReportObserver.svelte";
+  import HeaderCollapseButton from "$lib/components/header/HeaderCollapseButton.svelte";
 
   let loaded = false;
 
@@ -209,6 +217,9 @@
 
       const prefRes = await $agent.agent.api.app.bsky.actor.getPreferences();
       preferences.set(prefRes.data.preferences);
+
+      sessionStorage.clear();
+      isAfterReload.set(false);
   });
 
   function handleScroll(event) {
@@ -226,23 +237,33 @@
 
 {#if (loaded)}
   <div
-      class:nonoto={$settings?.design.nonoto || false}
-      class:darkmode={isDarkMode}
-      class:scrolled={scrolly > 100}
-      class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
-      dir="{$_('dir', {default: 'ltr'})}"
-      class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}
+    class:nonoto={$settings?.design.nonoto || false}
+    class:darkmode={isDarkMode}
+    class:twilight={$settings.design?.darkmode === 'twilight'}
+    class:scrolled={scrolly > 100}
+    class:sidebar={$settings.design?.publishPosition === 'left'}
+    class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
+    dir="{$_('dir', {default: 'ltr'})}"
+    class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}class:compact={$settings.design?.postsLayout === 'compact'}
+    class:minimum={$settings.design?.postsLayout === 'minimum'}
   >
     <Header />
 
-    <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
-      <slot />
-    </main>
+    {#if ($settings.design?.layout === 'decks' && $page.url.pathname === '/') && $settings.design?.publishPosition !== 'left'}
+      <HeaderCollapseButton></HeaderCollapseButton>
+    {/if}
+
+    <div class="wrap" class:layout-sidebar={$settings.design?.publishPosition === 'left'}>
+      <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
+        <slot />
+      </main>
+
+      <Publish></Publish>
+    </div>
 
     <Footer></Footer>
-
-    <Publish></Publish>
     <Toaster></Toaster>
+    <ReportObserver></ReportObserver>
   </div>
 {:else}
   <div>

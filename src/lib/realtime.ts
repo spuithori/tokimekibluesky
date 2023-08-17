@@ -1,14 +1,18 @@
 import {addExtension, decode, decodeMultiple} from "cbor-x";
 import {CID} from "multiformats";
-import toast from "svelte-french-toast";
 import {CarReader} from "@ipld/car";
 import { get } from 'svelte/store';
-import {realtime, agent, notificationCount} from '$lib/stores';
+import {realtime, agent, notificationCount, isRealtimeConnected} from '$lib/stores';
 
 let timeId;
 let socket;
 
 export async function connect() {
+    if (socket) {
+        return false;
+    }
+
+    socket = undefined;
     socket = new WebSocket('wss://bsky.social/xrpc/com.atproto.sync.subscribeRepos');
 
     /*
@@ -33,11 +37,13 @@ export async function connect() {
     socket.addEventListener('close', (event) => {
         //toast.error(get(_)('realtime_connect_closed'));
         // dispatch('disconnect');
+        isRealtimeConnected.set(false);
     });
 
     socket.addEventListener('open', (event) => {
         //.success(get(_)('realtime_connect_status') + ': ' + stateMessage[socket.readyState]);
         // dispatch('connect');
+        isRealtimeConnected.set(true);
     });
 
     socket.addEventListener('message', async (event) => {
@@ -70,6 +76,7 @@ export async function connect() {
 
 export async function disconnect() {
     socket.close();
+    socket = undefined;
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     realtime.set({
         isConnected: false,
@@ -118,7 +125,7 @@ async function handleVisibilityChange(event) {
         return false;
     }
 
-    if (event.target.visibilityState === 'hidden') {
+    /* if (event.target.visibilityState === 'hidden') {
         if (timeId) {
             clearTimeout(timeId);
         }
@@ -129,7 +136,7 @@ async function handleVisibilityChange(event) {
                 return {...r, isConnected: false}
             })
         }, 180000)
-    }
+    } */
 
     if (event.target.visibilityState === 'visible') {
         clearTimeout(timeId);

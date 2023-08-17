@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { LayoutData } from './$types';
 import {onMount} from 'svelte';
-import { agent } from '$lib/stores';
+import {agent, isAfterReload} from '$lib/stores';
 import TimelineItem from "../../TimelineItem.svelte";
 import {_} from 'svelte-i18n';
 import type { Snapshot } from './$types';
@@ -18,11 +18,15 @@ let scrollY = 0;
 export const snapshot: Snapshot = {
     capture: () => [feeds, cursor, window.scrollY],
     restore: (value) => {
+      if(!$isAfterReload) {
         [feeds, cursor, scrollY] = value;
 
         setTimeout(() => {
-            window.scroll(0, scrollY)
+          window.scroll(0, scrollY)
         }, 0)
+      }
+
+      isAfterReload.set(false);
     }
 };
 

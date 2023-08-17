@@ -1,8 +1,46 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
-    let hideRepost = $settings.timeline.hideRepost || false;
-    let hideReply = $settings.timeline.hideReply || false;
+    let hideRepost = $settings.timeline.hideRepost || 'all';
+    let hideReply = $settings.timeline.hideReply || 'all';
+
+    const replySettings = [
+      {
+        name: $_('reply_settings_all'),
+        value: 'all',
+      },
+      {
+        name: $_('reply_settings_following'),
+        value: 'following',
+      },
+      {
+        name: $_('reply_settings_me'),
+        value: 'me',
+      }
+    ];
+
+    const repostSettings = [
+      {
+        name: $_('repost_settings_all'),
+        value: 'all',
+      },
+      {
+        name: $_('repost_settings_many'),
+        value: 'many',
+      },
+      {
+        name: $_('repost_settings_soso'),
+        value: 'soso',
+      },
+      {
+        name: $_('repost_settings_less'),
+        value: 'less',
+      },
+      {
+        name: $_('repost_settings_none'),
+        value: 'none',
+      }
+    ];
 
     $: {
         $settings.timeline.hideRepost = hideRepost;
@@ -28,24 +66,40 @@
   <div class="settings-wrap">
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('hide_repost')}
+        {$_('hide_repost_frequency')}
       </dt>
 
       <dd class="settings-group__content">
-        <div class="input-toggle">
-          <input class="input-toggle__input" type="checkbox" id="hideRepost" bind:checked={hideRepost}><label class="input-toggle__label" for="hideRepost"></label>
+        <div class="form-select">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
+            <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l10.2,10.2,10.2-10.2" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
+          </svg>
+
+          <select class="form-select__select" bind:value={hideRepost}>
+            {#each repostSettings as option}
+              <option value="{option.value}">{option.name}</option>
+            {/each}
+          </select>
         </div>
       </dd>
     </dl>
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('hide_reply')}
+        {$_('hide_reply_frequency')}
       </dt>
 
       <dd class="settings-group__content">
-        <div class="input-toggle">
-          <input class="input-toggle__input" type="checkbox" id="hideReply" bind:checked={hideReply}><label class="input-toggle__label" for="hideReply"></label>
+        <div class="form-select">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
+            <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l10.2,10.2,10.2-10.2" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
+          </svg>
+
+          <select class="form-select__select" bind:value={hideReply}>
+            {#each replySettings as option}
+              <option value="{option.value}">{option.name}</option>
+            {/each}
+          </select>
         </div>
       </dd>
     </dl>

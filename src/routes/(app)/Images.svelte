@@ -2,6 +2,7 @@
     // @ts-ignore
     import GLightbox from 'glightbox';
     import { settings, isDataSaving } from '$lib/stores';
+    import {goto} from "$app/navigation";
     export let images: any[];
 
     let galleryImages = [];
@@ -21,12 +22,26 @@
 
     function open(index: any) {
         gl.openAt(index);
+        goto('#open', {noScroll: true});
     }
+
+    gl.on('close', () => {
+        if (window.location.hash === '#open') {
+          history.back();
+        }
+    })
 
     function unfold() {
         isFold = false;
     }
+
+    function handlePopstate() {
+      gl.close();
+    }
 </script>
+
+<svelte:window on:popstate={handlePopstate} />
+
 {#if isFold}
   <button class="image-unfold-button" on:click={unfold}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17.143" viewBox="0 0 20 17.143">

@@ -163,8 +163,35 @@
     }
 }
 
+.twilight {
+    --base-bg-color: #505050;
+    --bg-color-1: #343434;
+    --bg-color-2: #292929;
+    --bg-color-3: #262626;
+
+    --border-color-1: #666;
+
+    --text-color-1: #fff;
+    --text-color-2: #fafafa;
+    --text-color-3: #888;
+
+    --box-shadow-color-1: rgba(255, 255, 255, .16);
+    --box-shadow-color-2: rgba(255, 255, 255, .12);
+
+    &.theme-paperwhite {
+        --link-color: #fff;
+        --primary-color: #fff;
+        --text-color-primary-colored: #fff;
+    }
+}
+
 .lang-ko {
     --font-body: 'Noto Sans KR', 'Noto Color Emoji', sans-serif;
+}
+
+.lang-en,
+.lang-pt-BR {
+
 }
 
 .nonoto {

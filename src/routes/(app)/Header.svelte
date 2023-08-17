@@ -4,12 +4,11 @@
     import { fade, fly } from 'svelte/transition';
     import { onMount } from 'svelte';
     import { agent, notificationCount, settings } from '$lib/stores';
-    import { afterNavigate } from '$app/navigation';
+    import {afterNavigate, goto} from '$app/navigation';
     import Settings from './Settings.svelte';
     import { clickOutside } from '$lib/clickOutSide';
-    import { page } from '$app/stores';
 
-    let headerHide = $settings?.design.headerHide || false;
+    const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
     let isNotificationOpen = false;
     let isSettingsOpen = false;
 
@@ -18,8 +17,16 @@
         isSettingsOpen = false;
 
         if (isNotificationOpen) {
+            if (isMobile) {
+              goto('#notfication', {noScroll: true});
+            }
+
             await $agent.agent.api.app.bsky.notification.updateSeen( {seenAt: new Date().toISOString()});
             notificationCount.set(0);
+        } else {
+            if (isMobile && window.location.hash === '#notfication') {
+              history.back();
+            }
         }
     }
 
@@ -28,20 +35,26 @@
         isNotificationOpen = false;
     }
 
+    function handlePopstate(e) {
+      if (isNotificationOpen) {
+        isNotificationOpen = false;
+      }
+    }
+
     onMount(async () => {
         notificationCount.set(await $agent.getNotificationCount());
     })
 
-    afterNavigate(async () => {
-        isNotificationOpen = false;
+    afterNavigate(async ({ type }) => {
+        if (type === 'link') {
+          isNotificationOpen = false;
+        }
     })
-
-    $: {
-        $settings.design.headerHide = headerHide;
-    }
 </script>
 
-<header class="header">
+<svelte:window on:popstate={handlePopstate} />
+
+<header class="header" class:header--side={$settings.design?.publishPosition === 'left'}>
   <div class="header__wrap">
     <div class="header__me only-pc">
       <MyProfileBadge></MyProfileBadge>
@@ -125,14 +138,6 @@
   </div>
 </header>
 
-{#if ($settings?.design.layout === 'decks' && $page.url.pathname === '/')}
-  <button on:click={() => {headerHide = !headerHide}} class="header-collapse-button" aria-hidden="true">
-    <svg xmlns="http://www.w3.org/2000/svg" width="29.086" height="14.949" viewBox="0 0 29.086 14.949">
-      <path id="パス_62" data-name="パス 62" d="M4034,587.19l13.129,12.535,13.129-12.535" transform="translate(-4032.586 -585.776)" fill="none" stroke="var(--bg-color-1)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-    </svg>
-  </button>
-{/if}
-
 <style lang="postcss">
   .header {
       position: sticky;
@@ -153,6 +158,27 @@
           width: calc(100% - 40px);
           border-radius: 10px;
           box-shadow: 0 3px 6px rgba(0, 0, 0, .09);
+      }
+
+      &--side {
+          @media (min-width: 768px) {
+              position: fixed;
+              left: 0;
+              right: auto;
+              width: 360px;
+              margin: 0;
+              z-index: 102;
+
+              .header__wrap {
+                  gap: 10px;
+              }
+
+              .notification {
+                  left: 0;
+                  width: 360px;
+                  height: calc(100vh - 80px);
+              }
+          }
       }
   }
 
@@ -289,16 +315,6 @@
       display: grid;
       place-content: center;
       position: relative;
-
-      svg {
-          transition: transform .15s ease-in-out;
-      }
-
-      &:hover {
-          svg {
-              transform: translateY(2px);
-          }
-      }
   }
 
   .settings-box {
@@ -336,30 +352,6 @@
           right: 0;
           width: auto;
           height: auto;
-      }
-  }
-
-  .header-collapse-button {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      top: 50px;
-      left: 0;
-      right: 0;
-      margin: auto;
-      background-color: var(--border-color-1);
-      border-radius: 50%;
-      display: grid;
-      place-content: center;
-      z-index: 10;
-      padding-top: 15px;
-
-      @media (max-width: 767px) {
-          display: none;
-      }
-
-      svg {
-          transform: scale(1, -1);
       }
   }
 </style>

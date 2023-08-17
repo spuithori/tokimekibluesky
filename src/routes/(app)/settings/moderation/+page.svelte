@@ -14,13 +14,13 @@
     }
 
     let labels: contentLabels = $settings.moderation.contentLabels || {
-        gore: 'show',
-        hate: 'show',
-        impersonation: 'show',
-        nsfw: 'show',
-        nudity: 'show',
-        spam: 'show',
-        suggestive: 'show',
+        gore: 'warn',
+        hate: 'warn',
+        impersonation: 'warn',
+        nsfw: 'warn',
+        nudity: 'warn',
+        spam: 'warn',
+        suggestive: 'warn',
     };
 
     const contentLabelsSelections = [
@@ -209,6 +209,8 @@
                 top: 0;
                 bottom: 0;
                 margin: auto;
+                z-index: 1;
+              pointer-events: none;
             }
         }
 
@@ -226,6 +228,7 @@
 
         select {
             border: 1px solid var(--border-color-1);
+            background-color: var(--base-bg-color);
             height: 40px;
             border-radius: 4px;
             width: 100%;

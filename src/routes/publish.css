@@ -41,6 +41,14 @@
     }
 }
 
+.sidebar {
+    .filepond--item {
+        @media (min-width: 768px) {
+            width: calc(50% - 0.5em);
+        }
+    }
+}
+
 .publish-form {
     max-width: 740px;
     width: 100%;
@@ -52,12 +60,13 @@
     background-color: var(--bg-color-2);
     color: var(--text-color-1);
     border-radius: 5px;
-    height: 80px;
+    height: 120px;
     font-size: 16px;
     vertical-align: middle;
     width: 100%;
     padding: 15px 20px;
     resize: none;
+    outline: none;
 }
 
 .publish-form__submit {
@@ -124,4 +133,49 @@
 .publish-actor-list-input-group {
     display: flex;
     flex-direction: column-reverse;
+    position: relative;
+}
+
+.publish-form-moderation-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--text-color-1);
+    padding: 0 5px;
+    font-size: 14px;
+    height: 30px;
+    border-radius: 4px;
+}
+.publish-form-moderation {
+    &--active {
+        .publish-form-moderation-button {
+            color: var(--danger-color);
+        }
+    }
+}
+
+.publish-position-switcher {
+    display: flex;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+
+    @media (max-width: 767px) {
+        display: none;
+    }
+
+    &__button {
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        transition: .2s all ease-in-out;
+
+        &:hover {
+            background-color: var(--border-color-1);
+        }
+    }
 }

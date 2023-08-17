@@ -1,6 +1,7 @@
 import {derived, writable} from 'svelte/store';
 import type { Agent } from '$lib/agent';
 import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications } from '@atproto/api';
+import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 
 type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification & {
     feed?: AppBskyFeedPost
@@ -27,7 +28,8 @@ const defaultColumns = [{
         type: 'default',
         name: 'HOME'
     },
-    style: 'default'
+    style: 'default',
+    settings: defaultDeckSettings,
 }];
 const storageColumns = localStorage.getItem('columns') || JSON.stringify(defaultColumns);
 export const columns = writable<columns[]>(JSON.parse(storageColumns));
@@ -84,20 +86,21 @@ const defaultSettings = {
         darkmode: false,
         absoluteTime: false,
         layout: 'default',
+        publishPosition: 'bottom'
     },
     timeline: {
-        hideRepost: false,
-        hideReply: false,
+        hideRepost: 'all',
+        hideReply: 'all',
     },
     moderation: {
         contentLabels: {
-            gore: 'show',
-            hate: 'show',
-            impersonation: 'show',
-            nsfw: 'show',
-            nudity: 'show',
-            spam: 'show',
-            suggestive: 'show',
+            gore: 'warn',
+            hate: 'warn',
+            impersonation: 'warn',
+            nsfw: 'warn',
+            nudity: 'warn',
+            spam: 'warn',
+            suggestive: 'warn',
         },
     },
     langFilter: [],
@@ -142,3 +145,22 @@ export const realtime = writable<Realtime>({
         body: undefined,
     }
 });
+
+export const isRealtimeConnected = writable(false);
+
+type ReportModal = {
+    open: boolean,
+    data: {
+        uri: string,
+        cid: string
+    } | undefined,
+}
+
+export const reportModal = writable<ReportModal>({
+    open: false,
+    data: {uri: '', cid: ''} || undefined,
+})
+
+export const isAfterReload = writable(true);
+
+export const changedFollowData = writable(undefined);

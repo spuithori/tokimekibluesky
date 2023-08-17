@@ -5,6 +5,13 @@ input[type=checkbox]{
     visibility: hidden;
 }
 
+.input-toggle__input {
+    display: block;
+    height: 0;
+    width: 0;
+    visibility: hidden;
+}
+
 .input-toggle__label {
     position: relative;
     text-indent: -9999px;
@@ -125,4 +132,48 @@ input[type=checkbox]{
     color: var(--text-color-3);
     font-size: 14px;
     white-space: pre-line;
+}
+
+.lang-filter-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+
+    &__item {
+        padding: 10px;
+        border-bottom: 1px solid var(--border-color-1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+
+        &:nth-child(2n - 1) {
+            border-right: 1px solid var(--border-color-1);
+        }
+    }
+
+    &__name {
+        label {
+            cursor: pointer;
+
+            &::before {
+                content: '';
+                display: block;
+                position: absolute;
+                left: 0;
+                top: 0;
+                right: 0;
+                bottom: 0;
+            }
+        }
+    }
+}
+
+.modal-background-close {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
 }

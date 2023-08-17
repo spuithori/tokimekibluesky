@@ -16,23 +16,6 @@
 
       $cursors[index] = res.data.cursor;
 
-      /* const res = await $agent.getTimeline({limit: 20, cursor: $timelines.get(key).cursor, algorithm: data.algorithm});
-      $timelines.set(key, {...$timelines.get(key), cursor: res.data.cursor});
-
-      console.log($timelines.get(key).cursor) */
-
-      /* if ($cursor) {
-          timeline.update(function (tl) {
-              return [...tl, ...res.data.feed];
-          });
-          console.log($timeline);
-
-          loaded();
-      } else {
-          complete();
-      } */
-
-
       if ($cursors[index]) {
           $timelines[index] = [...$timelines[index], ...res.data.feed]
           console.log($timelines);
@@ -44,10 +27,10 @@
   }
 </script>
 
-<div class="timeline timeline--main" class:hide-repost={$settings?.timeline.hideRepost} class:hide-reply={$settings?.timeline.hideReply}>
+<div class="timeline timeline--main">
   {#if (column.style === 'default')}
     {#each $timelines[index] as data, index (data)}
-      <TimelineItem data={ data } index={index}></TimelineItem>
+      <TimelineItem data={ data } index={index} column={column}></TimelineItem>
     {/each}
   {:else}
     <div class="media-list">

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import type { LayoutData } from '../$types';
-    import {agent} from "$lib/stores";
+    import {agent, isAfterReload} from "$lib/stores";
     import UserItem from "../UserItem.svelte";
     import InfiniteLoading from 'svelte-infinite-loading';
     import type { Snapshot } from './$types';
@@ -12,11 +12,15 @@
     export const snapshot: Snapshot = {
         capture: () => [followers, cursor, window.scrollY],
         restore: (value) => {
+          if(!$isAfterReload) {
             [followers, cursor, scrollY] = value;
 
             setTimeout(() => {
-                window.scroll(0, scrollY)
+              window.scroll(0, scrollY)
             }, 0)
+          }
+
+          isAfterReload.set(false);
         }
     };
     export let data: LayoutData;
