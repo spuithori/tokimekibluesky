@@ -31,7 +31,7 @@ const defaultColumns = [{
     style: 'default',
     settings: defaultDeckSettings,
 }];
-const storageColumns = localStorage.getItem('columns') || JSON.stringify(defaultColumns);
+const storageColumns = localStorage.getItem('columns') || JSON.stringify([]);
 export const columns = writable<columns[]>(JSON.parse(storageColumns));
 
 export const timelines = writable([]);
