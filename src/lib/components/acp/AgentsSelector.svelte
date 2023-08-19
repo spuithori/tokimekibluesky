@@ -48,6 +48,7 @@
         border-radius: 4px;
         background-color: var(--bg-color-1);
         border-bottom: 1px solid var(--border-color-1);
+        color: var(--text-color-1);
         z-index: 20;
 
         &--open {

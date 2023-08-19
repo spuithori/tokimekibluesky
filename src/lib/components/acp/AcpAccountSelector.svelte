@@ -74,7 +74,6 @@
       border-radius: 4px;
       background-color: var(--bg-color-1);
       border-bottom: 1px solid var(--border-color-1);
-      z-index: 1;
 
       &--open {
           overflow: visible;
@@ -123,6 +122,12 @@
           align-items: center;
           justify-content: center;
           gap: 5px;
+          color: var(--text-color-1);
       }
+  }
+
+  .acp-selector-choices {
+      position: relative;
+      z-index: 2;
   }
 </style>
