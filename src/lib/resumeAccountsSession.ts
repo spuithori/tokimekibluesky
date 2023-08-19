@@ -14,7 +14,8 @@ async function resume(account) {
                 id: account.id,
                 session: account.session,
                 did: sess.did,
-                service: account.service
+                service: account.service,
+                following: account.following || undefined,
             })
         }
     })

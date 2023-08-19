@@ -70,6 +70,10 @@ export interface Account {
     did: string,
     avatar?: string,
     name?: string,
+    following?: {
+        indexedAt: string,
+        data: string[],
+    }
 }
 
 export class AccountSubClassDexie extends Dexie {
@@ -81,7 +85,7 @@ export class AccountSubClassDexie extends Dexie {
 
         this.version(1).stores({
             profiles: '++id, name, createdAt, *accounts, primary, *columns',
-            accounts: '++id, service, session, &did, avatar, name',
+            accounts: '++id, service, session, &did, avatar, name, following',
         });
     }
 }

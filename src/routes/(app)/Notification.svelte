@@ -104,7 +104,7 @@
             notifications = notifications;
         }
 
-        console.log(notifications)
+        //console.log(notifications)
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {

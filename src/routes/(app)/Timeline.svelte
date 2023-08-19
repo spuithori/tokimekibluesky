@@ -18,8 +18,8 @@
       $cursors[index] = res.data.cursor;
 
       if ($cursors[index]) {
-          $timelines[index] = [...$timelines[index], ...res.data.feed]
-          console.log($timelines);
+          $timelines[index] = [...$timelines[index], ...res.data.feed];
+          //console.log($timelines);
 
           loaded();
       } else {

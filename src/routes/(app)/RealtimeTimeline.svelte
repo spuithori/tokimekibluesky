@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, columns} from '$lib/stores';
+    import {agent, agents, columns} from '$lib/stores';
     import { settings, timelines, cursors, realtime, isRealtimeConnected } from "$lib/stores";
     import TimelineItem from "./TimelineItem.svelte";
     import {createEventDispatcher, onDestroy, onMount} from 'svelte';
@@ -9,9 +9,12 @@
     import {_} from "svelte-i18n";
     import {connect, disconnect} from "$lib/realtime";
     import VirtualScroll from "svelte-virtual-scroll-list"
+    import {accountsDb} from "$lib/db";
+    import {modifyAgents} from "$lib/modifyAgents";
 
     export let column;
     export let index;
+    export let _agent = $agent;
 
     if(!$timelines[index]) {
         $timelines[index] = [];
@@ -20,6 +23,7 @@
     let follows = [];
     let isFollowsListRefreshing = false;
     let isFollowsListFinished = false;
+    let accountId;
 
     const stateMessage = [
         $_('realtime_connecting'),
@@ -31,7 +35,7 @@
     $: getRealtime($realtime.data);
 
     async function getRecord(uri, repost = undefined) {
-        const res = await $agent.agent.api.app.bsky.feed.getPostThread({depth: 0, uri: uri});
+        const res = await _agent.agent.api.app.bsky.feed.getPostThread({depth: 0, uri: uri});
         let thread = res.data.thread;
 
         if (thread?.parent && thread.post.record.reply) {
@@ -42,7 +46,7 @@
         }
 
         if (repost) {
-            const rres = await $agent.agent.api.app.bsky.actor.getProfile({actor: repost.repo})
+            const rres = await _agent.agent.api.app.bsky.actor.getProfile({actor: repost.repo})
             thread.reason = {
                 $type: 'app.bsky.feed.defs#reasonRepost',
                 indexedAt: repost.indexedAt,
@@ -106,10 +110,10 @@
         follows = [];
 
         try {
-            follows = [...follows, $agent.did()];
+            follows = [...follows, _agent.did()];
 
             while(cursor !== undefined && count < 30) {
-                const res = await $agent.agent.api.app.bsky.graph.getFollows({actor: $agent.did(), limit: 100, cursor: cursor});
+                const res = await _agent.agent.api.app.bsky.graph.getFollows({actor: _agent.did(), limit: 100, cursor: cursor});
 
                 res.data.follows.forEach(follow => {
                     follows = [...follows, follow.did];
@@ -119,7 +123,18 @@
                 cursor = res.data.cursor;
             }
 
-            localStorage.setItem('follows', JSON.stringify(follows));
+            //localStorage.setItem('follows', JSON.stringify(follows));
+
+            try {
+                const id = await accountsDb.accounts.update(accountId, {
+                    following: {
+                        data: follows,
+                        indexedAt: Date.now().toString()
+                    }
+                });
+            } catch (e) {
+                console.error(e);
+            }
 
             toast.success($_('realtime_success_get_follows') + ': ' + follows.length);
             isFollowsListRefreshing = false;
@@ -137,12 +152,18 @@
 
     onMount(async () => {
         if (column.algorithm.algorithm === 'following' || column.algorithm.algorithm === undefined) {
-            const res = await $agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
+            const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
             $timelines[index] = res.data.feed;
         }
 
-        if (localStorage.getItem('follows')) {
-            follows = JSON.parse(localStorage.getItem('follows'))
+        const account = await accountsDb.accounts
+            .where('did')
+            .equals(_agent.did() as string)
+            .first();
+        accountId = account.id;
+
+        if (account.following) {
+            follows = account.following.data;
         } else {
             await getFollows();
         }
@@ -175,7 +196,7 @@
 
         {#if (column.style === 'default')}
             {#each $timelines[index] as data, index (data)}
-                <TimelineItem data={ data } index={index} column={column}></TimelineItem>
+                <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
             {/each}
 
             <!-- <div class="vs-wrap">
