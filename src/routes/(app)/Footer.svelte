@@ -1,12 +1,16 @@
 <script lang="ts">
-
-import MyProfileBadge from "./MyProfileBadge.svelte";
+    import MyProfileBadge from "./MyProfileBadge.svelte";
+import {agent} from "$lib/stores";
 </script>
 
 <footer class="footer">
   <div class="footer__wrap">
     <div class="footer__item footer__me">
-      <MyProfileBadge></MyProfileBadge>
+      {#if ($agent)}
+        {#key $agent}
+          <MyProfileBadge></MyProfileBadge>
+        {/key}
+      {/if}
     </div>
 
     <div class="footer__item">

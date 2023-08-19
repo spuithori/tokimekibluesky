@@ -403,10 +403,8 @@ function quotePostObserve(quotePost) {
 function replyRefObserve(replyRef) {
     if (replyRef) {
         onFocus();
-        isAccountSelectDisabled = true;
         _agent = $agents.get(getAccountIdByDid($agents, replyRef.did));
     } else {
-        isAccountSelectDisabled = false;
         _agent = $agent;
     }
 }
