@@ -93,14 +93,12 @@
 
     if (!accounts && !profile) {
         console.log('Account is empty in this profile.');
-        // await goto('/login');
         loaded = true;
         return false;
     }
 
     if (!profile.accounts.length) {
         console.log('There is no account in this profile.');
-        // await goto('/login');
         profileStatus.set(1);
         loaded = true;
         return false;
@@ -124,8 +122,6 @@
     loaded = true;
   }
 
-  //let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-  // let currentAccount = Number(localStorage.getItem('currentAccount') || '0' );
   let direction = 'up';
   let scrolly;
   let isDarkMode = false;
@@ -136,34 +132,9 @@
       })
   }
 
-  /* if (accounts.length <= currentAccount && currentAccount > 0) {
-      currentAccount = currentAccount - 1;
-      localStorage.setItem('currentAccount', String(currentAccount))
-  }
-
-  const session = accounts[currentAccount]?.session;
-  if (!session) {
-      goto('/login');
-  } */
-
   if ($settings?.general.language) {
       locale.set($settings.general.language);
   }
-
-  /* try {
-      let ag = new AtpAgent({
-          service: accounts[currentAccount].service,
-          persistSession: (evt: AtpSessionEvent, sess?: AtpSessionData) => {
-              accounts[currentAccount].session = sess;
-              localStorage.setItem('accounts', JSON.stringify(accounts))
-          }
-      });
-
-      ag.resumeSession(accounts[currentAccount].session);
-      agent.set(new Agent(ag));
-  } catch (e) {
-      goto('/login');
-  } */
 
   $: {
       localStorage.setItem('settings', JSON.stringify($settings));
