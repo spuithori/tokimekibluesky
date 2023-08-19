@@ -88,6 +88,7 @@
             flex-direction: column;
             background-color: var(--bg-color-1);
             border-top: 1px solid var(--border-color-1);
+            color: var(--text-color-1);
 
             &:hover {
                 background-color: var(--bg-color-2);
