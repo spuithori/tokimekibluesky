@@ -6,6 +6,7 @@
   import toast from "svelte-french-toast";
   import Menu from "$lib/components/ui/Menu.svelte";
 
+  export let _agent = $agent;
   export let post;
   export let bookmarkId = undefined;
   let isMenuOpen = false;
@@ -13,7 +14,7 @@
   $: bookmarks = liveQuery(async () => {
       const bookmarks = await db.bookmarks
           .where('owner')
-          .equals($agent.did())
+          .equals(_agent.did())
           .toArray();
 
       return bookmarks;
@@ -34,7 +35,7 @@
       try {
           const id = await db.feeds.add({
               bookmark: bookmarkId,
-              owner: $agent.did(),
+              owner: _agent.did(),
               cid: post.cid,
               indexedAt: Date.now(),
               createdAt: post.record.createdAt,

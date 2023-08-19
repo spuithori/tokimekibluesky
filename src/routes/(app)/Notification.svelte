@@ -11,6 +11,7 @@
     import Avatar from "./Avatar.svelte";
     import UserItem from "./profile/[handle]/UserItem.svelte";
 
+    export let _agent = $agent;
     export let isPage = false;
 
     let notifications: AppBskyNotificationListNotifications.Notification[] = [];
@@ -40,7 +41,7 @@
             return false;
         }
 
-        const res = await $agent.agent.api.app.bsky.notification.listNotifications({
+        const res = await _agent.agent.api.app.bsky.notification.listNotifications({
             limit: 20,
             cursor: '',
         });
@@ -83,7 +84,7 @@
         reasonSubjects = reasonSubjects.filter(v => v);
 
         if (reasonSubjects.length) {
-            const postsRes = await $agent.agent.api.app.bsky.feed.getPosts({uris: reasonSubjects});
+            const postsRes = await _agent.agent.api.app.bsky.feed.getPosts({uris: reasonSubjects});
 
             reasonSubjects = [];
 
@@ -107,7 +108,7 @@
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        const res = await $agent.agent.api.app.bsky.notification.listNotifications({
+        const res = await _agent.agent.api.app.bsky.notification.listNotifications({
             limit: 20,
             cursor: cursor,
         });
@@ -186,14 +187,14 @@
               <div>
                 {#if $settings?.design.postsLayout !== 'minimum'}
                   <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}
-                          handle={item.author.handle}></Avatar>
+                          handle={item.author.handle} {_agent}></Avatar>
                 {/if}
               </div>
               
               <div class="notification-column__content">
                 <h2 class="notifications-item__title">
                 <span class="notifications-item__name">
-                  <ProfileCardWrapper handle="{item.author.handle}">
+                  <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
                     <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
                   </ProfileCardWrapper>
                 </span> {$_(getReasonText(item.reason))}
@@ -220,6 +221,7 @@
                         post={item.feedThis}
                         reply={item.feedThis.record.reply}
                         count={item.feedThis.replyCount}
+                        {_agent}
                     ></Reply>
 
                     <Repost
@@ -227,6 +229,7 @@
                         uri={item.feedThis.uri}
                         repostViewer={item.feedThis.viewer?.repost}
                         count={item.feedThis.repostCount}
+                        {_agent}
                         on:repost
                     ></Repost>
 
@@ -235,6 +238,7 @@
                         uri={item.feedThis.uri}
                         likeViewer={item.feedThis.viewer?.like}
                         count={item.feedThis.likeCount}
+                        {_agent}
                         on:like
                     ></Like>
                   </div>
@@ -247,7 +251,7 @@
             <div class="notifications-item__contents">
               <h2 class="notifications-item__title">
               <span class="notifications-item__name">
-                <ProfileCardWrapper handle="{item.author.handle}">
+                <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
                   <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
               </ProfileCardWrapper>
               </span> {$_('followed_you')}
@@ -259,7 +263,7 @@
             </div>
 
             <div class="notifications-item__buttons">
-              <UserItem user={item.author} layout={'notification'}></UserItem>
+              <UserItem user={item.author} layout={'notification'} {_agent}></UserItem>
             </div>
           </article>
         {/if}

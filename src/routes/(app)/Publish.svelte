@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
 import { onMount } from 'svelte';
-import {agent, quotePost, replyRef, settings, sharedText} from '$lib/stores';
+import {agent, agents, quotePost, replyRef, settings, sharedText} from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -30,6 +30,8 @@ import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte"
 import {languageMap} from "$lib/langs/languageMap";
 import Menu from "$lib/components/ui/Menu.svelte";
 import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
+import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
+import {getAccountIdByDid} from "$lib/util";
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -37,10 +39,12 @@ registerPlugin(FilePondPluginFileValidateSize);
 registerPlugin(FilePondPluginImageTransform);
 registerPlugin(FilePondPluginFileValidateType);
 
+let _agent = $agent;
 let publish = function () {};
 let publishContent = '';
 let isTextareaEnabled = false;
 let isPublishEnabled = false;
+let isAccountSelectDisabled = false;
 let files: any[] = [];
 let pond: any;
 let name = 'filepond';
@@ -175,7 +179,7 @@ function onPublishContentChange() {
 
         const mention = getActorTypeAhead();
         if (mention) {
-            const res = await $agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: mention.slice(1), limit: 4});
+            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: mention.slice(1), limit: 4});
             searchActors = res.data.actors.length ? res.data.actors : mentionsHistory;
         } else {
             searchActors = [];
@@ -199,7 +203,7 @@ const publishKeypress = (e: { keyCode: number; ctrlKey: any; metaKey: any; }) =>
 
 async function detectRichText(text) {
     const rt = new RichText({text: text});
-    await rt.detectFacets($agent.agent);
+    await rt.detectFacets(_agent.agent);
 
     return rt;
 }
@@ -297,20 +301,24 @@ function handleKeydown(event: { key: string; }) {
 }
 
 async function getDidByHandle(did: string) {
-    const data = await $agent.agent.api.com.atproto.repo.describeRepo(
+    const data = await _agent.agent.api.com.atproto.repo.describeRepo(
         { repo: did }
     );
     return data.data.did;
 }
 
 async function getReplyRefByUri() {
-    const res = await $agent.getFeed($replyRef);
+    if (!$replyRef) {
+        return false;
+    }
+
+    const res = await _agent.getFeed($replyRef.data);
     let root = res.parent;
     while (root.parent) {
         root = root.parent;
     }
 
-    $replyRef = {
+    $replyRef.data = {
         parent: res.post,
         root: root.post,
     }
@@ -341,7 +349,7 @@ async function addLinkCard(uri: string) {
         if (imageBlob && typeof imageBlob !== 'string') {
             externalImageBlob = imageBlob;
 
-            const res = await $agent.agent.api.com.atproto.repo.uploadBlob(imageBlob, {
+            const res = await _agent.agent.api.com.atproto.repo.uploadBlob(imageBlob, {
                 encoding: 'image/jpeg',
             });
             embedExternal.external.thumb = res.data.blob;
@@ -371,8 +379,10 @@ $: {
         embedImages.images = [];
     }
 
-    if (typeof $replyRef === 'string') {
-        getReplyRefByUri();
+    if ($replyRef) {
+        if (typeof $replyRef.data === 'string') {
+            getReplyRefByUri();
+        }
     }
 }
 
@@ -393,6 +403,11 @@ function quotePostObserve(quotePost) {
 function replyRefObserve(replyRef) {
     if (replyRef) {
         onFocus();
+        isAccountSelectDisabled = true;
+        _agent = $agents.get(getAccountIdByDid($agents, replyRef.did));
+    } else {
+        isAccountSelectDisabled = false;
+        _agent = $agent;
     }
 }
 
@@ -445,7 +460,7 @@ async function saveDraft() {
             quotePost: $quotePost || undefined,
             replyRef: $replyRef || undefined,
             images: images,
-            owner: $agent.did(),
+            owner: _agent.did(),
         });
 
         if (!isContinueMode) {
@@ -568,7 +583,7 @@ onMount(async () => {
 
         if (images.length) {
             const filePromises = images.map(image => {
-                return $agent.agent.api.com.atproto.repo.uploadBlob(image.image, {
+                return _agent.agent.api.com.atproto.repo.uploadBlob(image.image, {
                     encoding: 'image/jpeg',
                 });
             });
@@ -617,7 +632,7 @@ onMount(async () => {
         }
 
         const rt = new RichText({text: publishContent});
-        await rt.detectFacets($agent.agent);
+        await rt.detectFacets(_agent.agent);
 
         if (!$settings.langSelector || $settings.langSelector === 'auto') {
             await languageDetect(publishContent);
@@ -626,14 +641,14 @@ onMount(async () => {
         }
 
         try {
-            await $agent.agent.api.app.bsky.feed.post.create(
-                { repo: $agent.did() },
+            await _agent.agent.api.app.bsky.feed.post.create(
+                { repo: _agent.did() },
                 {
                     embed: embed,
                     facets: rt.facets,
                     text: rt.text,
                     createdAt: new Date().toISOString(),
-                    reply: $replyRef || undefined,
+                    reply: $replyRef ? $replyRef.data : undefined,
                     via: 'TOKIMEKI',
                     langs: lang || [],
                     labels: {
@@ -658,7 +673,7 @@ onMount(async () => {
                         return facet.features[0].did as string
                     }
                 }).filter(results => results !== undefined);
-                const promises = dids.map(did => $agent.agent.com.atproto.repo.describeRepo({repo: did}));
+                const promises = dids.map(did => _agent.agent.com.atproto.repo.describeRepo({repo: did}));
                 let actors = [];
 
                 await Promise.all(promises)
@@ -703,7 +718,7 @@ onMount(async () => {
         embedImages.images = [];
         embedExternal = undefined;
         selfLabels = [];
-        // const data = await $agent.getTimeline();
+        // const data = await _agent.getTimeline();
         // timeline.set(data.feed);
 
         if (isContinueMode) {
@@ -718,10 +733,10 @@ function handleClick() {
 
 }
 
-function tempYu() {
-    publishContent = 'ﾋﾄﾘﾀﾞｹﾅﾝﾃｴﾗﾍﾞﾅｲﾖｰ';
-    publishArea.focus();
+function handleAgentSelect(event) {
+    _agent = event.detail.agent;
 }
+
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:popstate={handlePopstate} />
@@ -764,11 +779,13 @@ function tempYu() {
   </div>
 
   <div class="publish-wrap">
-    {#if $agent.did() === 'did:plc:hiptcrt4k63szzz4ty3dhwcp'}
-      <button on:click={tempYu} class="temp-yu" tabindex="-1" aria-hidden="true">
-        <img src="/yuu.svg" alt="">
-      </button>
-    {/if}
+    <div class="publish-form-agents-selector">
+      <AgentsSelector
+          {_agent}
+          isDisabled={isAccountSelectDisabled}
+          on:select={handleAgentSelect}
+      ></AgentsSelector>
+    </div>
 
     <div class="publish-buttons">
       {#if (publishContent)}
@@ -865,20 +882,20 @@ function tempYu() {
 
           <div class="timeline-external timeline-external--record">
             <div class="timeline-external__image timeline-external__image--round">
-              {#if ($replyRef.parent.author.avatar)}
-                <img src="{$replyRef.parent.author.avatar}" alt="">
+              {#if ($replyRef.data.parent.author.avatar)}
+                <img src="{$replyRef.data.parent.author.avatar}" alt="">
               {/if}
             </div>
 
             <div class="timeline-external__content">
               <div class="timeline__meta timeline__meta--member">
-                <p class="timeline__user">{$_('reply_to', {values: {name: $replyRef.parent.author.displayName || $replyRef.parent.author.handle }})}</p>
+                <p class="timeline__user">{$_('reply_to', {values: {name: $replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle }})}</p>
 
-                <ThreadMembersList uri={$replyRef.parent.uri}></ThreadMembersList>
+                <ThreadMembersList uri={$replyRef.data.parent.uri}></ThreadMembersList>
               </div>
 
               <p class="timeline-external__description">
-                {$replyRef.parent.record.text}
+                {$replyRef.data.parent.record.text}
               </p>
             </div>
 
@@ -1026,7 +1043,7 @@ function tempYu() {
 {/if}
 
 {#if (isDraftModalOpen)}
-  <DraftModal on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
+  <DraftModal {_agent} on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
 {/if}
 
 {#if (isLangSelectorOpen)}
@@ -1527,5 +1544,11 @@ function tempYu() {
         z-index: 13;
         background-color: var(--bg-color-2);
         gap: 5px;
+    }
+
+    .publish-form-agents-selector {
+        max-width: 740px;
+        width: 100%;
+        margin: 0 auto 10px;
     }
 </style>

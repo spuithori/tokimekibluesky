@@ -4,8 +4,10 @@
     let profile = {};
 
     onMount(async () => {
-        profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: $agent.did()});
-        profile = profile.data
+        if ($agent ? $agent.agent : undefined) {
+            profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: $agent.did()});
+            profile = profile.data
+        }
     })
 </script>
 

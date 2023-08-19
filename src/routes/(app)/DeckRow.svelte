@@ -3,9 +3,13 @@
     import TimelineSelector from "./TimelineSelector.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
+    import {agent, agents} from "$lib/stores";
+    import {getAccountIdByDid} from "$lib/util";
 
     export let column;
     export let index;
+
+    let _agent = $agents.get(getAccountIdByDid($agents, column.did)) || $agent;
     let isSettingsOpen = false;
     let unique = Symbol();
 
@@ -27,7 +31,7 @@
 </script>
 
 <div class="deck-row {column.settings?.width || 'medium'}">
-    <div role="button" aria-label="Back to top." class="deck-row__title" on:click={() => {handleHeaderClick(column.scrollElement)}}>{column.algorithm.name}</div>
+    <div role="button" aria-label="Back to top." class="deck-row__title" on:click={() => {handleHeaderClick(column.scrollElement)}}>{column.algorithm.name} <span class="deck-row__title-handle">{column.handle}</span></div>
 
     <button class="deck-row-settings-button" on:click={handleSettingsClick}>
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -40,13 +44,14 @@
     {#key unique}
         <div class="deck-row__content" bind:this={column.scrollElement}>
             {#if (column.algorithm.type === 'notification')}
-                <NotificationTimeline column={column} index={index}></NotificationTimeline>
+                <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
             {:else if (column.algorithm.type === 'thread')}
-                <ThreadTimeline column={column} index={index}></ThreadTimeline>
+                <ThreadTimeline column={column} index={index} {_agent}></ThreadTimeline>
             {:else}
                 <TimelineSelector
                         column={column}
                         index={index}
+                        {_agent}
                 ></TimelineSelector>
             {/if}
         </div>
@@ -92,8 +97,9 @@
         &__title {
             text-align: center;
             font-weight: 900;
-            font-size: 18px;
+            font-size: 16px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 40px;
@@ -104,10 +110,15 @@
             border-radius: 10px 10px 0 0;
             letter-spacing: .025em;
             cursor: pointer;
+            line-height: 1.2;
 
             @media (max-width: 767px) {
                 font-size: 15px;
             }
+        }
+
+        &__title-handle {
+            font-size: 13px;
         }
 
         &.small {

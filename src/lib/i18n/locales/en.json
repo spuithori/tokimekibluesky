@@ -322,5 +322,16 @@
   "auto_scroll_speed_slow": "Slow",
   "auto_scroll_speed_normal": "Normal",
   "auto_scroll_speed_fast": "Fast",
-  "thread_members": " members"
+  "thread_members": " members",
+  "settings_profiles": "Profiles",
+  "delete_profile": "Delete profile",
+  "switch_main_account": "Switch to main",
+  "profiles_description": "All pages other than the TOP page (profile page, search, etc.) are accessed via the main account. Profile pages on a server different from the main account cannot be accessed. This will be improved in the future.\nCurrently, only the main account is valid in single column mode. If you wish to switch between multiple accounts, please separate the profiles.\nDon't enable push notifications. ！！！！！",
+  "profile_change_name": "Rename",
+  "profile_switch": "Switch",
+  "profile_current": "Current Profile",
+  "new_login": "Login new account",
+  "profile_main_account": "Main",
+  "create_new_profile": "Create new profile",
+  "delete_account": "Delete account"
 }

@@ -135,3 +135,16 @@
         display: none;
     }
 }
+
+.acp-card__heading {
+    .timeline-menu-toggle {
+        position: static;
+    }
+}
+
+.acp-account {
+    .timeline-menu-toggle {
+        top: 10px;
+        right: 10px;
+    }
+}

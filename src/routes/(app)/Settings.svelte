@@ -82,11 +82,18 @@
     </li>
 
     <li class="timeline-menu-list__item">
+      <a class="timeline-menu-list__button" href="/settings/profiles" on:click={close}>
+        <span class="">{$_('settings_profiles')}</span>
+      </a>
+    </li>
+
+    <li class="timeline-menu-list__item">
       <a class="timeline-menu-list__button" href="/settings/timeline" on:click={close}>
         <span class="">{$_('timeline_settings')}</span>
       </a>
     </li>
 
+    <!--
     <li class="timeline-menu-list__item">
       <button class="timeline-menu-list__button" type="submit" name="switch_account" on:click={accountSwitcherToggle}>
         <span class="">{$_('switch_account')}</span>
@@ -97,7 +104,7 @@
       <button class="timeline-menu-list__button" type="submit" name="add_account" on:click={addAccount}>
         <span class="">{$_('add_account')}</span>
       </button>
-    </li>
+    </li> -->
 
     <li class="timeline-menu-list__item">
       <a class="timeline-menu-list__button" href="/settings/about" on:click={close}>
@@ -105,11 +112,12 @@
       </a>
     </li>
 
+    <!--
     <li class="timeline-menu-list__item">
       <button class="timeline-menu-list__button" type="submit" name="logout" on:click={logout}>
         <span class="text-danger">{$_('logout_button')}</span>
       </button>
-    </li>
+    </li> -->
   </ul>
 </div>
 

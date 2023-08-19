@@ -1,65 +1,43 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import {agent, columns, userLists, timelines, cursors, listModal, bookmarkModal, feedsModal} from '$lib/stores';
+    import {
+        agents,
+        columns,
+    } from '$lib/stores';
     import { createEventDispatcher, onMount } from 'svelte';
     import toast from "svelte-french-toast";
     const dispatch = createEventDispatcher();
     import { liveQuery } from 'dexie';
-    import { db } from '$lib/db';
+    import {accountsDb, db} from '$lib/db';
     import ColumnList from "$lib/components/column/ColumnList.svelte";
     import spinner from '$lib/images/loading.svg';
     import FeedsObserver from "$lib/components/feeds/FeedsObserver.svelte";
     import BookmarkObserver from "$lib/components/bookmark/BookmarkObserver.svelte";
     import ListObserver from "$lib/components/list/ListObserver.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import ColumnModalAdder from "$lib/components/column/ColumnModalAdder.svelte";
+    import ColumnModalChoices from "$lib/components/column/ColumnModalChoices.svelte";
+    import ColumnModalAccountSelector from "$lib/components/column/ColumnModalAccountSelector.svelte";
+    import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
+
+    export let _columns = $columns;
+    export let profileId = Number(localStorage.getItem('currentProfile'));
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
     let isLoading = true;
+    let currentAccount;
+    let profile;
 
-    let _columns = $columns;
-    let allColumns = [
-        {
-            id: 1,
-            algorithm: {
-                type: 'default',
-                name: 'HOME',
-            },
-            style: 'default',
-            settings: defaultDeckSettings,
-        },
-    ];
-    if ($agent.agent.service.host === 'bsky.social') {
-        allColumns = [...allColumns, {
-            id: 2,
-            algorithm: {
-                type: 'realtime',
-                name: 'REALTIME',
-                algorithm: 'following'
-            },
-            style: 'default',
-            settings: defaultDeckSettings,
-        },]
-    }
-    allColumns = [...allColumns, {
-        id: 3,
-        algorithm: {
-            type: 'notification',
-            name: $_('notifications'),
-        },
-        style: 'default',
-        settings: defaultDeckSettings,
-    }]
-    let savedFeeds = [];
-
-
-
-    function save() {
+    async function save() {
         try {
-            $columns = _columns;
-            $timelines = [];
-            $cursors = [];
+            _columns.map(column => delete column.scrollElement);
+
+            const id = await accountsDb.profiles.update(profileId, {
+                columns: _columns,
+            });
 
             dispatch('close', {
+                columns: _columns,
                 clear: false,
             });
         } catch (e) {
@@ -85,84 +63,6 @@
         }
     }
 
-    $: updateBookmark($bookmarks);
-    $: updateList($userLists);
-
-    function updateBookmark(bookmarks) {
-        if (!bookmarks) {
-            return false;
-        }
-
-        allColumns = allColumns.filter(column => column.algorithm.type !== 'bookmark');
-
-        bookmarks.forEach(bookmark => {
-            if (bookmark.owner === $agent.did()) {
-                allColumns = [...allColumns, {
-                    id: self.crypto.randomUUID(),
-                    algorithm: {
-                        type: 'bookmark',
-                        algorithm: String(bookmark.id),
-                        name: bookmark.name,
-                        list: String(bookmark.id),
-                    },
-                    style: 'default',
-                    settings: defaultDeckSettings,
-                }]
-            }
-        });
-
-        margeAllColumns();
-    }
-
-    function updateList(lists) {
-        if (!lists) {
-            return false;
-        }
-
-        allColumns = allColumns.filter(column => column.algorithm.type !== 'list');
-
-        lists.forEach(list => {
-            if (list.owner === $agent.did()) {
-                allColumns = [...allColumns, {
-                    id: self.crypto.randomUUID(),
-                    algorithm: {
-                        type: 'list',
-                        algorithm: String(list.id),
-                        name: list.name,
-                        list: String(list.id),
-                    },
-                    style: 'default',
-                    settings: defaultDeckSettings,
-                }]
-            }
-        });
-
-        margeAllColumns();
-    }
-
-    async function updateFeeds() {
-        savedFeeds = await $agent.getSavedFeeds();
-
-        if (allColumns.length) {
-            allColumns = allColumns.filter(column => column.algorithm.type !== 'custom');
-        }
-
-        savedFeeds.forEach(feed => {
-            allColumns = [...allColumns, {
-                id: self.crypto.randomUUID(),
-                algorithm: {
-                    type: 'custom',
-                    algorithm: feed.uri,
-                    name: feed.name,
-                },
-                style: 'default',
-                settings: defaultDeckSettings,
-            }]
-        });
-
-        margeAllColumns();
-    }
-
     function margeAllColumns() {
         allColumns = allColumns.filter(item => !_columns.some(column => item.algorithm.algorithm === column.algorithm.algorithm && item.algorithm.type === column.algorithm.type));
     }
@@ -181,56 +81,82 @@
         }]
     }
 
-    onMount(async () => {
-        await updateFeeds();
-        margeAllColumns();
+    let profiles = liveQuery(
+        () => accountsDb.profiles.toArray()
+    );
 
-        console.log(allColumns)
+    $: {
+        if ($profiles) {
+            initAccounts($profiles);
+        }
+    }
+
+    $: console.log(currentAccount)
+
+    async function initAccounts(profiles) {
+        const currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
+        profile = profiles.find(profile => profile.id === currentProfile);
+        currentAccount = profile.primary;
+    }
+
+    function handleSelect(event) {
+        currentAccount = event.detail.id;
+    }
+
+    onMount(async () => {
+        // await updateFeeds();
+        // margeAllColumns();
+
         isLoading = false;
     })
 </script>
 
-<div class="column-modal">
-    <div class="column-modal-contents">
-        <h2 class="column-modal-title">{$_('column_settings')}</h2>
+{#if ($agents.size > 0)}
+    <div class="column-modal">
+        <div class="column-modal-contents">
+            <h2 class="column-modal-title">{$_('column_settings')}</h2>
 
-        <div class="column-add-buttons">
-            <button class="column-add-button" on:click={() => {listModal.set({open: true, data: undefined })}}>{$_('create_list')}</button>
-            <button class="column-add-button" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('create_bookmark')}</button>
-            <button class="column-add-button" on:click={() => {$feedsModal.open = true}}>{$_('open_feed_store')}</button>
-            <button class="column-add-button" on:click={addEmptyRealtimeSearch}>{$_('add_realtime_search')}</button>
-        </div>
-
-        <div class="column-group-wrap">
-            {#if (isLoading)}
-                <div class="column-group-loading">
-                    <img src={spinner} alt="">
+            {#if (profile && currentAccount)}
+                <div class="column-modal-account">
+                    <AgentsSelector _agent={$agents.get(currentAccount)} on:select={handleSelect}></AgentsSelector>
                 </div>
+
+                <ColumnModalAdder></ColumnModalAdder>
             {/if}
 
-            <div class="column-group">
-                <div class="column-group__item">
-                    <ColumnList items={allColumns}></ColumnList>
-                </div>
+            <div class="column-group-wrap">
+                {#if (isLoading)}
+                    <div class="column-group-loading">
+                        <img src={spinner} alt="">
+                    </div>
+                {/if}
 
-                <div class="column-group__item column-group__item--active">
-                    <h3 class="column-group__title">{$_('active_columns')}</h3>
-                    <ColumnList bind:items={_columns}></ColumnList>
+                <div class="column-group">
+                    <div class="column-group__item">
+                        {#key currentAccount}
+                            <ColumnModalChoices _agent={$agents.get(currentAccount)}></ColumnModalChoices>
+                        {/key}
+                    </div>
+
+                    <div class="column-group__item column-group__item--active">
+                        <h3 class="column-group__title">{$_('active_columns')}</h3>
+                        <ColumnList bind:items={_columns}></ColumnList>
+                    </div>
                 </div>
+            </div>
+
+            <div class="column-modal-close">
+                <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
             </div>
         </div>
 
-        <div class="column-modal-close">
-            <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
-        </div>
+        <button class="modal-background-close" aria-hidden="true" on:click={save}></button>
+
+        <FeedsObserver on:close={handleFeedsClose}></FeedsObserver>
+        <BookmarkObserver on:close={handleBookmarkClose}></BookmarkObserver>
+        <ListObserver on:close={handleListClose}></ListObserver>
     </div>
-
-    <button class="modal-background-close" aria-hidden="true" on:click={save}></button>
-
-    <FeedsObserver on:close={handleFeedsClose}></FeedsObserver>
-    <BookmarkObserver on:close={handleBookmarkClose}></BookmarkObserver>
-    <ListObserver on:close={handleListClose}></ListObserver>
-</div>
+{/if}
 
 <style lang="postcss">
     .column-modal {
@@ -334,33 +260,6 @@
         img {
             width: 50px;
             height: 50px;
-        }
-    }
-
-    .column-add-buttons {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-
-        @media (max-width: 767px) {
-            gap: 10px;
-        }
-    }
-
-    .column-add-button {
-        display: grid;
-        place-content: center;
-        height: 40px;
-        width: 100%;
-        background-color: var(--bg-color-1);
-        box-shadow: 0 0 10px var(--box-shadow-color-1);
-        border-radius: 6px;
-        font-weight: 600;
-        color: var(--text-color-1);
-
-        @media (max-width: 767px) {
-            font-size: 12px;
-            letter-spacing: -.05em;
         }
     }
 </style>

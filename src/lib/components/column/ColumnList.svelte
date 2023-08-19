@@ -23,7 +23,12 @@
 <div class="column-list" use:dndzone={{items: items, flipDurationMs}} on:consider={handleDndConsider} on:finalize={handleDndFinalize}>
   {#each items as column, index (column.id)}
     <div class="column-list__item" animate:flip="{{duration: flipDurationMs}}">
-      <p class="column-list__title">{column.algorithm.name}</p>
+      <p class="column-list__title">
+        {column.algorithm.name}
+        {#if (column.handle)}
+          <span class="column-list__handle">({column.handle})</span>
+        {/if}
+      </p>
 
       {#if (column.algorithm.type === 'custom')}
         <IconColumnsFeed></IconColumnsFeed>
@@ -79,6 +84,11 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        &__handle {
+            font-size: 14px;
+            color: var(--text-color-3);
         }
     }
 </style>

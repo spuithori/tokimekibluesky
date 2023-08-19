@@ -1,16 +1,15 @@
 <script lang="ts">
-  import { _, locale  } from 'svelte-i18n'
+  import {_, isLoading, locale} from 'svelte-i18n'
   import Header from './Header.svelte';
   import '../styles.css';
-  import {agent, agents, settings,
-    preferences,
-    columns,
-    singleColumn,
-    isMobileDataConnection,
-    isAfterReload
+  import {
+      agent, agents, settings,
+      preferences,
+      columns,
+      singleColumn,
+      isMobileDataConnection,
+      isAfterReload, profileStatus
   } from '$lib/stores';
-  import { Agent } from '$lib/agent';
-  import { AtpAgent, AtpSessionData, AtpSessionEvent } from '@atproto/api';
   import { goto } from '$app/navigation';
   import { dev } from '$app/environment';
   import { inject } from '@vercel/analytics';
@@ -26,6 +25,8 @@
   import {accountsDb} from '$lib/db';
   import ReportObserver from "$lib/components/report/ReportObserver.svelte";
   import HeaderCollapseButton from "$lib/components/header/HeaderCollapseButton.svelte";
+  import {resumeAccountsSession} from "$lib/resumeAccountsSession";
+  import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
 
   let loaded = false;
 
@@ -71,12 +72,13 @@
 
     if (!profiles.length) {
         console.log('Profiles are empty. create new profile.');
+        const acs = anyAccounts.map(account => account.id);
         const id = await accountsDb.profiles.put({
-          accounts: anyAccounts.map(account => account.id) as number[],
+          accounts: acs as number[],
           columns: [],
           createdAt: "",
-          name: "",
-          primary: 0
+          name: "New Profile",
+          primary: acs[0] as number,
         })
       localStorage.setItem('currentProfile', id);
     }
@@ -92,44 +94,32 @@
     if (!accounts && !profile) {
         console.log('Account is empty in this profile.');
         // await goto('/login');
+        loaded = true;
         return false;
     }
 
     if (!profile.accounts.length) {
         console.log('There is no account in this profile.');
         // await goto('/login');
+        profileStatus.set(1);
+        loaded = true;
         return false;
     }
 
-    let agentsArray = [];
+    let agentsMap = await resumeAccountsSession(accounts);
 
-    for (const account of accounts) {
-        const ag = new AtpAgent({
-            service: account.service,
-            persistSession: async (evt: AtpSessionEvent, sess?: AtpSessionData) => {
-                if (sess) {
-                    account.session = sess;
-                }
-
-                const id = await accountsDb.accounts.put({
-                    id: account.id,
-                    session: account.session,
-                    did: sess.did,
-                    service: account.service
-                })
-            }
-        })
-
-        await ag.resumeSession(account.session);
-
-        //agentsMap.set(account.id, new Agent(ag));
-      agentsArray = [...agentsArray, new Agent(ag)];
+    if (!profile.primary) {
+        try {
+            const id = await accountsDb.profiles.update(profile.id, {
+                primary: accounts[0].id,
+            });
+        } catch (e) {
+            console.error(e);
+        }
     }
 
-    agents.set(agentsArray);
-    agent.set(agentsArray[0]);
-
-    console.log($agent);
+    agents.set(agentsMap);
+    agent.set($agents.get(profile.primary));
 
     loaded = true;
   }
@@ -215,8 +205,8 @@
           })
       }
 
-      const prefRes = await $agent.agent.api.app.bsky.actor.getPreferences();
-      preferences.set(prefRes.data.preferences);
+      /* const prefRes = await $agent.agent.api.app.bsky.actor.getPreferences();
+      preferences.set(prefRes.data.preferences); */
 
       sessionStorage.clear();
       isAfterReload.set(false);
@@ -235,8 +225,7 @@
 
 <svelte:window on:scroll={handleScroll} bind:scrollY={scrolly}></svelte:window>
 
-{#if (loaded)}
-  <div
+<div
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={isDarkMode}
     class:twilight={$settings.design?.darkmode === 'twilight'}
@@ -244,32 +233,39 @@
     class:sidebar={$settings.design?.publishPosition === 'left'}
     class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
     dir="{$_('dir', {default: 'ltr'})}"
-    class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}class:compact={$settings.design?.postsLayout === 'compact'}
+    class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}
+    class:compact={$settings.design?.postsLayout === 'compact'}
     class:minimum={$settings.design?.postsLayout === 'minimum'}
-  >
-    <Header />
+>
+  <Header />
 
-    {#if ($settings.design?.layout === 'decks' && $page.url.pathname === '/') && $settings.design?.publishPosition !== 'left'}
-      <HeaderCollapseButton></HeaderCollapseButton>
-    {/if}
+  {#if ($settings.design?.layout === 'decks' && $page.url.pathname === '/') && $settings.design?.publishPosition !== 'left'}
+    <HeaderCollapseButton></HeaderCollapseButton>
+  {/if}
 
+  {#if (loaded)}
     <div class="wrap" class:layout-sidebar={$settings.design?.publishPosition === 'left'}>
       <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
         <slot />
       </main>
 
-      <Publish></Publish>
+      {#if ($agents.size > 0)}
+        <Publish></Publish>
+      {/if}
     </div>
+  {:else}
+    <div>
 
-    <Footer></Footer>
-    <Toaster></Toaster>
-    <ReportObserver></ReportObserver>
-  </div>
-{:else}
-  <div>
+    </div>
+  {/if}
 
-  </div>
-{/if}
+
+  <Footer></Footer>
+  <Toaster></Toaster>
+  <ReportObserver></ReportObserver>
+
+  <ProfileStatusObserver></ProfileStatusObserver>
+</div>
 
 <style lang="postcss">
   .app {

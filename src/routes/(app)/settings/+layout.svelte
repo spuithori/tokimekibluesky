@@ -9,6 +9,12 @@
   $: {
       navs = [
           {
+              name: 'profiles',
+              path: '/settings/profiles',
+              display: $_('settings_profiles'),
+              disabled: false,
+          },
+          {
               name: 'general',
               path: '/settings/general',
               display: $_('settings_general'),
@@ -164,6 +170,7 @@
 
   .settings-content {
       padding-left: 30px;
+      min-width: 0;
 
       @media (max-width: 767px) {
           padding-left: 0;

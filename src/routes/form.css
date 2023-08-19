@@ -307,3 +307,32 @@
         }
     }
 }
+
+.input-with-pen {
+    position: relative;
+    border: 1px solid var(--border-color-1);
+    border-radius: 4px;
+    height: 40px;
+    padding: 0 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+    overflow: hidden;
+
+    &:focus-within {
+        border-color: var(--text-color-1);
+    }
+
+    svg {
+        flex-shrink: 0;
+    }
+
+    &__name {
+        font-size: 18px;
+        font-weight: 600;
+        flex: 1;
+        white-space: nowrap;
+        color: var(--text-color-1);
+    }
+}

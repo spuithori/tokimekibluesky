@@ -9,10 +9,12 @@
     const dispatch = createEventDispatcher();
     import { format } from 'date-fns';
 
+    export let _agent = $agent;
+    
     $: drafts = liveQuery(async () => {
         const drafts = await db.drafts
             .where('owner')
-            .equals($agent.did())
+            .equals(_agent.did())
             .toArray();
 
         console.log(drafts)
@@ -58,7 +60,7 @@
             <p class="drafts__date">{format(draft.createdAt, 'yyyy-MM-dd HH:mm:ss')}</p>
 
             {#if draft.replyRef}
-              <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.parent.author.handle} {draft.replyRef?.parent.record.text}</p>
+              <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.data.parent.author.handle} {draft.replyRef?.data.parent.record.text}</p>
             {/if}
 
             {#if draft.quotePost}

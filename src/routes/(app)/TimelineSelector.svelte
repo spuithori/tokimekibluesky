@@ -5,7 +5,7 @@
         notificationCount,
         timelines,
         settings,
-        columns, singleColumn,
+        columns, singleColumn, agents,
     } from '$lib/stores';
     import RealtimeTimeline from './RealtimeTimeline.svelte';
     import BookmarkTimeline from './BookmarkTimeline.svelte';
@@ -13,10 +13,13 @@
     import Timeline from './Timeline.svelte';
     import TimerEvent from '$lib/components/utils/TimerEvent.svelte';
     import { onDestroy, onMount } from 'svelte';
+    import {getAccountIdByDid} from "$lib/util";
 
     export let column;
     export let index;
     export let unique;
+
+    export let _agent = $agent;
     let isRefreshing = false;
     let scrollId;
     let scrollSpeed = 24;
@@ -72,7 +75,7 @@
     export async function refresh() {
         isRefreshing = true;
         if (column.algorithm.type === 'default' || column.algorithm.type === 'custom') {
-            const res = await $agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
+            const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
             const newFeeds = res.data.feed.filter(feed => {
                 return !$timelines[index].some(item => feed.reason ? item.post.uri === feed.post.uri && item.reason?.indexedAt === feed.reason.indexedAt : item.post.uri === feed.post.uri);
             });
@@ -118,7 +121,7 @@
                 }
             }
 
-            notificationCount.set(await $agent.getNotificationCount());
+            notificationCount.set(await _agent.getNotificationCount());
         } else if (column.algorithm.type === 'bookmark') {
             $timelines[index] = [];
             $cursors[index] = 0;
@@ -219,19 +222,19 @@
 <div class="timeline-selector-wrap" on:mouseenter={handleMouseEnter} on:mouseleave={handleMouseLeave}>
   {#if (column.algorithm.type === 'list')}
     {#key unique}
-      <ListTimeline column={column} index={index}></ListTimeline>
+      <ListTimeline column={column} index={index} {_agent}></ListTimeline>
     {/key}
   {:else if (column.algorithm.type === 'bookmark')}
     {#key unique}
-      <BookmarkTimeline column={column} index={index}></BookmarkTimeline>
+      <BookmarkTimeline column={column} index={index} {_agent}></BookmarkTimeline>
     {/key}
   {:else if (column.algorithm.type === 'realtime')}
     <RealtimeTimeline
         column={column}
-        index={index}></RealtimeTimeline>
+        index={index} {_agent}></RealtimeTimeline>
   {:else}
     {#key unique}
-      <Timeline column={column} index={index}></Timeline>
+      <Timeline column={column} index={index} {_agent}></Timeline>
     {/key}
   {/if}
 </div>

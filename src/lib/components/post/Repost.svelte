@@ -7,6 +7,7 @@
 
     const dispatch = createEventDispatcher();
 
+    export let _agent = $agent;
     export let cid;
     export let uri;
     export let count;
@@ -30,10 +31,10 @@
         }
 
         try {
-            const repost = await $agent.setRepost(cid, uri, repostViewer || '');
+            const repost = await _agent.setRepost(cid, uri, repostViewer || '');
 
             try {
-                const latest = await $agent.getFeed(uri);
+                const latest = await _agent.getFeed(uri);
 
                 isProcessed = false;
                 count = latest.post.repostCount;

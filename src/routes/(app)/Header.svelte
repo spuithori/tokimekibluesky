@@ -42,7 +42,9 @@
     }
 
     onMount(async () => {
-        notificationCount.set(await $agent.getNotificationCount());
+        if ($agent) {
+            notificationCount.set(await $agent.getNotificationCount());
+        }
     })
 
     afterNavigate(async ({ type }) => {
@@ -57,7 +59,11 @@
 <header class="header" class:header--side={$settings.design?.publishPosition === 'left'}>
   <div class="header__wrap">
     <div class="header__me only-pc">
-      <MyProfileBadge></MyProfileBadge>
+      {#if ($agent)}
+        {#key $agent}
+          <MyProfileBadge></MyProfileBadge>
+        {/key}
+      {/if}
     </div>
 
     <div class="header__home only-pc">

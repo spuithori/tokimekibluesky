@@ -1,7 +1,8 @@
 <script lang="ts">
   import ProfileCard from "./ProfileCard.svelte";
-  import {isDataSaving} from '$lib/stores';
+  import {agent, isDataSaving} from '$lib/stores';
 
+  export let _agent = $agent;
   export let avatar;
   export let handle;
   export let href;
@@ -38,7 +39,7 @@
   </a>
 
   {#if (isProfileShown)}
-    <ProfileCard handle={handle} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave}></ProfileCard>
+    <ProfileCard handle={handle} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave} {_agent}></ProfileCard>
   {/if}
 </div>
 

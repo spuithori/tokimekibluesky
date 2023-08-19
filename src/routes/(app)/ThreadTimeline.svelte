@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { agent, columns } from '$lib/stores';
+    import {agent, agents, columns} from '$lib/stores';
     import spinner from '$lib/images/loading.svg';
     import Thread from './profile/[handle]/post/[id]/Thread.svelte';
     import {onMount} from "svelte";
@@ -7,6 +7,8 @@
 
     export let column;
     export let index;
+    export let _agent = $agent;
+
     let feeds;
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
@@ -27,7 +29,7 @@
         const uri = column.algorithm.algorithm;
 
         try {
-            const raw = await $agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
+            const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
             feeds = [ raw.data.thread ];
 
             feeds.forEach(feed => {
@@ -71,7 +73,7 @@
   {:else if (feeds === 'NotFound')}
     <p class="thread-error">{$_('error_thread_notfound')}</p>
   {:else}
-    <Thread feeds={feeds} depth={0} column={column}></Thread>
+    <Thread feeds={feeds} depth={0} column={column} {_agent}></Thread>
   {/if}
 </div>
 

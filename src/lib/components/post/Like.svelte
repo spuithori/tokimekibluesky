@@ -6,6 +6,7 @@
 
   const dispatch = createEventDispatcher();
 
+  export let _agent = $agent;
   export let cid;
   export let uri;
   export let count;
@@ -25,10 +26,10 @@
       }
 
       try {
-          const like = await $agent.setVote(cid, uri, likeViewer || '');
+          const like = await _agent.setVote(cid, uri, likeViewer || '');
 
           try {
-              const latest = await $agent.getFeed(uri);
+              const latest = await _agent.getFeed(uri);
 
               isProcessed = false;
               count = latest.post.likeCount;

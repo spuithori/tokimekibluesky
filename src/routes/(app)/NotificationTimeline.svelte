@@ -1,18 +1,19 @@
 <script lang="ts">
     import Notification from "./Notification.svelte";
-    import { agent, notificationCount } from '$lib/stores';
+    import {agent, agents, notificationCount} from '$lib/stores';
 
     export let column;
     export let index;
+    export let _agent = $agent;
 
     async function notificationRead() {
-        await $agent.agent.api.app.bsky.notification.updateSeen( {seenAt: new Date().toISOString()});
+        await _agent.agent.api.app.bsky.notification.updateSeen( {seenAt: new Date().toISOString()});
         notificationCount.set(0);
     }
 </script>
 
 <div class="timeline">
-  <Notification isPage={true}></Notification>
+  <Notification isPage={true} {_agent}></Notification>
 </div>
 
 <button class="notification-column-read-button" on:click={notificationRead}>

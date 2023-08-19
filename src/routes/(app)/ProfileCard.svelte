@@ -5,11 +5,12 @@
   import { fade } from 'svelte/transition';
   import {_} from "svelte-i18n";
 
+  export let _agent = $agent;
   export let handle;
   let profile;
 
   onMount(async () => {
-      const res = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
+      const res = await _agent.agent.api.app.bsky.actor.getProfile({actor: handle});
       profile = res.data;
   })
 </script>
@@ -46,7 +47,7 @@
     </div>
 
     <div class="profile-card-button">
-      {#if (profile.did !== $agent.did())}
+      {#if (profile.did !== _agent.did())}
         <div class="user-item__buttons">
           <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
         </div>

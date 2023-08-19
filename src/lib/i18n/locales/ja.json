@@ -323,5 +323,16 @@
   "auto_scroll_speed_slow": "おそい",
   "auto_scroll_speed_normal": "ふつう",
   "auto_scroll_speed_fast": "はやい",
-  "thread_members": "人のメンバー"
+  "thread_members": "人のメンバー",
+  "settings_profiles": "プロファイル設定",
+  "delete_profile": "プロファイルを削除",
+  "switch_main_account": "メインアカウントにする",
+  "profiles_description": "TOPページ以外（プロフィールページや検索など）はメインアカウント経由でアクセスされます。メインアカウントと異なるサーバーのプロフィールページにはアクセスできません。今後、改善予定です。\n現状、シングルカラムモードではメインアカウントのみ有効です。複数アカウントを切り替えたい場合はプロファイルを分けてください。\nプッシュ通知は有効にしないでね！！！！！\nログアウト機能はちょっとまってね",
+  "profile_change_name": "名前の変更",
+  "profile_switch": "切り替え",
+  "profile_current": "現在のプロファイル",
+  "new_login": "新規ログイン",
+  "profile_main_account": "メイン",
+  "create_new_profile": "プロファイルを作成",
+  "delete_account": "アカウントを削除"
 }

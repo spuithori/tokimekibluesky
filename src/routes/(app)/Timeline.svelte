@@ -6,13 +6,14 @@
 
   export let column;
   export let index;
+  export let _agent = $agent;
 
   if(!$timelines[index]) {
       $timelines[index] = [];
   }
 
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-      const res = await $agent.getTimeline({limit: 20, cursor: $cursors[index], algorithm: column.algorithm});
+      const res = await _agent.getTimeline({limit: 20, cursor: $cursors[index], algorithm: column.algorithm});
 
       $cursors[index] = res.data.cursor;
 
@@ -30,13 +31,13 @@
 <div class="timeline timeline--main">
   {#if (column.style === 'default')}
     {#each $timelines[index] as data, index (data)}
-      <TimelineItem data={ data } index={index} column={column}></TimelineItem>
+      <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
     {/each}
   {:else}
     <div class="media-list">
       {#each $timelines[index] as data, index (data)}
         {#if (data.post.embed?.images)}
-          <MediaTimelineItem data={data}></MediaTimelineItem>
+          <MediaTimelineItem data={data} {_agent}></MediaTimelineItem>
         {/if}
       {/each}
     </div>

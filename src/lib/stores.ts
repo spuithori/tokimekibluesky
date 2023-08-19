@@ -47,9 +47,9 @@ export const service = writable(localStorage.getItem('service') || 'https://bsky
 export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) || []);
 
 export const currentAccount = writable(localStorage.getItem('currentAccount') || '0');
-export const agent = writable<Agent>();
+export const agent = writable<Agent>(undefined);
 
-export const agents = writable<Agent[]>([]);
+export const agents = writable(new Map<number, Agent>());
 
 export const currentAlgorithm = writable<currentAlgorithm>({
     type: 'default',
@@ -65,7 +65,12 @@ export const hideReply = writable(localStorage.getItem('hideReply') || 'false');
 
 export const quotePost = writable<AppBskyFeedDefs.PostView | undefined>();
 
-export const replyRef = writable<AppBskyFeedDefs.ReplyRef | string | undefined>();
+type replyRef = {
+    did: string,
+    data: AppBskyFeedDefs.ReplyRef | string | undefined
+} | undefined;
+
+export const replyRef = writable<replyRef>();
 
 export const sharedText = writable<string>('');
 
@@ -164,3 +169,5 @@ export const reportModal = writable<ReportModal>({
 export const isAfterReload = writable(true);
 
 export const changedFollowData = writable(undefined);
+
+export const profileStatus = writable<number>(0);

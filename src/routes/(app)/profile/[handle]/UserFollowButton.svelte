@@ -4,6 +4,7 @@
   import {agent, changedFollowData} from "$lib/stores";
   const dispatch = createEventDispatcher();
 
+  export let _agent = $agent;
   export let following;
   export let user;
   let rkey;
@@ -42,8 +43,8 @@
   onMount(async () => {
       follow = async function () {
           isDisabled = true;
-          const res = await $agent.agent.api.app.bsky.graph.follow.create(
-              { repo: $agent.did() },
+          const res = await _agent.agent.api.app.bsky.graph.follow.create(
+              { repo: _agent.did() },
               {
                   subject: user.did,
                   createdAt: new Date().toISOString(),
@@ -60,8 +61,8 @@
 
       unfollow = async function () {
           isDisabled = true;
-          const res = await $agent.agent.api.app.bsky.graph.follow.delete({
-              repo: $agent.did(),
+          const res = await _agent.agent.api.app.bsky.graph.follow.delete({
+              repo: _agent.did(),
               rkey: rkey,
               },
           );

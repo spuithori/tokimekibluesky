@@ -59,7 +59,7 @@ export interface Profile {
     name: string,
     createdAt: string,
     accounts: number[],
-    primary: number,
+    primary: number | null,
     columns: any[],
 }
 

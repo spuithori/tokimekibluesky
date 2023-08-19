@@ -43,6 +43,7 @@
     import {goto} from "$app/navigation";
     import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
 
+    export let _agent = $agent;
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
     export let isSingle: boolean = false;
@@ -184,17 +185,17 @@
             })
         }
 
-        if (data.post.author.did !== $agent.did()) {
+        if (data.post.author.did !== _agent.did()) {
           switch (hideReply) {
             case 'all':
               break;
             case 'following':
-              if (data.reply && (data.reply.parent.author.did !== $agent.did() && !data.reply?.parent.author.viewer.following)) {
+              if (data.reply && (data.reply.parent.author.did !== _agent.did() && !data.reply?.parent.author.viewer.following)) {
                 isHide = true;
               }
               break;
             case 'me':
-              if (data.reply && data.reply.parent.author.did !== $agent.did()) {
+              if (data.reply && data.reply.parent.author.did !== _agent.did()) {
                 isHide = true;
               }
               break;
@@ -290,8 +291,8 @@
         isMenuOpen = false;
 
         try {
-            await $agent.agent.api.app.bsky.feed.post.delete(
-                {repo: $agent.did(), rkey: rkey}
+            await _agent.agent.api.app.bsky.feed.post.delete(
+                {repo: _agent.did(), rkey: rkey}
             );
 
             timelines.update(function (tls) {
@@ -308,7 +309,7 @@
 
     async function getHandleByDid(handle: string) {
         try {
-            const res = await $agent.agent.api.com.atproto.repo.describeRepo(
+            const res = await _agent.agent.api.com.atproto.repo.describeRepo(
                 {repo: handle}
             );
 
@@ -397,6 +398,8 @@
                 name: 'Thread',
             },
             style: 'default',
+            did: _agent.did(),
+            handle: _agent.handle(),
         }]
     }
 
@@ -417,7 +420,7 @@
 {#if (!isHide)}
   <article class="timeline__item"
            class:timeline__item--repost={isReasonRepost(data.reason)}
-           class:timeline__item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}
+           class:timeline__item--reply={data.reply && data.reply.parent.author.did !== _agent.did()}
            class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
            class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
            on:click={handleClick}
@@ -429,7 +432,7 @@
     <div class="timeline-repost-messages">
       {#if (isReasonRepost(data.reason))}
         <p class="timeline-repost-message">
-          <ProfileCardWrapper handle="{data.reason.by.handle}">
+          <ProfileCardWrapper handle="{data.reason.by.handle}" {_agent}>
             <a href="/profile/{data.reason.by.handle}"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</a>
           </ProfileCardWrapper>
         </p>
@@ -445,7 +448,7 @@
         <div class="timeline__image">
           {#if $settings?.design.postsLayout !== 'minimum'}
             <Avatar href="/profile/{ data.reply.parent.author.handle }" avatar={data.reply.parent.author.avatar}
-                    handle={data.reply.parent.author.handle}></Avatar>
+                    handle={data.reply.parent.author.handle} {_agent}></Avatar>
           {/if}
         </div>
 
@@ -485,7 +488,7 @@
                   <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
                 {/if}
               {:else if (item.isMention() && item.mention)}
-                <ProfileCardWrapper handle="{item.text.slice(1)}">
+                <ProfileCardWrapper handle="{item.text.slice(1)}" {_agent}>
                   <a href="/profile/{item.text.slice(1)}">{item.text}</a>
                 </ProfileCardWrapper>
               {:else}
@@ -507,7 +510,7 @@
       <div class="timeline__image">
         {#if $settings?.design.postsLayout !== 'minimum'}
           <Avatar href="/profile/{ data.post.author.handle }" avatar={data.post.author.avatar}
-                  handle={data.post.author.handle}></Avatar>
+                  handle={data.post.author.handle} {_agent}></Avatar>
         {/if}
       </div>
 
@@ -624,6 +627,7 @@
               post={data.post}
               reply={data.post.record.reply}
               count={data.post.replyCount}
+              {_agent}
           ></Reply>
 
           <Repost
@@ -633,6 +637,7 @@
               count={data.post.repostCount}
               on:repost
               bind:repost={repostFunc}
+              {_agent}
           ></Repost>
 
           <Like
@@ -642,9 +647,10 @@
               count={data.post.likeCount}
               on:like
               bind:vote={voteFunc}
+              {_agent}
           ></Like>
 
-          <Bookmark post={data.post} bookmarkId={data?.bookmarkId}></Bookmark>
+          <Bookmark post={data.post} bookmarkId={data?.bookmarkId} {_agent}></Bookmark>
         </div>
 
         <slot></slot>
@@ -653,7 +659,7 @@
 
     <Menu bind:isMenuOpen={isMenuOpen}>
       <ul class="timeline-menu-list" slot="content">
-        {#if (data.post.author.did === $agent.did())}
+        {#if (data.post.author.did === _agent.did())}
           <li class="timeline-menu-list__item timeline-menu-list__item--delete">
             <button class="timeline-menu-list__button" on:click={() => {deletePost(data.post.uri)}}>
               <svg xmlns="http://www.w3.org/2000/svg" width="15.2" height="19" viewBox="0 0 15.2 19">

@@ -3,6 +3,7 @@
   import {agent} from "$lib/stores";
   import Avatar from "../../Avatar.svelte";
 
+  export let _agent = $agent;
   export let user;
   export let layout = 'default';
 
@@ -21,9 +22,9 @@
     </div>
   </article>
 
-  {#if (user.did !== $agent.did())}
+  {#if (user.did !== _agent.did())}
     <div class="user-item__buttons">
-      <UserFollowButton following="{user.viewer?.following}" user={user} on:followchange={handleFollowChange}></UserFollowButton>
+      <UserFollowButton following="{user.viewer?.following}" user={user} on:followchange={handleFollowChange} {_agent}></UserFollowButton>
     </div>
   {/if}
 </div>

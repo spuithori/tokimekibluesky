@@ -1,6 +1,8 @@
 <script lang="ts">
     import ProfileCard from "./ProfileCard.svelte";
+    import { agent } from '$lib/stores';
 
+    export let _agent = $agent;
     export let handle;
 
     let avatarMouseOverTimeId;
@@ -31,7 +33,7 @@
   <slot></slot>
 
   {#if (isProfileShown)}
-    <ProfileCard handle={handle} on:mouseover={handleMouseOver} on:mouseleave={handleMouseLeave}></ProfileCard>
+    <ProfileCard handle={handle} on:mouseover={handleMouseOver} on:mouseleave={handleMouseLeave} {_agent}></ProfileCard>
   {/if}
 </div>
 

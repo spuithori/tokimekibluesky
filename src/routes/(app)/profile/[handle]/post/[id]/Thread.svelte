@@ -3,7 +3,9 @@
   import { afterUpdate } from "svelte";
   import {_} from "svelte-i18n";
   import Likes from "$lib/components/thread/Likes.svelte";
+  import { agent } from "$lib/stores";
 
+  export let _agent = $agent;
   export let feeds = [];
   export let depth = 0;
   export let column = undefined;
@@ -38,7 +40,7 @@
           class:is-author-child={data.post.record.reply?.root ? data.post.author.did === data.post.record.reply.root.uri.split('/')[2] : false}
       >
         {#if (!data.blocked)}
-          <TimelineItem data={data} isSingle={true} column={column}>
+          <TimelineItem data={data} isSingle={true} column={column} {_agent}>
             {#if (data.post.likeCount > 0)}
               <Likes uri={data.post.uri}></Likes>
             {/if}
