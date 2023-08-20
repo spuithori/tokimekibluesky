@@ -17,7 +17,7 @@
               primary: event.detail.id
           });
 
-          agents.set(await modifyAgents(_accounts));
+          $agents = await modifyAgents(_accounts);
           agent.set($agents.get(event.detail.id));
       } catch (e) {
           console.error(e);

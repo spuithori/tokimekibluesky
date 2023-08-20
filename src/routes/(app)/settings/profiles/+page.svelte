@@ -45,7 +45,7 @@
     <div class="acp-list-wrap">
       <div class="acp-list">
         {#if ($profiles)}
-          {#each $profiles as profile}
+          {#each $profiles as profile (profile.id)}
             <AcpProfileCard {profile} isCurrent={currentProfile === profile.id}></AcpProfileCard>
           {/each}
         {/if}

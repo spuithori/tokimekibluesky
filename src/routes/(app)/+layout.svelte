@@ -104,6 +104,13 @@
         return false;
     }
 
+    if (!accounts.length) {
+        console.log('Attached accounts are missing in this profile');
+        profileStatus.set(2);
+        loaded = true;
+        return  false;
+    }
+
     let agentsMap = await resumeAccountsSession(accounts);
 
     if (!profile.primary) {

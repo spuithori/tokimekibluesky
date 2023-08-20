@@ -24,7 +24,10 @@
               accounts: _accounts,
           });
 
-          agents.set(await modifyAgents(_accounts));
+          if (isCurrent) {
+              agents.set(await modifyAgents(_accounts));
+          }
+
       } catch (e) {
           console.error(e);
       }
@@ -67,7 +70,9 @@
               accounts: _accounts,
           });
 
-          agents.set(await modifyAgents(_accounts));
+          if (isCurrent) {
+              agents.set(await modifyAgents(_accounts));
+          }
       } catch (e) {
           console.error(e);
       }
@@ -137,7 +142,7 @@
 
   {#if (profile)}
     <div class="acp-accounts">
-      {#each profile.accounts as account, index}
+      {#each profile.accounts as account, index (account)}
         <AcpAccountCard
             id={account}
             {index}

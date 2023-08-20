@@ -22,6 +22,6 @@
   }
 </script>
 
-{#if ($profileStatus === 1)}
+{#if ($profileStatus === 1 || $profileStatus === 2)}
   <ProfileStatusModal status={$profileStatus} profile={$profile}></ProfileStatusModal>
 {/if}

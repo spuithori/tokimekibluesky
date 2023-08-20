@@ -64,6 +64,25 @@
       </ul>
     </Menu>
   </div>
+{:else}
+  <div class="acp-account">
+    <p class="acp-account__handle">
+      <span>不明なアカウント</span>
+    </p>
+    <p class="acp-account__service">Unknown account.</p>
+
+
+    <Menu bind:isMenuOpen={isMenuOpen}>
+      <ul class="timeline-menu-list" slot="content">
+        <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+          <button class="timeline-menu-list__button" on:click={() => {deleteAccount(id)}}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-x"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="m14.5 7-5 5"/><path d="m9.5 7 5 5"/></svg>
+            <span class="text-danger">{$_('delete_account')}</span>
+          </button>
+        </li>
+      </ul>
+    </Menu>
+  </div>
 {/if}
 
 <style lang="postcss">
