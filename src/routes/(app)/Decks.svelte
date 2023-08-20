@@ -2,6 +2,7 @@
     import {agents, columns, cursors, settings, timelines} from '$lib/stores';
     import ColumnModal from "$lib/components/column/ColumnModal.svelte";
     import DeckRow from "./DeckRow.svelte";
+    import {accountsDb} from "$lib/db";
     let isColumnModalOpen = false;
     let unique = Symbol();
 
@@ -15,6 +16,36 @@
 
     if (Array.isArray($columns) && !$columns.length) {
         columns.set([]);
+    }
+
+    $: modifyColumns($columns);
+
+    async function modifyColumns(columns) {
+        if (!columns) {
+            return false
+        }
+
+        let _columns = [];
+
+        columns.forEach(column => {
+            let c = {};
+            for (const [key, value] of Object.entries(column)) {
+                if (key !== 'scrollElement') {
+                    c[key] = value;
+                }
+            }
+
+            _columns.push(c);
+        })
+
+        const profileId = Number(localStorage.getItem('currentProfile'));
+        if (!profileId) {
+            return false;
+        }
+
+        const id = await accountsDb.profiles.update(profileId, {
+            columns: _columns,
+        });
     }
 </script>
 
