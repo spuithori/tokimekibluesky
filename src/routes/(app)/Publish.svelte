@@ -889,7 +889,7 @@ function handleAgentSelect(event) {
               <div class="timeline__meta timeline__meta--member">
                 <p class="timeline__user">{$_('reply_to', {values: {name: $replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle }})}</p>
 
-                <ThreadMembersList uri={$replyRef.data.parent.uri}></ThreadMembersList>
+                <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
               </div>
 
               <p class="timeline-external__description">

@@ -5,8 +5,10 @@
     import '@splidejs/svelte-splide/css';
     import { createEventDispatcher, onDestroy, onMount } from 'svelte';
     import { beforeNavigate } from "$app/navigation";
+    import {agent} from "$lib/stores";
     const dispatch = createEventDispatcher();
 
+    export let _agent = $agent;
     export let data;
     function modalClose() {
         history.back();
@@ -50,7 +52,7 @@
   </div>
 
   <div class="media-content__content">
-    <TimelineItem data={data} isMedia={true}></TimelineItem>
+    <TimelineItem data={data} isMedia={true} {_agent}></TimelineItem>
   </div>
 </div>
 

@@ -3,6 +3,7 @@
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
 
+  export let _agent = $agent;
   export let uri;
   $: target = uri.split('/')[2];
   let members = [];
@@ -10,7 +11,7 @@
   $: getMembers(uri);
 
   function addData(feed) {
-      if (!members.some(member => member.did === feed.post.author.did) && feed.post.author.did !== target && feed.post.author.did !== $agent.did()) {
+      if (!members.some(member => member.did === feed.post.author.did) && feed.post.author.did !== target && feed.post.author.did !== _agent.did()) {
           members = [...members, feed.post.author];
       }
 
@@ -26,7 +27,7 @@
           return false;
       }
 
-      const res = await $agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
+      const res = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
 
       if (res.data?.thread.parent) {
           addData(res.data.thread.parent);

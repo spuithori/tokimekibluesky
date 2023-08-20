@@ -5,6 +5,7 @@
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
 
+    export let _agent = $agent;
     export let data;
     let isOpen = false;
 
@@ -27,7 +28,7 @@
 </script>
 
 <div class="media-item" class:media-item--repost={isReasonRepost(data.reason)}
-     class:media-item--reply={data.reply && data.reply.parent.author.did !== $agent.did()}>
+     class:media-item--reply={data.reply && data.reply.parent.author.did !== _agent.did()}>
   <button on:click={modalToggle} aria-label="画像を拡大する">
     <img src="{data.post.embed.images[0].thumb}" alt="" loading="lazy">
 
@@ -55,7 +56,7 @@
 
 {#if (isOpen)}
   <div class="media-content-wrap" transition:fade="{{ duration: 300 }}">
-    <MediaTimelineItemModal data={data} on:close={handleClose}></MediaTimelineItemModal>
+    <MediaTimelineItemModal data={data} on:close={handleClose} {_agent}></MediaTimelineItemModal>
   </div>
 {/if}
 

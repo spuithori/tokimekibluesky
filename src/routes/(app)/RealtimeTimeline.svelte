@@ -214,7 +214,7 @@
             <div class="media-list">
                 {#each $timelines[index] as data (data)}
                     {#if (data.post.embed?.images)}
-                        <MediaTimelineItem data={data}></MediaTimelineItem>
+                        <MediaTimelineItem data={data} {_agent}></MediaTimelineItem>
                     {/if}
                 {/each}
             </div>
