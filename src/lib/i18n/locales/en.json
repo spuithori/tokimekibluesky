@@ -326,12 +326,20 @@
   "settings_profiles": "Profiles",
   "delete_profile": "Delete profile",
   "switch_main_account": "Switch to main",
-  "profiles_description": "All pages other than the TOP page (profile page, search, etc.) are accessed via the main account. Profile pages on a server different from the main account cannot be accessed. This will be improved in the future.\nCurrently, only the main account is valid in single column mode. If you wish to switch between multiple accounts, please separate the profiles.\nDon't enable push notifications. ！！！！！",
+  "profiles_description": "All pages other than the TOP page (profile page, search, etc.) are accessed via the main account. Profile pages on a server different from the main account cannot be accessed. This will be improved in the future.\nCurrently, only the main account is valid in single column mode. If you wish to switch between multiple accounts, please separate the profiles.",
   "profile_change_name": "Rename",
   "profile_switch": "Switch",
   "profile_current": "Current Profile",
   "new_login": "Login new account",
   "profile_main_account": "Main",
   "create_new_profile": "Create new profile",
-  "delete_account": "Delete account"
+  "delete_account": "Delete account",
+  "push_toggle_switch_this_account": "Enable push notifications for this account",
+  "reply": "Reply",
+  "like": "Like",
+  "repost": "Repost",
+  "quote": "Quote",
+  "mention": "Mention",
+  "profile_account_missing_title": "No account is set up in the profile",
+  "column_account_missing_text_1": "{name} has not been added to the profile in use. Please add it from the profile settings or delete the column."
 }

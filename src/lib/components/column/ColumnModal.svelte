@@ -17,7 +17,6 @@
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import ColumnModalAdder from "$lib/components/column/ColumnModalAdder.svelte";
     import ColumnModalChoices from "$lib/components/column/ColumnModalChoices.svelte";
-    import ColumnModalAccountSelector from "$lib/components/column/ColumnModalAccountSelector.svelte";
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
 
     export let _columns = $columns;
@@ -48,6 +47,13 @@
 
     function handleFeedsClose() {
         updateFeeds();
+    }
+
+    async function updateFeeds() {
+        const agent = $agents.get(currentAccount);
+        const savedFeeds = await agent.getSavedFeeds();
+
+        console.log(savedFeeds);
     }
 
     function handleBookmarkClose(event) {
@@ -91,8 +97,6 @@
         }
     }
 
-    $: console.log(currentAccount)
-
     async function initAccounts(profiles) {
         const currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
         profile = profiles.find(profile => profile.id === currentProfile);
@@ -101,6 +105,21 @@
 
     function handleSelect(event) {
         currentAccount = event.detail.id;
+    }
+
+    function handleColumnAdd(event) {
+        try {
+            let addedColumn = structuredClone(event.detail.column);
+            addedColumn.id = self.crypto.randomUUID();
+
+            _columns = [..._columns, addedColumn];
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    function handleColumnRemove(event) {
+        _columns = _columns.filter(column => column.id !== event.detail.column.id);
     }
 
     onMount(async () => {
@@ -134,13 +153,16 @@
                 <div class="column-group">
                     <div class="column-group__item">
                         {#key currentAccount}
-                            <ColumnModalChoices _agent={$agents.get(currentAccount)}></ColumnModalChoices>
+                            <ColumnModalChoices
+                                _agent={$agents.get(currentAccount)}
+                                on:add={handleColumnAdd}
+                            ></ColumnModalChoices>
                         {/key}
                     </div>
 
                     <div class="column-group__item column-group__item--active">
                         <h3 class="column-group__title">{$_('active_columns')}</h3>
-                        <ColumnList bind:items={_columns}></ColumnList>
+                        <ColumnList bind:items={_columns} on:remove={handleColumnRemove}></ColumnList>
                     </div>
                 </div>
             </div>
@@ -152,9 +174,8 @@
 
         <button class="modal-background-close" aria-hidden="true" on:click={save}></button>
 
-        <FeedsObserver on:close={handleFeedsClose}></FeedsObserver>
-        <BookmarkObserver on:close={handleBookmarkClose}></BookmarkObserver>
-        <ListObserver on:close={handleListClose}></ListObserver>
+        <BookmarkObserver on:close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
+        <ListObserver on:close={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
     </div>
 {/if}
 

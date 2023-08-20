@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { flip } from 'svelte/animate';
-    import { dndzone } from 'svelte-dnd-action';
     import IconColumnsFeed from "$lib/icons/columns/IconColumnsFeed.svelte";
     import IconColumnsList from "$lib/icons/columns/IconColumnsList.svelte";
     import IconColumnsBookmark from "$lib/icons/columns/IconColumnsBookmark.svelte";
@@ -9,27 +7,20 @@
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
     import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
+
     const dispatch = createEventDispatcher();
-
     export let items;
-    const flipDurationMs = 300;
-    function handleDndConsider(e) {
-        items = e.detail.items;
-    }
-    function handleDndFinalize(e) {
-        items = e.detail.items;
-    }
 
-    function columnRemove(column) {
-        dispatch('remove', {
+    function addColumn(column) {
+        dispatch('add', {
             column: column,
         });
     }
 </script>
 
-<div class="column-list" use:dndzone={{items: items, flipDurationMs}} on:consider={handleDndConsider} on:finalize={handleDndFinalize}>
+<div class="column-list">
   {#each items as column, index (column.id)}
-    <div class="column-list__item" animate:flip="{{duration: flipDurationMs}}">
+    <div class="column-list__item">
       <p class="column-list__title">
         {column.algorithm.name}
         {#if (column.handle)}
@@ -63,9 +54,7 @@
         <IconColumnsHome></IconColumnsHome>
       {/if}
 
-      <button class="column-list__remove" on:click={() => {columnRemove(column)}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
-      </button>
+      <button class="column-list__add" on:click={() => {addColumn(column)}}><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-circle"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></button>
     </div>
   {/each}
 </div>
@@ -80,13 +69,14 @@
         &__item {
             position: relative;
             display: flex;
-            justify-content: space-between;
+            gap: 10px;
             align-items: center;
-            padding: 10px 20px 10px 40px;
+            padding: 10px 10px 10px 40px;
             box-shadow: 0 0 10px var(--box-shadow-color-1);
             border-radius: 6px;
             font-weight: 600;
             background-color: var(--bg-color-1);
+            cursor: default;
         }
 
         &__title {
@@ -95,6 +85,7 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
+            margin-right: auto;
         }
 
         &__handle {

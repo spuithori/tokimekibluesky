@@ -1,20 +1,20 @@
 <script lang="ts">
-  import ColumnList from "$lib/components/column/ColumnList.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {agent, userLists} from "$lib/stores";
   import {_} from "svelte-i18n";
   import {liveQuery} from "dexie";
   import {db} from "$lib/db";
   import {onMount} from "svelte";
+  import ColumnListAdder from "$lib/components/column/ColumnListAdder.svelte";
+  import FeedsObserver from "$lib/components/feeds/FeedsObserver.svelte";
 
   let bookmarks = liveQuery(() => db.bookmarks.toArray());
-  let isLoading = true;
 
   export let _agent = $agent;
 
   let allColumns = [
       {
-          id: '1_' + _agent.did(),
+          id: self.crypto.randomUUID(),
           algorithm: {
               type: 'default',
               name: 'HOME',
@@ -28,7 +28,7 @@
 
   if (_agent.agent.service.host === 'bsky.social') {
       allColumns = [...allColumns, {
-          id: '2_' + _agent.did(),
+          id: self.crypto.randomUUID(),
           algorithm: {
               type: 'realtime',
               name: 'REALTIME',
@@ -42,7 +42,7 @@
   }
 
   allColumns = [...allColumns, {
-      id: '3_' + _agent.did(),
+      id: self.crypto.randomUUID(),
       algorithm: {
           type: 'notification',
           name: $_('notifications'),
@@ -82,8 +82,6 @@
               }]
           }
       });
-
-      // margeAllColumns();
   }
 
   function updateList(lists) {
@@ -110,8 +108,10 @@
               }]
           }
       });
+  }
 
-      // margeAllColumns();
+  function handleFeedsClose() {
+      updateFeeds();
   }
 
   async function updateFeeds() {
@@ -135,8 +135,6 @@
               handle: _agent.handle(),
           }]
       });
-
-      // margeAllColumns();
   }
 
   onMount(async () => {
@@ -144,4 +142,5 @@
   })
 </script>
 
-<ColumnList items={allColumns}></ColumnList>
+<ColumnListAdder items={allColumns} on:add></ColumnListAdder>
+<FeedsObserver on:close={handleFeedsClose}></FeedsObserver>

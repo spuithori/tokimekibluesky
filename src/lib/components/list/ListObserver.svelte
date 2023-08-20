@@ -1,8 +1,10 @@
 <script lang="ts">
-    import {listModal, userLists} from "$lib/stores";
+    import {agent, listModal, userLists} from "$lib/stores";
     import ListModal from "$lib/components/list/ListModal.svelte";
     import {createEventDispatcher} from 'svelte';
     const dispatch = createEventDispatcher();
+
+    export let _agent = $agent;
 
     function handleListRemove(event) {
         userLists.update(lists => {
@@ -20,5 +22,5 @@
 </script>
 
 {#if ($listModal.open)}
-  <ListModal id={$listModal.data} on:remove={handleListRemove} on:close={handleListClose}></ListModal>
+  <ListModal id={$listModal.data} on:remove={handleListRemove} on:close={handleListClose} {_agent}></ListModal>
 {/if}

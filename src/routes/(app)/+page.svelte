@@ -7,7 +7,7 @@
 	let scrolls;
 
 	export const snapshot: Snapshot = {
-		capture: () => scrolls = $settings.design.layout === 'decks' ? $columns.map(column => column.scrollElement.scrollTop) : undefined,
+		capture: () => scrolls = $settings.design.layout === 'decks' ? $columns.map(column => column.scrollElement?.scrollTop) : undefined,
 		restore: (value) => {
 			if(!$isAfterReload && value) {
 				scrolls = value;

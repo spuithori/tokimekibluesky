@@ -7,6 +7,8 @@
     import { _ } from 'svelte-i18n';
     const dispatch = createEventDispatcher();
 
+    export let _agent = $agent;
+
     export let id;
     let bookmark = undefined;
     let name = '';
@@ -28,7 +30,7 @@
                 id: bookmark?.id || undefined,
                 name: name,
                 text: text,
-                owner: $agent.did(),
+                owner: _agent.did(),
                 createdAt: Date.now(),
             })
 

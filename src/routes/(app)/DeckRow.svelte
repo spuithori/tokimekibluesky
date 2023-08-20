@@ -5,11 +5,13 @@
     import ThreadTimeline from "./ThreadTimeline.svelte";
     import {agent, agents} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
+    import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
 
     export let column;
     export let index;
 
-    let _agent = $agents.get(getAccountIdByDid($agents, column.did)) || $agent;
+    const uniqueAgent = $agents.get(getAccountIdByDid($agents, column.did));
+    let _agent = uniqueAgent || $agent;
     let isSettingsOpen = false;
     let unique = Symbol();
 
@@ -42,19 +44,25 @@
     {/if}
 
     {#key unique}
-        <div class="deck-row__content" bind:this={column.scrollElement}>
-            {#if (column.algorithm.type === 'notification')}
-                <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
-            {:else if (column.algorithm.type === 'thread')}
-                <ThreadTimeline column={column} index={index} {_agent}></ThreadTimeline>
-            {:else}
-                <TimelineSelector
-                        column={column}
-                        index={index}
-                        {_agent}
-                ></TimelineSelector>
-            {/if}
-        </div>
+        {#if uniqueAgent}
+            <div class="deck-row__content" bind:this={column.scrollElement}>
+                {#if (column.algorithm.type === 'notification')}
+                    <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
+                {:else if (column.algorithm.type === 'thread')}
+                    <ThreadTimeline column={column} index={index} {_agent}></ThreadTimeline>
+                {:else}
+                    <TimelineSelector
+                            column={column}
+                            index={index}
+                            {_agent}
+                    ></TimelineSelector>
+                {/if}
+            </div>
+        {:else}
+            <div class="deck-row__content">
+                <ColumnAgentMissing {column}></ColumnAgentMissing>
+            </div>
+        {/if}
     {/key}
 </div>
 

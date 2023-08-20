@@ -7,6 +7,8 @@
     import {_} from "svelte-i18n";
     const dispatch = createEventDispatcher();
 
+    export let _agent = $agent;
+
     type list = {
         id: string,
         name: string,
@@ -48,12 +50,12 @@
                 id: id,
                 name: '',
                 members: [],
-                owner: $agent.did()
+                owner: _agent.did()
             }
         }
 
         if (members.length) {
-            const res = await $agent.agent.api.app.bsky.actor.getProfiles({actors: members})
+            const res = await _agent.agent.api.app.bsky.actor.getProfiles({actors: members})
             members = res.data.profiles;
         }
 
@@ -80,7 +82,7 @@
     async function handleKeyDown() {
         clearTimeout(timer);
         timer = setTimeout(async () => {
-            const res = await $agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: search, limit: 4})
+            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: search, limit: 4})
             searchMembers = res.data.actors;
         }, 250)
     }
@@ -120,7 +122,7 @@
     async function importing() {
         try {
             const importObj = JSON.parse(importText);
-            const res = await $agent.agent.api.app.bsky.actor.getProfiles({actors: importObj});
+            const res = await _agent.agent.api.app.bsky.actor.getProfiles({actors: importObj});
             members = res.data.profiles;
 
             handleListChange();
