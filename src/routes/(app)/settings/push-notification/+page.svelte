@@ -1,20 +1,30 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import { settings } from '$lib/stores';
     import { onMount } from 'svelte';
     import { sub, unsub, isSubscribe } from '$lib/pushSubscription';
-    import { agent } from '$lib/stores';
     import toast from 'svelte-french-toast'
+    import {liveQuery} from "dexie";
+    import {accountsDb} from "$lib/db";
+    import PushNotificationAccountItem from "./PushNotificationAccountItem.svelte";
 
     let isChecked = false;
     let isDisabled = false;
+    let enableAccounts = localStorage.getItem('pushNotificationAccounts') ? JSON.parse(localStorage.getItem('pushNotificationAccounts')) : [];
+
+    $: accounts = liveQuery(async () => {
+        const accounts = await accountsDb.accounts
+            .where('service')
+            .equals('https://bsky.social')
+            .toArray();
+        return accounts;
+    })
 
     async function pushToggle() {
         isDisabled = true;
 
         if (isChecked) {
             try {
-                await sub($agent.did());
+                await sub(enableAccounts);
                 toast.success($_('push_subscription_success'));
                 isChecked = true;
             } catch (e) {
@@ -27,6 +37,28 @@
         }
 
         isDisabled = false;
+    }
+
+    async function handleAccountEnablingChange(event) {
+        if (event.detail.enabled) {
+            enableAccounts = [...enableAccounts, event.detail.did];
+        } else {
+            enableAccounts = enableAccounts.filter(account => account !== event.detail.did);
+        }
+
+        enableAccounts = Array.from(new Set(enableAccounts));
+
+        try {
+            if (isChecked) {
+                await sub(enableAccounts);
+                toast.success($_('push_subscription_success'));
+            }
+
+            localStorage.setItem('pushNotificationAccounts', JSON.stringify(enableAccounts));
+        } catch (e) {
+            toast.error($_('push_subscription_failed') + ' ' + e.message);
+            isChecked = false;
+        }
     }
 
     onMount(async () => {
@@ -55,6 +87,7 @@
       <p><strong class="text-danger">{$_('push_text_3')}</strong></p>
       <p>{$_('push_text_4')}</p>
       <p>{$_('push_text_5')}</p>
+      <p>{$_('push_text_6')}</p>
     </div>
 
     <div class="push-settings-toggle-wrap">
@@ -70,6 +103,20 @@
         </dd>
       </dl>
     </div>
+
+    {#if isChecked}
+      {#if ($accounts)}
+        <div class="push-notification-accounts-list">
+          {#each $accounts as account}
+            <PushNotificationAccountItem
+                {account}
+                isEnabled={enableAccounts.includes(account.did)}
+                on:change={handleAccountEnablingChange}
+            ></PushNotificationAccountItem>
+          {/each}
+        </div>
+      {/if}
+    {/if}
   </div>
 </div>
 
@@ -78,5 +125,9 @@
         border: 1px solid var(--border-color-1);
         padding: 15px;
         margin: 15px 0;
+    }
+
+    .push-notification-accounts-list {
+        margin-top: 20px;
     }
 </style>

@@ -9,11 +9,14 @@ const supabase = createClient(
 async function subscription(subscription, did) {
     const addDatabase = async () => {
         const { error } = await supabase
-            .from('notification')
-            .insert(
+            .from('v2-notification')
+            .upsert(
                 {
                     subscription: subscription,
-                    did: did,
+                    accounts: did,
+                },
+                {
+                    onConflict: 'subscription',
                 }
             )
             .single()

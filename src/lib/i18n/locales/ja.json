@@ -82,7 +82,7 @@
   "push_text_3": "現状、ミュートしているユーザーからも通知が届きます。",
   "push_text_4": "アプリ/ブラウザの通知設定を許可する必要があります。",
   "push_text_5": "対応環境などの情報は、ドキュメントをお読みください。",
-  "push_text_6": "",
+  "push_text_6": "bsky.social のアカウントでのみ使用可能です。",
   "push_settings": "プッシュ通知設定",
   "push_subscription_success": "サブスクリプションに成功しました。",
   "push_subscription_failed": "サブスクリプションに失敗しました。",
@@ -334,5 +334,11 @@
   "new_login": "新規ログイン",
   "profile_main_account": "メイン",
   "create_new_profile": "プロファイルを作成",
-  "delete_account": "アカウントを削除"
+  "delete_account": "アカウントを削除",
+  "push_toggle_switch_this_account": "このアカウントのプッシュ通知を有効にする",
+  "reply": "返信",
+  "like": "いいね",
+  "repost": "リポスト",
+  "quote": "引用",
+  "mention": "メンション"
 }

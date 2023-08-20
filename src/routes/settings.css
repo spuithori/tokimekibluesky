@@ -68,6 +68,16 @@ input[type=checkbox]{
         font-size: 13px;
         color: var(--text-color-3);
     }
+
+    &--column {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+
+        .settings-group__name {
+            margin-bottom: 0;
+        }
+    }
 }
 
 .settings-title {

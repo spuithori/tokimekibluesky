@@ -15,12 +15,21 @@ async function resume(account) {
                 session: account.session,
                 did: sess.did,
                 service: account.service,
+                avatar: account.avatar || '',
                 following: account.following || undefined,
+                notification: account.notification || [],
             })
         }
     })
 
     ag.resumeSession(account.session);
+
+    const res = await ag.api.app.bsky.actor.getProfile({actor: account.did});
+    const avatar = res.data.avatar || '';
+
+    const aid = await accountsDb.accounts.update(account.id, {
+        avatar: avatar
+    })
 
     return {
         id: account.id,
@@ -37,8 +46,6 @@ export async function resumeAccountsSession (accounts) {
     }
 
     const results = await Promise.all(promises);
-
-    console.log(results);
 
     results.forEach(result => {
         //agentsArray = [...agentsArray, new Agent(result)];

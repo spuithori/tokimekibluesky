@@ -1,9 +1,8 @@
 <script lang="ts">
-  import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";
   import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
-  import {agent, agents, columns} from "$lib/stores";
+  import {agent, agents, columns, cursors, timelines} from "$lib/stores";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {_} from "svelte-i18n";
   import toast from "svelte-french-toast";
@@ -77,6 +76,8 @@
   function handleColumnModalClose(event) {
       if (isCurrent) {
           columns.set(event.detail.columns);
+          $timelines = [];
+          $cursors = [];
       }
 
       isColumnModalOpen = false;

@@ -63,6 +63,8 @@ export interface Profile {
     columns: any[],
 }
 
+type notificationCategories = 'reply' | 'like' | 'repost' | 'follow' | 'quote'  | 'mention';
+
 export interface Account {
     id?: number,
     service: string,
@@ -73,7 +75,8 @@ export interface Account {
     following?: {
         indexedAt: string,
         data: string[],
-    }
+    },
+    notification?: notificationCategories[],
 }
 
 export class AccountSubClassDexie extends Dexie {
@@ -85,7 +88,7 @@ export class AccountSubClassDexie extends Dexie {
 
         this.version(1).stores({
             profiles: '++id, name, createdAt, *accounts, primary, *columns',
-            accounts: '++id, service, session, &did, avatar, name, following',
+            accounts: '++id, service, session, &did, avatar, name, following, notification',
         });
     }
 }

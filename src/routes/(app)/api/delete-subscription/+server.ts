@@ -9,7 +9,7 @@ const supabase = createClient(
 async function subscription(subscription) {
     const deleteDatabase = async () => {
         const { error } = await supabase
-            .from('notification')
+            .from('v2-notification')
             .delete()
             .eq('subscription', JSON.stringify(subscription));
 

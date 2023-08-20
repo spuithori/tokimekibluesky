@@ -121,7 +121,9 @@
                 }
             }
 
-            notificationCount.set(await _agent.getNotificationCount());
+            if (_agent.did() === $agent.did()) {
+                notificationCount.set(await _agent.getNotificationCount());
+            }
         } else if (column.algorithm.type === 'bookmark') {
             $timelines[index] = [];
             $cursors[index] = 0;

@@ -1,5 +1,6 @@
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
+import {accountsDb} from "./lib/db";
 
 declare let self: ServiceWorkerGlobalScope
 
@@ -7,7 +8,7 @@ cleanupOutdatedCaches();
 
 precacheAndRoute(self.__WB_MANIFEST);
 
-type rawType = 'app.bsky.feed.like' | 'app.bsky.graph.follow' | 'app.bsky.feed.post' | 'unknown';
+type rawType = 'like' | 'follow' | 'reply' | 'repost' | 'quote' | 'mention' | 'unknown';
 
 function chooseBadge(rawType: rawType) {
     const badgeImage = {
@@ -15,42 +16,65 @@ function chooseBadge(rawType: rawType) {
         like: '/badge-like.png',
         follow: '/badge-follow.png',
         reply: '/badge-reply.png',
+        repost: '/badge-repost.png',
+        mention: '/badge-mention.png',
+        quote: '/badge-quote.png',
     }
 
     switch (rawType) {
-        case 'app.bsky.feed.like':
+        case 'like':
             return badgeImage.like;
-        case 'app.bsky.graph.follow':
+        case 'follow':
             return badgeImage.follow;
-        case 'app.bsky.feed.post':
+        case 'reply':
             return badgeImage.reply;
+        case 'repost':
+            return badgeImage.repost;
+        case 'quote':
+            return badgeImage.quote;
+        case 'mention':
+            return badgeImage.mention;
         default:
             return badgeImage.default;
     }
 }
 
-self.addEventListener('push', (event) => {
+self.addEventListener('push', async (event) => {
     if (!self.Notification || self.Notification.permission !== 'granted') {
         return;
     }
 
     if (event.data) {
         const data = JSON.parse(event.data.text());
-        const badge = chooseBadge(data.rawType);
+        const badge = chooseBadge(data.type);
 
-        event.waitUntil(
-            self.registration.showNotification(data.from + ' ' + data.type, {
-                body: data.text,
-                badge: badge,
-                icon: '/swbadge.png',
-                actions: [
-                    {
-                        action: 'open',
-                        title: 'Open'
-                    }
-                ]
-            })
-        );
+        const account = await accountsDb.accounts
+            .where('did')
+            .equals(data.did)
+            .first();
+
+        if (!account) {
+            return;
+        }
+
+        const categories = account.notification || [];
+        const avatar = account.avatar || '/swbadge.png';
+
+        if (!categories.includes(data.type)) {
+            return;
+        }
+
+        await self.registration.showNotification(data.from + ' ' + data.title, {
+            body: data.text,
+            badge: badge,
+            icon: avatar,
+            actions: [
+                {
+                    action: 'open',
+                    title: 'Open'
+                }
+            ]
+        })
     }
 });
 
