@@ -23,7 +23,7 @@ export async function unsub() {
     }
 }
 
-export async function sub(did) {
+export async function sub(did, locale) {
     try {
         const permission = await Notification.requestPermission();
 
@@ -41,6 +41,7 @@ export async function sub(did) {
                 body: JSON.stringify({
                     subscription: subscription,
                     did: did,
+                    language: locale,
                 })
             });
         } else  {

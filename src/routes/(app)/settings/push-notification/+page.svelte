@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import {_, locale} from 'svelte-i18n';
     import { onMount } from 'svelte';
     import { sub, unsub, isSubscribe } from '$lib/pushSubscription';
     import toast from 'svelte-french-toast'
@@ -24,7 +24,7 @@
 
         if (isChecked) {
             try {
-                await sub(enableAccounts);
+                await sub(enableAccounts, $locale);
                 toast.success($_('push_subscription_success'));
                 isChecked = true;
             } catch (e) {
@@ -50,7 +50,7 @@
 
         try {
             if (isChecked) {
-                await sub(enableAccounts);
+                await sub(enableAccounts, $locale);
                 toast.success($_('push_subscription_success'));
             }
 
