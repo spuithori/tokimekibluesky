@@ -85,7 +85,6 @@
 
     const currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
     const profile = profiles.find(profile => profile.id === currentProfile);
-    console.log(profile);
     const accounts = await accountsDb.accounts
         .where('id')
         .anyOf(profile.accounts)
@@ -112,10 +111,11 @@
     }
 
     let agentsMap = await resumeAccountsSession(accounts);
+    let pid;
 
     if (!profile.primary) {
         try {
-            const id = await accountsDb.profiles.update(profile.id, {
+            pid = await accountsDb.profiles.update(profile.id, {
                 primary: accounts[0].id,
             });
         } catch (e) {
@@ -124,7 +124,7 @@
     }
 
     agents.set(agentsMap);
-    agent.set($agents.get(profile.primary));
+    agent.set($agents.get(profile.primary || pid));
 
     loaded = true;
   }
@@ -215,7 +215,7 @@
     class:compact={$settings.design?.postsLayout === 'compact'}
     class:minimum={$settings.design?.postsLayout === 'minimum'}
 >
-  <Header />
+  <Header></Header>
 
   {#if ($settings.design?.layout === 'decks' && $page.url.pathname === '/') && $settings.design?.publishPosition !== 'left'}
     <HeaderCollapseButton></HeaderCollapseButton>

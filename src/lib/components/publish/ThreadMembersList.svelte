@@ -43,7 +43,7 @@
       {#each members as member}
         <div class="thread-members-list__item">
           <Avatar href="/profile/{member.handle}" avatar={member.avatar}
-                  handle={member.handle}></Avatar>
+                  handle={member.handle} {_agent}></Avatar>
         </div>
       {/each}
     </div>
