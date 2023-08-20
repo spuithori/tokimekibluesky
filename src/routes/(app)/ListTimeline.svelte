@@ -5,6 +5,7 @@
     import { parseISO } from 'date-fns';
     import MediaTimelineItem from "./MediaTimelineItem.svelte";
 
+    export let _agent = $agent;
     export let column;
     export let index;
 
@@ -29,7 +30,7 @@
     })
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        const ress = await $agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm, actors: actors});
+        const ress = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm, actors: actors});
 
         ress.forEach((res, index) => {
             feedPool.push(...res.data.feed);

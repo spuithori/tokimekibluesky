@@ -6,6 +6,7 @@
     import { db } from '$lib/db';
     import { liveQuery } from 'dexie';
 
+    export let _agent = $agent;
     export let column;
     export let index;
     let initialLoadFinished = false;
@@ -59,7 +60,7 @@
                 return false;
             }
 
-            const res = $agent.getTimeline({algorithm: column.algorithm, uris: uris})
+            const res = _agent.getTimeline({algorithm: column.algorithm, uris: uris})
                 .then(res => {
                     const posts = res.data.posts.map(post => {
                         const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
@@ -75,7 +76,7 @@
 
         if (feeds?.length) {
             const uris = feeds.map(feed => feed.uri);
-            const res = await $agent.getTimeline({algorithm: column.algorithm, uris: uris});
+            const res = await _agent.getTimeline({algorithm: column.algorithm, uris: uris});
 
             const posts = res.data.posts.map(post => {
                 const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
