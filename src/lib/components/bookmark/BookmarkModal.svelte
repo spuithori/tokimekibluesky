@@ -74,6 +74,7 @@
 <div class="bookmark-modal">
   <div class="bookmark-modal-contents">
     <h2 class="bookmark-modal-title">{$_('bookmark_add_management')}</h2>
+    <p class="modal-description">{$_('bookmark_add_description')}</p>
 
     <dl class="bookmark-modal-group">
       <dt class="bookmark-modal-group__name">
@@ -152,7 +153,7 @@
         font-weight: 900;
         font-size: 20px;
         line-height: 1.5;
-        margin-bottom: 26px;
+        margin-bottom: 10px;
     }
 
     .bookmark-modal-group {

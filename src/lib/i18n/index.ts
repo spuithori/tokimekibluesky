@@ -15,6 +15,9 @@ register('ja', () => import('./locales/languageMap/ja.json'));
 register('en', () => import('./locales/languageMap/en.json'));
 register('ko', () => import('./locales/languageMap/ko-kr.json'));
 
+register('ja', () => import('./locales/labeling/ja.json'));
+register('en', () => import('./locales/labeling/en.json'));
+
 init({
     fallbackLocale: defaultLocale,
     initialLocale: browser ? window.navigator.language : defaultLocale,

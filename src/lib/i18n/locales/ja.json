@@ -153,7 +153,7 @@
   "spam": "スパム",
   "suggestive": "挑発的なセクシー",
   "go_settings": "設定する",
-  "create_bookmark": "フォルダを作成",
+  "create_bookmark": "ブクマフォルダを作成",
   "bookmark_add_management": "ブックマークフォルダの作成・管理",
   "bookmark_name": "タイトル",
   "bookmark_description": "説明",
@@ -315,9 +315,6 @@
   "self_labels_description_1": "すべてのユーザーに警告表示されます。",
   "self_labels_description_2": "公式アプリなど一部のクライアントでは、画像のみ隠されます。",
   "self_labels_description_3": "公式アプリなど一部のクライアントでは適用されない可能性があります。",
-  "labeling_spoiler": "ネタバレ",
-  "labeling_!warn": "警告ラベル",
-  "labeling_porn": "性的コンテンツ",
   "auto_scroll_speed": "自動スクロールの速度",
   "auto_scroll_speed_auto": "自動",
   "auto_scroll_speed_slow": "おそい",
@@ -345,5 +342,11 @@
   "column_account_missing_text_1": "{name} が使用中のプロファイルに追加されていません。プロファイル設定から追加するか、カラムを削除してください。",
   "login_duplicate_account": "追加済みのアカウントです",
   "decks_empty_title": "カラムが空です",
-  "decks_empty_text": "追加しよう"
+  "decks_empty_text": "追加しよう",
+  "accounts_management": "アカウント管理",
+  "bookmark_add_description": "ブックマークはブラウザにローカル保存されます。キャッシュクリア等でデータが失われる可能性があります。",
+  "list_add_description": "リストはブラウザにローカル保存されます。キャッシュクリア等でデータが失われる可能性があります。",
+  "accounts_management_title": "アカウント管理",
+  "no_account_in_profile": "プロファイルにアカウントが設定されていません",
+  "no_account_in_profile_description": "プロファイルには1つ以上のアカウントを追加する必要があります。"
 }

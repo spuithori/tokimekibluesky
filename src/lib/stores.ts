@@ -86,7 +86,7 @@ const defaultSettings = {
         disableAlgorithm: false,
     },
     design: {
-        theme: 'royalblue',
+        theme: 'jade',
         nonoto: false,
         darkmode: false,
         absoluteTime: false,

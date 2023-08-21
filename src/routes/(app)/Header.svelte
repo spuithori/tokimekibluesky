@@ -3,7 +3,7 @@
     import Notification from './Notification.svelte';
     import { fade, fly } from 'svelte/transition';
     import { onMount } from 'svelte';
-    import { agent, notificationCount, settings } from '$lib/stores';
+    import {agent, agents, notificationCount, settings} from '$lib/stores';
     import {afterNavigate, goto} from '$app/navigation';
     import Settings from './Settings.svelte';
     import { clickOutside } from '$lib/clickOutSide';

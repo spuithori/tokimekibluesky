@@ -137,6 +137,7 @@
 <div class="list-modal">
   <div class="list-modal-contents">
     <h2 class="list-modal-title">{$_('list_add_management')}</h2>
+    <p class="modal-description">{$_('list_add_description')}</p>
 
     <div class="list-modal-column">
       <div class="list-modal-row">
@@ -289,7 +290,7 @@
       font-weight: 900;
       font-size: 20px;
       line-height: 1.5;
-      margin-bottom: 26px;
+      margin-bottom: 10px;
   }
 
   .list-modal-group {

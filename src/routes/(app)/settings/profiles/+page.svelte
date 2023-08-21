@@ -3,6 +3,9 @@
     import { liveQuery } from 'dexie';
     import {accountsDb} from '$lib/db';
     import AcpProfileCard from "$lib/components/acp/AcpProfileCard.svelte";
+    import AccountsManagementModal from "$lib/components/acp/AccountsManagementModal.svelte";
+
+    let isAccountManagementModalOpen = false;
 
     let accounts = liveQuery(
         () => accountsDb.accounts.toArray()
@@ -23,6 +26,10 @@
             name: "New Profile",
             primary: 0
         })
+    }
+
+    function handleAccountsManagementModalClose() {
+        isAccountManagementModalOpen = false;
     }
 </script>
 
@@ -56,11 +63,15 @@
       </div>
 
       <div class="acp-management-button">
-        <button class="text-button">{$_('accounts_management')}</button>
+        <button class="text-button" on:click={() => {isAccountManagementModalOpen = true}}>{$_('accounts_management')}</button>
       </div>
     </div>
   </div>
 </div>
+
+{#if isAccountManagementModalOpen}
+  <AccountsManagementModal on:close={handleAccountsManagementModalClose}></AccountsManagementModal>
+{/if}
 
 <style lang="postcss">
   .acp-add-button {
@@ -70,6 +81,6 @@
 
   .acp-management-button {
       text-align: center;
-      margin-top: 10px;
+      margin-top: 15px;
   }
 </style>

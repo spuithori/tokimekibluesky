@@ -124,7 +124,7 @@
     }
 
     agents.set(agentsMap);
-    agent.set($agents.get(profile.primary || pid));
+    agent.set($agents.get(profile.primary || accounts[0].id));
 
     loaded = true;
   }

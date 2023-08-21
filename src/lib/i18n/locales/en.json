@@ -314,9 +314,6 @@
   "self_labels_description_1": "All users will be warned.",
   "self_labels_description_2": "In some clients, such as official apps, only the image is hidden.",
   "self_labels_description_3": "This may not apply to some clients, such as official apps.",
-  "labeling_spoiler": "Spoiler",
-  "labeling_!warn": "Warning",
-  "labeling_porn": "Porn",
   "auto_scroll_speed": "Auto scroll speed",
   "auto_scroll_speed_auto": "Auto",
   "auto_scroll_speed_slow": "Slow",
@@ -344,5 +341,11 @@
   "column_account_missing_text_1": "{name} has not been added to the profile in use. Please add it from the profile settings or delete the column.",
   "login_duplicate_account": "Account already added.",
   "decks_empty_title": "Column is empty",
-  "decks_empty_text": "Let's add"
+  "decks_empty_text": "Let's add",
+  "accounts_management": "Accounts management",
+  "bookmark_add_description": "Bookmarks are saved locally in the browser. Data may be lost by clearing the cache, etc.",
+  "list_add_description": "Lists are stored locally in the browser. Data may be lost by clearing the cache, etc.",
+  "accounts_management_title": "Accounts management",
+  "no_account_in_profile": "No account is set up in the profile",
+  "no_account_in_profile_description": "One or more accounts must be added to the profile."
 }
