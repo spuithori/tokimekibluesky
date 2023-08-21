@@ -17,7 +17,7 @@ async function resume(account) {
                 service: account.service,
                 avatar: account.avatar || '',
                 following: account.following || undefined,
-                notification: account.notification || [],
+                notification: account.notification || ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
             })
         }
     })

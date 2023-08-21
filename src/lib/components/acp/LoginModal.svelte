@@ -3,6 +3,7 @@ import {_} from "svelte-i18n";
 import { AtpAgent, AtpSessionData } from "@atproto/api";
 import { accountsDb } from "$lib/db";
 import { createEventDispatcher } from "svelte";
+import toast from "svelte-french-toast";
 const dispatch = createEventDispatcher();
 
 let identifier = '';
@@ -23,13 +24,22 @@ async function login() {
             session: agent.session as AtpSessionData,
             did: agent.session?.did || '',
             service: service,
+            avatar: '',
+            following: undefined,
+            notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
         });
 
         dispatch('success', {
             id: id,
         });
     } catch (e) {
-        errorMessage = e.message;
+        //errorMessage = e.message;
+
+        if (e.name === 'ConstraintError') {
+            toast.error($_('login_duplicate_account'));
+        } else {
+            toast.error(e.message);
+        }
     }
 }
 

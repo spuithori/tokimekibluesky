@@ -342,5 +342,6 @@
   "quote": "引用",
   "mention": "メンション",
   "profile_account_missing_title": "プロファイルにアカウントが設定されていません",
-  "column_account_missing_text_1": "{name} が使用中のプロファイルに追加されていません。プロファイル設定から追加するか、カラムを削除してください。"
+  "column_account_missing_text_1": "{name} が使用中のプロファイルに追加されていません。プロファイル設定から追加するか、カラムを削除してください。",
+  "login_duplicate_account": "追加済みのアカウントです"
 }

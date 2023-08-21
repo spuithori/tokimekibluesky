@@ -10,6 +10,7 @@
   import {modifyAgents} from "$lib/modifyAgents";
   import AcpProfileNameModal from "$lib/components/acp/AcpProfileNameModal.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import {resumeAccountsSession} from "$lib/resumeAccountsSession";
 
   export let profile;
   export let isCurrent = false;
@@ -17,6 +18,8 @@
   let isMenuOpen = false;
   let isColumnModalOpen = false;
   let isNameModalOpen = false;
+  let _agents;
+  let _agent;
 
   async function handleSuccess(event) {
       try {
@@ -89,11 +92,37 @@
       }
   }
 
+  async function handleColumnModalOpen(event) {
+      if (!isCurrent) {
+          _agents = $agents;
+          _agent = $agent;
+
+          const accounts = await accountsDb.accounts
+              .where('id')
+              .anyOf(profile.accounts)
+              .toArray();
+          const agentsMap = await resumeAccountsSession(accounts);
+
+          agents.set(agentsMap);
+          agent.set($agents.get(profile.primary || profile.accounts[0]));
+      }
+
+      if (!$agent) {
+          toast.error($_('profile_accounts_missing'));
+          return false;
+      }
+
+      isColumnModalOpen = true
+  }
+
   function handleColumnModalClose(event) {
       if (isCurrent) {
           columns.set(event.detail.columns);
           $timelines = [];
           $cursors = [];
+      } else {
+          $agents = _agents;
+          $agent = _agent;
       }
 
       isColumnModalOpen = false;
@@ -133,12 +162,14 @@
           </li>
         {/if}
 
-        <li class="timeline-menu-list__item">
-          <button class="timeline-menu-list__button" on:click={() => {isColumnModalOpen = true}}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-columns"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="12" x2="12" y1="3" y2="21"/></svg>
-            <span>{$_('column_settings')}</span>
-          </button>
-        </li>
+        {#if profile.accounts.length}
+          <li class="timeline-menu-list__item">
+            <button class="timeline-menu-list__button" on:click={handleColumnModalOpen}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-columns"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="12" x2="12" y1="3" y2="21"/></svg>
+              <span>{$_('column_settings')}</span>
+            </button>
+          </li>
+        {/if}
 
         <li class="timeline-menu-list__item">
           <button class="timeline-menu-list__button" on:click={() => {isNameModalOpen = true}}>
@@ -149,7 +180,6 @@
       </ul>
     </Menu>
   </div>
-
 
   {#if (profile)}
     <div class="acp-accounts">

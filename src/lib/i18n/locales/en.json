@@ -341,5 +341,6 @@
   "quote": "Quote",
   "mention": "Mention",
   "profile_account_missing_title": "No account is set up in the profile",
-  "column_account_missing_text_1": "{name} has not been added to the profile in use. Please add it from the profile settings or delete the column."
+  "column_account_missing_text_1": "{name} has not been added to the profile in use. Please add it from the profile settings or delete the column.",
+  "login_duplicate_account": "Account already added."
 }
