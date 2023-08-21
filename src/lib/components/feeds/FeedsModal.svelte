@@ -6,6 +6,7 @@
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
     const dispatch = createEventDispatcher();
 
+    export let _agent = $agent;
     let popularFeeds = [];
     let savedFeeds = [];
     let tokimekiFeeds = [];
@@ -25,7 +26,7 @@
     }
 
     async function getSavedFeeds () {
-        const preferenceRes = await $agent.agent.api.app.bsky.actor.getPreferences()
+        const preferenceRes = await _agent.agent.api.app.bsky.actor.getPreferences()
         const preference = preferenceRes.data.preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')
         savedFeeds = preference[0]?.saved || [];
         console.log(savedFeeds)
@@ -39,13 +40,13 @@
     onMount(async () => {
         await getSavedFeeds();
 
-        if ($agent.agent.service.host === 'bsky.social') {
-            const popularRes = await $agent.agent.api.app.bsky.unspecced.getPopularFeedGenerators();
+        if (_agent.agent.service.host === 'bsky.social') {
+            const popularRes = await _agent.agent.api.app.bsky.unspecced.getPopularFeedGenerators();
             popularFeeds = popularRes.data.feeds;
             console.log(popularFeeds)
         }
         
-        const tokimekiRes = await $agent.agent.api.app.bsky.feed.getActorFeeds({actor: $agent.agent.service.host === 'bsky.social' ? 'holybea.social' : 'holybea.nextsky.tokimeki.blue'});
+        const tokimekiRes = await _agent.agent.api.app.bsky.feed.getActorFeeds({actor: _agent.agent.service.host === 'bsky.social' ? 'holybea.social' : 'holybea.nextsky.tokimeki.blue'});
         tokimekiFeeds = tokimekiRes.data.feeds;
     })
 </script>
@@ -59,18 +60,18 @@
 
       <div class="feeds-list">
         {#each tokimekiFeeds as feed}
-          <FeedsItem feed={feed} subscribed={isSaved(feed)} on:close></FeedsItem>
+          <FeedsItem feed={feed} subscribed={isSaved(feed)} {_agent} on:close></FeedsItem>
         {/each}
       </div>
     </div>
 
-    {#if ($agent.agent.service.host === 'bsky.social')}
+    {#if (_agent.agent.service.host === 'bsky.social')}
       <div class="feeds-group">
         <h3 class="feeds-group-title">{$_('popular_feeds')}</h3>
 
         <div class="feeds-list">
           {#each popularFeeds as feed}
-            <FeedsItem feed={feed} subscribed={isSaved(feed)} on:close></FeedsItem>
+            <FeedsItem feed={feed} subscribed={isSaved(feed)} {_agent} on:close></FeedsItem>
           {/each}
         </div>
       </div>

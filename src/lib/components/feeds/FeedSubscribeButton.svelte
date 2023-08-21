@@ -2,13 +2,14 @@
     import { _ } from 'svelte-i18n';
     import {agent, preferences} from "$lib/stores";
 
+    export let _agent = $agent;
     export let feed;
     export let subscribed = false;
 
     let isProcessing = false;
 
     async function refreshSubscribe() {
-        const res = await $agent.agent.api.app.bsky.actor.getPreferences();
+        const res = await _agent.agent.api.app.bsky.actor.getPreferences();
         const getPreferences = res.data.preferences;
         const savedFeeds = getPreferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')[0]?.saved;
         subscribed = savedFeeds.includes(feed.uri);
@@ -18,7 +19,7 @@
 
     async function subscribe() {
         isProcessing = true;
-        const res = await $agent.agent.api.app.bsky.actor.getPreferences();
+        const res = await _agent.agent.api.app.bsky.actor.getPreferences();
         const preferences = res.data.preferences;
         const newPreferences = preferences.map(preference => {
             if (preference.$type === 'app.bsky.actor.defs#savedFeedsPref' && preference.saved) {
@@ -38,7 +39,7 @@
         console.log(newPreferences)
 
         try {
-            await $agent.agent.api.app.bsky.actor.putPreferences({preferences: newPreferences})
+            await _agent.agent.api.app.bsky.actor.putPreferences({preferences: newPreferences})
             await refreshSubscribe();
             isProcessing = false;
         } catch (e) {
@@ -49,7 +50,7 @@
 
     async function unsubscribe() {
         isProcessing = true;
-        const res = await $agent.agent.api.app.bsky.actor.getPreferences();
+        const res = await _agent.agent.api.app.bsky.actor.getPreferences();
         const preferences = res.data.preferences;
         const newPreferences = preferences.map(preference => {
             if (preference.$type === 'app.bsky.actor.defs#savedFeedsPref' && preference.saved) {
@@ -59,7 +60,7 @@
         });
 
         try {
-            await $agent.agent.api.app.bsky.actor.putPreferences({preferences: newPreferences})
+            await _agent.agent.api.app.bsky.actor.putPreferences({preferences: newPreferences})
             await refreshSubscribe();
             isProcessing = false;
         } catch (e) {

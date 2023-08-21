@@ -110,8 +110,8 @@
       });
   }
 
-  function handleFeedsClose() {
-      updateFeeds();
+  async function handleFeedsClose() {
+      await updateFeeds();
   }
 
   async function updateFeeds() {
@@ -143,4 +143,4 @@
 </script>
 
 <ColumnListAdder items={allColumns} on:add></ColumnListAdder>
-<FeedsObserver on:close={handleFeedsClose}></FeedsObserver>
+<FeedsObserver on:close={handleFeedsClose} {_agent}></FeedsObserver>

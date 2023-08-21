@@ -4,8 +4,10 @@
   import { _ } from 'svelte-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import { createEventDispatcher } from 'svelte';
+  import {agent} from "$lib/stores";
   const dispatch = createEventDispatcher();
 
+  export let _agent = $agent;
   export let feed;
   export let subscribed = false;
   export let layout = 'default';
@@ -32,7 +34,7 @@
       <p class="feed__text">{feed.description}</p>
 
       <div class="feed__buttons">
-        <FeedSubscribeButton feed={feed} subscribed={subscribed}></FeedSubscribeButton>
+        <FeedSubscribeButton feed={feed} subscribed={subscribed} {_agent}></FeedSubscribeButton>
 
         {#if (layout === 'default')}
          <a href="/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" on:click={setCurrentFeed} class="button button--border button--ss">{$_('feed_show_button')}</a>
@@ -47,7 +49,7 @@
 
   {#if isCreatorOpen}
     <div class="feed-creator" transition:slide={{ duration: 200 }}>
-      <UserItem user={feed.creator} layout={'noborder'}></UserItem>
+      <UserItem user={feed.creator} layout={'noborder'} {_agent}></UserItem>
     </div>
   {/if}
 </section>
