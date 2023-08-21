@@ -11,8 +11,6 @@
 
   $: {
       if ($profile) {
-          console.log($profile);
-
           if (!$profile.accounts.length) {
               profileStatus.set(1);
           } else {

@@ -40,7 +40,7 @@
 
     $: {
         let labelsAlt = new Map();
-        labelsAlt.set('nsfw', ['porn']);
+        labelsAlt.set('nsfw', ['porn','sexual']);
 
         labelsAlt.forEach((value, key) => {
             value.forEach(item => {
