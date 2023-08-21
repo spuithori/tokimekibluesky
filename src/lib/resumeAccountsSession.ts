@@ -23,18 +23,21 @@ async function resume(account) {
     })
 
     ag.resumeSession(account.session);
+    getAvatar(ag, account);
 
+    return {
+        id: account.id,
+        agent: ag,
+    };
+}
+
+async function getAvatar(ag, account) {
     const res = await ag.api.app.bsky.actor.getProfile({actor: account.did});
     const avatar = res.data.avatar || '';
 
     const aid = await accountsDb.accounts.update(account.id, {
         avatar: avatar
     })
-
-    return {
-        id: account.id,
-        agent: ag,
-    };
 }
 
 export async function resumeAccountsSession (accounts) {

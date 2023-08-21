@@ -58,8 +58,8 @@
 
   <div class="settings-wrap">
     <aside class="sample-post" tabindex="-1">
-      <p>{$_('sample')}</p>
-      <TimelineItem data={samplePost}></TimelineItem>
+      <!-- <p>{$_('sample')}</p>
+     <TimelineItem data={samplePost}></TimelineItem> -->
     </aside>
 
     <dl class="settings-group">

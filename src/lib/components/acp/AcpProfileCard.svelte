@@ -2,13 +2,14 @@
   import {accountsDb} from "$lib/db";
   import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
-  import {agent, agents, columns, cursors, timelines} from "$lib/stores";
+  import {agent, agents, columns, cursors, singleColumn, timelines} from "$lib/stores";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {_} from "svelte-i18n";
   import toast from "svelte-french-toast";
   import ColumnModal from "$lib/components/column/ColumnModal.svelte";
   import {modifyAgents} from "$lib/modifyAgents";
   import AcpProfileNameModal from "$lib/components/acp/AcpProfileNameModal.svelte";
+  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 
   export let profile;
   export let isCurrent = false;
@@ -35,6 +36,16 @@
 
   async function changeProfile() {
       localStorage.setItem('currentProfile', profile.id);
+      localStorage.removeItem('singleColumn');
+      singleColumn.set({
+          id: 1,
+          algorithm: {
+              type: 'default',
+              name: 'HOME'
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+      });
       columns.set(profile.columns);
       location.reload();
   }
