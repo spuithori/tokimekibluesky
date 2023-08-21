@@ -3,6 +3,7 @@
     import ColumnModal from "$lib/components/column/ColumnModal.svelte";
     import DeckRow from "./DeckRow.svelte";
     import {accountsDb} from "$lib/db";
+    import {_} from "svelte-i18n";
     let isColumnModalOpen = false;
     let unique = Symbol();
 
@@ -64,11 +65,22 @@
 
 <div class="deck-wrap">
   <div class="deck" class:deck--left-sidebar={$settings.design?.publishPosition === 'left'}>
-    {#key unique}
-      {#each $columns as column, index (column.id)}
-        <DeckRow {column} {index}></DeckRow>
-      {/each}
-    {/key}
+    {#if $columns.length}
+      {#key unique}
+        {#each $columns as column, index (column.id)}
+          <DeckRow {column} {index}></DeckRow>
+        {/each}
+      {/key}
+    {:else}
+      <div class="deck-empty">
+        <div class="deck-empty__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ghost"><path d="M9 10h.01"/><path d="M15 10h.01"/><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/></svg>
+        </div>
+
+        <h2 class="deck-empty__title">{$_('decks_empty_title')}</h2>
+        <p class="deck-empty__text">{$_('decks_empty_text')}</p>
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -180,6 +192,22 @@
 
       &:hover {
           box-shadow: 0 2px 24px rgba(0, 0, 0, .16);
+      }
+  }
+
+  .deck-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      flex: 1;
+      gap: 10px;
+      color: var(--text-color-3);
+
+      &__title {
+          font-size: 24px;
+          letter-spacing: .05em;
       }
   }
 </style>

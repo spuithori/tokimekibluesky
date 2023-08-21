@@ -60,9 +60,7 @@
   <div class="header__wrap">
     <div class="header__me only-pc">
       {#if ($agent)}
-        {#key $agent}
-          <MyProfileBadge></MyProfileBadge>
-        {/key}
+        <MyProfileBadge></MyProfileBadge>
       {/if}
     </div>
 

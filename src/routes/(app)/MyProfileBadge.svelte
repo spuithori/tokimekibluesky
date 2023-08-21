@@ -1,21 +1,28 @@
 <script>
     import { agent } from '$lib/stores';
-    import {onMount} from "svelte";
-    let profile = {};
+    import {liveQuery} from "dexie";
+    import {accountsDb} from "$lib/db";
 
-    onMount(async () => {
-        if ($agent ? $agent.agent : undefined) {
-            profile = await $agent.agent.api.app.bsky.actor.getProfile({actor: $agent.did()});
-            profile = profile.data
-        }
+    $: account = liveQuery(async () => {
+        const account = await accountsDb.accounts
+            .where('did')
+            .equals($agent.did())
+            .first();
+        return account;
     })
 </script>
 
-<div class="my-profile-badge">
-  <a href="/profile/{profile.handle}">
-    <img src="{profile.avatar}" alt="">
-  </a>
-</div>
+{#if $account}
+  <div class="my-profile-badge">
+    {#if $account.session?.handle}
+      <a href="/profile/{$account.session.handle}">
+        <img src="{$account.avatar}" alt="">
+      </a>
+    {:else}
+      <span class="empty-avatar"></span>
+    {/if}
+  </div>
+{/if}
 
 <style lang="postcss">
   .my-profile-badge {
@@ -31,9 +38,16 @@
   }
 
   .my-profile-badge img  {
+      background-color: var(--primary-color);
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: center;
+  }
+
+  .empty-avatar {
+      background-color: var(--primary-color);
+      width: 100%;
+      height: 100%;
   }
 </style>

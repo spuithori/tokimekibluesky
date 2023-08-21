@@ -51,16 +51,25 @@
         {/if}
       </div>
 
-      <div class="acp-add-wrap">
+      <div class="acp-add-button">
         <button class="button" on:click={createProfile}>{$_('create_new_profile')}</button>
+      </div>
+
+      <div class="acp-management-button">
+        <button class="text-button">{$_('accounts_management')}</button>
       </div>
     </div>
   </div>
 </div>
 
 <style lang="postcss">
-  .acp-add-wrap {
+  .acp-add-button {
       margin-top: 20px;
       text-align: center;
+  }
+
+  .acp-management-button {
+      text-align: center;
+      margin-top: 10px;
   }
 </style>

@@ -777,13 +777,15 @@ function handleAgentSelect(event) {
   </div>
 
   <div class="publish-wrap">
-    <div class="publish-form-agents-selector">
-      <AgentsSelector
-          {_agent}
-          isDisabled={isAccountSelectDisabled}
-          on:select={handleAgentSelect}
-      ></AgentsSelector>
-    </div>
+    {#if $agents.size > 1}
+      <div class="publish-form-agents-selector">
+        <AgentsSelector
+            {_agent}
+            isDisabled={isAccountSelectDisabled}
+            on:select={handleAgentSelect}
+        ></AgentsSelector>
+      </div>
+    {/if}
 
     <div class="publish-buttons">
       {#if (publishContent)}
