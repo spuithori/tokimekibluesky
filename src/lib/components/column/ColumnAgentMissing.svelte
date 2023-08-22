@@ -12,7 +12,11 @@
 
   <h1 class="modal-title modal-title--smaller modal-title--center">{$_('profile_account_missing_title')}</h1>
 
-  <p class="modal-text modal-text--center">{$_('column_account_missing_text_1', {values: {name: column.handle}})}</p>
+  {#if column.handle}
+    <p class="modal-text modal-text--center">{$_('column_account_missing_text_1', {values: {name: column.handle}})}</p>
+  {:else}
+    <p class="modal-text modal-text--center">{$_('column_account_missing_text_2')}</p>
+  {/if}
 
   <p class="text-center">
     <a href="/settings/profiles/" class="button">{$_('settings_profiles')}</a>

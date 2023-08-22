@@ -172,7 +172,7 @@
               immediate: true,
               onRegistered(r) {
                  r && setInterval(() => {
-                     r.update()
+                     r.update();
                  }, 20000)
 
                   console.log(`SW Registered`)

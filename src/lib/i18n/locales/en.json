@@ -339,6 +339,7 @@
   "mention": "Mention",
   "profile_account_missing_title": "No account is set up in the profile",
   "column_account_missing_text_1": "{name} has not been added to the profile in use. Please add it from the profile settings or delete the column.",
+  "column_account_missing_text_2": "Unknown handle column. This column is no longer available due to an update, please remove and re-add.",
   "login_duplicate_account": "Account already added.",
   "decks_empty_title": "Column is empty",
   "decks_empty_text": "Let's add",
