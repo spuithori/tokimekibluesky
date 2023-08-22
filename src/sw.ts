@@ -39,42 +39,47 @@ function chooseBadge(rawType: rawType) {
     }
 }
 
-self.addEventListener('push', async (event) => {
+async function execNotification(data) {
+    const badge = chooseBadge(data.type);
+
+    const account = await accountsDb.accounts
+        .where('did')
+        .equals(data.did)
+        .first();
+
+    if (!account) {
+        return;
+    }
+
+    const categories = account.notification || [];
+    const avatar = account.avatar || '/swbadge.png';
+
+    if (!categories.includes(data.type)) {
+        return;
+    }
+
+    self.registration.showNotification(data.from + ' ' + data.title, {
+        body: data.text,
+        badge: badge,
+        icon: avatar,
+        actions: [
+            {
+                action: 'open',
+                title: 'Open'
+            }
+        ]
+    })
+}
+
+self.addEventListener('push', (event) => {
     if (!self.Notification || self.Notification.permission !== 'granted') {
         return;
     }
 
     if (event.data) {
         const data = JSON.parse(event.data.text());
-        const badge = chooseBadge(data.type);
 
-        const account = await accountsDb.accounts
-            .where('did')
-            .equals(data.did)
-            .first();
-
-        if (!account) {
-            return;
-        }
-
-        const categories = account.notification || [];
-        const avatar = account.avatar || '/swbadge.png';
-
-        if (!categories.includes(data.type)) {
-            return;
-        }
-
-        await self.registration.showNotification(data.from + ' ' + data.title, {
-            body: data.text,
-            badge: badge,
-            icon: avatar,
-            actions: [
-                {
-                    action: 'open',
-                    title: 'Open'
-                }
-            ]
-        })
+        event.waitUntil(execNotification(data));
     }
 });
 
