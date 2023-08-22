@@ -56,7 +56,7 @@
       border-radius: 10px 10px 0 0;
       box-shadow: 0 -1px 6px rgba(61, 120, 209, .09);
       background-color: var(--bg-color-1);
-      z-index: 2;
+      z-index: 12;
 
       @media (min-width: 767px) {
           display: none;
@@ -100,7 +100,7 @@
       right: 11px;
       bottom: 11px;
       box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
-      z-index: 1;
+      z-index: 11;
 
       @media (min-width: 767px) {
           display: none;

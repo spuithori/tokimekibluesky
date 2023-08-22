@@ -1,6 +1,7 @@
 {
   "labeling_spoiler": "ネタバレ",
   "labeling_!warn": "警告ラベル",
-  "labeling_porn": "性的コンテンツ",
-  "labeling_sexual": "性的コンテンツ"
+  "labeling_porn": "性的コンテンツ（ポルノ）",
+  "labeling_sexual": "性的コンテンツ（セクシャル）",
+  "labeling_nudity": "性的コンテンツ（ヌード）"
 }

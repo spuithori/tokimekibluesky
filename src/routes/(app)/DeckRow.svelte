@@ -114,7 +114,7 @@
             position: sticky;
             top: 36px;
             background-color: var(--bg-color-1);
-            z-index: 10;
+            z-index: 21;
             border-radius: 10px 10px 0 0;
             letter-spacing: .025em;
             cursor: pointer;

@@ -95,7 +95,7 @@
     opacity: 1;
     visibility: visible;
     transition: all .25s ease-in-out;
-    z-index: 10;
+    z-index: 21;
     border: 2px solid var(--primary-color);
 
     @media (max-width: 767px) {
@@ -106,6 +106,7 @@
         width: 100px;
         border: none;
         background-color: var(--primary-color);
+        z-index: 20;
 
         path {
             fill: #fff;
