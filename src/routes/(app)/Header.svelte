@@ -92,7 +92,7 @@
              on:outclick={() => (isSettingsOpen = false)}
              transition:fly="{{ y: 30, duration: 250 }}"
         >
-          <Settings on:close={() => (isSettingsOpen = false)}></Settings>
+          <Settings on:close={() => (isSettingsOpen = false)} on:reload></Settings>
         </div>
       {/if}
     </div>
@@ -329,6 +329,7 @@
 
       @media (max-width: 767px) {
           right: 20px;
+          left: 0;
       }
   }
 

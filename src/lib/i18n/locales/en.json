@@ -348,5 +348,6 @@
   "list_add_description": "Lists are stored locally in the browser. Data may be lost by clearing the cache, etc.",
   "accounts_management_title": "Accounts management",
   "no_account_in_profile": "No account is set up in the profile",
-  "no_account_in_profile_description": "One or more accounts must be added to the profile."
+  "no_account_in_profile_description": "One or more accounts must be added to the profile.",
+  "profiles_and_accounts_management": "Profiles and Accounts"
 }

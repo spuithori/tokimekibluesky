@@ -165,6 +165,10 @@
       }
   })
 
+  function handleReload() {
+      loaded = false;
+  }
+
   onMount(async() => {
       if (pwaInfo) {
           const { registerSW } = await import('virtual:pwa-register')
@@ -215,7 +219,7 @@
     class:compact={$settings.design?.postsLayout === 'compact'}
     class:minimum={$settings.design?.postsLayout === 'minimum'}
 >
-  <Header></Header>
+  <Header on:reload={handleReload}></Header>
 
   {#if ($settings.design?.layout === 'decks' && $page.url.pathname === '/') && $settings.design?.publishPosition !== 'left'}
     <HeaderCollapseButton></HeaderCollapseButton>

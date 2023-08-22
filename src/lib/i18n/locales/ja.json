@@ -349,5 +349,6 @@
   "list_add_description": "リストはブラウザにローカル保存されます。キャッシュクリア等でデータが失われる可能性があります。",
   "accounts_management_title": "アカウント管理",
   "no_account_in_profile": "プロファイルにアカウントが設定されていません",
-  "no_account_in_profile_description": "プロファイルには1つ以上のアカウントを追加する必要があります。"
+  "no_account_in_profile_description": "プロファイルには1つ以上のアカウントを追加する必要があります。",
+  "profiles_and_accounts_management": "プロファイルとアカウント管理"
 }
