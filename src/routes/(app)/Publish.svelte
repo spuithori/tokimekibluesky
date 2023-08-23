@@ -516,7 +516,14 @@ function handleDraftUse(event) {
     }
 
     if (draft.replyRef) {
-        replyRef.set(draft.replyRef);
+        if (draft.replyRef.did) {
+            replyRef.set(draft.replyRef);
+        } else {
+            replyRef.set({
+                did: _agent.did(),
+                data: draft.replyRef,
+            })
+        }
     }
 }
 

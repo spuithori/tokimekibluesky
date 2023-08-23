@@ -59,8 +59,12 @@
           <div class="drafts__item">
             <p class="drafts__date">{format(draft.createdAt, 'yyyy-MM-dd HH:mm:ss')}</p>
 
-            {#if draft.replyRef}
+            {#if draft.replyRef?.data}
               <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.data.parent.author.handle} {draft.replyRef?.data.parent.record.text}</p>
+            {/if}
+
+            {#if draft.replyRef?.parent}
+              <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.parent.author.handle} {draft.replyRef?.parent.record.text}</p>
             {/if}
 
             {#if draft.quotePost}
