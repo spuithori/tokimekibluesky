@@ -5,7 +5,7 @@
         notificationCount,
         timelines,
         settings,
-        columns, singleColumn, agents,
+        columns, singleColumn, agents, isImageOpen,
     } from '$lib/stores';
     import RealtimeTimeline from './RealtimeTimeline.svelte';
     import BookmarkTimeline from './BookmarkTimeline.svelte';
@@ -18,6 +18,7 @@
     export let column;
     export let index;
     export let unique;
+    export let isTopScrolling = false;
 
     export let _agent = $agent;
     let isRefreshing = false;
@@ -27,6 +28,16 @@
 
     $: scrolling(column.settings?.autoScroll);
     $: scrollSpeedChange(column.settings?.autoScrollSpeed);
+
+    $: if (isTopScrolling) {
+        clearInterval(scrollId);
+    }
+
+    $: if ($isImageOpen) {
+        clearInterval(scrollId);
+    } else {
+        scrolling(column.settings?.autoScroll);
+    }
 
     onDestroy(() => {
         clearInterval(scrollId);

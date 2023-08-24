@@ -1,7 +1,7 @@
 <script lang="ts">
     // @ts-ignore
     import GLightbox from 'glightbox';
-    import { settings, isDataSaving } from '$lib/stores';
+    import {settings, isDataSaving, isImageOpen} from '$lib/stores';
     import {goto} from "$app/navigation";
     export let images: any[];
 
@@ -22,10 +22,13 @@
 
     function open(index: any) {
         gl.openAt(index);
+        isImageOpen.set(true);
         goto('#open', {noScroll: true});
     }
 
     gl.on('close', () => {
+        isImageOpen.set(false);
+
         if (window.location.hash === '#open') {
           history.back();
         }

@@ -14,13 +14,20 @@
     let _agent = uniqueAgent || $agent;
     let isSettingsOpen = false;
     let unique = Symbol();
+    let isTopScrolling;
 
     function handleHeaderClick(el) {
+        isTopScrolling = true;
+
         el.scroll({
             top: 0,
             left: 0,
             behavior: 'smooth',
-        })
+        });
+
+        setTimeout(() => {
+            isTopScrolling = false;
+        }, 1000);
     }
 
     function handleSettingsClick() {
@@ -55,6 +62,7 @@
                             column={column}
                             index={index}
                             {_agent}
+                            {isTopScrolling}
                     ></TimelineSelector>
                 {/if}
             </div>

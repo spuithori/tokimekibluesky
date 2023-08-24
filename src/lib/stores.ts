@@ -171,3 +171,5 @@ export const isAfterReload = writable(true);
 export const changedFollowData = writable(undefined);
 
 export const profileStatus = writable<number>(0);
+
+export const isImageOpen = writable(false);
