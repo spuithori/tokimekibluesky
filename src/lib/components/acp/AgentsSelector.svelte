@@ -33,10 +33,12 @@
 
       <div class="agents-selector__choices">
         {#each $agents as [key, agent]}
-          {#if (agent.agent.session.handle !== _agent.agent.session.handle)}
-            <button class="agents-selector__item" on:click={() => {selectAgent(key, agent)}}>
-              <span class="agents-selector__title">@{agent.agent.session.handle}</span>
-            </button>
+          {#if (agent.agent?.session)}
+            {#if (agent.agent.session.handle !== _agent.agent.session.handle)}
+              <button class="agents-selector__item" on:click={() => {selectAgent(key, agent)}}>
+                <span class="agents-selector__title">@{agent.agent.session.handle}</span>
+              </button>
+            {/if}
           {/if}
         {/each}
       </div>

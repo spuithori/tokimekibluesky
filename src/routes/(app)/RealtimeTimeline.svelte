@@ -34,28 +34,39 @@
 
     $: getRealtime($realtime.data);
 
-    async function getRecord(uri, repost = undefined) {
-        const res = await _agent.agent.api.app.bsky.feed.getPostThread({depth: 0, uri: uri});
-        let thread = res.data.thread;
+    async function getRecord(uri, repost = undefined, retryCount = 0) {
+        try {
+            const res = await _agent.agent.api.app.bsky.feed.getPostThread({depth: 0, uri: uri});
+            let thread = res.data.thread;
 
-        if (thread?.parent && thread.post.record.reply) {
-            thread.reply = {
-                parent: thread.parent.post,
-                root: thread.post.record.reply.root,
+            if (thread?.parent && thread.post.record.reply) {
+                thread.reply = {
+                    parent: thread.parent.post,
+                    root: thread.post.record.reply.root,
+                }
+            }
+
+            if (repost) {
+                const rres = await _agent.agent.api.app.bsky.actor.getProfile({actor: repost.repo})
+                thread.reason = {
+                    $type: 'app.bsky.feed.defs#reasonRepost',
+                    indexedAt: repost.indexedAt,
+                    by: rres.data,
+                }
+            }
+
+            $timelines[index].forEach(item => item.post.indexedAt = item.post.indexedAt);
+            $timelines[index] = [thread, ...$timelines[index]];
+        } catch (e) {
+            if (retryCount < 3) {
+                retryCount = retryCount + 1;
+                console.log('Post get failure. Retry: ' + retryCount)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                await getRecord(uri, repost, retryCount);
+            } else {
+                console.error(e);
             }
         }
-
-        if (repost) {
-            const rres = await _agent.agent.api.app.bsky.actor.getProfile({actor: repost.repo})
-            thread.reason = {
-                $type: 'app.bsky.feed.defs#reasonRepost',
-                indexedAt: repost.indexedAt,
-                by: rres.data,
-            }
-        }
-
-        $timelines[index].forEach(item => item.post.indexedAt = item.post.indexedAt);
-        $timelines[index] = [thread, ...$timelines[index]];
     }
 
     function streamSelector(algorithm, repo, text = '') {
