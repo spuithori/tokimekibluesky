@@ -11,6 +11,7 @@
 
           message = 'Accounts and Profiles Delete was successful.'
       } catch (e) {
+          message = e;
           console.log(e);
       }
   }
