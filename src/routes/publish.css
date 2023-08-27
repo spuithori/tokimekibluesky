@@ -179,3 +179,26 @@
         }
     }
 }
+
+.emoji-picker-wrap {
+    position: absolute;
+    z-index: 100;
+    bottom: 40px;
+    right: 0;
+
+    @media (max-width: 767px) {
+        bottom: auto;
+        right: auto;
+        left: 0;
+        top: 40px;
+    }
+}
+
+.sidebar {
+    .emoji-picker-wrap {
+        bottom: auto;
+        right: auto;
+        left: 0;
+        top: 40px;
+    }
+}

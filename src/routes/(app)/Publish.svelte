@@ -32,6 +32,7 @@ import Menu from "$lib/components/ui/Menu.svelte";
 import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
 import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
 import {getAccountIdByDid} from "$lib/util";
+import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -58,6 +59,7 @@ let isContinueMode = false;
 let isPublishUploadClose = false;
 let isDraftModalOpen = false;
 let isAltModalOpen = false;
+let isEmojiPickerOpen = false;
 let isLinkCardAdding = false;
 let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
 const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
@@ -554,6 +556,14 @@ async function languageDetect(text = publishContent) {
     }
 }
 
+function handleEmojiPick(event) {
+    const start = publishArea.selectionStart + event.detail.emoji.native.length;
+    publishArea.value = publishArea.value.substr(0, publishArea.selectionStart) + event.detail.emoji.native + publishArea.value.substr(publishArea.selectionStart);
+
+    publishArea.focus();
+    publishArea.setSelectionRange(start, start);
+}
+
 function setSelfLabel(index) {
     currentSelfLabel = index;
     selfLabels = [
@@ -937,6 +947,16 @@ function handleAgentSelect(event) {
           <p class="publish-length">
             <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
           </p>
+
+          <div class="publish-form-emoji-picker">
+            <button class="publish-form-emoji-picker-button" on:click={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-laugh"><circle cx="12" cy="12" r="10"/><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+            </button>
+
+            {#if (isEmojiPickerOpen)}
+              <EmojiPicker on:pick={handleEmojiPick} on:outside={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}></EmojiPicker>
+            {/if}
+          </div>
 
           <div class="publish-form-moderation"  class:publish-form-moderation--active={selfLabels.length}>
             <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
@@ -1546,16 +1566,37 @@ function handleAgentSelect(event) {
         display: flex;
         justify-content: flex-end;
         padding: 10px 15px;
-        bottom: 10px;
-        right: 10px;
         z-index: 13;
         background-color: var(--bg-color-2);
         gap: 5px;
+
+        @media (max-width: 767px) {
+            position: relative;
+        }
     }
 
     .publish-form-agents-selector {
         max-width: 740px;
         width: 100%;
         margin: 0 auto 10px;
+    }
+
+    .publish-form-emoji-picker {
+        position: relative;
+
+        @media (max-width: 767px) {
+            position: static;
+        }
+    }
+
+    .publish-form-emoji-picker-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: var(--text-color-1);
+        padding: 0 5px;
+        font-size: 14px;
+        height: 30px;
     }
 </style>
