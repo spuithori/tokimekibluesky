@@ -558,7 +558,8 @@ async function languageDetect(text = publishContent) {
 
 function handleEmojiPick(event) {
     const start = publishArea.selectionStart + event.detail.emoji.native.length;
-    publishArea.value = publishArea.value.substr(0, publishArea.selectionStart) + event.detail.emoji.native + publishArea.value.substr(publishArea.selectionStart);
+    publishContent = publishArea.value.substr(0, publishArea.selectionStart) + event.detail.emoji.native + publishArea.value.substr(publishArea.selectionStart);
+    publishArea.value = publishContent;
 
     publishArea.focus();
     publishArea.setSelectionRange(start, start);
