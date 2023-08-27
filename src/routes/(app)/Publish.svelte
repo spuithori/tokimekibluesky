@@ -1566,7 +1566,7 @@ function handleAgentSelect(event) {
         display: flex;
         justify-content: flex-end;
         padding: 10px 15px;
-        z-index: 13;
+        z-index: 21;
         background-color: var(--bg-color-2);
         gap: 5px;
 
