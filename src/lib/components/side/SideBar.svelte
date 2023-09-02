@@ -73,7 +73,7 @@
   </button>
 {/if}
 
-<div class="side-bar side-bar--{$settings.design?.publishPosition}" class:side-bar--sp-open={isMobileBarOpen}>
+<div class="side-bar side-bar--{$settings.design?.publishPosition}" class:side-bar--sp-open={isMobileBarOpen} on:click={() => {isMobileBarOpen = false}}>
   <div class="side-bar__list side-bar__top">
     {#if $page.url.pathname === '/'}
       {#if $agents.size > 0}
@@ -238,6 +238,8 @@
       display: grid;
       place-content: center;
       z-index: 1012;
+      border-radius: 4px;
+      background-color: var(--bg-color-1);
 
       @media (min-width: 768px) {
           display: none;

@@ -249,6 +249,10 @@
         border-radius: 10px 10px 0 0;
         cursor: pointer;
 
+        @media (max-width: 767px) {
+            transition: transform .2s ease-in-out;
+        }
+
         &__icon {
             width: 36px;
             height: 36px;
