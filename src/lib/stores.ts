@@ -18,6 +18,9 @@ type columns = {
     id?: string | number,
     algorithm: currentAlgorithm,
     style: 'default' | 'media',
+    did?: string,
+    handle?: string,
+    unreadCount?: number,
 }
 
 type cursor = string | number | undefined;
@@ -30,6 +33,7 @@ const defaultColumns = [{
     },
     style: 'default',
     settings: defaultDeckSettings,
+    unreadCount: 0,
 }];
 const storageColumns = localStorage.getItem('columns') || JSON.stringify([]);
 export const columns = writable<columns[]>(JSON.parse(storageColumns));
@@ -41,7 +45,7 @@ const storageSingleColumn = localStorage.getItem('singleColumn') || JSON.stringi
 
 export const singleColumn = writable<columns>(JSON.parse(storageSingleColumn));
 
-export const currentTimeline = writable<number>(0);
+export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
 export const service = writable(localStorage.getItem('service') || 'https://bsky.social');
 export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) || []);
@@ -91,7 +95,7 @@ const defaultSettings = {
         darkmode: false,
         absoluteTime: false,
         layout: 'default',
-        publishPosition: 'bottom'
+        publishPosition: 'left'
     },
     timeline: {
         hideRepost: 'all',
@@ -109,6 +113,7 @@ const defaultSettings = {
         },
     },
     langFilter: [],
+    version: 2,
 }
 const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);
 export const settings = writable(JSON.parse(storageSettings));
@@ -173,3 +178,11 @@ export const changedFollowData = writable(undefined);
 export const profileStatus = writable<number>(0);
 
 export const isImageOpen = writable(false);
+
+export const isColumnModalOpen = writable(false);
+
+export const globalUnique = writable(null);
+
+export const sideState = writable<'publish' | 'search' | 'notification' | 'profile' | 'settings' | 'none'>('publish');
+
+export const isPublishInstantFloat = writable(false);

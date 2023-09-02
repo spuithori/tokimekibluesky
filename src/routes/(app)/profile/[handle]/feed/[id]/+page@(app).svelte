@@ -1,74 +1,35 @@
 <script lang="ts">
-    import { agent } from '$lib/stores';
+    import {agent, settings} from '$lib/stores';
     import { page } from '$app/stores';
     import TimelineItem from '../../../../TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import { beforeNavigate } from '$app/navigation';
     import { onMount } from 'svelte';
     import FeedsItem from '$lib/components/feeds/FeedsItem.svelte';
+    import FeedPreview from "./FeedPreview.svelte";
 
-    let timeline = [];
-    let cursor = undefined;
-    let feed;
-    let savedFeeds = [];
 
-    const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        const uri = 'at://' + $page.params.handle + '/app.bsky.feed.generator/' + $page.params.id;
-        const res = await $agent.getTimeline({limit: 20, cursor: cursor, algorithm: {
-            type: 'custom',
-            algorithm: uri,
-            }});
-        cursor = res.data.cursor;
-
-        if (cursor) {
-            timeline = [...timeline, ...res.data.feed]
-
-            loaded();
-        } else {
-            complete();
-        }
-    }
-
-    async function getSavedFeeds () {
-        const preferenceRes = await $agent.agent.api.app.bsky.actor.getPreferences()
-        const preference = preferenceRes.data.preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')
-        savedFeeds = preference[0]?.saved || [];
-    }
-
-    function isSaved(feed) {
-        const uri = feed.uri;
-        return savedFeeds.includes(uri);
-    }
-
-    beforeNavigate(async() => {
-        timeline = [];
-        cursor = undefined;
-    });
-
-    onMount(async () => {
-        await getSavedFeeds();
-        const res = await $agent.agent.api.app.bsky.feed.getFeedGenerator({feed: 'at://' + $page.params.handle + '/app.bsky.feed.generator/' + $page.params.id});
-
-        if (res.data.isOnline) {
-            feed = res.data.view;
-        }
-    })
 </script>
 
-{#if (feed)}
-  <FeedsItem feed={feed} subscribed={isSaved(feed)} layout={'page'} on:close></FeedsItem>
-{/if}
+<div class="modal-page modal-page--{$settings.design?.layout}">
+  <div class="modal-page-content">
+    <div class="column-heading">
+      <div class="column-heading__buttons">
+        <button class="settings-back" on:click={() => {history.back()}}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        </button>
+      </div>
 
-<div class="timeline timeline--main">
-  {#each timeline as data, index (data)}
-    <TimelineItem data={ data } index={index}></TimelineItem>
-  {/each}
+      <h1 class="column-heading__title">Feed</h1>
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-  </InfiniteLoading>
+      <div class="column-heading__buttons column-heading__buttons--right">
+        <a class="settings-back" href="/">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </a>
+      </div>
+    </div>
+
+    {#key $page.params.id}
+      <FeedPreview id={$page.params.id} handle={$page.params.handle}></FeedPreview>
+    {/key}
+  </div>
 </div>
-
-<style lang="postcss">
-
-</style>

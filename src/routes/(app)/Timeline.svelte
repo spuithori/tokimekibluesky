@@ -28,7 +28,7 @@
   }
 </script>
 
-<div class="timeline timeline--main">
+<div class="timeline timeline--{column.style}">
   {#if (column.style === 'default')}
     {#each $timelines[index] as data, index (data)}
       <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>

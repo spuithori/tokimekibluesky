@@ -269,6 +269,10 @@
         grid-template-columns: repeat(4, 1fr);
     }
 
+    &--dwidth {
+        grid-template-columns: repeat(7, 1fr);
+    }
+
     &__item {
         color: var(--text-color-1);
         position: relative;

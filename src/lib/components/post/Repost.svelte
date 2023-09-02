@@ -34,17 +34,17 @@
             const repost = await _agent.setRepost(cid, uri, repostViewer || '');
 
             try {
-                const latest = await _agent.getFeed(uri);
+                // const latest = await _agent.getFeed(uri);
 
                 isProcessed = false;
-                count = latest.post.repostCount;
+                // count = latest.post.repostCount;
                 repostViewer = repost?.uri || undefined;
 
                 timelines.update(function (tls) {
                     return tls.map(tl => {
                         tl.forEach(item => {
                             if (item.post.uri === uri) {
-                                item.post.repostCount = latest.post.repostCount;
+                                item.post.repostCount = count;
                                 item.post.viewer.repost = repost?.uri || undefined;
                             }
                         });
@@ -87,7 +87,7 @@
     {/if}
   </button>
 
-  <span class="timeline-reaction__count">{ count }</span>
+  <span class="timeline-reaction__count">{ count || 0 }</span>
 </div>
 
 <style lang="postcss">

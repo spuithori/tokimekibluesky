@@ -8,7 +8,8 @@
       columns,
       singleColumn,
       isMobileDataConnection,
-      isAfterReload, profileStatus
+      isAfterReload, profileStatus,
+      isColumnModalOpen, timelines, cursors, globalUnique, currentTimeline
   } from '$lib/stores';
   import { goto } from '$app/navigation';
   import { dev } from '$app/environment';
@@ -18,7 +19,7 @@
   import { onMount } from 'svelte';
   import toast, { Toaster } from 'svelte-french-toast';
   import viewPortSetting from '$lib/viewport';
-  import {scrollDirection} from "$lib/scrollDirection";
+  import {detectScrollDirection, scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
   import { page } from '$app/stores';
   import { liveQuery } from 'dexie';
@@ -27,8 +28,13 @@
   import HeaderCollapseButton from "$lib/components/header/HeaderCollapseButton.svelte";
   import {resumeAccountsSession} from "$lib/resumeAccountsSession";
   import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
+  import Side from "./Side.svelte";
+  import ColumnModal from "$lib/components/column/ColumnModal.svelte";
+  import Single from "./Single.svelte";
+  import Decks from "./Decks.svelte";
 
   let loaded = false;
+  let wrap;
 
   inject(
       {
@@ -133,6 +139,16 @@
   let scrolly;
   let isDarkMode = false;
 
+  if (!$settings.version) {
+      $settings.version = 1;
+  }
+  console.log('settings version: ' + $settings.version || 0);
+
+  if ($settings.version < 2) {
+      $settings.design.publishPosition = 'left';
+      $settings.version = 2;
+  }
+
   if (navigator.connection) {
       navigator.connection.addEventListener('change', () => {
           isMobileDataConnection.set(navigator.connection.type === 'cellular');
@@ -149,6 +165,7 @@
 
       localStorage.setItem('columns', JSON.stringify($columns));
       localStorage.setItem('singleColumn', JSON.stringify($singleColumn));
+      localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
 
       if ($settings?.design.darkmode === true) {
           isDarkMode = true;
@@ -196,45 +213,60 @@
 
   function handleScroll(event) {
       const scroll = scrollDirection(event);
+      scrolly = wrap.scrollTop;
 
       if (scroll) {
           direction = scroll;
       }
   }
 
+  function handleColumnModalClose(event) {
+      $columns = event.detail.columns;
+      $timelines = [];
+      $cursors = [];
+      isColumnModalOpen.set(false);
+      globalUnique.set(Symbol());
+  }
+
   viewPortSetting();
 </script>
-
-<svelte:window on:scroll={handleScroll} bind:scrollY={scrolly}></svelte:window>
 
 <div
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={isDarkMode}
     class:twilight={$settings.design?.darkmode === 'twilight'}
-    class:scrolled={scrolly > 100}
+    class:scrolled={scrolly > 52}
     class:sidebar={$settings.design?.publishPosition === 'left'}
+    class:bottom={$settings.design?.publishPosition === 'bottom'}
     class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
     dir="{$_('dir', {default: 'ltr'})}"
-    class:header-hide={$settings?.design.layout === 'decks' && $settings?.design.headerHide && $page.url.pathname === '/'}
     class:compact={$settings.design?.postsLayout === 'compact'}
     class:minimum={$settings.design?.postsLayout === 'minimum'}
+    class:single={$settings?.design.layout !== 'decks'}
+    class:decks={$settings?.design.layout === 'decks'}
+    class:page={$page.url.pathname !== '/'}
+    on:scroll={handleScroll}
+    bind:this={wrap}
 >
-  <Header on:reload={handleReload}></Header>
-
-  {#if ($settings.design?.layout === 'decks' && $page.url.pathname === '/') && $settings.design?.publishPosition !== 'left'}
-    <HeaderCollapseButton></HeaderCollapseButton>
-  {/if}
-
   {#if (loaded)}
-    <div class="wrap" class:layout-sidebar={$settings.design?.publishPosition === 'left'}>
+    <div class="wrap"
+         class:layout-sidebar={$settings.design?.publishPosition === 'left'}>
+      <Side></Side>
+
       <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
+        {#if $settings.design.layout !== 'decks'}
+          <Single></Single>
+        {:else}
+          <Decks></Decks>
+        {/if}
+
         <slot />
       </main>
-
-      {#if ($agents.size > 0)}
-        <Publish></Publish>
-      {/if}
     </div>
+
+    {#if $isColumnModalOpen}
+      <ColumnModal on:close={handleColumnModalClose} _columns={$columns}></ColumnModal>
+    {/if}
   {:else}
     <div>
 
@@ -245,7 +277,6 @@
   <Footer></Footer>
   <Toaster></Toaster>
   <ReportObserver></ReportObserver>
-
   <ProfileStatusObserver></ProfileStatusObserver>
 </div>
 
@@ -256,18 +287,47 @@
     min-height: 100vh;
   }
 
+  .wrap {
+      display: flex;
+  }
+
   main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    width: 100%;
-    max-width: 780px;
-    padding: 30px 20px 0;
-    margin: 0 auto 40px;
     box-sizing: border-box;
 
     @media (max-width: 767px) {
         margin-bottom: 20px;
     }
+  }
+
+  .sidebar {
+      .main {
+          width: 100%;
+      }
+  }
+
+
+  .single {
+      .wrap {
+          width: 100%;
+          max-width: 940px;
+          margin: 0 auto;
+          align-items: flex-start;
+      }
+
+      &.bottom {
+          .wrap {
+              align-items: stretch;
+              max-width: 740px;
+          }
+
+          .main {
+              @media (max-width: 767px) {
+                  padding-top: 0;
+              }
+          }
+      }
   }
 </style>

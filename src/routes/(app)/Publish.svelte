@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
 import { onMount } from 'svelte';
-import {agent, agents, quotePost, replyRef, settings, sharedText} from '$lib/stores';
+import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings, sharedText} from '$lib/stores';
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -478,6 +478,7 @@ async function saveDraft() {
         searchActors = [];
         embedImages.images = [];
         embedExternal = undefined;
+        $isPublishInstantFloat = false;
 
         toast.success($_('draft_add_success'));
     } catch (e) {
@@ -734,6 +735,7 @@ onMount(async () => {
         embedImages.images = [];
         embedExternal = undefined;
         selfLabels = [];
+        $isPublishInstantFloat = false
         // const data = await _agent.getTimeline();
         // timeline.set(data.feed);
 
@@ -782,29 +784,9 @@ function handleAgentSelect(event) {
          on:outclick={handleOutClick}
          on:click={handleClick}
 >
-  <div class="publish-position-switcher">
-    {#if ($settings.design?.publishPosition !== 'left')}
-      <button class="publish-position-switcher__button" on:click={() => {$settings.design.publishPosition = 'left'}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/></svg>
-      </button>
-    {:else}
-      <button class="publish-position-switcher__button" on:click={() => {$settings.design.publishPosition = 'bottom'}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-bottom"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="15" y2="15"/></svg>
-      </button>
-    {/if}
-  </div>
+
 
   <div class="publish-wrap">
-    {#if $agents.size > 1}
-      <div class="publish-form-agents-selector">
-        <AgentsSelector
-            {_agent}
-            isDisabled={isAccountSelectDisabled}
-            on:select={handleAgentSelect}
-        ></AgentsSelector>
-      </div>
-    {/if}
-
     <div class="publish-buttons">
       {#if (publishContent)}
         <button class="publish-draft-button publish-save-draft" on:click={saveDraft} disabled={isPublishEnabled}>{$_('drafts_save')}</button>
@@ -819,10 +801,7 @@ function handleAgentSelect(event) {
         </div>
       </div>
 
-      <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}><svg xmlns="http://www.w3.org/2000/svg" width="17" height="12.75" viewBox="0 0 17 12.75">
-        <path id="send" d="M0,0,17,6.375,0,12.75ZM0,5.1V7.65L8.5,6.375Z" fill="var(--bg-color-1)"/>
-      </svg>
-        {$_('publish_button_send')}</button>
+      <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}>{$_('publish_button_send')}</button>
 
         <button class="publish-upload-toggle" on:click={uploadContextOpen}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--bg-color-1)">
             <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
@@ -830,10 +809,21 @@ function handleAgentSelect(event) {
         </button>
     </div>
 
+    {#if $agents.size > 1}
+      <div class="publish-form-agents-selector">
+        <AgentsSelector
+            {_agent}
+            isDisabled={isAccountSelectDisabled}
+            on:select={handleAgentSelect}
+            style={'publish'}
+        ></AgentsSelector>
+      </div>
+    {/if}
+
     <div class="publish-form">
       {#if $quotePost?.uri}
         <div class="publish-quote">
-          <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined)}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+          <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
             <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
           </svg>
           </button>
@@ -893,7 +883,7 @@ function handleAgentSelect(event) {
 
       {#if ($replyRef && typeof $replyRef !== 'string')}
         <div class="publish-quote publish-quote--reply">
-          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined)}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
             <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
           </svg>
           </button>
@@ -1111,6 +1101,7 @@ function handleAgentSelect(event) {
                 top: 0;
                 right: auto;
                 z-index: 100;
+                position: static;
 
                 .publish-form__input {
                     height: 160px;
@@ -1118,11 +1109,10 @@ function handleAgentSelect(event) {
 
                 .publish-wrap {
                     display: block;
-                    height: 100vh;
-                    width: 360px;
+                    width: auto;
                     border-top: none;
-                    border-right: 1px solid var(--border-color-1);
-                    padding: 120px 20px 20px;
+                    padding: 16px;
+                    background-color: transparent;
                 }
 
                 .publish-position-switcher {
@@ -1464,13 +1454,12 @@ function handleAgentSelect(event) {
 
     .publish-draft-button {
         position: relative;
-        min-width: 82px;
         height: 30px;
         border-radius: 4px;
         z-index: 12;
         background-color: var(--bg-color-1);
         color: var(--primary-color);
-        border: 1px solid var(--primary-color);
+        border: 1px solid transparent;
         font-weight: 600;
         padding: 5px;
         display: flex;
@@ -1481,6 +1470,10 @@ function handleAgentSelect(event) {
         gap: 5px;
         white-space: nowrap;
         margin-right: auto;
+
+        &:hover {
+            opacity: .7;
+        }
 
         @media (max-width: 767px) {
 
@@ -1579,7 +1572,7 @@ function handleAgentSelect(event) {
     .publish-form-agents-selector {
         max-width: 740px;
         width: 100%;
-        margin: 0 auto 10px;
+        margin: 0 auto;
     }
 
     .publish-form-emoji-picker {

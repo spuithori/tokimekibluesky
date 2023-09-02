@@ -14,8 +14,9 @@
 
   afterUpdate(() => {
       if (item && item.dataset.depth === '0') {
-          const scroll = item.getBoundingClientRect().top + window.pageYOffset;
-          scrollTo(0, scroll - 70);
+          /* const scroll = item.getBoundingClientRect().top + window.pageYOffset;
+          scrollTo(0, scroll - 70); */
+          item.scrollIntoView()
           scrolled = true;
       }
   });
@@ -72,10 +73,10 @@
 
   .thread-item {
       &[data-depth='0'] {
-          margin-left: -20px;
-          margin-right: -20px;
-          padding-left: 20px;
-          padding-right: 20px;
+          margin-left: -16px;
+          margin-right: -16px;
+          padding-left: 16px;
+          padding-right: 16px;
           border-left: 4px solid var(--primary-color);
       }
   }

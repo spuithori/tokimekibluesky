@@ -1,10 +1,14 @@
-let lastScrollY = window.pageYOffset;
+let lastScrollY = 0;
 
 export function scrollDirection(event) {
+    if (!event.target) {
+        return false;
+    }
+
     const threshold = 80;
     let scrollDir;
 
-    const scrollY = window.pageYOffset;
+    const scrollY = event.target.scrollTop;
 
     if (Math.abs(scrollY - lastScrollY) < threshold) {
         return;
@@ -14,4 +18,14 @@ export function scrollDirection(event) {
     lastScrollY = scrollY > 0 ? scrollY : 0;
 
     return scrollDir;
+}
+
+export function detectScrollDirection(event) {
+    const scroll = scrollDirection(event);
+
+    if (!scroll) {
+        return null;
+    }
+
+    return scroll;
 }

@@ -64,17 +64,6 @@
       {/if}
     </div>
 
-    <div class="header__home only-pc">
-      <a href="/">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20.131" height="18.788" viewBox="0 0 20.131 18.788">
-          <g id="home" transform="translate(-16 -32)">
-            <path id="パス_47" data-name="パス 47" d="M72.19,99.154a.335.335,0,0,0-.464,0L64,106.53a.336.336,0,0,0-.1.243v6.922a1.342,1.342,0,0,0,1.342,1.342h4.03a.671.671,0,0,0,.671-.671v-5.7a.336.336,0,0,1,.336-.336h3.355a.336.336,0,0,1,.336.336v5.7a.671.671,0,0,0,.671.671h4.029a1.342,1.342,0,0,0,1.342-1.342v-6.922a.336.336,0,0,0-.1-.243Z" transform="translate(-45.892 -64.248)" fill="var(--text-color-1)"/>
-            <path id="パス_48" data-name="パス 48" d="M35.917,40.9l-3.137-3V33.342a.671.671,0,0,0-.671-.671H30.1a.671.671,0,0,0-.671.671v1.342L27,32.362A1.306,1.306,0,0,0,26.065,32h0a1.3,1.3,0,0,0-.929.362L16.216,40.9a.684.684,0,0,0-.056.938.671.671,0,0,0,.972.044l8.7-8.316a.336.336,0,0,1,.464,0L35,41.879a.671.671,0,0,0,.947-.018A.688.688,0,0,0,35.917,40.9Z" transform="translate(0)" fill="var(--text-color-1)"/>
-          </g>
-        </svg>
-      </a>
-    </div>
-
     <div class="header__settings">
       <button class="settings-toggle" aria-label="設定メニューを開く" on:click={settingsToggle}>
         <svg xmlns="http://www.w3.org/2000/svg" width="16.559" height="14.01" viewBox="0 0 16.559 14.01">
@@ -97,7 +86,7 @@
       {/if}
     </div>
 
-    <div class="header__mention only-pc">
+    <!-- <div class="header__mention only-pc">
       <a href="/mention" class="header-mention">
         <svg xmlns="http://www.w3.org/2000/svg" width="20.915" height="20.789" viewBox="0 0 20.915 20.789">
           <g id="at" transform="translate(-78.311 -77.27)">
@@ -106,7 +95,7 @@
           </g>
         </svg>
       </a>
-    </div>
+    </div> -->
 
     <div class="header__search only-pc">
       <a href="/search" class="header-search">
@@ -149,11 +138,10 @@
       left: 0;
       right: 0;
       background-color: var(--bg-color-1);
-      z-index: 100;
-      width: 740px;
-      max-width: 100%;
+      box-shadow: 0 0 10px var(--box-shadow-color-1);
+      z-index: 9000;
+      width: 100%;
       margin: 0 auto;
-      box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
       border-radius: 0 0 10px 10px;
 
       @media (max-width: 767px) {
@@ -162,6 +150,7 @@
           width: calc(100% - 40px);
           border-radius: 10px;
           box-shadow: 0 3px 6px rgba(0, 0, 0, .09);
+          display: none;
       }
 
       &--side {
@@ -187,8 +176,8 @@
   }
 
   .header__wrap {
-      padding: 0 20px;
-      height: 70px;
+      padding: 0 16px;
+      height: 64px;
       display: flex;
       align-items: center;
       gap: 15px;
@@ -206,7 +195,7 @@
   }
 
   .header__settings {
-
+      margin-right: auto;
   }
 
   .header__me {

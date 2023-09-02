@@ -1,0 +1,70 @@
+.profile-tab {
+    display: flex;
+    gap: 16px;
+    list-style: none;
+    background-color: var(--bg-color-1);
+    overflow: hidden;
+    padding: 0 16px;
+    font-size: 15px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color-2);
+    white-space: nowrap;
+
+    @media (max-width: 767px) {
+        font-size: 14px;
+        gap: 0 8px;
+        overflow: auto;
+    }
+}
+
+.profile-tab__item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-color: var(--bg-color-1);
+    padding: 16px 8px;
+
+    @media (max-width: 767px) {
+
+    }
+
+    &::before {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 20px;
+        height: 4px;
+        border-radius: 2px;
+        background-color: var(--primary-color);
+        margin: auto;
+        transform: scaleX(0);
+        transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
+    }
+}
+
+.profile-tab__item--active {
+    color: var(--primary-color);
+
+    &::before {
+        transform: scaleX(1);
+    }
+}
+
+.profile-tab__item a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.profile-tab__item a::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}

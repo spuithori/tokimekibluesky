@@ -2,7 +2,7 @@
   import {accountsDb} from "$lib/db";
   import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
-  import {agent, agents, columns, cursors, singleColumn, timelines} from "$lib/stores";
+  import {agent, agents, columns, currentTimeline, cursors, singleColumn, timelines} from "$lib/stores";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {_} from "svelte-i18n";
   import toast from "svelte-french-toast";
@@ -50,6 +50,7 @@
           settings: defaultDeckSettings,
       });
       columns.set(profile.columns);
+      currentTimeline.set(0);
       location.reload();
   }
 

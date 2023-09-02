@@ -162,3 +162,139 @@
         }
     }
 }
+
+.side-bar-button {
+    &--current {
+        svg {
+            stroke: var(--primary-color);
+        }
+    }
+}
+
+.deck-divider {
+    width: 404px;
+    flex-shrink: 0;
+}
+
+.bottom {
+    .deck-divider {
+        display: none;
+    }
+
+    .header {
+        max-width: 740px;
+    }
+
+    .layout-decks .page {
+        margin: 0 auto;
+        max-width: 740px;
+        width: 100%;
+    }
+
+    .main {
+        width: calc(100vw - 64px);
+
+        @media (max-width: 767px) {
+            width: 100%;
+        }
+    }
+}
+
+.single {
+    height: 100vh;
+    overflow-y: scroll;
+
+    @media (min-width: 768px) {
+        scrollbar-color: var(--primary-color) var(--bg-color-3);
+
+        &::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: var(--bg-color-3);
+            border-radius: 5px;
+        }
+    }
+
+    .single-timeline-wrap {
+        .deck-row {
+            width: auto !important;
+            border-radius: 0;
+            border: none;
+            overflow: visible;
+
+            &__content {
+                overflow-y: initial !important;
+            }
+        }
+    }
+
+    &.bottom {
+        .deck-heading {
+            transition: transform .2s ease-in-out;
+            border-radius: 0;
+
+            @media (min-width: 768px) {
+                z-index: 9999;
+                transform: translateX(-50px);
+                width: 480px;
+                border-right: 1px solid var(--border-color-2);
+                border-bottom: none;
+            }
+        }
+
+        .column-heading {
+            @media (min-width: 768px) {
+                z-index: 9999;
+                transform: translateX(-50px);
+                width: calc(100% + 50px);
+            }
+        }
+    }
+
+    .refresh-button {
+        @media (max-width: 767px) {
+            position: fixed;
+        }
+    }
+}
+
+.decks {
+    &.bottom {
+        .deck {
+            padding-top: 60px;
+
+            @media (max-width: 767px) {
+                padding-top: 0;
+            }
+        }
+    }
+}
+
+.scroll-down {
+    .deck-heading {
+        @media (max-width: 767px) {
+            transform: translateY(-52px);
+        }
+    }
+
+    &.single {
+
+    }
+}
+
+.side-nav {
+    &__button {
+        &--current {
+            .lucide {
+                stroke: var(--text-color-1);
+            }
+        }
+    }
+}

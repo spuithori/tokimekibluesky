@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { LayoutData } from './$types';
 import {onMount} from 'svelte';
-import {agent, isAfterReload} from '$lib/stores';
+import {agent, columns, isAfterReload, settings} from '$lib/stores';
 import TimelineItem from "../../TimelineItem.svelte";
 import {_} from 'svelte-i18n';
 import type { Snapshot } from './$types';
@@ -16,13 +16,17 @@ let cursor = '';
 let scrollY = 0;
 
 export const snapshot: Snapshot = {
-    capture: () => [feeds, cursor, window.scrollY],
+    capture: () => [feeds, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector('.app').scrollTop],
     restore: (value) => {
       if(!$isAfterReload) {
         [feeds, cursor, scrollY] = value;
 
         setTimeout(() => {
-          window.scroll(0, scrollY)
+            if ($settings.design.layout === 'decks') {
+                document.querySelector('.modal-page-content').scroll(0, scrollY);
+            } else {
+                document.querySelector('.app').scroll(0, scrollY);
+            }
         }, 0)
       }
 
@@ -65,10 +69,10 @@ onMount(async () => {
 </script>
 
 <svelte:head>
-  <title>{data.params.handle} - TOKIMEKI Bluesky</title>
+  <title>{data.params.handle} - TOKIMEKI</title>
 </svelte:head>
 
-<div class="user-timeline">
+<div>
   {#if stickyPost}
     <!-- <div class="sticky">
       <p class="sticky-text">{$_('sticky_post')}</p>

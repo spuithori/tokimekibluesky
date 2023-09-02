@@ -14,9 +14,8 @@ import {RichText} from '@atproto/api';
 import addSingleList from "$lib/components/list/addSingleList";
 const dispatch = createEventDispatcher();
 
-export let profile;
 export let handle;
-
+export let profile = getProfile(handle);
 
 let currentPage = 'posts';
 let firstPostDate = '';
@@ -24,8 +23,6 @@ let firstPostUri = '';
 let isMenuOpen = false;
 let textArray;
 let unique = Symbol();
-
-console.log(profile)
 
 $: detectTextArray(profile.description);
 getFirstPostData(handle);
@@ -47,7 +44,16 @@ async function getFirstPostData(handle = $page.params.handle) {
     const firstPost = await getFirstRecord(handle);
     const firstPostDateRaw = firstPost.data.records[0].value.createdAt;
     firstPostDate = format(parseISO(firstPostDateRaw), 'yyyy/MM/dd');
-    firstPostUri = '/profile/' + $page.params.handle + '/post/' + firstPost.data.records[0].uri.split('/').slice(-1)[0];
+    firstPostUri = '/profile/' + handle + '/post/' + firstPost.data.records[0].uri.split('/').slice(-1)[0];
+}
+
+async function getProfile(handle) {
+    if (!handle) {
+        return false;
+    }
+
+    const res = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
+    profile = res.data;
 }
 
 function onProfileUpdate() {
@@ -137,52 +143,56 @@ function handleAddSingleList() {
 }
 </script>
 
-<div class="user-profile">
-  <div class="profile-banner">
+{#if (profile.did)}
+  <div class="user-profile">
     {#if (profile.banner)}
-      <img src="{profile.banner}" alt="" width="740" height="247">
+      <div class="profile-banner">
+        <img src="{profile.banner}" alt="" width="740" height="247">
+      </div>
     {/if}
-  </div>
 
-  {#if (profile.labels?.length)}
-    <dl class="profile-reported">
-      <dt class="profile-reported__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="19.999" viewBox="0 0 20 19.999">
-        <path id="exclamation-solid" d="M2.93,17.07a10,10,0,1,1,14.142,0,10,10,0,0,1-14.142,0ZM9,5v6h2V5Zm0,8v2h2V13Z" transform="translate(0)" fill="#ffffff"/>
-      </svg>{$_('reporting_this_user')}: </dt>
+    {#if (profile.labels?.length)}
+      <dl class="profile-reported">
+        <dt class="profile-reported__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="19.999" viewBox="0 0 20 19.999">
+          <path id="exclamation-solid" d="M2.93,17.07a10,10,0,1,1,14.142,0,10,10,0,0,1-14.142,0ZM9,5v6h2V5Zm0,8v2h2V13Z" transform="translate(0)" fill="#ffffff"/>
+        </svg>{$_('reporting_this_user')}: </dt>
 
-      {#each profile.labels as label}
-        <dd class="profile-reported__content">{$_(label.val)}</dd>
-      {/each}
-    </dl>
-  {/if}
-
-  {#if (profile.viewer?.blocking)}
-    {#if (profile.viewer.blocking.split('/').slice(-3)[0] === $agent.did())}
-      <p class="profile-muted">{$_('blocking_this_user')}</p>
+        {#each profile.labels as label}
+          <dd class="profile-reported__content">{$_(label.val)}</dd>
+        {/each}
+      </dl>
     {/if}
-  {/if}
 
-  {#if (profile.viewer?.blockedBy)}
-    <p class="profile-muted">{$_('blocked_by_this_user')}</p>
-  {/if}
-
-  {#if (profile.viewer?.muted)}
-    <p class="profile-muted">{$_('muting_this_user')}</p>
-  {/if}
-
-  <div class="profile-column">
-    <div class="profile-avatar">
-      {#if (profile.avatar)}
-        <img src="{profile.avatar}" alt="">
+    {#if (profile.viewer?.blocking)}
+      {#if (profile.viewer.blocking.split('/').slice(-3)[0] === $agent.did())}
+        <p class="profile-muted">{$_('blocking_this_user')}</p>
       {/if}
+    {/if}
+
+    {#if (profile.viewer?.blockedBy)}
+      <p class="profile-muted">{$_('blocked_by_this_user')}</p>
+    {/if}
+
+    {#if (profile.viewer?.muted)}
+      <p class="profile-muted">{$_('muting_this_user')}</p>
+    {/if}
+
+    <div class="profile-column">
+      <div class="profile-avatar">
+        {#if (profile.avatar)}
+          <img src="{profile.avatar}" alt="">
+        {/if}
+      </div>
+
+      <div class="profile-content">
+        <h1 class="profile-display-name">{profile.displayName || profile.handle}</h1>
+        {#if (profile.displayName)}
+          <p class="profile-handle">{profile.handle}</p>
+        {/if}
+      </div>
     </div>
 
-    <div class="profile-content">
-      <h1 class="profile-display-name">{profile.displayName || profile.handle}</h1>
-      {#if (profile.displayName)}
-        <p class="profile-handle">{profile.handle}</p>
-      {/if}
-
+    <div class="profile-detail">
       {#if (profile.description)}
         <div class="profile-description">
           <p class="profile-description__text">
@@ -218,98 +228,19 @@ function handleAddSingleList() {
       {#if (firstPostDate)}
         <p class="profile-first"><a href="{firstPostUri}">{$_('first_post_date', {values: {date: firstPostDate }})}</a></p>
       {/if}
-
-      {#if (profile.did !== $agent.did())}
-        <div class="profile-follow-button">
-          <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
-        </div>
-      {:else}
-        <div class="profile-follow-button profile-follow-button--me">
-          <UserEdit {profile} on:update={onProfileUpdate}></UserEdit>
-        </div>
-      {/if}
-
-      <div class="profile-menu-wrap">
-        <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="profile-menu-toggle">
-          <svg slot="ref" xmlns="http://www.w3.org/2000/svg" width="4.5" height="18" viewBox="0 0 4.5 18">
-            <path id="dots-horizontal-triple" d="M10.25,13.25A2.25,2.25,0,1,1,12.5,11,2.25,2.25,0,0,1,10.25,13.25Zm0-6.75A2.25,2.25,0,1,1,12.5,4.25,2.25,2.25,0,0,1,10.25,6.5Zm0,13.5a2.25,2.25,0,1,1,2.25-2.25A2.25,2.25,0,0,1,10.25,20Z" transform="translate(-8 -2)" fill="var(--text-color-3)"/>
-          </svg>
-
-          <ul slot="content" class="timeline-menu-list">
-            {#if (profile.did !== $agent.did())}
-              {#if (!profile.viewer?.muted)}
-                <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-                  <button class="timeline-menu-list__button" on:click={mute}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20.414" height="20.485" viewBox="0 0 20.414 20.485">
-                      <g id="グループ_86" data-name="グループ 86" transform="translate(-1038.793 -743.722)">
-                        <path id="volume-mute" d="M9.889,8.111H5v7.333H9.889L16,21.556V2Z" transform="translate(1036.6 741.722)" fill="var(--danger-color)"/>
-                        <line id="線_22" data-name="線 22" x1="19" y2="19" transform="translate(1039.5 744.5)" fill="none" stroke="var(--danger-color)" stroke-width="2"/>
-                      </g>
-                    </svg>
-                    <span class="text-danger">{$_('mute_user')}</span>
-                  </button>
-                </li>
-              {:else}
-                <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-                  <button class="timeline-menu-list__button" on:click={unmute}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20.414" height="20.485" viewBox="0 0 20.414 20.485">
-                      <g id="グループ_86" data-name="グループ 86" transform="translate(-1038.793 -743.722)">
-                        <path id="volume-mute" d="M9.889,8.111H5v7.333H9.889L16,21.556V2Z" transform="translate(1036.6 741.722)" fill="var(--danger-color)"/>
-                        <line id="線_22" data-name="線 22" x1="19" y2="19" transform="translate(1039.5 744.5)" fill="none" stroke="var(--danger-color)" stroke-width="2"/>
-                      </g>
-                    </svg>
-                    <span class="text-danger">{$_('unmute_user')}</span>
-                  </button>
-                </li>
-              {/if}
-
-              {#if (!profile.viewer?.blocking)}
-                <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-                  <button class="timeline-menu-list__button" on:click={block}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-                      <path id="block" d="M0,9a9,9,0,1,1,9,9A9,9,0,0,1,0,9ZM14.688,4.59,4.581,14.679a7.2,7.2,0,0,0,10.107-10.1ZM13.419,3.312A7.2,7.2,0,0,0,3.312,13.419L13.419,3.312Z" fill="var(--danger-color)"/>
-                    </svg>
-                    <span class="text-danger">{$_('block_user')}</span>
-                  </button>
-                </li>
-              {:else}
-                <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-                  <button class="timeline-menu-list__button" on:click={() => {unblock(profile.viewer.blocking)}}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-                      <path id="block" d="M0,9a9,9,0,1,1,9,9A9,9,0,0,1,0,9ZM14.688,4.59,4.581,14.679a7.2,7.2,0,0,0,10.107-10.1ZM13.419,3.312A7.2,7.2,0,0,0,3.312,13.419L13.419,3.312Z" fill="var(--danger-color)"/>
-                    </svg>
-                    <span class="text-danger">{$_('unblock_user')}</span>
-                  </button>
-                </li>
-              {/if}
-            {/if}
-
-            <li class="timeline-menu-list__item timeline-menu-list__item--copy">
-              <button class="timeline-menu-list__button" on:click={copyDid}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="14.417" height="18" viewBox="0 0 14.417 18">
-                  <path id="clipboard" d="M6.532,2.345a2.7,2.7,0,0,1,5.352,0l1.829.36v.9h.9a1.8,1.8,0,0,1,1.8,1.8V16.221a1.8,1.8,0,0,1-1.8,1.8H3.8a1.8,1.8,0,0,1-1.8-1.8V5.409a1.807,1.807,0,0,1,1.8-1.8h.9v-.9l1.829-.36ZM4.7,5.409H3.8V16.221H14.615V5.409h-.9v.9H4.7Zm4.505-1.8a.9.9,0,1,0-.9-.9A.9.9,0,0,0,9.208,3.606Z" transform="translate(-2 -0.023)" fill="var(--text-color-3)"/>
-                </svg>
-                <span>{$_('copy_did')}</span>
-              </button>
-            </li>
-
-            <li class="timeline-menu-list__item timeline-menu-list__item--copy">
-              <button class="timeline-menu-list__button" on:click={handleAddSingleList}>
-                <span>{$_('add_single_list')}</span>
-              </button>
-            </li>
-          </ul>
-        </Menu>
-      </div>
     </div>
   </div>
-</div>
+{/if}
 
 <style lang="postcss">
+    .user-profile {
+
+    }
+
     .profile-banner {
-        border-radius: 20px;
+        border-radius: 10px;
         overflow: hidden;
-        margin-bottom: 30px;
+        margin-bottom: 16px;
 
         @media (max-width: 767px) {
             border-radius: 10px;
@@ -324,9 +255,9 @@ function handleAddSingleList() {
 
     .profile-column {
         display: grid;
-        grid-template-columns: 112px 1fr;
+        grid-template-columns: 80px 1fr;
         align-items: flex-start;
-        gap: 30px;
+        gap: 16px;
         position: relative;
 
         @media (max-width: 767px) {
@@ -354,29 +285,33 @@ function handleAddSingleList() {
     }
 
     .profile-display-name {
-        font-size: 30px;
+        font-size: 24px;
         margin-bottom: 2px;
         line-height: 1.5;
         letter-spacing: .025em;
-        padding-right: 210px;
+        font-weight: 900;
+        margin-top: 2px;
 
         @media (max-width: 767px) {
-            font-size: 24px;
-            padding-right: 50px;
+            font-size: 18px;
         }
     }
 
     .profile-handle {
         font-size: 16px;
+        color: var(--text-color-3);
+        font-weight: bold;
 
         @media (max-width: 767px) {
             padding-right: 50px;
         }
     }
 
-    .profile-description {
-        margin-top: 10px;
+    .profile-detail {
+        margin-top: 16px;
+    }
 
+    .profile-description {
         &__text {
             line-height: 1.75;
             white-space: pre-line;

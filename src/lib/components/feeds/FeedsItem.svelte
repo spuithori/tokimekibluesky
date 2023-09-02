@@ -4,7 +4,9 @@
   import { _ } from 'svelte-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import { createEventDispatcher } from 'svelte';
-  import {agent} from "$lib/stores";
+  import {agent, columns} from "$lib/stores";
+  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import toast from "svelte-french-toast";
   const dispatch = createEventDispatcher();
 
   export let _agent = $agent;
@@ -12,12 +14,39 @@
   export let subscribed = false;
   export let layout = 'default';
   let isCreatorOpen = false;
+  let isColumnAdded = false;
 
   async function setCurrentFeed () {
       dispatch('close', {
           clear: false,
           allClose: true,
       });
+  }
+
+  async function addColumn() {
+      const _column = {
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'custom',
+              algorithm: feed.uri,
+              name: feed.displayName,
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+      }
+
+      try {
+          $columns = [...$columns, _column];
+
+          dispatch('add');
+          toast.success($_('column_added'));
+          isColumnAdded = true;
+      } catch (e) {
+          console.error(e);
+          toast.error('Error: ' + e);
+      }
   }
 </script>
 
@@ -35,6 +64,8 @@
 
       <div class="feed__buttons">
         <FeedSubscribeButton feed={feed} subscribed={subscribed} {_agent}></FeedSubscribeButton>
+
+        <button class="button button--ss" on:click={addColumn} disabled={isColumnAdded}>{$_('feed_quick_add')}</button>
 
         {#if (layout === 'default')}
          <a href="/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" on:click={setCurrentFeed} class="button button--border button--ss">{$_('feed_show_button')}</a>

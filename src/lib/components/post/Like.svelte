@@ -29,17 +29,17 @@
           const like = await _agent.setVote(cid, uri, likeViewer || '');
 
           try {
-              const latest = await _agent.getFeed(uri);
+              // const latest = await _agent.getFeed(uri);
 
               isProcessed = false;
-              count = latest.post.likeCount;
+              // count = latest.post.likeCount;
               likeViewer = like?.uri || undefined;
 
               timelines.update(function (tls) {
                   return tls.map(tl => {
                       tl.forEach(item => {
                           if (item.post.uri === uri) {
-                              item.post.likeCount = latest.post.likeCount;
+                              item.post.likeCount = count;
                               item.post.viewer.like = like?.uri || undefined;
                           }
                       });
@@ -80,7 +80,7 @@
     {/if}
   </button>
 
-  <span class="timeline-reaction__count">{ count }</span>
+  <span class="timeline-reaction__count">{ count || 0 }</span>
 </div>
 
 <style lang="postcss">

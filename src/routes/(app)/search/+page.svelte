@@ -84,23 +84,24 @@
     }
 </script>
 
-<div>
-  <h1 class="page-nav-title" in:fly={{ x: 10, duration: 100, delay: 100 }}>{$_('search_button')}</h1>
-
+<div class="search-form-wrap">
   <SearchForm></SearchForm>
-
-  <div class="timeline">
-    {#each feeds as data (data)}
-      <TimelineItem data={ data } isPrivate={ true }></TimelineItem>
-    {:else}
-    {/each}
-
-    <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
-      <p slot="noMore" class="infinite-nomore">もうないよ</p>
-    </InfiniteLoading>
-  </div>
 </div>
 
-<style>
+<div class="timeline">
 
+  {#each feeds as data (data)}
+    <TimelineItem data={ data } isPrivate={ true }></TimelineItem>
+  {:else}
+  {/each}
+
+  <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
+    <p slot="noMore" class="infinite-nomore">もうないよ</p>
+  </InfiniteLoading>
+</div>
+
+<style lang="postcss">
+  .search-form-wrap {
+      padding: 0 16px;
+  }
 </style>

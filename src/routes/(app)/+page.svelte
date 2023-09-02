@@ -1,48 +1,37 @@
 <script lang="ts">
-	import { columns, isAfterReload, settings } from '$lib/stores';
-	import Decks from "./Decks.svelte";
-	import Single from "./Single.svelte";
+	import {columns, isAfterReload, settings, sideState} from '$lib/stores';
 	import type { Snapshot } from './$types';
+	import {_} from 'svelte-i18n';
+	import {onMount} from "svelte";
 
 	let scrolls;
 
 	export const snapshot: Snapshot = {
-		capture: () => scrolls = $settings.design.layout === 'decks' ? $columns.map(column => column.scrollElement?.scrollTop) : undefined,
+		capture: () => scrolls = $settings.design.layout === 'decks' ? $columns.map(column => column.scrollElement?.scrollTop) : document.querySelector('.app').scrollTop,
 		restore: (value) => {
 			if(!$isAfterReload && value) {
 				scrolls = value;
 
-				scrolls.forEach((scroll, index) => {
-					$columns[index].scrollElement.scrollTop = scroll;
-				})
+				if ($settings.design.layout === 'decks') {
+					scrolls.forEach((scroll, index) => {
+						$columns[index].scrollElement.scrollTop = scroll;
+					})
+				} else {
+					document.querySelector('.app').scrollTop = scrolls;
+				}
 			}
 
 			isAfterReload.set(false);
 		}
 	};
 
-	$: {
-		if ($settings?.general.disableAlgorithm === 'true') {
-			$columns = [{
-				algorithm: {
-					type: 'default',
-					name: 'HOME'
-				},
-				style: 'default'
-			}];
-		}
-	}
+	onMount(() => {
+		// $sideState = 'publish';
+	})
 </script>
 
 <svelte:head>
-	<title>Home - TOKIMEKI Bluesky</title>
+	<title>{$_('page_title_home')} - TOKIMEKI</title>
 	<meta name="description" content="Timeline" />
 </svelte:head>
 
-<section>
-	{#if $settings.design.layout !== 'decks'}
-		<Single></Single>
-	{:else}
-		<Decks></Decks>
-	{/if}
-</section>
