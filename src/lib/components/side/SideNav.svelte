@@ -1,6 +1,7 @@
 <script lang="ts">
-    import {settings, sideState} from '$lib/stores';
+    import {agent, settings, sideState} from '$lib/stores';
   import { Pen, Search, Bell, User2, Settings, Store  } from 'lucide-svelte';
+    import MyProfileBadge from "../../../routes/(app)/MyProfileBadge.svelte";
 
   function toggleSideNav(name) {
       $sideState = name;
@@ -9,60 +10,76 @@
 </script>
 
 <ul class="side-nav side-nav--{$settings.design?.publishPosition}">
-  <li class="side-nav__item">
-    <button
-        class="side-nav__button side-nav__button--publish"
-        class:side-nav__button--current={$sideState === 'publish'}
-        on:click={() => toggleSideNav('publish')}
-        aria-label="Publish Tab"
-    >
-      <Pen color="var(--text-color-3)"></Pen>
-    </button>
-  </li>
+  {#if $settings.design?.publishPosition !== 'bottom'}
+    <li class="side-nav__item">
+      <button
+          class="side-nav__button side-nav__button--publish"
+          class:side-nav__button--current={$sideState === 'publish'}
+          on:click={() => toggleSideNav('publish')}
+          aria-label="Publish Tab"
+      >
+        <Pen color="var(--text-color-3)"></Pen>
+      </button>
+    </li>
 
-  <li class="side-nav__item">
-    <button
-        class="side-nav__button"
-        class:side-nav__button--current={$sideState === 'profile'}
-        on:click={() => toggleSideNav('profile')}
-        aria-label="Profile Tab"
-    >
-      <User2 color="var(--text-color-3)"></User2>
-    </button>
-  </li>
+    <li class="side-nav__item">
+      <button
+          class="side-nav__button"
+          class:side-nav__button--current={$sideState === 'profile'}
+          on:click={() => toggleSideNav('profile')}
+          aria-label="Profile Tab"
+      >
+        <User2 color="var(--text-color-3)"></User2>
+      </button>
+    </li>
 
-  <li class="side-nav__item">
-    <button
-        class="side-nav__button"
-        class:side-nav__button--current={$sideState === 'search'}
-        on:click={() => toggleSideNav('search')}
-        aria-label="Search Tab"
-    >
-      <Search color="var(--text-color-3)"></Search>
-    </button>
-  </li>
+    <li class="side-nav__item">
+      <button
+          class="side-nav__button"
+          class:side-nav__button--current={$sideState === 'search'}
+          on:click={() => toggleSideNav('search')}
+          aria-label="Search Tab"
+      >
+        <Search color="var(--text-color-3)"></Search>
+      </button>
+    </li>
 
-  <li class="side-nav__item">
-    <button
-        class="side-nav__button"
-        class:side-nav__button--current={$sideState === 'notification'}
-        on:click={() => toggleSideNav('notification')}
-        aria-label="Notification Tab"
-    >
-      <Bell color="var(--text-color-3)"></Bell>
-    </button>
-  </li>
+    <li class="side-nav__item">
+      <button
+          class="side-nav__button"
+          class:side-nav__button--current={$sideState === 'notification'}
+          on:click={() => toggleSideNav('notification')}
+          aria-label="Notification Tab"
+      >
+        <Bell color="var(--text-color-3)"></Bell>
+      </button>
+    </li>
 
-  <li class="side-nav__item">
-    <button
-        class="side-nav__button"
-        class:side-nav__button--current={$sideState === 'store'}
-        on:click={() => toggleSideNav('store')}
-        aria-label="Feed Store Tab"
-    >
-      <Store color="var(--text-color-3)"></Store>
-    </button>
-  </li>
+    <li class="side-nav__item">
+      <button
+          class="side-nav__button"
+          class:side-nav__button--current={$sideState === 'store'}
+          on:click={() => toggleSideNav('store')}
+          aria-label="Feed Store Tab"
+      >
+        <Store color="var(--text-color-3)"></Store>
+      </button>
+    </li>
+  {:else}
+    <li class="side-nav__item">
+      <div class="side-nav__button">
+        {#if ($agent)}
+          <MyProfileBadge></MyProfileBadge>
+        {/if}
+      </div>
+    </li>
+
+    <li class="side-nav__item">
+      <a href="/search" class="side-nav__button">
+        <Search color="var(--text-color-1)"></Search>
+      </a>
+    </li>
+  {/if}
 </ul>
 
 <style lang="postcss">
@@ -116,10 +133,11 @@
 
       &--bottom {
           justify-content: flex-end;
-          padding: 0 8px;
+          padding: 2px 8px;
 
           @media (max-width: 767px) {
               justify-content: flex-start;
+              padding: 0;
           }
 
           .side-nav__button {

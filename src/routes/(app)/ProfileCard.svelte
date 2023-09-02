@@ -68,6 +68,10 @@
       border-radius: 6px;
       z-index: 14;
       width: 300px;
+
+      @media (max-width: 767px) {
+          display: none;
+      }
   }
 
   .profile-card-heading {

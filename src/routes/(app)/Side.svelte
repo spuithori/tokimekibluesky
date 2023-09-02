@@ -26,25 +26,25 @@
         <Publish></Publish>
       </div>
 
-      {#if ($sideState === 'notification')}
+      {#if ($sideState === 'notification' && $settings.design?.publishPosition !== 'bottom')}
         <div class="side-notification">
           <Notification isPage={true}></Notification>
         </div>
       {/if}
 
-      {#if ($sideState === 'settings')}
+      {#if ($sideState === 'settings' && $settings.design?.publishPosition !== 'bottom')}
         <Settings style={'side'}></Settings>
       {/if}
 
-      {#if ($sideState === 'profile')}
+      {#if ($sideState === 'profile' && $settings.design?.publishPosition !== 'bottom')}
         <SideProfile></SideProfile>
       {/if}
 
-      {#if ($sideState === 'search')}
+      {#if ($sideState === 'search' && $settings.design?.publishPosition !== 'bottom')}
         <SideSearch></SideSearch>
       {/if}
 
-      {#if ($sideState === 'store')}
+      {#if ($sideState === 'store' && $settings.design?.publishPosition !== 'bottom')}
         <SideStore></SideStore>
       {/if}
     </div>
