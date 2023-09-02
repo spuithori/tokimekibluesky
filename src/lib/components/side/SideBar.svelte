@@ -13,7 +13,7 @@
   function handleColumnClick(column, index) {
       if ($settings.design.layout === 'decks') {
           if (column.scrollElement) {
-              column.scrollElement.scrollIntoView({inline: 'end'});
+              column.scrollElement.scrollIntoView({inline: 'end', behavior: 'smooth'});
           }
       } else {
           if ($currentTimeline === index) {
@@ -67,12 +67,6 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-{#if $page.url.pathname === '/'}
-  <button class="sp-bar-toggle only-mobile" on:click={handleMobileBarToggle}>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-right-close"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="15" x2="15" y1="3" y2="21"/><path d="m8 9 3 3-3 3"/></svg>
-  </button>
-{/if}
-
 <div class="side-bar side-bar--{$settings.design?.publishPosition}" class:side-bar--sp-open={isMobileBarOpen} on:click={() => {isMobileBarOpen = false}}>
   <div class="side-bar__list side-bar__top">
     {#if $page.url.pathname === '/'}
@@ -111,7 +105,11 @@
   </div>
 
   <div class="side-bar__list side-bar__bottom">
-    <a class="side-bar-button" href="/settings/general">
+    <a class="side-bar-button only-pc" href="/settings/general">
+      <Settings color="var(--text-color-1)"></Settings>
+    </a>
+
+    <a class="side-bar-button only-mobile" href="/settings">
       <Settings color="var(--text-color-1)"></Settings>
     </a>
 
@@ -146,7 +144,19 @@
       padding-bottom: 8px;
 
       @media (max-width: 767px) {
-          display: none;
+          display: flex;
+          flex-direction: row;
+          position: static;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 999;
+          background-color: var(--blurred-bg-color);
+          backdrop-filter: blur(8px);
+          height: min-content;
+          padding: 0 8px;
+          width: 100vw;
+          overflow-x: auto;
       }
 
       &__list {
@@ -154,6 +164,11 @@
           flex-direction: column;
           align-items: center;
           gap: 8px;
+
+          @media (max-width: 767px) {
+              flex-direction: row;
+              gap: 0;
+          }
       }
 
       &--bottom {
@@ -161,20 +176,17 @@
           top: 0;
           height: 100vh;
           padding-top: 56px;
+
+          @media (max-width: 767px) {
+              position: fixed;
+              height: min-content;
+              padding: 0 8px;
+          }
       }
 
       &--sp-open {
           @media (max-width: 767px) {
-              display: flex;
-              position: fixed;
-              top: 0;
-              bottom: 0;
-              z-index: 999;
-              background-color: var(--blurred-bg-color);
-              backdrop-filter: blur(8px);
-              height: auto;
-              padding-top: 56px;
-              padding-bottom: 60px;
+              display: none;
           }
       }
   }
@@ -202,6 +214,13 @@
           margin: auto;
           transform: scaleY(0);
           transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
+
+          @media (max-width: 767px) {
+              width: 20px;
+              height: 4px;
+              bottom: auto;
+              right: 0;
+          }
       }
 
       &--current {
@@ -227,23 +246,6 @@
           place-content: center;
           right: -2px;
           top: -2px;
-      }
-  }
-
-  .sp-bar-toggle {
-      position: fixed;
-      bottom: 11px;
-      left: 20px;
-      width: 38px;
-      height: 38px;
-      display: grid;
-      place-content: center;
-      z-index: 1012;
-      border-radius: 4px;
-      background-color: var(--bg-color-1);
-
-      @media (min-width: 768px) {
-          display: none;
       }
   }
 </style>

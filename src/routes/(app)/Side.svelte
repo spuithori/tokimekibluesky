@@ -156,6 +156,7 @@
       flex-direction: column;
 
       @media (max-width: 767px) {
+          position: absolute;
           max-width: 100vw;
           grid-template-columns: 0;
           top: auto;
@@ -179,6 +180,10 @@
 
       &--publish {
           overflow-y: visible;
+      }
+
+      @media (max-width: 767px) {
+          border: none;
       }
   }
 

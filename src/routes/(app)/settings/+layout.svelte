@@ -93,7 +93,21 @@
   <div class="settings-modal-content">
     <div class="settings-column" data-path="{data.pathname}">
       <div class="settings-toc">
-        <h3 class="p-menu-title">{$_('p_menu_settings')}</h3>
+        <div class="column-heading only-mobile">
+          <div class="column-heading__buttons">
+            <button class="settings-back" on:click={() => {history.back()}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            </button>
+          </div>
+
+          <h1 class="column-heading__title">{$_('settings')}</h1>
+
+          <div class="column-heading__buttons column-heading__buttons--right">
+            <a class="settings-back" href="/">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </a>
+          </div>
+        </div>
 
         <ul class="p-menu-nav">
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/profiles'}>
@@ -185,7 +199,7 @@
       }
 
       &[data-path='/settings'] {
-          .settings-nav {
+          .settings-toc {
               @media (max-width: 767px) {
                   display: block;
                   border-right: none;
@@ -207,5 +221,14 @@
   .settings-toc {
       padding: 16px;
       border-right: 1px solid var(--border-color-2);
+
+      @media (max-width: 767px) {
+          display: none;
+          padding: 0;
+
+          .p-menu-nav {
+              padding: 16px;
+          }
+      }
   }
 </style>

@@ -24,12 +24,6 @@
     let scrollId;
 
     function handleHeaderClick(el, event) {
-        const activeElement = document.activeElement?.tagName;
-
-        if (event.target.tagName === 'svg' || event.target.tagName === 'button') {
-            return false;
-        }
-
         if (!el.scroll) {
             return false;
         }
@@ -69,18 +63,20 @@
     on:mouseenter={handleMouseEnter}
     on:mouseleave={handleMouseLeave}
 >
-    <div
-        role="button"
-        aria-label="Back to top."
-        class="deck-heading"
-        on:click={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector('.app'), event)}}
-    >
+    <div class="deck-heading">
         <div class="deck-heading__icon">
             <ColumnIcon type={column.algorithm.type}></ColumnIcon>
         </div>
 
-        <div class="deck-heading__title">
-            {column.algorithm.name} <span class="deck-heading__subhead">{column.handle}</span>
+        <div
+            role="button"
+            class="deck-heading__scroll-area"
+            on:click={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector('.app'), event)}}
+            aria-label="Back to top."
+        >
+            <div class="deck-heading__title">
+                {column.algorithm.name} <span class="deck-heading__subhead">{column.handle}</span>
+            </div>
         </div>
 
         <div class="deck-heading__buttons">
@@ -247,10 +243,14 @@
         z-index: 21;
         border-bottom: 1px solid var(--border-color-2);
         border-radius: 10px 10px 0 0;
-        cursor: pointer;
 
         @media (max-width: 767px) {
-            transition: transform .2s ease-in-out;
+            transition: top .2s ease-in-out;
+        }
+
+        &__scroll-area {
+            cursor: pointer;
+            flex: 1;
         }
 
         &__icon {

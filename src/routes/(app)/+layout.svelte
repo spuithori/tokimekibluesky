@@ -289,6 +289,10 @@
 
   .wrap {
       display: flex;
+
+      @media (max-width: 767px) {
+         display: block;
+      }
   }
 
   main {

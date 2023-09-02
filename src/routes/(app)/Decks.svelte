@@ -88,7 +88,7 @@
           scroll-snap-type: x mandatory;
           top: 85px;
           padding: 0;
-          height: calc(100vh - 50px);
+          height: calc(100vh - 70px);
       }
 
       &--left-sidebar {
