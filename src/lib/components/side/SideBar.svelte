@@ -167,13 +167,14 @@
           @media (max-width: 767px) {
               display: flex;
               position: fixed;
-              top: 52px;
-              bottom: 60px;
+              top: 0;
+              bottom: 0;
               z-index: 999;
               background-color: var(--blurred-bg-color);
               backdrop-filter: blur(8px);
               height: auto;
-              padding-top: 24px;
+              padding-top: 56px;
+              padding-bottom: 60px;
           }
       }
   }
