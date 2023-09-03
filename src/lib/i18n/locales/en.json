@@ -376,5 +376,6 @@
   "skin_highcontrast": "High Contrast",
   "theme_store": "Theme store",
   "darkmode_disabled_theme": "The dark mode setting has no effect on the theme in use.",
-  "color_disabled_theme": "Color is disabled for the theme in use."
+  "color_disabled_theme": "Color is disabled for the theme in use.",
+  "p_menu_user_suggest": "New Encounters"
 }

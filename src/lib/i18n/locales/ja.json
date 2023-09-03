@@ -377,5 +377,6 @@
   "skin_highcontrast": "ハイコントラスト",
   "theme_store": "テーマストア",
   "darkmode_disabled_theme": "使用中のテーマでは、ダークモードの設定は影響しません。",
-  "color_disabled_theme": "使用中のテーマでは、カラーは無効です。"
+  "color_disabled_theme": "使用中のテーマでは、カラーは無効です。",
+  "p_menu_user_suggest": "新しい出会い"
 }

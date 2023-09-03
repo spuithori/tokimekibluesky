@@ -8,6 +8,7 @@
   import ProfileMenuItem from "$lib/components/acp/ProfileMenuItem.svelte";
   import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";
+  import SearchForm from "../../../routes/(app)/SearchForm.svelte";
 
   let _agent = $agent;
 
@@ -99,6 +100,14 @@
         </li>
       </ul>
     {/key}
+  </section>
+
+  <section class="side-profile-profiles">
+    <h3 class="p-menu-title">{$_('p_menu_user_suggest')}</h3>
+
+    <div class="side-search-content">
+      <SearchForm path="/search/user"></SearchForm>
+    </div>
   </section>
 </div>
 
