@@ -75,12 +75,12 @@
     }
 
     async function observeRealtimeNotification() {
-        const count = _agent.agent.api.app.bsky.notification.getUnreadCount();
+        const res = await _agent.agent.api.app.bsky.notification.getUnreadCount();
         dispatch('update', {
-            count: count,
+            count: res.data.count,
         });
-        console.log(count);
-        await putNotifications(count);
+        console.log(res.data.count);
+        await putNotifications(res.data.count);
     }
 
     async function putNotifications(count) {
