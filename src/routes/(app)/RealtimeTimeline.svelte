@@ -188,7 +188,7 @@
 </script>
 
 <div class="realtime-wrap">
-    <div class="timeline timeline--main timeline--virtual">
+    <div class="timeline timeline--virtual timeline--{column.style}">
         <div class="realtime-status" class:realtime-status--connected={$isRealtimeConnected}></div>
 
         {#if (column.algorithm.algorithm === 'following' || column.algorithm.algorithm === undefined)}
@@ -243,7 +243,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        padding-left: 30px;
+        padding-left: 26px;
 
         &__count {
             margin-right: auto;
@@ -259,8 +259,8 @@
         border-radius: 50%;
         background-color: var(--color-theme-7);
         position: absolute;
-        left: 30px;
-        top: 30px;
+        left: 23px;
+        top: 26px;
         margin-top: 2px;
 
         &::before {

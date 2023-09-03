@@ -38,6 +38,12 @@
       border-bottom: 1px solid var(--border-color-1);
       gap: 15px;
 
+      @container users-list (max-width: 320px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
       &--notification {
           border-bottom: none;
 

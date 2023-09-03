@@ -79,15 +79,17 @@ button {
 .button--ss {
     height: 30px;
     border-radius: 15px;
-    min-width: 150px;
+    min-width: 120px;
     font-size: 12px;
+    padding: 0 8px;
 }
 
 .button--sm {
     height: 40px;
     border-radius: 20px;
-    min-width: 150px;
+    min-width: 120px;
     font-size: 15px;
+    padding: 0 16px;
 }
 
 .button--fullwidth {

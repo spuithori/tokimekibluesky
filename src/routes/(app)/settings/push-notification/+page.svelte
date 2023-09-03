@@ -67,16 +67,24 @@
 </script>
 
 <svelte:head>
-  <title>Push notification - TOKIMEKI Bluesky</title>
+  <title>{$_('settings_push_notification')} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
-  <div class="settings-heading">
-    <a href="/settings" class="settings-back"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="16.97" viewBox="0 0 20 16.97">
-      <path id="arrow-left" d="M3.828,9,9.9,2.929,8.485,1.515,0,10l.707.707,7.778,7.778L9.9,17.071,3.828,11H20V9Z" transform="translate(0 -1.515)" fill="var(--text-color-1)"/>
-    </svg></a>
+  <div class="column-heading">
+    <div class="column-heading__buttons">
+      <button class="settings-back" on:click={() => {history.back()}}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+      </button>
+    </div>
 
-    <h1 class="settings-title">{$_('settings_push_notification')}</h1>
+    <h1 class="column-heading__title">{$_('settings_push_notification')}</h1>
+
+    <div class="column-heading__buttons column-heading__buttons--right">
+      <a class="settings-back" href="/">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </a>
+    </div>
   </div>
 
   <div class="settings-wrap">

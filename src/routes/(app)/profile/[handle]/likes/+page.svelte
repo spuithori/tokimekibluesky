@@ -49,6 +49,10 @@
     }
 </script>
 
+<svelte:head>
+  <title>{data.params.handle} {$_('page_title_likes')} - TOKIMEKI</title>
+</svelte:head>
+
 <div class="timeline">
   {#each feeds as data (data)}
     <TimelineItem data={ data } isPrivate={ true }></TimelineItem>

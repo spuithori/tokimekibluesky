@@ -1,12 +1,12 @@
 .only-mobile {
     @media (min-width: 768px) {
-        display: none;
+        display: none !important;
     }
 }
 
 .only-pc {
     @media (max-width: 767px) {
-        display: none;
+        display: none !important;
     }
 }
 
@@ -79,63 +79,6 @@
     }
 }
 
-@media (min-width: 768px) {
-    .header-hide {
-        .header {
-            transform: translateY(-80px);
-        }
-
-        .deck {
-            height: 100vh !important;
-        }
-
-        .decks-button {
-            transform: translateY(-80px);
-        }
-
-        .header-collapse-button {
-            transform: translateY(-70px);
-            svg {
-                transform: none !important;
-            }
-        }
-    }
-}
-
-.header-collapse-button {
-    position: absolute;
-    width: 50px;
-    height: 50px;
-    top: 50px;
-    left: 0;
-    right: 0;
-    margin: auto;
-    background-color: var(--border-color-1);
-    border-radius: 50%;
-    display: grid;
-    place-content: center;
-    z-index: 10;
-    padding-top: 15px;
-
-    @media (max-width: 767px) {
-        display: none;
-    }
-
-    svg {
-        transform: scale(1, -1);
-    }
-}
-
-.layout-sidebar {
-
-}
-
-.sidebar {
-    .page-nav-title {
-        display: none;
-    }
-}
-
 .acp-card__heading {
     .timeline-menu-toggle {
         position: static;
@@ -160,5 +103,133 @@
         @media (max-width: 767px) {
             left: 0;
         }
+    }
+}
+
+.side-bar-button {
+    &--current {
+        svg {
+            stroke: var(--primary-color);
+        }
+    }
+}
+
+.deck-divider {
+    width: 404px;
+    flex-shrink: 0;
+}
+
+.bottom {
+    .deck-divider {
+        display: none;
+    }
+
+    .header {
+        max-width: 740px;
+    }
+
+    .layout-decks .page {
+        margin: 0 auto;
+        max-width: 740px;
+        width: 100%;
+    }
+
+    .main {
+        width: calc(100vw - 64px);
+
+        @media (max-width: 767px) {
+            width: 100%;
+        }
+    }
+}
+
+.single {
+    .single-timeline-wrap {
+        .deck-row {
+            width: auto !important;
+            border-radius: 0;
+            border: none;
+            overflow: visible;
+
+            &__content {
+                overflow-y: initial !important;
+            }
+        }
+    }
+
+    &.bottom {
+        .deck-heading {
+            transition: transform .2s ease-in-out;
+            border-radius: 0;
+
+            @media (min-width: 768px) {
+                z-index: 9999;
+                transform: translateX(-59px);
+                width: 480px;
+                border-right: 1px solid var(--border-color-2);
+                border-bottom: none;
+            }
+        }
+
+        .column-heading {
+            @media (min-width: 768px) {
+                z-index: 9999;
+                transform: translateX(-62px);
+                width: calc(100% + 60px);
+            }
+        }
+    }
+
+    .refresh-button {
+        @media (max-width: 767px) {
+            position: fixed;
+        }
+    }
+}
+
+.decks {
+    &.bottom {
+        .deck {
+            padding-top: 60px;
+
+            @media (max-width: 767px) {
+                padding-top: 0;
+            }
+        }
+    }
+}
+
+.scroll-down.app {
+    .deck-heading {
+        @media (max-width: 767px) {
+            top: -52px;
+        }
+    }
+
+    &.single {
+        .refresh-button {
+            @media (max-width: 767px) {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+    }
+}
+
+.side-nav {
+    &__button {
+        &--current {
+            .lucide {
+                stroke: var(--text-color-1);
+            }
+        }
+    }
+}
+
+html {
+    overflow-y: scroll;
+
+    &:has(.decks) {
+        overflow-y: auto;
     }
 }

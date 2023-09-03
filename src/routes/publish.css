@@ -72,7 +72,7 @@
 .publish-form__submit {
     min-width: 82px;
     height: 30px;
-    border-radius: 4px;
+    border-radius: 15px;
     top: 10px;
     right: 20px;
     z-index: 10;
@@ -99,6 +99,10 @@
     svg {
         margin-top: 4px;
     }
+}
+
+.filepond--drop-label label {
+    font-size: 14px;
 }
 
 .publish-upload-close {

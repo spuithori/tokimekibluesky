@@ -1,12 +1,15 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { agent } from '$lib/stores';
+    import {agent, settings} from '$lib/stores';
     import { afterUpdate } from 'svelte';
     import { page } from '$app/stores';
     import type { LayoutData } from './$types';
     import { fly } from 'svelte/transition';
     import UserProfile from "./UserProfile.svelte";
     import type { Snapshot } from './$types';
+    import UserFollowButton from "./UserFollowButton.svelte";
+    import UserEdit from "./UserEdit.svelte";
+    import ProfileMenu from "$lib/components/profile/ProfileMenu.svelte";
 
     export let data: LayoutData;
     let currentPage = 'posts';
@@ -46,6 +49,9 @@
         await textArray.detectFacets($agent.agent);
     } */
 
+    function onProfileUpdate() {
+        handleRefresh();
+    }
 
     function isActive() {
         const path = data.url.pathname;
@@ -78,98 +84,70 @@
     })
 </script>
 
-{#key currentPage}
-  <h1 class="page-nav-title" in:fly={{ x: 10, duration: 100, delay: 100 }}>{$_(currentPage)}</h1>
-{/key}
+<div class="modal-page modal-page--{$settings.design?.layout}">
+  <div class="modal-page-content">
+    <section class="page profile">
+      <div class="column-heading">
+        {#if profile}
+          <div class="column-heading__buttons">
+            <button class="settings-back" on:click={() => {history.back()}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            </button>
+          </div>
 
-<section class="profile">
-  <div class="user-profile-wrap">
-    {#if profile}
-      <UserProfile handle={handle} profile={profile} on:refresh={handleRefresh}></UserProfile>
-    {/if}
+          <h2 class="column-heading__title">{$_(currentPage)} - {profile.displayName || profile.handle}</h2>
+
+          <div class="column-heading__buttons column-heading__buttons--right">
+            {#if (profile.did !== $agent.did())}
+              <div class="profile-follow-button">
+                <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
+              </div>
+            {:else}
+              <div class="profile-follow-button profile-follow-button--me">
+                <UserEdit {profile} on:update={onProfileUpdate}></UserEdit>
+              </div>
+            {/if}
+
+            <ProfileMenu {handle} {profile} on:refresh={handleRefresh}></ProfileMenu>
+          </div>
+        {/if}
+
+        <a class="settings-back" href="/">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </a>
+      </div>
+
+      <div class="user-profile-wrap">
+        {#if profile}
+          <UserProfile handle={handle} profile={profile} on:refresh={handleRefresh}></UserProfile>
+        {/if}
+      </div>
+
+      {#key $page.params.handle}
+        <ul class="profile-tab">
+          <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'follow'} class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'media'} class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{$_('media')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'likes'} class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
+        </ul>
+
+        <slot></slot>
+      {/key}
+    </section>
   </div>
-
-  {#key $page.params.handle}
-    <ul class="profile-tab">
-      <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
-      <li class="profile-tab__item" on:click={() => currentPage = 'follow'} class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
-      <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
-      <li class="profile-tab__item" on:click={() => currentPage = 'media'} class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{$_('media')}</a></li>
-      <li class="profile-tab__item" on:click={() => currentPage = 'likes'} class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
-    </ul>
-
-    <slot></slot>
-  {/key}
-</section>
+</div>
 
 <style lang="postcss">
+    .user-profile-wrap {
+        padding: 16px;
+    }
+
+    .profile {
+
+    }
+
     .profile-relationship__item span {
         color: var(--text-color-2);
-    }
-
-    .profile-tab {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        list-style: none;
-        border: 1px solid var(--border-color-1);
-        background-color: var(--bg-color-1);
-        border-radius: 10px;
-        overflow: hidden;
-        margin: 30px 0;
-        font-size: 16px;
-        font-weight: 600;
-
-        @media (max-width: 767px) {
-            font-size: 14px;
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
-
-    .profile-tab__item {
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        background-color: var(--bg-color-1);
-
-        @media (max-width: 767px) {
-            height: 42px;
-            border-bottom: 1px solid var(--border-color-1);
-            border-right: 1px solid var(--border-color-1);
-
-            &:nth-child(3n) {
-                border-right: none !important;
-            }
-
-            &:nth-child(n + 4) {
-                border-bottom: none;
-            }
-        }
-
-        &:not(:last-child) {
-            border-right: 1px solid var(--border-color-1);
-        }
-    }
-
-    .profile-tab__item--active {
-        font-weight: bold;
-        background-color: var(--primary-color);
-        color: var(--bg-color-1);
-    }
-
-    .profile-tab__item a {
-        color: inherit;
-        text-decoration: none;
-    }
-
-    .profile-tab__item a::before {
-        content: '';
-        display: block;
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
     }
 </style>

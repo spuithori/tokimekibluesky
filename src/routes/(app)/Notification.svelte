@@ -1,7 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, notificationCount, realtime, settings} from '$lib/stores';
-    import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
+    import {agent, realtime, settings} from '$lib/stores';
     import { type AppBskyNotificationListNotifications, AppBskyFeedPost, AppBskyFeedLike, AppBskyFeedRepost } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
@@ -10,6 +9,8 @@
     import Reply from "$lib/components/post/Reply.svelte";
     import Avatar from "./Avatar.svelte";
     import UserItem from "./profile/[handle]/UserItem.svelte";
+    import {createEventDispatcher} from "svelte";
+    const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
     export let isPage = false;
@@ -30,7 +31,57 @@
         il.$$.update();
     }
 
-    $: putNotifications($notificationCount);
+    $: realtimeNotificationCount($realtime.data)
+
+    async function realtimeNotificationCount(data) {
+        if (!data) {
+            return false;
+        }
+
+        const record = data.record;
+
+        if (!record) {
+            return false;
+        }
+
+        if (record.$type === 'app.bsky.feed.like' || record.$type === 'app.bsky.feed.repost') {
+            const subjectUri = record.subject.uri;
+            const subjectRepo = subjectUri.split('/')[2];
+
+            if (subjectRepo === _agent.did()) {
+                await observeRealtimeNotification();
+            }
+        }
+
+        if (record.$type === 'app.bsky.graph.follow') {
+            const subject = record.subject;
+
+            if (subject === _agent.did()) {
+                await observeRealtimeNotification();
+            }
+        }
+
+        if (record.$type === 'app.bsky.feed.post' && typeof record.text === 'string') {
+            const subjectUri = record.reply?.parent.uri ?? undefined;
+            if (!subjectUri) {
+                return false;
+            }
+            const subjectRepo = subjectUri.split('/')[2];
+
+            if (subjectRepo === _agent.did()) {
+                await observeRealtimeNotification();
+            }
+        }
+    }
+
+    async function observeRealtimeNotification() {
+        const count = _agent.agent.api.app.bsky.notification.getUnreadCount();
+        dispatch('update', {
+            count: count,
+        });
+        console.log(count);
+        await putNotifications(count);
+    }
 
     async function putNotifications(count) {
         if (!$realtime.isConnected) {
@@ -149,27 +200,19 @@
       </li>
 
       <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" on:click={() => {getNotifications(['reply', 'mention', 'quote'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['reply', 'mention', 'quote'])} aria-label="Reply, Mention, and Quotes"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13.001" viewBox="0 0 13 13.001">
-          <path id="at-symbol" d="M8.84,8.759A3.25,3.25,0,1,1,8.45,3.9v-.65h1.3V7.478a.975.975,0,1,0,1.95,0V6.5a5.2,5.2,0,1,0-2.873,4.654l.585,1.163A6.5,6.5,0,1,1,13,6.5h-.006v.975a2.275,2.275,0,0,1-4.16,1.28ZM6.5,8.453A1.95,1.95,0,1,0,4.55,6.5,1.95,1.95,0,0,0,6.5,8.453Z" transform="translate(0 -0.009)" fill="var(--primary-color)"/>
-        </svg></button>
+        <button class="notifications-filter-button" on:click={() => {getNotifications(['reply', 'mention', 'quote'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['reply', 'mention', 'quote'])} aria-label="Reply, Mention, and Quotes"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-at-sign"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg></button>
       </li>
 
       <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" on:click={() => {getNotifications(['like'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])} aria-label="Like"><svg xmlns="http://www.w3.org/2000/svg" width="15.78" height="14.101" viewBox="0 0 15.78 14.101">
-          <path id="heart" d="M8,2.792l-.487-.479a4.388,4.388,0,0,0-6.206,6.2l0,0L8,15.206,14.7,8.5a4.388,4.388,0,0,0-6.21-6.2l0,0L8,2.792Z" transform="translate(-0.111 -1.105)" fill="var(--primary-color)"/>
-        </svg></button>
+        <button class="notifications-filter-button" on:click={() => {getNotifications(['like'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])} aria-label="Like"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></button>
       </li>
 
       <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" on:click={() => {getNotifications(['repost'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['repost'])} aria-label="Repost"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="12" viewBox="0 0 20 12">
-          <path id="retweet" d="M13.333,17.667A.342.342,0,0,1,13,18H3c-.385,0-.333-.406-.333-.667v-6h-2A.671.671,0,0,1,0,10.667a.638.638,0,0,1,.156-.427l3.333-4a.683.683,0,0,1,1.021,0l3.333,4A.636.636,0,0,1,8,10.667a.671.671,0,0,1-.667.667h-2v4h6a.356.356,0,0,1,.261.115l1.667,2A.42.42,0,0,1,13.333,17.667ZM20,13.333a.638.638,0,0,1-.156.427l-3.333,4a.664.664,0,0,1-1.021,0l-3.333-4A.636.636,0,0,1,12,13.333a.671.671,0,0,1,.667-.667h2v-4h-6a.332.332,0,0,1-.261-.125l-1.667-2a.357.357,0,0,1-.073-.209A.342.342,0,0,1,7,6H17c.385,0,.333.406.333.667v6h2A.671.671,0,0,1,20,13.333Z" transform="translate(0 -6)" fill="var(--primary-color)"/>
-        </svg></button>
+        <button class="notifications-filter-button" on:click={() => {getNotifications(['repost'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['repost'])} aria-label="Repost"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg></button>
       </li>
 
       <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" on:click={() => {getNotifications(['follow'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['follow'])} aria-label="Follow"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="11.25" viewBox="0 0 15 11.25">
-          <path id="user-add" d="M1.5,5.25H0v1.5H1.5v1.5H3V6.75H4.5V5.25H3V3.75H1.5Zm5.25,0a2.25,2.25,0,0,1,4.5,0v1.5a2.25,2.25,0,0,1-4.5,0ZM15,12.105a12.017,12.017,0,0,0-12,0V14.25H15Z" transform="translate(0 -3)" fill="var(--primary-color)"/>
-        </svg></button>
+        <button class="notifications-filter-button" on:click={() => {getNotifications(['follow'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['follow'])} aria-label="Follow"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus-2"><path d="M14 19a6 6 0 0 0-12 0"/><circle cx="8" cy="9" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg></button>
       </li>
     </ul>
   </div>
@@ -277,6 +320,12 @@
 </div>
 
 <style lang="postcss">
+  .notification-column {
+      &__content {
+          min-width: 0;
+      }
+  }
+
   .notifications-item {
       border-bottom: 1px solid var(--border-color-1);
       padding: 10px 0;
@@ -290,7 +339,7 @@
       }
 
       &__title {
-          font-size: 15px;
+          font-size: 14px;
           line-height: 1.5;
           font-weight: 600;
           margin-bottom: 5px;
@@ -325,8 +374,13 @@
       &--follow {
           display: flex;
           justify-content: space-between;
-          align-items: center;
-          gap: 10px;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 5px;
+
+          @container timeline-item (max-width: 320px) {
+
+          }
       }
 
       &--filter-follow {
@@ -339,10 +393,24 @@
 
       &--reply {
           background-color: var(--base-bg-color);
-          margin-left: -20px;
-          margin-right: -20px;
-          padding-left: 20px;
-          padding-right: 20px;
+          margin-left: -16px;
+          margin-right: -16px;
+          padding-left: 16px;
+          padding-right: 16px;
+
+          .notifications-new {
+              display: none;
+          }
+      }
+
+      &--like,
+      &--repost {
+          .notifications-item__content {
+              color: var(--text-color-3);
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              overflow: hidden;
+          }
       }
   }
 
@@ -350,9 +418,19 @@
       position: absolute;
       width: 3px;
       background-color: var(--primary-color);
-      left: -20px;
+      left: -16px;
       top: 0;
       bottom: 0;
+  }
+
+  .notifications-menu {
+      margin: 0 -16px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border-color-1);
+
+      @container timeline-item (max-width: 310px) {
+          padding: 0 8px;
+      }
   }
 
   .notifications-wrap {
@@ -372,7 +450,11 @@
       white-space: nowrap;
       align-items: center;
       gap: 5px 10px;
-      margin-bottom: 15px;
+
+      @container timeline-item (max-width: 320px) {
+        gap: 5px;
+        justify-content: space-between;
+      }
 
       &__item {
           font-size: 14px;
@@ -388,21 +470,37 @@
   }
 
   .notifications-filter-button {
-      border: 1px solid var(--primary-color);
-      min-width: 50px;
+      min-width: 40px;
       height: 30px;
-      padding: 0 8px;
-      border-radius: 15px;
+      padding: 0 8px 12px;
       display: grid;
       place-content: center;
       color: var(--text-color-1);
+      position: relative;
+
+      @container timeline-item (max-width: 320px) {
+
+      }
+
+      &::before {
+          content: '';
+          display: block;
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 20px;
+          height: 4px;
+          border-radius: 2px;
+          background-color: var(--primary-color);
+          margin: auto;
+          transform: scaleX(0);
+          transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
+      }
 
       &--active {
-          background-color: var(--primary-color);
-          color: var(--bg-color-1);
-
-          path {
-              fill: var(--bg-color-1);
+          &::before {
+              transform: scaleX(1);
           }
       }
   }

@@ -70,3 +70,212 @@
     color: var(--text-color-3);
     margin-bottom: 20px;
 }
+
+/* .modal-page {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    z-index: 999;
+    margin: auto;
+    overflow-y: scroll;
+    height: 100vh;
+
+    @media (min-width: 768px) {
+        scrollbar-color: var(--primary-color) var(--bg-color-3);
+
+        &::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: var(--bg-color-3);
+            border-radius: 5px;
+        }
+    }
+
+    &--default {
+
+    }
+}
+
+.modal-page-content {
+    width: 100%;
+    max-width: 528px;
+    position: absolute;
+    left: 412px;
+    top: 0;
+    right: 0;
+    margin: auto;
+    min-height: 100vh;
+    background-color: var(--bg-color-1);
+    border-left: 1px solid var(--border-color-2);
+    border-right: 1px solid var(--border-color-2);
+} */
+
+.single {
+    &.page {
+        .single-wrap {
+            position: fixed;
+            overflow: hidden;
+            left: 402px;
+            top: 0;
+            right: 0;
+            margin: auto;
+            min-height: 100dvh;
+            max-width: 528px;
+
+            @media (max-width: 767px) {
+                left: 0;
+            }
+        }
+
+        &.bottom {
+            .single-wrap {
+                left: 70px;
+                max-width: 626px;
+            }
+        }
+    }
+
+    .modal-page {
+        position: static;
+    }
+
+    .modal-page-content {
+        min-height: 100dvh;
+        background-color: var(--bg-color-1);
+        border-left: 1px solid var(--border-color-2);
+        border-right: 1px solid var(--border-color-2);
+        position: relative;
+        z-index: 1001;
+    }
+}
+
+.decks {
+    .modal-page {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        z-index: 1001;
+        margin: auto;
+        height: 100dvh;
+        background-color: rgba(0, 0, 0, .5);
+
+        @media (min-width: 768px) {
+            scrollbar-color: var(--primary-color) var(--bg-color-3);
+
+            &::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: var(--primary-color);
+                border-radius: 5px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: var(--bg-color-3);
+                border-radius: 5px;
+            }
+        }
+    }
+
+    .modal-page-content {
+        width: 100%;
+        max-width: 740px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        border-radius: 10px 0 0 10px;
+        margin: auto;
+        height: 94vh;
+        background-color: var(--bg-color-1);
+        overflow-y: scroll;
+
+        @media (max-width: 767px) {
+            height: 100dvh;
+            border-radius: 0;
+        }
+
+        @media (min-width: 768px) {
+            scrollbar-color: var(--primary-color) var(--bg-color-3);
+
+            &::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: var(--primary-color);
+                border-radius: 0;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: var(--bg-color-3);
+                border-radius: 0;
+            }
+        }
+    }
+}
+
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    background-color: rgba(0, 0, 0, .5);
+    padding: 50px 0;
+
+    @media (max-width: 767px) {
+        display: block;
+        overscroll-behavior-y: none;
+        padding: 0;
+    }
+}
+
+.settings-modal-content {
+    border-radius: 10px;
+    background-color: var(--bg-color-1);
+    width: 800px;
+    max-width: 100vw;
+    height: 90vh;
+    overflow: hidden;
+    z-index: 2;
+
+    @media (min-width: 768px) {
+        scrollbar-color: var(--primary-color) var(--bg-color-3);
+
+        &::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: var(--bg-color-3);
+            border-radius: 5px;
+        }
+    }
+
+    @media (max-width: 767px) {
+        width: 100%;
+        height: 100dvh;
+        border-radius: 0;
+    }
+}

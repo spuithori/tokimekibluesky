@@ -16,38 +16,10 @@
   <div class="my-profile-badge">
     {#if $account.session?.handle}
       <a href="/profile/{$account.session.handle}">
-        <img src="{$account.avatar}" alt="">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-2"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
       </a>
     {:else}
       <span class="empty-avatar"></span>
     {/if}
   </div>
 {/if}
-
-<style lang="postcss">
-  .my-profile-badge {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      overflow: hidden;
-
-      @media (max-width: 767px) {
-          width: 38px;
-          height: 38px;
-      }
-  }
-
-  .my-profile-badge img  {
-      background-color: var(--primary-color);
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-  }
-
-  .empty-avatar {
-      background-color: var(--primary-color);
-      width: 100%;
-      height: 100%;
-  }
-</style>

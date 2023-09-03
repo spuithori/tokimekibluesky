@@ -63,11 +63,15 @@
       left: 0;
       top: calc(100% + 10px);
       background-color: var(--bg-color-1);
-      box-shadow: 0 0 12px rgba(0, 0, 0, .08);
+      box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 8px 16px rgba(0, 0, 0, .14);
       padding: 20px;
       border-radius: 6px;
       z-index: 14;
       width: 300px;
+
+      @media (max-width: 767px) {
+          display: none;
+      }
   }
 
   .profile-card-heading {

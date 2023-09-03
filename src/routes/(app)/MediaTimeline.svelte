@@ -30,7 +30,7 @@
     })
 </script>
 
-<div class="timeline" class:hide-repost={$hideRepost === 'true'} class:hide-reply={$hideReply === 'true'}>
+<div class="" class:hide-repost={$hideRepost === 'true'} class:hide-reply={$hideReply === 'true'}>
   <div class="media-list">
     {#each $timeline as data (data)}
       {#if (data.post.embed?.images)}

@@ -49,7 +49,7 @@ input[type=checkbox]{
 }
 
 .settings-group {
-    padding: 10px 0;
+    padding: 12px 0;
     gap: 10px;
     font-size: 14px;
 
@@ -61,6 +61,7 @@ input[type=checkbox]{
 
     &__name {
         margin-bottom: 10px;
+        letter-spacing: .025em;
     }
 
     &__description {
@@ -78,6 +79,10 @@ input[type=checkbox]{
             margin-bottom: 0;
         }
     }
+}
+
+.settings-wrap {
+    padding: 16px;
 }
 
 .settings-title {
@@ -129,12 +134,7 @@ input[type=checkbox]{
 }
 
 .settings-back {
-    display: none;
 
-    @media (max-width: 767px) {
-        display: block;
-        margin-top: 2px;
-    }
 }
 
 .settings-description {
@@ -186,4 +186,103 @@ input[type=checkbox]{
     right: 0;
     bottom: 0;
     z-index: 1;
+}
+
+.p-menu-nav {
+    list-style: none;
+    text-align: center;
+
+    &__icon {
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-content: center;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        position: relative;
+        border-radius: 4px;
+        background-color: var(--bg-color-1);
+        padding: 6px 16px;
+        gap: 10px;
+        white-space: nowrap;
+
+        &::before {
+            content: '';
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+            background-color: var(--primary-color);
+            margin: auto;
+            transform: scaleY(0);
+            transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
+        }
+
+        &:hover {
+            background-color: var(--border-color-2);
+        }
+
+        &--current {
+            font-weight: bold;
+
+            &::before {
+                transform: scaleY(1);
+            }
+        }
+    }
+
+    &__title {
+        line-height: 1.3;
+        font-size: 15px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        letter-spacing: .015em;
+
+        a {
+            color: inherit;
+
+            &:hover {
+                text-decoration: none;
+            }
+
+            &::before {
+                content: '';
+                display: block;
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                top: 0;
+            }
+        }
+    }
+}
+
+.p-menu-title {
+    font-size: 15px;
+    margin-bottom: 10px;
+    letter-spacing: .025em;
+}
+
+.settings-toc {
+
+}
+
+.notice {
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: var(--bg-color-2);
+    border: 1px solid var(--border-color-2);
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 8px;
 }

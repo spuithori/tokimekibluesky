@@ -1,14 +1,21 @@
 <script lang="ts">
-  import { agent } from '$lib/stores';
+  import {agent, isPublishInstantFloat, sideState} from '$lib/stores';
+  import {goto} from "$app/navigation";
 
   export let _agent = $agent;
   export let post;
   export let reply;
   export let count;
+
+  function handleClick() {
+      $replyRef = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } }
+      $sideState = 'publish';
+      $isPublishInstantFloat = true;
+  }
 </script>
 
 <script lang="ts" context="module">
-  import { replyRef } from '$lib/stores';
+    import {replyRef} from '$lib/stores';
 
   export function replyFunc(post, reply) {
       replyRef.set({ did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } })
@@ -16,11 +23,11 @@
 </script>
 
 <div class="timeline-reaction__item timeline-reaction__item--reply">
-  <button class="timeline-reaction__icon" on:click={() => {$replyRef = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } }}} aria-label="返信">
+  <button class="timeline-reaction__icon" on:click={handleClick} aria-label="返信">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border-color-1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-reply"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
   </button>
 
-  <span class="timeline-reaction__count">{ count }</span>
+  <span class="timeline-reaction__count">{ count || 0 }</span>
 </div>
 
 <style lang="postcss">

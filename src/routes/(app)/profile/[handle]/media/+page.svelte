@@ -48,7 +48,11 @@
     }
 </script>
 
-<div class="timeline hide-repost">
+<svelte:head>
+  <title>{data.params.handle} {$_('page_title_media')} - TOKIMEKI</title>
+</svelte:head>
+
+<div class="hide-repost">
   <div class="media-list">
     {#each feeds as data}
       <MediaTimelineItem data={data}></MediaTimelineItem>

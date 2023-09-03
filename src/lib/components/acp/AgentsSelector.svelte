@@ -6,6 +6,7 @@
 
     export let _agent = $agent;
     export let isDisabled = false;
+    export let style = 'default';
     let isOpen = false;
 
     function selectAgent(key, agent) {
@@ -21,7 +22,7 @@
 </script>
 
 {#if _agent}
-  <div class="agents-selector-wrap" class:agents-selector-wrap--open={isOpen} aria-disabled={isDisabled}>
+  <div class="agents-selector-wrap agents-selector-wrap--{style}" class:agents-selector-wrap--open={isOpen} aria-disabled={isDisabled}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down agents-selector-wrap-arrow"><path d="m6 9 6 6 6-6"/></svg>
 
     <div class="agents-selector"
@@ -62,6 +63,23 @@
             overflow: visible;
         }
 
+        &--publish {
+            height: 40px;
+            font-size: 14px;
+            border-bottom: 2px solid var(--primary-color);
+            background-color: var(--bg-color-2);
+            border-radius: 4px 4px 0 0;
+
+            .agents-selector {
+                border: none;
+            }
+
+            .agents-selector__item {
+                height: 40px;
+                background-color: var(--bg-color-1);
+            }
+        }
+
         &[aria-disabled='true'] {
             pointer-events: none;
             opacity: .5;
@@ -93,9 +111,11 @@
             display: flex;
             justify-content: center;
             flex-direction: column;
+            align-items: flex-start;
             background-color: var(--bg-color-1);
             border-top: 1px solid var(--border-color-1);
             color: var(--text-color-1);
+            text-align: left;
 
             &:hover {
                 background-color: var(--bg-color-2);

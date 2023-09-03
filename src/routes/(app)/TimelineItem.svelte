@@ -1,14 +1,14 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
     import {
-      agent,
-      isDataSaving,
-      quotePost,
-      settings,
-      timelines,
-      isPreventEvent,
-      reportModal,
-      columns
+        agent,
+        isDataSaving,
+        quotePost,
+        settings,
+        timelines,
+        isPreventEvent,
+        reportModal,
+        columns, sideState, isPublishInstantFloat
     } from '$lib/stores';
     import {format, formatDistanceToNow, isMatch, parse, parseISO} from 'date-fns';
     import isWithinInterval from 'date-fns/isWithinInterval'
@@ -662,56 +662,36 @@
         {#if (data.post.author.did === _agent.did())}
           <li class="timeline-menu-list__item timeline-menu-list__item--delete">
             <button class="timeline-menu-list__button" on:click={() => {deletePost(data.post.uri)}}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="15.2" height="19" viewBox="0 0 15.2 19">
-                <path id="trash"
-                      d="M67.8,1.9,69.7,0h3.8l1.9,1.9h3.8V3.8H64V1.9ZM64.95,5.7h13.3L77.3,19H65.9ZM69.7,7.6v9.5h.95V7.6Zm2.85,0v9.5h.95V7.6Z"
-                      transform="translate(-64)" fill="var(--danger-color)"/>
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
               <span class="text-danger">{$_('delete_post')}</span>
             </button>
           </li>
         {/if}
 
         <li class="timeline-menu-list__item timeline-menu-list__item--quote">
-          <button class="timeline-menu-list__button" on:click={() => {$quotePost = data.post}}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18.16" height="16.112" viewBox="0 0 18.16 16.112">
-              <path id="パス_4" data-name="パス 4"
-                    d="M-21.606-46.169h7.482v4.315a16.682,16.682,0,0,1-4.588,11.8h-3.332a16.9,16.9,0,0,0,4.014-8.629h-3.577Zm10.3,0h7.428v4.315a16.5,16.5,0,0,1-4.588,11.8h-3.277a16.118,16.118,0,0,0,3.96-8.629h-3.523Z"
-                    transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
-            </svg>
+          <button class="timeline-menu-list__button" on:click={() => {$quotePost = data.post; $sideState = 'publish'; $isPublishInstantFloat = true;}}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
             {$_('quote_post')}
           </button>
         </li>
 
         <li class="timeline-menu-list__item timeline-menu-list__item--translate">
           <button class="timeline-menu-list__button" on:click={translation}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-              <path id="translate"
-                    d="M6.669,8.1l2.016,2.016-.747,1.8L5.4,9.36,2.43,12.33,1.17,11.052,4.122,8.1,3.33,7.308A5.387,5.387,0,0,1,2.16,5.4H4.14a2.533,2.533,0,0,0,.459.63l.8.81.792-.792A4.173,4.173,0,0,0,7.2,3.6H0V1.8H4.5V0H6.3V1.8h4.5V3.6H9A5.906,5.906,0,0,1,7.47,7.308L6.66,8.1Zm3.456,7.2L9,18H7.2L11.7,7.2h1.8L18,18H16.2l-1.125-2.7Zm.747-1.8h3.456L12.6,9.36Z"
-                    fill="var(--text-color-1)"/>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-languages"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
             {$_('translation')}
           </button>
         </li>
 
         <li class="timeline-menu-list__item timeline-menu-list__item--copy-url">
           <button class="timeline-menu-list__button" on:click={copyThreadUrl}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="14.417" height="18" viewBox="0 0 14.417 18">
-              <path id="clipboard"
-                    d="M6.532,2.345a2.7,2.7,0,0,1,5.352,0l1.829.36v.9h.9a1.8,1.8,0,0,1,1.8,1.8V16.221a1.8,1.8,0,0,1-1.8,1.8H3.8a1.8,1.8,0,0,1-1.8-1.8V5.409a1.807,1.807,0,0,1,1.8-1.8h.9v-.9l1.829-.36ZM4.7,5.409H3.8V16.221H14.615V5.409h-.9v.9H4.7Zm4.505-1.8a.9.9,0,1,0-.9-.9A.9.9,0,0,0,9.208,3.606Z"
-                    transform="translate(-2 -0.023)" fill="var(--text-color-3)"/>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             {$_('copy_url')}
           </button>
         </li>
 
         <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
           <button class="timeline-menu-list__button" on:click={copyHandle}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18.001" viewBox="0 0 18 18.001">
-              <path id="at-symbol"
-                    d="M12.24,12.124A4.5,4.5,0,1,1,11.7,5.4V4.5h1.8v5.85a1.35,1.35,0,1,0,2.7,0V9a7.2,7.2,0,1,0-3.978,6.444l.81,1.611A9,9,0,1,1,18,9h-.009v1.35a3.15,3.15,0,0,1-5.76,1.773ZM9,11.7A2.7,2.7,0,1,0,6.3,9,2.7,2.7,0,0,0,9,11.7Z"
-                    transform="translate(0 -0.009)" fill="var(--text-color-3)"/>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-at-sign"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>
             {$_('copy_handle')}
           </button>
         </li>
@@ -719,7 +699,7 @@
         {#if ($settings.design?.layout === 'decks')}
           <li class="timeline-menu-list__item timeline-menu-list__item--report">
             <a href="/profile/{data.post.author.handle}/post/{data.post.uri.split('/').slice(-1)[0]}" class="timeline-menu-list__button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-plus"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-plus"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg>
               {$_('show_thread')}
             </a>
           </li>
@@ -727,7 +707,7 @@
 
         <li class="timeline-menu-list__item timeline-menu-list__item--report">
           <button class="timeline-menu-list__button" on:click={report}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
             {$_('report')}
           </button>
         </li>

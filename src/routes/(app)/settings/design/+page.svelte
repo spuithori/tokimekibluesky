@@ -2,6 +2,7 @@
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
     import TimelineItem from "../../TimelineItem.svelte";
+    let skin: string = $settings?.design.skin || 'default';
     let themePick: string = $settings?.design.theme || 'royalblue';
     let darkmode = $settings?.design.darkmode || false;
     let nonoto = $settings?.design.nonoto || false;
@@ -11,27 +12,43 @@
     let postsImageLayout = $settings?.design.postsImageLayout || 'default';
     let oneImageNoCrop = $settings?.design.oneImageNoCrop || false;
 
-    const samplePost = {
-        post: {
-            author: {
-                did: 'did:example:tokimekidummy',
-                displayName: 'Ayumu',
-                handle: 'ayumu.example.tokimeki.blue',
+    let isDarkmodeDisabled = false;
+
+    const skins = [
+        {
+            value: 'default',
+            options: {
+                colorDisabled: false,
+                darkmodeDisabled: false,
             },
-            indexedAt: '2023-05-17T05:03:26.304Z',
-            likeCount: 10,
-            replyCount: 10,
-            repostCount: 10,
-            record: {
-                $type: 'app.bsky.feed.post',
-                createdAt: '2023-05-17T05:03:25.905Z',
-                text: 'Dreams will not escape us if we do not give up step by step, even on an endless road.'
+            image: '/skin-default.png',
+        },
+        {
+            value: 'twilight',
+            options: {
+                colorDisabled: false,
+                darkmodeDisabled: true,
             },
-            uri: 'at://did:example:tokimekidummy/app.bsky.feed.post/kdaosidoewo'
-        }
-    }
+            image: '/skin-twilight.png',
+        },
+        /* {
+            value: 'ambient',
+            options: {
+                colorDisabled: false,
+                darkmodeDisabled: true,
+            }
+        },
+        {
+            value: 'highcontrast',
+            options: {
+                colorDisabled: false,
+                darkmodeDisabled: false,
+            }
+        }, */
+    ]
 
     $: {
+        $settings.design.skin = skin;
         $settings.design.theme = themePick;
         $settings.design.darkmode = darkmode;
         $settings.design.nonoto = nonoto;
@@ -41,27 +58,41 @@
         $settings.design.postsImageLayout = postsImageLayout;
         $settings.design.oneImageNoCrop = oneImageNoCrop;
     }
+
+    $: detectDarkmodeDisabled(skin);
+
+    function detectDarkmodeDisabled(skin) {
+        const _skin = skins.find(_skin => _skin.value === skin);
+        if (!_skin) {
+            return false;
+        }
+
+        isDarkmodeDisabled = !!_skin.options?.darkmodeDisabled;
+    }
 </script>
 
 <svelte:head>
-  <title>Design - TOKIMEKI Bluesky</title>
+  <title>{$_('settings_design')} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
-  <div class="settings-heading">
-    <a href="/settings" class="settings-back"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="16.97" viewBox="0 0 20 16.97">
-      <path id="arrow-left" d="M3.828,9,9.9,2.929,8.485,1.515,0,10l.707.707,7.778,7.778L9.9,17.071,3.828,11H20V9Z" transform="translate(0 -1.515)" fill="var(--text-color-1)"/>
-    </svg></a>
+  <div class="column-heading">
+    <div class="column-heading__buttons">
+      <button class="settings-back" on:click={() => {history.back()}}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+      </button>
+    </div>
 
-    <h1 class="settings-title">{$_('settings_design')}</h1>
+    <h1 class="column-heading__title">{$_('settings_design')}</h1>
+
+    <div class="column-heading__buttons column-heading__buttons--right">
+      <a class="settings-back" href="/">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </a>
+    </div>
   </div>
 
   <div class="settings-wrap">
-    <aside class="sample-post" tabindex="-1">
-      <!-- <p>{$_('sample')}</p>
-     <TimelineItem data={samplePost}></TimelineItem> -->
-    </aside>
-
     <dl class="settings-group">
       <dt class="settings-group__name">
         {$_('layout')}
@@ -84,7 +115,30 @@
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('theme')}
+        {$_('skin_theme')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="icons-radio-group">
+          {#each skins as _skin}
+            <div class="icons-radio icons-radio--skin">
+              <input type="radio" bind:group={skin} id="skin_{_skin.value}" name="skin" value={_skin.value}>
+              <label for="skin_{_skin.value}">
+                <span class="icons-radio__ui">
+                  <img src={_skin.image} alt="">
+                </span>{$_('skin_' + _skin.value)}
+              </label>
+            </div>
+          {/each}
+        </div>
+
+        <p class="theme-store-link"><a href="/theme-store"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>{$_('theme_store')}</a></p>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('color_theme')}
       </dt>
 
       <dd class="settings-group__content">
@@ -146,15 +200,14 @@
       </dt>
 
       <dd class="settings-group__content">
+        {#if isDarkmodeDisabled}
+          <p class="notice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>{$_('darkmode_disabled_theme')}</p>
+        {/if}
+
         <div class="radio-group">
           <div class="radio">
             <input type="radio" bind:group={darkmode} id="darkmodeFalse" name="darkmode" value={false}>
             <label for="darkmodeFalse"><span class="radio__ui"></span>{$_('light')}</label>
-          </div>
-
-          <div class="radio">
-            <input type="radio" bind:group={darkmode} id="darkmodeTwilight" name="darkmode" value={'twilight'}>
-            <label for="darkmodeTwilight"><span class="radio__ui"></span>{$_('twilight')}</label>
           </div>
 
           <div class="radio">
@@ -420,6 +473,16 @@
             width: 100%;
             height: 100%;
             border-radius: 4px;
+        }
+    }
+
+    .theme-store-link {
+        margin-top: 16px;
+
+        a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
     }
 </style>
