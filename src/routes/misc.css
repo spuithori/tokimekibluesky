@@ -164,7 +164,7 @@
 
             @media (min-width: 768px) {
                 z-index: 9999;
-                transform: translateX(-60px);
+                transform: translateX(-59px);
                 width: 480px;
                 border-right: 1px solid var(--border-color-2);
                 border-bottom: none;
@@ -174,7 +174,7 @@
         .column-heading {
             @media (min-width: 768px) {
                 z-index: 9999;
-                transform: translateX(-60px);
+                transform: translateX(-62px);
                 width: calc(100% + 60px);
             }
         }

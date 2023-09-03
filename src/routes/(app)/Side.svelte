@@ -78,7 +78,7 @@
 
       &--single {
           position: sticky;
-          height: 100vh;
+          height: 100svh;
           z-index: 1002;
 
           @media (max-width: 767px) {
@@ -176,7 +176,7 @@
       border: 1px solid var(--border-color-2);
       flex: 1;
       overflow-y: auto;
-      max-height: calc(100vh - 60px);
+      max-height: calc(100svh - 60px);
 
       &--publish {
           overflow-y: visible;
@@ -203,6 +203,6 @@
   .side-notification {
       padding: 16px;
       overflow: auto;
-      max-height: calc(100vh - 62px);
+      max-height: calc(100svh - 62px);
   }
 </style>

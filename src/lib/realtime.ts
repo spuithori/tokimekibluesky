@@ -35,14 +35,10 @@ export async function connect() {
     });
 
     socket.addEventListener('close', (event) => {
-        //toast.error(get(_)('realtime_connect_closed'));
-        // dispatch('disconnect');
         isRealtimeConnected.set(false);
     });
 
     socket.addEventListener('open', (event) => {
-        //.success(get(_)('realtime_connect_status') + ': ' + stateMessage[socket.readyState]);
-        // dispatch('connect');
         isRealtimeConnected.set(true);
     });
 
@@ -54,22 +50,24 @@ export async function connect() {
             return;
         }
 
-        const car = await CarReader.fromBytes(body.blocks);
+        try {
+            const car = await CarReader.fromBytes(body.blocks);
 
-        for (const op of body.ops) {
-            if (!op.cid) continue;
-            const block = await car.get(op.cid);
-            const record = decode(block.bytes);
-            realtime.set({
-                isConnected: true,
-                data: {
-                    record: record,
-                    op: op,
-                    body: body,
-                }
-            })
-
-            await subscribeNotificationsCount(record, op, body)
+            for (const op of body.ops) {
+                if (!op.cid) continue;
+                const block = await car.get(op.cid);
+                const record = decode(block.bytes);
+                realtime.set({
+                    isConnected: true,
+                    data: {
+                        record: record,
+                        op: op,
+                        body: body,
+                    }
+                })
+            }
+        } catch (e) {
+            // do nothing.
         }
     });
 }
@@ -82,42 +80,6 @@ export async function disconnect() {
         isConnected: false,
         data: undefined,
     })
-}
-
-async function subscribeNotificationsCount(record, op, body) {
-    if (record.$type === 'app.bsky.feed.like' || record.$type === 'app.bsky.feed.repost') {
-        const subjectUri = record.subject.uri;
-        const subjectRepo = subjectUri.split('/')[2];
-
-        if (subjectRepo === get(agent).did()) {
-            await updateNotificationsCount();
-        }
-    }
-
-    if (record.$type === 'app.bsky.graph.follow') {
-        const subject = record.subject;
-
-        if (subject === get(agent).did()) {
-            await updateNotificationsCount();
-        }
-    }
-
-    if (record.$type === 'app.bsky.feed.post' && typeof record.text === 'string') {
-        const subjectUri = record.reply?.parent.uri ?? undefined;
-        if (!subjectUri) {
-            return false;
-        }
-        const subjectRepo = subjectUri.split('/')[2];
-
-        if (subjectRepo === get(agent).did()) {
-            await updateNotificationsCount();
-        }
-    }
-}
-
-async function updateNotificationsCount() {
-    const count = await get(agent).agent.api.app.bsky.notification.getUnreadCount();
-    notificationCount.set(count.data.count);
 }
 
 async function handleVisibilityChange(event) {
@@ -140,7 +102,6 @@ async function handleVisibilityChange(event) {
 
     if (event.target.visibilityState === 'visible') {
         clearTimeout(timeId);
-        // toast.success(get(_)('realtime_connect_status') + ': ' + stateMessage[socket.readyState]);
     }
 }
 

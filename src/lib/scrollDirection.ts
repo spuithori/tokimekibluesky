@@ -8,7 +8,7 @@ export function scrollDirection(event) {
     const threshold = 80;
     let scrollDir;
 
-    const scrollY = event.target.scrollTop;
+    const scrollY = event.target.scrollTop ?? window.scrollY;
 
     if (Math.abs(scrollY - lastScrollY) < threshold) {
         return;

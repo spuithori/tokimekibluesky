@@ -42,8 +42,6 @@
     }
 </script>
 
-
-
 <div class="deck-wrap">
   <div class="deck"
        class:deck--left-sidebar={$settings.design?.publishPosition === 'left'}
@@ -78,7 +76,7 @@
       gap: 8px;
       overflow-x: scroll;
       padding: 4px 0;
-      height: 100vh;
+      height: 100svh;
 
       &::-webkit-scrollbar {
           display: none;
@@ -88,14 +86,14 @@
           scroll-snap-type: x mandatory;
           top: 85px;
           padding: 0;
-          height: calc(100vh - 70px);
+          height: calc(100svh - 70px);
       }
 
       &--left-sidebar {
           @media (min-width: 768px) {
               left: 360px;
               /* width: calc(100vw - 360px); */
-              height: 100vh;
+              height: 100svh;
               z-index: auto;
               position: static;
           }

@@ -36,7 +36,8 @@
 
                 if (elInitialPosition === 0) {
                     if (column.style !== 'media') {
-                        el.scrollTo(0, topEl.getBoundingClientRect().top - 74);
+                        const offset = $settings.design?.layout === 'decks' ? 73 : 68;
+                        el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
                     }
                 }
             }
@@ -44,12 +45,7 @@
             /* if (_agent.did() === $agent.did()) {
                 notificationCount.set(await _agent.getNotificationCount());
             } */
-            for (const column1 of $columns) {
-                const index1 = $columns.indexOf(column1);
-                if (column1.algorithm.type === 'notification' && column1.did === _agent.did()) {
-                    $columns[index1].unreadCount = await _agent.getNotificationCount();
-                }
-            }
+            refreshNotificationCount();
         } else if (column.algorithm.type === 'bookmark') {
             $timelines[index] = [];
             $cursors[index] = 0;
@@ -57,7 +53,7 @@
         } else if (column.algorithm.type === 'realtime') {
             return false;
         } else if (column.algorithm.type === 'notification') {
-            return false;
+            unique = Symbol();
         } else {
             $timelines[index] = [];
             $cursors[index] = undefined;
@@ -65,6 +61,15 @@
         }
 
         isRefreshing = false;
+    }
+
+    async function refreshNotificationCount() {
+        for (const column1 of $columns) {
+            const index1 = $columns.indexOf(column1);
+            if (column1.algorithm.type === 'notification' && column1.did === _agent.did()) {
+                $columns[index1].unreadCount = await _agent.getNotificationCount();
+            }
+        }
     }
 
     function handleTimer() {

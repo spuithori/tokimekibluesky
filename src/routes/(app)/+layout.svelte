@@ -213,7 +213,6 @@
 
   function handleScroll(event) {
       const scroll = scrollDirection(event);
-      scrolly = wrap.scrollTop;
 
       if (scroll) {
           direction = scroll;
@@ -231,6 +230,8 @@
   viewPortSetting();
 </script>
 
+<svelte:window on:scroll={handleScroll} bind:scrollY={scrolly} />
+
 <div
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={isDarkMode}
@@ -245,8 +246,6 @@
     class:single={$settings?.design.layout !== 'decks'}
     class:decks={$settings?.design.layout === 'decks'}
     class:page={$page.url.pathname !== '/'}
-    on:scroll={handleScroll}
-    bind:this={wrap}
 >
   {#if (loaded)}
     <div class="wrap"
@@ -284,7 +283,7 @@
   .app {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 100svh;
   }
 
   .wrap {

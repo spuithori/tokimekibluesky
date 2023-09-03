@@ -86,6 +86,7 @@
                         column={column}
                         index={index}
                         {_agent}
+                        bind:unique={unique}
                     ></ColumnRefreshButton>
                 {/if}
             {/if}
