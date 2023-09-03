@@ -280,7 +280,7 @@
   .app {
     display: flex;
     flex-direction: column;
-    min-height: 100svh;
+    min-height: 100dvh;
   }
 
   .wrap {
