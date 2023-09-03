@@ -3,7 +3,7 @@
     import TimelineSelector from "./TimelineSelector.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
-    import {agent, agents} from "$lib/stores";
+    import {agent, agents, columns} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
@@ -11,6 +11,8 @@
     import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
     import {settings} from "$lib/stores.js";
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
+    import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
+    import {iconMap} from "$lib/columnIcons";
 
     export let column;
     export let index;
@@ -22,6 +24,7 @@
     let isTopScrolling;
     let isScrollPaused = false;
     let scrollId;
+    let isIconPickerOpen = false;
 
     function handleHeaderClick(el, event) {
         if (!el.scroll) {
@@ -56,6 +59,11 @@
     function handleMouseLeave() {
         isScrollPaused = false;
     }
+
+    function handleIconChange(event) {
+        $columns[index].settings.icon = event.detail.icon;
+        isIconPickerOpen = false;
+    }
 </script>
 
 <div
@@ -65,7 +73,13 @@
 >
     <div class="deck-heading">
         <div class="deck-heading__icon">
-            <ColumnIcon type={column.algorithm.type}></ColumnIcon>
+            <button class="deck-heading__icon-picker-button" on:click={() => {isIconPickerOpen = !isIconPickerOpen}}>
+                {#if column.settings?.icon}
+                    <svelte:component this={iconMap.get(column.settings.icon)} color="var(--text-color-3)"></svelte:component>
+                {:else}
+                    <ColumnIcon type={column.algorithm.type}></ColumnIcon>
+                {/if}
+            </button>
         </div>
 
         <div
@@ -123,6 +137,10 @@
                 </div>
             {/if}
         {/key}
+    {/if}
+
+    {#if isIconPickerOpen}
+        <ColumnIconPicker on:change={handleIconChange} current={column.settings?.icon}></ColumnIconPicker>
     {/if}
 </div>
 

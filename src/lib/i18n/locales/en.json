@@ -368,5 +368,13 @@
   "column_added": "Column added.",
   "p_menu_my_accounts": "My accounts",
   "/search/feeds_search": "Feed search",
-  "column_style": "Column style (Normal/Media)"
+  "column_style": "Column style (Normal/Media)",
+  "skin_theme": "Theme✨",
+  "skin_default": "Default",
+  "skin_twilight": "Twilight",
+  "skin_ambient": "Ambient",
+  "skin_highcontrast": "High Contrast",
+  "theme_store": "Theme store",
+  "darkmode_disabled_theme": "The dark mode setting has no effect on the theme in use.",
+  "color_disabled_theme": "Color is disabled for the theme in use."
 }

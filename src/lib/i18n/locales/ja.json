@@ -370,9 +370,12 @@
   "p_menu_my_accounts": "自分のアカウント",
   "/search/feeds_search": "フィード検索",
   "column_style": "カラムのスタイル (通常/メディア)",
-  "skin_theme": "スキン✨",
+  "skin_theme": "テーマ✨",
   "skin_default": "デフォルト",
   "skin_twilight": "トワイライト",
   "skin_ambient": "アンビエント",
-  "skin_highcontrast": "ハイコントラスト"
+  "skin_highcontrast": "ハイコントラスト",
+  "theme_store": "テーマストア",
+  "darkmode_disabled_theme": "使用中のテーマでは、ダークモードの設定は影響しません。",
+  "color_disabled_theme": "使用中のテーマでは、カラーは無効です。"
 }

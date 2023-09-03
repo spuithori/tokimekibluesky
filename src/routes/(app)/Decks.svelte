@@ -76,7 +76,7 @@
       gap: 8px;
       overflow-x: scroll;
       padding: 4px 0;
-      height: 100svh;
+      height: 100dvh;
 
       &::-webkit-scrollbar {
           display: none;
@@ -86,14 +86,14 @@
           scroll-snap-type: x mandatory;
           top: 85px;
           padding: 0;
-          height: calc(100svh - 70px);
+          height: calc(100dvh - 70px);
       }
 
       &--left-sidebar {
           @media (min-width: 768px) {
               left: 360px;
               /* width: calc(100vw - 360px); */
-              height: 100svh;
+              height: 100dvh;
               z-index: auto;
               position: static;
           }

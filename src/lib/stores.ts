@@ -21,6 +21,7 @@ type columns = {
     did?: string,
     handle?: string,
     unreadCount?: number,
+    settings: defaultDeckSettings,
 }
 
 type cursor = string | number | undefined;

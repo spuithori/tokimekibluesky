@@ -3,6 +3,7 @@
   import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
   import { page } from '$app/stores';
   import { Settings } from "lucide-svelte";
+  import {iconMap} from "$lib/columnIcons";
 
   let isMobileBarOpen = false;
 
@@ -87,7 +88,11 @@
             aria-label={column.algorithm?.name}
             title={column.algorithm?.name}
         >
-          <ColumnIcon type={column.algorithm.type}></ColumnIcon>
+          {#if column.settings?.icon}
+            <svelte:component this={iconMap.get(column.settings.icon)} color="var(--text-color-3)"></svelte:component>
+          {:else}
+            <ColumnIcon type={column.algorithm.type}></ColumnIcon>
+          {/if}
 
           {#if (column.unreadCount)}
             <span class="side-bar-button__count">{column.unreadCount}</span>

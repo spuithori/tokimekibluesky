@@ -10,6 +10,7 @@
     import {liveQuery} from "dexie";
     import {db} from "$lib/db";
     import DeckRow from "./DeckRow.svelte";
+    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 
     let isAlgoNavOpen = false;
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
@@ -31,6 +32,7 @@
             did: $agent.did(),
             handle: $agent.handle(),
             unreadCount: 0,
+            settings: defaultDeckSettings,
         }]);
     }
 
