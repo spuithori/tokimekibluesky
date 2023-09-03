@@ -20,7 +20,7 @@
           class:icon-picker-list__button--current={key === current}
           on:click={() => {changeIcon(key)}}
       >
-        <svelte:component this={icon}></svelte:component>
+        <svelte:component this={icon} color="var(--text-color-1)"></svelte:component>
       </button>
     {/each}
   </ul>
