@@ -111,7 +111,7 @@
               left: 0;
               right: 0;
               top: 0;
-              max-width: calc(740px - 10px);
+              max-width: 740px;
               width: 100%;
               margin: 0 auto;
               z-index: 1000;

@@ -71,7 +71,7 @@
         <div
             role="button"
             class="deck-heading__scroll-area"
-            on:click={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector('.app'), event)}}
+            on:click={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root'), event)}}
             aria-label="Back to top."
         >
             <div class="deck-heading__title">

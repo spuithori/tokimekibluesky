@@ -10,7 +10,7 @@
     let scrollY = 0;
 
     export const snapshot: Snapshot = {
-        capture: () => [follows, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector('.app').scrollTop],
+        capture: () => [follows, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
         restore: (value) => {
           if(!$isAfterReload) {
             [follows, cursor, scrollY] = value;
@@ -19,7 +19,7 @@
                 if ($settings.design.layout === 'decks') {
                     document.querySelector('.modal-page-content').scroll(0, scrollY);
                 } else {
-                    document.querySelector('.app').scroll(0, scrollY);
+                    document.querySelector(':root').scroll(0, scrollY);
                 }
             }, 0)
           }

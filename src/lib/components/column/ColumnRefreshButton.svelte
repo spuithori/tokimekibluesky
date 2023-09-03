@@ -21,7 +21,7 @@
                 $timelines[index] = res.data.feed;
                 $cursors[index] = res.data.cursor;
             } else {
-                const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector('.app');
+                const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
                 const elInitialPosition = el.scrollTop;
                 const topEl = el.querySelector('.timeline > .timeline__item:first-child');
 

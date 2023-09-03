@@ -70,7 +70,7 @@
       }
 
       if (isScroll) {
-          const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector('.app');
+          const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
 
           scrollId = setInterval(() => {
               el.scrollBy(0, -1);

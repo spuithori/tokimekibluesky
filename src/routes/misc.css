@@ -144,27 +144,6 @@
 }
 
 .single {
-    height: 100vh;
-    overflow-y: scroll;
-
-    @media (min-width: 768px) {
-        scrollbar-color: var(--primary-color) var(--bg-color-3);
-
-        &::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: var(--primary-color);
-            border-radius: 5px;
-        }
-
-        &::-webkit-scrollbar-track {
-            background: var(--bg-color-3);
-            border-radius: 5px;
-        }
-    }
-
     .single-timeline-wrap {
         .deck-row {
             width: auto !important;
@@ -185,7 +164,7 @@
 
             @media (min-width: 768px) {
                 z-index: 9999;
-                transform: translateX(-50px);
+                transform: translateX(-60px);
                 width: 480px;
                 border-right: 1px solid var(--border-color-2);
                 border-bottom: none;
@@ -195,8 +174,8 @@
         .column-heading {
             @media (min-width: 768px) {
                 z-index: 9999;
-                transform: translateX(-50px);
-                width: calc(100% + 50px);
+                transform: translateX(-60px);
+                width: calc(100% + 60px);
             }
         }
     }
@@ -244,5 +223,13 @@
                 stroke: var(--text-color-1);
             }
         }
+    }
+}
+
+html {
+    overflow-y: scroll;
+
+    &:has(.decks) {
+        overflow-y: auto;
     }
 }

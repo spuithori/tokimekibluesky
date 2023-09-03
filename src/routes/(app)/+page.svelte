@@ -7,7 +7,7 @@
 	let scrolls;
 
 	export const snapshot: Snapshot = {
-		capture: () => scrolls = $settings.design.layout === 'decks' ? $columns.map(column => column.scrollElement?.scrollTop) : document.querySelector('.app').scrollTop,
+		capture: () => scrolls = $settings.design.layout === 'decks' ? $columns.map(column => column.scrollElement?.scrollTop) : document.querySelector(':root').scrollTop,
 		restore: (value) => {
 			if(!$isAfterReload && value) {
 				scrolls = value;
@@ -17,7 +17,7 @@
 						$columns[index].scrollElement.scrollTop = scroll;
 					})
 				} else {
-					document.querySelector('.app').scrollTop = scrolls;
+					document.querySelector(':root').scrollTop = scrolls;
 				}
 			}
 
