@@ -299,10 +299,6 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-
-    @media (max-width: 767px) {
-        margin-bottom: 20px;
-    }
   }
 
   .sidebar {

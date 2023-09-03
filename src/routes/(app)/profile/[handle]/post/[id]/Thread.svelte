@@ -14,9 +14,7 @@
 
   afterUpdate(() => {
       if (item && item.dataset.depth === '0') {
-          /* const scroll = item.getBoundingClientRect().top + window.pageYOffset;
-          scrollTo(0, scroll - 70); */
-          item.scrollIntoView()
+          item.scrollIntoView({block: 'center'})
           scrolled = true;
       }
   });
