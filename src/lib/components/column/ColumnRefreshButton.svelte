@@ -1,6 +1,8 @@
 <script lang="ts">
-    import {agent, columns, cursors, notificationCount, settings, timelines} from "$lib/stores";
+    import {agent, columns, cursors, settings, timelines} from "$lib/stores";
     import TimerEvent from "$lib/components/utils/TimerEvent.svelte";
+    import {createEventDispatcher} from "svelte";
+    const dispatch = createEventDispatcher();
 
     export let column;
     export let index;
@@ -54,6 +56,8 @@
             return false;
         } else if (column.algorithm.type === 'notification') {
             unique = Symbol();
+            refreshNotificationCount();
+            await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
         } else {
             $timelines[index] = [];
             $cursors[index] = undefined;
