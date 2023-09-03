@@ -90,6 +90,7 @@ const defaultSettings = {
         disableAlgorithm: false,
     },
     design: {
+        skin: 'default',
         theme: 'jade',
         nonoto: false,
         darkmode: false,

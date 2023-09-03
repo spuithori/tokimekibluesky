@@ -220,6 +220,34 @@
             display: block;
             width: 100%;
         }
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    &--skin {
+        letter-spacing: -.025em;
+
+        input {
+            &:checked {
+                & + label {
+                    font-weight: bold;
+
+                    .icons-radio__ui {
+                        border-color: var(--primary-color);
+                    }
+                }
+            }
+        }
+
+        .icons-radio__ui {
+            border: 2px solid var(--border-color-2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
     }
 }
 

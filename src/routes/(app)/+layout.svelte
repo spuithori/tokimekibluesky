@@ -1,6 +1,5 @@
 <script lang="ts">
   import {_, isLoading, locale} from 'svelte-i18n'
-  import Header from './Header.svelte';
   import '../styles.css';
   import {
       agent, agents, settings,
@@ -14,18 +13,16 @@
   import { goto } from '$app/navigation';
   import { dev } from '$app/environment';
   import { inject } from '@vercel/analytics';
-  import Publish from "./Publish.svelte";
   import { pwaInfo } from 'virtual:pwa-info';
   import { onMount } from 'svelte';
   import toast, { Toaster } from 'svelte-french-toast';
   import viewPortSetting from '$lib/viewport';
-  import {detectScrollDirection, scrollDirection} from "$lib/scrollDirection";
+  import {scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
   import { page } from '$app/stores';
   import { liveQuery } from 'dexie';
   import {accountsDb} from '$lib/db';
   import ReportObserver from "$lib/components/report/ReportObserver.svelte";
-  import HeaderCollapseButton from "$lib/components/header/HeaderCollapseButton.svelte";
   import {resumeAccountsSession} from "$lib/resumeAccountsSession";
   import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
   import Side from "./Side.svelte";
@@ -146,6 +143,7 @@
 
   if ($settings.version < 2) {
       $settings.design.publishPosition = 'left';
+      $settings.design.skin = 'default';
       $settings.version = 2;
   }
 
@@ -235,11 +233,10 @@
 <div
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={isDarkMode}
-    class:twilight={$settings.design?.darkmode === 'twilight'}
     class:scrolled={scrolly > 52}
     class:sidebar={$settings.design?.publishPosition === 'left'}
     class:bottom={$settings.design?.publishPosition === 'bottom'}
-    class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale}"
+    class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings.design?.skin}"
     dir="{$_('dir', {default: 'ltr'})}"
     class:compact={$settings.design?.postsLayout === 'compact'}
     class:minimum={$settings.design?.postsLayout === 'minimum'}

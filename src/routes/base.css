@@ -205,13 +205,15 @@
     }
 }
 
-.twilight {
+.skin-twilight {
     --base-bg-color: #505050;
     --bg-color-1: #343434;
     --bg-color-2: #292929;
     --bg-color-3: #262626;
 
     --border-color-1: #666;
+    --border-color-2: #666;
+    --blurred-bg-color: #505050;
 
     --text-color-1: #fff;
     --text-color-2: #fafafa;

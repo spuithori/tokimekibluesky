@@ -369,5 +369,10 @@
   "column_added": "カラムを追加しました",
   "p_menu_my_accounts": "自分のアカウント",
   "/search/feeds_search": "フィード検索",
-  "column_style": "カラムのスタイル (通常/メディア)"
+  "column_style": "カラムのスタイル (通常/メディア)",
+  "skin_theme": "スキン✨",
+  "skin_default": "デフォルト",
+  "skin_twilight": "トワイライト",
+  "skin_ambient": "アンビエント",
+  "skin_highcontrast": "ハイコントラスト"
 }

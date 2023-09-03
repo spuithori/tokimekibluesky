@@ -2,6 +2,7 @@
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
     import TimelineItem from "../../TimelineItem.svelte";
+    let skin: string = $settings?.design.skin || 'default';
     let themePick: string = $settings?.design.theme || 'royalblue';
     let darkmode = $settings?.design.darkmode || false;
     let nonoto = $settings?.design.nonoto || false;
@@ -11,27 +12,41 @@
     let postsImageLayout = $settings?.design.postsImageLayout || 'default';
     let oneImageNoCrop = $settings?.design.oneImageNoCrop || false;
 
-    const samplePost = {
-        post: {
-            author: {
-                did: 'did:example:tokimekidummy',
-                displayName: 'Ayumu',
-                handle: 'ayumu.example.tokimeki.blue',
+    const skins = [
+        {
+            value: 'default',
+            options: {
+                colorDisabled: false,
+                darkmodeDisabled: false,
             },
-            indexedAt: '2023-05-17T05:03:26.304Z',
-            likeCount: 10,
-            replyCount: 10,
-            repostCount: 10,
-            record: {
-                $type: 'app.bsky.feed.post',
-                createdAt: '2023-05-17T05:03:25.905Z',
-                text: 'Dreams will not escape us if we do not give up step by step, even on an endless road.'
+            image: '/skin-default.png',
+        },
+        {
+            value: 'twilight',
+            options: {
+                colorDisabled: false,
+                darkmodeDisabled: true,
             },
-            uri: 'at://did:example:tokimekidummy/app.bsky.feed.post/kdaosidoewo'
-        }
-    }
+            image: '/skin-twilight.png',
+        },
+        /* {
+            value: 'ambient',
+            options: {
+                colorDisabled: false,
+                darkmodeDisabled: true,
+            }
+        },
+        {
+            value: 'highcontrast',
+            options: {
+                colorDisabled: false,
+                darkmodeDisabled: false,
+            }
+        }, */
+    ]
 
     $: {
+        $settings.design.skin = skin;
         $settings.design.theme = themePick;
         $settings.design.darkmode = darkmode;
         $settings.design.nonoto = nonoto;
@@ -81,6 +96,27 @@
             <input type="radio" bind:group={layout} id="layoutDecks" name="layout" value={'decks'}>
             <label for="layoutDecks"><span class="icons-radio__ui icons-radio__ui--ignorefill"><svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><defs><clipPath id="a"><rect data-name="長方形 156" width="75" height="75" rx="4" transform="translate(847 679)" fill="var(--bg-color-1)" stroke="var(--border-color-1)"/></clipPath></defs><g  data-name="グループ 124"><g class="icons-radio__g" data-name="長方形 110" fill="var(--bg-color-1)" stroke="var(--border-color-1)"><rect width="75" height="75" rx="4" stroke="none"/><rect x=".5" y=".5" width="74" height="74" rx="3.5" fill="none"/></g><path data-name="パス 52" d="M25.507 12.825s12.346 13.294 0 25.753 0 23.6 0 23.6" fill="none" stroke="#e0e0e0" stroke-width="2"/><path data-name="パス 53" d="M37.481 12.825s12.346 13.294 0 25.753 0 23.6 0 23.6" fill="none" stroke="#e0e0e0" stroke-width="2"/><path data-name="パス 54" d="M49.494 12.825s12.346 13.294 0 25.753 0 23.6 0 23.6" fill="none" stroke="#e0e0e0" stroke-width="2"/></g></svg></span>{$_('decks')}</label>
           </div>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('skin_theme')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="icons-radio-group">
+          {#each skins as _skin}
+            <div class="icons-radio icons-radio--skin">
+              <input type="radio" bind:group={skin} id="skin_{_skin.value}" name="skin" value={_skin.value}>
+              <label for="skin_{_skin.value}">
+                <span class="icons-radio__ui">
+                  <img src={_skin.image} alt="">
+                </span>{$_('skin_' + _skin.value)}
+              </label>
+            </div>
+          {/each}
         </div>
       </dd>
     </dl>
@@ -153,11 +189,6 @@
           <div class="radio">
             <input type="radio" bind:group={darkmode} id="darkmodeFalse" name="darkmode" value={false}>
             <label for="darkmodeFalse"><span class="radio__ui"></span>{$_('light')}</label>
-          </div>
-
-          <div class="radio">
-            <input type="radio" bind:group={darkmode} id="darkmodeTwilight" name="darkmode" value={'twilight'}>
-            <label for="darkmodeTwilight"><span class="radio__ui"></span>{$_('twilight')}</label>
           </div>
 
           <div class="radio">
