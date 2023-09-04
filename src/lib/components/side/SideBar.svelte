@@ -14,7 +14,7 @@
   function handleColumnClick(column, index) {
       if ($settings.design.layout === 'decks') {
           if (column.scrollElement) {
-              column.scrollElement.scrollIntoView({inline: 'end', behavior: 'smooth'});
+              column.scrollElement.scrollIntoView({inline: 'end', behavior: 'instant'});
           }
       } else {
           if ($currentTimeline === index) {
