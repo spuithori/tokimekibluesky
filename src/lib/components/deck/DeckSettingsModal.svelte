@@ -12,6 +12,7 @@
     let langFilterEnabled = column.settings?.langFilterEnabled || false;
     let langFilter = column.settings?.langFilter || [];
     let autoRefresh = column.settings?.autoRefresh || 0;
+    let refreshToTop = column.settings?.refreshToTop || false;
     let autoScroll = column.settings?.autoScroll || false;
     let autoScrollSpeed = column.settings?.autoScrollSpeed || 'normal';
     let width = column.settings?.width || 'medium';
@@ -24,6 +25,7 @@
         langFilterEnabled: langFilterEnabled,
         langFilter: langFilter,
         autoRefresh: autoRefresh,
+        refreshToTop: refreshToTop,
         autoScroll: autoScroll,
         autoScrollSpeed: autoScrollSpeed,
         width: width,
@@ -44,6 +46,7 @@
             langFilterEnabled: false,
             langFilter: [],
             autoRefresh: 0,
+            refreshToTop: false,
             autoScroll: false,
             autoScrollSpeed: 'auto',
         }
@@ -248,6 +251,18 @@
                                     <input type="radio" id={column.id + option.value} bind:group={width} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
                                 </div>
                             {/each}
+                        </div>
+                    </dd>
+                </dl>
+
+                <dl class="settings-group">
+                    <dt class="settings-group__name">
+                        {$_('refresh_to_top')}
+                    </dt>
+
+                    <dd class="settings-group__content">
+                        <div class="input-toggle">
+                            <input class="input-toggle__input" type="checkbox" id={column.id + 'refreshToTop'} bind:checked={refreshToTop}><label class="input-toggle__label" for={column.id + 'refreshToTop'}></label>
                         </div>
                     </dd>
                 </dl>

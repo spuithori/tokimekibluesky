@@ -36,7 +36,7 @@
                     })
                 });
 
-                if (elInitialPosition === 0) {
+                if (elInitialPosition === 0 && column.settings?.refreshToTop !== true) {
                     if (column.style !== 'media') {
                         const offset = topEl.parentElement.getBoundingClientRect().top + 16;
                         el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
