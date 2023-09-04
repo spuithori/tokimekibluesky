@@ -79,7 +79,7 @@
       &--single {
           position: sticky;
           height: 100svh;
-          z-index: 1002;
+          z-index: 1000;
 
           @media (max-width: 767px) {
               grid-template-columns: 0;
