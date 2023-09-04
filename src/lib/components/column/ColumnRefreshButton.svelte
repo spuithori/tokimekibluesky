@@ -56,7 +56,7 @@
             return false;
         } else if (column.algorithm.type === 'notification') {
             unique = Symbol();
-            refreshNotificationCount();
+            await refreshNotificationCount();
             await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
         } else {
             $timelines[index] = [];

@@ -135,7 +135,7 @@
     }
 
     .main {
-        width: calc(100vw - 64px);
+        width: calc(100% - 64px);
 
         @media (max-width: 767px) {
             width: 100%;

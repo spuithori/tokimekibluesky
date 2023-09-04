@@ -262,6 +262,7 @@
         z-index: 21;
         border-bottom: 1px solid var(--border-color-2);
         border-radius: 10px 10px 0 0;
+        min-width: 0;
 
         @media (max-width: 767px) {
             transition: top .2s ease-in-out;
@@ -270,6 +271,7 @@
         &__scroll-area {
             cursor: pointer;
             flex: 1;
+            min-width: 0;
         }
 
         &__icon {
@@ -279,6 +281,7 @@
             background-color: var(--bg-color-3);
             display: grid;
             place-content: center;
+            flex-shrink: 0;
         }
 
         &__title {
@@ -286,10 +289,13 @@
             font-size: 14px;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: stretch;
             justify-content: center;
             letter-spacing: .05em;
             line-height: 1.2;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
 
             @media (max-width: 767px) {
                 font-size: 14px;
@@ -301,6 +307,9 @@
             color: var(--text-color-3);
             font-weight: bold;
             letter-spacing: .025em;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
         }
 
         &__buttons {

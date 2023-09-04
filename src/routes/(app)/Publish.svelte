@@ -144,10 +144,6 @@ $: {
     } else {
         document.body.classList.remove('scroll-lock');
     }
-
-    if ($settings.design?.publishPosition === 'left') {
-        isContinueMode = true;
-    }
 }
 
 function getActorTypeAhead() {

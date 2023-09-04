@@ -79,7 +79,6 @@
         dispatch('update', {
             count: res.data.count,
         });
-        console.log(res.data.count);
         await putNotifications(res.data.count);
     }
 
