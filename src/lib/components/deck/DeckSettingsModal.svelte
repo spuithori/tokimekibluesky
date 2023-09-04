@@ -292,7 +292,7 @@
                             <div class="radio-v-group radio-v-group--4columns">
                                 {#each autoScrollSpeedSettings as option}
                                     <div class="radio-v-group__item">
-                                        <input type="radio" id={column.id + option.value} bind:group={autoScrollSpeed} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
+                                        <input type="radio" id={column.id + option.value} bind:group={autoScrollSpeed} name="{column.id}_autoscroll" value={option.value}><label for={column.id + option.value}>{option.name}</label>
                                     </div>
                                 {/each}
                             </div>
