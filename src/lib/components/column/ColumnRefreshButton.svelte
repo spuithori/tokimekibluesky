@@ -38,7 +38,7 @@
 
                 if (elInitialPosition === 0) {
                     if (column.style !== 'media') {
-                        const offset = $settings.design?.layout === 'decks' ? 73 : 68;
+                        const offset = topEl.parentElement.getBoundingClientRect().top + 16;
                         el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
                     }
                 }
