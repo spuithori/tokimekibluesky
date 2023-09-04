@@ -1,6 +1,6 @@
 <script lang="ts">
   import TimelineItem from "../../../../TimelineItem.svelte";
-  import { afterUpdate } from "svelte";
+  import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import Likes from "$lib/components/thread/Likes.svelte";
   import { agent } from "$lib/stores";
@@ -12,12 +12,12 @@
   let item;
   let scrolled = false;
 
-  afterUpdate(() => {
+  onMount(() => {
       if (item && item.dataset.depth === '0') {
           item.scrollIntoView({block: 'center'})
           scrolled = true;
       }
-  });
+  })
 </script>
 
 <div class="thread">
