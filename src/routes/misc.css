@@ -178,6 +178,10 @@
                 width: calc(100% + 60px);
             }
         }
+
+        .modal-page-content {
+            z-index: auto;
+        }
     }
 
     .refresh-button {
