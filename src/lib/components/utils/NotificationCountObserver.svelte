@@ -1,26 +1,23 @@
 <script lang="ts">
-  import {onMount} from "svelte";
   import {agents, columns} from "$lib/stores";
   import {getAccountIdByDid} from "$lib/util";
 
-  onMount(async () => {
-      let promises = [];
-      let notificationColumns = [];
+  let promises = [];
+  let notificationColumns = [];
 
-      $columns.forEach((column, index) => {
-          if (column.algorithm?.type !== 'notification') {
-              return false;
-          }
+  $columns.forEach((column, index) => {
+      if (column.algorithm?.type !== 'notification') {
+          return false;
+      }
 
-          const _agent = $agents.get(getAccountIdByDid($agents, column.did));
-          notificationColumns = [...notificationColumns, index];
-          promises = [...promises, _agent.getNotificationCount()];
+      const _agent = $agents.get(getAccountIdByDid($agents, column.did));
+      notificationColumns = [...notificationColumns, index];
+      promises = [...promises, _agent.getNotificationCount()];
+  })
+
+  Promise.all(promises).then(values => {
+      values.forEach((value, index) => {
+          $columns[notificationColumns[index]].unreadCount = value;
       })
-
-      Promise.all(promises).then(values => {
-          values.forEach((value, index) => {
-              $columns[notificationColumns[index]].unreadCount = value;
-          })
-      })
-  });
+  })
 </script>
