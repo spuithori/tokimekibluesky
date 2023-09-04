@@ -29,6 +29,7 @@
   import ColumnModal from "$lib/components/column/ColumnModal.svelte";
   import Single from "./Single.svelte";
   import Decks from "./Decks.svelte";
+  import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
 
   let loaded = false;
   let wrap;
@@ -263,6 +264,8 @@
     {#if $isColumnModalOpen}
       <ColumnModal on:close={handleColumnModalClose} _columns={$columns}></ColumnModal>
     {/if}
+
+    <NotificationCountObserver></NotificationCountObserver>
   {:else}
     <div>
 

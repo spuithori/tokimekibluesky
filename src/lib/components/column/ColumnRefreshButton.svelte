@@ -55,8 +55,10 @@
         } else if (column.algorithm.type === 'realtime') {
             return false;
         } else if (column.algorithm.type === 'notification') {
+            $columns[index].unreadCount !== 0
+                ? $columns[index].unreadCount = 0
+                : await _agent.getNotificationCount();
             unique = Symbol();
-            await refreshNotificationCount();
             await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
         } else {
             $timelines[index] = [];
