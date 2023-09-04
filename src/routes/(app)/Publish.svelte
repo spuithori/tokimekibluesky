@@ -663,11 +663,11 @@ onMount(async () => {
                     createdAt: new Date().toISOString(),
                     reply: $replyRef ? $replyRef.data : undefined,
                     via: 'TOKIMEKI',
-                    langs: lang || [],
-                    labels: {
+                    langs: lang.length ? lang : undefined,
+                    labels: selfLabels.length ? {
                         $type: 'com.atproto.label.defs#selfLabels',
                         values: selfLabels || [],
-                    },
+                    } : undefined,
                 },
             );
             toast.success($_('success_to_post'));
