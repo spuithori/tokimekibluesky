@@ -10,7 +10,7 @@ type defaultDeckSettings = {
     autoScroll?: boolean,
     autoScrollSpeed?: 'auto' | 'slow' | 'normal' | 'fast',
     width?: 'large' | 'medium' | 'small',
-    icon?: string,
+    icon?: string | null,
 }
 
 export const defaultDeckSettings: defaultDeckSettings = {
@@ -25,4 +25,5 @@ export const defaultDeckSettings: defaultDeckSettings = {
     autoScroll: false,
     autoScrollSpeed: 'normal',
     width: 'medium',
+    icon: null,
 }

@@ -16,6 +16,7 @@
     let autoScroll = column.settings?.autoScroll || false;
     let autoScrollSpeed = column.settings?.autoScrollSpeed || 'normal';
     let width = column.settings?.width || 'medium';
+    let icon = column.settings?.icon || null;
 
     $: _settings = {
         timeline: {
@@ -29,6 +30,7 @@
         autoScroll: autoScroll,
         autoScrollSpeed: autoScrollSpeed,
         width: width,
+        icon: icon,
     }
 
     $: apply(_settings);

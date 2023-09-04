@@ -61,7 +61,7 @@
     }
 
     function handleIconChange(event) {
-        $columns[index].settings.icon = event.detail.icon;
+        $columns[index].settings = {...$columns[index].settings, icon: event.detail.icon};
         isIconPickerOpen = false;
     }
 </script>
