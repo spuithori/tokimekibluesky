@@ -573,17 +573,24 @@ function setSelfLabel(index) {
     publishArea.focus();
 }
 
-onMount(async () => {
-    if ($sharedText) {
-        publishContent = $sharedText;
-        isFocus = true;
-
-        setTimeout(() => {
-            publishArea.focus();
-            sharedText.set('');
-        }, 100)
+function addSharedText(text) {
+    if (!$sharedText) {
+        return false;
     }
 
+    console.log(text)
+    publishContent = text;
+    isFocus = true;
+
+    setTimeout(() => {
+        publishArea.focus();
+        sharedText.set('');
+    }, 100)
+}
+
+$: addSharedText($sharedText);
+
+onMount(async () => {
     publish = async function () {
         isTextareaEnabled = true;
         isPublishEnabled = true;

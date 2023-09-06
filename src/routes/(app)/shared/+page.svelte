@@ -20,13 +20,3 @@
       }
   })
 </script>
-
-<div class="target-share timeline">
-  <h1 class="target-share-title">Share</h1>
-</div>
-
-<style>
-  .target-share-title {
-      text-align: center;
-  }
-</style>

@@ -4,7 +4,6 @@
     import { page } from '$app/stores';
     import Thread from "./Thread.svelte";
     import { beforeNavigate } from "$app/navigation";
-    import { fly } from 'svelte/transition';
     import spinner from '$lib/images/loading.svg';
     import {isDid} from "$lib/util";
 
