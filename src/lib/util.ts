@@ -10,3 +10,7 @@ export function getAccountIdByDid(agents, did) {
 
     return id;
 }
+
+export function isDid(name) {
+    return !!name.startsWith('did:plc:');
+}

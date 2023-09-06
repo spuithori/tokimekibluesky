@@ -188,3 +188,5 @@ export const globalUnique = writable(null);
 export const sideState = writable<'publish' | 'search' | 'notification' | 'profile' | 'settings' | 'none'>('publish');
 
 export const isPublishInstantFloat = writable(false);
+
+export const didHint = writable('');

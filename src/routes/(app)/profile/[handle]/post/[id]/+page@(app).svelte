@@ -1,11 +1,12 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, settings} from '$lib/stores';
+    import {agent, didHint, settings} from '$lib/stores';
     import { page } from '$app/stores';
     import Thread from "./Thread.svelte";
     import { beforeNavigate } from "$app/navigation";
     import { fly } from 'svelte/transition';
     import spinner from '$lib/images/loading.svg';
+    import {isDid} from "$lib/util";
 
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
@@ -25,6 +26,16 @@
     }
 
     async function getDidByHandle(handle) {
+        if ($didHint) {
+            const _did = $didHint;
+            didHint.set('');
+            return _did;
+        }
+
+        if (isDid(handle)) {
+            return handle;
+        }
+
         const res = await $agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
         return res.data.did;
     }

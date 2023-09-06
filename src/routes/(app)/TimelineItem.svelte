@@ -8,7 +8,7 @@
         timelines,
         isPreventEvent,
         reportModal,
-        columns, sideState, isPublishInstantFloat
+        columns, sideState, isPublishInstantFloat, didHint
     } from '$lib/stores';
     import {format, formatDistanceToNow, isMatch, parse, parseISO} from 'date-fns';
     import isWithinInterval from 'date-fns/isWithinInterval'
@@ -368,20 +368,13 @@
         }
 
         const uri = '/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0];
-        const isColumn = column ? column.algorithm?.algorithm : undefined;
 
-        if ($settings.design.layout === 'decks' && column) {
-            if (data.post.uri !== isColumn) {
-                addThreadColumn();
-                setTimeout(() => {
-                    document.querySelector('.deck').scrollLeft = 9999;
-                }, 0);
-            }
-        } else {
-            if (uri !== location.pathname) {
-                goto('/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]);
-            }
+        if (uri === location.pathname) {
+            return false;
         }
+
+        didHint.set(data.post.author.did);
+        goto(uri);
     }
 
     function handleSelectStart(event) {
@@ -390,6 +383,13 @@
 
     async function addThreadColumn() {
         const uri = data.post.uri;
+
+        if (uri === column.algorithm?.algorithm) {
+            isMenuOpen = false;
+            toast.success('Already');
+            return false;
+        }
+
         $columns = [...$columns, {
             id: self.crypto.randomUUID(),
             algorithm: {
@@ -400,7 +400,13 @@
             style: 'default',
             did: _agent.did(),
             handle: _agent.handle(),
-        }]
+        }];
+
+        setTimeout(() => {
+            document.querySelector('.deck').scrollLeft = 9999;
+        }, 0);
+
+        isMenuOpen = false;
     }
 
     function report() {
@@ -698,10 +704,10 @@
 
         {#if ($settings.design?.layout === 'decks')}
           <li class="timeline-menu-list__item timeline-menu-list__item--report">
-            <a href="/profile/{data.post.author.handle}/post/{data.post.uri.split('/').slice(-1)[0]}" class="timeline-menu-list__button">
+            <button class="timeline-menu-list__button" on:click={addThreadColumn}>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-plus"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg>
-              {$_('show_thread')}
-            </a>
+              {$_('add_thread_column')}
+            </button>
           </li>
         {/if}
 
