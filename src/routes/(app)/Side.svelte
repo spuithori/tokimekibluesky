@@ -63,8 +63,8 @@
       bottom: 0;
       left: 0;
       z-index: 1000;
-      background-color: var(--blurred-bg-color);
-      backdrop-filter: blur(8px);
+      background-color: var(--side-bg-color);
+      backdrop-filter: var(--side-backdrop-filter);
 
       @media (max-width: 767px) {
           position: static;
@@ -171,9 +171,9 @@
   }
 
   .side-content {
-      border-radius: 10px;
-      background-color: var(--bg-color-1);
-      border: 1px solid var(--border-color-2);
+      border-radius: var(--nav-content-border-radius);
+      background-color: var(--nav-content-bg-color);
+      border: var(--nav-content-border-width) solid var(--nav-content-border-color);
       flex: 1;
       overflow-y: auto;
       max-height: calc(100svh - 60px);

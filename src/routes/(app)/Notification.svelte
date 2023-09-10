@@ -217,7 +217,7 @@
   </div>
 
   <div class="notifications-list">
-    {#each notifications as item}
+    {#each notifications as item (item)}
       {#if (filter.includes(item.reason))}
         {#if (item.reason !== 'follow')}
           <article class="notifications-item notifications-item--{item.reason}">
@@ -326,7 +326,7 @@
   }
 
   .notifications-item {
-      border-bottom: 1px solid var(--border-color-1);
+      border-bottom: 1px solid var(--border-color-2);
       padding: 10px 0;
       position: relative;
 
@@ -391,7 +391,7 @@
       }
 
       &--reply {
-          background-color: var(--base-bg-color);
+          background-color: var(--notification-highlight-color);
           margin-left: -16px;
           margin-right: -16px;
           padding-left: 16px;

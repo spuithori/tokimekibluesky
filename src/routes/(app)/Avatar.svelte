@@ -50,7 +50,7 @@
       a {
           background-color: var(--primary-color);
           aspect-ratio: 1 / 1;
-          border-radius: 50%;
+          border-radius: var(--avatar-border-radius);
           overflow: hidden;
           display: block;
 

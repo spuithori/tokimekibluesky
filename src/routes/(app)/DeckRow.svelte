@@ -75,7 +75,7 @@
         <div class="deck-heading__icon">
             <button class="deck-heading__icon-picker-button" on:click={() => {isIconPickerOpen = !isIconPickerOpen}}>
                 {#if column.settings?.icon}
-                    <svelte:component this={iconMap.get(column.settings.icon)} color="var(--text-color-3)"></svelte:component>
+                    <svelte:component this={iconMap.get(column.settings.icon)} color="var(--deck-heading-icon-color)"></svelte:component>
                 {:else}
                     <ColumnIcon type={column.algorithm.type}></ColumnIcon>
                 {/if}
@@ -161,8 +161,9 @@
         flex-shrink: 0;
         height: 100%;
         position: relative;
-        border-radius: 10px;
-        border: 1px solid var(--border-color-2);
+        border-radius: var(--deck-border-radius);
+        border: var(--deck-border-width) solid var(--deck-border-color);
+        box-shadow: var(--deck-box-shadow);
         overflow: hidden;
 
         @media (max-width: 767px) {
@@ -172,28 +173,29 @@
         }
 
         &__content {
-            height: calc(100% - 52px);
+            height: calc(100% - var(--deck-heading-height));
             overflow-y: scroll;
-            background-color: var(--bg-color-1);
-            scrollbar-color: var(--primary-color) var(--bg-color-3);
+            background-color: var(--deck-content-bg-color);
+            scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+            backdrop-filter: var(--deck-content-backdrop-filter);
 
             &::-webkit-scrollbar {
                 width: 6px;
             }
 
             &::-webkit-scrollbar-thumb {
-                background: var(--primary-color);
+                background: var(--scroll-bar-color);
                 border-radius: 6px;
             }
 
             &::-webkit-scrollbar-track {
-                background: var(--bg-color-3);
+                background: var(--scroll-bar-bg-color);
                 border-radius: 6px;
             }
         }
 
         &--xxs {
-            width: 280px;
+            width: var(--deck-xxs-width);
 
             @media (max-width: 767px) {
                 width: 100vw;
@@ -201,7 +203,7 @@
         }
 
         &--xs {
-            width: 320px;
+            width: var(--deck-xs-width);
 
             @media (max-width: 767px) {
                 width: 100vw;
@@ -209,7 +211,7 @@
         }
 
         &--small {
-            width: 350px;
+            width: var(--deck-s-width);
 
             @media (max-width: 767px) {
                 width: 100vw;
@@ -217,7 +219,7 @@
         }
 
         &--medium {
-            width: 400px;
+            width: var(--deck-m-width);
 
             @media (max-width: 767px) {
                 width: 100vw;
@@ -225,7 +227,7 @@
         }
 
         &--large {
-            width: 450px;
+            width: var(--deck-l-width);
 
             @media (max-width: 767px) {
                 width: 100vw;
@@ -233,7 +235,7 @@
         }
 
         &--xl {
-            width: 500px;
+            width: var(--deck-xl-width);
 
             @media (max-width: 767px) {
                 width: 100vw;
@@ -241,7 +243,7 @@
         }
 
         &--xxl {
-            width: 550px;
+            width: var(--deck-xxl-width);
 
             @media (max-width: 767px) {
                 width: 100vw;
@@ -255,14 +257,15 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        height: 52px;
+        height: var(--deck-heading-height);
         position: sticky;
         top: 0;
-        background-color: var(--bg-color-1);
+        background-color: var(--deck-heading-bg-color);
         z-index: 21;
-        border-bottom: 1px solid var(--border-color-2);
-        border-radius: 10px 10px 0 0;
+        border-bottom: 1px solid var(--deck-border-color);
+        border-radius: var(--deck-border-radius) var(--deck-border-radius) 0 0;
         min-width: 0;
+        backdrop-filter: var(--deck-heading-backdrop-filter);
 
         @media (max-width: 767px) {
             transition: top .2s ease-in-out;
@@ -278,7 +281,7 @@
             width: 36px;
             height: 36px;
             border-radius: 5px;
-            background-color: var(--bg-color-3);
+            background-color: var(--deck-heading-icon-bg-color);
             display: grid;
             place-content: center;
             flex-shrink: 0;
@@ -296,6 +299,7 @@
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;
+            color: var(--deck-heading-title-color);
 
             @media (max-width: 767px) {
                 font-size: 14px;
@@ -304,7 +308,7 @@
 
         &__subhead {
             font-size: 12px;
-            color: var(--text-color-3);
+            color: var(--deck-heading-subhead-color);
             font-weight: bold;
             letter-spacing: .025em;
             text-overflow: ellipsis;

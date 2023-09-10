@@ -1,50 +1,90 @@
 <script lang="ts">
-  import {_, isLoading, locale} from 'svelte-i18n'
-  import '../styles.css';
-  import {
-      agent, agents, settings,
-      preferences,
-      columns,
-      singleColumn,
-      isMobileDataConnection,
-      isAfterReload, profileStatus,
-      isColumnModalOpen, timelines, cursors, globalUnique, currentTimeline
-  } from '$lib/stores';
-  import { goto } from '$app/navigation';
-  import { dev } from '$app/environment';
-  import { inject } from '@vercel/analytics';
-  import { pwaInfo } from 'virtual:pwa-info';
-  import { onMount } from 'svelte';
-  import toast, { Toaster } from 'svelte-french-toast';
-  import viewPortSetting from '$lib/viewport';
-  import {scrollDirection} from "$lib/scrollDirection";
-  import Footer from "./Footer.svelte";
-  import { page } from '$app/stores';
-  import { liveQuery } from 'dexie';
-  import {accountsDb} from '$lib/db';
-  import ReportObserver from "$lib/components/report/ReportObserver.svelte";
-  import {resumeAccountsSession} from "$lib/resumeAccountsSession";
-  import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
-  import Side from "./Side.svelte";
-  import ColumnModal from "$lib/components/column/ColumnModal.svelte";
-  import Single from "./Single.svelte";
-  import Decks from "./Decks.svelte";
-  import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
+    import {_, locale} from 'svelte-i18n'
+    import '../styles.css';
+    import {
+        agent,
+        agents,
+        columns,
+        currentTimeline,
+        cursors,
+        globalUnique,
+        isAfterReload,
+        isColumnModalOpen,
+        isMobileDataConnection,
+        profileStatus,
+        settings,
+        singleColumn,
+        theme,
+        timelines
+    } from '$lib/stores';
+    import {goto} from '$app/navigation';
+    import {dev} from '$app/environment';
+    import {inject} from '@vercel/analytics';
+    import {pwaInfo} from 'virtual:pwa-info';
+    import {onMount} from 'svelte';
+    import {Toaster} from 'svelte-french-toast';
+    import viewPortSetting from '$lib/viewport';
+    import {scrollDirection} from "$lib/scrollDirection";
+    import Footer from "./Footer.svelte";
+    import {page} from '$app/stores';
+    import {liveQuery} from 'dexie';
+    import {accountsDb, themesDb} from '$lib/db';
+    import ReportObserver from "$lib/components/report/ReportObserver.svelte";
+    import {resumeAccountsSession} from "$lib/resumeAccountsSession";
+    import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
+    import Side from "./Side.svelte";
+    import ColumnModal from "$lib/components/column/ColumnModal.svelte";
+    import Single from "./Single.svelte";
+    import Decks from "./Decks.svelte";
+    import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
+    import {builtInThemes} from "$lib/builtInThemes";
+    import {defaultColors} from "$lib/defaultColors";
 
-  let loaded = false;
+    let loaded = false;
   let wrap;
 
   inject(
       {
           mode: dev ? 'development' : 'production',
           beforeSend: event => {
-              if (event.url.includes('/settings') || event.url.includes('/login') || event.url.includes('/search') || event.url.includes('/shared') || event.url.includes('#post')) {
+              if (event.url.includes('/settings') || event.url.includes('/login') || event.url.includes('/search') || event.url.includes('/shared') || event.url.includes('#post') || event.url.includes('/theme-store')) {
                   return null;
               }
               return event;
           }
       },
   );
+
+  $: getCurrentTheme($settings.design?.skin);
+  $: observeColor($theme);
+
+  function getCurrentTheme(skin) {
+      const isBuiltInTheme = builtInThemes.find(_theme => _theme.name === skin);
+      if (isBuiltInTheme) {
+          $theme = isBuiltInTheme;
+      } else {
+          themesDb.themes.get(skin)
+              .then(value => {
+                  $theme = value;
+              });
+      }
+  }
+
+  function observeColor(theme) {
+      if (!theme) {
+          return false;
+      }
+
+      const colors = Array.isArray(theme.options?.colors) ? theme.options.colors : defaultColors;
+
+      if (!colors.length) {
+          return false;
+      }
+
+      if (!colors.some(color => color.id === $settings.design?.theme)) {
+          $settings.design.theme = colors[0].id;
+      }
+  }
 
   let accounts = liveQuery(
       () => accountsDb.accounts.toArray()
@@ -165,15 +205,9 @@
       localStorage.setItem('columns', JSON.stringify($columns));
       localStorage.setItem('singleColumn', JSON.stringify($singleColumn));
       localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
-
-      if ($settings?.design.darkmode === true) {
-          isDarkMode = true;
-      } else if ($settings?.design.darkmode === 'prefer') {
-          isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      } else {
-          isDarkMode = false;
-      }
   }
+
+  $: detectDarkMode($settings.design?.darkmode, $theme?.options.darkmodeDisabled);
 
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
       if ($settings?.design.darkmode === 'prefer') {
@@ -183,6 +217,21 @@
 
   function handleReload() {
       loaded = false;
+  }
+
+  function detectDarkMode(setting, isDarkmodeDisabled = false) {
+      if (isDarkmodeDisabled) {
+          isDarkMode = false;
+          return false;
+      }
+
+      if (setting === true) {
+          isDarkMode = true;
+      } else if (setting === 'prefer') {
+          isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } else {
+          isDarkMode = false;
+      }
   }
 
   onMount(async() => {
@@ -226,6 +275,29 @@
       globalUnique.set(Symbol());
   }
 
+  function outputInlineStyle(theme) {
+      if (!theme) {
+          return false;
+      }
+
+      let colorStyle = '';
+      let darkmodeStyle = '';
+
+      if (theme.options?.colors) {
+          const index = theme.options.colors.findIndex(color => color.id === $settings.design?.theme);
+
+          if (index !== -1) {
+              colorStyle = theme.options?.colors[index].code ? theme.options.colors[index].code : '';
+          }
+      }
+
+      if (isDarkMode) {
+          darkmodeStyle = theme.options?.darkmodeStyle ? theme.options.darkmodeStyle : '';
+      }
+
+      return theme.style + colorStyle + darkmodeStyle;
+  }
+
   viewPortSetting();
 </script>
 
@@ -237,13 +309,14 @@
     class:scrolled={scrolly > 52}
     class:sidebar={$settings.design?.publishPosition === 'left'}
     class:bottom={$settings.design?.publishPosition === 'bottom'}
-    class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings.design?.skin}"
+    class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin}"
     dir="{$_('dir', {default: 'ltr'})}"
     class:compact={$settings.design?.postsLayout === 'compact'}
     class:minimum={$settings.design?.postsLayout === 'minimum'}
     class:single={$settings?.design.layout !== 'decks'}
     class:decks={$settings?.design.layout === 'decks'}
     class:page={$page.url.pathname !== '/'}
+    style={outputInlineStyle($theme)}
 >
   {#if (loaded)}
     <div class="wrap"

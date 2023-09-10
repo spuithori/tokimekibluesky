@@ -1,0 +1,80 @@
+:root {
+    --font-body: 'Noto Sans JP', 'Noto Color Emoji', sans-serif;
+    --ui-font: 'Inter', sans-serif;
+
+    --color-theme-1: #ED7D95;
+    --color-theme-2: #E7D600;
+    --color-theme-3: #01B7ED;
+    --color-theme-4: #2A14B4;
+    --color-theme-5: #FF5800;
+    --color-theme-6: #9C5EDF;
+    --color-theme-7: #D81C2F;
+    --color-theme-8: #94C74C;
+    --color-theme-9: #FFFEFE;
+    --color-theme-10: #16B286;
+    --color-theme-11: #D6D5CA;
+    --color-theme-12: #ED958E;
+    --color-theme-you: #1D1D1D;
+
+    --color-theme-1-bg: #FFFAFC;
+    --color-theme-2-bg: #FFFFFA;
+    --color-theme-3-bg: #FAFEFF;
+    --color-theme-4-bg: #FBFAFF;
+    --color-theme-5-bg: #FFFCFA;
+    --color-theme-6-bg: #FCFAFF;
+    --color-theme-7-bg: #FFFAFA;
+    --color-theme-8-bg: #FDFFFA;
+    --color-theme-9-bg: #FFFFFF;
+    --color-theme-10-bg: #FAFFFE;
+    --color-theme-11-bg: #FFFFFA;
+    --color-theme-12-bg: #FFFAFA;
+
+    --current-theme-color: var(--color-theme-1);
+
+    --primary-color: var(--current-theme-color);
+    --secondary-color: var(--color-theme-2);
+    --third-color: var(--color-theme-4);
+
+    --success-color: var(--color-theme-8);
+    --danger-color: var(--color-theme-7);
+
+    --follow-color: var(--color-theme-11);
+
+    --base-bg-color: #fff;
+    --base-dark-bg-color: #110306;
+
+    --bg-color-1: #fff;
+    --bg-color-2: #fafafa;
+    --bg-color-3: #f6f6f6;
+
+    --border-color-1: #E0E0E0;
+    --border-color-2: #E5E5E5;
+
+    --link-color: var(--primary-color);
+
+    --text-color-primary-colored: var(--primary-color);
+    --text-color-1: var(--color-theme-you);
+    --text-color-2: #222;
+    --text-color-3: #858585;
+
+    --column-width: 42rem;
+    --column-margin-top: 4rem;
+
+    --box-shadow-color-1: rgba(61, 120, 209, .16);
+    --box-shadow-color-2: rgba(61, 120, 209, .12);
+
+    --blurred-bg-color: rgba(250, 255, 254, .86);
+    --blurred-dark-bg-color: rgba(17, 3, 6, .86);
+
+    --border-radius-1: 2px;
+    --border-radius-2: 4px;
+    --border-radius-3: 6px;
+    --border-radius-4: 10px;
+    --border-radius-5: 16px;
+
+    --default-bar-width: 20px;
+    --default-bar-height: 4px;
+    --default-icon-size: 24px;
+    --default-padding: 16px;
+    --default-border-width: 1px;
+}

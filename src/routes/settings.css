@@ -192,6 +192,12 @@ input[type=checkbox]{
     list-style: none;
     text-align: center;
 
+    &--2columns {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
     &__icon {
         width: 24px;
         height: 24px;
@@ -208,6 +214,10 @@ input[type=checkbox]{
         padding: 6px 16px;
         gap: 10px;
         white-space: nowrap;
+
+        &--border {
+            border: 2px solid var(--border-color-1);
+        }
 
         &::before {
             content: '';
@@ -285,4 +295,17 @@ input[type=checkbox]{
     display: grid;
     grid-template-columns: 20px 1fr;
     gap: 8px;
+}
+
+.theme-store-wrap {
+    padding: 16px;
+}
+
+.theme-store-section {
+    margin-bottom: 16px;
+
+    &__title {
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
 }

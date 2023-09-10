@@ -13,7 +13,7 @@
     $: feeds = getPostThread($page.params.id, $page.params.handle);
 
     function isMutedIncludes(feed) {
-        isMuted = feed.post.author?.viewer.muted;
+        isMuted = feed.post?.author.viewer.muted;
 
         if (feed.parent && !isMuted) {
             isMutedIncludes(feed.parent);
@@ -44,6 +44,8 @@
         const uri = 'at://' + did + '/app.bsky.feed.post/' + id;
         const raw = await $agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
         let feeds = [ raw.data.thread ];
+
+        console.log(feeds);
 
         feeds.forEach(feed => {
             if (!feed.blocked) {

@@ -30,9 +30,9 @@
     }
 
     .filepond--panel-root {
-        background-color: var(--bg-color-1);
-        box-shadow: 0 0 6px rgba(0, 0, 0, .12);
-        border: 2px solid var(--primary-color);
+        background-color: var(--publish-filepond-bg-color);
+        box-shadow: var(--publish-filepond-box-shadow);
+        border: var(--publish-filepond-border-width) solid var(--publish-filepond-border-color);
 
         @media (max-width: 767px) {
             box-shadow: none;
@@ -57,8 +57,8 @@
 }
 
 .publish-form__input {
-    background-color: var(--bg-color-2);
-    color: var(--text-color-1);
+    background-color: var(--publish-textarea-bg-color);
+    color: var(--publish-textarea-color);
     border-radius: 5px;
     height: 120px;
     font-size: 16px;
@@ -67,17 +67,23 @@
     padding: 15px 20px;
     resize: none;
     outline: none;
+
+    &::placeholder {
+        color: var(--text-color-3);
+    }
 }
 
 .publish-form__submit {
     min-width: 82px;
-    height: 30px;
+    height: var(--publish-post-button-height);
     border-radius: 15px;
     top: 10px;
     right: 20px;
     z-index: 10;
-    background-color: var(--primary-color);
-    color: var(--bg-color-1);
+    background-color: var(--publish-post-button-bg-color);
+    color: var(--publish-post-button-color);
+    border: var(--publish-post-button-border);
+    box-shadow: var(--publish-post-button-box-shadow);
     font-weight: 600;
     padding: 5px;
     display: flex;
@@ -103,6 +109,7 @@
 
 .filepond--drop-label label {
     font-size: 14px;
+    color: var(--text-color-3);
 }
 
 .publish-upload-close {

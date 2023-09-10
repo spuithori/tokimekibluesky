@@ -224,7 +224,7 @@
     &__button {
         &--current {
             .lucide {
-                stroke: var(--text-color-1);
+                stroke: var(--nav-primary-icon-color);
             }
         }
     }
@@ -235,5 +235,12 @@ html {
 
     &:has(.decks) {
         overflow-y: auto;
+    }
+}
+
+.theme-item {
+    .timeline-menu-toggle {
+        right: 10px;
+        top: 10px;
     }
 }
