@@ -1,6 +1,23 @@
 <script lang="ts">
-
 import {_} from "svelte-i18n";
+import {onMount} from "svelte";
+import ThemeItem from "./ThemeItem.svelte";
+import {liveQuery} from "dexie";
+import {themesDb} from "$lib/db";
+import {Splide, SplideSlide} from "@splidejs/svelte-splide";
+
+let themes = [];
+
+onMount(async () => {
+    const res = await fetch(`/api/get-themes`, {
+        method: 'post',
+        body: JSON.stringify({
+            code: null,
+        })
+    });
+    const data = await res.json();
+    themes = data;
+})
 </script>
 
 <svelte:head>
@@ -24,8 +41,43 @@ import {_} from "svelte-i18n";
     </div>
   </div>
 
-  <div class="settings-wrap">
-    <p>準備中<br>
-      In preparation</p>
+  <div class="theme-store-wrap">
+    {#if themes.length}
+      <section class="theme-store-slider">
+        <Splide options={{
+          type: 'loop',
+          rewind: true,
+          gap: '20px',
+          arrows: false,
+          pagination: false,
+          autoplay: true,
+      }}>
+          {#each themes as theme}
+            <SplideSlide>
+              <img src="{theme.options.cover}" alt="">
+            </SplideSlide>
+          {/each}
+        </Splide>
+      </section>
+    {/if}
+
+    <section class="theme-store-section">
+      <h2 class="theme-store-section__title">{$_('new_theme')}</h2>
+
+      {#each themes as theme}
+        <ThemeItem {theme}></ThemeItem>
+      {/each}
+    </section>
   </div>
 </div>
+
+<style lang="postcss">
+  .theme-store-slider {
+      margin-bottom: 32px;
+
+      img {
+          width: 100%;
+          height: auto;
+      }
+  }
+</style>

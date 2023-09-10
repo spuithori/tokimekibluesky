@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import {AppBskyFeedDefs, AtpSessionData} from '@atproto/api';
+import type {Theme} from "$lib/types/theme";
 
 export interface Feed {
     id?: number;
@@ -94,3 +95,17 @@ export class AccountSubClassDexie extends Dexie {
 }
 
 export const accountsDb = new AccountSubClassDexie();
+
+export class ThemeSubClassDexie extends Dexie {
+    themes: Table<Theme>;
+
+    constructor() {
+        super('themeDatabase');
+
+        this.version(2).stores({
+            themes: '&id, createdAt, updatedAt, name, description, style, options, author, keyword, version, code'
+        });
+    }
+}
+
+export const themesDb = new ThemeSubClassDexie();

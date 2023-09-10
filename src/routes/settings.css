@@ -286,3 +286,16 @@ input[type=checkbox]{
     grid-template-columns: 20px 1fr;
     gap: 8px;
 }
+
+.theme-store-wrap {
+    padding: 16px;
+}
+
+.theme-store-section {
+    margin-bottom: 16px;
+
+    &__title {
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
+}

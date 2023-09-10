@@ -7,13 +7,16 @@ button {
 
 .button {
     display: inline-flex;
-    height: 50px;
+    height: var(--button-height);
     min-width: 240px;
     align-items: center;
     justify-content: center;
-    border-radius: 25px;
-    background-color: var(--primary-color);
-    color: var(--bg-color-1);
+    border-radius: var(--button-border-radius);
+    background-color: var(--button-bg-color);
+    color: var(--button-color);
+    border: var(--button-border);
+    box-shadow: var(--button-box-shadow);
+    backdrop-filter: var(--button-backdrop-filter);
     font-weight: 600;
     transition: opacity .2s ease-in-out, transform .05s ease-in-out;
     position: relative;
@@ -41,7 +44,7 @@ button {
 
 .button--border {
     background-color: var(--bg-color-1);
-    border: 1px solid currentColor;
+    border: var(--default-border-width) solid currentColor;
     color: var(--text-color-primary-colored);
 }
 

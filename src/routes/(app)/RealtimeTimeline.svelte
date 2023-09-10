@@ -36,7 +36,7 @@
 
     async function getRecord(uri, repost = undefined, retryCount = 0) {
         try {
-            const res = await _agent.agent.api.app.bsky.feed.getPostThread({depth: 0, uri: uri});
+            const res = await _agent.agent.api.app.bsky.feed.getPostThread({depth: 0, parentHeight: 1, uri: uri});
             let thread = res.data.thread;
 
             if (thread?.parent && thread.post.record.reply) {

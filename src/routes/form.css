@@ -368,3 +368,16 @@
         color: var(--text-color-1);
     }
 }
+
+.input-with-button {
+    display: flex;
+    gap: 10px;
+
+    &__input {
+        border: 1px solid var(--border-color-1);
+        border-radius: var(--border-radius-3);
+        flex: 1;
+        padding: 0 8px;
+        color: var(--text-color-1);
+    }
+}

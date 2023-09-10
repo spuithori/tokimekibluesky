@@ -73,9 +73,9 @@
       left: 0;
       bottom: 0;
       display: flex;
-      gap: 8px;
+      gap: var(--decks-gap);
       overflow-x: scroll;
-      padding: 4px 0;
+      padding: var(--decks-padding) 0;
       height: 100dvh;
 
       &::-webkit-scrollbar {
@@ -102,25 +102,6 @@
       &--bottom {
 
       }
-  }
-
-  .decks-nav {
-      position: absolute;
-      left: 0;
-      top: 0;
-  }
-
-  .decks-button {
-      width: 48px;
-      height: 48px;
-      border-radius: 5px;
-      background-color: transparent;
-      display: grid;
-      place-content: center;
-      position: fixed;
-      top: 56px;
-      left: 8px;
-      z-index: 2000;
   }
 
   .deck-empty {

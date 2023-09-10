@@ -18,7 +18,7 @@
           on:click={() => toggleSideNav('publish')}
           aria-label="Publish Tab"
       >
-        <Pen color="var(--text-color-3)"></Pen>
+        <Pen color="var(--nav-secondary-icon-color)"></Pen>
       </button>
     </li>
 
@@ -29,7 +29,7 @@
           on:click={() => toggleSideNav('profile')}
           aria-label="Profile Tab"
       >
-        <User2 color="var(--text-color-3)"></User2>
+        <User2 color="var(--nav-secondary-icon-color)"></User2>
       </button>
     </li>
 
@@ -40,7 +40,7 @@
           on:click={() => toggleSideNav('search')}
           aria-label="Search Tab"
       >
-        <Search color="var(--text-color-3)"></Search>
+        <Search color="var(--nav-secondary-icon-color)"></Search>
       </button>
     </li>
 
@@ -51,7 +51,7 @@
           on:click={() => toggleSideNav('notification')}
           aria-label="Notification Tab"
       >
-        <Bell color="var(--text-color-3)"></Bell>
+        <Bell color="var(--nav-secondary-icon-color)"></Bell>
       </button>
     </li>
 
@@ -62,7 +62,7 @@
           on:click={() => toggleSideNav('store')}
           aria-label="Feed Store Tab"
       >
-        <Store color="var(--text-color-3)"></Store>
+        <Store color="var(--nav-secondary-icon-color)"></Store>
       </button>
     </li>
   {:else}
@@ -76,7 +76,7 @@
 
     <li class="side-nav__item">
       <a href="/search" class="side-nav__button">
-        <Search color="var(--text-color-1)"></Search>
+        <Search color="var(--nav-primary-icon-color)"></Search>
       </a>
     </li>
   {/if}
@@ -115,10 +115,10 @@
               left: 0;
               right: 0;
               top: 0;
-              width: 20px;
-              height: 4px;
-              border-radius: 2px;
-              background-color: var(--primary-color);
+              width: var(--nav-current-bar-width);
+              height: var(--nav-current-bar-height);
+              border-radius: var(--nav-current-bar-border-radius);
+              background-color: var(--nav-current-bar-color);
               margin: auto;
               transform: scaleX(0);
               transition: transform .25s cubic-bezier(0, 0, 0.18, 1);

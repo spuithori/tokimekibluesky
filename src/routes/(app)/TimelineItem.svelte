@@ -47,7 +47,9 @@
     export let data: AppBskyFeedDefs.FeedViewPost;
     export let isPrivate = false;
     export let isSingle: boolean = false;
+    export let isThread: boolean = false;
     export let isMedia: boolean = false;
+    export let isProfile: boolean = false;
 
     let selectionText = '';
 
@@ -107,6 +109,10 @@
             textArray.push(segment);
         }
         textArray = textArray;
+    }
+
+    if (data.reply && !data.reply?.parent) {
+        delete data.reply;
     }
 
     let labels = $settings?.moderation.contentLabels || {
@@ -238,7 +244,7 @@
             }
         }
 
-        if (data.post.author.viewer?.muted) {
+        if (data.post.author.viewer?.muted && !isThread) {
             isHide = true;
         }
     })

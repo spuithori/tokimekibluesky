@@ -4,6 +4,9 @@
 @import '../../node_modules/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 @import '../../node_modules/filepond-plugin-file-poster/dist/filepond-plugin-file-poster.css';
 
+@import "./vars.css";
+@import "./theme.css";
+@import "./for-theming.css";
 @import "./base.css";
 @import "./button.css";
 @import "./timeline.css";

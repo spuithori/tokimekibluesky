@@ -2,6 +2,7 @@ import {derived, writable} from 'svelte/store';
 import type { Agent } from '$lib/agent';
 import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications } from '@atproto/api';
 import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+import type {Theme} from "$lib/types/theme";
 
 type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification & {
     feed?: AppBskyFeedPost
@@ -190,3 +191,5 @@ export const sideState = writable<'publish' | 'search' | 'notification' | 'profi
 export const isPublishInstantFloat = writable(false);
 
 export const didHint = writable('');
+
+export const theme = writable<Theme | undefined>(undefined);

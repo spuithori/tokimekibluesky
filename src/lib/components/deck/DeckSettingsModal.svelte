@@ -178,11 +178,7 @@
     }
 
     function toggleStyle(style: 'default' | 'media') {
-        if ($settings?.design.layout === 'decks') {
-            $columns[index].style = style;
-        } else {
-            $singleColumn.style = style;
-        }
+        $columns[index].style = style;
 
         if (column.algorithm.type !== 'realtime') {
             $timelines[index] = [];

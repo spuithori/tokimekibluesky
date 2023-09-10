@@ -1,7 +1,10 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import { settings } from '$lib/stores';
-    import TimelineItem from "../../TimelineItem.svelte";
+    import { settings, theme } from '$lib/stores';
+    import {liveQuery} from "dexie";
+    import {themesDb} from "$lib/db";
+    import {builtInThemes} from "$lib/builtInThemes";
+    import {defaultColors} from "$lib/defaultColors";
     let skin: string = $settings?.design.skin || 'default';
     let themePick: string = $settings?.design.theme || 'royalblue';
     let darkmode = $settings?.design.darkmode || false;
@@ -12,40 +15,10 @@
     let postsImageLayout = $settings?.design.postsImageLayout || 'default';
     let oneImageNoCrop = $settings?.design.oneImageNoCrop || false;
 
-    let isDarkmodeDisabled = false;
-
-    const skins = [
-        {
-            value: 'default',
-            options: {
-                colorDisabled: false,
-                darkmodeDisabled: false,
-            },
-            image: '/skin-default.png',
-        },
-        {
-            value: 'twilight',
-            options: {
-                colorDisabled: false,
-                darkmodeDisabled: true,
-            },
-            image: '/skin-twilight.png',
-        },
-        /* {
-            value: 'ambient',
-            options: {
-                colorDisabled: false,
-                darkmodeDisabled: true,
-            }
-        },
-        {
-            value: 'highcontrast',
-            options: {
-                colorDisabled: false,
-                darkmodeDisabled: false,
-            }
-        }, */
-    ]
+    $: myThemes = liveQuery(async () => {
+        const myThemes = await themesDb.themes.toArray();
+        return myThemes;
+    });
 
     $: {
         $settings.design.skin = skin;
@@ -59,15 +32,20 @@
         $settings.design.oneImageNoCrop = oneImageNoCrop;
     }
 
-    $: detectDarkmodeDisabled(skin);
+    $: colors = detectColors($theme);
 
-    function detectDarkmodeDisabled(skin) {
-        const _skin = skins.find(_skin => _skin.value === skin);
-        if (!_skin) {
+    function detectColors(theme) {
+        if (!theme) {
             return false;
         }
 
-        isDarkmodeDisabled = !!_skin.options?.darkmodeDisabled;
+        if (theme.options.colors) {
+            if (Array.isArray(theme.options.colors)) {
+                return theme.options.colors;
+            }
+        }
+
+        return defaultColors;
     }
 </script>
 
@@ -120,16 +98,29 @@
 
       <dd class="settings-group__content">
         <div class="icons-radio-group">
-          {#each skins as _skin}
+          {#each builtInThemes as _skin}
             <div class="icons-radio icons-radio--skin">
-              <input type="radio" bind:group={skin} id="skin_{_skin.value}" name="skin" value={_skin.value}>
-              <label for="skin_{_skin.value}">
+              <input type="radio" bind:group={skin} id="skin_{_skin.id}" name="skin" value={_skin.name}>
+              <label for="skin_{_skin.id}">
                 <span class="icons-radio__ui">
-                  <img src={_skin.image} alt="">
-                </span>{$_('skin_' + _skin.value)}
+                  <img src={_skin.options?.thumbnail} alt="">
+                </span>{$_('skin_' + _skin.name)}
               </label>
             </div>
           {/each}
+
+          {#if $myThemes}
+            {#each $myThemes as _skin}
+              <div class="icons-radio icons-radio--skin icons-radio--skin-dl">
+                <input type="radio" bind:group={skin} id="skin_{_skin.id}" name="skin" value={_skin.id}>
+                <label for="skin_{_skin.id}">
+                <span class="icons-radio__ui">
+                  <img src={_skin.options?.thumbnail} alt="">
+                </span>{_skin.name}
+                </label>
+              </div>
+            {/each}
+          {/if}
         </div>
 
         <p class="theme-store-link"><a href="/theme-store"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>{$_('theme_store')}</a></p>
@@ -142,54 +133,25 @@
       </dt>
 
       <dd class="settings-group__content">
+        {#if $theme ? $theme.options?.colorDisabled : false}
+          <p class="notice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>{$_('color_disabled_theme')}</p>
+        {/if}
+
         <ul class="theme-picker theme-picker--{themePick}">
-          <li class="theme-picker__item theme-picker__item--lightpink">
-            <button class="theme-picker__button" on:click={() => {themePick = 'lightpink'}} aria-label="ライトピンク"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--pastelyellow">
-            <button class="theme-picker__button" on:click={() => {themePick = 'pastelyellow'}} aria-label="パステルイエロー"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--lightblue">
-            <button class="theme-picker__button" on:click={() => {themePick = 'lightblue'}} aria-label="ライトブルー"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--royalblue">
-            <button class="theme-picker__button" on:click={() => {themePick = 'royalblue'}} aria-label="ロイヤルブルー"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--superorange">
-            <button class="theme-picker__button" on:click={() => {themePick = 'superorange'}} aria-label="超オレンジ"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--violet">
-            <button class="theme-picker__button" on:click={() => {themePick = 'violet'}} aria-label="すみれ"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--scarlet">
-            <button class="theme-picker__button" on:click={() => {themePick = 'scarlet'}} aria-label="スカーレット"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--lightgreen">
-            <button class="theme-picker__button" on:click={() => {themePick = 'lightgreen'}} aria-label="ライトグリーン"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--paperwhite">
-            <button class="theme-picker__button" on:click={() => {themePick = 'paperwhite'}} aria-label="ペーパーホワイト"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--jade">
-            <button class="theme-picker__button" on:click={() => {themePick = 'jade'}} aria-label="翡翠"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--platinumsilver">
-            <button class="theme-picker__button" on:click={() => {themePick = 'platinumsilver'}} aria-label="プラチナシルバー"></button>
-          </li>
-
-          <li class="theme-picker__item theme-picker__item--pinkgold">
-            <button class="theme-picker__button" on:click={() => {themePick = 'pinkgold'}} aria-label="ピンクゴールド"></button>
-          </li>
+          {#if (colors)}
+            {#each colors as color}
+              <li
+                  class="theme-picker__item"
+                  class:theme-picker__item--current={themePick === color.id}
+              >
+                <button
+                    class="theme-picker__button"
+                    on:click={() => {themePick = color.id}}
+                    aria-label=""
+                    style:background-color={color.colorCode}></button>
+              </li>
+            {/each}
+          {/if}
         </ul>
       </dd>
     </dl>
@@ -200,7 +162,7 @@
       </dt>
 
       <dd class="settings-group__content">
-        {#if isDarkmodeDisabled}
+        {#if $theme ? $theme.options?.darkmodeDisabled : false}
           <p class="notice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>{$_('darkmode_disabled_theme')}</p>
         {/if}
 
@@ -319,152 +281,13 @@
         list-style: none;
         margin-top: 10px;
 
-        &--lightpink {
-            .theme-picker__item--lightpink button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
-        &--pastelyellow {
-            .theme-picker__item--pastelyellow button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
-        &--lightblue {
-            .theme-picker__item--lightblue button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
-        &--royalblue {
-            .theme-picker__item--royalblue button {
-                border: 2px solid var(--text-color-3);
-            }
-        }
-
-        &--superorange {
-            .theme-picker__item--superorange button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
-        &--violet {
-            .theme-picker__item--violet button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
-        &--scarlet {
-            .theme-picker__item--scarlet button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
-        &--lightgreen {
-            .theme-picker__item--lightgreen button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
-        &--paperwhite {
-            .theme-picker__item--paperwhite button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
-        &--jade {
-            .theme-picker__item--jade button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
-        &--platinumsilver {
-            .theme-picker__item--platinumsilver button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
-        &--pinkgold {
-            .theme-picker__item--pinkgold button {
-                border: 2px solid var(--text-color-1);
-            }
-        }
-
         &__item {
             aspect-ratio: 1 / 1;
             border-radius: var(--primary-color);
 
-            &--lightpink {
+            &--current {
                 button {
-                    background-color: var(--color-theme-1);
-                }
-            }
-
-            &--pastelyellow {
-                button {
-                    background-color: var(--color-theme-2);
-                }
-            }
-
-            &--lightblue {
-                button {
-                    background-color: var(--color-theme-3);
-                }
-            }
-
-            &--royalblue {
-                button {
-                    background-color: var(--color-theme-4);
-                }
-            }
-
-            &--superorange {
-                button {
-                    background-color: var(--color-theme-5);
-                }
-            }
-
-            &--violet {
-                button {
-                    background-color: var(--color-theme-6);
-                }
-            }
-
-            &--scarlet {
-                button {
-                    background-color: var(--color-theme-7);
-                }
-            }
-
-            &--lightgreen {
-                button {
-                    background-color: var(--color-theme-8);
-                }
-            }
-
-            &--paperwhite {
-                button {
-                    background-color: var(--color-theme-9);
-                    border: 2px solid var(--border-color-1);
-                }
-            }
-
-            &--jade {
-                button {
-                    background-color: var(--color-theme-10);
-                }
-            }
-
-            &--platinumsilver {
-                button {
-                    background-color: var(--color-theme-11);
-                }
-            }
-
-            &--pinkgold {
-                button {
-                    background-color: var(--color-theme-12);
+                    border: 2px solid var(--text-color-1);
                 }
             }
         }
@@ -473,6 +296,7 @@
             width: 100%;
             height: 100%;
             border-radius: 4px;
+            border: 2px solid rgba(0, 0, 0, .1);
         }
     }
 

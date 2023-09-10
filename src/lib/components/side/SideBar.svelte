@@ -76,7 +76,7 @@
             class="side-bar-button"
             on:click={() => {$isColumnModalOpen = true}}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-square"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-primary-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-square"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
         </button>
       {/if}
 
@@ -89,9 +89,9 @@
             title={column.algorithm?.name}
         >
           {#if column.settings?.icon}
-            <svelte:component this={iconMap.get(column.settings.icon)} color="var(--text-color-3)"></svelte:component>
+            <svelte:component this={iconMap.get(column.settings.icon)} color="var(--bar-secondary-icon-color)"></svelte:component>
           {:else}
-            <ColumnIcon type={column.algorithm.type}></ColumnIcon>
+            <ColumnIcon type={column.algorithm.type} color="var(--bar-secondary-icon-color)"></ColumnIcon>
           {/if}
 
           {#if (column.unreadCount)}
@@ -104,37 +104,37 @@
           class="side-bar-button"
           href="/"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       </a>
     {/if}
   </div>
 
   <div class="side-bar__list side-bar__bottom">
     <a class="side-bar-button only-pc" href="/settings/general">
-      <Settings color="var(--text-color-1)"></Settings>
+      <Settings color="var(--bar-bottom-icon-color)"></Settings>
     </a>
 
     <a class="side-bar-button only-mobile" href="/settings">
-      <Settings color="var(--text-color-1)"></Settings>
+      <Settings color="var(--bar-bottom-icon-color)"></Settings>
     </a>
 
     {#if ($settings.design?.layout === 'decks')}
       <button class="side-bar-button" on:click={() => {$settings.design.layout = 'default'}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rectangle-vertical"><rect width="12" height="20" x="6" y="2" rx="2"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rectangle-vertical"><rect width="12" height="20" x="6" y="2" rx="2"/></svg>
       </button>
     {:else}
       <button class="side-bar-button" on:click={() => {$settings.design.layout = 'decks'}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-columns"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="12" x2="12" y1="3" y2="21"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-columns"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="12" x2="12" y1="3" y2="21"/></svg>
       </button>
     {/if}
 
     {#if ($settings.design?.publishPosition !== 'left')}
       <button class="side-bar-button" on:click={() => {$settings.design.publishPosition = 'left'}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/></svg>
       </button>
     {:else}
       <button class="side-bar-button" on:click={() => {$settings.design.publishPosition = 'bottom'}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-bottom"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="15" y2="15"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-bottom"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="15" y2="15"/></svg>
       </button>
     {/if}
   </div>
@@ -212,10 +212,10 @@
           left: 0;
           top: 0;
           bottom: 0;
-          width: 4px;
-          height: 20px;
-          border-radius: 2px;
-          background-color: var(--primary-color);
+          width: var(--bar-current-bar-width);
+          height: var(--bar-current-bar-height);
+          border-radius: var(--bar-current-bar-border-radius);
+          background-color: var(--bar-current-bar-color);
           margin: auto;
           transform: scaleY(0);
           transition: transform .25s cubic-bezier(0, 0, 0.18, 1);

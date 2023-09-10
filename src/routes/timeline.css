@@ -1,6 +1,7 @@
 .timeline {
-    background-color: var(--bg-color-1);
-    padding: 16px;
+    background-color: var(--timeline-bg-color);
+    padding: var(--timeline-padding);
+    color: var(--timeline-color);
     position: relative;
     container: timeline-item / inline-size;
 
@@ -14,11 +15,12 @@
     grid-template-columns: 78px 1fr;
     gap: 10px;
     align-items: flex-start;
-    background-color: var(--bg-color-1);
+    background-color: var(--timeline-embed-bg-color);
+    border: var(--timeline-embed-border);
     padding: 10px 10px 15px;
     position: relative;
     margin-top: 20px;
-    box-shadow: 0 0 14px var(--box-shadow-color-2);
+    box-shadow: var(--timeline-embed-box-shadow);
     border-radius: 6px;
     font-size: 14px;
 
@@ -96,11 +98,11 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--text-color-3);
+    color: var(--timeline-embed-color);
 }
 
 .timeline-external__url {
-    color: var(--text-color-3);
+    color: var(--timeline-embed-color);
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -113,8 +115,8 @@
 }
 
 .timeline__item {
-    padding: 16px 0;
-    border-bottom: 1px solid var(--border-color-1);
+    padding: var(--timeline-padding) 0;
+    border-bottom: var(--timeline-border-width) solid var(--timeline-border-color);
     position: relative;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -155,7 +157,7 @@
 }
 
 .timeline__date {
-    color: var(--text-color-3);
+    color: var(--timeline-date-color);
     letter-spacing: .05em;
     position: relative;
     cursor: default;
@@ -212,6 +214,7 @@
     font-weight: 600;
     letter-spacing: .025em;
     cursor: default;
+    color: var(--timeline-user-color);
 }
 
 .timeline__image {
@@ -244,7 +247,7 @@
             top: 20px;
             bottom: -20px;
             left: 29px;
-            background-color: var(--border-color-1);
+            background-color: var(--border-color-2);
 
             @media (max-width: 767px) {
                 left: 24px;
@@ -357,11 +360,11 @@
 
         &:hover {
             @media (min-width: 768px) {
-                background-color: var(--border-color-1);
-                color: var(--bg-color-1);
+                background-color: var(--timeline-reaction-bookmark-hover-bg-color);
+                color: var(--timeline-reaction-bookmark-icon-hover-color);
 
                 path {
-                    fill: var(--bg-color-1);
+                    fill: var(--timeline-reaction-bookmark-icon-hover-color);
                 }
             }
         }
@@ -440,7 +443,7 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background-color: var(--bg-color-2);
+    background-color: var(--bg-color-1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -451,17 +454,18 @@
     }
 
     &:hover {
-        background-color: var(--border-color-1);
+        background-color: var(--bg-color-2);
     }
 }
 
 .timeline-menu {
     position: absolute;
-    padding: 15px 8px 16px;
-    box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 8px 16px rgba(0, 0, 0, .14);
-    border-radius: 6px;
+    padding: var(--menu-padding);
+    box-shadow: var(--menu-box-shadow);
+    border: var(--menu-border);
+    border-radius: var(--menu-border-radius);
     width: max-content;
-    background-color: var(--bg-color-1);
+    background-color: var(--menu-bg-color);
     z-index: 14;
     visibility: hidden;
     opacity: 0;
@@ -504,7 +508,7 @@
         }
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--menu-hover-bg-color);
             text-decoration: none;
         }
     }
@@ -946,4 +950,11 @@
 
 .user-items-list {
     container: users-list / inline-size;
+}
+
+.timeline-hidden-item {
+    padding: 16px;
+    background-color: var(--bg-color-2);
+    border: 1px solid var(--border-color-1);
+    border-radius: var(--border-radius-3);
 }

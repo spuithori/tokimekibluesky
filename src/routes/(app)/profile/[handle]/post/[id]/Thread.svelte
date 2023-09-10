@@ -39,7 +39,7 @@
           class:is-author-child={data.post.record.reply?.root ? data.post.author.did === data.post.record.reply.root.uri.split('/')[2] : false}
       >
         {#if (!data.blocked)}
-          <TimelineItem data={data} isSingle={true} column={column} {_agent}>
+          <TimelineItem data={data} isSingle={true} isThread={true} column={column} {_agent}>
             {#if (data.post.likeCount > 0)}
               <Likes uri={data.post.uri}></Likes>
             {/if}
@@ -60,6 +60,10 @@
           <svelte:self feeds={data.replies} depth={depth + 1} column={column}></svelte:self>
         </div>
       {/if}
+    {:else}
+      <article class="timeline-hidden-item">
+        <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
+      </article>
     {/if}
   {/each}
 </div>
