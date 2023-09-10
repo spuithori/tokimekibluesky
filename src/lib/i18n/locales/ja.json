@@ -398,5 +398,7 @@
   "theme_current": "使用中",
   "theme_code_input_placeholder": "コードを入力...",
   "theme_code_execute": "実行",
-  "deleted_post": "削除された投稿です"
+  "deleted_post": "削除された投稿です",
+  "theme_code_description": "該当するコードを入力すると、限定テーマをインストールできます。",
+  "theme_custom_color": "カスタムカラー"
 }

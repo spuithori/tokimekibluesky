@@ -47,6 +47,8 @@
       </form>
     </section>
 
+    <p class="settings-description">{$_('theme_code_description')}</p>
+
     {#if themes.length}
       <section class="theme-store-section">
         <h2 class="theme-store-section__title">{$_('find_theme')}</h2>

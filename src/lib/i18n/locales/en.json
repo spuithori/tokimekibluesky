@@ -397,5 +397,7 @@
   "theme_current": "Current",
   "theme_code_input_placeholder": "Enter the code...",
   "theme_code_execute": "Find",
-  "deleted_post": "Deleted post."
+  "deleted_post": "Deleted post.",
+  "theme_code_description": "You can install a limited theme by entering the corresponding code.",
+  "theme_custom_color": "Custom color"
 }
