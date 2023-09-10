@@ -38,6 +38,7 @@
     import Decks from "./Decks.svelte";
     import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
     import {builtInThemes} from "$lib/builtInThemes";
+    import {defaultColors} from "$lib/defaultColors";
 
     let loaded = false;
   let wrap;
@@ -55,6 +56,7 @@
   );
 
   $: getCurrentTheme($settings.design?.skin);
+  $: observeColor($theme);
 
   function getCurrentTheme(skin) {
       const isBuiltInTheme = builtInThemes.find(_theme => _theme.name === skin);
@@ -65,6 +67,22 @@
               .then(value => {
                   $theme = value;
               });
+      }
+  }
+
+  function observeColor(theme) {
+      if (!theme) {
+          return false;
+      }
+
+      const colors = Array.isArray(theme.options?.colors) ? theme.options.colors : defaultColors;
+
+      if (!colors.length) {
+          return false;
+      }
+
+      if (!colors.some(color => color.id === $settings.design?.theme)) {
+          $settings.design.theme = colors[0].id;
       }
   }
 

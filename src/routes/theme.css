@@ -233,7 +233,7 @@
     --timeline-padding: var(--default-padding);
     --timeline-bg-color: var(--bg-color-1);
     --timeline-color: var(--text-color-1);
-    --timeline-border-color: var(--border-color-1);
+    --timeline-border-color: var(--border-color-2);
     --timeline-border-width: var(--default-border-width);
     --timeline-user-color: var(--text-color-1);
     --timeline-date-color: var(--text-color-3);
