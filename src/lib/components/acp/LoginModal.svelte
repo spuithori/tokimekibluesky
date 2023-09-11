@@ -6,7 +6,8 @@ import { createEventDispatcher } from "svelte";
 import toast from "svelte-french-toast";
 const dispatch = createEventDispatcher();
 
-let identifier = '';
+export let existingId = undefined;
+export let identifier = '';
 let password = '';
 let errorMessage = '';
 let service = 'https://bsky.social';
@@ -20,7 +21,7 @@ async function login() {
         await agent.login({identifier: identifier, password: password});
 
         const id = await accountsDb.accounts.put({
-            id: undefined,
+            id: existingId,
             session: agent.session as AtpSessionData,
             did: agent.session?.did || '',
             service: service,

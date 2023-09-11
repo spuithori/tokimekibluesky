@@ -10,7 +10,7 @@
         globalUnique,
         isAfterReload,
         isColumnModalOpen,
-        isMobileDataConnection,
+        isMobileDataConnection, missingAccounts,
         profileStatus,
         settings,
         singleColumn,
@@ -170,7 +170,31 @@
     agents.set(agentsMap);
     agent.set($agents.get(profile.primary || accounts[0].id));
 
+    checkSession(accounts);
+
     loaded = true;
+  }
+
+  async function checkSession(accounts) {
+      let _missingAccounts = [];
+      let promises = [];
+      if (!accounts.length) {
+          return false;
+      }
+
+      accounts.forEach(account => {
+          promises = [...promises, $agents.get(account.id).agent.api.com.atproto.server.getSession()];
+      });
+
+      const results = await Promise.allSettled(promises);
+      console.log(results);
+
+      results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+              _missingAccounts = [..._missingAccounts, accounts[index]];
+              missingAccounts.set(_missingAccounts);
+          }
+      })
   }
 
   let direction = 'up';

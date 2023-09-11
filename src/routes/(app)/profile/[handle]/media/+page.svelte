@@ -55,7 +55,7 @@
 <div class="hide-repost">
   <div class="media-list">
     {#each feeds as data}
-      <MediaTimelineItem data={data}></MediaTimelineItem>
+      <MediaTimelineItem data={data} isProfile={true}></MediaTimelineItem>
     {/each}
   </div>
 

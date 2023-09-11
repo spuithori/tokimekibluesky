@@ -12,12 +12,15 @@
 
       const _agent = $agents.get(getAccountIdByDid($agents, column.did));
       notificationColumns = [...notificationColumns, index];
-      promises = [...promises, _agent.getNotificationCount()];
+      promises = [...promises, _agent ? _agent.getNotificationCount() : Promise.reject(new Error('no agent'))];
   })
 
   Promise.all(promises).then(values => {
       values.forEach((value, index) => {
           $columns[notificationColumns[index]].unreadCount = value;
       })
+  })
+  .catch(e => {
+      console.log(e);
   })
 </script>

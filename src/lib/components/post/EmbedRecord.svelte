@@ -5,18 +5,56 @@
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
+  import {keywordFilter} from "$lib/timelineFilter";
+  import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
 
   export let record;
   export let locale;
+  export let moderateData = undefined;
+
+  let warnReason = '';
+  let isWarn = detectWarn(moderateData);
+
   let isMuteDisplay = false;
+  let isMuted = record.author.viewer.muted;
+
+  if (keywordFilter($settings.keywordMutes, record.value.text, record.indexedAt)) {
+      isMuted = true;
+  }
+
+  function detectWarn(moderateData) {
+      if (!moderateData) {
+          return false;
+      }
+
+      if (moderateData.content.filter) {
+          return false;
+      }
+
+      if (moderateData.embed?.blur) {
+          try {
+              warnReason = moderateData.embed?.cause.label.val || '';
+          } catch (e) {
+              console.log(moderateData);
+          }
+
+          return true;
+      }
+
+      return false;
+  }
 </script>
 
 <div class="timeline-external timeline-external--record">
-  {#if (record.author.viewer.muted && !isMuteDisplay)}
+  {#if (isMuted && !isMuteDisplay)}
     <div class="thread-notice thread-notice--quote" class:thread-notice--shown={isMuteDisplay}>
       <p class="thread-notice__text">{$_('muted_user_embed')}<br>
         <button class="text-button" on:click={() => {isMuteDisplay = true}}>{$_('show_button')}</button></p>
     </div>
+  {/if}
+
+  {#if isWarn}
+    <!-- <TimelineWarn reason={warnReason} on:visible={() => {isWarn = false}}></TimelineWarn> -->
   {/if}
 
   {#if $settings?.design.postsLayout !== 'minimum'}

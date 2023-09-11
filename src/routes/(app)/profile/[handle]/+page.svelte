@@ -82,7 +82,7 @@ onMount(async () => {
 
   <div class="timeline">
     {#each feeds as data, index}
-      <TimelineItem data={ data } isPrivate={ true } index={index}></TimelineItem>
+      <TimelineItem data={ data } isPrivate={ true } isProfile={ true } index={index}></TimelineItem>
     {/each}
 
     <InfiniteLoading on:infinite={handleLoadMore}>

@@ -299,7 +299,7 @@
   "show_replies": "リプライを表示",
   "auto_scroll": "自動スクロール",
   "error_thread_notfound": "スレッドを読み込めませんでした。投稿が削除されたか、ルートの投稿ユーザーをブロックしている・されている可能性があります。",
-  "muted_user_embed": "ミュートしているユーザーの投稿です。",
+  "muted_user_embed": "ミュートしているユーザー/キーワードが含まれています。",
   "muted_user_thread": "スレッドにミュートしているユーザーが含まれています。",
   "lang_selector_button_auto": "自動",
   "lang_selector_button_display": "表示言語",
@@ -400,5 +400,7 @@
   "theme_code_execute": "実行",
   "deleted_post": "削除された投稿です",
   "theme_code_description": "該当するコードを入力すると、限定テーマをインストールできます。",
-  "theme_custom_color": "カスタムカラー"
+  "theme_custom_color": "カスタムカラー",
+  "missing_accounts_title": "再ログインが必要です",
+  "missing_accounts_description": "再認証が必要なアカウントがあります。再度ログインするか、ログアウトしてください。"
 }

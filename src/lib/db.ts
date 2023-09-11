@@ -69,7 +69,7 @@ type notificationCategories = 'reply' | 'like' | 'repost' | 'follow' | 'quote'  
 export interface Account {
     id?: number,
     service: string,
-    session: AtpSessionData,
+    session?: AtpSessionData,
     did: string,
     avatar?: string,
     name?: string,

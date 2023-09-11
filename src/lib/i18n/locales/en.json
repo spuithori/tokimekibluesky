@@ -298,7 +298,7 @@
   "show_replies": "Show replies",
   "auto_scroll": "Auto scroll",
   "error_thread_notfound": "Could not load thread. The post may have been deleted or you may have blocked/blocking by the root posting user.",
-  "muted_user_embed": "This is a post by a muted user.",
+  "muted_user_embed": "Contains muted users/keywords.",
   "muted_user_thread": "Thread contains muted users.",
   "lang_selector_button_auto": "Auto",
   "lang_selector_button_display": "Displayed",
@@ -399,5 +399,7 @@
   "theme_code_execute": "Find",
   "deleted_post": "Deleted post.",
   "theme_code_description": "You can install a limited theme by entering the corresponding code.",
-  "theme_custom_color": "Custom color"
+  "theme_custom_color": "Custom color",
+  "missing_accounts_title": "Re-login is required",
+  "missing_accounts_description": "Some accounts require re-authentication. Please login again or logout."
 }

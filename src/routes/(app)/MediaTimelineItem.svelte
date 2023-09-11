@@ -1,13 +1,20 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
-    import { agent } from '$lib/stores';
+    import {agent, settings} from '$lib/stores';
     import { AppBskyFeedDefs } from '@atproto/api';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
+    import {contentLabelling} from "$lib/timelineFilter";
 
     export let _agent = $agent;
     export let data;
+    export let isProfile = false;
     let isOpen = false;
+
+    const moderateData = contentLabelling(data.post, _agent.did(), $settings);
+
+    let isHide = detectHide(moderateData);
+    let isWarn = detectWarn(moderateData) || false;
 
     const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
         return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
@@ -25,39 +32,92 @@
     function handleClose() {
         isOpen = false;
     }
+
+    function detectHide(moderateData) {
+        if (!moderateData) {
+            return false;
+        }
+
+        if (moderateData.content.filter) {
+            console.log('should hide.');
+
+            if (moderateData.content.cause.type === 'muted' && isProfile) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    function detectWarn(moderateData) {
+        // console.log(moderateData)
+
+        if (!moderateData) {
+            return false;
+        }
+
+        if (moderateData.content.filter) {
+            return false;
+        }
+
+        if (moderateData.content.blur || moderateData.content.alert) {
+            if (moderateData.content?.cause.setting === 'show') {
+                return  false;
+            }
+
+            return true;
+        }
+
+        if (moderateData.embed.blur) {
+            if (moderateData.embed?.cause.setting === 'show') {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
 </script>
 
-<div class="media-item" class:media-item--repost={isReasonRepost(data.reason)}
-     class:media-item--reply={data.reply && data.reply.parent.author.did !== _agent.did()}>
-  <button on:click={modalToggle} aria-label="画像を拡大する">
-    <img src="{data.post.embed.images[0].thumb}" alt="" loading="lazy">
+{#if (!isHide)}
+  <div class="media-item"
+       class:media-item--repost={isReasonRepost(data.reason)}
+       class:media-item--reply={data.reply && data.reply.parent.author.did !== _agent.did()}
+       class:media-item--warn={isWarn}
+  >
+    <button on:click={modalToggle} aria-label="画像を拡大する">
+      <img src="{data.post.embed.images[0].thumb}" alt="" loading="lazy">
 
-    {#if (data.post.embed.images.length > 1)}
-      <div class="media-item__count">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
-          <g id="グループ_88" data-name="グループ 88" transform="translate(-77 -224)">
-            <rect id="長方形_73" data-name="長方形 73" width="11" height="11" rx="1" transform="translate(80 224)" fill="#fff"/>
-            <rect id="長方形_74" data-name="長方形 74" width="2" height="11" rx="1" transform="translate(77 227)" fill="#fff"/>
-            <rect id="長方形_75" data-name="長方形 75" width="2" height="11" rx="1" transform="translate(77 238) rotate(-90)" fill="#fff"/>
-          </g>
-        </svg>
-        {data.post.embed.images.length}</div>
-    {/if}
+      {#if (data.post.embed.images.length > 1)}
+        <div class="media-item__count">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
+            <g id="グループ_88" data-name="グループ 88" transform="translate(-77 -224)">
+              <rect id="長方形_73" data-name="長方形 73" width="11" height="11" rx="1" transform="translate(80 224)" fill="#fff"/>
+              <rect id="長方形_74" data-name="長方形 74" width="2" height="11" rx="1" transform="translate(77 227)" fill="#fff"/>
+              <rect id="長方形_75" data-name="長方形 75" width="2" height="11" rx="1" transform="translate(77 238) rotate(-90)" fill="#fff"/>
+            </g>
+          </svg>
+          {data.post.embed.images.length}</div>
+      {/if}
 
-    {#if (isReasonRepost(data.reason))}
-      <div class="media-item__is-repost">
-        <svg xmlns="http://www.w3.org/2000/svg" width="65.627" height="40.176" viewBox="0 0 65.627 40.176">
-          <path id="retweet" d="M42.418,43.116a1.089,1.089,0,0,1-1.06,1.06H9.544c-1.226,0-1.06-1.292-1.06-2.121V22.967H2.121A2.135,2.135,0,0,1,0,20.846a2.028,2.028,0,0,1,.5-1.36L11.1,6.761a2.174,2.174,0,0,1,3.249,0l10.6,12.725a2.025,2.025,0,0,1,.5,1.36,2.135,2.135,0,0,1-2.121,2.121H16.967V35.693H36.055a1.134,1.134,0,0,1,.829.365l5.3,6.363A1.335,1.335,0,0,1,42.418,43.116ZM63.627,29.33a2.028,2.028,0,0,1-.5,1.36l-10.6,12.725a2.114,2.114,0,0,1-3.249,0l-10.6-12.725a2.025,2.025,0,0,1-.5-1.36A2.135,2.135,0,0,1,40.3,27.209H46.66V14.484H27.572a1.057,1.057,0,0,1-.829-.4l-5.3-6.363a1.136,1.136,0,0,1-.231-.664A1.089,1.089,0,0,1,22.269,6H54.083c1.226,0,1.06,1.292,1.06,2.121V27.209h6.363A2.135,2.135,0,0,1,63.627,29.33Z" transform="translate(1 -5)" fill="#ffffff" stroke="var(--primary-color)" stroke-width="2"/>
-        </svg>
-      </div>
-    {/if}
-  </button>
-</div>
-
-{#if (isOpen)}
-  <div class="media-content-wrap" transition:fade="{{ duration: 300 }}">
-    <MediaTimelineItemModal data={data} on:close={handleClose} {_agent}></MediaTimelineItemModal>
+      {#if (isReasonRepost(data.reason))}
+        <div class="media-item__is-repost">
+          <svg xmlns="http://www.w3.org/2000/svg" width="65.627" height="40.176" viewBox="0 0 65.627 40.176">
+            <path id="retweet" d="M42.418,43.116a1.089,1.089,0,0,1-1.06,1.06H9.544c-1.226,0-1.06-1.292-1.06-2.121V22.967H2.121A2.135,2.135,0,0,1,0,20.846a2.028,2.028,0,0,1,.5-1.36L11.1,6.761a2.174,2.174,0,0,1,3.249,0l10.6,12.725a2.025,2.025,0,0,1,.5,1.36,2.135,2.135,0,0,1-2.121,2.121H16.967V35.693H36.055a1.134,1.134,0,0,1,.829.365l5.3,6.363A1.335,1.335,0,0,1,42.418,43.116ZM63.627,29.33a2.028,2.028,0,0,1-.5,1.36l-10.6,12.725a2.114,2.114,0,0,1-3.249,0l-10.6-12.725a2.025,2.025,0,0,1-.5-1.36A2.135,2.135,0,0,1,40.3,27.209H46.66V14.484H27.572a1.057,1.057,0,0,1-.829-.4l-5.3-6.363a1.136,1.136,0,0,1-.231-.664A1.089,1.089,0,0,1,22.269,6H54.083c1.226,0,1.06,1.292,1.06,2.121V27.209h6.363A2.135,2.135,0,0,1,63.627,29.33Z" transform="translate(1 -5)" fill="#ffffff" stroke="var(--primary-color)" stroke-width="2"/>
+          </svg>
+        </div>
+      {/if}
+    </button>
   </div>
+
+  {#if (isOpen)}
+    <div class="media-content-wrap" transition:fade="{{ duration: 300 }}">
+      <MediaTimelineItemModal data={data} on:close={handleClose} {_agent}></MediaTimelineItemModal>
+    </div>
+  {/if}
 {/if}
 
 <style lang="postcss">
@@ -147,6 +207,22 @@
               }
           }
       }
+
+        &--warn {
+            &::before {
+                content: '';
+                display: block;
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                right: 0;
+                background-color: rgba(0, 0, 0, .8);
+                backdrop-filter: blur(10px);
+                z-index: 10;
+                pointer-events: none;
+            }
+        }
   }
 
   .media-content-wrap {

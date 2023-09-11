@@ -2,7 +2,6 @@
     import {_} from 'svelte-i18n'
     import {
         agent,
-        isDataSaving,
         quotePost,
         settings,
         timelines,
@@ -10,38 +9,28 @@
         reportModal,
         columns, sideState, isPublishInstantFloat, didHint
     } from '$lib/stores';
-    import {format, formatDistanceToNow, isMatch, parse, parseISO} from 'date-fns';
-    import isWithinInterval from 'date-fns/isWithinInterval'
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
     import pt from 'date-fns/locale/pt-BR/index';
     import ko from 'date-fns/locale/ko/index';
     import fa from 'date-fns/locale/fa-IR/index';
-    import Images from "./Images.svelte";
     import {
-        AppBskyEmbedExternal,
-        AppBskyEmbedImages,
-        AppBskyEmbedRecord,
-        AppBskyEmbedRecordWithMedia,
         AppBskyFeedDefs,
-        AppBskyFeedGetLikes,
         AppBskyFeedPost,
         RichText,
         RichTextSegment
     } from '@atproto/api'
     import toast from "svelte-french-toast";
-    import Avatar from "./Avatar.svelte";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
     import Like from "$lib/components/post/Like.svelte";
     import Repost from "$lib/components/post/Repost.svelte";
     import Reply, {replyFunc} from "$lib/components/post/Reply.svelte";
     import {onMount} from "svelte";
     import Bookmark from "../../lib/components/post/Bookmark.svelte";
-    import Tooltip from "$lib/components/ui/Tooltip.svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
-    import {getTextArray, isUriLocal} from '$lib/richtext';
     import {goto} from "$app/navigation";
-    import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
+    import TimelineContent from "$lib/components/post/TimelineContent.svelte";
+    import {translate} from "$lib/translate";
 
     export let _agent = $agent;
     export let data: AppBskyFeedDefs.FeedViewPost;
@@ -56,14 +45,7 @@
     export let column = undefined;
     export let index = 0;
 
-    let textArray: RichTextSegment[] = [];
     let isMenuOpen = false;
-    /* const embedServices = [
-        {
-            'service': Spotify,
-            'hostname': 'open.spotify.com'
-        },
-    ]; */
     let dateFnsLocale: Locale;
 
     let isShortCutNumberShown = false;
@@ -100,38 +82,12 @@
         dateFnsLocale = en;
     }
 
-    if (AppBskyFeedPost.isRecord(data.post?.record)) {
-        const rt: RichText = new RichText({
-            text: data.post.record.text,
-            facets: data.post.record.facets,
-        });
-        for (const segment of rt.segments()) {
-            textArray.push(segment);
-        }
-        textArray = textArray;
-    }
-
     if (data.reply && !data.reply?.parent) {
         delete data.reply;
     }
 
-    let labels = $settings?.moderation.contentLabels || {
-        gore: 'warn',
-        hate: 'warn',
-        impersonation: 'warn',
-        nsfw: 'warn',
-        nudity: 'warn',
-        spam: 'warn',
-        suggestive: 'warn',
-    };
-    labels['!warn'] = 'warn';
-    labels.spoiler = 'warn';
-
-    let isHide = false;
-    let isWarn = false;
-    let isMute = false;
-    let isWarnOpened = false;
-    let warnLabels = [];
+    let isHide;
+    let isReplyHide;
 
     let hideReply = column && column.settings?.timeline.hideReply
                   ? column.settings?.timeline.hideReply
@@ -146,51 +102,6 @@
     }
 
     onMount(() => {
-        if (labels) {
-            data.post.labels?.forEach(label => {
-                if (labels[label.val] === 'hide') {
-                    console.log('should hide: ' + label.val)
-                    isHide = true;
-                }
-
-                if (labels[label.val] === 'warn') {
-                    console.log('should warn: ' + label.val)
-                    warnLabels = [...warnLabels, label.val];
-                    isWarn = true;
-                }
-            })
-        }
-
-        if ($settings?.keywordMutes) {
-            $settings.keywordMutes.forEach(keyword => {
-                const timeIsValid = isMatch(keyword.period.start, 'HH:mm') && isMatch(keyword.period.end, 'HH:mm');
-                if (!timeIsValid || keyword.word === '') {
-                    return false;
-                }
-
-                const start = keyword.period.start;
-                const end = keyword.period.end;
-
-                const isIntervalWithin = start < end
-                    ? isWithinInterval(parseISO(data.post.indexedAt), {
-                        start: parse(start, 'HH:mm', new Date),
-                        end: parse(end + ':59', 'HH:mm:ss', new Date),
-                    })
-                    : isWithinInterval(parseISO(data.post.indexedAt), {
-                        start: parse('00:00', 'HH:mm', new Date),
-                        end: parse(end + ':59', 'HH:mm:ss', new Date),
-                      }) ||
-                      isWithinInterval(parseISO(data.post.indexedAt), {
-                          start: parse(start, 'HH:mm', new Date),
-                          end: parse('23:59:59', 'HH:mm:ss', new Date),
-                      });
-
-                if (isIntervalWithin && data.post.record.text.includes(keyword.word)) {
-                    isHide = true;
-                }
-            })
-        }
-
         if (data.post.author.did !== _agent.did()) {
           switch (hideReply) {
             case 'all':
@@ -243,25 +154,15 @@
                 isHide = true;
             }
         }
-
-        if (data.post.author.viewer?.muted && !isThread) {
-            isHide = true;
-        }
     })
 
     async function translation() {
-        for (const item of textArray) {
-            const res = await fetch(`/api/translator`, {
-                method: 'post',
-                body: JSON.stringify({
-                    text: item.text,
-                    to: $settings.general.language || window.navigator.language,
-                })
-            });
-            const translation = await res.json();
-            item.text = await translation[0].translations[0].text;
+        data.post.record.text = await translate(data.post.record.text, $settings.general?.language);
+
+        if (data.reply && !isSingle) {
+            data.reply.parent.record.text = await translate(data.reply.parent.record.text, $settings.general?.language)
         }
-        textArray = textArray;
+
         isMenuOpen = false;
         isTranslated = true;
     }
@@ -310,19 +211,6 @@
             toast.success($_('post_delete_success'));
         } catch (e) {
             toast.error($_('post_delete_failed') + ': ' + e);
-        }
-    }
-
-    async function getHandleByDid(handle: string) {
-        try {
-            const res = await _agent.agent.api.com.atproto.repo.describeRepo(
-                {repo: handle}
-            );
-
-            return res.data.handle;
-        } catch (e) {
-            console.log(e)
-            return null;
         }
     }
 
@@ -451,188 +339,18 @@
       {/if}
     </div>
 
-    {#if (data.reply && !isSingle)}
+    {#if (data.reply && !isSingle && !isReplyHide)}
       <div class="timeline__column timeline__column--reply">
         {#if (data.reply.parent.uri !== data.reply.root.uri)}
           <span class="timeline-reply-bar"></span>
         {/if}
 
-        <div class="timeline__image">
-          {#if $settings?.design.postsLayout !== 'minimum'}
-            <Avatar href="/profile/{ data.reply.parent.author.handle }" avatar={data.reply.parent.author.avatar}
-                    handle={data.reply.parent.author.handle} {_agent}></Avatar>
-          {/if}
-        </div>
-
-        <div class="timeline__content">
-          <div class="timeline__meta">
-            <p class="timeline__user">
-              <Tooltip>
-                <span slot="ref">{ data.reply.parent.author.displayName || data.reply.parent.author.handle }</span>
-                <span slot="content" aria-hidden="true">@{ data.reply.parent.author.handle }</span>
-              </Tooltip></p>
-
-            <p class="timeline__date timeline__date--noafter">
-              {#if $settings?.design.absoluteTime}
-                <Tooltip>
-                  <time slot="ref"
-                        datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(data.reply.parent.indexedAt), 'yy/MM/dd HH:mm')}</time>
-                  <span slot="content" aria-hidden="true"
-                        class="timeline-tooltip">{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-                </Tooltip>
-              {:else}
-                <Tooltip>
-                  <time slot="ref"
-                        datetime="{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.reply.parent.indexedAt), {locale: dateFnsLocale})}</time>
-                  <span slot="content" aria-hidden="true"
-                        class="timeline-tooltip">{format(parseISO(data.reply.parent.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-                </Tooltip>
-              {/if}
-            </p>
-          </div>
-
-          <p class="timeline__text" dir="auto">
-            {#each getTextArray(data.reply.parent.record) as item}
-              {#if (item.isLink() && item.link)}
-                {#if (isUriLocal(item.link.uri))}
-                  <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
-                {:else}
-                  <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
-                {/if}
-              {:else if (item.isMention() && item.mention)}
-                <ProfileCardWrapper handle="{item.text.slice(1)}" {_agent}>
-                  <a href="/profile/{item.text.slice(1)}">{item.text}</a>
-                </ProfileCardWrapper>
-              {:else}
-                <span>{item.text}</span>
-              {/if}
-            {/each}
-          </p>
-
-          {#if (AppBskyEmbedImages.isView(data.reply?.parent.embed) && !isMedia && data.reply?.parent.embed)}
-            <div class="timeline-images-wrap">
-              <Images images={data.reply.parent.embed.images}></Images>
-            </div>
-          {/if}
-        </div>
+        <TimelineContent post={data.reply.parent} locale={dateFnsLocale} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide}></TimelineContent>
       </div>
     {/if}
 
     <div class="timeline__column">
-      <div class="timeline__image">
-        {#if $settings?.design.postsLayout !== 'minimum'}
-          <Avatar href="/profile/{ data.post.author.handle }" avatar={data.post.author.avatar}
-                  handle={data.post.author.handle} {_agent}></Avatar>
-        {/if}
-      </div>
-
-      <div class="timeline__content">
-        <div class="timeline__meta">
-          <p class="timeline__user">
-            <Tooltip>
-              <span slot="ref">{ data.post.author.displayName || data.post.author.handle }</span>
-              <span slot="content" aria-hidden="true">@{ data.post.author.handle }</span>
-            </Tooltip></p>
-
-          <p class="timeline__date">
-            {#if $settings?.design.absoluteTime}
-              <Tooltip>
-                <time slot="ref"
-                      datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(data.post.indexedAt), 'yy/MM/dd HH:mm')}</time>
-                <span slot="content" aria-hidden="true"
-                      class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-              </Tooltip>
-            {:else}
-              <Tooltip>
-                <time slot="ref"
-                      datetime="{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(data.post.indexedAt), {locale: dateFnsLocale})}</time>
-                <span slot="content" aria-hidden="true"
-                      class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-              </Tooltip>
-            {/if}
-          </p>
-
-          {#if (data.post.record.langs && !data.post.record.langs.includes($settings.general.language))}
-            <button
-                class="timeline-translate-button"
-                class:timeline-translate-button--hidden={isTranslated}
-                on:click={translation}>{$_('translation')}</button>
-          {/if}
-        </div>
-
-        <div class="timeline-warn-wrap" class:timeline-warn-wrap--warned={isWarn}>
-          {#if (isWarn)}
-            <div class="timeline-warn">
-              <div class="timeline-warn-heading">
-                <p class="timeline-warn-title"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></p>
-                <ul class="timeline-warn-list">
-                  {#each warnLabels as label}
-                    <li>{$_('labeling_' + label)}</li>
-                  {/each}
-                </ul>
-              </div>
-
-              <div class="timeline-warn-button">
-                <button class="button button--sm" on:click={() => {isWarn = false}}>{$_('show_button')}</button>
-              </div>
-            </div>
-          {/if}
-
-          <p class="timeline__text" dir="auto">
-            {#each textArray as item}
-              {#if (item.isLink() && item.link)}
-                {#if (isUriLocal(item.link.uri))}
-                  <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
-                {:else}
-                  <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
-                {/if}
-              {:else if (item.isMention() && item.mention)}
-                <ProfileCardWrapper handle="{item.text.slice(1)}">
-                  <a href="/profile/{item.text.slice(1)}">{item.text}</a>
-                </ProfileCardWrapper>
-              {:else}
-                <span>{item.text}</span>
-              {/if}
-            {/each}
-          </p>
-
-          {#if (AppBskyEmbedImages.isView(data.post.embed) && !isMedia)}
-            <div class="timeline-images-wrap">
-              <Images images={data.post.embed.images}></Images>
-            </div>
-          {/if}
-
-          {#if (AppBskyEmbedExternal.isView(data.post?.embed))}
-            <div class="timeline-external">
-              <div class="timeline-external__image">
-                {#if (data.post.embed.external.thumb && $settings?.design.postsLayout !== 'minimum')}
-                  <img src="{data.post.embed.external.thumb}" alt="">
-                {/if}
-              </div>
-
-              <div class="timeline-external__content">
-                <p class="timeline-external__title"><a href="{data.post.embed.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{data.post.embed.external.title}</a>
-                </p>
-                <p class="timeline-external__description">{data.post.embed.external.description}</p>
-                <p class="timeline-external__url">{data.post.embed.external.uri}</p>
-              </div>
-            </div>
-          {/if}
-
-          {#if (AppBskyEmbedRecord.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record)) }
-            <EmbedRecord record={data.post.embed.record} locale={dateFnsLocale}></EmbedRecord>
-          {/if}
-
-          {#if (AppBskyEmbedRecordWithMedia.isView(data.post.embed) && AppBskyEmbedRecord.isViewRecord(data.post.embed.record.record)) }
-            {#if (AppBskyEmbedImages.isView(data.post.embed.media))}
-              <div class="timeline-images-wrap">
-                <Images images={data.post.embed.media.images}></Images>
-              </div>
-            {/if}
-
-            <EmbedRecord record={data.post.embed.record.record} locale={dateFnsLocale}></EmbedRecord>
-          {/if}
-        </div>
+      <TimelineContent post={data.post} locale={dateFnsLocale} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isHide}>
 
         <div class="timeline-reaction" class:timeline-reaction--media={isMedia}>
           <Reply
@@ -666,7 +384,7 @@
         </div>
 
         <slot></slot>
-      </div>
+      </TimelineContent>
     </div>
 
     <Menu bind:isMenuOpen={isMenuOpen}>
@@ -730,20 +448,7 @@
       <div class="timeline-dev">
         <p>langs: {data.post.record?.langs ?? ' '}</p>
         <p>via: {data.post.record?.via ?? ' '}</p>
-
-        {#if data.post.labels && data.post.labels.length}
-          <div class="timeline-dev__group">
-            <p>labels: </p>
-            {#each data.post.labels as label}
-              <p>{label.val}</p>
-            {/each}
-          </div>
-        {/if}
       </div>
     {/if}
   </article>
 {/if}
-
-<style lang="postcss">
-
-</style>

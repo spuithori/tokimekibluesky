@@ -193,3 +193,5 @@ export const isPublishInstantFloat = writable(false);
 export const didHint = writable('');
 
 export const theme = writable<Theme | undefined>(undefined);
+
+export const missingAccounts = writable([]);
