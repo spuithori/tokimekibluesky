@@ -25,12 +25,14 @@
                   accounts: profile.accounts.filter(_account => _account !== account.id)
               });
 
-              if (profile.primary === id as number) {
+              if (profile.primary === account.id) {
                   const npid = accountsDb.profiles.update(profile.id, {
-                      primary: profile.accounts.length - 1
+                      primary: profile.accounts[0]
                   })
               }
           })
+
+          location.reload();
       } catch (e) {
           console.error(e);
       }
