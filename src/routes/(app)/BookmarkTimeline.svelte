@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { agent, timelines, cursors, settings } from '$lib/stores';
+    import { agent } from '$lib/stores';
     import TimelineItem from './TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
     import MediaTimelineItem from './MediaTimelineItem.svelte';
@@ -15,12 +15,12 @@
     let paged = 0;
     let feeds;
 
-    if (typeof $cursors[index] !== 'number') {
-        $cursors[index] = 0;
+    if (typeof column.data.cursor !== 'number') {
+        column.data.cursor = 0;
     }
 
-    if(!$timelines[index]) {
-        $timelines[index] = [];
+    if(!column.data.feed) {
+        column.data.feed = [];
     }
 
     async function getQuery(paged) {
@@ -53,7 +53,7 @@
         if (initialLoadFinished) {
             const feeds = query;
             let uris = feeds.map(feed => feed.uri);
-            uris = uris.filter(uri => !$timelines[index].some(tl => tl.post.uri === uri));
+            uris = uris.filter(uri => !column.data.feed.some(tl => tl.post.uri === uri));
             console.log(uris);
 
             if (!uris.length) {
@@ -66,13 +66,13 @@
                         const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
                         return { post: post, bookmarkId: id };
                     })
-                    $timelines[index] = [...posts, ...$timelines[index]];
+                    column.data.feed = [...posts, ...column.data.feed];
                 })
         }
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        feeds = await getQuery($cursors[index]);
+        feeds = await getQuery(column.data.cursor);
 
         if (feeds?.length) {
             const uris = feeds.map(feed => feed.uri);
@@ -82,11 +82,11 @@
                 const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
                 return { post: post, bookmarkId: id };
             })
-            $timelines[index] = [...$timelines[index], ...posts];
+            column.data.feed = [...column.data.feed, ...posts];
 
-            console.log($timelines[index]);
+            //console.log(column.data.feed);
 
-            $cursors[index] = $cursors[index] + 1;
+            column.data.cursor = column.data.cursor + 1;
             initialLoadFinished = true;
             loaded();
         } else {
@@ -97,12 +97,12 @@
 
 <div class="timeline timeline--{column.style}">
   {#if (column.style === 'default')}
-    {#each $timelines[index] as data, index (data)}
+    {#each column.data.feed as data, index (data)}
       <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
     {/each}
   {:else}
     <div class="media-list">
-      {#each $timelines[index] as data (data)}
+      {#each column.data.feed as data (data)}
         {#if (data.post.embed?.images)}
           <MediaTimelineItem data={data} {_agent}></MediaTimelineItem>
         {/if}

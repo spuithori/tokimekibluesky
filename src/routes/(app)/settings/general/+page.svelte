@@ -1,7 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import { settings, currentAlgorithm } from '$lib/stores';
-    let disableAlgorithm = $settings?.general.disableAlgorithm || false;
+    import { settings } from '$lib/stores';
     let language = $settings?.general.language || window.navigator.language;
     let dataSaver = $settings?.general.dataSaver || false;
     let se = $settings?.general.se || false;
@@ -27,16 +26,10 @@ const languages = [
 ]
 
 $: {
-    $settings.general.disableAlgorithm = disableAlgorithm;
     $settings.general.language = language;
     $settings.general.dataSaver = dataSaver;
     $settings.general.se = se;
     $settings.general.devMode = devMode;
-
-    if ($settings.general.disableAlgorithm === 'true') {
-        currentAlgorithm.set({type: 'default'});
-        localStorage.setItem('currentAlgorithm', JSON.stringify({type: 'default'}));
-    }
 }
 </script>
 

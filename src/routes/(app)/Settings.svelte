@@ -3,7 +3,6 @@
     import {createEventDispatcher} from 'svelte';
     import {liveQuery} from "dexie";
     import {accountsDb} from "$lib/db";
-    import ProfileMenuItem from "$lib/components/acp/ProfileMenuItem.svelte";
     import { page } from '$app/stores';
     const dispatch = createEventDispatcher();
 

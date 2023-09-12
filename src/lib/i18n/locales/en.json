@@ -401,5 +401,6 @@
   "theme_code_description": "You can install a limited theme by entering the corresponding code.",
   "theme_custom_color": "Custom color",
   "missing_accounts_title": "Re-login is required",
-  "missing_accounts_description": "Some accounts require re-authentication. Please login again or logout."
+  "missing_accounts_description": "Some accounts require re-authentication. Please login again or logout.",
+  "delete_column": "Delete column"
 }

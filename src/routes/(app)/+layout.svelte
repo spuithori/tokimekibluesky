@@ -6,7 +6,6 @@
         agents,
         columns,
         currentTimeline,
-        cursors,
         globalUnique,
         isAfterReload,
         isColumnModalOpen,
@@ -15,7 +14,6 @@
         settings,
         singleColumn,
         theme,
-        timelines
     } from '$lib/stores';
     import {goto} from '$app/navigation';
     import {dev} from '$app/environment';
@@ -187,10 +185,10 @@
       });
 
       const results = await Promise.allSettled(promises);
-      console.log(results);
 
       results.forEach((result, index) => {
           if (result.status === 'rejected') {
+              console.log(result.reason);
               _missingAccounts = [..._missingAccounts, accounts[index]];
               missingAccounts.set(_missingAccounts);
           }
@@ -226,7 +224,7 @@
       localStorage.setItem('settings', JSON.stringify($settings));
       locale.set($settings.general.language);
 
-      localStorage.setItem('columns', JSON.stringify($columns));
+      localStorage.setItem('columns', columnStorageSave($columns));
       localStorage.setItem('singleColumn', JSON.stringify($singleColumn));
       localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
   }
@@ -241,6 +239,29 @@
 
   function handleReload() {
       loaded = false;
+  }
+
+  function columnStorageSave(columns) {
+      let _columns = [];
+      columns.forEach(column => {
+          let c = {};
+          for (const [key, value] of Object.entries(column)) {
+              if (key !== 'scrollElement') {
+                  c[key] = value;
+              }
+
+              if (key === 'data') {
+                  c['data'] = {
+                      feed: [],
+                      cursor: '',
+                  }
+              }
+          }
+
+          _columns.push(c);
+      })
+
+      return JSON.stringify(_columns);
   }
 
   function detectDarkMode(setting, isDarkmodeDisabled = false) {
@@ -293,8 +314,6 @@
 
   function handleColumnModalClose(event) {
       $columns = event.detail.columns;
-      $timelines = [];
-      $cursors = [];
       isColumnModalOpen.set(false);
       globalUnique.set(Symbol());
   }

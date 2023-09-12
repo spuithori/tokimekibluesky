@@ -1,6 +1,5 @@
 <script lang="ts">
   import {agent, isPublishInstantFloat, sideState} from '$lib/stores';
-  import {goto} from "$app/navigation";
 
   export let _agent = $agent;
   export let post;

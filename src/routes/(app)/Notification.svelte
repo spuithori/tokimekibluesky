@@ -15,8 +15,8 @@
     export let _agent = $agent;
     export let isPage = false;
 
-    let notifications: AppBskyNotificationListNotifications.Notification[] = [];
-    let cursor = '';
+    export let notifications: AppBskyNotificationListNotifications.Notification[] = [];
+    export let cursor = '';
 
     type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow';
     let filter: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];

@@ -2,7 +2,7 @@
   import {accountsDb} from "$lib/db";
   import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
-  import {agent, agents, columns, currentTimeline, cursors, singleColumn, timelines} from "$lib/stores";
+  import {agent, agents, columns, currentTimeline} from "$lib/stores";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {_} from "svelte-i18n";
   import toast from "svelte-french-toast";
@@ -39,16 +39,6 @@
 
   async function changeProfile() {
       localStorage.setItem('currentProfile', profile.id);
-      localStorage.removeItem('singleColumn');
-      singleColumn.set({
-          id: 1,
-          algorithm: {
-              type: 'default',
-              name: 'HOME'
-          },
-          style: 'default',
-          settings: defaultDeckSettings,
-      });
       columns.set(profile.columns);
       currentTimeline.set(0);
       location.reload();
@@ -119,8 +109,6 @@
   function handleColumnModalClose(event) {
       if (isCurrent) {
           columns.set(event.detail.columns);
-          $timelines = [];
-          $cursors = [];
       } else {
           $agents = _agents;
           $agent = _agent;

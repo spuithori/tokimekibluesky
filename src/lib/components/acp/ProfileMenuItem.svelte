@@ -1,6 +1,5 @@
 <script lang="ts">
-    import {columns, singleColumn} from "$lib/stores";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {columns} from "$lib/stores";
     import {createEventDispatcher} from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -17,16 +16,6 @@
         dispatch('reload');
 
         localStorage.setItem('currentProfile', profile.id);
-        localStorage.removeItem('singleColumn');
-        singleColumn.set({
-            id: 1,
-            algorithm: {
-                type: 'default',
-                name: 'HOME'
-            },
-            style: 'default',
-            settings: defaultDeckSettings,
-        });
         columns.set(profile.columns);
         location.reload();
     }

@@ -115,8 +115,12 @@
 }
 
 .deck-divider {
-    width: 404px;
+    width: 414px;
     flex-shrink: 0;
+
+    @media (max-width: 767px) {
+        display: none;
+    }
 }
 
 .bottom {
@@ -153,6 +157,12 @@
 
             &__content {
                 overflow-y: initial !important;
+            }
+        }
+
+        .deck-heading {
+            &__icon {
+                margin-left: 0;
             }
         }
     }

@@ -16,15 +16,22 @@
 
     export let column;
     export let index;
+    export let unique = Symbol();
 
     const uniqueAgent = $agents.get(getAccountIdByDid($agents, column.did));
     let _agent = uniqueAgent || $agent;
     let isSettingsOpen = false;
-    let unique = Symbol();
     let isTopScrolling;
     let isScrollPaused = false;
     let scrollId;
     let isIconPickerOpen = false;
+
+    if (!column.data) {
+        column.data = {
+            feed: [],
+            cursor: '',
+        }
+    }
 
     function handleHeaderClick(el, event) {
         if (!el.scroll) {
@@ -285,6 +292,11 @@
             display: grid;
             place-content: center;
             flex-shrink: 0;
+            margin-left: 10px;
+
+            @media (max-width: 767px) {
+                margin-left: 0;
+            }
         }
 
         &__title {

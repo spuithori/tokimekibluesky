@@ -6,10 +6,7 @@ import {getTextArray, isUriLocal} from '$lib/richtext';
 import {page} from '$app/stores';
 import {format, parseISO} from 'date-fns';
 import ProfileCardWrapper from '../../ProfileCardWrapper.svelte';
-import UserFollowButton from './UserFollowButton.svelte';
-import UserEdit from './UserEdit.svelte';
 import toast from 'svelte-french-toast';
-import Menu from '$lib/components/ui/Menu.svelte';
 import {RichText} from '@atproto/api';
 import addSingleList from "$lib/components/list/addSingleList";
 const dispatch = createEventDispatcher();
@@ -334,17 +331,6 @@ function handleAddSingleList() {
         }
     }
 
-    .profile-follow-button {
-        position: absolute;
-        top: 0;
-        right: 50px;
-
-        @media (max-width: 767px) {
-            position: static;
-            margin-top: 10px;
-        }
-    }
-
     .profile-first {
         color: var(--text-color-3);
         font-size: 14px;
@@ -353,12 +339,6 @@ function handleAddSingleList() {
         a {
             color: inherit;
         }
-    }
-
-    .profile-menu-wrap {
-        position: absolute;
-        top: 0;
-        right: 0;
     }
 
     .profile-muted {

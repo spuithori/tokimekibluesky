@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { agent, settings, userLists, timelines } from '$lib/stores';
+    import { agent, userLists } from '$lib/stores';
     import TimelineItem from './TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
     import { parseISO } from 'date-fns';
@@ -15,9 +15,6 @@
 
     let feedPool = [];
     let feed = [];
-
-    //timeline.set([]);
-    $timelines[index] = [];
 
     let list = $userLists.find(item => column.algorithm.list === item.id);
 
@@ -74,7 +71,7 @@
                 return [...tl, ...feed];
             });
             console.log($timeline) */
-            $timelines[index] = [...$timelines[index], ...feed];
+            column.data.feed = [...column.data.feed, ...feed];
 
             loaded();
         } else {
@@ -114,12 +111,12 @@
 {#if (list.members.length)}
   <div class="timeline timeline--{column.style}">
     {#if (column.style === 'default')}
-      {#each $timelines[index] as data, index (data)}
+      {#each column.data.feed as data, index (data)}
         <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
       {/each}
     {:else}
       <div class="media-list">
-        {#each $timelines[index] as data (data)}
+        {#each column.data.feed as data (data)}
           {#if (data.post.embed?.images)}
             <MediaTimelineItem data={data} {_agent}></MediaTimelineItem>
           {/if}

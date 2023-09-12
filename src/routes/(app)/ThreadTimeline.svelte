@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, agents, columns} from '$lib/stores';
+    import {agent} from '$lib/stores';
     import spinner from '$lib/images/loading.svg';
     import Thread from './profile/[handle]/post/[id]/Thread.svelte';
     import {onMount} from "svelte";

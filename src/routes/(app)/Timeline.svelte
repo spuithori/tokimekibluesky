@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { agent, settings, timelines, cursors } from '$lib/stores';
+  import {agent} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
   import InfiniteLoading from 'svelte-infinite-loading';
   import MediaTimelineItem from "./MediaTimelineItem.svelte";
@@ -8,18 +8,19 @@
   export let index;
   export let _agent = $agent;
 
-  if(!$timelines[index]) {
-      $timelines[index] = [];
+  if (!column.data) {
+      column.data = {
+          feed: [],
+          cursor: '',
+      }
   }
 
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-      const res = await _agent.getTimeline({limit: 20, cursor: $cursors[index], algorithm: column.algorithm});
+      const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm});
+      column.data.cursor = res.data.cursor;
 
-      $cursors[index] = res.data.cursor;
-
-      if ($cursors[index]) {
-          $timelines[index] = [...$timelines[index], ...res.data.feed];
-          //console.log($timelines);
+      if (column.data.cursor) {
+          column.data.feed = [...column.data.feed, ...res.data.feed];
 
           loaded();
       } else {
@@ -30,12 +31,12 @@
 
 <div class="timeline timeline--{column.style}">
   {#if (column.style === 'default')}
-    {#each $timelines[index] as data, index (data)}
+    {#each column.data.feed as data, index (data)}
       <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
     {/each}
   {:else}
     <div class="media-list">
-      {#each $timelines[index] as data, index (data)}
+      {#each column.data.feed as data, index (data)}
         {#if (data.post.embed?.images)}
           <MediaTimelineItem data={data} {_agent}></MediaTimelineItem>
         {/if}
@@ -47,7 +48,3 @@
     <p slot="noMore" class="infinite-nomore">もうないよ</p>
   </InfiniteLoading>
 </div>
-
-<style>
-
-</style>

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, columns, cursors, settings, timelines} from "$lib/stores";
+    import {agent, columns, settings} from "$lib/stores";
     import TimerEvent from "$lib/components/utils/TimerEvent.svelte";
     import {createEventDispatcher} from "svelte";
     const dispatch = createEventDispatcher();
@@ -16,25 +16,25 @@
         if (column.algorithm.type === 'default' || column.algorithm.type === 'custom') {
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
             const newFeeds = res.data.feed.filter(feed => {
-                return !$timelines[index].some(item => feed.reason ? item.post.uri === feed.post.uri && item.reason?.indexedAt === feed.reason.indexedAt : item.post.uri === feed.post.uri);
+                return !column.data.feed.some(item => feed.reason ? item.post.uri === feed.post.uri && item.reason?.indexedAt === feed.reason.indexedAt : item.post.uri === feed.post.uri);
             });
 
             if (newFeeds.length === 20) {
-                $timelines[index] = res.data.feed;
-                $cursors[index] = res.data.cursor;
+                await columns.update(_columns => {
+                    _columns[index].data.feed = [...res.data.feed];
+                    return _columns;
+                })
+
+                column.data.cursor = res.data.cursor;
             } else {
                 const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
                 const elInitialPosition = el.scrollTop;
                 const topEl = el.querySelector('.timeline > .timeline__item:first-child');
 
-                await timelines.update(function (tls) {
-                    return tls.map((tl, i) => {
-                        if (i === index) {
-                            return [...newFeeds, ...tl];
-                        }
-                        return tl;
-                    })
-                });
+                await columns.update(_columns => {
+                    _columns[index].data.feed = [...newFeeds, ...column.data.feed];
+                    return _columns;
+                })
 
                 if (elInitialPosition === 0 && column.settings?.refreshToTop !== true) {
                     if (column.style !== 'media') {
@@ -49,8 +49,8 @@
             } */
             refreshNotificationCount();
         } else if (column.algorithm.type === 'bookmark') {
-            $timelines[index] = [];
-            $cursors[index] = 0;
+            column.data.feed = [];
+            column.data.cursor = 0;
             unique = Symbol();
         } else if (column.algorithm.type === 'realtime') {
             return false;
@@ -58,11 +58,13 @@
             $columns[index].unreadCount !== 0
                 ? $columns[index].unreadCount = 0
                 : await _agent.getNotificationCount();
+            column.data.feed = [];
+            column.data.cursor = undefined;
             unique = Symbol();
             await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
         } else {
-            $timelines[index] = [];
-            $cursors[index] = undefined;
+            column.data.feed = [];
+            column.data.cursor = undefined;
             unique = Symbol();
         }
 

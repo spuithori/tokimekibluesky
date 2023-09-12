@@ -12,5 +12,5 @@
 </script>
 
 <div class="timeline">
-  <Notification isPage={true} {_agent} on:update={handleCountUpdate}></Notification>
+  <Notification isPage={true} {_agent} on:update={handleCountUpdate} bind:notifications={column.data.feed} bind:cursor={column.data.cursor}></Notification>
 </div>
