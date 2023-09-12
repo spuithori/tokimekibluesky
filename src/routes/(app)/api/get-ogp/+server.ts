@@ -19,7 +19,7 @@ async function ogpParser(uri: string) {
     let blob;
     if (image) {
         try {
-            const orig = await fetch(image).then(r => r.arrayBuffer());
+            /* const orig = await fetch(image).then(r => r.arrayBuffer());
             const compress = await sharp(orig)
                 .resize({
                     width: 512,
@@ -28,7 +28,8 @@ async function ogpParser(uri: string) {
                 })
                 .jpeg({ mozjpeg: true })
                 .toBuffer({ resolveWithObject: true });
-            blob = new Blob([compress.data], {type: 'image/jpeg'});
+            blob = new Blob([compress.data], {type: 'image/jpeg'}); */
+            blob = await fetch(image).then(r => r.blob());
         } catch (e) {
             blob = '';
         }
