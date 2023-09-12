@@ -10,11 +10,11 @@
       await _agent.agent.api.app.bsky.notification.updateSeen( {seenAt: new Date().toISOString()});
       notificationCount.set(0);
   }
-
-    function threadClose() {
-        const _columns = $columns.filter(_column => _column.id !== column.id);
-        columns.set(_columns);
-    }
+  
+  function threadClose() {
+      const _columns = $columns.filter(_column => _column.id !== column.id);
+      columns.set(_columns);
+  }
 </script>
 
 {#if (column.algorithm.type === 'thread')}

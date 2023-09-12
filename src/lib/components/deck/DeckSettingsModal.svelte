@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import {columns} from "$lib/stores";
+    import {columns, currentTimeline} from "$lib/stores";
     import { languageMap } from "$lib/langs/languageMap";
     import { createEventDispatcher } from 'svelte';
     const dispatch = createEventDispatcher();
@@ -184,6 +184,15 @@
             $columns[index].data.feed = [];
             $columns[index].data.cursor = '';
         }
+    }
+
+    function deleteColumn() {
+        if ($currentTimeline === index) {
+            currentTimeline.set(0);
+        }
+
+        const _columns = $columns.filter(_column => _column.id !== column.id);
+        columns.set(_columns);
     }
 </script>
 
@@ -379,6 +388,8 @@
                         </div>
                     {/if}
                 {/if}
+
+                <button class="deck-column-delete-button" on:click={deleteColumn}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>{$_('delete_column')}</button>
             </div>
         </div>
     </div>
@@ -489,5 +500,17 @@
 
     .deck-settings-content {
         padding: 16px;
+    }
+
+    .deck-column-delete-button {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 16px;
+        color: var(--danger-color);
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
 </style>

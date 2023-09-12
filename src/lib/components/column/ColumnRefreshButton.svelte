@@ -20,7 +20,11 @@
             });
 
             if (newFeeds.length === 20) {
-                column.data.feed = res.data.feed;
+                await columns.update(_columns => {
+                    _columns[index].data.feed = [...res.data.feed];
+                    return _columns;
+                })
+
                 column.data.cursor = res.data.cursor;
             } else {
                 const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
@@ -29,7 +33,6 @@
 
                 await columns.update(_columns => {
                     _columns[index].data.feed = [...newFeeds, ...column.data.feed];
-
                     return _columns;
                 })
 

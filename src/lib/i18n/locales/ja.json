@@ -402,5 +402,6 @@
   "theme_code_description": "該当するコードを入力すると、限定テーマをインストールできます。",
   "theme_custom_color": "カスタムカラー",
   "missing_accounts_title": "再ログインが必要です",
-  "missing_accounts_description": "再認証が必要なアカウントがあります。再度ログインするか、ログアウトしてください。"
+  "missing_accounts_description": "再認証が必要なアカウントがあります。再度ログインするか、ログアウトしてください。",
+  "delete_column": "カラムを削除"
 }
