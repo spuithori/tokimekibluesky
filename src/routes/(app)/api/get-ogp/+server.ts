@@ -27,6 +27,7 @@ async function ogpParser(uri: string) {
                     fit: 'inside',
                 })
                 .jpeg({ mozjpeg: false })
+                .timeout({ seconds: 3 })
                 .toBuffer({ resolveWithObject: true });
             blob = new Blob([compress.data], {type: 'image/jpeg'});
             // blob = await fetch(image).then(r => r.blob());
