@@ -4,10 +4,9 @@
         agent,
         quotePost,
         settings,
-        timelines,
         isPreventEvent,
         reportModal,
-        columns, sideState, isPublishInstantFloat, didHint
+        columns, sideState, isPublishInstantFloat, didHint, pulseDelete
     } from '$lib/stores';
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
@@ -99,6 +98,14 @@
 
     function probability(n) {
       return Math.random() < n / 100;
+    }
+
+    $: handlePostDelete($pulseDelete);
+
+    function handlePostDelete(uri) {
+        if (uri === data.post.uri) {
+            isHide = true;
+        }
     }
 
     onMount(() => {
@@ -202,11 +209,13 @@
                 {repo: _agent.did(), rkey: rkey}
             );
 
-            timelines.update(function (tls) {
+            /* timelines.update(function (tls) {
                 return tls.map(tl => {
                     return tl.filter(data => data.post.uri !== uri);
                 });
-            });
+            }); */
+
+            pulseDelete.set(data.post.uri);
 
             toast.success($_('post_delete_success'));
         } catch (e) {
@@ -312,6 +321,16 @@
         }
       }
     }
+
+    function handleLike(event) {
+        data.post.likeCount = event.detail.count;
+        data.post.viewer.like = event.detail.viewer;
+    }
+
+    function handleRepost(event) {
+        data.post.repostCount = event.detail.count;
+        data.post.viewer.repost = event.detail.viewer;
+    }
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
@@ -365,7 +384,7 @@
               uri={data.post.uri}
               repostViewer={data.post.viewer?.repost}
               count={data.post.repostCount}
-              on:repost
+              on:repost={handleRepost}
               bind:repost={repostFunc}
               {_agent}
           ></Repost>
@@ -375,7 +394,7 @@
               uri={data.post.uri}
               likeViewer={data.post.viewer?.like}
               count={data.post.likeCount}
-              on:like
+              on:like={handleLike}
               bind:vote={voteFunc}
               {_agent}
           ></Like>

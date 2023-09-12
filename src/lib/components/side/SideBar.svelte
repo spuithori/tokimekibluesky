@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {agents, columns, currentTimeline, cursors, settings, singleColumn, timelines, isColumnModalOpen, sideState} from "$lib/stores";
+  import {agents, columns, currentTimeline, settings, isColumnModalOpen, sideState} from "$lib/stores";
   import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
   import { page } from '$app/stores';
   import { Settings } from "lucide-svelte";
@@ -21,10 +21,7 @@
               return false;
           }
 
-          singleColumn.set(column);
           currentTimeline.set(index);
-          $timelines[$currentTimeline] = [];
-          $cursors[$currentTimeline] = undefined;
       }
   }
 

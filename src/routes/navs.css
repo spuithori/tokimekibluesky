@@ -90,9 +90,6 @@
     align-items: center;
     justify-content: center;
     border-radius: 20px;
-    opacity: 1;
-    visibility: visible;
-    transition: all .25s ease-in-out;
     z-index: 21;
 
     @media (max-width: 767px) {
@@ -103,6 +100,9 @@
         width: 100px;
         border: none;
         background-color: var(--primary-color);
+        visibility: visible;
+        opacity: 1;
+        transition: all .25s ease-in-out;
 
         path {
             fill: #fff;

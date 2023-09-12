@@ -23,6 +23,10 @@ type columns = {
     handle?: string,
     unreadCount?: number,
     settings: defaultDeckSettings,
+    data: {
+        feed: [],
+        cursor: '',
+    }
 }
 
 type cursor = string | number | undefined;
@@ -36,12 +40,13 @@ const defaultColumns = [{
     style: 'default',
     settings: defaultDeckSettings,
     unreadCount: 0,
+    data: {
+        feed: [],
+        cursor: '',
+    }
 }];
 const storageColumns = localStorage.getItem('columns') || JSON.stringify([]);
 export const columns = writable<columns[]>(JSON.parse(storageColumns));
-
-export const timelines = writable([]);
-export const cursors = writable<cursor[]>([]);
 
 const storageSingleColumn = localStorage.getItem('singleColumn') || JSON.stringify(defaultColumns[0]);
 
@@ -49,25 +54,21 @@ export const singleColumn = writable<columns>(JSON.parse(storageSingleColumn));
 
 export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
-export const service = writable(localStorage.getItem('service') || 'https://bsky.social');
-export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) || []);
+// export const service = writable(localStorage.getItem('service') || 'https://bsky.social');
+// export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) || []);
 
-export const currentAccount = writable(localStorage.getItem('currentAccount') || '0');
+// export const currentAccount = writable(localStorage.getItem('currentAccount') || '0');
 export const agent = writable<Agent>(undefined);
 
 export const agents = writable(new Map<number, Agent>());
-
-export const currentAlgorithm = writable<currentAlgorithm>({
-    type: 'default',
-});
 
 export const notificationCount = writable(0);
 
 export const notifications = writable<NotificationWithFeed[]>([]);
 
-export const hideRepost = writable(localStorage.getItem('hideRepost') || 'false');
+// export const hideRepost = writable(localStorage.getItem('hideRepost') || 'false');
 
-export const hideReply = writable(localStorage.getItem('hideReply') || 'false');
+// export const hideReply = writable(localStorage.getItem('hideReply') || 'false');
 
 export const quotePost = writable<AppBskyFeedDefs.PostView | undefined>();
 
@@ -195,3 +196,16 @@ export const didHint = writable('');
 export const theme = writable<Theme | undefined>(undefined);
 
 export const missingAccounts = writable([]);
+
+type pulseReaction = {
+    uri: string,
+    count: number | undefined,
+    viewer: string | undefined,
+} | undefined;
+export const pulseLike = writable<pulseReaction>(undefined);
+
+export const pulseRepost = writable<pulseReaction>(undefined);
+
+export const pulseBookmark = writable<pulseReaction>(undefined);
+
+export const pulseDelete = writable<string | undefined>(undefined);

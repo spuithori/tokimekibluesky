@@ -36,7 +36,6 @@
 
       if (moderateData.content.filter) {
           console.log('should hide.');
-          console.log(moderateData)
 
           if (moderateData.content.cause.type === 'muted' && (isProfile || isSingle || isMedia)) {
               return false;

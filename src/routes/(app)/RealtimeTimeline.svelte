@@ -1,6 +1,6 @@
 <script lang="ts">
-    import {agent, agents, columns} from '$lib/stores';
-    import { settings, timelines, cursors, realtime, isRealtimeConnected } from "$lib/stores";
+    import {agent, columns} from '$lib/stores';
+    import { realtime, isRealtimeConnected } from "$lib/stores";
     import TimelineItem from "./TimelineItem.svelte";
     import {createEventDispatcher, onDestroy, onMount} from 'svelte';
     import MediaTimelineItem from "./MediaTimelineItem.svelte";
@@ -15,10 +15,6 @@
     export let column;
     export let index;
     export let _agent = $agent;
-
-    if(!$timelines[index]) {
-        $timelines[index] = [];
-    }
 
     let follows = [];
     let isFollowsListRefreshing = false;
@@ -55,8 +51,8 @@
                 }
             }
 
-            $timelines[index].forEach(item => item.post.indexedAt = item.post.indexedAt);
-            $timelines[index] = [thread, ...$timelines[index]];
+            column.data.feed.forEach(item => item.post.indexedAt = item.post.indexedAt);
+            column.data.feed = [thread, ...column.data.feed];
         } catch (e) {
             if (retryCount < 3) {
                 retryCount = retryCount + 1;
@@ -134,8 +130,6 @@
                 cursor = res.data.cursor;
             }
 
-            //localStorage.setItem('follows', JSON.stringify(follows));
-
             try {
                 const id = await accountsDb.accounts.update(accountId, {
                     following: {
@@ -164,7 +158,8 @@
     onMount(async () => {
         if (column.algorithm.algorithm === 'following' || column.algorithm.algorithm === undefined) {
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
-            $timelines[index] = res.data.feed;
+            //$timelines[index] = res.data.feed;
+            column.data.feed = res.data.feed;
         }
 
         const account = await accountsDb.accounts
@@ -206,7 +201,7 @@
         {/if}
 
         {#if (column.style === 'default')}
-            {#each $timelines[index] as data, index (data)}
+            {#each column.data.feed as data, index (data)}
                 <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
             {/each}
 
@@ -223,7 +218,7 @@
             </div> -->
         {:else}
             <div class="media-list">
-                {#each $timelines[index] as data (data)}
+                {#each column.data.feed as data (data)}
                     {#if (data.post.embed?.images)}
                         <MediaTimelineItem data={data} {_agent}></MediaTimelineItem>
                     {/if}

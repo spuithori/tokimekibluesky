@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import {settings, columns, singleColumn, timelines, cursors} from "$lib/stores";
+    import {columns} from "$lib/stores";
     import { languageMap } from "$lib/langs/languageMap";
     import { createEventDispatcher } from 'svelte';
     const dispatch = createEventDispatcher();
@@ -181,8 +181,8 @@
         $columns[index].style = style;
 
         if (column.algorithm.type !== 'realtime') {
-            $timelines[index] = [];
-            $cursors[index] = undefined;
+            $columns[index].data.feed = [];
+            $columns[index].data.cursor = '';
         }
     }
 </script>
