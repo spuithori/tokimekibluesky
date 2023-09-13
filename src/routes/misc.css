@@ -254,3 +254,15 @@ html {
         top: 10px;
     }
 }
+
+.dragging {
+    .deck-row__content {
+
+    }
+}
+
+.dragged-content {
+    .deck-row__content {
+
+    }
+}

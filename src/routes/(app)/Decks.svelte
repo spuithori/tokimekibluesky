@@ -71,6 +71,10 @@
             columns: _columns,
         });
     }
+
+    function transformDraggedElement(draggedEl, data, index) {
+        draggedEl.classList.add('dragged-content');
+    }
 </script>
 
 <div class="deck-wrap">
@@ -85,8 +89,10 @@
                items: $columns,
                dragDisabled,
                flipDurationMs,
+               transformDraggedElement,
                type: 'columns',
                dropFromOthersDisabled: true,
+               dropTargetClasses: ['dragging'],
            }}" on:consider="{handleDndConsider}" on:finalize="{handleDndFinalize}"
       >
 
