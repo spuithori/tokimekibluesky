@@ -256,6 +256,17 @@
       loaded = false;
   }
 
+  db.profiles.get(localStorage.getItem('currentProfile'))
+      .then(value => {
+          if (!value) {
+              return false;
+          }
+
+          if (value.columns) {
+              columns.set(value.columns);
+          }
+      });
+
   function columnStorageSave(columns) {
       const profileId = localStorage.getItem('currentProfile');
       if (!profileId) {

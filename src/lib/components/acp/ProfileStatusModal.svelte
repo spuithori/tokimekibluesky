@@ -11,16 +11,16 @@
 
   async function handleSuccess(event) {
       try {
-          const account = await db.accounts.get(event.detail.id);
+          /* const account = await db.accounts.get(event.detail.id);
 
           if (!account) {
               throw new Error('account not found');
-          }
+          } */
 
-          const _accounts = [...profile.accounts, account.did]
+          const _accounts = [...profile.accounts, event.detail.did]
           const id = await db.profiles.update(profile.id, {
               accounts: _accounts,
-              primary: account.did,
+              primary: event.detail.did,
           });
 
           $agents = await modifyAgents(_accounts);
