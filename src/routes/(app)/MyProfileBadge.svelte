@@ -1,10 +1,10 @@
 <script>
     import { agent } from '$lib/stores';
     import {liveQuery} from "dexie";
-    import {accountsDb} from "$lib/db";
+    import {db} from "$lib/db";
 
     $: account = liveQuery(async () => {
-        const account = await accountsDb.accounts
+        const account = await db.accounts
             .where('did')
             .equals($agent.did())
             .first();
