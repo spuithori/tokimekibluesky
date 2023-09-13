@@ -8,7 +8,7 @@
     import toast from "svelte-french-toast";
     const dispatch = createEventDispatcher();
     import { liveQuery } from 'dexie';
-    import {accountsDb, db} from '$lib/db';
+    import {db} from '$lib/db';
     import ColumnList from "$lib/components/column/ColumnList.svelte";
     import spinner from '$lib/images/loading.svg';
     import FeedsObserver from "$lib/components/feeds/FeedsObserver.svelte";
@@ -20,7 +20,7 @@
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
 
     export let _columns = $columns;
-    export let profileId = Number(localStorage.getItem('currentProfile'));
+    export let profileId = localStorage.getItem('currentProfile');
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
     let isLoading = true;
@@ -29,11 +29,11 @@
 
     async function save() {
         try {
-            _columns.map(column => delete column.scrollElement);
+            /* _columns.map(column => delete column.scrollElement);
 
-            const id = await accountsDb.profiles.update(profileId, {
+            const id = await db.profiles.update(profileId, {
                 columns: _columns,
-            });
+            }); */
 
             dispatch('close', {
                 columns: _columns,
@@ -58,7 +58,7 @@
 
     function handleBookmarkClose(event) {
         if (event.detail.id) {
-            _columns = _columns.filter(_column => _column.algorithm.type !== 'bookmark' || Number(_column.algorithm.algorithm) !== event.detail.id)
+            _columns = _columns.filter(_column => _column.algorithm.type !== 'bookmark' || _column.algorithm.algorithm !== event.detail.id)
         }
     }
 
@@ -88,7 +88,7 @@
     }
 
     let profiles = liveQuery(
-        () => accountsDb.profiles.toArray()
+        () => db.profiles.toArray()
     );
 
     $: {
@@ -98,7 +98,7 @@
     }
 
     async function initAccounts(profiles) {
-        const currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
+        const currentProfile = localStorage.getItem('currentProfile') || profiles[0].id;
         profile = profiles.find(profile => profile.id === currentProfile);
         currentAccount = profile.primary;
     }

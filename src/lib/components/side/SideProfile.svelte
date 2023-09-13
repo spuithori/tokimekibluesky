@@ -1,13 +1,12 @@
 <script lang="ts">
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
   import {agent, agents} from "$lib/stores";
-  import UserProfile from "../../../routes/(app)/profile/[handle]/UserProfile.svelte";
   import {_} from "svelte-i18n";
   import { page } from '$app/stores';
   import { LayoutList, UserCheck2, UserPlus2, Image, Heart } from 'lucide-svelte';
   import ProfileMenuItem from "$lib/components/acp/ProfileMenuItem.svelte";
   import {liveQuery} from "dexie";
-  import {accountsDb} from "$lib/db";
+  import {db} from "$lib/db";
   import SearchForm from "../../../routes/(app)/SearchForm.svelte";
 
   let _agent = $agent;
@@ -17,13 +16,13 @@
   }
 
   $: profiles = liveQuery(async () => {
-      const profiles = await accountsDb.profiles
+      const profiles = await db.profiles
           .limit(3)
           .toArray();
       return profiles;
   });
 
-  $: currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
+  $: currentProfile = localStorage.getItem('currentProfile') || undefined;
 </script>
 
 <div class="side-profile">

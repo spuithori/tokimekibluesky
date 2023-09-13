@@ -1,7 +1,7 @@
 <script lang="ts">
   import LoginModal from "$lib/components/acp/LoginModal.svelte";
   import {_} from "svelte-i18n";
-  import {accountsDb} from "$lib/db";
+  import {db} from "$lib/db";
 
   export let account;
   let isLoginModalOpen = false;
@@ -17,16 +17,16 @@
 
   async function handleDelete() {
       try {
-          const id = await accountsDb.accounts.delete(account.id);
-          const profiles = await accountsDb.profiles.toArray();
+          const id = await db.accounts.delete(account.id);
+          const profiles = await db.profiles.toArray();
 
           profiles.forEach(profile => {
-              const pid = accountsDb.profiles.update(profile.id, {
+              const pid = db.profiles.update(profile.id, {
                   accounts: profile.accounts.filter(_account => _account !== account.id)
               });
 
               if (profile.primary === account.id) {
-                  const npid = accountsDb.profiles.update(profile.id, {
+                  const npid = db.profiles.update(profile.id, {
                       primary: profile.accounts[0]
                   })
               }

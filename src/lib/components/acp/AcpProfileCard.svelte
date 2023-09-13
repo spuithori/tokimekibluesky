@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {accountsDb} from "$lib/db";
+  import {db} from "$lib/db";
   import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
   import {agent, agents, columns, currentTimeline} from "$lib/stores";
@@ -23,8 +23,8 @@
 
   async function handleSuccess(event) {
       try {
-          const _accounts = [...profile.accounts, event.detail.id]
-          const id = await accountsDb.profiles.update(profile.id, {
+          const _accounts = [...profile.accounts, event.detail.did]
+          const id = await db.profiles.update(profile.id, {
               accounts: _accounts,
           });
 
@@ -46,7 +46,7 @@
 
   async function deleteProfile(id) {
       try {
-          const pid = await accountsDb.profiles.delete(id);
+          const pid = await db.profiles.delete(id);
 
           toast.success($_('profile_delete_success'));
       } catch (e) {
@@ -56,12 +56,12 @@
 
   async function handleSwitchMain(event) {
       try {
-          const id = await accountsDb.profiles.update(profile.id, {
-              primary: event.detail.id,
+          const id = await db.profiles.update(profile.id, {
+              primary: event.detail.did,
           });
 
           if (isCurrent) {
-              await agent.set($agents.get(event.detail.id));
+              await agent.set($agents.get(event.detail.did));
           }
       } catch (e) {
           console.error(e);
@@ -70,8 +70,9 @@
 
   async function handleDeleteAccount(event) {
       try {
-          const _accounts = profile.accounts.filter(account => account !== event.detail.id)
-          const id = await accountsDb.profiles.update(profile.id, {
+          console.log(event.detail.did)
+          const _accounts = profile.accounts.filter(account => account !== event.detail.did)
+          const id = await db.profiles.update(profile.id, {
               accounts: _accounts,
           });
 
@@ -88,7 +89,7 @@
           _agents = $agents;
           _agent = $agent;
 
-          const accounts = await accountsDb.accounts
+          const accounts = await db.accounts
               .where('id')
               .anyOf(profile.accounts)
               .toArray();
@@ -119,7 +120,7 @@
 
   async function handleNameChange(event) {
       try {
-          const id = await accountsDb.profiles.update(profile.id, {
+          const id = await db.profiles.update(profile.id, {
               name: event.detail.name,
           });
 
@@ -174,7 +175,7 @@
     <div class="acp-accounts">
       {#each profile.accounts as account, index (account)}
         <AcpAccountCard
-            id={account}
+            did={account}
             {index}
             isPrimary={profile.primary === account}
             on:switch={handleSwitchMain}

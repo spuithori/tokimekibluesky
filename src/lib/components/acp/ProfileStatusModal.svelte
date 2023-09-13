@@ -2,7 +2,7 @@
   import {_} from "svelte-i18n";
   import { fade, fly } from 'svelte/transition';
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
-  import {accountsDb} from "$lib/db";
+  import {db} from "$lib/db";
   import {agent, agents} from "$lib/stores";
   import {modifyAgents} from "$lib/modifyAgents";
 
@@ -11,10 +11,16 @@
 
   async function handleSuccess(event) {
       try {
-          const _accounts = [...profile.accounts, event.detail.id]
-          const id = await accountsDb.profiles.update(profile.id, {
+          const account = await db.accounts.get(event.detail.id);
+
+          if (!account) {
+              throw new Error('account not found');
+          }
+
+          const _accounts = [...profile.accounts, account.did]
+          const id = await db.profiles.update(profile.id, {
               accounts: _accounts,
-              primary: event.detail.id
+              primary: account.did,
           });
 
           $agents = await modifyAgents(_accounts);

@@ -12,7 +12,7 @@
         isMobileDataConnection, missingAccounts,
         profileStatus,
         settings,
-        singleColumn,
+        singleColumn, syncColumns,
         theme,
     } from '$lib/stores';
     import {goto} from '$app/navigation';
@@ -26,7 +26,7 @@
     import Footer from "./Footer.svelte";
     import {page} from '$app/stores';
     import {liveQuery} from 'dexie';
-    import {accountsDb, themesDb} from '$lib/db';
+    import {db, themesDb} from '$lib/db';
     import ReportObserver from "$lib/components/report/ReportObserver.svelte";
     import {resumeAccountsSession} from "$lib/resumeAccountsSession";
     import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
@@ -85,11 +85,11 @@
   }
 
   let accounts = liveQuery(
-      () => accountsDb.accounts.toArray()
+      () => db.accounts.toArray()
   );
 
   let profiles = liveQuery(
-      () => accountsDb.profiles.toArray()
+      () => db.profiles.toArray()
   );
 
   $: {
@@ -99,7 +99,7 @@
   }
 
   async function initProfile(profiles) {
-    const anyAccounts = await accountsDb.accounts
+    const anyAccounts = await db.accounts
             .toArray();
 
     if (!anyAccounts.length) {
@@ -114,21 +114,28 @@
 
     if (!profiles.length) {
         console.log('Profiles are empty. create new profile.');
-        const acs = anyAccounts.map(account => account.id);
-        const id = await accountsDb.profiles.put({
-          accounts: acs as number[],
+        const acs = anyAccounts.map(account => account.did);
+        const id = await db.profiles.put({
+          accounts: acs as string[],
           columns: [],
           createdAt: "",
           name: "New Profile",
-          primary: acs[0] as number,
+          primary: acs[0] as string,
         })
       localStorage.setItem('currentProfile', id);
     }
 
-    const currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
-    const profile = profiles.find(profile => profile.id === currentProfile);
-    const accounts = await accountsDb.accounts
-        .where('id')
+    const currentProfile = localStorage.getItem('currentProfile') || profiles[0].id;
+    let profile = profiles.find(profile => profile.id === currentProfile);
+
+    if (!profile) {
+        console.log('Profile is not found.');
+        profile = profiles[0];
+        localStorage.setItem('currentProfile', profiles[0].id);
+    }
+
+    let accounts = await db.accounts
+        .where('did')
         .anyOf(profile.accounts)
         .toArray();
 
@@ -148,8 +155,15 @@
     if (!accounts.length) {
         console.log('Attached accounts are missing in this profile');
         profileStatus.set(2);
-        loaded = true;
-        return  false;
+        //loaded = true;
+        //return  false;
+
+        console.log(anyAccounts);
+
+        accounts = anyAccounts;
+        const uid = await db.profiles.update(currentProfile, {
+            primary: undefined,
+        })
     }
 
     let agentsMap = await resumeAccountsSession(accounts);
@@ -157,8 +171,8 @@
 
     if (!profile.primary) {
         try {
-            pid = await accountsDb.profiles.update(profile.id, {
-                primary: accounts[0].id,
+            pid = await db.profiles.update(profile.id, {
+                primary: accounts[0].did,
             });
         } catch (e) {
             console.error(e);
@@ -166,7 +180,7 @@
     }
 
     agents.set(agentsMap);
-    agent.set($agents.get(profile.primary || accounts[0].id));
+    agent.set($agents.get(profile.primary) || $agents.get(accounts[0].did));
 
     checkSession(accounts);
 
@@ -181,7 +195,7 @@
       }
 
       accounts.forEach(account => {
-          promises = [...promises, $agents.get(account.id).agent.api.com.atproto.server.getSession()];
+          promises = [...promises, $agents.get(account.did).agent.api.com.atproto.server.getSession()];
       });
 
       const results = await Promise.allSettled(promises);
@@ -224,11 +238,12 @@
       localStorage.setItem('settings', JSON.stringify($settings));
       locale.set($settings.general.language);
 
-      localStorage.setItem('columns', columnStorageSave($columns));
+      //localStorage.setItem('columns', columnStorageSave($columns));
       localStorage.setItem('singleColumn', JSON.stringify($singleColumn));
       localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
   }
 
+  $: columnStorageSave($syncColumns);
   $: detectDarkMode($settings.design?.darkmode, $theme?.options.darkmodeDisabled);
 
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
@@ -242,26 +257,15 @@
   }
 
   function columnStorageSave(columns) {
-      let _columns = [];
-      columns.forEach(column => {
-          let c = {};
-          for (const [key, value] of Object.entries(column)) {
-              if (key !== 'scrollElement') {
-                  c[key] = value;
-              }
+      const profileId = localStorage.getItem('currentProfile');
+      if (!profileId) {
+          return false;
+      }
 
-              if (key === 'data') {
-                  c['data'] = {
-                      feed: [],
-                      cursor: '',
-                  }
-              }
-          }
-
-          _columns.push(c);
+      const id = db.profiles.update(profileId, {
+          columns: columns,
       })
-
-      return JSON.stringify(_columns);
+      localStorage.setItem('columns', JSON.stringify(columns));
   }
 
   function detectDarkMode(setting, isDarkmodeDisabled = false) {

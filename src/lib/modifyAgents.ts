@@ -1,10 +1,10 @@
-import {accountsDb} from "$lib/db";
+import {db} from "$lib/db";
 import {resumeAccountsSession} from "$lib/resumeAccountsSession";
 
-export async function modifyAgents(ids) {
-    const accounts = await accountsDb.accounts
-        .where('id')
-        .anyOf(ids)
+export async function modifyAgents(dids) {
+    const accounts = await db.accounts
+        .where('did')
+        .anyOf(dids)
         .toArray();
 
     let agentsMap = await resumeAccountsSession(accounts);

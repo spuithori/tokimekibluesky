@@ -1,25 +1,25 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
     import { liveQuery } from 'dexie';
-    import {accountsDb} from '$lib/db';
+    import {db} from '$lib/db';
     import AcpProfileCard from "$lib/components/acp/AcpProfileCard.svelte";
     import AccountsManagementModal from "$lib/components/acp/AccountsManagementModal.svelte";
 
     let isAccountManagementModalOpen = false;
 
     let accounts = liveQuery(
-        () => accountsDb.accounts.toArray()
+        () => db.accounts.toArray()
     );
 
     $: profiles = liveQuery(async () => {
-        const profiles = await accountsDb.profiles.toArray();
+        const profiles = await db.profiles.toArray();
         return profiles;
     })
 
-    $: currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
+    $: currentProfile = localStorage.getItem('currentProfile') || undefined;
 
     async function createProfile() {
-        const id = await accountsDb.profiles.put({
+        const id = await db.profiles.put({
             accounts: [],
             columns: [],
             createdAt: "",

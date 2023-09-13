@@ -27,19 +27,20 @@
         const feeds = await db.feeds
             .orderBy('indexedAt')
             .reverse()
-            .filter(feed => feed.bookmark === Number(column.algorithm.list))
+            .filter(feed => feed.bookmark === column.algorithm.list)
             .offset(paged * 20)
             .limit(20)
             .toArray();
+        console.log(feeds);
 
         return feeds;
     }
 
-    $: query = liveQuery(async () => {
+    /* $: query = liveQuery(async () => {
         const feeds = await db.feeds
             .orderBy('indexedAt')
             .reverse()
-            .filter(feed => feed.bookmark === Number(column.algorithm.list))
+            .filter(feed => feed.bookmark === column.algorithm.list)
             .offset(paged * 20)
             .limit(20)
             .toArray();
@@ -69,7 +70,7 @@
                     column.data.feed = [...posts, ...column.data.feed];
                 })
         }
-    }
+    } */
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         feeds = await getQuery(column.data.cursor);

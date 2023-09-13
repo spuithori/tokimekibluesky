@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
   import {liveQuery} from "dexie";
-  import {accountsDb} from "$lib/db";
+  import {db} from "$lib/db";
   import LoginModal from "$lib/components/acp/LoginModal.svelte";
   import {createEventDispatcher} from "svelte";
   const dispatch = createEventDispatcher();
@@ -11,7 +11,7 @@
   let isLoginModalOpen = false;
 
   let accounts = liveQuery(
-      () => accountsDb.accounts.toArray()
+      () => db.accounts.toArray()
   );
 
   async function handleSuccess(event) {
@@ -21,11 +21,11 @@
       dispatch('success', event.detail);
   }
 
-  function handleSelect(id) {
+  function handleSelect(did) {
       isOpen = false;
 
       dispatch('success', {
-          id: id,
+          did: did,
       });
   }
 
@@ -45,8 +45,8 @@
     <div class="acp-selector-choices">
       {#if ($accounts)}
         {#each $accounts as account}
-          {#if (!exclude.includes(account.id))}
-            <button class="acp-selector__item" on:click={() => {handleSelect(account.id)}}>
+          {#if (!exclude.includes(account.did))}
+            <button class="acp-selector__item" on:click={() => {handleSelect(account.did)}}>
               <span class="acp-selector__title">@{account.session.handle}</span>
             </button>
           {/if}

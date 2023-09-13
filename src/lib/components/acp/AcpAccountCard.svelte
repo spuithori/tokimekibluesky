@@ -1,11 +1,12 @@
 <script lang="ts">
   import {liveQuery} from "dexie";
-  import {accountsDb} from "$lib/db";
+  import {db} from "$lib/db";
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {createEventDispatcher} from "svelte";
   const dispatch = createEventDispatcher();
 
+  export let did;
   export let id;
   export let index = 0;
   export let isPrimary = false;
@@ -14,22 +15,26 @@
   let isMenuOpen = false;
 
   let account = liveQuery(
-      () => accountsDb.accounts.get(id)
+      () => db.accounts
+              .where('did')
+              .equals(did)
+              .first()
   );
 
-  async function switchMain(id) {
+  async function switchMain(did) {
       isMenuOpen = false;
 
       dispatch('switch', {
-          id: id,
+          did: did,
       });
   }
 
-  async function deleteAccount(id) {
+  async function deleteAccount() {
       isMenuOpen = false;
+      console.log(did);
 
       dispatch('delete', {
-          id: id,
+          did: did,
       });
   }
 </script>
@@ -57,7 +62,7 @@
             </li>
 
             <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-              <button class="timeline-menu-list__button" on:click={() => {deleteAccount(id)}}>
+              <button class="timeline-menu-list__button" on:click={deleteAccount}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-x"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="m14.5 7-5 5"/><path d="m9.5 7 5 5"/></svg>
                 <span class="text-danger">{$_('delete_account')}</span>
               </button>
@@ -81,7 +86,7 @@
     <Menu bind:isMenuOpen={isMenuOpen}>
       <ul class="timeline-menu-list" slot="content">
         <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-          <button class="timeline-menu-list__button" on:click={() => {deleteAccount(id)}}>
+          <button class="timeline-menu-list__button" on:click={deleteAccount}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-x"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="m14.5 7-5 5"/><path d="m9.5 7 5 5"/></svg>
             <span class="text-danger">{$_('delete_account')}</span>
           </button>

@@ -1,12 +1,12 @@
 <script lang="ts">
     import {missingAccounts, profileStatus} from '$lib/stores';
   import { liveQuery } from 'dexie';
-  import { accountsDb } from '$lib/db';
+  import { db } from '$lib/db';
   import ProfileStatusModal from "$lib/components/acp/ProfileStatusModal.svelte";
     import MissingAccountsModal from "$lib/components/acp/MissingAccountsModal.svelte";
 
   $: profile = liveQuery(async () => {
-      const profile = await accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')));
+      const profile = await db.profiles.get(localStorage.getItem('currentProfile'));
       return profile;
   });
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 import {_} from "svelte-i18n";
 import { AtpAgent, AtpSessionData } from "@atproto/api";
-import { accountsDb } from "$lib/db";
+import { db } from "$lib/db";
 import { createEventDispatcher } from "svelte";
 import toast from "svelte-french-toast";
 const dispatch = createEventDispatcher();
@@ -20,7 +20,7 @@ async function login() {
     try {
         await agent.login({identifier: identifier, password: password});
 
-        const id = await accountsDb.accounts.put({
+        const id = await db.accounts.put({
             id: existingId,
             session: agent.session as AtpSessionData,
             did: agent.session?.did || '',
@@ -30,15 +30,15 @@ async function login() {
             notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
         });
 
-        const res = await agent.api.app.bsky.actor.getProfile({actor: agent.session.did});
+        /* const res = await agent.api.app.bsky.actor.getProfile({actor: agent.session.did});
         const avatar = res.data.avatar || '';
 
-        const aid = await accountsDb.accounts.update(id, {
+        const aid = await db.accounts.update(id, {
             avatar: avatar
-        });
+        }); */
 
         dispatch('success', {
-            id: id,
+            did: agent.session?.did,
         });
     } catch (e) {
         //errorMessage = e.message;

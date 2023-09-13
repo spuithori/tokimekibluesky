@@ -46,7 +46,31 @@ const defaultColumns = [{
     }
 }];
 const storageColumns = localStorage.getItem('columns') || JSON.stringify([]);
-export const columns = writable<columns[]>(JSON.parse(storageColumns));
+//export const columns = writable<columns[]>(JSON.parse(storageColumns));
+
+export const columns = writable<columns[]>([]);
+
+export const syncColumns = derived(columns, ($columns, set) => {
+    let _columns = [];
+    $columns.forEach(column => {
+        let c = {};
+        for (const [key, value] of Object.entries(column)) {
+            if (key !== 'scrollElement') {
+                c[key] = value;
+            }
+
+            if (key === 'data') {
+                c['data'] = {
+                    feed: [],
+                    cursor: '',
+                }
+            }
+        }
+
+        _columns.push(c);
+    })
+    set(_columns);
+})
 
 const storageSingleColumn = localStorage.getItem('singleColumn') || JSON.stringify(defaultColumns[0]);
 
@@ -60,7 +84,7 @@ export const currentTimeline = writable<number>(Number(localStorage.getItem('cur
 // export const currentAccount = writable(localStorage.getItem('currentAccount') || '0');
 export const agent = writable<Agent>(undefined);
 
-export const agents = writable(new Map<number, Agent>());
+export const agents = writable(new Map<string, Agent>());
 
 export const notificationCount = writable(0);
 

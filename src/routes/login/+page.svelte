@@ -3,7 +3,7 @@
     import { _ } from 'svelte-i18n'
     import { AtpAgent, AtpSessionEvent, AtpSessionData } from '@atproto/api';
     import { goto } from '$app/navigation';
-    import { accountsDb } from '$lib/db';
+    import { db } from '$lib/db';
 
     let identifier = '';
     let password = '';
@@ -26,7 +26,7 @@
         try {
             await agent.login({identifier: identifier, password: password});
 
-            const id = await accountsDb.accounts.put({
+            const id = await db.accounts.put({
                 id: undefined,
                 session: agent.session as AtpSessionData,
                 did: agent.session?.did || '',
