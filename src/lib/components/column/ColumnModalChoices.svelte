@@ -23,6 +23,10 @@
           settings: defaultDeckSettings,
           did: _agent.did(),
           handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
       },
   ];
 
@@ -38,6 +42,10 @@
           settings: defaultDeckSettings,
           did: _agent.did(),
           handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
       },]
   }
 
@@ -51,6 +59,10 @@
       settings: defaultDeckSettings,
       did: _agent.did(),
       handle: _agent.handle(),
+      data: {
+          feed: [],
+          cursor: '',
+      }
   }];
 
   let savedFeeds = [];
@@ -79,6 +91,10 @@
                   settings: defaultDeckSettings,
                   did: _agent.did(),
                   handle: _agent.handle(),
+                  data: {
+                      feed: [],
+                      cursor: '',
+                  }
               }]
           }
       });
@@ -105,6 +121,10 @@
                   settings: defaultDeckSettings,
                   did: _agent.did(),
                   handle: _agent.handle(),
+                  data: {
+                      feed: [],
+                      cursor: '',
+                  }
               }]
           }
       });
@@ -133,6 +153,10 @@
               settings: defaultDeckSettings,
               did: _agent.did(),
               handle: _agent.handle(),
+              data: {
+                  feed: [],
+                  cursor: '',
+              }
           }]
       });
   }

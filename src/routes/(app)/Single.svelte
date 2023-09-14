@@ -16,7 +16,7 @@
 
     if (!$columns.length) {
         columns.set([{
-            id: 1,
+            id: self.crypto.randomUUID(),
             algorithm: {
                 type: 'default',
                 name: 'HOME'
@@ -26,6 +26,10 @@
             handle: $agent.handle(),
             unreadCount: 0,
             settings: defaultDeckSettings,
+            data: {
+                feed: [],
+                cursor: '',
+            }
         }]);
     }
 
