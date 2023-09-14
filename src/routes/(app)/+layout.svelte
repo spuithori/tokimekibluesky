@@ -1,44 +1,45 @@
 <script lang="ts">
-    import {_, locale} from 'svelte-i18n'
-    import '../styles.css';
-    import {
-        agent,
-        agents,
-        columns,
-        currentTimeline,
-        globalUnique,
-        isAfterReload,
-        isColumnModalOpen,
-        isMobileDataConnection, missingAccounts,
-        profileStatus,
-        settings,
-        singleColumn, syncColumns,
-        theme,
-    } from '$lib/stores';
-    import {goto} from '$app/navigation';
-    import {dev} from '$app/environment';
-    import {inject} from '@vercel/analytics';
-    import {pwaInfo} from 'virtual:pwa-info';
-    import {onMount} from 'svelte';
-    import {Toaster} from 'svelte-french-toast';
-    import viewPortSetting from '$lib/viewport';
-    import {scrollDirection} from "$lib/scrollDirection";
-    import Footer from "./Footer.svelte";
-    import {page} from '$app/stores';
-    import {liveQuery} from 'dexie';
-    import {db, themesDb} from '$lib/db';
-    import ReportObserver from "$lib/components/report/ReportObserver.svelte";
-    import {resumeAccountsSession} from "$lib/resumeAccountsSession";
-    import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
-    import Side from "./Side.svelte";
-    import ColumnModal from "$lib/components/column/ColumnModal.svelte";
-    import Single from "./Single.svelte";
-    import Decks from "./Decks.svelte";
-    import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
-    import {builtInThemes} from "$lib/builtInThemes";
-    import {defaultColors} from "$lib/defaultColors";
+  import {_, locale} from 'svelte-i18n'
+  import '../styles.css';
+  import {
+      agent,
+      agents,
+      columns,
+      currentTimeline,
+      globalUnique,
+      isAfterReload,
+      isColumnModalOpen,
+      isMobileDataConnection, missingAccounts,
+      profileStatus,
+      settings,
+      singleColumn, syncColumns,
+      theme,
+  } from '$lib/stores';
+  import {goto} from '$app/navigation';
+  import {dev} from '$app/environment';
+  import {inject} from '@vercel/analytics';
+  import {pwaInfo} from 'virtual:pwa-info';
+  import {onMount} from 'svelte';
+  import {Toaster} from 'svelte-french-toast';
+  import viewPortSetting from '$lib/viewport';
+  import {scrollDirection} from "$lib/scrollDirection";
+  import Footer from "./Footer.svelte";
+  import {page} from '$app/stores';
+  import {liveQuery} from 'dexie';
+  import {db, themesDb} from '$lib/db';
+  import ReportObserver from "$lib/components/report/ReportObserver.svelte";
+  import {resumeAccountsSession} from "$lib/resumeAccountsSession";
+  import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
+  import Side from "./Side.svelte";
+  import ColumnModal from "$lib/components/column/ColumnModal.svelte";
+  import Single from "./Single.svelte";
+  import Decks from "./Decks.svelte";
+  import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
+  import {builtInThemes} from "$lib/builtInThemes";
+  import {defaultColors} from "$lib/defaultColors";
 
-    let loaded = false;
+  let loaded = false;
+  let isColumnInitialLoad = false;
   let wrap;
 
   inject(
@@ -264,10 +265,15 @@
 
           if (value.columns) {
               columns.set(value.columns);
+              isColumnInitialLoad = true;
           }
       });
 
   function columnStorageSave(columns) {
+      if (!isColumnInitialLoad) {
+          return false;
+      }
+
       const profileId = localStorage.getItem('currentProfile');
       if (!profileId) {
           return false;
