@@ -189,6 +189,16 @@
                 return 'liked_your_post';
         }
     }
+
+    function handleLike(event, index) {
+        notifications[index].feedThis.likeCount = event.detail.count;
+        notifications[index].feedThis.viewer.like = event.detail.viewer;
+    }
+
+    function handleRepost(event, index) {
+        notifications[index].feedThis.repostCount = event.detail.count;
+        notifications[index].feedThis.viewer.repost = event.detail.viewer;
+    }
 </script>
 
 <div class="notifications-wrap">
@@ -217,7 +227,7 @@
   </div>
 
   <div class="notifications-list">
-    {#each notifications as item (item)}
+    {#each notifications as item, index (item)}
       {#if (filter.includes(item.reason))}
         {#if (item.reason !== 'follow')}
           <article class="notifications-item notifications-item--{item.reason}">
@@ -272,7 +282,7 @@
                         repostViewer={item.feedThis.viewer?.repost}
                         count={item.feedThis.repostCount}
                         {_agent}
-                        on:repost
+                        on:repost={(event) => {handleRepost(event, index)}}
                     ></Repost>
 
                     <Like
@@ -281,7 +291,7 @@
                         likeViewer={item.feedThis.viewer?.like}
                         count={item.feedThis.likeCount}
                         {_agent}
-                        on:like
+                        on:like={(event) => {handleLike(event, index)}}
                     ></Like>
                   </div>
                 {/if}

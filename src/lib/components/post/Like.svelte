@@ -40,6 +40,12 @@
           count = count - 1;
       }
 
+      pulseLike.set({
+          uri: uri,
+          count: count,
+          viewer: likeViewer
+      })
+
       try {
           const like = await _agent.setVote(cid, uri, likeViewer || '');
 
@@ -67,6 +73,12 @@
           } else {
               count = count + 1;
           }
+
+          pulseLike.set({
+              uri: uri,
+              count: count,
+              viewer: likeViewer
+          })
       }
   }
 </script>

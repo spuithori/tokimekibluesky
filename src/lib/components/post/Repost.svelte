@@ -40,6 +40,12 @@
             count = count - 1;
         }
 
+        pulseRepost.set({
+            uri: uri,
+            count: count,
+            viewer: repostViewer
+        })
+
         try {
             const repost = await _agent.setRepost(cid, uri, repostViewer || '');
 
@@ -69,6 +75,12 @@
             } else {
                 count = count + 1;
             }
+
+            pulseRepost.set({
+                uri: uri,
+                count: count,
+                viewer: repostViewer
+            })
         }
     }
 </script>
