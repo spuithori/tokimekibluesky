@@ -402,5 +402,16 @@
   "theme_custom_color": "Custom color",
   "missing_accounts_title": "Re-login is required",
   "missing_accounts_description": "Some accounts require re-authentication. Please login again or logout.",
-  "delete_column": "Delete column"
+  "delete_column": "Delete column",
+  "create_official_list": "Create official list",
+  "official_list_add_management": "Create official list",
+  "official_list_add_description": "The list is created on Bluesky. It is public data and can be viewed by anyone.",
+  "official_list_member": "Members",
+  "lists": "List",
+  "mute_list": "Mute List",
+  "page_title_lists": "lists",
+  "official_list_edit": "Edit official list",
+  "delete_list": "Delete list",
+  "list_instant_manage": "Add/Delete list",
+  "list_members_length_suffix": " members"
 }

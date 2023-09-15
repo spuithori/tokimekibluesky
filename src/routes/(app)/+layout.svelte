@@ -9,7 +9,7 @@
         globalUnique,
         isAfterReload,
         isColumnModalOpen,
-        isMobileDataConnection, missingAccounts,
+        isMobileDataConnection, listAddModal, missingAccounts,
         profileStatus,
         settings,
         singleColumn,
@@ -37,6 +37,7 @@
     import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
     import {builtInThemes} from "$lib/builtInThemes";
     import {defaultColors} from "$lib/defaultColors";
+    import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
 
     let loaded = false;
   let wrap;
@@ -379,6 +380,10 @@
 
     {#if $isColumnModalOpen}
       <ColumnModal on:close={handleColumnModalClose} _columns={$columns}></ColumnModal>
+    {/if}
+
+    {#if $listAddModal.open}
+      <OfficialListAddObserver></OfficialListAddObserver>
     {/if}
 
     <NotificationCountObserver></NotificationCountObserver>

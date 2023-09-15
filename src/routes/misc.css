@@ -266,3 +266,13 @@ html {
 
     }
 }
+
+.column-list-icon {
+    svg {
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        margin: auto;
+    }
+}

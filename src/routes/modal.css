@@ -17,6 +17,12 @@
         overscroll-behavior-y: none;
         padding: 20px;
     }
+
+    &--small {
+        .modal-contents {
+            width: 400px;
+        }
+    }
 }
 
 .modal-contents {

@@ -1,7 +1,7 @@
 <script lang="ts">
     import {settings} from '$lib/stores';
     import { page } from '$app/stores';
-    import FeedPreview from "./FeedPreview.svelte";
+    import ListView from "./ListView.svelte";
 </script>
 
 <div class="modal-page modal-page--{$settings.design?.layout}">
@@ -13,7 +13,7 @@
         </button>
       </div>
 
-      <h1 class="column-heading__title">Feed</h1>
+      <h1 class="column-heading__title">List</h1>
 
       <div class="column-heading__buttons column-heading__buttons--right">
         <a class="settings-back" href="/">
@@ -23,7 +23,7 @@
     </div>
 
     {#key $page.params.id}
-      <FeedPreview id={$page.params.id} handle={$page.params.handle}></FeedPreview>
+      <ListView id={$page.params.id} handle={$page.params.handle}></ListView>
     {/key}
   </div>
 </div>

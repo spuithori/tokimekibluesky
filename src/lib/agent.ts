@@ -59,6 +59,9 @@ export class Agent {
                     limit: timelineOpt.limit, cursor: timelineOpt.cursor, feed: timelineOpt.algorithm.algorithm});
             case 'list':
                 return await this.getAuthorsFeed(timelineOpt.actors);
+            case 'officialList':
+                return await this.agent.api.app.bsky.feed.getListFeed({
+                    limit: timelineOpt.limit, cursor: timelineOpt.cursor, list: timelineOpt.algorithm.algorithm})
             case 'bookmark':
                 return await this.agent.api.app.bsky.feed.getPosts({uris: timelineOpt.uris || []});
             default:

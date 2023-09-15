@@ -73,13 +73,26 @@ export async function connect() {
 }
 
 export async function disconnect() {
-    socket.close();
-    socket = undefined;
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-    realtime.set({
-        isConnected: false,
-        data: undefined,
-    })
+    try {
+        socket.close();
+        socket = undefined;
+        // document.removeEventListener('visibilitychange', handleVisibilityChange);
+        realtime.set({
+            isConnected: false,
+            data: undefined,
+        })
+    } catch(e) {
+        console.log(e);
+        socket = undefined;
+        realtime.set({
+            isConnected: false,
+            data: undefined,
+        })
+
+        if (!socket) {
+            await connect();
+        }
+    }
 }
 
 async function handleVisibilityChange(event) {

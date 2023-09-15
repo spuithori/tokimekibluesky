@@ -35,6 +35,10 @@
           settings: defaultDeckSettings,
           did: _agent.did(),
           handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
       }
 
       try {

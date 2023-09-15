@@ -70,6 +70,9 @@
             case 'likes':
                 currentPage = 'likes';
                 break;
+            case 'lists':
+                currentPage = 'lists';
+                break;
             default:
                 currentPage = 'posts';
         }
@@ -130,6 +133,7 @@
           <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
           <li class="profile-tab__item" on:click={() => currentPage = 'media'} class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{$_('media')}</a></li>
           <li class="profile-tab__item" on:click={() => currentPage = 'likes'} class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'lists'} class:profile-tab__item--active={currentPage === 'lists'}><a href="/profile/{data.params.handle}/lists" data-sveltekit-noscroll>{$_('lists')}</a></li>
         </ul>
 
         <slot></slot>

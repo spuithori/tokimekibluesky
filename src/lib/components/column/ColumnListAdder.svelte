@@ -3,13 +3,15 @@
     import IconColumnsList from "$lib/icons/columns/IconColumnsList.svelte";
     import IconColumnsBookmark from "$lib/icons/columns/IconColumnsBookmark.svelte";
     import IconColumnsHome from "$lib/icons/columns/IconColumnsHome.svelte";
-    import {bookmarkModal, listModal} from "$lib/stores";
+    import {bookmarkModal, listModal, officialListModal} from "$lib/stores";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
     import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
+    import {List} from "lucide-svelte";
 
     const dispatch = createEventDispatcher();
     export let items;
+    export let _agent;
 
     function addColumn(column) {
         dispatch('add', {
@@ -50,6 +52,17 @@
         </button>
       {:else if (column.algorithm.type === 'notification')}
         <IconColumnsNotification></IconColumnsNotification>
+      {:else if (column.algorithm.type === 'officialList')}
+        <span class="column-list-icon">
+           <List color="var(--text-color-1)" size="16"></List>
+        </span>
+        <button
+            class="algo-nav-edit"
+            on:click={() => {$officialListModal = {open: true, uri: column.algorithm.algorithm}}}
+            aria-label="Edit list"
+        >
+          <IconColumnsEdit></IconColumnsEdit>
+        </button>
       {:else}
         <IconColumnsHome></IconColumnsHome>
       {/if}

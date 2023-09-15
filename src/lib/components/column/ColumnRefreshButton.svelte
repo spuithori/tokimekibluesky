@@ -13,7 +13,7 @@
 
     export async function refresh() {
         isRefreshing = true;
-        if (column.algorithm.type === 'default' || column.algorithm.type === 'custom') {
+        if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList') {
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
             const newFeeds = res.data.feed.filter(feed => {
                 return !column.data.feed.some(item => feed.reason ? item.post.uri === feed.post.uri && item.reason?.indexedAt === feed.reason.indexedAt : item.post.uri === feed.post.uri);

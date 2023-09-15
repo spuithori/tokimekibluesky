@@ -5,12 +5,14 @@
     import IconColumnsList from "$lib/icons/columns/IconColumnsList.svelte";
     import IconColumnsBookmark from "$lib/icons/columns/IconColumnsBookmark.svelte";
     import IconColumnsHome from "$lib/icons/columns/IconColumnsHome.svelte";
-    import {bookmarkModal, listModal} from "$lib/stores";
+    import {bookmarkModal, listModal, officialListModal} from "$lib/stores";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
     import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
+    import {List} from "lucide-svelte";
     const dispatch = createEventDispatcher();
 
+    export let _agent;
     export let items;
     const flipDurationMs = 300;
     function handleDndConsider(e) {
@@ -59,6 +61,18 @@
         </button>
       {:else if (column.algorithm.type === 'notification')}
         <IconColumnsNotification></IconColumnsNotification>
+      {:else if (column.algorithm.type === 'officialList')}
+        <span class="column-list-icon">
+           <List color="var(--text-color-1)" size="16"></List>
+        </span>
+
+        <button
+            class="algo-nav-edit"
+            on:click={() => {$officialListModal = {open: true, uri: column.algorithm.algorithm}}}
+            aria-label="Edit list"
+        >
+          <IconColumnsEdit></IconColumnsEdit>
+        </button>
       {:else}
         <IconColumnsHome></IconColumnsHome>
       {/if}
@@ -82,7 +96,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 20px 10px 40px;
+            padding: 10px 10px 10px 40px;
             box-shadow: 0 0 10px var(--box-shadow-color-1);
             border-radius: 6px;
             font-weight: 600;

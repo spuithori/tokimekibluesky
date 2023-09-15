@@ -66,6 +66,7 @@
   }];
 
   let savedFeeds = [];
+  let officialLists = [];
 
   $: updateBookmark($bookmarks);
   $: updateList($userLists);
@@ -161,10 +162,40 @@
       });
   }
 
+  async function updateLists() {
+      const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did(), limit: 100, cursor: ''});
+      officialLists = res.data.lists;
+
+      if (allColumns.length) {
+          allColumns = allColumns.filter(column => column.algorithm.type !== 'officialList');
+      }
+
+      console.log(officialLists);
+
+      officialLists.forEach(list => {
+          allColumns = [...allColumns, {
+              id: self.crypto.randomUUID(),
+              algorithm: {
+                  type: 'officialList',
+                  algorithm: list.uri,
+                  name: list.name,
+              },
+              style: 'default',
+              settings: defaultDeckSettings,
+              did: _agent.did(),
+              handle: _agent.handle(),
+              data: {
+                  feed: [],
+                  cursor: '',
+              }
+          }]
+      })
+  }
+
   onMount(async () => {
-      await updateFeeds();
+      await Promise.all([updateLists(), updateFeeds()]);
   })
 </script>
 
-<ColumnListAdder items={allColumns} on:add></ColumnListAdder>
+<ColumnListAdder {_agent} items={allColumns} on:add></ColumnListAdder>
 <FeedsObserver on:close={handleFeedsClose} {_agent}></FeedsObserver>

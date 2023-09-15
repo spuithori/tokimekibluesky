@@ -1,7 +1,8 @@
 <script lang="ts">
-    import {bookmarkModal, feedsModal, listModal} from "$lib/stores";
+    import {bookmarkModal, feedsModal, listModal, officialListModal} from "$lib/stores";
     import {_} from "svelte-i18n";
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+
+    export let _agent;
 </script>
 
 <div class="column-add-buttons">
@@ -9,6 +10,8 @@
   <button class="column-add-button" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('create_bookmark')}</button>
   <button class="column-add-button" on:click={() => {$feedsModal.open = true}}>{$_('open_feed_store')}</button>
   <!-- <button class="column-add-button" on:click={addEmptyRealtimeSearch}>{$_('add_realtime_search')}</button> -->
+
+  <button class="column-add-button" on:click={() => {$officialListModal.open = true}}>{$_('create_official_list')}</button>
 </div>
 
 <style lang="postcss">
@@ -20,6 +23,7 @@
 
         @media (max-width: 767px) {
             gap: 10px;
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 

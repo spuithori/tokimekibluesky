@@ -18,6 +18,7 @@
     import ColumnModalAdder from "$lib/components/column/ColumnModalAdder.svelte";
     import ColumnModalChoices from "$lib/components/column/ColumnModalChoices.svelte";
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
+    import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
 
     export let _columns = $columns;
     export let profileId = Number(localStorage.getItem('currentProfile'));
@@ -26,6 +27,7 @@
     let isLoading = true;
     let currentAccount;
     let profile;
+    let unique = Symbol();
 
     async function save() {
         try {
@@ -71,6 +73,10 @@
 
     function margeAllColumns() {
         allColumns = allColumns.filter(item => !_columns.some(column => item.algorithm.algorithm === column.algorithm.algorithm && item.algorithm.type === column.algorithm.type));
+    }
+
+    function handleOfficialListClose() {
+        unique = Symbol();
     }
 
     function addEmptyRealtimeSearch() {
@@ -140,7 +146,7 @@
                     <AgentsSelector _agent={$agents.get(currentAccount)} on:select={handleSelect}></AgentsSelector>
                 </div>
 
-                <ColumnModalAdder></ColumnModalAdder>
+                <ColumnModalAdder _agent={$agents.get(currentAccount)}></ColumnModalAdder>
             {/if}
 
             <div class="column-group-wrap">
@@ -153,16 +159,18 @@
                 <div class="column-group">
                     <div class="column-group__item">
                         {#key currentAccount}
-                            <ColumnModalChoices
-                                _agent={$agents.get(currentAccount)}
-                                on:add={handleColumnAdd}
-                            ></ColumnModalChoices>
+                            {#key unique}
+                                <ColumnModalChoices
+                                    _agent={$agents.get(currentAccount)}
+                                    on:add={handleColumnAdd}
+                                ></ColumnModalChoices>
+                            {/key}
                         {/key}
                     </div>
 
                     <div class="column-group__item column-group__item--active">
                         <h3 class="column-group__title">{$_('active_columns')}</h3>
-                        <ColumnList bind:items={_columns} on:remove={handleColumnRemove}></ColumnList>
+                        <ColumnList bind:items={_columns} on:remove={handleColumnRemove} _agent={$agents.get(currentAccount)}></ColumnList>
                     </div>
                 </div>
             </div>
@@ -176,6 +184,7 @@
 
         <BookmarkObserver on:close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
         <ListObserver on:close={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
+        <OfficialListObserver _agent={$agents.get(currentAccount)} on:close={handleOfficialListClose}></OfficialListObserver>
     </div>
 {/if}
 

@@ -1,6 +1,6 @@
 import {derived, writable} from 'svelte/store';
 import type { Agent } from '$lib/agent';
-import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications } from '@atproto/api';
+import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications, AppBskyActorDefs } from '@atproto/api';
 import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 import type {Theme} from "$lib/types/theme";
 
@@ -137,6 +137,23 @@ export const listModal = writable({
 export const feedsModal = writable({
     open: false,
     data: undefined,
+})
+
+export const officialListModal = writable({
+    open: false,
+    uri: '',
+})
+
+type listAddModal = {
+    open: boolean,
+    author: AppBskyActorDefs.ProfileViewBasic | undefined,
+    did: string,
+}
+
+export const listAddModal = writable<listAddModal>({
+    open: false,
+    author: undefined,
+    did: '',
 })
 
 export const isMobileDataConnection = writable(navigator.connection ? navigator.connection.type === 'cellular' : false);

@@ -3,6 +3,7 @@
   import TimelineItem from "./TimelineItem.svelte";
   import InfiniteLoading from 'svelte-infinite-loading';
   import MediaTimelineItem from "./MediaTimelineItem.svelte";
+  import TimelineItemWrap from "$lib/components/post/TimelineItemWrap.svelte";
 
   export let column;
   export let index;
@@ -32,6 +33,7 @@
 <div class="timeline timeline--{column.style}">
   {#if (column.style === 'default')}
     {#each column.data.feed as data, index (data)}
+      <!-- <TimelineItemWrap data={ data } index={index} column={column} {_agent}></TimelineItemWrap> -->
       <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
     {/each}
   {:else}
