@@ -11,6 +11,7 @@
   export let uri;
   export let count;
   export let likeViewer;
+  let timeoutId;
 
   let isProcessed: boolean = false;
   $: handleLikeChange($pulseLike);
@@ -28,8 +29,6 @@
               count: data.count,
               viewer: data.viewer,
           });
-
-          // pulseLike.set(undefined);
       }
   }
 
@@ -59,7 +58,14 @@
                   uri: uri,
                   count: count,
                   viewer: likeViewer
-              })
+              });
+
+              if (timeoutId) {
+                  clearTimeout(timeoutId);
+              }
+              timeoutId = setTimeout(() => {
+                  pulseLike.set(undefined);
+              }, 1000)
           } catch(e) {
               toast.error($_('failed_to_like_after_reload'));
               console.log(e)

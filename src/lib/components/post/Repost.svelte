@@ -11,9 +11,10 @@
     export let uri;
     export let count;
     export let repostViewer;
+    let timeoutId;
 
     let isProcessed: boolean = false;
-   $: handleLikeChange($pulseRepost);
+    $: handleLikeChange($pulseRepost);
 
     function handleLikeChange(data) {
         if (!data) {
@@ -28,8 +29,6 @@
                 count: data.count,
                 viewer: data.viewer,
             });
-
-            // pulseRepost.set(undefined);
         }
     }
 
@@ -62,6 +61,13 @@
                 })
 
                 toast.success($_('success_to_repost_or_delete_repost'));
+
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+                timeoutId = setTimeout(() => {
+                    pulseRepost.set(undefined);
+                }, 1000)
             } catch(e) {
                 toast.error($_('failed_to_repost_after_reload'));
                 console.log(e)
