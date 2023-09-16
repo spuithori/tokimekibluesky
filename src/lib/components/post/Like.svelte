@@ -28,6 +28,8 @@
               count: data.count,
               viewer: data.viewer,
           });
+
+          pulseLike.set(undefined);
       }
   }
 
