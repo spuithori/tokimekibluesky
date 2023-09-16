@@ -29,7 +29,7 @@
                 viewer: data.viewer,
             });
 
-            pulseRepost.set(undefined);
+            // pulseRepost.set(undefined);
         }
     }
 

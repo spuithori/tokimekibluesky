@@ -29,7 +29,7 @@
               viewer: data.viewer,
           });
 
-          pulseLike.set(undefined);
+          // pulseLike.set(undefined);
       }
   }
 
