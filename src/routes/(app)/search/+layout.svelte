@@ -1,11 +1,13 @@
 <script lang="ts">
 import {_} from "svelte-i18n";
 import type { LayoutData } from './$types';
-import {agent, settings} from "$lib/stores";
+import {settings} from "$lib/stores";
+import SearchForm from "../SearchForm.svelte";
 
 export let data: LayoutData;
 
 let currentPage = data.url.pathname.split('/')[2] ?? 'posts';
+let q;
 </script>
 
 <div class="modal-page modal-page--{$settings.design?.layout}">
@@ -26,46 +28,34 @@ let currentPage = data.url.pathname.split('/')[2] ?? 'posts';
       </div>
     </div>
 
-    <div class="page-search">
-      <ul class="gn-tab">
-        <li class="gn-tab__item" on:click={() => currentPage = 'posts'} class:gn-tab__item--active={currentPage === 'posts'}><a href="/search/" data-sveltekit-noscroll>{$_('posts')}</a></li>
-        <li class="gn-tab__item" on:click={() => currentPage = 'user'} class:gn-tab__item--active={currentPage === 'user'}><a href="/search/user/" data-sveltekit-noscroll>{$_('user')}</a></li>
-      </ul>
-
-      <slot></slot>
+    <div class="search-form-wrap">
+      <SearchForm path={data.url.pathname} bind:search={q}></SearchForm>
     </div>
+
+    {#key data.url.pathname}
+      <div class="page-search">
+        <ul class="profile-tab">
+          <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/search?q={encodeURIComponent(q)}" data-sveltekit-noscroll>{$_('posts')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'user'} class:profile-tab__item--active={currentPage === 'user'}><a href="/search/user?q={encodeURIComponent(q)}" data-sveltekit-noscroll>{$_('user')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'feeds'} class:profile-tab__item--active={currentPage === 'feeds'}><a href="/search/feeds?q={encodeURIComponent(q)}" data-sveltekit-noscroll>{$_('feeds')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'beta'} class:profile-tab__item--active={currentPage === 'beta'}><a href="/search/beta?q={encodeURIComponent(q)}" data-sveltekit-noscroll>{$_('beta_improve_search')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'hashtags'} class:profile-tab__item--active={currentPage === 'hashtags'}><a href="/search/hashtags?q={encodeURIComponent(q)}" data-sveltekit-noscroll>{$_('hashtag_search')}</a></li>
+        </ul>
+
+        <div class="page-search-content">
+          <slot></slot>
+        </div>
+      </div>
+    {/key}
   </div>
 </div>
 
 <style lang="postcss">
-  .gn-tab {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      list-style: none;
-      text-align: center;
-      padding: 16px 0;
+  .page-search-content {
+      margin-top: 16px;
+  }
 
-      &__item {
-          border-bottom: 2px solid var(--border-color-1);
-          font-size: 16px;
-          font-weight: 600;
-          letter-spacing: .025em;
-
-          @media (max-width: 959px) {
-              font-size: 16px;
-          }
-
-          &--active {
-              border-bottom-color: var(--primary-color);
-          }
-
-          a {
-              color: inherit;
-              height: 40px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-          }
-      }
+  .search-form-wrap {
+      margin: 16px 16px 0;
   }
 </style>
