@@ -2,7 +2,7 @@
     import { page } from '$app/stores';
     import SearchForm from '../../SearchForm.svelte';
     import { agent } from '$lib/stores';
-    let cursor = 0;
+    let cursor = '';
     import InfiniteLoading from "svelte-infinite-loading";
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
     import {onMount} from "svelte";
