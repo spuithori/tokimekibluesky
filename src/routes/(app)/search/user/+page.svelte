@@ -1,25 +1,18 @@
 <script>
     import { page } from '$app/stores';
-    import SearchForm from '../../SearchForm.svelte';
     import { agent } from '$lib/stores';
-    import {_} from "svelte-i18n";
     let feeds = [];
-    let cursor = '';
-    import { fly } from 'svelte/transition';
+    let cursor = 0;
     import InfiniteLoading from "svelte-infinite-loading";
     import UserItem from "../../profile/[handle]/UserItem.svelte";
     let users = [];
-
-    let il;
 
     $: getSearchFeeds($page.url.searchParams.get('q'));
 
     async function getSearchFeeds(query) {
         if (query) {
-            console.log('refresh')
             users = [];
             cursor = undefined;
-            il.$$.update();
         }
     }
 
@@ -37,18 +30,14 @@
     }
 </script>
 
-<div class="user-timeline">
-  <SearchForm></SearchForm>
+{#key $page.url.searchParams.get('q')}
+  <div class="user-timeline">
+    {#each users as user (user)}
+      <UserItem user={user}></UserItem>
+    {/each}
 
-  {#each users as user (user)}
-    <UserItem user={user}></UserItem>
-  {/each}
-
-  <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-  </InfiniteLoading>
-</div>
-
-<style>
-
-</style>
+    <InfiniteLoading on:infinite={handleLoadMore}>
+      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+    </InfiniteLoading>
+  </div>
+{/key}

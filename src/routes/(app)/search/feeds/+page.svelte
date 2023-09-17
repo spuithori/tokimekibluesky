@@ -2,14 +2,13 @@
     import { page } from '$app/stores';
     import SearchForm from '../../SearchForm.svelte';
     import { agent } from '$lib/stores';
-    let cursor = '';
+    let cursor = 0;
     import InfiniteLoading from "svelte-infinite-loading";
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
     import {onMount} from "svelte";
     let feeds = [];
     let savedFeeds = [];
 
-    let il;
     let _agent = $agent;
 
     $: getSearchFeeds($page.url.searchParams.get('q'));
@@ -27,10 +26,8 @@
 
     async function getSearchFeeds(query) {
         if (query) {
-            console.log('refresh')
             feeds = [];
             cursor = undefined;
-            il.$$.update();
         }
     }
     async function handleLoadMore({ detail: { loaded, complete } }) {
@@ -51,18 +48,14 @@
     })
 </script>
 
-<div class="user-timeline">
-  <SearchForm></SearchForm>
+{#key $page.url.searchParams.get('q')}
+  <div class="user-timeline">
+    {#each feeds as feed (feed)}
+      <FeedsItem feed={feed} subscribed={isSaved(feed)} on:close></FeedsItem>
+    {/each}
 
-  {#each feeds as feed (feed)}
-    <FeedsItem feed={feed} subscribed={isSaved(feed)} on:close></FeedsItem>
-  {/each}
-
-  <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-  </InfiniteLoading>
-</div>
-
-<style>
-
-</style>
+    <InfiniteLoading on:infinite={handleLoadMore}>
+      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+    </InfiniteLoading>
+  </div>
+{/key}

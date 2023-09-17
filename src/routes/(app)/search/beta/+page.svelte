@@ -1,12 +1,11 @@
 <script>
     import { page } from '$app/stores';
-    import TimelineItem from '../TimelineItem.svelte';
     import { agent } from '$lib/stores';
-    import { parseISO } from 'date-fns';
     let searchFeeds = [];
     let feeds = [];
     let cursor = 0;
     import InfiniteLoading from "svelte-infinite-loading";
+    import TimelineItem from "../../TimelineItem.svelte";
 
     $: getSearchFeeds($page.url.searchParams.get('q'));
 
@@ -36,14 +35,20 @@
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        const res = await fetch('https://search.bsky.social/search/posts?q=' + encodeURIComponent($page.url.searchParams.get('q')) + '&offset=' + cursor)
-            .then(response => response.json())
-            .then(data => searchFeeds = data);
+        const res = await fetch('/api/search', {
+            method: 'POST',
+            body: JSON.stringify({
+                q: encodeURIComponent($page.url.searchParams.get('q')),
+                limit: 20,
+                offset: cursor,
+            })
+        });
+        const obj = await res.json();
+        searchFeeds = obj.hits;
+        console.log(obj);
 
         if ($page.url.searchParams.get('q') && searchFeeds.length) {
-            const uris = searchFeeds.map(feed => {
-                return 'at://' + feed.user.did + '/' + feed.tid;
-            });
+            const uris = searchFeeds.map(feed => feed.uri);
 
             let tempFeeds = [];
             const urisArray = splitUris(uris);
@@ -62,13 +67,10 @@
                 }))
 
             tempFeeds = tempFeeds.filter(feed => feed.post?.indexedAt);
-            tempFeeds.sort((a, b) => {
-                return parseISO(b.post.indexedAt).getTime() - parseISO(a.post.indexedAt).getTime();
-            });
 
             feeds = [...feeds, ...tempFeeds];
 
-            cursor = cursor + 30;
+            cursor = cursor + 20;
 
             loaded();
         } else {

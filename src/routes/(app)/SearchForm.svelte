@@ -2,7 +2,7 @@
     import { _ } from 'svelte-i18n';
     import { page } from '$app/stores';
     import {onMount} from "svelte";
-    let search = $page.url.searchParams.get('q') || '';
+    export let search = $page.url.searchParams.get('q') || '';
     let searchArea;
     export let path = location.pathname;
 

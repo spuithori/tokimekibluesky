@@ -414,5 +414,10 @@
   "official_list_edit": "公式リストの編集",
   "delete_list": "リストを削除",
   "list_instant_manage": "リストに追加・削除",
-  "list_members_length_suffix": "人のメンバー"
+  "list_members_length_suffix": "人のメンバー",
+  "beta_improve_search": "ちょっと良い検索",
+  "/search/beta_search": "\"\"で囲んで完全一致検索ができます",
+  "/search/hashtags_search": "ハッシュタグ",
+  "feeds": "フィード",
+  "hashtag_search": "ハッシュタグ(β)"
 }
