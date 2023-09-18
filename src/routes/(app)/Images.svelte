@@ -7,6 +7,7 @@
 
     let galleryImages = [];
     let isFold = $settings?.design.postsImageLayout === 'folding' || $isDataSaving;
+    let isOpen = false;
 
     for (const image of images) {
         galleryImages.push({
@@ -23,15 +24,18 @@
     function open(index: any) {
         gl.openAt(index);
         isImageOpen.set(true);
-        goto('#open', {noScroll: true});
+        goto('', {noScroll: true});
+        isOpen = true;
     }
 
     gl.on('close', () => {
         isImageOpen.set(false);
 
-        if (window.location.hash === '#open') {
-          history.back();
+        if (isOpen) {
+            history.back();
         }
+
+        isOpen = false;
     })
 
     function unfold() {
@@ -39,6 +43,7 @@
     }
 
     function handlePopstate() {
+      isOpen = false;
       gl.close();
     }
 </script>
