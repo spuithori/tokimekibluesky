@@ -206,6 +206,7 @@
         height: 94vh;
         background-color: var(--bg-color-1);
         overflow-y: scroll;
+        z-index: 1;
 
         @media (max-width: 767px) {
             height: 100dvh;
