@@ -1,7 +1,10 @@
 <script lang="ts">
   import MyProfileBadge from "./MyProfileBadge.svelte";
-  import {agent, agents, isColumnModalOpen} from "$lib/stores";
+  import {agent} from "$lib/stores";
   import {page} from "$app/stores";
+  import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
+
+  let isFeedsModalOpen = false;
 </script>
 
 <footer class="footer">
@@ -17,9 +20,9 @@
       {:else}
         <button
             class="side-bar-button"
-            on:click={() => {$isColumnModalOpen = true}}
+            on:click={() => {isFeedsModalOpen = !isFeedsModalOpen}}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-square"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gantt-chart-square"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 8h7"/><path d="M8 12h6"/><path d="M11 16h5"/></svg>
         </button>
       {/if}
     </div>
@@ -45,6 +48,18 @@
     <div class="footer__item"></div>
   </div>
 </footer>
+
+{#if isFeedsModalOpen}
+  <div class="footer-feeds-modal">
+    <div class="footer-feeds-modal__content">
+      <SideMyFeeds on:close={() => {isFeedsModalOpen = false}}></SideMyFeeds>
+    </div>
+
+    <button class="footer-feeds-modal__close" on:click={() => {isFeedsModalOpen = false}}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+    </button>
+  </div>
+{/if}
 
 <div class="footer-round"></div>
 
@@ -105,6 +120,43 @@
 
       @media (min-width: 767px) {
           display: none;
+      }
+  }
+
+  .footer-feeds-modal {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      top: 0;
+      background-color: rgba(0, 0, 0, .5);
+      backdrop-filter: blur(8px);
+      height: calc(100vh);
+      overscroll-behavior-y: none;
+      overflow-y: auto;
+      z-index: 9999;
+
+      &__content {
+          position: fixed;
+          bottom: 80px;
+          box-shadow: 0 0 10px var(--box-shadow-color-1);
+          border-radius: var(--border-radius-3);
+          height: calc(100vh - 100px);
+          overscroll-behavior-y: none;
+          left: 16px;
+          right: 16px;
+          background-color: var(--bg-color-1);
+          overflow-y: auto;
+      }
+
+      &__close {
+          position: absolute;
+          bottom: 24px;
+          width: 36px;
+          height: 36px;
+          left: 0;
+          right: 0;
+          margin: auto;
       }
   }
 </style>

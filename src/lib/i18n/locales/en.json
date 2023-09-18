@@ -418,5 +418,6 @@
   "/search/beta_search": "Exact match search is available by enclosing with \"\".",
   "/search/hashtags_search": "Hashtag",
   "feeds": "Feeds",
-  "hashtag_search": "Hashtag(β)"
+  "hashtag_search": "Hashtag(β)",
+  "bookmarks_short": "Bookmarks"
 }

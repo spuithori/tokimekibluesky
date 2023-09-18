@@ -3,6 +3,7 @@
   import TimelineItem from "../../../../TimelineItem.svelte";
   import InfiniteLoading from "svelte-infinite-loading";
   import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
+  import {isDid} from "$lib/util";
 
   export let id;
   export let handle;
@@ -12,13 +13,17 @@
   let feed;
   let did = '';
 
-  $agent.agent.api.com.atproto.identity.resolveHandle({handle: handle})
-      .then(value => {
-          did = value.data.did;
-      })
-      .catch(e => {
-          console.log(e);
-      });
+  if (isDid(handle)) {
+      did = handle;
+  } else {
+      $agent.agent.api.com.atproto.identity.resolveHandle({handle: handle})
+          .then(value => {
+              did = value.data.did;
+          })
+          .catch(e => {
+              console.log(e);
+          });
+  }
 
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
       const uri = 'at://' + did + '/app.bsky.graph.list/' + id;

@@ -3,16 +3,12 @@
     import TimelineItem from './TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
     import MediaTimelineItem from './MediaTimelineItem.svelte';
-    import { db } from '$lib/db';
-    import { liveQuery } from 'dexie';
+    import {getBookmarkFeed} from "$lib/bookmark";
 
     export let _agent = $agent;
     export let column;
     export let index;
     let initialLoadFinished = false;
-    let il;
-
-    let paged = 0;
     let feeds;
 
     if (typeof column.data.cursor !== 'number') {
@@ -23,56 +19,8 @@
         column.data.feed = [];
     }
 
-    async function getQuery(paged) {
-        const feeds = await db.feeds
-            .orderBy('indexedAt')
-            .reverse()
-            .filter(feed => feed.bookmark === Number(column.algorithm.list))
-            .offset(paged * 20)
-            .limit(20)
-            .toArray();
-
-        return feeds;
-    }
-
-    $: query = liveQuery(async () => {
-        const feeds = await db.feeds
-            .orderBy('indexedAt')
-            .reverse()
-            .filter(feed => feed.bookmark === Number(column.algorithm.list))
-            .offset(paged * 20)
-            .limit(20)
-            .toArray();
-
-        return feeds;
-    });
-
-    $: addFeeds($query);
-
-    async function addFeeds(query) {
-        if (initialLoadFinished) {
-            const feeds = query;
-            let uris = feeds.map(feed => feed.uri);
-            uris = uris.filter(uri => !column.data.feed.some(tl => tl.post.uri === uri));
-            console.log(uris);
-
-            if (!uris.length) {
-                return false;
-            }
-
-            const res = _agent.getTimeline({algorithm: column.algorithm, uris: uris})
-                .then(res => {
-                    const posts = res.data.posts.map(post => {
-                        const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
-                        return { post: post, bookmarkId: id };
-                    })
-                    column.data.feed = [...posts, ...column.data.feed];
-                })
-        }
-    }
-
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        feeds = await getQuery(column.data.cursor);
+        feeds = await getBookmarkFeed(column.algorithm.list, column.data.cursor);
 
         if (feeds?.length) {
             const uris = feeds.map(feed => feed.uri);
@@ -83,8 +31,6 @@
                 return { post: post, bookmarkId: id };
             })
             column.data.feed = [...column.data.feed, ...posts];
-
-            //console.log(column.data.feed);
 
             column.data.cursor = column.data.cursor + 1;
             initialLoadFinished = true;
@@ -110,11 +56,7 @@
     </div>
   {/if}
 
-  <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
+  <InfiniteLoading on:infinite={handleLoadMore}>
     <p slot="noMore" class="infinite-nomore">もうないよ</p>
   </InfiniteLoading>
 </div>
-
-<style>
-
-</style>

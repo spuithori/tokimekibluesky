@@ -15,6 +15,16 @@
         gap: 0 8px;
         overflow: auto;
     }
+
+    &--small {
+        font-size: 14px;
+        padding: 0 8px;
+        gap: 8px;
+
+        .profile-tab__item {
+            padding: 12px 8px;
+        }
+    }
 }
 
 .profile-tab__item {
@@ -43,6 +53,10 @@
         margin: auto;
         transform: scaleX(0);
         transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
+    }
+
+    button {
+        color: inherit;
     }
 }
 

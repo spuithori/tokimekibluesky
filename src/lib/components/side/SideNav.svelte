@@ -1,12 +1,11 @@
 <script lang="ts">
-    import {agent, settings, sideState} from '$lib/stores';
-  import { Pen, Search, Bell, User2, Settings, Store  } from 'lucide-svelte';
+  import {agent, settings, sideState} from '$lib/stores';
+  import { Pen, Search, Bell, User2, GanttChartSquare, Store } from 'lucide-svelte';
     import MyProfileBadge from "../../../routes/(app)/MyProfileBadge.svelte";
 
   function toggleSideNav(name) {
       $sideState = name;
   }
-
 </script>
 
 <ul class="side-nav side-nav--{$settings.design?.publishPosition}">
@@ -36,17 +35,6 @@
     <li class="side-nav__item">
       <button
           class="side-nav__button"
-          class:side-nav__button--current={$sideState === 'search'}
-          on:click={() => toggleSideNav('search')}
-          aria-label="Search Tab"
-      >
-        <Search color="var(--nav-secondary-icon-color)"></Search>
-      </button>
-    </li>
-
-    <li class="side-nav__item">
-      <button
-          class="side-nav__button"
           class:side-nav__button--current={$sideState === 'notification'}
           on:click={() => toggleSideNav('notification')}
           aria-label="Notification Tab"
@@ -58,12 +46,33 @@
     <li class="side-nav__item">
       <button
           class="side-nav__button"
+          class:side-nav__button--current={$sideState === 'feeds'}
+          on:click={() => toggleSideNav('feeds')}
+          aria-label="Feed Store Tab"
+      >
+        <GanttChartSquare color="var(--nav-secondary-icon-color)"></GanttChartSquare>
+      </button>
+    </li>
+
+    <!-- <li class="side-nav__item">
+      <button
+          class="side-nav__button"
           class:side-nav__button--current={$sideState === 'store'}
           on:click={() => toggleSideNav('store')}
           aria-label="Feed Store Tab"
       >
         <Store color="var(--nav-secondary-icon-color)"></Store>
       </button>
+    </li> -->
+
+    <li class="side-nav__item side-nav__item--right">
+      <a
+          href="/search"
+          class="side-nav__button"
+          aria-label="Search"
+      >
+        <Search color="var(--bar-bottom-icon-color)"></Search>
+      </a>
     </li>
   {:else}
     <li class="side-nav__item">
@@ -92,7 +101,9 @@
       }
 
       &__item {
-
+          &--right {
+              margin-left: auto;
+          }
       }
 
       &__button {

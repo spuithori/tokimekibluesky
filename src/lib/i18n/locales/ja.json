@@ -65,9 +65,9 @@
   "hide_repost": "リポストを隠す",
   "hide_reply": "リプライを隠す",
   "copy_url": "URLをコピー",
-  "copy_handle": "IDをコピー",
+  "copy_handle": "ハンドルをコピー",
   "success_copy_url": "クリップボードにURLをコピーしました。",
-  "success_copy_handle": "クリップボードにIDをコピーしました。",
+  "success_copy_handle": "クリップボードにハンドルをコピーしました。",
   "failed_copy": "クリップボードへのコピーに失敗しました。",
   "media": "メディア",
   "you": "あなた",
@@ -419,5 +419,6 @@
   "/search/beta_search": "\"\"で囲んで完全一致検索ができます",
   "/search/hashtags_search": "ハッシュタグ",
   "feeds": "フィード",
-  "hashtag_search": "ハッシュタグ(β)"
+  "hashtag_search": "ハッシュタグ(β)",
+  "bookmarks_short": "ブクマ"
 }
