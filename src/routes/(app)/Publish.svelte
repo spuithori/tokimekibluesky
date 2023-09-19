@@ -83,6 +83,7 @@ let embedImages: AppBskyEmbedImages.Main = {
 let embedRecord: AppBskyEmbedRecord.Main;
 let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
 let embedExternal: AppBskyEmbedExternal.Main | undefined;
+let isPublishFormExpand = false;
 
 let lang =[];
 
@@ -660,6 +661,17 @@ onMount(async () => {
             lang = [ $settings.langSelector ];
         }
 
+        const shortReplyRef = $replyRef ? {
+            root: {
+                cid: $replyRef.data.root.cid,
+                uri: $replyRef.data.root.uri,
+            },
+            parent: {
+                cid: $replyRef.data.parent.cid,
+                uri: $replyRef.data.parent.uri,
+            }
+        } : undefined;
+
         try {
             await _agent.agent.api.app.bsky.feed.post.create(
                 { repo: _agent.did() },
@@ -668,7 +680,7 @@ onMount(async () => {
                     facets: rt.facets,
                     text: rt.text,
                     createdAt: new Date().toISOString(),
-                    reply: $replyRef ? $replyRef.data : undefined,
+                    reply: shortReplyRef,
                     via: 'TOKIMEKI',
                     langs: lang.length ? lang : undefined,
                     labels: selfLabels.length ? {
@@ -823,7 +835,7 @@ function handleAgentSelect(event) {
       </div>
     {/if}
 
-    <div class="publish-form">
+    <div class="publish-form" class:publish-form--expand={isPublishFormExpand}>
       {#if $quotePost?.uri}
         <div class="publish-quote">
           <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
@@ -942,6 +954,16 @@ function handleAgentSelect(event) {
             <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
           </p>
 
+          <div class="publish-form-expand">
+            <button
+                class="publish-form-expand-button"
+                class:publish-form-expand-button--active={isPublishFormExpand}
+                on:click={() => {isPublishFormExpand = !isPublishFormExpand}}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize-2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+            </button>
+          </div>
+
           <div class="publish-form-emoji-picker">
             <button class="publish-form-emoji-picker-button" on:click={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-laugh"><circle cx="12" cy="12" r="10"/><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
@@ -979,6 +1001,7 @@ function handleAgentSelect(event) {
         <textarea
             id="publishTextarea"
             class="publish-form__input"
+            class:publish-form__input--expand={isPublishFormExpand}
             name="content"
             disabled={isTextareaEnabled}
             bind:value={publishContent}
@@ -1105,27 +1128,36 @@ function handleAgentSelect(event) {
                 right: auto;
                 z-index: 100;
                 position: static;
+                height: 100%;
 
                 .publish-form__input {
                     height: 160px;
+
+                    &--expand {
+                        height: 100%;
+                    }
                 }
 
                 .publish-wrap {
-                    display: block;
+                    display: flex;
+                    flex-direction: column;
                     width: auto;
                     border-top: none;
                     padding: 16px;
                     background-color: transparent;
+                    height: 100%;
                 }
 
-                .publish-position-switcher {
-                    left: auto;
-                    right: 16px;
-                    top: 80px;
-                }
+                .publish-form {
+                    &--expand {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
 
-                .publish-draft-button {
-
+                        .publish-actor-list-input-group {
+                            flex: 1;
+                        }
+                    }
                 }
 
                 .publish-upload {
@@ -1281,8 +1313,8 @@ function handleAgentSelect(event) {
 
         &__delete {
             position: absolute;
-            right: 15px;
-            top: 20px;
+            right: 16px;
+            top: 16px;
             z-index: 12;
         }
     }
@@ -1566,6 +1598,7 @@ function handleAgentSelect(event) {
         z-index: 21;
         background-color: var(--bg-color-2);
         gap: 5px;
+        border-radius: 0 0 var(--border-radius-3) var(--border-radius-3);
 
         @media (max-width: 767px) {
             position: relative;
@@ -1595,5 +1628,25 @@ function handleAgentSelect(event) {
         padding: 0 5px;
         font-size: 14px;
         height: 30px;
+    }
+
+    .publish-form-expand-button {
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: var(--text-color-1);
+        padding: 0 5px;
+        font-size: 14px;
+        height: 30px;
+
+        @media (max-width: 767px) {
+            display: none;
+        }
+
+        &--active {
+            svg {
+                stroke: var(--primary-color)
+            }
+        }
     }
 </style>

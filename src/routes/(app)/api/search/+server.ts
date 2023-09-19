@@ -25,8 +25,6 @@ export async function POST ({ request }) {
             filter: tag ? ['hashtags IN [' + tag + ']'] : [],
         });
 
-        console.log(res);
-
         return new Response(JSON.stringify(res), { status: 200 });
     }
 }

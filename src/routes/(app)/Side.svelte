@@ -195,7 +195,7 @@
   .side-content-publish {
       display: none;
       pointer-events: visible;
-      /* height: 100%; */
+      height: 100%;
 
       @media (max-width: 767px) {
           display: block;

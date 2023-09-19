@@ -12,6 +12,7 @@
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {translate} from "$lib/translate";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
+  import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
 
   export let post;
   export let locale;
@@ -168,20 +169,7 @@
     {/if}
 
     {#if (AppBskyEmbedExternal.isView(post.embed))}
-      <div class="timeline-external">
-        <div class="timeline-external__image">
-          {#if (post.embed.external.thumb && $settings?.design.postsLayout !== 'minimum')}
-            <img src="{post.embed.external.thumb}" alt="">
-          {/if}
-        </div>
-
-        <div class="timeline-external__content">
-          <p class="timeline-external__title"><a href="{post.embed.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{post.embed.external.title}</a>
-          </p>
-          <p class="timeline-external__description">{post.embed.external.description}</p>
-          <p class="timeline-external__url">{post.embed.external.uri}</p>
-        </div>
-      </div>
+      <EmbedExternal external={post.embed.external}></EmbedExternal>
     {/if}
 
     {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyEmbedRecord.isViewRecord(post.embed.record)) }
@@ -193,6 +181,10 @@
         <div class="timeline-images-wrap">
           <Images images={post.embed.media.images}></Images>
         </div>
+      {/if}
+
+      {#if AppBskyEmbedExternal.isView(post.embed.media)}
+        <EmbedExternal external={post.embed.media.external}></EmbedExternal>
       {/if}
 
       <EmbedRecord record={post.embed.record.record} locale={locale} {moderateData}></EmbedRecord>

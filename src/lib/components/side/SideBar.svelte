@@ -145,6 +145,12 @@
       flex-direction: column;
       justify-content: space-between;
       padding-bottom: 8px;
+      overflow-y: auto;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar{
+          display:none;
+      }
 
       @media (max-width: 767px) {
           display: flex;
@@ -160,6 +166,7 @@
           padding: 0 8px;
           width: 100vw;
           overflow-x: auto;
+          overflow-y: initial;
       }
 
       &__list {
