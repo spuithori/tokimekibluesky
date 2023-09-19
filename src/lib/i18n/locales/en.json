@@ -419,5 +419,9 @@
   "/search/hashtags_search": "Hashtag",
   "feeds": "Feeds",
   "hashtag_search": "Hashtag(β)",
-  "bookmarks_short": "Bookmarks"
+  "bookmarks_short": "Bookmarks",
+  "change_single_column_mode": "Change single-column",
+  "change_multi_column_mode": "Change multi-columns(DECKS)",
+  "change_default_mode": "Change default layout",
+  "change_compact_mode": "Change compact layout"
 }

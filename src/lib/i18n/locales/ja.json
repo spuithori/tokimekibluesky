@@ -420,5 +420,9 @@
   "/search/hashtags_search": "ハッシュタグ",
   "feeds": "フィード",
   "hashtag_search": "ハッシュタグ(β)",
-  "bookmarks_short": "ブクマ"
+  "bookmarks_short": "ブクマ",
+  "change_single_column_mode": "シングルカラムにする",
+  "change_multi_column_mode": "マルチカラム(DECKS)にする",
+  "change_default_mode": "標準モードにする",
+  "change_compact_mode": "コンパクトモードにする"
 }

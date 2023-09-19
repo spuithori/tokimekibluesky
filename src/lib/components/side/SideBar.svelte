@@ -4,6 +4,7 @@
   import { page } from '$app/stores';
   import { Settings } from "lucide-svelte";
   import {iconMap} from "$lib/columnIcons";
+  import {_} from "svelte-i18n";
 
   let isMobileBarOpen = false;
 
@@ -116,21 +117,21 @@
     </a>
 
     {#if ($settings.design?.layout === 'decks')}
-      <button class="side-bar-button" on:click={() => {$settings.design.layout = 'default'}}>
+      <button class="side-bar-button" title="{$_('change_single_column_mode')}" on:click={() => {$settings.design.layout = 'default'}}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rectangle-vertical"><rect width="12" height="20" x="6" y="2" rx="2"/></svg>
       </button>
     {:else}
-      <button class="side-bar-button" on:click={() => {$settings.design.layout = 'decks'}}>
+      <button class="side-bar-button" title="{$_('change_multi_column_mode')}" on:click={() => {$settings.design.layout = 'decks'}}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-columns"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="12" x2="12" y1="3" y2="21"/></svg>
       </button>
     {/if}
 
     {#if ($settings.design?.publishPosition !== 'left')}
-      <button class="side-bar-button" on:click={() => {$settings.design.publishPosition = 'left'}}>
+      <button class="side-bar-button" title="{$_('change_default_mode')}" on:click={() => {$settings.design.publishPosition = 'left'}}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/></svg>
       </button>
     {:else}
-      <button class="side-bar-button" on:click={() => {$settings.design.publishPosition = 'bottom'}}>
+      <button class="side-bar-button" title="{$_('change_compact_mode')}" on:click={() => {$settings.design.publishPosition = 'bottom'}}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-bottom"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="15" y2="15"/></svg>
       </button>
     {/if}
