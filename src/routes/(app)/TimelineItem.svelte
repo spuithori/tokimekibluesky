@@ -164,10 +164,10 @@
     })
 
     async function translation() {
-        data.post.record.text = await translate(data.post.record.text, $settings.general?.language);
+        ({ text: data.post.record.text, facets: data.post.record.facets } = await translate(data.post.record.text, $settings.general?.language, _agent));
 
         if (data.reply && !isSingle) {
-            data.reply.parent.record.text = await translate(data.reply.parent.record.text, $settings.general?.language)
+            ({ text: data.reply.parent.record.text, facets: data.reply.parent.record.facets } = await translate(data.reply.parent.record.text, $settings.general?.language, _agent));
         }
 
         isMenuOpen = false;

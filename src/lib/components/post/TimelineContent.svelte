@@ -92,7 +92,7 @@
   }
 
   async function translation() {
-      post.record.text = await translate(post.record.text, $settings.general?.language);
+      ({ text: post.record.text, facets: post.record.facets } = await translate(post.record.text, $settings.general?.language, _agent));
       isTranslated = true;
   }
 </script>

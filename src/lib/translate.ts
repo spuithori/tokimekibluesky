@@ -1,4 +1,7 @@
-export async function translate(text, lang = window.navigator.language) {
+import {RichText} from "@atproto/api";
+
+export async function translate(text, lang = window.navigator.language, _agent) {
+
     const res = await fetch(`/api/translator`, {
         method: 'post',
         body: JSON.stringify({
@@ -7,5 +10,13 @@ export async function translate(text, lang = window.navigator.language) {
         })
     });
     const translation = await res.json();
-    return translation[0].translations[0].text;
+    const translatedText = await translation[0].translations[0].text;
+
+    const rt = new RichText({text: translatedText});
+    await rt.detectFacets(_agent.agent);
+
+    return {
+        text: rt.text,
+        facets: rt.facets,
+    }
 }
