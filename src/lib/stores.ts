@@ -3,6 +3,7 @@ import type { Agent } from '$lib/agent';
 import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications, AppBskyActorDefs } from '@atproto/api';
 import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 import type {Theme} from "$lib/types/theme";
+import {defaultReactionButtons} from "$lib/defaultSettings";
 
 type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification & {
     feed?: AppBskyFeedPost
@@ -99,7 +100,10 @@ const defaultSettings = {
         darkmode: false,
         absoluteTime: false,
         layout: 'default',
-        publishPosition: 'left'
+        postsImageLayout: 'default',
+        postsLayout: 'compact',
+        publishPosition: 'left',
+        reactionButtons: defaultReactionButtons,
     },
     timeline: {
         hideRepost: 'all',
@@ -226,3 +230,5 @@ export const pulseRepost = writable<pulseReaction>(undefined);
 export const pulseBookmark = writable<pulseReaction>(undefined);
 
 export const pulseDelete = writable<string | undefined>(undefined);
+
+export const isReactionButtonSettingsModalOpen = writable(false);

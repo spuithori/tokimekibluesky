@@ -423,5 +423,8 @@
   "change_single_column_mode": "Change single-column",
   "change_multi_column_mode": "Change multi-columns(DECKS)",
   "change_default_mode": "Change default layout",
-  "change_compact_mode": "Change compact layout"
+  "change_compact_mode": "Change compact layout",
+  "reaction_button_settings": "Reaction Buttons...",
+  "bookmark": "Bookmark",
+  "show_counts": "Display Counter"
 }

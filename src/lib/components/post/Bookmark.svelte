@@ -80,9 +80,11 @@
 
 <div class="bookmark-wrap">
   <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="timeline-reaction__item timeline-reaction__item--bookmark">
-    <svg slot="ref" xmlns="http://www.w3.org/2000/svg" width="12" height="15" viewBox="0 0 12 15">
+    <span class="timeline-reaction__icon" slot="ref">
+         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="15" viewBox="0 0 12 15">
       <path id="bookmark" d="M2,1.5A1.5,1.5,0,0,1,3.5,0h9A1.5,1.5,0,0,1,14,1.5V15L8,12,2,15Z" transform="translate(-2)" fill="var(--timeline-reaction-bookmark-icon-color)"/>
     </svg>
+    </span>
 
     <ul slot="content" class="timeline-menu-list">
       {#if ($bookmarks)}

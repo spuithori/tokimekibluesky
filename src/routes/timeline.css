@@ -284,7 +284,7 @@
     }
 
     @container timeline-item (max-width: 345px) {
-        margin-left: -70px;
+        margin-left: -50px;
     }
 
     @container timeline-item (max-width: 320px) {
@@ -313,12 +313,21 @@
         }
     }
 
+    &--1,
+    &--2,
+    &--3 {
+        display: grid;
+        justify-content: flex-start;
+        grid-template-columns: repeat(3, 64px);
+    }
+
     &__count {
         display: flex;
         align-items: center;
         left: 36px;
         letter-spacing: -.025em;
         font-weight: 400;
+        color: var(--text-color-3);
 
         @media (max-width: 767px) {
             font-size: 13px;
@@ -327,41 +336,60 @@
 
     &__icon {
         z-index: 1;
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            left: 50%;
+            top: 50%;
+            transform: translateY(-50%) translateX(-50%);
+            background-color: transparent;
+            transition: background-color .2s ease-in-out;
+            border-radius: 50%;
+            z-index: -1;
+        }
     }
 }
 
 .timeline-reaction__item {
     display: flex;
     align-items: center;
-    padding: 0 12px;
     gap: 6px;
-    min-width: 70px;
+    max-width: 60px;
     height: 28px;
+    width: 24px;
     position: relative;
     border-radius: 14px;
     font-size: 14px;
     transition: background-color .2s ease-in-out;
-    background-color: var(--bg-color-1);
     font-family: var(--ui-font);
+    color: inherit;
 
     @media (max-width: 767px) {
-        min-width: 60px;
-        padding: 0 10px;
+
     }
 
     @container timeline-item (max-width: 290px) {
-        min-width: 60px;
-        padding: 0 6px;
+
+    }
+
+    &--quote {
+        justify-content: center;
     }
 
     &--bookmark {
-        min-width: 45px;
         justify-content: center;
 
         &:hover {
             @media (min-width: 768px) {
-                background-color: var(--timeline-reaction-bookmark-hover-bg-color);
                 color: var(--timeline-reaction-bookmark-icon-hover-color);
+
+                .timeline-reaction__icon::after {
+                    background-color: var(--timeline-reaction-bookmark-hover-bg-color);
+                }
 
                 path {
                     fill: var(--timeline-reaction-bookmark-icon-hover-color);
@@ -371,14 +399,10 @@
     }
 }
 
-.timeline-reaction__icon::before {
-    content: '';
-    display: block;
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    top: 0;
+.timeline-reaction-in-menu {
+    .timeline-reaction__item {
+        justify-content: center;
+    }
 }
 
 .timeline-images-wrap {
@@ -436,8 +460,8 @@
     position: absolute;
     right: 5px;
     top: 20px;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background-color: var(--bg-color-1);
     display: flex;
@@ -680,7 +704,7 @@
     bottom: 100%;
     height: 20px;
     left: 29px;
-    background-image: linear-gradient(var(--bg-color-1), var(--border-color-1));
+    background-image: linear-gradient(var(--bg-color-1), var(--bg-color-2));
 
     @media (max-width: 767px) {
         left: 24px;
@@ -751,8 +775,8 @@
         grid-template-columns: 46px 1fr;
 
         &--record {
-            grid-template-columns: 46px 1fr;
-            gap: 10px;
+            grid-template-columns: 36px 1fr;
+            gap: 8px;
         }
 
         &__title {
@@ -772,20 +796,10 @@
         &__item {
             border: none;
             height: 20px;
-            min-width: 64px;
             font-size: 13px;
 
-            &--bookmark {
-                min-width: 36px;
-            }
-
             @container timeline-item (max-width: 290px) {
-                min-width: 60px;
-                padding: 0 6px;
 
-                &--bookmark {
-                    min-width: 36px;
-                }
             }
         }
 
@@ -802,7 +816,7 @@
 
     .timeline-menu-toggle {
         top: 5px;
-        right: 0;
+        right: -2px;
         background-color: transparent;
 
         &:hover {
@@ -916,4 +930,14 @@
     background-color: var(--bg-color-2);
     border: 1px solid var(--border-color-1);
     border-radius: var(--border-radius-3);
+}
+
+.reaction-button-settings-item {
+    &__icon {
+        svg {
+            stroke: var(--border-color-1);
+            width: 30px;
+            height: 30px;
+        }
+    }
 }

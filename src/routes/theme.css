@@ -245,7 +245,7 @@
     --timeline-embed-color: var(--text-color-3);
 
     --timeline-reaction-icon-color: var(--border-color-1);
-    --timeline-reaction-icon-hover-color: var(--bg-color-1);
+    --timeline-reaction-icon-hover-color: var(--text-color-3);
     --timeline-reaction-reply-icon-color: var(--timeline-reaction-icon-color);
     --timeline-reaction-repost-icon-color: var(--timeline-reaction-icon-color);
     --timeline-reaction-like-icon-color: var(--timeline-reaction-icon-color);

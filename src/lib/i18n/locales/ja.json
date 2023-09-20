@@ -424,5 +424,8 @@
   "change_single_column_mode": "シングルカラムにする",
   "change_multi_column_mode": "マルチカラム(DECKS)にする",
   "change_default_mode": "標準モードにする",
-  "change_compact_mode": "コンパクトモードにする"
+  "change_compact_mode": "コンパクトモードにする",
+  "reaction_button_settings": "リアクションボタン設定",
+  "bookmark": "ブックマーク",
+  "show_counts": "カウンターを表示"
 }

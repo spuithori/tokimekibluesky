@@ -9,7 +9,7 @@
         globalUnique,
         isAfterReload,
         isColumnModalOpen,
-        isMobileDataConnection, listAddModal, missingAccounts,
+        isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, missingAccounts,
         profileStatus,
         settings,
         singleColumn,
@@ -38,6 +38,7 @@
     import {builtInThemes} from "$lib/builtInThemes";
     import {defaultColors} from "$lib/defaultColors";
     import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
+    import ReactionButtonSettingsModal from "$lib/components/settings/ReactionButtonSettingsModal.svelte";
 
     let loaded = false;
   let wrap;
@@ -386,6 +387,10 @@
       <OfficialListAddObserver></OfficialListAddObserver>
     {/if}
 
+    {#if $isReactionButtonSettingsModalOpen}
+      <ReactionButtonSettingsModal></ReactionButtonSettingsModal>
+    {/if}
+
     <NotificationCountObserver></NotificationCountObserver>
   {:else}
     <div>
@@ -425,6 +430,7 @@
   .sidebar {
       .main {
           width: 100%;
+          min-width: 0;
       }
   }
 

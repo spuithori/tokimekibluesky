@@ -10,6 +10,7 @@
     import Avatar from "./Avatar.svelte";
     import UserItem from "./profile/[handle]/UserItem.svelte";
     import {createEventDispatcher} from "svelte";
+    import TimelineItem from "./TimelineItem.svelte";
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
@@ -153,8 +154,6 @@
             });
             notifications = notifications;
         }
-
-        //console.log(notifications)
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
@@ -229,7 +228,31 @@
   <div class="notifications-list">
     {#each notifications as item, index (item)}
       {#if (filter.includes(item.reason))}
-        {#if (item.reason !== 'follow')}
+        {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+          {#if item.feedThis}
+            <TimelineItem {_agent} data={{post: item.feedThis}}></TimelineItem>
+          {/if}
+        {:else if (item.reason === 'follow')}
+          <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
+            <div class="notifications-item__contents">
+              <h2 class="notifications-item__title">
+              <span class="notifications-item__name">
+                <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
+                  <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+              </ProfileCardWrapper>
+              </span> {$_('followed_you')}
+              </h2>
+
+              {#if (item.author.description)}
+                <p class="notifications-item__description">{item.author.description}</p>
+              {/if}
+            </div>
+
+            <div class="notifications-item__buttons">
+              <UserItem user={item.author} layout={'notification'} {_agent}></UserItem>
+            </div>
+          </article>
+        {:else}
           <article class="notifications-item notifications-item--{item.reason}">
             {#if (!item.isRead)}
               <div class="notifications-new" aria-label="New Notification"></div>
@@ -242,7 +265,7 @@
                           handle={item.author.handle} {_agent}></Avatar>
                 {/if}
               </div>
-              
+
               <div class="notification-column__content">
                 <h2 class="notifications-item__title">
                 <span class="notifications-item__name">
@@ -266,56 +289,7 @@
                 {#if (item.reason === 'quote' && item.feed)}
                   <p class="notifications-item__quote">{item.feed.record.text}</p>
                 {/if}
-
-                {#if item.feedThis}
-                  <div class="timeline-reaction timeline-reaction--notification">
-                    <Reply
-                        post={item.feedThis}
-                        reply={item.feedThis.record.reply}
-                        count={item.feedThis.replyCount}
-                        {_agent}
-                    ></Reply>
-
-                    <Repost
-                        cid={item.feedThis.cid}
-                        uri={item.feedThis.uri}
-                        repostViewer={item.feedThis.viewer?.repost}
-                        count={item.feedThis.repostCount}
-                        {_agent}
-                        on:repost={(event) => {handleRepost(event, index)}}
-                    ></Repost>
-
-                    <Like
-                        cid={item.feedThis.cid}
-                        uri={item.feedThis.uri}
-                        likeViewer={item.feedThis.viewer?.like}
-                        count={item.feedThis.likeCount}
-                        {_agent}
-                        on:like={(event) => {handleLike(event, index)}}
-                    ></Like>
-                  </div>
-                {/if}
               </div>
-            </div>
-          </article>
-        {:else}
-          <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
-            <div class="notifications-item__contents">
-              <h2 class="notifications-item__title">
-              <span class="notifications-item__name">
-                <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
-                  <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
-              </ProfileCardWrapper>
-              </span> {$_('followed_you')}
-              </h2>
-
-              {#if (item.author.description)}
-                <p class="notifications-item__description">{item.author.description}</p>
-              {/if}
-            </div>
-
-            <div class="notifications-item__buttons">
-              <UserItem user={item.author} layout={'notification'} {_agent}></UserItem>
             </div>
           </article>
         {/if}
@@ -401,7 +375,7 @@
       }
 
       &--reply {
-          background-color: var(--notification-highlight-color);
+          /* background-color: var(--notification-highlight-color); */
           margin-left: -16px;
           margin-right: -16px;
           padding-left: 16px;
@@ -516,7 +490,7 @@
 
   .notification-column {
       display: grid;
-      grid-template-columns: 40px 1fr;
-      gap: 10px;
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
   }
 </style>

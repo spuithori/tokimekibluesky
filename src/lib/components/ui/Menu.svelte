@@ -64,6 +64,7 @@
         use:floatingContent
         on:outroend={handleOutroEnd}
     >
+      <slot name="sub"></slot>
       <slot name="content"></slot>
     </nav>
   {/if}
