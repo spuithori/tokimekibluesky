@@ -8,17 +8,16 @@ import FilePondPluginImageResize from 'filepond-plugin-image-resize';
 import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
 import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
-import { fade, fly } from 'svelte/transition';
+import { fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
-import { format, formatDistanceToNow, parseISO } from 'date-fns';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 import ja from 'date-fns/locale/ja/index';
 import {
-    type AppBskyFeedPost,
     RichText,
     AppBskyEmbedImages,
     AppBskyEmbedRecord,
     AppBskyEmbedRecordWithMedia,
-    AppBskyFeedDefs, AppBskyEmbedExternal
+    AppBskyEmbedExternal
 } from '@atproto/api';
 import toast from 'svelte-french-toast'
 import { goto } from '$app/navigation';
@@ -34,6 +33,10 @@ import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
 import {getAccountIdByDid} from "$lib/util";
 import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
 
+import type { Draft } from '$lib/db';
+import type { SelfLabel } from '@atproto/api/dist/client/types/com/atproto/label/defs';
+import type { ProfileViewBasic } from '@atproto/api/dist/client/types/app/bsky/actor/defs';
+
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
 registerPlugin(FilePondPluginFileValidateSize);
@@ -46,15 +49,14 @@ let publishContent = '';
 let isTextareaEnabled = false;
 let isPublishEnabled = false;
 let isAccountSelectDisabled = false;
-let files: any[] = [];
 let pond: any;
 let name = 'filepond';
 let isFocus = false;
 let publishArea: HTMLTextAreaElement;
-let timer;
+let timer: ReturnType<typeof setTimeout> | undefined;
 let links: string[] = [];
 let externalImageBlob: Blob;
-let searchActors = [];
+let searchActors: ProfileViewBasic[] = [];
 let isContinueMode = false;
 let isPublishUploadClose = false;
 let isDraftModalOpen = false;
@@ -62,9 +64,10 @@ let isAltModalOpen = false;
 let isEmojiPickerOpen = false;
 let isLinkCardAdding = false;
 let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
-const isMobile = navigator.userAgentData ? navigator.userAgentData.mobile : false;
-const isVirtualKeyboardSupported = 'virtualKeyboard' in navigator;
-if (isVirtualKeyboardSupported) {
+
+const isMobile = navigator?.userAgentData?.mobile || false;
+
+if ('virtualKeyboard' in navigator) {
     navigator.virtualKeyboard.overlaysContent = true;
 }
 
@@ -85,7 +88,7 @@ let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
 let embedExternal: AppBskyEmbedExternal.Main | undefined;
 let isPublishFormExpand = false;
 
-let lang =[];
+let lang: string[] = [];
 
 let langSettings = [
     {
@@ -126,8 +129,8 @@ const selfLabelsChoices = [
     },
 ];
 
-let selfLabels = [];
-let currentSelfLabel = undefined;
+let selfLabels: SelfLabel[] = [];
+let currentSelfLabel: SelfLabel | undefined = undefined;
 let isSelfLabelingMenuOpen = false;
 
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
@@ -200,7 +203,7 @@ const publishKeypress = (e: { keyCode: number; ctrlKey: any; metaKey: any; }) =>
     }
 };
 
-async function detectRichText(text) {
+async function detectRichText(text: string) {
     const rt = new RichText({text: text});
     await rt.detectFacets(_agent.agent);
 
@@ -236,7 +239,7 @@ function onClose() {
     }
 }
 
-function handlePopstate(e) {
+function handlePopstate(e: PopStateEvent) {
     if (isFocus) {
         isFocus = false;
         publishArea.blur();
@@ -247,11 +250,7 @@ function onBlur() {
     //isFocus = false;
 }
 
-function close() {
-    isFocus = false;
-}
-
-async function onFileAdded(file: any) {
+function onFileAdded(_file: unknown) {
     isPublishEnabled = true;
 }
 
@@ -270,12 +269,12 @@ async function onFileSelected(file: any, output: any) {
     isPublishEnabled = false;
 }
 
-async function onFileDeleted(error: any, file: any) {
+function onFileDeleted(_error: any, file: any) {
     images = images.filter((image) => image.id !== file.id );
     images = images;
 }
 
-async function onFileReordered(files, origin, target) {
+async function onFileReordered(files: { id: string }[], _origin: unknown, _target: unknown) {
     const sorter = files.map(file => file.id);
     images.sort((a, b) => {
         return sorter.indexOf(a.id) - sorter.indexOf(b.id);
@@ -297,13 +296,6 @@ function handleKeydown(event: { key: string; }) {
     if (event.key === 'Escape' && isFocus) {
         onClose();
     }
-}
-
-async function getDidByHandle(did: string) {
-    const data = await _agent.agent.api.com.atproto.repo.describeRepo(
-        { repo: did }
-    );
-    return data.data.did;
 }
 
 async function getReplyRefByUri() {
@@ -483,7 +475,7 @@ async function saveDraft() {
     }
 }
 
-function handleDraftUse(event) {
+function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
     isDraftModalOpen = false;
 
     publishContent = '';
@@ -527,7 +519,7 @@ function handleDraftUse(event) {
     }
 }
 
-function handleAltClose(event) {
+function handleAltClose(event: CustomEvent<{ images: BeforeUploadImage[] }>) {
     images = event.detail.images;
     isAltModalOpen = false;
     onFocus();
@@ -541,7 +533,7 @@ async function languageDetect(text = publishContent) {
                 text: text,
             })
         });
-        const langs: [] = await res.json() as [];
+        const langs = await res.json() as { lang: string; }[];
 
         if (langs.length) {
             lang = langs.map(lg => lg.lang);
@@ -596,7 +588,7 @@ onMount(async () => {
         isTextareaEnabled = true;
         isPublishEnabled = true;
 
-        if (!publishContent) {
+        if (!publishContent && !images.length) {
             isTextareaEnabled = false;
             isPublishEnabled = false;
             return false;
@@ -652,8 +644,12 @@ onMount(async () => {
             }
         }
 
-        const rt = new RichText({text: publishContent});
-        await rt.detectFacets(_agent.agent);
+        let rt: RichText | undefined;
+
+        if (publishContent) {
+            rt = new RichText({text: publishContent});
+            await rt.detectFacets(_agent.agent);
+        }
 
         if (!$settings.langSelector || $settings.langSelector === 'auto') {
             await languageDetect(publishContent);
@@ -677,8 +673,8 @@ onMount(async () => {
                 { repo: _agent.did() },
                 {
                     embed: embed,
-                    facets: rt.facets,
-                    text: rt.text,
+                    facets: rt ? rt.facets : undefined,
+                    text: rt ? rt.text : '',
                     createdAt: new Date().toISOString(),
                     reply: shortReplyRef,
                     via: 'TOKIMEKI',
@@ -691,14 +687,14 @@ onMount(async () => {
             );
             toast.success($_('success_to_post'));
         } catch (error) {
-            console.log(error.message)
-            toast.error($_('failed_to_post') + ':' + error.message);
+            console.error((error as Error).message);
+            toast.error($_('failed_to_post') + ':' + (error as Error).message);
             isTextareaEnabled = false;
             isPublishEnabled = false;
-            throw new Error(error);
+            throw error;
         }
 
-        if (Array.isArray(rt.facets)) {
+        if (rt && Array.isArray(rt.facets)) {
             try {
                 const dids: string[] = rt.facets.map(facet => {
                     if (facet.features[0].did) {
@@ -706,7 +702,7 @@ onMount(async () => {
                     }
                 }).filter(results => results !== undefined);
                 const promises = dids.map(did => _agent.agent.com.atproto.repo.describeRepo({repo: did}));
-                let actors = [];
+                let actors: { did: string; handle: string; isHistory: boolean; }[] = [];
 
                 await Promise.all(promises)
                     .then(ress => {

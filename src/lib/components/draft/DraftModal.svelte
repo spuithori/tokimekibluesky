@@ -9,6 +9,8 @@
     const dispatch = createEventDispatcher();
     import { format } from 'date-fns';
 
+    import type { Draft } from '$lib/db';
+
     export let _agent = $agent;
     
     $: drafts = liveQuery(async () => {
@@ -26,7 +28,7 @@
         dispatch('close');
     }
 
-    async function use(draft) {
+    async function use(draft: Draft) {
         try {
             const id = await db.drafts.delete(draft.id);
 
@@ -38,7 +40,7 @@
         }
     }
 
-    async function deleteDraft(draft) {
+    async function deleteDraft(draft: Draft) {
         try {
             const id = await db.drafts.delete(draft.id);
 
