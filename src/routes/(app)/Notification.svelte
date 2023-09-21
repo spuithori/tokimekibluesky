@@ -229,9 +229,7 @@
     {#each notifications as item, index (item)}
       {#if (filter.includes(item.reason))}
         {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-          {#if item.feedThis}
-            <TimelineItem {_agent} data={{post: item.feedThis}}></TimelineItem>
-          {/if}
+          <TimelineItem {_agent} data={{post: item.feedThis || item}}></TimelineItem>
         {:else if (item.reason === 'follow')}
           <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
             <div class="notifications-item__contents">
@@ -283,6 +281,8 @@
                 {:else}
                   {#if (item.feed)}
                     <p class="notifications-item__content">{item.feed.record.text}</p>
+                  {:else}
+                    <p class="notifications-item__content"></p>
                   {/if}
                 {/if}
 
@@ -330,6 +330,7 @@
 
       &__content {
           font-size: 14px;
+          height: 21px;
       }
 
       &__quote {

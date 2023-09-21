@@ -42,6 +42,7 @@
 
   <div class="settings-wrap">
     <p class="active-codes">{$_('active_codes')}: {activeCodes}</p>
+    <p>APIの仕様変更により、招待コードの一覧はアプリパスワードでログインしている場合は取得できなくなりました。<br>Due to API specification changes, the list of invitation codes can no longer be retrieved when logged in with the app password.</p>
 
     <div class="invite-codes">
       {#each codes as code}
