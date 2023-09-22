@@ -133,12 +133,28 @@
       bottom: 0;
       display: flex;
       gap: var(--decks-gap);
-      overflow-x: scroll;
+      overflow-x: auto;
       padding: var(--decks-padding) 0;
       height: 100dvh;
+      scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
 
       &::-webkit-scrollbar {
-          display: none;
+          /* display: none; */
+          height: 6px;
+
+          @media (max-width: 767px) {
+              display: none;
+          }
+      }
+
+      &::-webkit-scrollbar-thumb {
+          background: var(--scroll-bar-color);
+          border-radius: 3px;
+      }
+
+      &::-webkit-scrollbar-track {
+          background: var(--scroll-bar-bg-color);
+          border-radius: 3px;
       }
 
       @media (max-width: 767px) {
