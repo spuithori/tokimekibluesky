@@ -1,0 +1,63 @@
+<script lang="ts">
+    import { _ } from 'svelte-i18n';
+    import type { LayoutData } from '../$types';
+    import {agent} from "$lib/stores";
+    import InfiniteLoading from 'svelte-infinite-loading';
+    import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
+    import {onMount} from "svelte";
+    let feeds = [];
+    let cursor: string | undefined = '';
+    let savedFeeds = [];
+
+    export let data: LayoutData;
+
+    async function getSavedFeeds () {
+        const preferenceRes = await $agent.agent.api.app.bsky.actor.getPreferences()
+        const preference = preferenceRes.data.preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')
+        savedFeeds = preference[0]?.saved || [];
+    }
+
+    function isSaved(feed) {
+        const uri = feed.uri;
+        return savedFeeds.includes(uri);
+    }
+
+    async function handleLoadMore({ detail: { loaded, complete } }) {
+        let raw = await $agent.agent.api.app.bsky.feed.getActorFeeds({actor: data.params.handle, limit: 20, cursor: cursor});
+        cursor = raw.data.cursor;
+
+        if (cursor) {
+            feeds = [...feeds, ...raw.data.feeds];
+
+            loaded();
+        } else {
+            complete();
+        }
+    }
+
+    onMount(async () => {
+        await getSavedFeeds();
+    })
+</script>
+
+<svelte:head>
+  <title>{data.params.handle} {$_('page_title_feeds')} - TOKIMEKI</title>
+</svelte:head>
+
+<div class="user-lists-list-wrap">
+  <div class="user-lists-list">
+    {#each feeds as feed (feed)}
+      <FeedsItem {feed} subscribed={isSaved(feed)}></FeedsItem>
+    {/each}
+  </div>
+
+  <InfiniteLoading on:infinite={handleLoadMore}>
+    <p slot="noMore" class="infinite-nomore">もうないよ</p>
+  </InfiniteLoading>
+</div>
+
+<style lang="postcss">
+    .user-lists-list-wrap {
+        padding: 16px;
+    }
+</style>

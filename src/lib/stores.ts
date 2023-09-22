@@ -92,6 +92,8 @@ const defaultSettings = {
     general: {
         language: window.navigator.language,
         disableAlgorithm: false,
+        repostConfirmSkip: false,
+        deleteConfirmSkip: false,
     },
     design: {
         skin: 'default',

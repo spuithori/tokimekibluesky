@@ -65,10 +65,16 @@
 }
 
 .modal-text {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    color: var(--text-color-1);
 
     &--center {
         text-align: center;
+    }
+
+    svg {
+        display: inline-block;
+        vertical-align: middle;
     }
 }
 

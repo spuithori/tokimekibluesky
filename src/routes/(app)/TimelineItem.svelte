@@ -1,14 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {
-        agent,
-        quotePost,
-        settings,
-        isPreventEvent,
-        reportModal,
-        columns, sideState, isPublishInstantFloat, didHint, pulseDelete,
-        isReactionButtonSettingsModalOpen, listAddModal
-    } from '$lib/stores';
+    import {agent, settings, isPreventEvent, reportModal, columns, didHint, pulseDelete, isReactionButtonSettingsModalOpen, listAddModal} from '$lib/stores';
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
     import pt from 'date-fns/locale/pt-BR/index';
@@ -24,6 +16,7 @@
     import {translate} from "$lib/translate";
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
     import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
+    import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
 
     export let _agent = $agent;
     export let data: AppBskyFeedDefs.FeedViewPost;
@@ -32,17 +25,28 @@
     export let isThread: boolean = false;
     export let isMedia: boolean = false;
     export let isProfile: boolean = false;
-
-    let selectionText = '';
-
     export let column = undefined;
     export let index = 0;
+
+    let selectionText = '';
+    let dialog;
+    let isDialogRender = false;
+
+    $: {
+        if (dialog) {
+            dialog.open();
+        }
+    }
 
     let isMenuOpen = false;
     let dateFnsLocale: Locale;
 
     let isShortCutNumberShown = false;
     let isTranslated = false;
+
+    if (!$settings.general.deleteConfirmSkip) {
+        $settings.general.deleteConfirmSkip = false;
+    }
 
     const keycodeNumbers = [
         49,
@@ -59,9 +63,6 @@
     const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
       return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
     }
-
-    let voteFunc;
-    let repostFunc;
 
     if ($settings.general.language === 'ja' || window.navigator.language === 'ja-JP') {
         dateFnsLocale = ja;
@@ -211,6 +212,14 @@
         }
     }
 
+    function deletePostStep() {
+        if ($settings.general.deleteConfirmSkip) {
+            deletePost(data.post.uri)
+        } else {
+            isDialogRender = true;
+        }
+    }
+
     let keys = [];
 
     function handleKeydown(event) {
@@ -248,7 +257,7 @@
     }
 
     function handleClick(event) {
-        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external') || event.target.closest('.likes-wrap')) {
+        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external') || event.target.closest('.likes-wrap') || event.target.closest('.dialog-modal')) {
             return false;
         }
 
@@ -388,7 +397,7 @@
       <ul class="timeline-menu-list" slot="content">
         {#if (data.post.author.did === _agent.did())}
           <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-            <button class="timeline-menu-list__button" on:click={() => {deletePost(data.post.uri)}}>
+            <button class="timeline-menu-list__button" on:click={deletePostStep}>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
               <span class="text-danger">{$_('delete_post')}</span>
             </button>
@@ -453,6 +462,19 @@
         <p>langs: {data.post.record?.langs ?? ' '}</p>
         <p>via: {data.post.record?.via ?? ' '}</p>
       </div>
+    {/if}
+
+    {#if (isDialogRender)}
+      <ConfirmModal
+          bind:this={dialog}
+          on:ok={() => {deletePost(data.post.uri)}}
+          on:cancel={() => {isDialogRender = false}}
+          confirmationName="deleteConfirmSkip"
+          yesText="{$_('delete')}"
+          cancelText="{$_('cancel')}"
+      >
+        <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
+      </ConfirmModal>
     {/if}
   </article>
 {/if}

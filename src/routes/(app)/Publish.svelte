@@ -839,7 +839,7 @@ function handleAgentSelect(event) {
           </svg>
           </button>
 
-          <div class="timeline-external timeline-external--record">
+          <div class="timeline-external timeline-external--record timeline-external--record-publish">
             <div class="timeline-external__image timeline-external__image--round">
               {#if ($quotePost.author.avatar)}
                 <img src="{$quotePost.author.avatar}" alt="">
@@ -899,7 +899,7 @@ function handleAgentSelect(event) {
           </svg>
           </button>
 
-          <div class="timeline-external timeline-external--record">
+          <div class="timeline-external timeline-external--record timeline-external--record-publish">
             <div class="timeline-external__image timeline-external__image--round">
               {#if ($replyRef.data.parent.author.avatar)}
                 <img src="{$replyRef.data.parent.author.avatar}" alt="">
@@ -1538,16 +1538,6 @@ function handleAgentSelect(event) {
             top: auto;
             left: auto;
             width: 100%;
-        }
-    }
-
-    .temp-yu {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-
-        @media (max-width: 767px) {
-            display: none;
         }
     }
 

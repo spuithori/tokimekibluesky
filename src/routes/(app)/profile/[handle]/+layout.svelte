@@ -38,18 +38,6 @@
             })
     }
 
-    /* async function load(handle = $page.params.handle, isFlash = true) {
-        if (isFlash) {
-            profile = undefined;
-        }
-
-        const res = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
-        profile = res.data;
-
-        textArray = new RichText({text: profile.description});
-        await textArray.detectFacets($agent.agent);
-    } */
-
     function onProfileUpdate() {
         handleRefresh();
     }
@@ -70,6 +58,9 @@
                 break;
             case 'likes':
                 currentPage = 'likes';
+                break;
+            case 'feed':
+                currentPage = 'feed';
                 break;
             case 'lists':
                 currentPage = 'lists';
@@ -133,6 +124,7 @@
         <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
         <li class="profile-tab__item" on:click={() => currentPage = 'media'} class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{$_('media')}</a></li>
         <li class="profile-tab__item" on:click={() => currentPage = 'likes'} class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
+        <li class="profile-tab__item" on:click={() => currentPage = 'feed'} class:profile-tab__item--active={currentPage === 'feed'}><a href="/profile/{data.params.handle}/feed" data-sveltekit-noscroll>{$_('feeds')}</a></li>
         <li class="profile-tab__item" on:click={() => currentPage = 'lists'} class:profile-tab__item--active={currentPage === 'lists'}><a href="/profile/{data.params.handle}/lists" data-sveltekit-noscroll>{$_('lists')}</a></li>
       </ul>
 
@@ -144,10 +136,6 @@
 <style lang="postcss">
     .user-profile-wrap {
         padding: 16px;
-    }
-
-    .profile {
-
     }
 
     .profile-relationship__item span {

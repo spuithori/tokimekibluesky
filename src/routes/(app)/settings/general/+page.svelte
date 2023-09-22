@@ -114,5 +114,29 @@ $: {
         </div>
       </dd>
     </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('skip_repost_confirm')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="repostConfirmSetting" bind:checked={$settings.general.repostConfirmSkip}><label class="input-toggle__label" for="repostConfirmSetting"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('skip_delete_confirm')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="deleteConfirmSetting" bind:checked={$settings.general.deleteConfirmSkip}><label class="input-toggle__label" for="deleteConfirmSetting"></label>
+        </div>
+      </dd>
+    </dl>
   </div>
 </div>

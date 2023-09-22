@@ -426,5 +426,13 @@
   "change_compact_mode": "Change compact layout",
   "reaction_button_settings": "Reaction Buttons...",
   "bookmark": "Bookmark",
-  "show_counts": "Display Counter"
+  "show_counts": "Display Counter",
+  "skip_confirmation_text": "Don't show again",
+  "repost_confirm_title": "Do you want to repost/un-repost?",
+  "repost_confirm_text_1": "Quotations can be made via the",
+  "repost_confirm_text_2": "button.",
+  "delete_confirm_title": "Do you want to delete?",
+  "delete": "Delete",
+  "skip_repost_confirm": "Do not check when repost",
+  "skip_delete_confirm": "Do not check when deleting a post"
 }

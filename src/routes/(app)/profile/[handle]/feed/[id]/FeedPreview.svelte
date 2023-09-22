@@ -20,10 +20,9 @@
               algorithm: uri,
           }});
       cursor = res.data.cursor;
+      timeline = [...timeline, ...res.data.feed]
 
       if (cursor) {
-          timeline = [...timeline, ...res.data.feed]
-
           loaded();
       } else {
           complete();

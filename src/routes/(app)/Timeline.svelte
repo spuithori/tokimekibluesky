@@ -19,10 +19,9 @@
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
       const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm});
       column.data.cursor = res.data.cursor;
+      column.data.feed = [...column.data.feed, ...res.data.feed];
 
       if (column.data.cursor) {
-          column.data.feed = [...column.data.feed, ...res.data.feed];
-
           loaded();
       } else {
           complete();
