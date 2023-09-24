@@ -52,17 +52,17 @@
 
 <style lang="postcss">
   .dialog-modal {
+      margin: auto;
+      appearance: none;
+      background-color: transparent;
+      border: none;
+
       &::backdrop {
           background-color: rgba(0, 0, 0, .6);
       }
   }
 
   .dialog-modal-contents {
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
       width: 100%;
       height: max-content;
       max-width: 300px;
