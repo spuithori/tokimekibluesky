@@ -29,29 +29,31 @@
         </div>
       {/if}
 
-      <div
-          class="thread-item"
-          data-depth={depth}
-          bind:this={item}
-          class:is-root={!feeds[0].post.record.reply}
-          class:is-final={data.post.replyCount === 0}
-          class:has-child={data.post.replyCount > 0}
-          class:is-author-child={data.post.record.reply?.root ? data.post.author.did === data.post.record.reply.root.uri.split('/')[2] : false}
-      >
-        {#if (!data.blocked)}
+      {#if (!data.blocked)}
+        <div
+            class="thread-item"
+            data-depth={depth}
+            bind:this={item}
+            class:is-root={!feeds[0].post.record.reply}
+            class:is-final={data.post.replyCount === 0}
+            class:has-child={data.post.replyCount > 0}
+            class:is-author-child={data.post.record.reply?.root ? data.post.author.did === data.post.record.reply.root.uri.split('/')[2] : false}
+        >
           <TimelineItem data={data} isSingle={true} isThread={true} column={column} {_agent}>
             {#if (data.post.likeCount > 0)}
               <Likes uri={data.post.uri}></Likes>
             {/if}
           </TimelineItem>
-        {:else}
-          <p class="thread-blocked">{$_('error_get_posts_because_blocked_or_blocking')}</p>
-        {/if}
 
-        {#if (data.post.replyCount > 0 && depth === 6)}
-          <a href={'/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
-        {/if}
-      </div>
+          {#if (data.post.replyCount > 0 && depth === 6)}
+            <a href={'/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
+          {/if}
+        </div>
+      {:else}
+        <article class="timeline-hidden-item">
+          <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
+        </article>
+      {/if}
 
       {#if (data.replies?.length)}
         <div class="thread-replies">
