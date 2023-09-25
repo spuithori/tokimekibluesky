@@ -1,13 +1,14 @@
 <script>
     import {_} from "svelte-i18n";
-    import { fade, fly } from 'svelte/transition';
-    import { createEventDispatcher } from 'svelte';
+    import { fly } from 'svelte/transition';
+    import {createEventDispatcher, onMount} from 'svelte';
     import { agent } from "$lib/stores";
     const dispatch = createEventDispatcher();
     import InfiniteLoading from 'svelte-infinite-loading';
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
 
     export let uri;
+    let el;
     let likes = [];
     let cursor;
 
@@ -32,11 +33,16 @@
     }
 
     function close() {
+        el.close();
         dispatch('close');
     }
+
+    onMount(() => {
+        el.showModal();
+    })
 </script>
 
-<div class="likes-modal" transition:fly="{{ y: 30, duration: 250 }}">
+<dialog class="likes-modal" transition:fly="{{ y: 30, duration: 250 }}" bind:this={el} on:close={close}>
   <div class="likes-modal-contents">
     <h2 class="likes-modal-title">{$_('liked_users')}</h2>
 
@@ -58,27 +64,16 @@
   </div>
 
   <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
-</div>
+</dialog>
 
 <style lang="postcss">
     .likes-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        z-index: 9999;
-        background-color: rgba(0, 0, 0, .5);
-        overflow: auto;
-        padding: 50px 0;
+        border: none;
+        background-color: transparent;
+        margin: auto;
 
-        @media (max-width: 767px) {
-            display: block;
-            overscroll-behavior-y: none;
-            padding: 20px;
+        &::backdrop {
+            background-color: rgba(0, 0, 0, .6);
         }
     }
 
