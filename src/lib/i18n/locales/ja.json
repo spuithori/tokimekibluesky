@@ -438,5 +438,9 @@
   "skip_delete_confirm": "投稿削除時に確認しない",
   "profile_posts_nav": "フィルター設定",
   "profile_posts_nav_all": "すべて",
-  "profile_posts_nav_filtered": "リポストとリプライをのぞく"
+  "profile_posts_nav_filtered": "リポストとリプライをのぞく",
+  "show_screenshots": "スクリーンショットをみる",
+  "login_box_text_1_1": "TOKIMEKIは、マルチカラム・マルチアカウントに対応した",
+  "login_box_text_1_2": "ブラウザクライアントです。",
+  "login_box_text_2": "PWAに対応しており、モバイルでアプリのように使用することもできます。"
 }

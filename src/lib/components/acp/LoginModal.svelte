@@ -30,19 +30,10 @@ async function login() {
             notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
         });
 
-        const res = await agent.api.app.bsky.actor.getProfile({actor: agent.session.did});
-        const avatar = res.data.avatar || '';
-
-        const aid = await accountsDb.accounts.update(id, {
-            avatar: avatar
-        });
-
         dispatch('success', {
             id: id,
         });
     } catch (e) {
-        //errorMessage = e.message;
-
         if (e.name === 'ConstraintError') {
             toast.error($_('login_duplicate_account'));
         } else {

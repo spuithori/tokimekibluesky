@@ -74,7 +74,7 @@
   "about_text1": "TOKIMEKI Bluesky is an unofficial web application of Bluesky.\nIt is under development and may encounter unexpected bugs. Please use at your own risk and send us your feedback!",
   "about_text2": "Feedback",
   "author": "Author",
-  "about_subhead": "Let our feelings echo in this sky!!",
+  "about_subhead": "Thrill resonate in the Bluesky!!",
   "push_toggle_switch": "Enable push notifications",
   "push_notes": "Notes",
   "push_text_1": "The following information is sent to the database",
@@ -437,5 +437,9 @@
   "skip_delete_confirm": "Do not check when deleting a post",
   "profile_posts_nav": "Filtering",
   "profile_posts_nav_all": "All",
-  "profile_posts_nav_filtered": "Except for reposts and replies"
+  "profile_posts_nav_filtered": "Except for reposts and replies",
+  "show_screenshots": "Show Screenshots",
+  "login_box_text_1_1": "TOKIMEKI is a ",
+  "login_box_text_1_2": " browser client with multi-column and multi-account support.",
+  "login_box_text_2": "It is PWA compliant and can be used like an app on mobile devices."
 }
