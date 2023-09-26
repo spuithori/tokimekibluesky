@@ -435,5 +435,8 @@
   "delete_confirm_title": "削除するんだね？",
   "delete": "削除",
   "skip_repost_confirm": "リポスト時に確認しない",
-  "skip_delete_confirm": "投稿削除時に確認しない"
+  "skip_delete_confirm": "投稿削除時に確認しない",
+  "profile_posts_nav": "フィルター設定",
+  "profile_posts_nav_all": "すべて",
+  "profile_posts_nav_filtered": "リポストと他人宛リプライをのぞく"
 }

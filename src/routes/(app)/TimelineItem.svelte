@@ -83,11 +83,11 @@
     let isHide;
     let isReplyHide;
 
-    let hideReply = column && column.settings?.timeline.hideReply
+    export let hideReply = column && column.settings?.timeline.hideReply
                   ? column.settings?.timeline.hideReply
                   : $settings.timeline?.hideReply || 'all';
 
-    let hideRepost = column && column.settings?.timeline.hideRepost
+    export let hideRepost = column && column.settings?.timeline.hideRepost
             ? column.settings?.timeline.hideRepost
             : $settings.timeline?.hideRepost || 'all';
 

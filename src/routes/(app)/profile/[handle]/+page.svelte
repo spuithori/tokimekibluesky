@@ -1,7 +1,6 @@
 <script lang="ts">
 import type { LayoutData } from './$types';
-import {onMount} from 'svelte';
-import {agent, columns, isAfterReload, settings} from '$lib/stores';
+import {agent, isAfterReload, settings} from '$lib/stores';
 import TimelineItem from "../../TimelineItem.svelte";
 import {_} from 'svelte-i18n';
 import type { Snapshot } from './$types';
@@ -10,10 +9,10 @@ import InfiniteLoading from "svelte-infinite-loading";
 
 export let data: LayoutData;
 
-let stickyPost;
 let feeds = [];
 let cursor = '';
 let scrollY = 0;
+let isFiltered = false;
 
 export const snapshot: Snapshot = {
     capture: () => [feeds, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
@@ -58,55 +57,67 @@ const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         }
     }
 }
-
-onMount(async () => {
-    /* const res = await $agent.agent.api.com.atproto.repo.getRecord({repo: data.params.handle, collection: 'app.bsky.actor.profile', rkey: 'self'});
-    if (res.data.value?.stickyPost) {
-        const record = await $agent.getFeed(res.data.value.stickyPost);
-        stickyPost = record;
-    } */
-})
 </script>
 
 <svelte:head>
   <title>{data.params.handle} - TOKIMEKI</title>
 </svelte:head>
 
-<div>
-  {#if stickyPost}
-    <!-- <div class="sticky">
-      <p class="sticky-text">{$_('sticky_post')}</p>
-      <TimelineItem data={ stickyPost } isPrivate={ true }></TimelineItem>
-    </div> -->
-  {/if}
+<div class="timeline">
+  <dl class="profile-posts-nav">
+    <dt class="profile-posts-nav__name">{$_('profile_posts_nav')}: </dt>
+    <dd class="profile-posts-nav__content">
+      <button class="profile-posts-nav__button" on:click={() => {isFiltered = false}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
+      <button class="profile-posts-nav__button" on:click={() => {isFiltered = true}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
+    </dd>
+  </dl>
 
-  <div class="timeline">
+  {#key isFiltered}
     {#each feeds as data, index}
-      <TimelineItem data={ data } isPrivate={ true } isProfile={ true } index={index}></TimelineItem>
+      <TimelineItem
+          data={data}
+          isPrivate={true}
+          isProfile={true}
+          index={index}
+          hideReply={isFiltered ? 'me' : 'all'}
+          hideRepost={isFiltered ? 'none' : 'all'}
+      ></TimelineItem>
     {/each}
+  {/key}
 
-    <InfiniteLoading on:infinite={handleLoadMore}>
-      <p slot="noMore" class="infinite-nomore">もうないよ</p>
-    </InfiniteLoading>
-  </div>
+  <InfiniteLoading on:infinite={handleLoadMore}>
+    <p slot="noMore" class="infinite-nomore">もうないよ</p>
+  </InfiniteLoading>
 </div>
 
 <style lang="postcss">
-  .sticky {
-      background-color: var(--bg-color-1);
-      box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
-      border: 2px solid var(--primary-color);
-      padding: 20px 20px 10px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      position: relative;
-
-      @media (max-width: 767px) {
-          margin: 0 -15px 20px;
-      }
-  }
-
-  .sticky-text {
+  .profile-posts-nav {
+      display: flex;
+      align-items: center;
       color: var(--text-color-3);
+      font-size: 14px;
+      gap: 8px;
+      margin-bottom: 16px;
+
+      &__content {
+          display: flex;
+          gap: 4px;
+      }
+
+      &__button {
+          display: flex;
+          align-items: center;
+          padding: 0 8px;
+          border: 1px solid var(--primary-color);
+          height: 28px;
+          border-radius: 14px;
+          font-size: 12px;
+          color: var(--primary-color);
+
+          &--active {
+              background-color: var(--primary-color);
+              color: var(--bg-color-1);
+          }
+      }
   }
 </style>
