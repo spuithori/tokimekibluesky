@@ -1,6 +1,5 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
-  import { fly } from 'svelte/transition';
   import type {LayoutData} from "./$types";
   import {page} from "$app/stores";
 
@@ -184,8 +183,7 @@
 
       <div class="settings-content">
         {#key data.pathname}
-          <div class="settings-content-container" in:fly={{ x: 25, duration: 100, delay: 100 }}
-               out:fly={{ duration: 100 }}>
+          <div class="settings-content-container">
             <slot></slot>
           </div>
         {/key}
