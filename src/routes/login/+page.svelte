@@ -42,7 +42,7 @@
   <meta property="og:title" content="TOKIMEKI - Bluesky client project">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://tokimeki.blue">
-  <meta property="og:image" content="/login-bg.jpg">
+  <meta property="og:image" content="https://tokimeki.blue/login-bg.jpg">
   <meta property="og:description" content="TOKIMEKI is a Bluesky browser client with multi-column and multi-account support.">
 </svelte:head>
 
