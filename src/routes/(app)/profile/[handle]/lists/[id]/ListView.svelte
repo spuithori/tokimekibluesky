@@ -7,6 +7,7 @@
 
   export let id;
   export let handle;
+  export let title = '';
 
   let timeline = [];
   let cursor = undefined;
@@ -45,7 +46,7 @@
 
 {#if did}
   <div class="list-view-list-item">
-    <OfficialListItem uri={'at://' + did + '/app.bsky.graph.list/' + id}></OfficialListItem>
+    <OfficialListItem uri={'at://' + did + '/app.bsky.graph.list/' + id} bind:title={title}></OfficialListItem>
   </div>
 
   <div class="timeline timeline--main">

@@ -7,6 +7,7 @@
 
   export let id;
   export let handle;
+  export let title = '';
 
   let timeline = [];
   let cursor = undefined;
@@ -46,6 +47,7 @@
 
       if (res.data.isOnline) {
           feed = res.data.view;
+          title = feed.displayName;
       }
   })
 </script>

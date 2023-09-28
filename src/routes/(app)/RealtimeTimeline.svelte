@@ -53,6 +53,11 @@
 
             column.data.feed.forEach(item => item.post.indexedAt = item.post.indexedAt);
             column.data.feed = [thread, ...column.data.feed];
+
+            if (column.data.feed.length > 40) {
+                column.data.feed.pop();
+                column.data.feed = column.data.feed;
+            }
         } catch (e) {
             if (retryCount < 3) {
                 retryCount = retryCount + 1;

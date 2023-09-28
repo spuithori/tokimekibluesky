@@ -266,28 +266,17 @@
 
               <div class="notification-column__content">
                 <h2 class="notifications-item__title">
-                <span class="notifications-item__name">
-                  <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
-                    <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
-                  </ProfileCardWrapper>
-                </span> {$_(getReasonText(item.reason))}
-                  {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-                    ・<a href="/profile/{item.author.handle}/post/{item.uri.split('/').slice(-1)[0]}">{$_('show_thread')}</a>
-                  {/if}
+                  <span class="notifications-item__name">
+                    <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
+                      <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+                    </ProfileCardWrapper>
+                  </span> {$_(getReasonText(item.reason))}
                 </h2>
 
-                {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-                  <p class="notifications-item__content">{item.record.text}</p>
+                {#if (item.feed)}
+                  <p class="notifications-item__content">{item.feed.record.text}</p>
                 {:else}
-                  {#if (item.feed)}
-                    <p class="notifications-item__content">{item.feed.record.text}</p>
-                  {:else}
-                    <p class="notifications-item__content"></p>
-                  {/if}
-                {/if}
-
-                {#if (item.reason === 'quote' && item.feed)}
-                  <p class="notifications-item__quote">{item.feed.record.text}</p>
+                  <p class="notifications-item__content"></p>
                 {/if}
               </div>
             </div>
@@ -376,7 +365,6 @@
       }
 
       &--reply {
-          /* background-color: var(--notification-highlight-color); */
           margin-left: -16px;
           margin-right: -16px;
           padding-left: 16px;

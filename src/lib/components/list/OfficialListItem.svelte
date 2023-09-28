@@ -10,6 +10,7 @@
   export let _agent = $agent;
 
   export let list = undefined;
+  export let title = '';
   let items = [];
   export let uri = '';
   let isColumnAdded;
@@ -19,6 +20,7 @@
           .then(value => {
               list = value.data.list;
               items = value.data.items;
+              title = list.name;
           })
           .catch(e => {
               console.error(e);

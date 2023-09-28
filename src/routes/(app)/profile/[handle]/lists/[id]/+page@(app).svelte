@@ -1,7 +1,10 @@
 <script lang="ts">
+    import {_} from "svelte-i18n";
     import { page } from '$app/stores';
     import ListView from "./ListView.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
+
+    let title = '';
 </script>
 
 <PageModal>
@@ -12,7 +15,7 @@
       </button>
     </div>
 
-    <h1 class="column-heading__title">List</h1>
+    <h1 class="column-heading__title">{$_('lists')} - {title}</h1>
 
     <div class="column-heading__buttons column-heading__buttons--right">
       <a class="settings-back" href="/">
@@ -22,6 +25,6 @@
   </div>
 
   {#key $page.params.id}
-    <ListView id={$page.params.id} handle={$page.params.handle}></ListView>
+    <ListView id={$page.params.id} handle={$page.params.handle} bind:title={title}></ListView>
   {/key}
 </PageModal>
