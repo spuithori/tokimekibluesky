@@ -29,7 +29,7 @@
             } else {
                 const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
                 const elInitialPosition = el.scrollTop;
-                const topEl = el.querySelector('.timeline > .timeline__item:first-child');
+                const topEl = el.querySelector('.timeline__item');
 
                 await columns.update(_columns => {
                     _columns[index].data.feed = [...newFeeds, ...column.data.feed];
@@ -38,7 +38,7 @@
 
                 if (elInitialPosition === 0 && column.settings?.refreshToTop !== true) {
                     if (column.style !== 'media') {
-                        const offset = topEl.parentElement.getBoundingClientRect().top + 16;
+                        const offset = el.querySelector('.timeline').getBoundingClientRect().top + 16;
                         el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
                     }
                 }

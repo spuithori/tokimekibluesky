@@ -18,7 +18,7 @@
 
       const options = {
           root: column.scrollElement,
-          rootMargin: '500px',
+          rootMargin: '1000px',
           threshold: 0,
       }
       const observer = new IntersectionObserver(intersect, options)
