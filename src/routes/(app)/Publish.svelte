@@ -55,7 +55,7 @@ let isFocus = false;
 let publishArea: HTMLTextAreaElement;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let links: string[] = [];
-let externalImageBlob: Blob;
+let externalImageBlob: string = '';
 let searchActors: ProfileViewBasic[] = [];
 let isContinueMode = false;
 let isPublishUploadClose = false;
@@ -319,31 +319,22 @@ async function addLinkCard(uri: string) {
     isLinkCardAdding = true;
 
     try {
-        const res = await fetch(`/api/get-ogp`, {
-            method: 'post',
-            body: JSON.stringify({
-                uri: uri,
-            })
-        });
-        const data = await res.formData();
+        const res = await fetch('https://tokimeki-api.vercel.app/api/ogp?url=' + encodeURIComponent(uri));
+        const data = await res.json();
 
         embedExternal = {
             $type: 'app.bsky.embed.external',
             external: {
                 uri: uri,
-                title: data.get('title') as string,
-                description: data.get('description') as string,
+                title: data.title || '',
+                description: data.description || '',
             }
         }
 
-        const imageBlob = data.get('imageBlob');
-        if (imageBlob && typeof imageBlob !== 'string') {
-            externalImageBlob = imageBlob;
-
-            const res = await _agent.agent.api.com.atproto.repo.uploadBlob(imageBlob, {
-                encoding: 'image/jpeg',
-            });
-            embedExternal.external.thumb = res.data.blob;
+        if (data.imageBase64) {
+            externalImageBlob = data.imageBase64;
+        } else {
+            externalImageBlob = '';
         }
 
         isLinkCardAdding = false;
@@ -351,18 +342,6 @@ async function addLinkCard(uri: string) {
         toast.error('Error!' + e);
         isLinkCardAdding = false;
     }
-}
-
-async function getImageDataFromBlob(blob) {
-    let reader = new FileReader();
-    reader.readAsDataURL(blob);
-
-    await new Promise(resolve => {
-        reader.onload = (() => {
-            resolve();
-        });
-    });
-    return reader.result;
 }
 
 $: {
@@ -640,6 +619,19 @@ onMount(async () => {
             }
 
             if (embedExternal && !embedImages.images.length && !$quotePost?.uri) {
+                if (externalImageBlob) {
+                    try {
+                        const imageRes = await fetch(externalImageBlob);
+                        const blob = await imageRes.blob();
+
+                        const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
+                            encoding: 'image/jpeg',
+                        });
+                        embedExternal.external.thumb = res.data.blob;
+                    } catch (e) {
+                        toast.error(e);
+                    }
+                }
                 embed = embedExternal;
             }
         }
@@ -745,6 +737,7 @@ onMount(async () => {
         searchActors = [];
         embedImages.images = [];
         embedExternal = undefined;
+        externalImageBlob = '';
         selfLabels = [];
         $isPublishInstantFloat = false
         // const data = await _agent.getTimeline();
@@ -868,18 +861,15 @@ function handleAgentSelect(event) {
 
       {#if (embedExternal && !images.length && !$quotePost?.uri)}
         <div class="publish-quote publish-quote--external">
-          <button class="publish-quote__delete" on:click={() => {embedExternal = undefined}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
+          <button class="publish-quote__delete" on:click={() => {embedExternal = undefined; externalImageBlob = ''}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
             <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
           </svg>
           </button>
 
           <div class="timeline-external timeline-external--record">
             <div class="timeline-external__image">
-              {#if (embedExternal.external.thumb && externalImageBlob)}
-                {#await (getImageDataFromBlob(externalImageBlob))}
-                {:then thumb}
-                  <img src="{thumb}" alt="">
-                {/await}
+              {#if (externalImageBlob)}
+                <img src="{externalImageBlob}" alt="">
               {/if}
             </div>
 

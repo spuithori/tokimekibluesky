@@ -178,7 +178,7 @@
       <EmbedRecord record={post.embed.record} locale={locale} {moderateData}></EmbedRecord>
     {/if}
 
-    {#if (AppBskyEmbedRecordWithMedia.isView(post.embed) && AppBskyEmbedRecord.isViewRecord(post.embed.record.record)) }
+    {#if (AppBskyEmbedRecordWithMedia.isView(post.embed))}
       {#if (AppBskyEmbedImages.isView(post.embed.media))}
         <div class="timeline-images-wrap">
           <Images images={post.embed.media.images}></Images>
@@ -189,7 +189,9 @@
         <EmbedExternal external={post.embed.media.external}></EmbedExternal>
       {/if}
 
-      <EmbedRecord record={post.embed.record.record} locale={locale} {moderateData}></EmbedRecord>
+      {#if AppBskyEmbedRecord.isViewRecord(post.embed.record.record)}
+        <EmbedRecord record={post.embed.record.record} locale={locale} {moderateData}></EmbedRecord>
+      {/if}
     {/if}
   </div>
 
