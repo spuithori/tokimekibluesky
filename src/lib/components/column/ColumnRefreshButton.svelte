@@ -57,9 +57,9 @@
 
             if (elInitialPosition === 0 && column.settings?.refreshToTop !== true) {
                 if (column.style !== 'media') {
-                    /* const offset = el.querySelector('.timeline').getBoundingClientRect().top + 16;
-                    el.scrollTo(0, topEl.getBoundingClientRect().top - offset); */
-                    topEl.scrollIntoView(true);
+                    const offset = el.querySelector('.timeline').getBoundingClientRect().top + 16;
+                    el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
+                    //topEl.scrollIntoView(true);
                 }
             }
 

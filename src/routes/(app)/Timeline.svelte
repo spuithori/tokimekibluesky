@@ -33,7 +33,7 @@
   }
 </script>
 
-<div class="timeline timeline--nopt timeline--{column.style}">
+<div class="timeline timeline--{column.style}">
   {#if (column.style === 'default')}
     {#each column.data.feed as data, index (data)}
       <!-- <TimelineItemWrap data={ data } index={index} column={column} {_agent}></TimelineItemWrap> -->
