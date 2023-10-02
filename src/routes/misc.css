@@ -167,6 +167,14 @@
         }
     }
 
+    .timeline__item {
+        scroll-margin-top: 52px;
+
+        @media (max-width: 767px) {
+            scroll-margin-top: 100px;
+        }
+    }
+
     &.bottom {
         .deck-heading {
             transition: transform .2s ease-in-out;

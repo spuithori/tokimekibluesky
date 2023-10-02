@@ -19,7 +19,11 @@
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
       const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm});
       column.data.cursor = res.data.cursor;
-      column.data.feed = [...column.data.feed, ...res.data.feed];
+      const feed = res.data.feed.map(item => {
+          item.memoryCursor = res.data.cursor;
+          return item;
+      });
+      column.data.feed = [...column.data.feed, ...feed];
 
       if (column.data.cursor) {
           loaded();
@@ -29,7 +33,7 @@
   }
 </script>
 
-<div class="timeline timeline--{column.style}">
+<div class="timeline timeline--nopt timeline--{column.style}">
   {#if (column.style === 'default')}
     {#each column.data.feed as data, index (data)}
       <!-- <TimelineItemWrap data={ data } index={index} column={column} {_agent}></TimelineItemWrap> -->

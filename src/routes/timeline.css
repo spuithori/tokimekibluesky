@@ -8,6 +8,10 @@
     &--media {
         container: none;
     }
+
+    &--nopt {
+        padding-top: 0;
+    }
 }
 
 .timeline-external {

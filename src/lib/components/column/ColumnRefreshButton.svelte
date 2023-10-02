@@ -11,42 +11,62 @@
 
     let isRefreshing = false;
 
+    function isDuplicatePost(oldFeed, newFeed) {
+        return newFeed.reason
+            ? oldFeed.post.uri === newFeed.post.uri && oldFeed.reason?.indexedAt === newFeed.reason.indexedAt
+            : oldFeed.post.uri === newFeed.post.uri;
+    }
+
     export async function refresh() {
         isRefreshing = true;
         if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList') {
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
-            const newFeeds = res.data.feed.filter(feed => {
-                return !column.data.feed.some(item => feed.reason ? item.post.uri === feed.post.uri && item.reason?.indexedAt === feed.reason.indexedAt : item.post.uri === feed.post.uri);
-            });
 
-            if (newFeeds.length === 20) {
-                await columns.update(_columns => {
-                    _columns[index].data.feed = [...res.data.feed];
-                    return _columns;
-                })
+            const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
+            const elInitialPosition = el.scrollTop;
+            const topEl = el.querySelector('.timeline__item');
 
-                column.data.cursor = res.data.cursor;
-            } else {
-                const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
-                const elInitialPosition = el.scrollTop;
-                const topEl = el.querySelector('.timeline__item');
+            await columns.update(_columns => {
+                const newFeed = res.data.feed.filter(feed => {
+                    return !column.data.feed.some(item => isDuplicatePost(item, feed));
+                }).map(feed => ({...feed, memoryCursor: res.data.cursor}));
 
-                await columns.update(_columns => {
-                    _columns[index].data.feed = [...newFeeds, ...column.data.feed];
-                    return _columns;
-                })
-
-                if (elInitialPosition === 0 && column.settings?.refreshToTop !== true) {
-                    if (column.style !== 'media') {
-                        const offset = el.querySelector('.timeline').getBoundingClientRect().top + 16;
-                        el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
+                column.data.feed.forEach(feed => {
+                    if (res.data.feed.some(item => isDuplicatePost(feed, item))) {
+                        feed.memoryCursor = res.data.cursor;
                     }
+                });
+
+                _columns[index].data.feed = [...newFeed, ...column.data.feed];
+                return _columns;
+            })
+
+            if (elInitialPosition === 0 && column.data.feed.length > 60) {
+                const borderItem = column.data.feed[59];
+
+                if (borderItem && borderItem.memoryCursor) {
+                    const lastCursorIndex = column.data.feed.findLastIndex(item => item.memoryCursor === borderItem.memoryCursor);
+
+                    if (lastCursorIndex !== -1) {
+                        column.data.feed.splice(lastCursorIndex + 1);
+                        column.data.feed = column.data.feed;
+                        column.data.cursor = borderItem.memoryCursor;
+                    }
+                }
+            }
+
+            if (elInitialPosition === 0 && column.settings?.refreshToTop !== true) {
+                if (column.style !== 'media') {
+                    /* const offset = el.querySelector('.timeline').getBoundingClientRect().top + 16;
+                    el.scrollTo(0, topEl.getBoundingClientRect().top - offset); */
+                    topEl.scrollIntoView(true);
                 }
             }
 
             /* if (_agent.did() === $agent.did()) {
                 notificationCount.set(await _agent.getNotificationCount());
             } */
+
             refreshNotificationCount();
         } else if (column.algorithm.type === 'bookmark') {
             column.data.feed = [];
