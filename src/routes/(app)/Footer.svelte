@@ -35,7 +35,7 @@
 
     <div class="footer__item footer__me">
       {#if ($agent)}
-        <MyProfileBadge></MyProfileBadge>
+        <MyProfileBadge handle={$agent.handle()}></MyProfileBadge>
       {/if}
     </div>
 

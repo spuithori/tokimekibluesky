@@ -1,9 +1,10 @@
-import {derived, writable} from 'svelte/store';
+import {derived, readable, writable} from 'svelte/store';
 import type { Agent } from '$lib/agent';
 import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications, AppBskyActorDefs } from '@atproto/api';
 import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 import type {Theme} from "$lib/types/theme";
 import {defaultReactionButtons} from "$lib/defaultSettings";
+import timerWorkerUrl from '$lib/workers/timer.js?url'
 
 type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification & {
     feed?: AppBskyFeedPost
@@ -244,3 +245,5 @@ export const pulseBookmark = writable<pulseReaction>(undefined);
 export const pulseDelete = writable<string | undefined>(undefined);
 
 export const isReactionButtonSettingsModalOpen = writable(false);
+
+export const workerTimer = readable(new Worker(timerWorkerUrl));

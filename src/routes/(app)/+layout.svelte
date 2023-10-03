@@ -1,19 +1,19 @@
 <script lang="ts">
   import {_, locale} from 'svelte-i18n'
     import '../styles.css';
-    import {
-        agent,
-        agents,
-        columns,
-        currentTimeline,
-        globalUnique,
-        isAfterReload,
-        isColumnModalOpen,
-        isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, missingAccounts,
-        profileStatus,
-        settings, syncColumns,
-        theme,
-    } from '$lib/stores';
+  import {
+      agent,
+      agents,
+      columns,
+      currentTimeline,
+      globalUnique,
+      isAfterReload,
+      isColumnModalOpen,
+      isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, missingAccounts,
+      profileStatus,
+      settings, syncColumns,
+      theme,
+  } from '$lib/stores';
     import {goto} from '$app/navigation';
     import {dev} from '$app/environment';
     import {inject} from '@vercel/analytics';
@@ -322,8 +322,11 @@
 
   function handleColumnModalClose(event) {
       $columns = event.detail.columns;
-      isColumnModalOpen.set(false);
-      globalUnique.set(Symbol());
+
+      if (event.detail.isClose) {
+          isColumnModalOpen.set(false);
+          globalUnique.set(Symbol());
+      }
   }
 
   function outputInlineStyle(theme) {

@@ -1,17 +1,14 @@
 <script lang="ts">
-    import {bookmarkModal, feedsModal, listModal, officialListModal} from "$lib/stores";
+    import {bookmarkModal, listModal, officialListModal} from "$lib/stores";
     import {_} from "svelte-i18n";
 
     export let _agent;
 </script>
 
 <div class="column-add-buttons">
+  <button class="column-add-button" on:click={() => {$officialListModal.open = true}}>{$_('create_official_list')}</button>
   <button class="column-add-button" on:click={() => {listModal.set({open: true, data: undefined })}}>{$_('create_list')}</button>
   <button class="column-add-button" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('create_bookmark')}</button>
-  <button class="column-add-button" on:click={() => {$feedsModal.open = true}}>{$_('open_feed_store')}</button>
-  <!-- <button class="column-add-button" on:click={addEmptyRealtimeSearch}>{$_('add_realtime_search')}</button> -->
-
-  <button class="column-add-button" on:click={() => {$officialListModal.open = true}}>{$_('create_official_list')}</button>
 </div>
 
 <style lang="postcss">

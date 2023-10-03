@@ -1,7 +1,6 @@
 <script lang="ts">
-    import {agent, columns, settings} from "$lib/stores";
-    import TimerEvent from "$lib/components/utils/TimerEvent.svelte";
-    import {createEventDispatcher} from "svelte";
+    import {agent, columns, settings, workerTimer} from "$lib/stores";
+    import {createEventDispatcher, onDestroy} from "svelte";
     const dispatch = createEventDispatcher();
 
     export let column;
@@ -22,7 +21,7 @@
         if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList') {
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
 
-            const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
+            const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
             const elInitialPosition = el.scrollTop;
             const topEl = el.querySelector('.timeline__item');
 
@@ -59,13 +58,8 @@
                 if (column.style !== 'media') {
                     const offset = el.querySelector('.timeline').getBoundingClientRect().top + 16;
                     el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
-                    //topEl.scrollIntoView(true);
                 }
             }
-
-            /* if (_agent.did() === $agent.did()) {
-                notificationCount.set(await _agent.getNotificationCount());
-            } */
 
             refreshNotificationCount();
         } else if (column.algorithm.type === 'bookmark') {
@@ -100,10 +94,6 @@
         }
     }
 
-    function handleTimer() {
-        refresh();
-    }
-
     function handleKeydown(event: { key: string; }) {
         const activeElement = document.activeElement?.tagName;
 
@@ -111,25 +101,34 @@
             refresh();
         }
     }
+
+    function handleTimer(e) {
+        if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0) {
+            if (e.data % Number(column.settings.autoRefresh) === 0) {
+                refresh();
+            }
+        }
+    }
+    $workerTimer.addEventListener('message', handleTimer);
+
+    onDestroy(() => {
+        $workerTimer.removeEventListener('message', handleTimer);
+    })
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
 
-{#if (column.algorithm.type !== 'bookmark' && column.algorithm.type !== 'realtime')}
+{#if (column.algorithm.type !== 'bookmark' && column.algorithm.type !== 'realtime' && column.algorithm.type !== 'thread')}
   <button
       class="refresh-button"
       class:refresh-button--decks={$settings.design.layout === 'decks'}
       class:is-refreshing={isRefreshing}
       aria-label="Refresh"
-      on:click={() => {refresh()}}
+      on:click={refresh}
       disabled={isRefreshing}
   >
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
       <path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
     </svg>
   </button>
-{/if}
-
-{#if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0)}
-  <TimerEvent delay={Number(column.settings.autoRefresh) * 1000} on:timer={handleTimer}></TimerEvent>
 {/if}

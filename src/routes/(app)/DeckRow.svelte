@@ -100,16 +100,12 @@
         </div>
 
         <div class="deck-heading__buttons">
-            {#if column.scrollElement && column.scrollElement instanceof HTMLElement}
-                {#if column.algorithm.type !== 'thread' && column.algorithm.type !== 'realtime'}
-                    <ColumnRefreshButton
-                        column={column}
-                        index={index}
-                        {_agent}
-                        bind:unique={unique}
-                    ></ColumnRefreshButton>
-                {/if}
-            {/if}
+            <ColumnRefreshButton
+                column={column}
+                index={index}
+                {_agent}
+                bind:unique={unique}
+            ></ColumnRefreshButton>
 
             <ColumnButtons {column} {index} {_agent}></ColumnButtons>
 
