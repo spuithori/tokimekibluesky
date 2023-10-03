@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_, locale} from 'svelte-i18n'
+  import {_, locale} from 'svelte-i18n'
     import '../styles.css';
     import {
         agent,
@@ -11,8 +11,7 @@
         isColumnModalOpen,
         isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, missingAccounts,
         profileStatus,
-        settings,
-        singleColumn,
+        settings, syncColumns,
         theme,
     } from '$lib/stores';
     import {goto} from '$app/navigation';
@@ -40,7 +39,8 @@
     import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
     import ReactionButtonSettingsModal from "$lib/components/settings/ReactionButtonSettingsModal.svelte";
 
-    let loaded = false;
+  let loaded = false;
+  let isColumnInitialLoad = false;
   let wrap;
 
   inject(
@@ -226,11 +226,12 @@
       localStorage.setItem('settings', JSON.stringify($settings));
       locale.set($settings.general.language);
 
-      localStorage.setItem('columns', columnStorageSave($columns));
-      localStorage.setItem('singleColumn', JSON.stringify($singleColumn));
+      // localStorage.setItem('columns', columnStorageSave($columns));
+      // localStorage.setItem('singleColumn', JSON.stringify($singleColumn));
       localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
   }
 
+  $: columnStorageSave($syncColumns);
   $: detectDarkMode($settings.design?.darkmode, $theme?.options.darkmodeDisabled);
 
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
@@ -243,27 +244,32 @@
       loaded = false;
   }
 
-  function columnStorageSave(columns) {
-      let _columns = [];
-      columns.forEach(column => {
-          let c = {};
-          for (const [key, value] of Object.entries(column)) {
-              if (key !== 'scrollElement') {
-                  c[key] = value;
-              }
-
-              if (key === 'data') {
-                  c['data'] = {
-                      feed: [],
-                      cursor: '',
-                  }
-              }
+  accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')))
+      .then(value => {
+          if (!value) {
+              return false;
           }
 
-          _columns.push(c);
-      })
+          if (value.columns) {
+              columns.set(value.columns);
+              isColumnInitialLoad = true;
+          }
+      });
 
-      return JSON.stringify(_columns);
+  function columnStorageSave(columns) {
+      if (!isColumnInitialLoad) {
+          return false;
+      }
+
+      const profileId = localStorage.getItem('currentProfile');
+      if (!profileId) {
+          return false;
+      }
+
+      const id = accountsDb.profiles.update(Number(profileId), {
+          columns: columns,
+      })
+      localStorage.setItem('columns', JSON.stringify(columns));
   }
 
   function detectDarkMode(setting, isDarkmodeDisabled = false) {

@@ -49,16 +49,30 @@ const defaultColumns = [{
 const storageColumns = localStorage.getItem('columns') || JSON.stringify([]);
 export const columns = writable<columns[]>(JSON.parse(storageColumns));
 
-const storageSingleColumn = localStorage.getItem('singleColumn') || JSON.stringify(defaultColumns[0]);
+export const syncColumns = derived(columns, ($columns, set) => {
+    let _columns = [];
+    $columns.forEach(column => {
+        let c = {};
+        for (const [key, value] of Object.entries(column)) {
+            if (key !== 'scrollElement') {
+                c[key] = value;
+            }
 
-export const singleColumn = writable<columns>(JSON.parse(storageSingleColumn));
+            if (key === 'data') {
+                c['data'] = {
+                    feed: [],
+                    cursor: '',
+                }
+            }
+        }
+
+        _columns.push(c);
+    })
+    set(_columns);
+});
 
 export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
-// export const service = writable(localStorage.getItem('service') || 'https://bsky.social');
-// export const accounts = writable(JSON.parse(localStorage.getItem('accounts')) || []);
-
-// export const currentAccount = writable(localStorage.getItem('currentAccount') || '0');
 export const agent = writable<Agent>(undefined);
 
 export const agents = writable(new Map<number, Agent>());
@@ -66,10 +80,6 @@ export const agents = writable(new Map<number, Agent>());
 export const notificationCount = writable(0);
 
 export const notifications = writable<NotificationWithFeed[]>([]);
-
-// export const hideRepost = writable(localStorage.getItem('hideRepost') || 'false');
-
-// export const hideReply = writable(localStorage.getItem('hideReply') || 'false');
 
 export const quotePost = writable<AppBskyFeedDefs.PostView | undefined>();
 

@@ -54,17 +54,6 @@
       </button>
     </li>
 
-    <!-- <li class="side-nav__item">
-      <button
-          class="side-nav__button"
-          class:side-nav__button--current={$sideState === 'store'}
-          on:click={() => toggleSideNav('store')}
-          aria-label="Feed Store Tab"
-      >
-        <Store color="var(--nav-secondary-icon-color)"></Store>
-      </button>
-    </li> -->
-
     <li class="side-nav__item side-nav__item--right">
       <a
           href="/search"

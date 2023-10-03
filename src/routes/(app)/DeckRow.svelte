@@ -23,7 +23,6 @@
     let isSettingsOpen = false;
     let isTopScrolling;
     let isScrollPaused = false;
-    let scrollId;
     let isIconPickerOpen = false;
 
     if (!column.data) {

@@ -1,12 +1,8 @@
 <script lang="ts">
     import {agent, currentTimeline, columns, globalUnique} from '$lib/stores';
-    import {liveQuery} from "dexie";
-    import {db} from "$lib/db";
     import DeckRow from "./DeckRow.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 
-    let isAlgoNavOpen = false;
-    let bookmarks = liveQuery(() => db.bookmarks.toArray());
     let unique = Symbol();
     let customFeeds;
 
@@ -35,14 +31,6 @@
 
     if (!$columns[$currentTimeline]) {
         currentTimeline.set(0);
-    }
-
-    $: {
-        if (isAlgoNavOpen) {
-            document.body.classList.add('scroll-lock');
-        } else {
-            document.body.classList.remove('scroll-lock');
-        }
     }
 </script>
 

@@ -7,7 +7,6 @@
   import Settings from "./Settings.svelte";
   import SideProfile from "$lib/components/side/SideProfile.svelte";
   import SideSearch from "$lib/components/side/SideSearch.svelte";
-  import SideStore from "$lib/components/side/SideStore.svelte";
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
 </script>
 
@@ -43,10 +42,6 @@
 
       {#if ($sideState === 'search' && $settings.design?.publishPosition !== 'bottom')}
         <SideSearch></SideSearch>
-      {/if}
-
-      {#if ($sideState === 'store' && $settings.design?.publishPosition !== 'bottom')}
-        <SideStore></SideStore>
       {/if}
 
       {#if ($sideState === 'feeds' && $settings.design?.publishPosition !== 'bottom')}

@@ -442,5 +442,6 @@
   "show_screenshots": "スクリーンショットをみる",
   "login_box_text_1_1": "TOKIMEKIは、マルチカラム・マルチアカウントに対応した",
   "login_box_text_1_2": "ブラウザクライアントです。",
-  "login_box_text_2": "PWAに対応しており、モバイルでアプリのように使用することもできます。"
+  "login_box_text_2": "PWAに対応しており、モバイルでアプリのように使用することもできます。",
+  "clear_column_posts": "投稿をクリア"
 }

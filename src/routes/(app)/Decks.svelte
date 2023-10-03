@@ -1,7 +1,6 @@
 <script lang="ts">
     import {columns, globalUnique, settings} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
-    import {accountsDb} from "$lib/db";
     import {_} from "svelte-i18n";
     import { dndzone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
     let unique = Symbol();
@@ -10,8 +9,6 @@
     if (Array.isArray($columns) && !$columns.length) {
         columns.set([]);
     }
-
-    $: modifyColumns($columns);
 
     const flipDurationMs = 0;
     function handleDndConsider(e) {
@@ -42,34 +39,6 @@
         if ((e.key === "Enter" || e.key === " ") && dragDisabled) {
             dragDisabled = false;
         }
-    }
-
-    async function modifyColumns(columns) {
-        if (!columns) {
-            return false
-        }
-
-        let _columns = [];
-
-        columns.forEach(column => {
-            let c = {};
-            for (const [key, value] of Object.entries(column)) {
-                if (key !== 'scrollElement') {
-                    c[key] = value;
-                }
-            }
-
-            _columns.push(c);
-        })
-
-        const profileId = Number(localStorage.getItem('currentProfile'));
-        if (!profileId) {
-            return false;
-        }
-
-        const id = await accountsDb.profiles.update(profileId, {
-            columns: _columns,
-        });
     }
 
     function transformDraggedElement(draggedEl, data, index) {
