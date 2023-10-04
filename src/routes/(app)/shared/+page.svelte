@@ -13,7 +13,7 @@
   const url = params.get('url') ? '\n' + params.get('url') : '';
 
   onMount(async () => {
-      sharedText.set(title + text + url);
+      sharedText.set(decodeURIComponent(title) + decodeURIComponent(text) + decodeURIComponent(url));
 
       if (!isNomove) {
           await goto('/');

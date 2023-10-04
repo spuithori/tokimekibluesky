@@ -8,9 +8,7 @@
     import toast from "svelte-french-toast";
     import {_} from "svelte-i18n";
     import {connect, disconnect} from "$lib/realtime";
-    import VirtualScroll from "svelte-virtual-scroll-list"
     import {accountsDb} from "$lib/db";
-    import {modifyAgents} from "$lib/modifyAgents";
 
     export let column;
     export let index;
@@ -20,13 +18,6 @@
     let isFollowsListRefreshing = false;
     let isFollowsListFinished = false;
     let accountId;
-
-    const stateMessage = [
-        $_('realtime_connecting'),
-        $_('realtime_open'),
-        $_('realtime_closing'),
-        $_('realtime_closed')
-    ];
 
     $: getRealtime($realtime.data);
 
@@ -163,7 +154,6 @@
     onMount(async () => {
         if (column.algorithm.algorithm === 'following' || column.algorithm.algorithm === undefined) {
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
-            //$timelines[index] = res.data.feed;
             column.data.feed = res.data.feed;
         }
 
@@ -209,18 +199,6 @@
             {#each column.data.feed as data, index (data)}
                 <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
             {/each}
-
-            <!-- <div class="vs-wrap">
-                <VirtualScroll
-                    data={$timelines[index]}
-                    key="post"
-                    let:data
-                    let:index
-                >
-                    <TimelineItem data={data} index={index} column={column}></TimelineItem>
-
-                </VirtualScroll>
-            </div> -->
         {:else}
             <div class="media-list">
                 {#each column.data.feed as data (data)}
@@ -234,11 +212,6 @@
 </div>
 
 <style lang="postcss">
-    .realtime-note {
-        font-size: 14px;
-        margin-top: 20px;
-    }
-
     .realtime-follows {
         display: flex;
         align-items: center;
@@ -314,10 +287,6 @@
     .timeline--virtual {
         display: flex;
         flex-direction: column;
-        height: 100%;
-    }
-
-    .vs-wrap {
         height: 100%;
     }
 </style>
