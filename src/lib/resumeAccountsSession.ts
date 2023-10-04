@@ -23,7 +23,7 @@ async function resume(account) {
     })
 
     ag.resumeSession(account.session);
-    getAvatar(ag, account);
+    // getAvatar(ag, account);
 
     return {
         id: account.id,
@@ -51,7 +51,6 @@ export async function resumeAccountsSession (accounts) {
     const results = await Promise.all(promises);
 
     results.forEach(result => {
-        //agentsArray = [...agentsArray, new Agent(result)];
         agentsMap.set(result.id, new Agent(result.agent));
     });
 

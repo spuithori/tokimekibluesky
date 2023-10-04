@@ -60,8 +60,6 @@
                     el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
                 }
             }
-
-            refreshNotificationCount();
         } else if (column.algorithm.type === 'bookmark') {
             column.data.feed = [];
             column.data.cursor = 0;
@@ -83,15 +81,6 @@
         }
 
         isRefreshing = false;
-    }
-
-    async function refreshNotificationCount() {
-        for (const column1 of $columns) {
-            const index1 = $columns.indexOf(column1);
-            if (column1.algorithm.type === 'notification' && column1.did === _agent.did()) {
-                $columns[index1].unreadCount = await _agent.getNotificationCount();
-            }
-        }
     }
 
     function handleKeydown(event: { key: string; }) {

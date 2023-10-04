@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_, locale} from 'svelte-i18n'
-    import '../styles.css';
+  import '../styles.css';
   import {
       agent,
       agents,
@@ -12,36 +12,38 @@
       isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, missingAccounts,
       profileStatus,
       settings, syncColumns,
-      theme,
+      theme
   } from '$lib/stores';
-    import {goto} from '$app/navigation';
-    import {dev} from '$app/environment';
-    import {inject} from '@vercel/analytics';
-    import {pwaInfo} from 'virtual:pwa-info';
-    import {onMount} from 'svelte';
-    import {Toaster} from 'svelte-french-toast';
-    import viewPortSetting from '$lib/viewport';
-    import {scrollDirection} from "$lib/scrollDirection";
-    import Footer from "./Footer.svelte";
-    import {page} from '$app/stores';
-    import {liveQuery} from 'dexie';
-    import {accountsDb, themesDb} from '$lib/db';
-    import ReportObserver from "$lib/components/report/ReportObserver.svelte";
-    import {resumeAccountsSession} from "$lib/resumeAccountsSession";
-    import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
-    import Side from "./Side.svelte";
-    import ColumnModal from "$lib/components/column/ColumnModal.svelte";
-    import Single from "./Single.svelte";
-    import Decks from "./Decks.svelte";
-    import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
-    import {builtInThemes} from "$lib/builtInThemes";
-    import {defaultColors} from "$lib/defaultColors";
-    import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
-    import ReactionButtonSettingsModal from "$lib/components/settings/ReactionButtonSettingsModal.svelte";
+  import {goto} from '$app/navigation';
+  import {dev} from '$app/environment';
+  import {inject} from '@vercel/analytics';
+  import {pwaInfo} from 'virtual:pwa-info';
+  import {onMount} from 'svelte';
+  import {Toaster} from 'svelte-french-toast';
+  import viewPortSetting from '$lib/viewport';
+  import {scrollDirection} from "$lib/scrollDirection";
+  import Footer from "./Footer.svelte";
+  import {page} from '$app/stores';
+  import {liveQuery} from 'dexie';
+  import {accountsDb, themesDb} from '$lib/db';
+  import ReportObserver from "$lib/components/report/ReportObserver.svelte";
+  import {resumeAccountsSession} from "$lib/resumeAccountsSession";
+  import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
+  import Side from "./Side.svelte";
+  import ColumnModal from "$lib/components/column/ColumnModal.svelte";
+  import Single from "./Single.svelte";
+  import Decks from "./Decks.svelte";
+  import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
+  import {builtInThemes} from "$lib/builtInThemes";
+  import {defaultColors} from "$lib/defaultColors";
+  import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
+  import ReactionButtonSettingsModal from "$lib/components/settings/ReactionButtonSettingsModal.svelte";
 
   let loaded = false;
   let isColumnInitialLoad = false;
-  let wrap;
+  let isDarkMode = false;
+  let direction = 'up';
+  let scrolly;
 
   inject(
       {
@@ -85,10 +87,6 @@
           $settings.design.theme = colors[0].id;
       }
   }
-
-  let accounts = liveQuery(
-      () => accountsDb.accounts.toArray()
-  );
 
   let profiles = liveQuery(
       () => accountsDb.profiles.toArray()
@@ -197,10 +195,6 @@
       })
   }
 
-  let direction = 'up';
-  let scrolly;
-  let isDarkMode = false;
-
   if (!$settings.version) {
       $settings.version = 1;
   }
@@ -224,11 +218,8 @@
 
   $: {
       localStorage.setItem('settings', JSON.stringify($settings));
-      locale.set($settings.general.language);
-
-      // localStorage.setItem('columns', columnStorageSave($columns));
-      // localStorage.setItem('singleColumn', JSON.stringify($singleColumn));
       localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
+      locale.set($settings.general.language);
   }
 
   $: columnStorageSave($syncColumns);

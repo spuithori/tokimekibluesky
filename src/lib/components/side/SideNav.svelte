@@ -67,7 +67,7 @@
     <li class="side-nav__item">
       <div class="side-nav__button">
         {#if ($agent)}
-          <MyProfileBadge></MyProfileBadge>
+          <MyProfileBadge handle={$agent.handle()}></MyProfileBadge>
         {/if}
       </div>
     </li>
