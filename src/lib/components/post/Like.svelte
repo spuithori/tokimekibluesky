@@ -22,13 +22,15 @@
           return false;
       }
 
+      const isSameDid = data.did === _agent.did();
+
       if (uri === data.uri) {
           count = data.count;
-          likeViewer = data.viewer;
+          likeViewer = isSameDid ? data.viewer : likeViewer;
 
           dispatch('like', {
               count: data.count,
-              viewer: data.viewer,
+              viewer: likeViewer,
           });
       }
   }
@@ -45,7 +47,8 @@
       pulseLike.set({
           uri: uri,
           count: count,
-          viewer: likeViewer
+          viewer: likeViewer,
+          did: _agent.did() as string,
       })
 
       try {
@@ -58,7 +61,8 @@
               pulseLike.set({
                   uri: uri,
                   count: count,
-                  viewer: likeViewer
+                  viewer: likeViewer,
+                  did: _agent.did() as string
               });
 
               if (timeoutId) {
@@ -86,7 +90,8 @@
           pulseLike.set({
               uri: uri,
               count: count,
-              viewer: likeViewer
+              viewer: likeViewer,
+              did: _agent.did() as string
           })
       }
   }

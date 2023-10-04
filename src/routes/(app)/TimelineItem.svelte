@@ -1,6 +1,18 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {agent, settings, isPreventEvent, reportModal, columns, didHint, pulseDelete, isReactionButtonSettingsModalOpen, listAddModal} from '$lib/stores';
+    import {Trash2, SmilePlus, Users2, Languages, Copy, AtSign, ListPlus, List, Flag} from 'lucide-svelte';
+    import {
+        agent,
+        settings,
+        isPreventEvent,
+        reportModal,
+        columns,
+        didHint,
+        pulseDelete,
+        isReactionButtonSettingsModalOpen,
+        listAddModal,
+        agents
+    } from '$lib/stores';
     import ja from 'date-fns/locale/ja/index';
     import en from 'date-fns/locale/en-US/index';
     import pt from 'date-fns/locale/pt-BR/index';
@@ -9,7 +21,7 @@
     import {AppBskyFeedDefs} from '@atproto/api'
     import toast from "svelte-french-toast";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
-    import {onMount} from "svelte";
+    import {onMount, setContext} from "svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
     import {goto} from "$app/navigation";
     import TimelineContent from "$lib/components/post/TimelineContent.svelte";
@@ -17,6 +29,8 @@
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
     import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
+    import {getAccountIdByDid, getAllAgentDids} from "$lib/util.js";
+    import ReactionModal from "$lib/components/post/ReactionModal.svelte";
 
     export let _agent = $agent;
     export let data: AppBskyFeedDefs.FeedViewPost;
@@ -31,6 +45,11 @@
     let selectionText = '';
     let dialog;
     let isDialogRender = false;
+    let isMenuOpen = false;
+    let dateFnsLocale: Locale;
+    let isShortCutNumberShown = false;
+    let isTranslated = false;
+    let isReactionModalOpen = false;
 
     $: {
         if (dialog) {
@@ -38,27 +57,9 @@
         }
     }
 
-    let isMenuOpen = false;
-    let dateFnsLocale: Locale;
-
-    let isShortCutNumberShown = false;
-    let isTranslated = false;
-
     if (!$settings.general.deleteConfirmSkip) {
         $settings.general.deleteConfirmSkip = false;
     }
-
-    const keycodeNumbers = [
-        49,
-        50,
-        51,
-        52,
-        53,
-        54,
-        55,
-        56,
-        57
-    ];
 
     const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
       return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
@@ -146,6 +147,10 @@
               break;
             default:
           }
+
+          if (data.reason.by.viewer?.muted) {
+              isHide = true;
+          }
         }
 
         const langFilter = column && column.settings?.langFilterEnabled ? column.settings.langFilter : $settings.langFilter;
@@ -156,7 +161,9 @@
                 isHide = true;
             }
         }
-    })
+    });
+
+    setContext('timelineItem', data);
 
     async function translation() {
         ({ text: data.post.record.text, facets: data.post.record.facets } = await translate(data.post.record.text, $settings.general?.language, _agent));
@@ -197,6 +204,7 @@
 
     async function deletePost(uri: string) {
         const rkey = uri.split('/').slice(-1)[0];
+        const _agent = $agents.get(getAccountIdByDid($agents, data.post.author.did));
         isMenuOpen = false;
 
         try {
@@ -218,42 +226,6 @@
         } else {
             isDialogRender = true;
         }
-    }
-
-    let keys = [];
-
-    function handleKeydown(event) {
-        isShortCutNumberShown = !!(event.ctrlKey && event.altKey);
-        keys.push(event.keyCode);
-    }
-
-    function handleKeyup(event) {
-        /*
-        isShortCutNumberShown = !!(event.ctrlKey && event.altKey);
-        const likeKey = 76;
-        const repostKey = 83;
-        const replyKey = 77;
-        const keysString = keys.sort((a, b) => a - b).toString();
-
-        const likeKeysString = [17, 18, likeKey, keycodeNumbers[index]].sort((a, b) => a - b).toString();
-        const repostKeysString = [17, 18, repostKey, keycodeNumbers[index]].sort((a, b) => a - b).toString();
-        const replyKeysString = [17, 18, replyKey, keycodeNumbers[index]].sort((a, b) => a - b).toString();
-
-        if (keysString === likeKeysString) {
-            voteFunc(data.post.cid, data.post.uri, data.post.viewer?.like);
-        }
-
-        if (keysString === repostKeysString) {
-            repostFunc(data.post.cid, data.post.uri, data.post.viewer?.repost)
-        }
-
-        if (keysString === replyKeysString) {
-            replyFunc(data.post, data.post.record.reply);
-        }
-
-        keys = [];
-
-        */
     }
 
     function handleClick(event) {
@@ -333,7 +305,6 @@
     }
 </script>
 
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
 <svelte:document on:selectionchange={handleSelectStart} />
 
 {#if (!isHide)}
@@ -395,10 +366,10 @@
       </div>
 
       <ul class="timeline-menu-list" slot="content">
-        {#if (data.post.author.did === _agent.did())}
+        {#if (getAllAgentDids($agents).includes(data.post.author.did))}
           <li class="timeline-menu-list__item timeline-menu-list__item--delete">
             <button class="timeline-menu-list__button" on:click={deletePostStep}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+              <Trash2 size="18" color="var(--danger-color)"></Trash2>
               <span class="text-danger">{$_('delete_post')}</span>
             </button>
           </li>
@@ -406,28 +377,28 @@
 
         <li class="timeline-menu-list__item timeline-menu-list__item--translate">
           <button class="timeline-menu-list__button" on:click={() => {$isReactionButtonSettingsModalOpen = true; isMenuOpen = false}}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smile-plus"><path d="M22 11v1a10 10 0 1 1-9-10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/><path d="M16 5h6"/><path d="M19 2v6"/></svg>
+            <SmilePlus size="18" color="var(--text-color-1)"></SmilePlus>
             {$_('reaction_button_settings')}
           </button>
         </li>
 
         <li class="timeline-menu-list__item timeline-menu-list__item--translate">
           <button class="timeline-menu-list__button" on:click={translation}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-languages"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+            <Languages size="18" color="var(--text-color-1)"></Languages>
             {$_('translation')}
           </button>
         </li>
 
         <li class="timeline-menu-list__item timeline-menu-list__item--copy-url">
           <button class="timeline-menu-list__button" on:click={copyThreadUrl}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <Copy size="18" color="var(--text-color-1)"></Copy>
             {$_('copy_url')}
           </button>
         </li>
 
         <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
           <button class="timeline-menu-list__button" on:click={copyHandle}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-at-sign"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>
+            <AtSign size="18" color="var(--text-color-1)"></AtSign>
             {$_('copy_handle')}
           </button>
         </li>
@@ -435,7 +406,7 @@
         {#if ($settings.design?.layout === 'decks')}
           <li class="timeline-menu-list__item timeline-menu-list__item--report">
             <button class="timeline-menu-list__button" on:click={addThreadColumn}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-plus"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg>
+              <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
               {$_('add_thread_column')}
             </button>
           </li>
@@ -443,14 +414,21 @@
 
         <li class="timeline-menu-list__item timeline-menu-list__item--report">
           <button class="timeline-menu-list__button" on:click={() => {$listAddModal = {open: true, author: data.post.author, did: _agent.did()}}}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+            <List size="18" color="var(--text-color-1)"></List>
             {$_('list_instant_manage')}
+          </button>
+        </li>
+
+        <li class="timeline-menu-list__item">
+          <button class="timeline-menu-list__button" on:click={() => {isReactionModalOpen = true}}>
+            <Users2 size="18" color="var(--text-color-1)"></Users2>
+            {$_('reaction_other_account_menu')}
           </button>
         </li>
 
         <li class="timeline-menu-list__item timeline-menu-list__item--report">
           <button class="timeline-menu-list__button" on:click={report}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
+            <Flag size="18" color="var(--danger-color)"></Flag>
             {$_('report')}
           </button>
         </li>
@@ -475,6 +453,10 @@
       >
         <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
       </ConfirmModal>
+    {/if}
+
+    {#if (isReactionModalOpen)}
+      <ReactionModal {_agent} on:close={() => {isReactionModalOpen = false}}></ReactionModal>
     {/if}
   </article>
 {/if}

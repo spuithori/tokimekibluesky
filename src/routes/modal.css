@@ -23,6 +23,19 @@
             width: 400px;
         }
     }
+
+    &--dialog {
+        position: initial;
+        margin: auto;
+        appearance: none;
+        background-color: transparent;
+        padding: 0;
+        border: none;
+
+        &::backdrop {
+            background-color: rgba(0, 0, 0, .6);
+        }
+    }
 }
 
 .modal-contents {
@@ -36,6 +49,9 @@
 
     @media (max-width: 767px) {
         width: 100%;
+    }
+
+    &--dialog {
     }
 }
 
@@ -83,52 +99,41 @@
     margin-bottom: 20px;
 }
 
-/* .modal-page {
-    position: fixed;
-    left: 0;
-    top: 0;
-    right: 0;
-    z-index: 999;
+.dialog-modal {
     margin: auto;
-    overflow-y: scroll;
-    height: 100vh;
+    appearance: none;
+    background-color: transparent;
+    border: none;
 
-    @media (min-width: 768px) {
-        scrollbar-color: var(--primary-color) var(--bg-color-3);
-
-        &::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: var(--primary-color);
-            border-radius: 5px;
-        }
-
-        &::-webkit-scrollbar-track {
-            background: var(--bg-color-3);
-            border-radius: 5px;
-        }
-    }
-
-    &--default {
-
+    &::backdrop {
+        background-color: rgba(0, 0, 0, .6);
     }
 }
 
-.modal-page-content {
+.dialog-modal-contents {
     width: 100%;
-    max-width: 528px;
-    position: absolute;
-    left: 412px;
-    top: 0;
-    right: 0;
+    height: max-content;
+    max-width: 300px;
     margin: auto;
-    min-height: 100vh;
     background-color: var(--bg-color-1);
-    border-left: 1px solid var(--border-color-2);
-    border-right: 1px solid var(--border-color-2);
-} */
+    padding: 24px 16px;
+    border-radius: var(--border-radius-3);
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    cursor: default;
+
+    &--ml {
+        padding: 24px;
+    }
+}
+
+.dialog-modal-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
 
 .single {
     &.page {

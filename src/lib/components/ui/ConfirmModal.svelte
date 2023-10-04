@@ -51,36 +51,7 @@
 </dialog>
 
 <style lang="postcss">
-  .dialog-modal {
-      margin: auto;
-      appearance: none;
-      background-color: transparent;
-      border: none;
-
-      &::backdrop {
-          background-color: rgba(0, 0, 0, .6);
-      }
-  }
-
-  .dialog-modal-contents {
-      width: 100%;
-      height: max-content;
-      max-width: 300px;
-      margin: auto;
-      background-color: var(--bg-color-1);
-      padding: 24px 16px;
-      border-radius: var(--border-radius-3);
-      text-align: center;
-  }
-
-  .dialog-modal-buttons {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-  }
-
-  .skip-confirmation {
+    .skip-confirmation {
       margin-bottom: 16px;
   }
 </style>

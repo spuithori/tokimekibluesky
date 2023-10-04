@@ -447,3 +447,10 @@
         font-size: 14px;
     }
 }
+
+.selector-label {
+    text-align: left;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: var(--text-color-1);
+}

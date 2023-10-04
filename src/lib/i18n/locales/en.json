@@ -442,5 +442,7 @@
   "login_box_text_1_1": "TOKIMEKI is a ",
   "login_box_text_1_2": " browser client with multi-column and multi-account support.",
   "login_box_text_2": "It is PWA compliant and can be used like an app on mobile devices.",
-  "clear_column_posts": "Clear posts"
+  "clear_column_posts": "Clear posts",
+  "reaction_other_account": "Select the account in the profile",
+  "reaction_other_account_menu": "React elsewhere..."
 }

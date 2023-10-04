@@ -35,13 +35,15 @@
             return false;
         }
 
+        const isSameDid = data.did === _agent.did();
+
         if (uri === data.uri) {
             count = data.count;
-            repostViewer = data.viewer;
+            repostViewer = isSameDid ? data.viewer : repostViewer;
 
             dispatch('repost', {
                 count: data.count,
-                viewer: data.viewer,
+                viewer: repostViewer,
             });
         }
     }
@@ -58,7 +60,8 @@
         pulseRepost.set({
             uri: uri,
             count: count,
-            viewer: repostViewer
+            viewer: repostViewer,
+            did: _agent.did() as string
         })
 
         try {
@@ -71,7 +74,8 @@
                 pulseRepost.set({
                     uri: uri,
                     count: count,
-                    viewer: repostViewer
+                    viewer: repostViewer,
+                    did: _agent.did() as string
                 })
 
                 toast.success($_('success_to_repost_or_delete_repost'));
@@ -101,7 +105,8 @@
             pulseRepost.set({
                 uri: uri,
                 count: count,
-                viewer: repostViewer
+                viewer: repostViewer,
+                did: _agent.did() as string
             })
         }
     }

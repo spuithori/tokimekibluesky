@@ -235,6 +235,7 @@ type pulseReaction = {
     uri: string,
     count: number | undefined,
     viewer: string | undefined,
+    did: string,
 } | undefined;
 export const pulseLike = writable<pulseReaction>(undefined);
 

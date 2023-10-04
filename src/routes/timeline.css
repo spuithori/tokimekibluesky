@@ -861,6 +861,10 @@
     .timeline-reply-bar {
         display: none;
     }
+
+    .timeline-reaction {
+        margin-left: 0;
+    }
 }
 
 .deck {
@@ -943,5 +947,11 @@
             width: 30px;
             height: 30px;
         }
+    }
+}
+
+.reaction-modal-buttons {
+    .timeline-reaction {
+        margin-left: 0;
     }
 }

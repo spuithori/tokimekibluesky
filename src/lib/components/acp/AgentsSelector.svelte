@@ -55,7 +55,7 @@
         cursor: pointer;
         border-radius: 4px;
         background-color: var(--bg-color-1);
-        border-bottom: 1px solid var(--border-color-1);
+        border: 2px solid var(--border-color-2);
         color: var(--text-color-1);
         z-index: 20;
 
@@ -68,7 +68,6 @@
             font-size: 14px;
             border-bottom: 2px solid var(--primary-color);
             background-color: var(--bg-color-2);
-            border-radius: 4px 4px 0 0;
 
             .agents-selector {
                 border: none;
@@ -101,7 +100,6 @@
         left: 0;
         right: 0;
         top: 0;
-        border: 1px solid var(--border-color-1);
         border-radius: 4px;
 
         &__item {
@@ -113,7 +111,6 @@
             flex-direction: column;
             align-items: flex-start;
             background-color: var(--bg-color-1);
-            border-top: 1px solid var(--border-color-1);
             color: var(--text-color-1);
             text-align: left;
 
@@ -123,6 +120,7 @@
 
             &--front {
                 border-top: none;
+                padding-bottom: 2px;
             }
         }
 
@@ -131,6 +129,14 @@
             align-items: center;
             justify-content: center;
             gap: 5px;
+        }
+
+        &__choices {
+            border: 2px solid var(--border-color-2);
+            box-shadow: 0 0 10px var(--box-shadow-color-2);
+            margin-left: -2px;
+            margin-right: -2px;
+            margin-top: -2px;
         }
     }
 </style>
