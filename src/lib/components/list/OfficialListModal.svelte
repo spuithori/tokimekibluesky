@@ -16,7 +16,7 @@
     export let id = new Date().getTime().toString();
     let name = 'new list';
     let members = [];
-    let existingUris = [];
+    let existingMembers = [];
     let search = '';
     let searchMembers = [];
     let timer;
@@ -39,7 +39,7 @@
                     return item.subject;
                 })
 
-                existingUris = await getExistingListItemUris(uri);
+                existingMembers = await getExistingListItemUris(uri);
             }
         } catch (e) {
             console.error(e);
@@ -65,7 +65,10 @@
 
             res.data.records.forEach(record => {
                 if (record.value?.list === uri) {
-                    items = [...items, record.uri]
+                    items = [...items, {
+                        uri: record.uri,
+                        did: record.value.subject,
+                    }]
                 }
 
             });
@@ -146,32 +149,42 @@
                 )
             }
 
-            let promises = [];
+            let writes = [];
 
-            if (existingUris.length) {
-                existingUris.forEach(uri => {
-                    promises = [...promises, _agent.agent.api.app.bsky.graph.listitem.delete(
-                        {
-                            repo: _agent.did(),
-                            rkey: uri.split('/').slice(-1)[0],
-                        }
-                    )];
+            if (existingMembers.length) {
+                existingMembers.forEach(member => {
+                    if (!members.some(_member => member.did === _member.did)) {
+                        writes = [...writes,  {
+                            $type: 'com.atproto.repo.applyWrites#delete',
+                            collection: 'app.bsky.graph.listitem',
+                            rkey: member.uri.split('/').slice(-1)[0],
+                        }]
+                    }
                 })
             }
 
             members.forEach(member => {
-                promises = [...promises, _agent.agent.api.app.bsky.graph.listitem.create(
-                    {
-                        repo: _agent.did(),
-                    },
-                    {
-                        subject: member.did,
-                        list: listUri,
-                        createdAt: new Date().toISOString(),
-                    }
-                )];
-            })
-            const result = await Promise.all(promises);
+                if (!existingMembers.some(_member => member.did === _member.did)) {
+                    writes = [...writes,  {
+                        $type: 'com.atproto.repo.applyWrites#create',
+                        collection: 'app.bsky.graph.listitem',
+                        value: {
+                            subject: member.did,
+                            list: listUri,
+                            createdAt: new Date().toISOString(),
+                        }
+                    }]
+                }
+            });
+
+            if (writes.length) {
+                console.log(writes);
+                const res = await _agent.agent.com.atproto.repo.applyWrites({
+                    repo: _agent.did() as string,
+                    writes: writes,
+                });
+            }
+
             isDisabled = false;
             dispatch('close');
         } catch(e) {
@@ -280,7 +293,7 @@
         </div>
       </div>
 
-      <OfficialListMenu {_agent} {uri} {existingUris} on:close></OfficialListMenu>
+      <OfficialListMenu {_agent} {uri} {existingMembers} on:close></OfficialListMenu>
     {:else}
       <div class="thread-loading">
         <img src={spinner} alt="">

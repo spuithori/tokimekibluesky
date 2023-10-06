@@ -193,7 +193,7 @@
   "settings_mutes": "ミュート一覧",
   "settings_push_notification": "プッシュ通知",
   "settings": "設定",
-  "language_settings": "言語",
+  "language_settings": "インターフェースの言語",
   "mentions": "メンション",
   "follow": "フォロー",
   "follower": "フォロワー",
@@ -445,5 +445,17 @@
   "login_box_text_2": "PWAに対応しており、モバイルでアプリのように使用することもできます。",
   "clear_column_posts": "投稿をクリア",
   "reaction_other_account": "プロファイル内のアカウントを選択",
-  "reaction_other_account_menu": "別アカウントで操作..."
+  "reaction_other_account_menu": "別アカウントで操作...",
+  "auto_refresh_realtime": "リアルタイム",
+  "auto_refresh_realtime_notice": "リアルタイム更新は通信量が増加します。モバイル通信での利用はおすすめしません。取得漏れや時系列の前後が発生することがあります。",
+  "realtime_column_obsolete": "REALTIMEは各カラムに統合しました。今後は各カラムの自動更新を「リアルタイム」に設定してご利用ください。",
+  "user_language_settings": "言語",
+  "realtime_listeners_title": "リアルタイム接続ステータス",
+  "realtime_listeners_reconnect": "再接続",
+  "realtime_listeners_disconnect": "切断",
+  "realtime_listeners_status_0": "接続中",
+  "realtime_listeners_status_1": "接続中",
+  "realtime_listeners_status_3": "切断",
+  "realtime_listeners_status_undefined": "切断",
+  "datetime_format": "日付の表記（2023年10月15日 11時32分の場合）"
 }

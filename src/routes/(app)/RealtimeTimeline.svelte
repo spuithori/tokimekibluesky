@@ -1,14 +1,16 @@
 <script lang="ts">
     import {agent, columns} from '$lib/stores';
-    import { realtime, isRealtimeConnected } from "$lib/stores";
+    import { realtime } from "$lib/stores";
     import TimelineItem from "./TimelineItem.svelte";
-    import {createEventDispatcher, onDestroy, onMount} from 'svelte';
+    import {createEventDispatcher, onMount} from 'svelte';
     import MediaTimelineItem from "./MediaTimelineItem.svelte";
     const dispatch = createEventDispatcher();
     import toast from "svelte-french-toast";
     import {_} from "svelte-i18n";
-    import {connect, disconnect} from "$lib/realtime";
+    import {getPostRealtime} from "$lib/realtime";
     import {accountsDb} from "$lib/db";
+    import {getFollowsWithUpdateDb} from "$lib/getActorsList";
+    import {getAccountIdByDidFromDb} from "$lib/util";
 
     export let column;
     export let index;
@@ -19,136 +21,27 @@
     let isFollowsListFinished = false;
     let accountId;
 
-    $: getRealtime($realtime.data);
+    $: insertRealtimeData($realtime);
 
-    async function getRecord(uri, repost = undefined, retryCount = 0) {
-        try {
-            const res = await _agent.agent.api.app.bsky.feed.getPostThread({depth: 0, parentHeight: 1, uri: uri});
-            let thread = res.data.thread;
-
-            if (thread?.parent && thread.post.record.reply) {
-                thread.reply = {
-                    parent: thread.parent.post,
-                    root: thread.post.record.reply.root,
-                }
-            }
-
-            if (repost) {
-                const rres = await _agent.agent.api.app.bsky.actor.getProfile({actor: repost.repo})
-                thread.reason = {
-                    $type: 'app.bsky.feed.defs#reasonRepost',
-                    indexedAt: repost.indexedAt,
-                    by: rres.data,
-                }
-            }
-
-            column.data.feed.forEach(item => item.post.indexedAt = item.post.indexedAt);
-            column.data.feed = [thread, ...column.data.feed];
-
-            if (column.data.feed.length > 40) {
-                column.data.feed.pop();
-                column.data.feed = column.data.feed;
-            }
-        } catch (e) {
-            if (retryCount < 3) {
-                retryCount = retryCount + 1;
-                console.log('Post get failure. Retry: ' + retryCount)
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                await getRecord(uri, repost, retryCount);
-            } else {
-                console.error(e);
-            }
-        }
-    }
-
-    function streamSelector(algorithm, repo, text = '') {
-        if (algorithm === 'following') {
-            return follows.some(follow => follow === repo);
-        }
-
-        if (algorithm === 'search' && column.algorithm.search) {
-            return text.includes(column.algorithm.search);
-        }
-
-        return false;
-    }
-
-    async function getRealtime(data) {
-        if (!$realtime.isConnected) {
-            await connect();
-        }
-
+    function insertRealtimeData(realtime) {
         if (!isFollowsListFinished) {
             return false;
         }
 
-        const path = data.op.path;
-        const repo = data.body.repo;
-        const uri = 'at://' + repo + '/' + path;
-        const isStream: boolean = streamSelector(column.algorithm?.algorithm || 'following', repo, data.record.text);
+        getPostRealtime(realtime, follows, _agent)
+            .then(value => {
+                if (!value) {
+                    return false;
+                }
 
-        if (data.record.$type === 'app.bsky.feed.post' && typeof data.record.text === 'string') {
-            if (isStream) {
-                await getRecord(uri);
-            }
-        }
-
-        if (data.record.$type === 'app.bsky.feed.repost') {
-            const subject = data.record.subject.uri;
-            const repost = {
-                repo: repo,
-                indexedAt: data.record.createdAt,
-            }
-
-            if (isStream) {
-                await getRecord(subject, repost);
-            }
-        }
-    }
-
-    async function getFollows() {
-        isFollowsListRefreshing = true;
-        let cursor = '';
-        let count = 0;
-        follows = [];
-
-        try {
-            follows = [...follows, _agent.did()];
-
-            while(cursor !== undefined && count < 30) {
-                const res = await _agent.agent.api.app.bsky.graph.getFollows({actor: _agent.did(), limit: 100, cursor: cursor});
-
-                res.data.follows.forEach(follow => {
-                    follows = [...follows, follow.did];
-                })
-
-                count = count + 1;
-                cursor = res.data.cursor;
-            }
-
-            try {
-                const id = await accountsDb.accounts.update(accountId, {
-                    following: {
-                        data: follows,
-                        indexedAt: Date.now().toString()
-                    }
-                });
-            } catch (e) {
-                console.error(e);
-            }
-
-            toast.success($_('realtime_success_get_follows') + ': ' + follows.length);
-            isFollowsListRefreshing = false;
-        } catch(e) {
-            toast.error($_('realtime_failed_get_follows'));
-            dispatch('disconnect');
-            isFollowsListRefreshing = false;
-            throw new Error(e);
-        }
+                column.data.feed = [value, ...column.data.feed];
+            });
     }
 
     async function refreshFollowsList() {
-        await getFollows();
+        isFollowsListRefreshing = true;
+        follows = await getFollowsWithUpdateDb(_agent, await getAccountIdByDidFromDb(_agent.did()));
+        isFollowsListRefreshing = false;
     }
 
     onMount(async () => {
@@ -166,20 +59,16 @@
         if (account.following) {
             follows = account.following.data;
         } else {
-            await getFollows();
+            await refreshFollowsList();
         }
 
         isFollowsListFinished = true;
-    })
-
-    onDestroy(async() => {
-        await disconnect();
-    })
+    });
 </script>
 
 <div class="realtime-wrap">
     <div class="timeline timeline--virtual timeline--{column.style}">
-        <div class="realtime-status" class:realtime-status--connected={$isRealtimeConnected}></div>
+        <p class="notice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>{$_('realtime_column_obsolete')}</p>
 
         {#if (column.algorithm.algorithm === 'following' || column.algorithm.algorithm === undefined)}
             <div class="realtime-follows">

@@ -13,11 +13,6 @@
         listAddModal,
         agents
     } from '$lib/stores';
-    import ja from 'date-fns/locale/ja/index';
-    import en from 'date-fns/locale/en-US/index';
-    import pt from 'date-fns/locale/pt-BR/index';
-    import ko from 'date-fns/locale/ko/index';
-    import fa from 'date-fns/locale/fa-IR/index';
     import {AppBskyFeedDefs} from '@atproto/api'
     import toast from "svelte-french-toast";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
@@ -46,7 +41,6 @@
     let dialog;
     let isDialogRender = false;
     let isMenuOpen = false;
-    let dateFnsLocale: Locale;
     let isShortCutNumberShown = false;
     let isTranslated = false;
     let isReactionModalOpen = false;
@@ -63,18 +57,6 @@
 
     const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
       return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
-    }
-
-    if ($settings.general.language === 'ja' || window.navigator.language === 'ja-JP') {
-        dateFnsLocale = ja;
-    } else if ($settings.general.language === 'pt-BR' || window.navigator.language === 'pt-BR') {
-        dateFnsLocale = pt;
-    } else if ($settings.general.language === 'ko' || window.navigator.language === 'ko-KR') {
-        dateFnsLocale = ko;
-    } else if ($settings.general.language === 'fa' || window.navigator.language === 'fa-IR') {
-        dateFnsLocale = fa;
-    } else {
-        dateFnsLocale = en;
     }
 
     if (data.reply && !data.reply?.parent) {
@@ -166,10 +148,10 @@
     setContext('timelineItem', data);
 
     async function translation() {
-        ({ text: data.post.record.text, facets: data.post.record.facets } = await translate(data.post.record.text, $settings.general?.language, _agent));
+        ({ text: data.post.record.text, facets: data.post.record.facets } = await translate(data.post.record.text, $settings.general?.userLanguage, _agent));
 
         if (data.reply && !isSingle) {
-            ({ text: data.reply.parent.record.text, facets: data.reply.parent.record.facets } = await translate(data.reply.parent.record.text, $settings.general?.language, _agent));
+            ({ text: data.reply.parent.record.text, facets: data.reply.parent.record.facets } = await translate(data.reply.parent.record.text, $settings.general?.userLanguage, _agent));
         }
 
         isMenuOpen = false;
@@ -335,12 +317,12 @@
           <span class="timeline-reply-bar"></span>
         {/if}
 
-        <TimelineContent post={data.reply.parent} locale={dateFnsLocale} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide}></TimelineContent>
+        <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide}></TimelineContent>
       </div>
     {/if}
 
     <div class="timeline__column">
-      <TimelineContent post={data.post} locale={dateFnsLocale} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isHide}>
+      <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isHide}>
 
         <ReactionButtons
             {_agent}
@@ -419,12 +401,14 @@
           </button>
         </li>
 
-        <li class="timeline-menu-list__item">
-          <button class="timeline-menu-list__button" on:click={() => {isReactionModalOpen = true}}>
-            <Users2 size="18" color="var(--text-color-1)"></Users2>
-            {$_('reaction_other_account_menu')}
-          </button>
-        </li>
+        {#if ($agents.size > 1)}
+          <li class="timeline-menu-list__item">
+            <button class="timeline-menu-list__button" on:click={() => {isReactionModalOpen = true}}>
+              <Users2 size="18" color="var(--text-color-1)"></Users2>
+              {$_('reaction_other_account_menu')}
+            </button>
+          </li>
+        {/if}
 
         <li class="timeline-menu-list__item timeline-menu-list__item--report">
           <button class="timeline-menu-list__button" on:click={report}>

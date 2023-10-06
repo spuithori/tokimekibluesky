@@ -1,121 +1,144 @@
 import {addExtension, decode, decodeMultiple} from "cbor-x";
 import {CID} from "multiformats";
 import {CarReader} from "@ipld/car";
-import { get } from 'svelte/store';
-import {realtime, agent, notificationCount, isRealtimeConnected} from '$lib/stores';
+import {realtime} from '$lib/stores';
 
-let timeId;
-let socket;
-
-export async function connect() {
-    if (socket) {
-        return false;
+export class RealtimeClient {
+    private host: string;
+    private socket: null | WebSocket;
+    constructor(host) {
+        this.host = host;
+        this.socket = null;
     }
 
-    socket = undefined;
-    socket = new WebSocket('wss://bsky.social/xrpc/com.atproto.sync.subscribeRepos');
-
-    /*
-      Inspired by blue-skies-ahead (MIT License).
-      https://glitch.com/~blue-skies-ahead
-     */
-
-    addExtension({
-        Class: CID,
-        tag: 42,
-        encode: () => {
-            throw new Error('Cannot encode cids');
-        },
-        decode: (bytes) => {
-            if (bytes[0] !== 0) {
-                throw new Error('Invalid cid');
-            }
-            return CID.decode(bytes.subarray(1)); // ignore leading 0x00
-        },
-    });
-
-    socket.addEventListener('close', (event) => {
-        isRealtimeConnected.set(false);
-    });
-
-    socket.addEventListener('open', (event) => {
-        isRealtimeConnected.set(true);
-    });
-
-    socket.addEventListener('message', async (event) => {
-        const messageBuf = await event.data.arrayBuffer();
-        const [header, body] = decodeMultiple(new Uint8Array(messageBuf));
-
-        if (header.op !== 1) {
-            return;
+    connect() {
+        if (!this.socket) {
+            this.socket = new WebSocket('wss://' + this.host + '/xrpc/com.atproto.sync.subscribeRepos');
         }
 
-        try {
-            const car = await CarReader.fromBytes(body.blocks);
+        addExtension({
+            Class: CID,
+            tag: 42,
+            encode: () => {
+                throw new Error('Cannot encode cids');
+            },
+            decode: (bytes) => {
+                if (bytes[0] !== 0) {
+                    throw new Error('Invalid cid');
+                }
+                return CID.decode(bytes.subarray(1)); // ignore leading 0x00
+            },
+        });
 
-            for (const op of body.ops) {
-                if (!op.cid) continue;
-                const block = await car.get(op.cid);
-                const record = decode(block.bytes);
-                realtime.set({
-                    isConnected: true,
-                    data: {
-                        record: record,
-                        op: op,
-                        body: body,
-                    }
-                })
+        this.socket.onmessage = async function (event) {
+            const messageBuf = await event.data.arrayBuffer();
+            const [header, body] = decodeMultiple(new Uint8Array(messageBuf));
+
+            if (header.op !== 1) {
+                return;
             }
-        } catch (e) {
-            // do nothing.
+
+            try {
+                const car = await CarReader.fromBytes(body.blocks);
+
+                for (const op of body.ops) {
+                    if (!op.cid) continue;
+                    const block = await car.get(op.cid);
+                    const record = decode(block.bytes);
+                    realtime.set({
+                        isConnected: true,
+                        data: {
+                            record: record,
+                            op: op,
+                            body: body,
+                        }
+                    })
+                }
+            } catch (e) {
+                // do nothing.
+            }
+        };
+
+        this.socket.onclose = async (event) => {
+            console.log('socket closed.');
+            //await new Promise(resolve => setTimeout(resolve, 3000));
+            //this.reconnect();
         }
-    });
+    }
+
+    disconnect() {
+        if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+        }
+    }
+
+    reconnect() {
+        this.disconnect();
+        this.connect();
+    }
+
+    status() {
+        return this.socket?.readyState;
+    }
 }
 
-export async function disconnect() {
+async function getRecord(_agent, uri, repost = undefined, retryCount = 0) {
     try {
-        socket.close();
-        socket = undefined;
-        // document.removeEventListener('visibilitychange', handleVisibilityChange);
-        realtime.set({
-            isConnected: false,
-            data: undefined,
-        })
-    } catch(e) {
-        console.log(e);
-        socket = undefined;
-        realtime.set({
-            isConnected: false,
-            data: undefined,
-        })
+        const res = await _agent.agent.api.app.bsky.feed.getPostThread({depth: 0, parentHeight: 1, uri: uri});
+        let thread = res.data.thread;
 
-        if (!socket) {
-            await connect();
+        if (thread?.parent && thread.post.record.reply) {
+            thread.reply = {
+                parent: thread.parent.post,
+                root: thread.post.record.reply.root,
+            }
+        }
+
+        if (repost) {
+            const rres = await _agent.agent.api.app.bsky.actor.getProfile({actor: repost.repo})
+            thread.reason = {
+                $type: 'app.bsky.feed.defs#reasonRepost',
+                indexedAt: repost.indexedAt,
+                by: rres.data,
+            }
+        }
+
+        return thread;
+    } catch (e) {
+        if (retryCount < 3) {
+            retryCount = retryCount + 1;
+            console.log('Post get failure. Retry: ' + retryCount)
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            await getRecord(_agent, uri, repost, retryCount);
+        } else {
+            console.error(e);
+            return null;
         }
     }
 }
 
-async function handleVisibilityChange(event) {
-    if (!event.target.visibilityState) {
-        return false;
+export async function getPostRealtime(realtime, actors, _agent) {
+    const path = realtime.data.op.path;
+    const repo = realtime.data.body.repo;
+    const uri = 'at://' + repo + '/' + path;
+    const isStream: boolean = actors.some(actor => actor === repo);
+
+    if (realtime.data.record.$type === 'app.bsky.feed.post' && typeof realtime.data.record.text === 'string') {
+        if (isStream) {
+            return await getRecord(_agent, uri);
+        }
     }
 
-    /* if (event.target.visibilityState === 'hidden') {
-        if (timeId) {
-            clearTimeout(timeId);
+    if (realtime.data.record.$type === 'app.bsky.feed.repost') {
+        const subject = realtime.data.record.subject.uri;
+        const repost = {
+            repo: repo,
+            indexedAt: realtime.data.record.createdAt,
         }
 
-        timeId = setTimeout(() => {
-            socket.close();
-            realtime.update(r => {
-                return {...r, isConnected: false}
-            })
-        }, 180000)
-    } */
-
-    if (event.target.visibilityState === 'visible') {
-        clearTimeout(timeId);
+        if (isStream) {
+            return await getRecord(_agent, subject, repost);
+        }
     }
 }
-
-document.addEventListener('visibilitychange', handleVisibilityChange)

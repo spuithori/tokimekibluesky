@@ -8,7 +8,7 @@
 
     export let _agent = $agent;
     export let uri;
-    export let existingUris = [];
+    export let existingMembers = [];
 
     let isMenuOpen = false;
 
@@ -24,12 +24,12 @@
                 rkey: uri.split('/').slice(-1)[0],
             }];
 
-            if (existingUris.length) {
-                existingUris.forEach(uri => {
+            if (existingMembers.length) {
+                existingMembers.forEach(member => {
                     writes = [...writes, {
                         $type: 'com.atproto.repo.applyWrites#delete',
                         collection: 'app.bsky.graph.listitem',
-                        rkey: uri.split('/').slice(-1)[0],
+                        rkey: member.uri.split('/').slice(-1)[0],
                     }]
                 })
             }

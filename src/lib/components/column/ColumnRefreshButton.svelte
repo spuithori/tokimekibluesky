@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, columns, settings, workerTimer} from "$lib/stores";
+    import {agent, columns, settings, workerTimer, isRealtimeListenersModalOpen} from "$lib/stores";
     import {createEventDispatcher, onDestroy} from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -107,17 +107,27 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-{#if (column.algorithm.type !== 'bookmark' && column.algorithm.type !== 'realtime' && column.algorithm.type !== 'thread')}
-  <button
-      class="refresh-button"
-      class:refresh-button--decks={$settings.design.layout === 'decks'}
-      class:is-refreshing={isRefreshing}
-      aria-label="Refresh"
-      on:click={refresh}
-      disabled={isRefreshing}
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
-      <path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
-    </svg>
-  </button>
+{#if (column.algorithm.type !== 'bookmark' && column.algorithm.type !== 'thread')}
+  {#if (column.settings?.autoRefresh !== -1 && column.algorithm.type !== 'realtime')}
+    <button
+        class="refresh-button"
+        class:refresh-button--decks={$settings.design.layout === 'decks'}
+        class:is-refreshing={isRefreshing}
+        aria-label="Refresh"
+        on:click={refresh}
+        disabled={isRefreshing}
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
+          <path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
+        </svg>
+    </button>
+  {:else}
+    <button
+        class="refresh-button refresh-button--realtime refresh-button--decks"
+        aria-label="Realtime Connecting"
+        on:click={() => {$isRealtimeListenersModalOpen = true}}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-radio"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>
+    </button>
+  {/if}
 {/if}

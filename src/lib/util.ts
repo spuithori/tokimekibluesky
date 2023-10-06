@@ -1,3 +1,5 @@
+import {accountsDb} from "$lib/db";
+
 export function getAccountIdByDid(agents, did) {
     let id;
 
@@ -8,6 +10,14 @@ export function getAccountIdByDid(agents, did) {
     });
 
     return id;
+}
+
+export async function getAccountIdByDidFromDb(did) {
+    const account = await accountsDb.accounts
+        .where('did')
+        .equals(did)
+        .first();
+    return account.id;
 }
 
 export function getAllAgentDids(agents) {

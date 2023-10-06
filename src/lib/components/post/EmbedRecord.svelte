@@ -9,7 +9,6 @@
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
 
   export let record;
-  export let locale;
   export let moderateData = undefined;
 
   let warnReason = '';
@@ -70,10 +69,10 @@
       <p class="timeline__date">
         {#if $settings?.design.absoluteTime}
           <time datetime="{format(parseISO(record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
-                title="{format(parseISO(record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{format(parseISO(record.indexedAt), 'yy/MM/dd HH:mm')}</time>
+                title="{format(parseISO(record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{format(parseISO(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
         {:else}
           <time datetime="{format(parseISO(record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
-                title="{format(parseISO(record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(record.indexedAt), {locale: locale})}</time>
+                title="{format(parseISO(record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(record.indexedAt))}</time>
         {/if}
       </p>
     </div>

@@ -101,6 +101,7 @@ export const bookmarksStore = writable(undefined);
 
 const defaultSettings = {
     general: {
+        userLanguage: window.navigator.language,
         language: window.navigator.language,
         disableAlgorithm: false,
         repostConfirmSkip: false,
@@ -194,8 +195,6 @@ export const realtime = writable<Realtime>({
     }
 });
 
-export const isRealtimeConnected = writable(false);
-
 type ReportModal = {
     open: boolean,
     data: {
@@ -248,3 +247,5 @@ export const pulseDelete = writable<string | undefined>(undefined);
 export const isReactionButtonSettingsModalOpen = writable(false);
 
 export const workerTimer = readable(new Worker(timerWorkerUrl));
+
+export const isRealtimeListenersModalOpen = writable(false);

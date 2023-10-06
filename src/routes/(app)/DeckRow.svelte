@@ -116,7 +116,7 @@
     </div>
 
     {#if isSettingsOpen}
-        <DeckSettingsModal {column} {index} on:close={handleSettingsClick}></DeckSettingsModal>
+        <DeckSettingsModal {column} {index} {_agent} on:close={handleSettingsClick}></DeckSettingsModal>
     {:else}
         {#key unique}
             {#if uniqueAgent}

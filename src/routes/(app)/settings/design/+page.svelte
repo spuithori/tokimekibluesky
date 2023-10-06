@@ -10,6 +10,7 @@
     let darkmode = $settings?.design.darkmode || false;
     let nonoto = $settings?.design.nonoto || false;
     let layout = $settings?.design.layout || 'default';
+    let datetimeFormat = $settings?.design.datetimeFormat || 'yyyy-MM-dd HH:mm';
     let absoluteTime = $settings?.design.absoluteTime || false;
     let postsLayout = $settings?.design.postsLayout || 'default';
     let postsImageLayout = $settings?.design.postsImageLayout || 'default';
@@ -27,12 +28,32 @@
         $settings.design.nonoto = nonoto;
         $settings.design.layout = layout;
         $settings.design.absoluteTime = absoluteTime;
+        $settings.design.datetimeFormat = datetimeFormat;
         $settings.design.postsLayout = postsLayout;
         $settings.design.postsImageLayout = postsImageLayout;
         $settings.design.oneImageNoCrop = oneImageNoCrop;
     }
 
     $: colors = detectColors($theme);
+
+    const datetimeFormats = [
+        {
+            sample: '2023-10-15 11:32',
+            value: 'yyyy-MM-dd HH:mm',
+        },
+        {
+            sample: '23/10/15 11:32',
+            value: 'yy/MM/dd HH:mm',
+        },
+        {
+            sample: '10/15/23 11:32',
+            value: 'MM/dd/yy HH:mm',
+        },
+        {
+            sample: '15/10/23 11:32',
+            value: 'dd/MM/yy HH:mm',
+        },
+    ];
 
     function detectColors(theme) {
         if (!theme) {
@@ -267,6 +288,26 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="absoluteTime" bind:checked={absoluteTime}><label class="input-toggle__label" for="absoluteTime"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('datetime_format')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="select">
+          <svg class="select__icon" xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
+            <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l10.2,10.2,10.2-10.2" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
+          </svg>
+
+          <select class="select__input" bind:value={datetimeFormat}>
+            {#each datetimeFormats as option}
+              <option value="{option.value}">{option.sample}</option>
+            {/each}
+          </select>
         </div>
       </dd>
     </dl>

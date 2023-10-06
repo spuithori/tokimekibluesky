@@ -193,7 +193,7 @@
   "settings_mutes": "Mutes",
   "settings_push_notification": "Push notification",
   "settings": "Settings",
-  "language_settings": "Language",
+  "language_settings": "Interface language",
   "mentions": "Mentions",
   "follow": "Follow",
   "follower": "Follower",
@@ -444,5 +444,17 @@
   "login_box_text_2": "It is PWA compliant and can be used like an app on mobile devices.",
   "clear_column_posts": "Clear posts",
   "reaction_other_account": "Select the account in the profile",
-  "reaction_other_account_menu": "React elsewhere..."
+  "reaction_other_account_menu": "React elsewhere...",
+  "auto_refresh_realtime": "Realtime",
+  "auto_refresh_realtime_notice": "Real-time updates will increase communication traffic. Use with mobile data connection is not recommended.Acquisition omissions and back and forth time series may occur.",
+  "realtime_column_obsolete": "REALTIME has been integrated into each column. Please set the update frequency of each column to \"Realtime\" from now on.",
+  "user_language_settings": "Language",
+  "realtime_listeners_title": "Realtime status",
+  "realtime_listeners_reconnect": "Reconnect",
+  "realtime_listeners_disconnect": "Disconnect",
+  "realtime_listeners_status_0": "Connected",
+  "realtime_listeners_status_1": "Connected",
+  "realtime_listeners_status_3": "Disconnected",
+  "realtime_listeners_status_undefined": "Disconnected",
+  "datetime_format": "Datetime format (for October 15, 2023 at 11:32)"
 }

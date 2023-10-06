@@ -167,4 +167,10 @@ export class Agent {
             return customFeeds;
         }
     }
+
+    async getListActors(uri: string) {
+        const res = await this.agent.api.app.bsky.graph.getList({list: uri});
+        const items = res.data.items;
+        return items.map(item => item.subject.did);
+    }
 }

@@ -30,25 +30,6 @@
       },
   ];
 
-  if (_agent.agent.service.host === 'bsky.social') {
-      allColumns = [...allColumns, {
-          id: self.crypto.randomUUID(),
-          algorithm: {
-              type: 'realtime',
-              name: 'REALTIME',
-              algorithm: 'following'
-          },
-          style: 'default',
-          settings: defaultDeckSettings,
-          did: _agent.did(),
-          handle: _agent.handle(),
-          data: {
-              feed: [],
-              cursor: '',
-          }
-      },]
-  }
-
   allColumns = [...allColumns, {
       id: self.crypto.randomUUID(),
       algorithm: {

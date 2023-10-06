@@ -1,19 +1,49 @@
 <script lang="ts">
-  import {agent} from '$lib/stores';
+  import {agent, realtime} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
   import InfiniteLoading from 'svelte-infinite-loading';
   import MediaTimelineItem from "./MediaTimelineItem.svelte";
-  import TimelineItemWrap from "$lib/components/post/TimelineItemWrap.svelte";
+  import {getPostRealtime} from "$lib/realtime";
+  import {getDbFollows} from "$lib/getActorsList";
 
   export let column;
   export let index;
   export let _agent = $agent;
 
-  if (!column.data) {
-      column.data = {
-          feed: [],
-          cursor: '',
+  let isActorsListFinished = false;
+  let actors = [];
+
+  if (column.settings?.autoRefresh === -1) {
+      getActors();
+  }
+
+  $: insertRealtimeData($realtime);
+
+  function insertRealtimeData(realtime) {
+      if (!isActorsListFinished) {
+          return false;
       }
+
+      getPostRealtime(realtime, actors, _agent)
+          .then(value => {
+              if (!value) {
+                  return false;
+              }
+
+              column.data.feed = [value, ...column.data.feed];
+          });
+  }
+
+  async function getActors() {
+      if (column.algorithm.type === 'default') {
+          actors = await getDbFollows(_agent);
+      }
+
+      if (column.algorithm.type === 'officialList') {
+          actors = await _agent.getListActors(column.algorithm.algorithm);
+
+      }
+      isActorsListFinished = true;
   }
 
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
@@ -36,7 +66,6 @@
 <div class="timeline timeline--{column.style}">
   {#if (column.style === 'default')}
     {#each column.data.feed as data, index (data)}
-      <!-- <TimelineItemWrap data={ data } index={index} column={column} {_agent}></TimelineItemWrap> -->
       <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
     {/each}
   {:else}

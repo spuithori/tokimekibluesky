@@ -15,7 +15,6 @@
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
 
   export let post;
-  export let locale;
   export let _agent;
   export let isMedia = false;
   export let isTranslated = false;
@@ -93,7 +92,7 @@
   }
 
   async function translation() {
-      ({ text: post.record.text, facets: post.record.facets } = await translate(post.record.text, $settings.general?.language, _agent));
+      ({ text: post.record.text, facets: post.record.facets } = await translate(post.record.text, $settings.general?.userLanguage, _agent));
       isTranslated = true;
   }
 </script>
@@ -117,21 +116,21 @@
       {#if $settings?.design.absoluteTime}
         <Tooltip>
           <time slot="ref"
-                datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(post.indexedAt), 'yy/MM/dd HH:mm')}</time>
+                datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
           <span slot="content" aria-hidden="true"
                 class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
         </Tooltip>
       {:else}
         <Tooltip>
           <time slot="ref"
-                datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(post.indexedAt), {locale: locale})}</time>
+                datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(post.indexedAt))}</time>
           <span slot="content" aria-hidden="true"
                 class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
         </Tooltip>
       {/if}
     </p>
 
-    {#if (post.record.langs && !post.record.langs.includes($settings.general.language))}
+    {#if (post.record.langs && !post.record.langs.includes($settings.general.userLanguage))}
       <button
           class="timeline-translate-button"
           class:timeline-translate-button--hidden={isTranslated}
@@ -175,7 +174,7 @@
     {/if}
 
     {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyEmbedRecord.isViewRecord(post.embed.record)) }
-      <EmbedRecord record={post.embed.record} locale={locale} {moderateData}></EmbedRecord>
+      <EmbedRecord record={post.embed.record} {moderateData}></EmbedRecord>
     {/if}
 
     {#if (AppBskyEmbedRecordWithMedia.isView(post.embed))}
@@ -190,7 +189,7 @@
       {/if}
 
       {#if AppBskyEmbedRecord.isViewRecord(post.embed.record.record)}
-        <EmbedRecord record={post.embed.record.record} locale={locale} {moderateData}></EmbedRecord>
+        <EmbedRecord record={post.embed.record.record} {moderateData}></EmbedRecord>
       {/if}
     {/if}
   </div>

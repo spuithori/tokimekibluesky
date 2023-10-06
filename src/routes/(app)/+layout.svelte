@@ -38,6 +38,8 @@
   import {defaultColors} from "$lib/defaultColors";
   import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
   import ReactionButtonSettingsModal from "$lib/components/settings/ReactionButtonSettingsModal.svelte";
+  import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
+  import {detectDateFnsLocale} from "$lib/detectDateFnsLocale";
 
   let loaded = false;
   let isColumnInitialLoad = false;
@@ -216,6 +218,10 @@
       locale.set($settings.general.language);
   }
 
+  if (!$settings?.general.userLanguage) {
+      $settings.general.userLanguage = window.navigator.language;
+  }
+
   $: {
       localStorage.setItem('settings', JSON.stringify($settings));
       localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
@@ -224,6 +230,7 @@
 
   $: columnStorageSave($syncColumns);
   $: detectDarkMode($settings.design?.darkmode, $theme?.options.darkmodeDisabled);
+  $: detectDateFnsLocale($settings.general?.language || window.navigator.language);
 
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
       if ($settings?.design.darkmode === 'prefer') {
@@ -295,9 +302,6 @@
               }
           })
       }
-
-      /* const prefRes = await $agent.agent.api.app.bsky.actor.getPreferences();
-      preferences.set(prefRes.data.preferences); */
 
       sessionStorage.clear();
       isAfterReload.set(false);
@@ -392,6 +396,7 @@
     {/if}
 
     <NotificationCountObserver></NotificationCountObserver>
+    <RealtimeListenersObserver></RealtimeListenersObserver>
   {:else}
     <div>
 

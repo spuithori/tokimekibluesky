@@ -11,7 +11,6 @@ import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 import { fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import ja from 'date-fns/locale/ja/index';
 import {
     RichText,
     AppBskyEmbedImages,
@@ -842,7 +841,7 @@ function handleAgentSelect(event) {
             <div class="timeline-external__content">
               <div class="timeline__meta">
                 <p class="timeline__user" title="{$quotePost.author.handle}">{ $quotePost.author.displayName || $quotePost.author.handle }</p>
-                <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt), {locale: ja})}</p>
+                <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt))}</p>
               </div>
 
               <p class="timeline-external__description">

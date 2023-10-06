@@ -198,6 +198,12 @@
         @media (max-width: 767px) {
             position: fixed;
         }
+
+        &--realtime {
+            @media (max-width: 767px) {
+                position: static;
+            }
+        }
     }
 }
 

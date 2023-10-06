@@ -1,17 +1,18 @@
 import {
+    Aperture,
     Bell,
     Bird,
     Bookmark, Bot, Box, Camera,
     Cat,
     Clapperboard,
     Clock3,
-    Dog, FlaskConical,
+    Dog, FlaskConical, Heart,
     Home, Image,
     List, Newspaper,
     Pencil,
-    Rainbow, Sparkles, Speaker,
+    Rainbow, Rss, Sparkles, Speaker,
     Star,
-    Sun
+    Sun, Tent, TreePine
 } from 'lucide-svelte';
 
 export const iconMap = new Map();
@@ -37,3 +38,8 @@ iconMap.set('home', Home)
     .set('camera', Camera)
     .set('image', Image)
     .set('science', FlaskConical)
+    .set('aperture', Aperture)
+    .set('heart', Heart)
+    .set('tree', TreePine)
+    .set('rss', Rss)
+    .set('tent', Tent)

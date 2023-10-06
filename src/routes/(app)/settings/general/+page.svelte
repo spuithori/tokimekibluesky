@@ -1,6 +1,8 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
+    import {languageMap} from "$lib/langs/languageMap";
+    let userLanguage = $settings?.general.userLanguage || window.navigator.language;
     let language = $settings?.general.language || window.navigator.language;
     let dataSaver = $settings?.general.dataSaver || false;
     let se = $settings?.general.se || false;
@@ -26,6 +28,7 @@ const languages = [
 ]
 
 $: {
+    $settings.general.userLanguage = userLanguage;
     $settings.general.language = language;
     $settings.general.dataSaver = dataSaver;
     $settings.general.se = se;
@@ -55,6 +58,26 @@ $: {
   </div>
 
   <div class="settings-wrap">
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('user_language_settings')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="select">
+          <svg class="select__icon" xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
+            <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l10.2,10.2,10.2-10.2" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--primary-color)" stroke-width="2"/>
+          </svg>
+
+          <select class="select__input" bind:value={userLanguage}>
+            {#each languageMap as [k, v]}
+              <option value="{k}">{$_(v.name)}</option>
+            {/each}
+          </select>
+        </div>
+      </dd>
+    </dl>
+
     <dl class="settings-group">
       <dt class="settings-group__name">
         {$_('language_settings')}

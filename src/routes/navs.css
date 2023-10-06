@@ -134,6 +134,12 @@
             path {
                 fill: var(--primary-color);
             }
+
+            &.refresh-button--realtime {
+                path {
+                    fill: none;
+                }
+            }
         }
     }
 }
