@@ -26,7 +26,7 @@
     margin-top: 20px;
     box-shadow: var(--timeline-embed-box-shadow);
     border-radius: 6px;
-    font-size: 14px;
+    font-size: var(--timeline-content-font-size);
 
     @media (max-width: 767px) {
         grid-template-columns: 50px 1fr;
@@ -137,7 +137,7 @@
 }
 
 .timeline-repost-message {
-    font-size: 14px;
+    font-size: var(--timeline-repost-font-size);
     letter-spacing: .025em;
     line-height: 1.5;
     margin-left: 12px;
@@ -152,15 +152,6 @@
         svg {
             flex-shrink: 0;
         }
-    }
-
-    &__you {
-        color: var(--bg-color-1);
-        background-color: var(--primary-color);
-        font-size: 12px;
-        border-radius: 4px;
-        padding: 2px 4px;
-        margin-left: 5px;
     }
 }
 
@@ -208,7 +199,7 @@
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
-    font-size: 14px;
+    font-size: var(--timeline-meta-font-size);
     margin-bottom: 6px;
     margin-top: 6px;
     padding-right: 35px;
@@ -271,6 +262,7 @@
 .timeline__text {
     white-space: pre-line;
     line-height: 1.75;
+    font-size: var(--timeline-content-font-size);
 }
 
 .timeline__delete {
@@ -745,8 +737,6 @@
     }
 
     .timeline-repost-message {
-        font-size: 13px;
-
         &::before {
             top: 10px;
             bottom: 10px;
@@ -760,14 +750,9 @@
     .timeline__meta {
         margin-top: 0;
         margin-bottom: 2px;
-
-        @media (max-width: 767px) {
-            font-size: 13px;
-        }
     }
 
     .timeline__text {
-        font-size: 14px;
         line-height: 1.5;
     }
 

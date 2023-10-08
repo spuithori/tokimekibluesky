@@ -456,5 +456,6 @@
   "realtime_listeners_status_1": "Connected",
   "realtime_listeners_status_3": "Disconnected",
   "realtime_listeners_status_undefined": "Disconnected",
-  "datetime_format": "Datetime format (for October 15, 2023 at 11:32)"
+  "datetime_format": "Datetime format (for October 15, 2023 at 11:32)",
+  "posts_font_size": "Posts font size"
 }

@@ -299,14 +299,14 @@
       }
 
       &__title {
-          font-size: 14px;
+          font-size: var(--timeline-meta-font-size);
           line-height: 1.5;
           font-weight: 600;
           margin-bottom: 5px;
       }
 
       &__content {
-          font-size: 14px;
+          font-size: var(--timeline-content-font-size);
           height: 21px;
 
           a {

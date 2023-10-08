@@ -15,6 +15,7 @@
     let postsLayout = $settings?.design.postsLayout || 'default';
     let postsImageLayout = $settings?.design.postsImageLayout || 'default';
     let oneImageNoCrop = $settings?.design.oneImageNoCrop || false;
+    let fontSize = $settings?.design.fontSize || 2;
 
     $: myThemes = liveQuery(async () => {
         const myThemes = await themesDb.themes.toArray();
@@ -32,6 +33,7 @@
         $settings.design.postsLayout = postsLayout;
         $settings.design.postsImageLayout = postsImageLayout;
         $settings.design.oneImageNoCrop = oneImageNoCrop;
+        $settings.design.fontSize = fontSize;
     }
 
     $: colors = detectColors($theme);
@@ -205,6 +207,27 @@
         </div>
       </dd>
     </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('posts_font_size')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="range">
+          <input class="range__input" type="range" min="1" max="5" step="1" bind:value={fontSize} list="fontSize">
+          <datalist id="fontSize" class="range__datalist">
+            <option value="1"></option>
+            <option value="2"></option>
+            <option value="3"></option>
+            <option value="4"></option>
+            <option value="5"></option>
+          </datalist>
+        </div>
+
+      </dd>
+    </dl>
+
 
     <dl class="settings-group">
       <dt class="settings-group__name">
