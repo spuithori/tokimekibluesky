@@ -1,16 +1,14 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, realtime, settings} from '$lib/stores';
-    import { type AppBskyNotificationListNotifications, AppBskyFeedPost, AppBskyFeedLike, AppBskyFeedRepost } from '@atproto/api';
+    import {agent, didHint, isPreventEvent, realtime, settings} from '$lib/stores';
+    import { type AppBskyNotificationListNotifications } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
-    import Repost from "$lib/components/post/Repost.svelte";
-    import Like from "$lib/components/post/Like.svelte";
-    import Reply from "$lib/components/post/Reply.svelte";
     import Avatar from "./Avatar.svelte";
     import UserItem from "./profile/[handle]/UserItem.svelte";
     import {createEventDispatcher} from "svelte";
     import TimelineItem from "./TimelineItem.svelte";
+    import {goto} from "$app/navigation";
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
@@ -188,16 +186,6 @@
                 return 'liked_your_post';
         }
     }
-
-    function handleLike(event, index) {
-        notifications[index].feedThis.likeCount = event.detail.count;
-        notifications[index].feedThis.viewer.like = event.detail.viewer;
-    }
-
-    function handleRepost(event, index) {
-        notifications[index].feedThis.repostCount = event.detail.count;
-        notifications[index].feedThis.viewer.repost = event.detail.viewer;
-    }
 </script>
 
 <div class="notifications-wrap">
@@ -251,7 +239,7 @@
             </div>
           </article>
         {:else}
-          <article class="notifications-item notifications-item--{item.reason}">
+          <article class="notifications-item notifications-item--reaction notifications-item--{item.reason}">
             {#if (!item.isRead)}
               <div class="notifications-new" aria-label="New Notification"></div>
             {/if}
@@ -274,7 +262,7 @@
                 </h2>
 
                 {#if (item.feed)}
-                  <p class="notifications-item__content">{item.feed.record.text}</p>
+                  <p class="notifications-item__content"><a href="{'/profile/' + item.feed.author.handle + '/post/' + item.feed.uri.split('/').slice(-1)[0]}">{item.feed.record.text}</a></p>
                 {:else}
                   <p class="notifications-item__content"></p>
                 {/if}
@@ -320,6 +308,14 @@
       &__content {
           font-size: 14px;
           height: 21px;
+
+          a {
+              color: inherit;
+
+              &:hover {
+                  text-decoration: none;
+              }
+          }
       }
 
       &__quote {

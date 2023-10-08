@@ -284,7 +284,7 @@ async function onFileReordered(files: { id: string }[], _origin: unknown, _targe
 function handleKeydown(event: { key: string; }) {
     const activeElement = document.activeElement?.tagName;
 
-    if (event.key === 'n' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
+    if (event.key === 'n' && !(activeElement === 'TEXTAREA' || activeElement === 'INPUT')) {
         onFocus();
     }
 

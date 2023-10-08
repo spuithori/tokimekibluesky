@@ -46,6 +46,8 @@
       </div>
     </div>
   </div>
+
+  <a class="modal-background-close" aria-hidden="true" href="/"></a>
 </div>
 
 <style lang="postcss">
