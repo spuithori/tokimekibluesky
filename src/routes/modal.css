@@ -271,6 +271,7 @@
     max-width: 100vw;
     height: 90vh;
     overflow: hidden;
+    position: relative;
     z-index: 2;
 
     @media (min-width: 768px) {
