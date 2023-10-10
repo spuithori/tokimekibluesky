@@ -9,7 +9,7 @@
     import HardBreak from '@tiptap/extension-hard-break';
     import Mention from '@tiptap/extension-mention';
     import Placeholder from '@tiptap/extension-placeholder';
-    import {agent} from "$lib/stores";
+    import {agent, sharedText} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
     import { offset, flip, shift } from "svelte-floating-ui/dom";
     import { createFloatingActions } from "svelte-floating-ui";
@@ -31,6 +31,7 @@
     let linkButtonDisabled = true;
 
     $: elementRect = element && element.getBoundingClientRect();
+    $: addSharedText($sharedText);
 
     const [ floatingRef, floatingContent ] = createFloatingActions({
         strategy: 'absolute',
@@ -147,6 +148,18 @@
             editor.destroy();
         }
     })
+
+    function addSharedText(text) {
+        if (!$sharedText) {
+            return false;
+        }
+        editor.commands.setContent(text);
+
+        setTimeout(() => {
+            editor.commands.focus();
+            sharedText.set('');
+        }, 200);
+    }
 
     function addLink() {
         linkDialog.showModal();

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
-import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings, sharedText} from '$lib/stores';
+import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings} from '$lib/stores';
 import {selfLabels, isPublishFormExpand} from "$lib/components/editor/publishStore";
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
@@ -86,14 +86,13 @@ if (!$settings.langSelector) {
 }
 
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
-$: {
-    isPublishEnabled = publishContentLength > 300;
-}
+$: onPublishContentChange(publishContent);
+$: isPublishEnabled = publishContentLength > 300;
 
-function onPublishContentChange() {
+function onPublishContentChange(text) {
     clearTimeout(timer);
     timer = setTimeout(async () => {
-        detectRichText(publishContent)
+        detectRichText(text)
             .then(result => {
                 links = [];
 
@@ -106,7 +105,7 @@ function onPublishContentChange() {
                     })
                 }
             });
-    }, 200)
+    }, 200);
 }
 
 async function detectRichText(text: string) {
@@ -124,7 +123,10 @@ function handleOpen() {
     if (!isFocus) {
         isFocus = true;
     }
-    editor.focus();
+
+    setTimeout(() => {
+        editor.focus();
+    }, 200);
 
     if (isMobile) {
         goto('#post', {noScroll: true});
@@ -144,7 +146,6 @@ function onClose() {
 function handlePopstate(e: PopStateEvent) {
     if (isFocus) {
         isFocus = false;
-        publishArea.blur();
     }
 }
 
@@ -383,7 +384,7 @@ function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
 function handleAltClose(event: CustomEvent<{ images: BeforeUploadImage[] }>) {
     images = event.detail.images;
     isAltModalOpen = false;
-    // onFocus();
+    editor.focus();
 }
 
 async function languageDetect(text = publishContent) {
@@ -406,23 +407,6 @@ async function languageDetect(text = publishContent) {
         lang = [];
     }
 }
-
-function addSharedText(text) {
-    if (!$sharedText) {
-        return false;
-    }
-
-    console.log(text)
-    publishContent = text;
-    isFocus = true;
-
-    setTimeout(() => {
-        publishArea.focus();
-        sharedText.set('');
-    }, 100)
-}
-
-$: addSharedText($sharedText);
 
 async function publish() {
     isTextareaEnabled = true;
@@ -601,7 +585,7 @@ async function publish() {
 
     if (isContinueMode) {
         setTimeout(() => {
-            publishArea.focus();
+            editor.focus();
         }, 100)
     }
 }
