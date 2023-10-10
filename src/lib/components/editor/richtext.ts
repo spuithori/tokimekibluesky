@@ -19,7 +19,11 @@ function detectLinkFacets(json): Facet[] {
     let length = 0;
     let facets = [];
 
-    content.forEach(p => {
+    content.forEach((p, index) => {
+        if (index > 0) {
+            length = length + getByteLength(`\r\n`);
+        }
+
         if (p.content){
             p.content.forEach(item => {
                 if (item.marks) {
@@ -41,7 +45,7 @@ function detectLinkFacets(json): Facet[] {
                 }
             })
         }
-    })
+    });
 
     return facets;
 }
