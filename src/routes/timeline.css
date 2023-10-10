@@ -523,6 +523,10 @@
             min-width: 120px;
         }
 
+        &--active {
+            font-weight: bold;
+        }
+
         &:hover {
             background-color: var(--menu-hover-bg-color);
             text-decoration: none;
