@@ -161,5 +161,17 @@ $: {
         </div>
       </dd>
     </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('skip_link_warning_confirm')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="linkWarningConfirmSkip" bind:checked={$settings.general.linkWarningConfirmSkip}><label class="input-toggle__label" for="linkWarningConfirmSkip"></label>
+        </div>
+      </dd>
+    </dl>
   </div>
 </div>

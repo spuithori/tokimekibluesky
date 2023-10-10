@@ -218,3 +218,38 @@
         top: 40px;
     }
 }
+
+.tiptap {
+    background-color: var(--publish-textarea-bg-color);
+    color: var(--publish-textarea-color);
+    height: 120px;
+    overflow-y: auto;
+    font-size: 16px;
+    vertical-align: middle;
+    width: 100%;
+    padding: 15px 20px;
+    resize: none;
+    outline: none;
+
+    p.is-editor-empty:first-child::before {
+        color: var(--text-color-3);
+        content: attr(data-placeholder);
+        float: left;
+        height: 0;
+        pointer-events: none;
+    }
+}
+
+.editor-mention {
+    color: var(--primary-color);
+}
+
+.publish-form--expand {
+    .editor {
+        flex: 1;
+    }
+
+    .tiptap {
+        height: 100%;
+    }
+}

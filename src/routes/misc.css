@@ -282,3 +282,7 @@ html {
         margin: auto;
     }
 }
+
+.stroke-danger {
+    stroke: var(--danger-color);
+}

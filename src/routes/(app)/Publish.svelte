@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
-import { onMount } from 'svelte';
-import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings, sharedText} from '$lib/stores';
+import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings} from '$lib/stores';
+import {selfLabels, isPublishFormExpand} from "$lib/components/editor/publishStore";
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -24,17 +24,12 @@ import { db } from '$lib/db';
 import DraftModal from "$lib/components/draft/DraftModal.svelte";
 import AltModal from "$lib/components/alt/AltModal.svelte";
 import spinner from '$lib/images/loading.svg';
-import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
-import {languageMap} from "$lib/langs/languageMap";
-import Menu from "$lib/components/ui/Menu.svelte";
 import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
 import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
 import {getAccountIdByDid} from "$lib/util";
-import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
-
 import type { Draft } from '$lib/db';
-import type { SelfLabel } from '@atproto/api/dist/client/types/com/atproto/label/defs';
-import type { ProfileViewBasic } from '@atproto/api/dist/client/types/app/bsky/actor/defs';
+import Tiptap from "$lib/components/editor/Tiptap.svelte";
+import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
 
 registerPlugin(FilePondPluginImageResize);
 registerPlugin(FilePondPluginImagePreview);
@@ -43,8 +38,9 @@ registerPlugin(FilePondPluginImageTransform);
 registerPlugin(FilePondPluginFileValidateType);
 
 let _agent = $agent;
-let publish = function () {};
 let publishContent = '';
+let publishContentJson;
+let editor;
 let isTextareaEnabled = false;
 let isPublishEnabled = false;
 let isAccountSelectDisabled = false;
@@ -55,12 +51,10 @@ let publishArea: HTMLTextAreaElement;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let links: string[] = [];
 let externalImageBlob: string = '';
-let searchActors: ProfileViewBasic[] = [];
 let isContinueMode = false;
 let isPublishUploadClose = false;
 let isDraftModalOpen = false;
 let isAltModalOpen = false;
-let isEmojiPickerOpen = false;
 let isLinkCardAdding = false;
 let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
 
@@ -85,82 +79,20 @@ let embedImages: AppBskyEmbedImages.Main = {
 let embedRecord: AppBskyEmbedRecord.Main;
 let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
 let embedExternal: AppBskyEmbedExternal.Main | undefined;
-let isPublishFormExpand = false;
-
 let lang: string[] = [];
-
-let langSettings = [
-    {
-        name: $_('lang_selector_auto'),
-        value: 'auto',
-    },
-    /* {
-        name: $_('lang_selector_display'),
-        value: 'display',
-    }, */
-    {
-        name: $_('lang_selector_manual'),
-        value: 'manual',
-    },
-];
-let langSetting = 'auto';
-let isLangSelectorOpen = false;
 
 if (!$settings.langSelector) {
     $settings.langSelector = 'auto';
 }
 
-const selfLabelsChoices = [
-    {
-        name: $_('self_labels_spoiler'),
-        description: $_('self_labels_description_3'),
-        val: 'spoiler',
-    },
-    {
-        name: $_('self_labels_porn'),
-        description: $_('self_labels_description_2'),
-        val: 'porn',
-    },
-    {
-        name: $_('self_labels_warning'),
-        description: $_('self_labels_description_1'),
-        val: '!warn',
-    },
-];
-
-let selfLabels: SelfLabel[] = [];
-let currentSelfLabel: SelfLabel | undefined = undefined;
-let isSelfLabelingMenuOpen = false;
-
 $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
-$: {
-    isPublishEnabled = publishContentLength > 300;
+$: onPublishContentChange(publishContent);
+$: isPublishEnabled = publishContentLength > 300;
 
-    if (isDraftModalOpen) {
-        document.body.classList.add('scroll-lock');
-    } else {
-        document.body.classList.remove('scroll-lock');
-    }
-
-    if (isDraftModalOpen) {
-        document.body.classList.add('scroll-lock');
-    } else {
-        document.body.classList.remove('scroll-lock');
-    }
-}
-
-function getActorTypeAhead() {
-    const front = publishContent.slice(0, publishArea.selectionStart);
-    const splitted = front.split(/[ \n]/g);
-    const found = splitted ? splitted[splitted.length - 1].match(/@[^ ]*/g) : '';
-
-    return found ? found[found.length - 1] : null;
-}
-
-function onPublishContentChange() {
+function onPublishContentChange(text) {
     clearTimeout(timer);
     timer = setTimeout(async () => {
-        detectRichText(publishContent)
+        detectRichText(text)
             .then(result => {
                 links = [];
 
@@ -173,34 +105,8 @@ function onPublishContentChange() {
                     })
                 }
             });
-
-        const front = publishContent.slice(0, publishArea.selectionStart);
-        const splitted = front.split(/[ \n]/g);
-        const found = splitted ? splitted[splitted.length - 1].match(/@[^ ]*/g) : '';
-
-        const mention = getActorTypeAhead();
-        if (mention) {
-            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: mention.slice(1), limit: 4});
-            searchActors = res.data.actors.length ? res.data.actors : mentionsHistory;
-        } else {
-            searchActors = [];
-        }
-    }, 200)
-
-    if (getActorTypeAhead() && searchActors.length === 0) {
-        searchActors = mentionsHistory;
-    }
+    }, 200);
 }
-
-const publishKeypress = (e: { keyCode: number; ctrlKey: any; metaKey: any; }) => {
-    if (e.keyCode === 13 && e.ctrlKey) {
-        publish();
-    }
-
-    if (e.keyCode === 13 && e.metaKey) {
-        publish();
-    }
-};
 
 async function detectRichText(text: string) {
     const rt = new RichText({text: text});
@@ -213,24 +119,23 @@ function uploadContextOpen() {
     pond.browse();
 }
 
-function onFocus() {
+function handleOpen() {
     if (!isFocus) {
         isFocus = true;
+    }
 
-        setTimeout(() => {
-            publishArea.focus();
-        }, 100);
+    setTimeout(() => {
+        editor.focus();
+    }, 100);
 
-        if (isMobile) {
-            goto('#post', {noScroll: true});
-        }
+    if (isMobile) {
+        goto('#post', {noScroll: true});
     }
 }
 
 function onClose() {
     if (isFocus) {
         isFocus = false;
-        publishArea.blur();
 
         if (isMobile && window.location.hash === '#post') {
             history.back();
@@ -241,12 +146,7 @@ function onClose() {
 function handlePopstate(e: PopStateEvent) {
     if (isFocus) {
         isFocus = false;
-        publishArea.blur();
     }
-}
-
-function onBlur() {
-    //isFocus = false;
 }
 
 function onFileAdded(_file: unknown) {
@@ -285,7 +185,7 @@ function handleKeydown(event: { key: string; }) {
     const activeElement = document.activeElement?.tagName;
 
     if (event.key === 'n' && !(activeElement === 'TEXTAREA' || activeElement === 'INPUT')) {
-        onFocus();
+        handleOpen();
     }
 
     if (event.key === '/' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
@@ -360,8 +260,7 @@ $: replyRefObserve($replyRef);
 
 function quotePostObserve(quotePost) {
     if (quotePost?.uri) {
-        onFocus();
-
+        handleOpen();
         embedRecord = {
             $type: 'app.bsky.embed.record',
             record: $quotePost,
@@ -371,24 +270,10 @@ function quotePostObserve(quotePost) {
 
 function replyRefObserve(replyRef) {
     if (replyRef) {
-        onFocus();
+        handleOpen();
         _agent = $agents.get(getAccountIdByDid($agents, replyRef.did));
     } else {
         _agent = $agent;
-    }
-}
-
-function putActorSuggestion(actor: string) {
-    const current = getActorTypeAhead();
-    if (current) {
-        const cursor = publishArea.selectionStart;
-        const before = publishContent.substring(0, cursor);
-        const after = publishContent.substring(cursor);
-        const replace = before.substring(0, before.length - current.length);
-
-        publishContent = replace + '@' + actor + after + ' ';
-        searchActors = [];
-        publishArea.focus();
     }
 }
 
@@ -424,16 +309,17 @@ async function saveDraft() {
         const id = await db.drafts.add({
             createdAt: Date.now(),
             text: publishContent,
+            json: publishContentJson,
             quotePost: $quotePost || undefined,
             replyRef: $replyRef || undefined,
             images: images,
-            owner: _agent.did(),
+            owner: _agent.did() as string,
         });
 
         if (!isContinueMode) {
             isFocus = false;
         }
-        publishContent = '';
+        editor.clear();
         quotePost.set(undefined);
         replyRef.set(undefined);
         embed = undefined;
@@ -442,7 +328,6 @@ async function saveDraft() {
         if (pond) {
             pond.removeFiles();
         }
-        searchActors = [];
         embedImages.images = [];
         embedExternal = undefined;
         $isPublishInstantFloat = false;
@@ -455,8 +340,7 @@ async function saveDraft() {
 
 function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
     isDraftModalOpen = false;
-
-    publishContent = '';
+    editor.clear();
     quotePost.set(undefined);
     replyRef.set(undefined);
     images = [];
@@ -464,10 +348,10 @@ function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
     if (pond) {
         pond.removeFiles();
     }
-    searchActors = [];
 
     const draft = event.detail.draft;
-    publishContent = draft.text;
+    editor.setContent(draft.json || draft.text);
+    handleOpen();
 
     if (draft.images.length) {
         isPublishUploadClose = false;
@@ -500,7 +384,7 @@ function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
 function handleAltClose(event: CustomEvent<{ images: BeforeUploadImage[] }>) {
     images = event.detail.images;
     isAltModalOpen = false;
-    onFocus();
+    editor.focus();
 }
 
 async function languageDetect(text = publishContent) {
@@ -524,234 +408,186 @@ async function languageDetect(text = publishContent) {
     }
 }
 
-function handleEmojiPick(event) {
-    const start = publishArea.selectionStart + event.detail.emoji.native.length;
-    publishContent = publishArea.value.substr(0, publishArea.selectionStart) + event.detail.emoji.native + publishArea.value.substr(publishArea.selectionStart);
-    publishArea.value = publishContent;
+async function publish() {
+    isTextareaEnabled = true;
+    isPublishEnabled = true;
 
-    publishArea.focus();
-    publishArea.setSelectionRange(start, start);
-}
-
-function setSelfLabel(index) {
-    currentSelfLabel = index;
-    selfLabels = [
-        {
-            val: selfLabelsChoices[index].val,
-        }
-    ];
-    isSelfLabelingMenuOpen = false;
-    publishArea.focus();
-}
-
-function addSharedText(text) {
-    if (!$sharedText) {
+    if (!publishContent && !images.length) {
+        isTextareaEnabled = false;
+        isPublishEnabled = false;
         return false;
     }
 
-    console.log(text)
-    publishContent = text;
-    isFocus = true;
-
-    setTimeout(() => {
-        publishArea.focus();
-        sharedText.set('');
-    }, 100)
-}
-
-$: addSharedText($sharedText);
-
-onMount(async () => {
-    publish = async function () {
-        isTextareaEnabled = true;
-        isPublishEnabled = true;
-
-        if (!publishContent && !images.length) {
-            isTextareaEnabled = false;
-            isPublishEnabled = false;
-            return false;
-        }
-
-        if (images.length) {
-            const filePromises = images.map(image => {
-                return _agent.agent.api.com.atproto.repo.uploadBlob(image.image, {
-                    encoding: 'image/jpeg',
-                });
+    if (images.length) {
+        const filePromises = images.map(image => {
+            return _agent.agent.api.com.atproto.repo.uploadBlob(image.image, {
+                encoding: 'image/jpeg',
             });
+        });
 
-
-            const promise = Promise.all(filePromises)
-                .then(results => results.forEach((result, index) => {
-                    embedImages.images.push({
-                        image: result.data.blob,
-                        alt: images[index].alt || '',
-                    });
-                }))
-                .catch(error => {
-                    isTextareaEnabled = false;
-                    isPublishEnabled = false;
-                    throw new Error(error);
-                })
-
-            await toast.promise(promise, {
-                loading: $_('images_uploading'),
-                success: $_('images_upload_success'),
-                error: $_('images_upload_failed')
+        const promise = Promise.all(filePromises)
+            .then(results => results.forEach((result, index) => {
+                embedImages.images.push({
+                    image: result.data.blob,
+                    alt: images[index].alt || '',
+                });
+            }))
+            .catch(error => {
+                isTextareaEnabled = false;
+                isPublishEnabled = false;
+                throw new Error(error);
             })
+
+        await toast.promise(promise, {
+            loading: $_('images_uploading'),
+            success: $_('images_upload_success'),
+            error: $_('images_upload_failed')
+        })
+    }
+
+    if (embedImages.images.length && $quotePost?.uri) {
+        embedRecordWithMedia = {
+            $type: 'app.bsky.embed.recordWithMedia',
+            media: embedImages,
+            record: embedRecord,
         }
 
-        if (embedImages.images.length && $quotePost?.uri) {
-            embedRecordWithMedia = {
-                $type: 'app.bsky.embed.recordWithMedia',
-                media: embedImages,
-                record: embedRecord,
-            }
-
-            embed = embedRecordWithMedia;
-        } else {
-            if (embedImages.images.length) {
-                embed = embedImages;
-            }
-
-            if ($quotePost?.uri) {
-                embed = embedRecord;
-            }
-
-            if (embedExternal && !embedImages.images.length && !$quotePost?.uri) {
-                if (externalImageBlob) {
-                    try {
-                        const imageRes = await fetch(externalImageBlob);
-                        const blob = await imageRes.blob();
-
-                        const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
-                            encoding: 'image/jpeg',
-                        });
-                        embedExternal.external.thumb = res.data.blob;
-                    } catch (e) {
-                        toast.error(e);
-                    }
-                }
-                embed = embedExternal;
-            }
+        embed = embedRecordWithMedia;
+    } else {
+        if (embedImages.images.length) {
+            embed = embedImages;
         }
 
-        let rt: RichText | undefined;
-
-        if (publishContent) {
-            rt = new RichText({text: publishContent});
-            await rt.detectFacets(_agent.agent);
+        if ($quotePost?.uri) {
+            embed = embedRecord;
         }
 
-        if (!$settings.langSelector || $settings.langSelector === 'auto') {
-            await languageDetect(publishContent);
-        } else {
-            lang = [ $settings.langSelector ];
-        }
+        if (embedExternal && !embedImages.images.length && !$quotePost?.uri) {
+            if (externalImageBlob) {
+                try {
+                    const imageRes = await fetch(externalImageBlob);
+                    const blob = await imageRes.blob();
 
-        const shortReplyRef = $replyRef ? {
-            root: {
-                cid: $replyRef.data.root.cid,
-                uri: $replyRef.data.root.uri,
-            },
-            parent: {
-                cid: $replyRef.data.parent.cid,
-                uri: $replyRef.data.parent.uri,
-            }
-        } : undefined;
-
-        try {
-            await _agent.agent.api.app.bsky.feed.post.create(
-                { repo: _agent.did() },
-                {
-                    embed: embed,
-                    facets: rt ? rt.facets : undefined,
-                    text: rt ? rt.text : '',
-                    createdAt: new Date().toISOString(),
-                    reply: shortReplyRef,
-                    via: 'TOKIMEKI',
-                    langs: lang.length ? lang : undefined,
-                    labels: selfLabels.length ? {
-                        $type: 'com.atproto.label.defs#selfLabels',
-                        values: selfLabels || [],
-                    } : undefined,
-                },
-            );
-            toast.success($_('success_to_post'));
-        } catch (error) {
-            console.error((error as Error).message);
-            toast.error($_('failed_to_post') + ':' + (error as Error).message);
-            isTextareaEnabled = false;
-            isPublishEnabled = false;
-            throw error;
-        }
-
-        if (rt && Array.isArray(rt.facets)) {
-            try {
-                const dids: string[] = rt.facets.map(facet => {
-                    if (facet.features[0].did) {
-                        return facet.features[0].did as string
-                    }
-                }).filter(results => results !== undefined);
-                const promises = dids.map(did => _agent.agent.com.atproto.repo.describeRepo({repo: did}));
-                let actors: { did: string; handle: string; isHistory: boolean; }[] = [];
-
-                await Promise.all(promises)
-                    .then(ress => {
-                        actors = ress.map(res => {
-                            return {
-                                did: res.data.did,
-                                handle: res.data.handle,
-                                isHistory: true,
-                            }
-                        });
-                    })
-
-                mentionsHistory = [...actors, ...mentionsHistory];
-                mentionsHistory = Array.from(new Set(mentionsHistory.map(a => a.did))).map(did => {
-                        return mentionsHistory.find(a => a.did === did)
+                    const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
+                        encoding: 'image/jpeg',
                     });
-                if (mentionsHistory.length > 4) {
-                    mentionsHistory = mentionsHistory.slice(0, 4);
+                    embedExternal.external.thumb = res.data.blob;
+                } catch (e) {
+                    toast.error(e);
                 }
-                localStorage.setItem('mentionsHistory', JSON.stringify(mentionsHistory));
-            } catch (e) {
-                // do nothing.
             }
-        }
-
-        isTextareaEnabled = false;
-        isPublishEnabled = false;
-        if (!isContinueMode) {
-            onClose();
-        }
-        publishContent = '';
-        quotePost.set(undefined);
-        replyRef.set(undefined);
-        embed = undefined;
-        images = [];
-        links = [];
-        if (pond) {
-            pond.removeFiles();
-        }
-        searchActors = [];
-        embedImages.images = [];
-        embedExternal = undefined;
-        externalImageBlob = '';
-        selfLabels = [];
-        $isPublishInstantFloat = false
-        // const data = await _agent.getTimeline();
-        // timeline.set(data.feed);
-
-        if (isContinueMode) {
-            setTimeout(() => {
-                publishArea.focus();
-            }, 100)
+            embed = embedExternal;
         }
     }
-})
 
-function handleClick() {
+    let rt: RichText | undefined;
 
+    if (publishContent) {
+        rt = await detectRichTextWithEditorJson(_agent, publishContent, publishContentJson);
+    }
+
+    if (!$settings.langSelector || $settings.langSelector === 'auto') {
+        await languageDetect(publishContent);
+    } else {
+        lang = [ $settings.langSelector ];
+    }
+
+    const shortReplyRef = $replyRef ? {
+        root: {
+            cid: $replyRef.data.root.cid,
+            uri: $replyRef.data.root.uri,
+        },
+        parent: {
+            cid: $replyRef.data.parent.cid,
+            uri: $replyRef.data.parent.uri,
+        }
+    } : undefined;
+
+    try {
+        await _agent.agent.api.app.bsky.feed.post.create(
+            { repo: _agent.did() as string },
+            {
+                embed: embed,
+                facets: rt ? rt.facets : undefined,
+                text: rt ? rt.text : '',
+                createdAt: new Date().toISOString(),
+                reply: shortReplyRef,
+                via: 'TOKIMEKI',
+                langs: lang.length ? lang : undefined,
+                labels: $selfLabels.length ? {
+                    $type: 'com.atproto.label.defs#selfLabels',
+                    values: $selfLabels || [],
+                } : undefined,
+            },
+        );
+        toast.success($_('success_to_post'));
+    } catch (error) {
+        console.error((error as Error).message);
+        toast.error($_('failed_to_post') + ':' + (error as Error).message);
+        isTextareaEnabled = false;
+        isPublishEnabled = false;
+        throw error;
+    }
+
+    if (rt && Array.isArray(rt.facets)) {
+        try {
+            const dids: string[] = rt.facets.map(facet => {
+                if (facet.features[0].did) {
+                    return facet.features[0].did as string
+                }
+            }).filter(results => results !== undefined);
+            const promises = dids.map(did => _agent.agent.com.atproto.repo.describeRepo({repo: did}));
+            let actors: { did: string; handle: string; isHistory: boolean; }[] = [];
+
+            await Promise.all(promises)
+                .then(ress => {
+                    actors = ress.map(res => {
+                        return {
+                            did: res.data.did,
+                            handle: res.data.handle,
+                            isHistory: true,
+                        }
+                    });
+                })
+
+            mentionsHistory = [...actors, ...mentionsHistory];
+            mentionsHistory = Array.from(new Set(mentionsHistory.map(a => a.did))).map(did => {
+                return mentionsHistory.find(a => a.did === did)
+            });
+            if (mentionsHistory.length > 4) {
+                mentionsHistory = mentionsHistory.slice(0, 4);
+            }
+            localStorage.setItem('mentionsHistory', JSON.stringify(mentionsHistory));
+        } catch (e) {
+            // do nothing.
+        }
+    }
+
+    isTextareaEnabled = false;
+    isPublishEnabled = false;
+    if (!isContinueMode) {
+        onClose();
+    }
+    editor.clear();
+    quotePost.set(undefined);
+    replyRef.set(undefined);
+    embed = undefined;
+    images = [];
+    links = [];
+    if (pond) {
+        pond.removeFiles();
+    }
+    embedImages.images = [];
+    embedExternal = undefined;
+    externalImageBlob = '';
+    selfLabels.set([]);
+    $isPublishInstantFloat = false
+
+    if (isContinueMode) {
+        setTimeout(() => {
+            editor.focus();
+        }, 100)
+    }
 }
 
 function handleAgentSelect(event) {
@@ -770,7 +606,7 @@ function handleAgentSelect(event) {
     </svg>
   </button>
 {:else}
-  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" on:click={onFocus} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
+  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" class:publish-sp-open--left={$settings.design?.publishPosition === 'left'} on:click={handleOpen}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
       <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="var(--bg-color-1)"/>
     </svg>
@@ -780,15 +616,9 @@ function handleAgentSelect(event) {
 <section class="publish-group"
          class:publish-group--expanded={isFocus}
          class:publish-group--left={$settings.design?.publishPosition === 'left'}
-         tabindex="-1"
-         on:focusin={onFocus}
-         on:focusout={onBlur}
          use:clickOutside={{ignoreElement: '.publish-sp-open'}}
          on:outclick={handleOutClick}
-         on:click={handleClick}
 >
-
-
   <div class="publish-wrap">
     <div class="publish-buttons">
       {#if (publishContent)}
@@ -796,6 +626,11 @@ function handleAgentSelect(event) {
       {:else}
         <button class="publish-draft-button publish-view-draft" on:click={() => {isDraftModalOpen = true}}>{$_('drafts')}</button>
       {/if}
+
+      <p class="publish-length">
+        <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
+      </p>
+
 
       <div class="publish-form-continue-mode">
         <div class="publish-form-continue-mode-input" class:checked={isContinueMode}>
@@ -823,7 +658,7 @@ function handleAgentSelect(event) {
       </div>
     {/if}
 
-    <div class="publish-form" class:publish-form--expand={isPublishFormExpand}>
+    <div class="publish-form" class:publish-form--expand={$isPublishFormExpand}>
       {#if $quotePost?.uri}
         <div class="publish-quote">
           <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
@@ -931,98 +766,12 @@ function handleAgentSelect(event) {
         </div>
       {/if}
 
-      <label class="publish-form__label" for="publishTextarea"></label>
-
-      <div class="publish-actor-list-input-group">
-        <div class="publish-bottom-buttons">
-          <p class="publish-length">
-            <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
-          </p>
-
-          <div class="publish-form-expand">
-            <button
-                class="publish-form-expand-button"
-                class:publish-form-expand-button--active={isPublishFormExpand}
-                on:click={() => {isPublishFormExpand = !isPublishFormExpand}}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize-2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
-            </button>
-          </div>
-
-          <div class="publish-form-emoji-picker">
-            <button class="publish-form-emoji-picker-button" on:click={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-laugh"><circle cx="12" cy="12" r="10"/><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
-            </button>
-
-            {#if (isEmojiPickerOpen)}
-              <EmojiPicker on:pick={handleEmojiPick} on:outside={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}></EmojiPicker>
-            {/if}
-          </div>
-
-          <div class="publish-form-moderation"  class:publish-form-moderation--active={selfLabels.length}>
-            <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
-              <svg slot="ref" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-
-              <ul slot="content" class="timeline-menu-list">
-                {#each selfLabelsChoices as choice, index}
-                  <li class="timeline-menu-list__item">
-                    <button class="timeline-menu-list__button" on:click={() => setSelfLabel(index)}>{choice.name}</button>
-                  </li>
-                {/each}
-              </ul>
-            </Menu>
-          </div>
-
-          <div class="publish-form-lang-selector">
-            <button class="publish-form-lang-selector-button" on:click={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              {#if ($settings.langSelector !== 'auto')}
-                {$_(languageMap.get($settings.langSelector).name)}
-              {/if}
-            </button>
-          </div>
-        </div>
-
-        <textarea
-            id="publishTextarea"
-            class="publish-form__input"
-            class:publish-form__input--expand={isPublishFormExpand}
-            name="content"
-            disabled={isTextareaEnabled}
-            bind:value={publishContent}
-            bind:this={publishArea}
-            on:keydown={publishKeypress}
-            on:input={onPublishContentChange}
-            placeholder="{$_('send_placeholder1')}&#13;{$_('send_placeholder2')}"
-            autocomplete="nope"
-        ></textarea>
-
-        {#if (selfLabels.length)}
-          <p class="publish-self-labeling-warning">
-            <svg  xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-            <span>{selfLabelsChoices[currentSelfLabel].name}: {selfLabelsChoices[currentSelfLabel].description}</span>
-            <button class="publish-self-labeling-warning__close text-button" on:click={() => {selfLabels = []}}>取り消し</button>
-          </p>
-        {/if}
-
-        {#if searchActors.length}
-          <div class="search-actor-list">
-            {#each searchActors as actor}
-              <button class="search-actor-item" on:click={() => {putActorSuggestion(actor.handle)}}>
-                {#if (actor.isHistory)}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
-                    <g id="timer-outline" transform="translate(-47.988 -47.998)">
-                      <path id="パス_58" data-name="パス 58" d="M55,62h-.014a7,7,0,0,1-5.216-11.667.538.538,0,0,1,.8.718,5.93,5.93,0,0,0,4.415,9.871H55A5.912,5.912,0,0,0,60.911,55a5.962,5.962,0,0,0-5.384-5.9v2.4a.538.538,0,0,1-1.077,0V48.683A.685.685,0,0,1,55.157,48a7.04,7.04,0,0,1,6.831,7A6.989,6.989,0,0,1,55,62Z" transform="translate(0 0)" fill="var(--text-color-3)"/>
-                      <path id="パス_59" data-name="パス 59" d="M155.649,157.118l-2.683-3.837a.276.276,0,0,1,.384-.384l3.837,2.683a1.1,1.1,0,1,1-1.265,1.809A1.128,1.128,0,0,1,155.649,157.118Z" transform="translate(-101.413 -101.336)" fill="var(--text-color-3)"/>
-                    </g>
-                  </svg>
-                {/if}
-                @{actor.handle}
-              </button>
-            {/each}
-          </div>
-        {/if}
-      </div>
+      <Tiptap
+          bind:text={publishContent}
+          bind:json={publishContentJson}
+          bind:this={editor}
+          on:publish={() => {publish()}}
+      ></Tiptap>
     </div>
 
     {#if (!isPublishUploadClose)}
@@ -1075,10 +824,6 @@ function handleAgentSelect(event) {
   <DraftModal {_agent} on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
 {/if}
 
-{#if (isLangSelectorOpen)}
-  <LangSelectorModal on:close={() => {isLangSelectorOpen = false; onFocus();}}></LangSelectorModal>
-{/if}
-
 <style lang="postcss">
     .publish-group {
         position: fixed;
@@ -1115,14 +860,6 @@ function handleAgentSelect(event) {
                 position: static;
                 height: 100%;
 
-                .publish-form__input {
-                    height: 160px;
-
-                    &--expand {
-                        height: 100%;
-                    }
-                }
-
                 .publish-wrap {
                     display: flex;
                     flex-direction: column;
@@ -1138,10 +875,6 @@ function handleAgentSelect(event) {
                         flex: 1;
                         display: flex;
                         flex-direction: column;
-
-                        .publish-actor-list-input-group {
-                            flex: 1;
-                        }
                     }
                 }
 
@@ -1304,43 +1037,6 @@ function handleAgentSelect(event) {
         }
     }
 
-    .publish-length {
-        margin-right: auto;
-        color: var(--publish-length-color);
-        display: flex;
-        align-items: center;
-
-        @media (max-width: 767px) {
-
-        }
-
-        &__current {
-            &.over {
-                font-weight: 600;
-                color: var(--danger-color);
-            }
-        }
-    }
-
-    .publish-form__label {
-        display: none;
-
-        @media (max-width: 767px) {
-            display: block;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            z-index: 10;
-        }
-    }
-
-    .publish-form__input {
-        z-index: 12;
-        position: relative;
-    }
-
     .publish-form__submit {
         z-index: 12;
 
@@ -1381,40 +1077,6 @@ function handleAgentSelect(event) {
             top: 0;
             bottom: 0;
             margin: auto;
-        }
-    }
-
-    .search-actor-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        margin-bottom: 15px;
-        position: relative;
-        z-index: 11;
-
-        @media (max-width: 767px) {
-            flex-wrap: nowrap;
-            overflow: auto;
-        }
-    }
-
-    .search-actor-item {
-        background-color: var(--bg-color-2);
-        padding: 3px 6px;
-        color: var(--text-color-3);
-        font-size: 14px;
-        border-radius: 4px;
-        border: 1px solid var(--border-color-1);
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-
-        &:focus-visible {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            font-weight: 600;
-            outline: none;
         }
     }
 
@@ -1530,97 +1192,26 @@ function handleAgentSelect(event) {
         }
     }
 
-    .publish-form-lang-selector {
-        position: relative;
-    }
-
-    .publish-form-lang-selector-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        color: var(--text-color-1);
-        padding: 0 5px;
-        font-size: 14px;
-        height: 30px;
-    }
-
-    .publish-form-moderation {
-        position: relative;
-    }
-
-    .publish-self-labeling-warning {
-        margin-bottom: 10px;
-        color: var(--text-color-3);
-        display: flex;
-        align-items: center;
-        font-size: 14px;
-        gap: 5px;
-        position: relative;
-        z-index: 12;
-
-        @media (max-width: 767px) {
-            display: grid;
-            grid-template-columns: 20px 1fr 70px;
-            font-size: 12px;
-        }
-    }
-
-    .publish-bottom-buttons {
-        display: flex;
-        justify-content: flex-end;
-        padding: 10px 15px;
-        z-index: 21;
-        background-color: var(--bg-color-2);
-        gap: 5px;
-        border-radius: 0 0 var(--border-radius-3) var(--border-radius-3);
-
-        @media (max-width: 767px) {
-            position: relative;
-        }
-    }
-
     .publish-form-agents-selector {
         max-width: 740px;
         width: 100%;
         margin: 0 auto;
     }
 
-    .publish-form-emoji-picker {
-        position: relative;
-
-        @media (max-width: 767px) {
-            position: static;
-        }
-    }
-
-    .publish-form-emoji-picker-button {
+    .publish-length {
+        color: var(--publish-length-color);
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 4px;
-        color: var(--text-color-1);
-        padding: 0 5px;
-        font-size: 14px;
-        height: 30px;
-    }
-
-    .publish-form-expand-button {
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        color: var(--text-color-1);
-        padding: 0 5px;
-        font-size: 14px;
-        height: 30px;
+        margin-right: 8px;
 
         @media (max-width: 767px) {
-            display: none;
+
         }
 
-        &--active {
-            svg {
-                stroke: var(--primary-color)
+        &__current {
+            &.over {
+                font-weight: 600;
+                color: var(--danger-color);
             }
         }
     }

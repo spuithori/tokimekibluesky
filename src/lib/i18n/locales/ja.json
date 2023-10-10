@@ -458,5 +458,9 @@
   "realtime_listeners_status_3": "切断",
   "realtime_listeners_status_undefined": "切断",
   "datetime_format": "日付の表記（2023年10月15日 11時32分の場合）",
-  "posts_font_size": "投稿の文字サイズ"
+  "posts_font_size": "投稿の文字サイズ",
+  "selflabels_remove": "取り消し",
+  "link_warning_confirm_title": "リンクを開きますか？",
+  "open": "開く",
+  "skip_link_warning_confirm": "テキストと異なるリンクへの遷移を確認しない"
 }

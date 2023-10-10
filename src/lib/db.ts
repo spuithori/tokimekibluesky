@@ -26,6 +26,7 @@ export interface Draft {
     id?: number,
     createdAt: number,
     text: string,
+    json?: object,
     quotePost: AppBskyFeedDefs.PostView | undefined,
     replyRef: AppBskyFeedDefs.ReplyRef | undefined,
     images: [],
