@@ -911,7 +911,6 @@
     border-left: 1px solid var(--border-color-2);
     border-right: 1px solid var(--border-color-2);
     background-color: var(--bg-color-1);
-    min-height: 100vh;
 }
 
 .user-items-list {

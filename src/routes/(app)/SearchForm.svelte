@@ -43,6 +43,7 @@
             border-radius: 6px;
             flex: 1;
             width: 100%;
+            outline: none;
         }
     }
 
