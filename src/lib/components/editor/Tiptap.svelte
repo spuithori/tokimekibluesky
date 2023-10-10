@@ -11,8 +11,6 @@
     import Placeholder from '@tiptap/extension-placeholder';
     import {agent, sharedText} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
-    import { offset, flip, shift } from "svelte-floating-ui/dom";
-    import { createFloatingActions } from "svelte-floating-ui";
     import EditorBar from "$lib/components/editor/EditorBar.svelte";
     const dispatch = createEventDispatcher();
 
@@ -30,18 +28,7 @@
     let linkValue = '';
     let linkButtonDisabled = true;
 
-    $: elementRect = element && element.getBoundingClientRect();
     $: addSharedText($sharedText);
-
-    const [ floatingRef, floatingContent ] = createFloatingActions({
-        strategy: 'absolute',
-        placement: 'top',
-        middleware: [
-            offset(8),
-            flip(),
-            shift(),
-        ]
-    });
 
     onMount(() => {
         editor = new Editor({
@@ -171,7 +158,7 @@
 
     function submitLink(e) {
         if (linkDialog.returnValue) {
-            editor.chain().focus().extendMarkRange('link').setLink({ href: linkDialog.returnValue }).run();
+            editor.chain().focus().extendMarkRange('link').setLink({ href: linkDialog.returnValue }).focus('end').run();
         }
 
         linkValue = '';
@@ -190,7 +177,7 @@
     }
 </script>
 
-<div class="editor" bind:this={element} use:floatingRef></div>
+<div class="editor" bind:this={element}></div>
 
 <EditorBar on:emojiPicked={(e) => {editor.commands.insertContent(e.detail.emoji)}}>
   <nav class="editor-menu-wrap">
@@ -218,13 +205,15 @@
   <MentionList props={mentionProps} bind:this={mentionList}></MentionList>
 {/if}
 
-<dialog class="editor-link-dialog" bind:this={linkDialog} on:close={submitLink} use:floatingContent>
+<dialog class="editor-link-dialog" bind:this={linkDialog} on:close={submitLink}>
   <form>
     <input type="text" class="editor-link-dialog__input" bind:value={linkValue} placeholder="https://tokimeki.blue">
     <button class="editor-link-dialog__button" on:click|preventDefault={() => {linkDialog.close(linkValue)}}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-corner-down-left"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
     </button>
   </form>
+  
+  <button class="modal-background-close" on:click={() => {linkDialog.close()}}></button>
 </dialog>
 
 <style lang="postcss">
@@ -251,7 +240,15 @@
         padding: 8px 16px;
         border-radius: var(--border-radius-3);
         border: none;
-        box-shadow: 0 0 10px var(--box-shadow-color-2);
+        box-shadow: 0 0 10px var(--box-shadow-color-1);
+        position: absolute;
+        z-index: 100;
+        margin: auto;
+
+        form {
+            position: relative;
+            z-index: 2;
+        }
 
         &::backdrop {
             background-color: rgba(0, 0, 0, .6);
