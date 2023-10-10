@@ -21,7 +21,7 @@ function detectLinkFacets(json): Facet[] {
 
     content.forEach((p, index) => {
         if (index > 0) {
-            length = length + getByteLength(`\r\n`);
+            length = length + getByteLength('\n');
         }
 
         if (p.content){
@@ -45,9 +45,38 @@ function detectLinkFacets(json): Facet[] {
                 }
             })
         }
-    });
+    })
 
     return facets;
+}
+
+export function jsonToText(json) {
+    const content = json.content;
+    let text = '';
+
+    content.forEach((p, index) => {
+        if (index > 0) {
+            text = text + '\n';
+        }
+
+        if (p.content){
+            p.content.forEach(item => {
+                if (item.type === 'hardBreak') {
+                    text = text + '\n';
+                }
+
+                if (item.text) {
+                    text = text + item.text;
+                }
+
+                if (item.type === 'mention') {
+                    text = text + '@' + item.attrs.id;
+                }
+            })
+        }
+    })
+    
+    return text;
 }
 
 function getByteLength(string: string) {

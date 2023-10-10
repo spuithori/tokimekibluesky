@@ -12,6 +12,7 @@
     import {agent, sharedText} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
     import EditorBar from "$lib/components/editor/EditorBar.svelte";
+    import {jsonToText} from "$lib/components/editor/richtext";
     const dispatch = createEventDispatcher();
 
     export let json;
@@ -56,13 +57,7 @@
                     openOnClick: false,
                     linkOnPaste: false,
                 }),
-                HardBreak.extend({
-                    addKeyboardShortcuts () {
-                        return {
-                            Enter: () => this.editor.commands.setHardBreak()
-                        }
-                    }
-                }),
+                HardBreak,
                 Mention.configure({
                     HTMLAttributes: {
                         class: 'editor-mention',
@@ -122,7 +117,7 @@
             },
             onUpdate: () => {
                 json = editor.getJSON();
-                text = editor.getText();
+                text = jsonToText(json);
             },
             onFocus() {
                 // dispatch('focus');
