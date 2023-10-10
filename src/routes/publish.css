@@ -222,7 +222,7 @@
 .tiptap {
     background-color: var(--publish-textarea-bg-color);
     color: var(--publish-textarea-color);
-    height: 120px;
+    height: 180px;
     overflow-y: auto;
     font-size: 16px;
     vertical-align: middle;
@@ -230,6 +230,10 @@
     padding: 15px 20px;
     resize: none;
     outline: none;
+
+    @media (max-width: 767px) {
+        height: 140px;
+    }
 
     p.is-editor-empty:first-child::before {
         color: var(--text-color-3);

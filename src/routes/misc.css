@@ -145,6 +145,10 @@
             width: 100%;
         }
     }
+
+    .tiptap {
+        height: 120px;
+    }
 }
 
 .single {
