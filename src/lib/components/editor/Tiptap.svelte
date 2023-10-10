@@ -38,9 +38,6 @@
                 Document.extend({
                     addKeyboardShortcuts() {
                         return {
-                            'Mod-Enter': () => {
-                                dispatch('publish');
-                            },
                             'Escape': () => {
                                 editor.commands.blur();
                             }
@@ -57,7 +54,15 @@
                     openOnClick: false,
                     linkOnPaste: false,
                 }),
-                HardBreak,
+                HardBreak.extend({
+                    addKeyboardShortcuts() {
+                        return {
+                            'Mod-Enter': () => {
+                                dispatch('publish');
+                            },
+                        }
+                    }
+                }),
                 Mention.configure({
                     HTMLAttributes: {
                         class: 'editor-mention',
