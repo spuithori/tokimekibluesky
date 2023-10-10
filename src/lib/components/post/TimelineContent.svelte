@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {settings} from "$lib/stores";
+  import {linkWarning, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import {getTextArray, isUriLocal} from "$lib/richtext";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
@@ -13,6 +13,7 @@
   import {translate} from "$lib/translate";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
+  import {detectDifferentDomainUrl} from "$lib/util";
 
   export let post;
   export let _agent;
@@ -95,6 +96,21 @@
       ({ text: post.record.text, facets: post.record.facets } = await translate(post.record.text, $settings.general?.userLanguage, _agent));
       isTranslated = true;
   }
+
+  function handleUrlClick(e, item) {
+      if (!$settings.general.linkWarningConfirmSkip) {
+          $settings.general.linkWarningConfirmSkip = false;
+      }
+
+      if ($settings.general.linkWarningConfirmSkip) {
+          return true;
+      }
+
+      if (!detectDifferentDomainUrl(item.link.uri, item.text)) {
+          e.preventDefault();
+          linkWarning.set(item.link.uri);
+      }
+  }
 </script>
 
 <div class="timeline__image">
@@ -149,7 +165,7 @@
           {#if (isUriLocal(item.link.uri))}
             <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
           {:else}
-            <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+            <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer" on:click={(e) => {handleUrlClick(e, item)}}>{item.text}</a>
           {/if}
         {:else if (item.isMention() && item.mention)}
           <ProfileCardWrapper handle="{item.text.slice(1)}" {_agent}>

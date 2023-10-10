@@ -40,6 +40,7 @@
   import ReactionButtonSettingsModal from "$lib/components/settings/ReactionButtonSettingsModal.svelte";
   import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
   import {detectDateFnsLocale} from "$lib/detectDateFnsLocale";
+  import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
 
   let loaded = false;
   let isColumnInitialLoad = false;
@@ -408,6 +409,7 @@
   <Toaster></Toaster>
   <ReportObserver></ReportObserver>
   <ProfileStatusObserver></ProfileStatusObserver>
+  <LinkWarningModal></LinkWarningModal>
 </div>
 
 <style lang="postcss">

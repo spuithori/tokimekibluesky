@@ -458,5 +458,8 @@
   "realtime_listeners_status_undefined": "Disconnected",
   "datetime_format": "Datetime format (for October 15, 2023 at 11:32)",
   "posts_font_size": "Posts font size",
-  "selflabels_remove": "Remove"
+  "selflabels_remove": "Remove",
+  "link_warning_confirm_title": "Do you want to open the link?",
+  "open": "Open",
+  "skip_link_warning_confirm": "Do not check for transitions to links that differ from the text"
 }

@@ -106,6 +106,7 @@ const defaultSettings = {
         disableAlgorithm: false,
         repostConfirmSkip: false,
         deleteConfirmSkip: false,
+        linkWarningConfirmSkip: false,
     },
     design: {
         skin: 'default',
@@ -249,3 +250,7 @@ export const isReactionButtonSettingsModalOpen = writable(false);
 export const workerTimer = readable(new Worker(timerWorkerUrl));
 
 export const isRealtimeListenersModalOpen = writable(false);
+
+type LinkWarning = string | undefined;
+
+export const linkWarning = writable<LinkWarning>(undefined);

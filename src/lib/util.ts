@@ -36,3 +36,19 @@ export function getAllAgentDids(agents) {
 export function isDid(name) {
     return !!name.startsWith('did:plc:');
 }
+
+export function detectDifferentDomainUrl(url: string, text: string) {
+    const urlHostname = new URL(url).hostname;
+    let textHostname = '';
+    if (urlHostname === window.location.hostname) {
+        return true;
+    }
+
+    if (text.startsWith('http://') || text.startsWith('https://')) {
+        textHostname = new URL(text).hostname;
+    } else {
+        textHostname = new URL('https://' + text).hostname;
+    }
+
+    return textHostname === urlHostname;
+}
