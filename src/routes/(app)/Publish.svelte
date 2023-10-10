@@ -278,13 +278,11 @@ function replyRefObserve(replyRef) {
 }
 
 function handlePaste(e) {
-    if (e.target === publishArea) {
-        const items = e.clipboardData.items;
+    const items = e.clipboardData.items;
 
-        for (const item of items) {
-            if (item.type === 'image/png' || item.type === 'image/jpeg') {
-                pond.addFile(item.getAsFile());
-            }
+    for (const item of items) {
+        if (item.type === 'image/png' || item.type === 'image/jpeg') {
+            pond.addFile(item.getAsFile());
         }
     }
 }
