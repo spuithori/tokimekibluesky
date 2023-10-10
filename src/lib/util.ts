@@ -44,10 +44,17 @@ export function detectDifferentDomainUrl(url: string, text: string) {
         return true;
     }
 
-    if (text.startsWith('http://') || text.startsWith('https://')) {
-        textHostname = new URL(text).hostname;
-    } else {
-        textHostname = new URL('https://' + text).hostname;
+    try {
+        const textUrl = text.startsWith('http://') || text.startsWith('https://')
+            ? new URL(text)
+            : new URL('https://' + text);
+        textHostname = textUrl.hostname;
+
+        if (textUrl.username) {
+            return false;
+        }
+    } catch (e) {
+        return false;
     }
 
     return textHostname === urlHostname;
