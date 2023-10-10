@@ -70,10 +70,18 @@
 <div class="mentions-list" use:floatingContent>
   {#each props.items as item, index}
     <button class="mentions-list__item" class:mentions-list__item--selected={index === selectedIndex} on:click={() => {selectItem(index)}}>
-      @{item.handle}
-      {#if (item.displayName)}
-        {item.displayName}
-      {/if}
+      <span class="mentions-list__avatar">
+        {#if (item.avatar)}
+          <img src="{item.avatar}" alt="">
+        {:else}
+
+        {/if}
+      </span>
+
+      <span class="mentions-list__content">
+        <span class="mentions-list__name">{item.displayName || 'From history'}</span>
+        <span class="mentions-list__handle">@{item.handle}</span>
+      </span>
     </button>
   {/each}
 </div>
@@ -95,6 +103,10 @@
           padding: 4px;
           width: 100%;
           text-align: left;
+          display: grid;
+          grid-template-columns: 24px 1fr;
+          gap: 8px;
+          border-radius: var(--border-radius-2);
 
           &--selected {
               background-color: var(--bg-color-2);
@@ -103,6 +115,33 @@
           &:hover {
               background-color: var(--bg-color-2);
           }
+      }
+
+      &__avatar {
+          overflow: hidden;
+          aspect-ratio: 1 / 1;
+          border-radius: 50%;
+          background-color: var(--primary-color);
+
+          img {
+              display: block;
+              width: 100%;
+          }
+      }
+
+      &__content {
+          display: flex;
+          flex-direction: column;
+          line-height: 1.3;
+      }
+
+      &__name {
+          font-weight: bold;
+          font-size: 13px;
+      }
+
+      &__handle {
+          font-size: 12px;
       }
   }
 </style>

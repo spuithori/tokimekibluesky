@@ -1,7 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
 import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings, sharedText} from '$lib/stores';
-import {selfLabels} from "$lib/components/editor/publishStore";
+import {selfLabels, isPublishFormExpand} from "$lib/components/editor/publishStore";
 import FilePond, { registerPlugin } from 'svelte-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import FilePondPluginImageResize from 'filepond-plugin-image-resize';
@@ -28,7 +28,6 @@ import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte"
 import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
 import {getAccountIdByDid} from "$lib/util";
 import type { Draft } from '$lib/db';
-import type { ProfileViewBasic } from '@atproto/api/dist/client/types/app/bsky/actor/defs';
 import Tiptap from "$lib/components/editor/Tiptap.svelte";
 import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
 
@@ -80,7 +79,6 @@ let embedImages: AppBskyEmbedImages.Main = {
 let embedRecord: AppBskyEmbedRecord.Main;
 let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
 let embedExternal: AppBskyEmbedExternal.Main | undefined;
-let isPublishFormExpand = false;
 let lang: string[] = [];
 
 if (!$settings.langSelector) {
@@ -676,7 +674,7 @@ function handleAgentSelect(event) {
       </div>
     {/if}
 
-    <div class="publish-form" class:publish-form--expand={isPublishFormExpand}>
+    <div class="publish-form" class:publish-form--expand={$isPublishFormExpand}>
       {#if $quotePost?.uri}
         <div class="publish-quote">
           <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">

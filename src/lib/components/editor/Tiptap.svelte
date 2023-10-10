@@ -123,7 +123,6 @@
                     placeholder: $_('send_placeholder1'),
                 })
             ],
-            autofocus: true,
             onTransaction: () => {
                 editor = editor;
             },
@@ -138,7 +137,7 @@
                 text = editor.getText();
             },
             onFocus() {
-                dispatch('focus');
+                // dispatch('focus');
             },
         })
     })
