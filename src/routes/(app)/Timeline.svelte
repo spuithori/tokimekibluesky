@@ -5,6 +5,7 @@
   import MediaTimelineItem from "./MediaTimelineItem.svelte";
   import {getPostRealtime} from "$lib/realtime";
   import {getDbFollows} from "$lib/getActorsList";
+  import {assignCursorFromLatest} from "$lib/components/column/releaseTimeline";
 
   export let column;
   export let index;
@@ -12,6 +13,7 @@
 
   let isActorsListFinished = false;
   let actors = [];
+  let realtimeCounter = 0;
 
   if (column.settings?.autoRefresh === -1) {
       getActors();
@@ -31,6 +33,12 @@
               }
 
               column.data.feed = [value, ...column.data.feed];
+              realtimeCounter = realtimeCounter + 1;
+
+              if (realtimeCounter === 20) {
+                  realtimeCounter = 0;
+                  assignCursorFromLatest(_agent, column);
+              }
           });
   }
 

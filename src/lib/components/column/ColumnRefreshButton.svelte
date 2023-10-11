@@ -10,6 +10,8 @@
 
     let isRefreshing = false;
 
+    $: releasePosts(column.data.feed);
+
     function isDuplicatePost(oldFeed, newFeed) {
         return newFeed.reason
             ? oldFeed.post.uri === newFeed.post.uri && oldFeed.reason?.indexedAt === newFeed.reason.indexedAt
@@ -38,21 +40,7 @@
 
                 _columns[index].data.feed = [...newFeed, ...column.data.feed];
                 return _columns;
-            })
-
-            if (elInitialPosition === 0 && column.data.feed.length > 60) {
-                const borderItem = column.data.feed[59];
-
-                if (borderItem && borderItem.memoryCursor) {
-                    const lastCursorIndex = column.data.feed.findLastIndex(item => item.memoryCursor === borderItem.memoryCursor);
-
-                    if (lastCursorIndex !== -1) {
-                        column.data.feed.splice(lastCursorIndex + 1);
-                        column.data.feed = column.data.feed;
-                        column.data.cursor = borderItem.memoryCursor;
-                    }
-                }
-            }
+            });
 
             if (elInitialPosition === 0 && column.settings?.refreshToTop !== true) {
                 if (column.style !== 'media') {
@@ -81,6 +69,29 @@
         }
 
         isRefreshing = false;
+    }
+
+    function releasePosts(feed) {
+        const scrollTop = getScrollTop();
+
+        if (scrollTop === 0 && feed.length > 40) {
+            const borderItem = feed[39];
+
+            if (borderItem && borderItem.memoryCursor) {
+                const lastCursorIndex = feed.findLastIndex(item => item.memoryCursor === borderItem.memoryCursor);
+
+                if (lastCursorIndex !== -1) {
+                    column.data.feed.splice(lastCursorIndex + 1);
+                    column.data.feed = column.data.feed;
+                    column.data.cursor = borderItem.memoryCursor;
+                }
+            }
+        }
+    }
+
+    function getScrollTop() {
+        const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+        return el.scrollTop;
     }
 
     function handleKeydown(event: { key: string; }) {
