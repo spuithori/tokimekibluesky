@@ -220,6 +220,13 @@
           <TimelineItem {_agent} data={{post: item.feedThis || item}}></TimelineItem>
         {:else if (item.reason === 'follow')}
           <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
+            <div class="notifications-item__avatar">
+              {#if $settings?.design.postsLayout !== 'minimum'}
+                <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}
+                        handle={item.author.handle} {_agent}></Avatar>
+              {/if}
+            </div>
+
             <div class="notifications-item__contents">
               <h2 class="notifications-item__title">
               <span class="notifications-item__name">
@@ -232,10 +239,10 @@
               {#if (item.author.description)}
                 <p class="notifications-item__description">{item.author.description}</p>
               {/if}
-            </div>
 
-            <div class="notifications-item__buttons">
-              <UserItem user={item.author} layout={'notification'} {_agent}></UserItem>
+              <div class="notifications-item__buttons">
+                <UserItem user={item.author} layout={'notification'} {_agent}></UserItem>
+              </div>
             </div>
           </article>
         {:else}
@@ -341,11 +348,9 @@
       }
 
       &--follow {
-          display: flex;
-          justify-content: space-between;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 5px;
+          display: grid;
+          grid-template-columns: 28px 1fr;
+          gap: 8px;
 
           @container timeline-item (max-width: 320px) {
 
