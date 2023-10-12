@@ -119,6 +119,18 @@
             name: $_('auto_refresh_60s'),
             value: 60,
         },
+        {
+            name: $_('auto_refresh_5m'),
+            value: 300,
+        },
+        {
+            name: $_('auto_refresh_10m'),
+            value: 600,
+        },
+        {
+            name: $_('auto_refresh_30m'),
+            value: 1800,
+        },
     ];
 
     if (column.algorithm?.type === 'default' || column.algorithm?.type === 'officialList') {

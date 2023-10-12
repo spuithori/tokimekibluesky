@@ -54,6 +54,13 @@
       isActorsListFinished = true;
   }
 
+  function handleDividerClick(index, cursor) {
+      column.data.cursor = cursor;
+      column.data.feed[index].isDivider = false;
+      column.data.feed.splice(index + 1);
+      column.data.feed = column.data.feed;
+  }
+
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
       const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm});
       column.data.cursor = res.data.cursor;
@@ -75,6 +82,12 @@
   {#if (column.style === 'default')}
     {#each column.data.feed as data, index (data)}
       <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
+
+      {#if data.isDivider}
+        <button class="more-divider" on:click={() => {handleDividerClick(index, data.memoryCursor)}} aria-label="Road More...">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-more-horizontal"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </button>
+      {/if}
     {/each}
   {:else}
     <div class="media-list">

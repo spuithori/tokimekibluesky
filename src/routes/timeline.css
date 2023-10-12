@@ -943,3 +943,12 @@
         margin-left: 0;
     }
 }
+
+.more-divider {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: var(--timeline-border-width) solid var(--timeline-border-color);
+}

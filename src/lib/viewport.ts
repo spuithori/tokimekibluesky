@@ -1,3 +1,5 @@
+import {onDestroy} from "svelte";
+
 export default function viewPortSetting() {
     const viewport = document.querySelector('meta[name="viewport"]');
     function switchViewport() {
@@ -8,4 +10,8 @@ export default function viewPortSetting() {
     }
     addEventListener('resize', switchViewport, false);
     switchViewport();
+
+    onDestroy(() => {
+        removeEventListener('resize', switchViewport, false);
+    })
 }

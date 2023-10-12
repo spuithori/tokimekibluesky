@@ -32,6 +32,11 @@
                     return !column.data.feed.some(item => isDuplicatePost(item, feed));
                 }).map(feed => ({...feed, memoryCursor: res.data.cursor}));
 
+                if (newFeed.length === 20) {
+                    const dividerPost = newFeed.slice(-1)[0];
+                    dividerPost.isDivider = true;
+                }
+
                 column.data.feed.forEach(feed => {
                     if (res.data.feed.some(item => isDuplicatePost(feed, item))) {
                         feed.memoryCursor = res.data.cursor;
