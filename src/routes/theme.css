@@ -282,7 +282,9 @@
     --timeline-reaction-bookmark-icon-color: var(--timeline-reaction-icon-color);
     --timeline-reaction-reply-icon-hover-color: var(--timeline-reaction-icon-hover-color);
     --timeline-reaction-repost-icon-hover-color: var(--timeline-reaction-icon-hover-color);
+    --timeline-reaction-reposted-icon-color: var(--primary-color);
     --timeline-reaction-like-icon-hover-color: var(--timeline-reaction-icon-hover-color);
+    --timeline-reaction-liked-icon-color: var(--primary-color);
     --timeline-reaction-bookmark-icon-hover-color: var(--timeline-reaction-icon-hover-color);
     --timeline-reaction-hover-bg-color: var(--border-color-1);
     --timeline-reaction-reply-hover-bg-color: var(--timeline-reaction-hover-bg-color);
