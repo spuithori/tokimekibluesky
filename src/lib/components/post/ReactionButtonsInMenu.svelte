@@ -112,7 +112,7 @@
 
       &:hover {
           &::before {
-              background-color: var(--timeline-reaction-bookmark-hover-bg-color);
+              background-color: var(--timeline-reaction-hover-bg-color);
           }
       }
   }
