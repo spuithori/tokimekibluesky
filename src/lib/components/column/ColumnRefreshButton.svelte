@@ -79,6 +79,10 @@
     function releasePosts(feed) {
         const scrollTop = getScrollTop();
 
+        if (column.style === 'media') {
+            return false;
+        }
+
         if (scrollTop === 0 && feed.length > 40) {
             const borderItem = feed[39];
 
