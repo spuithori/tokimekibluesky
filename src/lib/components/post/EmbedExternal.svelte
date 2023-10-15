@@ -11,7 +11,7 @@
   </div>
 
   <div class="timeline-external__content">
-    <p class="timeline-external__title"><a href="{external.uri}" target="_blank" rel="noopener nofollow noreferrer">{external.title}</a>
+    <p class="timeline-external__title"><a href="{external.uri}" target="_blank" rel="noopener nofollow noreferrer">{external.title || external.uri}</a>
     </p>
     <p class="timeline-external__description">{external.description}</p>
     <p class="timeline-external__url">{external.uri}</p>
