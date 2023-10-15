@@ -15,6 +15,7 @@ async function fetchThemes(code = null, ids = null) {
     const query = supabase
         .from('themes')
         .select()
+        .order('created_at', {ascending: false})
     
     if (ids) {
         query.in('id', ids)
