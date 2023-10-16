@@ -9,6 +9,7 @@
     import HardBreak from '@tiptap/extension-hard-break';
     import Mention from '@tiptap/extension-mention';
     import Placeholder from '@tiptap/extension-placeholder';
+    import History from  '@tiptap/extension-history';
     import {agent, sharedText} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
     import EditorBar from "$lib/components/editor/EditorBar.svelte";
@@ -109,7 +110,8 @@
                 }),
                 Placeholder.configure({
                     placeholder: $_('send_placeholder1'),
-                })
+                }),
+                History,
             ],
             onTransaction: () => {
                 editor = editor;
