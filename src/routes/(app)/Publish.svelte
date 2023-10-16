@@ -769,6 +769,7 @@ function handleAgentSelect(event) {
           bind:json={publishContentJson}
           bind:this={editor}
           on:publish={() => {publish()}}
+          on:focus={handleOpen}
       ></Tiptap>
     </div>
 

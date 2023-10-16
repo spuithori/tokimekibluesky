@@ -140,11 +140,11 @@
         if (!$sharedText) {
             return false;
         }
-        editor.commands.setContent(text);
 
         setTimeout(() => {
-            editor.commands.focus();
+            editor.chain().insertContent(text).focus().run();
             sharedText.set('');
+            dispatch('focus');
         }, 200);
     }
 
