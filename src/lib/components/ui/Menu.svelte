@@ -1,22 +1,24 @@
 <script lang="ts">
     import { offset, flip, shift } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';
-    import { fade, fly } from 'svelte/transition';
+    import { fly } from 'svelte/transition';
     import { clickOutside } from '$lib/clickOutSide';
     import {isPreventEvent} from "$lib/stores";
+    import type { Placement } from '@floating-ui/core';
 
     export let isMenuOpen = false;
     export let buttonClassName = 'timeline-menu-toggle'
+    export let position: Placement = 'bottom-end';
     let toggle;
 
     const [ floatingRef, floatingContent ] = createFloatingActions({
         strategy: 'absolute',
-        placement: 'bottom-end',
+        placement: position,
         middleware: [
             offset(10),
             flip({
                 padding: {
-                    top: 80
+                    top: position === 'bottom-end' ? 80 : 0,
                 }
             }),
             shift(),

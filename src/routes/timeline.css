@@ -531,6 +531,10 @@
             background-color: var(--menu-hover-bg-color);
             text-decoration: none;
         }
+
+        &:disabled {
+            opacity: .5;
+        }
     }
 
     svg {

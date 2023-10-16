@@ -1,38 +1,35 @@
 <script lang="ts">
-    import { fade, fly } from 'svelte/transition';
-    import { createEventDispatcher } from 'svelte';
-    import toast from 'svelte-french-toast';
+    import { fly } from 'svelte/transition';
+    import {createEventDispatcher, onMount} from 'svelte';
     import { _ } from 'svelte-i18n';
+    import AltModalItem from "$lib/components/alt/AltModalItem.svelte";
     const dispatch = createEventDispatcher();
 
     export let images;
+    let dialog;
 
     function close() {
         dispatch('close', {
             images: images,
         });
     }
+
+    onMount(() => {
+        dialog.showModal();
+    });
 </script>
 
-<div class="alt-modal" transition:fly="{{ y: 30, duration: 250 }}">
+<dialog class="alt-modal" bind:this={dialog}>
   <div class="alt-modal-contents">
     <h2 class="alt-modal-title">{$_('alt_insert')}</h2>
 
     <div class="alt-modal-list">
       {#each images as image}
-        <div class="alt-modal-list__item">
-          <div class="alt-modal-list__image">
-            <img src="{window.URL.createObjectURL(image.image)}" alt="">
-          </div>
-
-          <div class="alt-modal-list__content">
-            <div class="alt-modal-list__text">
-              <textarea class="alt-modal-textarea" bind:value={image.alt}></textarea>
-            </div>
-          </div>
-        </div>
+        <AltModalItem {image}></AltModalItem>
       {/each}
     </div>
+
+    <p class="ai-note">{$_('ai_alt_note')}</p>
 
     <div class="alt-modal-close">
       <button class="button button--sm" on:click={close}>{$_('close_button')}</button>
@@ -40,22 +37,18 @@
   </div>
 
   <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
-</div>
+</dialog>
 
 <style lang="postcss">
     .alt-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        z-index: 9999;
-        background-color: rgba(0, 0, 0, .5);
+        margin: auto;
         overflow: auto;
-        padding: 50px 0;
+        border: none;
+        border-radius: var(--border-radius-3);
+
+        &::backdrop {
+            background-color: rgba(0, 0, 0, .6);
+        }
 
         @media (max-width: 767px) {
             display: block;
@@ -121,15 +114,8 @@
         }
     }
 
-    .alt-modal-textarea {
-        background-color: var(--bg-color-2);
-        width: 100%;
-        height: 100%;
-        padding: 10px;
-        color: var(--text-color-1);
-
-        @media (max-width: 767px) {
-            font-size: 14px;
-        }
+    .ai-note {
+        font-size: 14px;
+        color: var(--text-color-3);
     }
 </style>

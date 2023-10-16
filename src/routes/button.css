@@ -138,3 +138,28 @@ button {
         text-decoration: underline;
     }
 }
+
+.ai-button-wrap {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+}
+
+.ai-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background-color: rgba(0, 0, 0, .6);
+    color: #fff;
+    letter-spacing: .1em;
+    font-weight: bold;
+    font-size: 14px;
+    height: 28px;
+    border-radius: 14px;
+    padding: 0 8px;
+
+    &:disabled {
+        opacity: .5;
+    }
+}

@@ -465,5 +465,8 @@
   "selflabels_remove": "取り消し",
   "link_warning_confirm_title": "リンクを開きますか？",
   "open": "開く",
-  "skip_link_warning_confirm": "テキストと異なるリンクへの遷移を確認しない"
+  "skip_link_warning_confirm": "テキストと異なるリンクへの遷移を確認しない",
+  "ai_alt_ocr": "画像のテキストを抽出",
+  "ai_alt_description": "説明文を生成",
+  "ai_alt_note": "AIによるALTテキスト生成を使用する場合は、画像が外部サーバーに送信され解析されることをご留意ください。生成結果について本アプリは一切責任を持ちません。"
 }

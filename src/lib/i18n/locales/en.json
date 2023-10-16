@@ -464,5 +464,8 @@
   "selflabels_remove": "Remove",
   "link_warning_confirm_title": "Do you want to open the link?",
   "open": "Open",
-  "skip_link_warning_confirm": "Do not check for transitions to links that differ from the text"
+  "skip_link_warning_confirm": "Do not check for transitions to links that differ from the text",
+  "ai_alt_ocr": "Extract text from images",
+  "ai_alt_description": "Generate description",
+  "ai_alt_note": "If you use AI to generate ALT text, please keep in mind that the image will be sent to an external server for analysis. This application is not responsible for the results generated."
 }
