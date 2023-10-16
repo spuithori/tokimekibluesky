@@ -47,6 +47,8 @@
   let isDarkMode = false;
   let direction = 'up';
   let scrolly;
+  let app;
+  let baseColor = '#fff';
 
   inject(
       {
@@ -73,6 +75,8 @@
                   $theme = value;
               });
       }
+
+      baseColor = app ? getComputedStyle(app).getPropertyValue('--base-bg-color') : '#fff';
   }
 
   function observeColor(theme) {
@@ -89,6 +93,8 @@
       if (!colors.some(color => color.id === $settings.design?.theme)) {
           $settings.design.theme = colors[0].id;
       }
+
+      baseColor = app ? getComputedStyle(app).getPropertyValue('--base-bg-color') : '#fff';
   }
 
   let profiles = liveQuery(
@@ -284,6 +290,8 @@
       } else {
           isDarkMode = false;
       }
+
+      baseColor = app ? getComputedStyle(app).getPropertyValue('--base-bg-color') : '#fff';
   }
 
   onMount(async() => {
@@ -351,7 +359,10 @@
   viewPortSetting();
 </script>
 
-<svelte:window on:scroll={handleScroll} bind:scrollY={scrolly} />
+<svelte:window on:scroll={handleScroll} bind:scrollY={scrolly}></svelte:window>
+<svelte:head>
+  <meta name="theme-color" content={baseColor}>
+</svelte:head>
 
 <div
     class:nonoto={$settings?.design.nonoto || false}
@@ -367,6 +378,7 @@
     class:decks={$settings?.design.layout === 'decks'}
     class:page={$page.url.pathname !== '/'}
     style={outputInlineStyle($theme)}
+    bind:this={app}
 >
   {#if (loaded)}
     <div class="wrap"
