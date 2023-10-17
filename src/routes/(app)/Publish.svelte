@@ -782,7 +782,10 @@ function handleAgentSelect(event) {
         </button>
 
         {#if (images.length)}
-          <button class="publish-alt-text-button" on:click={() => {isAltModalOpen = true}}>{$_('add_alt_text')}</button>
+          <button class="publish-alt-text-button" on:click={() => {isAltModalOpen = true}}>
+            <span class="ai-label">AI</span>
+            {$_('add_alt_text')}
+          </button>
         {/if}
 
         <FilePond
@@ -1213,5 +1216,22 @@ function handleAgentSelect(event) {
                 color: var(--danger-color);
             }
         }
+    }
+
+    .ai-label {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        background-color: rgba(0, 0, 0, .2);
+        color: var(--bg-color-1);
+        letter-spacing: .1em;
+        font-weight: bold;
+        font-size: 12px;
+        line-height: 1.05;
+        height: 20px;
+        border-radius: 10px;
+        padding: 0 8px 0 10px;
+        margin-right: 2px;
     }
 </style>

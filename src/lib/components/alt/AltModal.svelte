@@ -53,7 +53,6 @@
         @media (max-width: 767px) {
             display: block;
             overscroll-behavior-y: none;
-            padding: 20px;
         }
     }
 

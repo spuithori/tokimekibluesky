@@ -69,7 +69,7 @@
 
   <div class="alt-modal-item__content">
     <div class="alt-modal-item__text">
-      <textarea class="alt-modal-textarea" bind:value={image.alt} disabled={isProcessing}></textarea>
+      <textarea class="alt-modal-textarea" bind:value={image.alt} disabled={isProcessing} placeholder="alt text..."></textarea>
     </div>
   </div>
 </div>
@@ -90,24 +90,33 @@
 
     .alt-modal-item {
         display: grid;
-        grid-template-columns: 150px 1fr;
+        grid-template-columns: 200px 1fr;
         gap: 15px;
         margin-bottom: 20px;
 
         @media (max-width: 767px) {
-            grid-template-columns: 75px 1fr;
-            gap: 10px;
+            grid-template-columns: 1fr;
+
+            &:not(:last-child) {
+                border-bottom: 1px solid var(--border-color-2);
+                padding-bottom: 20px;
+            }
         }
 
         &__image {
             width: 100%;
             aspect-ratio: 1 / 1;
             position: relative;
+            background-color: var(--bg-color-2);
+
+            @media (max-width: 767px) {
+                aspect-ratio: 16 / 9;
+            }
 
             img {
                 width: 100%;
                 height: 100%;
-                object-fit: cover;
+                object-fit: contain;
                 border-radius: 6px;
             }
         }
