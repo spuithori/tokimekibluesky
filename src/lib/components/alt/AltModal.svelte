@@ -82,37 +82,6 @@
         margin-bottom: 10px;
     }
 
-    .alt-modal-list {
-        &__item {
-            display: grid;
-            grid-template-columns: 150px 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-
-            @media (max-width: 767px) {
-                grid-template-columns: 75px 1fr;
-                gap: 10px;
-            }
-        }
-
-        &__image {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-
-            img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                border-radius: 6px;
-            }
-        }
-
-        &__text {
-            height: 100%;
-            min-height: 120px;
-        }
-    }
-
     .ai-note {
         font-size: 14px;
         color: var(--text-color-3);
