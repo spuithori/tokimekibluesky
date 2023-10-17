@@ -10,12 +10,20 @@
     import LoginModal from "$lib/components/acp/LoginModal.svelte";
     import {_} from "svelte-i18n";
     import {Toaster} from "svelte-french-toast";
+    import {accountsDb} from "$lib/db";
 
     function handleSuccess() {
         goto('/');
     }
 
     onMount(async() => {
+        const accounts = await accountsDb.accounts
+            .toArray();
+        if (accounts.length) {
+            console.log('Accounts are already registered.');
+            await goto('/');
+        }
+
         if (pwaInfo) {
             const { registerSW } = await import('virtual:pwa-register')
             registerSW({

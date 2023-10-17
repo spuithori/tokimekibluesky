@@ -134,18 +134,19 @@
       localStorage.setItem('currentProfile', id);
     }
 
-    const currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
+    const currentProfile = Number(localStorage.getItem('currentProfile'));
+
+    if (!currentProfile) {
+        console.log('Current profile is missing.');
+        profileStatus.set(4);
+        return false;
+    }
+
     const profile = profiles.find(profile => profile.id === currentProfile);
     const accounts = await accountsDb.accounts
         .where('id')
         .anyOf(profile.accounts)
         .toArray();
-
-    if (!accounts && !profile) {
-        console.log('Account is empty in this profile.');
-        loaded = true;
-        return false;
-    }
 
     if (!profile.accounts.length) {
         console.log('There is no account in this profile.');
@@ -415,7 +416,6 @@
 
     </div>
   {/if}
-
 
   <Footer></Footer>
   <Toaster></Toaster>
