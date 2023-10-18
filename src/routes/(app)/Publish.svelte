@@ -1141,9 +1141,7 @@ function handleAgentSelect(event) {
         height: 30px;
         border-radius: 4px;
         z-index: 12;
-        background-color: var(--bg-color-1);
         color: var(--primary-color);
-        border: 1px solid transparent;
         font-weight: 600;
         padding: 5px;
         display: flex;

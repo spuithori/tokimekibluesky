@@ -152,6 +152,8 @@
 }
 
 .single {
+    background-attachment: fixed;
+
     .single-timeline-wrap {
         .deck-row {
             width: auto !important;

@@ -98,9 +98,9 @@ input[type=checkbox]{
 
 .select {
     position: relative;
-    background-color: var(--bg-color-2);
     width: 250px;
     max-width: 100%;
+    background-color: var(--bg-color-2);
 
     &__icon {
         position: absolute;
@@ -108,9 +108,12 @@ input[type=checkbox]{
         top: 0;
         bottom: 0;
         margin: auto;
+        z-index: 1;
+        pointer-events: none;
     }
 
     &__input {
+        background-color: var(--bg-color-2);
         border: 1px solid var(--border-color-1);
         height: 40px;
         border-radius: 4px;

@@ -134,7 +134,7 @@ function handleEmojiPick(event) {
         justify-content: flex-end;
         padding: 10px 15px;
         z-index: 21;
-        background-color: var(--bg-color-2);
+        background-color: var(--publish-textarea-bg-color);
         gap: 5px;
         border-radius: 0 0 var(--border-radius-3) var(--border-radius-3);
 
