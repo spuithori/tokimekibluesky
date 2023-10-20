@@ -81,6 +81,7 @@
         padding: 30px;
         border-radius: 10px;
         background-color: var(--bg-color-1);
+        color: var(--text-color-3);
         width: 740px;
         max-width: 100%;
         position: relative;
