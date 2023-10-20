@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {linkWarning, settings} from "$lib/stores";
+  import {formattedKeywordMutes, linkWarning, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import {getTextArray, isUriLocal} from "$lib/richtext";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
@@ -87,7 +87,7 @@
   function detectKeywordFilter() {
       let text = post.record.text;
 
-      if (keywordFilter($settings.keywordMutes, text, post.indexedAt)) {
+      if (keywordFilter($formattedKeywordMutes, text, post.indexedAt)) {
           isHide = true;
       }
   }

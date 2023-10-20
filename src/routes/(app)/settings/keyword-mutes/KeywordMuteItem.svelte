@@ -1,17 +1,10 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
-  import { settings } from '$lib/stores';
+  import {keywordMutes} from '$lib/stores';
+  import {defaultKeyword} from "$lib/timelineFilter";
 
-  export let keyword = {
-      word: '',
-      period: {
-          start: '0:00',
-          end: '0:00',
-      }
-  };
+  export let keyword = defaultKeyword;
   export let index;
-
-  $: console.log(keyword)
 
   const regTime = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/
 
@@ -19,20 +12,18 @@
   let endPercent;
 
   $: {
-      $settings.keywordMutes[index] = keyword;
+      $keywordMutes[index] = keyword;
 
       if (regTime.test(keyword.period.start)) {
           const array = keyword.period.start.split(':');
           const minutes = Number(array[0]) * 60 + Number(array[1]);
           startPercent = minutes / 1440 * 100;
-          console.log(startPercent)
       }
 
       if (regTime.test(keyword.period.end)) {
           const array = keyword.period.end.split(':');
           const minutes = Number(array[0]) * 60 + Number(array[1]);
           endPercent = minutes / 1440 * 100;
-          console.log(endPercent)
       }
   }
 </script>
@@ -41,7 +32,9 @@
   <div class="keyword-mute-group">
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('keyword')}
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id={'keyword_' + index + '_enabled'} bind:checked={keyword.enabled}><label class="input-toggle__label" for={'keyword_' + index + '_enabled'}></label>
+        </div>
       </dt>
 
       <dd class="settings-group__content">
@@ -50,10 +43,20 @@
             <path id="edit-pencil" d="M9.84,2.96l3.2,3.2L3.2,16H0V12.8Zm1.12-1.12L12.8,0,16,3.2,14.16,5.04Z" fill="var(--text-color-1)"/>
           </svg>
 
-          <input id="keyword" type="text" class="keyword-name__input" bind:value={keyword.word}>
+          <input id="keyword" type="text" class="keyword-name__input" placeholder="{$_('input_keyword_placeholder')}" bind:value={keyword.word}>
         </div>
       </dd>
     </dl>
+
+    <div class="keyword-mute-options">
+      <div class="checkbox">
+        <input type="checkbox" class="checkbox__input" bind:checked={keyword.ignoreCaseSensitive} id={'keyword_' + index + '_igs'}>
+        <label class="checkbox__label" for={'keyword_' + index + '_igs'}>
+          <span class="checkbox__ui"></span>
+          <span class="checkbox__text">{$_('keyword_ignore_case_sensitive')}</span>
+        </label>
+      </div>
+    </div>
 
     <details class="accordion">
       <summary class="accordion__heading">{$_('keyword_period_setting')}
@@ -108,25 +111,22 @@
     .keyword-mute {
         box-shadow: 0 0 16px var(--box-shadow-color-1);
         border-radius: 6px;
-        padding: 10px 20px 15px;
+        padding: 4px 20px 16px;
         margin-top: 20px;
     }
 
     .keyword-name {
         position: relative;
-        border: 1px solid var(--border-color-1);
-        border-radius: 4px;
-        height: 40px;
-        padding: 0 10px;
-        display: flex;
-        gap: 10px;
         align-items: center;
-        margin-bottom: 10px;
         overflow: hidden;
 
         &__input {
             color: var(--text-color-1);
             width: 100%;
+            height: 40px;
+            padding: 0 10px 0 36px;
+            border: 1px solid var(--border-color-1);
+            border-radius: 4px;
         }
 
         &:focus-within {
@@ -135,6 +135,12 @@
 
         svg {
             flex-shrink: 0;
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            pointer-events: none;
         }
     }
 
@@ -180,10 +186,18 @@
             }
         }
     }
+
     .keyword-time-graph-name {
         display: flex;
         justify-content: space-between;
         margin-bottom: 5px;
         color: var(--text-color-3);
+    }
+
+    .keyword-mute-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+        margin-bottom: 8px;
     }
 </style>

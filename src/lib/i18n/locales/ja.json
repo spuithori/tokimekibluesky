@@ -469,5 +469,18 @@
   "ai_alt_ocr": "画像のテキストを抽出",
   "ai_alt_description": "説明文を生成",
   "ai_alt_note": "AIによるALTテキスト生成を使用する場合は、画像が外部サーバーに送信され解析されることをご留意ください。生成結果について本アプリは一切責任を持ちません。",
-  "missing_profile_title": "プロファイルを選択してください"
+  "missing_profile_title": "プロファイルを選択してください",
+  "blocking": "ブロック中",
+  "muting": "ミュート中",
+  "button_mute": "ミュートする",
+  "button_unmute": "ミュート解除",
+  "button_block": "ブロックする",
+  "button_unblock": "ブロック解除",
+  "blocks_list": "ブロック一覧",
+  "mutes_list": "ミュート一覧",
+  "error_missing_parameter_account": "無効なURLです。ログイン中のアカウントではありません。",
+  "input_keyword_placeholder": "カンマ区切りで複数入力(例: ワード1,ワード2)",
+  "keyword_ignore_case_sensitive": "大文字と小文字を区別しない",
+  "keyword_reg_exp": "正規表現を使用する",
+  "keyword_mute_description": "変更後既存の投稿に適用するには、ページを更新してください。\n設定はローカルに保存されます。"
 }

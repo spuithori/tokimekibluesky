@@ -1,26 +1,23 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import { settings } from '$lib/stores';
+    import {keywordMutes} from '$lib/stores';
     import KeywordMuteItem from "./KeywordMuteItem.svelte";
-    let keywordMutes = $settings.keywordMutes || [];
+    import {defaultKeyword} from "$lib/timelineFilter";
+
+    let keywords = $keywordMutes;
 
     function add() {
-        keywordMutes = [...keywordMutes, {
-            word: '',
-            period: {
-                start: '00:00',
-                end: '23:59',
-            }
-        }];
+        keywords = [...keywords, structuredClone(defaultKeyword)];
     }
 
     function keywordDelete(index) {
-        keywordMutes.splice(index, 1);
-        keywordMutes = keywordMutes;
+        keywords.splice(index, 1);
+        keywords = keywords;
     }
 
     $: {
-        $settings.keywordMutes = keywordMutes;
+        $keywordMutes = keywords;
+        localStorage.setItem('keywordMutes', JSON.stringify($keywordMutes));
     }
 </script>
 
@@ -46,16 +43,16 @@
   </div>
 
   <div class="settings-wrap">
+    <p class="settings-description">{$_('keyword_mute_description')}</p>
+
     <div class="keyword-mutes-add">
       <button class="button" on:click={add}>{$_('add_keyword')}</button>
     </div>
 
-    {#each keywordMutes as keyword, index}
+    {#each keywords as keyword, index}
       <div class="keyword-mute-wrap">
         <KeywordMuteItem keyword={keyword} index={index}></KeywordMuteItem>
-        <button class="keyword-mute-delete" on:click={() => {keywordDelete(index)}}><svg xmlns="http://www.w3.org/2000/svg" width="15.2" height="19" viewBox="0 0 15.2 19">
-          <path id="trash" d="M67.8,1.9,69.7,0h3.8l1.9,1.9h3.8V3.8H64V1.9ZM64.95,5.7h13.3L77.3,19H65.9ZM69.7,7.6v9.5h.95V7.6Zm2.85,0v9.5h.95V7.6Z" transform="translate(-64)" fill="#d81c2f"/>
-        </svg></button>
+        <button class="keyword-mute-delete" on:click={() => {keywordDelete(index)}}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>
       </div>
 
     {:else}

@@ -407,6 +407,10 @@ async function languageDetect(text = publishContent) {
 }
 
 async function publish() {
+    if (isPublishEnabled) {
+        return false;
+    }
+
     isTextareaEnabled = true;
     isPublishEnabled = true;
 

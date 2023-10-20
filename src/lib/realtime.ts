@@ -110,7 +110,7 @@ async function getRecord(_agent, uri, repost = undefined, retryCount = 0) {
             retryCount = retryCount + 1;
             console.log('Post get failure. Retry: ' + retryCount)
             await new Promise(resolve => setTimeout(resolve, 2000));
-            await getRecord(_agent, uri, repost, retryCount);
+            return await getRecord(_agent, uri, repost, retryCount);
         } else {
             console.error(e);
             return null;

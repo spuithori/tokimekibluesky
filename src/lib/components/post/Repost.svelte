@@ -26,7 +26,7 @@
         }
     }
 
-    if (!$settings.general.repostConfirmSkip) {
+    if ($settings.general?.repostConfirmSkip === undefined) {
         $settings.general.repostConfirmSkip = false;
     }
 

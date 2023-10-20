@@ -17,7 +17,7 @@
   }
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window on:keydown={handleKeydown}></svelte:window>
 
 <div class="modal-page modal-page--{$settings.design?.layout}">
   <div class="modal-page-content">

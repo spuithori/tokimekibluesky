@@ -5,6 +5,7 @@
   import toast from "svelte-french-toast";
   import addSingleList from "$lib/components/list/addSingleList";
   import {createEventDispatcher} from "svelte";
+  import {ShieldBan, VolumeX} from "lucide-svelte";
   const dispatch = createEventDispatcher();
 
   export let profile;
@@ -147,6 +148,20 @@
             </button>
           </li>
         {/if}
+      {:else}
+        <li class="timeline-menu-list__item timeline-menu-list__item--copy">
+          <a href="/mutes/{$agent.did()}" class="timeline-menu-list__button">
+            <VolumeX size="18" color="var(--text-color-3)"></VolumeX>
+            <span>{$_('mutes_list')}</span>
+          </a>
+        </li>
+
+        <li class="timeline-menu-list__item timeline-menu-list__item--copy">
+          <a href="/blocks/{$agent.did()}" class="timeline-menu-list__button">
+            <ShieldBan size="18" color="var(--text-color-3)"></ShieldBan>
+            <span>{$_('blocks_list')}</span>
+          </a>
+        </li>
       {/if}
 
       <li class="timeline-menu-list__item timeline-menu-list__item--copy">

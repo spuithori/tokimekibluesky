@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {settings} from "$lib/stores";
+  import {formattedKeywordMutes, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import {AppBskyEmbedImages, AppBskyFeedPost} from "@atproto/api";
   import {_} from "svelte-i18n";
@@ -17,7 +17,7 @@
   let isMuteDisplay = false;
   let isMuted = record.author.viewer.muted;
 
-  if (keywordFilter($settings.keywordMutes, record.value.text, record.indexedAt)) {
+  if (keywordFilter($formattedKeywordMutes, record.value.text, record.indexedAt)) {
       isMuted = true;
   }
 

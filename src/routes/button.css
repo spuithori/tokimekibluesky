@@ -32,6 +32,10 @@ button {
             transform: none;
         }
     }
+
+    &--with-icon {
+        gap: 4px;
+    }
 }
 
 .button:hover {

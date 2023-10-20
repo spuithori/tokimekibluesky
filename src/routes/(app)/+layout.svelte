@@ -9,7 +9,7 @@
       globalUnique,
       isAfterReload,
       isColumnModalOpen,
-      isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, missingAccounts,
+      isMobileDataConnection, isReactionButtonSettingsModalOpen, keywordMutes, listAddModal, missingAccounts,
       profileStatus,
       settings, syncColumns,
       theme
@@ -228,6 +228,13 @@
 
   if (!$settings?.general.userLanguage) {
       $settings.general.userLanguage = window.navigator.language;
+  }
+
+  // Migrate keyword mute.
+  if (Array.isArray($settings?.keywordMutes)) {
+      $keywordMutes = [...$settings.keywordMutes, ...$keywordMutes];
+      localStorage.setItem('keywordMutes', JSON.stringify($keywordMutes));
+      $settings.keywordMutes = undefined;
   }
 
   $: {

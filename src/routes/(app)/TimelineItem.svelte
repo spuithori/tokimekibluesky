@@ -16,7 +16,7 @@
     import {AppBskyFeedDefs} from '@atproto/api'
     import toast from "svelte-french-toast";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
-    import {onMount, setContext} from "svelte";
+    import {setContext} from "svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
     import {goto} from "$app/navigation";
     import TimelineContent from "$lib/components/post/TimelineContent.svelte";
@@ -37,6 +37,8 @@
     export let column = undefined;
     export let index = 0;
 
+    setContext('timelineItem', data);
+
     let selectionText = '';
     let dialog;
     let isDialogRender = false;
@@ -51,7 +53,7 @@
         }
     }
 
-    if (!$settings.general.deleteConfirmSkip) {
+    if ($settings.general?.deleteConfirmSkip === undefined) {
         $settings.general.deleteConfirmSkip = false;
     }
 
@@ -86,66 +88,62 @@
         }
     }
 
-    onMount(() => {
-        if (data.post.author.did !== _agent.did()) {
-          switch (hideReply) {
+    if (data.post.author.did !== _agent.did()) {
+        switch (hideReply) {
             case 'all':
-              break;
+                break;
             case 'following':
-              if (data.reply && (data.reply.parent.author.did !== _agent.did() && !data.reply?.parent.author.viewer.following)) {
-                isHide = true;
-              }
-              break;
+                if (data.reply && (data.reply.parent.author.did !== _agent.did() && !data.reply?.parent.author.viewer.following)) {
+                    isHide = true;
+                }
+                break;
             case 'me':
-              if (data.reply && data.reply.parent.author.did !== _agent.did()) {
-                isHide = true;
-              }
-              break;
+                if (data.reply && data.reply.parent.author.did !== _agent.did()) {
+                    isHide = true;
+                }
+                break;
             default:
-          }
         }
+    }
 
-        if (isReasonRepost(data.reason)) {
-          switch (hideRepost) {
+    if (isReasonRepost(data.reason)) {
+        switch (hideRepost) {
             case 'all':
-              break;
+                break;
             case 'many':
-              if (probability(25)) {
-                isHide = true;
-              }
-              break;
+                if (probability(25)) {
+                    isHide = true;
+                }
+                break;
             case 'soso':
-              if (probability(50)) {
-                isHide = true;
-              }
-              break;
+                if (probability(50)) {
+                    isHide = true;
+                }
+                break;
             case 'less':
-              if (probability(75)) {
-                isHide = true;
-              }
-              break;
+                if (probability(75)) {
+                    isHide = true;
+                }
+                break;
             case 'none':
-              isHide = true;
-              break;
-            default:
-          }
-
-          if (data.reason.by.viewer?.muted) {
-              isHide = true;
-          }
-        }
-
-        const langFilter = column && column.settings?.langFilterEnabled ? column.settings.langFilter : $settings.langFilter;
-        if (langFilter && langFilter.length && data.post.record.langs) {
-            const isLangMatched = langFilter.some(lang => data.post.record.langs.includes(lang));
-
-            if (!isLangMatched) {
                 isHide = true;
-            }
+                break;
+            default:
         }
-    });
 
-    setContext('timelineItem', data);
+        if (data.reason.by.viewer?.muted) {
+            isHide = true;
+        }
+    }
+
+    const langFilter = column && column.settings?.langFilterEnabled ? column.settings.langFilter : $settings.langFilter;
+    if (langFilter && langFilter.length && data.post.record.langs) {
+        const isLangMatched = langFilter.some(lang => data.post.record.langs.includes(lang));
+
+        if (!isLangMatched) {
+            isHide = true;
+        }
+    }
 
     async function translation() {
         ({ text: data.post.record.text, facets: data.post.record.facets } = await translate(data.post.record.text, $settings.general?.userLanguage, _agent));

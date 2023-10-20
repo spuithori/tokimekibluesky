@@ -1,10 +1,9 @@
 <script lang="ts">
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
   import {agent, agents} from "$lib/stores";
-  import UserProfile from "../../../routes/(app)/profile/[handle]/UserProfile.svelte";
   import {_} from "svelte-i18n";
   import { page } from '$app/stores';
-  import { LayoutList, UserCheck2, UserPlus2, Image, Heart } from 'lucide-svelte';
+  import {LayoutList, UserCheck2, UserPlus2, Image, Heart, ShieldBan, VolumeX} from 'lucide-svelte';
   import ProfileMenuItem from "$lib/components/acp/ProfileMenuItem.svelte";
   import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";
@@ -98,6 +97,20 @@
           </div>
           <p class="p-menu-nav__title"><a href="/profile/{_agent.handle()}/likes" data-sveltekit-noscroll>{$_('likes')}</a></p>
         </li>
+
+        <li class="p-menu-nav__item">
+          <div class="p-menu-nav__icon">
+            <VolumeX color="var(--text-color-1)"></VolumeX>
+          </div>
+          <p class="p-menu-nav__title"><a href="/mutes/{_agent.did()}" data-sveltekit-noscroll>{$_('mutes_list')}</a></p>
+        </li>
+
+        <li class="p-menu-nav__item">
+          <div class="p-menu-nav__icon">
+            <ShieldBan color="var(--text-color-1)"></ShieldBan>
+          </div>
+          <p class="p-menu-nav__title"><a href="/blocks/{_agent.did()}" data-sveltekit-noscroll>{$_('blocks_list')}</a></p>
+        </li>
       </ul>
     {/key}
   </section>
@@ -114,10 +127,6 @@
 <style lang="postcss">
   .side-profile {
       padding: 16px;
-  }
-
-  .side-profile-content {
-      margin-bottom: 16px;
   }
 
   .side-profile-profiles {

@@ -1,10 +1,17 @@
 import {derived, readable, writable} from 'svelte/store';
-import type { Agent } from '$lib/agent';
-import type { AppBskyFeedDefs, AppBskyFeedPost, AppBskyNotificationListNotifications, AppBskyActorDefs } from '@atproto/api';
+import type {Agent} from '$lib/agent';
+import type {
+    AppBskyActorDefs,
+    AppBskyFeedDefs,
+    AppBskyFeedPost,
+    AppBskyNotificationListNotifications
+} from '@atproto/api';
 import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 import type {Theme} from "$lib/types/theme";
 import {defaultReactionButtons} from "$lib/defaultSettings";
 import timerWorkerUrl from '$lib/workers/timer.js?url'
+import {keywordStringToArray} from "$lib/timelineFilter";
+import type {keyword} from "$lib/timelineFilter";
 
 type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification & {
     feed?: AppBskyFeedPost
@@ -140,6 +147,21 @@ const defaultSettings = {
 }
 const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);
 export const settings = writable(JSON.parse(storageSettings));
+
+const storageKeywordMutes = localStorage.getItem('keywordMutes') || JSON.stringify([]);
+export const keywordMutes = writable<keyword[]>(JSON.parse(storageKeywordMutes));
+
+export const formattedKeywordMutes = derived(keywordMutes, ($keywordMutes) => {
+    const initialMutes = structuredClone($keywordMutes);
+    if (!initialMutes || !initialMutes.length) {
+        return [];
+    }
+
+    return initialMutes.map(mute => {
+        mute.word = keywordStringToArray(mute.word);
+        return mute;
+    });
+});
 
 export const preferences = writable();
 

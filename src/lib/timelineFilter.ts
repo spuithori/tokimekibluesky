@@ -2,6 +2,32 @@ import {moderatePost, ModerationOpts} from '@atproto/api'
 import {isMatch, parse, parseISO, set} from "date-fns";
 import isWithinInterval from "date-fns/isWithinInterval";
 
+export interface keyword {
+    enabled?: boolean,
+    word: string | string[],
+    period: {
+        start: string,
+        end: string
+    },
+    ignoreCaseSensitive?: boolean,
+    regExp?: boolean,
+}
+
+export interface formattedKeyword extends keyword {
+    word: string[],
+}
+
+export const defaultKeyword: keyword = {
+    enabled: true,
+        word: '',
+        period: {
+        start: '00:00',
+        end: '23:59',
+    },
+    ignoreCaseSensitive: false,
+    regExp: false,
+}
+
 export function contentLabelling(post, did, settings) {
     let labels = settings.moderation?.contentLabels || {
         gore: 'warn',
@@ -25,6 +51,18 @@ export function contentLabelling(post, did, settings) {
     return moderatePost(post, options);
 }
 
+export function keywordStringToArray(word: any) {
+    if (typeof word !== 'string') {
+        return word;
+    }
+
+    const words = word
+        .split(',')
+        .map(w => w.trim())
+        .filter(Boolean);
+    return words;
+}
+
 export function keywordFilter(keywords, text, indexedAt) {
     let isHide = false;
 
@@ -32,9 +70,14 @@ export function keywordFilter(keywords, text, indexedAt) {
         return false;
     }
 
-    keywords.forEach(keyword => {
+    keywords.forEach((keyword: formattedKeyword) => {
         const timeIsValid = isMatch(keyword.period.start, 'HH:mm') && isMatch(keyword.period.end, 'HH:mm');
-        if (!timeIsValid || keyword.word === '') {
+
+        if (!timeIsValid || keyword.word.length === 0) {
+            return false;
+        }
+
+        if (keyword.enabled === false) {
             return false;
         }
 
@@ -61,7 +104,11 @@ export function keywordFilter(keywords, text, indexedAt) {
                 end: parse('23:59:59', 'HH:mm:ss', new Date),
             });
 
-        if (isIntervalWithin && text.includes(keyword.word)) {
+        const isInclude = keyword.ignoreCaseSensitive
+            ? keyword.word.some(w => text.toLowerCase().includes(w.toLowerCase()))
+            : keyword.word.some(w => text.includes(w));
+
+        if (isIntervalWithin && isInclude) {
             isHide = true;
         }
     });

@@ -468,5 +468,18 @@
   "ai_alt_ocr": "Extract text from images",
   "ai_alt_description": "Generate description",
   "ai_alt_note": "If you use AI to generate ALT text, please keep in mind that the image will be sent to an external server for analysis. This application is not responsible for the results generated.",
-  "missing_profile_title": "Please select a profile"
+  "missing_profile_title": "Please select a profile",
+  "blocking": "Blocking",
+  "muting": "Muting",
+  "button_mute": "Mute",
+  "button_unmute": "UnMute",
+  "button_block": "Block",
+  "button_unblock": "UnBlock",
+  "blocks_list": "Blocks list",
+  "mutes_list": "Mutes list",
+  "error_missing_parameter_account": "Invalid URL. Not a logged-in account.",
+  "input_keyword_placeholder": "Separated by commas (e.g. word1,word2)",
+  "keyword_ignore_case_sensitive": "Ignore case-sensitive",
+  "keyword_reg_exp": "Use RegExp",
+  "keyword_mute_description": "To apply the changes to an existing post, refresh the page.\nSettings are saved locally."
 }
