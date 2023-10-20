@@ -15,12 +15,12 @@
 
 .compact {
     .thread-item {
-        --bar-position: 23px;
+        --bar-position: 22px;
         --bar-transform: 10px;
-        --bar-position-current: 35px;
+        --bar-position-current: 38px;
 
         @media (max-width: 767px) {
-            --bar-position: 23px;
+            
         }
     }
 }
@@ -35,13 +35,13 @@
 }
 
 .thread-item {
-    --bar-position: 29px;
-    --bar-transform: 20px;
-    --bar-position-current: 49px;
+    --bar-position: 27px;
+    --bar-transform: 16px;
+    --bar-position-current: 43px;
 
     @media (max-width: 767px) {
-        --bar-position: 24px;
-        --bar-position-current: 44px;
+        --bar-position: 23px;
+        --bar-position-current: 39px;
     }
 
     &.has-child {

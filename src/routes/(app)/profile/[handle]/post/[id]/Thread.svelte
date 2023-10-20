@@ -81,11 +81,7 @@
           margin-right: -16px;
           padding-left: 16px;
           padding-right: 16px;
-          border-left: 4px solid var(--primary-color);
+          box-shadow: inset 4px 0 var(--primary-color);
       }
-  }
-
-  .thread-blocked {
-      padding: 10px;
   }
 </style>
