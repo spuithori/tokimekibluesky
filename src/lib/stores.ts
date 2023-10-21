@@ -31,6 +31,7 @@ type columns = {
     did?: string,
     handle?: string,
     unreadCount?: number,
+    filter?: string[],
     settings: defaultDeckSettings,
     data: {
         feed: [],

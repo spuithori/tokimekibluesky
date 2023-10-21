@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, didHint, isPreventEvent, realtime, settings} from '$lib/stores';
+    import {agent, realtime, settings} from '$lib/stores';
     import { type AppBskyNotificationListNotifications } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
@@ -8,7 +8,6 @@
     import UserItem from "./profile/[handle]/UserItem.svelte";
     import {createEventDispatcher} from "svelte";
     import TimelineItem from "./TimelineItem.svelte";
-    import {goto} from "$app/navigation";
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
@@ -18,16 +17,14 @@
     export let cursor = '';
 
     type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow';
-    let filter: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+    export let filter: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
     let reasonSubjects = [];
     let feeds = [];
-    let il;
 
     async function getNotifications(setFilter: Filter[]) {
         filter = setFilter;
         notifications = [];
         cursor = '';
-        il.$$.update();
     }
 
     $: realtimeNotificationCount($realtime.data)
@@ -156,7 +153,7 @@
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         const res = await _agent.agent.api.app.bsky.notification.listNotifications({
-            limit: 20,
+            limit: 50,
             cursor: cursor,
         });
         cursor = res.data.cursor;
@@ -186,104 +183,113 @@
                 return 'liked_your_post';
         }
     }
+
+    function changeFilter(filter: Filter[]) {
+        getNotifications(filter);
+        dispatch('change', {
+            filter: filter,
+        });
+    }
 </script>
 
 <div class="notifications-wrap">
   <div class="notifications-menu">
     <ul class="notifications-filter-list">
       <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" on:click={() => {getNotifications(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}>{$_('all')}</button>
+        <button class="notifications-filter-button" on:click={() => {changeFilter(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}>{$_('all')}</button>
       </li>
 
       <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" on:click={() => {getNotifications(['reply', 'mention', 'quote'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['reply', 'mention', 'quote'])} aria-label="Reply, Mention, and Quotes"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-at-sign"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg></button>
+        <button class="notifications-filter-button" on:click={() => {changeFilter(['reply', 'mention', 'quote'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['reply', 'mention', 'quote'])} aria-label="Reply, Mention, and Quotes"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-at-sign"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg></button>
       </li>
 
       <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" on:click={() => {getNotifications(['like'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])} aria-label="Like"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></button>
+        <button class="notifications-filter-button" on:click={() => {changeFilter(['like'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])} aria-label="Like"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></button>
       </li>
 
       <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" on:click={() => {getNotifications(['repost'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['repost'])} aria-label="Repost"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg></button>
+        <button class="notifications-filter-button" on:click={() => {changeFilter(['repost'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['repost'])} aria-label="Repost"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg></button>
       </li>
 
       <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" on:click={() => {getNotifications(['follow'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['follow'])} aria-label="Follow"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus-2"><path d="M14 19a6 6 0 0 0-12 0"/><circle cx="8" cy="9" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg></button>
+        <button class="notifications-filter-button" on:click={() => {changeFilter(['follow'])}} class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['follow'])} aria-label="Follow"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus-2"><path d="M14 19a6 6 0 0 0-12 0"/><circle cx="8" cy="9" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg></button>
       </li>
     </ul>
   </div>
 
-  <div class="notifications-list">
-    {#each notifications as item, index (item)}
-      {#if (filter.includes(item.reason))}
-        {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-          <TimelineItem {_agent} data={{post: item.feedThis || item}}></TimelineItem>
-        {:else if (item.reason === 'follow')}
-          <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
-            <div class="notifications-item__avatar">
-              {#if $settings?.design.postsLayout !== 'minimum'}
-                <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}
-                        handle={item.author.handle} {_agent}></Avatar>
-              {/if}
-            </div>
-
-            <div class="notifications-item__contents">
-              <h2 class="notifications-item__title">
-              <span class="notifications-item__name">
-                <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
-                  <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
-              </ProfileCardWrapper>
-              </span> {$_('followed_you')}
-              </h2>
-
-              {#if (item.author.description)}
-                <p class="notifications-item__description">{item.author.description}</p>
-              {/if}
-
-              <div class="notifications-item__buttons">
-                <UserItem user={item.author} layout={'notification'} {_agent}></UserItem>
-              </div>
-            </div>
-          </article>
-        {:else}
-          <article class="notifications-item notifications-item--reaction notifications-item--{item.reason}">
-            {#if (!item.isRead)}
-              <div class="notifications-new" aria-label="New Notification"></div>
-            {/if}
-
-            <div class="notification-column">
-              <div>
+  {#key filter}
+    <div class="notifications-list">
+      {#each notifications as item, index (item)}
+        {#if (filter.includes(item.reason))}
+          {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+            <TimelineItem {_agent} data={{post: item.feedThis || item}}></TimelineItem>
+          {:else if (item.reason === 'follow')}
+            <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
+              <div class="notifications-item__avatar">
                 {#if $settings?.design.postsLayout !== 'minimum'}
                   <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}
                           handle={item.author.handle} {_agent}></Avatar>
                 {/if}
               </div>
 
-              <div class="notification-column__content">
+              <div class="notifications-item__contents">
                 <h2 class="notifications-item__title">
-                  <span class="notifications-item__name">
-                    <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
-                      <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
-                    </ProfileCardWrapper>
-                  </span> {$_(getReasonText(item.reason))}
+                <span class="notifications-item__name">
+                  <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
+                    <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+                </ProfileCardWrapper>
+                </span> {$_('followed_you')}
                 </h2>
 
-                {#if (item.feed)}
-                  <p class="notifications-item__content"><a href="{'/profile/' + item.feed.author.handle + '/post/' + item.feed.uri.split('/').slice(-1)[0]}">{item.feed.record.text}</a></p>
-                {:else}
-                  <p class="notifications-item__content"></p>
+                {#if (item.author.description)}
+                  <p class="notifications-item__description">{item.author.description}</p>
                 {/if}
-              </div>
-            </div>
-          </article>
-        {/if}
-      {/if}
-    {/each}
-  </div>
 
-  <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-  </InfiniteLoading>
+                <div class="notifications-item__buttons">
+                  <UserItem user={item.author} layout={'notification'} {_agent}></UserItem>
+                </div>
+              </div>
+            </article>
+          {:else}
+            <article class="notifications-item notifications-item--reaction notifications-item--{item.reason}">
+              {#if (!item.isRead)}
+                <div class="notifications-new" aria-label="New Notification"></div>
+              {/if}
+
+              <div class="notification-column">
+                <div>
+                  {#if $settings?.design.postsLayout !== 'minimum'}
+                    <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}
+                            handle={item.author.handle} {_agent}></Avatar>
+                  {/if}
+                </div>
+
+                <div class="notification-column__content">
+                  <h2 class="notifications-item__title">
+                    <span class="notifications-item__name">
+                      <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
+                        <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+                      </ProfileCardWrapper>
+                    </span> {$_(getReasonText(item.reason))}
+                  </h2>
+
+                  {#if (item.feed)}
+                    <p class="notifications-item__content"><a href="{'/profile/' + item.feed.author.handle + '/post/' + item.feed.uri.split('/').slice(-1)[0]}">{item.feed.record.text}</a></p>
+                  {:else}
+                    <p class="notifications-item__content"></p>
+                  {/if}
+                </div>
+              </div>
+            </article>
+          {/if}
+        {/if}
+      {/each}
+    </div>
+
+    <InfiniteLoading on:infinite={handleLoadMore}>
+      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+    </InfiniteLoading>
+  {/key}
 </div>
 
 <style lang="postcss">
