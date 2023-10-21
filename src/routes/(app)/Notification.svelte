@@ -153,7 +153,7 @@
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         const res = await _agent.agent.api.app.bsky.notification.listNotifications({
-            limit: 50,
+            limit: 20,
             cursor: cursor,
         });
         cursor = res.data.cursor;
