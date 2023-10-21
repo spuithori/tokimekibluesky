@@ -64,6 +64,13 @@
 
   $: getCurrentTheme($settings.design?.skin);
   $: observeColor($theme);
+  $: detectHeadThemeColor($theme);
+
+  function detectHeadThemeColor(theme) {
+      setTimeout(() => {
+          baseColor = app ? getComputedStyle(app).getPropertyValue('--base-bg-color') : '#fff';
+      }, 100);
+  }
 
   function getCurrentTheme(skin) {
       const isBuiltInTheme = builtInThemes.find(_theme => _theme.name === skin);
@@ -75,8 +82,6 @@
                   $theme = value;
               });
       }
-
-      baseColor = app ? getComputedStyle(app).getPropertyValue('--base-bg-color') : '#fff';
   }
 
   function observeColor(theme) {
@@ -93,8 +98,6 @@
       if (!colors.some(color => color.id === $settings.design?.theme)) {
           $settings.design.theme = colors[0].id;
       }
-
-      baseColor = app ? getComputedStyle(app).getPropertyValue('--base-bg-color') : '#fff';
   }
 
   let profiles = liveQuery(
@@ -298,8 +301,6 @@
       } else {
           isDarkMode = false;
       }
-
-      baseColor = app ? getComputedStyle(app).getPropertyValue('--base-bg-color') : '#fff';
   }
 
   onMount(async() => {
