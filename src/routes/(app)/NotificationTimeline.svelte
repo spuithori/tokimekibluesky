@@ -6,8 +6,6 @@
     export let index;
     export let _agent = $agent;
 
-    console.log(column);
-
     function handleCountUpdate(event) {
         $columns[index].unreadCount = event.detail.count;
     }

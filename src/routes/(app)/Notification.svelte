@@ -20,6 +20,7 @@
     export let filter: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
     let reasonSubjects = [];
     let feeds = [];
+    let unique = Symbol();
 
     async function getNotifications(setFilter: Filter[]) {
         filter = setFilter;
@@ -186,6 +187,7 @@
 
     function changeFilter(filter: Filter[]) {
         getNotifications(filter);
+        unique = Symbol();
         dispatch('change', {
             filter: filter,
         });
@@ -217,7 +219,7 @@
     </ul>
   </div>
 
-  {#key filter}
+  {#key unique}
     <div class="notifications-list">
       {#each notifications as item, index (item)}
         {#if (filter.includes(item.reason))}
