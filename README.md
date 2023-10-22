@@ -1,22 +1,21 @@
 # TOKIMEKI Bluesky
 
-An unofficial Bluesky web client.
+A Third-party Bluesky web client.
 
 Supporting multiple PDS servers.
 
-## Features
+## How to build
 
-- [x] Show timeline
-- [x] Show user profiles
-- [x] Create / Delete post
-- [x] Reply
-- [x] Follow / Unfollow
-- [x] Notifications
-- [x] Vote (Like)
-- [x] Repost
-- [x] Upload images
-- [x] Quote post
-- [x] Mention
-- [x] Create post with entities formatting
-- [x] Update profile
-- [ ] Create account
+### Setup .env file
+
+First, rename the .env.example file to .env.
+
+### Developing
+```
+npm install
+
+npm run dev
+```
+
+With no environment variable values entered, some features, such as push notifications, cannot be enabled.
+Documentation to enable this is under construction.

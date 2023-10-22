@@ -37,8 +37,6 @@ let q;
         <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/search?q={encodeURIComponent(q)}" data-sveltekit-noscroll>{$_('posts')}</a></li>
         <li class="profile-tab__item" on:click={() => currentPage = 'user'} class:profile-tab__item--active={currentPage === 'user'}><a href="/search/user?q={encodeURIComponent(q)}" data-sveltekit-noscroll>{$_('user')}</a></li>
         <li class="profile-tab__item" on:click={() => currentPage = 'feeds'} class:profile-tab__item--active={currentPage === 'feeds'}><a href="/search/feeds?q={encodeURIComponent(q)}" data-sveltekit-noscroll>{$_('feeds')}</a></li>
-        <li class="profile-tab__item" on:click={() => currentPage = 'beta'} class:profile-tab__item--active={currentPage === 'beta'}><a href="/search/beta?q={encodeURIComponent(q)}" data-sveltekit-noscroll>{$_('beta_improve_search')}</a></li>
-        <li class="profile-tab__item" on:click={() => currentPage = 'hashtags'} class:profile-tab__item--active={currentPage === 'hashtags'}><a href="/search/hashtags?q={encodeURIComponent(q)}" data-sveltekit-noscroll>{$_('hashtag_search')}</a></li>
       </ul>
 
       <div class="page-search-content">
