@@ -277,3 +277,5 @@ export const isRealtimeListenersModalOpen = writable(false);
 type LinkWarning = string | undefined;
 
 export const linkWarning = writable<LinkWarning>(undefined);
+
+export const direction = writable('up');

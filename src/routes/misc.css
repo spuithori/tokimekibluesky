@@ -165,12 +165,6 @@
                 overflow-y: initial !important;
             }
         }
-
-        .deck-heading {
-            &__icon {
-                margin-left: 0;
-            }
-        }
     }
 
     &.bottom {
@@ -179,7 +173,7 @@
             border-radius: 0;
 
             @media (min-width: 768px) {
-                z-index: 9999;
+                z-index: 9999 !important;
                 transform: translateX(-59px);
                 width: 480px;
                 border-right: 1px solid var(--border-color-2);
@@ -228,7 +222,7 @@
 .scroll-down.app {
     .deck-heading {
         @media (max-width: 767px) {
-            top: -52px;
+            top: -52px !important;
         }
     }
 

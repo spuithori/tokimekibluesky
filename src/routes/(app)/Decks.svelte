@@ -106,6 +106,7 @@
       padding: var(--decks-padding) 0;
       height: 100dvh;
       scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+      scrollbar-width: thin;
 
       &::-webkit-scrollbar {
           /* display: none; */
@@ -130,7 +131,7 @@
           scroll-snap-type: x mandatory;
           top: 85px;
           padding: 0;
-          height: calc(100dvh - 70px);
+          height: calc(100dvh - 48px);
       }
 
       &--left-sidebar {

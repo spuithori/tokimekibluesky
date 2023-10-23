@@ -8,6 +8,7 @@
     export let column;
     export let index;
     export let _agent;
+    export let layout = 'default';
 
     let hideRepost = column.settings?.timeline.hideRepost || null;
     let hideReply = column.settings?.timeline.hideReply || null;
@@ -223,7 +224,7 @@
     }
 </script>
 
-<div class="deck-settings-wrap">
+<div class="deck-settings-wrap deck-settings-wrap--{layout}">
     <div class="deck-settings">
         <div class="column-heading">
             <h2 class="column-heading__title">{$_('deck_settings')}</h2>
@@ -440,8 +441,10 @@
         border-radius: 10px;
         padding: 0;
         z-index: 100;
-        height: 100%;
-        overflow-y: auto;
+
+        .column-heading {
+            z-index: 100;
+        }
     }
 
     .deck-settings {

@@ -12,7 +12,7 @@
       isMobileDataConnection, isReactionButtonSettingsModalOpen, keywordMutes, listAddModal, missingAccounts,
       profileStatus,
       settings, syncColumns,
-      theme
+      theme, direction
   } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {dev} from '$app/environment';
@@ -45,7 +45,6 @@
   let loaded = false;
   let isColumnInitialLoad = false;
   let isDarkMode = false;
-  let direction = 'up';
   let scrolly;
   let app;
   let baseColor = '#fff';
@@ -329,7 +328,7 @@
       const scroll = scrollDirection(event);
 
       if (scroll) {
-          direction = scroll;
+          direction.set(scroll);
       }
   }
 
@@ -379,7 +378,7 @@
     class:scrolled={scrolly > 52}
     class:sidebar={$settings.design?.publishPosition === 'left'}
     class:bottom={$settings.design?.publishPosition === 'bottom'}
-    class="app scroll-{direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2}"
+    class="app scroll-{$direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2}"
     dir="{$_('dir', {default: 'ltr'})}"
     class:compact={$settings.design?.postsLayout === 'compact'}
     class:minimum={$settings.design?.postsLayout === 'minimum'}
@@ -447,11 +446,11 @@
       }
   }
 
-  main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
+  .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
   }
 
   .sidebar {

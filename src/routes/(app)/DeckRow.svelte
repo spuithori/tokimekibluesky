@@ -3,7 +3,7 @@
     import TimelineSelector from "./TimelineSelector.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
-    import {agent, agents, columns} from "$lib/stores";
+    import {agent, agents, columns, direction} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
@@ -13,6 +13,7 @@
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
     import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
     import {iconMap} from "$lib/columnIcons";
+    import {scrollDirection} from "$lib/scrollDirection";
 
     export let column;
     export let index;
@@ -70,12 +71,26 @@
         $columns[index].settings = {...$columns[index].settings, icon: event.detail.icon};
         isIconPickerOpen = false;
     }
+
+    function handleScroll(event) {
+        const scroll = scrollDirection(event);
+
+        if (scroll) {
+            direction.set(scroll);
+            console.log(scroll);
+        }
+    }
 </script>
 
 <div
     class="deck-row deck-row--{column.settings?.width || 'medium'}"
+    class:deck-row--decks={$settings.design?.layout === 'decks'}
+    class:deck-row--single={$settings.design?.layout === 'default'}
+    class:deck-row--compact={$settings.design?.publishPosition === 'bottom'}
     on:mouseenter={handleMouseEnter}
     on:mouseleave={handleMouseLeave}
+    bind:this={column.scrollElement}
+    on:scroll={handleScroll}
 >
     <div class="deck-heading">
         <div class="deck-heading__icon">
@@ -116,11 +131,11 @@
     </div>
 
     {#if isSettingsOpen}
-        <DeckSettingsModal {column} {index} {_agent} on:close={handleSettingsClick}></DeckSettingsModal>
+        <DeckSettingsModal {column} {index} {_agent} layout={$settings.design?.layout} on:close={handleSettingsClick}></DeckSettingsModal>
     {:else}
         {#key unique}
             {#if uniqueAgent}
-                <div class="deck-row__content" bind:this={column.scrollElement}>
+                <div class="deck-row__content">
                     {#if (column.algorithm.type === 'notification')}
                         <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
                     {:else if (column.algorithm.type === 'thread')}
@@ -161,39 +176,41 @@
     .deck-row {
         width: 450px;
         flex-shrink: 0;
-        height: 100%;
         position: relative;
         border-radius: var(--deck-border-radius);
         border: var(--deck-border-width) solid var(--deck-border-color);
         box-shadow: var(--deck-box-shadow);
-        overflow: hidden;
+        background-color: var(--deck-content-bg-color);
+        overflow-y: scroll;
+        height: 100%;
+        scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+        scrollbar-width: thin;
+        backdrop-filter: var(--deck-content-backdrop-filter);
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--scroll-bar-color);
+            border-radius: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: var(--scroll-bar-bg-color);
+            border-radius: 6px;
+            margin-top: 52px;
+        }
 
         @media (max-width: 767px) {
             width: 100vw;
             scroll-snap-align: start;
+            scroll-snap-stop: always;
             box-shadow: none;
         }
 
         &__content {
-            height: calc(100% - var(--deck-heading-height));
-            overflow-y: scroll;
-            background-color: var(--deck-content-bg-color);
-            scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
-            backdrop-filter: var(--deck-content-backdrop-filter);
 
-            &::-webkit-scrollbar {
-                width: 6px;
-            }
-
-            &::-webkit-scrollbar-thumb {
-                background: var(--scroll-bar-color);
-                border-radius: 6px;
-            }
-
-            &::-webkit-scrollbar-track {
-                background: var(--scroll-bar-bg-color);
-                border-radius: 6px;
-            }
         }
 
         &--xxs {
@@ -251,6 +268,25 @@
                 width: 100vw;
             }
         }
+
+        &--decks {
+            .deck-row__content {
+
+            }
+
+            .deck-heading {
+
+            }
+        }
+
+        &--single {
+            overflow-y: visible;
+            height: auto;
+
+            .deck-heading__icon {
+                margin-left: 0;
+            }
+        }
     }
 
     .deck-heading {
@@ -262,6 +298,8 @@
         height: var(--deck-heading-height);
         position: sticky;
         top: 0;
+        left: 0;
+        right: 0;
         background-color: var(--deck-heading-bg-color);
         z-index: 21;
         border-bottom: 1px solid var(--deck-border-color);
