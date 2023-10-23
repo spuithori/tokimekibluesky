@@ -3,7 +3,7 @@
     import TimelineSelector from "./TimelineSelector.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
-    import {agent, agents, columns, direction} from "$lib/stores";
+    import {agent, agents, columns, direction, intersectingIndex} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
@@ -14,6 +14,7 @@
     import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
     import {iconMap} from "$lib/columnIcons";
     import {scrollDirection} from "$lib/scrollDirection";
+    import {onDestroy, onMount} from "svelte";
 
     export let column;
     export let index;
@@ -25,6 +26,7 @@
     let isTopScrolling;
     let isScrollPaused = false;
     let isIconPickerOpen = false;
+    let observer;
 
     if (!column.data) {
         column.data = {
@@ -80,6 +82,28 @@
             console.log(scroll);
         }
     }
+
+    function intersect(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                intersectingIndex.set(index);
+            }
+        })
+    }
+
+    onMount(() => {
+        const options = {
+            threshold: 0.5,
+        }
+        observer = new IntersectionObserver(intersect, options);
+        if (column.scrollElement) {
+            observer.observe(column.scrollElement);
+        }
+    })
+
+    onDestroy(() => {
+        observer.unobserve(column.scrollElement);
+    })
 </script>
 
 <div

@@ -279,3 +279,5 @@ type LinkWarning = string | undefined;
 export const linkWarning = writable<LinkWarning>(undefined);
 
 export const direction = writable('up');
+
+export const intersectingIndex = writable(0);

@@ -1,5 +1,13 @@
 <script lang="ts">
-  import {agents, columns, currentTimeline, settings, isColumnModalOpen, sideState} from "$lib/stores";
+    import {
+        agents,
+        columns,
+        currentTimeline,
+        settings,
+        isColumnModalOpen,
+        sideState,
+        intersectingIndex
+    } from "$lib/stores";
   import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
   import { page } from '$app/stores';
   import { Settings } from "lucide-svelte";
@@ -82,6 +90,7 @@
         <button
             class="side-bar-button"
             class:side-bar-button--current={$settings.design.layout !== 'decks' && column.id === $columns[$currentTimeline].id}
+            class:side-bar-button--intersecting={$intersectingIndex === index && $settings.design.layout === 'decks'}
             on:click={() => {handleColumnClick(column, index)}}
             aria-label={column.algorithm?.name}
             title={column.algorithm?.name}
@@ -240,6 +249,14 @@
 
           &::before {
               transform: scaleY(1);
+          }
+      }
+
+      &--intersecting {
+          @media (max-width: 767px) {
+              &::before {
+                  transform: scaleY(1);
+              }
           }
       }
 

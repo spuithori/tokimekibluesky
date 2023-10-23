@@ -112,6 +112,14 @@
             stroke: var(--primary-color);
         }
     }
+
+    &--intersecting {
+        @media (max-width: 767px) {
+            svg {
+                stroke: var(--primary-color);
+            }
+        }
+    }
 }
 
 .deck-divider {
