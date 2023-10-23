@@ -79,7 +79,6 @@
 
         if (scroll) {
             direction.set(scroll);
-            console.log(scroll);
         }
     }
 
