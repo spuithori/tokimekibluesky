@@ -101,7 +101,11 @@
     })
 
     onDestroy(() => {
-        observer.unobserve(column.scrollElement);
+        try {
+            observer.unobserve(column.scrollElement);
+        } catch (e) {
+
+        }
     })
 </script>
 
