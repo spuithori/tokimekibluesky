@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import {agents, columns} from '$lib/stores';
+    import {agents, columns, syncColumns} from '$lib/stores';
     import { createEventDispatcher } from 'svelte';
     import toast from "svelte-french-toast";
     const dispatch = createEventDispatcher();
@@ -14,7 +14,7 @@
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
     import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
 
-    export let _columns = $columns;
+    export let _columns = $syncColumns;
     export let profileId = Number(localStorage.getItem('currentProfile'));
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
