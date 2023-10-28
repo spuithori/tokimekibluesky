@@ -2,18 +2,24 @@
   import {_} from 'svelte-i18n'
   import {formattedKeywordMutes, linkWarning, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
-  import {getTextArray, isUriLocal} from "$lib/richtext";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
-  import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, keywordFilter} from "$lib/timelineFilter";
-  import {AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia} from "@atproto/api";
+  import {
+    AppBskyEmbedExternal,
+    AppBskyEmbedImages,
+    AppBskyEmbedRecord,
+    AppBskyEmbedRecordWithMedia,
+    AppBskyFeedPost
+  } from "@atproto/api";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
-  import {translate} from "$lib/translate";
+  import {formatTranslateRecord} from "$lib/translate";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
   import {detectDifferentDomainUrl} from "$lib/util";
+  import TimelineText from "$lib/components/post/TimelineText.svelte";
+  import toast from "svelte-french-toast";
 
   export let post;
   export let _agent;
@@ -21,7 +27,9 @@
   export let isTranslated = false;
   export let isSingle = false;
   export let isProfile = false;
+  export let pulseTranslate = false;
 
+  let translatedRecord: undefined | AppBskyFeedPost.Record;
   let warnReason = '';
 
   const moderateData = contentLabelling(post, _agent.did(), $settings);
@@ -29,6 +37,8 @@
   export let isHide = detectHide(moderateData);
   let isWarn = detectWarn(moderateData) || false;
   detectKeywordFilter();
+
+  $: translation(pulseTranslate);
 
   function detectHide(moderateData) {
       if (!moderateData) {
@@ -92,9 +102,19 @@
       }
   }
 
-  async function translation() {
-      ({ text: post.record.text, facets: post.record.facets } = await translate(post.record.text, $settings.general?.userLanguage, _agent));
+  async function translation(pulse = true) {
+      if (!pulse) {
+          return false;
+      }
+
+      try {
+        translatedRecord = await formatTranslateRecord(post.record.text, $settings.general?.userLanguage, _agent, post.record);
+      } catch (e) {
+        toast.error('Translate error.')
+      }
+
       isTranslated = true;
+      pulseTranslate = false;
   }
 
   function handleUrlClick(e, item) {
@@ -149,8 +169,8 @@
     {#if (post.record.langs && !post.record.langs.includes($settings.general.userLanguage))}
       <button
           class="timeline-translate-button"
-          class:timeline-translate-button--hidden={isTranslated}
-          on:click={translation}>{$_('translation')}</button>
+          disabled={isTranslated}
+          on:click={translation}>{$_(isTranslated ? 'already_translated' : 'translation')}</button>
     {/if}
   </div>
 
@@ -160,24 +180,17 @@
     {/if}
 
     <p class="timeline__text" dir="auto">
-      {#each getTextArray(post.record) as item}
-        {#if (item.isLink() && item.link)}
-          {#if (isUriLocal(item.link.uri))}
-            <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
-          {:else}
-            <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer" on:click={(e) => {handleUrlClick(e, item)}}>{item.text}</a>
-          {/if}
-        {:else if (item.isMention() && item.mention)}
-          <ProfileCardWrapper handle="{item.text.slice(1)}" {_agent}>
-            <a href="/profile/{item.text.slice(1)}">{item.text}</a>
-          </ProfileCardWrapper>
-        {:else if (item.isTag() && item.tag)}
-          <a href="/search?q={encodeURIComponent(item.tag?.tag)}">{item.text}</a>
-        {:else}
-          <span>{item.text}</span>
-        {/if}
-      {/each}
+      <TimelineText record={post.record} {_agent}></TimelineText>
     </p>
+
+    {#if (translatedRecord)}
+      <div class="timeline-translated-text" dir="auto">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-languages" aria-label="Translated text: "><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+        <p class="timeline__text">
+          <TimelineText record={translatedRecord} {_agent}></TimelineText>
+        </p>
+      </div>
+    {/if}
 
     {#if (AppBskyEmbedImages.isView(post.embed) && !isMedia && post.embed)}
       <div class="timeline-images-wrap">

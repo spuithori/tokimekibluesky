@@ -889,6 +889,14 @@
         text-decoration: underline;
     }
 
+    &:disabled {
+        color: var(--text-color-3);
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+
     &--hidden {
         visibility: hidden;
     }
@@ -955,4 +963,16 @@
     align-items: center;
     justify-content: center;
     border-bottom: var(--timeline-border-width) solid var(--timeline-border-color);
+}
+
+.timeline-translated-text {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    gap: 2px;
+    align-items: flex-start;
+    margin-top: 4px;
+
+    svg {
+        margin-top: 2px;
+    }
 }

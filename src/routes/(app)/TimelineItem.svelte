@@ -20,7 +20,6 @@
     import Menu from "$lib/components/ui/Menu.svelte";
     import {goto} from "$app/navigation";
     import TimelineContent from "$lib/components/post/TimelineContent.svelte";
-    import {translate} from "$lib/translate";
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
     import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
@@ -46,6 +45,7 @@
     let isShortCutNumberShown = false;
     let isTranslated = false;
     let isReactionModalOpen = false;
+    let pulseTranslate = false;
 
     $: {
         if (dialog) {
@@ -146,14 +146,8 @@
     }
 
     async function translation() {
-        ({ text: data.post.record.text, facets: data.post.record.facets } = await translate(data.post.record.text, $settings.general?.userLanguage, _agent));
-
-        if (data.reply && !isSingle) {
-            ({ text: data.reply.parent.record.text, facets: data.reply.parent.record.facets } = await translate(data.reply.parent.record.text, $settings.general?.userLanguage, _agent));
-        }
-
         isMenuOpen = false;
-        isTranslated = true;
+        pulseTranslate = true;
     }
 
     function copyThreadUrl() {
@@ -315,12 +309,12 @@
           <span class="timeline-reply-bar"></span>
         {/if}
 
-        <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide}></TimelineContent>
+        <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
       </div>
     {/if}
 
     <div class="timeline__column">
-      <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isHide}>
+      <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isHide} {pulseTranslate}>
 
         <ReactionButtons
             {_agent}

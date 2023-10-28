@@ -481,5 +481,6 @@
   "input_keyword_placeholder": "Separated by commas (e.g. word1,word2)",
   "keyword_ignore_case_sensitive": "Ignore case-sensitive",
   "keyword_reg_exp": "Use RegExp",
-  "keyword_mute_description": "To apply the changes to an existing post, refresh the page.\nSettings are saved locally."
+  "keyword_mute_description": "To apply the changes to an existing post, refresh the page.\nSettings are saved locally.",
+  "already_translated": "Translated"
 }

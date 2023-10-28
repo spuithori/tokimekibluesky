@@ -20,3 +20,12 @@ export async function translate(text, lang = window.navigator.language, _agent) 
         facets: rt.facets,
     }
 }
+
+export async function formatTranslateRecord(text, lang = window.navigator.language, _agent, record) {
+    const t = await translate(text, lang, _agent);
+    return {
+        ...record,
+        text: t.text,
+        facets: t.facets,
+    }
+}
