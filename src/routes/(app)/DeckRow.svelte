@@ -335,7 +335,7 @@
         backdrop-filter: var(--deck-heading-backdrop-filter);
 
         @media (max-width: 767px) {
-            transition: top .2s ease-in-out;
+            transition: transform .2s ease-in-out;
         }
 
         &__scroll-area {

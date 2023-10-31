@@ -230,7 +230,7 @@
 .scroll-down.app {
     .deck-heading {
         @media (max-width: 767px) {
-            top: -52px !important;
+            transform: translateY(-52px) !important;
         }
     }
 

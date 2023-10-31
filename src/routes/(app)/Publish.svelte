@@ -181,6 +181,45 @@ async function onFileReordered(files: { id: string }[], _origin: unknown, _targe
     images = images;
 }
 
+async function onTransformImageFilter(file) {
+   return new Promise(resolve => {
+        if (!/image\/gif/.test(file.type)) {
+            return resolve(true);
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            let arr = new Uint8Array(reader.result),
+                i, len, length = arr.length, frames = 0;
+
+            // make sure it's a gif (GIF8)
+            if (arr[0] !== 0x47 || arr[1] !== 0x49 ||
+                arr[2] !== 0x46 || arr[3] !== 0x38) {
+                // it's not a gif, we can safely transform it
+                return resolve(true);
+            }
+
+            for (i = 0, len = length - 9; i < len && frames < 2; ++i) {
+                if (arr[i] === 0x00 && arr[i + 1] === 0x21 &&
+                    arr[i + 2] === 0xF9 && arr[i + 3] === 0x04 &&
+                    arr[i + 8] === 0x00 &&
+                    (arr[i + 9] === 0x2C || arr[i + 9] === 0x21)) {
+                    frames++;
+                }
+            }
+
+            // if frame count > 1, it's animated, don't transform
+            if (frames > 1) {
+                return resolve(false);
+            }
+
+            // do transform
+            return resolve(true);
+        }
+        reader.readAsArrayBuffer(file);
+    });
+}
+
 function handleKeydown(event: { key: string; }) {
     const activeElement = document.activeElement?.tagName;
 
@@ -437,6 +476,7 @@ async function publish() {
             .catch(error => {
                 isTextareaEnabled = false;
                 isPublishEnabled = false;
+                embedImages.images = [];
                 throw new Error(error);
             })
 
@@ -803,7 +843,8 @@ function handleAgentSelect(event) {
             imageResizeTargetWidth={2000}
             imageResizeTargetHeight={2000}
             imageResizeMode={'contain'}
-            acceptedFileTypes={'image/jpeg, image/png, image/webp'}
+            acceptedFileTypes={'image/jpeg, image/png, image/webp, image/gif'}
+            imageTransformImageFilter={onTransformImageFilter}
             imageTransformOutputMimeType={'image/jpeg'}
             imageTransformOutputQuality={'75'}
             onpreparefile={(file, output) => {onFileSelected(file, output)}}
@@ -815,7 +856,7 @@ function handleAgentSelect(event) {
             labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
             labelMaxFileSize="{$_('max_')} {'{'}filesize{'}'}"
             labelFileTypeNotAllowed="{$_('unsupported_file')}"
-            fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
+            fileValidateTypeLabelExpectedTypes="対応: JPG/PNG/GIF"
         />
       </div>
     {/if}

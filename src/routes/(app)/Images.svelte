@@ -1,9 +1,13 @@
 <script lang="ts">
     // @ts-ignore
     import GLightbox from 'glightbox';
-    import {settings, isDataSaving, isImageOpen} from '$lib/stores';
+    import {settings, isDataSaving, isImageOpen, agent} from '$lib/stores';
     import {goto} from "$app/navigation";
+    import GifImage from "$lib/components/post/GifImage.svelte";
     export let images: any[];
+    export let blobs: any[] = [];
+    export let _agent = $agent;
+    export let did = '';
 
     let galleryImages = [];
     let isFold = $settings?.design.postsImageLayout === 'folding' || $isDataSaving;
@@ -66,9 +70,13 @@
   >
     {#each images as image, index}
       <div class="timeline-image">
-        <button on:click={() => open(index)} aria-label="画像を拡大する">
-          <img loading="lazy" src="{image.thumb}" alt="{image.alt}">
-        </button>
+          {#if (blobs[index]?.image.mimeType === 'image/gif')}
+              <GifImage {did} {_agent} blob={blobs[index]?.image} alt={image.alt}></GifImage>
+          {:else}
+              <button on:click={() => open(index)} aria-label="画像を拡大する">
+                  <img loading="lazy" src="{image.thumb}" alt="{image.alt}">
+              </button>
+          {/if}
       </div>
     {/each}
   </div>

@@ -194,7 +194,7 @@
 
     {#if (AppBskyEmbedImages.isView(post.embed) && !isMedia && post.embed)}
       <div class="timeline-images-wrap">
-        <Images images={post.embed.images}></Images>
+        <Images images={post.embed.images} blobs={post.record.embed.images} {_agent} did={post.author.did}></Images>
       </div>
     {/if}
 
@@ -209,7 +209,7 @@
     {#if (AppBskyEmbedRecordWithMedia.isView(post.embed))}
       {#if (AppBskyEmbedImages.isView(post.embed.media))}
         <div class="timeline-images-wrap">
-          <Images images={post.embed.media.images}></Images>
+          <Images images={post.embed.media.images} {_agent}></Images>
         </div>
       {/if}
 
