@@ -83,25 +83,18 @@
         border-radius: 6px;
         display: flex;
 
-        /* &:only-child {
-            aspect-ratio: auto;
-        } */
-    }
+        &:only-child {
+            grid-column: span 2;
+        }
 
-    .timeline-image button {
-        width: 100%;
-        height: 100%;
-    }
+        button {
+            width: 100%;
+            height: 100%;
+        }
 
-    .timeline-image:hover img {
-        transform: scale(1.1);
-    }
-
-    .timeline-images img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform .2s ease-in-out;
+        &:hover img {
+            transform: scale(1.1);
+        }
     }
 
     .image-unfold-button {

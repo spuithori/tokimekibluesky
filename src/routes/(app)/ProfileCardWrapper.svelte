@@ -39,7 +39,7 @@
 
 <style lang="postcss">
     .profile-card-wrap {
-        display: inline-block;
-        position: relative;
+      display: inline;
+      position: relative;
     }
 </style>
