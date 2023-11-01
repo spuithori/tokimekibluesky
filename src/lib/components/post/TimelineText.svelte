@@ -4,6 +4,23 @@
     export let record;
     export let _agent;
     import {getTextArray, isUriLocal} from "$lib/richtext";
+    import {linkWarning, settings} from "$lib/stores";
+    import {detectDifferentDomainUrl} from "$lib/util";
+
+    function handleUrlClick(e, item) {
+        if (!$settings.general.linkWarningConfirmSkip) {
+            $settings.general.linkWarningConfirmSkip = false;
+        }
+
+        if ($settings.general.linkWarningConfirmSkip) {
+            return true;
+        }
+
+        if (!detectDifferentDomainUrl(item.link.uri, item.text)) {
+            e.preventDefault();
+            linkWarning.set(item.link.uri);
+        }
+    }
 </script>
 
 {#each getTextArray(record) as item}

@@ -116,21 +116,6 @@
       isTranslated = true;
       pulseTranslate = false;
   }
-
-  function handleUrlClick(e, item) {
-      if (!$settings.general.linkWarningConfirmSkip) {
-          $settings.general.linkWarningConfirmSkip = false;
-      }
-
-      if ($settings.general.linkWarningConfirmSkip) {
-          return true;
-      }
-
-      if (!detectDifferentDomainUrl(item.link.uri, item.text)) {
-          e.preventDefault();
-          linkWarning.set(item.link.uri);
-      }
-  }
 </script>
 
 <div class="timeline__image">
