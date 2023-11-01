@@ -34,17 +34,7 @@
 
     async function save(isClose = true) {
         try {
-            _columns.map(column => delete column.scrollElement);
-
-            const id = await accountsDb.profiles.update(profileId, {
-                columns: _columns,
-            });
-
-            dispatch('close', {
-                columns: _columns,
-                clear: false,
-                isClose: isClose,
-            });
+            dispatch('close');
         } catch (e) {
             console.error(e);
             toast.error('Error: ' + e);
@@ -77,16 +67,18 @@
             let addedColumn = structuredClone(event.detail.column);
             addedColumn.id = self.crypto.randomUUID();
 
-            _columns = [..._columns, addedColumn];
-            save(false);
+
+            toast.success($_('column_add_success'));
+            $columns = [...$columns, addedColumn];
+            // save(false);
         } catch (e) {
             console.log(e);
         }
     }
 
     function handleColumnRemove(event) {
-        _columns = _columns.filter(column => column.id !== event.detail.column.id);
-        save(false);
+        $columns = $columns.filter(column => column.id !== event.detail.column.id);
+        // save(false);
     }
 </script>
 

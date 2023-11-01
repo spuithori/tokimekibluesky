@@ -483,5 +483,6 @@
   "keyword_ignore_case_sensitive": "大文字と小文字を区別しない",
   "keyword_reg_exp": "正規表現を使用する",
   "keyword_mute_description": "変更後既存の投稿に適用するには、ページを更新してください。\n設定はローカルに保存されます。",
-  "already_translated": "翻訳済み"
+  "already_translated": "翻訳済み",
+  "column_add_success": "カラムを追加しました！"
 }

@@ -332,13 +332,8 @@
       }
   }
 
-  function handleColumnModalClose(event) {
-      $columns = event.detail.columns;
-
-      if (event.detail.isClose) {
-          isColumnModalOpen.set(false);
-          globalUnique.set(Symbol());
-      }
+  function handleColumnModalClose() {
+    isColumnModalOpen.set(false);
   }
 
   function outputInlineStyle(theme) {

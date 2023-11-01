@@ -6,20 +6,14 @@
   import Menu from "$lib/components/ui/Menu.svelte";
   import {_} from "svelte-i18n";
   import toast from "svelte-french-toast";
-  import ColumnModal from "$lib/components/column/ColumnModal.svelte";
   import {modifyAgents} from "$lib/modifyAgents";
   import AcpProfileNameModal from "$lib/components/acp/AcpProfileNameModal.svelte";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import {resumeAccountsSession} from "$lib/resumeAccountsSession";
 
   export let profile;
   export let isCurrent = false;
 
   let isMenuOpen = false;
-  let isColumnModalOpen = false;
   let isNameModalOpen = false;
-  let _agents;
-  let _agent;
 
   async function handleSuccess(event) {
       try {
@@ -83,40 +77,6 @@
       }
   }
 
-  async function handleColumnModalOpen(event) {
-      if (!isCurrent) {
-          _agents = $agents;
-          _agent = $agent;
-
-          const accounts = await accountsDb.accounts
-              .where('id')
-              .anyOf(profile.accounts)
-              .toArray();
-          const agentsMap = await resumeAccountsSession(accounts);
-
-          agents.set(agentsMap);
-          agent.set($agents.get(profile.primary || profile.accounts[0]));
-      }
-
-      if (!$agent) {
-          toast.error($_('profile_accounts_missing'));
-          return false;
-      }
-
-      isColumnModalOpen = true
-  }
-
-  function handleColumnModalClose(event) {
-      if (isCurrent) {
-          columns.set(event.detail.columns);
-      } else {
-          $agents = _agents;
-          $agent = _agent;
-      }
-
-      isColumnModalOpen = false;
-  }
-
   async function handleNameChange(event) {
       try {
           const id = await accountsDb.profiles.update(profile.id, {
@@ -151,15 +111,6 @@
           </li>
         {/if}
 
-        {#if profile.accounts.length}
-          <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" on:click={handleColumnModalOpen}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-columns"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="12" x2="12" y1="3" y2="21"/></svg>
-              <span>{$_('column_settings')}</span>
-            </button>
-          </li>
-        {/if}
-
         <li class="timeline-menu-list__item">
           <button class="timeline-menu-list__button" on:click={() => {isNameModalOpen = true}}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-square"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
@@ -188,10 +139,6 @@
     <AcpAccountSelector exclude={profile.accounts} on:success={handleSuccess}></AcpAccountSelector>
   </div>
 </div>
-
-{#if isColumnModalOpen}
-  <ColumnModal on:close={handleColumnModalClose} _columns={profile.columns} profileId={profile.id}></ColumnModal>
-{/if}
 
 {#if isNameModalOpen}
   <AcpProfileNameModal name="{profile.name}" on:nameChange={handleNameChange}></AcpProfileNameModal>

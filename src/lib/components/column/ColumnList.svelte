@@ -5,7 +5,7 @@
     import IconColumnsList from "$lib/icons/columns/IconColumnsList.svelte";
     import IconColumnsBookmark from "$lib/icons/columns/IconColumnsBookmark.svelte";
     import IconColumnsHome from "$lib/icons/columns/IconColumnsHome.svelte";
-    import {bookmarkModal, listModal, officialListModal} from "$lib/stores";
+    import {bookmarkModal, columns, listModal, officialListModal} from "$lib/stores";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
     import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
@@ -20,6 +20,7 @@
     }
     function handleDndFinalize(e) {
         items = e.detail.items;
+        $columns = items;
     }
 
     function columnRemove(column) {
