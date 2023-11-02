@@ -13,4 +13,3 @@ vite.config.ts.timestamp-*
 .idea/cssdialects.xml
 dexie-cloud.key
 dexie-cloud.json
-.npmrc
