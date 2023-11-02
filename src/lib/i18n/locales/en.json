@@ -483,5 +483,10 @@
   "keyword_reg_exp": "Use RegExp",
   "keyword_mute_description": "To apply the changes to an existing post, refresh the page.\nSettings are saved locally.",
   "already_translated": "Translated",
-  "column_add_success": "Columns added!"
+  "column_add_success": "Columns added!",
+  "basic_columns": "Basic",
+  "bookmark_columns": "Bookmark",
+  "official_list_columns": "Official list",
+  "local_list_columns": "Local list",
+  "feed_columns": "Custom feed"
 }

@@ -484,5 +484,10 @@
   "keyword_reg_exp": "正規表現を使用する",
   "keyword_mute_description": "変更後既存の投稿に適用するには、ページを更新してください。\n設定はローカルに保存されます。",
   "already_translated": "翻訳済み",
-  "column_add_success": "カラムを追加しました！"
+  "column_add_success": "カラムを追加しました！",
+  "basic_columns": "基本",
+  "bookmark_columns": "ブックマーク",
+  "official_list_columns": "公式リスト",
+  "local_list_columns": "ローカルリスト",
+  "feed_columns": "カスタムフィード"
 }

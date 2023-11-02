@@ -12,7 +12,7 @@
 
   export let _agent = $agent;
 
-  let allColumns = [
+  let basicColumns = [
       {
           id: self.crypto.randomUUID(),
           algorithm: {
@@ -30,7 +30,7 @@
       },
   ];
 
-  allColumns = [...allColumns, {
+  basicColumns = [...basicColumns, {
       id: self.crypto.randomUUID(),
       algorithm: {
           type: 'notification',
@@ -46,6 +46,10 @@
       }
   }];
 
+  let bookmarkColumns = [];
+  let localListColumns = [];
+  let officialListColumns = [];
+  let feedColumns = [];
   let savedFeeds = [];
   let officialLists = [];
 
@@ -57,11 +61,11 @@
           return false;
       }
 
-      allColumns = allColumns.filter(column => column.algorithm.type !== 'bookmark');
+      bookmarkColumns = [];
 
       bookmarks.forEach(bookmark => {
           if (bookmark.owner === _agent.did()) {
-              allColumns = [...allColumns, {
+              bookmarkColumns = [...bookmarkColumns, {
                   id: self.crypto.randomUUID(),
                   algorithm: {
                       type: 'bookmark',
@@ -87,11 +91,11 @@
           return false;
       }
 
-      allColumns = allColumns.filter(column => column.algorithm.type !== 'list');
+      localListColumns = [];
 
       lists.forEach(list => {
           if (list.owner === _agent.did()) {
-              allColumns = [...allColumns, {
+              localListColumns = [...localListColumns, {
                   id: self.crypto.randomUUID(),
                   algorithm: {
                       type: 'list',
@@ -118,13 +122,10 @@
 
   async function updateFeeds() {
       savedFeeds = await _agent.getSavedFeeds();
-
-      if (allColumns.length) {
-          allColumns = allColumns.filter(column => column.algorithm.type !== 'custom');
-      }
+      feedColumns = [];
 
       savedFeeds.forEach(feed => {
-          allColumns = [...allColumns, {
+          feedColumns = [...feedColumns, {
               id: self.crypto.randomUUID(),
               algorithm: {
                   type: 'custom',
@@ -146,15 +147,12 @@
   async function updateLists() {
       const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did(), limit: 100, cursor: ''});
       officialLists = res.data.lists;
-
-      if (allColumns.length) {
-          allColumns = allColumns.filter(column => column.algorithm.type !== 'officialList');
-      }
+      officialListColumns = [];
 
       console.log(officialLists);
 
       officialLists.forEach(list => {
-          allColumns = [...allColumns, {
+          officialListColumns = [...officialListColumns, {
               id: self.crypto.randomUUID(),
               algorithm: {
                   type: 'officialList',
@@ -178,5 +176,50 @@
   })
 </script>
 
-<ColumnListAdder {_agent} items={allColumns} on:add></ColumnListAdder>
+<div class="column-adder-group">
+    <p class="column-adder-group__title">{$_('basic_columns')}</p>
+    <ColumnListAdder {_agent} items={basicColumns} on:add></ColumnListAdder>
+</div>
+
+{#if (bookmarkColumns.length)}
+    <div class="column-adder-group">
+        <p class="column-adder-group__title">{$_('bookmark_columns')}</p>
+        <ColumnListAdder {_agent} items={bookmarkColumns} on:add></ColumnListAdder>
+    </div>
+{/if}
+
+{#if (localListColumns.length)}
+    <div class="column-adder-group">
+        <p class="column-adder-group__title">{$_('local_list_columns')}</p>
+        <ColumnListAdder {_agent} items={localListColumns} on:add></ColumnListAdder>
+    </div>
+{/if}
+
+{#if (officialListColumns.length)}
+    <div class="column-adder-group">
+        <p class="column-adder-group__title">{$_('official_list_columns')}</p>
+        <ColumnListAdder {_agent} items={officialListColumns} on:add></ColumnListAdder>
+    </div>
+{/if}
+
+{#if (feedColumns.length)}
+    <div class="column-adder-group">
+        <p class="column-adder-group__title">{$_('feed_columns')}</p>
+        <ColumnListAdder {_agent} items={feedColumns} on:add></ColumnListAdder>
+    </div>
+{/if}
+
 <FeedsObserver on:close={handleFeedsClose} {_agent}></FeedsObserver>
+
+<style lang="postcss">
+    .column-adder-group {
+        margin-bottom: 16px;
+
+        &__title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+            letter-spacing: .025em;
+        }
+    }
+</style>

@@ -33,7 +33,9 @@
       {#if (column.algorithm.type === 'custom')}
         <IconColumnsFeed></IconColumnsFeed>
       {:else if (column.algorithm.type === 'list')}
-        <IconColumnsList></IconColumnsList>
+        <span class="column-list-icon">
+           <List color="var(--text-color-1)" size="16"></List>
+        </span>
         <button
             class="algo-nav-edit"
             on:click={() => {listModal.set({open: true, data: column.algorithm.algorithm })}}
