@@ -19,7 +19,9 @@
   <SideBar></SideBar>
 
   <div class="side-main">
-    <SideNav></SideNav>
+    {#if $settings.design?.publishPosition !== 'bottom'}
+      <SideNav></SideNav>
+    {/if}
 
     <div class="side-content side-content--{$sideState}">
       <div class="side-content-publish" class:side-content-publish--visible={$sideState === 'publish' || $settings.design?.publishPosition === 'bottom'}>
@@ -94,12 +96,8 @@
 
       &--hidden {
           grid-template-columns: 64px;
-          position: static;
-          z-index: auto;
           backdrop-filter: none;
           padding: 0;
-          align-items: flex-start;
-          height: auto;
 
           @media (max-width: 767px) {
               grid-template-columns: 0;
@@ -109,16 +107,9 @@
           .side-main {
               position: fixed;
               left: 0;
-              right: 0;
               top: 0;
-              max-width: 740px;
-              width: 100%;
               margin: 0 auto;
               z-index: 1000;
-              background-color: var(--bg-color-1);
-              box-shadow: 0 0 2px rgba(0, 0, 0, .08), 0 8px 16px rgba(0, 0, 0, .1);
-              border-radius: 0 0 8px 8px;
-              height: 52px;
 
               @media (max-width: 767px) {
                   max-width: 100vw;

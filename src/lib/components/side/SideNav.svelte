@@ -132,8 +132,8 @@
       }
 
       &--bottom {
-          justify-content: flex-end;
-          padding: 2px 8px;
+          flex-direction: column;
+          gap: 8px;
 
           @media (max-width: 767px) {
               justify-content: flex-start;

@@ -13,6 +13,7 @@
   import { Settings } from "lucide-svelte";
   import {iconMap} from "$lib/columnIcons";
   import {_} from "svelte-i18n";
+    import SideNav from "$lib/components/side/SideNav.svelte";
 
   let isMobileBarOpen = false;
 
@@ -117,6 +118,12 @@
   </div>
 
   <div class="side-bar__list side-bar__bottom">
+    {#if ($settings.design?.publishPosition !== 'left')}
+      <div class="side-bar__nav">
+        <SideNav></SideNav>
+      </div>
+    {/if}
+
     <a class="side-bar-button only-pc" href="/settings/general">
       <Settings color="var(--bar-bottom-icon-color)"></Settings>
     </a>
@@ -194,7 +201,6 @@
           position: sticky;
           top: 0;
           height: 100vh;
-          padding-top: 56px;
 
           @media (max-width: 767px) {
               position: fixed;

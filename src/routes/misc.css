@@ -133,11 +133,7 @@
 
 .bottom {
     .deck-divider {
-        display: none;
-    }
-
-    .header {
-        max-width: 740px;
+        width: 64px;
     }
 
     .layout-decks .page {
@@ -179,22 +175,6 @@
         .deck-heading {
             transition: transform .2s ease-in-out;
             border-radius: 0;
-
-            @media (min-width: 768px) {
-                z-index: 9999 !important;
-                transform: translateX(-59px);
-                width: 480px;
-                border-right: 1px solid var(--border-color-2);
-                border-bottom: none;
-            }
-        }
-
-        .column-heading {
-            @media (min-width: 768px) {
-                z-index: 9999;
-                transform: translateX(-62px);
-                width: calc(100% + 60px);
-            }
         }
 
         .modal-page-content {
@@ -210,18 +190,6 @@
         &--realtime {
             @media (max-width: 767px) {
                 position: static;
-            }
-        }
-    }
-}
-
-.decks {
-    &.bottom {
-        .deck {
-            padding-top: 60px;
-
-            @media (max-width: 767px) {
-                padding-top: 0;
             }
         }
     }

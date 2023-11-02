@@ -309,6 +309,7 @@
         &--single {
             overflow-y: visible;
             height: auto;
+            border: none;
 
             .deck-heading__icon {
                 margin-left: 0;
