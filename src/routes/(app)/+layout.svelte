@@ -153,35 +153,30 @@
     if (!profile.accounts.length) {
         console.log('There is no account in this profile.');
         profileStatus.set(1);
-        loaded = true;
         return false;
     }
 
     if (!accounts.length) {
-        console.log('Attached accounts are missing in this profile');
+        console.log('Attached accounts are missing in this profile.');
         profileStatus.set(2);
-        loaded = true;
-        return  false;
+        return false;
     }
 
     let agentsMap = await resumeAccountsSession(accounts);
-    let pid;
-
-    if (!profile.primary) {
-        try {
-            pid = await accountsDb.profiles.update(profile.id, {
-                primary: accounts[0].id,
-            });
-        } catch (e) {
-            console.error(e);
-        }
+    const isPrimaryAvailable = await accountsDb.accounts.get(profile.primary);
+    
+    if (!profile.primary || !isPrimaryAvailable) {
+        console.log('Primary account is missing.');
+        profileStatus.set(5);
+        return false;
     }
 
     agents.set(agentsMap);
-    agent.set($agents.get(profile.primary || accounts[0].id));
+    agent.set($agents.get(profile.primary));
 
     checkSession(accounts);
 
+    profileStatus.set(0);
     loaded = true;
   }
 

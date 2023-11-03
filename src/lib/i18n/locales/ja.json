@@ -495,5 +495,6 @@
   "there_is_no_local_list": "ローカルリストがありません。",
   "there_is_no_official_list": "公式リストがありません。",
   "there_is_no_list_member": "リストメンバーが空です。\nユーザー検索からメンバーを追加しよう。",
-  "handle_or_name": "ハンドルまたは名前"
+  "handle_or_name": "ハンドルまたは名前",
+  "missing_primary_title": "メインアカウントを選択してください"
 }

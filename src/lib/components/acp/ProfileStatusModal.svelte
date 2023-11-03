@@ -3,7 +3,7 @@
   import { fade, fly } from 'svelte/transition';
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
   import {accountsDb} from "$lib/db";
-  import {agent, agents} from "$lib/stores";
+  import {agent, agents, profileStatus} from "$lib/stores";
   import {modifyAgents} from "$lib/modifyAgents";
 
   export let status = 0;
@@ -19,6 +19,7 @@
 
           $agents = await modifyAgents(_accounts);
           agent.set($agents.get(event.detail.id));
+          profileStatus.set(0);
       } catch (e) {
           console.error(e);
       }

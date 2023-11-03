@@ -5,6 +5,7 @@
   import ProfileStatusModal from "$lib/components/acp/ProfileStatusModal.svelte";
     import MissingAccountsModal from "$lib/components/acp/MissingAccountsModal.svelte";
     import MissingProfileModal from "$lib/components/acp/MissingProfileModal.svelte";
+    import MissingPrimaryModal from "$lib/components/acp/MissingPrimaryModal.svelte";
 
   $: profile = liveQuery(async () => {
       const profile = await accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')));
@@ -14,9 +15,9 @@
   $: {
       if ($profile) {
           if (!$profile.accounts.length) {
-              profileStatus.set(1);
+              // profileStatus.set(1);
           } else {
-              profileStatus.set(0);
+              // profileStatus.set(0);
           }
       }
 
@@ -36,4 +37,8 @@
 
 {#if ($profileStatus === 4)}
   <MissingProfileModal status={$profileStatus}></MissingProfileModal>
+{/if}
+
+{#if ($profileStatus === 5)}
+  <MissingPrimaryModal status={$profileStatus}></MissingPrimaryModal>
 {/if}

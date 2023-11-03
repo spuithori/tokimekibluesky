@@ -47,7 +47,3 @@
 
   <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
 </div>
-
-<style lang="postcss">
-
-</style>
