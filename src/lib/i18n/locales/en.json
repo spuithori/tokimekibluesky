@@ -493,5 +493,6 @@
   "there_is_no_bookmark": "There is no bookmarks folder.",
   "there_is_no_local_list": "There is no local list.",
   "there_is_no_official_list": "There is no official list.",
-  "there_is_no_list_member": "List member is empty.\nLet's add a member from the user search."
+  "there_is_no_list_member": "List member is empty.\nLet's add a member from the user search.",
+  "handle_or_name": "Handle or Name"
 }

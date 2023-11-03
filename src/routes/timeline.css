@@ -803,7 +803,7 @@
         }
 
         &__description {
-            -webkit-line-clamp: 1;
+            -webkit-line-clamp: 4;
         }
 
         &__url {

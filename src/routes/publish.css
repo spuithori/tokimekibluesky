@@ -257,3 +257,23 @@
         height: 100%;
     }
 }
+
+.editor-link {
+    &:hover {
+        &::before {
+            content: attr(href);
+            position: absolute;
+            top: 0;
+            left: 0;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            padding: 2px 4px;
+            background-color: rgba(0, 0, 0, .6);
+            font-size: 11px;
+            color: #fff;
+            text-decoration: none;
+            text-overflow: ellipsis;
+        }
+    }
+}
