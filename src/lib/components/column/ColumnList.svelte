@@ -53,9 +53,7 @@
       {:else if (column.algorithm.type === 'notification')}
         <IconColumnsNotification></IconColumnsNotification>
       {:else if (column.algorithm.type === 'officialList')}
-        <span class="column-list-icon">
-           <List color="var(--text-color-1)" size="20"></List>
-        </span>
+        <IconColumnsList></IconColumnsList>
       {:else}
         <IconColumnsHome></IconColumnsHome>
       {/if}

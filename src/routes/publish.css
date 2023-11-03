@@ -262,7 +262,7 @@
     &:hover {
         &::before {
             content: attr(href);
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             max-width: 100%;
