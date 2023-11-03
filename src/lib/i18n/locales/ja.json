@@ -233,7 +233,7 @@
   "one_image_no_crop": "画像が1枚のとき、トリミングしない",
   "layout": "レイアウト",
   "decks": "DECKS",
-  "column_settings": "カラム設定",
+  "column_settings": "カラムの追加と管理",
   "active_columns": "アクティブなカラム",
   "inactive_columns": "非アクティブなカラム",
   "data_saver": "データセーバー",
@@ -489,5 +489,11 @@
   "bookmark_columns": "ブックマーク",
   "official_list_columns": "公式リスト",
   "local_list_columns": "ローカルリスト",
-  "feed_columns": "カスタムフィード"
+  "feed_columns": "カスタムフィード",
+  "new_create": "新規作成",
+  "there_is_no_bookmark": "ブックマークフォルダがありません。",
+  "there_is_no_local_list": "ローカルリストがありません。",
+  "there_is_no_official_list": "公式リストがありません。",
+  "there_is_no_list_member": "リストメンバーが空です。\nユーザー検索からメンバーを追加しよう。",
+  "handle_or_name": "ハンドルまたは名前"
 }

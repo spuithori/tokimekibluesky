@@ -5,8 +5,7 @@
     import IconColumnsList from "$lib/icons/columns/IconColumnsList.svelte";
     import IconColumnsBookmark from "$lib/icons/columns/IconColumnsBookmark.svelte";
     import IconColumnsHome from "$lib/icons/columns/IconColumnsHome.svelte";
-    import {bookmarkModal, columns, listModal, officialListModal} from "$lib/stores";
-    import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
+    import {columns} from "$lib/stores";
     import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
     import {List} from "lucide-svelte";
@@ -33,47 +32,30 @@
 <div class="column-list" use:dndzone={{items: items, flipDurationMs}} on:consider={handleDndConsider} on:finalize={handleDndFinalize}>
   {#each items as column, index (column.id)}
     <div class="column-list__item" animate:flip="{{duration: flipDurationMs}}">
-      <p class="column-list__title">
-        {column.algorithm.name}
+      <div class="column-list__content">
+        <p class="column-list__title">
+          {column.algorithm.name}
+        </p>
+
         {#if (column.handle)}
-          <span class="column-list__handle">({column.handle})</span>
+          <p class="column-list__handle">
+            {column.handle}
+          </p>
         {/if}
-      </p>
+      </div>
 
       {#if (column.algorithm.type === 'custom')}
         <IconColumnsFeed></IconColumnsFeed>
       {:else if (column.algorithm.type === 'list')}
         <IconColumnsList></IconColumnsList>
-        <button
-            class="algo-nav-edit"
-            on:click={() => {listModal.set({open: true, data: column.algorithm.algorithm })}}
-            aria-label="Edit list"
-        >
-          <IconColumnsEdit></IconColumnsEdit>
-        </button>
       {:else if (column.algorithm.type === 'bookmark')}
         <IconColumnsBookmark></IconColumnsBookmark>
-        <button
-            class="algo-nav-edit"
-            on:click={() => {bookmarkModal.set({open: true, data: Number(column.algorithm.algorithm) })}}
-            aria-label="Edit Bookmark"
-        >
-          <IconColumnsEdit></IconColumnsEdit>
-        </button>
       {:else if (column.algorithm.type === 'notification')}
         <IconColumnsNotification></IconColumnsNotification>
       {:else if (column.algorithm.type === 'officialList')}
         <span class="column-list-icon">
-           <List color="var(--text-color-1)" size="16"></List>
+           <List color="var(--text-color-1)" size="20"></List>
         </span>
-
-        <button
-            class="algo-nav-edit"
-            on:click={() => {$officialListModal = {open: true, uri: column.algorithm.algorithm}}}
-            aria-label="Edit list"
-        >
-          <IconColumnsEdit></IconColumnsEdit>
-        </button>
       {:else}
         <IconColumnsHome></IconColumnsHome>
       {/if}
@@ -95,13 +77,18 @@
         &__item {
             position: relative;
             display: flex;
-            justify-content: space-between;
+            gap: 10px;
             align-items: center;
-            padding: 10px 10px 10px 40px;
+            padding: 6px 10px 6px 40px;
             box-shadow: 0 0 10px var(--box-shadow-color-1);
             border-radius: 6px;
             font-weight: 600;
             background-color: var(--bg-color-1);
+            cursor: default;
+        }
+
+        &__content {
+            flex: 1;
         }
 
         &__title {
@@ -110,11 +97,15 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
+            margin-right: auto;
+            font-size: 14px;
+            line-height: 1.3;
         }
 
         &__handle {
-            font-size: 14px;
+            font-size: 12px;
             color: var(--text-color-3);
+            line-height: 1.2;
         }
     }
 </style>

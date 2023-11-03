@@ -1,14 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="17.143" height="16" viewBox="0 0 17.143 16">
-  <g id="home" transform="translate(-16 -32)">
-    <path id="パス_56" data-name="パス 56" d="M70.959,99.14a.286.286,0,0,0-.4,0l-6.575,6.281a.286.286,0,0,0-.088.207v5.895a1.143,1.143,0,0,0,1.143,1.143h3.432a.571.571,0,0,0,.571-.571v-4.857a.286.286,0,0,1,.286-.286h2.857a.286.286,0,0,1,.286.286v4.857a.571.571,0,0,0,.571.571h3.431a1.143,1.143,0,0,0,1.143-1.143v-5.895a.286.286,0,0,0-.088-.207Z" transform="translate(-46.19 -64.666)" fill="var(--text-color-1)"/>
-    <path id="パス_57" data-name="パス 57" d="M32.961,39.577l-2.671-2.556V33.143a.571.571,0,0,0-.571-.571H28a.571.571,0,0,0-.571.571v1.143l-2.069-1.978A1.112,1.112,0,0,0,24.571,32h0a1.108,1.108,0,0,0-.791.308l-7.6,7.268a.582.582,0,0,0-.048.8.571.571,0,0,0,.828.038l7.411-7.081a.286.286,0,0,1,.4,0l7.411,7.081a.571.571,0,0,0,.807-.016A.586.586,0,0,0,32.961,39.577Z" fill="var(--text-color-1)"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
 
 <style lang="postcss">
     svg {
         position: absolute;
-        left: 15px;
+        left: 12px;
         top: 0;
         bottom: 0;
         margin: auto;

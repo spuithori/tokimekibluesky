@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {columns, globalUnique, settings} from '$lib/stores';
+  import {columns, globalUnique, isColumnModalOpen, settings} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import {_} from "svelte-i18n";
     import { dndzone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
@@ -88,6 +88,7 @@
 
       <h2 class="deck-empty__title">{$_('decks_empty_title')}</h2>
       <p class="deck-empty__text">{$_('decks_empty_text')}</p>
+      <button class="button" on:click={() => {$isColumnModalOpen = true}}>{$_('feed_quick_add')}</button>
     </div>
   {/if}
 </div>
@@ -158,6 +159,11 @@
       flex: 1;
       gap: 10px;
       color: var(--text-color-3);
+      height: 100dvh;
+
+      @media (max-width: 767px) {
+        height: calc(100dvh - 48px);
+      }
 
       &__title {
           font-size: 24px;

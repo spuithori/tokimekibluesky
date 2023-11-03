@@ -1,12 +1,11 @@
 <script lang="ts">
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import {agent, userLists} from "$lib/stores";
+  import {agent, bookmarkModal, listModal, officialListModal, userLists} from "$lib/stores";
   import {_} from "svelte-i18n";
   import {liveQuery} from "dexie";
   import {db} from "$lib/db";
   import {onMount} from "svelte";
   import ColumnListAdder from "$lib/components/column/ColumnListAdder.svelte";
-  import FeedsObserver from "$lib/components/feeds/FeedsObserver.svelte";
 
   let bookmarks = liveQuery(() => db.bookmarks.toArray());
 
@@ -177,49 +176,96 @@
 </script>
 
 <div class="column-adder-group">
-    <p class="column-adder-group__title">{$_('basic_columns')}</p>
+    <div class="column-adder-group__heading">
+        <p class="column-adder-group__title">{$_('basic_columns')}</p>
+    </div>
+
     <ColumnListAdder {_agent} items={basicColumns} on:add></ColumnListAdder>
 </div>
 
-{#if (bookmarkColumns.length)}
-    <div class="column-adder-group">
+
+<div class="column-adder-group">
+    <div class="column-adder-group__heading">
         <p class="column-adder-group__title">{$_('bookmark_columns')}</p>
+
+        <button class="column-adder-group__add" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
+    </div>
+
+    {#if (bookmarkColumns.length)}
         <ColumnListAdder {_agent} items={bookmarkColumns} on:add></ColumnListAdder>
-    </div>
-{/if}
+    {:else}
+        <p class="column-adder-text">{$_('there_is_no_bookmark')}</p>
+    {/if}
+</div>
 
-{#if (localListColumns.length)}
-    <div class="column-adder-group">
+
+<div class="column-adder-group">
+    <div class="column-adder-group__heading">
         <p class="column-adder-group__title">{$_('local_list_columns')}</p>
-        <ColumnListAdder {_agent} items={localListColumns} on:add></ColumnListAdder>
-    </div>
-{/if}
 
-{#if (officialListColumns.length)}
-    <div class="column-adder-group">
-        <p class="column-adder-group__title">{$_('official_list_columns')}</p>
-        <ColumnListAdder {_agent} items={officialListColumns} on:add></ColumnListAdder>
+        <button class="column-adder-group__add" on:click={() => {listModal.set({open: true, data: undefined })}}>{$_('new_create')}</button>
     </div>
-{/if}
+
+    {#if (localListColumns.length)}
+        <ColumnListAdder {_agent} items={localListColumns} on:add></ColumnListAdder>
+    {:else}
+        <p class="column-adder-text">{$_('there_is_no_local_list')}</p>
+    {/if}
+</div>
+
+<div class="column-adder-group">
+    <div class="column-adder-group__heading">
+        <p class="column-adder-group__title">{$_('official_list_columns')}</p>
+
+        <button class="column-adder-group__add" on:click={() => {$officialListModal.open = true}}>{$_('new_create')}</button>
+    </div>
+
+    {#if (officialListColumns.length)}
+        <ColumnListAdder {_agent} items={officialListColumns} on:add></ColumnListAdder>
+    {:else}
+        <p class="column-adder-text">{$_('there_is_no_official_list')}</p>
+    {/if}
+</div>
+
 
 {#if (feedColumns.length)}
     <div class="column-adder-group">
-        <p class="column-adder-group__title">{$_('feed_columns')}</p>
+        <div class="column-adder-group__heading">
+            <p class="column-adder-group__title">{$_('feed_columns')}</p>
+        </div>
+
         <ColumnListAdder {_agent} items={feedColumns} on:add></ColumnListAdder>
     </div>
 {/if}
 
-<FeedsObserver on:close={handleFeedsClose} {_agent}></FeedsObserver>
-
 <style lang="postcss">
     .column-adder-group {
-        margin-bottom: 16px;
+        margin-bottom: 24px;
 
-        &__title {
+        &__heading {
+            display: flex;
+            justify-content: space-between;
             font-weight: bold;
             margin-bottom: 8px;
             font-size: 14px;
             letter-spacing: .025em;
         }
+
+        &__title {
+
+        }
+
+        &__add {
+            color: var(--primary-color);
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .column-adder-text {
+        font-size: 14px;
+        color: var(--text-color-3);
     }
 </style>

@@ -1,14 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="13.726" height="16" viewBox="0 0 13.726 16">
-  <g id="notifications" transform="translate(-63.835 -32)">
-    <path id="パス_45" data-name="パス 45" d="M77.272,43.047l-.175-.212c-.786-.95-1.261-1.524-1.261-4.214a5.456,5.456,0,0,0-.99-3.393,4.66,4.66,0,0,0-2-1.469.107.107,0,0,1-.029-.024,2.159,2.159,0,0,0-4.235,0,.112.112,0,0,1-.029.023c-2.014.829-2.992,2.419-2.992,4.862,0,2.691-.475,3.265-1.261,4.214l-.175.212a1.256,1.256,0,0,0-.166,1.344,1.335,1.335,0,0,0,1.226.753H76.216a1.332,1.332,0,0,0,1.221-.75A1.256,1.256,0,0,0,77.272,43.047Z" transform="translate(0)" fill="var(--text-color-1)"/>
-    <path id="パス_46" data-name="パス 46" d="M187.638,433.714a2.859,2.859,0,0,0,2.516-1.5.143.143,0,0,0-.126-.21h-4.778a.143.143,0,0,0-.127.21A2.859,2.859,0,0,0,187.638,433.714Z" transform="translate(-116.94 -385.714)" fill="var(--text-color-1)"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
 
 <style lang="postcss">
     svg {
         position: absolute;
-        left: 15px;
+        left: 12px;
         top: 0;
         bottom: 0;
         margin: auto;

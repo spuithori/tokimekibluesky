@@ -261,6 +261,8 @@
                   {#if (typeof member !== 'string')}
                     <ListMember member={member} action={'delete'} on:delete={handleDelete}></ListMember>
                   {/if}
+                {:else}
+                  <p class="list-modal-members__none">{$_('there_is_no_list_member')}</p>
                 {/each}
               </div>
             </dd>
@@ -279,7 +281,7 @@
                   <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">
                     <path id="search" d="M11.589,12.866A7.187,7.187,0,1,1,12.856,11.6l4.807,4.789-1.276,1.276-4.789-4.8Zm-4.4-.287A5.391,5.391,0,1,0,1.8,7.188a5.391,5.391,0,0,0,5.391,5.391Z" transform="translate(0.008 -0.002)" fill="var(--primary-color)"/>
                   </svg>
-                  <input type="text" class="list-modal-search-input" bind:value={search} on:keydown={handleKeyDown}>
+                  <input type="text" class="list-modal-search-input" bind:value={search} on:keydown={handleKeyDown} placeholder="{$_('handle_or_name')}">
                 </div>
 
                 {#each searchMembers as member}
@@ -390,6 +392,12 @@
         border: 1px solid var(--border-color-1);
         border-radius: 6px;
         padding: 20px 16px;
+
+        &__none {
+          font-size: 14px;
+          white-space: pre-line;
+          color: var(--text-color-3);
+        }
     }
 
     .list-modal-name {

@@ -9,7 +9,6 @@
     import ColumnList from "$lib/components/column/ColumnList.svelte";
     import BookmarkObserver from "$lib/components/bookmark/BookmarkObserver.svelte";
     import ListObserver from "$lib/components/list/ListObserver.svelte";
-    import ColumnModalAdder from "$lib/components/column/ColumnModalAdder.svelte";
     import ColumnModalChoices from "$lib/components/column/ColumnModalChoices.svelte";
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
     import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
@@ -67,7 +66,6 @@
             let addedColumn = structuredClone(event.detail.column);
             addedColumn.id = self.crypto.randomUUID();
 
-
             toast.success($_('column_add_success'));
             $columns = [...$columns, addedColumn];
             // save(false);
@@ -91,8 +89,6 @@
                 <div class="column-modal-account">
                     <AgentsSelector _agent={$agents.get(currentAccount)} on:select={handleSelect}></AgentsSelector>
                 </div>
-
-                <ColumnModalAdder _agent={$agents.get(currentAccount)}></ColumnModalAdder>
             {/if}
 
             <div class="column-group-wrap">
