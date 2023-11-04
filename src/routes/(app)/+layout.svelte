@@ -178,6 +178,7 @@
 
     profileStatus.set(0);
     loaded = true;
+    isColumnInitialLoad = true;
   }
 
   async function checkSession(accounts) {

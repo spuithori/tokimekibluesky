@@ -495,5 +495,6 @@
   "there_is_no_official_list": "There is no official list.",
   "there_is_no_list_member": "List member is empty.\nLet's add a member from the user search.",
   "handle_or_name": "Handle or Name",
-  "missing_primary_title": "Please select the main account."
+  "missing_primary_title": "Please select the main account.",
+  "active_columns_description": "You can also pinch and reorder."
 }

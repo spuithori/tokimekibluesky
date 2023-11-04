@@ -106,6 +106,8 @@
 
                     <div class="column-group__item column-group__item--active">
                         <h3 class="column-group__title">{$_('active_columns')}</h3>
+                        <p class="column-group__description">{$_('active_columns_description')}</p>
+
                         <ColumnList bind:items={_columns} on:remove={handleColumnRemove} _agent={$agents.get(currentAccount)}></ColumnList>
                     </div>
                 </div>
@@ -129,7 +131,7 @@
         margin-top: 30px;
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
+        gap: 16px;
 
         @media (max-width: 767px) {
             grid-template-columns: 1fr;
@@ -140,7 +142,7 @@
             flex-direction: column;
 
             &--active {
-                padding: 20px;
+                padding: 16px;
                 border-radius: 6px;
                 border: 2px solid var(--primary-color);
                 background-color: var(--base-bg-color);
@@ -152,7 +154,14 @@
         }
 
         &__title {
-            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        &__description {
+            color: var(--text-color-3);
+            font-size: 14px;
+            margin-top: 4px;
+            margin-bottom: 16px;
         }
     }
 

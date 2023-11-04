@@ -8,7 +8,6 @@
     import {columns} from "$lib/stores";
     import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
-    import {List} from "lucide-svelte";
     const dispatch = createEventDispatcher();
 
     export let _agent;
@@ -68,7 +67,7 @@
 <style lang="postcss">
     .column-list {
         display: grid;
-        gap: 15px;
+        gap: 12px;
         grid-auto-rows: min-content;
         height: 100%;
 
