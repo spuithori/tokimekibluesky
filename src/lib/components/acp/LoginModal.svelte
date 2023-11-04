@@ -8,6 +8,7 @@ const dispatch = createEventDispatcher();
 
 export let existingId = undefined;
 export let identifier = '';
+export let isMissing = false;
 let password = '';
 let errorMessage = '';
 let service = 'https://bsky.social';
@@ -70,7 +71,7 @@ function cancel() {
         </dt>
 
         <dd class="input-group__content">
-          <input class="input-group__input" type="text" name="email" id="email" placeholder="Email or handle" bind:value="{identifier}" required />
+          <input class="input-group__input" type="text" name="email" id="email" placeholder="Email or handle" bind:value="{identifier}" readonly={isMissing} required />
         </dd>
       </dl>
 

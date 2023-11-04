@@ -1,11 +1,12 @@
 <script lang="ts">
     import {agent} from "$lib/stores";
     import {liveQuery} from "dexie";
-    import {db} from "$lib/db";
+    import {accountsDb, db} from "$lib/db";
     import {createEventDispatcher, onMount} from "svelte";
     import {Bookmark, List, Newspaper} from "lucide-svelte";
     import {_} from "svelte-i18n";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+    import {getAccountIdByDidFromDb} from "$lib/util";
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
@@ -18,11 +19,18 @@
     let loaded = false;
 
     async function updateLists() {
+        const accountId = await getAccountIdByDidFromDb(_agent.did());
+        const account = await accountsDb.accounts.get(accountId);
+        officialLists = account?.lists;
+
         const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did() as string, limit: 100, cursor: ''});
         officialLists = res.data.lists;
     }
 
     async function updateFeeds() {
+        const accountId = await getAccountIdByDidFromDb(_agent.did());
+        const account = await accountsDb.accounts.get(accountId);
+        customFeeds = account?.feeds;
         customFeeds = await $agent.getSavedFeeds();
     }
 
@@ -63,60 +71,68 @@
     </ul>
   </div>
 
-  {#if loaded}
     <div class="side-feeds-content">
-      {#if (currentTab === 'feeds' || currentTab === 'all')}
-        <div class="side-feeds-list" data-category="feeds">
-          {#if customFeeds.length}
-            {#each customFeeds as feed}
-              <li class="side-feeds-list__item">
-                <a class="side-feeds-list__link" href="{getFeedUrl(feed.uri, 'feed')}" on:click={handleSelect}>
-                  <Newspaper color="var(--text-color-3)" size="20"></Newspaper>
-                  {feed.name}</a>
-              </li>
-            {/each}
-          {/if}
-        </div>
-      {/if}
+        {#if (currentTab === 'feeds' || currentTab === 'all')}
+            <div class="side-feeds-list" data-category="feeds">
+                {#if customFeeds.length}
+                    {#each customFeeds as feed}
+                        <li class="side-feeds-list__item">
+                            <a class="side-feeds-list__link" href="{getFeedUrl(feed.uri, 'feed')}" on:click={handleSelect}>
+                                <Newspaper color="var(--text-color-3)" size="20"></Newspaper>
+                                {feed.name}</a>
+                        </li>
+                    {/each}
+                {/if}
+            </div>
+        {/if}
 
-      {#if (currentTab === 'lists' || currentTab === 'all')}
-        <div class="side-feeds-list" data-category="lists">
-          {#if officialLists.length}
-            {#each officialLists as list}
-              <li class="side-feeds-list__item">
-                <a class="side-feeds-list__link" href="{getFeedUrl(list.uri, 'lists')}" on:click={handleSelect}>
-                  <List color="var(--text-color-3)" size="20"></List>
-                  {list.name}</a>
-              </li>
-            {/each}
-          {/if}
-        </div>
-      {/if}
+        {#if (currentTab === 'lists' || currentTab === 'all')}
+            <div class="side-feeds-list" data-category="lists">
+                {#if officialLists.length}
+                    {#each officialLists as list}
+                        <li class="side-feeds-list__item">
+                            <a class="side-feeds-list__link" href="{getFeedUrl(list.uri, 'lists')}" on:click={handleSelect}>
+                                <List color="var(--text-color-3)" size="20"></List>
+                                {list.name}</a>
+                        </li>
+                    {/each}
+                {/if}
+            </div>
+        {/if}
 
-      {#if (currentTab === 'bookmarks' || currentTab === 'all')}
-        <div class="side-feeds-list" data-category="bookmarks">
-          {#if ($bookmarks)}
-            {#each $bookmarks as bookmark}
-              {#if (bookmark.owner === $agent.did())}
-                <li class="side-feeds-list__item">
-                  <a class="side-feeds-list__link" href="/bookmark/{bookmark.id}" on:click={handleSelect}>
-                    <Bookmark color="var(--text-color-3)" size="20"></Bookmark>
-                    {bookmark.name}</a>
-                </li>
-              {/if}
-            {/each}
-          {/if}
-        </div>
-      {/if}
+        {#if (currentTab === 'bookmarks' || currentTab === 'all')}
+            <div class="side-feeds-list" data-category="bookmarks">
+                {#if ($bookmarks)}
+                    {#each $bookmarks as bookmark}
+                        {#if (bookmark.owner === $agent.did())}
+                            <li class="side-feeds-list__item">
+                                <a class="side-feeds-list__link" href="/bookmark/{bookmark.id}" on:click={handleSelect}>
+                                    <Bookmark color="var(--text-color-3)" size="20"></Bookmark>
+                                    {bookmark.name}</a>
+                            </li>
+                        {/if}
+                    {/each}
+                {/if}
+            </div>
+        {/if}
     </div>
-  {:else}
-    <LoadingSpinner size="32"></LoadingSpinner>
-  {/if}
+
+    {#if (!loaded)}
+        <div class="side-feeds-loading">
+            <LoadingSpinner padding="8" size="20"></LoadingSpinner>
+        </div>
+    {/if}
 </div>
 
 <style lang="postcss">
   .side-feeds {
+      position: relative;
+  }
 
+  .side-feeds-loading {
+      position: absolute;
+      top: 0;
+      right: 0;
   }
 
   .side-feeds-nav {

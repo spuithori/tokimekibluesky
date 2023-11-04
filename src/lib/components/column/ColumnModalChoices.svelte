@@ -3,9 +3,11 @@
   import {agent, bookmarkModal, listModal, officialListModal, userLists} from "$lib/stores";
   import {_} from "svelte-i18n";
   import {liveQuery} from "dexie";
-  import {db} from "$lib/db";
+  import {accountsDb, db} from "$lib/db";
   import {onMount} from "svelte";
   import ColumnListAdder from "$lib/components/column/ColumnListAdder.svelte";
+  import {getAccountIdByDidFromDb} from "$lib/util";
+  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
   let bookmarks = liveQuery(() => db.bookmarks.toArray());
 
@@ -51,9 +53,14 @@
   let feedColumns = [];
   let savedFeeds = [];
   let officialLists = [];
+  let feedColumnsRefreshing = true;
+  let officialListColumnsRefreshing = true;
 
   $: updateBookmark($bookmarks);
   $: updateList($userLists);
+
+  $: applyFeedColumns(savedFeeds);
+  $: applyOfficialListColumns(officialLists);
 
   function updateBookmark(bookmarks) {
       if (!bookmarks) {
@@ -115,16 +122,40 @@
       });
   }
 
-  async function handleFeedsClose() {
-      await updateFeeds();
+  async function updateFeeds() {
+      const accountId = await getAccountIdByDidFromDb(_agent.did());
+      const account = await accountsDb.accounts.get(accountId);
+      const feeds = account?.feeds;
+      savedFeeds = feeds || [];
+
+      savedFeeds = await _agent.getSavedFeeds();
+
+      await accountsDb.accounts.update(accountId, {
+          feeds: savedFeeds,
+      });
+
+      feedColumnsRefreshing = false;
   }
 
-  async function updateFeeds() {
-      savedFeeds = await _agent.getSavedFeeds();
-      feedColumns = [];
+  async function updateLists() {
+      const accountId = await getAccountIdByDidFromDb(_agent.did());
+      const account = await accountsDb.accounts.get(accountId);
+      const lists = account?.lists;
+      officialLists = lists || [];
 
-      savedFeeds.forEach(feed => {
-          feedColumns = [...feedColumns, {
+      const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did(), limit: 100, cursor: ''});
+      officialLists = res.data.lists;
+
+      await accountsDb.accounts.update(accountId, {
+          lists: officialLists,
+      });
+
+      officialListColumnsRefreshing = false;
+  }
+
+  function applyFeedColumns(feeds) {
+      feedColumns = feeds.map(feed => {
+          return {
               id: self.crypto.randomUUID(),
               algorithm: {
                   type: 'custom',
@@ -139,19 +170,13 @@
                   feed: [],
                   cursor: '',
               }
-          }]
-      });
+          }
+      })
   }
 
-  async function updateLists() {
-      const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did(), limit: 100, cursor: ''});
-      officialLists = res.data.lists;
-      officialListColumns = [];
-
-      console.log(officialLists);
-
-      officialLists.forEach(list => {
-          officialListColumns = [...officialListColumns, {
+  function applyOfficialListColumns(lists) {
+      officialListColumns = lists.map(list => {
+          return  {
               id: self.crypto.randomUUID(),
               algorithm: {
                   type: 'officialList',
@@ -166,7 +191,7 @@
                   feed: [],
                   cursor: '',
               }
-          }]
+          }
       })
   }
 
@@ -217,6 +242,10 @@
     <div class="column-adder-group__heading">
         <p class="column-adder-group__title">{$_('official_list_columns')}</p>
 
+        {#if (officialListColumnsRefreshing)}
+            <LoadingSpinner padding="0" size="14"></LoadingSpinner>
+        {/if}
+
         <button class="column-adder-group__add" on:click={() => {$officialListModal.open = true}}>{$_('new_create')}</button>
     </div>
 
@@ -232,6 +261,10 @@
     <div class="column-adder-group">
         <div class="column-adder-group__heading">
             <p class="column-adder-group__title">{$_('feed_columns')}</p>
+
+            {#if (feedColumnsRefreshing)}
+                <LoadingSpinner padding="0" size="14"></LoadingSpinner>
+            {/if}
         </div>
 
         <ColumnListAdder {_agent} items={feedColumns} on:add></ColumnListAdder>
@@ -244,7 +277,8 @@
 
         &__heading {
             display: flex;
-            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
             font-weight: bold;
             margin-bottom: 8px;
             font-size: 14px;
@@ -257,6 +291,7 @@
 
         &__add {
             color: var(--primary-color);
+            margin-left: auto;
 
             &:hover {
                 text-decoration: underline;

@@ -18,6 +18,8 @@ async function resume(account) {
                 avatar: account.avatar || '',
                 following: account.following || undefined,
                 notification: account.notification || ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
+                feeds: account.feeds || [],
+                lists: account.lists || [],
             })
         }
     })

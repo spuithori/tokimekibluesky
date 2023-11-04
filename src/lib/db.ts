@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import {AppBskyFeedDefs, AtpSessionData} from '@atproto/api';
+import type {AppBskyFeedDefs, AtpSessionData} from '@atproto/api';
 import type {Theme} from "$lib/types/theme";
 
 export interface Feed {
@@ -79,6 +79,8 @@ export interface Account {
         data: string[],
     },
     notification?: notificationCategories[],
+    feeds?: any[],
+    lists?: any[],
 }
 
 export class AccountSubClassDexie extends Dexie {
@@ -90,7 +92,7 @@ export class AccountSubClassDexie extends Dexie {
 
         this.version(1).stores({
             profiles: '++id, name, createdAt, *accounts, primary, *columns',
-            accounts: '++id, service, session, &did, avatar, name, following, notification',
+            accounts: '++id, service, session, &did, avatar, name, following, notification, *feeds, *lists',
         });
     }
 }

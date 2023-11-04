@@ -52,6 +52,7 @@
   <LoginModal
       existingId={account.id}
       identifier={account.session?.handle || ''}
+      isMissing={true}
       on:success={handleSuccess}
       on:cancel={handleCancel}></LoginModal>
 {/if}
