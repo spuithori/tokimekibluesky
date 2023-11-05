@@ -15,10 +15,12 @@
       let _listeners = new Set();
       columns.forEach(column => {
           const _agent = $agents.get(getAccountIdByDid($agents, column.did));
-          const host = _agent.agent.service.host;
+          if (_agent) {
+            const host = _agent.agent.service.host;
 
-          if (column.settings?.autoRefresh === -1 || column.algorithm.type === 'realtime') {
+            if (column.settings?.autoRefresh === -1 || column.algorithm.type === 'realtime') {
               _listeners.add(host);
+            }
           }
       });
       listeners = _listeners;

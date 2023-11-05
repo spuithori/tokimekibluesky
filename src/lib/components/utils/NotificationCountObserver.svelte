@@ -17,9 +17,12 @@
           promises = [...promises, _agent ? _agent.getNotificationCount() : Promise.reject(new Error('no agent'))];
       })
 
-      Promise.all(promises).then(values => {
-          values.forEach((value, index) => {
-              $columns[notificationColumns[index]].unreadCount = value;
+      Promise.allSettled(promises).then(results => {
+          results.forEach((result, index) => {
+              if (result.status === 'fulfilled') {
+                  $columns[notificationColumns[index]].unreadCount = result.value;
+              }
+
           })
       })
       .catch(e => {
