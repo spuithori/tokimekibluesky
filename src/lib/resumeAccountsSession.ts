@@ -6,14 +6,10 @@ async function resume(account) {
     const ag = new AtpAgent({
         service: account.service,
         persistSession: async (evt: AtpSessionEvent, sess?: AtpSessionData) => {
-            if (sess) {
-                account.session = sess;
-            }
-
             const id = await accountsDb.accounts.put({
                 id: account.id,
-                session: account.session,
-                did: sess.did,
+                session: sess || account.session,
+                did: account.did,
                 service: account.service,
                 avatar: account.avatar || '',
                 following: account.following || undefined,
