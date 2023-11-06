@@ -22,13 +22,6 @@ body {
     font-size: 15px;
 }
 
-@media (display-mode: standalone) {
-    body {
-        height: 100%;
-        min-height: 100%;
-    }
-}
-
 .app {
     background-color: var(--app-bg-color);
     color: var(--app-color);
