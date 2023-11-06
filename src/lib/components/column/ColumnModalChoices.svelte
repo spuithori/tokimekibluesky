@@ -29,23 +29,37 @@
               cursor: '',
           }
       },
-  ];
-
-  basicColumns = [...basicColumns, {
-      id: self.crypto.randomUUID(),
-      algorithm: {
-          type: 'notification',
-          name: $_('notifications'),
+      {
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'notification',
+              name: $_('notifications'),
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
       },
-      style: 'default',
-      settings: defaultDeckSettings,
-      did: _agent.did(),
-      handle: _agent.handle(),
-      data: {
-          feed: [],
-          cursor: '',
-      }
-  }];
+      {
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'like',
+              name: $_('likes'),
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
+      },
+  ];
 
   let bookmarkColumns = [];
   let localListColumns = [];
