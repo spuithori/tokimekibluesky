@@ -144,7 +144,7 @@
       top: 0;
       background-color: rgba(0, 0, 0, .5);
       backdrop-filter: blur(8px);
-      height: calc(100vh);
+      height: calc(100dvh);
       overscroll-behavior-y: none;
       overflow-y: auto;
       z-index: 9999;
@@ -154,7 +154,7 @@
           bottom: 80px;
           box-shadow: 0 0 10px var(--box-shadow-color-1);
           border-radius: var(--border-radius-3);
-          height: calc(100vh - 100px);
+          height: calc(100dvh - 100px);
           overscroll-behavior-y: none;
           left: 16px;
           right: 16px;
