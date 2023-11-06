@@ -337,4 +337,7 @@
     /* ScrollBar */
     --scroll-bar-color: var(--primary-color);
     --scroll-bar-bg-color: var(--bg-color-3);
+
+    /* env */
+    --safe-area-bottom: env(safe-area-inset-bottom);
 }

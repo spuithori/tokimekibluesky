@@ -970,7 +970,7 @@ function handleAgentSelect(event) {
         display: flex;
         position: fixed;
         right: 20px;
-        bottom: calc(20px + env(keyboard-inset-height, 0px) + env(safe-area-inset-bottom));
+        bottom: calc(20px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
         width: 52px;
         height: 52px;
         border-radius: 50%;

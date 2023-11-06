@@ -49,7 +49,7 @@
 
     .footer {
         @media (max-width: 767px) {
-            transform: translateY(70px);
+            transform: translateY(calc(70px + var(--safe-area-bottom)));
         }
     }
 
