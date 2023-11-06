@@ -11,6 +11,10 @@
     --font-body: sans-serif;
 }
 
+.ios {
+    --font-body: -apple-system, 'Hiragino Sans', sans-serif;
+}
+
 body {
     min-height: 100vh;
     font-weight: 400;

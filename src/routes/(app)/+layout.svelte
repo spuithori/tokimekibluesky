@@ -41,6 +41,7 @@
   import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
   import {detectDateFnsLocale} from "$lib/detectDateFnsLocale";
   import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
+  import {isMobile} from "$lib/detectDevice";
 
   let loaded = false;
   let isColumnInitialLoad = false;
@@ -376,6 +377,7 @@
     class:single={$settings?.design.layout !== 'decks'}
     class:decks={$settings?.design.layout === 'decks'}
     class:page={$page.url.pathname !== '/'}
+    class:ios={isMobile.iOS()}
     style={outputInlineStyle($theme)}
     bind:this={app}
 >
