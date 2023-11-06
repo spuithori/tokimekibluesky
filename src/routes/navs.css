@@ -49,7 +49,7 @@
 
     .footer {
         @media (max-width: 767px) {
-            transform: translateY(70px);
+            transform: translateY(calc(70px + var(--safe-area-bottom)));
         }
     }
 
@@ -93,7 +93,7 @@
     z-index: 21;
 
     @media (max-width: 767px) {
-        bottom: 100px;
+        bottom: calc(100px + var(--safe-area-bottom));
         right: 0;
         left: auto;
         border-radius: 20px 0 0 20px;

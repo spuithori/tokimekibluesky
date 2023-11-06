@@ -958,7 +958,6 @@ function handleAgentSelect(event) {
         @media (max-width: 767px) {
             display: none;
             flex-direction: column;
-            gap: 20px;
             padding: 20px 20px 90px;
             background-color: var(--bg-color-1);
             border: 1px solid var(--border-color-1);
@@ -971,7 +970,7 @@ function handleAgentSelect(event) {
         display: flex;
         position: fixed;
         right: 20px;
-        bottom: calc(20px + env(keyboard-inset-height, 0px));
+        bottom: calc(20px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
         width: 52px;
         height: 52px;
         border-radius: 50%;
@@ -999,6 +998,10 @@ function handleAgentSelect(event) {
         align-items: center;
         width: 100%;
         flex-wrap: wrap;
+
+        @media (max-width: 767px) {
+          margin-bottom: 16px;
+        }
     }
 
     .publish-upload {
@@ -1014,7 +1017,7 @@ function handleAgentSelect(event) {
             overflow: hidden;
             position: static;
             bottom: 100%;
-            margin: 0 auto;
+            margin: 16px auto 0;
             height: auto;
             flex: 1;
         }

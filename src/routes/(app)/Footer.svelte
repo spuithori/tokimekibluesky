@@ -96,7 +96,7 @@
           display: block;
           position: absolute;
           right: 20px;
-          top: 16px;
+          top: calc(16px);
           bottom: 0;
           background-color: var(--base-bg-color);
           width: 52px;
@@ -105,8 +105,8 @@
       &__wrap {
           display: flex;
           align-items: center;
-          padding: 0 40px 0 20px;
-          height: 60px;
+          padding: 0 40px var(--safe-area-bottom) 20px;
+          height: calc(60px + var(--safe-area-bottom));
           justify-content: space-between;
       }
 
@@ -127,7 +127,7 @@
       background-color: var(--bg-color-1);
       border-radius: 50%;
       right: 11px;
-      bottom: 11px;
+      bottom: calc(11px + var(--safe-area-bottom));
       box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
       z-index: 11;
 
