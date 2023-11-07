@@ -42,6 +42,7 @@
   import {detectDateFnsLocale} from "$lib/detectDateFnsLocale";
   import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
   import {isMobile} from "$lib/detectDevice";
+  import WelcomeModal from "$lib/components/utils/WelcomeModal.svelte";
 
   let loaded = false;
   let isColumnInitialLoad = false;
@@ -49,6 +50,7 @@
   let scrolly;
   let app;
   let baseColor = '#fff';
+  let isRepeater = localStorage.getItem('isRepeater') === 'true';
 
   inject(
       {
@@ -402,6 +404,10 @@
 
     {#if $isReactionButtonSettingsModalOpen}
       <ReactionButtonSettingsModal></ReactionButtonSettingsModal>
+    {/if}
+
+    {#if (!isRepeater)}
+      <WelcomeModal on:close={() => isRepeater = true}></WelcomeModal>
     {/if}
 
     <NotificationCountObserver></NotificationCountObserver>

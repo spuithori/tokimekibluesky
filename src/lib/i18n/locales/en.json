@@ -496,5 +496,14 @@
   "there_is_no_list_member": "List member is empty.\nLet's add a member from the user search.",
   "handle_or_name": "Handle or Name",
   "missing_primary_title": "Please select the main account.",
-  "active_columns_description": "You can also pinch and reorder."
+  "active_columns_description": "You can also pinch and reorder.",
+  "skip": "SKIP",
+  "welcome_to_tokimeki": "🌈 Welcome to TOKIMEKI 🌈",
+  "welcome_to_tokimeki_text1": "First, let's choose a layout.\n(You can change it at any time)",
+  "welcome_to_tokimeki_text2": "You can add columns for notifications, custom feeds, etc. using the + button in the upper left corner.\nIf you have any questions, please feel free to contact us @tokimeki.blue.",
+  "layout_single": "Single column (default)",
+  "layout_single_description": "This mode displays a single column on the screen, just like the official client. Recommended for beginners.",
+  "layout_decks": "Multi columns (DECKS)",
+  "layout_decks_description": "This mode allows multiple columns to be displayed side by side on the screen. Recommended for advanced users who want to check many timelines and notifications at a glance.",
+  "welcome_to_tokimeki_close": "START!!"
 }

@@ -497,5 +497,14 @@
   "there_is_no_list_member": "リストメンバーが空です。\nユーザー検索からメンバーを追加しよう。",
   "handle_or_name": "ハンドルまたは名前",
   "missing_primary_title": "メインアカウントを選択してください",
-  "active_columns_description": "つまんで並び替えもできるよ。"
+  "active_columns_description": "つまんで並び替えもできるよ。",
+  "skip": "スキップ",
+  "welcome_to_tokimeki": "🌈 TOKIMEKIへようこそ 🌈",
+  "welcome_to_tokimeki_text1": "まずはレイアウトを選択しよう。\n（いつでも変更できます）",
+  "welcome_to_tokimeki_text2": "左上の + ボタンから通知やカスタムフィードなどのカラムを追加できます。\n使い方が分からないときは @tokimeki.blue までお気軽におたずねください。",
+  "layout_single": "シングルカラム（標準）",
+  "layout_single_description": "公式クライアントと同じように画面に1列のカラムを表示するモードです。初心者におすすめ。",
+  "layout_decks": "マルチカラム（DECKS）",
+  "layout_decks_description": "画面に複数のカラムを並べて表示できるモードです。たくさんのタイムラインや通知を一目で確認したい上級者におすすめ。",
+  "welcome_to_tokimeki_close": "つかいはじめる"
 }
