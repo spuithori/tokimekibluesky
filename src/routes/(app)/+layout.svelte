@@ -178,7 +178,7 @@
 
     profileStatus.set(0);
     loaded = true;
-    isColumnInitialLoad = true;
+    //isColumnInitialLoad = true;
   }
 
   async function checkSession(accounts) {
@@ -251,10 +251,6 @@
       }
   })
 
-  function handleReload() {
-      loaded = false;
-  }
-
   accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')))
       .then(value => {
           if (!value) {
@@ -263,12 +259,12 @@
 
           if (value.columns) {
               columns.set(value.columns);
-              isColumnInitialLoad = true;
+              //isColumnInitialLoad = true;
           }
       });
 
   function columnStorageSave(columns) {
-      if (!isColumnInitialLoad) {
+      if (!loaded) {
           return false;
       }
 
