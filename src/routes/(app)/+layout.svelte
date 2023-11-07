@@ -150,6 +150,7 @@
         .where('id')
         .anyOf(profile.accounts)
         .toArray();
+    const isPrimaryAvailable = accounts.find(account => account.id === profile.primary);
 
     if (!profile.accounts.length) {
         console.log('There is no account in this profile.');
@@ -163,15 +164,13 @@
         return false;
     }
 
-    let agentsMap = await resumeAccountsSession(accounts);
-    const isPrimaryAvailable = await accountsDb.accounts.get(profile.primary);
-    
     if (!profile.primary || !isPrimaryAvailable) {
-        console.log('Primary account is missing.');
-        profileStatus.set(5);
-        return false;
+      console.log('Primary account is missing.');
+      profileStatus.set(5);
+      return false;
     }
 
+    let agentsMap = await resumeAccountsSession(accounts);
     agents.set(agentsMap);
     agent.set($agents.get(profile.primary));
 
