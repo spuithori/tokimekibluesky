@@ -82,7 +82,7 @@
     async function handleKeyDown() {
         clearTimeout(timer);
         timer = setTimeout(async () => {
-            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: search, limit: 4})
+            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: search, limit: 10})
             searchMembers = res.data.actors;
         }, 250)
     }
