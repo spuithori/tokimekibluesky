@@ -25,6 +25,10 @@
 
         const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did() as string, limit: 100, cursor: ''});
         officialLists = res.data.lists;
+
+        await accountsDb.accounts.update(accountId, {
+            lists: officialLists,
+        });
     }
 
     async function updateFeeds() {
@@ -32,6 +36,10 @@
         const account = await accountsDb.accounts.get(accountId);
         customFeeds = account?.feeds;
         customFeeds = await $agent.getSavedFeeds();
+
+        await accountsDb.accounts.update(accountId, {
+            feeds: customFeeds,
+        });
     }
 
     function getFeedUrl(uri, genre = 'feed') {
