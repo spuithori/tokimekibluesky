@@ -32,3 +32,9 @@
     <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
   {/if}
 </div>
+
+<style lang="postcss">
+  .modal {
+    z-index: 1000;
+  }
+</style>
