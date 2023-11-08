@@ -505,5 +505,6 @@
   "layout_single_description": "This mode displays a single column on the screen, just like the official client. Recommended for beginners.",
   "layout_decks": "Multi columns (DECKS)",
   "layout_decks_description": "This mode allows multiple columns to be displayed side by side on the screen. Recommended for advanced users who want to check many timelines and notifications at a glance.",
-  "welcome_to_tokimeki_close": "START!!"
+  "welcome_to_tokimeki_close": "START!!",
+  "image_save_success": "Image saved."
 }

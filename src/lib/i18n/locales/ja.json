@@ -506,5 +506,6 @@
   "layout_single_description": "公式クライアントと同じように画面に1列のカラムを表示するモードです。初心者におすすめ。",
   "layout_decks": "マルチカラム（DECKS）",
   "layout_decks_description": "画面に複数のカラムを並べて表示できるモードです。たくさんのタイムラインや通知を一目で確認したい上級者におすすめ。",
-  "welcome_to_tokimeki_close": "つかいはじめる"
+  "welcome_to_tokimeki_close": "つかいはじめる",
+  "image_save_success": "画像を保存しました"
 }
