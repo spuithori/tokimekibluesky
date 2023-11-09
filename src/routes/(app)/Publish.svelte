@@ -667,7 +667,7 @@ function handleAgentSelect(event) {
 
             <div class="timeline-external__content">
               <div class="timeline__meta timeline__meta--member">
-                <p class="timeline__user">{$_('reply_to', {values: {name: $replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle }})}</p>
+                <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
 
                 <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
               </div>
@@ -730,7 +730,7 @@ function handleAgentSelect(event) {
                 <X color="#fff" size="18"></X>
               </button>
 
-              <div class="timeline-external timeline-external--record timeline-external--record-publish">
+              <div class="timeline-external timeline-external--record timeline-external--record-publish-quote">
                 <div class="timeline-external__image timeline-external__image--round">
                   {#if ($quotePost.author.avatar)}
                     <img src="{$quotePost.author.avatar}" alt="">
@@ -921,10 +921,10 @@ function handleAgentSelect(event) {
         position: relative;
 
         &--reply {
-            .timeline-external {
-                border: 2px solid var(--primary-color);
-            }
-
+          .publish-quote__delete {
+            top: 0;
+            right: 0;
+          }
         }
 
         .timeline__date {

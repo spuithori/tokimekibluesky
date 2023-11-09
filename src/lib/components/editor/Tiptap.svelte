@@ -10,7 +10,7 @@
     import Mention from '@tiptap/extension-mention';
     import Placeholder from '@tiptap/extension-placeholder';
     import History from  '@tiptap/extension-history';
-    import {agent, sharedText} from "$lib/stores";
+    import {agent, sharedText, replyRef} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
     import EditorBar from "$lib/components/editor/EditorBar.svelte";
     import {jsonToText} from "$lib/components/editor/richtext";
@@ -31,6 +31,7 @@
     let linkButtonDisabled = true;
 
     $: addSharedText($sharedText);
+    $: changePlaceholder($replyRef);
 
     onMount(() => {
         editor = new Editor({
@@ -137,6 +138,23 @@
             editor.destroy();
         }
     })
+
+    function changePlaceholder(replyRef) {
+        const placeholder = replyRef && typeof replyRef !== 'string'
+            ? $_('send_placeholder_reply', {values: {name: replyRef.data.parent.author.displayName || replyRef.data.parent.author.handle }})
+            : $_('send_placeholder1');
+
+        if (!editor?.extensionManager) {
+            return false;
+        }
+
+        if (editor !== null && placeholder !== '') {
+            editor.extensionManager.extensions.filter(
+                (extension) => extension.name === 'placeholder'
+            )[0].options['placeholder'] = placeholder;
+            editor.view.dispatch(editor.state.tr);
+        }
+    }
 
     function addSharedText(text) {
         if (!$sharedText) {

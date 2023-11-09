@@ -60,6 +60,26 @@
 
 .timeline-external--record-publish {
     grid-template-columns: 40px 1fr;
+    box-shadow: none;
+    padding: 0 0 16px;
+
+    &::before {
+        content: '';
+        position: absolute;
+        width: 2px;
+        top: 40px;
+        bottom: 0;
+        left: 19px;
+        background-color: var(--border-color-2);
+    }
+
+    .timeline__meta {
+        padding-right: 40px;
+    }
+}
+
+.timeline-external--record-publish-quote {
+    grid-template-columns: 40px 1fr;
 }
 
 .timeline-external__image {
