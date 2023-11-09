@@ -174,6 +174,10 @@
         editor.commands.focus();
     }
 
+    export function blur() {
+      editor.commands.blur();
+    }
+
     export function setContent(content) {
        editor.commands.setContent(content);
     }

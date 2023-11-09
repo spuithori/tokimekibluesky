@@ -134,6 +134,7 @@ function handleOpen() {
 function onClose() {
     if (isFocus) {
         isFocus = false;
+        editor.blur();
 
         if (isMobile && window.location.hash === '#post') {
             history.back();
