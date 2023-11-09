@@ -11,6 +11,8 @@
     width: 100%;
     margin: 0 auto;
     position: relative;
+    background-color: var(--publish-textarea-bg-color);
+    border-radius: var(--border-radius-3);
 
     &--dragover {
         &::before {
@@ -199,7 +201,6 @@
 }
 
 .tiptap {
-    background-color: var(--publish-textarea-bg-color);
     color: var(--publish-textarea-color);
     height: 180px;
     overflow-y: auto;

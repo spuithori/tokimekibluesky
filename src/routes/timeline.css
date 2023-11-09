@@ -62,6 +62,7 @@
     grid-template-columns: 40px 1fr;
     box-shadow: none;
     padding: 0 0 16px;
+    background-color: transparent;
 
     &::before {
         content: '';
@@ -70,7 +71,7 @@
         top: 40px;
         bottom: 0;
         left: 19px;
-        background-color: var(--border-color-2);
+        background-color: var(--publish-textarea-bg-color);
     }
 
     .timeline__meta {

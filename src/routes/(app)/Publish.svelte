@@ -644,6 +644,38 @@ function handleAgentSelect(event) {
       </div>
     {/if}
 
+    {#if ($replyRef && typeof $replyRef !== 'string')}
+      <div class="publish-quote publish-quote--reply">
+        <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
+          <X color="#fff" size="18"></X>
+        </button>
+
+        <div class="timeline-external timeline-external--record timeline-external--record-publish">
+          <div class="timeline-external__image timeline-external__image--round">
+            {#if ($replyRef.data.parent.author.avatar)}
+              <img src="{$replyRef.data.parent.author.avatar}" alt="">
+            {/if}
+          </div>
+
+          <div class="timeline-external__content">
+            <div class="timeline__meta timeline__meta--member">
+              <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
+
+              <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
+            </div>
+
+            <p class="timeline-external__description">
+              {$replyRef.data.parent.record.text}
+            </p>
+          </div>
+
+          <span class="timeline-external__icon">
+
+            </span>
+        </div>
+      </div>
+    {/if}
+
     <div class="publish-form"
          class:publish-form--expand={$isPublishFormExpand}
          class:publish-form--dragover={isDragover}
@@ -651,57 +683,7 @@ function handleAgentSelect(event) {
          on:drop|preventDefault={handleDrop}
          on:dragenter|preventDefault={handleDragover}
          on:dragleave|preventDefault={handleDragleave}
-    >
-      {#if ($replyRef && typeof $replyRef !== 'string')}
-        <div class="publish-quote publish-quote--reply">
-          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
-            <X color="#fff" size="18"></X>
-          </button>
-
-          <div class="timeline-external timeline-external--record timeline-external--record-publish">
-            <div class="timeline-external__image timeline-external__image--round">
-              {#if ($replyRef.data.parent.author.avatar)}
-                <img src="{$replyRef.data.parent.author.avatar}" alt="">
-              {/if}
-            </div>
-
-            <div class="timeline-external__content">
-              <div class="timeline__meta timeline__meta--member">
-                <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
-
-                <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
-              </div>
-
-              <p class="timeline-external__description">
-                {$replyRef.data.parent.record.text}
-              </p>
-            </div>
-
-            <span class="timeline-external__icon">
-
-            </span>
-          </div>
-        </div>
-      {/if}
-
-      {#if (!embedExternal && links.length && !images.length && !$quotePost?.uri)}
-        <div class="link-card-registerer">
-          {#each links as link}
-              <button
-                  disabled={isLinkCardAdding}
-                  class="link-card-registerer-button"
-                  on:click={() => {addLinkCard(link)}}
-              >
-                {#if (isLinkCardAdding)}
-                  <img class="loading-spinner" src={spinner} alt="">
-                {/if}
-                {$_('link_card_embed')}: {link}
-              </button>
-          {/each}
-        </div>
-      {/if}
-
-      <Tiptap
+    ><Tiptap
           bind:text={publishContent}
           bind:json={publishContentJson}
           bind:this={editor}
@@ -776,6 +758,23 @@ function handleAgentSelect(event) {
                   <p class="timeline-external__url">{embedExternal.external.uri}</p>
                 </div>
               </div>
+            </div>
+          {/if}
+
+          {#if (!embedExternal && links.length && !images.length && !$quotePost?.uri)}
+            <div class="link-card-registerer">
+              {#each links as link}
+                <button
+                        disabled={isLinkCardAdding}
+                        class="link-card-registerer-button"
+                        on:click={() => {addLinkCard(link)}}
+                >
+                  {#if (isLinkCardAdding)}
+                    <img class="loading-spinner" src={spinner} alt="">
+                  {/if}
+                  {$_('link_card_embed')}: {link}
+                </button>
+              {/each}
             </div>
           {/if}
         </div>
@@ -974,6 +973,7 @@ function handleAgentSelect(event) {
         z-index: 11;
         text-align: left;
         color: var(--text-color-1);
+        background-color: var(--bg-color-1);
 
         &:disabled {
           color: var(--text-color-3);
