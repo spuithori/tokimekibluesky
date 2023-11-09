@@ -23,7 +23,7 @@
     {/if}
 
     <button class="image-upload-item__close" on:click={handleDelete}>
-        <X color="#fff" size="16"></X>
+        <X color="#fff" size="18"></X>
     </button>
 
     {#if (image.isGif)}
@@ -56,10 +56,10 @@
         }
 
         &__close {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            background-color: rgba(0, 0, 0, .6);
+            background-color: rgba(0, 0, 0, .7);
             display: grid;
             place-content: center;
             position: absolute;

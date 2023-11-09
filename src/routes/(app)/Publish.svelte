@@ -26,6 +26,7 @@ import Tiptap from "$lib/components/editor/Tiptap.svelte";
 import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
 import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
 import imageCompression from 'browser-image-compression';
+import {X} from "lucide-svelte";
 
 let _agent = $agent;
 let publishContent = '';
@@ -651,68 +652,10 @@ function handleAgentSelect(event) {
          on:dragenter|preventDefault={handleDragover}
          on:dragleave|preventDefault={handleDragleave}
     >
-      {#if $quotePost?.uri}
-        <div class="publish-quote">
-          <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
-          </svg>
-          </button>
-
-          <div class="timeline-external timeline-external--record timeline-external--record-publish">
-            <div class="timeline-external__image timeline-external__image--round">
-              {#if ($quotePost.author.avatar)}
-                <img src="{$quotePost.author.avatar}" alt="">
-              {/if}
-            </div>
-
-            <div class="timeline-external__content">
-              <div class="timeline__meta">
-                <p class="timeline__user" title="{$quotePost.author.handle}">{ $quotePost.author.displayName || $quotePost.author.handle }</p>
-                <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt))}</p>
-              </div>
-
-              <p class="timeline-external__description">
-                {$quotePost.record.text}
-              </p>
-            </div>
-
-            <span class="timeline-external__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
-              <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
-            </svg>
-            </span>
-          </div>
-        </div>
-      {/if}
-
-      {#if (embedExternal && !images.length && !$quotePost?.uri)}
-        <div class="publish-quote publish-quote--external">
-          <button class="publish-quote__delete" on:click={() => {embedExternal = undefined; externalImageBlob = ''}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
-          </svg>
-          </button>
-
-          <div class="timeline-external timeline-external--record">
-            <div class="timeline-external__image">
-              {#if (externalImageBlob)}
-                <img src="{externalImageBlob}" alt="">
-              {/if}
-            </div>
-
-            <div class="timeline-external__content">
-              <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
-              <p class="timeline-external__description">{embedExternal.external.description}</p>
-              <p class="timeline-external__url">{embedExternal.external.uri}</p>
-            </div>
-          </div>
-        </div>
-      {/if}
-
       {#if ($replyRef && typeof $replyRef !== 'string')}
         <div class="publish-quote publish-quote--reply">
-          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
-          </svg>
+          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
+            <X color="#fff" size="18"></X>
           </button>
 
           <div class="timeline-external timeline-external--record timeline-external--record-publish">
@@ -780,6 +723,61 @@ function handleAgentSelect(event) {
                   on:preparestart={() => {isPublishEnabled = true}}
                   on:prepareend={() => {isPublishEnabled = false}}
           ></ImageUpload>
+
+          {#if $quotePost?.uri}
+            <div class="publish-quote">
+              <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}>
+                <X color="#fff" size="18"></X>
+              </button>
+
+              <div class="timeline-external timeline-external--record timeline-external--record-publish">
+                <div class="timeline-external__image timeline-external__image--round">
+                  {#if ($quotePost.author.avatar)}
+                    <img src="{$quotePost.author.avatar}" alt="">
+                  {/if}
+                </div>
+
+                <div class="timeline-external__content">
+                  <div class="timeline__meta">
+                    <p class="timeline__user" title="{$quotePost.author.handle}">{ $quotePost.author.displayName || $quotePost.author.handle }</p>
+                    <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt))}</p>
+                  </div>
+
+                  <p class="timeline-external__description">
+                    {$quotePost.record.text}
+                  </p>
+                </div>
+
+                <span class="timeline-external__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
+              <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
+            </svg>
+            </span>
+              </div>
+            </div>
+          {/if}
+
+          {#if (embedExternal && !images.length && !$quotePost?.uri)}
+            <div class="publish-quote publish-quote--external">
+              <button class="publish-quote__delete" on:click={() => {embedExternal = undefined; externalImageBlob = ''}}>
+                <X color="#fff" size="18"></X>
+              </button>
+
+              <div class="timeline-external timeline-external--record">
+                <div class="timeline-external__image">
+                  {#if (externalImageBlob)}
+                    <img src="{externalImageBlob}" alt="">
+                  {/if}
+                </div>
+
+                <div class="timeline-external__content">
+                  <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
+                  <p class="timeline-external__description">{embedExternal.external.description}</p>
+                  <p class="timeline-external__url">{embedExternal.external.uri}</p>
+                </div>
+              </div>
+            </div>
+          {/if}
         </div>
       </Tiptap>
     </div>
@@ -862,13 +860,13 @@ function handleAgentSelect(event) {
     .publish-wrap {
         background-color: var(--publish-bg-color);
         border-top: 1px solid var(--border-color-1);
-        padding: 20px 0 0;
+        padding: 16px 0 0;
         display: none;
 
         @media (max-width: 767px) {
             display: none;
             flex-direction: column;
-            padding: 20px 20px 90px;
+            padding: 16px 16px 90px;
             background-color: var(--bg-color-1);
             border: 1px solid var(--border-color-1);
             border-radius: 0;
@@ -920,7 +918,6 @@ function handleAgentSelect(event) {
     }
 
     .publish-quote {
-        margin-bottom: 10px;
         position: relative;
 
         &--reply {
@@ -937,9 +934,15 @@ function handleAgentSelect(event) {
         }
 
         &__delete {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, .5);
+            display: grid;
+            place-content: center;
             position: absolute;
-            right: 16px;
-            top: 16px;
+            right: 8px;
+            top: 8px;
             z-index: 12;
         }
     }

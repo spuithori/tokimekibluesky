@@ -1,8 +1,5 @@
 @import "./ress.css";
 @import '../../node_modules/glightbox/dist/css/glightbox.min.css';
-@import '../../node_modules/filepond/dist/filepond.css';
-@import '../../node_modules/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
-@import '../../node_modules/filepond-plugin-file-poster/dist/filepond-plugin-file-poster.css';
 
 @import "./vars.css";
 @import "./theme.css";
