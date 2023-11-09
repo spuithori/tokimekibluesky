@@ -2,12 +2,6 @@
 import { _ } from 'svelte-i18n';
 import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings} from '$lib/stores';
 import {selfLabels, isPublishFormExpand} from "$lib/components/editor/publishStore";
-import FilePond, { registerPlugin } from 'svelte-filepond';
-import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
-import FilePondPluginImageResize from 'filepond-plugin-image-resize';
-import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
-import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
-import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 import { fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
 import { formatDistanceToNow, parseISO } from 'date-fns';
@@ -30,12 +24,8 @@ import {getAccountIdByDid} from "$lib/util";
 import type { Draft } from '$lib/db';
 import Tiptap from "$lib/components/editor/Tiptap.svelte";
 import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-
-registerPlugin(FilePondPluginImageResize);
-registerPlugin(FilePondPluginImagePreview);
-registerPlugin(FilePondPluginFileValidateSize);
-registerPlugin(FilePondPluginImageTransform);
-registerPlugin(FilePondPluginFileValidateType);
+import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
+import imageCompression from 'browser-image-compression';
 
 let _agent = $agent;
 let publishContent = '';
@@ -44,8 +34,6 @@ let editor;
 let isTextareaEnabled = false;
 let isPublishEnabled = false;
 let isAccountSelectDisabled = false;
-let pond: any;
-let name = 'filepond';
 let isFocus = false;
 let publishArea: HTMLTextAreaElement;
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -57,6 +45,8 @@ let isDraftModalOpen = false;
 let isAltModalOpen = false;
 let isLinkCardAdding = false;
 let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
+let imageUploadEl;
+let isDragover = 0;
 
 const isMobile = navigator?.userAgentData?.mobile || false;
 
@@ -69,7 +59,7 @@ type BeforeUploadImage = {
     alt: string,
     id: string,
 }
-let images: BeforeUploadImage[] = [];
+let images = [];
 
 let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
 let embedImages: AppBskyEmbedImages.Main = {
@@ -116,7 +106,7 @@ async function detectRichText(text: string) {
 }
 
 function uploadContextOpen() {
-    pond.browse();
+    imageUploadEl.open();
 }
 
 function handleOpen() {
@@ -152,73 +142,6 @@ function handlePopstate(e: PopStateEvent) {
 
 function onFileAdded(_file: unknown) {
     isPublishEnabled = true;
-}
-
-async function onFileSelected(file: any, output: any) {
-    let image = new File([await output], output.name, {
-        type: output.type,
-    });
-
-    images.push({
-        image: image,
-        alt: '',
-        id: file.id,
-    });
-    images = images;
-
-    isPublishEnabled = false;
-}
-
-function onFileDeleted(_error: any, file: any) {
-    images = images.filter((image) => image.id !== file.id );
-    images = images;
-}
-
-async function onFileReordered(files: { id: string }[], _origin: unknown, _target: unknown) {
-    const sorter = files.map(file => file.id);
-    images.sort((a, b) => {
-        return sorter.indexOf(a.id) - sorter.indexOf(b.id);
-    });
-    images = images;
-}
-
-async function onTransformImageFilter(file) {
-   return new Promise(resolve => {
-        if (!/image\/gif/.test(file.type)) {
-            return resolve(true);
-        }
-
-        const reader = new FileReader();
-        reader.onload = () => {
-            let arr = new Uint8Array(reader.result),
-                i, len, length = arr.length, frames = 0;
-
-            // make sure it's a gif (GIF8)
-            if (arr[0] !== 0x47 || arr[1] !== 0x49 ||
-                arr[2] !== 0x46 || arr[3] !== 0x38) {
-                // it's not a gif, we can safely transform it
-                return resolve(true);
-            }
-
-            for (i = 0, len = length - 9; i < len && frames < 2; ++i) {
-                if (arr[i] === 0x00 && arr[i + 1] === 0x21 &&
-                    arr[i + 2] === 0xF9 && arr[i + 3] === 0x04 &&
-                    arr[i + 8] === 0x00 &&
-                    (arr[i + 9] === 0x2C || arr[i + 9] === 0x21)) {
-                    frames++;
-                }
-            }
-
-            // if frame count > 1, it's animated, don't transform
-            if (frames > 1) {
-                return resolve(false);
-            }
-
-            // do transform
-            return resolve(true);
-        }
-        reader.readAsArrayBuffer(file);
-    });
 }
 
 function handleKeydown(event: { key: string; }) {
@@ -317,23 +240,41 @@ function replyRefObserve(replyRef) {
     }
 }
 
-function handlePaste(e) {
-    const items = e.clipboardData.items;
+async function handlePaste(e) {
+    const itemsList = e.clipboardData.items;
+    const items = Array.from(itemsList).slice(0, 4);
+    let promises = [];
 
     for (const item of items) {
-        if (item.type === 'image/png' || item.type === 'image/jpeg') {
-            pond.addFile(item.getAsFile());
+        if (item.type === 'image/png' || item.type === 'image/jpeg' || item.type === 'image/gif') {
+            promises = [...promises, imageUploadEl.applyImageFromFile(item.getAsFile())]
         }
     }
+
+    await Promise.all(promises);
 }
 
-function publishUploadClose() {
-    if (pond) {
-        pond.removeFiles();
-    }
+async function handleDrop(e) {
+  isDragover = 0;
+  const itemsList = e.dataTransfer.items;
+  const items = Array.from(itemsList).slice(0, 4);
+  let promises = [];
 
-    isPublishUploadClose = true;
-    toast.success($_('publish_upload_close_description'));
+  for (const item of items) {
+    if (item.type === 'image/png' || item.type === 'image/jpeg' || item.type === 'image/gif') {
+      promises = [...promises, imageUploadEl.applyImageFromFile(item.getAsFile())];
+    }
+  }
+
+  await Promise.all(promises);
+}
+
+function handleDragover(e) {
+  isDragover = isDragover + 1;
+}
+
+function handleDragleave(e) {
+  isDragover = isDragover - 1;
 }
 
 function handleOutClick() {
@@ -363,9 +304,6 @@ async function saveDraft() {
         embed = undefined;
         images = [];
         links = [];
-        if (pond) {
-            pond.removeFiles();
-        }
         embedImages.images = [];
         embedExternal = undefined;
         $isPublishInstantFloat = false;
@@ -376,16 +314,13 @@ async function saveDraft() {
     }
 }
 
-function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
+async function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
     isDraftModalOpen = false;
     editor.clear();
     quotePost.set(undefined);
     replyRef.set(undefined);
     images = [];
     links = [];
-    if (pond) {
-        pond.removeFiles();
-    }
 
     const draft = event.detail.draft;
     editor.setContent(draft.json || draft.text);
@@ -393,14 +328,19 @@ function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
 
     if (draft.images.length) {
         isPublishUploadClose = false;
+        let promises = [];
 
-        setTimeout(() => {
-            for (const image of draft.images) {
-                if (image.image.type === 'image/png' || image.image.type === 'image/jpeg') {
-                    pond.addFile(image.image);
-                }
-            }
-        }, 250)
+        for (const image of draft.images) {
+          if (image.file) {
+            promises = [...promises, imageUploadEl.applyImageFromFile(image.file, image.alt)];
+          }
+
+          if (image.image) {
+            promises = [...promises, imageUploadEl.applyImageFromFile(image.image)];
+          }
+        }
+
+        await Promise.all(promises);
     }
 
     if (draft.quotePost) {
@@ -446,6 +386,18 @@ async function languageDetect(text = publishContent) {
     }
 }
 
+async function uploadBlobWithCompression(image) {
+  const compressed = await imageCompression(image.file, {
+    maxSizeMB: 0.92,
+    maxWidthOrHeight: 2000,
+    useWebWorker: true,
+  });
+
+  return await _agent.agent.api.com.atproto.repo.uploadBlob(image.isGif ? image.file : compressed, {
+    encoding: 'image/jpeg',
+  });
+}
+
 async function publish() {
     if (isPublishEnabled) {
         return false;
@@ -462,9 +414,7 @@ async function publish() {
 
     if (images.length) {
         const filePromises = images.map(image => {
-            return _agent.agent.api.com.atproto.repo.uploadBlob(image.image, {
-                encoding: 'image/jpeg',
-            });
+            return uploadBlobWithCompression(image);
         });
 
         const promise = Promise.all(filePromises)
@@ -617,9 +567,6 @@ async function publish() {
     embed = undefined;
     images = [];
     links = [];
-    if (pond) {
-        pond.removeFiles();
-    }
     embedImages.images = [];
     embedExternal = undefined;
     externalImageBlob = '';
@@ -683,11 +630,6 @@ function handleAgentSelect(event) {
       </div>
 
       <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}>{$_('publish_button_send')}</button>
-
-        <button class="publish-upload-toggle" on:click={uploadContextOpen}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--bg-color-1)">
-            <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
-          </svg>
-        </button>
     </div>
 
     {#if $agents.size > 1}
@@ -701,7 +643,14 @@ function handleAgentSelect(event) {
       </div>
     {/if}
 
-    <div class="publish-form" class:publish-form--expand={$isPublishFormExpand}>
+    <div class="publish-form"
+         class:publish-form--expand={$isPublishFormExpand}
+         class:publish-form--dragover={isDragover}
+         on:dragover|preventDefault
+         on:drop|preventDefault={handleDrop}
+         on:dragenter|preventDefault={handleDragover}
+         on:dragleave|preventDefault={handleDragleave}
+    >
       {#if $quotePost?.uri}
         <div class="publish-quote">
           <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
@@ -815,52 +764,25 @@ function handleAgentSelect(event) {
           bind:this={editor}
           on:publish={() => {publish()}}
           on:focus={handleOpen}
-      ></Tiptap>
+          on:upload={uploadContextOpen}
+      >
+        <div class="publish-upload">
+          {#if (images.length)}
+            <button class="publish-alt-text-button" on:click={() => {isAltModalOpen = true}}>
+              <span class="ai-label">AI</span>
+              {$_('add_alt_text')}
+            </button>
+          {/if}
+
+          <ImageUpload
+                  bind:this={imageUploadEl}
+                  bind:images={images}
+                  on:preparestart={() => {isPublishEnabled = true}}
+                  on:prepareend={() => {isPublishEnabled = false}}
+          ></ImageUpload>
+        </div>
+      </Tiptap>
     </div>
-
-    {#if (!isPublishUploadClose)}
-      <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
-        <button class="publish-upload-close" aria-hidden="true" on:click={publishUploadClose}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
-          </svg>
-        </button>
-
-        {#if (images.length)}
-          <button class="publish-alt-text-button" on:click={() => {isAltModalOpen = true}}>
-            <span class="ai-label">AI</span>
-            {$_('add_alt_text')}
-          </button>
-        {/if}
-
-        <FilePond
-            bind:this={pond}
-            {name}
-            allowMultiple={true}
-            allowReorder={true}
-            allowPaste={false}
-            maxFiles={4}
-            maxParallelUploads={4}
-            imageResizeTargetWidth={2000}
-            imageResizeTargetHeight={2000}
-            imageResizeMode={'contain'}
-            acceptedFileTypes={'image/jpeg, image/png, image/webp, image/gif'}
-            imageTransformImageFilter={onTransformImageFilter}
-            imageTransformOutputMimeType={'image/jpeg'}
-            imageTransformOutputQuality={'75'}
-            onpreparefile={(file, output) => {onFileSelected(file, output)}}
-            onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
-            onaddfilestart={(file) => {onFileAdded(file)}}
-            onreorderfiles={(files, origin, target) => {onFileReordered(files, origin, target)}}
-            credits={null}
-            labelIdle="<span class='only-pc'>{$_('upload_image_label1')}<br>{$_('upload_image_label2')}</span>"
-            labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
-            labelMaxFileSize="{$_('max_')} {'{'}filesize{'}'}"
-            labelFileTypeNotAllowed="{$_('unsupported_file')}"
-            fileValidateTypeLabelExpectedTypes="対応: JPG/PNG/GIF"
-        />
-      </div>
-    {/if}
   </div>
 </section>
 
@@ -915,7 +837,6 @@ function handleAgentSelect(event) {
                     border-top: none;
                     padding: 16px;
                     background-color: transparent;
-                    height: 100%;
                 }
 
                 .publish-form {
@@ -926,17 +847,6 @@ function handleAgentSelect(event) {
                     }
                 }
 
-                .publish-upload {
-                    position: relative;
-                    bottom: auto;
-                    left: auto;
-                    margin-top: 20px;
-                }
-
-                .publish-upload-close {
-                    display: none;
-                }
-
                 .publish-form-continue-mode {
                     display: none;
                 }
@@ -944,7 +854,6 @@ function handleAgentSelect(event) {
                 .publish-alt-text-button {
                     position: static;
                     width: 100%;
-                    margin-bottom: 10px;
                 }
             }
         }
@@ -963,7 +872,7 @@ function handleAgentSelect(event) {
             background-color: var(--bg-color-1);
             border: 1px solid var(--border-color-1);
             border-radius: 0;
-            height: calc(100% + 1px);
+            min-height: calc(100% + 1px);
         }
     }
 
@@ -1006,61 +915,8 @@ function handleAgentSelect(event) {
     }
 
     .publish-upload {
-        position: absolute;
-        bottom: calc(100% + 20px);
-        left: calc(50vw - 378px);
-        width: 740px;
-        max-width: 100%;
-        height: 230px;
-        z-index: 12;
-
-        @media (max-width: 767px) {
-            overflow: hidden;
-            position: static;
-            bottom: 100%;
-            margin: 16px auto 0;
-            height: auto;
-            flex: 1;
-        }
-    }
-
-    .publish-upload-toggle {
-        display: none;
-        left: calc(50vw - 440px);
-        top: 20px;
-        width: 40px;
-        height: 40px;
-        background-color: var(--bg-color-2);
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        z-index: 12;
-
-        @media (max-width: 767px) {
-            display: flex;
-            margin-right: 15px;
-        }
-    }
-
-    .publish-upload-toggle.shown {
-        background-color: var(--primary-color);
-    }
-
-    .publish-upload-toggle.shown svg {
-        fill: var(--bg-color-1);
-    }
-
-    @media (max-width: 767px) {
-        .publish-upload-toggle {
-            left: auto;
-            right: 40px;
-            top: 65px;
-            width: 30px;
-            height: 30px;
-            padding: 6px;
-            background-color: var(--primary-color);
-            order: 1;
-        }
+        padding: 0 8px;
+        background-color: var(--publish-textarea-bg-color);
     }
 
     .publish-quote {
@@ -1212,18 +1068,16 @@ function handleAgentSelect(event) {
     }
 
     .publish-alt-text-button {
-        position: absolute;
-        top: -40px;
-        left: 0;
         background-color: var(--primary-color);
         color: var(--bg-color-1);
         border-radius: 4px;
         font-size: 14px;
-        width: 740px;
+        width: 100%;
         height: 30px;
         z-index: 10;
         font-weight: bold;
         transition: opacity .2s ease-in-out, transform .05s ease-in-out;
+        margin-bottom: 8px;
 
         &:hover {
             opacity: .8;

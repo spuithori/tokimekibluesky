@@ -13,7 +13,7 @@
 
   async function getAltTextFromAi(category: 'ocr' | 'description') {
       isMenuOpen = false;
-      const blob = new Blob([image.image], {type: image.type});
+      const blob = new Blob([image.file], {type: image.file.type});
       const formData = new FormData();
       formData.append('image', blob);
       formData.append('category', category);
@@ -43,7 +43,7 @@
 
 <div class="alt-modal-item">
   <div class="alt-modal-item__image">
-    <img src="{window.URL.createObjectURL(image.image)}" alt="">
+    <img src="{image.base64}" alt="">
 
     {#if !isUsed}
       <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="ai-button-wrap" position={'top'}>

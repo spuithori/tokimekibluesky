@@ -1,46 +1,3 @@
-.publish-upload {
-    .filepond--root {
-        height: 230px !important;
-        max-height: 230px;
-
-        @media (max-width: 767px) {
-            height: 100% !important;
-            max-height: 100%;
-        }
-    }
-
-    .filepond--item {
-        width: calc(25% - 0.5em);
-
-        @media (max-width: 767px) {
-            width: calc(50% - 0.5em);
-        }
-    }
-
-    .filepond--wrapper {
-        @media (max-width: 767px) {
-            height: 100%;
-        }
-    }
-
-    .filepond--drop-label {
-        @media (max-width: 767px) {
-            min-height: 0 !important;
-        }
-    }
-
-    .filepond--panel-root {
-        background-color: var(--publish-filepond-bg-color);
-        box-shadow: var(--publish-filepond-box-shadow);
-        border: var(--publish-filepond-border-width) solid var(--publish-filepond-border-color);
-
-        @media (max-width: 767px) {
-            box-shadow: none;
-            border: none;
-        }
-    }
-}
-
 .sidebar {
     .filepond--item {
         @media (min-width: 768px) {
@@ -54,6 +11,24 @@
     width: 100%;
     margin: 0 auto;
     position: relative;
+
+    &--dragover {
+        &::before {
+            content: '';
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, .3);
+            z-index: 1000;
+            pointer-events: none;
+            background-image: url(/image-plus.svg);
+            background-position: center;
+            border-radius: var(--border-radius-3);
+        }
+    }
 }
 
 .publish-form__input {
@@ -213,9 +188,13 @@
 .sidebar {
     .emoji-picker-wrap {
         bottom: auto;
-        right: auto;
         left: 0;
-        top: 40px;
+        right: 0;
+        top: 50px;
+
+        em-emoji-picker {
+            width: 100%;
+        }
     }
 }
 
@@ -230,6 +209,7 @@
     padding: 15px 20px;
     resize: none;
     outline: none;
+    border-radius: var(--border-radius-3) var(--border-radius-3) 0 0;
 
     @media (max-width: 767px) {
         height: 140px;

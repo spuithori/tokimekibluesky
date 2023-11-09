@@ -79,7 +79,9 @@
               <div class="drafts-images">
                 {#each draft.images as image}
                   <div class="drafts-images__item">
-                    <img src="{window.URL.createObjectURL(image.image)}" alt="">
+                    {#if (image.base64)}
+                      <img src="{image.base64}" alt="">
+                    {/if}
                   </div>
                 {/each}
               </div>

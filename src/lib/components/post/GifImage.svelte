@@ -1,6 +1,7 @@
 <script lang="ts">
     import {agent} from "$lib/stores";
     import {onMount} from "svelte";
+    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
     let url = '';
     export let did;
@@ -27,12 +28,16 @@
     })
 </script>
 
-{#if (url)}
-    <div class="gif-image">
+<div class="gif-image">
+    {#if (url)}
         <img src={url} alt={alt}>
-        <span class="gif-label">GIF</span>
-    </div>
-{/if}
+    {:else}
+        <div class="gif-image-loading">
+            <LoadingSpinner color="var(--text-color-1)" size="32" padding="0"></LoadingSpinner>
+        </div>
+    {/if}
+    <span class="gif-label">GIF</span>
+</div>
 
 <style lang="postcss">
     .gif-image {
@@ -46,19 +51,11 @@
         }
     }
 
-    .gif-label {
-        position: absolute;
-        bottom: 8px;
-        left: 8px;
-        background-color: rgba(0, 0, 0, .6);
-        font-weight: bold;
-        font-size: 12px;
-        width: 30px;
-        height: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        border-radius: var(--border-radius-1);
+    .gif-image-loading {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-content: center;
+        background-color: var(--bg-color-2);
     }
 </style>

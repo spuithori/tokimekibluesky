@@ -55,6 +55,7 @@
     "@tiptap/pm": "^2.1.12",
     "@tiptap/suggestion": "^2.1.12",
     "@vercel/analytics": "^1.0.1",
+    "browser-image-compression": "^2.0.2",
     "cbor-x": "^1.5.2",
     "date-fns": "^2.29.3",
     "dexie": "^4.0.1-alpha.10",
