@@ -124,7 +124,9 @@ function handleOpen() {
         isFocus = true;
     }
 
-    editor.focus();
+    setTimeout(() => {
+      editor.focus();
+    }, 100);
 
     if (isMobile) {
         goto('#post', {noScroll: true});
