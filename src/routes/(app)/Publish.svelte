@@ -2,12 +2,6 @@
 import { _ } from 'svelte-i18n';
 import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings} from '$lib/stores';
 import {selfLabels, isPublishFormExpand} from "$lib/components/editor/publishStore";
-import FilePond, { registerPlugin } from 'svelte-filepond';
-import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
-import FilePondPluginImageResize from 'filepond-plugin-image-resize';
-import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
-import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
-import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 import { fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
 import { formatDistanceToNow, parseISO } from 'date-fns';
@@ -30,12 +24,10 @@ import {getAccountIdByDid} from "$lib/util";
 import type { Draft } from '$lib/db';
 import Tiptap from "$lib/components/editor/Tiptap.svelte";
 import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-
-registerPlugin(FilePondPluginImageResize);
-registerPlugin(FilePondPluginImagePreview);
-registerPlugin(FilePondPluginFileValidateSize);
-registerPlugin(FilePondPluginImageTransform);
-registerPlugin(FilePondPluginFileValidateType);
+import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
+import imageCompression from 'browser-image-compression';
+import {X} from "lucide-svelte";
+import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
 
 let _agent = $agent;
 let publishContent = '';
@@ -44,8 +36,6 @@ let editor;
 let isTextareaEnabled = false;
 let isPublishEnabled = false;
 let isAccountSelectDisabled = false;
-let pond: any;
-let name = 'filepond';
 let isFocus = false;
 let publishArea: HTMLTextAreaElement;
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -57,6 +47,8 @@ let isDraftModalOpen = false;
 let isAltModalOpen = false;
 let isLinkCardAdding = false;
 let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
+let imageUploadEl;
+let isDragover = 0;
 
 const isMobile = navigator?.userAgentData?.mobile || false;
 
@@ -69,7 +61,7 @@ type BeforeUploadImage = {
     alt: string,
     id: string,
 }
-let images: BeforeUploadImage[] = [];
+let images = [];
 
 let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
 let embedImages: AppBskyEmbedImages.Main = {
@@ -116,7 +108,7 @@ async function detectRichText(text: string) {
 }
 
 function uploadContextOpen() {
-    pond.browse();
+    imageUploadEl.open();
 }
 
 function handleOpen() {
@@ -152,73 +144,6 @@ function handlePopstate(e: PopStateEvent) {
 
 function onFileAdded(_file: unknown) {
     isPublishEnabled = true;
-}
-
-async function onFileSelected(file: any, output: any) {
-    let image = new File([await output], output.name, {
-        type: output.type,
-    });
-
-    images.push({
-        image: image,
-        alt: '',
-        id: file.id,
-    });
-    images = images;
-
-    isPublishEnabled = false;
-}
-
-function onFileDeleted(_error: any, file: any) {
-    images = images.filter((image) => image.id !== file.id );
-    images = images;
-}
-
-async function onFileReordered(files: { id: string }[], _origin: unknown, _target: unknown) {
-    const sorter = files.map(file => file.id);
-    images.sort((a, b) => {
-        return sorter.indexOf(a.id) - sorter.indexOf(b.id);
-    });
-    images = images;
-}
-
-async function onTransformImageFilter(file) {
-   return new Promise(resolve => {
-        if (!/image\/gif/.test(file.type)) {
-            return resolve(true);
-        }
-
-        const reader = new FileReader();
-        reader.onload = () => {
-            let arr = new Uint8Array(reader.result),
-                i, len, length = arr.length, frames = 0;
-
-            // make sure it's a gif (GIF8)
-            if (arr[0] !== 0x47 || arr[1] !== 0x49 ||
-                arr[2] !== 0x46 || arr[3] !== 0x38) {
-                // it's not a gif, we can safely transform it
-                return resolve(true);
-            }
-
-            for (i = 0, len = length - 9; i < len && frames < 2; ++i) {
-                if (arr[i] === 0x00 && arr[i + 1] === 0x21 &&
-                    arr[i + 2] === 0xF9 && arr[i + 3] === 0x04 &&
-                    arr[i + 8] === 0x00 &&
-                    (arr[i + 9] === 0x2C || arr[i + 9] === 0x21)) {
-                    frames++;
-                }
-            }
-
-            // if frame count > 1, it's animated, don't transform
-            if (frames > 1) {
-                return resolve(false);
-            }
-
-            // do transform
-            return resolve(true);
-        }
-        reader.readAsArrayBuffer(file);
-    });
 }
 
 function handleKeydown(event: { key: string; }) {
@@ -317,23 +242,38 @@ function replyRefObserve(replyRef) {
     }
 }
 
-function handlePaste(e) {
-    const items = e.clipboardData.items;
-
-    for (const item of items) {
-        if (item.type === 'image/png' || item.type === 'image/jpeg') {
-            pond.addFile(item.getAsFile());
-        }
-    }
+async function handlePaste(e) {
+    const itemsList = e.clipboardData.items;
+    await uploadImageFromFileList(itemsList);
 }
 
-function publishUploadClose() {
-    if (pond) {
-        pond.removeFiles();
+async function handleDrop(e) {
+    isDragover = 0;
+    const itemsList = e.dataTransfer.items;
+    await uploadImageFromFileList(itemsList);
+}
+
+async function uploadImageFromFileList(itemsList: FileList) {
+    isPublishEnabled = true;
+    const items = Array.from(itemsList).slice(0, 4);
+    let promises = [];
+
+    for (const item of items) {
+        if (acceptedImageType.includes(item.type)) {
+            promises = [...promises, imageUploadEl.applyImageFromFile(item.getAsFile())]
+        }
     }
 
-    isPublishUploadClose = true;
-    toast.success($_('publish_upload_close_description'));
+    await Promise.all(promises);
+    isPublishEnabled = false;
+}
+
+function handleDragover(e) {
+  isDragover = isDragover + 1;
+}
+
+function handleDragleave(e) {
+  isDragover = isDragover - 1;
 }
 
 function handleOutClick() {
@@ -363,9 +303,6 @@ async function saveDraft() {
         embed = undefined;
         images = [];
         links = [];
-        if (pond) {
-            pond.removeFiles();
-        }
         embedImages.images = [];
         embedExternal = undefined;
         $isPublishInstantFloat = false;
@@ -376,16 +313,13 @@ async function saveDraft() {
     }
 }
 
-function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
+async function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
     isDraftModalOpen = false;
     editor.clear();
     quotePost.set(undefined);
     replyRef.set(undefined);
     images = [];
     links = [];
-    if (pond) {
-        pond.removeFiles();
-    }
 
     const draft = event.detail.draft;
     editor.setContent(draft.json || draft.text);
@@ -393,14 +327,19 @@ function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
 
     if (draft.images.length) {
         isPublishUploadClose = false;
+        let promises = [];
 
-        setTimeout(() => {
-            for (const image of draft.images) {
-                if (image.image.type === 'image/png' || image.image.type === 'image/jpeg') {
-                    pond.addFile(image.image);
-                }
-            }
-        }, 250)
+        for (const image of draft.images) {
+          if (image.file) {
+            promises = [...promises, imageUploadEl.applyImageFromFile(image.file, image.alt)];
+          }
+
+          if (image.image) {
+            promises = [...promises, imageUploadEl.applyImageFromFile(image.image)];
+          }
+        }
+
+        await Promise.all(promises);
     }
 
     if (draft.quotePost) {
@@ -446,6 +385,18 @@ async function languageDetect(text = publishContent) {
     }
 }
 
+async function uploadBlobWithCompression(image) {
+  const compressed = await imageCompression(image.file, {
+    maxSizeMB: 0.92,
+    maxWidthOrHeight: 2000,
+    useWebWorker: true,
+  });
+
+  return await _agent.agent.api.com.atproto.repo.uploadBlob(image.isGif ? image.file : compressed, {
+    encoding: 'image/jpeg',
+  });
+}
+
 async function publish() {
     if (isPublishEnabled) {
         return false;
@@ -462,9 +413,7 @@ async function publish() {
 
     if (images.length) {
         const filePromises = images.map(image => {
-            return _agent.agent.api.com.atproto.repo.uploadBlob(image.image, {
-                encoding: 'image/jpeg',
-            });
+            return uploadBlobWithCompression(image);
         });
 
         const promise = Promise.all(filePromises)
@@ -617,9 +566,6 @@ async function publish() {
     embed = undefined;
     images = [];
     links = [];
-    if (pond) {
-        pond.removeFiles();
-    }
     embedImages.images = [];
     embedExternal = undefined;
     externalImageBlob = '';
@@ -683,11 +629,6 @@ function handleAgentSelect(event) {
       </div>
 
       <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}>{$_('publish_button_send')}</button>
-
-        <button class="publish-upload-toggle" on:click={uploadContextOpen}><svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="var(--bg-color-1)">
-            <path id="photo" d="M0,67a3.009,3.009,0,0,1,3-3H27a3,3,0,0,1,3,3h0V85a3,3,0,0,1-3,3H3a3,3,0,0,1-3-3H0ZM16.5,80.5,12,76,3,85H27l-7.5-7.5Zm6-6a3,3,0,0,0,0-6h0a3,3,0,0,0,0,6Z" transform="translate(0 -64)"/>
-          </svg>
-        </button>
     </div>
 
     {#if $agents.size > 1}
@@ -701,166 +642,142 @@ function handleAgentSelect(event) {
       </div>
     {/if}
 
-    <div class="publish-form" class:publish-form--expand={$isPublishFormExpand}>
-      {#if $quotePost?.uri}
-        <div class="publish-quote">
-          <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
-          </svg>
-          </button>
+    {#if ($replyRef && typeof $replyRef !== 'string')}
+      <div class="publish-quote publish-quote--reply">
+        <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
+          <X color="#fff" size="18"></X>
+        </button>
 
-          <div class="timeline-external timeline-external--record timeline-external--record-publish">
-            <div class="timeline-external__image timeline-external__image--round">
-              {#if ($quotePost.author.avatar)}
-                <img src="{$quotePost.author.avatar}" alt="">
-              {/if}
-            </div>
-
-            <div class="timeline-external__content">
-              <div class="timeline__meta">
-                <p class="timeline__user" title="{$quotePost.author.handle}">{ $quotePost.author.displayName || $quotePost.author.handle }</p>
-                <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt))}</p>
-              </div>
-
-              <p class="timeline-external__description">
-                {$quotePost.record.text}
-              </p>
-            </div>
-
-            <span class="timeline-external__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
-              <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
-            </svg>
-            </span>
+        <div class="timeline-external timeline-external--record timeline-external--record-publish">
+          <div class="timeline-external__image timeline-external__image--round">
+            {#if ($replyRef.data.parent.author.avatar)}
+              <img src="{$replyRef.data.parent.author.avatar}" alt="">
+            {/if}
           </div>
-        </div>
-      {/if}
 
-      {#if (embedExternal && !images.length && !$quotePost?.uri)}
-        <div class="publish-quote publish-quote--external">
-          <button class="publish-quote__delete" on:click={() => {embedExternal = undefined; externalImageBlob = ''}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
-          </svg>
-          </button>
+          <div class="timeline-external__content">
+            <div class="timeline__meta timeline__meta--member">
+              <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
 
-          <div class="timeline-external timeline-external--record">
-            <div class="timeline-external__image">
-              {#if (externalImageBlob)}
-                <img src="{externalImageBlob}" alt="">
-              {/if}
+              <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
             </div>
 
-            <div class="timeline-external__content">
-              <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
-              <p class="timeline-external__description">{embedExternal.external.description}</p>
-              <p class="timeline-external__url">{embedExternal.external.uri}</p>
-            </div>
+            <p class="timeline-external__description">
+              {$replyRef.data.parent.record.text}
+            </p>
           </div>
-        </div>
-      {/if}
 
-      {#if ($replyRef && typeof $replyRef !== 'string')}
-        <div class="publish-quote publish-quote--reply">
-          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}><svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
-          </svg>
-          </button>
-
-          <div class="timeline-external timeline-external--record timeline-external--record-publish">
-            <div class="timeline-external__image timeline-external__image--round">
-              {#if ($replyRef.data.parent.author.avatar)}
-                <img src="{$replyRef.data.parent.author.avatar}" alt="">
-              {/if}
-            </div>
-
-            <div class="timeline-external__content">
-              <div class="timeline__meta timeline__meta--member">
-                <p class="timeline__user">{$_('reply_to', {values: {name: $replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle }})}</p>
-
-                <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
-              </div>
-
-              <p class="timeline-external__description">
-                {$replyRef.data.parent.record.text}
-              </p>
-            </div>
-
-            <span class="timeline-external__icon">
+          <span class="timeline-external__icon">
 
             </span>
-          </div>
         </div>
-      {/if}
+      </div>
+    {/if}
 
-      {#if (!embedExternal && links.length && !images.length && !$quotePost?.uri)}
-        <div class="link-card-registerer">
-          {#each links as link}
-              <button
-                  disabled={isLinkCardAdding}
-                  class="link-card-registerer-button"
-                  on:click={() => {addLinkCard(link)}}
-              >
-                {#if (isLinkCardAdding)}
-                  <img class="loading-spinner" src={spinner} alt="">
-                {/if}
-                {$_('link_card_embed')}: {link}
-              </button>
-          {/each}
-        </div>
-      {/if}
-
-      <Tiptap
+    <div class="publish-form"
+         class:publish-form--expand={$isPublishFormExpand}
+         class:publish-form--dragover={isDragover}
+         on:dragover|preventDefault
+         on:drop|preventDefault={handleDrop}
+         on:dragenter|preventDefault={handleDragover}
+         on:dragleave|preventDefault={handleDragleave}
+    ><Tiptap
           bind:text={publishContent}
           bind:json={publishContentJson}
           bind:this={editor}
           on:publish={() => {publish()}}
           on:focus={handleOpen}
-      ></Tiptap>
+          on:upload={uploadContextOpen}
+      >
+        <div class="publish-upload">
+          {#if (images.length)}
+            <button class="publish-alt-text-button" on:click={() => {isAltModalOpen = true}}>
+              <span class="ai-label">AI</span>
+              {$_('add_alt_text')}
+            </button>
+          {/if}
+
+          <ImageUpload
+                  bind:this={imageUploadEl}
+                  bind:images={images}
+                  on:preparestart={() => {isPublishEnabled = true}}
+                  on:prepareend={() => {isPublishEnabled = false}}
+          ></ImageUpload>
+
+          {#if $quotePost?.uri}
+            <div class="publish-quote">
+              <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}>
+                <X color="#fff" size="18"></X>
+              </button>
+
+              <div class="timeline-external timeline-external--record timeline-external--record-publish-quote">
+                <div class="timeline-external__image timeline-external__image--round">
+                  {#if ($quotePost.author.avatar)}
+                    <img src="{$quotePost.author.avatar}" alt="">
+                  {/if}
+                </div>
+
+                <div class="timeline-external__content">
+                  <div class="timeline__meta">
+                    <p class="timeline__user" title="{$quotePost.author.handle}">{ $quotePost.author.displayName || $quotePost.author.handle }</p>
+                    <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt))}</p>
+                  </div>
+
+                  <p class="timeline-external__description">
+                    {$quotePost.record.text}
+                  </p>
+                </div>
+
+                <span class="timeline-external__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
+              <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
+            </svg>
+            </span>
+              </div>
+            </div>
+          {/if}
+
+          {#if (embedExternal && !images.length && !$quotePost?.uri)}
+            <div class="publish-quote publish-quote--external">
+              <button class="publish-quote__delete" on:click={() => {embedExternal = undefined; externalImageBlob = ''}}>
+                <X color="#fff" size="18"></X>
+              </button>
+
+              <div class="timeline-external timeline-external--record">
+                <div class="timeline-external__image">
+                  {#if (externalImageBlob)}
+                    <img src="{externalImageBlob}" alt="">
+                  {/if}
+                </div>
+
+                <div class="timeline-external__content">
+                  <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
+                  <p class="timeline-external__description">{embedExternal.external.description}</p>
+                  <p class="timeline-external__url">{embedExternal.external.uri}</p>
+                </div>
+              </div>
+            </div>
+          {/if}
+
+          {#if (!embedExternal && links.length && !images.length && !$quotePost?.uri)}
+            <div class="link-card-registerer">
+              {#each links as link}
+                <button
+                        disabled={isLinkCardAdding}
+                        class="link-card-registerer-button"
+                        on:click={() => {addLinkCard(link)}}
+                >
+                  {#if (isLinkCardAdding)}
+                    <img class="loading-spinner" src={spinner} alt="">
+                  {/if}
+                  {$_('link_card_embed')}: {link}
+                </button>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </Tiptap>
     </div>
-
-    {#if (!isPublishUploadClose)}
-      <div class="publish-upload" transition:fly="{{ y: 30, duration: 250 }}">
-        <button class="publish-upload-close" aria-hidden="true" on:click={publishUploadClose}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-            <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--text-color-1)"/>
-          </svg>
-        </button>
-
-        {#if (images.length)}
-          <button class="publish-alt-text-button" on:click={() => {isAltModalOpen = true}}>
-            <span class="ai-label">AI</span>
-            {$_('add_alt_text')}
-          </button>
-        {/if}
-
-        <FilePond
-            bind:this={pond}
-            {name}
-            allowMultiple={true}
-            allowReorder={true}
-            allowPaste={false}
-            maxFiles={4}
-            maxParallelUploads={4}
-            imageResizeTargetWidth={2000}
-            imageResizeTargetHeight={2000}
-            imageResizeMode={'contain'}
-            acceptedFileTypes={'image/jpeg, image/png, image/webp, image/gif'}
-            imageTransformImageFilter={onTransformImageFilter}
-            imageTransformOutputMimeType={'image/jpeg'}
-            imageTransformOutputQuality={'75'}
-            onpreparefile={(file, output) => {onFileSelected(file, output)}}
-            onremovefile="{(error, file) => {onFileDeleted(error, file)}}"
-            onaddfilestart={(file) => {onFileAdded(file)}}
-            onreorderfiles={(files, origin, target) => {onFileReordered(files, origin, target)}}
-            credits={null}
-            labelIdle="<span class='only-pc'>{$_('upload_image_label1')}<br>{$_('upload_image_label2')}</span>"
-            labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
-            labelMaxFileSize="{$_('max_')} {'{'}filesize{'}'}"
-            labelFileTypeNotAllowed="{$_('unsupported_file')}"
-            fileValidateTypeLabelExpectedTypes="対応: JPG/PNG/GIF"
-        />
-      </div>
-    {/if}
   </div>
 </section>
 
@@ -915,7 +832,6 @@ function handleAgentSelect(event) {
                     border-top: none;
                     padding: 16px;
                     background-color: transparent;
-                    height: 100%;
                 }
 
                 .publish-form {
@@ -926,17 +842,6 @@ function handleAgentSelect(event) {
                     }
                 }
 
-                .publish-upload {
-                    position: relative;
-                    bottom: auto;
-                    left: auto;
-                    margin-top: 20px;
-                }
-
-                .publish-upload-close {
-                    display: none;
-                }
-
                 .publish-form-continue-mode {
                     display: none;
                 }
@@ -944,7 +849,6 @@ function handleAgentSelect(event) {
                 .publish-alt-text-button {
                     position: static;
                     width: 100%;
-                    margin-bottom: 10px;
                 }
             }
         }
@@ -953,17 +857,17 @@ function handleAgentSelect(event) {
     .publish-wrap {
         background-color: var(--publish-bg-color);
         border-top: 1px solid var(--border-color-1);
-        padding: 20px 0 0;
+        padding: 16px 0 0;
         display: none;
 
         @media (max-width: 767px) {
             display: none;
             flex-direction: column;
-            padding: 20px 20px 90px;
+            padding: 16px 16px 90px;
             background-color: var(--bg-color-1);
             border: 1px solid var(--border-color-1);
             border-radius: 0;
-            height: calc(100% + 1px);
+            min-height: calc(100% + 1px);
         }
     }
 
@@ -1006,72 +910,18 @@ function handleAgentSelect(event) {
     }
 
     .publish-upload {
-        position: absolute;
-        bottom: calc(100% + 20px);
-        left: calc(50vw - 378px);
-        width: 740px;
-        max-width: 100%;
-        height: 230px;
-        z-index: 12;
-
-        @media (max-width: 767px) {
-            overflow: hidden;
-            position: static;
-            bottom: 100%;
-            margin: 16px auto 0;
-            height: auto;
-            flex: 1;
-        }
-    }
-
-    .publish-upload-toggle {
-        display: none;
-        left: calc(50vw - 440px);
-        top: 20px;
-        width: 40px;
-        height: 40px;
-        background-color: var(--bg-color-2);
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        z-index: 12;
-
-        @media (max-width: 767px) {
-            display: flex;
-            margin-right: 15px;
-        }
-    }
-
-    .publish-upload-toggle.shown {
-        background-color: var(--primary-color);
-    }
-
-    .publish-upload-toggle.shown svg {
-        fill: var(--bg-color-1);
-    }
-
-    @media (max-width: 767px) {
-        .publish-upload-toggle {
-            left: auto;
-            right: 40px;
-            top: 65px;
-            width: 30px;
-            height: 30px;
-            padding: 6px;
-            background-color: var(--primary-color);
-            order: 1;
-        }
+        padding: 0 8px;
+        background-color: var(--publish-textarea-bg-color);
     }
 
     .publish-quote {
-        margin-bottom: 10px;
         position: relative;
 
         &--reply {
-            .timeline-external {
-                border: 2px solid var(--primary-color);
-            }
-
+          .publish-quote__delete {
+            top: 0;
+            right: 0;
+          }
         }
 
         .timeline__date {
@@ -1081,9 +931,15 @@ function handleAgentSelect(event) {
         }
 
         &__delete {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, .5);
+            display: grid;
+            place-content: center;
             position: absolute;
-            right: 16px;
-            top: 16px;
+            right: 8px;
+            top: 8px;
             z-index: 12;
         }
     }
@@ -1115,6 +971,7 @@ function handleAgentSelect(event) {
         z-index: 11;
         text-align: left;
         color: var(--text-color-1);
+        background-color: var(--bg-color-1);
 
         &:disabled {
           color: var(--text-color-3);
@@ -1212,18 +1069,16 @@ function handleAgentSelect(event) {
     }
 
     .publish-alt-text-button {
-        position: absolute;
-        top: -40px;
-        left: 0;
         background-color: var(--primary-color);
         color: var(--bg-color-1);
         border-radius: 4px;
         font-size: 14px;
-        width: 740px;
+        width: 100%;
         height: 30px;
         z-index: 10;
         font-weight: bold;
         transition: opacity .2s ease-in-out, transform .05s ease-in-out;
+        margin-bottom: 8px;
 
         &:hover {
             opacity: .8;

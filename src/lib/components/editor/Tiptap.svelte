@@ -10,7 +10,7 @@
     import Mention from '@tiptap/extension-mention';
     import Placeholder from '@tiptap/extension-placeholder';
     import History from  '@tiptap/extension-history';
-    import {agent, sharedText} from "$lib/stores";
+    import {agent, sharedText, replyRef} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
     import EditorBar from "$lib/components/editor/EditorBar.svelte";
     import {jsonToText} from "$lib/components/editor/richtext";
@@ -31,6 +31,7 @@
     let linkButtonDisabled = true;
 
     $: addSharedText($sharedText);
+    $: changePlaceholder($replyRef);
 
     onMount(() => {
         editor = new Editor({
@@ -138,6 +139,23 @@
         }
     })
 
+    function changePlaceholder(replyRef) {
+        const placeholder = replyRef && typeof replyRef !== 'string'
+            ? $_('send_placeholder_reply', {values: {name: replyRef.data.parent.author.displayName || replyRef.data.parent.author.handle }})
+            : $_('send_placeholder1');
+
+        if (!editor?.extensionManager) {
+            return false;
+        }
+
+        if (editor !== null && placeholder !== '') {
+            editor.extensionManager.extensions.filter(
+                (extension) => extension.name === 'placeholder'
+            )[0].options['placeholder'] = placeholder;
+            editor.view.dispatch(editor.state.tr);
+        }
+    }
+
     function addSharedText(text) {
         if (!$sharedText) {
             return false;
@@ -156,6 +174,10 @@
 
     function removeLink() {
         editor.chain().focus().unsetLink().run()
+    }
+
+    function addImage() {
+        dispatch('upload');
     }
 
     function submitLink(e) {
@@ -185,6 +207,8 @@
 
 <div class="editor" bind:this={element}></div>
 
+<slot></slot>
+
 <EditorBar on:emojiPicked={(e) => {editor.commands.insertContent(e.detail.emoji)}}>
   <nav class="editor-menu-wrap">
     <ul class="editor-menu">
@@ -205,6 +229,12 @@
       {/if}
     </ul>
   </nav>
+
+  <div class="publish-form-image-add">
+    <button class="publish-form-image-add-button" on:click={addImage}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-plus"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" x2="22" y1="5" y2="5"/><line x1="19" x2="19" y1="2" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+    </button>
+  </div>
 </EditorBar>
 
 {#if (mentionProps)}
@@ -239,6 +269,14 @@
                 }
             }
         }
+    }
+
+    .publish-form-image-add-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+        width: 30px;
     }
 
     .editor-link-dialog {

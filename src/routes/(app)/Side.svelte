@@ -169,10 +169,6 @@
       overflow-y: auto;
       max-height: calc(100svh - 60px);
 
-      &--publish {
-          overflow-y: visible;
-      }
-
       @media (max-width: 767px) {
           border: none;
       }

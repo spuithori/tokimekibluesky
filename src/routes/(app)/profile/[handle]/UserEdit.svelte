@@ -3,22 +3,7 @@
     import {createEventDispatcher} from 'svelte';
     import {fly} from 'svelte/transition';
     import {agent} from '$lib/stores';
-    import FilePond, {registerPlugin} from 'svelte-filepond';
-    import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
-    import FilePondPluginImageResize from 'filepond-plugin-image-resize';
-    import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
-    import FilePondPluginImageTransform from 'filepond-plugin-image-transform';
-    import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
-    import FilePondPluginFilePoster from 'filepond-plugin-file-poster';
-    import FilePondPluginImageCrop from 'filepond-plugin-image-crop';
-
-    registerPlugin(FilePondPluginImageResize);
-    registerPlugin(FilePondPluginImagePreview);
-    registerPlugin(FilePondPluginFileValidateSize);
-    registerPlugin(FilePondPluginImageTransform);
-    registerPlugin(FilePondPluginFileValidateType);
-    registerPlugin(FilePondPluginFilePoster);
-    registerPlugin(FilePondPluginImageCrop);
+    import imageCompression from 'browser-image-compression';
 
     export let profile;
 
@@ -33,32 +18,26 @@
     let banner;
     let errorMessage = '';
 
-    let pondBanner;
-    let pondBannerName = 'pondBanner';
-    let pondAvatar;
-    let pondAvatarName = 'pondAvatar';
     let isSubmitDisabled = false;
     let submitButtonText = $_('submit_button_submit');
+
+    let avatarInput;
+    let bannerInput;
+    let avatarBase64 = '';
+    let bannerBase64 = '';
 
     function editToggle() {
         isEditOpen = isEditOpen !== true;
     }
 
-    function onAvatarInit() {
+    async function onAvatarSelected(e) {
+        const file = e.target?.files[0] || undefined;
 
-    }
+        if (!file) {
+            return false;
+        }
 
-    function onBannerInit() {
-
-    }
-
-    async function onAvatarAdded(file) {
-        isSubmitDisabled = true;
-        submitButtonText = $_('submit_button_progress');
-    }
-
-    async function onAvatarSelected(file, output) {
-        avatar = await fileUpload(output);
+        avatar = await fileUpload(file, 'avatar');
     }
 
     async function onAvatarDeleted(error, file) {
@@ -66,13 +45,14 @@
         currentAvatar = null;
     }
 
-    async function onBannerAdded(file) {
-        isSubmitDisabled = true;
-        submitButtonText = $_('submit_button_progress');
-    }
+    async function onBannerSelected(e) {
+        const file = e.target?.files[0] || undefined;
 
-    async function onBannerSelected(file, output) {
-        banner = await fileUpload(output);
+        if (!file) {
+            return false;
+        }
+
+        banner = await fileUpload(file, 'banner');
     }
 
     async function onBannerDeleted(error, file) {
@@ -80,13 +60,17 @@
         currentBanner = null;
     }
 
-    async function fileUpload(file) {
-        let image = new File([await file], file.name, {
-            type: file.type,
+    async function fileUpload(file, from: 'avatar' | 'banner') {
+        const image = await imageCompression(file, {
+            maxSizeMB: 0.92,
+            maxWidthOrHeight: 2000,
+            useWebWorker: true,
         });
 
-        if (image.size > 1000000) {
-            console.log('デカすぎ')
+        if (from === 'avatar') {
+            avatarBase64 = await imageCompression.getDataUrlFromFile(image);
+        } else {
+            bannerBase64 = await imageCompression.getDataUrlFromFile(image);
         }
 
         const fileBlob = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
@@ -149,36 +133,15 @@
             </dt>
 
             <dd class="input-group__content">
-              <div class="edit-avatar-input-wrap" style="background-image: url({currentAvatar})">
-                <FilePond
-                    bind:this={pondAvatar}
-                    {pondAvatarName}
-                    allowMultiple={false}
-                    maxFiles={1}
-                    imageResizeTargetWidth={500}
-                    imageResizeTargetHeight={500}
-                    imageResizeMode={'contain'}
-                    acceptedFileTypes={'image/jpeg, image/png'}
-                    imageTransformOutputMimeType={'image/jpeg'}
-                    imageTransformOutputQuality={'80'}
-                    imageCropAspectRatio={'1:1'}
-                    oninit={() => {onAvatarInit()}}
-                    onpreparefile={(file, output) => {onAvatarSelected(file, output)}}
-                    onremovefile="{(error, file) => {onAvatarDeleted(error, file)}}"
-                    onaddfilestart={(file) => {onAvatarAdded(file)}}
-                    credits={null}
-                    labelIdle="<span>{$_('upload_avatar_label1')}<br>{$_('upload_avatar_label2')}</span>"
-                    labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
-                    labelMaxFileSize="{$_('max_')} {'{'}filesize{'}'}"
-                    labelFileTypeNotAllowed="{$_('unsupported_file')}"
-                    fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
-                    stylePanelLayout="compact circle"
-                    styleLoadIndicatorPosition="center bottom"
-                    styleProgressIndicatorPosition="right bottom"
-                    styleButtonRemoveItemPosition="left bottom"
-                    styleButtonProcessItemPosition="right bottom"
-                />
-              </div>
+              <button class="edit-avatar-input-wrap" on:click={() => {avatarInput.click()}}>
+                  <span class="edit-avatar-previous" style="background-image: url({currentAvatar})"></span>
+
+                  {#if (avatarBase64)}
+                      <img src="{avatarBase64}" alt="" class="edit-avatar-preview">
+                  {/if}
+                  
+                  <input type="file" accept="image/jpeg, image/png" bind:this={avatarInput} on:change={onAvatarSelected} class="edit-input">
+              </button>
             </dd>
           </dl>
         </div>
@@ -190,32 +153,15 @@
             </dt>
 
             <dd class="input-group__content">
-              <div class="edit-banner-input-wrap" style="background-image: url({currentBanner})">
-                <FilePond
-                    bind:this={pondBanner}
-                    {pondBannerName}
-                    allowMultiple={false}
-                    maxFiles={1}
-                    imageResizeTargetWidth={1500}
-                    imageResizeTargetHeight={500}
-                    imageResizeMode={'contain'}
-                    acceptedFileTypes={'image/jpeg, image/png'}
-                    imageTransformOutputMimeType={'image/jpeg'}
-                    imageTransformOutputQuality={'80'}
-                    imageCropAspectRatio={'3:1'}
-                    oninit={() => {onBannerInit()}}
-                    onpreparefile={(file, output) => {onBannerSelected(file, output)}}
-                    onremovefile="{(error, file) => {onBannerDeleted(error, file)}}"
-                    onaddfilestart={(file) => {onBannerAdded(file)}}
-                    credits={null}
-                    labelIdle="<span>{$_('upload_banner_label1')}<br>{$_('upload_banner_label2')}</span>"
-                    labelMaxFileSizeExceeded="{$_('file_size_too_big')}"
-                    labelMaxFileSize="{$_('max_')} {'{'}filesize{'}'}"
-                    labelFileTypeNotAllowed="{$_('unsupported_file')}"
-                    fileValidateTypeLabelExpectedTypes="対応: JPG/PNG"
-                    stylePanelLayout="compact"
-                />
-              </div>
+              <button class="edit-banner-input-wrap" on:click={() => {bannerInput.click()}}>
+                  <span class="edit-banner-previous" style="background-image: url({currentBanner})"></span>
+
+                  {#if (bannerBase64)}
+                      <img src="{bannerBase64}" alt="" class="edit-banner-preview">
+                  {/if}
+
+                  <input type="file" accept="image/jpeg, image/png" bind:this={bannerInput} on:change={onBannerSelected} class="edit-input">
+              </button>
             </dd>
           </dl>
         </div>
@@ -297,12 +243,61 @@
 
   .edit-avatar-input-wrap {
       width: 150px;
+      aspect-ratio: 1 / 1;
       border-radius: 50%;
-      background-size: contain;
+      position: relative;
+      overflow: hidden;
   }
 
   .edit-banner-input-wrap {
+      width: 100%;
       border-radius: 6px;
+      aspect-ratio: 3 / 1;
+      position: relative;
+      overflow: hidden;
+  }
+
+  .edit-avatar-previous {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      right: 0;
       background-size: contain;
+  }
+
+  .edit-banner-previous {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      background-size: contain;
+  }
+
+  .edit-avatar-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      top: 0;
+      right: 0;
+  }
+
+  .edit-banner-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      top: 0;
+      right: 0;
+  }
+
+  .edit-input {
+    display: none;
   }
 </style>

@@ -55,7 +55,7 @@ function handleEmojiPick(event) {
 <div class="publish-bottom-buttons">
   <slot></slot>
 
-  <div class="publish-form-expand">
+  <!-- <div class="publish-form-expand">
     <button
         class="publish-form-expand-button"
         class:publish-form-expand-button--active={$isPublishFormExpand}
@@ -63,7 +63,7 @@ function handleEmojiPick(event) {
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize-2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
     </button>
-  </div>
+  </div> -->
 
   <div class="publish-form-emoji-picker">
     <button class="publish-form-emoji-picker-button" on:click={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
@@ -134,9 +134,9 @@ function handleEmojiPick(event) {
         justify-content: flex-end;
         padding: 10px 15px;
         z-index: 21;
-        background-color: var(--publish-textarea-bg-color);
         gap: 5px;
         border-radius: 0 0 var(--border-radius-3) var(--border-radius-3);
+        position: relative;
 
         @media (max-width: 767px) {
             position: relative;
@@ -144,11 +144,7 @@ function handleEmojiPick(event) {
     }
 
     .publish-form-emoji-picker {
-        position: relative;
 
-        @media (max-width: 767px) {
-            position: static;
-        }
     }
 
     .publish-form-emoji-picker-button {

@@ -60,6 +60,27 @@
 
 .timeline-external--record-publish {
     grid-template-columns: 40px 1fr;
+    box-shadow: none;
+    padding: 0 0 16px;
+    background-color: transparent;
+
+    &::before {
+        content: '';
+        position: absolute;
+        width: 2px;
+        top: 40px;
+        bottom: 0;
+        left: 19px;
+        background-color: var(--publish-textarea-bg-color);
+    }
+
+    .timeline__meta {
+        padding-right: 40px;
+    }
+}
+
+.timeline-external--record-publish-quote {
+    grid-template-columns: 40px 1fr;
 }
 
 .timeline-external__image {
@@ -997,4 +1018,20 @@
     svg {
         margin-top: 2px;
     }
+}
+
+.gif-label {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background-color: rgba(0, 0, 0, .6);
+    font-weight: bold;
+    font-size: 12px;
+    width: 30px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    border-radius: var(--border-radius-1);
 }
