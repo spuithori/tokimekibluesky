@@ -16,7 +16,7 @@
       columns.forEach(column => {
           const _agent = $agents.get(getAccountIdByDid($agents, column.did));
           if (_agent) {
-            const host = _agent.agent.service.host;
+            const host = _agent.agent.service.host === 'bsky.social' ? 'bsky.network' : _agent.agent.service.host;
 
             if (column.settings?.autoRefresh === -1 || column.algorithm.type === 'realtime') {
               _listeners.add(host);
