@@ -20,6 +20,14 @@ let firstPostUri = '';
 let isMenuOpen = false;
 let textArray;
 let unique = Symbol();
+let serviceHost = '';
+getServiceHost()
+    .then(value => {
+        serviceHost = value;
+    })
+    .catch(e => {
+        serviceHost = '';
+    });
 
 $: detectTextArray(profile.description);
 getFirstPostData(handle);
@@ -51,6 +59,12 @@ async function getProfile(handle) {
 
     const res = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
     profile = res.data;
+}
+
+async function getServiceHost() {
+    const res = await fetch('https://plc.directory/' + profile.did);
+    const json = await res.json();
+    return json?.service[0]?.serviceEndpoint;
 }
 
 function onProfileUpdate() {
@@ -184,7 +198,11 @@ function handleAddSingleList() {
       <div class="profile-content">
         <h1 class="profile-display-name">{profile.displayName || profile.handle}</h1>
         {#if (profile.displayName)}
-          <p class="profile-handle">{profile.handle}</p>
+          <p class="profile-handle">@{profile.handle}</p>
+        {/if}
+
+        {#if (serviceHost)}
+            <p class="profile-handle profile-handle--service"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>{serviceHost}</p>
         {/if}
       </div>
     </div>
@@ -301,6 +319,17 @@ function handleAddSingleList() {
 
         @media (max-width: 767px) {
             padding-right: 50px;
+        }
+
+        &--service {
+            font-size: 14px;
+            font-weight: normal;
+            margin-top: 4px;
+            display: grid;
+            grid-template-columns: 16px 1fr;
+            gap: 4px;
+            align-items: flex-start;
+            line-height: 1.2;
         }
     }
 
