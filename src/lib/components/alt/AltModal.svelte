@@ -64,6 +64,7 @@
         max-width: 100%;
         position: relative;
         z-index: 2;
+        color: var(--text-color-1);
 
         @media (max-width: 767px) {
             width: 100%;

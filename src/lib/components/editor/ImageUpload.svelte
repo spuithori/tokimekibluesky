@@ -4,7 +4,7 @@
     import { dndzone } from 'svelte-dnd-action';
     import ImageUploadItem from "$lib/components/editor/ImageUploadItem.svelte";
     import {settings} from "$lib/stores";
-    import {transformImageFilter} from "$lib/components/editor/imageUploadUtil";
+    import {acceptedImageType, transformImageFilter} from "$lib/components/editor/imageUploadUtil";
     import {createEventDispatcher} from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -33,6 +33,7 @@
     }
 
     async function handleInputChange(e) {
+        dispatch('preparestart');
         const filesList = e.target.files || [];
 
         if (!filesList.length) {
@@ -42,7 +43,7 @@
         const files = Array.from(filesList).slice(0, 4);
         let promises = [];
         for (const file of files) {
-            if (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/gif') {
+            if (acceptedImageType.includes(file.type)) {
                 promises = [...promises, applyImageFromFile(file)];
             }
         }
@@ -50,12 +51,13 @@
         await Promise.all(promises);
 
         input.value = '';
+        dispatch('prepareend');
     }
 
     export async function applyImageFromFile(file, alt = '') {
-        dispatch('preparestart');
         const compressed = await imageCompression(file, {
-            maxWidthOrHeight: 512,
+            maxWidthOrHeight: 1024,
+            initialQuality: 0.8,
             useWebWorker: true,
         });
 
@@ -69,7 +71,6 @@
             base64: base64,
             isGif: isGif,
         }];
-        dispatch('prepareend');
     }
 
     export function open() {

@@ -27,6 +27,7 @@ import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
 import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
 import imageCompression from 'browser-image-compression';
 import {X} from "lucide-svelte";
+import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
 
 let _agent = $agent;
 let publishContent = '';
@@ -243,31 +244,28 @@ function replyRefObserve(replyRef) {
 
 async function handlePaste(e) {
     const itemsList = e.clipboardData.items;
+    await uploadImageFromFileList(itemsList);
+}
+
+async function handleDrop(e) {
+    isDragover = 0;
+    const itemsList = e.dataTransfer.items;
+    await uploadImageFromFileList(itemsList);
+}
+
+async function uploadImageFromFileList(itemsList: FileList) {
+    isPublishEnabled = true;
     const items = Array.from(itemsList).slice(0, 4);
     let promises = [];
 
     for (const item of items) {
-        if (item.type === 'image/png' || item.type === 'image/jpeg' || item.type === 'image/gif') {
+        if (acceptedImageType.includes(item.type)) {
             promises = [...promises, imageUploadEl.applyImageFromFile(item.getAsFile())]
         }
     }
 
     await Promise.all(promises);
-}
-
-async function handleDrop(e) {
-  isDragover = 0;
-  const itemsList = e.dataTransfer.items;
-  const items = Array.from(itemsList).slice(0, 4);
-  let promises = [];
-
-  for (const item of items) {
-    if (item.type === 'image/png' || item.type === 'image/jpeg' || item.type === 'image/gif') {
-      promises = [...promises, imageUploadEl.applyImageFromFile(item.getAsFile())];
-    }
-  }
-
-  await Promise.all(promises);
+    isPublishEnabled = false;
 }
 
 function handleDragover(e) {

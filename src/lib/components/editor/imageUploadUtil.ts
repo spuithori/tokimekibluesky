@@ -6,6 +6,7 @@ export async function transformImageFilter(file: File) {
 
         const reader = new FileReader();
         reader.onload = () => {
+            // @ts-ignore
             let arr = new Uint8Array(reader.result),
                 i, len, length = arr.length, frames = 0;
 
@@ -36,3 +37,10 @@ export async function transformImageFilter(file: File) {
         reader.readAsArrayBuffer(file);
     });
 }
+
+export const acceptedImageType = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+];

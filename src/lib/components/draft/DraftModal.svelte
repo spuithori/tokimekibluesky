@@ -12,6 +12,7 @@
     import type { Draft } from '$lib/db';
 
     export let _agent = $agent;
+    let dialog;
     
     $: drafts = liveQuery(async () => {
         const drafts = await db.drafts
@@ -49,9 +50,13 @@
             toast.error($_('error') + ': ' + e);
         }
     }
+
+    onMount(() => {
+      dialog.showModal();
+    });
 </script>
 
-<div class="draft-modal" transition:fly="{{ y: 30, duration: 250 }}">
+<dialog class="draft-modal" bind:this={dialog}>
   <div class="draft-modal-contents">
     <h2 class="draft-modal-title">{$_('drafts')}</h2>
 
@@ -105,27 +110,22 @@
   </div>
 
   <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
-</div>
+</dialog>
 
 <style lang="postcss">
     .draft-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        z-index: 9999;
-        background-color: rgba(0, 0, 0, .5);
+        margin: auto;
         overflow: auto;
-        padding: 50px 0;
+        border: none;
+        border-radius: var(--border-radius-3);
+
+        &::backdrop {
+            background-color: rgba(0, 0, 0, .6);
+        }
 
         @media (max-width: 767px) {
             display: block;
             overscroll-behavior-y: none;
-            padding: 20px;
         }
     }
 
@@ -137,6 +137,7 @@
         max-width: 100%;
         position: relative;
         z-index: 2;
+        color: var(--text-color-1);
 
         @media (max-width: 767px) {
             width: 100%;
