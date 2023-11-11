@@ -609,85 +609,86 @@ function handleAgentSelect(event) {
          on:outclick={handleOutClick}
 >
   <div class="publish-wrap">
-    <div class="publish-buttons">
-      {#if (publishContent)}
-        <button class="publish-draft-button publish-save-draft" on:click={saveDraft} disabled={isPublishEnabled}>{$_('drafts_save')}</button>
-      {:else}
-        <button class="publish-draft-button publish-view-draft" on:click={() => {isDraftModalOpen = true}}>{$_('drafts')}</button>
+    <div class="publish-wrap-container">
+      <div class="publish-buttons">
+        {#if (publishContent)}
+          <button class="publish-draft-button publish-save-draft" on:click={saveDraft} disabled={isPublishEnabled}>{$_('drafts_save')}</button>
+        {:else}
+          <button class="publish-draft-button publish-view-draft" on:click={() => {isDraftModalOpen = true}}>{$_('drafts')}</button>
+        {/if}
+
+        <p class="publish-length">
+          <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
+        </p>
+
+
+        <div class="publish-form-continue-mode">
+          <div class="publish-form-continue-mode-input" class:checked={isContinueMode}>
+            <input id="continue_mode" type="checkbox" bind:checked={isContinueMode}>
+            <label for="continue_mode">{$_('continuous_mode')}</label>
+          </div>
+        </div>
+
+        <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}>{$_('publish_button_send')}</button>
+      </div>
+
+      {#if $agents.size > 1}
+        <div class="publish-form-agents-selector">
+          <AgentsSelector
+                  {_agent}
+                  isDisabled={isAccountSelectDisabled}
+                  on:select={handleAgentSelect}
+                  style={'publish'}
+          ></AgentsSelector>
+        </div>
       {/if}
 
-      <p class="publish-length">
-        <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
-      </p>
+      {#if ($replyRef && typeof $replyRef !== 'string')}
+        <div class="publish-quote publish-quote--reply">
+          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
+            <X color="#fff" size="18"></X>
+          </button>
 
-
-      <div class="publish-form-continue-mode">
-        <div class="publish-form-continue-mode-input" class:checked={isContinueMode}>
-          <input id="continue_mode" type="checkbox" bind:checked={isContinueMode}>
-          <label for="continue_mode">{$_('continuous_mode')}</label>
-        </div>
-      </div>
-
-      <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}>{$_('publish_button_send')}</button>
-    </div>
-
-    {#if $agents.size > 1}
-      <div class="publish-form-agents-selector">
-        <AgentsSelector
-            {_agent}
-            isDisabled={isAccountSelectDisabled}
-            on:select={handleAgentSelect}
-            style={'publish'}
-        ></AgentsSelector>
-      </div>
-    {/if}
-
-    {#if ($replyRef && typeof $replyRef !== 'string')}
-      <div class="publish-quote publish-quote--reply">
-        <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
-          <X color="#fff" size="18"></X>
-        </button>
-
-        <div class="timeline-external timeline-external--record timeline-external--record-publish">
-          <div class="timeline-external__image timeline-external__image--round">
-            {#if ($replyRef.data.parent.author.avatar)}
-              <img src="{$replyRef.data.parent.author.avatar}" alt="">
-            {/if}
-          </div>
-
-          <div class="timeline-external__content">
-            <div class="timeline__meta timeline__meta--member">
-              <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
-
-              <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
+          <div class="timeline-external timeline-external--record timeline-external--record-publish">
+            <div class="timeline-external__image timeline-external__image--round">
+              {#if ($replyRef.data.parent.author.avatar)}
+                <img src="{$replyRef.data.parent.author.avatar}" alt="">
+              {/if}
             </div>
 
-            <p class="timeline-external__description">
-              {$replyRef.data.parent.record.text}
-            </p>
-          </div>
+            <div class="timeline-external__content">
+              <div class="timeline__meta timeline__meta--member">
+                <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
 
-          <span class="timeline-external__icon">
+                <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
+              </div>
+
+              <p class="timeline-external__description">
+                {$replyRef.data.parent.record.text}
+              </p>
+            </div>
+
+            <span class="timeline-external__icon">
 
             </span>
+          </div>
         </div>
-      </div>
-    {/if}
+      {/if}
 
-    <div class="publish-form"
-         class:publish-form--expand={$isPublishFormExpand}
-         class:publish-form--dragover={isDragover}
-         on:dragover|preventDefault
-         on:drop|preventDefault={handleDrop}
-         on:dragenter|preventDefault={handleDragover}
-         on:dragleave|preventDefault={handleDragleave}
-    ><Tiptap
-          bind:text={publishContent}
-          bind:json={publishContentJson}
-          bind:this={editor}
-          on:publish={() => {publish()}}
-          on:focus={handleOpen}
-          on:upload={uploadContextOpen}
+      <div class="publish-form"
+           class:publish-form--expand={$isPublishFormExpand}
+           class:publish-form--dragover={isDragover}
+           on:dragover|preventDefault
+           on:drop|preventDefault={handleDrop}
+           on:dragenter|preventDefault={handleDragover}
+           on:dragleave|preventDefault={handleDragleave}
+      ><Tiptap
+              bind:text={publishContent}
+              bind:json={publishContentJson}
+              bind:this={editor}
+              on:publish={() => {publish()}}
+              on:focus={handleOpen}
+              on:upload={uploadContextOpen}
       >
         <div class="publish-upload">
           {#if (images.length)}
@@ -777,6 +778,7 @@ function handleAgentSelect(event) {
           {/if}
         </div>
       </Tiptap>
+      </div>
     </div>
   </div>
 </section>
@@ -869,6 +871,12 @@ function handleAgentSelect(event) {
             border-radius: 0;
             min-height: calc(100% + 1px);
         }
+    }
+
+    .publish-wrap-container {
+        max-width: 740px;
+        width: 100%;
+        margin: 0 auto;
     }
 
     .publish-sp-open {
@@ -1097,9 +1105,7 @@ function handleAgentSelect(event) {
     }
 
     .publish-form-agents-selector {
-        max-width: 740px;
-        width: 100%;
-        margin: 0 auto;
+
     }
 
     .publish-length {
