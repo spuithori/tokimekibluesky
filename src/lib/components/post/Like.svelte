@@ -15,6 +15,7 @@
   let timeoutId;
 
   let isProcessed: boolean = false;
+  let isTransition: boolean = false;
   $: handleLikeChange($pulseLike);
 
   function handleLikeChange(data) {
@@ -37,6 +38,7 @@
 
   export async function vote(cid: string, uri: string, likeViewer) {
       isProcessed = true;
+      isTransition = true;
 
       if (!likeViewer) {
           count = count + 1;
@@ -55,8 +57,8 @@
           const like = await _agent.setVote(cid, uri, likeViewer || '');
 
           try {
-              isProcessed = false;
               likeViewer = like?.uri || undefined;
+              isProcessed = false;
 
               pulseLike.set({
                   uri: uri,
@@ -97,13 +99,15 @@
   }
 </script>
 
-<button class="timeline-reaction__item timeline-reaction__item--like" disabled="{isProcessed}" on:click="{() => vote(cid, uri, likeViewer)}">
+<button
+    class="timeline-reaction__item timeline-reaction__item--like"
+    class:timeline-reaction__item--transition={isTransition}
+    class:timeline-reaction__item--active={likeViewer}
+    disabled="{isProcessed}"
+    on:click="{() => vote(cid, uri, likeViewer)}"
+>
   <span class="timeline-reaction__icon" aria-label="いいね">
-    {#if (likeViewer)}
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="var(--timeline-reaction-liked-icon-color)" stroke="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-    {:else}
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="var(--timeline-reaction-like-icon-color)" stroke="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-    {/if}
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="var(--timeline-reaction-like-icon-color)" stroke="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart" on:animationend={() => {isTransition = false}}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
   </span>
 
   {#if showCounts}
@@ -125,6 +129,35 @@
                     fill: var(--timeline-reaction-like-icon-hover-color);
                 }
             }
+        }
+
+        &--active {
+            svg {
+                fill: var(--timeline-reaction-liked-icon-color);
+            }
+        }
+
+        &--transition {
+            svg {
+                fill: var(--timeline-reaction-liked-icon-color);
+                animation: ease-out .5s like-in forwards;
+            }
+        }
+
+        &:active {
+            svg {
+                transform: scale(.85);
+            }
+        }
+    }
+
+    @keyframes like-in {
+        0% {
+            transform: scale(1.35);
+        }
+
+        100% {
+            transform: scale(1);
         }
     }
 </style>

@@ -169,18 +169,6 @@
             margin-bottom: 6px;
         }
 
-        &__content {
-
-        }
-
-        &--name {
-            margin-bottom: 30px;
-
-            @media (max-width: 767px) {
-                margin-bottom: 20px;
-            }
-        }
-
         &__input {
             border: 1px solid var(--border-color-1);
             border-radius: 4px;

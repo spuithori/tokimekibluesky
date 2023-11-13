@@ -145,31 +145,6 @@
           }
       }
 
-      &__post {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background-color: rgba(0, 0, 0, .6);
-          display: grid;
-          place-content: center;
-          z-index: 30;
-          padding: 5px;
-
-          @media (max-width: 767px) {
-              width: 28px;
-              height: 28px;
-              padding: 8px;
-          }
-
-          svg {
-              width: 100%;
-              height: auto;
-          }
-      }
-
       &__count {
           color: #fff;
           background-color: rgba(0, 0, 0, .5);
