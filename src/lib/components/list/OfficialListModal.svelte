@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, userLists} from '$lib/stores';
+    import {agent} from '$lib/stores';
     import {onMount} from "svelte";
     import ListMember from "./ListMember.svelte";
     import {createEventDispatcher} from 'svelte';
@@ -12,8 +12,6 @@
     export let _agent = $agent;
     let isDisabled = false;
     export let uri = '';
-
-    export let id = new Date().getTime().toString();
     let name = 'new list';
     let members = [];
     let existingMembers = [];
@@ -25,8 +23,6 @@
     let importText = '';
 
     onMount(async () => {
-        /* exportText = JSON.stringify(members.map(member => member.did)) */
-
         isDisabled = true;
 
         try {
@@ -302,41 +298,6 @@
       </div>
     {/if}
 
-    <!-- <details class="list-modal-accordion list-modal-import-export">
-      <summary class="list-modal-accordion__title">{$_('import_export')}</summary>
-
-      <div class="list-modal-accordion__content">
-        <dl class="list-modal-group list-modal-export">
-          <dt class="list-modal-group__name">
-            {$_('export_clipboard_copy')}
-          </dt>
-
-          <dd class="list-modal-group__content">
-            <div class="list-modal-import-export-group">
-              <input type="text" readonly class="list-modal-group__input" bind:value={exportText}>
-              <button class="button button--sm" on:click={exporting}><svg xmlns="http://www.w3.org/2000/svg" width="14.417" height="18" viewBox="0 0 14.417 18">
-                <path id="clipboard" d="M6.532,2.345a2.7,2.7,0,0,1,5.352,0l1.829.36v.9h.9a1.8,1.8,0,0,1,1.8,1.8V16.221a1.8,1.8,0,0,1-1.8,1.8H3.8a1.8,1.8,0,0,1-1.8-1.8V5.409a1.807,1.807,0,0,1,1.8-1.8h.9v-.9l1.829-.36ZM4.7,5.409H3.8V16.221H14.615V5.409h-.9v.9H4.7Zm4.505-1.8a.9.9,0,1,0-.9-.9A.9.9,0,0,0,9.208,3.606Z" transform="translate(-2 -0.023)" fill="var(--bg-color-1)"/>
-              </svg></button>
-            </div>
-          </dd>
-        </dl>
-
-        <dl class="list-modal-group list-modal-import">
-          <dt class="list-modal-group__name">
-            {$_('import')}<br>
-            <span class="text-danger">{$_('overwrite_current_member')}</span>
-          </dt>
-
-          <dd class="list-modal-group__content">
-            <div class="list-modal-import-export-group">
-              <input type="text" class="list-modal-group__input" bind:value={importText}>
-              <button class="button button--sm" on:click={importing}>{$_('import')}</button>
-            </div>
-          </dd>
-        </dl>
-      </div>
-    </details> -->
-
     <div class="list-modal-close">
       <button class="button button--sm" on:click={save} disabled={isDisabled}>{$_('save_button')}</button>
       <button class="button button--sm button--border button--danger" on:click={remove}>{$_('cancel')}</button>
@@ -365,26 +326,12 @@
             margin-bottom: 6px;
         }
 
-        &__content {
-
-        }
-
         &--name {
             margin-bottom: 30px;
 
             @media (max-width: 767px) {
                 margin-bottom: 20px;
             }
-        }
-
-        &__input {
-            border: 1px solid var(--border-color-1);
-            border-radius: 4px;
-            height: 40px;
-            padding: 0 10px;
-            width: 100%;
-            background-color: var(--bg-color-2);
-            color: var(--text-color-1);
         }
     }
 
@@ -455,32 +402,5 @@
         padding: 0 10px 0 40px;
         width: 100%;
         color: var(--text-color-1);
-    }
-
-    .list-modal-import-export {
-        margin-top: 20px;
-    }
-
-    .list-modal-accordion {
-        border: 1px solid var(--border-color-1);
-        border-radius: 4px;
-        padding: 10px;
-
-        &__title {
-            cursor: pointer;
-        }
-
-        &__content {
-            margin-top: 20px;
-        }
-    }
-
-    .list-modal-export {
-        margin-bottom: 15px;
-    }
-
-    .list-modal-import-export-group {
-        display: flex;
-        gap: 10px;
     }
 </style>
