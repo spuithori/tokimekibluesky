@@ -226,7 +226,7 @@ html {
     overflow-y: scroll;
 
     &:has(.decks) {
-        overflow-y: none;
+        overflow-y: hidden;
     }
 }
 
