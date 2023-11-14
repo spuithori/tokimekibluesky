@@ -81,6 +81,12 @@ $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
 $: onPublishContentChange(publishContent);
 $: isPublishEnabled = publishContentLength > 300;
 
+$: if (isFocus) {
+  document.documentElement.classList.add('scroll-lock');
+} else {
+  document.documentElement.classList.remove('scroll-lock');
+}
+
 function onPublishContentChange(text) {
     clearTimeout(timer);
     timer = setTimeout(async () => {
@@ -801,7 +807,7 @@ function handleAgentSelect(event) {
 
         @media (max-width: 767px) {
             overflow: auto;
-            overscroll-behavior: contain;
+            overscroll-behavior: none;
             z-index: 2000;
         }
 
@@ -869,7 +875,7 @@ function handleAgentSelect(event) {
             background-color: var(--bg-color-1);
             border: 1px solid var(--border-color-1);
             border-radius: 0;
-            min-height: calc(100% + 1px);
+            min-height: 100%;
         }
     }
 

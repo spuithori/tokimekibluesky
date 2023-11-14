@@ -65,8 +65,4 @@ img {
 
 .scroll-lock {
     overflow: hidden;
-
-    .side {
-        backdrop-filter: none !important;
-    }
 }
