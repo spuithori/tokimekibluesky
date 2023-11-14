@@ -234,6 +234,7 @@
             scroll-snap-align: start;
             scroll-snap-stop: always;
             box-shadow: none;
+            height: calc(100dvh - 48px);
         }
 
         &__content {
