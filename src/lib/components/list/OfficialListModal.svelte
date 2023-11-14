@@ -135,9 +135,9 @@
             if (uri) {
                 const rkey = uri.split('/').slice(-1)[0];
 
-                await $agent.agent.api.com.atproto.repo.putRecord(
+                await _agent.agent.api.com.atproto.repo.putRecord(
                     {
-                        repo: $agent.did(),
+                        repo: _agent.did(),
                         rkey: rkey,
                         collection: 'app.bsky.graph.list',
                         record: {
