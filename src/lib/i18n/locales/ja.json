@@ -508,5 +508,8 @@
   "layout_decks_description": "画面に複数のカラムを並べて表示できるモードです。たくさんのタイムラインや通知を一目で確認したい上級者におすすめ。",
   "welcome_to_tokimeki_close": "つかいはじめる",
   "image_save_success": "画像を保存しました",
-  "send_placeholder_reply": "{name} さんのときめくメッセージを返信"
+  "send_placeholder_reply": "{name} さんのときめくメッセージを返信",
+  "liked_your_post_multiple": "他がいいね",
+  "reposted_your_post_multiple": "他がリポスト",
+  "reposted_users": "リポストした人"
 }

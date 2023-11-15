@@ -220,6 +220,11 @@
     function clearColumn() {
         $columns[index].data.feed = [];
         $columns[index].data.cursor = '';
+
+        if (column.algorithm.type === 'notification') {
+            $columns[index].data.feedPool = [];
+            $columns[index].data.notificationGroup = [];
+        }
         handleClickClose();
     }
 </script>
@@ -290,17 +295,19 @@
                     </dd>
                 </dl>
 
-                <dl class="settings-group">
-                    <dt class="settings-group__name">
-                        {$_('refresh_to_top')}
-                    </dt>
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread')}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('refresh_to_top')}
+                        </dt>
 
-                    <dd class="settings-group__content">
-                        <div class="input-toggle">
-                            <input class="input-toggle__input" type="checkbox" id={column.id + 'refreshToTop'} bind:checked={refreshToTop}><label class="input-toggle__label" for={column.id + 'refreshToTop'}></label>
-                        </div>
-                    </dd>
-                </dl>
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'refreshToTop'} bind:checked={refreshToTop}><label class="input-toggle__label" for={column.id + 'refreshToTop'}></label>
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
 
                 <dl class="settings-group">
                     <dt class="settings-group__name">
@@ -328,17 +335,19 @@
                     {/if}
                 {/if}
 
-                <dl class="settings-group">
-                    <dt class="settings-group__name">
-                        {$_('auto_scroll')}
-                    </dt>
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread')}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('auto_scroll')}
+                        </dt>
 
-                    <dd class="settings-group__content">
-                        <div class="input-toggle">
-                            <input class="input-toggle__input" type="checkbox" id={column.id + 'autoScroll'} bind:checked={autoScroll}><label class="input-toggle__label" for={column.id + 'autoScroll'}></label>
-                        </div>
-                    </dd>
-                </dl>
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'autoScroll'} bind:checked={autoScroll}><label class="input-toggle__label" for={column.id + 'autoScroll'}></label>
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
 
                 {#if (autoScroll)}
                     <dl class="settings-group">

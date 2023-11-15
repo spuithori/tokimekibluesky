@@ -8,9 +8,10 @@
     export let blobs: any[] = [];
     export let _agent = $agent;
     export let did = '';
+    export let folding = false;
 
     let galleryImages = [];
-    let isFold = $settings?.design.postsImageLayout === 'folding' || $isDataSaving;
+    let isFold = $settings?.design.postsImageLayout === 'folding' || $isDataSaving || folding;
     let isOpen = false;
 
     for (const image of images) {

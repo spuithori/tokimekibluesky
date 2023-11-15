@@ -5,8 +5,8 @@
   "quote_post": "Quote post",
   "show_thread": "Show thread",
   "translation": "Translate",
-  "liked_your_post": "Liked your post",
-  "reposted_your_post": "Reposted your post",
+  "liked_your_post": "liked your post",
+  "reposted_your_post": "reposted your post",
   "quoted_your_post": "Quoted your post",
   "replied_your_post": "Replied your post",
   "followed_you": "Followed you",
@@ -507,5 +507,8 @@
   "layout_decks_description": "This mode allows multiple columns to be displayed side by side on the screen. Recommended for advanced users who want to check many timelines and notifications at a glance.",
   "welcome_to_tokimeki_close": "START!!",
   "image_save_success": "Image saved.",
-  "send_placeholder_reply": "Reply to {name}"
+  "send_placeholder_reply": "Reply to {name}",
+  "liked_your_post_multiple": "and others liked",
+  "reposted_your_post_multiple": "and others reposted",
+  "reposted_users": "Reposted users"
 }

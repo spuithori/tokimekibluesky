@@ -16,5 +16,15 @@
 </script>
 
 <div class="timeline">
-  <Notification isPage={true} {_agent} on:update={handleCountUpdate} on:change={handleFilterChange} bind:notifications={column.data.feed} bind:cursor={column.data.cursor} filter={column.filter || ['like', 'repost', 'reply', 'mention', 'quote', 'follow']}></Notification>
+  <Notification
+          isPage={true}
+          {_agent}
+          on:update={handleCountUpdate}
+          on:change={handleFilterChange}
+          bind:notifications={column.data.feed}
+          bind:cursor={column.data.cursor}
+          bind:feedPool={column.data.feedPool}
+          bind:notificationGroup={column.data.notificationGroup}
+          filter={column.filter || ['like', 'repost', 'reply', 'mention', 'quote', 'follow']}
+  ></Notification>
 </div>

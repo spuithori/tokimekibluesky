@@ -12,14 +12,14 @@
 
   $: {
       if (isOpen) {
-          document.body.classList.add('scroll-lock');
+          document.documentElement.classList.add('scroll-lock');
       } else {
-          document.body.classList.remove('scroll-lock');
+          document.documentElement.classList.remove('scroll-lock');
       }
   }
 
   onDestroy(() => {
-      document.body.classList.remove('scroll-lock');
+      document.documentElement.classList.remove('scroll-lock');
   })
 </script>
 

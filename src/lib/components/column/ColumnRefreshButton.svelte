@@ -1,6 +1,7 @@
 <script lang="ts">
     import {agent, columns, settings, workerTimer, isRealtimeListenersModalOpen} from "$lib/stores";
     import {createEventDispatcher, onDestroy} from "svelte";
+    import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     const dispatch = createEventDispatcher();
 
     export let column;
@@ -20,11 +21,11 @@
 
     export async function refresh() {
         isRefreshing = true;
+        const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+        const elInitialPosition = el.scrollTop;
+
         if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList') {
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
-
-            const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
-            const elInitialPosition = el.scrollTop;
             const topEl = el.querySelector('.timeline__item');
 
             await columns.update(_columns => {
@@ -60,12 +61,28 @@
         } else if (column.algorithm.type === 'realtime') {
             return false;
         } else if (column.algorithm.type === 'notification') {
+            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+                limit: 25,
+                cursor: '',
+            });
+
+            const notifications = mergeNotifications([...res.data.notifications, ...column.data.feed]);
+            const { notifications: notificationGroup, feedPool: newFeedPool } = await getNotifications(notifications, true, _agent, column.data.feedPool || []);
+
+            await columns.update(_columns => {
+                _columns[index].data.feed = notifications;
+                _columns[index].data.notificationGroup = notificationGroup;
+                _columns[index].data.feedPool = newFeedPool;
+                // _columns[index].data.cursor = res.data.cursor;
+                return _columns;
+            });
+
+            el.scrollTo(0, 0);
+
             $columns[index].unreadCount !== 0
                 ? $columns[index].unreadCount = 0
                 : await _agent.getNotificationCount();
-            column.data.feed = [];
-            column.data.cursor = undefined;
-            unique = Symbol();
+
             await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
         } else {
             column.data.feed = [];
