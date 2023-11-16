@@ -201,7 +201,7 @@
     }
 
     export function setContent(content) {
-       editor.commands.setContent(content);
+       editor.commands.setContent(content, true);
     }
 </script>
 
