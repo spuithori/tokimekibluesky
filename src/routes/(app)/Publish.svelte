@@ -393,9 +393,11 @@ async function languageDetect(text = publishContent) {
 
 async function uploadBlobWithCompression(image) {
   const compressed = await imageCompression(image.file, {
-    maxSizeMB: 0.92,
-    maxWidthOrHeight: 2000,
+    maxSizeMB: 0.925,
+    //maxWidthOrHeight: 3000,
+    fileType: 'image/jpeg',
     useWebWorker: true,
+    initialQuality: 0.8,
   });
 
   return await _agent.agent.api.com.atproto.repo.uploadBlob(image.isGif ? image.file : compressed, {
