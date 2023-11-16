@@ -394,7 +394,7 @@ async function languageDetect(text = publishContent) {
 async function uploadBlobWithCompression(image) {
   const compressed = await imageCompression(image.file, {
     maxSizeMB: 0.925,
-    //maxWidthOrHeight: 3000,
+    maxWidthOrHeight: 3000,
     fileType: 'image/jpeg',
     useWebWorker: true,
     initialQuality: 0.8,

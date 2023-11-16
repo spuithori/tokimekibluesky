@@ -12,7 +12,7 @@
 </script>
 
 <div class="search">
-  <form action={path} method="get">
+  <form action={path} method="get" data-sveltekit-replacestate>
     <input type="text" name="q" required bind:value={search} bind:this={searchArea} placeholder="{$_(path + '_search')}">
     <button type="submit" class="search-submit" aria-label="Search">
       <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">
