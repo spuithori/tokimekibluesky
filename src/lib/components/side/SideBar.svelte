@@ -279,6 +279,14 @@
           place-content: center;
           right: -2px;
           top: -2px;
+
+          @media (max-width: 767px) {
+              top: 4px;
+              right: 2px;
+              width: 14px;
+              height: 14px;
+              font-size: 10px;
+          }
       }
   }
 </style>
