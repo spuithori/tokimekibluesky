@@ -9,8 +9,8 @@
   const params = data.url.searchParams;
   const isNomove = params.get('nomove') === 'true';
   const title = params.get('title') || '';
-  const text = params.get('text') ? '\n' + params.get('text') : '';
-  const url = params.get('url') ? '\n' + params.get('url') : '';
+  const text = params.get('text') ? '<br>' + params.get('text') : '';
+  const url = params.get('url') ? '<br><a href="' + params.get('url') + '">' + params.get('url') : '</a>';
 
   onMount(async () => {
       sharedText.set(decodeURIComponent(title) + decodeURIComponent(text) + decodeURIComponent(url));

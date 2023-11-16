@@ -162,7 +162,7 @@
         }
 
         setTimeout(() => {
-            editor.chain().insertContent(text).focus().run();
+            editor.chain().setContent(text, true).focus().run();
             sharedText.set('');
             dispatch('focus');
         }, 200);
