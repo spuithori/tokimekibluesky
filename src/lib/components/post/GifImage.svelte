@@ -2,17 +2,19 @@
     import {agent} from "$lib/stores";
     import {onMount} from "svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+    import {BskyAgent} from "@atproto/api";
 
     let url = '';
     export let did;
     export let _agent = $agent;
     export let blob;
     export let alt = '';
+    const __agent = new BskyAgent({service: _agent.service()});
 
     async function getUrlByBlob(blob) {
         try {
             const cid = blob.ref.toString();
-            const res = await _agent.agent.api.com.atproto.sync.getBlob({did: did as string, cid: cid});
+            const res = await __agent.api.com.atproto.sync.getBlob({did: did as string, cid: cid});
             const data = new Blob([res.data], {type: 'image/gif'});
 
             return URL.createObjectURL(data);

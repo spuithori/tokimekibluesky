@@ -4,12 +4,14 @@
     import {agent} from "$lib/stores";
     import TimelineItem from '../../../TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
+    import {BskyAgent} from "@atproto/api";
 
     export let author = '';
     let feeds = [];
     let cursor = '';
 
     export let data: LayoutData;
+    const _agent = new BskyAgent({service: $agent.service()});
 
     async function getFeedsFromRecords(records) {
         const uris = records.map(record => {
@@ -27,9 +29,9 @@
     }
 
     async function getRecords() {
-        return await $agent.agent.api.com.atproto.repo.listRecords({
+        return await _agent.api.com.atproto.repo.listRecords({
             collection: "app.bsky.feed.like",
-            limit: 10,
+            limit: 20,
             reverse: false,
             cursor: cursor,
             repo: data.params.handle});
@@ -41,7 +43,6 @@
 
         if (cursor) {
             feeds = [...feeds, ...await getFeedsFromRecords(likesArrayRes.data.records)];
-            console.log(feeds)
             loaded();
         } else {
             complete();

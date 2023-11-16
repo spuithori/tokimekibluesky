@@ -33,6 +33,12 @@ export class Agent {
         }
     }
 
+    service(): string | undefined {
+        if (this.agent.session) {
+            return this.agent.service.toString();
+        }
+    }
+
     async getTimeline(timelineOpt: timelineOpt = {limit: 20, cursor: '', type: 'default'}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
         try {
             let res;

@@ -7,7 +7,7 @@ import {page} from '$app/stores';
 import {format, parseISO} from 'date-fns';
 import ProfileCardWrapper from '../../ProfileCardWrapper.svelte';
 import toast from 'svelte-french-toast';
-import {RichText} from '@atproto/api';
+import {BskyAgent, RichText} from '@atproto/api';
 import addSingleList from "$lib/components/list/addSingleList";
 const dispatch = createEventDispatcher();
 
@@ -21,6 +21,7 @@ let isMenuOpen = false;
 let textArray;
 let unique = Symbol();
 let serviceHost = '';
+const _agent = new BskyAgent({service: $agent.service()});
 getServiceHost()
     .then(value => {
         serviceHost = value;
@@ -38,7 +39,7 @@ function detectTextArray(text) {
 }
 
 async function getFirstRecord(handle) {
-    return await $agent.agent.api.com.atproto.repo.listRecords({
+    return await _agent.api.com.atproto.repo.listRecords({
         collection: "app.bsky.feed.post",
         limit: 1,
         reverse: true,
