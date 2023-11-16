@@ -8,7 +8,7 @@
     let cursor = 0;
     import InfiniteLoading from "svelte-infinite-loading";
 
-    $: getSearchFeeds($page.url.searchParams.get('q'));
+    // $: getSearchFeeds($page.url.searchParams.get('q'));
 
     async function getFeedsFromRecords(uris) {
         const res = await $agent.agent.api.app.bsky.feed.getPosts({uris: uris});
@@ -77,15 +77,13 @@
     }
 </script>
 
-{#key $page.url.searchParams.get('q')}
-  <div class="timeline">
+<div class="timeline">
     {#each feeds as data (data)}
-      <TimelineItem data={ data } isPrivate={ true }></TimelineItem>
+        <TimelineItem data={ data } isPrivate={ true }></TimelineItem>
     {:else}
     {/each}
 
     <InfiniteLoading on:infinite={handleLoadMore}>
-      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+        <p slot="noMore" class="infinite-nomore">もうないよ</p>
     </InfiniteLoading>
-  </div>
-{/key}
+</div>

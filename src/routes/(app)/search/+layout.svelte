@@ -5,9 +5,18 @@ import SearchForm from "../SearchForm.svelte";
 import PageModal from "$lib/components/ui/PageModal.svelte";
 
 export let data: LayoutData;
+let unique = Symbol();
 
 let currentPage = data.url.pathname.split('/')[2] ?? 'posts';
 let q;
+
+function refresh(event) {
+  q = event.detail.q;
+
+  setTimeout(() => {
+    unique = Symbol();
+  }, 100);
+}
 </script>
 
 <PageModal>
@@ -28,21 +37,23 @@ let q;
   </div>
 
   <div class="search-form-wrap">
-    <SearchForm path={data.url.pathname} bind:search={q}></SearchForm>
+    <SearchForm path={data.url.pathname} bind:search={q} on:search={refresh}></SearchForm>
   </div>
 
-  {#key data.url.pathname}
-    <div class="page-search">
-      <ul class="profile-tab">
-        <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/search?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('posts')}</a></li>
-        <li class="profile-tab__item" on:click={() => currentPage = 'user'} class:profile-tab__item--active={currentPage === 'user'}><a href="/search/user?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('user')}</a></li>
-        <li class="profile-tab__item" on:click={() => currentPage = 'feeds'} class:profile-tab__item--active={currentPage === 'feeds'}><a href="/search/feeds?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('feeds')}</a></li>
-      </ul>
+  {#key unique}
+    {#key data.url.pathname}
+      <div class="page-search">
+        <ul class="profile-tab">
+          <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/search?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('posts')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'user'} class:profile-tab__item--active={currentPage === 'user'}><a href="/search/user?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('user')}</a></li>
+          <li class="profile-tab__item" on:click={() => currentPage = 'feeds'} class:profile-tab__item--active={currentPage === 'feeds'}><a href="/search/feeds?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('feeds')}</a></li>
+        </ul>
 
-      <div class="page-search-content">
-        <slot></slot>
+        <div class="page-search-content">
+          <slot></slot>
+        </div>
       </div>
-    </div>
+    {/key}
   {/key}
 </PageModal>
 
