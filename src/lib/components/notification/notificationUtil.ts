@@ -93,3 +93,13 @@ export function mergeNotifications(array: any[]) {
         }
     }, []);
 }
+
+export function removeNotificationsDuplication(notification: any[]) {
+    return notification.reduce((previousValue, currentValue) => {
+        if (!previousValue.some(item => currentValue?.author.did === item.author?.did)) {
+            return [...previousValue, currentValue];
+        } else {
+            return [...previousValue];
+        }
+    }, []);
+}

@@ -3,7 +3,7 @@
     import {Heart, Repeat2} from "lucide-svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
-    import {getReasonText} from "$lib/components/notification/notificationUtil";
+    import {getReasonText, removeNotificationsDuplication} from "$lib/components/notification/notificationUtil";
     import {AppBskyEmbedImages} from "@atproto/api";
     import Images from "../../../routes/(app)/Images.svelte";
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
@@ -23,6 +23,8 @@
             isRepostsOpen = true;
         }
     }
+
+    item.notifications = removeNotificationsDuplication(item.notifications);
 </script>
 
 <article class="notifications-item notifications-item--reaction notifications-item--{item.reason}">
@@ -44,7 +46,7 @@
 
         <div class="notification-column__content">
             <div class="notification-authors">
-                {#each item.notifications as notification}
+                {#each item.notifications as notification (notification)}
                     <div class="notification-author">
                         <Avatar href="/profile/{ notification.author.handle }" avatar={notification.author.avatar}
                                 handle={notification.author.handle} {_agent}></Avatar>
