@@ -2,6 +2,7 @@
     import {agent, columns, settings, workerTimer, isRealtimeListenersModalOpen} from "$lib/stores";
     import {createEventDispatcher, onDestroy} from "svelte";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
+    import {playSound} from "$lib/sounds";
     const dispatch = createEventDispatcher();
 
     export let column;
@@ -19,7 +20,7 @@
             : oldFeed.post.uri === newFeed.post.uri;
     }
 
-    export async function refresh() {
+    export async function refresh(isAutoRefresh: boolean = false) {
         isRefreshing = true;
         const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
         const elInitialPosition = el.scrollTop;
@@ -65,31 +66,54 @@
                 limit: 25,
                 cursor: '',
             });
+            let resNotifications = column.settings?.onlyShowUnread
+                    ? res.data.notifications.filter(notification => !notification.isRead)
+                    : res.data.notifications;
 
-            const notifications = mergeNotifications([...res.data.notifications, ...column.data.feed]);
+            if (!isAutoRefresh && column.settings?.onlyShowUnread) {
+                resNotifications = resNotifications.filter(notification => !column.data.feed.some(_notification => notification.uri === _notification.uri));
+            }
+
+            const notifications = mergeNotifications(column.settings?.onlyShowUnread ? [...resNotifications] : [...resNotifications, ...column.data.feed]);
+
             const { notifications: notificationGroup, feedPool: newFeedPool } = await getNotifications(notifications, true, _agent, column.data.feedPool || []);
 
             await columns.update(_columns => {
                 _columns[index].data.feed = notifications;
                 _columns[index].data.notificationGroup = notificationGroup;
                 _columns[index].data.feedPool = newFeedPool;
-                // _columns[index].data.cursor = res.data.cursor;
+
+                if (column.settings?.onlyShowUnread) {
+                    // _columns[index].data.cursor = '';
+                }
+
                 return _columns;
             });
 
+            if (column.settings?.onlyShowUnread) {
+                unique = Symbol();
+            }
+
             el.scrollTo(0, 0);
 
-            $columns[index].unreadCount !== 0
-                ? $columns[index].unreadCount = 0
-                : await _agent.getNotificationCount();
+            if (!isAutoRefresh) {
+                $columns[index].unreadCount !== 0
+                    ? $columns[index].unreadCount = 0
+                    : await _agent.getNotificationCount();
 
-            await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
+                await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
+            }
         } else {
             column.data.feed = [];
             column.data.cursor = undefined;
             unique = Symbol();
         }
 
+        if (column.settings?.playSound) {
+            playSound(column.algorithm.type === 'notification' ? column.data?.feed[0]?.indexedAt : column.data?.feed[0]?.post.indexedAt, column.lastRefresh, column.settings.playSound)
+        }
+
+        $columns[index].lastRefresh = new Date().toISOString();
         isRefreshing = false;
     }
 
@@ -131,7 +155,7 @@
     function handleTimer(e) {
         if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0) {
             if (e.data % Number(column.settings.autoRefresh) === 0) {
-                refresh();
+                refresh(true);
             }
         }
     }
@@ -151,7 +175,7 @@
         class:refresh-button--decks={$settings.design.layout === 'decks'}
         class:is-refreshing={isRefreshing}
         aria-label="Refresh"
-        on:click={refresh}
+        on:click={() => {refresh(false)}}
         disabled={isRefreshing}
     >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">

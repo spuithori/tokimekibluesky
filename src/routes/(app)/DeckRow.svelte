@@ -98,6 +98,8 @@
         if (column.scrollElement) {
             observer.observe(column.scrollElement);
         }
+
+        $columns[index].lastRefresh = new Date().toISOString();
     })
 
     onDestroy(() => {

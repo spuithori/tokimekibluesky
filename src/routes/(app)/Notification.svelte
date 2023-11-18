@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, realtime, settings} from '$lib/stores';
+    import {agent, realtime} from '$lib/stores';
     import { type AppBskyNotificationListNotifications } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
     import {createEventDispatcher} from "svelte";
@@ -10,6 +10,7 @@
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
     import {AtSign, Heart, Repeat2, UserPlus2} from 'lucide-svelte';
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
+    import {playSound} from "$lib/sounds";
 
     export let _agent = $agent;
     export let isPage = false;
@@ -21,6 +22,9 @@
     export let filter: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
     export let feedPool = [];
     export let notificationGroup = [];
+    export let isOnlyShowUnread = false;
+    export let sound = null;
+    export let lastRefresh = undefined;
     let unique = Symbol();
 
     async function getNotificationsFilter(setFilter: Filter[]) {
@@ -95,19 +99,22 @@
             limit: 10,
             cursor: '',
         });
+        const resNotifications = isOnlyShowUnread
+            ? res.data.notifications.filter(notification => !notification.isRead)
+            : res.data.notifications;
 
-        const _notifications = mergeNotifications([...res.data.notifications, ...notifications]);
+        const _notifications = mergeNotifications([...resNotifications, ...notifications]);
         const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(_notifications, true, _agent, feedPool || []);
 
         notifications = _notifications;
         notificationGroup = newNotificationGroup;
         feedPool = newFeedPool;
 
-        if ($settings?.general.se && count > 0) {
-            const se = new Audio('https://holybea.com/wp-content/uploads/2023/06/noti.mp3');
-            se.volume = 0.5;
-            se.play();
+        if (sound) {
+            playSound(notifications[0]?.indexedAt, lastRefresh, sound)
         }
+
+        lastRefresh = new Date().toISOString();
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
@@ -116,12 +123,16 @@
             cursor: cursor,
         });
         cursor = res.data.cursor;
+        const resNotifications = isOnlyShowUnread
+            ? res.data.notifications.filter(notification => !notification.isRead)
+            : res.data.notifications;
 
-        if (cursor) {
-            const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(res.data.notifications, true, _agent, feedPool);
-            notifications = [...notifications, ...res.data.notifications];
-            notificationGroup = [...notificationGroup, ...newNotificationGroup];
-            feedPool = newFeedPool;
+        const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, feedPool);
+        notifications = [...notifications, ...resNotifications];
+        notificationGroup = [...notificationGroup, ...newNotificationGroup];
+        feedPool = newFeedPool;
+
+        if (cursor && resNotifications.length) {
             loaded();
         } else {
             complete();
@@ -184,20 +195,37 @@
     {#key unique}
         <div class="notifications-list">
           {#each notificationGroup as item, index (item)}
-              {#if (filter.includes(item.reason))}
-                  {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-                      <TimelineItem {_agent} data={{post: item.feed || item.notifications[0]}}></TimelineItem>
-                  {:else if (item.reason === 'follow')}
-                      <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
-                  {:else}
-                      <NotificationReactionItem {_agent} {item}></NotificationReactionItem>
+              <div class="notifications-list__item">
+                  {#if item?.notifications[0]?.isRead === false}
+                      <span class="notifications-list__new"></span>
                   {/if}
-              {/if}
+
+                  {#if (filter.includes(item.reason))}
+                      {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+                          <TimelineItem {_agent} data={{post: item.feed || item.notifications[0]}}></TimelineItem>
+                      {:else if (item.reason === 'follow')}
+                          <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
+                      {:else}
+                          <NotificationReactionItem {_agent} {item}></NotificationReactionItem>
+                      {/if}
+                  {/if}
+              </div>
           {/each}
         </div>
 
         <InfiniteLoading on:infinite={handleLoadMore}>
-            <p slot="noMore" class="infinite-nomore">もうないよ</p>
+            <p slot="noMore" class="infinite-nomore">
+                {$_('no_more')}
+                {#if isOnlyShowUnread}
+                    <br>({$_('only_show_unread')})
+                {/if}
+            </p>
+            <p slot="noResults" class="infinite-nomore">
+                {$_('no_results')}
+                {#if isOnlyShowUnread}
+                    <br>({$_('only_show_unread')})
+                {/if}
+            </p>
         </InfiniteLoading>
     {/key}
 </div>
@@ -221,6 +249,20 @@
 
   .notifications-list {
       flex: 1;
+
+      &__item {
+          position: relative;
+      }
+
+      &__new {
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background-color: var(--primary-color);
+          right: -12px;
+          top: 4px;
+      }
   }
 
   .notifications-filter-list {

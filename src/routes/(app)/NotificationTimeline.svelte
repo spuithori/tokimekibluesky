@@ -19,12 +19,15 @@
   <Notification
           isPage={true}
           {_agent}
+          isOnlyShowUnread={column.settings?.onlyShowUnread}
+          sound={column.settings?.playSound}
           on:update={handleCountUpdate}
           on:change={handleFilterChange}
           bind:notifications={column.data.feed}
           bind:cursor={column.data.cursor}
           bind:feedPool={column.data.feedPool}
           bind:notificationGroup={column.data.notificationGroup}
+          bind:lastRefresh={column.lastRefresh}
           filter={column.filter || ['like', 'repost', 'reply', 'mention', 'quote', 'follow']}
   ></Notification>
 </div>

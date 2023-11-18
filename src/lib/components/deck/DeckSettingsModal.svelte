@@ -20,6 +20,8 @@
     let autoScrollSpeed = column.settings?.autoScrollSpeed || 'normal';
     let width = column.settings?.width || 'medium';
     let icon = column.settings?.icon || null;
+    let onlyShowUnread = column.settings?.onlyShowUnread || false;
+    let playSound = column.settings?.playSound || null;
 
     $: _settings = {
         timeline: {
@@ -34,11 +36,22 @@
         autoScrollSpeed: autoScrollSpeed,
         width: width,
         icon: icon,
+        onlyShowUnread: onlyShowUnread,
+        playSound: playSound,
     }
 
     $: apply(_settings);
 
     function apply(settings) {
+        if (column.algorithm?.type === 'notification') {
+            $columns[index].data = {
+                feed: [],
+                notificationGroup: [],
+                feedPool: [],
+                cursor: '',
+            }
+        }
+
         $columns[index] = { ...$columns[index], settings: settings }
     }
 
@@ -54,8 +67,37 @@
             refreshToTop: false,
             autoScroll: false,
             autoScrollSpeed: 'auto',
+            onlyShowUnread: false,
+            playSound: null,
         }
     }
+
+    const playSoundSettings = [
+        {
+            name: $_('play_sound_nothing'),
+            value: null,
+        },
+        {
+            name: 'Pirorin',
+            value: 'sound1',
+        },
+        {
+            name: 'Pirorin2',
+            value: 'sound2',
+        },
+        {
+            name: 'Pirorin3',
+            value: 'sound3',
+        },
+        {
+            name: 'Tettere',
+            value: 'sound4',
+        },
+        {
+            name: 'DoDon',
+            value: 'sound5',
+        },
+    ]
 
     const replySettings = [
         {
@@ -335,6 +377,24 @@
                     {/if}
                 {/if}
 
+                <dl class="settings-group">
+                    <dt class="settings-group__name">
+                        {$_('play_se')}
+                    </dt>
+
+                    <dd class="settings-group__content">
+                        <div class="form-select">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+
+                            <select class="form-select__select" bind:value={playSound}>
+                                {#each playSoundSettings as option}
+                                    <option value="{option.value}">{option.name}</option>
+                                {/each}
+                            </select>
+                        </div>
+                    </dd>
+                </dl>
+
                 {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
@@ -362,6 +422,20 @@
                                         <input type="radio" id={column.id + option.value} bind:group={autoScrollSpeed} name="{column.id}_autoscroll" value={option.value}><label for={column.id + option.value}>{option.name}</label>
                                     </div>
                                 {/each}
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
+
+                {#if (column.algorithm?.type === 'notification')}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('only_show_unread')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'onlyShowUnread'} bind:checked={onlyShowUnread}><label class="input-toggle__label" for={column.id + 'onlyShowUnread'}></label>
                             </div>
                         </dd>
                     </dl>

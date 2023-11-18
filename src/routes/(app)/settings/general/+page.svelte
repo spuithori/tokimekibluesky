@@ -110,20 +110,6 @@ $: {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('play_se')}
-      </dt>
-
-      <dd class="settings-group__content">
-        <div class="input-toggle">
-          <input class="input-toggle__input" type="checkbox" id="se" bind:checked={se}><label class="input-toggle__label" for="se"></label>
-        </div>
-
-        <p class="settings-group__description">{$_('play_se_description')}</p>
-      </dd>
-    </dl>
-
-    <dl class="settings-group">
-      <dt class="settings-group__name">
         {$_('dev_mode')}
       </dt>
 

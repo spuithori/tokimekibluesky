@@ -6,6 +6,7 @@
   import {getPostRealtime} from "$lib/realtime";
   import {getDbFollows} from "$lib/getActorsList";
   import {assignCursorFromLatest} from "$lib/components/column/releaseTimeline";
+  import {playSound} from "$lib/sounds";
 
   export let column;
   export let index;
@@ -39,6 +40,10 @@
                   realtimeCounter = 0;
                   assignCursorFromLatest(_agent, column);
               }
+
+            if (column.settings?.playSound) {
+              playSound(value?.post.indexedAt, column.lastRefresh, column.settings.playSound)
+            }
           });
   }
 

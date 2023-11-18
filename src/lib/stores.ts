@@ -32,6 +32,7 @@ type columns = {
     handle?: string,
     unreadCount?: number,
     filter?: string[],
+    lastRefresh?: string,
     settings: defaultDeckSettings,
     data: {
         feed: [],

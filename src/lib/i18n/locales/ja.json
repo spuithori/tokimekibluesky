@@ -244,7 +244,7 @@
   "/search_search": "キーワード検索",
   "/search/user_search": "ユーザー検索",
   "notifications": "通知",
-  "play_se": "リアルタイム通知の効果音を鳴らす",
+  "play_se": "新着サウンド",
   "play_se_description": "DECKSレイアウトでREALTIMEコラムと通知コラムを使用している場合のみ有効。",
   "settings_lang_filter": "言語フィルター",
   "lang_filter_description": "いずれにもチェックを入れていない場合、すべての投稿が表示されます。\n投稿につけられた言語ラベルで判定します。古いバージョンの公式アプリや、対応していないクライアントからの投稿はフィルタリングされません。",
@@ -300,7 +300,7 @@
   "add_thread_column": "カラムに追加",
   "read_more_thread": "スレッドをさらに読む",
   "show_replies": "リプライを表示",
-  "auto_scroll": "自動スクロール",
+  "auto_scroll": "自動スクロール（非推奨）",
   "error_thread_notfound": "スレッドを読み込めませんでした。投稿が削除されたか、ルートの投稿ユーザーをブロックしている・されている可能性があります。",
   "muted_user_embed": "ミュートしているユーザー/キーワードが含まれています。",
   "muted_user_thread": "スレッドにミュートしているユーザーが含まれています。",
@@ -511,5 +511,10 @@
   "send_placeholder_reply": "{name} さんのときめくメッセージを返信",
   "liked_your_post_multiple": "他がいいね",
   "reposted_your_post_multiple": "他がリポスト",
-  "reposted_users": "リポストした人"
+  "reposted_users": "リポストした人",
+  "only_show_unread": "未読の通知のみ表示",
+  "no_result_only_show_unread": "未読通知が表示されます",
+  "no_more": "もうないよ",
+  "no_results": "ないよ",
+  "play_sound_nothing": "オフ"
 }
