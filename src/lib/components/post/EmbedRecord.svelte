@@ -85,7 +85,7 @@
 
     {#if (AppBskyEmbedImages.isView(record.embeds[0]))}
       <div class="timeline-images-wrap timeline-images-wrap--record">
-        <Images images={record.embeds[0].images}></Images>
+        <Images images={record.embeds[0].images} blobs={record?.value?.embed.images} did={record.author.did}></Images>
       </div>
     {/if}
   </div>
