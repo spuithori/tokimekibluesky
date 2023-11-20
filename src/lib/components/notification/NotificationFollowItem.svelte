@@ -21,7 +21,7 @@
         <h2 class="notifications-item__title">
                 <span class="notifications-item__name">
                   <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
-                    <a href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+                    <a class="notifications-item__link" href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
                 </ProfileCardWrapper>
                 </span> {$_('followed_you')}
         </h2>

@@ -120,7 +120,7 @@
           justify-content: center;
           padding: 0 8px;
           border-radius: 10px;
-          background-color: var(--primary-color);
+          background-color: var(--acp-main-label-bg-color);
           color: #fff;
       }
   }

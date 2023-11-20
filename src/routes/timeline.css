@@ -151,18 +151,13 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-.timeline-repost-messages {
-    &:has(*) {
-        margin-bottom: 15px;
-    }
-}
-
 .timeline-repost-message {
     font-size: var(--timeline-repost-font-size);
     letter-spacing: .025em;
     line-height: 1.5;
     margin-left: 12px;
     margin-right: 32px;
+    margin-bottom: 12px;
 
     &__text {
         white-space: nowrap;

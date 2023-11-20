@@ -331,8 +331,10 @@
 
     /* Notification */
     --notification-highlight-color: var(--base-bg-color);
+    --notification-link-color: var(--link-color);
 
     /* Profile */
+    --acp-main-label-bg-color: var(--primary-color);
 
     /* ScrollBar */
     --scroll-bar-color: var(--primary-color);

@@ -98,6 +98,10 @@
             text-overflow: ellipsis;
         }
     }
+
+    &__link {
+        color: var(--notification-link-color);
+    }
 }
 
 .notifications-new {
