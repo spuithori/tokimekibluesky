@@ -515,5 +515,7 @@
   "no_result_only_show_unread": "Unread notifications are displayed",
   "no_more": "No more",
   "no_results": "Nothing",
-  "play_sound_nothing": "Off"
+  "play_sound_nothing": "Off",
+  "theme_store_supporter_recommend_1": "✨Limited theme for supporters is distributed at ",
+  "theme_store_supporter_recommend_2": "!"
 }

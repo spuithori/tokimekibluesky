@@ -59,6 +59,8 @@ onMount(async () => {
       </section>
     {/if}
 
+    <p class="theme-store-supporter-recommend">{$_('theme_store_supporter_recommend_1')}<a href="https://tokimeki.fanbox.cc/" target="_blank">pixivFANBOX</a>{$_('theme_store_supporter_recommend_2')}</p>
+
     <div class="theme-store-section only-mobile">
       <ul class="p-menu-nav p-menu-nav--2columns">
         <li class="p-menu-nav__item p-menu-nav__item--border">
@@ -89,11 +91,15 @@ onMount(async () => {
 
 <style lang="postcss">
   .theme-store-slider {
-      margin-bottom: 32px;
+      margin-bottom: 24px;
 
       img {
           width: 100%;
           height: auto;
       }
+  }
+
+  .theme-store-supporter-recommend {
+    margin-bottom: 16px;
   }
 </style>
