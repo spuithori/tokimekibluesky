@@ -74,7 +74,7 @@
 
     <li class="side-nav__item">
       <a href="/search" class="side-nav__button">
-        <Search color="var(--nav-primary-icon-color)"></Search>
+        <Search color="var(--bar-bottom-icon-color)"></Search>
       </a>
     </li>
   {/if}
@@ -105,7 +105,9 @@
           transition: background-color .2s linear;
 
           &:hover {
-              background-color: var(--bg-color-1);
+              &::after {
+                  opacity: 1;
+              }
           }
 
           &::before {
@@ -124,6 +126,21 @@
               transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
           }
 
+        &::after {
+            content: '';
+            display: block;
+            position: absolute;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            top: 6px;
+            border-radius: var(--border-radius-2);
+            background-color: var(--side-nav-hover-bg-color);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity .25s cubic-bezier(0, 0, 0.18, 1);
+        }
+
           &--current {
               &::before {
                   transform: scaleX(1);
@@ -141,10 +158,6 @@
           }
 
           .side-nav__button {
-              &:hover {
-                  background-color: var(--bg-color-2);
-              }
-
               &::before {
                   content: none;
               }

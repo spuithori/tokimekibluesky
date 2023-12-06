@@ -123,7 +123,7 @@
 }
 
 .deck-divider {
-    width: 414px;
+    width: var(--deck-divider-width);
     flex-shrink: 0;
 
     @media (max-width: 767px) {

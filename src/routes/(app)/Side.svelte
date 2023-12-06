@@ -59,7 +59,7 @@
       grid-template-columns: 64px 340px;
       padding-top: 8px;
       padding-bottom: 4px;
-      padding-right: 8px;
+      padding-right: var(--side-padding-right, 8px);
       position: fixed;
       top: 0;
       bottom: 0;
@@ -168,6 +168,7 @@
       flex: 1;
       overflow-y: auto;
       max-height: calc(100svh - 60px);
+      box-shadow: var(--side-box-shadow);
 
       @media (max-width: 767px) {
           border: none;

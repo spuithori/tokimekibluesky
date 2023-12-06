@@ -105,13 +105,15 @@
       gap: var(--decks-gap);
       overflow-x: auto;
       padding: var(--decks-padding) 0;
-      height: 100dvh;
-      scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
-      scrollbar-width: thin;
+      margin: var(--decks-margin) var(--decks-margin) var(--decks-margin) 0;
+      height: calc(100dvh - var(--decks-margin, 0px) * 2);
+      flex: var(--decks-flex, initial);
+      background-color: var(--decks-bg-color, transparent);
+      border-radius: var(--decks-border-radius, 0);
 
       &::-webkit-scrollbar {
           /* display: none; */
-          height: 6px;
+          height: 8px;
 
           @media (max-width: 767px) {
               display: none;
@@ -120,12 +122,10 @@
 
       &::-webkit-scrollbar-thumb {
           background: var(--scroll-bar-color);
-          border-radius: 3px;
       }
 
       &::-webkit-scrollbar-track {
           background: var(--scroll-bar-bg-color);
-          border-radius: 3px;
       }
 
       @media (max-width: 767px) {
@@ -133,13 +133,14 @@
           top: 85px;
           padding: 0;
           height: calc(100dvh - 48px);
+          margin: 0;
       }
 
       &--left-sidebar {
           @media (min-width: 768px) {
               left: 360px;
               /* width: calc(100vw - 360px); */
-              height: 100dvh;
+              height: calc(100dvh - var(--decks-margin) * 2);
               z-index: auto;
               position: static;
           }

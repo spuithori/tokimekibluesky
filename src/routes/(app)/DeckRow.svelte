@@ -215,6 +215,7 @@
         scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
         scrollbar-width: thin;
         backdrop-filter: var(--deck-content-backdrop-filter);
+        border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
 
         &::-webkit-scrollbar {
             width: 6px;

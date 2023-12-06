@@ -43,6 +43,9 @@
     --base-bg-color: #fff;
     --base-dark-bg-color: #110306;
 
+    --base-bg-image: none;
+    --base-dark-bg-image: none;
+
     --bg-color-1: #fff;
     --bg-color-2: #fafafa;
     --bg-color-3: #f6f6f6;

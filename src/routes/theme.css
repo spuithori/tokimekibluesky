@@ -201,11 +201,14 @@
     /* Main */
     --app-bg-color: var(--base-bg-color);
     --app-color: var(--text-color-1);
-    --app-bg-image: none;
+    --app-bg-image: var(--base-bg-image);
 
     /* Side */
     --side-bg-color: var(--blurred-bg-color);
     --side-backdrop-filter: blur(8px);
+    --side-padding-right: 8px;
+    --side-box-shadow: none;
+    --side-nav-hover-bg-color: var(--bg-color-1);
 
     /* Bar */
     --bar-primary-icon-color: var(--primary-color);
@@ -233,6 +236,10 @@
     /* Deck */
     --decks-gap: 8px;
     --decks-padding: 4px;
+    --decks-margin: 0px;
+    --decks-flex: initial;
+    --decks-bg-color: transparent;
+    --decks-border-radius: 0;
     --deck-xxs-width: 280px;
     --deck-xs-width: 320px;
     --deck-s-width: 350px;
@@ -240,6 +247,7 @@
     --deck-l-width: 450px;
     --deck-xl-width: 500px;
     --deck-xxl-width: 550px;
+    --deck-divider-width: 414px;
     --deck-border-radius: var(--border-radius-4);
     --deck-border-color: var(--border-color-2);
     --deck-border-width: var(--default-border-width);
@@ -255,6 +263,7 @@
     --deck-heading-icon-size: var(--default-icon-size);
     --deck-heading-button-icon-primary-color: var(--primary-color);
     --deck-heading-button-icon-secondary-color: var(--text-color-3);
+    --deck-border-right: inherit;
 
     --deck-content-bg-color: var(--bg-color-1);
     --deck-content-backdrop-filter: none;
@@ -328,6 +337,7 @@
     --publish-post-button-box-shadow: none;
     --publish-post-button-border-radius: calc(var(--publish-post-button-height) / 2);
     --publish-post-button-color: var(--bg-color-1);
+    --publish-border: none;
 
     /* Notification */
     --notification-highlight-color: var(--base-bg-color);
@@ -342,4 +352,8 @@
 
     /* env */
     --safe-area-bottom: env(safe-area-inset-bottom);
+
+    &.darkmode {
+        --app-bg-image: var(--base-dark-bg-image);
+    }
 }

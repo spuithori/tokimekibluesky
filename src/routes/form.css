@@ -266,7 +266,7 @@
 
     &__select {
         border: 1px solid var(--border-color-1);
-        background-color: var(--base-bg-color);
+        background-color: var(--bg-color-2);
         height: 40px;
         border-radius: 4px;
         width: 100%;

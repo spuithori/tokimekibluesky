@@ -171,7 +171,7 @@
                     class="theme-picker__button"
                     on:click={() => {themePick = color.id}}
                     aria-label=""
-                    style:background-color={color.colorCode}></button>
+                    style:background={color.colorCode}></button>
               </li>
             {/each}
           {/if}

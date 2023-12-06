@@ -55,7 +55,7 @@
         cursor: pointer;
         border-radius: 4px;
         background-color: var(--bg-color-1);
-        border: 2px solid var(--border-color-2);
+        border: 1px solid var(--border-color-2);
         color: var(--text-color-1);
         z-index: 20;
 
@@ -68,6 +68,7 @@
             font-size: 14px;
             border-bottom: 2px solid var(--primary-color);
             background-color: var(--bg-color-2);
+            margin-bottom: 8px;
 
             .agents-selector {
                 border: none;
@@ -132,11 +133,11 @@
         }
 
         &__choices {
-            border: 2px solid var(--border-color-2);
+            border: 1px solid var(--border-color-2);
             box-shadow: 0 0 10px var(--box-shadow-color-2);
-            margin-left: -2px;
-            margin-right: -2px;
-            margin-top: -2px;
+            margin-left: -1px;
+            margin-right: -1px;
+            margin-top: -1px;
         }
     }
 </style>

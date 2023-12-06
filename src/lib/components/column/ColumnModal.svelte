@@ -145,7 +145,7 @@
                 padding: 16px;
                 border-radius: 6px;
                 border: 2px solid var(--primary-color);
-                background-color: var(--base-bg-color);
+                background-color: var(--bg-color-2);
 
                 @media (max-width: 767px) {
                     padding: 10px;
