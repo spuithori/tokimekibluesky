@@ -98,7 +98,7 @@
           right: 20px;
           top: calc(16px);
           bottom: 0;
-          background-color: var(--base-bg-color);
+          background-color: var(--bg-color-3);
           width: 52px;
       }
 
