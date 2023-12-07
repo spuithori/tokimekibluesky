@@ -27,9 +27,9 @@
             });
             tempFeeds = tempFeeds;
 
-            if (cursor) {
-                feeds = [...feeds, ...tempFeeds];
+            feeds = [...feeds, ...tempFeeds];
 
+            if (cursor) {
                 loaded();
             } else {
                 complete();
