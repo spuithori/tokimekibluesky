@@ -962,8 +962,6 @@
 }
 
 .page-search {
-    border-left: 1px solid var(--border-color-2);
-    border-right: 1px solid var(--border-color-2);
     background-color: var(--bg-color-1);
 }
 

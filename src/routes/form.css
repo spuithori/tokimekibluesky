@@ -161,12 +161,16 @@
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+
+    &--grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, 75px);
+    }
 }
 
 .icons-radio {
     position: relative;
     display: flex;
-    align-items: center;
 
     input {
         width: 0;
@@ -230,6 +234,7 @@
 
     &--skin {
         letter-spacing: -.025em;
+        line-height: 1.3;
 
         input {
             &:checked {

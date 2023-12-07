@@ -257,6 +257,10 @@
     background-color: rgba(0, 0, 0, .5);
     padding: 50px 0;
 
+    &--transparent-bg {
+        background-color: rgba(0, 0, 0, 0);
+    }
+
     @media (max-width: 767px) {
         display: block;
         overscroll-behavior-y: none;
@@ -267,6 +271,8 @@
 .settings-modal-content {
     border-radius: 10px;
     background-color: var(--bg-color-1);
+    border: 1px solid var(--border-color-1);
+    box-shadow: rgba(0, 0, 0, 0.07) 0 1px 2px, rgba(0, 0, 0, 0.07) 0 2px 4px, rgba(0, 0, 0, 0.07) 0 4px 8px, rgba(0, 0, 0, 0.07) 0 8px 16px, rgba(0, 0, 0, 0.07) 0 16px 32px, rgba(0, 0, 0, 0.07) 0 32px 64px;
     width: 800px;
     max-width: 100vw;
     height: 90vh;
@@ -296,5 +302,7 @@
         width: 100%;
         height: 100dvh;
         border-radius: 0;
+        border: none;
+        box-shadow: none;
     }
 }

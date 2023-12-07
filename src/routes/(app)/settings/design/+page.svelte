@@ -120,7 +120,7 @@
       </dt>
 
       <dd class="settings-group__content">
-        <div class="icons-radio-group">
+        <div class="icons-radio-group icons-radio-group--grid">
           {#each builtInThemes as _skin}
             <div class="icons-radio icons-radio--skin">
               <input type="radio" bind:group={skin} id="skin_{_skin.id}" name="skin" value={_skin.name}>

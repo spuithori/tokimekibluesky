@@ -518,5 +518,7 @@
   "no_results": "ないよ",
   "play_sound_nothing": "オフ",
   "theme_store_supporter_recommend_1": "✨",
-  "theme_store_supporter_recommend_2": "にて、サポーター向け限定テーマを配布しています！"
+  "theme_store_supporter_recommend_2": "にて、サポーター向け限定テーマを配布しています！",
+  "no_results_search": "検索結果がありません。",
+  "settings_design_in_themes": "デザイン設定"
 }

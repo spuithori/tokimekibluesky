@@ -114,14 +114,6 @@
       </ul>
     {/key}
   </section>
-
-  <section class="side-profile-profiles">
-    <h3 class="p-menu-title">{$_('p_menu_user_suggest')}</h3>
-
-    <div class="side-search-content">
-      <SearchForm path="/search/user"></SearchForm>
-    </div>
-  </section>
 </div>
 
 <style lang="postcss">

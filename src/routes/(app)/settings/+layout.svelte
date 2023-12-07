@@ -88,7 +88,7 @@
   }
 </script>
 
-<div class="settings-modal">
+<div class="settings-modal" class:settings-modal--transparent-bg={$page.url.pathname === '/settings/design'}>
   <div class="settings-modal-content">
     <div class="settings-column" data-path="{data.pathname}">
       <div class="settings-toc">
