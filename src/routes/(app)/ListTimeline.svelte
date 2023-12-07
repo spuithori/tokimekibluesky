@@ -38,39 +38,15 @@
         })
         cursors = cursors;
         feedPool = feedPool.sort((a, b) => {
-            if (a.reason) {
-                if ( parseISO(a.reason.indexedAt).getTime() < parseISO(b.post.indexedAt).getTime()) {
-                    return 1;
-                }
-            }
-
-            if (b.reason) {
-                if ( parseISO(a.post.indexedAt).getTime() < parseISO(b.reason.indexedAt).getTime()) {
-                    return 1;
-                }
-            }
-
-            if ( parseISO(a.post.indexedAt).getTime() < parseISO(b.post.indexedAt).getTime()) {
-                return 1;
-            }
-
-            if ( parseISO(a.post.indexedAt).getTime() > parseISO(b.post.indexedAt).getTime()) {
-                return -1;
-            }
-
-            return 0;
+            return parseISO(b.reason ? b.reason.indexedAt : b.post.indexedAt).getTime() - parseISO(a.reason ? a.reason.indexedAt : a.post.indexedAt).getTime();
         });
+        // console.log(feedPool);
         feed = feedPool.slice(0, 20);
         feedPool = feedPool.slice(20);
-        console.log(feedPool);
 
         if (cursors.some(item => item.cursor !== undefined)) {
             await poolRecalc(feedPool);
 
-            /* timeline.update(function (tl) {
-                return [...tl, ...feed];
-            });
-            console.log($timeline) */
             column.data.feed = [...column.data.feed, ...feed];
 
             loaded();
