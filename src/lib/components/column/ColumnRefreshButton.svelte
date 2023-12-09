@@ -74,7 +74,7 @@
                 resNotifications = resNotifications.filter(notification => !column.data.feed.some(_notification => notification.uri === _notification.uri));
             }
 
-            const notifications = mergeNotifications(column.settings?.onlyShowUnread ? [...resNotifications] : [...resNotifications, ...column.data.feed]);
+            const notifications = mergeNotifications(column.settings?.onlyShowUnread ? [...resNotifications] : [...resNotifications, ...column.data.feed], !isAutoRefresh);
 
             const { notifications: notificationGroup, feedPool: newFeedPool } = await getNotifications(notifications, true, _agent, column.data.feedPool || []);
 
@@ -82,10 +82,6 @@
                 _columns[index].data.feed = notifications;
                 _columns[index].data.notificationGroup = notificationGroup;
                 _columns[index].data.feedPool = newFeedPool;
-
-                if (column.settings?.onlyShowUnread) {
-                    // _columns[index].data.cursor = '';
-                }
 
                 return _columns;
             });

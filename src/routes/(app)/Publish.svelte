@@ -789,15 +789,15 @@ function handleAgentSelect(event) {
       </div>
     </div>
   </div>
+
+  {#if (isAltModalOpen)}
+    <AltModal images={images} on:close={handleAltClose}></AltModal>
+  {/if}
+
+  {#if (isDraftModalOpen)}
+    <DraftModal {_agent} on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
+  {/if}
 </section>
-
-{#if (isAltModalOpen)}
-  <AltModal images={images} on:close={handleAltClose}></AltModal>
-{/if}
-
-{#if (isDraftModalOpen)}
-  <DraftModal {_agent} on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
-{/if}
 
 <style lang="postcss">
     .publish-group {

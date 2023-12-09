@@ -337,7 +337,7 @@
                     </dd>
                 </dl>
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('refresh_to_top')}
@@ -395,7 +395,7 @@
                     </dd>
                 </dl>
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('auto_scroll')}
@@ -441,7 +441,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('hide_repost_frequency')}
@@ -508,7 +508,19 @@
                     {/if}
                 {/if}
 
-                <button class="deck-column-delete-button deck-column-delete-button--clear" on:click={clearColumn}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eraser"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>{$_('clear_column_posts')}</button>
+                {#if (column.algorithm?.type === 'custom')}
+                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/feed/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--link-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>{$_('column_feed_info')}
+                    </a>
+                {/if}
+
+                {#if (column.algorithm?.type === 'officialList')}
+                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/lists/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--link-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>{$_('column_list_info')}
+                    </a>
+                {/if}
+
+                <button class="deck-column-delete-button deck-column-delete-button--clear" on:click={clearColumn}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eraser"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>{$_('clear_column_posts')}</button>
 
                 <button class="deck-column-delete-button" on:click={deleteColumn}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>{$_('delete_column')}</button>
             </div>
@@ -638,6 +650,10 @@
 
         &--clear {
             color: var(--text-color-3);
+        }
+
+        &--info {
+            color: var(--link-color);
         }
     }
 </style>

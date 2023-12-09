@@ -1,9 +1,8 @@
 import type {AppBskyFeedGetTimeline, AtpAgent} from '@atproto/api';
 import {AppBskyEmbedImages} from "@atproto/api";
 import toast from "svelte-french-toast";
-import {time} from "svelte-i18n";
 import type { currentAlgorithm } from "../app.d.ts";
-import {agent, preferences} from "$lib/stores";
+import {parseISO} from "date-fns";
 
 type timelineOpt = {
     limit: number,
@@ -71,7 +70,26 @@ export class Agent {
             case 'bookmark':
                 return await this.agent.api.app.bsky.feed.getPosts({uris: timelineOpt.uris || []});
             case 'like':
-                return await this.agent.api.app.bsky.feed.getActorLikes({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string})
+                return await this.agent.api.app.bsky.feed.getActorLikes({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string});
+            case 'search':
+                const res =  await this.agent.api.app.bsky.feed.searchPosts({q: timelineOpt.algorithm.algorithm, limit: timelineOpt.limit, cursor: timelineOpt.cursor});
+                let tempFeeds: any[] = [];
+                res.data.posts.forEach(post => {
+                    tempFeeds.push({
+                        post: post,
+                    })
+                });
+                tempFeeds = tempFeeds.filter(feed => feed.post?.indexedAt);
+                tempFeeds.sort((a, b) => {
+                    return parseISO(b.post.indexedAt).getTime() - parseISO(a.post.indexedAt).getTime();
+                });
+
+                return {
+                    data: {
+                        cursor: res.data.cursor,
+                        feed: tempFeeds,
+                    }
+                }
             default:
                 return await this.agent.api.app.bsky.feed.getTimeline({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
         }

@@ -84,9 +84,13 @@ export async function getNotifications(ctx, putBefore = false, _agent, currentFe
     };
 }
 
-export function mergeNotifications(array: any[]) {
+export function mergeNotifications(array: any[], isAllRead = false) {
     return array.reduce((previousValue, currentValue) => {
         if (!previousValue.some(item => currentValue?.uri === item.uri)) {
+            if (isAllRead) {
+                currentValue.isRead = true;
+            }
+
             return [...previousValue, currentValue];
         } else {
             return [...previousValue];

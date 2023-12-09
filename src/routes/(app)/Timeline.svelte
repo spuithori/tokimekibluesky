@@ -67,17 +67,22 @@
   }
 
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-      const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm});
-      column.data.cursor = res.data.cursor;
-      const feed = res.data.feed.map(item => {
-          item.memoryCursor = res.data.cursor;
-          return item;
-      });
-      column.data.feed = [...column.data.feed, ...feed];
+      try {
+          const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm});
+          column.data.cursor = res.data.cursor;
+          const feed = res.data.feed.map(item => {
+              item.memoryCursor = res.data.cursor;
+              return item;
+          });
+          column.data.feed = [...column.data.feed, ...feed];
 
-      if (column.data.cursor) {
-          loaded();
-      } else {
+          if (column.data.cursor) {
+              loaded();
+          } else {
+              complete();
+          }
+      } catch (e) {
+          console.error(e);
           complete();
       }
   }
