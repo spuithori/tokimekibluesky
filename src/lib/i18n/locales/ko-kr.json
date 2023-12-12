@@ -278,7 +278,7 @@
   "reply_settings_following": "팔로잉 한정",
   "reply_settings_me": "자신 한정",
   "hide_repost_frequency": "리포스트 표시 빈도",
-  "hide_reply_frequency": "리포스트 표시 빈도",
+  "hide_reply_frequency": "리플라이 표시 빈도",
   "deck_settings": "Individual column settings",
   "deck_settings_description": "Global settings are overwritten.",
   "settings_inherit": "Inherit global settings",
