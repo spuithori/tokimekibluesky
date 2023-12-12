@@ -35,6 +35,10 @@
         $agent.agent.api.app.bsky.actor.getProfile({actor: handle})
             .then(res => {
                 profile = res.data
+
+                if (profile.labels && Array.isArray(profile.labels)) {
+                  profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');
+                }
             })
     }
 

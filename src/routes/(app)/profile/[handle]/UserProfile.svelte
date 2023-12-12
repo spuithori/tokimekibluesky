@@ -60,6 +60,10 @@ async function getProfile(handle) {
 
     const res = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
     profile = res.data;
+
+    if (profile.labels && Array.isArray(profile.labels)) {
+        profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');
+    }
 }
 
 async function getServiceHost() {
