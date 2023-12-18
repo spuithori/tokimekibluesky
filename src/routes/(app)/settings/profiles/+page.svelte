@@ -18,12 +18,12 @@
 
     $: currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
 
-    async function createProfile() {
+    async function createProfile(length) {
         const id = await accountsDb.profiles.put({
             accounts: [],
             columns: [],
             createdAt: "",
-            name: "New Profile",
+            name: $_('workspace') + ' ' + length,
             primary: 0
         })
     }
@@ -67,7 +67,7 @@
       </div>
 
       <div class="acp-add-button">
-        <button class="button" on:click={createProfile}>{$_('create_new_profile')}</button>
+        <button class="button" on:click={() => {createProfile($profiles.length + 1)}}>{$_('create_new_profile')}</button>
       </div>
 
       <div class="acp-management-button">

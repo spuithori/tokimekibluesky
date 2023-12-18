@@ -116,6 +116,7 @@ const defaultSettings = {
         repostConfirmSkip: false,
         deleteConfirmSkip: false,
         linkWarningConfirmSkip: false,
+        hideWorkspaceButton: false,
     },
     design: {
         skin: 'default',

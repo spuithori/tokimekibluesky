@@ -262,3 +262,9 @@ html {
 .stroke-danger {
     stroke: var(--danger-color);
 }
+
+.feed {
+    .timeline-menu-toggle {
+        top: 15px;
+    }
+}

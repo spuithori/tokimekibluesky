@@ -205,3 +205,8 @@
     margin-bottom: 10px;
     letter-spacing: .025em;
 }
+
+.regular-vertical-menu-button {
+    display: grid;
+    place-content: center;
+}

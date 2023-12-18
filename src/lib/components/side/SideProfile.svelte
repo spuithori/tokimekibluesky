@@ -4,47 +4,16 @@
   import {_} from "svelte-i18n";
   import { page } from '$app/stores';
   import {LayoutList, UserCheck2, UserPlus2, Image, Heart, ShieldBan, VolumeX} from 'lucide-svelte';
-  import ProfileMenuItem from "$lib/components/acp/ProfileMenuItem.svelte";
-  import {liveQuery} from "dexie";
-  import {accountsDb} from "$lib/db";
-  import SearchForm from "../../../routes/(app)/SearchForm.svelte";
 
   let _agent = $agent;
 
   function handleAgentSelect(event) {
       _agent = event.detail.agent;
   }
-
-  $: profiles = liveQuery(async () => {
-      const profiles = await accountsDb.profiles
-          .limit(3)
-          .toArray();
-      return profiles;
-  });
-
-  $: currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
 </script>
 
 <div class="side-profile">
   <section class="side-profile-profiles">
-    <h3 class="p-menu-title">{$_('p_menu_profiles')}</h3>
-
-    {#if $profiles}
-      <div class="p-menu-profiles">
-        {#each $profiles as profile}
-          <ProfileMenuItem {profile} isCurrent={currentProfile === profile.id} on:reload></ProfileMenuItem>
-        {/each}
-      </div>
-    {/if}
-
-    <div class="p-menu-profiles-more">
-      <p class="p-menu-profiles-more__title"><a href="/settings/profiles">{$_('profiles_and_accounts_management')}</a></p>
-    </div>
-  </section>
-
-  <section class="side-profile-profiles">
-    <h3 class="p-menu-title">{$_('p_menu_my_accounts')}</h3>
-
     {#if $agents.size > 1}
       <div class="side-agents-selector">
         <AgentsSelector on:select={handleAgentSelect}></AgentsSelector>

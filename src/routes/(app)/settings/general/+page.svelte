@@ -155,5 +155,17 @@ $: {
         </div>
       </dd>
     </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('hide_workspace_button')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="hideWorkspaceButton" bind:checked={$settings.general.hideWorkspaceButton}><label class="input-toggle__label" for="hideWorkspaceButton"></label>
+        </div>
+      </dd>
+    </dl>
   </div>
 </div>

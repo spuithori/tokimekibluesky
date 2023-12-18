@@ -132,8 +132,8 @@
         const id = await accountsDb.profiles.put({
           accounts: acs as number[],
           columns: [],
-          createdAt: "",
-          name: "New Profile",
+          createdAt: '',
+          name: $_('workspace') + ' 1',
           primary: acs[0] as number,
         })
       localStorage.setItem('currentProfile', id);

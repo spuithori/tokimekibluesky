@@ -8,75 +8,89 @@
         sideState,
         intersectingIndex
     } from "$lib/stores";
-  import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
-  import { page } from '$app/stores';
-  import { Settings } from "lucide-svelte";
-  import {iconMap} from "$lib/columnIcons";
-  import {_} from "svelte-i18n";
+    import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
+    import {page} from '$app/stores';
+    import {Settings} from "lucide-svelte";
+    import {iconMap} from "$lib/columnIcons";
+    import {_} from "svelte-i18n";
     import SideNav from "$lib/components/side/SideNav.svelte";
+    import SideWorkspaceModal from "$lib/components/side/SideWorkspaceModal.svelte";
 
-  let isMobileBarOpen = false;
+    let isMobileBarOpen = false;
+    let isWorkspaceModalOpen = false;
 
-  if (!$columns[$currentTimeline]) {
-      currentTimeline.set(0);
-  }
+    if (!$columns[$currentTimeline]) {
+        currentTimeline.set(0);
+    }
 
-  function handleColumnClick(column, index) {
-      if ($settings.design.layout === 'decks') {
-          if (column.scrollElement) {
-              column.scrollElement.scrollIntoView({inline: 'end', behavior: 'instant'});
-          }
-      } else {
-          if ($currentTimeline === index) {
-              return false;
-          }
+    function handleColumnClick(column, index) {
+        if ($settings.design.layout === 'decks') {
+            if (column.scrollElement) {
+                column.scrollElement.scrollIntoView({inline: 'end', behavior: 'instant'});
+            }
+        } else {
+            if ($currentTimeline === index) {
+                return false;
+            }
 
-          currentTimeline.set(index);
-      }
-  }
+            currentTimeline.set(index);
+        }
+    }
 
-  function handleMobileBarToggle() {
-      isMobileBarOpen = !isMobileBarOpen;
-  }
+    function handleMobileBarToggle() {
+        isMobileBarOpen = !isMobileBarOpen;
+    }
 
-  function handleKeydown(event) {
-      if ($page.url.pathname !== '/') {
-          return false;
-      }
+    function handleKeydown(event) {
+        if ($page.url.pathname !== '/') {
+            return false;
+        }
 
-      const activeElement = document.activeElement?.tagName;
-      const isInactive = (activeElement === 'BODY' || activeElement === 'BUTTON');
+        const activeElement = document.activeElement?.tagName;
+        const isInactive = (activeElement === 'BODY' || activeElement === 'BUTTON');
 
-      if (event.key === String('d') && isInactive) {
-          if ($settings.design.layout === 'decks') {
-              $settings.design.layout = 'default';
-          } else {
-              $settings.design.layout = 'decks';
-          }
-      }
+        if (event.key === String('d') && isInactive) {
+            if ($settings.design.layout === 'decks') {
+                $settings.design.layout = 'default';
+            } else {
+                $settings.design.layout = 'decks';
+            }
+        }
 
-      if (event.key === String('h') && isInactive) {
-          if ($settings.design.publishPosition === 'left') {
-              $settings.design.publishPosition = 'bottom';
-          } else {
-              $settings.design.publishPosition = 'left';
-          }
-      }
+        if (event.key === String('h') && isInactive) {
+            if ($settings.design.publishPosition === 'left') {
+                $settings.design.publishPosition = 'bottom';
+            } else {
+                $settings.design.publishPosition = 'left';
+            }
+        }
 
-      $columns.forEach((column, index) => {
-          const i = index + 1;
+        $columns.forEach((column, index) => {
+            const i = index + 1;
 
-          if (event.key === String(i) && isInactive) {
-              handleColumnClick(column, index)
-          }
-      })
-  }
+            if (event.key === String(i) && isInactive) {
+                handleColumnClick(column, index)
+            }
+        })
+    }
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="side-bar side-bar--{$settings.design?.publishPosition}" class:side-bar--sp-open={isMobileBarOpen} on:click={() => {isMobileBarOpen = false}}>
   <div class="side-bar__list side-bar__top">
+    {#if (!$settings.general?.hideWorkspaceButton)}
+        <div class="side-workspace">
+            <button class="side-workspace-button"
+                    class:side-workspace-button--active={isWorkspaceModalOpen}
+                    on:click={() => {isWorkspaceModalOpen = !isWorkspaceModalOpen}}
+                    aria-label="ワークスペース一覧を開く"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layers"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+            </button>
+        </div>
+    {/if}
+
     {#if $page.url.pathname === '/'}
       {#if $agents.size > 0}
         <button
@@ -154,9 +168,13 @@
   </div>
 </div>
 
+{#if (isWorkspaceModalOpen)}
+    <SideWorkspaceModal on:close={() => {isWorkspaceModalOpen = false}}></SideWorkspaceModal>
+{/if}
+
 <style lang="postcss">
   .side-bar {
-      padding-top: 48px;
+      padding-top: 4px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -201,6 +219,7 @@
           position: sticky;
           top: 0;
           height: 100vh;
+          padding-top: 10px;
 
           @media (max-width: 767px) {
               position: fixed;
@@ -287,6 +306,35 @@
               height: 14px;
               font-size: 10px;
           }
+      }
+  }
+
+  .side-workspace {
+      position: relative;
+  }
+
+  .side-workspace-button {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-content: center;
+      border-radius: var(--border-radius-3);
+      border: 1px solid var(--primary-color);
+      box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.06) 0 2px 4px -1px;
+      background-color: var(--nav-content-bg-color);
+      margin-bottom: 4px;
+      transition: transform .1s ease-in-out;
+
+      @media (max-width: 767px) {
+          margin-bottom: 0;
+          width: 36px;
+          height: 36px;
+          margin-right: 6px;
+      }
+
+      &:hover,
+      &--active {
+          transform: translateY(2px);
       }
   }
 </style>

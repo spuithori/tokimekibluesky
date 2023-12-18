@@ -5,6 +5,7 @@
   import toast from "svelte-french-toast";
   import {createEventDispatcher} from "svelte";
   import {List} from "lucide-svelte";
+  import OfficialListMembersModal from "$lib/components/list/OfficialListMembersModal.svelte";
   const dispatch = createEventDispatcher();
 
   export let _agent = $agent;
@@ -14,6 +15,7 @@
   let items = [];
   export let uri = '';
   let isColumnAdded;
+  let isMembersOpen = false;
 
   if (!list && uri) {
       _agent.agent.api.app.bsky.graph.getList({list: uri})
@@ -75,10 +77,14 @@
 
       <p class="list-item__description">
         {#if items.length}
-          {items.length}{$_('list_members_length_suffix')}
+          <button class="list-item__members-button" on:click={() => {isMembersOpen = true}}>{items.length}{$_('list_members_length_suffix')}</button>
           {#if list.description}
             ・
           {/if}
+
+            {#if (isMembersOpen)}
+                <OfficialListMembersModal members={items} on:close={() => {isMembersOpen = false}}></OfficialListMembersModal>
+            {/if}
         {/if}
         {#if list.description}
           {list.description}
@@ -142,6 +148,16 @@
       &__description {
           font-size: 14px;
           color: var(--text-color-3);
+      }
+
+      &__members-button {
+          color: var(--text-color-3);
+          position: relative;
+          z-index: 1;
+
+          &:hover {
+              text-decoration: underline;
+          }
       }
 
       &__label {
