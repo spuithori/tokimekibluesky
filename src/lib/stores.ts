@@ -129,6 +129,7 @@ const defaultSettings = {
         postsLayout: 'compact',
         publishPosition: 'left',
         reactionButtons: defaultReactionButtons,
+        advancedBreak: false,
     },
     timeline: {
         hideRepost: 'all',
@@ -283,3 +284,7 @@ export const linkWarning = writable<LinkWarning>(undefined);
 export const direction = writable('up');
 
 export const intersectingIndex = writable(0);
+
+type ThreadGate = 'everybody' | 'nobody' | string[];
+
+export const threadGate = writable<ThreadGate>('everybody');

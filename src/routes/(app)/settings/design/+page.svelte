@@ -16,6 +16,7 @@
     let postsImageLayout = $settings?.design.postsImageLayout || 'default';
     let oneImageNoCrop = $settings?.design.oneImageNoCrop || false;
     let fontSize = $settings?.design.fontSize || 2;
+    let advancedBreak = $settings?.design.advancedBreak || false;
 
     $: myThemes = liveQuery(async () => {
         const myThemes = await themesDb.themes.toArray();
@@ -34,6 +35,7 @@
         $settings.design.postsImageLayout = postsImageLayout;
         $settings.design.oneImageNoCrop = oneImageNoCrop;
         $settings.design.fontSize = fontSize;
+        $settings.design.advancedBreak = advancedBreak;
     }
 
     $: colors = detectColors($theme);
@@ -330,6 +332,20 @@
             {/each}
           </select>
         </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('advanced_break_title')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="advancedBreak" bind:checked={advancedBreak}><label class="input-toggle__label" for="advancedBreak"></label>
+        </div>
+
+        <p class="settings-group__description">{$_('advanced_break_description')}</p>
       </dd>
     </dl>
   </div>

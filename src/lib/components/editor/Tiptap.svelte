@@ -209,7 +209,7 @@
 
 <slot></slot>
 
-<EditorBar on:emojiPicked={(e) => {editor.commands.insertContent(e.detail.emoji)}}>
+<EditorBar on:emojiPicked={(e) => {editor.commands.insertContent(e.detail.emoji)}} {_agent}>
   <nav class="editor-menu-wrap">
     <ul class="editor-menu">
       {#if (editor)}

@@ -1,5 +1,5 @@
 <script lang="ts">
-import {settings} from "$lib/stores";
+import {agent, replyRef, settings, threadGate} from "$lib/stores";
 import {_} from "svelte-i18n";
 import {languageMap} from "$lib/langs/languageMap";
 import Menu from "$lib/components/ui/Menu.svelte";
@@ -7,21 +7,35 @@ import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
 import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
 import {createEventDispatcher} from "svelte";
 import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
+import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
 const dispatch = createEventDispatcher();
 
+export let _agent = $agent;
 let isLangSelectorOpen = false;
 let isEmojiPickerOpen = false;
 let isSelfLabelingMenuOpen = false;
+let isThreadGateOpen = false;
+
 const selfLabelsChoices = [
     {
-        name: $_('self_labels_spoiler'),
-        description: $_('self_labels_description_3'),
-        val: 'spoiler',
+        name: $_('self_labels_sexual'),
+        description: $_('self_labels_description_2'),
+        val: 'sexual',
+    },
+    {
+        name: $_('self_labels_nudity'),
+        description: $_('self_labels_description_2'),
+        val: 'nudity',
     },
     {
         name: $_('self_labels_porn'),
         description: $_('self_labels_description_2'),
         val: 'porn',
+    },
+    {
+        name: $_('self_labels_spoiler'),
+        description: $_('self_labels_description_3'),
+        val: 'spoiler',
     },
     {
         name: $_('self_labels_warning'),
@@ -95,6 +109,14 @@ function handleEmojiPick(event) {
     </Menu>
   </div>
 
+  {#if (!$replyRef)}
+    <div class="publish-form-thread-gate">
+      <button class="publish-form-lang-selector-button" on:click={() => {isThreadGateOpen = !isThreadGateOpen}}>
+        <svg class:stroke-danger={$threadGate !== 'everybody'} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square-warning"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v2"/><path d="M12 13h.01"/></svg>
+      </button>
+    </div>
+  {/if}
+
   <div class="publish-form-lang-selector">
     <button class="publish-form-lang-selector-button" on:click={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
@@ -107,6 +129,10 @@ function handleEmojiPick(event) {
 
 {#if (isLangSelectorOpen)}
   <LangSelectorModal on:close={() => {isLangSelectorOpen = false}}></LangSelectorModal>
+{/if}
+
+{#if (isThreadGateOpen)}
+  <ThreadGateModal on:close={() => {isThreadGateOpen = false}} {_agent}></ThreadGateModal>
 {/if}
 
 <style lang="postcss">

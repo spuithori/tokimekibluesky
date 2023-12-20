@@ -88,7 +88,7 @@
         }
     }
 
-    if (data.post.author.did !== _agent.did()) {
+    if (data.post?.author?.did !== _agent.did()) {
         switch (hideReply) {
             case 'all':
                 break;

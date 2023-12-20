@@ -1,6 +1,6 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
-import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings} from '$lib/stores';
+import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings, threadGate} from '$lib/stores';
 import {selfLabels, isPublishFormExpand} from "$lib/components/editor/publishStore";
 import { fly } from 'svelte/transition';
 import { clickOutside } from '$lib/clickOutSide';
@@ -28,6 +28,7 @@ import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
 import imageCompression from 'browser-image-compression';
 import {X} from "lucide-svelte";
 import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
+import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
 
 let _agent = $agent;
 let publishContent = '';
@@ -504,7 +505,7 @@ async function publish() {
     } : undefined;
 
     try {
-        await _agent.agent.api.app.bsky.feed.post.create(
+        const post = await _agent.agent.api.app.bsky.feed.post.create(
             { repo: _agent.did() as string },
             {
                 embed: embed,
@@ -520,6 +521,42 @@ async function publish() {
                 } : undefined,
             },
         );
+
+        if ($threadGate !== 'everybody' && !$replyRef) {
+            let allow = [];
+
+            if (Array.isArray($threadGate)) {
+                allow = $threadGate.map(item => {
+                    if (item === 'mention') {
+                        return {
+                            $type: 'app.bsky.feed.threadgate#mentionRule',
+                        }
+                    } else if(item === 'following') {
+                        return {
+                            $type: 'app.bsky.feed.threadgate#followingRule',
+                        }
+                    } else {
+                        return {
+                            $type: 'app.bsky.feed.threadgate#listRule',
+                            list: item,
+                        }
+                    }
+                })
+            }
+
+            await _agent.agent.api.app.bsky.feed.threadgate.create(
+                {
+                    repo: _agent.did() as string,
+                    rkey: post.uri.split('/').slice(-1)[0],
+                },
+                {
+                    createdAt: new Date().toISOString(),
+                    post: post.uri,
+                    allow: allow,
+                },
+            );
+        }
+
         toast.success($_('success_to_post'));
     } catch (error) {
         console.error((error as Error).message);
@@ -589,6 +626,11 @@ async function publish() {
 
 function handleAgentSelect(event) {
     _agent = event.detail.agent;
+
+    if ($threadGate !== 'everybody') {
+        $threadGate = 'everybody';
+        toast.success($_('thread_gate_reset_when_change_account'));
+    }
 }
 
 </script>
@@ -697,6 +739,7 @@ function handleAgentSelect(event) {
               on:publish={() => {publish()}}
               on:focus={handleOpen}
               on:upload={uploadContextOpen}
+              {_agent}
       >
         <div class="publish-upload">
           {#if (images.length)}
@@ -783,6 +826,10 @@ function handleAgentSelect(event) {
                 </button>
               {/each}
             </div>
+          {/if}
+
+          {#if ($threadGate !== 'everybody' && !$replyRef)}
+            <ThreadGateLabel></ThreadGateLabel>
           {/if}
         </div>
       </Tiptap>

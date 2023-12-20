@@ -268,3 +268,9 @@ html {
         top: 15px;
     }
 }
+
+.advanced-break {
+    .timeline__text {
+        word-break: auto-phrase;
+    }
+}

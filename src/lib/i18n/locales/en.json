@@ -527,5 +527,22 @@
   "workspace_modal_title": "Workspaces",
   "workspace_columns_length": " columns",
   "hide_this_button": "Hide this button",
-  "hide_workspace_button": "Hide workspace button"
+  "hide_workspace_button": "Hide workspace button",
+  "success_to_repost_or_delete_repost": "Successfully repost or cancel.",
+  "thread_gate_everybody_title": "Everyone can reply",
+  "thread_gate_nobody_title": "Nobody can reply",
+  "thread_gate_custom_title": "Custom settings",
+  "thread_gate_mention_title": "Users with @ mention",
+  "thread_gate_following_title": "Users you are following",
+  "thread_gate_list_title": "List members",
+  "thread_gate_custom_description": "Multiple selections are available.",
+  "thread_gate_reset_when_change_account": "The reply limit setting has been reset due to a change in the posting account.",
+  "thread_gate_nobody_label": "Nobody can reply to this post",
+  "thread_gate_custom_label": "Only some users can reply",
+  "self_labels_nudity": "Nudity",
+  "self_labels_sexual": "Suggestive",
+  "thread_gate_modal_title": "Reply Limitation",
+  "thread_gate_modal_description": "Select an account to which you can reply to this post.",
+  "advanced_break_title": "Experimental: Advanced line break control for Japanese",
+  "advanced_break_description": "Enables natural folding using machine learning. Only Chrome and Edge browsers are supported."
 }

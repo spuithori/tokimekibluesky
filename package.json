@@ -61,7 +61,7 @@
     "emoji-mart": "^5.5.2",
     "glightbox": "^3.2.0",
     "intl-segmenter-polyfill": "^0.4.4",
-    "lucide-svelte": "^0.274.0",
+    "lucide-svelte": "^0.298.0",
     "multiformats": "^11.0.2",
     "postcss-nested": "6.0.1",
     "postcss-preset-env": "*",

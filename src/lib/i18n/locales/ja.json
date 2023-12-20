@@ -528,5 +528,22 @@
   "workspace_modal_title": "ワークスペース",
   "workspace_columns_length": "個のカラム",
   "hide_this_button": "このボタンを非表示にする",
-  "hide_workspace_button": "ワークスペースボタンを非表示"
+  "hide_workspace_button": "ワークスペースボタンを非表示",
+  "success_to_repost_or_delete_repost": "リポストもしくは解除が成功しました",
+  "thread_gate_everybody_title": "全員が返信できます",
+  "thread_gate_nobody_title": "誰も返信できません",
+  "thread_gate_custom_title": "カスタム設定",
+  "thread_gate_mention_title": "@をつけたユーザー",
+  "thread_gate_following_title": "フォロー中のユーザー",
+  "thread_gate_list_title": "リストのメンバー",
+  "thread_gate_custom_description": "複数選択できます。",
+  "thread_gate_reset_when_change_account": "投稿アカウントを変更したため、返信制限設定がリセットされました。",
+  "thread_gate_nobody_label": "この投稿には誰も返信できません",
+  "thread_gate_custom_label": "一部のユーザーのみ返信できます",
+  "self_labels_nudity": "ヌード",
+  "self_labels_sexual": "きわどい",
+  "thread_gate_modal_title": "リプライ制限",
+  "thread_gate_modal_description": "この投稿に返信できるアカウントを選択します。",
+  "advanced_break_title": "実験的: 日本語の高度な改行制御",
+  "advanced_break_description": "機械学習を利用した自然な折り返しが有効になります。Chrome、Edge系のみ対応。"
 }
