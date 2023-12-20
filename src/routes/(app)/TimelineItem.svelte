@@ -83,7 +83,7 @@
     $: handlePostDelete($pulseDelete);
 
     function handlePostDelete(uri) {
-        if (uri === data.post.uri) {
+        if (uri === data?.post?.uri) {
             isHide = true;
         }
     }
