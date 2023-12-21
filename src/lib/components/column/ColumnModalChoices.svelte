@@ -142,11 +142,16 @@
       const feeds = account?.feeds;
       savedFeeds = feeds || [];
 
-      savedFeeds = await _agent.getSavedFeeds();
-
-      await accountsDb.accounts.update(accountId, {
-          feeds: savedFeeds,
-      });
+      try {
+          savedFeeds = await _agent.getSavedFeeds();
+          await accountsDb.accounts.update(accountId, {
+              feeds: savedFeeds,
+          });
+      } catch (e) {
+          await accountsDb.accounts.update(accountId, {
+              feeds: [],
+          });
+      }
 
       feedColumnsRefreshing = false;
   }
