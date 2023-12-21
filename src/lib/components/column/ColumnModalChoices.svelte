@@ -8,6 +8,7 @@
   import ColumnListAdder from "$lib/components/column/ColumnListAdder.svelte";
   import {getAccountIdByDidFromDb} from "$lib/util";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+  import { HelpCircle } from 'lucide-svelte';
 
   let bookmarks = liveQuery(() => db.bookmarks.toArray());
 
@@ -231,6 +232,7 @@
 <div class="column-adder-group">
     <div class="column-adder-group__heading">
         <p class="column-adder-group__title">{$_('bookmark_columns')}</p>
+        <a href="https://docs.tokimeki.blue/ja/usage/bookmark" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
         <button class="column-adder-group__add" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
     </div>
@@ -246,6 +248,7 @@
 <div class="column-adder-group">
     <div class="column-adder-group__heading">
         <p class="column-adder-group__title">{$_('local_list_columns')}</p>
+        <a href="https://docs.tokimeki.blue/ja/usage/list#%E3%83%AD%E3%83%BC%E3%82%AB%E3%83%AB%E3%83%AA%E3%82%B9%E3%83%88%E3%81%A8%E3%81%AF" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
         <button class="column-adder-group__add" on:click={() => {listModal.set({open: true, data: undefined })}}>{$_('new_create')}</button>
     </div>
@@ -260,6 +263,7 @@
 <div class="column-adder-group">
     <div class="column-adder-group__heading">
         <p class="column-adder-group__title">{$_('official_list_columns')}</p>
+        <a href="https://docs.tokimeki.blue/ja/usage/list#%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%83%AA%E3%82%B9%E3%83%88%E3%81%A8%E3%81%AF" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
         {#if (officialListColumnsRefreshing)}
             <LoadingSpinner padding="0" size="14"></LoadingSpinner>
@@ -297,7 +301,7 @@
         &__heading {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
             font-weight: bold;
             margin-bottom: 8px;
             font-size: 14px;

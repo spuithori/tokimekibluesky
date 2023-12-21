@@ -545,5 +545,6 @@
   "thread_gate_modal_title": "リプライ制限",
   "thread_gate_modal_description": "この投稿に返信できるアカウントを選択します。",
   "advanced_break_title": "実験的: 日本語の高度な改行制御",
-  "advanced_break_description": "機械学習を利用した自然な折り返しが有効になります。Chrome、Edge系のみ対応。"
+  "advanced_break_description": "機械学習を利用した自然な折り返しが有効になります。Chrome、Edge系のみ対応。",
+  "workspace_help": "ワークスペースとは"
 }

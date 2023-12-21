@@ -544,5 +544,6 @@
   "thread_gate_modal_title": "Reply Limitation",
   "thread_gate_modal_description": "Select an account to which you can reply to this post.",
   "advanced_break_title": "Experimental: Advanced line break control for Japanese",
-  "advanced_break_description": "Enables natural folding using machine learning. Only Chrome and Edge browsers are supported."
+  "advanced_break_description": "Enables natural folding using machine learning. Only Chrome and Edge browsers are supported.",
+  "workspace_help": "About workspaces"
 }
