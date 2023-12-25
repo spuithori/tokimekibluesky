@@ -1,0 +1,10 @@
+{
+  "headers": [
+    {
+      "source": "/api/language-detect",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ]
+}
