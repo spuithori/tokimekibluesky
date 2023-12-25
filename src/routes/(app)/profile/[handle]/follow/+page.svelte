@@ -35,7 +35,9 @@
         cursor = raw.data.cursor;
 
         if (cursor) {
-            follows = [...follows, ...raw.data.follows];
+            follows = [...new Map([...follows, ...raw.data.follows].map(follow => [follow.did, follow])).values()];
+
+            console.log(follows);
 
             loaded();
         } else {

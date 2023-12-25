@@ -34,7 +34,7 @@
                     return !column.data.feed.some(item => isDuplicatePost(item, feed));
                 }).map(feed => ({...feed, memoryCursor: res.data.cursor}));
 
-                if (newFeed.length === 20) {
+                if (newFeed.length === 20 && column.data.feed.length !== 0) {
                     const dividerPost = newFeed.slice(-1)[0];
                     dividerPost.isDivider = true;
                 }
@@ -44,6 +44,10 @@
                         feed.memoryCursor = res.data.cursor;
                     }
                 });
+
+                if (column.data.feed.length === 0) {
+                    _columns[index].data.cursor = res.data.cursor;
+                }
 
                 _columns[index].data.feed = [...newFeed, ...column.data.feed];
                 return _columns;
