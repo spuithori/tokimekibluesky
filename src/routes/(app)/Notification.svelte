@@ -8,7 +8,7 @@
     const dispatch = createEventDispatcher();
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
-    import {AtSign, Heart, Repeat2, UserPlus2} from 'lucide-svelte';
+    import {AtSign, Heart, Repeat2, UserPlus2, Filter, Reply, Quote} from 'lucide-svelte';
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
     import {playSound} from "$lib/sounds";
 
@@ -20,11 +20,22 @@
 
     type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow';
     export let filter: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+    let filters: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+    let filterIcons = {
+        like: Heart,
+        repost: Repeat2,
+        reply: Reply,
+        mention: AtSign,
+        quote: Quote,
+        follow: UserPlus2,
+    };
+
     export let feedPool = [];
     export let notificationGroup = [];
     export let isOnlyShowUnread = false;
     export let sound = null;
     export let lastRefresh = undefined;
+    export let id = null;
     let unique = Symbol();
 
     async function getNotificationsFilter(setFilter: Filter[]) {
@@ -92,7 +103,7 @@
         }
 
         if (!isPage) {
-            return false;
+            // return false;
         }
 
         const res = await _agent.agent.api.app.bsky.notification.listNotifications({
@@ -149,48 +160,63 @@
 </script>
 
 <div class="notifications-wrap">
-    <div class="notifications-menu">
-        <ul class="notifications-filter-list">
-            <li class="notifications-filter-list__item">
-                <button class="notifications-filter-button"
-                        on:click={() => {changeFilter(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}}
-                        class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}>{$_('all')}</button>
-            </li>
+    {#if (isPage)}
+        <div class="notifications-menu">
+            <ul class="notifications-filter-list">
+                <li class="notifications-filter-list__item">
+                    <button class="notifications-filter-button"
+                            on:click={() => {changeFilter(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}}
+                            class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}>{$_('all')}</button>
+                </li>
 
-            <li class="notifications-filter-list__item">
-                <button class="notifications-filter-button"
-                        on:click={() => {changeFilter(['reply', 'mention', 'quote'])}}
-                        class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['reply', 'mention', 'quote'])}
-                        aria-label="Reply, Mention, and Quotes">
-                    <AtSign size="18" color="var(--text-color-1)"></AtSign>
-                </button>
-            </li>
+                <li class="notifications-filter-list__item">
+                    <button class="notifications-filter-button"
+                            on:click={() => {changeFilter(['reply', 'mention', 'quote'])}}
+                            class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['reply', 'mention', 'quote'])}
+                            aria-label="Reply, Mention, and Quotes">
+                        <AtSign size="18" color="var(--text-color-1)"></AtSign>
+                    </button>
+                </li>
 
-            <li class="notifications-filter-list__item">
-                <button class="notifications-filter-button" on:click={() => {changeFilter(['like'])}}
-                        class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])}
-                        aria-label="Like">
-                    <Heart size="18" color="var(--text-color-1)"></Heart>
-                </button>
-            </li>
+                <li class="notifications-filter-list__item">
+                    <button class="notifications-filter-button" on:click={() => {changeFilter(['like'])}}
+                            class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])}
+                            aria-label="Like">
+                        <Heart size="18" color="var(--text-color-1)"></Heart>
+                    </button>
+                </li>
 
-            <li class="notifications-filter-list__item">
-                <button class="notifications-filter-button" on:click={() => {changeFilter(['repost'])}}
-                        class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['repost'])}
-                        aria-label="Repost">
-                    <Repeat2 size="18" color="var(--text-color-1)"></Repeat2>
-                </button>
-            </li>
+                <li class="notifications-filter-list__item">
+                    <button class="notifications-filter-button" on:click={() => {changeFilter(['repost'])}}
+                            class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['repost'])}
+                            aria-label="Repost">
+                        <Repeat2 size="18" color="var(--text-color-1)"></Repeat2>
+                    </button>
+                </li>
 
-            <li class="notifications-filter-list__item">
-                <button class="notifications-filter-button" on:click={() => {changeFilter(['follow'])}}
-                        class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['follow'])}
-                        aria-label="Follow">
-                    <UserPlus2 size="20" color="var(--text-color-1)"></UserPlus2>
-                </button>
-            </li>
-        </ul>
-    </div>
+                <li class="notifications-filter-list__item">
+                    <button class="notifications-filter-button" on:click={() => {changeFilter(['follow'])}}
+                            class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['follow'])}
+                            aria-label="Follow">
+                        <UserPlus2 size="20" color="var(--text-color-1)"></UserPlus2>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    {:else}
+        <div class="notifications-filter-display">
+            <ul class="notifications-filter">
+                {#each filters as item, index (item)}
+                    <li class="notifications-filter__item" aria-label={$_(item)}>
+                        <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={filter} value={item} on:change={() => {changeFilter(filter)}}>
+                        <label class="notifications-filter__label" for={id + '_' + item}>
+                            <svelte:component this={filterIcons[item]} size="20"></svelte:component>
+                        </label>
+                    </li>
+                {/each}
+            </ul>
+        </div>
+    {/if}
 
     {#key unique}
         <div class="notifications-list">
@@ -325,5 +351,31 @@
               transform: scaleX(1);
           }
       }
+  }
+
+  .notifications-filter {
+      list-style: none;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+
+      &__input {
+          &:checked {
+              & + label {
+                  color: var(--primary-color);
+              }
+          }
+      }
+
+      &__label {
+          cursor: pointer;
+          color: var(--border-color-2);
+      }
+  }
+
+  .notifications-filter-display {
+      border-bottom: 1px solid var(--border-color-2);
+      margin: 0 -16px;
+      padding: 0 16px 12px;
   }
 </style>

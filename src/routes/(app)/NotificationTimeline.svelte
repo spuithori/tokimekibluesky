@@ -17,7 +17,7 @@
 
 <div class="timeline">
   <Notification
-          isPage={true}
+          isPage={false}
           {_agent}
           isOnlyShowUnread={column.settings?.onlyShowUnread}
           sound={column.settings?.playSound}
@@ -29,5 +29,6 @@
           bind:notificationGroup={column.data.notificationGroup}
           bind:lastRefresh={column.lastRefresh}
           filter={column.filter || ['like', 'repost', 'reply', 'mention', 'quote', 'follow']}
+          id={column.id}
   ></Notification>
 </div>
