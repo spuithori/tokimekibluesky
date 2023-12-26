@@ -6,11 +6,11 @@
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, keywordFilter} from "$lib/timelineFilter";
   import {
-    AppBskyEmbedExternal,
-    AppBskyEmbedImages,
-    AppBskyEmbedRecord,
-    AppBskyEmbedRecordWithMedia,
-    AppBskyFeedPost
+      AppBskyEmbedExternal,
+      AppBskyEmbedImages,
+      AppBskyEmbedRecord,
+      AppBskyEmbedRecordWithMedia, AppBskyFeedDefs,
+      AppBskyFeedPost
   } from "@atproto/api";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
@@ -20,6 +20,7 @@
   import {detectDifferentDomainUrl} from "$lib/util";
   import TimelineText from "$lib/components/post/TimelineText.svelte";
   import toast from "svelte-french-toast";
+  import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
 
   export let post;
   export let _agent;
@@ -189,6 +190,10 @@
 
     {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyEmbedRecord.isViewRecord(post.embed.record)) }
       <EmbedRecord record={post.embed.record} {moderateData}></EmbedRecord>
+    {/if}
+
+    {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyFeedDefs.isGeneratorView(post.embed.record)) }
+      <FeedsItem {_agent} feed={post.embed.record} layout="embed"></FeedsItem>
     {/if}
 
     {#if (AppBskyEmbedRecordWithMedia.isView(post.embed))}

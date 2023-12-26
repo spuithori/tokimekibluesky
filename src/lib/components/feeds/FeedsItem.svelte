@@ -69,36 +69,40 @@
       <p class="feed__text">{feed.description}</p>
 
       <div class="feed__buttons">
-        <FeedSubscribeButton feed={feed} subscribed={subscribed} {_agent}></FeedSubscribeButton>
+        {#if (layout !== 'embed')}
+          <FeedSubscribeButton feed={feed} subscribed={subscribed} {_agent}></FeedSubscribeButton>
+        {/if}
 
         <button class="button button--ss" on:click={addColumn} disabled={isColumnAdded}>{$_('feed_quick_add')}</button>
 
-        {#if (layout === 'default')}
+        {#if (layout === 'default' || layout === 'embed')}
          <a href="/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" on:click={setCurrentFeed} class="button button--border button--ss">{$_('feed_show_button')}</a>
         {/if}
       </div>
     </div>
   </div>
 
-    <Menu bind:isMenuOpen={isMenuOpen}>
-        <ul class="timeline-menu-list" slot="content">
-            <li class="timeline-menu-list__item">
-                <a class="timeline-menu-list__button" href="https://bsky.app/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" target="_blank">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-                    <span>{$_('open_social_app')}</span>
-                </a>
-            </li>
-        </ul>
-    </Menu>
+  <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="timeline-menu-toggle timeline-menu-toggle--feed">
+      <ul class="timeline-menu-list" slot="content">
+          <li class="timeline-menu-list__item">
+              <a class="timeline-menu-list__button" href="https://bsky.app/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" target="_blank">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+                  <span>{$_('open_social_app')}</span>
+              </a>
+          </li>
+      </ul>
+  </Menu>
 
-  <button class="feed-creator-toggle" on:click={() => {isCreatorOpen = !isCreatorOpen}}><svg xmlns="http://www.w3.org/2000/svg" width="11.599" height="7.421" viewBox="0 0 11.599 7.421">
-    <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l4.389,5.01,4.388-5.01" transform="translate(-4391.997 -793.447)" fill="none" stroke="var(--text-color-3)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-  </svg>{$_('feeds_toggle_creator')}</button>
+  {#if (layout !== 'embed')}
+    <button class="feed-creator-toggle" on:click={() => {isCreatorOpen = !isCreatorOpen}}><svg xmlns="http://www.w3.org/2000/svg" width="11.599" height="7.421" viewBox="0 0 11.599 7.421">
+      <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l4.389,5.01,4.388-5.01" transform="translate(-4391.997 -793.447)" fill="none" stroke="var(--text-color-3)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    </svg>{$_('feeds_toggle_creator')}</button>
 
-  {#if isCreatorOpen}
-    <div class="feed-creator" transition:slide={{ duration: 200 }}>
-      <UserItem user={feed.creator} layout={'noborder'} {_agent}></UserItem>
-    </div>
+    {#if isCreatorOpen}
+      <div class="feed-creator" transition:slide={{ duration: 200 }}>
+        <UserItem user={feed.creator} layout={'noborder'} {_agent}></UserItem>
+      </div>
+    {/if}
   {/if}
 </section>
 
@@ -146,6 +150,14 @@
           display: flex;
           flex-wrap: wrap;
           gap: 10px;
+      }
+
+      &--embed {
+          margin-top: 8px;
+
+          .feed__column {
+              grid-template-columns: 40px 1fr;
+          }
       }
   }
 

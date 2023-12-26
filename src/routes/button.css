@@ -90,7 +90,7 @@ button {
 .button--ss {
     height: 30px;
     border-radius: 15px;
-    min-width: 120px;
+    min-width: 100px;
     font-size: 12px;
     padding: 0 8px;
 }
