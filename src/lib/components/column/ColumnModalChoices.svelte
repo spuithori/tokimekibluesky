@@ -174,6 +174,10 @@
   }
 
   function applyFeedColumns(feeds) {
+      if (!feeds) {
+          return false;
+      }
+      
       feedColumns = feeds.map(feed => {
           return {
               id: self.crypto.randomUUID(),
