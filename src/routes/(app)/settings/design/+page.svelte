@@ -17,6 +17,7 @@
     let oneImageNoCrop = $settings?.design.oneImageNoCrop || false;
     let fontSize = $settings?.design.fontSize || 2;
     let advancedBreak = $settings?.design.advancedBreak || false;
+    let externalLayout = $settings?.design.externalLayout || 'normal';
 
     $: myThemes = liveQuery(async () => {
         const myThemes = await themesDb.themes.toArray();
@@ -36,6 +37,7 @@
         $settings.design.oneImageNoCrop = oneImageNoCrop;
         $settings.design.fontSize = fontSize;
         $settings.design.advancedBreak = advancedBreak;
+        $settings.design.externalLayout = externalLayout;
     }
 
     $: colors = detectColors($theme);
@@ -96,6 +98,12 @@
   </div>
 
   <div class="settings-wrap">
+    <div class="settings-child-nav">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gallery-vertical"><path d="M3 2h18"/><rect width="18" height="12" x="3" y="6" rx="2"/><path d="M3 22h18"/></svg>
+      <a href="/settings/design/embed">{$_('settings_embed')}</a>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+    </div>
+
     <dl class="settings-group">
       <dt class="settings-group__name">
         {$_('layout')}
@@ -276,6 +284,28 @@
           <div class="icons-radio">
             <input type="radio" bind:group={postsImageLayout} id="postsImageLayoutMinimum" name="posts_image_layout" value={'folding'}>
             <label for="postsImageLayoutMinimum"><span class="icons-radio__ui"><svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><g data-name="グループ 121"><g class="icons-radio__g" data-name="長方形 148" fill="var(--bg-color-1)" stroke="var(--border-color-1)"><rect width="75" height="75" rx="4" stroke="none"/><rect x=".5" y=".5" width="74" height="74" rx="3.5" fill="none"/></g><g data-name="グループ 115" transform="translate(-737 -520)"><rect class="icons-radio__r" data-name="長方形 151" width="24" height="6" rx="2" transform="translate(763 555)" fill="#d5d5d5"/></g></g></svg></span>{$_('folding')}</label>
+          </div>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('external_embed_layout')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="icons-radio-group">
+          <div class="icons-radio">
+            <input type="radio" bind:group={externalLayout} id="externalLayoutDefault" name="external_layout" value={'normal'}>
+            <label for="externalLayoutDefault"><span class="icons-radio__ui">
+            <svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><g id="グループ_119" data-name="グループ 119" transform="translate(-663 -536)"><g class="icons-radio__g" id="長方形_142" data-name="長方形 142" transform="translate(663 536)" fill="var(--bg-color-1)" stroke="var(--border-color-1)" stroke-width="1"><rect width="75" height="75" rx="4" stroke="none"/><rect x="0.5" y="0.5" width="74" height="74" rx="3.5" fill="none"/></g><rect class="icons-radio__r" id="長方形_144" data-name="長方形 144" width="57" height="31" rx="4" transform="translate(672 545)" fill="#d5d5d5"/><rect class="icons-radio__r" id="長方形_144-2" data-name="長方形 144" width="57" height="7" rx="3.5" transform="translate(672 580)" fill="#d5d5d5"/><rect class="icons-radio__r" id="長方形_144-3" data-name="長方形 144" width="57" height="3" rx="1.5" transform="translate(672 591)" fill="#d5d5d5"/><rect class="icons-radio__r" id="長方形_144-4" data-name="長方形 144" width="57" height="3" rx="1.5" transform="translate(672 598)" fill="#d5d5d5"/></g></svg></span>{$_('default')}</label>
+          </div>
+
+          <div class="icons-radio">
+            <input type="radio" bind:group={externalLayout} id="externalLayoutCompact" name="external_layout" value={'compact'}>
+            <label for="externalLayoutCompact"><span class="icons-radio__ui">
+            <svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><g id="グループ_119" data-name="グループ 119" transform="translate(-663 -536)"><g class="icons-radio__g" id="長方形_142" data-name="長方形 142" transform="translate(663 536)" fill="var(--bg-color-1)" stroke="var(--border-color-1)" stroke-width="1"><rect width="75" height="75" rx="4" stroke="none"/><rect x="0.5" y="0.5" width="74" height="74" rx="3.5" fill="none"/></g><rect class="icons-radio__r" id="長方形_144" data-name="長方形 144" width="57" height="7" rx="3.5" transform="translate(672 563)" fill="#d5d5d5"/><rect class="icons-radio__r" id="長方形_144-2" data-name="長方形 144" width="57" height="3" rx="1.5" transform="translate(672 574)" fill="#d5d5d5"/><rect class="icons-radio__r" id="長方形_144-3" data-name="長方形 144" width="57" height="3" rx="1.5" transform="translate(672 581)" fill="#d5d5d5"/></g></svg></span>{$_('compact')}</label>
           </div>
         </div>
       </dd>

@@ -75,7 +75,7 @@
               <GifImage {did} {_agent} blob={blobs[index]?.image} alt={image.alt}></GifImage>
           {:else}
               <button on:click={() => open(index)} aria-label="画像を拡大する">
-                  <img loading="lazy" src="{image.thumb}" alt="{image.alt}">
+                  <img loading="lazy" src="{image.thumb}" alt="{image.alt}" width={image?.aspectRatio?.width} height={image?.aspectRatio?.height}>
               </button>
           {/if}
       </div>
@@ -103,6 +103,10 @@
 
         &:hover img {
             transform: scale(1.1);
+
+            @media (max-width: 959px) {
+                transform: scale(1);
+            }
         }
     }
 

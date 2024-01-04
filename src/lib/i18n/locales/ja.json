@@ -543,5 +543,10 @@
   "thread_gate_modal_description": "この投稿に返信できるアカウントを選択します。",
   "advanced_break_title": "実験的: 日本語の高度な改行制御",
   "advanced_break_description": "機械学習を利用した自然な折り返しが有効になります。Chrome、Edge系のみ対応。",
-  "workspace_help": "ワークスペースとは"
+  "workspace_help": "ワークスペースとは",
+  "embed_youtube": "YouTube",
+  "embed_x": "X (旧: Twitter)",
+  "embed_spotify": "Spotify",
+  "settings_embed": "埋め込み設定",
+  "external_embed_layout": "リンクカードの表示サイズ"
 }

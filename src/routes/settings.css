@@ -323,3 +323,30 @@ input[type=checkbox]{
         margin-bottom: 16px;
     }
 }
+
+.settings-child-nav {
+    height: 50px;
+    display: grid;
+    grid-template-columns: 24px 1fr 20px;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--border-color-2);
+    border-radius: var(--border-radius-2);
+    padding: 0 16px;
+    position: relative;
+
+    a {
+        color: inherit;
+
+        &::before {
+            content: '';
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+    }
+}
