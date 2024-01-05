@@ -549,5 +549,6 @@
   "embed_spotify": "Spotify",
   "settings_embed": "埋め込み設定",
   "external_embed_layout": "リンクカードの表示サイズ",
-  "embed_feed_button": "フィードを埋め込む"
+  "embed_feed_button": "フィードを埋め込む",
+  "skin_dynamic": "ダイナミックカラー"
 }
