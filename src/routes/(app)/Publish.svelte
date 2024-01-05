@@ -20,7 +20,7 @@ import AltModal from "$lib/components/alt/AltModal.svelte";
 import spinner from '$lib/images/loading.svg';
 import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
 import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
-import {getAccountIdByDid} from "$lib/util";
+import {getAccountIdByDid, isFeedByUri} from "$lib/util";
 import type { Draft } from '$lib/db';
 import Tiptap from "$lib/components/editor/Tiptap.svelte";
 import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
@@ -29,6 +29,7 @@ import imageCompression from 'browser-image-compression';
 import {X} from "lucide-svelte";
 import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
 import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
+import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
 
 let _agent = $agent;
 let publishContent = '';
@@ -235,7 +236,10 @@ function quotePostObserve(quotePost) {
         handleOpen();
         embedRecord = {
             $type: 'app.bsky.embed.record',
-            record: $quotePost,
+            record: {
+                cid: quotePost.cid,
+                uri: quotePost.uri,
+            },
         }
     }
 }
@@ -406,6 +410,22 @@ async function uploadBlobWithCompression(image) {
   });
 }
 
+async function uploadExternalImage() {
+    if (externalImageBlob) {
+        try {
+            const imageRes = await fetch(externalImageBlob);
+            const blob = await imageRes.blob();
+
+            const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
+                encoding: 'image/jpeg',
+            });
+            embedExternal.external.thumb = res.data.blob;
+        } catch (e) {
+            toast.error(e);
+        }
+    }
+}
+
 async function publish() {
     if (isPublishEnabled) {
         return false;
@@ -454,6 +474,15 @@ async function publish() {
         }
 
         embed = embedRecordWithMedia;
+    } else if (embedExternal && $quotePost?.uri) {
+        await uploadExternalImage();
+        embedRecordWithMedia = {
+            $type: 'app.bsky.embed.recordWithMedia',
+            media: embedExternal,
+            record: embedRecord,
+        }
+
+        embed = embedRecordWithMedia;
     } else {
         if (embedImages.images.length) {
             embed = embedImages;
@@ -464,19 +493,7 @@ async function publish() {
         }
 
         if (embedExternal && !embedImages.images.length && !$quotePost?.uri) {
-            if (externalImageBlob) {
-                try {
-                    const imageRes = await fetch(externalImageBlob);
-                    const blob = await imageRes.blob();
-
-                    const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
-                        encoding: 'image/jpeg',
-                    });
-                    embedExternal.external.thumb = res.data.blob;
-                } catch (e) {
-                    toast.error(e);
-                }
-            }
+            await uploadExternalImage();
             embed = embedExternal;
         }
     }
@@ -757,39 +774,49 @@ function handleAgentSelect(event) {
           ></ImageUpload>
 
           {#if $quotePost?.uri}
-            <div class="publish-quote">
-              <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}>
-                <X color="#fff" size="18"></X>
-              </button>
+            {#if (isFeedByUri($quotePost.uri))}
+              <div class="quote-feed-wrap">
+                <button class="publish-quote__delete" on:click={() => {$quotePost = undefined}}>
+                  <X color="#fff" size="18"></X>
+                </button>
 
-              <div class="timeline-external timeline-external--record timeline-external--record-publish-quote">
-                <div class="timeline-external__image timeline-external__image--round">
-                  {#if ($quotePost.author.avatar)}
-                    <img src="{$quotePost.author.avatar}" alt="">
-                  {/if}
-                </div>
+                <FeedsItem {_agent} feed={$quotePost} layout="publish"></FeedsItem>
+              </div>
+            {:else}
+              <div class="publish-quote">
+                <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}>
+                  <X color="#fff" size="18"></X>
+                </button>
 
-                <div class="timeline-external__content">
-                  <div class="timeline__meta">
-                    <p class="timeline__user" title="{$quotePost.author.handle}">{ $quotePost.author.displayName || $quotePost.author.handle }</p>
-                    <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt))}</p>
+                <div class="timeline-external timeline-external--record timeline-external--record-publish-quote">
+                  <div class="timeline-external__image timeline-external__image--round">
+                    {#if ($quotePost.author.avatar)}
+                      <img src="{$quotePost.author.avatar}" alt="">
+                    {/if}
                   </div>
 
-                  <p class="timeline-external__description">
-                    {$quotePost.record.text}
-                  </p>
-                </div>
+                  <div class="timeline-external__content">
+                    <div class="timeline__meta">
+                      <p class="timeline__user" title="{$quotePost.author.handle}">{ $quotePost.author.displayName || $quotePost.author.handle }</p>
+                      <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt))}</p>
+                    </div>
 
-                <span class="timeline-external__icon">
+                    <p class="timeline-external__description">
+                      {$quotePost.record.text}
+                    </p>
+                  </div>
+
+                  <span class="timeline-external__icon">
               <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
               <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
             </svg>
             </span>
+                </div>
               </div>
-            </div>
+            {/if}
           {/if}
 
-          {#if (embedExternal && !images.length && !$quotePost?.uri)}
+          {#if (embedExternal && !images.length)}
             <div class="publish-quote publish-quote--external">
               <button class="publish-quote__delete" on:click={() => {embedExternal = undefined; externalImageBlob = ''}}>
                 <X color="#fff" size="18"></X>
@@ -811,7 +838,7 @@ function handleAgentSelect(event) {
             </div>
           {/if}
 
-          {#if (!embedExternal && links.length && !images.length && !$quotePost?.uri)}
+          {#if (!embedExternal && links.length && !images.length)}
             <div class="link-card-registerer">
               {#each links as link}
                 <button
@@ -1196,5 +1223,9 @@ function handleAgentSelect(event) {
         border-radius: 10px;
         padding: 0 8px 0 10px;
         margin-right: 2px;
+    }
+
+    .quote-feed-wrap {
+        position: relative;
     }
 </style>

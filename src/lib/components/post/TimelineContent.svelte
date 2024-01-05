@@ -210,6 +210,10 @@
       {#if AppBskyEmbedRecord.isViewRecord(post.embed.record.record)}
         <EmbedRecord record={post.embed.record.record} {moderateData}></EmbedRecord>
       {/if}
+
+      {#if (AppBskyFeedDefs.isGeneratorView(post.embed.record.record)) }
+        <FeedsItem {_agent} feed={post.embed.record.record} layout="embed"></FeedsItem>
+      {/if}
     {/if}
   </div>
 

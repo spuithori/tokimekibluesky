@@ -59,3 +59,8 @@ export function detectDifferentDomainUrl(url: string, text: string) {
 
     return textHostname === urlHostname;
 }
+
+export function isFeedByUri(uri: string) {
+    const type = uri.split('/')[3];
+    return type === 'app.bsky.feed.generator';
+}

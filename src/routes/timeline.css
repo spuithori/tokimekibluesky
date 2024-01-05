@@ -193,6 +193,12 @@
     }
 }
 
+.timeline-twitter-external {
+    @container timeline-item (max-width: 345px) {
+        margin-left: -50px;
+    }
+}
+
 .timeline__item {
     padding: var(--timeline-padding) 0;
     border-bottom: var(--timeline-border-width) solid var(--timeline-border-color);
@@ -938,6 +944,12 @@
 
         &--record {
             grid-template-columns: 1fr;
+        }
+    }
+
+    .timeline-twitter-external {
+        @container timeline-item (max-width: 345px) {
+            margin-left: 0;
         }
     }
 

@@ -548,5 +548,6 @@
   "embed_x": "X (旧: Twitter)",
   "embed_spotify": "Spotify",
   "settings_embed": "埋め込み設定",
-  "external_embed_layout": "リンクカードの表示サイズ"
+  "external_embed_layout": "リンクカードの表示サイズ",
+  "embed_feed_button": "フィードを埋め込む"
 }

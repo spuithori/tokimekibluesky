@@ -547,5 +547,6 @@
   "embed_x": "X (Twitter)",
   "embed_spotify": "Spotify",
   "settings_embed": "Embed settings",
-  "external_embed_layout": "Link card size"
+  "external_embed_layout": "Link card size",
+  "embed_feed_button": "Embed this feed"
 }
