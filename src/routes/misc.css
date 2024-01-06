@@ -274,3 +274,34 @@ html {
         word-break: auto-phrase;
     }
 }
+
+.pswp {
+    &__button {
+        display: grid !important;
+        place-content: center;
+
+        &--arrow--prev,
+        &--arrow--next {
+            display: grid !important;
+            place-content: center !important;
+
+            @media (max-width: 767px) {
+                display: none !important;
+            }
+        }
+    }
+
+    &__dynamic-caption--below {
+        padding: 12px;
+        font-size: 13px;
+        line-height: 1.3;
+        top: auto !important;
+        bottom: 0 !important;
+        max-width: none;
+    }
+
+    &__dynamic-caption--mobile {
+        font-size: 13px;
+        line-height: 1.3;
+    }
+}

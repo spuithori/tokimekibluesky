@@ -1,5 +1,6 @@
 @import "./ress.css";
-@import '../../node_modules/glightbox/dist/css/glightbox.min.css';
+@import '../../node_modules/photoswipe/dist/photoswipe.css';
+@import "../../node_modules/photoswipe-dynamic-caption-plugin/photoswipe-dynamic-caption-plugin.css";
 
 @import "./vars.css";
 @import "./theme.css";

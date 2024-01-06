@@ -4,7 +4,12 @@
     import { dndzone } from 'svelte-dnd-action';
     import ImageUploadItem from "$lib/components/editor/ImageUploadItem.svelte";
     import {settings} from "$lib/stores";
-    import {acceptedImageType, transformImageFilter} from "$lib/components/editor/imageUploadUtil";
+    import {
+        acceptedImageType,
+        getImageSize,
+        resizeAspectRatioSize,
+        transformImageFilter
+    } from "$lib/components/editor/imageUploadUtil";
     import {createEventDispatcher} from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -63,6 +68,7 @@
 
         const base64 = await imageCompression.getDataUrlFromFile(compressed);
         const isGif = await transformImageFilter(file);
+        const {width, height} = resizeAspectRatioSize(await getImageSize(file));
 
         images = [...images, {
             id: self.crypto.randomUUID(),
@@ -70,6 +76,8 @@
             file: file,
             base64: base64,
             isGif: isGif,
+            width: Math.floor(width),
+            height: Math.floor(height),
         }];
     }
 

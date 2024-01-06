@@ -44,3 +44,41 @@ export const acceptedImageType = [
     'image/gif',
     'image/webp',
 ];
+
+export async function getImageSize (image: File) {
+    return new Promise((resolve, reject) => {
+        try {
+            const fileReader = new FileReader();
+            fileReader.onload = () => {
+                const img: HTMLImageElement = new Image();
+
+                img.onload = () => {
+                    resolve({ width: img.width, height: img.height });
+                }
+                img.src = fileReader.result as string;
+            }
+
+            fileReader.readAsDataURL(image);
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
+
+export function resizeAspectRatioSize (size: {width: number, height: number}) {
+    if (size.width > 2000 || size.height > 2000) {
+        let ratio = size.width / size.height;
+
+        if (size.width > 2000) {
+            size.width = 2000;
+            size.height = size.width / ratio;
+        }
+
+        if (size.height > 2000) {
+            size.height = 2000;
+            size.width = size.height * ratio;
+        }
+    }
+
+    return size;
+}

@@ -494,6 +494,8 @@
 
 .timeline-images-wrap {
     margin-top: 16px;
+    position: relative;
+    z-index: 1;
 
     &--record {
         margin-top: 10px;

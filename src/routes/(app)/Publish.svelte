@@ -450,6 +450,10 @@ async function publish() {
                 embedImages.images.push({
                     image: result.data.blob,
                     alt: images[index].alt || '',
+                    aspectRatio: {
+                        width: images[index].width || undefined,
+                        height: images[index].height || undefined,
+                    }
                 });
             }))
             .catch(error => {
