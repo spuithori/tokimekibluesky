@@ -75,7 +75,7 @@
             {/if}
 
             {#if draft.quotePost}
-              <p class="drafts__reply">{$_('drafts_quote')}: {draft.quotePost?.record.text || ''}</p>
+              <p class="drafts__reply">{$_('drafts_quote')}: {draft.quotePost?.record?.text || ''}</p>
             {/if}
 
             <p class="drafts__text">{draft.text}</p>
