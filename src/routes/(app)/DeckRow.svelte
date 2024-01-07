@@ -321,6 +321,12 @@
             height: auto;
             border: none;
 
+            .deck-heading {
+                @media (max-width: 767px) {
+                    top: 48px;
+                }
+            }
+
             .deck-heading__icon {
                 margin-left: 0;
             }

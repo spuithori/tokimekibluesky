@@ -88,8 +88,6 @@
               height: auto;
               backdrop-filter: none;
               padding: 0;
-              position: static;
-              z-index: auto;
           }
       }
 
