@@ -85,7 +85,7 @@
       border-radius: 10px 10px 0 0;
       box-shadow: 0 -1px 6px rgba(61, 120, 209, .09);
       background-color: var(--bg-color-1);
-      z-index: 1001;
+      z-index: 999;
 
       @media (min-width: 767px) {
           display: none;

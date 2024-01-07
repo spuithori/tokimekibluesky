@@ -189,18 +189,19 @@
       @media (max-width: 767px) {
           display: flex;
           flex-direction: row;
-          position: static;
+          position: fixed;
           top: 0;
           left: 0;
           right: 0;
           z-index: 999;
-          background-color: var(--blurred-bg-color);
+          background: var(--bar-bg-color);
           backdrop-filter: blur(8px);
           height: min-content;
           padding: 0 8px;
           width: 100vw;
           overflow-x: auto;
           overflow-y: initial;
+          transition: all .2s ease-in-out;
       }
 
       &__list {

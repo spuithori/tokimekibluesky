@@ -198,7 +198,15 @@
 .scroll-down.app {
     .deck-heading {
         @media (max-width: 767px) {
-            transform: translateY(-52px) !important;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-48px) !important;
+        }
+    }
+
+    .side-bar {
+        @media (max-width: 767px) {
+            transform: translateY(-48px);
         }
     }
 

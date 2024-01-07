@@ -132,7 +132,7 @@
           scroll-snap-type: x mandatory;
           top: 85px;
           padding: 0;
-          height: calc(100dvh - 48px);
+          height: calc(100dvh);
           margin: 0;
       }
 
@@ -161,10 +161,6 @@
       gap: 10px;
       color: var(--text-color-3);
       height: 100dvh;
-
-      @media (max-width: 767px) {
-        height: calc(100dvh - 48px);
-      }
 
       &__title {
           font-size: 24px;

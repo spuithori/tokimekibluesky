@@ -86,6 +86,7 @@
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 intersectingIndex.set(index);
+                direction.set('up');
             }
         })
     }
@@ -230,6 +231,10 @@
             background: var(--scroll-bar-bg-color);
             border-radius: 6px;
             margin-top: 52px;
+
+            @media (max-width: 767px) {
+                margin-top: 98px;
+            }
         }
 
         @media (max-width: 767px) {
@@ -237,7 +242,8 @@
             scroll-snap-align: start;
             scroll-snap-stop: always;
             box-shadow: none;
-            height: calc(100dvh - 48px);
+            padding-top: 46px;
+            height: calc(100dvh);
         }
 
         &__content {
@@ -340,7 +346,7 @@
         backdrop-filter: var(--deck-heading-backdrop-filter);
 
         @media (max-width: 767px) {
-            transition: transform .2s ease-in-out;
+            transition: all .2s ease-in-out;
         }
 
         &__scroll-area {

@@ -211,6 +211,7 @@
     --side-nav-hover-bg-color: var(--bg-color-1);
 
     /* Bar */
+    --bar-bg-color: var(--base-bg-color);
     --bar-primary-icon-color: var(--primary-color);
     --bar-secondary-icon-color: var(--text-color-3);
     --bar-icon-size: var(--default-icon-size);
@@ -347,7 +348,7 @@
     --acp-main-label-bg-color: var(--primary-color);
 
     /* ScrollBar */
-    --scroll-bar-color: var(--primary-color);
+    --scroll-bar-color: var(--border-color-1);
     --scroll-bar-bg-color: var(--bg-color-3);
 
     /* env */
