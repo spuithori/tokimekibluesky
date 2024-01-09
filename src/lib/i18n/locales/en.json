@@ -549,5 +549,6 @@
   "settings_embed": "Embed settings",
   "external_embed_layout": "Link card size",
   "embed_feed_button": "Embed this feed",
-  "skin_dynamic": "Dynamic"
+  "skin_dynamic": "Dynamic",
+  "skin_ios": "Apple System"
 }
