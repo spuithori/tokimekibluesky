@@ -112,7 +112,7 @@
 
   .profile-relationship {
       font-size: 14px;
-      font-weight: 600;
+      font-weight: bold;
       line-height: 1.5;
       display: flex;
       flex-wrap: wrap;

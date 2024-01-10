@@ -19,7 +19,7 @@
     &__title {
         font-size: var(--timeline-meta-font-size);
         line-height: 1.5;
-        font-weight: 600;
+        font-weight: bold;
         margin-bottom: 5px;
     }
 

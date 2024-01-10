@@ -62,7 +62,7 @@
 
         a {
             color: inherit;
-            font-weight: 600;
+            font-weight: bold;
 
             &::before {
                 content: '';
@@ -223,7 +223,7 @@
 
     a {
         color: inherit;
-        font-weight: 600;
+        font-weight: bold;
         display: flex;
         align-items: center;
         gap: 3px;
@@ -297,7 +297,7 @@
 }
 
 .timeline__user {
-    font-weight: 600;
+    font-weight: bold;
     letter-spacing: .025em;
     cursor: default;
     color: var(--timeline-user-color);
@@ -765,7 +765,7 @@
 
 .timeline-shortcut-number {
     position: absolute;
-    font-weight: 600;
+    font-weight: bold;
     font-size: 20px;
     top: 0;
     left: 0;

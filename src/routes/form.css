@@ -367,7 +367,7 @@
 
     &__name {
         font-size: 18px;
-        font-weight: 600;
+        font-weight: bold;
         flex: 1;
         white-space: nowrap;
         color: var(--text-color-1);

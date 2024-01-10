@@ -125,6 +125,7 @@
       left: 200px;
       margin: auto;
       z-index: 1;
+      font-family: sans-serif;
 
       @media (max-width: 767px) {
           position: relative;

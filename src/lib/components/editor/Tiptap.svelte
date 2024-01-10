@@ -75,7 +75,7 @@
                                 return mentionsHistory || [];
                             }
 
-                            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: query, limit: 4});
+                            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: query, limit: 6});
                             return res.data.actors.length ? res.data.actors : mentionsHistory;
                         },
                         render: () => {

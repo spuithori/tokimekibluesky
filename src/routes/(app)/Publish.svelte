@@ -1142,7 +1142,7 @@ function handleAgentSelect(event) {
         border-radius: 4px;
         z-index: 12;
         color: var(--primary-color);
-        font-weight: 600;
+        font-weight: bold;
         padding: 5px;
         display: flex;
         align-items: center;
@@ -1206,7 +1206,7 @@ function handleAgentSelect(event) {
 
         &__current {
             &.over {
-                font-weight: 600;
+                font-weight: bold;
                 color: var(--danger-color);
             }
         }

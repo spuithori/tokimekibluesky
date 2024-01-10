@@ -155,7 +155,7 @@
           width: 40px;
           height: 24px;
           border-radius: 12px;
-          font-weight: 600;
+          font-weight: bold;
           display: flex;
           align-items: center;
           justify-content: center;

@@ -209,7 +209,7 @@
         }
 
         &__text {
-            font-weight: 600;
+            font-weight: bold;
         }
     }
 

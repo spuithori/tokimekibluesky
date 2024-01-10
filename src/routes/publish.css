@@ -61,7 +61,7 @@
     color: var(--publish-post-button-color);
     border: var(--publish-post-button-border);
     box-shadow: var(--publish-post-button-box-shadow);
-    font-weight: 600;
+    font-weight: bold;
     padding: 5px;
     display: flex;
     align-items: center;

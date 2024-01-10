@@ -17,7 +17,7 @@ button {
     border: var(--button-border);
     box-shadow: var(--button-box-shadow);
     backdrop-filter: var(--button-backdrop-filter);
-    font-weight: 600;
+    font-weight: bold;
     transition: opacity .2s ease-in-out, transform .05s ease-in-out;
     position: relative;
 

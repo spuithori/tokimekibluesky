@@ -5,7 +5,7 @@
     overflow: hidden;
     padding: 0 16px;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: bold;
     border-bottom: 1px solid var(--border-color-2);
     white-space: nowrap;
 
