@@ -353,7 +353,7 @@ function handleAddSingleList() {
 
     .profile-relationship {
         font-size: 18px;
-        font-weight: 600;
+        font-weight: bold;
         line-height: 1.5;
         display: flex;
         flex-wrap: wrap;
@@ -389,7 +389,7 @@ function handleAddSingleList() {
     .profile-reported {
         background-color: var(--danger-color);
         color: #fff;
-        font-weight: 600;
+        font-weight: bold;
         padding: 10px;
         border-radius: 6px;
         margin-bottom: 15px;
