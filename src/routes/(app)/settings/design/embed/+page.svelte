@@ -8,7 +8,12 @@
             youtube: true,
             spotify: false,
             mastodon: true,
+            bluemotion: true,
         };
+    }
+
+    if (!$settings?.embed?.bluemotion) {
+        $settings.embed.bluemotion = true;
     }
 </script>
 
@@ -66,6 +71,18 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="embedSpotify" bind:checked={$settings.embed.spotify}><label class="input-toggle__label" for="embedSpotify"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('embed_bluemotion')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="embedBluemotion" bind:checked={$settings.embed.bluemotion}><label class="input-toggle__label" for="embedBluemotion"></label>
         </div>
       </dd>
     </dl>

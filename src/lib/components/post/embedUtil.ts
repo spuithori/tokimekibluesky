@@ -63,3 +63,20 @@ export function getSpotifyUri(uri: string) {
         return undefined;
     }
 }
+
+export function getBluemotionUrl(uri: string) {
+    try {
+        const url = new URL(uri);
+        const hostname = url.hostname;
+
+        if (hostname === 'www.bluemotion.app' || hostname === 'bluemotion.app') {
+            const id = url.pathname;
+            return id.includes('video') ? id : undefined;
+        }
+
+        return undefined;
+    } catch (e) {
+        console.log(e);
+        return undefined;
+    }
+}
