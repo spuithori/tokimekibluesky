@@ -9,6 +9,8 @@ import ProfileCardWrapper from '../../ProfileCardWrapper.svelte';
 import toast from 'svelte-french-toast';
 import {BskyAgent, RichText} from '@atproto/api';
 import addSingleList from "$lib/components/list/addSingleList";
+import { Eye, EyeOff } from 'lucide-svelte';
+
 const dispatch = createEventDispatcher();
 
 export let handle;
@@ -157,6 +159,14 @@ function handleAddSingleList() {
 
     }
 }
+
+function toggleHideCounts() {
+    if (!$settings.general?.hideProfileCounts) {
+        $settings.general.hideProfileCounts = false;
+    }
+
+    $settings.general.hideProfileCounts = !$settings.general.hideProfileCounts;
+}
 </script>
 
 {#if (profile.did)}
@@ -238,9 +248,17 @@ function handleAddSingleList() {
       {/if}
 
       <div class="profile-relationship">
-        <p class="profile-relationship__item"><span>{profile.followsCount}</span> {$_('follows')}</p>
-        <p class="profile-relationship__item"><span>{profile.followersCount}</span> {$_('followers')}</p>
-        <p class="profile-relationship__item"><span>{profile.postsCount}</span> {$_('posts')}</p>
+        <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
+        <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
+        <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.postsCount}</span> {$_('posts')}</p>
+
+        <button class="profile-counts-toggle" on:click={toggleHideCounts} aria-label="Hide profile counts." title="Hide profile counts.">
+          {#if ($settings.general?.hideProfileCounts)}
+            <EyeOff color="var(--text-color-1)" size="22"></EyeOff>
+          {:else}
+            <Eye color="var(--text-color-1)" size="22"></Eye>
+          {/if}
+        </button>
 
         {#if (profile.viewer?.followedBy)}
           <p class="profile-relationship__by">{$_('follows_you')}</p>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {onMount} from "svelte";
-  import { agent } from "$lib/stores";
+  import {agent, settings} from "$lib/stores";
   import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
   import { fade } from 'svelte/transition';
   import {_} from "svelte-i18n";
@@ -38,8 +38,8 @@
     {/if}
 
     <div class="profile-relationship">
-      <p class="profile-relationship__item"><span>{profile.followsCount}</span> {$_('follows')}</p>
-      <p class="profile-relationship__item"><span>{profile.followersCount}</span> {$_('followers')}</p>
+      <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
+      <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
 
       {#if (profile.viewer?.followedBy)}
         <p class="profile-relationship__by">{$_('follows_you')}</p>

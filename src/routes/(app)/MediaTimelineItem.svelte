@@ -114,9 +114,7 @@
   </div>
 
   {#if (isOpen)}
-    <div class="media-content-wrap" transition:fade="{{ duration: 300 }}">
-      <MediaTimelineItemModal data={data} on:close={handleClose} {_agent}></MediaTimelineItemModal>
-    </div>
+    <MediaTimelineItemModal data={data} on:close={handleClose} {_agent}></MediaTimelineItemModal>
   {/if}
 {/if}
 
@@ -142,6 +140,10 @@
 
           &:hover {
               transform: scale(1.1);
+
+              @media (max-width: 767px) {
+                  transform: none;
+              }
           }
       }
 
@@ -198,23 +200,5 @@
                 pointer-events: none;
             }
         }
-  }
-
-  .media-content-wrap {
-      position: fixed;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      right: 0;
-      height: 100vh;
-      z-index: 1000;
-      background-color: rgba(0, 0, 0, .8);
-      display: grid;
-      place-content: center;
-      padding: 0 40px;
-
-      @media (max-width: 767px) {
-          padding: 10px;
-      }
   }
 </style>
