@@ -109,14 +109,14 @@
 .side-bar-button {
     &--current {
         svg {
-            stroke: var(--primary-color);
+            stroke: var(--bar-current-bar-color);
         }
     }
 
     &--intersecting {
         @media (max-width: 767px) {
             svg {
-                stroke: var(--primary-color);
+                stroke: var(--bar-current-bar-color);
             }
         }
     }
