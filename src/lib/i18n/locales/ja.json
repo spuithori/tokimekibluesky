@@ -551,5 +551,6 @@
   "external_embed_layout": "リンクカードの表示サイズ",
   "embed_feed_button": "フィードを埋め込む",
   "skin_dynamic": "ダイナミックカラー",
-  "skin_ios": "Appleシステム"
+  "skin_ios": "Appleシステム",
+  "embed_bluemotion": "Bluemotion"
 }
