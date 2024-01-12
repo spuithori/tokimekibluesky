@@ -9,6 +9,7 @@
     import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
     import IconColumnsSearch from "$lib/icons/columns/IconColumnsSearch.svelte";
+    import IconColumnsLike from "$lib/icons/columns/IconColumnsLike.svelte";
     const dispatch = createEventDispatcher();
 
     export let _agent;
@@ -56,6 +57,8 @@
         <IconColumnsList></IconColumnsList>
       {:else if (column.algorithm.type === 'search')}
         <IconColumnsSearch></IconColumnsSearch>
+      {:else if (column.algorithm.type === 'like')}
+        <IconColumnsLike></IconColumnsLike>
       {:else}
         <IconColumnsHome></IconColumnsHome>
       {/if}

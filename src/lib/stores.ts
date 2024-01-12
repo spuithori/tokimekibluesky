@@ -117,6 +117,7 @@ const defaultSettings = {
         deleteConfirmSkip: false,
         linkWarningConfirmSkip: false,
         hideWorkspaceButton: false,
+        hideProfileCounts: false,
     },
     design: {
         skin: 'default',
