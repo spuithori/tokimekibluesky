@@ -122,6 +122,7 @@
         overscroll-behavior: contain;
         position: relative;
         z-index: 2;
+        color: var(--text-color-1);
 
         @media (max-width: 959px) {
             display: block;
