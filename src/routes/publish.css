@@ -39,7 +39,7 @@
 
     &--fit {
         @media (max-width: 767px) {
-            height: calc(100dvh - 50px);
+            height: calc(100dvh - 50px - env(keyboard-inset-height, 0px));
             display: flex;
             flex-direction: column;
 
@@ -48,7 +48,7 @@
             }
 
             .tiptap {
-                height: calc(100dvh - 120px);
+                height: calc(100dvh - 120px - env(keyboard-inset-height, 0px));
             }
         }
     }
