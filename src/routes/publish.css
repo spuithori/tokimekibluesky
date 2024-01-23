@@ -15,6 +15,10 @@
     border-radius: var(--border-radius-3);
     border: var(--publish-border, none);
 
+    @media (max-width: 767px) {
+        border: none;
+    }
+
     &--dragover {
         &::before {
             content: '';
@@ -30,6 +34,22 @@
             background-image: url(/image-plus.svg);
             background-position: center;
             border-radius: var(--border-radius-3);
+        }
+    }
+
+    &--fit {
+        @media (max-width: 767px) {
+            height: calc(100dvh - 50px);
+            display: flex;
+            flex-direction: column;
+
+            .editor-column {
+                flex: 1;
+            }
+
+            .tiptap {
+                height: calc(100dvh - 120px);
+            }
         }
     }
 }
@@ -81,6 +101,12 @@
 
     svg {
         margin-top: 4px;
+    }
+
+    &--hide {
+        @media (max-width: 767px) {
+            display: none;
+        }
     }
 }
 
@@ -208,7 +234,7 @@
     font-size: 16px;
     vertical-align: middle;
     width: 100%;
-    padding: 15px 20px;
+    padding: 8px 0 0;
     resize: none;
     outline: none;
     border-radius: var(--border-radius-3) var(--border-radius-3) 0 0;
@@ -256,6 +282,14 @@
             color: #fff;
             text-decoration: none;
             text-overflow: ellipsis;
+        }
+    }
+}
+
+.vk-publish-group {
+    .publish-form-sp-close {
+        @media (max-width: 767px) {
+            display: grid !important;
         }
     }
 }

@@ -30,6 +30,7 @@ import {X} from "lucide-svelte";
 import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
 import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
 import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
+import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
 
 let _agent = $agent;
 let publishContent = '';
@@ -51,11 +52,13 @@ let isLinkCardAdding = false;
 let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
 let imageUploadEl;
 let isDragover = 0;
+let isVirtualKeyboard = false;
 
 const isMobile = navigator?.userAgentData?.mobile || false;
 
 if ('virtualKeyboard' in navigator) {
     navigator.virtualKeyboard.overlaysContent = true;
+    isVirtualKeyboard = true;
 }
 
 type BeforeUploadImage = {
@@ -660,7 +663,7 @@ function handleAgentSelect(event) {
 <svelte:document on:paste={handlePaste} />
 
 {#if (isFocus)}
-  <button class="publish-sp-open" aria-label="投稿ウィンドウを閉じる" on:click={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
+  <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard} aria-label="投稿ウィンドウを閉じる" on:click={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
     <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
       <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
     </svg>
@@ -676,6 +679,7 @@ function handleAgentSelect(event) {
 <section class="publish-group"
          class:publish-group--expanded={isFocus}
          class:publish-group--left={$settings.design?.publishPosition === 'left'}
+         class:vk-publish-group={isVirtualKeyboard}
          use:clickOutside={{ignoreElement: '.publish-sp-open'}}
          on:outclick={handleOutClick}
 >
@@ -700,60 +704,55 @@ function handleAgentSelect(event) {
           </div>
         </div>
 
-        <button class="publish-form__submit" on:click={publish} disabled={isPublishEnabled}>{$_('publish_button_send')}</button>
+        <button class="publish-form__submit" class:publish-form__submit--hide={isVirtualKeyboard} on:click={publish} disabled={isPublishEnabled}>{$_('publish_button_send')}</button>
+
+        <button class="publish-form-sp-close" on:click={onClose}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
       </div>
-
-      {#if $agents.size > 1}
-        <div class="publish-form-agents-selector">
-          <AgentsSelector
-                  {_agent}
-                  isDisabled={isAccountSelectDisabled}
-                  on:select={handleAgentSelect}
-                  style={'publish'}
-          ></AgentsSelector>
-        </div>
-      {/if}
-
-      {#if ($replyRef && typeof $replyRef !== 'string')}
-        <div class="publish-quote publish-quote--reply">
-          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
-            <X color="#fff" size="18"></X>
-          </button>
-
-          <div class="timeline-external timeline-external--record timeline-external--record-publish">
-            <div class="timeline-external__image timeline-external__image--round">
-              {#if ($replyRef.data.parent.author.avatar)}
-                <img src="{$replyRef.data.parent.author.avatar}" alt="">
-              {/if}
-            </div>
-
-            <div class="timeline-external__content">
-              <div class="timeline__meta timeline__meta--member">
-                <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
-
-                <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
-              </div>
-
-              <p class="timeline-external__description">
-                {$replyRef.data.parent.record.text}
-              </p>
-            </div>
-
-            <span class="timeline-external__icon">
-
-            </span>
-          </div>
-        </div>
-      {/if}
 
       <div class="publish-form"
            class:publish-form--expand={$isPublishFormExpand}
            class:publish-form--dragover={isDragover}
+           class:publish-form--fit={isVirtualKeyboard}
            on:dragover|preventDefault
            on:drop|preventDefault={handleDrop}
            on:dragenter|preventDefault={handleDragover}
            on:dragleave|preventDefault={handleDragleave}
-      ><Tiptap
+      >
+        {#if ($replyRef && typeof $replyRef !== 'string')}
+          <div class="publish-quote publish-quote--reply">
+            <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
+              <X color="#fff" size="18"></X>
+            </button>
+
+            <div class="timeline-external timeline-external--record timeline-external--record-publish">
+              <div class="timeline-external__image timeline-external__image--round">
+                {#if ($replyRef.data.parent.author.avatar)}
+                  <img src="{$replyRef.data.parent.author.avatar}" alt="">
+                {/if}
+              </div>
+
+              <div class="timeline-external__content">
+                <div class="timeline__meta timeline__meta--member">
+                  <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
+
+                  <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
+                </div>
+
+                <p class="timeline-external__description">
+                  {$replyRef.data.parent.record.text}
+                </p>
+              </div>
+
+              <span class="timeline-external__icon">
+
+            </span>
+            </div>
+          </div>
+        {/if}
+
+        <Tiptap
               bind:text={publishContent}
               bind:json={publishContentJson}
               bind:this={editor}
@@ -762,7 +761,16 @@ function handleAgentSelect(event) {
               on:upload={uploadContextOpen}
               {_agent}
       >
-        <div class="publish-upload">
+        <div class="publish-form-agents-selector" slot="avatar">
+          <AvatarAgentsSelector
+                  {_agent}
+                  isDisabled={isAccountSelectDisabled}
+                  on:select={handleAgentSelect}
+                  style={'publish'}
+          ></AvatarAgentsSelector>
+        </div>
+
+        <div class="publish-upload" slot="normal">
           {#if (images.length)}
             <button class="publish-alt-text-button" on:click={() => {isAltModalOpen = true}}>
               <span class="ai-label">AI</span>
@@ -951,9 +959,9 @@ function handleAgentSelect(event) {
         @media (max-width: 767px) {
             display: none;
             flex-direction: column;
-            padding: 16px 16px 90px;
+            padding: 0;
             background-color: var(--bg-color-1);
-            border: 1px solid var(--border-color-1);
+            border: none;
             border-radius: 0;
             min-height: 100%;
         }
@@ -987,19 +995,26 @@ function handleAgentSelect(event) {
                 display: none;
             }
         }
+
+        &--vk {
+            @media (max-width: 767px) {
+                display: none;
+            }
+        }
     }
 
     .publish-buttons {
         max-width: 740px;
-        margin: 0 auto 10px;
+        margin: 0 auto;
         display: flex;
         justify-content: flex-end;
         align-items: center;
         width: 100%;
         flex-wrap: wrap;
+        padding-bottom: 12px;
 
         @media (max-width: 767px) {
-          margin-bottom: 16px;
+            padding: 12px 12px 8px;
         }
     }
 
@@ -1012,6 +1027,8 @@ function handleAgentSelect(event) {
         position: relative;
 
         &--reply {
+          margin: 12px 12px 0;
+
           .publish-quote__delete {
             top: 0;
             right: 0;
@@ -1191,7 +1208,9 @@ function handleAgentSelect(event) {
     }
 
     .publish-form-agents-selector {
+        @media (max-width: 767px) {
 
+        }
     }
 
     .publish-length {
@@ -1231,5 +1250,16 @@ function handleAgentSelect(event) {
 
     .quote-feed-wrap {
         position: relative;
+    }
+
+    .publish-form-sp-close {
+        height: 30px;
+        width: 30px;
+        display: none;
+        place-content: center;
+
+        @media (min-width: 768px) {
+            display: none;
+        }
     }
 </style>

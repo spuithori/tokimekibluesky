@@ -205,35 +205,45 @@
     }
 </script>
 
-<div class="editor" bind:this={element}></div>
+<div class="editor-column">
+  <slot name="avatar"></slot>
 
-<slot></slot>
+  <div class="editor" bind:this={element}></div>
+</div>
+
+<slot name="normal"></slot>
 
 <EditorBar on:emojiPicked={(e) => {editor.commands.insertContent(e.detail.emoji)}} {_agent}>
-  <nav class="editor-menu-wrap">
-    <ul class="editor-menu">
-      {#if (editor)}
-        {#if (editor.isActive('link'))}
-          <li class="editor-menu__item">
-            <button class="editor-menu__button" on:click={removeLink}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-unlink"><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><line x1="8" x2="8" y1="2" y2="5"/><line x1="2" x2="5" y1="8" y2="8"/><line x1="16" x2="16" y1="19" y2="22"/><line x1="19" x2="22" y1="16" y2="16"/></svg>
-            </button>
-          </li>
-        {:else}
-          <li class="editor-menu__item">
-            <button class="editor-menu__button" on:click={addLink} disabled={linkButtonDisabled}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            </button>
-          </li>
+  <svelte:fragment slot="top">
+    <nav class="editor-menu-wrap">
+      <ul class="editor-menu">
+        {#if (editor)}
+          {#if (editor.isActive('link'))}
+            <li class="editor-menu__item">
+              <button class="editor-menu__button" on:click={removeLink}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-unlink"><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><line x1="8" x2="8" y1="2" y2="5"/><line x1="2" x2="5" y1="8" y2="8"/><line x1="16" x2="16" y1="19" y2="22"/><line x1="19" x2="22" y1="16" y2="16"/></svg>
+              </button>
+            </li>
+          {:else}
+            <li class="editor-menu__item">
+              <button class="editor-menu__button" on:click={addLink} disabled={linkButtonDisabled}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              </button>
+            </li>
+          {/if}
         {/if}
-      {/if}
-    </ul>
-  </nav>
+      </ul>
+    </nav>
 
-  <div class="publish-form-image-add">
-    <button class="publish-form-image-add-button" on:click={addImage}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-plus"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" x2="22" y1="5" y2="5"/><line x1="19" x2="19" y1="2" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-    </button>
+    <div class="publish-form-image-add">
+      <button class="publish-form-image-add-button" on:click={addImage}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-plus"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" x2="22" y1="5" y2="5"/><line x1="19" x2="19" y1="2" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+      </button>
+    </div>
+  </svelte:fragment>
+
+  <div class="publish-form-bottom-publish" slot="bottom">
+    <button class="publish-form__submit">{$_('publish_button_send')}</button>
   </div>
 </EditorBar>
 
@@ -322,5 +332,20 @@
             background-color: var(--primary-color);
             border-radius: var(--border-radius-2);
         }
+    }
+
+    .publish-form-bottom-publish {
+        margin-left: auto;
+
+        @media (min-width: 768px) {
+            display: none;
+        }
+    }
+
+    .editor-column {
+        display: grid;
+        grid-template-columns: 40px 1fr;
+        gap: 8px;
+        padding: 12px;
     }
 </style>

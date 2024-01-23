@@ -6,7 +6,7 @@ import Menu from "$lib/components/ui/Menu.svelte";
 import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
 import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
 import {createEventDispatcher} from "svelte";
-import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
+import {selfLabels} from "$lib/components/editor/publishStore";
 import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
 const dispatch = createEventDispatcher();
 
@@ -67,17 +67,7 @@ function handleEmojiPick(event) {
 </script>
 
 <div class="publish-bottom-buttons">
-  <slot></slot>
-
-  <!-- <div class="publish-form-expand">
-    <button
-        class="publish-form-expand-button"
-        class:publish-form-expand-button--active={$isPublishFormExpand}
-        on:click={() => {$isPublishFormExpand = !$isPublishFormExpand}}
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize-2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
-    </button>
-  </div> -->
+  <slot name="top"></slot>
 
   <div class="publish-form-emoji-picker">
     <button class="publish-form-emoji-picker-button" on:click={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
@@ -125,6 +115,8 @@ function handleEmojiPick(event) {
       {/if}
     </button>
   </div>
+
+  <slot name="bottom"></slot>
 </div>
 
 {#if (isLangSelectorOpen)}
@@ -166,6 +158,8 @@ function handleEmojiPick(event) {
 
         @media (max-width: 767px) {
             position: relative;
+            justify-content: flex-start;
+            padding: 8px 12px;
         }
     }
 
@@ -182,25 +176,5 @@ function handleEmojiPick(event) {
         padding: 0 5px;
         font-size: 14px;
         height: 30px;
-    }
-
-    .publish-form-expand-button {
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        color: var(--text-color-1);
-        padding: 0 5px;
-        font-size: 14px;
-        height: 30px;
-
-        @media (max-width: 767px) {
-            display: none;
-        }
-
-        &--active {
-            svg {
-                stroke: var(--primary-color)
-            }
-        }
     }
 </style>

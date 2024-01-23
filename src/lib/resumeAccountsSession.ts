@@ -6,12 +6,15 @@ async function resume(account) {
     const ag = new AtpAgent({
         service: account.service,
         persistSession: async (evt: AtpSessionEvent, sess?: AtpSessionData) => {
+            const profile = await getAvatar(ag, account);
+
             const id = await accountsDb.accounts.put({
                 id: account.id,
                 session: sess || account.session,
                 did: account.did,
                 service: account.service,
-                avatar: account.avatar || '',
+                avatar: profile.avatar,
+                name: profile.displayName,
                 following: account.following || undefined,
                 notification: account.notification || ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
                 feeds: account.feeds || [],
@@ -21,7 +24,6 @@ async function resume(account) {
     })
 
     ag.resumeSession(account.session);
-    // getAvatar(ag, account);
 
     return {
         id: account.id,
@@ -31,11 +33,10 @@ async function resume(account) {
 
 async function getAvatar(ag, account) {
     const res = await ag.api.app.bsky.actor.getProfile({actor: account.did});
-    const avatar = res.data.avatar || '';
-
-    const aid = await accountsDb.accounts.update(account.id, {
-        avatar: avatar
-    })
+    return {
+        avatar: res.data.avatar || '',
+        displayName: res.data.displayName || '',
+    }
 }
 
 export async function resumeAccountsSession (accounts) {
