@@ -247,7 +247,7 @@
   "play_se": "新着サウンド",
   "play_se_description": "DECKSレイアウトでREALTIMEコラムと通知コラムを使用している場合のみ有効。",
   "settings_lang_filter": "言語フィルター",
-  "lang_filter_description": "いずれにもチェックを入れていない場合、すべての投稿が表示されます。\n投稿につけられた言語ラベルで判定します。古いバージョンの公式アプリや、対応していないクライアントからの投稿はフィルタリングされません。",
+  "lang_filter_description": "いずれにもチェックを入れていない場合、すべての投稿が表示されます。投稿につけられた言語ラベルで判定します。",
   "dev_mode": "開発者向け情報を表示する",
   "report_spam": "スパム",
   "report_spam_description": "頻繁な不要な宣伝、返信、言及",
@@ -552,5 +552,6 @@
   "embed_feed_button": "フィードを埋め込む",
   "skin_dynamic": "ダイナミックカラー",
   "skin_ios": "Appleシステム",
-  "embed_bluemotion": "Bluemotion"
+  "embed_bluemotion": "Bluemotion",
+  "lang_filter_notice": "英文のみ、漢字のみの投稿は英語・中国語などと判定されるためフィルタリングされ取得漏れと誤解するケースが多く報告されています。特段の理由がなければ設定しないことをオススメします。"
 }

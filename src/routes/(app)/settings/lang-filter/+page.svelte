@@ -31,7 +31,7 @@
   </div>
 
   <div class="settings-wrap">
-    <p class="settings-description">{$_('lang_filter_description')}</p>
+    <p class="settings-description">{$_('lang_filter_description')}<br><strong class="text-danger">{$_('lang_filter_notice')}</strong></p>
 
     <div class="lang-filter-wrap">
       <div class="lang-filter-list">

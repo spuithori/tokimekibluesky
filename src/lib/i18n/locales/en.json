@@ -551,5 +551,6 @@
   "embed_feed_button": "Embed this feed",
   "skin_dynamic": "Dynamic",
   "skin_ios": "Apple System",
-  "embed_bluemotion": "Bluemotion"
+  "embed_bluemotion": "Bluemotion",
+  "lang_filter_notice": " "
 }
