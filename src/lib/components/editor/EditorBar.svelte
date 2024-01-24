@@ -160,6 +160,7 @@ function handleEmojiPick(event) {
 
         @media (max-width: 767px) {
             position: fixed;
+            bottom: env(keyboard-inset-height, 0px);
             left: 0;
             right: 0;
             justify-content: flex-start;
