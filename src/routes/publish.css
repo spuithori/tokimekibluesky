@@ -57,9 +57,12 @@
 
 .publish-form-scrollable {
     flex: 1;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
+
+    @media (max-width: 767px) {
+        overflow-y: auto;
+    }
 }
 
 .publish-form__input {
@@ -311,6 +314,12 @@
     .publish-form-bottom-publish {
         @media (max-width: 767px) {
             display: block !important;
+        }
+    }
+
+    .publish-bottom-buttons {
+        @media (max-width: 767px) {
+            position: fixed !important;
         }
     }
 }

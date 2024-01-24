@@ -159,17 +159,12 @@ function handleEmojiPick(event) {
         background: linear-gradient(to top, var(--publish-textarea-bg-color) 0%, var(--publish-textarea-bg-color) 80%, transparent);
 
         @media (max-width: 767px) {
-            position: fixed;
             bottom: env(keyboard-inset-height, 0px);
             left: 0;
             right: 0;
             justify-content: flex-start;
             padding: 8px 12px;
         }
-    }
-
-    .publish-form-emoji-picker {
-
     }
 
     .publish-form-emoji-picker-button {

@@ -350,9 +350,5 @@
         grid-template-columns: 40px 1fr;
         gap: 8px;
         padding: 12px 0 12px 12px;
-
-        @media (max-width: 767px) {
-
-        }
     }
 </style>
