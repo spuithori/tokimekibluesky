@@ -154,10 +154,14 @@ function handleEmojiPick(event) {
         z-index: 21;
         gap: 5px;
         border-radius: 0 0 var(--border-radius-3) var(--border-radius-3);
-        position: relative;
+        position: sticky;
+        bottom: 0;
+        background: linear-gradient(to top, var(--publish-textarea-bg-color) 0%, var(--publish-textarea-bg-color) 80%, transparent);
 
         @media (max-width: 767px) {
-            position: relative;
+            position: fixed;
+            left: 0;
+            right: 0;
             justify-content: flex-start;
             padding: 8px 12px;
         }

@@ -19,6 +19,7 @@
     export let json;
     export let text = '';
     export let _agent = $agent;
+    export let isPublishEnabled;
 
     let element;
     let editor;
@@ -29,6 +30,7 @@
     let linkDialog;
     let linkValue = '';
     let linkButtonDisabled = true;
+    let scrollable;
 
     $: addSharedText($sharedText);
     $: changePlaceholder($replyRef);
@@ -205,13 +207,17 @@
     }
 </script>
 
-<div class="editor-column">
-  <slot name="avatar"></slot>
+<div class="publish-form-scrollable" bind:this={scrollable}>
+  <slot name="top"></slot>
 
-  <div class="editor" bind:this={element}></div>
+  <div class="editor-column">
+    <slot name="avatar"></slot>
+
+    <div class="editor" bind:this={element}></div>
+  </div>
+
+  <slot name="normal"></slot>
 </div>
-
-<slot name="normal"></slot>
 
 <EditorBar on:emojiPicked={(e) => {editor.commands.insertContent(e.detail.emoji)}} {_agent}>
   <svelte:fragment slot="top">
@@ -243,7 +249,7 @@
   </svelte:fragment>
 
   <div class="publish-form-bottom-publish" slot="bottom">
-    <button class="publish-form__submit">{$_('publish_button_send')}</button>
+    <button class="publish-form__submit" disabled={isPublishEnabled} on:click={() => {dispatch('publish')}}>{$_('publish_button_send')}</button>
   </div>
 </EditorBar>
 
@@ -336,16 +342,17 @@
 
     .publish-form-bottom-publish {
         margin-left: auto;
-
-        @media (min-width: 768px) {
-            display: none;
-        }
+        display: none;
     }
 
     .editor-column {
         display: grid;
         grid-template-columns: 40px 1fr;
         gap: 8px;
-        padding: 12px;
+        padding: 12px 0 12px 12px;
+
+        @media (max-width: 767px) {
+
+        }
     }
 </style>

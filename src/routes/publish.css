@@ -42,16 +42,24 @@
             height: calc(100dvh - 50px - env(keyboard-inset-height, 0px));
             display: flex;
             flex-direction: column;
+            padding-bottom: 46px;
 
             .editor-column {
                 flex: 1;
             }
 
             .tiptap {
-                height: calc(100dvh - 120px - env(keyboard-inset-height, 0px));
+                height: 100%;
             }
         }
     }
+}
+
+.publish-form-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .publish-form__input {
@@ -290,6 +298,19 @@
     .publish-form-sp-close {
         @media (max-width: 767px) {
             display: grid !important;
+        }
+    }
+
+    .emoji-picker-wrap {
+        @media (max-width: 767px) {
+            top: auto;
+            bottom: 50px;
+        }
+    }
+
+    .publish-form-bottom-publish {
+        @media (max-width: 767px) {
+            display: block !important;
         }
     }
 }
