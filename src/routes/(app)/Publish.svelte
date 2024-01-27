@@ -663,7 +663,7 @@ function handleAgentSelect(event) {
 <svelte:document on:paste={handlePaste} />
 
 {#if (isFocus)}
-  <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard} aria-label="投稿ウィンドウを閉じる" on:click={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
+  <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} aria-label="投稿ウィンドウを閉じる" on:click={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
     <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
       <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
     </svg>
@@ -679,7 +679,7 @@ function handleAgentSelect(event) {
 <section class="publish-group"
          class:publish-group--expanded={isFocus}
          class:publish-group--left={$settings.design?.publishPosition === 'left'}
-         class:vk-publish-group={isVirtualKeyboard}
+         class:vk-publish-group={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
          use:clickOutside={{ignoreElement: '.publish-sp-open'}}
          on:outclick={handleOutClick}
 >
@@ -702,7 +702,7 @@ function handleAgentSelect(event) {
         </div>
       </div>
 
-      <button class="publish-form__submit" class:publish-form__submit--hide={isVirtualKeyboard} on:click={publish} disabled={isPublishEnabled}>{$_('publish_button_send')}</button>
+      <button class="publish-form__submit" class:publish-form__submit--hide={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} on:click={publish} disabled={isPublishEnabled}>{$_('publish_button_send')}</button>
 
       <button class="publish-form-sp-close" on:click={onClose}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -712,7 +712,7 @@ function handleAgentSelect(event) {
     <div class="publish-form"
          class:publish-form--expand={$isPublishFormExpand}
          class:publish-form--dragover={isDragover}
-         class:publish-form--fit={isVirtualKeyboard}
+         class:publish-form--fit={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
          on:dragover|preventDefault
          on:drop|preventDefault={handleDrop}
          on:dragenter|preventDefault={handleDragover}

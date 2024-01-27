@@ -553,5 +553,10 @@
   "skin_dynamic": "ダイナミックカラー",
   "skin_ios": "Appleシステム",
   "embed_bluemotion": "Bluemotion",
-  "lang_filter_notice": "英文のみ、漢字のみの投稿は英語・中国語などと判定されるためフィルタリングされ取得漏れと誤解するケースが多く報告されています。特段の理由がなければ設定しないことをオススメします。"
+  "lang_filter_notice": "英文のみ、漢字のみの投稿は英語・中国語などと判定されるためフィルタリングされ取得漏れと誤解するケースが多く報告されています。特段の理由がなければ設定しないことをオススメします。",
+  "settings_embed_description": "YouTubeやTwitterなどの埋め込みをオンオフ",
+  "reaction_button_settings_description": "いいねボタン等のオンオフと数字を隠す設定",
+  "mobile_post_layout": "モバイルの投稿画面レイアウト (Android/Chrome)",
+  "mobile_post_layout_bottom": "投稿ボタンが下",
+  "mobile_post_layout_top": "投稿ボタンが上（従来）"
 }

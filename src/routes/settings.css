@@ -325,7 +325,7 @@ input[type=checkbox]{
 }
 
 .settings-child-nav {
-    height: 50px;
+    height: 60px;
     display: grid;
     grid-template-columns: 24px 1fr 20px;
     gap: 16px;
@@ -335,6 +335,8 @@ input[type=checkbox]{
     border-radius: var(--border-radius-2);
     padding: 0 16px;
     position: relative;
+    background-color: var(--bg-color-2);
+    margin-bottom: 8px;
 
     a {
         color: inherit;
@@ -348,5 +350,15 @@ input[type=checkbox]{
             right: 0;
             bottom: 0;
         }
+    }
+
+    span {
+        font-size: 14px;
+        color: var(--text-color-3);
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }

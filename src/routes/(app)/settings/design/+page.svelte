@@ -18,6 +18,7 @@
     let fontSize = $settings?.design.fontSize || 2;
     let advancedBreak = $settings?.design.advancedBreak || false;
     let externalLayout = $settings?.design.externalLayout || 'normal';
+    let mobilePostLayoutTop = $settings?.design.mobilePostLayoutTop || false;
 
     $: myThemes = liveQuery(async () => {
         const myThemes = await themesDb.themes.toArray();
@@ -38,6 +39,7 @@
         $settings.design.fontSize = fontSize;
         $settings.design.advancedBreak = advancedBreak;
         $settings.design.externalLayout = externalLayout;
+        $settings.design.mobilePostLayoutTop = mobilePostLayoutTop;
     }
 
     $: colors = detectColors($theme);
@@ -100,7 +102,7 @@
   <div class="settings-wrap">
     <div class="settings-child-nav">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gallery-vertical"><path d="M3 2h18"/><rect width="18" height="12" x="3" y="6" rx="2"/><path d="M3 22h18"/></svg>
-      <a href="/settings/design/embed">{$_('settings_embed')}</a>
+      <a href="/settings/design/embed">{$_('settings_embed')}<br><span>{$_('settings_embed_description')}</span></a>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
     </div>
 
@@ -360,6 +362,26 @@
               <option value="{option.value}">{option.sample}</option>
             {/each}
           </select>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('mobile_post_layout')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="radio-group">
+          <div class="radio">
+            <input type="radio" bind:group={mobilePostLayoutTop} id="mobilePostLayoutFalse" name="mobilePostLayout" value={false}>
+            <label for="mobilePostLayoutFalse"><span class="radio__ui"></span>{$_('mobile_post_layout_bottom')}</label>
+          </div>
+
+          <div class="radio">
+            <input type="radio" bind:group={mobilePostLayoutTop} id="mobilePostLayoutTrue" name="mobilePostLayout" value={true}>
+            <label for="mobilePostLayoutTrue"><span class="radio__ui"></span>{$_('mobile_post_layout_top')}</label>
+          </div>
         </div>
       </dd>
     </dl>

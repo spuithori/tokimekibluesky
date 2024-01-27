@@ -552,5 +552,10 @@
   "skin_dynamic": "Dynamic",
   "skin_ios": "Apple System",
   "embed_bluemotion": "Bluemotion",
-  "lang_filter_notice": " "
+  "lang_filter_notice": " ",
+  "settings_embed_description": "Turn on/off embedding of YouTube, Twitter, etc.",
+  "reaction_button_settings_description": "Settings to turn on/off the Like button, etc. and hide numbers",
+  "mobile_post_layout": "Mobile post layout (Android/Chrome)",
+  "mobile_post_layout_bottom": "Post button is bottom",
+  "mobile_post_layout_top": "Post button is on top (traditional)"
 }

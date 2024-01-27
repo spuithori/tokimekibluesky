@@ -132,6 +132,7 @@ const defaultSettings = {
         externalLayout: 'normal',
         reactionButtons: defaultReactionButtons,
         advancedBreak: false,
+        mobilePostLayoutTop: false,
     },
     timeline: {
         hideRepost: 'all',

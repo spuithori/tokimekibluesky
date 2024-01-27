@@ -11,44 +11,32 @@
   }
 </script>
 
-<div class="modal modal--small">
-  <div class="modal-contents">
-    <h2 class="modal-title modal-title--smaller">{$_('reaction_button_settings')}</h2>
+<div class="reaction-button-settings-list">
+  {#each reactions as item, index (item)}
+    <div class="reaction-button-settings-item reaction-button-settings-item--{item}">
+      <div class="reaction-button-settings-item__heading">
+        <h3 class="reaction-button-settings-item__title">{$_(item)}</h3>
 
-    <div class="reaction-button-settings-list">
-      {#each reactions as item, index (item)}
-        <div class="reaction-button-settings-item reaction-button-settings-item--{item}">
-          <div class="reaction-button-settings-item__heading">
-            <h3 class="reaction-button-settings-item__title">{$_(item)}</h3>
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id={'rbs_' + item} bind:group={$settings.design.reactionButtons.shown} value={item}><label class="input-toggle__label" for={'rbs_' + item}></label>
+        </div>
 
-            <div class="input-toggle">
-              <input class="input-toggle__input" type="checkbox" id={'rbs_' + item} bind:group={$settings.design.reactionButtons.shown} value={item}><label class="input-toggle__label" for={'rbs_' + item}></label>
-            </div>
-
-            <span class="reaction-button-settings-item__icon">
+        <span class="reaction-button-settings-item__icon">
               <svelte:component this={icons[index]}></svelte:component>
             </span>
+      </div>
+
+      {#if (item === 'reply' || item === 'repost' || item === 'like')}
+        <div class="reaction-button-settings-item__child">
+          <h4 class="reaction-button-settings-item__title2">{$_('show_counts')}</h4>
+
+          <div class="input-toggle">
+            <input class="input-toggle__input" type="checkbox" id={'rbsc_' + item} bind:checked={$settings.design.reactionButtons[item].showCounts}><label class="input-toggle__label" for={'rbsc_' + item}></label>
           </div>
-
-          {#if (item === 'reply' || item === 'repost' || item === 'like')}
-            <div class="reaction-button-settings-item__child">
-              <h4 class="reaction-button-settings-item__title2">{$_('show_counts')}</h4>
-
-              <div class="input-toggle">
-                <input class="input-toggle__input" type="checkbox" id={'rbsc_' + item} bind:checked={$settings.design.reactionButtons[item].showCounts}><label class="input-toggle__label" for={'rbsc_' + item}></label>
-              </div>
-            </div>
-          {/if}
         </div>
-      {/each}
+      {/if}
     </div>
-
-    <div class="modal-close">
-      <button class="button button--sm" on:click={close}>{$_('close_button')}</button>
-    </div>
-  </div>
-
-  <button class="modal-background-close" on:click={close}></button>
+  {/each}
 </div>
 
 <style lang="postcss">

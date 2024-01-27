@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {Trash2, SmilePlus, Users2, Languages, Copy, AtSign, ListPlus, List, Flag} from 'lucide-svelte';
+    import {Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag} from 'lucide-svelte';
     import {
         agent,
         settings,
@@ -9,7 +9,6 @@
         columns,
         didHint,
         pulseDelete,
-        isReactionButtonSettingsModalOpen,
         listAddModal,
         agents
     } from '$lib/stores';
@@ -348,13 +347,6 @@
             </button>
           </li>
         {/if}
-
-        <li class="timeline-menu-list__item timeline-menu-list__item--translate">
-          <button class="timeline-menu-list__button" on:click={() => {$isReactionButtonSettingsModalOpen = true; isMenuOpen = false}}>
-            <SmilePlus size="18" color="var(--text-color-1)"></SmilePlus>
-            {$_('reaction_button_settings')}
-          </button>
-        </li>
 
         <li class="timeline-menu-list__item timeline-menu-list__item--translate">
           <button class="timeline-menu-list__button" on:click={translation}>
