@@ -30,14 +30,22 @@
     export let data: LayoutData;
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
-        let raw = await $agent.agent.api.app.bsky.graph.getFollowers({actor: data.params.handle, limit: 20, cursor: cursor});
-        cursor = raw.data.cursor;
-
-        if (cursor) {
+        try {
+            let raw = await $agent.agent.api.app.bsky.graph.getFollowers({
+                actor: data.params.handle,
+                limit: 20,
+                cursor: cursor
+            });
+            cursor = raw.data.cursor;
             followers = [...new Map([...followers, ...raw.data.followers].map(follower => [follower.did, follower])).values()];
 
-            loaded();
-        } else {
+            if (cursor) {
+                loaded();
+            } else {
+                complete();
+            }
+        } catch (e) {
+            console.error(e);
             complete();
         }
     }
