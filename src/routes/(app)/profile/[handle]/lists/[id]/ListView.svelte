@@ -35,7 +35,7 @@
       cursor = res.data.cursor;
 
       if (cursor) {
-          timeline = [...timeline, ...res.data.feed]
+          timeline = [...timeline, ...res.data.feed];
 
           loaded();
       } else {

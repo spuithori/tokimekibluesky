@@ -1,4 +1,5 @@
 import {accountsDb} from "$lib/db";
+import {agent, didHint} from "$lib/stores";
 
 export function getAccountIdByDid(agents, did) {
     let id;
@@ -63,4 +64,13 @@ export function detectDifferentDomainUrl(url: string, text: string) {
 export function isFeedByUri(uri: string) {
     const type = uri.split('/')[3];
     return type === 'app.bsky.feed.generator';
+}
+
+export async function getDidByHandle(handle, _agent) {
+    if (isDid(handle)) {
+        return handle;
+    }
+
+    const res = await _agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
+    return res.data.did;
 }

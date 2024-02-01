@@ -37,10 +37,9 @@ const handleLoadMore = async ({ detail: { loaded, complete } }) => {
     try {
         const raw = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: data.params.handle, limit: 30, cursor: cursor});
         cursor = raw.data.cursor;
+        feeds = [...feeds, ...raw.data.feed];
 
         if (cursor) {
-            feeds = [...feeds, ...raw.data.feed];
-
             loaded();
         } else {
             complete();

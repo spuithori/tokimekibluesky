@@ -38,13 +38,18 @@
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        const likesArrayRes = await getRecords();
-        cursor = likesArrayRes.data.cursor;
-
-        if (cursor) {
+        try {
+            const likesArrayRes = await getRecords();
+            cursor = likesArrayRes.data.cursor;
             feeds = [...feeds, ...await getFeedsFromRecords(likesArrayRes.data.records)];
-            loaded();
-        } else {
+
+            if (cursor) {
+                loaded();
+            } else {
+                complete();
+            }
+        } catch (e) {
+            console.error(e);
             complete();
         }
     }

@@ -21,15 +21,14 @@
         try {
             const res = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: data.params.handle, limit: 30, cursor: cursor, filter: 'posts_with_media'});
             cursor = res.data.cursor;
+            for (const item of res.data.feed) {
+                if (item.post.embed && AppBskyEmbedImages.isView(item.post.embed)) {
+                    feeds.push(item);
+                }
+            }
+            feeds = feeds;
 
             if (cursor) {
-                for (const item of res.data.feed) {
-                    if (item.post.embed && AppBskyEmbedImages.isView(item.post.embed)) {
-                        feeds.push(item);
-                    }
-                }
-                feeds = feeds;
-
                 loaded();
             } else {
                 complete();

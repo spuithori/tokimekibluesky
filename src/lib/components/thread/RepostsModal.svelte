@@ -18,15 +18,18 @@
     }
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
-        const res = await $agent.agent.api.app.bsky.feed.getRepostedBy({uri: uri, cursor: cursor});
-        cursor = res.data.cursor;
-        console.log(cursor)
-
-        if (cursor) {
+        try {
+            const res = await $agent.agent.api.app.bsky.feed.getRepostedBy({uri: uri, cursor: cursor});
+            cursor = res.data.cursor;
             reposts = [...reposts, ...res.data.repostedBy];
 
-            loaded();
-        } else {
+            if (cursor) {
+                loaded();
+            } else {
+                complete();
+            }
+        } catch (e) {
+            console.error(e);
             complete();
         }
     }

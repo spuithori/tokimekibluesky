@@ -4,20 +4,26 @@
     import {agent} from "$lib/stores";
     import InfiniteLoading from 'svelte-infinite-loading';
     import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
+    import {getDidByHandle} from "$lib/util";
     let lists = [];
     let cursor: string | undefined = '';
 
     export let data: LayoutData;
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
-        let raw = await $agent.agent.api.app.bsky.graph.getLists({actor: data.params.handle, limit: 20, cursor: cursor});
-        cursor = raw.data.cursor;
-
-        if (cursor) {
+        try {
+            let raw = await $agent.agent.api.app.bsky.graph.getLists({actor: await getDidByHandle(data.params.handle, $agent), limit: 20, cursor: cursor});
+            cursor = raw.data.cursor;
             lists = [...lists, ...raw.data.lists];
+            console.log(lists);
 
-            loaded();
-        } else {
+            if (cursor) {
+                loaded();
+            } else {
+                complete();
+            }
+        } catch (e) {
+            console.error(e);
             complete();
         }
     }
