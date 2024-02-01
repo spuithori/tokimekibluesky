@@ -12,14 +12,18 @@
   const _agent = $agents.get(getAccountIdByDid($agents, $page.params.id));
 
   async function handleLoadMore({ detail: { loaded, complete } }) {
-      let res = await _agent.agent.api.app.bsky.graph.getMutes({limit: 20, cursor: cursor});
-      cursor = res.data.cursor;
-
-      if (cursor) {
+      try {
+          let res = await _agent.agent.api.app.bsky.graph.getMutes({limit: 20, cursor: cursor});
+          cursor = res.data.cursor;
           mutes = [...mutes, ...res.data.mutes];
 
-          loaded();
-      } else {
+          if (cursor) {
+              loaded();
+          } else {
+              complete();
+          }
+      } catch (e) {
+          console.error(e);
           complete();
       }
   }
