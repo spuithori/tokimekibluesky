@@ -51,7 +51,7 @@ export class Agent {
 
             return res;
         } catch (e) {
-            toast.error('Error');
+            // toast.error('Error');
             console.error(e);
             return undefined;
         }
