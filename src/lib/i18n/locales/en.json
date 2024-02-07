@@ -562,5 +562,8 @@
   "login_service": "Login server",
   "login_handle_or_email": "Username or Email",
   "login_password": "Password",
-  "hide_button": "Hide"
+  "hide_button": "Hide",
+  "server_status_minor": "There may be a problem with the Bluesky server.",
+  "server_status_major": "There is a problem with the Bluesky server.",
+  "server_status_page_link": "Status page"
 }

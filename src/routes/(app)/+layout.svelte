@@ -43,6 +43,7 @@
   import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
   import {isMobile} from "$lib/detectDevice";
   import WelcomeModal from "$lib/components/utils/WelcomeModal.svelte";
+  import ServerStatusSticker from "$lib/components/status/ServerStatusSticker.svelte";
 
   let loaded = false;
   let isColumnInitialLoad = false;
@@ -424,6 +425,7 @@
   <ReportObserver></ReportObserver>
   <ProfileStatusObserver></ProfileStatusObserver>
   <LinkWarningModal></LinkWarningModal>
+  <ServerStatusSticker></ServerStatusSticker>
 </div>
 
 <style lang="postcss">

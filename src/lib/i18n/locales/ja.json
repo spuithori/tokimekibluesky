@@ -563,5 +563,8 @@
   "login_service": "ログインするサーバー",
   "login_handle_or_email": "ユーザー名またはメールアドレス",
   "login_password": "パスワード",
-  "hide_button": "隠す"
+  "hide_button": "隠す",
+  "server_status_minor": "Blueskyサーバーに問題が生じている可能性があります。",
+  "server_status_major": "Blueskyサーバーに問題が生じています。",
+  "server_status_page_link": "ステータスページ"
 }
