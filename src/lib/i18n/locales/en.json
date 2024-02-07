@@ -561,5 +561,6 @@
   "theme_store_description": "Install additional unique themes",
   "login_service": "Login server",
   "login_handle_or_email": "Username or Email",
-  "login_password": "Password"
+  "login_password": "Password",
+  "hide_button": "Hide"
 }

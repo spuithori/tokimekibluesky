@@ -749,6 +749,10 @@
     @media (max-width: 767px) {
 
     }
+
+    &--hide {
+        display: none;
+    }
 }
 
 .timeline-warn-heading {
