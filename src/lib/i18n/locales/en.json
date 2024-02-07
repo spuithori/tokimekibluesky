@@ -557,5 +557,6 @@
   "reaction_button_settings_description": "Settings to turn on/off the Like button, etc. and hide numbers",
   "mobile_post_layout": "Mobile post layout (Android/Chrome)",
   "mobile_post_layout_bottom": "Post button is bottom",
-  "mobile_post_layout_top": "Post button is on top (traditional)"
+  "mobile_post_layout_top": "Post button is on top (traditional)",
+  "theme_store_description": "Install additional unique themes"
 }
