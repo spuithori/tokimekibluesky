@@ -10,7 +10,7 @@
         didHint,
         pulseDelete,
         listAddModal,
-        agents
+        agents, repostMutes
     } from '$lib/stores';
     import {AppBskyFeedDefs} from '@atproto/api'
     import toast from "svelte-french-toast";
@@ -66,6 +66,8 @@
 
     let isHide;
     let isReplyHide;
+
+    detectRepostMuteFilter();
 
     export let hideReply = column && column.settings?.timeline.hideReply
                   ? column.settings?.timeline.hideReply
@@ -275,6 +277,22 @@
     function handleRepost(event) {
         data.post.repostCount = event.detail.count;
         data.post.viewer.repost = event.detail.viewer;
+    }
+
+    function detectRepostMuteFilter() {
+        if (!isReasonRepost(data.reason)) {
+            return false;
+        }
+
+        const did = data.reason?.by.did;
+
+        if (!did) {
+            return false;
+        }
+
+        if ($repostMutes.includes(did)) {
+            isHide = true;
+        }
     }
 </script>
 

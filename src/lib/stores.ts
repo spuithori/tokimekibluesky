@@ -165,6 +165,9 @@ export const settings = writable(JSON.parse(storageSettings));
 const storageKeywordMutes = localStorage.getItem('keywordMutes') || JSON.stringify([]);
 export const keywordMutes = writable<keyword[]>(JSON.parse(storageKeywordMutes));
 
+const storageRepostMutes = localStorage.getItem('repostMutes') || JSON.stringify([]);
+export const repostMutes = writable<string[]>(JSON.parse(storageRepostMutes));
+
 export const formattedKeywordMutes = derived(keywordMutes, ($keywordMutes) => {
     const initialMutes = structuredClone($keywordMutes);
     if (!initialMutes || !initialMutes.length) {

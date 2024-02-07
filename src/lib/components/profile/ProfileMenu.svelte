@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {agent, listAddModal, userLists} from "$lib/stores";
+    import {agent, listAddModal, repostMutes, userLists} from "$lib/stores";
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import toast from "svelte-french-toast";
@@ -11,6 +11,10 @@
   export let profile;
   export let handle;
   let isMenuOpen = false;
+
+  $: {
+      localStorage.setItem('repostMutes', JSON.stringify($repostMutes));
+  }
 
     async function mute() {
         try {
@@ -93,6 +97,16 @@
 
         }
     }
+
+    function repostMute() {
+        $repostMutes = [...$repostMutes, profile.did];
+        toast.success($_('success_repost_mute'));
+    }
+
+    function repostUnmute() {
+        $repostMutes = $repostMutes.filter(dids => dids !== profile.did);
+        toast.success($_('success_repost_unmute'));
+    }
 </script>
 
 <div class="profile-menu-wrap">
@@ -145,6 +159,22 @@
                 <path id="block" d="M0,9a9,9,0,1,1,9,9A9,9,0,0,1,0,9ZM14.688,4.59,4.581,14.679a7.2,7.2,0,0,0,10.107-10.1ZM13.419,3.312A7.2,7.2,0,0,0,3.312,13.419L13.419,3.312Z" fill="var(--danger-color)"/>
               </svg>
               <span class="text-danger">{$_('unblock_user')}</span>
+            </button>
+          </li>
+        {/if}
+
+        {#if $repostMutes.includes(profile.did)}
+          <li class="timeline-menu-list__item timeline-menu-list__item--repost-mute">
+            <button class="timeline-menu-list__button" on:click={repostUnmute}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+              <span>{$_('repost_mute_off')}</span>
+            </button>
+          </li>
+        {:else}
+          <li class="timeline-menu-list__item timeline-menu-list__item--repost-mute">
+            <button class="timeline-menu-list__button" on:click={repostMute}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+              <span>{$_('repost_mute_on')}</span>
             </button>
           </li>
         {/if}

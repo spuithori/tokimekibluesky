@@ -566,5 +566,9 @@
   "hide_button": "隠す",
   "server_status_minor": "Blueskyサーバーに問題が生じている可能性があります。",
   "server_status_major": "Blueskyサーバーに問題が生じています。",
-  "server_status_page_link": "ステータスページ"
+  "server_status_page_link": "ステータスページ",
+  "repost_mute_on": "リポストをミュート",
+  "repost_mute_off": "リポストミュートを解除",
+  "success_repost_mute": "このユーザーのリポストは表示されません。すでに表示されている投稿はリロード後に反映されます。",
+  "success_repost_unmute": "このユーザーのリポストを表示します。すでに表示されている投稿はリロード後に反映されます。"
 }
