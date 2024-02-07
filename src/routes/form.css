@@ -19,33 +19,48 @@
         padding: 14px 20px;
         border: 1px solid var(--border-color-1);
     }
-}
 
-.input-group__name {
-    position: absolute;
-    width: 0;
-    height: 0;
-    color: transparent;
-    left: 0;
-    right: 0;
+    &__name {
+        position: absolute;
+        width: 0;
+        height: 0;
+        color: transparent;
+        left: 0;
+        right: 0;
 
-    &--show {
-        position: static;
-        margin-bottom: 10px;
-        color: var(--text-color-1);
-        width: auto;
-        height: auto;
+        &--show {
+            position: static;
+            margin-bottom: 8px;
+            color: var(--text-color-1);
+            width: auto;
+            height: auto;
+        }
     }
-}
 
-.input-group__content {
+    &__content {
+        position: relative;
+    }
 
-}
+    &__input {
+        width: 100%;
+        border: 1px solid #333;
+        background-color: #fff;
+    }
 
-.input-group__input {
-    width: 100%;
-    border: 1px solid #333;
-    background-color: #fff;
+    &__prefix {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 10px;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        pointer-events: none;
+
+        & + .input-group__input {
+            padding-left: 36px;
+        }
+    }
 }
 
 .edit-avatar {

@@ -559,5 +559,8 @@
   "mobile_post_layout": "モバイルの投稿画面レイアウト (Android/Chrome)",
   "mobile_post_layout_bottom": "投稿ボタンが下",
   "mobile_post_layout_top": "投稿ボタンが上（従来）",
-  "theme_store_description": "個性的なテーマを追加でインストール"
+  "theme_store_description": "個性的なテーマを追加でインストール",
+  "login_service": "ログインするサーバー",
+  "login_handle_or_email": "ユーザー名またはメールアドレス",
+  "login_password": "パスワード"
 }

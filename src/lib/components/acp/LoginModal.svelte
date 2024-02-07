@@ -56,8 +56,8 @@ function cancel() {
 
     <form action="#" on:submit|preventDefault={login}>
       <dl class="input-group">
-        <dt class="input-group__name">
-          <label for="service">Service</label>
+        <dt class="input-group__name input-group__name--show">
+          <label for="service">{$_('login_service')}</label>
         </dt>
 
         <dd class="input-group__content">
@@ -66,22 +66,24 @@ function cancel() {
       </dl>
 
       <dl class="input-group">
-        <dt class="input-group__name">
-          <label for="email">Email or handle</label>
+        <dt class="input-group__name input-group__name--show">
+          <label for="email">{$_('login_handle_or_email')}</label>
         </dt>
 
         <dd class="input-group__content">
-          <input class="input-group__input" type="text" name="email" id="email" placeholder="Email or handle" bind:value="{identifier}" readonly={isMissing} required />
+          <span class="input-group__prefix"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-at-sign"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg></span>
+          <input class="input-group__input" type="text" name="email" id="email" placeholder="example.bsky.social" bind:value="{identifier}" readonly={isMissing} required />
         </dd>
       </dl>
 
       <dl class="input-group">
-        <dt class="input-group__name">
-          <label for="password">Password</label>
+        <dt class="input-group__name input-group__name--show">
+          <label for="password">{$_('login_password')}</label>
         </dt>
 
         <dd class="input-group__content">
-          <input class="input-group__input" type="password" name="password" id="password" placeholder="Password" bind:value="{password}" required />
+          <span class="input-group__prefix"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock-keyhole"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg></span>
+          <input class="input-group__input" type="password" name="password" id="password" placeholder="password" bind:value="{password}" required />
         </dd>
       </dl>
 
