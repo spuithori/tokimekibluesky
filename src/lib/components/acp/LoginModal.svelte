@@ -156,4 +156,12 @@ function cancel() {
         margin-top: 20px;
         font-size: 14px;
     }
+
+    .input-group {
+        input {
+            border: 1px solid var(--border-color-1);
+            color: var(--text-color-1);
+            background-color: var(--bg-color-2);
+        }
+    }
 </style>
