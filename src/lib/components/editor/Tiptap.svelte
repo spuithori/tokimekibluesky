@@ -56,7 +56,7 @@
                     },
                     autolink: true,
                     openOnClick: false,
-                    linkOnPaste: false,
+                    linkOnPaste: true,
                 }),
                 HardBreak.extend({
                     addKeyboardShortcuts() {
