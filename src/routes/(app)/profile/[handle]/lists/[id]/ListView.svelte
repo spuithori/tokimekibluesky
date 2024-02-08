@@ -27,18 +27,22 @@
   }
 
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-      const uri = 'at://' + did + '/app.bsky.graph.list/' + id;
-      const res = await $agent.getTimeline({limit: 20, cursor: cursor, algorithm: {
-              type: 'officialList',
-              algorithm: uri,
-          }});
-      cursor = res.data.cursor;
-
-      if (cursor) {
+      try {
+          const uri = 'at://' + did + '/app.bsky.graph.list/' + id;
+          const res = await $agent.getTimeline({limit: 20, cursor: cursor, algorithm: {
+                  type: 'officialList',
+                  algorithm: uri,
+              }});
+          cursor = res.data.cursor;
           timeline = [...timeline, ...res.data.feed];
 
-          loaded();
-      } else {
+          if (cursor) {
+              loaded();
+          } else {
+              complete();
+          }
+      } catch (e) {
+          console.error(e);
           complete();
       }
   }
