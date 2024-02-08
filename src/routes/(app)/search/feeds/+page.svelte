@@ -31,14 +31,18 @@
         }
     }
     async function handleLoadMore({ detail: { loaded, complete } }) {
-        let raw = await _agent.agent.api.app.bsky.unspecced.getPopularFeedGenerators({query: $page.url.searchParams.get('q') || '' , limit: 20, cursor: cursor});
-        cursor = raw.data.cursor;
-
-        if (cursor) {
+        try {
+            let raw = await _agent.agent.api.app.bsky.unspecced.getPopularFeedGenerators({query: $page.url.searchParams.get('q') || '' , limit: 20, cursor: cursor});
+            cursor = raw.data.cursor;
             feeds = [...feeds, ...raw.data.feeds];
 
-            loaded();
-        } else {
+            if (cursor) {
+                loaded();
+            } else {
+                complete();
+            }
+        } catch (e) {
+            console.error(e);
             complete();
         }
     }
