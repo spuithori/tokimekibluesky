@@ -11,6 +11,7 @@ type timelineOpt = {
     type: 'default' | 'media',
     uris?: [],
     actors?: [],
+    count?: number,
 }
 
 export class Agent {
@@ -63,7 +64,7 @@ export class Agent {
                 return await this.agent.api.app.bsky.feed.getFeed({
                     limit: timelineOpt.limit, cursor: timelineOpt.cursor, feed: timelineOpt.algorithm.algorithm});
             case 'list':
-                return await this.getAuthorsFeed(timelineOpt.actors);
+                return await this.getAuthorsFeed(timelineOpt.actors, timelineOpt.count);
             case 'officialList':
                 return await this.agent.api.app.bsky.feed.getListFeed({
                     limit: timelineOpt.limit, cursor: timelineOpt.cursor, list: timelineOpt.algorithm.algorithm})
@@ -95,10 +96,10 @@ export class Agent {
         }
     }
 
-    async getAuthorsFeed(actors) {
+    async getAuthorsFeed(actors, count: number) {
         let promises = [];
         actors.forEach(member => {
-            if (member.cursor !== undefined) {
+            if (member.cursor !== undefined || count === 0) {
                 const res = this.agent.api.app.bsky.feed.getAuthorFeed({
                     actor: member.actor,
                     limit: member.limit || 20,

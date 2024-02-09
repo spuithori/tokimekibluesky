@@ -15,6 +15,7 @@
 
     let feedPool = [];
     let feed = [];
+    let count = 0;
 
     let list = $userLists.find(item => column.algorithm.list === item.id);
 
@@ -22,12 +23,12 @@
         actors.push({
             actor: member,
             limit: 20,
-            cursor: '',
+            cursor: undefined,
         })
     })
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        const ress = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm, actors: actors});
+        const ress = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm, actors: actors, count: count});
 
         ress.forEach((res, index) => {
             feedPool.push(...res.data.feed);
@@ -40,13 +41,14 @@
         feedPool = feedPool.sort((a, b) => {
             return parseISO(b.reason ? b.reason.indexedAt : b.post.indexedAt).getTime() - parseISO(a.reason ? a.reason.indexedAt : a.post.indexedAt).getTime();
         });
-        // console.log(feedPool);
         feed = feedPool.slice(0, 20);
         feedPool = feedPool.slice(20);
 
-        if (cursors.some(item => item.cursor !== undefined)) {
-            await poolRecalc(feedPool);
+        if (cursors.some(item => item.cursor !== undefined) || count === 0) {
+            count = count + 1;
             column.data.feed = [...column.data.feed, ...feed];
+            await poolRecalc(feedPool);
+
             loaded();
         } else {
             complete();
@@ -75,6 +77,11 @@
                     limit: 20 - value.length,
                     cursor: cursors.find(item => item.actor === key)?.cursor || undefined
                 })
+
+                if (count > 0) {
+                    actors = actors.filter(item => item.cursor !== undefined);
+                }
+
                 cursors = cursors.filter(item => item.actor !== key);
             }
         })
