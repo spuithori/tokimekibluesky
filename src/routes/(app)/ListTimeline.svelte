@@ -44,10 +44,9 @@
         feed = feedPool.slice(0, 20);
         feedPool = feedPool.slice(20);
 
-        await poolRecalc(feedPool);
-        column.data.feed = [...column.data.feed, ...feed];
-
         if (cursors.some(item => item.cursor !== undefined)) {
+            await poolRecalc(feedPool);
+            column.data.feed = [...column.data.feed, ...feed];
             loaded();
         } else {
             complete();
