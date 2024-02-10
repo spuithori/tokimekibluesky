@@ -35,3 +35,7 @@ Documentation to enable this is under construction.
 ## License
 
 [MIT](LICENSE)
+
+## Acknowledgment
+
+This project is tested with Browserstack.
