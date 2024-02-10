@@ -679,6 +679,7 @@ function handleAgentSelect(event) {
 <section class="publish-group"
          class:publish-group--expanded={isFocus}
          class:publish-group--left={$settings.design?.publishPosition === 'left'}
+         class:publish-group--bottom={$settings.design?.publishPosition === 'bottom'}
          class:vk-publish-group={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
          use:clickOutside={{ignoreElement: '.publish-sp-open'}}
          on:outclick={handleOutClick}

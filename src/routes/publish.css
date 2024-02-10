@@ -323,3 +323,11 @@
         }
     }
 }
+
+.publish-group--bottom {
+    .publish-bottom-buttons {
+        @media (min-width: 768px) {
+            position: relative !important;
+        }
+    }
+}
