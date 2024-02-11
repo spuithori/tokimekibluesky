@@ -20,13 +20,11 @@
 
 <dialog class="likes-modal" transition:fly="{{ y: 30, duration: 250 }}" bind:this={el} on:close={close}>
     <div class="likes-modal-contents">
-        <h2 class="likes-modal-title">{$_('liked_users')}</h2>
+        <h2 class="likes-modal-title">{$_('official_list_member')}</h2>
 
         <div class="likes">
-            {#each members as member }
-                {#if (!member.subject.viewer?.muted)}
-                    <UserItem user={member.subject}></UserItem>
-                {/if}
+            {#each members as member}
+                <UserItem user={member.subject}></UserItem>
             {/each}
         </div>
 

@@ -12,7 +12,7 @@ import {
     Pencil,
     Rainbow, Rss, Sparkles, Speaker,
     Star,
-    Sun, Tent, TreePine, Apple, Beer, Coffee, IceCream, CakeSlice, Soup, UtensilsCrossed, Search
+    Sun, Tent, TreePine, Apple, Beer, Coffee, IceCream, CakeSlice, Soup, UtensilsCrossed, Search, Repeat2, UserRound, Music
 } from 'lucide-svelte';
 
 export const iconMap = new Map();
@@ -23,6 +23,7 @@ iconMap.set('home', Home)
     .set('list', List)
     .set('bookmark', Bookmark)
     .set('search', Search)
+    .set('user', UserRound)
     .set('rainbow', Rainbow)
     .set('sun', Sun)
     .set('clock', Clock3)
@@ -41,6 +42,7 @@ iconMap.set('home', Home)
     .set('science', FlaskConical)
     .set('aperture', Aperture)
     .set('heart', Heart)
+    .set('repost', Repeat2)
     .set('tree', TreePine)
     .set('rss', Rss)
     .set('tent', Tent)
@@ -50,4 +52,5 @@ iconMap.set('home', Home)
     .set('icecream', IceCream)
     .set('cake', CakeSlice)
     .set('soup', Soup)
-    .set('dinner', UtensilsCrossed);
+    .set('dinner', UtensilsCrossed)
+    .set('music', Music);

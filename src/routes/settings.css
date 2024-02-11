@@ -362,3 +362,18 @@ input[type=checkbox]{
         text-overflow: ellipsis;
     }
 }
+
+.list-tags {
+    margin-top: 8px;
+}
+
+.list-tag {
+    background-color: var(--bg-color-2);
+    color: var(--text-color-3);
+    font-size: 13px;
+    height: 24px;
+    display: inline-grid;
+    place-content: center;
+    padding: 0 8px;
+    border-radius: var(--border-radius-2);
+}

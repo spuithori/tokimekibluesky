@@ -1,28 +1,36 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import {agent, columns} from "$lib/stores";
+  import {agent, columns, officialListModal} from "$lib/stores";
   import toast from "svelte-french-toast";
   import {createEventDispatcher} from "svelte";
   import {List} from "lucide-svelte";
   import OfficialListMembersModal from "$lib/components/list/OfficialListMembersModal.svelte";
+  import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
   const dispatch = createEventDispatcher();
 
   export let _agent = $agent;
 
   export let list = undefined;
   export let title = '';
+  export let isModerationList = list?.purpose === 'app.bsky.graph.defs#modlist' || false;
   let items = [];
   export let uri = '';
+  export let isMute = false;
+  export let isBlock = undefined;
+  export let editable = false;
   let isColumnAdded;
   let isMembersOpen = false;
 
   if (!list && uri) {
-      _agent.agent.api.app.bsky.graph.getList({list: uri})
+      _agent.agent.api.app.bsky.graph.getList({list: uri, limit: 100})
           .then(value => {
               list = value.data.list;
               items = value.data.items;
               title = list.name;
+              isModerationList = list.purpose === 'app.bsky.graph.defs#modlist';
+              isMute = list?.viewer?.muted;
+              isBlock = list?.viewer?.blocked;
           })
           .catch(e => {
               console.error(e);
@@ -70,7 +78,7 @@
       <h3 class="list-item__title">
         <a href="/profile/{list.creator.handle}/lists/{list.uri.split('/').slice(-1)[0]}">{list.name}</a>
 
-        {#if list.purpose === 'app.bsky.graph.defs#modlist'}
+        {#if isModerationList}
           <span class="list-item__label">{$_('mute_list')}</span>
         {/if}
       </h3>
@@ -90,10 +98,25 @@
           {list.description}
         {/if}
       </p>
+
+      <slot></slot>
     </div>
 
     <div class="list-item__buttons">
-      <button class="button button--ss" on:click={addColumn} disabled={isColumnAdded}>{$_('feed_quick_add')}</button>
+      {#if isModerationList}
+      {:else}
+        <button class="button button--ss" on:click={addColumn} disabled={isColumnAdded}>{$_('feed_quick_add')}</button>
+      {/if}
+
+      {#if editable}
+        <button
+          class="algo-nav-edit"
+          on:click={() => {$officialListModal = {open: true, uri: list.uri}}}
+          aria-label="Edit list"
+        >
+          <IconColumnsEdit></IconColumnsEdit>
+        </button>
+      {/if}
     </div>
   </div>
 {/if}
@@ -170,10 +193,16 @@
           display: grid;
           place-content: center;
           letter-spacing: 0;
+          flex-shrink: 0;
       }
 
       &__buttons {
           margin-top: 8px;
       }
+  }
+
+  .algo-nav-edit {
+      position: relative;
+      z-index: 2;
   }
 </style>

@@ -5,6 +5,7 @@
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
+    export let purpose = 'app.bsky.graph.defs#curatelist';
 
     function handleListClose(event) {
         $officialListModal = {
@@ -17,5 +18,5 @@
 </script>
 
 {#if ($officialListModal.open)}
-  <OfficialListModal {_agent} uri={$officialListModal.uri} on:close={handleListClose}></OfficialListModal>
+  <OfficialListModal {_agent} {purpose} uri={$officialListModal.uri} on:close={handleListClose}></OfficialListModal>
 {/if}

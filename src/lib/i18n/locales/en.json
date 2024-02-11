@@ -569,5 +569,15 @@
   "repost_mute_on": "Repost mute",
   "repost_mute_off": "Repost Unmute",
   "success_repost_mute": "Reposts by this user will not be displayed. Posts that are already displayed will be applied after reloading.",
-  "success_repost_unmute": "Displays reposts by this user. Posts already displayed will be applied after reloading."
+  "success_repost_unmute": "Displays reposts by this user. Posts already displayed will be applied after reloading.",
+  "mod_list_cover_title": "This list is the moderation list",
+  "mod_list_cover_text": "Created by the creator for the purpose of collectively muting or blocking users.",
+  "settings_mod_list": "Moderation list",
+  "settings_mod_list_description": "Maintain list for bulk mute/block",
+  "list_label_you": "Your list",
+  "list_label_muted": "Muted",
+  "list_label_blocked": "Blocked",
+  "mod_list_notice_temp": "Here is a list of the main accounts for the current workspace.",
+  "mod_list_add_management": "Moderation List Add",
+  "mod_list_edit": "Moderation List Edit"
 }

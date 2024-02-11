@@ -2,6 +2,7 @@
   import spinner from "$lib/images/loading.svg";
   import {agent} from "$lib/stores";
   import toast from "svelte-french-toast";
+  import {_} from "svelte-i18n";
 
   export let _agent = $agent;
   export let list;
@@ -48,7 +49,12 @@
 
 <div class="list-add-item">
   <div class="list-add-item__content">
-    <h2 class="list-add-item__title">{list.name}</h2>
+    <h2 class="list-add-item__title">
+      {#if list?.purpose === 'app.bsky.graph.defs#modlist'}
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-off"><path d="M20.5 14.9A9 9 0 0 0 9.1 3.5"/><path d="m2 2 20 20"/><path d="M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"/></svg>
+      {/if}
+      {list.name}
+    </h2>
   </div>
 
   <div class="list-add-item__buttons">
@@ -75,6 +81,13 @@
         &__title {
             font-size: 16px;
             letter-spacing: .025em;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+
+            svg {
+                flex-shrink: 0;
+            }
         }
 
         &__buttons {

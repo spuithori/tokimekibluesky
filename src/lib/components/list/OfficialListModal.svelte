@@ -10,6 +10,7 @@
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
+    export let purpose = 'app.bsky.graph.defs#curatelist';
     let isDisabled = false;
     export let uri = '';
     let name = 'new list';
@@ -107,7 +108,7 @@
                 },
                 {
                     name: name,
-                    purpose: 'app.bsky.graph.defs#curatelist',
+                    purpose: purpose,
                     createdAt: new Date().toISOString(),
                 })
             return list.uri;
@@ -138,7 +139,7 @@
                         collection: 'app.bsky.graph.list',
                         record: {
                             name: name,
-                            purpose: 'app.bsky.graph.defs#curatelist',
+                            purpose: purpose,
                             createdAt: new Date().toISOString(),
                         },
                     }
@@ -221,9 +222,9 @@
 <div class="modal">
   <div class="modal-contents">
     {#if uri}
-      <h2 class="modal-title">{$_('official_list_edit')}</h2>
+      <h2 class="modal-title">{$_(purpose === 'app.bsky.graph.defs#curatelist' ? 'official_list_edit' : 'mod_list_edit')}</h2>
     {:else}
-      <h2 class="modal-title">{$_('official_list_add_management')}</h2>
+      <h2 class="modal-title">{$_(purpose === 'app.bsky.graph.defs#curatelist' ? 'official_list_add_management' : 'mod_list_add_management')}</h2>
     {/if}
     <p class="modal-description">{$_('official_list_add_description')}</p>
 

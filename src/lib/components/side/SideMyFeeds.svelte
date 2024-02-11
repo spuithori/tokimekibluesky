@@ -24,7 +24,7 @@
         officialLists = account?.lists;
 
         const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did() as string, limit: 100, cursor: ''});
-        officialLists = res.data.lists;
+        officialLists = res.data.lists.filter(item => item?.purpose !== 'app.bsky.graph.defs#modlist');
 
         await accountsDb.accounts.update(accountId, {
             lists: officialLists,

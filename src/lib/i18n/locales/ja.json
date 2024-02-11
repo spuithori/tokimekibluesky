@@ -412,7 +412,7 @@
   "official_list_add_description": "リストはBluesky上に作成されます。公開情報であり、だれでも閲覧できます。",
   "official_list_member": "リストメンバー",
   "lists": "リスト",
-  "mute_list": "ミュートリスト",
+  "mute_list": "モデレーションリスト",
   "page_title_lists": "のリスト",
   "official_list_edit": "ユーザーリストの編集",
   "delete_list": "リストを削除",
@@ -570,5 +570,15 @@
   "repost_mute_on": "リポストをミュート",
   "repost_mute_off": "リポストミュートを解除",
   "success_repost_mute": "このユーザーのリポストは表示されません。すでに表示されている投稿はリロード後に反映されます。",
-  "success_repost_unmute": "このユーザーのリポストを表示します。すでに表示されている投稿はリロード後に反映されます。"
+  "success_repost_unmute": "このユーザーのリポストを表示します。すでに表示されている投稿はリロード後に反映されます。",
+  "mod_list_cover_title": "このリストはモデレーションリストです",
+  "mod_list_cover_text": "作成者が、ユーザーをまとめてミュートまたはブロックする目的で作成したものです。",
+  "settings_mod_list": "モデレーションリスト",
+  "settings_mod_list_description": "一括でミュート・ブロックするためのリストを管理",
+  "list_label_you": "あなたが作成",
+  "list_label_muted": "ミュート中",
+  "list_label_blocked": "ブロック中",
+  "mod_list_notice_temp": "現在のワークスペースのメインアカウントのリストです。",
+  "mod_list_add_management": "モデレーションリストを作成",
+  "mod_list_edit": "モデレーションリストを編集"
 }
