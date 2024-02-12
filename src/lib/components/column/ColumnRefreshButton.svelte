@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, columns, settings, workerTimer, isRealtimeListenersModalOpen} from "$lib/stores";
+    import {agent, columns, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn} from "$lib/stores";
     import {createEventDispatcher, onDestroy} from "svelte";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import {playSound} from "$lib/sounds";
@@ -22,6 +22,10 @@
     }
 
     export async function refresh(isAutoRefresh: boolean = false) {
+        if ($pauseColumn) {
+            return false;
+        }
+
         isRefreshing = true;
         const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
         const elInitialPosition = el.scrollTop;

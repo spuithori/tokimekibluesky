@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {columns, globalUnique, isColumnModalOpen, settings} from '$lib/stores';
+    import {columns, globalUnique, isColumnModalOpen, pauseColumn, settings} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import {_} from "svelte-i18n";
     import { dndzone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
@@ -12,6 +12,7 @@
 
     const flipDurationMs = 0;
     function handleDndConsider(e) {
+        $pauseColumn = true;
         const {items: newItems, info: {source, trigger}} = e.detail;
         columns.set(newItems);
 
@@ -20,6 +21,7 @@
         }
     }
     function handleDndFinalize(e) {
+        $pauseColumn = false;
         const {items: newItems, info: {source}} = e.detail;
         columns.set(newItems);
 

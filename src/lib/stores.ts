@@ -301,3 +301,5 @@ export const intersectingIndex = writable(0);
 type ThreadGate = 'everybody' | 'nobody' | string[];
 
 export const threadGate = writable<ThreadGate>('everybody');
+
+export const pauseColumn = writable<boolean>(false);

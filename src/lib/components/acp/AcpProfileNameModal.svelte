@@ -1,7 +1,7 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
     import { fade, fly } from 'svelte/transition';
-    import {createEventDispatcher} from "svelte";
+    import {createEventDispatcher, onDestroy, onMount} from "svelte";
+    import {pauseColumn} from "$lib/stores";
     const dispatch = createEventDispatcher();
 
     export let name;
@@ -11,6 +11,14 @@
             name: name,
         });
     }
+
+    onMount(() => {
+        $pauseColumn = true;
+    })
+
+    onDestroy(() => {
+        $pauseColumn = false;
+    })
 </script>
 
 <div class="modal" transition:fly="{{ y: 30, duration: 250 }}">

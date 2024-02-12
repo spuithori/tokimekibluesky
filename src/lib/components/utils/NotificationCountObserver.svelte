@@ -1,11 +1,15 @@
 <script lang="ts">
-  import {agents, columns, workerTimer} from "$lib/stores";
+    import {agents, columns, pauseColumn, workerTimer} from "$lib/stores";
   import {getAccountIdByDid} from "$lib/util";
   import {onDestroy} from "svelte";
 
   function updateCount() {
       let promises = [];
       let notificationColumns = [];
+
+      if ($pauseColumn) {
+          return false;
+      }
 
       $columns.forEach((column, index) => {
           if (column.algorithm?.type !== 'notification') {
