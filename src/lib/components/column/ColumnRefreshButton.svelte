@@ -157,10 +157,6 @@
         if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0) {
             if (e.data % Number(column.settings.autoRefresh) === 0) {
                 refresh(true);
-
-                if (column.algorithm.type === 'custom') {
-                    track('refresh', { column: column.algorithm?.algorithm, did: column.did });
-                }
             }
         }
     }

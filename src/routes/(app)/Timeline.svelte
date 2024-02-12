@@ -77,10 +77,6 @@
           });
           column.data.feed = [...column.data.feed, ...feed];
 
-          if (column.algorithm.type === 'custom') {
-              track('infload', { column: column.algorithm?.algorithm, did: column.did });
-          }
-
           if (column.data.cursor && res.data.feed.length) {
               loaded();
           } else {
