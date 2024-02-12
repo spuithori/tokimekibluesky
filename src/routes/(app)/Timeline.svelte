@@ -81,7 +81,7 @@
               track('infload', { column: column.algorithm?.algorithm, did: column.did });
           }
 
-          if (column.data.cursor) {
+          if (column.data.cursor && res.data.feed.length) {
               loaded();
           } else {
               complete();
