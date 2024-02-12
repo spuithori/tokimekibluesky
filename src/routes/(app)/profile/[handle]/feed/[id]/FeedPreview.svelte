@@ -15,17 +15,22 @@
   let savedFeeds = [];
 
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-      const uri = 'at://' + handle + '/app.bsky.feed.generator/' + id;
-      const res = await $agent.getTimeline({limit: 20, cursor: cursor, algorithm: {
-              type: 'custom',
-              algorithm: uri,
-          }});
-      cursor = res.data.cursor;
-      timeline = [...timeline, ...res.data.feed]
+      try {
+          const uri = 'at://' + handle + '/app.bsky.feed.generator/' + id;
+          const res = await $agent.getTimeline({limit: 20, cursor: cursor, algorithm: {
+                  type: 'custom',
+                  algorithm: uri,
+              }});
+          cursor = res.data.cursor;
+          timeline = [...timeline, ...res.data.feed]
 
-      if (cursor) {
-          loaded();
-      } else {
+          if (cursor && res.data.feed.length) {
+              loaded();
+          } else {
+              complete();
+          }
+      } catch (e) {
+          console.error(e);
           complete();
       }
   }
