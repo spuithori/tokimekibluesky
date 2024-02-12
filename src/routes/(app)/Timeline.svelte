@@ -7,6 +7,7 @@
   import {getDbFollows} from "$lib/getActorsList";
   import {assignCursorFromLatest} from "$lib/components/column/releaseTimeline";
   import {playSound} from "$lib/sounds";
+  import {track} from "@vercel/analytics";
 
   export let column;
   export let index;
@@ -75,6 +76,10 @@
               return item;
           });
           column.data.feed = [...column.data.feed, ...feed];
+
+          if (column.algorithm.type === 'custom') {
+              track('infload', { column: column.algorithm?.algorithm, did: column.did });
+          }
 
           if (column.data.cursor) {
               loaded();

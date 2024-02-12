@@ -3,6 +3,7 @@
     import {createEventDispatcher, onDestroy} from "svelte";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import {playSound} from "$lib/sounds";
+    import { track } from '@vercel/analytics';
     const dispatch = createEventDispatcher();
 
     export let column;
@@ -156,6 +157,10 @@
         if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0) {
             if (e.data % Number(column.settings.autoRefresh) === 0) {
                 refresh(true);
+
+                if (column.algorithm.type === 'custom') {
+                    track('refresh', { column: column.algorithm?.algorithm, did: column.did });
+                }
             }
         }
     }
