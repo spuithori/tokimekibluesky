@@ -5,7 +5,7 @@
     import IconColumnsList from "$lib/icons/columns/IconColumnsList.svelte";
     import IconColumnsBookmark from "$lib/icons/columns/IconColumnsBookmark.svelte";
     import IconColumnsHome from "$lib/icons/columns/IconColumnsHome.svelte";
-    import {columns} from "$lib/stores";
+    import {columns, pauseColumn} from "$lib/stores";
     import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
     import IconColumnsSearch from "$lib/icons/columns/IconColumnsSearch.svelte";
@@ -16,9 +16,11 @@
     export let items;
     const flipDurationMs = 300;
     function handleDndConsider(e) {
+        $pauseColumn = true;
         items = e.detail.items;
     }
     function handleDndFinalize(e) {
+        $pauseColumn = false;
         items = e.detail.items;
         $columns = items;
     }
