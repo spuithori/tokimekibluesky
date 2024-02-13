@@ -48,6 +48,36 @@
       {
           id: self.crypto.randomUUID(),
           algorithm: {
+              type: 'myPost',
+              name: $_('my_post'),
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
+      },
+      {
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'myMedia',
+              name: $_('my_media'),
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
+      },
+      {
+          id: self.crypto.randomUUID(),
+          algorithm: {
               type: 'like',
               name: $_('likes'),
           },

@@ -580,5 +580,18 @@
   "list_label_blocked": "ブロック中",
   "mod_list_notice_temp": "現在のワークスペースのメインアカウントのリストです。",
   "mod_list_add_management": "モデレーションリストを作成",
-  "mod_list_edit": "モデレーションリストを編集"
+  "mod_list_edit": "モデレーションリストを編集",
+  "my_post": "投稿",
+  "my_media": "メディア",
+  "settings_data_management": "データ管理",
+  "bookmark_export": "ブックマークと下書きのエクスポート",
+  "bookmark_export_description": "現在のブラウザ上に保存されているブックマークと下書きのデータをダウンロードします。",
+  "bookmark_export_button": "エクスポート",
+  "bookmark_import": "ブックマークと下書きのインポート",
+  "bookmark_import_description": "このブラウザにブックマークと下書きのデータをインポートします。",
+  "bookmark_import_warning": "インポートを実行すると、現在のブラウザ上のブックマークと下書きのデータはすべて削除されます。インポートに失敗しても以前のデータを復元できません。",
+  "bookmark_import_button": "インポート",
+  "bookmark_import_error": "ブックマークと下書きのインポートに失敗しました",
+  "bookmark_import_success": "ブックマークと下書きのインポートに成功しました",
+  "import_export_description": "すごく実験的機能。"
 }

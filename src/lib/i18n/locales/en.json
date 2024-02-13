@@ -579,5 +579,18 @@
   "list_label_blocked": "Blocked",
   "mod_list_notice_temp": "Here is a list of the main accounts for the current workspace.",
   "mod_list_add_management": "Moderation List Add",
-  "mod_list_edit": "Moderation List Edit"
+  "mod_list_edit": "Moderation List Edit",
+  "my_post": "Posts",
+  "my_media": "Media",
+  "settings_data_management": "Data Management",
+  "bookmark_export": "Export bookmarks and drafts",
+  "bookmark_export_description": "Download bookmark and draft data stored on the current browser.",
+  "bookmark_export_button": "Export",
+  "bookmark_import": "Import bookmarks and drafts",
+  "bookmark_import_description": "Import bookmark and draft data into this browser.",
+  "bookmark_import_warning": "When an import is executed, all bookmark and draft data on the current browser will be deleted. If the import fails, the previous data cannot be restored.",
+  "bookmark_import_button": "Import",
+  "bookmark_import_error": "Failed to import bookmarks and drafts",
+  "bookmark_import_success": "Bookmarks and drafts successfully imported",
+  "import_export_description": "Experimental feature."
 }
