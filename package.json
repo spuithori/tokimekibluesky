@@ -57,7 +57,7 @@
     "browser-image-compression": "^2.0.2",
     "cbor-x": "^1.5.4",
     "date-fns": "^2.29.3",
-    "dexie": "^4.0.1-beta.9",
+    "dexie": "^4.0.1-beta.10",
     "dexie-export-import": "^4.1.1",
     "emoji-mart": "^5.5.2",
     "intl-segmenter-polyfill": "^0.4.4",
