@@ -14,7 +14,7 @@
       };
   }
 
-  if (!$settings?.embed?.bluemotion) {
+  if ($settings?.embed?.bluemotion === undefined) {
       $settings.embed.bluemotion = true;
   }
 

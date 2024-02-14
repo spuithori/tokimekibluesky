@@ -8,6 +8,7 @@
   import {assignCursorFromLatest} from "$lib/components/column/releaseTimeline";
   import {playSound} from "$lib/sounds";
   import {track} from "@vercel/analytics";
+  import MoreDivider from "$lib/components/post/MoreDivider.svelte";
 
   export let column;
   export let index;
@@ -16,6 +17,8 @@
   let isActorsListFinished = false;
   let actors = [];
   let realtimeCounter = 0;
+  let isDividerLoading = false;
+  let dividerFillerHeight = 0;
 
   if (column.settings?.autoRefresh === -1) {
       getActors();
@@ -60,9 +63,11 @@
       isActorsListFinished = true;
   }
 
-  function handleDividerClick(index, cursor) {
+  function handleDividerClick(index, cursor, e) {
       column.data.cursor = cursor;
       column.data.feed[index].isDivider = false;
+      isDividerLoading = true;
+      dividerFillerHeight = e.detail.pos;
       column.data.feed.splice(index + 1);
       column.data.feed = column.data.feed;
   }
@@ -76,6 +81,7 @@
               return item;
           });
           column.data.feed = [...column.data.feed, ...feed];
+          isDividerLoading = false;
 
           if (column.data.cursor && res.data.feed.length) {
               loaded();
@@ -95,9 +101,7 @@
       <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
 
       {#if data.isDivider}
-        <button class="more-divider" on:click={() => {handleDividerClick(index, data.memoryCursor)}} aria-label="Road More...">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-more-horizontal"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-        </button>
+        <MoreDivider on:click={(e) => {handleDividerClick(index, data.memoryCursor, e)}}></MoreDivider>
       {/if}
     {/each}
   {:else}
@@ -113,4 +117,8 @@
   <InfiniteLoading on:infinite={handleLoadMore}>
     <p slot="noMore" class="infinite-nomore">もうないよ</p>
   </InfiniteLoading>
+
+  {#if (isDividerLoading)}
+    <div class="more-divider-filler" style="--more-divider-filler-height: {dividerFillerHeight}px"></div>
+  {/if}
 </div>

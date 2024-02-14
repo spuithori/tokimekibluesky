@@ -1071,6 +1071,10 @@
     border-bottom: var(--timeline-border-width) solid var(--timeline-border-color);
 }
 
+.more-divider-filler {
+    height: var(--more-divider-filler-height, 0px);
+}
+
 .timeline-translated-text {
     display: grid;
     grid-template-columns: 16px 1fr;
