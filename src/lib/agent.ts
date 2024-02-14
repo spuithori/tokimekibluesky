@@ -179,19 +179,26 @@ export class Agent {
     }
 
     async getSavedFeeds() {
-        const preferences = await this.getPreferences();
-        const savedFeeds = preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')[0]?.saved;
+        try {
+            const preferences = await this.getPreferences();
+            const savedFeeds = preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')[0]?.saved;
 
-        if (savedFeeds) {
-            const res = await this.agent.api.app.bsky.feed.getFeedGenerators({feeds: savedFeeds});
-            let customFeeds = [];
-            res.data.feeds.forEach(feed => {
-                customFeeds = [...customFeeds, {
-                    uri: feed.uri,
-                    name: feed.displayName,
-                }]
-            })
-            return customFeeds;
+            if (savedFeeds && savedFeeds.length) {
+                const res = await this.agent.api.app.bsky.feed.getFeedGenerators({feeds: savedFeeds});
+                let customFeeds = [];
+                res.data.feeds.forEach(feed => {
+                    customFeeds = [...customFeeds, {
+                        uri: feed.uri,
+                        name: feed.displayName,
+                    }]
+                })
+                return customFeeds;
+            } else {
+                return [];
+            }
+        } catch (e) {
+            console.error(e);
+            return [];
         }
     }
 
