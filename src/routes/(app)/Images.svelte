@@ -159,14 +159,7 @@
         button {
             width: 100%;
             height: 100%;
-        }
-
-        &:hover img {
-            transform: scale(1.1);
-
-            @media (max-width: 959px) {
-                transform: scale(1);
-            }
+            cursor: zoom-in;
         }
     }
 
