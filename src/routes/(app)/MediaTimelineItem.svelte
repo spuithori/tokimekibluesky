@@ -170,18 +170,21 @@
 
       &__is-repost {
           position: absolute;
-          right: 20px;
-          bottom: 20px;
+          right: 10px;
+          bottom: 10px;
           filter: drop-shadow(0 0 6px rgba(0, 0, 0, .12));
+          pointer-events: none;
+          width: 30%;
+          height: auto;
+
+          svg {
+              width: 100%;
+              height: auto;
+          }
 
           @media (max-width: 767px) {
               right: 10px;
               bottom: 10px;
-
-              svg {
-                  width: 60px;
-                  height: auto;
-              }
           }
       }
 
