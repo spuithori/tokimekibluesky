@@ -7,6 +7,7 @@
     import { beforeNavigate } from "$app/navigation";
     import {agent} from "$lib/stores";
     const dispatch = createEventDispatcher();
+    import { afterNavigate } from "$app/navigation";
 
     export let _agent = $agent;
     export let data;
@@ -35,6 +36,12 @@
 
     onMount(() => {
         el.showModal();
+    })
+
+    afterNavigate((_navigation) => {
+        if (_navigation.to?.url.hash !== '#open') {
+            dispatch('close');
+        }
     })
 </script>
 
