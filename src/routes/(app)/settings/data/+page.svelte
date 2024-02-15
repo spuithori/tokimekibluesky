@@ -5,6 +5,7 @@
     import {importDB, exportDB, importInto} from "dexie-export-import";
     import { format } from "date-fns";
     import toast from "svelte-french-toast";
+    import {postMutes} from "$lib/stores";
 
     let bookmarkExportButtonDisabled = false;
     let bookmarkImportButtonDisabled = true;
@@ -50,6 +51,11 @@
         files = undefined;
         bookmarkImportButtonDisabled = false;
     }
+
+    function deletePostMutes() {
+        $postMutes = [];
+        localStorage.setItem('postMutes', JSON.stringify([]));
+    }
 </script>
 
 <svelte:head>
@@ -93,6 +99,15 @@
       <div class="bookmark-import-export__buttons">
         <input class="mb10" type="file" accept=".tokimekib" bind:files>
         <button class="button button--danger button--border" on:click={bookmarkImport} disabled={bookmarkImportButtonDisabled}>{$_('bookmark_import_button')}</button>
+      </div>
+    </div>
+
+    <div class="bookmark-import-export bookmark-import-export--export">
+      <h2 class="bookmark-import-export__title">{$_('delete_post_mutes')}</h2>
+      <p class="bookmark-import-export__description">{$_('delete_post_mutes_description_prefix')}: {$postMutes.length}</p>
+
+      <div class="bookmark-import-export__buttons">
+        <button class="button button--danger button--border" on:click={deletePostMutes}>{$_('delete')}</button>
       </div>
     </div>
   </div>

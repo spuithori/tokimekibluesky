@@ -592,5 +592,10 @@
   "bookmark_import_button": "Import",
   "bookmark_import_error": "Failed to import bookmarks and drafts",
   "bookmark_import_success": "Bookmarks and drafts successfully imported",
-  "import_export_description": "Experimental feature."
+  "import_export_description": "Experimental feature.",
+  "post_mute_on": "Hide post",
+  "hiding_post": "This is a hidden post.",
+  "delete_post_mutes": "Clear hidden posts",
+  "delete_post_mutes_description_prefix": "Number of hidden posts",
+  "post_mute_success": "Post is hidden. This is only valid on this device (browser)."
 }

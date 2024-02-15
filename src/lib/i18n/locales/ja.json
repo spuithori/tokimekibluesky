@@ -593,5 +593,10 @@
   "bookmark_import_button": "インポート",
   "bookmark_import_error": "ブックマークと下書きのインポートに失敗しました",
   "bookmark_import_success": "ブックマークと下書きのインポートに成功しました",
-  "import_export_description": "すごく実験的機能。"
+  "import_export_description": "すごく実験的機能。",
+  "post_mute_on": "この投稿を非表示",
+  "hiding_post": "非表示にしている投稿です",
+  "delete_post_mutes": "非表示にしている投稿のクリア",
+  "delete_post_mutes_description_prefix": "非表示中の投稿数",
+  "post_mute_success": "投稿を非表示にしました。この端末（ブラウザ）でのみ有効です。"
 }

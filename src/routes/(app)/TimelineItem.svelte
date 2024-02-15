@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag} from 'lucide-svelte';
+    import {Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff} from 'lucide-svelte';
     import {
         agent,
         settings,
@@ -10,7 +10,7 @@
         didHint,
         pulseDelete,
         listAddModal,
-        agents, repostMutes
+        agents, repostMutes, postMutes
     } from '$lib/stores';
     import {AppBskyFeedDefs} from '@atproto/api'
     import toast from "svelte-french-toast";
@@ -52,6 +52,10 @@
         }
     }
 
+    $: {
+        localStorage.setItem('postMutes', JSON.stringify($postMutes));
+    }
+
     if ($settings.general?.deleteConfirmSkip === undefined) {
         $settings.general.deleteConfirmSkip = false;
     }
@@ -67,6 +71,7 @@
     let isHide;
     let isReplyHide;
 
+    detectPostMuteFilter();
     detectRepostMuteFilter();
 
     export let hideReply = column && column.settings?.timeline.hideReply
@@ -294,6 +299,22 @@
             isHide = true;
         }
     }
+
+    function detectPostMuteFilter() {
+        if ($postMutes.includes(data.post.uri)) {
+            isHide = true;
+        }
+    }
+
+    function mutePost() {
+        $postMutes = [...$postMutes, data.post.uri];
+        pulseDelete.set(data.post.uri);
+        toast.success($_('post_mute_success'));
+
+        setTimeout(() => {
+            pulseDelete.set(undefined);
+        }, 500)
+    }
 </script>
 
 <svelte:document on:selectionchange={handleSelectStart} />
@@ -412,6 +433,15 @@
           </li>
         {/if}
 
+        {#if (!getAllAgentDids($agents).includes(data.post.author.did))}
+          <li class="timeline-menu-list__item timeline-menu-list__item--hide">
+            <button class="timeline-menu-list__button" on:click={mutePost}>
+              <EyeOff size="18" color="var(--text-color-1)"></EyeOff>
+              {$_('post_mute_on')}
+            </button>
+          </li>
+        {/if}
+
         <li class="timeline-menu-list__item timeline-menu-list__item--report">
           <button class="timeline-menu-list__button" on:click={report}>
             <Flag size="18" color="var(--danger-color)"></Flag>
@@ -445,4 +475,10 @@
       <ReactionModal {_agent} on:close={() => {isReactionModalOpen = false}}></ReactionModal>
     {/if}
   </article>
+{:else}
+  {#if isThread}
+    <article class="timeline-hidden-item">
+      <p class="timeline-hidde-item__text">{$_('hiding_post')}</p>
+    </article>
+  {/if}
 {/if}
