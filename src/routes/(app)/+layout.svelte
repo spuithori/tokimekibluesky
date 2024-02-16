@@ -44,6 +44,7 @@
   import {isMobile} from "$lib/detectDevice";
   import WelcomeModal from "$lib/components/utils/WelcomeModal.svelte";
   import ServerStatusSticker from "$lib/components/status/ServerStatusSticker.svelte";
+  import GoogleAnalytics from "$lib/components/utils/GoogleAnalytics.svelte";
 
   let loaded = false;
   let isColumnInitialLoad = false;
@@ -361,6 +362,8 @@
 <svelte:head>
   <meta name="theme-color" content={baseColor}>
 </svelte:head>
+
+<GoogleAnalytics></GoogleAnalytics>
 
 <div
     class:nonoto={$settings?.design.nonoto || false}
