@@ -12,7 +12,7 @@
       isMobileDataConnection, isReactionButtonSettingsModalOpen, keywordMutes, listAddModal, missingAccounts,
       profileStatus,
       settings, syncColumns,
-      theme, direction
+      theme, direction, bluefeedAddModal
   } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {dev} from '$app/environment';
@@ -44,6 +44,7 @@
   import {isMobile} from "$lib/detectDevice";
   import WelcomeModal from "$lib/components/utils/WelcomeModal.svelte";
   import ServerStatusSticker from "$lib/components/status/ServerStatusSticker.svelte";
+  import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
 
   let loaded = false;
   let isColumnInitialLoad = false;
@@ -402,6 +403,10 @@
 
     {#if $listAddModal.open}
       <OfficialListAddObserver></OfficialListAddObserver>
+    {/if}
+
+    {#if $bluefeedAddModal.open}
+      <BluefeedAddObserver></BluefeedAddObserver>
     {/if}
 
     {#if $isReactionButtonSettingsModalOpen}

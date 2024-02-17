@@ -580,5 +580,15 @@
   "list_label_blocked": "ブロック中",
   "mod_list_notice_temp": "現在のワークスペースのメインアカウントのリストです。",
   "mod_list_add_management": "モデレーションリストを作成",
-  "mod_list_edit": "モデレーションリストを編集"
+  "mod_list_edit": "モデレーションリストを編集",
+  "add_bluefeed": "Bluefeedに追加",
+  "bluefeed_feeds_not_found": "作成済みのBluefeedフィードが見つかりませんでした。",
+  "add_bluefeed_description_suffix": "のフィード一覧",
+  "bluefeed_add": "追加",
+  "bluefeed_add_success": "フィードへの追加に成功しました。",
+  "bluefeed_add_duplicate": "すでにフィードに追加済みの投稿です。",
+  "bluefeed_already_add": "追加済み",
+  "enable_bluefeed": "Bluefeedへの追加機能を有効化",
+  "bluefeed_feed_notfound": "フィードが見つかりませんでした。",
+  "bluefeed_post_notfound": "投稿が見つかりませんでした。"
 }

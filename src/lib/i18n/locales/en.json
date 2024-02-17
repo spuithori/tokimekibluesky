@@ -579,5 +579,15 @@
   "list_label_blocked": "Blocked",
   "mod_list_notice_temp": "Here is a list of the main accounts for the current workspace.",
   "mod_list_add_management": "Moderation List Add",
-  "mod_list_edit": "Moderation List Edit"
+  "mod_list_edit": "Moderation List Edit",
+  "add_bluefeed": "Add Bluefeed",
+  "bluefeed_feeds_not_found": "No Bluefeed feeds created were found.",
+  "add_bluefeed_description_suffix": " feeds",
+  "bluefeed_add": "Add",
+  "bluefeed_add_success": "Successfully added to feed.",
+  "bluefeed_add_duplicate": "This post has already been added to the feed.",
+  "bluefeed_already_add": "Added",
+  "enable_bluefeed": "Enable Adding Features to Bluefeed",
+  "bluefeed_feed_notfound": "Feed not found.",
+  "bluefeed_post_notfound": "Post not found."
 }

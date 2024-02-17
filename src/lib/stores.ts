@@ -118,6 +118,7 @@ const defaultSettings = {
         linkWarningConfirmSkip: false,
         hideWorkspaceButton: false,
         hideProfileCounts: false,
+        enableBluefeed: false,
     },
     design: {
         skin: 'default',
@@ -303,3 +304,9 @@ type ThreadGate = 'everybody' | 'nobody' | string[];
 export const threadGate = writable<ThreadGate>('everybody');
 
 export const pauseColumn = writable<boolean>(false);
+
+export const bluefeedAddModal = writable({
+    open: false,
+    post: undefined,
+    did: '',
+})
