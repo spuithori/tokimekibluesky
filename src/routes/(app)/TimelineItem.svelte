@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff} from 'lucide-svelte';
+    import {Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss} from 'lucide-svelte';
     import {
         agent,
         settings,
@@ -10,7 +10,7 @@
         didHint,
         pulseDelete,
         listAddModal,
-        agents, repostMutes, postMutes
+        agents, repostMutes, postMutes, bluefeedAddModal
     } from '$lib/stores';
     import {AppBskyFeedDefs} from '@atproto/api'
     import toast from "svelte-french-toast";
@@ -423,6 +423,15 @@
             {$_('list_instant_manage')}
           </button>
         </li>
+
+        {#if $settings?.general?.enableBluefeed || false}
+          <li class="timeline-menu-list__item timeline-menu-list__item--bluefeed">
+            <button class="timeline-menu-list__button" on:click={() => {$bluefeedAddModal = {open: true, post: data.post, did: _agent.did()}}}>
+              <Rss size="18" color="var(--text-color-1)"></Rss>
+              {$_('add_bluefeed')}
+            </button>
+          </li>
+        {/if}
 
         {#if ($agents.size > 1)}
           <li class="timeline-menu-list__item">

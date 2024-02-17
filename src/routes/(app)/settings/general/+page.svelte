@@ -7,6 +7,7 @@
     let dataSaver = $settings?.general.dataSaver || false;
     let se = $settings?.general.se || false;
     let devMode = $settings?.general.devMode || false;
+    let enableBluefeed = $settings?.general.enableBluefeed || false;
 
 const languages = [
     {
@@ -33,6 +34,7 @@ $: {
     $settings.general.dataSaver = dataSaver;
     $settings.general.se = se;
     $settings.general.devMode = devMode;
+    $settings.general.enableBluefeed = enableBluefeed;
 }
 </script>
 
@@ -164,6 +166,19 @@ $: {
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="hideWorkspaceButton" bind:checked={$settings.general.hideWorkspaceButton}><label class="input-toggle__label" for="hideWorkspaceButton"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('enable_bluefeed')}
+        <span class="new-label">NEW</span>
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="enableBluefeed" bind:checked={$settings.general.enableBluefeed}><label class="input-toggle__label" for="enableBluefeed"></label>
         </div>
       </dd>
     </dl>

@@ -597,5 +597,15 @@
   "hiding_post": "This is a hidden post.",
   "delete_post_mutes": "Clear hidden posts",
   "delete_post_mutes_description_prefix": "Number of hidden posts",
-  "post_mute_success": "Post is hidden. This is only valid on this device (browser)."
+  "post_mute_success": "Post is hidden. This is only valid on this device (browser).",
+  "add_bluefeed": "Add Bluefeed",
+  "bluefeed_feeds_not_found": "No Bluefeed feeds created were found.",
+  "add_bluefeed_description_suffix": " feeds",
+  "bluefeed_add": "Add",
+  "bluefeed_add_success": "Successfully added to feed.",
+  "bluefeed_add_duplicate": "This post has already been added to the feed.",
+  "bluefeed_already_add": "Added",
+  "enable_bluefeed": "Enable Adding Features to Bluefeed",
+  "bluefeed_feed_notfound": "Feed not found.",
+  "bluefeed_post_notfound": "Post not found."
 }

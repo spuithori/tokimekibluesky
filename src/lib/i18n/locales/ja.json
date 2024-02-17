@@ -598,5 +598,15 @@
   "hiding_post": "非表示にしている投稿です",
   "delete_post_mutes": "非表示にしている投稿のクリア",
   "delete_post_mutes_description_prefix": "非表示中の投稿数",
-  "post_mute_success": "投稿を非表示にしました。この端末（ブラウザ）でのみ有効です。"
+  "post_mute_success": "投稿を非表示にしました。この端末（ブラウザ）でのみ有効です。",
+  "add_bluefeed": "Bluefeedに追加",
+  "bluefeed_feeds_not_found": "作成済みのBluefeedフィードが見つかりませんでした。",
+  "add_bluefeed_description_suffix": "のフィード一覧",
+  "bluefeed_add": "追加",
+  "bluefeed_add_success": "フィードへの追加に成功しました。",
+  "bluefeed_add_duplicate": "すでにフィードに追加済みの投稿です。",
+  "bluefeed_already_add": "追加済み",
+  "enable_bluefeed": "Bluefeedへの追加機能を有効化",
+  "bluefeed_feed_notfound": "フィードが見つかりませんでした。",
+  "bluefeed_post_notfound": "投稿が見つかりませんでした。"
 }

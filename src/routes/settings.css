@@ -377,3 +377,18 @@ input[type=checkbox]{
     padding: 0 8px;
     border-radius: var(--border-radius-2);
 }
+
+.new-label {
+    height: 22px;
+    border-radius: 11px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-color: var(--primary-color);
+    color: var(--bg-color-1);
+    font-weight: bold;
+    font-size: 11px;
+    margin-left: 4px;
+}

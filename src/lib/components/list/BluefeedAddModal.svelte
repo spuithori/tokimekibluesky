@@ -1,0 +1,83 @@
+<script lang="ts">
+    import {agent} from '$lib/stores';
+    import {onMount} from "svelte";
+    import {createEventDispatcher} from 'svelte';
+    import toast from "svelte-french-toast";
+    import {_} from "svelte-i18n";
+    import spinner from "$lib/images/loading.svg";
+    import BluefeedAddItem from "$lib/components/list/BluefeedAddItem.svelte";
+    const dispatch = createEventDispatcher();
+
+    export let _agent = $agent;
+    export let post;
+
+    let feeds = [];
+    let isDisabled = false;
+    let ready = false;
+
+    onMount(async () => {
+        isDisabled = true;
+
+        try {
+            const res = await fetch('https://www.bluefeed.app/api/listFeeds', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    token: _agent.agent.session?.accessJwt,
+                }),
+            });
+
+            if (res.status !== 200) {
+                throw new Error('Error');
+            }
+
+            feeds = await res.json();
+        } catch (e) {
+            console.error(e);
+            toast.error('Error');
+
+            feeds = [];
+        }
+
+        ready = true;
+        isDisabled = false;
+    })
+
+    function close() {
+        dispatch('close');
+    }
+</script>
+
+<div class="modal modal--small">
+  <div class="modal-contents">
+    <h2 class="modal-title modal-title--smaller">{$_('add_bluefeed')}</h2>
+    <p class="modal-description">{_agent.handle()}{$_('add_bluefeed_description_suffix')}</p>
+
+    <div class="list-add-list">
+      {#if ready}
+        {#each feeds as feed (feed)}
+          <BluefeedAddItem {feed} {_agent} uri={post.uri}></BluefeedAddItem>
+        {:else}
+          {$_('bluefeed_feeds_not_found')}
+          <a href="https://www.bluefeed.app/" target="_blank" rel="noopener">Bluefeed</a>から新しいフィードを作成できます。
+        {/each}
+      {:else}
+        <div class="thread-loading">
+          <img src={spinner} alt="">
+        </div>
+      {/if}
+    </div>
+
+    <div class="modal-close">
+      <button class="button button--sm" on:click={close} disabled={isDisabled}>{$_('close_button')}</button>
+    </div>
+  </div>
+</div>
+
+<style lang="postcss">
+    .list-add-list {
+        margin-bottom: 16px;
+    }
+</style>
