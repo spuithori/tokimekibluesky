@@ -117,7 +117,9 @@
           {/if}
 
           {#if (column.unreadCount)}
-            <span class="side-bar-button__count">{column.unreadCount}</span>
+            <span class="side-bar-button__count">
+              {column?.settings?.hideCounts ? '' : column.unreadCount}
+            </span>
           {/if}
         </button>
       {/each}

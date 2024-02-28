@@ -608,5 +608,6 @@
   "bluefeed_already_add": "追加済み",
   "enable_bluefeed": "Bluefeedへの追加機能を有効化",
   "bluefeed_feed_notfound": "フィードが見つかりませんでした。",
-  "bluefeed_post_notfound": "投稿が見つかりませんでした。"
+  "bluefeed_post_notfound": "投稿が見つかりませんでした。",
+  "hide_notification_counts": "通知カウントを非表示にする"
 }

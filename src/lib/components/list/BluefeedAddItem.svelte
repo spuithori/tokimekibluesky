@@ -47,11 +47,16 @@
               throw new Error('notFound');
           }
 
+          if (res.status !== 200) {
+              throw new Error('Error');
+          }
+
           status = 'success';
           toast.success($_('bluefeed_add_success'));
           dispatch('success');
       } catch (e) {
           console.error(e);
+          toast.error('Error!');
           status = 'error';
       }
   }

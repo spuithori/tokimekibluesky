@@ -607,5 +607,6 @@
   "bluefeed_already_add": "Added",
   "enable_bluefeed": "Enable Adding Features to Bluefeed",
   "bluefeed_feed_notfound": "Feed not found.",
-  "bluefeed_post_notfound": "Post not found."
+  "bluefeed_post_notfound": "Post not found.",
+  "hide_notification_counts": "Hide notification counts"
 }

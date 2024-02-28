@@ -22,6 +22,7 @@
     let icon = column.settings?.icon || null;
     let onlyShowUnread = column.settings?.onlyShowUnread || false;
     let playSound = column.settings?.playSound || null;
+    let hideCounts = column.settings?.hideCounts || false;
 
     $: _settings = {
         timeline: {
@@ -38,6 +39,7 @@
         icon: icon,
         onlyShowUnread: onlyShowUnread,
         playSound: playSound,
+        hideCounts: hideCounts,
     }
 
     $: apply(_settings);
@@ -69,6 +71,7 @@
             autoScrollSpeed: 'auto',
             onlyShowUnread: false,
             playSound: null,
+            hideCounts: false,
         }
     }
 
@@ -436,6 +439,18 @@
                         <dd class="settings-group__content">
                             <div class="input-toggle">
                                 <input class="input-toggle__input" type="checkbox" id={column.id + 'onlyShowUnread'} bind:checked={onlyShowUnread}><label class="input-toggle__label" for={column.id + 'onlyShowUnread'}></label>
+                            </div>
+                        </dd>
+                    </dl>
+
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('hide_notification_counts')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'hideNotificationCounts'} bind:checked={hideCounts}><label class="input-toggle__label" for={column.id + 'hideNotificationCounts'}></label>
                             </div>
                         </dd>
                     </dl>
