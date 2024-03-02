@@ -19,6 +19,7 @@
     let advancedBreak = $settings?.design.advancedBreak || false;
     let externalLayout = $settings?.design.externalLayout || 'normal';
     let mobilePostLayoutTop = $settings?.design.mobilePostLayoutTop || false;
+    let displayHandle = $settings?.design.displayHandle || false;
 
     $: myThemes = liveQuery(async () => {
         const myThemes = await themesDb.themes.toArray();
@@ -40,6 +41,7 @@
         $settings.design.advancedBreak = advancedBreak;
         $settings.design.externalLayout = externalLayout;
         $settings.design.mobilePostLayoutTop = mobilePostLayoutTop;
+        $settings.design.displayHandle = displayHandle;
     }
 
     $: colors = detectColors($theme);
@@ -338,6 +340,18 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="nonoto" bind:checked={nonoto}><label class="input-toggle__label" for="nonoto"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('display_handle')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="displayHandle" bind:checked={displayHandle}><label class="input-toggle__label" for="displayHandle"></label>
         </div>
       </dd>
     </dl>

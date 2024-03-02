@@ -266,10 +266,14 @@
 
 .timeline__handle {
     color: var(--timeline-date-color);
-
-    &::before {
-        content: '・';
-    }
+    font-size: 14px;
+    font-family: var(--ui-font);
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .timeline__thread-link {

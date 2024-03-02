@@ -160,6 +160,10 @@
     {/if}
   </div>
 
+  {#if $settings.design?.displayHandle}
+    <p class="timeline__handle">@{post.author.handle}</p>
+  {/if}
+
   <div class="timeline-warn-wrap" class:timeline-warn-wrap--warned={isWarn}>
     {#if (isWarn)}
       <TimelineWarn reason={warnReason} on:visible={() => {isWarn = false}}></TimelineWarn>
