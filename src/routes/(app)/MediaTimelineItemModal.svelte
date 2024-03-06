@@ -64,13 +64,13 @@
           } }>
           {#each data.post.embed.images as image}
             <SplideSlide>
-              <img src="{image.fullsize}" alt="" width={image?.aspectRatio?.width} height={image?.aspectRatio?.height}>
+              <img src="{image.fullsize}" alt="{image.alt}" width={image?.aspectRatio?.width} height={image?.aspectRatio?.height}>
             </SplideSlide>
           {/each}
         </Splide>
       {:else}
         {#each data.post.embed.images as image}
-          <img src="{image.fullsize}" alt="" width={image?.aspectRatio?.width} height={image?.aspectRatio?.height}>
+          <img src="{image.fullsize}" alt="{image.alt}" width={image?.aspectRatio?.width} height={image?.aspectRatio?.height}>
         {/each}
       {/if}
     </div>
