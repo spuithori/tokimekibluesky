@@ -50,8 +50,6 @@
             let res = await $agent.agent.api.app.bsky.feed.searchPosts({q: $page.url.searchParams.get('q') || '', limit: 20, cursor: cursor});
             cursor = res.data.cursor;
 
-            console.log(cursor);
-
             let tempFeeds = [];
             res.data.posts.forEach(post => {
                 tempFeeds.push({

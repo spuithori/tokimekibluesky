@@ -3,6 +3,7 @@ import {_} from "svelte-i18n";
 import type { LayoutData } from './$types';
 import SearchForm from "../SearchForm.svelte";
 import PageModal from "$lib/components/ui/PageModal.svelte";
+import {page} from "$app/stores";
 
 export let data: LayoutData;
 let unique = Symbol();
@@ -10,12 +11,11 @@ let unique = Symbol();
 let currentPage = data.url.pathname.split('/')[2] ?? 'posts';
 let q;
 
-function refresh(event) {
-  q = event.detail.q;
+$: handleChangeParams($page.url.searchParams.get('q'));
 
-  setTimeout(() => {
+function handleChangeParams(searchQuery) {
+    q = searchQuery;
     unique = Symbol();
-  }, 100);
 }
 </script>
 
@@ -37,7 +37,7 @@ function refresh(event) {
   </div>
 
   <div class="search-form-wrap">
-    <SearchForm path={data.url.pathname} bind:search={q} on:search={refresh}></SearchForm>
+    <SearchForm path={data.url.pathname} bind:search={q}></SearchForm>
   </div>
 
   {#key unique}
