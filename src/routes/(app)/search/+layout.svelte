@@ -14,7 +14,7 @@ let q;
 $: handleChangeParams($page.url.searchParams.get('q'));
 
 function handleChangeParams(searchQuery) {
-    q = searchQuery;
+    q = searchQuery || '';
     unique = Symbol();
 }
 </script>
