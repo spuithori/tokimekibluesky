@@ -613,5 +613,8 @@
   "display_handle": "ハンドルを常に表示",
   "mute_keywords_import": "公式アプリのキーワードミュート",
   "import_word": "追加",
-  "mute_keywords_import_description": "テキスト・ハッシュタグを区別せずインポートします"
+  "mute_keywords_import_description": "テキスト・ハッシュタグを区別せずインポートします",
+  "reaction_mode": "いいねボタンのスタイル",
+  "reaction_mode_tokimeki": "💖ときめき",
+  "reaction_mode_superstar": "⭐スーパースター"
 }

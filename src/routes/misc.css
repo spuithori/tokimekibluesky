@@ -313,3 +313,7 @@ html {
         line-height: 1.3;
     }
 }
+
+.superstar {
+    --timeline-reaction-liked-icon-color: #F0C76A !important;
+}

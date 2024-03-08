@@ -612,5 +612,8 @@
   "display_handle": "Always display handle",
   "mute_keywords_import": "Keyword mute for official apps",
   "import_word": "Add",
-  "mute_keywords_import_description": "Imports text and hashtags without distinction"
+  "mute_keywords_import_description": "Imports text and hashtags without distinction",
+  "reaction_mode": "Like button style",
+  "reaction_mode_tokimeki": "💖TOKIMEKI",
+  "reaction_mode_superstar": "⭐SUPERSTAR"
 }

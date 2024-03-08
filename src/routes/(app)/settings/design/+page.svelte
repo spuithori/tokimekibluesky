@@ -20,6 +20,7 @@
     let externalLayout = $settings?.design.externalLayout || 'normal';
     let mobilePostLayoutTop = $settings?.design.mobilePostLayoutTop || false;
     let displayHandle = $settings?.design.displayHandle || false;
+    let reactionMode = $settings?.design.reactionMode || 'tokimeki';
 
     $: myThemes = liveQuery(async () => {
         const myThemes = await themesDb.themes.toArray();
@@ -42,6 +43,7 @@
         $settings.design.externalLayout = externalLayout;
         $settings.design.mobilePostLayoutTop = mobilePostLayoutTop;
         $settings.design.displayHandle = displayHandle;
+        $settings.design.reactionMode = reactionMode;
     }
 
     $: colors = detectColors($theme);
@@ -352,6 +354,26 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="displayHandle" bind:checked={displayHandle}><label class="input-toggle__label" for="displayHandle"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('reaction_mode')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="radio-group">
+          <div class="radio">
+            <input type="radio" bind:group={reactionMode} id="reactionModeTokimeki" name="reactionMode" value={'tokimeki'}>
+            <label for="reactionModeTokimeki"><span class="radio__ui"></span>{$_('reaction_mode_tokimeki')}</label>
+          </div>
+
+          <div class="radio">
+            <input type="radio" bind:group={reactionMode} id="reactionModeSuperstar" name="reactionMode" value={'superstar'}>
+            <label for="reactionModeSuperstar"><span class="radio__ui"></span>{$_('reaction_mode_superstar')}</label>
+          </div>
         </div>
       </dd>
     </dl>

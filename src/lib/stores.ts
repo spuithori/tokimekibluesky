@@ -135,6 +135,7 @@ const defaultSettings = {
         advancedBreak: false,
         mobilePostLayoutTop: false,
         displayHandle: false,
+        reactionMode: 'tokimeki',
     },
     timeline: {
         hideRepost: 'all',

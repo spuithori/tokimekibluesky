@@ -381,6 +381,7 @@
     class:page={$page.url.pathname !== '/'}
     class:ios={isMobile.iOS()}
     class:advanced-break={$settings.design?.advancedBreak}
+    class:superstar={$settings.design?.reactionMode === 'superstar'}
     style={outputInlineStyle($theme)}
     bind:this={app}
 >
