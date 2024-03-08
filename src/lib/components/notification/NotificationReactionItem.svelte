@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import {Heart, Repeat2} from "lucide-svelte";
+    import {Heart, Repeat2, Star} from "lucide-svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import {getReasonText, removeNotificationsDuplication} from "$lib/components/notification/notificationUtil";
@@ -8,6 +8,7 @@
     import Images from "../../../routes/(app)/Images.svelte";
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
+    import {settings} from "$lib/stores";
 
     export let item;
     export let _agent;
@@ -39,7 +40,11 @@
 
             {#if (item.reason === 'like')}
                 <button class="notification-icon notification-icon--like" on:click={handleClick}>
-                    <Heart color="var(--bg-color-1)" size="18"></Heart>
+                    {#if ($settings?.design?.reactionMode === 'superstar')}
+                        <Star color="var(--bg-color-1)" size="18"></Star>
+                    {:else}
+                        <Heart color="var(--bg-color-1)" size="18"></Heart>
+                    {/if}
                 </button>
             {/if}
         </div>
