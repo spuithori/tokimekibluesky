@@ -96,6 +96,8 @@
               did: _agent.did() as string
           })
       }
+
+      isTransition = false;
   }
 </script>
 
