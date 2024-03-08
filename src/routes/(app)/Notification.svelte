@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, realtime} from '$lib/stores';
+    import {agent, realtime, settings} from '$lib/stores';
     import { type AppBskyNotificationListNotifications } from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
     import {createEventDispatcher} from "svelte";
@@ -8,7 +8,7 @@
     const dispatch = createEventDispatcher();
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
-    import {AtSign, Heart, Repeat2, UserPlus2, Filter, Reply, Quote} from 'lucide-svelte';
+    import {AtSign, Heart, Repeat2, UserPlus2, Filter, Reply, Quote, Star} from 'lucide-svelte';
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
     import {playSound} from "$lib/sounds";
 
@@ -22,7 +22,7 @@
     export let filter: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
     let filters: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
     let filterIcons = {
-        like: Heart,
+        like: $settings?.design?.reactionMode === 'superstar' ? Star : Heart,
         repost: Repeat2,
         reply: Reply,
         mention: AtSign,
@@ -182,7 +182,11 @@
                     <button class="notifications-filter-button" on:click={() => {changeFilter(['like'])}}
                             class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])}
                             aria-label="Like">
-                        <Heart size="18" color="var(--text-color-1)"></Heart>
+                        {#if ($settings?.design?.reactionMode === 'superstar')}
+                            <Star color="var(--text-color-1)" size="18"></Star>
+                        {:else}
+                            <Heart size="18" color="var(--text-color-1)"></Heart>
+                        {/if}
                     </button>
                 </li>
 
