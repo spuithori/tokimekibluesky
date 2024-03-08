@@ -7,10 +7,18 @@
     let cursor = 0;
     let isLoaded = false;
     let isColumnAdded = false;
+    let isSafety = false;
     import InfiniteLoading from "svelte-infinite-loading";
     import {_} from "svelte-i18n";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import toast from "svelte-french-toast";
+    import { PUBLIC_SUICIDE_WORDS } from '$env/static/public';
+    import SuicideSafety from "$lib/components/safety/SuicideSafety.svelte";
+
+    const words = PUBLIC_SUICIDE_WORDS.split(',');
+    if (words.includes($page.url.searchParams.get('q'))) {
+        isSafety = true;
+    }
 
     async function addColumn() {
         if (!$page.url.searchParams.get('q')) {
@@ -78,6 +86,10 @@
 </script>
 
 <div class="timeline">
+    {#if isSafety}
+        <SuicideSafety></SuicideSafety>
+    {/if}
+
     {#each feeds as data (data)}
         <TimelineItem data={ data } isPrivate={ true }></TimelineItem>
     {:else}

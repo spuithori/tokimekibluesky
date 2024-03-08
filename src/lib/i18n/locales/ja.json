@@ -610,5 +610,8 @@
   "bluefeed_feed_notfound": "フィードが見つかりませんでした。",
   "bluefeed_post_notfound": "投稿が見つかりませんでした。",
   "hide_notification_counts": "通知カウントを非表示にする",
-  "display_handle": "ハンドルを常に表示"
+  "display_handle": "ハンドルを常に表示",
+  "mute_keywords_import": "公式アプリのキーワードミュート",
+  "import_word": "追加",
+  "mute_keywords_import_description": "テキスト・ハッシュタグを区別せずインポートします"
 }

@@ -206,6 +206,17 @@ export class Agent {
         }
     }
 
+    async getMuteWords() {
+        try {
+            const preferences = await this.getPreferences();
+            const muteWords = preferences.filter(preferences => preferences.$type === 'app.bsky.actor.defs#mutedWordsPref')[0].items;
+            return muteWords;
+        } catch (e) {
+            console.error(e);
+            return [];
+        }
+    }
+
     async getListActors(uri: string) {
         const res = await this.agent.api.app.bsky.graph.getList({list: uri});
         const items = res.data.items;

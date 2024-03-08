@@ -3,6 +3,7 @@
     import {keywordMutes} from '$lib/stores';
     import KeywordMuteItem from "./KeywordMuteItem.svelte";
     import {defaultKeyword} from "$lib/timelineFilter";
+    import OfficialMuteList from "./OfficialMuteList.svelte";
 
     let keywords = $keywordMutes;
 
@@ -13,6 +14,16 @@
     function keywordDelete(index) {
         keywords.splice(index, 1);
         keywords = keywords;
+    }
+
+    function handleImport(event) {
+        const alreadyWords = keywords.map(keyword => {
+            return keyword.word;
+        })
+
+        if (!alreadyWords.includes(event.detail.word.word)) {
+            keywords = [...keywords, event.detail.word];
+        }
     }
 
     $: {
@@ -58,6 +69,13 @@
     {:else}
       <p class="nothing">{$_('mute_keywords_nothing')}</p>
     {/each}
+
+    <div class="mute-words-import">
+      <h2>{$_('mute_keywords_import')}</h2>
+      <p class="settings-description">{$_('mute_keywords_import_description')}</p>
+
+      <OfficialMuteList on:add={handleImport}></OfficialMuteList>
+    </div>
   </div>
 </div>
 
@@ -74,5 +92,15 @@
       position: absolute;
       top: 15px;
       right: 15px;
+  }
+
+  .mute-words-import {
+      margin-top: 24px;
+
+      h2 {
+          font-size: 16px;
+          color: var(--text-color-1);
+          margin-bottom: 8px;
+      }
   }
 </style>
