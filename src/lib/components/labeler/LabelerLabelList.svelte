@@ -23,7 +23,7 @@
 
   function applyLabelSettings() {
       if (Object.keys(renderLabels).length === 0) {
-          renderLabels = {};
+          return false;
       }
 
       if (!$subscribedLabelers.includes(did)) {
