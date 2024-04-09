@@ -38,44 +38,42 @@
             return false;
         }
 
-        if (moderateData.content.filter) {
-            console.log('should hide.');
-
-            if (moderateData.content.cause.type === 'muted' && isProfile) {
-                return false;
+        try {
+            if (moderateData.ui('contentList').filter) {
+                return true;
             }
 
-            return true;
+            if (moderateData.muted) {
+                return true;
+            }
+
+            if (moderateData.content.filter) {
+                console.log('should hide.');
+
+                return !(moderateData.content.cause.type === 'muted' && (isProfile || isSingle));
+            }
+        } catch (e) {
+            return false;
         }
 
         return false;
     }
 
     function detectWarn(moderateData) {
-        // console.log(moderateData)
-
         if (!moderateData) {
             return false;
         }
 
-        if (moderateData.content.filter) {
+        try {
+            if (moderateData.ui('contentMedia').blur) {
+                return true;
+            }
+
+            if (moderateData.ui('contentList').blur) {
+                return true;
+            }
+        } catch (e) {
             return false;
-        }
-
-        if (moderateData.content.blur || moderateData.content.alert) {
-            if (moderateData.content?.cause.setting === 'show') {
-                return  false;
-            }
-
-            return true;
-        }
-
-        if (moderateData.embed.blur) {
-            if (moderateData.embed?.cause.setting === 'show') {
-                return false;
-            }
-
-            return true;
         }
 
         return false;

@@ -144,13 +144,13 @@ const defaultSettings = {
     moderation: {
         contentLabels: {
             gore: 'warn',
-            hate: 'warn',
-            impersonation: 'warn',
             nsfw: 'warn',
             nudity: 'warn',
-            spam: 'warn',
             suggestive: 'warn',
+            porn: 'warn',
+            sexual: 'warn',
         },
+        labelers: [],
     },
     embed: {
         x: true,
@@ -315,3 +315,13 @@ export const bluefeedAddModal = writable({
     post: undefined,
     did: '',
 })
+
+export const labelDefs = writable([]);
+
+export const subscribedLabelers = writable(localStorage.getItem('subscribedLabelers')
+    ? JSON.parse(localStorage.getItem('subscribedLabelers'))
+    : ['did:plc:ar7c4by46qjdydhdevvrndac']);
+
+export const labelerSettings = writable(localStorage.getItem('labelerSettings')
+    ? JSON.parse(localStorage.getItem('labelerSettings'))
+    : []);

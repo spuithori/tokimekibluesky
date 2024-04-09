@@ -1,0 +1,11 @@
+{
+  "labeling_source_user": "Labeled by Author",
+  "labeling_source_labeler": "Third-party labeler",
+  "labeling_source_labeler_official": "First-party labeler",
+  "label_detail_val": "Raw label",
+  "label_detail_default_setting": "Default settings",
+  "label_detail_adult": "Adult?",
+  "label_subscribe": "Subscribe",
+  "label_unsubscribe": "Unsubscribe",
+  "labeling_more_labels": "label(s)"
+}

@@ -19,7 +19,6 @@ import DraftModal from "$lib/components/draft/DraftModal.svelte";
 import AltModal from "$lib/components/alt/AltModal.svelte";
 import spinner from '$lib/images/loading.svg';
 import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
-import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
 import {getAccountIdByDid, isFeedByUri} from "$lib/util";
 import type { Draft } from '$lib/db';
 import Tiptap from "$lib/components/editor/Tiptap.svelte";
@@ -874,6 +873,12 @@ function handleAgentSelect(event) {
           {/if}
         </div>
       </Tiptap>
+
+      {#if ($selfLabels.length)}
+        <div class="self-labeling-note">
+          <p class="self-labeling-note__text">{$_('self_labeling_note')}</p>
+        </div>
+      {/if}
     </div>
   </div>
 
@@ -1262,5 +1267,12 @@ function handleAgentSelect(event) {
         @media (min-width: 768px) {
             display: none;
         }
+    }
+
+    .self-labeling-note {
+        padding: 12px;
+        border-top: 1px solid var(--border-color-2);
+        font-size: 14px;
+        color: var(--text-color-3);
     }
 </style>

@@ -759,18 +759,6 @@
     }
 }
 
-.timeline-warn-heading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0 5px;
-    margin-bottom: 10px;
-}
-
-.timeline-warn-list {
-    list-style: none;
-}
-
 .timeline-shortcut-number {
     position: absolute;
     font-weight: bold;

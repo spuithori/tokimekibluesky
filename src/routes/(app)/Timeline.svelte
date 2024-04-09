@@ -7,7 +7,6 @@
   import {getDbFollows} from "$lib/getActorsList";
   import {assignCursorFromLatest} from "$lib/components/column/releaseTimeline";
   import {playSound} from "$lib/sounds";
-  import {track} from "@vercel/analytics";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
 
   export let column;
@@ -19,6 +18,7 @@
   let realtimeCounter = 0;
   let isDividerLoading = false;
   let dividerFillerHeight = 0;
+  let retryCount = 0;
 
   if (column.settings?.autoRefresh === -1) {
       getActors();
@@ -83,7 +83,17 @@
           column.data.feed = [...column.data.feed, ...feed];
           isDividerLoading = false;
 
-          if (column.data.cursor && res.data.feed.length) {
+          if (column.data.cursor) {
+              if (retryCount > 5) {
+                  throw new Error('Retry limit exceeded');
+              }
+
+              if (!res.data.feed.length) {
+                  retryCount = retryCount + 1;
+              } else {
+                  retryCount = 0;
+              }
+
               loaded();
           } else {
               complete();

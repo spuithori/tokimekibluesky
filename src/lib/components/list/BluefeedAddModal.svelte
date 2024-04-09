@@ -19,7 +19,7 @@
         isDisabled = true;
 
         try {
-            const res = await fetch('https://www.bluefeed.app/api/listFeeds', {
+            const res = await fetch('https://www.bluefeed.app/api/2/listFeeds', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {formattedKeywordMutes, linkWarning, settings} from "$lib/stores";
+  import {formattedKeywordMutes, labelDefs, labelerSettings, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
@@ -17,7 +17,6 @@
   import {formatTranslateRecord} from "$lib/translate";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
-  import {detectDifferentDomainUrl} from "$lib/util";
   import TimelineText from "$lib/components/post/TimelineText.svelte";
   import toast from "svelte-french-toast";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
@@ -31,12 +30,16 @@
   export let pulseTranslate = false;
 
   let translatedRecord: undefined | AppBskyFeedPost.Record;
-  let warnReason = '';
+  let warnLabels = [];
+  let warnBehavior: 'cover' | 'inform' = 'cover';
 
-  const moderateData = contentLabelling(post, _agent.did(), $settings);
+  const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
+  const contentContext = isSingle || isProfile
+      ? 'contentView'
+      : 'contentList';
 
   export let isHide = detectHide(moderateData);
-  let isWarn = detectWarn(moderateData) || false;
+  let isWarn: 'content' | 'media' | null = detectWarn(moderateData) || null;
   detectKeywordFilter();
 
   $: translation(pulseTranslate);
@@ -46,53 +49,47 @@
           return false;
       }
 
-      if (moderateData.content.filter) {
-          console.log('should hide.');
-
-          if (moderateData.content.cause.type === 'muted' && (isProfile || isSingle || isMedia)) {
-              return false;
+      try {
+          if (moderateData.ui(contentContext).filter) {
+              const filterLabels = moderateData.ui(contentContext).filters;
+              return true;
           }
-
-          return true;
+      } catch (e) {
+          return false;
       }
 
       return false;
   }
 
   function detectWarn(moderateData) {
-      // console.log(moderateData)
-
       if (!moderateData) {
-          return false;
+          return null;
       }
 
-      if (moderateData.content.filter) {
-          return false;
-      }
-
-      if (isMedia) {
-          return false;
-      }
-
-      if (moderateData.content.blur || moderateData.content.alert) {
-          if (moderateData.content?.cause.setting === 'show') {
-              return  false;
+      try {
+          if (moderateData.ui(contentContext).blur) {
+              warnLabels = [...moderateData.ui(contentContext).blurs, ...moderateData.ui('contentMedia').blurs];
+              return 'content';
           }
 
-          warnReason = moderateData?.content.cause.label.val;
-          return true;
-      }
-
-      if (moderateData.embed.blur) {
-          if (moderateData.embed?.cause.setting === 'show') {
-              return false;
+          if (moderateData.ui('contentMedia').blur) {
+              warnLabels = moderateData.ui('contentMedia').blurs;
+              return 'media';
           }
 
-          warnReason = moderateData?.embed.cause.label.val;
-          return true;
+          if (moderateData.ui(contentContext).inform) {
+              warnLabels = moderateData.ui(contentContext).informs;
+              warnBehavior = 'inform';
+
+              if (!moderateData.muted && warnLabels.length) {
+                  return 'content';
+              }
+          }
+      } catch (e) {
+          return null;
       }
 
-      return false;
+      return null;
   }
 
   function detectKeywordFilter() {
@@ -164,9 +161,9 @@
     <p class="timeline__handle">@{post.author.handle}</p>
   {/if}
 
-  <div class="timeline-warn-wrap" class:timeline-warn-wrap--warned={isWarn}>
-    {#if (isWarn)}
-      <TimelineWarn reason={warnReason} on:visible={() => {isWarn = false}}></TimelineWarn>
+  <div class="timeline-warn-wrap" class:timeline-warn-wrap--warned={isWarn === 'content'}>
+    {#if (isWarn === 'content')}
+      <TimelineWarn labels={warnLabels} behavior={warnBehavior}></TimelineWarn>
     {/if}
 
     <p class="timeline__text" dir="auto">
@@ -184,6 +181,10 @@
 
     {#if (AppBskyEmbedImages.isView(post.embed) && !isMedia && post.embed)}
       <div class="timeline-images-wrap">
+        {#if (isWarn === 'media')}
+          <TimelineWarn labels={warnLabels}></TimelineWarn>
+        {/if}
+
         <Images images={post.embed.images} blobs={post.record.embed.images} {_agent} did={post.author.did}></Images>
       </div>
     {/if}
@@ -203,6 +204,10 @@
     {#if (AppBskyEmbedRecordWithMedia.isView(post.embed))}
       {#if (AppBskyEmbedImages.isView(post.embed.media))}
         <div class="timeline-images-wrap">
+          {#if (isWarn === 'media')}
+            <TimelineWarn labels={warnLabels}></TimelineWarn>
+          {/if}
+
           <Images images={post.embed.media.images} blobs={post.record.embed.media.images} did={post.author.did} {_agent}></Images>
         </div>
       {/if}

@@ -1,4 +1,5 @@
-import {moderatePost, ModerationOpts} from '@atproto/api'
+import {moderatePost} from '@atproto/api';
+import type {ModerationOpts} from '@atproto/api';
 import {isMatch, parse, parseISO, set} from "date-fns";
 import isWithinInterval from "date-fns/isWithinInterval";
 
@@ -28,24 +29,26 @@ export const defaultKeyword: keyword = {
     regExp: false,
 }
 
-export function contentLabelling(post, did, settings) {
+export function contentLabelling(post, did, settings, labelDefs, labelerSettings = []) {
     let labels = settings.moderation?.contentLabels || {
-        gore: 'warn',
-        hate: 'warn',
-        impersonation: 'warn',
-        nsfw: 'warn',
+        porn: 'warn',
+        sexual: 'warn',
         nudity: 'warn',
-        spam: 'warn',
-        suggestive: 'warn',
+        'graphic-media': 'warn',
     };
     labels['!warn'] = 'warn';
     labels.spoiler = 'warn';
 
     const options: ModerationOpts = {
         userDid: did,
-        labels: labels,
-        adultContentEnabled: true,
-        labelers: [],
+        prefs: {
+            adultContentEnabled: true,
+            mutedWords: [],
+            hiddenPosts: [],
+            labelers: labelerSettings,
+            labels: labels,
+        },
+        labelDefs: labelDefs,
     }
 
     return moderatePost(post, options);

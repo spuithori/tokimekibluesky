@@ -18,7 +18,7 @@
       status = 'processing';
 
       try {
-          const res = await fetch('https://www.bluefeed.app/api/addPosts', {
+          const res = await fetch('https://www.bluefeed.app/api/2/addPosts', {
               method: 'POST',
               headers: {
                   'Accept': 'application/json',
@@ -31,18 +31,18 @@
           });
           const json = await res.json();
 
-          if (res.status === 200 && json.message === 'duplicate') {
+          if (res.status === 409) {
               toast.error($_('bluefeed_add_duplicate'));
               status = 'duplicate';
               return false;
           }
 
-          if (res.status === 200 && json.message === 'feedNotFound') {
+          if (res.status === 404) {
               toast.error($_('bluefeed_feed_notfound'));
               throw new Error('notFound');
           }
 
-          if (res.status === 200 && json.message === 'postsNotFound') {
+          if (res.status === 404) {
               toast.error($_('bluefeed_post_notfound'));
               throw new Error('notFound');
           }

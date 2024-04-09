@@ -392,3 +392,48 @@ input[type=checkbox]{
     font-size: 11px;
     margin-left: 4px;
 }
+
+.moderation-settings-groups {
+    margin-top: 24px;
+}
+
+.moderation-settings-group {
+    position: relative;
+    margin-bottom: 16px;
+
+    &__content {
+        margin-top: 10px;
+        position: relative;
+    }
+
+    &__title {
+        font-size: 16px;
+        line-height: 1.5;
+        margin-bottom: 2px;
+        letter-spacing: .025em;
+    }
+
+    &__text {
+        color: var(--text-color-3);
+        font-size: 14px;
+    }
+
+    select {
+        border: 1px solid var(--border-color-1);
+        background-color: var(--bg-color-2);
+        height: 40px;
+        border-radius: 4px;
+        width: 100%;
+        padding: 0 10px;
+        cursor: pointer;
+        position: relative;
+        color: var(--text-color-1);
+    }
+}
+
+.moderation-group-title {
+    font-size: 20px;
+    color: var(--text-color-1);
+    margin-top: 32px;
+    margin-bottom: 8px;
+}

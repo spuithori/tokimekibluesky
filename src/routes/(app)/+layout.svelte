@@ -12,7 +12,7 @@
       isMobileDataConnection, isReactionButtonSettingsModalOpen, keywordMutes, listAddModal, missingAccounts,
       profileStatus,
       settings, syncColumns,
-      theme, direction, bluefeedAddModal
+      theme, direction, bluefeedAddModal, labelDefs, subscribedLabelers
   } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {dev} from '$app/environment';
@@ -178,6 +178,15 @@
     let agentsMap = await resumeAccountsSession(accounts);
     agents.set(agentsMap);
     agent.set($agents.get(profile.primary));
+
+    try {
+        $agents.forEach(_agent => {
+            _agent.agent.configureLabelersHeader($subscribedLabelers);
+        })
+        labelDefs.set(await $agent.agent.getLabelDefinitions($subscribedLabelers));
+    } catch (e) {
+        console.error(e);
+    }
 
     checkSession(accounts);
 

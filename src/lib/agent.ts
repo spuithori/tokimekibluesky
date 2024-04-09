@@ -1,4 +1,4 @@
-import type {AppBskyFeedGetTimeline, AtpAgent} from '@atproto/api';
+import type {AppBskyFeedGetTimeline, AtpAgent, BskyAgent} from '@atproto/api';
 import {AppBskyEmbedImages} from "@atproto/api";
 import toast from "svelte-french-toast";
 import type { currentAlgorithm } from "../app.d.ts";
@@ -15,9 +15,9 @@ type timelineOpt = {
 }
 
 export class Agent {
-    public agent: AtpAgent;
+    public agent: BskyAgent;
 
-    constructor(agent: AtpAgent) {
+    constructor(agent: BskyAgent) {
         this.agent = agent;
     }
 
@@ -221,5 +221,21 @@ export class Agent {
         const res = await this.agent.api.app.bsky.graph.getList({list: uri});
         const items = res.data.items;
         return items.map(item => item.subject.did);
+    }
+
+    async getSavedLabelerDids() {
+        try {
+            const preferences = await this.getPreferences();
+            const labelers = preferences.filter(preferences => preferences.$type === 'app.bsky.actor.defs#labelersPref')[0]?.labelers;
+
+            if (labelers) {
+                return labelers.map(labeler => labeler.did);
+            } else {
+                return [];
+            }
+        } catch (e) {
+            console.error(e);
+            return [];
+        }
     }
 }

@@ -1,20 +1,26 @@
-import {AtpAgent, AtpSessionData, AtpSessionEvent} from "@atproto/api";
+import {AtpAgent, AtpSessionData, AtpSessionEvent, BskyAgent} from "@atproto/api";
 import {accountsDb} from "$lib/db";
 import {Agent} from "$lib/agent";
 
 async function resume(account) {
-    const ag = new AtpAgent({
+    const ag = new BskyAgent({
         service: account.service,
         persistSession: async (evt: AtpSessionEvent, sess?: AtpSessionData) => {
-            const profile = await getAvatar(ag, account);
+            let profile;
+
+            try {
+                profile = await getAvatar(ag, account);
+            } catch (e) {
+                //
+            }
 
             const id = await accountsDb.accounts.put({
                 id: account.id,
                 session: sess || account.session,
                 did: account.did,
                 service: account.service,
-                avatar: profile.avatar,
-                name: profile.displayName,
+                avatar: profile ? profile.avatar : '',
+                name: profile ? profile.displayName : '',
                 following: account.following || undefined,
                 notification: account.notification || ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
                 feeds: account.feeds || [],

@@ -1,8 +1,10 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import { settings } from '$lib/stores';
+    import {settings, subscribedLabelers} from '$lib/stores';
+    import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
+    import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
 
-    type contentLabelsSelect = 'hide' | 'warn' | 'show';
+    type contentLabelsSelect = 'hide' | 'warn' | 'ignore';
     type contentLabels = {
         gore: contentLabelsSelect,
         hate: contentLabelsSelect,
@@ -12,6 +14,8 @@
         spam: contentLabelsSelect,
         suggestive: contentLabelsSelect,
     }
+
+    const officialLabelerDid = 'did:plc:ar7c4by46qjdydhdevvrndac';
 
     let labels: contentLabels = $settings.moderation.contentLabels || {
         gore: 'warn',
@@ -23,24 +27,11 @@
         suggestive: 'warn',
     };
 
-    const contentLabelsSelections = [
-        {
-            value: 'hide',
-            text: $_('hide')
-        },
-        {
-            value: 'warn',
-            text: $_('warn')
-        },
-        {
-            value: 'show',
-            text: $_('show')
-        }
-    ];
-
     $: {
         let labelsAlt = new Map();
-        labelsAlt.set('nsfw', ['porn','sexual']);
+        labelsAlt.set('nsfw', ['porn']);
+        labelsAlt.set('suggestive', ['sexual']);
+        labelsAlt.set('gore', ['graphic-media']);
 
         labelsAlt.forEach((value, key) => {
             value.forEach(item => {
@@ -80,162 +71,62 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
     </div>
 
+    <div class="settings-child-nav">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+      <a href="/settings/moderation/labeler">{$_('settings_labeler')}<br><span>{$_('settings_labeler_description')}</span></a>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+    </div>
+
+    <h2 class="moderation-group-title">{$_('global_label_settings')}</h2>
+    <p class="settings-description">{$_('global_label_settings_description')}</p>
+
     <div class="moderation-settings-groups">
       <div class="moderation-settings-group">
-        <h3 class="moderation-settings-group__title">{$_('gore_title')}</h3>
-        <p class="moderation-settings-group__text">{$_('gore_description')}</p>
-
-        <div class="moderation-settings-group__content">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
-
-          <select bind:value={labels.gore}>
-            {#each contentLabelsSelections as option}
-              <option value="{option.value}">{option.text}</option>
-            {/each}
-          </select>
-        </div>
-      </div>
-
-      <div class="moderation-settings-group">
-        <h3 class="moderation-settings-group__title">{$_('hate_title')}</h3>
-        <p class="moderation-settings-group__text">{$_('hate_description')}</p>
-
-        <div class="moderation-settings-group__content">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
-
-          <select bind:value={labels.hate}>
-            {#each contentLabelsSelections as option}
-              <option value="{option.value}">{option.text}</option>
-            {/each}
-          </select>
-        </div>
-      </div>
-
-      <div class="moderation-settings-group">
-        <h3 class="moderation-settings-group__title">{$_('impersonation_title')}</h3>
-        <p class="moderation-settings-group__text">{$_('impersonation_description')}</p>
-
-        <div class="moderation-settings-group__content">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
-
-          <select bind:value={labels.impersonation}>
-            {#each contentLabelsSelections as option}
-              <option value="{option.value}">{option.text}</option>
-            {/each}
-          </select>
-        </div>
-      </div>
-
-      <div class="moderation-settings-group">
-        <h3 class="moderation-settings-group__title">{$_('nsfw_title')}</h3>
+        <h3 class="moderation-settings-group__title">{$_('labeling_porn')}</h3>
         <p class="moderation-settings-group__text">{$_('nsfw_description')}</p>
 
         <div class="moderation-settings-group__content">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
-
-          <select bind:value={labels.nsfw}>
-            {#each contentLabelsSelections as option}
-              <option value="{option.value}">{option.text}</option>
-            {/each}
-          </select>
+          <LabelSelector name="nsfw" bind:value={labels.nsfw}></LabelSelector>
         </div>
       </div>
 
       <div class="moderation-settings-group">
-        <h3 class="moderation-settings-group__title">{$_('nudity_title')}</h3>
-        <p class="moderation-settings-group__text">{$_('nudity_description')}</p>
-
-        <div class="moderation-settings-group__content">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
-
-          <select bind:value={labels.nudity}>
-            {#each contentLabelsSelections as option}
-              <option value="{option.value}">{option.text}</option>
-            {/each}
-          </select>
-        </div>
-      </div>
-
-      <div class="moderation-settings-group">
-        <h3 class="moderation-settings-group__title">{$_('spam_title')}</h3>
-        <p class="moderation-settings-group__text">{$_('spam_description')}</p>
-
-        <div class="moderation-settings-group__content">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
-
-          <select bind:value={labels.spam}>
-            {#each contentLabelsSelections as option}
-              <option value="{option.value}">{option.text}</option>
-            {/each}
-          </select>
-        </div>
-      </div>
-
-      <div class="moderation-settings-group">
-        <h3 class="moderation-settings-group__title">{$_('suggestive_title')}</h3>
+        <h3 class="moderation-settings-group__title">{$_('labeling_sexual')}</h3>
         <p class="moderation-settings-group__text">{$_('suggestive_description')}</p>
 
         <div class="moderation-settings-group__content">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
-
-          <select bind:value={labels.suggestive}>
-            {#each contentLabelsSelections as option}
-              <option value="{option.value}">{option.text}</option>
-            {/each}
-          </select>
+          <LabelSelector name="suggestive" bind:value={labels.suggestive}></LabelSelector>
         </div>
       </div>
+
+      <div class="moderation-settings-group">
+        <h3 class="moderation-settings-group__title">{$_('labeling_gore')}</h3>
+        <p class="moderation-settings-group__text">{$_('gore_description')}</p>
+
+        <div class="moderation-settings-group__content">
+          <LabelSelector name="gore" bind:value={labels.gore}></LabelSelector>
+        </div>
+      </div>
+
+      <div class="moderation-settings-group">
+        <h3 class="moderation-settings-group__title">{$_('labeling_nudity')}</h3>
+        <p class="moderation-settings-group__text">{$_('nudity_description')}</p>
+
+        <div class="moderation-settings-group__content">
+          <LabelSelector name="nudity" bind:value={labels.nudity}></LabelSelector>
+        </div>
+      </div>
+
+      {#if ($subscribedLabelers.includes(officialLabelerDid))}
+        <h2 class="moderation-group-title">{$_('official_label_settings')}</h2>
+        <p class="settings-description">{$_('official_label_settings_description')}</p>
+
+        <LabelerLabelList did="did:plc:ar7c4by46qjdydhdevvrndac" isOfficial={true}></LabelerLabelList>
+      {/if}
     </div>
   </div>
 </div>
 
 <style lang="postcss">
-    .moderation-settings-groups {
-        margin-top: 24px;
-    }
 
-    .moderation-settings-group {
-        position: relative;
-        margin-bottom: 30px;
-
-        &__content {
-            margin-top: 10px;
-            position: relative;
-            background-color: var(--bg-color-2);
-
-            svg {
-                position: absolute;
-                right: 15px;
-                top: 0;
-                bottom: 0;
-                margin: auto;
-                z-index: 1;
-              pointer-events: none;
-            }
-        }
-
-        &__title {
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 2px;
-            letter-spacing: .025em;
-        }
-
-        &__text {
-            color: var(--text-color-3);
-            font-size: 14px;
-        }
-
-        select {
-            border: 1px solid var(--border-color-1);
-            background-color: var(--bg-color-2);
-            height: 40px;
-            border-radius: 4px;
-            width: 100%;
-            padding: 0 10px;
-            cursor: pointer;
-            position: relative;
-            color: var(--text-color-1);
-        }
-    }
 </style>

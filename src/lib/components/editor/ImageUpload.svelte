@@ -106,7 +106,7 @@
     </div>
 </div>
 
-<input class="image-upload-input" type="file" accept="image/png, image/jpeg, image/gif" multiple on:change={handleInputChange} bind:this={input}>
+<input class="image-upload-input" type="file" accept="image/png, image/jpeg, image/gif, image/webp" multiple on:change={handleInputChange} bind:this={input}>
 
 <style lang="postcss">
     .image-upload-drag-area {

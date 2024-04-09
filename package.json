@@ -36,7 +36,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@atproto/api": "^0.9.6",
+    "@atproto/api": "^0.12.2",
     "@emoji-mart/data": "^1.1.2",
     "@ipld/car": "^5.2.4",
     "@splidejs/svelte-splide": "^0.2.9",

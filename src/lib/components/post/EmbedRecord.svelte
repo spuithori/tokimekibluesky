@@ -26,18 +26,22 @@
           return false;
       }
 
-      if (moderateData.content.filter) {
-          return false;
-      }
-
-      if (moderateData.embed?.blur) {
-          try {
-              warnReason = moderateData.embed?.cause.label.val || '';
-          } catch (e) {
-              console.log(moderateData);
+      try {
+          if (moderateData.content.filter) {
+              return false;
           }
 
-          return true;
+          if (moderateData.embed?.blur) {
+              try {
+                  warnReason = moderateData.embed?.cause.label.val || '';
+              } catch (e) {
+                  console.log(moderateData);
+              }
+
+              return true;
+          }
+      } catch (e) {
+          return false;
       }
 
       return false;

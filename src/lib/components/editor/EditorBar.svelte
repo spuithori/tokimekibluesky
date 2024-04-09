@@ -18,29 +18,24 @@ let isThreadGateOpen = false;
 
 const selfLabelsChoices = [
     {
-        name: $_('self_labels_sexual'),
+        name: $_('labeling_sexual'),
         description: $_('self_labels_description_2'),
         val: 'sexual',
     },
     {
-        name: $_('self_labels_nudity'),
+        name: $_('labeling_nudity'),
         description: $_('self_labels_description_2'),
         val: 'nudity',
     },
     {
-        name: $_('self_labels_porn'),
+        name: $_('labeling_porn'),
         description: $_('self_labels_description_2'),
         val: 'porn',
     },
     {
-        name: $_('self_labels_spoiler'),
-        description: $_('self_labels_description_3'),
-        val: 'spoiler',
-    },
-    {
-        name: $_('self_labels_warning'),
-        description: $_('self_labels_description_1'),
-        val: '!warn',
+        name: $_('labeling_gore'),
+        description: $_('self_labels_description_2'),
+        val: 'gore',
     },
 ];
 

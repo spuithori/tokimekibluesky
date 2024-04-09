@@ -615,5 +615,15 @@
   "mute_keywords_import_description": "Imports text and hashtags without distinction",
   "reaction_mode": "Like button style",
   "reaction_mode_tokimeki": "💖TOKIMEKI",
-  "reaction_mode_superstar": "⭐SUPERSTAR"
+  "reaction_mode_superstar": "⭐SUPERSTAR",
+  "settings_labeler": "Labeler settings",
+  "settings_labeler_description": "Third-party labeler settings",
+  "global_label_settings": "Global labels",
+  "global_label_settings_description": "This applies to self-labeling posts, etc. Other similar labels may be defined for each labeler.",
+  "official_label_settings": "First-party labeler labels",
+  "official_label_settings_description": "Applies to labels by Bluesky Moderation Service.",
+  "labeler_description": "Labeler subscription settings are separate from the official application and are stored locally. The same labeler is applied to all accounts.",
+  "labels": "Labels",
+  "import_labeler": "Official App Labeler settings",
+  "self_labeling_note": "Self-labeling is only valid for posts with media."
 }

@@ -15,6 +15,7 @@ const dispatch = createEventDispatcher();
 
 export let handle;
 export let profile = getProfile(handle);
+export let isLabeler = false;
 
 let currentPage = 'posts';
 let firstPostDate = '';
@@ -247,26 +248,28 @@ function toggleHideCounts() {
         </div>
       {/if}
 
-      <div class="profile-relationship">
-        <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
-        <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
-        <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.postsCount}</span> {$_('posts')}</p>
+      {#if (!isLabeler)}
+        <div class="profile-relationship">
+          <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
+          <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
+          <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.postsCount}</span> {$_('posts')}</p>
 
-        <button class="profile-counts-toggle" on:click={toggleHideCounts} aria-label="Hide profile counts." title="Hide profile counts.">
-          {#if ($settings.general?.hideProfileCounts)}
-            <EyeOff color="var(--text-color-1)" size="22"></EyeOff>
-          {:else}
-            <Eye color="var(--text-color-1)" size="22"></Eye>
+          <button class="profile-counts-toggle" on:click={toggleHideCounts} aria-label="Hide profile counts." title="Hide profile counts.">
+            {#if ($settings.general?.hideProfileCounts)}
+              <EyeOff color="var(--text-color-1)" size="22"></EyeOff>
+            {:else}
+              <Eye color="var(--text-color-1)" size="22"></Eye>
+            {/if}
+          </button>
+
+          {#if (profile.viewer?.followedBy)}
+            <p class="profile-relationship__by">{$_('follows_you')}</p>
           {/if}
-        </button>
+        </div>
 
-        {#if (profile.viewer?.followedBy)}
-          <p class="profile-relationship__by">{$_('follows_you')}</p>
+        {#if (firstPostDate)}
+          <p class="profile-first"><a href="{firstPostUri}">{$_('first_post_date', {values: {date: firstPostDate }})}</a></p>
         {/if}
-      </div>
-
-      {#if (firstPostDate)}
-        <p class="profile-first"><a href="{firstPostUri}">{$_('first_post_date', {values: {date: firstPostDate }})}</a></p>
       {/if}
     </div>
   </div>
