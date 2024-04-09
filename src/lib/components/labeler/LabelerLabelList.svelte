@@ -9,6 +9,7 @@
   let defs = [];
   let labels = [];
   let renderLabels = {};
+  let ready = false;
 
   $: changeLabel(renderLabels);
 
@@ -22,12 +23,17 @@
   });
 
   function applyLabelSettings() {
-      if (Object.keys(renderLabels).length === 0) {
+      if (!ready) {
+          ready = true;
           return false;
       }
 
       if (!$subscribedLabelers.includes(did)) {
           return false;
+      }
+
+      if (Object.keys(renderLabels).length === 0) {
+          renderLabels = {};
       }
 
       const labelIndex = $labelerSettings.findIndex(labeler => labeler.did === did);
