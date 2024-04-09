@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, agents, labelDefs, subscribedLabelers} from "$lib/stores";
+    import {agent, agents, labelDefs, labelerSettings, subscribedLabelers} from "$lib/stores";
   import {_} from "svelte-i18n";
 
   export let did;
@@ -11,6 +11,17 @@
   function subscribe() {
       $subscribedLabelers = [...$subscribedLabelers, did];
       applyLabeler();
+
+      if (!$labelerSettings.find(labelers => labelers.did === did)) {
+          $labelerSettings = [
+              ...$labelerSettings,
+              {
+                  did: did,
+                  labels: {},
+              }
+          ]
+      }
+      localStorage.setItem('labelerSettings', JSON.stringify($labelerSettings));
   }
 
   function unsubscribe() {
