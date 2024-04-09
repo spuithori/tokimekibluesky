@@ -85,6 +85,7 @@
       padding: 8px 16px;
       text-align: left;
       font-size: 14px;
+      color: var(--text-color-1);
 
       &__title {
           font-size: 16px;
