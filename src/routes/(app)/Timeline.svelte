@@ -108,7 +108,9 @@
 <div class="timeline timeline--{column.style}">
   {#if (column.style === 'default')}
     {#each column.data.feed as data, index (data)}
-      <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
+      {#if (data?.post?.author?.did)}
+        <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
+      {/if}
 
       {#if data.isDivider}
         <MoreDivider on:click={(e) => {handleDividerClick(index, data.memoryCursor, e)}}></MoreDivider>
