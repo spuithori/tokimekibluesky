@@ -1,6 +1,9 @@
-import {AtpAgent, AtpSessionData, AtpSessionEvent, BskyAgent} from "@atproto/api";
+import {AtpSessionData, AtpSessionEvent, BskyAgent} from "@atproto/api";
 import {accountsDb} from "$lib/db";
 import {Agent} from "$lib/agent";
+import {missingAccounts} from "$lib/stores";
+
+let _missingAccounts = [];
 
 async function resume(account) {
     const ag = new BskyAgent({
@@ -29,7 +32,15 @@ async function resume(account) {
         }
     })
 
-    ag.resumeSession(account.session);
+    ag.resumeSession(account.session)
+        .then(value => {
+            //
+        })
+        .catch(error => {
+            console.log(error);
+            _missingAccounts = [..._missingAccounts, account];
+            missingAccounts.set(_missingAccounts);
+        });
 
     return {
         id: account.id,

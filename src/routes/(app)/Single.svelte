@@ -4,11 +4,6 @@
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 
     let unique = Symbol();
-    let customFeeds;
-
-    if ($agent) {
-        customFeeds = $agent.getSavedFeeds()
-    }
 
     if (!$columns.length) {
         columns.set([{

@@ -316,7 +316,9 @@ export const bluefeedAddModal = writable({
     did: '',
 })
 
-export const labelDefs = writable([]);
+export const labelDefs = writable(localStorage.getItem('labelDefs')
+    ? JSON.parse(localStorage.getItem('labelDefs'))
+    : []);
 
 export const subscribedLabelers = writable(localStorage.getItem('subscribedLabelers')
     ? JSON.parse(localStorage.getItem('subscribedLabelers'))

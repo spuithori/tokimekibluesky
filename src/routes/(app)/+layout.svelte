@@ -55,7 +55,7 @@
   let baseColor = '#fff';
   let isRepeater = localStorage.getItem('isRepeater') === 'true';
 
-  inject(
+  /* inject(
       {
           mode: dev ? 'development' : 'production',
           beforeSend: event => {
@@ -65,7 +65,7 @@
               return event;
           }
       },
-  );
+  ); */
 
   $: getCurrentTheme($settings.design?.skin);
   $: observeColor($theme);
@@ -183,38 +183,19 @@
         $agents.forEach(_agent => {
             _agent.agent.configureLabelersHeader($subscribedLabelers);
         })
-        labelDefs.set(await $agent.agent.getLabelDefinitions($subscribedLabelers));
+
+        if (!Object.keys($labelDefs).length) {
+            labelDefs.set(await $agent.agent.getLabelDefinitions($subscribedLabelers));
+        }
+
+        localStorage.setItem('labelDefs', JSON.stringify($labelDefs));
     } catch (e) {
         console.error(e);
     }
 
-    checkSession(accounts);
-
     profileStatus.set(0);
     loaded = true;
     //isColumnInitialLoad = true;
-  }
-
-  async function checkSession(accounts) {
-      let _missingAccounts = [];
-      let promises = [];
-      if (!accounts.length) {
-          return false;
-      }
-
-      accounts.forEach(account => {
-          promises = [...promises, $agents.get(account.id).agent.api.com.atproto.server.getSession()];
-      });
-
-      const results = await Promise.allSettled(promises);
-
-      results.forEach((result, index) => {
-          if (result.status === 'rejected') {
-              console.log(result.reason);
-              _missingAccounts = [..._missingAccounts, accounts[index]];
-              missingAccounts.set(_missingAccounts);
-          }
-      })
   }
 
   if (!$settings.version) {

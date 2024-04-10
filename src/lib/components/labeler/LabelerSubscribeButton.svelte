@@ -39,6 +39,7 @@
 
     async function applyLabelDefs(subscribedLabelers) {
         labelDefs.set(await $agent.agent.getLabelDefinitions(subscribedLabelers));
+        localStorage.setItem('labelDefs', JSON.stringify($labelDefs));
     }
 </script>
 
