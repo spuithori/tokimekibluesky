@@ -246,11 +246,6 @@
 
     function toggleStyle(style: 'default' | 'media') {
         $columns[index].style = style;
-
-        if (column.algorithm.type !== 'realtime') {
-            $columns[index].data.feed = [];
-            $columns[index].data.cursor = '';
-        }
     }
 
     function deleteColumn() {

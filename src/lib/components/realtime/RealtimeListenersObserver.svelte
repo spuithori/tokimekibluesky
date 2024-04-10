@@ -18,7 +18,7 @@
           if (_agent) {
             const host = _agent.agent.service.host === 'bsky.social' ? 'bsky.network' : _agent.agent.service.host;
 
-            if (column.settings?.autoRefresh === -1 || column.algorithm.type === 'realtime') {
+            if (column.settings?.autoRefresh === -1) {
               _listeners.add(host);
             }
           }
