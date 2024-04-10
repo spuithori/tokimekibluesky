@@ -322,7 +322,7 @@
 {#if (!isHide)}
   <article class="timeline__item"
            class:timeline__item--repost={isReasonRepost(data.reason)}
-           class:timeline__item--reply={data.reply && data.reply.parent.author.did !== _agent.did()}
+           class:timeline__item--reply={data.reply && data.reply?.parent?.author?.did !== _agent.did()}
            class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
            class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
            on:click={handleClick}
@@ -341,14 +341,20 @@
       {/if}
     </div>
 
-    {#if (data.reply && !isSingle && !isReplyHide)}
-      <div class="timeline__column timeline__column--reply">
-        {#if (data.reply.parent.uri !== data.reply.root.uri)}
-          <span class="timeline-reply-bar"></span>
-        {/if}
+    {#if (!data?.reply?.parent?.notFound)}
+      {#if (data.reply && !isSingle && !isReplyHide)}
+        <div class="timeline__column timeline__column--reply">
+          {#if (data.reply.parent.uri !== data.reply.root.uri)}
+            <span class="timeline-reply-bar"></span>
+          {/if}
 
-        <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
-      </div>
+          <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
+        </div>
+      {/if}
+    {:else}
+      <article class="timeline-hidden-item">
+        <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
+      </article>
     {/if}
 
     <div class="timeline__column">
@@ -491,3 +497,9 @@
     </article>
   {/if}
 {/if}
+
+<style lang="postcss">
+  .timeline-hidden-item {
+      margin-bottom: 16px;
+  }
+</style>
