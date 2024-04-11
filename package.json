@@ -70,7 +70,7 @@
     "svelte-dnd-action": "^0.9.31",
     "svelte-french-toast": "^1.2.0",
     "svelte-i18n": "^4.0.0",
-    "svelte-infinite-loading": "git+https://github.com/spuithori/svelte-infinite-loading.git#v1.3.8-f1",
+    "svelte-infinite-loading": "git+https://github.com/spuithori/svelte-infinite-loading.git#v1.3.8-f2",
     "svelte-portal": "^2.2.1",
     "sveltekit-embed": "^0.0.12"
   }

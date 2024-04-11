@@ -341,7 +341,11 @@
       {/if}
     </div>
 
-    {#if (!data?.reply?.parent?.notFound)}
+    {#if (data?.reply?.parent?.notFound || data?.reply?.parent?.blocked)}
+      <article class="timeline-hidden-item">
+        <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
+      </article>
+    {:else}
       {#if (data.reply && !isSingle && !isReplyHide)}
         <div class="timeline__column timeline__column--reply">
           {#if (data.reply.parent.uri !== data.reply.root.uri)}
@@ -351,10 +355,6 @@
           <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
         </div>
       {/if}
-    {:else}
-      <article class="timeline-hidden-item">
-        <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
-      </article>
     {/if}
 
     <div class="timeline__column">
