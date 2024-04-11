@@ -240,6 +240,8 @@ function toggleHideCounts() {
                 <ProfileCardWrapper handle="{item.text.slice(1)}">
                   <a href="/profile/{item.text.slice(1)}">{item.text}</a>
                 </ProfileCardWrapper>
+              {:else if (item.isTag() && item.tag)}
+                <a href="/search?q={encodeURIComponent('#' + item.tag?.tag)}">{item.text}</a>
               {:else}
                 <span>{item.text}</span>
               {/if}
