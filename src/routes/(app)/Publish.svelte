@@ -193,7 +193,8 @@ async function addLinkCard(uri: string) {
     isLinkCardAdding = true;
 
     try {
-        const res = await fetch('https://tokimeki-api.vercel.app/api/ogp?url=' + encodeURIComponent(uri));
+        const lang = $settings.general?.userLanguage ? $settings.general?.userLanguage : 'en-US';
+        const res = await fetch('https://tokimeki-api.vercel.app/api/ogp?url=' + encodeURIComponent(uri) + '&lang=' + lang);
         const data = await res.json();
 
         embedExternal = {
