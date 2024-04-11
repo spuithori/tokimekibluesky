@@ -99,12 +99,12 @@
             case 'all':
                 break;
             case 'following':
-                if (data.reply && (data.reply.parent.author.did !== _agent.did() && !data.reply?.parent.author.viewer.following)) {
+                if (data.reply && (data?.reply?.parent?.author?.did !== _agent.did() && !data?.reply?.parent?.author?.viewer?.following)) {
                     isHide = true;
                 }
                 break;
             case 'me':
-                if (data.reply && data.reply.parent.author.did !== _agent.did()) {
+                if (data.reply && data?.reply?.parent?.author?.did !== _agent.did()) {
                     isHide = true;
                 }
                 break;
