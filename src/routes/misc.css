@@ -317,3 +317,9 @@ html {
 .superstar {
     --timeline-reaction-liked-icon-color: #F0C76A !important;
 }
+
+.giphy-picker {
+    .gif {
+        cursor: pointer;
+    }
+}

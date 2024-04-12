@@ -4,9 +4,7 @@
   import Publish from "./Publish.svelte";
   import Notification from "./Notification.svelte";
   import {isPublishInstantFloat, settings, sideState} from "$lib/stores";
-  import Settings from "./Settings.svelte";
   import SideProfile from "$lib/components/side/SideProfile.svelte";
-  import SideSearch from "$lib/components/side/SideSearch.svelte";
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
 </script>
 
@@ -34,16 +32,8 @@
         </div>
       {/if}
 
-      {#if ($sideState === 'settings' && $settings.design?.publishPosition !== 'bottom')}
-        <Settings style={'side'}></Settings>
-      {/if}
-
       {#if ($sideState === 'profile' && $settings.design?.publishPosition !== 'bottom')}
         <SideProfile></SideProfile>
-      {/if}
-
-      {#if ($sideState === 'search' && $settings.design?.publishPosition !== 'bottom')}
-        <SideSearch></SideSearch>
       {/if}
 
       {#if ($sideState === 'feeds' && $settings.design?.publishPosition !== 'bottom')}

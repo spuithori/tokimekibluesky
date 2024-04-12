@@ -219,6 +219,35 @@ async function addLinkCard(uri: string) {
     }
 }
 
+async function addGifLinkCard(gif) {
+    if (!gif) {
+        return false;
+    }
+
+    try {
+        isLinkCardAdding = true;
+
+        const res = await fetch(gif.images.downsized.url);
+        const blob = await res.blob();
+        externalImageBlob = await imageCompression.getDataUrlFromFile(blob);
+
+        embedExternal = {
+            $type: 'app.bsky.embed.external',
+            external: {
+                uri: gif.url,
+                title: gif.title || '',
+                description: 'Discover & share this Animated GIF with everyone you know. GIPHY is how you search, share, discover, and create GIFs.',
+            }
+        }
+
+        isLinkCardAdding = false;
+    } catch (e) {
+        console.error(e);
+        toast.error('Error!');
+        isLinkCardAdding = false;
+    }
+}
+
 $: {
     if (!isFocus) {
         embedImages.images = [];
@@ -417,7 +446,17 @@ async function uploadExternalImage() {
     if (externalImageBlob) {
         try {
             const imageRes = await fetch(externalImageBlob);
-            const blob = await imageRes.blob();
+            let blob = await imageRes.blob();
+
+            if (blob.type === 'image/gif') {
+                blob = await imageCompression(blob, {
+                    maxSizeMB: 0.925,
+                    maxWidthOrHeight: 3000,
+                    fileType: 'image/jpeg',
+                    useWebWorker: true,
+                    initialQuality: 0.8,
+                });
+            }
 
             const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
                 encoding: 'image/jpeg',
@@ -726,6 +765,7 @@ function handleAgentSelect(event) {
               on:publish={() => {publish()}}
               on:focus={handleOpen}
               on:upload={uploadContextOpen}
+              on:pickgif={(e) => addGifLinkCard(e.detail.gif)}
               {_agent}
               isPublishEnabled={isPublishEnabled}
       >

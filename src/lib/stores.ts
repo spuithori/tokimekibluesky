@@ -158,6 +158,7 @@ const defaultSettings = {
         spotify: false,
         mastodon: true,
         bluemotion: true,
+        giphy: true,
     },
     langFilter: [],
     version: 2,

@@ -626,5 +626,6 @@
   "labeler_description": "ラベラーの購読設定は公式アプリとは別で、ローカルに保存されます。すべてのアカウントに同じラベラーが適用されます。",
   "labels": "ラベル",
   "import_labeler": "公式アプリのラベラー設定",
-  "self_labeling_note": "セルフラベリングはメディア付き投稿にのみ有効。"
+  "self_labeling_note": "セルフラベリングはメディア付き投稿にのみ有効。",
+  "giphy_picker_placeholder": "GIPHYでGIFを検索"
 }

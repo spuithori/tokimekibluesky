@@ -1,3 +1,6 @@
+import { GiphyFetch } from '@giphy/js-fetch-api';
+import { PUBLIC_GIPHY_API_KEY } from '$env/static/public';
+
 export function getYouTubeUrl(uri: string) {
     try {
         const url = new URL(uri);
@@ -77,6 +80,45 @@ export function getBluemotionUrl(uri: string) {
         return undefined;
     } catch (e) {
         console.log(e);
+        return undefined;
+    }
+}
+
+export function getGiphyId(uri: string) {
+    try {
+        const url = new URL(uri);
+        const hostname = url.hostname;
+        const domainPart = hostname.split('.');
+        const domain = domainPart.slice(0).slice(-(domainPart.length === 4 ? 3 : 2)).join('.');
+
+        if (hostname === 'giphy.com' || hostname === 'www.giphy.com') {
+            const [_, gifs, id] = url.pathname.split('/');
+
+            if (gifs === 'gifs' && id) {
+                const rawId = id.split('-').slice(-1)[0];
+                return getGiphyGif(rawId);
+            }
+        }
+
+        if (domain === 'giphy.com' &&  /media(?:[0-4]\.giphy\.com|\.giphy\.com)/i.test(hostname)) {
+            const id = url.pathname.split('/').slice(-2, -1)[0];
+            return getGiphyGif(id);
+        }
+
+        return undefined;
+    } catch (e) {
+        console.log(e);
+        return undefined;
+    }
+}
+
+async function getGiphyGif(id: string) {
+    try {
+        const gf = new GiphyFetch(PUBLIC_GIPHY_API_KEY);
+        const {data: gif} = await gf.gif(id);
+        return gif;
+    } catch (e) {
+        console.error(e);
         return undefined;
     }
 }

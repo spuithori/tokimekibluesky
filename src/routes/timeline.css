@@ -191,6 +191,13 @@
             }
         }
     }
+
+    &--gif {
+        .timeline-external__image {
+            z-index: 1;
+            aspect-ratio: auto;
+        }
+    }
 }
 
 .timeline-twitter-external {

@@ -625,5 +625,6 @@
   "labeler_description": "Labeler subscription settings are separate from the official application and are stored locally. The same labeler is applied to all accounts.",
   "labels": "Labels",
   "import_labeler": "Official App Labeler settings",
-  "self_labeling_note": "Self-labeling is only valid for posts with media."
+  "self_labeling_note": "Self-labeling is only valid for posts with media.",
+  "giphy_picker_placeholder": "Search GIFs in GIPHY"
 }

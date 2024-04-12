@@ -1,7 +1,14 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
-  import {getBluemotionUrl, getSpotifyUri, getTwitterUrl, getYouTubeUrl} from "$lib/components/post/embedUtil";
+  import {
+      getBluemotionUrl,
+      getGiphyId,
+      getSpotifyUri,
+      getTwitterUrl,
+      getYouTubeUrl
+  } from "$lib/components/post/embedUtil";
   import {Spotify, Tweet, YouTube} from "sveltekit-embed";
+  import { Gif } from '@giphy/svelte-components';
   export let external;
 
   if (!$settings?.embed) {
@@ -18,6 +25,10 @@
       $settings.embed.bluemotion = true;
   }
 
+  if ($settings?.embed?.giphy === undefined) {
+      $settings.embed.giphy = true;
+  }
+
   if (!$settings?.design?.externalLayout) {
       $settings.design.externalLayout = 'normal';
   }
@@ -32,6 +43,7 @@
     class="timeline-external timeline-external--{$settings?.design.postsLayout} timeline-external--{$settings?.design.externalLayout}"
     class:timeline-external--youtube={getYouTubeUrl(external.uri)}
     class:timeline-external--spotify={getSpotifyUri(external.uri)}
+    class:timeline-external--gif={getGiphyId(external.uri) && $settings?.embed?.giphy}
   >
     {#if ($settings?.design.externalLayout !== 'compact')}
       <div class="timeline-external__image">
@@ -49,6 +61,20 @@
                   frameBorder="0"
               ></iframe>
             </div>
+          {:else if (getGiphyId(external.uri) && $settings?.embed?.giphy)}
+            {#await getGiphyId(external.uri)}
+            {:then gif}
+              <div class="timeline-giphy-external">
+                <Gif {gif} width={'100%'} borderRadius={0}></Gif>
+
+                <div class="timeline-giphy-external__logo">
+                  <a href="https://giphy.com/" target="_blank" rel="nofollow">
+                    <img src="/giphy-logo.png" alt="Powered by GIPHY">
+                  </a>
+                </div>
+              </div>
+            {:catch error}
+            {/await}
           {:else}
             <img src="{external.thumb}" alt="">
           {/if}
@@ -80,6 +106,23 @@
       iframe {
           width: 100%;
           height: 100%;
+      }
+  }
+
+  .timeline-giphy-external {
+      position: relative;
+      height: 100%;
+      z-index: 1;
+
+      &__logo {
+          background-color: var(--bg-color-1);
+          padding: 8px 10px 0;
+
+          a {
+              display: block;
+              width: 120px;
+              height: auto;
+          }
       }
   }
 </style>

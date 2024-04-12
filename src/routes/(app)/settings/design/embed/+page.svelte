@@ -9,11 +9,16 @@
             spotify: false,
             mastodon: true,
             bluemotion: true,
+            giphy: true,
         };
     }
 
     if ($settings?.embed?.bluemotion === undefined) {
         $settings.embed.bluemotion = true;
+    }
+
+    if ($settings?.embed?.giphy === undefined) {
+        $settings.embed.giphy = true;
     }
 </script>
 
@@ -83,6 +88,18 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="embedBluemotion" bind:checked={$settings.embed.bluemotion}><label class="input-toggle__label" for="embedBluemotion"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        GIPHY
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="embedGiphy" bind:checked={$settings.embed.giphy}><label class="input-toggle__label" for="embedGiphy"></label>
         </div>
       </dd>
     </dl>
