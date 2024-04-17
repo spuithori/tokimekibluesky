@@ -132,4 +132,9 @@
           background-color: rgba(0, 0, 0, .1);
       }
   }
+
+  .timeline-warn-button {
+      position: relative;
+      z-index: 1;
+  }
 </style>

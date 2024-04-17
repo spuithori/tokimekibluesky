@@ -1,7 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import { defineConfig } from 'vite';
-import basicSsl from '@vitejs/plugin-basic-ssl';
+import { sentrySvelteKit } from '@sentry/sveltekit';
 
 export default defineConfig({
 	define: {
@@ -11,7 +11,13 @@ export default defineConfig({
 	},
 
 	plugins: [
-		// basicSsl(),
+		sentrySvelteKit({
+			sourceMapsUploadOptions: {
+				org: process.env.SENTRY_ORG,
+				project: process.env.SENTRY_PROJECT,
+				authToken: process.env.SENTRY_AUTH_TOKEN,
+			},
+		}),
 		sveltekit(),
 		SvelteKitPWA({
 			srcDir: 'src',

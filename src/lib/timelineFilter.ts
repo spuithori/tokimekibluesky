@@ -118,3 +118,62 @@ export function keywordFilter(keywords, text, indexedAt) {
 
     return isHide;
 }
+
+export function detectHide(moderateData, contentContext: 'contentView' | 'contentList') {
+    if (!moderateData) {
+        return false;
+    }
+
+    try {
+        if (moderateData.ui(contentContext).filter) {
+            return true;
+        }
+    } catch (e) {
+        return false;
+    }
+
+    return false;
+}
+
+export function detectWarn(moderateData, contentContext: 'contentView' | 'contentList') {
+    if (!moderateData) {
+        return null;
+    }
+
+    let blurs: 'content' | 'media' | undefined = undefined;
+    let warnLabels = [];
+    let warnBehavior: 'cover' | 'inform' = 'cover';
+
+    try {
+        if (moderateData.ui(contentContext).blur) {
+            warnLabels = [...moderateData.ui(contentContext).blurs, ...moderateData.ui('contentMedia').blurs];
+            blurs = 'content';
+        }
+
+        if (moderateData.ui('contentMedia').blur) {
+            warnLabels = moderateData.ui('contentMedia').blurs;
+            blurs = 'media';
+        }
+
+        if (moderateData.ui(contentContext).inform) {
+            warnLabels = moderateData.ui(contentContext).informs;
+            warnBehavior = 'inform';
+
+            if (!moderateData.muted && warnLabels.length) {
+                blurs = 'content';
+            }
+        }
+
+        if (blurs) {
+            return {
+                for: blurs,
+                labels: warnLabels,
+                behavior: warnBehavior,
+            };
+        }
+    } catch (e) {
+        return null;
+    }
+
+    return null;
+}

@@ -1,50 +1,24 @@
 <script lang="ts">
-  import {formattedKeywordMutes, settings} from "$lib/stores";
+  import {agent, formattedKeywordMutes, labelDefs, labelerSettings, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import {AppBskyEmbedImages, AppBskyFeedPost} from "@atproto/api";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
-  import {keywordFilter} from "$lib/timelineFilter";
+  import {contentLabelling, detectWarn, keywordFilter} from "$lib/timelineFilter";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
 
   export let record;
-  export let moderateData = undefined;
+  export let _agent = $agent;
+  let moderateData = contentLabelling(record, _agent.did(), $settings, $labelDefs, $labelerSettings);
 
-  let warnReason = '';
-  let isWarn = detectWarn(moderateData);
+  let isWarn = detectWarn(moderateData, 'contentView');
 
   let isMuteDisplay = false;
   let isMuted = record.author.viewer.muted;
 
   if (keywordFilter($formattedKeywordMutes, record.value.text, record.indexedAt)) {
       isMuted = true;
-  }
-
-  function detectWarn(moderateData) {
-      if (!moderateData) {
-          return false;
-      }
-
-      try {
-          if (moderateData.content.filter) {
-              return false;
-          }
-
-          if (moderateData.embed?.blur) {
-              try {
-                  warnReason = moderateData.embed?.cause.label.val || '';
-              } catch (e) {
-                  console.log(moderateData);
-              }
-
-              return true;
-          }
-      } catch (e) {
-          return false;
-      }
-
-      return false;
   }
 </script>
 
@@ -56,10 +30,6 @@
     </div>
   {/if}
 
-  {#if isWarn}
-    <!-- <TimelineWarn reason={warnReason} on:visible={() => {isWarn = false}}></TimelineWarn> -->
-  {/if}
-
   {#if $settings?.design.postsLayout !== 'minimum'}
     <Avatar href="/profile/{ record.author.handle }"
             avatar={ record.author.avatar }
@@ -67,6 +37,10 @@
   {/if}
 
   <div class="timeline-external__content">
+    {#if isWarn && isWarn?.for === 'content'}
+      <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
+    {/if}
+
     <div class="timeline__meta">
       <p class="timeline__user"
          title="{record.author.handle}">{ record.author.displayName || record.author.handle }</p>
@@ -89,6 +63,10 @@
 
     {#if (AppBskyEmbedImages.isView(record.embeds[0]))}
       <div class="timeline-images-wrap timeline-images-wrap--record">
+        {#if isWarn && isWarn?.for === 'media'}
+          <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
+        {/if}
+
         <Images images={record.embeds[0].images} blobs={record?.value?.embed.images} did={record.author.did}></Images>
       </div>
     {/if}

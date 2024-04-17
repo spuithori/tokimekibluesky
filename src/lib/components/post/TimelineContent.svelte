@@ -51,7 +51,6 @@
 
       try {
           if (moderateData.ui(contentContext).filter) {
-              const filterLabels = moderateData.ui(contentContext).filters;
               return true;
           }
       } catch (e) {
@@ -194,7 +193,7 @@
     {/if}
 
     {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyEmbedRecord.isViewRecord(post.embed.record)) }
-      <EmbedRecord record={post.embed.record} {moderateData}></EmbedRecord>
+      <EmbedRecord record={post.embed.record} {_agent}></EmbedRecord>
     {/if}
 
     {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyFeedDefs.isGeneratorView(post.embed.record)) }
@@ -217,7 +216,7 @@
       {/if}
 
       {#if AppBskyEmbedRecord.isViewRecord(post.embed.record.record)}
-        <EmbedRecord record={post.embed.record.record} {moderateData}></EmbedRecord>
+        <EmbedRecord record={post.embed.record.record} {_agent}></EmbedRecord>
       {/if}
 
       {#if (AppBskyFeedDefs.isGeneratorView(post.embed.record.record)) }
