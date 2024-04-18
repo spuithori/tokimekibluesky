@@ -20,13 +20,14 @@ const config = {
     adapter: adapter(),
     files: {
       serviceWorker: 'src/sw.ts',
+    },
+    serviceWorker: {
+      register: false,
     }
   },
 
   plugins: {
-    serviceWorker: {
-      register: false,
-    },
+    
   },
 };
 
