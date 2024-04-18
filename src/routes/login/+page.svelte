@@ -45,6 +45,7 @@
 
 <svelte:head>
   <title>TOKIMEKI - Bluesky client project</title>
+  <link rel="canonical" href="https://tokimeki.blue">
   <meta name="description" content="TOKIMEKI is a Bluesky browser client with multi-column and multi-account support.">
   <meta property="og:site_name" content="TOKIMEKI">
   <meta property="og:title" content="TOKIMEKI - Bluesky client project">

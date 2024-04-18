@@ -352,6 +352,7 @@
 <svelte:window on:scroll={handleScroll} bind:scrollY={scrolly}></svelte:window>
 <svelte:head>
   <meta name="theme-color" content={baseColor}>
+  <link rel="canonical" href="https://tokimeki.blue{$page.url.pathname}">
 </svelte:head>
 
 <GoogleAnalytics></GoogleAnalytics>
