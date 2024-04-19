@@ -323,3 +323,7 @@ html {
         cursor: pointer;
     }
 }
+
+:where([data-sonner-toast]) {
+    padding: 16px !important;
+}
