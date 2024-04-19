@@ -810,7 +810,9 @@ function applyDeleteThread(index) {
 
     .vk-publish-group {
         .publish-wrap {
-            padding-bottom: 46px;
+            @media (max-width: 767px) {
+                padding-bottom: 46px;
+            }
         }
     }
 </style>
