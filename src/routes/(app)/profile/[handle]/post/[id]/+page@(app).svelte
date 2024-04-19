@@ -7,6 +7,7 @@
     import spinner from '$lib/images/loading.svg';
     import {isDid} from "$lib/util";
     import PageModal from "$lib/components/ui/PageModal.svelte";
+    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
@@ -89,9 +90,7 @@
     {/if}
 
     {#await feeds}
-      <div class="thread-loading">
-        <img src={spinner} alt="">
-      </div>
+      <LoadingSpinner size="50px"></LoadingSpinner>
     {:then feeds}
       <Thread feeds={feeds} depth={0}></Thread>
     {:catch error}
@@ -107,14 +106,5 @@
 <style lang="postcss">
     .thread-wrap {
         position: relative;
-    }
-
-    .thread-loading {
-        text-align: center;
-
-        img {
-            width: 50px;
-            height: 50px;
-        }
     }
 </style>

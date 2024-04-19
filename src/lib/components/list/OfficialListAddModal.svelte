@@ -2,7 +2,7 @@
     import {agent} from '$lib/stores';
     import {onMount} from "svelte";
     import {createEventDispatcher} from 'svelte';
-    import toast from "svelte-french-toast";
+    import { toast } from "svelte-sonner";
     import {_} from "svelte-i18n";
     import spinner from "$lib/images/loading.svg";
     import OfficialListAddItem from "$lib/components/list/OfficialListAddItem.svelte";

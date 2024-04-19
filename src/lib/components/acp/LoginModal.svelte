@@ -3,7 +3,7 @@ import {_} from "svelte-i18n";
 import { AtpAgent, AtpSessionData } from "@atproto/api";
 import { accountsDb } from "$lib/db";
 import { createEventDispatcher } from "svelte";
-import toast from "svelte-french-toast";
+import { toast } from "svelte-sonner";
 const dispatch = createEventDispatcher();
 
 export let existingId = undefined;

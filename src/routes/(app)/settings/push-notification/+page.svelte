@@ -2,7 +2,7 @@
     import {_, locale} from 'svelte-i18n';
     import { onMount } from 'svelte';
     import { sub, unsub, isSubscribe } from '$lib/pushSubscription';
-    import toast from 'svelte-french-toast'
+    import { toast } from 'svelte-sonner'
     import {liveQuery} from "dexie";
     import {accountsDb} from "$lib/db";
     import PushNotificationAccountItem from "./PushNotificationAccountItem.svelte";

@@ -60,7 +60,7 @@
     "browser-image-compression": "^2.0.2",
     "cbor-x": "^1.5.4",
     "date-fns": "^2.29.3",
-    "dexie": "^4.0.1-beta.10",
+    "dexie": "^4.0.4",
     "dexie-export-import": "^4.1.1",
     "emoji-mart": "^5.5.2",
     "intl-segmenter-polyfill": "^0.4.4",
@@ -70,11 +70,11 @@
     "photoswipe-dynamic-caption-plugin": "^1.2.7",
     "postcss-nested": "6.0.1",
     "postcss-preset-env": "*",
-    "svelte-dnd-action": "^0.9.31",
-    "svelte-french-toast": "^1.2.0",
+    "svelte-dnd-action": "^0.9.43",
     "svelte-i18n": "^4.0.0",
     "svelte-infinite-loading": "git+https://github.com/spuithori/svelte-infinite-loading.git#v1.3.8-f2",
     "svelte-portal": "^2.2.1",
+    "svelte-sonner": "^0.3.22",
     "sveltekit-embed": "^0.0.12"
   }
 }

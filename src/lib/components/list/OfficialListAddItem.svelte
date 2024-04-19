@@ -1,8 +1,7 @@
 <script lang="ts">
   import spinner from "$lib/images/loading.svg";
   import {agent} from "$lib/stores";
-  import toast from "svelte-french-toast";
-  import {_} from "svelte-i18n";
+  import { toast } from "svelte-sonner";
 
   export let _agent = $agent;
   export let list;

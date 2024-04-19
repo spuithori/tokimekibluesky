@@ -18,7 +18,7 @@
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
   import TimelineText from "$lib/components/post/TimelineText.svelte";
-  import toast from "svelte-french-toast";
+  import { toast } from "svelte-sonner";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
 
   export let post;

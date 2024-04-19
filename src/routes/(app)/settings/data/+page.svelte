@@ -4,7 +4,7 @@
     import Dexie from "dexie";
     import {importDB, exportDB, importInto} from "dexie-export-import";
     import { format } from "date-fns";
-    import toast from "svelte-french-toast";
+    import { toast } from "svelte-sonner";
     import {postMutes} from "$lib/stores";
 
     let bookmarkExportButtonDisabled = false;

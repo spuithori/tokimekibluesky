@@ -6,7 +6,7 @@ import {getTextArray, isUriLocal} from '$lib/richtext';
 import {page} from '$app/stores';
 import {format, parseISO} from 'date-fns';
 import ProfileCardWrapper from '../../ProfileCardWrapper.svelte';
-import toast from 'svelte-french-toast';
+import { toast } from 'svelte-sonner';
 import {BskyAgent, RichText} from '@atproto/api';
 import addSingleList from "$lib/components/list/addSingleList";
 import { Eye, EyeOff } from 'lucide-svelte';

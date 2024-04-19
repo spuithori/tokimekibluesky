@@ -11,7 +11,7 @@
     import InfiniteLoading from "svelte-infinite-loading";
     import {_} from "svelte-i18n";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-    import toast from "svelte-french-toast";
+    import { toast } from "svelte-sonner";
     import { PUBLIC_SUICIDE_WORDS } from '$env/static/public';
     import SuicideSafety from "$lib/components/safety/SuicideSafety.svelte";
 

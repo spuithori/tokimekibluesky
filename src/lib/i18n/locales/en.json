@@ -626,5 +626,8 @@
   "labels": "Labels",
   "import_labeler": "Official App Labeler settings",
   "self_labeling_note": "Self-labeling is only valid for posts with media.",
-  "giphy_picker_placeholder": "Search GIFs in GIPHY"
+  "giphy_picker_placeholder": "Search GIFs in GIPHY",
+  "process_to_post": "Publishing...",
+  "post_add_thread": "Add thread",
+  "reply_disable_when_threaded": "Cannot reply while posting thread."
 }

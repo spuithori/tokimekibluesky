@@ -5,6 +5,7 @@
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
     import LabelerItem from "$lib/components/labeler/LabelerItem.svelte";
     import spinner from "$lib/images/loading.svg";
+    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     const dispatch = createEventDispatcher();
     let labelers = [];
     let _agent = $agent;
@@ -46,7 +47,7 @@
   {/each}
 {:else}
   <div class="thread-loading">
-    <img src={spinner} alt="">
+    <LoadingSpinner></LoadingSpinner>
   </div>
 {/if}
 

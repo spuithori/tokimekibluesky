@@ -3,7 +3,7 @@
   import {_} from "svelte-i18n";
   import { liveQuery } from 'dexie';
   import { agent } from '$lib/stores';
-  import toast from "svelte-french-toast";
+  import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
 
   export let _agent = $agent;

@@ -4,7 +4,7 @@
   import {settings} from "$lib/stores";
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
-  import toast from "svelte-french-toast";
+  import { toast } from "svelte-sonner";
 
   export let theme;
   export let isBuiltIn = false;

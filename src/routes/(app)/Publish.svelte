@@ -1,57 +1,39 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
 import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings, threadGate} from '$lib/stores';
-import {selfLabels, isPublishFormExpand} from "$lib/components/editor/publishStore";
-import { fly } from 'svelte/transition';
+import {selfLabels} from "$lib/components/editor/publishStore";
 import { clickOutside } from '$lib/clickOutSide';
-import { formatDistanceToNow, parseISO } from 'date-fns';
 import {
     RichText,
     AppBskyEmbedImages,
     AppBskyEmbedRecord,
     AppBskyEmbedRecordWithMedia,
-    AppBskyEmbedExternal
+    AppBskyEmbedExternal, AppBskyFeedPost
 } from '@atproto/api';
-import toast from 'svelte-french-toast'
+import { toast } from 'svelte-sonner'
 import { goto } from '$app/navigation';
 import { db } from '$lib/db';
 import DraftModal from "$lib/components/draft/DraftModal.svelte";
-import AltModal from "$lib/components/alt/AltModal.svelte";
-import spinner from '$lib/images/loading.svg';
-import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
-import {getAccountIdByDid, isFeedByUri} from "$lib/util";
+import {getAccountIdByDid} from "$lib/util";
 import type { Draft } from '$lib/db';
-import Tiptap from "$lib/components/editor/Tiptap.svelte";
 import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
 import imageCompression from 'browser-image-compression';
-import {X} from "lucide-svelte";
-import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
-import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
-import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
-import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
+import PublishPool from "$lib/components/editor/PublishPool.svelte";
+import PublishMain from "$lib/components/editor/PublishMain.svelte";
 
 let _agent = $agent;
-let publishContent = '';
-let publishContentJson;
 let editor;
-let isTextareaEnabled = false;
-let isPublishEnabled = false;
-let isAccountSelectDisabled = false;
 let isFocus = false;
-let publishArea: HTMLTextAreaElement;
-let timer: ReturnType<typeof setTimeout> | undefined;
-let links: string[] = [];
-let externalImageBlob: string = '';
 let isContinueMode = false;
-let isPublishUploadClose = false;
 let isDraftModalOpen = false;
-let isAltModalOpen = false;
-let isLinkCardAdding = false;
 let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
-let imageUploadEl;
-let isDragover = 0;
 let isVirtualKeyboard = false;
+let isEnabled = true;
+let isPublishing = false;
+let unique = Symbol();
+let postsPool = [{}];
+let currentPost = 0;
+let getCurrentThreadData;
 
 const isMobile = navigator?.userAgentData?.mobile || false;
 
@@ -60,65 +42,14 @@ if ('virtualKeyboard' in navigator) {
     isVirtualKeyboard = true;
 }
 
-type BeforeUploadImage = {
-    image: Blob | File,
-    alt: string,
-    id: string,
-}
-let images = [];
-
-let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
-let embedImages: AppBskyEmbedImages.Main = {
-    $type: 'app.bsky.embed.images',
-    images: [],
-};
-let embedRecord: AppBskyEmbedRecord.Main;
-let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
-let embedExternal: AppBskyEmbedExternal.Main | undefined;
-let lang: string[] = [];
-
 if (!$settings.langSelector) {
     $settings.langSelector = 'auto';
 }
-
-$: publishContentLength = new RichText({text: publishContent}).graphemeLength;
-$: onPublishContentChange(publishContent);
-$: isPublishEnabled = publishContentLength > 300;
 
 $: if (isFocus) {
   document.documentElement.classList.add('scroll-lock');
 } else {
   document.documentElement.classList.remove('scroll-lock');
-}
-
-function onPublishContentChange(text) {
-    clearTimeout(timer);
-    timer = setTimeout(async () => {
-        detectRichText(text)
-            .then(result => {
-                links = [];
-
-                if (result.facets) {
-                    result.facets.forEach(facet => {
-                        if (facet.features && facet.features[0]['$type'] === 'app.bsky.richtext.facet#link' && !links.includes(facet.features[0].uri)) {
-                            links.push(facet.features[0].uri);
-                            links = links;
-                        }
-                    })
-                }
-            });
-    }, 200);
-}
-
-async function detectRichText(text: string) {
-    const rt = new RichText({text: text});
-    await rt.detectFacets(_agent.agent);
-
-    return rt;
-}
-
-function uploadContextOpen() {
-    imageUploadEl.open();
 }
 
 function handleOpen() {
@@ -152,10 +83,6 @@ function handlePopstate(e: PopStateEvent) {
     }
 }
 
-function onFileAdded(_file: unknown) {
-    isPublishEnabled = true;
-}
-
 function handleKeydown(event: { key: string; }) {
     const activeElement = document.activeElement?.tagName;
 
@@ -172,91 +99,20 @@ function handleKeydown(event: { key: string; }) {
     }
 }
 
-async function getReplyRefByUri() {
-    if (!$replyRef) {
+async function getReplyRefByUri(uri: string) {
+    if (!uri) {
         return false;
     }
 
-    const res = await _agent.getFeed($replyRef.data);
+    const res = await _agent.getFeed(uri);
     let root = res.parent;
     while (root.parent) {
         root = root.parent;
     }
 
-    $replyRef.data = {
+    return {
         parent: res.post,
         root: root.post,
-    }
-}
-
-async function addLinkCard(uri: string) {
-    isLinkCardAdding = true;
-
-    try {
-        const lang = $settings.general?.userLanguage ? $settings.general?.userLanguage : 'en-US';
-        const res = await fetch('https://tokimeki-api.vercel.app/api/ogp?url=' + encodeURIComponent(uri) + '&lang=' + lang);
-        const data = await res.json();
-
-        embedExternal = {
-            $type: 'app.bsky.embed.external',
-            external: {
-                uri: uri,
-                title: data.title || '',
-                description: data.description || '',
-            }
-        }
-
-        if (data.imageBase64) {
-            externalImageBlob = data.imageBase64;
-        } else {
-            externalImageBlob = '';
-        }
-
-        isLinkCardAdding = false;
-    } catch (e) {
-        toast.error('Error!' + e);
-        isLinkCardAdding = false;
-    }
-}
-
-async function addGifLinkCard(gif) {
-    if (!gif) {
-        return false;
-    }
-
-    try {
-        isLinkCardAdding = true;
-
-        const res = await fetch(gif.images.downsized.url);
-        const blob = await res.blob();
-        externalImageBlob = await imageCompression.getDataUrlFromFile(blob);
-
-        embedExternal = {
-            $type: 'app.bsky.embed.external',
-            external: {
-                uri: gif.url,
-                title: gif.title || '',
-                description: 'Discover & share this Animated GIF with everyone you know. GIPHY is how you search, share, discover, and create GIFs.',
-            }
-        }
-
-        isLinkCardAdding = false;
-    } catch (e) {
-        console.error(e);
-        toast.error('Error!');
-        isLinkCardAdding = false;
-    }
-}
-
-$: {
-    if (!isFocus) {
-        embedImages.images = [];
-    }
-
-    if ($replyRef) {
-        if (typeof $replyRef.data === 'string') {
-            getReplyRefByUri();
-        }
     }
 }
 
@@ -266,13 +122,6 @@ $: replyRefObserve($replyRef);
 function quotePostObserve(quotePost) {
     if (quotePost?.uri) {
         handleOpen();
-        embedRecord = {
-            $type: 'app.bsky.embed.record',
-            record: {
-                cid: quotePost.cid,
-                uri: quotePost.uri,
-            },
-        }
     }
 }
 
@@ -285,40 +134,6 @@ function replyRefObserve(replyRef) {
     }
 }
 
-async function handlePaste(e) {
-    const itemsList = e.clipboardData.items;
-    await uploadImageFromFileList(itemsList);
-}
-
-async function handleDrop(e) {
-    isDragover = 0;
-    const itemsList = e.dataTransfer.items;
-    await uploadImageFromFileList(itemsList);
-}
-
-async function uploadImageFromFileList(itemsList: FileList) {
-    isPublishEnabled = true;
-    const items = Array.from(itemsList).slice(0, 4);
-    let promises = [];
-
-    for (const item of items) {
-        if (acceptedImageType.includes(item.type)) {
-            promises = [...promises, imageUploadEl.applyImageFromFile(item.getAsFile())]
-        }
-    }
-
-    await Promise.all(promises);
-    isPublishEnabled = false;
-}
-
-function handleDragover(e) {
-  isDragover = isDragover + 1;
-}
-
-function handleDragleave(e) {
-  isDragover = isDragover - 1;
-}
-
 function handleOutClick() {
     if (!isContinueMode) {
         onClose();
@@ -327,14 +142,12 @@ function handleOutClick() {
 
 async function saveDraft() {
     try {
+        postsPool[currentPost] = getCurrentThreadData();
+
         const id = await db.drafts.add({
             createdAt: Date.now(),
-            text: publishContent,
-            json: publishContentJson,
-            quotePost: $quotePost || undefined,
-            replyRef: $replyRef || undefined,
-            images: images,
             owner: _agent.did() as string,
+            ...postsPool[currentPost],
         });
 
         if (!isContinueMode) {
@@ -343,11 +156,8 @@ async function saveDraft() {
         editor.clear();
         quotePost.set(undefined);
         replyRef.set(undefined);
-        embed = undefined;
-        images = [];
-        links = [];
-        embedImages.images = [];
-        embedExternal = undefined;
+        postsPool = [{}];
+        unique = Symbol();
         $isPublishInstantFloat = false;
 
         toast.success($_('draft_add_success'));
@@ -361,53 +171,19 @@ async function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
     editor.clear();
     quotePost.set(undefined);
     replyRef.set(undefined);
-    images = [];
-    links = [];
 
     const draft = event.detail.draft;
-    editor.setContent(draft.json || draft.text);
-    handleOpen();
+    postsPool = [{
+        ...draft,
+    }];
+    unique = Symbol();
 
-    if (draft.images.length) {
-        isPublishUploadClose = false;
-        let promises = [];
-
-        for (const image of draft.images) {
-          if (image.file) {
-            promises = [...promises, imageUploadEl.applyImageFromFile(image.file, image.alt)];
-          }
-
-          if (image.image) {
-            promises = [...promises, imageUploadEl.applyImageFromFile(image.image)];
-          }
-        }
-
-        await Promise.all(promises);
-    }
-
-    if (draft.quotePost) {
-        quotePost.set(draft.quotePost);
-    }
-
-    if (draft.replyRef) {
-        if (draft.replyRef.did) {
-            replyRef.set(draft.replyRef);
-        } else {
-            replyRef.set({
-                did: _agent.did(),
-                data: draft.replyRef,
-            })
-        }
-    }
+    setTimeout(() => {
+        editor.focus();
+    }, 100);
 }
 
-function handleAltClose(event: CustomEvent<{ images: BeforeUploadImage[] }>) {
-    images = event.detail.images;
-    isAltModalOpen = false;
-    editor.focus();
-}
-
-async function languageDetect(text = publishContent) {
+async function languageDetect(text) {
     try {
         const res = await fetch(`/api/language-detect`, {
             method: 'post',
@@ -418,13 +194,13 @@ async function languageDetect(text = publishContent) {
         const langs = await res.json() as { lang: string; }[];
 
         if (langs.length) {
-            lang = langs.map(lg => lg.lang);
+            return langs.map(lg => lg.lang);
         } else {
-            lang = [];
+            return [];
         }
     } catch (e) {
         console.error(e);
-        lang = [];
+        return [];
     }
 }
 
@@ -442,10 +218,10 @@ async function uploadBlobWithCompression(image) {
   });
 }
 
-async function uploadExternalImage() {
-    if (externalImageBlob) {
+async function uploadExternalImage(_blob) {
+    if (_blob) {
         try {
-            const imageRes = await fetch(externalImageBlob);
+            const imageRes = await fetch(_blob);
             let blob = await imageRes.blob();
 
             if (blob.type === 'image/gif') {
@@ -461,174 +237,71 @@ async function uploadExternalImage() {
             const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
                 encoding: 'image/jpeg',
             });
-            embedExternal.external.thumb = res.data.blob;
+            return res.data.blob;
         } catch (e) {
             toast.error(e);
         }
     }
 }
 
-async function publish() {
-    if (isPublishEnabled) {
+async function publishAll() {
+    if (isEnabled) {
         return false;
     }
 
-    isTextareaEnabled = true;
-    isPublishEnabled = true;
+    isPublishing = true;
+    postsPool[currentPost] = getCurrentThreadData();
+    const toastId = toast.loading($_('process_to_post'));
 
-    if (!publishContent && !images.length) {
-        isTextareaEnabled = false;
-        isPublishEnabled = false;
-        return false;
-    }
-
-    if (images.length) {
-        const filePromises = images.map(image => {
-            return uploadBlobWithCompression(image);
-        });
-
-        const promise = Promise.all(filePromises)
-            .then(results => results.forEach((result, index) => {
-                embedImages.images.push({
-                    image: result.data.blob,
-                    alt: images[index].alt || '',
-                    aspectRatio: {
-                        width: images[index].width || undefined,
-                        height: images[index].height || undefined,
-                    }
-                });
-            }))
-            .catch(error => {
-                isTextareaEnabled = false;
-                isPublishEnabled = false;
-                embedImages.images = [];
-                throw new Error(error);
-            })
-
-        await toast.promise(promise, {
-            loading: $_('images_uploading'),
-            success: $_('images_upload_success'),
-            error: $_('images_upload_failed')
-        })
-    }
-
-    if (embedImages.images.length && $quotePost?.uri) {
-        embedRecordWithMedia = {
-            $type: 'app.bsky.embed.recordWithMedia',
-            media: embedImages,
-            record: embedRecord,
-        }
-
-        embed = embedRecordWithMedia;
-    } else if (embedExternal && $quotePost?.uri) {
-        await uploadExternalImage();
-        embedRecordWithMedia = {
-            $type: 'app.bsky.embed.recordWithMedia',
-            media: embedExternal,
-            record: embedRecord,
-        }
-
-        embed = embedRecordWithMedia;
-    } else {
-        if (embedImages.images.length) {
-            embed = embedImages;
-        }
-
-        if ($quotePost?.uri) {
-            embed = embedRecord;
-        }
-
-        if (embedExternal && !embedImages.images.length && !$quotePost?.uri) {
-            await uploadExternalImage();
-            embed = embedExternal;
-        }
-    }
-
-    let rt: RichText | undefined;
-
-    if (publishContent) {
-        rt = await detectRichTextWithEditorJson(_agent, publishContent, publishContentJson);
-    }
-
-    if (!$settings.langSelector || $settings.langSelector === 'auto') {
-        await languageDetect(publishContent);
-    } else {
-        lang = [ $settings.langSelector ];
-    }
-
-    const shortReplyRef = $replyRef ? {
-        root: {
-            cid: $replyRef.data.root.cid,
-            uri: $replyRef.data.root.uri,
-        },
-        parent: {
-            cid: $replyRef.data.parent.cid,
-            uri: $replyRef.data.parent.uri,
-        }
-    } : undefined;
+    let i = 1;
+    let root;
+    let parent;
+    let _replyRef;
 
     try {
-        const post = await _agent.agent.api.app.bsky.feed.post.create(
-            { repo: _agent.did() as string },
-            {
-                embed: embed,
-                facets: rt ? rt.facets : undefined,
-                text: rt ? rt.text : '',
-                createdAt: new Date().toISOString(),
-                reply: shortReplyRef,
-                via: 'TOKIMEKI',
-                langs: lang.length ? lang : undefined,
-                labels: $selfLabels.length ? {
-                    $type: 'com.atproto.label.defs#selfLabels',
-                    values: $selfLabels || [],
-                } : undefined,
-            },
-        );
+        for (const post of postsPool) {
+            toast.loading($_('process_to_post') + '(' + i + '/' + postsPool.length +  ')', {
+                id: toastId,
+                duration: 100000,
+            })
+            parent = await publish(post, _replyRef);
 
-        if ($threadGate !== 'everybody' && !$replyRef) {
-            let allow = [];
-
-            if (Array.isArray($threadGate)) {
-                allow = $threadGate.map(item => {
-                    if (item === 'mention') {
-                        return {
-                            $type: 'app.bsky.feed.threadgate#mentionRule',
-                        }
-                    } else if(item === 'following') {
-                        return {
-                            $type: 'app.bsky.feed.threadgate#followingRule',
-                        }
-                    } else {
-                        return {
-                            $type: 'app.bsky.feed.threadgate#listRule',
-                            list: item,
-                        }
-                    }
-                })
+            if (postsPool.length > 1 && i === 1) {
+                root = structuredClone(parent);
             }
 
-            await _agent.agent.api.app.bsky.feed.threadgate.create(
-                {
-                    repo: _agent.did() as string,
-                    rkey: post.uri.split('/').slice(-1)[0],
-                },
-                {
-                    createdAt: new Date().toISOString(),
-                    post: post.uri,
-                    allow: allow,
-                },
-            );
+            _replyRef = {
+                root: root,
+                parent: parent,
+            }
+
+            i = i + 1;
         }
 
-        toast.success($_('success_to_post'));
-    } catch (error) {
-        console.error((error as Error).message);
-        toast.error($_('failed_to_post') + ':' + (error as Error).message);
-        isTextareaEnabled = false;
-        isPublishEnabled = false;
-        throw error;
-    }
+        await afterPublish();
 
+        isPublishing = false;
+        toast.success($_('success_to_post'), {
+            id: toastId,
+            duration: 1500,
+        });
+    } catch (e) {
+        isPublishing = false;
+        isEnabled = false;
+
+        console.error(e);
+        toast.error('Error: ' + e, {
+            id: toastId,
+            duration: 5000,
+        });
+
+        postsPool.splice(0, i - 1);
+        currentPost = 0;
+        unique = Symbol();
+    }
+}
+
+async function afterPublish(rt = undefined) {
     if (rt && Array.isArray(rt.facets)) {
         try {
             const dids: string[] = rt.facets.map(facet => {
@@ -663,22 +336,19 @@ async function publish() {
         }
     }
 
-    isTextareaEnabled = false;
-    isPublishEnabled = false;
+    isEnabled = false;
     if (!isContinueMode) {
         onClose();
     }
     editor.clear();
     quotePost.set(undefined);
     replyRef.set(undefined);
-    embed = undefined;
-    images = [];
-    links = [];
-    embedImages.images = [];
-    embedExternal = undefined;
-    externalImageBlob = '';
     selfLabels.set([]);
-    $isPublishInstantFloat = false
+    threadGate.set('everybody');
+    $isPublishInstantFloat = false;
+    postsPool = [{}];
+    currentPost = 0;
+    unique = Symbol();
 
     if (isContinueMode) {
         setTimeout(() => {
@@ -687,19 +357,212 @@ async function publish() {
     }
 }
 
-function handleAgentSelect(event) {
-    _agent = event.detail.agent;
+async function publish(post, treeReplyRef = undefined) {
+    isEnabled = true;
 
-    if ($threadGate !== 'everybody') {
-        $threadGate = 'everybody';
-        toast.success($_('thread_gate_reset_when_change_account'));
+    type BeforeUploadImage = {
+        image: Blob | File,
+        alt: string,
+        id: string,
+    }
+
+    let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
+    let embedImages: AppBskyEmbedImages.Main = {
+        $type: 'app.bsky.embed.images',
+        images: [],
+    };
+    let embedRecord: AppBskyEmbedRecord.Main;
+    let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
+    let embedExternal: AppBskyEmbedExternal.Main | undefined = post.embedExternal || undefined;
+    let lang: string[] = [];
+    let selfLabels = [];
+
+    const images = post.images;
+
+    if (!post.text && !images.length) {
+        isEnabled = false;
+        return false;
+    }
+
+    lang = post.lang === 'auto' ? await languageDetect(post.text) : [post.lang];
+    selfLabels = post.selfLabels ? post.selfLabels : [];
+
+    if (images.length) {
+        const filePromises = images.map(image => {
+            return uploadBlobWithCompression(image);
+        });
+
+        await Promise.all(filePromises)
+            .then(results => results.forEach((result, index) => {
+                embedImages.images.push({
+                    image: result.data.blob,
+                    alt: images[index].alt || '',
+                    aspectRatio: {
+                        width: images[index].width || undefined,
+                        height: images[index].height || undefined,
+                    }
+                });
+            }))
+            .catch(error => {
+                isEnabled = false;
+                embedImages.images = [];
+                throw new Error(error);
+            });
+    }
+
+    if (post?.quotePost?.uri) {
+        embedRecord = {
+            $type: 'app.bsky.embed.record',
+            record: {
+                cid: post.quotePost.cid,
+                uri: post.quotePost.uri,
+            },
+        }
+    }
+
+    if (embedImages.images.length && post?.quotePost?.uri) {
+        embedRecordWithMedia = {
+            $type: 'app.bsky.embed.recordWithMedia',
+            media: embedImages,
+            record: embedRecord,
+        }
+
+        embed = embedRecordWithMedia;
+    } else if (embedExternal && post?.quotePost?.uri) {
+        embedExternal.external.thumb = await uploadExternalImage(post?.externalImageBlob);
+        embedRecordWithMedia = {
+            $type: 'app.bsky.embed.recordWithMedia',
+            media: embedExternal,
+            record: embedRecord,
+        }
+
+        embed = embedRecordWithMedia;
+    } else {
+        if (embedImages.images.length) {
+            embed = embedImages;
+        }
+
+        if (post?.quotePost?.uri) {
+            embed = embedRecord;
+        }
+
+        if (embedExternal && !embedImages.images.length && !post?.quotePost?.uri) {
+            embed = embedExternal;
+            embed.external.thumb = await uploadExternalImage(post?.externalImageBlob);
+        }
+    }
+
+    let rt: RichText | undefined;
+
+    if (post.text) {
+        rt = await detectRichTextWithEditorJson(_agent, post.text, post.json);
+    }
+
+    const shortReplyRef = post.replyRef ? {
+        root: {
+            cid: post.replyRef.data.root.cid,
+            uri: post.replyRef.data.root.uri,
+        },
+        parent: {
+            cid: post.replyRef.data.parent.cid,
+            uri: post.replyRef.data.parent.uri,
+        }
+    } : undefined;
+
+    try {
+        const create = await _agent.agent.api.app.bsky.feed.post.create(
+            { repo: _agent.did() as string },
+            {
+                embed: embed,
+                facets: rt ? rt.facets : undefined,
+                text: rt ? rt.text : '',
+                createdAt: new Date().toISOString(),
+                reply: treeReplyRef || shortReplyRef,
+                via: 'TOKIMEKI',
+                langs: lang.length ? lang : undefined,
+                labels: selfLabels.length ? {
+                    $type: 'com.atproto.label.defs#selfLabels',
+                    values: selfLabels || [],
+                } : undefined,
+            },
+        );
+
+        if (post.threadGate !== 'everybody' && !post.replyRef) {
+            let allow = [];
+
+            if (Array.isArray(post.threadGate)) {
+                allow = post.threadGate.map(item => {
+                    if (item === 'mention') {
+                        return {
+                            $type: 'app.bsky.feed.threadgate#mentionRule',
+                        }
+                    } else if(item === 'following') {
+                        return {
+                            $type: 'app.bsky.feed.threadgate#followingRule',
+                        }
+                    } else {
+                        return {
+                            $type: 'app.bsky.feed.threadgate#listRule',
+                            list: item,
+                        }
+                    }
+                })
+            }
+
+            await _agent.agent.api.app.bsky.feed.threadgate.create(
+                {
+                    repo: _agent.did() as string,
+                    rkey: create.uri.split('/').slice(-1)[0],
+                },
+                {
+                    createdAt: new Date().toISOString(),
+                    post: create.uri,
+                    allow: allow,
+                },
+            );
+        }
+
+        // toast.success($_('success_to_post'));
+        return create;
+    } catch (error) {
+        console.error((error as Error).message);
+        toast.error($_('failed_to_post') + ':' + (error as Error).message);
+        isEnabled = false;
+        throw error;
     }
 }
 
+function applyAddThread(e) {
+    postsPool[currentPost] = e.detail.data;
+    postsPool.splice(currentPost + 1, 0, {});
+    currentPost = currentPost + 1;
+    setTimeout(() => {
+        editor.focus();
+    }, 100);
+}
+
+function applyChangeThread(e) {
+    postsPool[currentPost] = getCurrentThreadData();
+    currentPost = e.detail.index;
+}
+
+function applyDeleteThread(index) {
+    postsPool[currentPost] = getCurrentThreadData();
+    postsPool.splice(index, 1);
+
+    if (currentPost !== 0) {
+        currentPost = currentPost - 1;
+    } else {
+        postsPool = postsPool;
+    }
+
+    setTimeout(() => {
+        editor.focus();
+    }, 100);
+}
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:popstate={handlePopstate} />
-<svelte:document on:paste={handlePaste} />
 
 {#if (isFocus)}
   <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} aria-label="投稿ウィンドウを閉じる" on:click={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
@@ -725,15 +588,11 @@ function handleAgentSelect(event) {
 >
   <div class="publish-wrap">
     <div class="publish-buttons">
-      {#if (publishContent)}
-        <button class="publish-draft-button publish-save-draft" on:click={saveDraft} disabled={isPublishEnabled}>{$_('drafts_save')}</button>
+      {#if (!isEnabled)}
+        <button class="publish-draft-button publish-save-draft" on:click={saveDraft} disabled={postsPool.length > 1}>{$_('drafts_save')}</button>
       {:else}
-        <button class="publish-draft-button publish-view-draft" on:click={() => {isDraftModalOpen = true}}>{$_('drafts')}</button>
+        <button class="publish-draft-button publish-view-draft" on:click={() => {isDraftModalOpen = true}} disabled={postsPool.length > 1}>{$_('drafts')}</button>
       {/if}
-
-      <p class="publish-length">
-        <span class="publish-length__current" class:over={publishContentLength > 300}>{publishContentLength}</span> / 300
-      </p>
 
       <div class="publish-form-continue-mode">
         <div class="publish-form-continue-mode-input" class:checked={isContinueMode}>
@@ -742,190 +601,43 @@ function handleAgentSelect(event) {
         </div>
       </div>
 
-      <button class="publish-form__submit" class:publish-form__submit--hide={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} on:click={publish} disabled={isPublishEnabled}>{$_('publish_button_send')}</button>
+      <button class="publish-form__submit" class:publish-form__submit--hide={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} on:click={publishAll} disabled={isEnabled}>{$_('publish_button_send')}</button>
 
       <button class="publish-form-sp-close" on:click={onClose}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
 
-    <div class="publish-form"
-         class:publish-form--expand={$isPublishFormExpand}
-         class:publish-form--dragover={isDragover}
-         class:publish-form--fit={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
-         on:dragover|preventDefault
-         on:drop|preventDefault={handleDrop}
-         on:dragenter|preventDefault={handleDragover}
-         on:dragleave|preventDefault={handleDragleave}
-    >
-      <Tiptap
-              bind:text={publishContent}
-              bind:json={publishContentJson}
-              bind:this={editor}
-              on:publish={() => {publish()}}
-              on:focus={handleOpen}
-              on:upload={uploadContextOpen}
-              on:pickgif={(e) => addGifLinkCard(e.detail.gif)}
-              {_agent}
-              isPublishEnabled={isPublishEnabled}
-      >
-        <svelte:fragment slot="top">
-          {#if ($replyRef && typeof $replyRef !== 'string')}
-            <div class="publish-quote publish-quote--reply">
-              <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
-                <X color="#fff" size="18"></X>
-              </button>
+    {#key unique}
+      {#key currentPost}
+        {#each postsPool as post, index}
 
-              <div class="timeline-external timeline-external--record timeline-external--record-publish">
-                <div class="timeline-external__image timeline-external__image--round">
-                  {#if ($replyRef.data.parent.author.avatar)}
-                    <img src="{$replyRef.data.parent.author.avatar}" alt="">
-                  {/if}
-                </div>
-
-                <div class="timeline-external__content">
-                  <div class="timeline__meta timeline__meta--member">
-                    <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
-
-                    <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
-                  </div>
-
-                  <p class="timeline-external__description">
-                    {$replyRef.data.parent.record.text}
-                  </p>
-                </div>
-
-                <span class="timeline-external__icon">
-
-            </span>
-              </div>
-            </div>
-          {/if}
-        </svelte:fragment>
-
-        <div class="publish-form-agents-selector" slot="avatar">
-          <AvatarAgentsSelector
-                  {_agent}
-                  isDisabled={isAccountSelectDisabled}
-                  on:select={handleAgentSelect}
-                  style={'publish'}
-          ></AvatarAgentsSelector>
-        </div>
-
-        <div class="publish-upload" slot="normal">
-          {#if (images.length)}
-            <button class="publish-alt-text-button" on:click={() => {isAltModalOpen = true}}>
-              <span class="ai-label">AI</span>
-              {$_('add_alt_text')}
-            </button>
-          {/if}
-
-          <ImageUpload
-                  bind:this={imageUploadEl}
-                  bind:images={images}
-                  on:preparestart={() => {isPublishEnabled = true}}
-                  on:prepareend={() => {isPublishEnabled = false}}
-          ></ImageUpload>
-
-          {#if $quotePost?.uri}
-            {#if (isFeedByUri($quotePost.uri))}
-              <div class="quote-feed-wrap">
-                <button class="publish-quote__delete" on:click={() => {$quotePost = undefined}}>
-                  <X color="#fff" size="18"></X>
-                </button>
-
-                <FeedsItem {_agent} feed={$quotePost} layout="publish"></FeedsItem>
-              </div>
-            {:else}
-              <div class="publish-quote">
-                <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}>
-                  <X color="#fff" size="18"></X>
-                </button>
-
-                <div class="timeline-external timeline-external--record timeline-external--record-publish-quote">
-                  <div class="timeline-external__image timeline-external__image--round">
-                    {#if ($quotePost.author.avatar)}
-                      <img src="{$quotePost.author.avatar}" alt="">
-                    {/if}
-                  </div>
-
-                  <div class="timeline-external__content">
-                    <div class="timeline__meta">
-                      <p class="timeline__user" title="{$quotePost.author.handle}">{ $quotePost.author.displayName || $quotePost.author.handle }</p>
-                      <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt))}</p>
-                    </div>
-
-                    <p class="timeline-external__description">
-                      {$quotePost.record.text}
-                    </p>
-                  </div>
-
-                  <span class="timeline-external__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
-              <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
-            </svg>
-            </span>
-                </div>
-              </div>
+          <div class="publish-item-wrap">
+            {#if (index > 0)}
+              <button class="publish-item-delete" on:click={() => {applyDeleteThread(index)}} aria-label="delete"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
             {/if}
-          {/if}
 
-          {#if (embedExternal && !images.length)}
-            <div class="publish-quote publish-quote--external">
-              <button class="publish-quote__delete" on:click={() => {embedExternal = undefined; externalImageBlob = ''}}>
-                <X color="#fff" size="18"></X>
-              </button>
+            {#if (index === currentPost)}
+              <PublishMain
+                      {post}
+                      bind:_agent={_agent}
+                      on:focus={handleOpen}
+                      on:add={applyAddThread}
+                      on:publish={publishAll}
+                      bind:getThread={getCurrentThreadData}
+                      bind:editor={editor}
+                      bind:isEnabled={isEnabled}
+                      length={postsPool.length}
+              ></PublishMain>
+            {:else}
+              <PublishPool {post} {index} bind:_agent={_agent} on:change={applyChangeThread} isEnabled={isPublishing}></PublishPool>
+            {/if}
+          </div>
 
-              <div class="timeline-external timeline-external--record">
-                <div class="timeline-external__image">
-                  {#if (externalImageBlob)}
-                    <img src="{externalImageBlob}" alt="">
-                  {/if}
-                </div>
-
-                <div class="timeline-external__content">
-                  <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
-                  <p class="timeline-external__description">{embedExternal.external.description}</p>
-                  <p class="timeline-external__url">{embedExternal.external.uri}</p>
-                </div>
-              </div>
-            </div>
-          {/if}
-
-          {#if (!embedExternal && links.length && !images.length)}
-            <div class="link-card-registerer">
-              {#each links as link}
-                <button
-                        disabled={isLinkCardAdding}
-                        class="link-card-registerer-button"
-                        on:click={() => {addLinkCard(link)}}
-                >
-                  {#if (isLinkCardAdding)}
-                    <img class="loading-spinner" src={spinner} alt="">
-                  {/if}
-                  {$_('link_card_embed')}: {link}
-                </button>
-              {/each}
-            </div>
-          {/if}
-
-          {#if ($threadGate !== 'everybody' && !$replyRef)}
-            <ThreadGateLabel></ThreadGateLabel>
-          {/if}
-        </div>
-      </Tiptap>
-
-      {#if ($selfLabels.length)}
-        <div class="self-labeling-note">
-          <p class="self-labeling-note__text">{$_('self_labeling_note')}</p>
-        </div>
-      {/if}
-    </div>
+        {/each}
+      {/key}
+    {/key}
   </div>
-
-  {#if (isAltModalOpen)}
-    <AltModal images={images} on:close={handleAltClose}></AltModal>
-  {/if}
 
   {#if (isDraftModalOpen)}
     <DraftModal {_agent} on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
@@ -933,93 +645,6 @@ function handleAgentSelect(event) {
 </section>
 
 <style lang="postcss">
-    .publish-group {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        z-index: 2000;
-
-        @media (max-width: 767px) {
-            overflow: auto;
-            overscroll-behavior: none;
-            z-index: 2000;
-        }
-
-        &--expanded {
-            .publish-wrap {
-                display: block;
-            }
-
-            @media (max-width: 767px) {
-                top: 0;
-
-                .publish-wrap {
-                   display: flex;
-                }
-            }
-        }
-
-        &--left {
-            @media (min-width: 768px) {
-                top: 0;
-                right: auto;
-                z-index: 100;
-                position: static;
-                height: 100%;
-
-                .publish-wrap {
-                    display: flex;
-                    flex-direction: column;
-                    width: auto;
-                    border-top: none;
-                    padding: 16px;
-                    background-color: transparent;
-                }
-
-                .publish-form {
-                    &--expand {
-                        flex: 1;
-                        display: flex;
-                        flex-direction: column;
-                    }
-                }
-
-                .publish-form-continue-mode {
-                    display: none;
-                }
-
-                .publish-alt-text-button {
-                    position: static;
-                    width: 100%;
-                }
-            }
-        }
-    }
-
-    .publish-wrap {
-        background-color: var(--publish-bg-color);
-        border-top: 1px solid var(--border-color-1);
-        padding: 16px 0 0;
-        display: none;
-
-        @media (max-width: 767px) {
-            display: none;
-            flex-direction: column;
-            padding: 0;
-            background-color: var(--bg-color-1);
-            border: none;
-            border-radius: 0;
-            min-height: 100%;
-        }
-    }
-
-    .publish-wrap-container {
-        max-width: 740px;
-        width: 100%;
-        margin: 0 auto;
-    }
-
     .publish-sp-open {
         display: flex;
         position: fixed;
@@ -1065,84 +690,11 @@ function handleAgentSelect(event) {
         }
     }
 
-    .publish-upload {
-        padding: 0 8px;
-        background-color: var(--publish-textarea-bg-color);
-    }
-
-    .publish-quote {
-        position: relative;
-
-        &--reply {
-          margin: 12px 12px 0;
-
-          .publish-quote__delete {
-            top: 0;
-            right: 0;
-          }
-        }
-
-        .timeline__date {
-            &::after {
-                content: none;
-            }
-        }
-
-        &__delete {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background-color: rgba(0, 0, 0, .5);
-            display: grid;
-            place-content: center;
-            position: absolute;
-            right: 8px;
-            top: 8px;
-            z-index: 12;
-        }
-    }
-
     .publish-form__submit {
         z-index: 12;
 
         @media (max-width: 767px) {
             order: 3;
-        }
-    }
-
-    .link-card-registerer {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .link-card-registerer-button {
-        border: 1px solid var(--border-color-1);
-        padding: 6px 26px 6px 10px;
-        font-size: 14px;
-        border-radius: 6px;
-        margin-bottom: 10px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-        position: relative;
-        z-index: 11;
-        text-align: left;
-        color: var(--text-color-1);
-        background-color: var(--bg-color-1);
-
-        &:disabled {
-          color: var(--text-color-3);
-        }
-
-        .loading-spinner {
-            width: 16px;
-            height: 16px;
-            position: absolute;
-            right: 10px;
-            top: 0;
-            bottom: 0;
-            margin: auto;
         }
     }
 
@@ -1221,82 +773,17 @@ function handleAgentSelect(event) {
             opacity: .7;
         }
 
-        @media (max-width: 767px) {
+        &:disabled {
+            color: var(--border-color-1);
 
-        }
-    }
-
-    .publish-alt-text-button {
-        background-color: var(--primary-color);
-        color: var(--bg-color-1);
-        border-radius: 4px;
-        font-size: 14px;
-        width: 100%;
-        height: 30px;
-        z-index: 10;
-        font-weight: bold;
-        transition: opacity .2s ease-in-out, transform .05s ease-in-out;
-        margin-bottom: 8px;
-
-        &:hover {
-            opacity: .8;
-        }
-
-        &:active {
-            transform: scale(.99);
-        }
-
-        @media (max-width: 767px) {
-            position: relative;
-            top: auto;
-            left: auto;
-            width: 100%;
-        }
-    }
-
-    .publish-form-agents-selector {
-        @media (max-width: 767px) {
-
-        }
-    }
-
-    .publish-length {
-        color: var(--publish-length-color);
-        display: flex;
-        align-items: center;
-        margin-right: 8px;
-
-        @media (max-width: 767px) {
-
-        }
-
-        &__current {
-            &.over {
-                font-weight: bold;
-                color: var(--danger-color);
+            &:hover {
+                opacity: 1;
             }
         }
-    }
 
-    .ai-label {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        background-color: rgba(0, 0, 0, .2);
-        color: var(--bg-color-1);
-        letter-spacing: .1em;
-        font-weight: bold;
-        font-size: 12px;
-        line-height: 1.05;
-        height: 20px;
-        border-radius: 10px;
-        padding: 0 8px 0 10px;
-        margin-right: 2px;
-    }
+        @media (max-width: 767px) {
 
-    .quote-feed-wrap {
-        position: relative;
+        }
     }
 
     .publish-form-sp-close {
@@ -1310,10 +797,14 @@ function handleAgentSelect(event) {
         }
     }
 
-    .self-labeling-note {
-        padding: 12px;
-        border-top: 1px solid var(--border-color-2);
-        font-size: 14px;
-        color: var(--text-color-3);
+    .publish-item-wrap {
+        position: relative;
+    }
+
+    .publish-item-delete {
+        position: absolute;
+        right: 4px;
+        top: 4px;
+        z-index: 1;
     }
 </style>

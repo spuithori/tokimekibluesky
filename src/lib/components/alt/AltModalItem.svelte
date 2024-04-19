@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
-  import toast from "svelte-french-toast";
+  import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {settings} from "$lib/stores";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";

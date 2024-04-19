@@ -6,7 +6,7 @@
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
     import {getAccountIdByDid} from "$lib/util";
-    import toast from "svelte-french-toast";
+    import { toast } from "svelte-sonner";
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;

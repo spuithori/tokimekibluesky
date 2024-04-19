@@ -627,5 +627,8 @@
   "labels": "ラベル",
   "import_labeler": "公式アプリのラベラー設定",
   "self_labeling_note": "セルフラベリングはメディア付き投稿にのみ有効。",
-  "giphy_picker_placeholder": "GIPHYでGIFを検索"
+  "giphy_picker_placeholder": "GIPHYでGIFを検索",
+  "process_to_post": "投稿中...",
+  "post_add_thread": "スレッドを追加",
+  "reply_disable_when_threaded": "スレッド投稿中は返信できません。"
 }

@@ -9,7 +9,7 @@
     import { onMount } from 'svelte';
     import LoginModal from "$lib/components/acp/LoginModal.svelte";
     import {_} from "svelte-i18n";
-    import {Toaster} from "svelte-french-toast";
+    import { Toaster } from "svelte-sonner";
     import {accountsDb} from "$lib/db";
 
     function handleSuccess() {
@@ -81,7 +81,7 @@
   <LoginModal on:success={handleSuccess} on:cancel={() => {isLoginModalOpen = false}}></LoginModal>
 {/if}
 
-<Toaster></Toaster>
+<Toaster position="top-center"></Toaster>
 
 <style lang="postcss">
   .login {

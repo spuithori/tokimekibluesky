@@ -5,7 +5,7 @@
     import InfiniteLoading from 'svelte-infinite-loading';
     import {AppBskyEmbedImages, AppBskyFeedDefs} from '@atproto/api';
     import MediaTimelineItem from '../../../MediaTimelineItem.svelte';
-    import toast from "svelte-french-toast";
+    import { toast } from "svelte-sonner";
 
     let feeds = [];
     let media = [];

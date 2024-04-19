@@ -2,10 +2,11 @@
     import {agent} from '$lib/stores';
     import {onMount} from "svelte";
     import {createEventDispatcher} from 'svelte';
-    import toast from "svelte-french-toast";
+    import { toast } from "svelte-sonner";
     import {_} from "svelte-i18n";
     import spinner from "$lib/images/loading.svg";
     import BluefeedAddItem from "$lib/components/list/BluefeedAddItem.svelte";
+    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
@@ -65,7 +66,7 @@
         {/each}
       {:else}
         <div class="thread-loading">
-          <img src={spinner} alt="">
+          <LoadingSpinner></LoadingSpinner>
         </div>
       {/if}
     </div>

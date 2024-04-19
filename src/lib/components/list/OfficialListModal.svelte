@@ -3,7 +3,7 @@
     import {onMount} from "svelte";
     import ListMember from "./ListMember.svelte";
     import {createEventDispatcher} from 'svelte';
-    import toast from "svelte-french-toast";
+    import { toast } from "svelte-sonner";
     import {_} from "svelte-i18n";
     import spinner from "$lib/images/loading.svg";
     import OfficialListMenu from "$lib/components/list/OfficialListMenu.svelte";

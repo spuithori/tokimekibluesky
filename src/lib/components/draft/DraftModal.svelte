@@ -1,7 +1,7 @@
 <script lang="ts">
     import { fade, fly } from 'svelte/transition';
     import { createEventDispatcher, onMount } from 'svelte';
-    import toast from 'svelte-french-toast';
+    import { toast } from 'svelte-sonner';
     import { _ } from 'svelte-i18n';
     import { db } from '$lib/db';
     import { agent } from "$lib/stores";

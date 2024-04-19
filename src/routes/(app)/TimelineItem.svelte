@@ -13,7 +13,7 @@
         agents, repostMutes, postMutes, bluefeedAddModal
     } from '$lib/stores';
     import {AppBskyFeedDefs} from '@atproto/api'
-    import toast from "svelte-french-toast";
+    import { toast } from "svelte-sonner";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
     import {setContext} from "svelte";
     import Menu from "$lib/components/ui/Menu.svelte";

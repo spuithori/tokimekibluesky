@@ -1,6 +1,6 @@
 <script lang="ts">
     import {agent, pulseRepost, settings} from '$lib/stores';
-    import toast from 'svelte-french-toast';
+    import { toast } from 'svelte-sonner';
     import { _ } from 'svelte-i18n';
     import { createEventDispatcher } from 'svelte';
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";

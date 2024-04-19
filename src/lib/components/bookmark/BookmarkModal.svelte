@@ -3,7 +3,7 @@
     import {liveQuery} from 'dexie';
     import { agent } from '$lib/stores';
     import {createEventDispatcher} from 'svelte';
-    import toast from 'svelte-french-toast';
+    import { toast } from 'svelte-sonner';
     import { _ } from 'svelte-i18n';
     const dispatch = createEventDispatcher();
 

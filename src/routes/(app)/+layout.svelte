@@ -6,20 +6,17 @@
       agents,
       columns,
       currentTimeline,
-      globalUnique,
       isAfterReload,
       isColumnModalOpen,
-      isMobileDataConnection, isReactionButtonSettingsModalOpen, keywordMutes, listAddModal, missingAccounts,
+      isMobileDataConnection, isReactionButtonSettingsModalOpen, keywordMutes, listAddModal,
       profileStatus,
       settings, syncColumns,
       theme, direction, bluefeedAddModal, labelDefs, subscribedLabelers
   } from '$lib/stores';
   import {goto} from '$app/navigation';
-  import {dev} from '$app/environment';
-  import {inject} from '@vercel/analytics';
   import {pwaInfo} from 'virtual:pwa-info';
   import {onMount} from 'svelte';
-  import {Toaster} from 'svelte-french-toast';
+  import { Toaster } from 'svelte-sonner';
   import viewPortSetting from '$lib/viewport';
   import {scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
@@ -48,7 +45,6 @@
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
 
   let loaded = false;
-  let isColumnInitialLoad = false;
   let isDarkMode = false;
   let scrolly;
   let app;
@@ -421,7 +417,7 @@
   {/if}
 
   <Footer></Footer>
-  <Toaster></Toaster>
+  <Toaster position="top-center" theme={isDarkMode ? 'dark' : 'light'}></Toaster>
   <ReportObserver></ReportObserver>
   <ProfileStatusObserver></ProfileStatusObserver>
   <LinkWarningModal></LinkWarningModal>

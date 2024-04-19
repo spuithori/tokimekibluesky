@@ -1,6 +1,5 @@
-import type {AppBskyFeedGetTimeline, AtpAgent, BskyAgent} from '@atproto/api';
+import type {AppBskyFeedGetTimeline, BskyAgent} from '@atproto/api';
 import {AppBskyEmbedImages} from "@atproto/api";
-import toast from "svelte-french-toast";
 import type { currentAlgorithm } from "../app.d.ts";
 import {parseISO} from "date-fns";
 

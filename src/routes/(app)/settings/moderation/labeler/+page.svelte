@@ -3,7 +3,7 @@
     import {agent, subscribedLabelers} from "$lib/stores";
     import OfficialLabelerList from "./OfficialLabelerList.svelte";
     import LabelerItem from "$lib/components/labeler/LabelerItem.svelte";
-    import spinner from "$lib/images/loading.svg";
+    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
     let labelers = [];
     let ready = false;
@@ -50,7 +50,7 @@
       {/each}
     {:else}
       <div class="thread-loading">
-        <img src={spinner} alt="">
+        <LoadingSpinner></LoadingSpinner>
       </div>
     {/if}
 

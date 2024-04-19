@@ -6,7 +6,7 @@
   import { createEventDispatcher } from 'svelte';
   import {agent, columns, quotePost} from "$lib/stores";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import toast from "svelte-french-toast";
+  import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {goto} from "$app/navigation";
   const dispatch = createEventDispatcher();

@@ -2,7 +2,7 @@
   import {_} from "svelte-i18n";
   import {agent} from "$lib/stores";
   import {createEventDispatcher} from "svelte";
-  import toast from "svelte-french-toast";
+  import { toast } from "svelte-sonner";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   const dispatch = createEventDispatcher();
 

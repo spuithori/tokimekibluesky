@@ -4,7 +4,7 @@ import {agent, isAfterReload, settings} from '$lib/stores';
 import TimelineItem from "../../TimelineItem.svelte";
 import {_} from 'svelte-i18n';
 import type { Snapshot } from './$types';
-import toast from "svelte-french-toast";
+import { toast } from "svelte-sonner";
 import InfiniteLoading from "svelte-infinite-loading";
 
 export let data: LayoutData;

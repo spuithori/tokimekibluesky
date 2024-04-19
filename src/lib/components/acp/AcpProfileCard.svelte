@@ -5,7 +5,7 @@
   import {agent, agents, columns, currentTimeline} from "$lib/stores";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {_} from "svelte-i18n";
-  import toast from "svelte-french-toast";
+  import { toast } from "svelte-sonner";
   import {modifyAgents} from "$lib/modifyAgents";
   import AcpProfileNameModal from "$lib/components/acp/AcpProfileNameModal.svelte";
 

@@ -6,6 +6,87 @@
     }
 }
 
+.publish-group {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 2000;
+
+    @media (max-width: 767px) {
+        overflow: auto;
+        overscroll-behavior: none;
+        z-index: 2000;
+    }
+
+    &--expanded {
+        .publish-wrap {
+            display: block;
+        }
+
+        @media (max-width: 767px) {
+            top: 0;
+
+            .publish-wrap {
+                display: flex;
+            }
+        }
+    }
+
+    &--left {
+        @media (min-width: 768px) {
+            top: 0;
+            right: auto;
+            z-index: 100;
+            position: static;
+            height: 100%;
+
+            .publish-wrap {
+                display: flex;
+                flex-direction: column;
+                width: auto;
+                border-top: none;
+                padding: 16px;
+                background-color: transparent;
+            }
+
+            .publish-form {
+                &--expand {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                }
+            }
+
+            .publish-form-continue-mode {
+                display: none;
+            }
+
+            .publish-alt-text-button {
+                position: static;
+                width: 100%;
+            }
+        }
+    }
+}
+
+.publish-wrap {
+    background-color: var(--publish-bg-color);
+    border-top: 1px solid var(--border-color-1);
+    padding: 16px 0 0;
+    display: none;
+
+    @media (max-width: 767px) {
+        display: none;
+        flex-direction: column;
+        padding: 0;
+        background-color: var(--bg-color-1);
+        border: none;
+        border-radius: 0;
+        min-height: 100%;
+    }
+}
+
 .publish-form {
     max-width: 740px;
     width: 100%;

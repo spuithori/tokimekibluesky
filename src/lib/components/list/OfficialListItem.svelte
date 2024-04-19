@@ -2,7 +2,7 @@
   import {_} from "svelte-i18n";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {agent, columns, officialListModal} from "$lib/stores";
-  import toast from "svelte-french-toast";
+  import { toast } from "svelte-sonner";
   import {createEventDispatcher} from "svelte";
   import {List} from "lucide-svelte";
   import OfficialListMembersModal from "$lib/components/list/OfficialListMembersModal.svelte";
