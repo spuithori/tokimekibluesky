@@ -807,4 +807,10 @@ function applyDeleteThread(index) {
         top: 4px;
         z-index: 1;
     }
+
+    .vk-publish-group {
+        .publish-wrap {
+            padding-bottom: 46px;
+        }
+    }
 </style>

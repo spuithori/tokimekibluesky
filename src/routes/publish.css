@@ -120,10 +120,9 @@
 
     &--fit {
         @media (max-width: 767px) {
-            height: calc(100dvh - 50px - env(keyboard-inset-height, 0px));
+            height: calc(100dvh - 50px - 46px - env(keyboard-inset-height, 0px));
             display: flex;
             flex-direction: column;
-            padding-bottom: 46px;
 
             .editor-column {
                 flex: 1;

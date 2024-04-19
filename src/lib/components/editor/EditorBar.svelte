@@ -154,6 +154,7 @@ function handleEmojiPick(event) {
         background: linear-gradient(to top, var(--publish-textarea-bg-color) 0%, var(--publish-textarea-bg-color) 80%, transparent);
 
         @media (max-width: 767px) {
+            background: var(--publish-textarea-bg-color);
             bottom: env(keyboard-inset-height, 0px);
             left: 0;
             right: 0;
