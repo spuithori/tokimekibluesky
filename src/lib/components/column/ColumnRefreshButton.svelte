@@ -34,6 +34,11 @@
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
             const topEl = el.querySelector('.timeline__item');
 
+            if (!res?.data) {
+                isRefreshing = false;
+                return false;
+            }
+
             await columns.update(_columns => {
                 const newFeed = res.data.feed.filter(feed => {
                     return !column.data.feed.some(item => isDuplicatePost(item, feed));
@@ -58,7 +63,7 @@
                 return _columns;
             });
 
-            if (elInitialPosition === 0 && column.settings?.refreshToTop !== true) {
+            if (elInitialPosition === 0 && column.settings?.refreshToTop !== true && topEl) {
                 if (column.style !== 'media') {
                     const offset = el.querySelector('.timeline').getBoundingClientRect().top + 16;
                     el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
