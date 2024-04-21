@@ -187,6 +187,11 @@
             margin-left: auto;
         }
     }
+
+    &--search {
+        height: 64px;
+        border-bottom: none;
+    }
 }
 
 .column-heading-button {

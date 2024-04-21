@@ -19,7 +19,7 @@
 </script>
 
 <div class="search">
-  <form action={path} method="get" data-sveltekit-replacestate on:submit={handleSubmit}>
+  <form action={path} method="get" data-sveltekit-replacestate data-sveltekit-keepfocus on:submit={handleSubmit}>
     <input type="text" name="q" required bind:value={search} bind:this={searchArea} placeholder="{$_(path + '_search')}">
     <button type="submit" class="search-submit" aria-label="Search">
       <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">
@@ -31,8 +31,8 @@
 
 <style lang="postcss">
     .search {
-        width: auto;
         position: relative;
+        width: 100%;
 
         form {
             display: flex;
@@ -43,11 +43,11 @@
 
         input {
             color: var(--text-color-1);
-            background-color: var(--bg-color-1);
+            background-color: var(--bg-color-2);
             border: 1px solid var(--border-color-1);
             height: 40px;
-            padding: 0 45px 0 10px;
-            border-radius: 6px;
+            padding: 0 45px 0 16px;
+            border-radius: 20px;
             flex: 1;
             width: 100%;
             outline: none;

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { page } from '$app/stores';
     import TimelineItem from '../TimelineItem.svelte';
     import {agent, columns} from '$lib/stores';
@@ -8,6 +8,7 @@
     let isLoaded = false;
     let isColumnAdded = false;
     let isSafety = false;
+    let sort: 'top' | 'latest' = 'latest';
     import InfiniteLoading from "svelte-infinite-loading";
     import {_} from "svelte-i18n";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
@@ -55,7 +56,7 @@
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         try {
-            let res = await $agent.agent.api.app.bsky.feed.searchPosts({q: $page.url.searchParams.get('q') || '', limit: 20, cursor: cursor});
+            let res = await $agent.agent.api.app.bsky.feed.searchPosts({q: $page.url.searchParams.get('q') || '', limit: 20, cursor: cursor, sort: sort});
             cursor = res.data.cursor;
 
             let tempFeeds = [];
@@ -83,27 +84,44 @@
             complete();
         }
     }
+
+    function toggleSort(_sort) {
+        if (_sort === sort) {
+            return false;
+        }
+
+        feeds = [];
+        cursor = 0;
+        sort = _sort;
+    }
 </script>
 
-<div class="timeline">
-    {#if isSafety}
-        <SuicideSafety></SuicideSafety>
-    {/if}
+<!--
+<button on:click={() => {toggleSort('latest')}}>latest</button>
+<button on:click={() => {toggleSort('top')}}>top</button>
+-->
 
-    {#each feeds as data (data)}
-        <TimelineItem data={ data }></TimelineItem>
-    {:else}
-    {/each}
+{#key sort}
+    <div class="timeline">
+        {#if isSafety}
+            <SuicideSafety></SuicideSafety>
+        {/if}
 
-    <InfiniteLoading on:infinite={handleLoadMore}>
-        <p slot="noMore" class="infinite-nomore">
-            {$_('no_more')}
-        </p>
-        <p slot="noResults" class="infinite-nomore">
-            {$_('no_results_search')}
-        </p>
-    </InfiniteLoading>
-</div>
+        {#each feeds as data (data)}
+            <TimelineItem data={ data }></TimelineItem>
+        {:else}
+        {/each}
+
+        <InfiniteLoading on:infinite={handleLoadMore}>
+            <p slot="noMore" class="infinite-nomore">
+                {$_('no_more')}
+            </p>
+            <p slot="noResults" class="infinite-nomore">
+                {$_('no_results_search')}
+            </p>
+        </InfiniteLoading>
+    </div>
+{/key}
 
 {#if (isLoaded)}
     <div class="search-column-adder">

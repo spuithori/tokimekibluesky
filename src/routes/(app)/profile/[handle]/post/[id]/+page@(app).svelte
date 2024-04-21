@@ -1,10 +1,9 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, didHint, settings} from '$lib/stores';
+    import {agent, didHint} from '$lib/stores';
     import { page } from '$app/stores';
     import Thread from "./Thread.svelte";
     import { beforeNavigate } from "$app/navigation";
-    import spinner from '$lib/images/loading.svg';
     import {isDid} from "$lib/util";
     import PageModal from "$lib/components/ui/PageModal.svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -12,7 +11,11 @@
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
 
-    $: feeds = getPostThread($page.params.id, $page.params.handle);
+
+    $: handle = $page.params.handle;
+    $: id = $page.params.id;
+
+    $: feeds = getPostThread(id, handle);
 
     function isMutedIncludes(feed) {
         isMuted = feed.post?.author.viewer.muted;
