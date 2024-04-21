@@ -47,9 +47,9 @@ if (!$settings.langSelector) {
     $settings.langSelector = 'auto';
 }
 
-$: isMobilePopState = isMobile ? $page.state.showPublish : isFocus;
+$: isMobilePopState = isMobile ? $page.state.showPublish : false;
 
-$: if (isFocus && isMobilePopState) {
+$: if (isMobile ? isFocus && isMobilePopState : isFocus) {
   document.documentElement.classList.add('scroll-lock');
 } else {
   document.documentElement.classList.remove('scroll-lock');
@@ -563,7 +563,7 @@ function applyDeleteThread(index) {
 
 <svelte:window on:keydown={handleKeydown} />
 
-{#if (isFocus && isMobilePopState)}
+{#if (isMobile ? isFocus && isMobilePopState : isFocus)}
   <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} aria-label="投稿ウィンドウを閉じる" on:click={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
     <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
       <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
@@ -578,7 +578,7 @@ function applyDeleteThread(index) {
 {/if}
 
 <section class="publish-group"
-         class:publish-group--expanded={isFocus && isMobilePopState}
+         class:publish-group--expanded={isMobile ? isFocus && isMobilePopState : isFocus}
          class:publish-group--left={$settings.design?.publishPosition === 'left'}
          class:publish-group--bottom={$settings.design?.publishPosition === 'bottom'}
          class:vk-publish-group={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
