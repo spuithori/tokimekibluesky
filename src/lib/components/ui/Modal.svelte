@@ -59,7 +59,7 @@
   <dialog
           class="v2-modal v2-modal--{size}"
           bind:this={el}
-          on:click={back}
+          on:click|stopPropagation={back}
           on:cancel|preventDefault={back}
           on:outroend={close}
           transition:modalTransition
