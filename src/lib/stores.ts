@@ -242,6 +242,8 @@ export const realtime = writable<Realtime>({
     }
 });
 
+export const realtimeStatuses = writable([]);
+
 type ReportModal = {
     open: boolean,
     data: {

@@ -630,5 +630,6 @@
   "giphy_picker_placeholder": "GIPHYでGIFを検索",
   "process_to_post": "投稿中...",
   "post_add_thread": "スレッドを追加",
-  "reply_disable_when_threaded": "スレッド投稿中は返信できません。"
+  "reply_disable_when_threaded": "スレッド投稿中は返信できません。",
+  "read_this_thread": "スレッドをさらに見る"
 }

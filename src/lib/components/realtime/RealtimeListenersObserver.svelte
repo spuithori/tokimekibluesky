@@ -4,6 +4,7 @@
   import {RealtimeClient} from "$lib/realtime";
   import {onDestroy} from "svelte";
   import {_} from "svelte-i18n";
+  import Modal from "$lib/components/ui/Modal.svelte";
 
   let listeners = new Set();
   let clients = new Map();
@@ -62,32 +63,23 @@
 </script>
 
 {#if $isRealtimeListenersModalOpen}
-  <div class="modal modal--small">
-    <div class="modal-contents">
-      <h2 class="modal-title modal-title--smaller">{$_('realtime_listeners_title')}</h2>
+  <Modal title={$_('realtime_listeners_title')} on:close={() => {$isRealtimeListenersModalOpen = false}}>
+    <div class="realtime-listeners-list">
+      {#each clients as [host, socket]}
+        {#if socket}
+          <div class="realtime-listeners-list__item">
+            <h3 class="realtime-listeners-list__title">{host}</h3>
+            <p class="realtime-listeners-list__status">{$_('realtime_listeners_status_' + socket.status())}</p>
 
-      <div class="realtime-listeners-list">
-        {#each clients as [host, socket]}
-          {#if socket}
-            <div class="realtime-listeners-list__item">
-              <h3 class="realtime-listeners-list__title">{host}</h3>
-              <p class="realtime-listeners-list__status">{$_('realtime_listeners_status_' + socket.status())}</p>
-
-              <div class="realtime-listeners-list__buttons">
-                <button class="button button--ss" on:click={() => {socket.reconnect(); $isRealtimeListenersModalOpen = false}}>{$_('realtime_listeners_reconnect')}</button>
-                <button class="button button--ss" on:click={() => {socket.disconnect(); $isRealtimeListenersModalOpen = false}}>{$_('realtime_listeners_disconnect')}</button>
-              </div>
+            <div class="realtime-listeners-list__buttons">
+              <button class="button button--ss" on:click={() => {socket.reconnect(); $isRealtimeListenersModalOpen = false}}>{$_('realtime_listeners_reconnect')}</button>
+              <button class="button button--ss" on:click={() => {socket.disconnect(); $isRealtimeListenersModalOpen = false}}>{$_('realtime_listeners_disconnect')}</button>
             </div>
-          {/if}
-        {/each}
-      </div>
-
-      <div class="modal-close">
-        <button class="button button--sm" on:click={() => {$isRealtimeListenersModalOpen = false}}>{$_('close_button')}</button>
-      </div>
+          </div>
+        {/if}
+      {/each}
     </div>
-    <button class="modal-background-close" aria-hidden="true" on:click={() => {$isRealtimeListenersModalOpen = false}}></button>
-  </div>
+  </Modal>
 {/if}
 
 

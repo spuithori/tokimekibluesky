@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { fade, fly } from 'svelte/transition';
-    import { createEventDispatcher, onMount } from 'svelte';
+    import { createEventDispatcher } from 'svelte';
     import { toast } from 'svelte-sonner';
     import { _ } from 'svelte-i18n';
     import { db } from '$lib/db';
@@ -10,10 +9,10 @@
     import { format } from 'date-fns';
 
     import type { Draft } from '$lib/db';
+    import Modal from "$lib/components/ui/Modal.svelte";
 
     export let _agent = $agent;
-    let dialog;
-    
+
     $: drafts = liveQuery(async () => {
         const drafts = await db.drafts
             .where('owner')
@@ -24,10 +23,6 @@
 
         return drafts;
     })
-
-    function close() {
-        dispatch('close');
-    }
 
     async function use(draft: Draft) {
         try {
@@ -50,112 +45,55 @@
             toast.error($_('error') + ': ' + e);
         }
     }
-
-    onMount(() => {
-      dialog.showModal();
-    });
 </script>
 
-<dialog class="draft-modal" bind:this={dialog}>
-  <div class="draft-modal-contents">
-    <h2 class="draft-modal-title">{$_('drafts')}</h2>
+<Modal title={$_('drafts')} on:close>
+  <div class="drafts">
+    {#if ($drafts)}
+      {#each $drafts as draft}
+        <div class="drafts__item">
+          <p class="drafts__date">{format(draft.createdAt, 'yyyy-MM-dd HH:mm:ss')}</p>
 
-    <div class="drafts">
-      {#if ($drafts)}
-        {#each $drafts as draft}
-          <div class="drafts__item">
-            <p class="drafts__date">{format(draft.createdAt, 'yyyy-MM-dd HH:mm:ss')}</p>
+          {#if draft.replyRef?.data}
+            <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.data.parent.author.handle} {draft.replyRef?.data.parent.record.text}</p>
+          {/if}
 
-            {#if draft.replyRef?.data}
-              <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.data.parent.author.handle} {draft.replyRef?.data.parent.record.text}</p>
-            {/if}
+          {#if draft.replyRef?.parent}
+            <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.parent.author.handle} {draft.replyRef?.parent.record.text}</p>
+          {/if}
 
-            {#if draft.replyRef?.parent}
-              <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.parent.author.handle} {draft.replyRef?.parent.record.text}</p>
-            {/if}
+          {#if draft.quotePost}
+            <p class="drafts__reply">{$_('drafts_quote')}: {draft.quotePost?.record?.text || ''}</p>
+          {/if}
 
-            {#if draft.quotePost}
-              <p class="drafts__reply">{$_('drafts_quote')}: {draft.quotePost?.record?.text || ''}</p>
-            {/if}
+          <p class="drafts__text">{draft.text}</p>
 
-            <p class="drafts__text">{draft.text}</p>
+          {#if draft.images.length}
+            <div class="drafts-images">
+              {#each draft.images as image}
+                <div class="drafts-images__item">
+                  {#if (image.base64)}
+                    <img src="{image.base64}" alt="">
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          {/if}
 
-            {#if draft.images.length}
-              <div class="drafts-images">
-                {#each draft.images as image}
-                  <div class="drafts-images__item">
-                    {#if (image.base64)}
-                      <img src="{image.base64}" alt="">
-                    {/if}
-                  </div>
-                {/each}
-              </div>
-            {/if}
+          <button class="drafts__button" on:click={() => {use(draft)}} aria-label="Use this."></button>
 
-            <button class="drafts__button" on:click={() => {use(draft)}} aria-label="Use this."></button>
-
-            <button class="drafts__delete" on:click={() => {deleteDraft(draft)}} aria-label="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="18.75" viewBox="0 0 15 18.75">
-              <path id="trash" d="M67.75,1.875,69.625,0h3.75L75.25,1.875H79V3.75H64V1.875Zm-2.813,3.75H78.063L77.125,18.75H65.875ZM69.625,7.5v9.375h.938V7.5Zm2.813,0v9.375h.938V7.5Z" transform="translate(-64)" fill="#d81c2f"/>
-            </svg></button>
-          </div>
-        {:else}
-          <p class="drafts-nothing">{$_('drafts_nothing')}</p>
-        {/each}
-      {/if}
-    </div>
-    
-    <div class="draft-modal-close">
-      <button class="button button--sm" on:click={close}>{$_('close_button')}</button>
-    </div>
+          <button class="drafts__delete" on:click={() => {deleteDraft(draft)}} aria-label="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="18.75" viewBox="0 0 15 18.75">
+            <path id="trash" d="M67.75,1.875,69.625,0h3.75L75.25,1.875H79V3.75H64V1.875Zm-2.813,3.75H78.063L77.125,18.75H65.875ZM69.625,7.5v9.375h.938V7.5Zm2.813,0v9.375h.938V7.5Z" transform="translate(-64)" fill="#d81c2f"/>
+          </svg></button>
+        </div>
+      {:else}
+        <p class="drafts-nothing">{$_('drafts_nothing')}</p>
+      {/each}
+    {/if}
   </div>
-
-  <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
-</dialog>
+</Modal>
 
 <style lang="postcss">
-    .draft-modal {
-        margin: auto;
-        overflow: auto;
-        border: none;
-        border-radius: var(--border-radius-3);
-
-        &::backdrop {
-            background-color: rgba(0, 0, 0, .6);
-        }
-
-        @media (max-width: 767px) {
-            display: block;
-            overscroll-behavior-y: none;
-        }
-    }
-
-    .draft-modal-contents {
-        padding: 30px;
-        border-radius: 10px;
-        background-color: var(--bg-color-1);
-        width: 740px;
-        max-width: 100%;
-        position: relative;
-        z-index: 2;
-        color: var(--text-color-1);
-
-        @media (max-width: 767px) {
-            width: 100%;
-        }
-    }
-
-    .draft-modal-close {
-        text-align: center;
-        margin-top: 30px;
-    }
-
-    .draft-modal-title {
-        font-weight: 900;
-        font-size: 20px;
-        line-height: 1.5;
-        margin-bottom: 10px;
-    }
-
     .drafts {
         &__item {
             border-bottom: 1px solid var(--border-color-1);

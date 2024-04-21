@@ -629,5 +629,6 @@
   "giphy_picker_placeholder": "Search GIFs in GIPHY",
   "process_to_post": "Publishing...",
   "post_add_thread": "Add thread",
-  "reply_disable_when_threaded": "Cannot reply while posting thread."
+  "reply_disable_when_threaded": "Cannot reply while posting thread.",
+  "read_this_thread": "Read this thread"
 }

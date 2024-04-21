@@ -6,10 +6,12 @@ import {_} from 'svelte-i18n';
 import type { Snapshot } from './$types';
 import { toast } from "svelte-sonner";
 import InfiniteLoading from "svelte-infinite-loading";
+import {isReasonRepost} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
 
 export let data: LayoutData;
 
 let feeds = [];
+let prevTreePosts = [];
 let cursor = '';
 let scrollY = 0;
 let isFiltered = false;
@@ -37,7 +39,18 @@ const handleLoadMore = async ({ detail: { loaded, complete } }) => {
     try {
         const raw = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: data.params.handle, limit: 30, cursor: cursor});
         cursor = raw.data.cursor;
-        feeds = [...feeds, ...raw.data.feed];
+
+        feeds =  [...feeds, ...raw.data.feed].filter((feed, index, _feeds) => {
+            if (isReasonRepost(feed.reason)) {
+                return true;
+            }
+
+            return !_feeds.some(_feed => _feed?.reply?.parent?.uri === feed?.post?.uri);
+        }).map((feed, index, _feeds) => {
+            const duplicate = feed.reply && _feeds.slice(0, index).some(_feed => _feed?.reply?.root?.uri === feed?.reply?.root?.uri);
+
+            return duplicate ? { ...feed, isRootHide: true } : feed;
+        });
 
         if (cursor) {
             loaded();
@@ -75,8 +88,8 @@ const handleLoadMore = async ({ detail: { loaded, complete } }) => {
     {#each feeds as data, index}
       <TimelineItem
           data={data}
-          isPrivate={true}
           isProfile={true}
+          isReplyExpanded={!data.isRootHide}
           index={index}
           hideReply={isFiltered ? 'me' : 'all'}
           hideRepost={isFiltered ? 'none' : 'all'}

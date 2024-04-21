@@ -1,7 +1,7 @@
 import {addExtension, decode, decodeMultiple} from "cbor-x";
 import {CID} from "multiformats";
 import {CarReader} from "@ipld/car";
-import {realtime} from '$lib/stores';
+import {realtime, realtimeStatuses} from '$lib/stores';
 
 export class RealtimeClient {
     private host: string;
@@ -61,8 +61,16 @@ export class RealtimeClient {
 
         this.socket.onclose = async (event) => {
             console.log('socket closed.');
-            //await new Promise(resolve => setTimeout(resolve, 3000));
-            //this.reconnect();
+            realtimeStatuses.update((r: any[] | undefined) => {
+                r = r.filter(item => item !== this.host)
+                return r;
+            })
+        }
+
+        this.socket.onopen = async (event) => {
+            realtimeStatuses.update((r: any[] | undefined) => {
+                return  [...r,  this.host];
+            })
         }
     }
 

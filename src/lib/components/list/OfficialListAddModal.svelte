@@ -4,8 +4,9 @@
     import {createEventDispatcher} from 'svelte';
     import { toast } from "svelte-sonner";
     import {_} from "svelte-i18n";
-    import spinner from "$lib/images/loading.svg";
     import OfficialListAddItem from "$lib/components/list/OfficialListAddItem.svelte";
+    import Modal from "$lib/components/ui/Modal.svelte";
+    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
@@ -70,31 +71,29 @@
    }
 </script>
 
-<div class="modal modal--small">
-  <div class="modal-contents">
-    <h2 class="modal-title modal-title--smaller">{$_('list_instant_manage')}: {author.displayName || author.handle}</h2>
+<Modal title="{$_('list_instant_manage')}" on:close>
+  <p class="list-add-author">{author.displayName || author.handle}</p>
 
-    <div class="list-add-list">
-      {#if ready}
-        {#each lists as list (list)}
-          <OfficialListAddItem {list} {_agent} memberDid={author.did}></OfficialListAddItem>
-        {:else}
-          まずリストをつくろうね。
-        {/each}
+
+  <div class="list-add-list">
+    {#if ready}
+      {#each lists as list (list)}
+        <OfficialListAddItem {list} {_agent} memberDid={author.did}></OfficialListAddItem>
       {:else}
-        <div class="thread-loading">
-          <img src={spinner} alt="">
-        </div>
-      {/if}
-    </div>
-
-    <div class="modal-close">
-      <button class="button button--sm" on:click={close} disabled={isDisabled}>{$_('close_button')}</button>
-    </div>
+        まずリストをつくろうね。
+      {/each}
+    {:else}
+      <LoadingSpinner></LoadingSpinner>
+    {/if}
   </div>
-</div>
+</Modal>
 
 <style lang="postcss">
+  .list-add-author {
+      font-weight: bold;
+      margin-bottom: 8px;
+  }
+  
   .list-add-list {
       margin-bottom: 16px;
   }

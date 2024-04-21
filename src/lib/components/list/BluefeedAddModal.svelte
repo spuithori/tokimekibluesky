@@ -4,9 +4,9 @@
     import {createEventDispatcher} from 'svelte';
     import { toast } from "svelte-sonner";
     import {_} from "svelte-i18n";
-    import spinner from "$lib/images/loading.svg";
     import BluefeedAddItem from "$lib/components/list/BluefeedAddItem.svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+    import Modal from "$lib/components/ui/Modal.svelte";
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
@@ -51,31 +51,24 @@
     }
 </script>
 
-<div class="modal modal--small">
-  <div class="modal-contents">
-    <h2 class="modal-title modal-title--smaller">{$_('add_bluefeed')}</h2>
-    <p class="modal-description">{_agent.handle()}{$_('add_bluefeed_description_suffix')}</p>
+<Modal title="{$_('add_bluefeed')}" on:close>
+  <p class="modal-description">{_agent.handle()}{$_('add_bluefeed_description_suffix')}</p>
 
-    <div class="list-add-list">
-      {#if ready}
-        {#each feeds as feed (feed)}
-          <BluefeedAddItem {feed} {_agent} uri={post.uri}></BluefeedAddItem>
-        {:else}
-          {$_('bluefeed_feeds_not_found')}
-          <a href="https://www.bluefeed.app/" target="_blank" rel="noopener">Bluefeed</a>から新しいフィードを作成できます。
-        {/each}
+  <div class="list-add-list">
+    {#if ready}
+      {#each feeds as feed (feed)}
+        <BluefeedAddItem {feed} {_agent} uri={post.uri}></BluefeedAddItem>
       {:else}
-        <div class="thread-loading">
-          <LoadingSpinner></LoadingSpinner>
-        </div>
-      {/if}
-    </div>
-
-    <div class="modal-close">
-      <button class="button button--sm" on:click={close} disabled={isDisabled}>{$_('close_button')}</button>
-    </div>
+        {$_('bluefeed_feeds_not_found')}
+        <a href="https://www.bluefeed.app/" target="_blank" rel="noopener">Bluefeed</a>から新しいフィードを作成できます。
+      {/each}
+    {:else}
+      <div class="thread-loading">
+        <LoadingSpinner></LoadingSpinner>
+      </div>
+    {/if}
   </div>
-</div>
+</Modal>
 
 <style lang="postcss">
     .list-add-list {

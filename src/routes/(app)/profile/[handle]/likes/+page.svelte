@@ -61,7 +61,7 @@
 
 <div class="timeline">
   {#each feeds as data (data)}
-    <TimelineItem data={ data } isPrivate={ true }></TimelineItem>
+    <TimelineItem data={ data }></TimelineItem>
   {/each}
 
   <InfiniteLoading on:infinite={handleLoadMore}>

@@ -131,6 +131,10 @@
             .tiptap {
                 height: 100%;
             }
+
+            .publish-bb-nav {
+                flex-direction: row-reverse;
+            }
         }
     }
 }

@@ -27,7 +27,7 @@
 
     export let _agent = $agent;
     export let data: AppBskyFeedDefs.FeedViewPost;
-    export let isPrivate = false;
+    export let isReplyExpanded = false;
     export let isSingle: boolean = false;
     export let isThread: boolean = false;
     export let isMedia: boolean = false;
@@ -341,14 +341,26 @@
       {/if}
     </div>
 
-    {#if (data?.reply?.parent?.notFound || data?.reply?.parent?.blocked)}
+    {#if (data?.reply?.parent?.notFound || data?.reply?.parent?.blocked || data?.reply?.root?.notFound || data?.reply?.root?.blocked)}
       <article class="timeline-hidden-item">
         <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
       </article>
     {:else}
       {#if (data.reply && !isSingle && !isReplyHide)}
+        {#if (isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
+          <div class="timeline__column timeline__column--reply">
+            <TimelineContent post={data.reply.root} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
+          </div>
+
+          {#if (data.reply.parent?.record?.reply?.parent?.uri !== data.reply.root.uri)}
+            <p class="timeline-read-thread-link">
+              <a href={'/profile/' + data.reply.root.author.handle + '/post/' + data.reply.root.uri.split('/').slice(-1)[0]}>{$_('read_this_thread')}</a>
+            </p>
+          {/if}
+        {/if}
+
         <div class="timeline__column timeline__column--reply">
-          {#if (data.reply.parent.uri !== data.reply.root.uri)}
+          {#if (!isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
             <span class="timeline-reply-bar"></span>
           {/if}
 

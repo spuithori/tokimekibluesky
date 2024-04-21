@@ -807,7 +807,7 @@
     bottom: 100%;
     height: 20px;
     left: 29px;
-    background-image: linear-gradient(var(--bg-color-1), var(--bg-color-2));
+    background-image: linear-gradient(var(--bg-color-1), var(--border-color-2));
 
     @media (max-width: 767px) {
         left: 24px;
@@ -822,6 +822,32 @@
 .sticky {
     .timeline__item {
         border-bottom: none;
+    }
+}
+
+.timeline-read-thread-link {
+    padding: 8px 0 8px 71px;
+    position: relative;
+
+    @media (max-width: 767px) {
+        padding-left: 65px;
+    }
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 29px;
+        width: 2px;
+        background-image: linear-gradient(to top,var(--border-color-2) 4px, transparent 4px);
+        background-repeat: repeat-y;
+        background-position: left bottom;
+        background-size: 4px 8px;
+        top: 8px;
+        bottom: 8px;
+
+        @media (max-width: 767px) {
+            left: 24px;
+        }
     }
 }
 
@@ -915,6 +941,14 @@
 
         &:hover {
             background-color: var(--bg-color-2);
+        }
+    }
+
+    .timeline-read-thread-link {
+        padding-left: 56px;
+
+        &::before {
+            left: 22px;
         }
     }
 }

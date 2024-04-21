@@ -5,13 +5,13 @@
     import {getAccountIdByDidFromDb} from "$lib/util";
     import {accountsDb} from "$lib/db";
     import {List} from "lucide-svelte";
+    import Modal from "$lib/components/ui/Modal.svelte";
     const dispatch = createEventDispatcher();
 
     export let _agent = $agent;
     let officialLists = [];
     let _threadGate = $threadGate || 'everybody';
     let custom = [];
-    let dialog;
 
     $: {
         $threadGate = _threadGate;
@@ -38,10 +38,6 @@
         });
     }
 
-    async function close () {
-        dispatch('close');
-    }
-
     function handleCustomChange() {
         if (custom.length === 0) {
             _threadGate = 'everybody';
@@ -49,22 +45,19 @@
     }
 
     onMount(async () => {
-        dialog.showModal();
         await updateLists();
     });
 </script>
 
-<dialog class="thread-gate-modal" bind:this={dialog}>
-    <div class="thread-gate-modal-contents">
-        <h2 class="modal-title modal-title--smaller">{$_('thread_gate_modal_title')}</h2>
-        <p class="modal-description">{$_('thread_gate_modal_description')}</p>
+<Modal title={$_('thread_gate_modal_title')} on:close>
+    <p class="modal-description">{$_('thread_gate_modal_description')}</p>
 
-        <div class="settings-group">
-            <div class="settings-group__content">
-                <div class="big-radio-group big-radio-group--vertical">
-                    <div class="big-radio big-radio--slim big-radio--fullwidth">
-                        <input type="radio" id="everybody" name="threadGate" bind:group={_threadGate} value={'everybody'} on:click={() => {custom = []}}>
-                        <label for="everybody">
+    <div class="settings-group">
+        <div class="settings-group__content">
+            <div class="big-radio-group big-radio-group--vertical">
+                <div class="big-radio big-radio--slim big-radio--fullwidth">
+                    <input type="radio" id="everybody" name="threadGate" bind:group={_threadGate} value={'everybody'} on:click={() => {custom = []}}>
+                    <label for="everybody">
                                 <span class="big-radio__ui">
                                     <span class="big-radio__check">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--check-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
@@ -73,12 +66,12 @@
                                         <span class="big-radio__title">{$_('thread_gate_everybody_title')}</span>
                                     </span>
                                 </span>
-                        </label>
-                    </div>
+                    </label>
+                </div>
 
-                    <div class="big-radio big-radio--slim big-radio--fullwidth">
-                        <input type="radio" id="nobody" name="threadGate" bind:group={_threadGate} value={'nobody'} on:click={() => {custom = []; _threadGate = 'nobody'}}>
-                        <label for="nobody">
+                <div class="big-radio big-radio--slim big-radio--fullwidth">
+                    <input type="radio" id="nobody" name="threadGate" bind:group={_threadGate} value={'nobody'} on:click={() => {custom = []; _threadGate = 'nobody'}}>
+                    <label for="nobody">
                                 <span class="big-radio__ui">
                                     <span class="big-radio__check">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--check-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
@@ -87,96 +80,49 @@
                                          <span class="big-radio__title">{$_('thread_gate_nobody_title')}</span>
                                     </span>
                                 </span>
+                    </label>
+                </div>
+            </div>
+
+            <section class="thread-gate-custom">
+                <h4 class="thread-gate-custom-title">{$_('thread_gate_custom_title')}</h4>
+                <p class="modal-description">{$_('thread_gate_custom_description')}</p>
+
+                <div class="thread-gate-custom-list">
+                    <div class="checkbox checkbox--padding checkbox--fullwidth">
+                        <input type="checkbox" class="checkbox__input" bind:group={custom} value={'mention'} on:change={handleCustomChange} id="mention">
+                        <label class="checkbox__label" for="mention">
+                            <span class="checkbox__ui"></span>
+                            <span class="checkbox__text">{$_('thread_gate_mention_title')}</span>
                         </label>
                     </div>
-                </div>
 
-                <section class="thread-gate-custom">
-                    <h4 class="thread-gate-custom-title">{$_('thread_gate_custom_title')}</h4>
-                    <p class="modal-description">{$_('thread_gate_custom_description')}</p>
-
-                    <div class="thread-gate-custom-list">
-                        <div class="checkbox checkbox--padding checkbox--fullwidth">
-                            <input type="checkbox" class="checkbox__input" bind:group={custom} value={'mention'} on:change={handleCustomChange} id="mention">
-                            <label class="checkbox__label" for="mention">
-                                <span class="checkbox__ui"></span>
-                                <span class="checkbox__text">{$_('thread_gate_mention_title')}</span>
-                            </label>
-                        </div>
-
-                        <div class="checkbox checkbox--padding checkbox--fullwidth">
-                            <input type="checkbox" class="checkbox__input" bind:group={custom} value={'following'} on:change={handleCustomChange} id="following">
-                            <label class="checkbox__label" for="following">
-                                <span class="checkbox__ui"></span>
-                                <span class="checkbox__text">{$_('thread_gate_following_title')}</span>
-                            </label>
-                        </div>
-
-                        {#if officialLists.length}
-                            {#each officialLists as list}
-                                <div class="checkbox checkbox--padding checkbox--fullwidth">
-                                    <input type="checkbox" class="checkbox__input" bind:group={custom} value={list.uri} on:change={handleCustomChange} id={list.uri}>
-                                    <label class="checkbox__label" for={list.uri}>
-                                        <span class="checkbox__ui"></span>
-                                        <span class="checkbox__text"><List color="var(--text-color-3)" size="18"></List>{list.name}</span>
-                                    </label>
-                                </div>
-                            {/each}
-                        {/if}
+                    <div class="checkbox checkbox--padding checkbox--fullwidth">
+                        <input type="checkbox" class="checkbox__input" bind:group={custom} value={'following'} on:change={handleCustomChange} id="following">
+                        <label class="checkbox__label" for="following">
+                            <span class="checkbox__ui"></span>
+                            <span class="checkbox__text">{$_('thread_gate_following_title')}</span>
+                        </label>
                     </div>
-                </section>
-            </div>
-        </div>
 
-        <div class="thread-gate-modal-close">
-            <div role="button" class="button button--sm button--border" on:click={close}>{$_('close_button')}</div>
+                    {#if officialLists.length}
+                        {#each officialLists as list}
+                            <div class="checkbox checkbox--padding checkbox--fullwidth">
+                                <input type="checkbox" class="checkbox__input" bind:group={custom} value={list.uri} on:change={handleCustomChange} id={list.uri}>
+                                <label class="checkbox__label" for={list.uri}>
+                                    <span class="checkbox__ui"></span>
+                                    <span class="checkbox__text"><List color="var(--text-color-3)" size="18"></List>{list.name}</span>
+                                </label>
+                            </div>
+                        {/each}
+                    {/if}
+                </div>
+            </section>
         </div>
     </div>
-
-    <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
-</dialog>
+</Modal>
 
 <style lang="postcss">
-    .thread-gate-modal {
-        margin: auto;
-        overflow: auto;
-        border: none;
-        border-radius: var(--border-radius-3);
-
-        &::backdrop {
-            background-color: rgba(0, 0, 0, .6);
-        }
-
-        @media (max-width: 767px) {
-            display: block;
-            overscroll-behavior-y: none;
-        }
-    }
-
-    .thread-gate-modal-contents {
-        padding: 30px;
-        border-radius: 10px;
-        background-color: var(--bg-color-1);
-        width: 500px;
-        max-width: 100%;
-        position: relative;
-        z-index: 2;
-        color: var(--text-color-1);
-
-        @media (max-width: 767px) {
-            width: 100%;
-        }
-    }
-
-    .thread-gate-modal-close {
-        text-align: center;
-        margin-top: 20px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-    }
-
     .thread-gate-custom {
         margin-top: 8px;
         background-color: var(--bg-color-3);
