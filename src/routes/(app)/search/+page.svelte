@@ -96,10 +96,10 @@
     }
 </script>
 
-<!--
-<button on:click={() => {toggleSort('latest')}}>latest</button>
-<button on:click={() => {toggleSort('top')}}>top</button>
--->
+<div class="sort-toggle-nav">
+    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={sort === 'latest'} on:click={() => {toggleSort('latest')}}>{$_('search_sort_latest')}</button>
+    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={sort === 'top'} on:click={() => {toggleSort('top')}}>{$_('search_sort_top')}</button>
+</div>
 
 {#key sort}
     <div class="timeline">
@@ -145,6 +145,28 @@
 
         .button {
             pointer-events: auto;
+        }
+    }
+
+    .sort-toggle-nav {
+        position: absolute;
+        right: 16px;
+        top: 10px;
+        border: 1px solid var(--border-color-1);
+        background-color: var(--bg-color-2);
+        height: 32px;
+        border-radius: var(--border-radius-3);
+        overflow: hidden;
+
+        &__item {
+            height: 100%;
+            width: 60px;
+            font-size: 14px;
+            
+            &--active {
+                background-color: var(--primary-color);
+                color: #fff;
+            }
         }
     }
 </style>

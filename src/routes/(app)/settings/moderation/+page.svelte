@@ -83,7 +83,7 @@
     <div class="moderation-settings-groups">
       <div class="moderation-settings-group">
         <h3 class="moderation-settings-group__title">{$_('labeling_porn')}</h3>
-        <p class="moderation-settings-group__text">{$_('nsfw_description')}</p>
+        <p class="moderation-settings-group__text">{$_('labeling_porn_description')}</p>
 
         <div class="moderation-settings-group__content">
           <LabelSelector name="nsfw" bind:value={labels.nsfw}></LabelSelector>
@@ -92,7 +92,7 @@
 
       <div class="moderation-settings-group">
         <h3 class="moderation-settings-group__title">{$_('labeling_sexual')}</h3>
-        <p class="moderation-settings-group__text">{$_('suggestive_description')}</p>
+        <p class="moderation-settings-group__text">{$_('labeling_sexual_description')}</p>
 
         <div class="moderation-settings-group__content">
           <LabelSelector name="suggestive" bind:value={labels.suggestive}></LabelSelector>
@@ -101,7 +101,7 @@
 
       <div class="moderation-settings-group">
         <h3 class="moderation-settings-group__title">{$_('labeling_gore')}</h3>
-        <p class="moderation-settings-group__text">{$_('gore_description')}</p>
+        <p class="moderation-settings-group__text">{$_('labeling_gore_description')}</p>
 
         <div class="moderation-settings-group__content">
           <LabelSelector name="gore" bind:value={labels.gore}></LabelSelector>
@@ -110,7 +110,7 @@
 
       <div class="moderation-settings-group">
         <h3 class="moderation-settings-group__title">{$_('labeling_nudity')}</h3>
-        <p class="moderation-settings-group__text">{$_('nudity_description')}</p>
+        <p class="moderation-settings-group__text">{$_('labeling_nudity_description')}</p>
 
         <div class="moderation-settings-group__content">
           <LabelSelector name="nudity" bind:value={labels.nudity}></LabelSelector>

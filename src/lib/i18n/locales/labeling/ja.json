@@ -22,5 +22,9 @@
   "labeling_engagement-farming": "フォロー稼ぎ",
   "labeling_inauthentic": "不正なボット",
   "labeling_sexual-figurative": "微エロ",
-  "labeling_gore": "ゴア表現"
+  "labeling_gore": "ゴア表現",
+  "labeling_porn_description": "明確なセクシャル画像。ポルノなど。",
+  "labeling_sexual_description": "ヌードは含みません。",
+  "labeling_nudity_description": "性的ではない、アート作品も含みます。",
+  "labeling_gore_description": "ゴア、自傷、拷問など。"
 }

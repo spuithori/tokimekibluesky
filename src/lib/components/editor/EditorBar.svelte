@@ -19,22 +19,18 @@ let isThreadGateOpen = false;
 const selfLabelsChoices = [
     {
         name: $_('labeling_sexual'),
-        description: $_('self_labels_description_2'),
         val: 'sexual',
     },
     {
         name: $_('labeling_nudity'),
-        description: $_('self_labels_description_2'),
         val: 'nudity',
     },
     {
         name: $_('labeling_porn'),
-        description: $_('self_labels_description_2'),
         val: 'porn',
     },
     {
         name: $_('labeling_gore'),
-        description: $_('self_labels_description_2'),
         val: 'gore',
     },
 ];

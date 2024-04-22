@@ -88,16 +88,6 @@
         isMenuOpen = false;
     }
 
-    function handleAddSingleList() {
-        try {
-            const lists = addSingleList(profile.displayName || profile.handle, profile.did, $agent.did());
-            userLists.set(lists);
-            toast.success($_('success_add_single_list'));
-        } catch (e) {
-
-        }
-    }
-
     function repostMute() {
         $repostMutes = [...$repostMutes, profile.did];
         toast.success($_('success_repost_mute'));

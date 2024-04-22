@@ -168,6 +168,7 @@
 
         &__input {
             border: 1px solid var(--border-color-1);
+            background-color: var(--bg-color-2);
             height: 40px;
             border-radius: 20px;
             padding: 0 40px 0 20px;

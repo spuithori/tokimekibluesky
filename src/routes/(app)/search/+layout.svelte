@@ -55,11 +55,11 @@ function handleChangeParams(searchQuery) {
 </PageModal>
 
 <style lang="postcss">
-  .page-search-content {
-      margin-top: 16px;
+  .page-search {
+      position: relative;
   }
 
-  .search-form-wrap {
-
+  .page-search-content {
+      margin-top: 16px;
   }
 </style>

@@ -151,16 +151,6 @@ async function copyDid() {
     isMenuOpen = false;
 }
 
-function handleAddSingleList() {
-    try {
-        const lists = addSingleList(profile.displayName || profile.handle, profile.did, $agent.did());
-        userLists.set(lists);
-        toast.success($_('success_add_single_list'));
-    } catch (e) {
-
-    }
-}
-
 function toggleHideCounts() {
     if (!$settings.general?.hideProfileCounts) {
         $settings.general.hideProfileCounts = false;
