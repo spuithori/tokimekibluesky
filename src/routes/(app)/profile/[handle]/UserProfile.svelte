@@ -42,18 +42,31 @@ function detectTextArray(text) {
 }
 
 async function getFirstRecord(handle) {
-    return await _agent.api.com.atproto.repo.listRecords({
-        collection: "app.bsky.feed.post",
-        limit: 1,
-        reverse: true,
-        repo: handle});
+    try {
+        return await _agent.api.com.atproto.repo.listRecords({
+            collection: "app.bsky.feed.post",
+            limit: 1,
+            reverse: true,
+            repo: handle});
+    } catch (e) {
+        return null;
+    }
 }
 
 async function getFirstPostData(handle = $page.params.handle) {
-    const firstPost = await getFirstRecord(handle);
-    const firstPostDateRaw = firstPost.data.records[0].value.createdAt;
-    firstPostDate = format(parseISO(firstPostDateRaw), 'yyyy/MM/dd');
-    firstPostUri = '/profile/' + handle + '/post/' + firstPost.data.records[0].uri.split('/').slice(-1)[0];
+    try {
+        const firstPost = await getFirstRecord(handle);
+
+        if (!firstPost) {
+            return false;
+        }
+        
+        const firstPostDateRaw = firstPost.data.records[0].value.createdAt;
+        firstPostDate = format(parseISO(firstPostDateRaw), 'yyyy/MM/dd');
+        firstPostUri = '/profile/' + handle + '/post/' + firstPost.data.records[0].uri.split('/').slice(-1)[0];
+    } catch (e) {
+
+    }
 }
 
 async function getProfile(handle) {
