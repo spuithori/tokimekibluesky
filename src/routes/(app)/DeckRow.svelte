@@ -127,15 +127,17 @@
     }
 
     onMount(() => {
-        const options = {
-            threshold: 0.5,
-        }
-        observer = new IntersectionObserver(intersect, options);
-        if (column.scrollElement) {
-            observer.observe(column.scrollElement);
-        }
+        if (!isJunk) {
+            const options = {
+                threshold: 0.5,
+            }
+            observer = new IntersectionObserver(intersect, options);
+            if (column.scrollElement) {
+                observer.observe(column.scrollElement);
+            }
 
-        $columns[index].lastRefresh = new Date().toISOString();
+            $columns[index].lastRefresh = new Date().toISOString();
+        }
     })
 
     onDestroy(() => {
