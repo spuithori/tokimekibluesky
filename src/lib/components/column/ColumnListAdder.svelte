@@ -10,6 +10,7 @@
     import IconColumnsLike from "$lib/icons/columns/IconColumnsLike.svelte";
     import IconColumnsMyPost from "$lib/icons/columns/IconColumnsMyPost.svelte";
     import IconColumnsMyMedia from "$lib/icons/columns/IconColumnsMyMedia.svelte";
+    import IconColumnsAuthor from "$lib/icons/columns/IconColumnsAuthor.svelte";
 
     const dispatch = createEventDispatcher();
     export let items;
@@ -74,6 +75,8 @@
                 <IconColumnsMyPost></IconColumnsMyPost>
             {:else if (column.algorithm.type === 'myMedia')}
                 <IconColumnsMyMedia></IconColumnsMyMedia>
+            {:else if (column.algorithm.type === 'author')}
+                <IconColumnsAuthor></IconColumnsAuthor>
             {:else}
                 <IconColumnsHome></IconColumnsHome>
             {/if}

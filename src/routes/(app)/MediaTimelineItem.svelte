@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { fade } from 'svelte/transition';
     import {agent, settings} from '$lib/stores';
     import { AppBskyFeedDefs } from '@atproto/api';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';

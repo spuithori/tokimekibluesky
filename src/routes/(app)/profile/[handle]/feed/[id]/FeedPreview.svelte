@@ -1,38 +1,34 @@
 <script lang="ts">
-  import {agent} from "$lib/stores";
+  import {agent, junkColumns} from "$lib/stores";
   import {onMount} from "svelte";
-  import InfiniteLoading from "svelte-infinite-loading";
-  import TimelineItem from "../../../../TimelineItem.svelte";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
+  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import DeckRow from "../../../../DeckRow.svelte";
 
   export let id;
   export let handle;
   export let title = '';
 
-  let timeline = [];
-  let cursor = undefined;
   let feed;
   let savedFeeds = [];
 
-  const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-      try {
-          const uri = 'at://' + handle + '/app.bsky.feed.generator/' + id;
-          const res = await $agent.getTimeline({limit: 20, cursor: cursor, algorithm: {
-                  type: 'custom',
-                  algorithm: uri,
-              }});
-          cursor = res.data.cursor;
-          timeline = [...timeline, ...res.data.feed]
-
-          if (cursor && res.data.feed.length) {
-              loaded();
-          } else {
-              complete();
+  if ($junkColumns.findIndex(_column => _column.id === 'feed_' + id) === -1) {
+      junkColumns.set([...$junkColumns, {
+          id: 'feed_' + id,
+          algorithm: {
+              algorithm: 'at://' + handle + '/app.bsky.feed.generator/' + id,
+              type: 'custom',
+              name: '',
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: $agent.did(),
+          handle: $agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
           }
-      } catch (e) {
-          console.error(e);
-          complete();
-      }
+      }]);
   }
 
   async function getSavedFeeds () {
@@ -63,15 +59,9 @@
   {/if}
 </div>
 
-<div class="timeline timeline--main">
-  {#each timeline as data, index (data)}
-    <TimelineItem data={ data } index={index}></TimelineItem>
-  {/each}
-
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-  </InfiniteLoading>
-</div>
+{#if ($junkColumns.findIndex(_column => _column.id === 'feed_' + id) !== -1)}
+  <DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'feed_' + id)]} isJunk={true} name={title}></DeckRow>
+{/if}
 
 <style lang="postcss">
     .page-feeds-item {

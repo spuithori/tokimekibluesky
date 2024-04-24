@@ -58,8 +58,4 @@ function handleChangeParams(searchQuery) {
   .page-search {
       position: relative;
   }
-
-  .page-search-content {
-      margin-top: 16px;
-  }
 </style>

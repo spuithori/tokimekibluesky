@@ -1,17 +1,21 @@
 <script lang="ts">
-    import {agent, columns, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
+    import {agent, columns, junkColumns, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
     import {createEventDispatcher, onDestroy} from "svelte";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import {playSound} from "$lib/sounds";
-    const dispatch = createEventDispatcher();
+    import { createLongPress } from 'svelte-interactions';
 
+    const { longPressAction } = createLongPress();
+    const dispatch = createEventDispatcher();
 
     export let column;
     export let index;
     export let _agent = $agent;
     export let unique = Symbol();
+    export let isJunk = false;
     const host = _agent.agent.service.host === 'bsky.social' ? 'bsky.network' : _agent.agent.service.host;
 
+    let __columns = isJunk ? junkColumns : columns;
     let isRefreshing = false;
 
     $: releasePosts(column.data.feed);
@@ -40,7 +44,7 @@
                 return false;
             }
 
-            await columns.update(_columns => {
+            await __columns.update(_columns => {
                 const newFeed = res.data.feed.filter(feed => {
                     return !column.data.feed.some(item => isDuplicatePost(item, feed));
                 }).map(feed => ({...feed, memoryCursor: res.data.cursor}));
@@ -57,10 +61,10 @@
                 });
 
                 if (column.data.feed.length === 0) {
-                    _columns[index].data.cursor = res.data.cursor;
+                    _columns[_columns.findIndex(_column => _column.id === column.id)].data.cursor = res.data.cursor;
                 }
 
-                _columns[index].data.feed = [...newFeed, ...column.data.feed];
+                _columns[_columns.findIndex(_column => _column.id === column.id)].data.feed = [...newFeed, ...column.data.feed];
                 return _columns;
             });
 
@@ -93,7 +97,7 @@
 
             const { notifications: notificationGroup, feedPool: newFeedPool } = await getNotifications(notifications, true, _agent, column.data.feedPool || []);
 
-            await columns.update(_columns => {
+            await __columns.update(_columns => {
                 _columns[index].data.feed = notifications;
                 _columns[index].data.notificationGroup = notificationGroup;
                 _columns[index].data.feedPool = newFeedPool;
@@ -150,6 +154,23 @@
         }
     }
 
+    function forceRefresh() {
+        isRefreshing = true;
+        column.data.feed = [];
+        column.data.cursor = undefined;
+
+        if (column.algorithm.type === 'notification') {
+            column.data.feedPool = [];
+            column.data.notificationGroup = [];
+        }
+
+        unique = Symbol();
+
+        setTimeout(() => {
+            isRefreshing = false;
+        }, 3000);
+    }
+
     function getScrollTop() {
         const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
         return el.scrollTop;
@@ -179,7 +200,7 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-{#if (column.algorithm.type !== 'bookmark' && column.algorithm.type !== 'thread')}
+{#if (column.algorithm.type !== 'thread')}
   {#if (column.settings?.autoRefresh !== -1 && column.algorithm.type !== 'realtime')}
     <button
         class="refresh-button"
@@ -188,6 +209,8 @@
         aria-label="Refresh"
         on:click={() => {refresh(false)}}
         disabled={isRefreshing}
+        use:longPressAction
+        on:longpress={forceRefresh}
     >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
           <path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>

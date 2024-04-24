@@ -28,7 +28,34 @@
 }
 
 .infinite-nomore {
-    margin-top: 15px;
+    margin-top: 16px;
+    color: var(--text-color-3);
+    letter-spacing: .05em;
+
+    span {
+        position: relative;
+
+        &::before,
+        &::after {
+            content: '';
+            display: block;
+            position: absolute;
+            top: 2px;
+            bottom: 0;
+            height: 1px;
+            width: 32px;
+            background-color: var(--border-color-1);
+            margin: auto;
+        }
+
+        &::before {
+            right: calc(100% + 8px);
+        }
+
+        &::after {
+            left: calc(100% + 8px);
+        }
+    }
 }
 
 .mb10 {

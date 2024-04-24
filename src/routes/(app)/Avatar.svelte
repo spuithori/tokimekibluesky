@@ -1,6 +1,7 @@
 <script lang="ts">
   import ProfileCard from "./ProfileCard.svelte";
   import {agent, isDataSaving} from '$lib/stores';
+  import {goto} from "$app/navigation";
 
   export let _agent = $agent;
   export let avatar;
@@ -29,10 +30,14 @@
           isProfileShown = false;
       }, 350)
   }
+
+  function handleClick() {
+      goto(href);
+  }
 </script>
 
 <div class="avatar">
-  <a href={href} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave}>
+  <a href={href} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave} on:click|preventDefault={handleClick}>
     {#if (avatar && !$isDataSaving)}
       <img loading="lazy" src="{avatar}" alt="">
     {/if}

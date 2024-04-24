@@ -3,7 +3,7 @@
     import TimelineItem from './TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
     import MediaTimelineItem from './MediaTimelineItem.svelte';
-    import {getBookmarkFeed} from "$lib/bookmark";
+    import {getBookmarkFeed, getBookmarkName} from "$lib/bookmark";
 
     export let _agent = $agent;
     export let column;
@@ -17,6 +17,13 @@
 
     if(!column.data.feed) {
         column.data.feed = [];
+    }
+
+    if (!column.algorithm.name) {
+        getBookmarkName(column.algorithm.list)
+            .then(value => {
+                column.algorithm.name = value;
+            })
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {

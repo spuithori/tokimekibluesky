@@ -1,26 +1,37 @@
 <script lang="ts">
 import type { LayoutData } from './$types';
-import {agent, isAfterReload, settings} from '$lib/stores';
-import TimelineItem from "../../TimelineItem.svelte";
-import {_} from 'svelte-i18n';
+import {agent, isAfterReload, settings, junkColumns} from '$lib/stores';
 import type { Snapshot } from './$types';
-import { toast } from "svelte-sonner";
-import InfiniteLoading from "svelte-infinite-loading";
-import {isReasonRepost} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
+import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+import DeckRow from "../../DeckRow.svelte";
 
 export let data: LayoutData;
-
-let feeds = [];
-let prevTreePosts = [];
-let cursor = '';
 let scrollY = 0;
-let isFiltered = false;
+
+if ($junkColumns.findIndex(_column => _column.id === 'profile_' + data.params.handle) === -1) {
+    junkColumns.set([...$junkColumns, {
+        id: 'profile_' + data.params.handle,
+        algorithm: {
+            algorithm: data.params.handle,
+            type: 'author',
+            name: '@' + data.params.handle,
+        },
+        style: 'default',
+        settings: defaultDeckSettings,
+        did: $agent.did(),
+        handle: $agent.handle(),
+        data: {
+            feed: [],
+            cursor: '',
+        }
+    }]);
+}
 
 export const snapshot: Snapshot = {
-    capture: () => [feeds, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
+    capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
     restore: (value) => {
       if(!$isAfterReload) {
-        [feeds, cursor, scrollY] = value;
+        [scrollY] = value;
 
         setTimeout(() => {
             if ($settings.design.layout === 'decks') {
@@ -34,102 +45,12 @@ export const snapshot: Snapshot = {
       isAfterReload.set(false);
     }
 };
-
-const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-    try {
-        const raw = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: data.params.handle, limit: 30, cursor: cursor});
-        cursor = raw.data.cursor;
-
-        feeds =  [...feeds, ...raw.data.feed].filter((feed, index, _feeds) => {
-            if (isReasonRepost(feed.reason)) {
-                return true;
-            }
-
-            return !_feeds.some(_feed => _feed?.reply?.parent?.uri === feed?.post?.uri);
-        }).map((feed, index, _feeds) => {
-            const duplicate = feed.reply && _feeds.slice(0, index).some(_feed => _feed?.reply?.root?.uri === feed?.reply?.root?.uri);
-
-            return duplicate ? { ...feed, isRootHide: true } : feed;
-        });
-
-        if (cursor) {
-            loaded();
-        } else {
-            complete();
-        }
-    } catch(e) {
-        if (e.error === 'BlockedActor') {
-            toast.error($_('error_get_posts_because_blocking'));
-            complete();
-        }
-
-        if (e.error === 'BlockedByActor') {
-            toast.error($_('error_get_posts_because_blocked'));
-            complete();
-        }
-    }
-}
 </script>
 
 <svelte:head>
   <title>{data.params.handle} - TOKIMEKI</title>
 </svelte:head>
 
-<div class="timeline">
-  <dl class="profile-posts-nav">
-    <dt class="profile-posts-nav__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-filter"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></dt>
-    <dd class="profile-posts-nav__content">
-      <button class="profile-posts-nav__button" on:click={() => {isFiltered = false}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
-      <button class="profile-posts-nav__button" on:click={() => {isFiltered = true}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
-    </dd>
-  </dl>
-
-  {#key isFiltered}
-    {#each feeds as data, index}
-      <TimelineItem
-          data={data}
-          isProfile={true}
-          isReplyExpanded={!data.isRootHide}
-          index={index}
-          hideReply={isFiltered ? 'me' : 'all'}
-          hideRepost={isFiltered ? 'none' : 'all'}
-      ></TimelineItem>
-    {/each}
-  {/key}
-
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-  </InfiniteLoading>
-</div>
-
-<style lang="postcss">
-  .profile-posts-nav {
-      display: flex;
-      align-items: center;
-      color: var(--text-color-3);
-      font-size: 14px;
-      gap: 8px;
-      margin-bottom: 16px;
-
-      &__content {
-          display: flex;
-          gap: 4px;
-      }
-
-      &__button {
-          display: flex;
-          align-items: center;
-          padding: 0 8px;
-          border: 1px solid var(--primary-color);
-          height: 28px;
-          border-radius: 14px;
-          font-size: 12px;
-          color: var(--primary-color);
-
-          &--active {
-              background-color: var(--primary-color);
-              color: var(--bg-color-1);
-          }
-      }
-  }
-</style>
+{#if ($junkColumns.findIndex(_column => _column.id === 'profile_' + data.params.handle) !== -1)}
+  <DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'profile_' + data.params.handle)]} isJunk={true}></DeckRow>
+{/if}

@@ -81,6 +81,8 @@ export const syncColumns = derived(columns, ($columns, set) => {
     set(_columns);
 });
 
+export const junkColumns = writable<columns[]>([]);
+
 export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
 export const agent = writable<Agent>(undefined);
@@ -159,6 +161,7 @@ const defaultSettings = {
         mastodon: true,
         bluemotion: true,
         giphy: true,
+        tenor: true,
     },
     langFilter: [],
     version: 2,

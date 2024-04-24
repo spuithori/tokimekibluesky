@@ -1,36 +1,44 @@
 <script lang="ts">
     import { page } from '$app/stores';
-    import TimelineItem from '../TimelineItem.svelte';
-    import {agent, columns} from '$lib/stores';
-    import { parseISO } from 'date-fns';
+    import {agent, isAfterReload, junkColumns, settings} from '$lib/stores';
     let feeds = [];
     let cursor = 0;
     let isLoaded = false;
     let isColumnAdded = false;
     let isSafety = false;
     let sort: 'top' | 'latest' = 'latest';
-    import InfiniteLoading from "svelte-infinite-loading";
     import {_} from "svelte-i18n";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-    import { toast } from "svelte-sonner";
     import { PUBLIC_SUICIDE_WORDS } from '$env/static/public';
     import SuicideSafety from "$lib/components/safety/SuicideSafety.svelte";
+    import type { Snapshot } from './$types';
+    import DeckRow from "../DeckRow.svelte";
 
-    const words = PUBLIC_SUICIDE_WORDS.split(',');
-    if (words.includes($page.url.searchParams.get('q'))) {
-        isSafety = true;
-    }
+    export const snapshot: Snapshot = {
+        capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
+        restore: (value) => {
+            if(!$isAfterReload) {
+                [scrollY] = value;
 
-    async function addColumn() {
-        if (!$page.url.searchParams.get('q')) {
-            return false;
+                setTimeout(() => {
+                    if ($settings.design.layout === 'decks') {
+                        document.querySelector('.modal-page-content').scroll(0, scrollY);
+                    } else {
+                        document.querySelector(':root').scroll(0, scrollY);
+                    }
+                }, 0)
+            }
+
+            isAfterReload.set(false);
         }
+    };
 
-        const _column = {
-            id: self.crypto.randomUUID(),
+    if ($page.url.searchParams.get('q') && $junkColumns.findIndex(_column => _column.id === 'search_' + $page.url.searchParams.get('q')) === -1) {
+        junkColumns.set([...$junkColumns, {
+            id: $page.url.searchParams.get('q') ? 'search_' + $page.url.searchParams.get('q') : 'search_empty',
             algorithm: {
-                type: 'search',
                 algorithm: $page.url.searchParams.get('q') || '',
+                type: 'search',
                 name: $_('search') + ' "' + $page.url.searchParams.get('q') + '"',
             },
             style: 'default',
@@ -41,48 +49,12 @@
                 feed: [],
                 cursor: '',
             }
-        }
-
-        try {
-            $columns = [...$columns, _column];
-
-            toast.success($_('column_added'));
-            isColumnAdded = true;
-        } catch (e) {
-            console.error(e);
-            toast.error('Error: ' + e);
-        }
+        }]);
     }
 
-    const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        try {
-            let res = await $agent.agent.api.app.bsky.feed.searchPosts({q: $page.url.searchParams.get('q') || '', limit: 20, cursor: cursor, sort: sort});
-            cursor = res.data.cursor;
-
-            let tempFeeds = [];
-            res.data.posts.forEach(post => {
-                tempFeeds.push({
-                    post: post,
-                })
-            });
-            tempFeeds = tempFeeds.filter(feed => feed.post?.indexedAt);
-            tempFeeds.sort((a, b) => {
-                return parseISO(b.post.indexedAt).getTime() - parseISO(a.post.indexedAt).getTime();
-            });
-            tempFeeds = tempFeeds;
-
-            feeds = [...feeds, ...tempFeeds];
-
-            if (cursor) {
-                loaded();
-            } else {
-                complete();
-            }
-
-            isLoaded = true;
-        } catch (e) {
-            complete();
-        }
+    const words = PUBLIC_SUICIDE_WORDS.split(',');
+    if (words.includes($page.url.searchParams.get('q'))) {
+        isSafety = true;
     }
 
     function toggleSort(_sort) {
@@ -90,9 +62,14 @@
             return false;
         }
 
-        feeds = [];
-        cursor = 0;
         sort = _sort;
+
+        if ($page.url.searchParams.get('q') && $junkColumns.findIndex(_column => _column.id === 'search_' + $page.url.searchParams.get('q')) !== -1) {
+            const index = $junkColumns.findIndex(_column => _column.id === 'search_' + $page.url.searchParams.get('q'));
+            $junkColumns[index].algorithm.sort = _sort;
+            $junkColumns[index].data.feed = [];
+            $junkColumns[index].data.cursor = 0;
+        }
     }
 </script>
 
@@ -101,26 +78,20 @@
     <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={sort === 'top'} on:click={() => {toggleSort('top')}}>{$_('search_sort_top')}</button>
 </div>
 
-{#key sort}
+{#if isSafety}
     <div class="timeline">
-        {#if isSafety}
-            <SuicideSafety></SuicideSafety>
-        {/if}
-
-        {#each feeds as data (data)}
-            <TimelineItem data={ data }></TimelineItem>
-        {:else}
-        {/each}
-
-        <InfiniteLoading on:infinite={handleLoadMore}>
-            <p slot="noMore" class="infinite-nomore">
-                {$_('no_more')}
-            </p>
-            <p slot="noResults" class="infinite-nomore">
-                {$_('no_results_search')}
-            </p>
-        </InfiniteLoading>
+        <SuicideSafety></SuicideSafety>
     </div>
+{/if}
+
+{#key sort}
+    {#if ($page.url.searchParams.get('q') && $junkColumns.findIndex(_column => _column.id === 'search_' + $page.url.searchParams.get('q')) !== -1)}
+        <DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'search_' + $page.url.searchParams.get('q'))]} isJunk={true}></DeckRow>
+    {:else}
+        <div class="search-empty">
+            <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="var(--border-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rainbow"><path d="M22 17a10 10 0 0 0-20 0"/><path d="M6 17a6 6 0 0 1 12 0"/><path d="M10 17a2 2 0 0 1 4 0"/></svg>
+        </div>
+    {/if}
 {/key}
 
 {#if (isLoaded)}
@@ -130,6 +101,14 @@
 {/if}
 
 <style lang="postcss">
+    .search-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 0;
+    }
+
     .search-column-adder {
         position: sticky;
         bottom: 24px;

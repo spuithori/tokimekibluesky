@@ -3,7 +3,6 @@
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
-  import addSingleList from "$lib/components/list/addSingleList";
   import {createEventDispatcher} from "svelte";
   import {ShieldBan, VolumeX} from "lucide-svelte";
   const dispatch = createEventDispatcher();

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {_} from "svelte-i18n";
   import {agent, realtime} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
   import InfiniteLoading from 'svelte-infinite-loading';
@@ -8,10 +9,14 @@
   import {assignCursorFromLatest} from "$lib/components/column/releaseTimeline";
   import {playSound} from "$lib/sounds";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
+  import {isReasonRepost} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
+  import {toast} from "svelte-sonner";
 
   export let column;
   export let index;
   export let _agent = $agent;
+  export let hideReply;
+  export let hideRepost;
 
   let isActorsListFinished = false;
   let actors = [];
@@ -72,15 +77,40 @@
       column.data.feed = column.data.feed;
   }
 
+  function isDuplicatePost(oldFeed, newFeed) {
+      return newFeed.reason
+          ? oldFeed.post.uri === newFeed.post.uri && oldFeed.reason?.indexedAt === newFeed.reason.indexedAt
+          : oldFeed.post.uri === newFeed.post.uri;
+  }
+
   const handleLoadMore = async ({ detail: { loaded, complete } }) => {
       try {
           const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm});
           column.data.cursor = res.data.cursor;
-          const feed = res.data.feed.map(item => {
+
+          const feed = res.data.feed.filter(feed => {
+              return !column.data.feed.some(item => isDuplicatePost(item, feed));
+          }).map(item => {
               item.memoryCursor = res.data.cursor;
               return item;
           });
-          column.data.feed = [...column.data.feed, ...feed];
+
+          if (column.algorithm.type === 'author') {
+              column.data.feed =  [...column.data.feed, ...feed].filter((feed, index, _feeds) => {
+                  if (isReasonRepost(feed.reason)) {
+                      return true;
+                  }
+
+                  return !_feeds.some(_feed => _feed?.reply?.parent?.uri === feed?.post?.uri);
+              }).map((feed, index, _feeds) => {
+                  const duplicate = feed.reply && _feeds.slice(0, index).some(_feed => _feed?.reply?.root?.uri === feed?.reply?.root?.uri);
+
+                  return duplicate ? { ...feed, isRootHide: true } : feed;
+              });
+          } else {
+              column.data.feed = [...column.data.feed, ...feed];
+          }
+
           isDividerLoading = false;
 
           if (column.data.cursor) {
@@ -100,6 +130,15 @@
           }
       } catch (e) {
           console.error(e);
+
+          if (e.message === 'BlockedActor') {
+              toast.error($_('error_get_posts_because_blocking'));
+          }
+
+          if (e.message === 'BlockedByActor') {
+              toast.error($_('error_get_posts_because_blocked'));
+          }
+
           complete();
       }
   }
@@ -109,7 +148,16 @@
   {#if (column.style === 'default')}
     {#each column.data.feed as data, index (data)}
       {#if (data?.post?.author?.did)}
-        <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
+        <TimelineItem
+                data={ data }
+                index={index}
+                column={column}
+                {_agent}
+                isProfile={column.algorithm.type === 'author'}
+                isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
+                {hideReply}
+                {hideRepost}
+        ></TimelineItem>
       {/if}
 
       {#if data.isDivider}
@@ -127,7 +175,8 @@
   {/if}
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
+    <p slot="noMore" class="infinite-nomore"><span>{$_('no_more')}</span></p>
+    <p slot="noResults" class="infinite-nomore"><span>{$_('no_more')}</span></p>
   </InfiniteLoading>
 
   {#if (isDividerLoading)}

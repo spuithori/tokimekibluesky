@@ -198,6 +198,12 @@
             aspect-ratio: auto;
         }
     }
+
+    &--tenor {
+        .timeline-external__image {
+            aspect-ratio: auto;
+        }
+    }
 }
 
 .timeline-twitter-external {

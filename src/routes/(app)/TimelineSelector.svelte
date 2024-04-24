@@ -7,6 +7,8 @@
     export let column;
     export let index;
     export let _agent = $agent;
+    export let hideReply;
+    export let hideRepost;
 </script>
 
 <div class="timeline-selector-wrap">
@@ -15,6 +17,6 @@
   {:else if (column.algorithm.type === 'bookmark')}
     <BookmarkTimeline column={column} index={index} {_agent}></BookmarkTimeline>
   {:else}
-    <Timeline column={column} index={index} {_agent}></Timeline>
+    <Timeline column={column} index={index} {_agent} {hideReply} {hideRepost}></Timeline>
   {/if}
 </div>

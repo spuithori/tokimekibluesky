@@ -51,7 +51,14 @@ export class Agent {
 
             return res;
         } catch (e) {
-            // toast.error('Error');
+            if (e.error === 'BlockedActor') {
+                throw new Error('BlockedActor');
+            }
+
+            if (e.error === 'BlockedByActor') {
+                throw new Error('BlockedByActor');
+            }
+
             console.error(e);
             return undefined;
         }
@@ -72,7 +79,7 @@ export class Agent {
             case 'like':
                 return await this.agent.api.app.bsky.feed.getActorLikes({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string});
             case 'search':
-                const res =  await this.agent.api.app.bsky.feed.searchPosts({q: timelineOpt.algorithm.algorithm, limit: timelineOpt.limit, cursor: timelineOpt.cursor});
+                const res =  await this.agent.api.app.bsky.feed.searchPosts({q: timelineOpt.algorithm.algorithm, limit: timelineOpt.limit, cursor: timelineOpt.cursor, sort: timelineOpt.algorithm.sort || 'latest'});
                 let tempFeeds: any[] = [];
                 res.data.posts.forEach(post => {
                     tempFeeds.push({
@@ -90,6 +97,8 @@ export class Agent {
                         feed: tempFeeds,
                     }
                 }
+            case 'author':
+                return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: timelineOpt.algorithm.algorithm as string});
             case 'myPost':
                 return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string});
             case 'myMedia':

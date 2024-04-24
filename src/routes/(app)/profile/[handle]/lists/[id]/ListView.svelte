@@ -1,10 +1,10 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
-  import {agent} from "$lib/stores";
-  import TimelineItem from "../../../../TimelineItem.svelte";
-  import InfiniteLoading from "svelte-infinite-loading";
+  import {agent, junkColumns} from "$lib/stores";
   import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
   import {isDid} from "$lib/util";
+  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import DeckRow from "../../../../DeckRow.svelte";
 
   export let id;
   export let handle;
@@ -31,25 +31,23 @@
           });
   }
 
-  const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-      try {
-          const uri = 'at://' + did + '/app.bsky.graph.list/' + id;
-          const res = await $agent.getTimeline({limit: 20, cursor: cursor, algorithm: {
-                  type: 'officialList',
-                  algorithm: uri,
-              }});
-          cursor = res.data.cursor;
-          timeline = [...timeline, ...res.data.feed];
-
-          if (cursor) {
-              loaded();
-          } else {
-              complete();
+  if ($junkColumns.findIndex(_column => _column.id === 'list_' + id) === -1) {
+      junkColumns.set([...$junkColumns, {
+          id: 'list_' + id,
+          algorithm: {
+              algorithm: 'at://' + did + '/app.bsky.graph.list/' + id,
+              type: 'officialList',
+              name: '',
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: $agent.did(),
+          handle: $agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
           }
-      } catch (e) {
-          console.error(e);
-          complete();
-      }
+      }]);
   }
 
   async function muteList() {
@@ -124,15 +122,7 @@
   </div>
 
   {#if !isModerationList}
-    <div class="timeline timeline--main">
-      {#each timeline as data, index (data)}
-        <TimelineItem data={ data } index={index}></TimelineItem>
-      {/each}
-
-      <InfiniteLoading on:infinite={handleLoadMore}>
-        <p slot="noMore" class="infinite-nomore">もうないよ</p>
-      </InfiniteLoading>
-    </div>
+    <DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'list_' + id)]} isJunk={true} name={title}></DeckRow>
   {:else}
     <div class="mod-list-cover">
       <h2 class="mod-list-cover__title">{$_('mod_list_cover_title')}</h2>

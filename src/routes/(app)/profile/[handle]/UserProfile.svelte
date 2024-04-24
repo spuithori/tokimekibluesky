@@ -1,14 +1,12 @@
 <script lang="ts">
 import {createEventDispatcher} from 'svelte';
 import {_} from 'svelte-i18n';
-import {agent, settings, userLists} from '$lib/stores';
+import {agent, settings} from '$lib/stores';
 import {getTextArray, isUriLocal} from '$lib/richtext';
 import {page} from '$app/stores';
 import {format, parseISO} from 'date-fns';
 import ProfileCardWrapper from '../../ProfileCardWrapper.svelte';
-import { toast } from 'svelte-sonner';
 import {BskyAgent, RichText} from '@atproto/api';
-import addSingleList from "$lib/components/list/addSingleList";
 import { Eye, EyeOff } from 'lucide-svelte';
 
 const dispatch = createEventDispatcher();
@@ -90,78 +88,6 @@ async function getServiceHost() {
 
 function onProfileUpdate() {
     dispatch('refresh');
-}
-
-async function mute() {
-    try {
-        isMenuOpen = false;
-        const mute = await $agent.agent.api.app.bsky.graph.muteActor({actor: handle});
-
-        dispatch('refresh');
-    } catch (e) {
-        console.error(e)
-    }
-}
-
-async function unmute() {
-    try {
-        isMenuOpen = false;
-        const mute = await $agent.agent.api.app.bsky.graph.unmuteActor({actor: handle});
-
-        dispatch('refresh');
-    } catch (e) {
-        console.error(e)
-    }
-}
-
-async function getDidByHandle(handle) {
-    const res = await $agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
-    return res.data.did;
-}
-
-async function block() {
-    try {
-        isMenuOpen = false;
-        const did = await getDidByHandle(handle);
-        const block = await $agent.agent.api.app.bsky.graph.block.create(
-            { repo: $agent.did() },
-            {
-                subject: did,
-                createdAt: new Date().toISOString(),
-            });
-        dispatch('refresh');
-    } catch (e) {
-        console.error(e)
-    }
-}
-
-async function unblock(uri) {
-    try {
-        isMenuOpen = false;
-        const did = await getDidByHandle(handle);
-        const rkey = uri.split('/').slice(-1)[0];
-        const block = await $agent.agent.api.app.bsky.graph.block.delete(
-            {rkey: rkey, repo: $agent.did() },
-            {
-                subject: did,
-                createdAt: new Date().toISOString(),
-            });
-        dispatch('refresh');
-    } catch (e) {
-        console.error(e)
-    }
-}
-
-async function copyDid() {
-    const data = await profile;
-    navigator.clipboard.writeText(data.did)
-        .then(() => {
-            toast.success($_('success_copy_did'));
-        }, () => {
-            toast.success($_('failed_copy'));
-        });
-
-    isMenuOpen = false;
 }
 
 function toggleHideCounts() {

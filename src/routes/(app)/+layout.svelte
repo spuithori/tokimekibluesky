@@ -43,6 +43,7 @@
   import ServerStatusSticker from "$lib/components/status/ServerStatusSticker.svelte";
   import GoogleAnalytics from "$lib/components/utils/GoogleAnalytics.svelte";
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
+  import JunkColumnsObserver from "$lib/components/utils/JunkColumnsObserver.svelte";
 
   let loaded = false;
   let isDarkMode = false;
@@ -422,6 +423,7 @@
   <ProfileStatusObserver></ProfileStatusObserver>
   <LinkWarningModal></LinkWarningModal>
   <ServerStatusSticker></ServerStatusSticker>
+  <JunkColumnsObserver></JunkColumnsObserver>
 </div>
 
 <style lang="postcss">

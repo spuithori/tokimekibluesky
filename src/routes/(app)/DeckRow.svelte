@@ -1,4 +1,5 @@
 <script lang="ts">
+    import {_} from 'svelte-i18n';
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import TimelineSelector from "./TimelineSelector.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
@@ -15,10 +16,13 @@
     import {iconMap} from "$lib/columnIcons";
     import {scrollDirection} from "$lib/scrollDirection";
     import {onDestroy, onMount} from "svelte";
+    import {toast} from "svelte-sonner";
 
     export let column;
-    export let index;
+    export let index = 0;
     export let unique = Symbol();
+    export let isJunk = false;
+    export let name;
 
     const uniqueAgent = $agents.get(getAccountIdByDid($agents, column.did));
     let _agent = uniqueAgent || $agent;
@@ -27,6 +31,18 @@
     let isScrollPaused = false;
     let isIconPickerOpen = false;
     let observer;
+    let isFiltered = false;
+    let isColumnAlreadyAdded = false;
+    let hideReply;
+    let hideRepost;
+
+    $: if (isFiltered) {
+        hideReply = 'me';
+        hideRepost = 'none';
+    } else {
+        hideReply = 'all';
+        hideRepost = 'all';
+    }
 
     if (!column.data) {
         column.data = {
@@ -91,6 +107,25 @@
         })
     }
 
+    function columnAddFromJunk() {
+        const _column = {
+            ...column,
+            id: self.crypto.randomUUID(),
+        }
+
+        _column.algorithm.name = name || column.algorithm.name;
+
+        try {
+            $columns = [...$columns, _column];
+
+            toast.success($_('column_added'));
+            isColumnAlreadyAdded = true;
+        } catch (e) {
+            console.error(e);
+            toast.error('Error: ' + e);
+        }
+    }
+
     onMount(() => {
         const options = {
             threshold: 0.5,
@@ -117,46 +152,68 @@
     class:deck-row--decks={$settings.design?.layout === 'decks'}
     class:deck-row--single={$settings.design?.layout === 'default'}
     class:deck-row--compact={$settings.design?.publishPosition === 'bottom'}
+    class:deck-row--junk={isJunk}
     on:mouseenter={handleMouseEnter}
     on:mouseleave={handleMouseLeave}
     bind:this={column.scrollElement}
     on:scroll={handleScroll}
 >
     <div class="deck-heading">
-        <div class="deck-heading__icon">
-            <button class="deck-heading__icon-picker-button" on:click={() => {isIconPickerOpen = !isIconPickerOpen}}>
-                {#if column.settings?.icon}
-                    <svelte:component this={iconMap.get(column.settings.icon)} color="var(--deck-heading-icon-color)"></svelte:component>
-                {:else}
-                    <ColumnIcon type={column.algorithm.type}></ColumnIcon>
-                {/if}
-            </button>
-        </div>
-
-        <div
-            role="button"
-            class="deck-heading__scroll-area"
-            on:click={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root'), event)}}
-            aria-label="Back to top."
-        >
-            <div class="deck-heading__title">
-                {column.algorithm.name} <span class="deck-heading__subhead">{column.handle}</span>
+        {#if (!isJunk)}
+            <div class="deck-heading__icon">
+                <button class="deck-heading__icon-picker-button" on:click={() => {isIconPickerOpen = !isIconPickerOpen}}>
+                    {#if column.settings?.icon}
+                        <svelte:component this={iconMap.get(column.settings.icon)} color="var(--deck-heading-icon-color)"></svelte:component>
+                    {:else}
+                        <ColumnIcon type={column.algorithm.type}></ColumnIcon>
+                    {/if}
+                </button>
             </div>
-        </div>
+
+            <div
+                    role="button"
+                    class="deck-heading__scroll-area"
+                    on:click={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root'), event)}}
+                    aria-label="Back to top."
+            >
+                <div class="deck-heading__title">
+                    {column.algorithm.name} <span class="deck-heading__subhead">{column.handle}</span>
+                </div>
+            </div>
+        {:else}
+            {#if (column.algorithm.type === 'author')}
+                <dl class="profile-posts-nav">
+                    <dt class="profile-posts-nav__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-filter"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></dt>
+                    <dd class="profile-posts-nav__content">
+                        <button class="profile-posts-nav__button" on:click={() => {isFiltered = false}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
+                        <button class="profile-posts-nav__button" on:click={() => {isFiltered = true}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
+                    </dd>
+                </dl>
+            {/if}
+        {/if}
 
         <div class="deck-heading__buttons">
+            {#if (isJunk)}
+                <button class="deck-row-column-add-button" disabled={isColumnAlreadyAdded} on:click={columnAddFromJunk} aria-label="Add column">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={isColumnAlreadyAdded ? 'var(--border-color-1)' : 'var(--primary-color)'} stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-plus"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                </button>
+            {/if}
+
             <ColumnRefreshButton
                 column={column}
                 index={index}
                 {_agent}
                 bind:unique={unique}
+                {isJunk}
             ></ColumnRefreshButton>
 
-            <ColumnButtons {column} {index} {_agent}></ColumnButtons>
+            {#if (!isJunk)}
+                <ColumnButtons {column} {index} {_agent}></ColumnButtons>
 
-            <button class="deck-row-settings-button" on:click={handleSettingsClick}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
-            </button>
+                <button class="deck-row-settings-button" on:click={handleSettingsClick}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+                </button>
+            {/if}
         </div>
     </div>
 
@@ -164,25 +221,29 @@
         <DeckSettingsModal {column} {index} {_agent} layout={$settings.design?.layout} on:close={handleSettingsClick}></DeckSettingsModal>
     {:else}
         {#key unique}
-            {#if uniqueAgent}
-                <div class="deck-row__content">
-                    {#if (column.algorithm.type === 'notification')}
-                        <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
-                    {:else if (column.algorithm.type === 'thread')}
-                        <ThreadTimeline column={column} index={index} {_agent}></ThreadTimeline>
-                    {:else}
-                        <TimelineSelector
-                            column={column}
-                            index={index}
-                            {_agent}
-                        ></TimelineSelector>
-                    {/if}
-                </div>
-            {:else}
-                <div class="deck-row__content">
-                    <ColumnAgentMissing {column}></ColumnAgentMissing>
-                </div>
-            {/if}
+            {#key isFiltered}
+                {#if uniqueAgent}
+                    <div class="deck-row__content">
+                        {#if (column.algorithm.type === 'notification')}
+                            <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
+                        {:else if (column.algorithm.type === 'thread')}
+                            <ThreadTimeline column={column} index={index} {_agent}></ThreadTimeline>
+                        {:else}
+                            <TimelineSelector
+                                    column={column}
+                                    index={index}
+                                    {_agent}
+                                    hideReply={column.algorithm.type === 'author' ? hideReply : undefined}
+                                    hideRepost={column.algorithm.type === 'author' ? hideRepost : undefined}
+                            ></TimelineSelector>
+                        {/if}
+                    </div>
+                {:else}
+                    <div class="deck-row__content">
+                        <ColumnAgentMissing {column}></ColumnAgentMissing>
+                    </div>
+                {/if}
+            {/key}
         {/key}
     {/if}
 
@@ -331,6 +392,22 @@
                 margin-left: 0;
             }
         }
+
+        &--junk {
+            overflow-y: visible;
+            width: 100%;
+            height: auto;
+            border: none;
+
+            @media (max-width: 767px) {
+                padding-top: 0;
+            }
+
+            .deck-heading {
+                position: relative;
+                z-index: 0;
+            }
+        }
     }
 
     .deck-heading {
@@ -424,5 +501,42 @@
         &:hover {
             background-color: var(--bg-color-2);
         }
+    }
+
+    .profile-posts-nav {
+        display: flex;
+        align-items: center;
+        color: var(--text-color-3);
+        font-size: 14px;
+        gap: 8px;
+        padding-left: 8px;
+
+        &__content {
+            display: flex;
+            gap: 4px;
+        }
+
+        &__button {
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            border: 1px solid var(--primary-color);
+            height: 28px;
+            border-radius: 14px;
+            font-size: 12px;
+            color: var(--primary-color);
+
+            &--active {
+                background-color: var(--primary-color);
+                color: var(--bg-color-1);
+            }
+        }
+    }
+
+    .deck-row-column-add-button {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-content: center;
     }
 </style>

@@ -91,6 +91,11 @@
     justify-content: center;
     border-radius: 20px;
     z-index: 21;
+    outline: none;
+
+    &:focus-visible {
+        outline: none;
+    }
 
     @media (max-width: 767px) {
         bottom: calc(100px + var(--safe-area-bottom));
@@ -155,7 +160,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 0 12px 0 24px;
+    padding: 0 16px 0 24px;
     position: sticky;
     top: 0;
     background-color: var(--bg-color-1);

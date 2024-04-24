@@ -5,7 +5,8 @@
       getGiphyId,
       getSpotifyUri,
       getTwitterUrl,
-      getYouTubeUrl
+      getYouTubeUrl,
+      getTenorUrl
   } from "$lib/components/post/embedUtil";
   import {Spotify, Tweet, YouTube} from "sveltekit-embed";
   import { Gif } from '@giphy/svelte-components';
@@ -29,6 +30,10 @@
       $settings.embed.giphy = true;
   }
 
+  if ($settings?.embed?.tenor === undefined) {
+      $settings.embed.tenor = true;
+  }
+
   if (!$settings?.design?.externalLayout) {
       $settings.design.externalLayout = 'normal';
   }
@@ -44,6 +49,7 @@
     class:timeline-external--youtube={getYouTubeUrl(external.uri)}
     class:timeline-external--spotify={getSpotifyUri(external.uri)}
     class:timeline-external--gif={getGiphyId(external.uri) && $settings?.embed?.giphy}
+    class:timeline-external--tenor={getTenorUrl(external.uri) && $settings?.embed?.tenor}
   >
     {#if ($settings?.design.externalLayout !== 'compact')}
       <div class="timeline-external__image">
@@ -60,6 +66,10 @@
                   loading="lazy"
                   frameBorder="0"
               ></iframe>
+            </div>
+          {:else if (getTenorUrl(external.uri) && $settings?.embed?.tenor)}
+            <div class="timeline-tenor-external">
+              <img src={getTenorUrl(external.uri).url} width={getTenorUrl(external.uri).width} height={getTenorUrl(external.uri).height} alt="">
             </div>
           {:else if (getGiphyId(external.uri) && $settings?.embed?.giphy)}
             {#await getGiphyId(external.uri)}

@@ -122,3 +122,26 @@ async function getGiphyGif(id: string) {
         return undefined;
     }
 }
+
+export function getTenorUrl(uri: string) {
+    try {
+        const url = new URL(uri);
+        const hostname = url.hostname;
+
+        if (hostname === 'media.tenor.com') {
+            const width = url.searchParams.get('ww');
+            const height = url.searchParams.get('hh');
+
+            return {
+                url: url,
+                width: width,
+                height: height,
+            };
+        }
+
+        return undefined;
+    } catch (e) {
+        console.log(e);
+        return undefined;
+    }
+}

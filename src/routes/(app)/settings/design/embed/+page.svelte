@@ -10,6 +10,7 @@
             mastodon: true,
             bluemotion: true,
             giphy: true,
+            tenor: true,
         };
     }
 
@@ -19,6 +20,10 @@
 
     if ($settings?.embed?.giphy === undefined) {
         $settings.embed.giphy = true;
+    }
+
+    if ($settings?.embed?.tenor === undefined) {
+        $settings.embed.tenor = true;
     }
 </script>
 
@@ -100,6 +105,18 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="embedGiphy" bind:checked={$settings.embed.giphy}><label class="input-toggle__label" for="embedGiphy"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        Tenor
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="embedTenor" bind:checked={$settings.embed.tenor}><label class="input-toggle__label" for="embedTenor"></label>
         </div>
       </dd>
     </dl>
