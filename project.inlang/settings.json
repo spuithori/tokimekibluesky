@@ -2,6 +2,7 @@
   "sourceLanguageTag": "ja",
   "languageTags": [
     "ja",
+    "en",
     "pt"
   ],
   "modules": [
@@ -9,6 +10,10 @@
     "https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-missing-translation@latest/dist/index.js"
   ],
   "plugin.inlang.json": {
-    "pathPattern": "./src/lib/i18n/locales/{languageTag}.json"
+    "pathPattern": "./src/lib/i18n/locales/{languageTag}.json",
+    "variableReferencePattern": [
+      "{",
+      "}"
+    ]
   }
 }
