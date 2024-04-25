@@ -3,17 +3,13 @@
   "languageTags": [
     "ja",
     "en",
-    "pt"
+    "pt",
+    "ko-kr"
   ],
   "modules": [
-    "https://cdn.jsdelivr.net/npm/@inlang/plugin-json@latest/dist/index.js",
-    "https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-missing-translation@latest/dist/index.js"
+    "https://cdn.jsdelivr.net/npm/@inlang/plugin-json@latest/dist/index.js"
   ],
   "plugin.inlang.json": {
-    "pathPattern": "./src/lib/i18n/locales/{languageTag}.json",
-    "variableReferencePattern": [
-      "{",
-      "}"
-    ]
+    "pathPattern": "./src/lib/i18n/locales/{languageTag}.json"
   }
 }
