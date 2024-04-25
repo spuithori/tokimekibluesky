@@ -2,8 +2,7 @@
   "sourceLanguageTag": "ja",
   "languageTags": [
     "ja",
-    "pt",
-    "ko-kr"
+    "pt"
   ],
   "modules": [
     "https://cdn.jsdelivr.net/npm/@inlang/plugin-json@latest/dist/index.js",
