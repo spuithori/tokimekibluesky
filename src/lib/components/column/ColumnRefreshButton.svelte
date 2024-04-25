@@ -204,7 +204,7 @@
   {#if (column.settings?.autoRefresh !== -1 && column.algorithm.type !== 'realtime')}
     <button
         class="refresh-button"
-        class:refresh-button--decks={$settings.design.layout === 'decks'}
+        class:refresh-button--decks={$settings.design.layout === 'decks' || isJunk}
         class:is-refreshing={isRefreshing}
         aria-label="Refresh"
         on:click={() => {refresh(false)}}

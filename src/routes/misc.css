@@ -223,11 +223,13 @@
 }
 
 .scroll-down.app {
-    .deck-heading {
-        @media (max-width: 767px) {
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-48px) !important;
+    .deck-row:not(.deck-row--junk) {
+        .deck-heading {
+            @media (max-width: 767px) {
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-48px);
+            }
         }
     }
 
@@ -238,10 +240,12 @@
     }
 
     &.single {
-        .refresh-button {
-            @media (max-width: 767px) {
-                opacity: 0;
-                visibility: hidden;
+        .deck-row:not(.deck-row--junk) {
+            .refresh-button {
+                @media (max-width: 767px) {
+                    opacity: 0;
+                    visibility: hidden;
+                }
             }
         }
     }

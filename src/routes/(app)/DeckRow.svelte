@@ -408,6 +408,10 @@
             .deck-heading {
                 position: relative;
                 z-index: 0;
+
+                @media (max-width: 767px) {
+                    top: 0;
+                }
             }
         }
     }
