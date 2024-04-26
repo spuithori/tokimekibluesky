@@ -33,12 +33,14 @@
   }
 
   function handleClick() {
-      goto(href);
+      goto(href, {
+          replaceState: $page.state.showModal && $page.url.pathname !== '/',
+      });
   }
 </script>
 
 <div class="avatar">
-  <a href={href} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave}>
+  <a href={href} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave} on:click|preventDefault={handleClick}>
     {#if (avatar && !$isDataSaving)}
       <img loading="lazy" src="{avatar}" alt="">
     {/if}
