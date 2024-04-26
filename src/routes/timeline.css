@@ -204,6 +204,13 @@
             aspect-ratio: auto;
         }
     }
+
+    &--gif,
+    &--tenor {
+        .timeline-external__description {
+            display: none;
+        }
+    }
 }
 
 .timeline-twitter-external {
