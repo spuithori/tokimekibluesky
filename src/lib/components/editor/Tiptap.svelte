@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import {createEventDispatcher, onDestroy, onMount} from 'svelte'
+    import {createEventDispatcher, onMount, onDestroy} from 'svelte'
     import {Editor} from '@tiptap/core'
     import Link from '@tiptap/extension-link';
     import Document from '@tiptap/extension-document';
@@ -10,11 +10,15 @@
     import Mention from '@tiptap/extension-mention';
     import Placeholder from '@tiptap/extension-placeholder';
     import History from  '@tiptap/extension-history';
-    import {agent, sharedText, replyRef} from "$lib/stores";
+    import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
+    import {agent, sharedText, replyRef, timelineHashtags, hashtagHistory} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
     import EditorBar from "$lib/components/editor/EditorBar.svelte";
     import {jsonToText} from "$lib/components/editor/richtext";
     import GiphyPickerModal from "$lib/components/publish/GiphyPickerModal.svelte";
+    import HashtagList from "$lib/components/editor/HashtagList.svelte";
+    import {Hashtag} from "$lib/components/editor/hashtag";
+    import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
     const dispatch = createEventDispatcher();
 
     export let json;
@@ -25,9 +29,11 @@
     let element;
     let editor;
     let mentionList;
+    let hashtagList;
 
     let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
     let mentionProps;
+    let hashtagProps;
     let linkDialog;
     let linkValue = '';
     let linkButtonDisabled = true;
@@ -52,7 +58,27 @@
                 }),
                 Paragraph,
                 Text,
-                Link.extend({ inclusive: false }).configure({
+                Link.extend({
+                    inclusive: false,
+                    parseHTML() {
+                        return [
+                            {
+                                tag: 'a[href]:not([href *= "javascript:" i])',
+                                getAttrs: node => {
+                                    if (TAG_REGEX.test(node.textContent) || MENTION_REGEX.test(node.textContent)) {
+                                        return false;
+                                    }
+
+                                    if (TAG_REGEX.test(node.textContent) || MENTION_REGEX.test(node.textContent)) {
+                                        return false;
+                                    }
+
+                                    return null;
+                                },
+                            }
+                        ]
+                    }
+                }).configure({
                     HTMLAttributes: {
                         class: 'editor-link',
                     },
@@ -108,6 +134,45 @@
                                     }
 
                                     return mentionList.handleKeyDown(props)
+                                }
+                            }
+                        }
+                    }
+                }),
+                TagDecorator,
+                Hashtag.configure({
+                    suggestion: {
+                        items: async ({query}) => {
+                            if (!query) {
+                                return [...new Set([...$hashtagHistory, ...$timelineHashtags])];
+                            }
+                        },
+                        render: () => {
+                            return {
+                                onStart: props => {
+                                    if (!props.clientRect) {
+                                        return
+                                    }
+
+                                    hashtagProps = props;
+                                },
+                                onUpdate: props => {
+                                    if (!props.clientRect) {
+                                        return
+                                    }
+
+                                    hashtagProps = props;
+                                },
+                                onExit() {
+                                    hashtagProps = null;
+                                },
+                                onKeyDown: props => {
+                                    if (props.event.key === 'Escape') {
+                                        hashtagProps = null;
+                                        return true;
+                                    }
+
+                                    return hashtagList.handleKeyDown(props)
                                 }
                             }
                         }
@@ -280,6 +345,10 @@
 
 {#if (mentionProps)}
   <MentionList props={mentionProps} bind:this={mentionList}></MentionList>
+{/if}
+
+{#if (hashtagProps)}
+  <HashtagList props={hashtagProps} bind:this={hashtagList}></HashtagList>
 {/if}
 
 <dialog class="editor-link-dialog" bind:this={linkDialog} on:close={submitLink}>

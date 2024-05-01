@@ -1,6 +1,15 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
-import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings, threadGate} from '$lib/stores';
+import {
+    agent,
+    agents,
+    hashtagHistory,
+    isPublishInstantFloat,
+    quotePost,
+    replyRef,
+    settings,
+    threadGate
+} from '$lib/stores';
 import {selfLabels} from "$lib/components/editor/publishStore";
 import { clickOutside } from '$lib/clickOutSide';
 import {
@@ -521,7 +530,22 @@ async function publish(post, treeReplyRef = undefined) {
             );
         }
 
-        // toast.success($_('success_to_post'));
+        if (rt?.facets) {
+            const tags = rt.facets.map(facet => {
+                if (facet?.features[0]?.tag) {
+                    return facet.features[0].tag as string;
+                }
+            });
+            let _hashtagHistory = [...tags, ...$hashtagHistory];
+            _hashtagHistory = [...new Set(_hashtagHistory)];
+            $hashtagHistory = _hashtagHistory.filter(v => v !== null);
+
+            if ($hashtagHistory.length > 4) {
+                $hashtagHistory = $hashtagHistory.slice(0, 4);
+            }
+            localStorage.setItem('hashtagHistory', JSON.stringify($hashtagHistory));
+        }
+
         return create;
     } catch (error) {
         console.error((error as Error).message);

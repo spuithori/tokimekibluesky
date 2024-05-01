@@ -4,7 +4,7 @@
     export let record;
     export let _agent;
     import {getTextArray, isUriLocal} from "$lib/richtext";
-    import {linkWarning, settings} from "$lib/stores";
+    import {linkWarning, settings, timelineHashtags} from "$lib/stores";
     import {detectDifferentDomainUrl} from "$lib/util";
 
     function handleUrlClick(e, item) {
@@ -21,6 +21,19 @@
             linkWarning.set(item.link.uri);
         }
     }
+
+    getTextArray(record).forEach(item => {
+        if (item.isTag() && item.tag?.tag) {
+            const index = $timelineHashtags.indexOf(item.tag.tag);
+            if (index > -1) {
+                $timelineHashtags.splice(index, 1);
+            }
+
+            $timelineHashtags.unshift(item.tag.tag);
+            $timelineHashtags.length = 5;
+            $timelineHashtags = $timelineHashtags.filter(v => v);
+        }
+    })
 </script>
 
 {#each getTextArray(record) as item}

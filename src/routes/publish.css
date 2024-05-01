@@ -351,6 +351,10 @@
     color: var(--primary-color);
 }
 
+.editor-hashtag {
+    color: var(--primary-color);
+}
+
 .publish-form--expand {
     .editor {
         flex: 1;
