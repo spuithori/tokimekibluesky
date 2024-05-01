@@ -1,7 +1,7 @@
 {
   "reposted_by": "{name} がリポスト",
   "reply_to": "{name} に返信",
-  "delete_post": "ポストを削除",
+  "delete_post": "投稿を削除",
   "quote_post": "引用ポスト",
   "show_thread": "スレッドを見る",
   "translation": "翻訳",
@@ -577,5 +577,10 @@
   "reply_disable_when_threaded": "スレッド投稿中は返信できません。",
   "read_this_thread": "スレッドをさらに見る",
   "search_sort_latest": "最新",
-  "search_sort_top": "人気"
+  "search_sort_top": "人気",
+  "pinned_post": "固定された投稿",
+  "register_pin": "固定投稿にする",
+  "unregister_pin": "固定投稿を解除する",
+  "success_register_pin": "固定投稿を設定しました。",
+  "success_unregister_pin": "固定投稿を解除しました。"
 }

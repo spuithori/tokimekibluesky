@@ -577,5 +577,10 @@
   "reply_disable_when_threaded": "Cannot reply while posting thread.",
   "read_this_thread": "Read this thread",
   "search_sort_latest": "Latest",
-  "search_sort_top": "Popular"
+  "search_sort_top": "Popular",
+  "pinned_post": "Pinned",
+  "register_pin": "Register pinned",
+  "unregister_pin": "Unregister pinned",
+  "success_register_pin": "Successfully register pinned post.",
+  "success_unregister_pin": "Successfully unregister pinned post."
 }

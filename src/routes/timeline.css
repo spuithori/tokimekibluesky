@@ -1148,3 +1148,20 @@
     color: #fff;
     border-radius: var(--border-radius-1);
 }
+
+.sticky-post {
+    position: relative;
+    z-index: 22;
+}
+
+.sticky-text {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--text-color-3);
+    margin-bottom: 8px;
+    padding-left: 12px;
+    font-weight: bold;
+    font-size: var(--timeline-repost-font-size);
+    letter-spacing: .025em;
+}
