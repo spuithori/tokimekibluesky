@@ -23,6 +23,8 @@
     import {createEventDispatcher, onMount} from "svelte";
     import AltModal from "$lib/components/alt/AltModal.svelte";
     import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
+    import {languageMap} from "$lib/langs/languageMap";
+    import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
     const dispatch = createEventDispatcher();
 
     export let post;
@@ -35,17 +37,16 @@
     let isPublishEnabled = false;
     let isProcessed = false;
     let isAccountSelectDisabled = false;
-    let isFocus = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let links: string[] = [];
     let externalImageBlob: string = '';
     let isPublishUploadClose = false;
     let isAltModalOpen = false;
     let isLinkCardAdding = false;
-    let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
     let imageUploadEl;
     let isDragover = 0;
     let isVirtualKeyboard = false;
+    let isLangSelectorOpen = false;
 
     const isMobile = navigator?.userAgentData?.mobile || false;
 
@@ -496,6 +497,13 @@
   {/if}
 
   <div class="publish-bb-nav">
+    <button class="publish-form-lang-selector-button" on:click={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      {#if ($settings.langSelector !== 'auto')}
+        <span>{$_(languageMap.get($settings.langSelector).name)}</span>
+      {/if}
+    </button>
+
     <p class="publish-length">
       <span class="publish-length__current" class:over={publishContentLength > 300}>{300 - publishContentLength}</span>
     </p>
@@ -506,11 +514,37 @@
   </div>
 </div>
 
+{#if (isLangSelectorOpen)}
+  <LangSelectorModal on:close={() => {isLangSelectorOpen = false}}></LangSelectorModal>
+{/if}
+
 {#if (isAltModalOpen)}
   <AltModal images={images} on:close={handleAltClose}></AltModal>
 {/if}
 
 <style lang="postcss">
+    .publish-form-lang-selector-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: var(--text-color-1);
+        padding: 0 5px;
+        font-size: 14px;
+        height: 30px;
+        max-width: 120px;
+        white-space: nowrap;
+
+        svg {
+            flex-shrink: 0;
+        }
+
+        span {
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+    }
+
   .add-thread-button {
       height: 40px;
       color: var(--primary-color);
@@ -658,11 +692,8 @@
       color: var(--publish-length-color);
       display: flex;
       align-items: center;
-      margin-right: 8px;
-
-      @media (max-width: 767px) {
-
-      }
+      margin-right: auto;
+      white-space: nowrap;
 
       &__current {
           &.over {
@@ -676,8 +707,32 @@
       border-top: 1px solid var(--border-color-2);
       height: 40px;
       width: 100%;
-      padding: 0 16px;
+      padding: 0 16px 0 8px;
       display: flex;
-      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+  }
+
+  .publish-form {
+      &--fit {
+          @media (max-width: 767px) {
+              .publish-length {
+                  margin-left: auto;
+                  margin-right: 0;
+              }
+
+              .add-thread-button {
+                  order: 1;
+              }
+
+              .publish-form-lang-selector-button {
+                 order: 2;
+              }
+
+              .publish-bb-nav {
+                  padding-left: 12px;
+              }
+          }
+      }
   }
 </style>
