@@ -346,6 +346,7 @@ function toggleHideCounts() {
         border-radius: 6px;
         margin-bottom: 15px;
         display: flex;
+        flex-wrap: wrap;
         gap: 0 5px;
         font-size: 18px;
 
