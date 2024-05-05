@@ -582,5 +582,6 @@
   "register_pin": "固定投稿にする",
   "unregister_pin": "固定投稿を解除する",
   "success_register_pin": "固定投稿を設定しました。",
-  "success_unregister_pin": "固定投稿を解除しました。"
+  "success_unregister_pin": "固定投稿を解除しました。",
+  "left_mode": "左手モード"
 }

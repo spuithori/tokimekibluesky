@@ -138,6 +138,7 @@ const defaultSettings = {
         mobilePostLayoutTop: false,
         displayHandle: false,
         reactionMode: 'tokimeki',
+        leftMode: false,
     },
     timeline: {
         hideRepost: 'all',

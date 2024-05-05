@@ -16,11 +16,11 @@
     let postsImageLayout = $settings?.design.postsImageLayout || 'default';
     let oneImageNoCrop = $settings?.design.oneImageNoCrop || false;
     let fontSize = $settings?.design.fontSize || 2;
-    let advancedBreak = $settings?.design.advancedBreak || false;
     let externalLayout = $settings?.design.externalLayout || 'normal';
     let mobilePostLayoutTop = $settings?.design.mobilePostLayoutTop || false;
     let displayHandle = $settings?.design.displayHandle || false;
     let reactionMode = $settings?.design.reactionMode || 'tokimeki';
+    let leftMode = $settings?.design.leftMode || false;
 
     $: myThemes = liveQuery(async () => {
         const myThemes = await themesDb.themes.toArray();
@@ -39,11 +39,11 @@
         $settings.design.postsImageLayout = postsImageLayout;
         $settings.design.oneImageNoCrop = oneImageNoCrop;
         $settings.design.fontSize = fontSize;
-        $settings.design.advancedBreak = advancedBreak;
         $settings.design.externalLayout = externalLayout;
         $settings.design.mobilePostLayoutTop = mobilePostLayoutTop;
         $settings.design.displayHandle = displayHandle;
         $settings.design.reactionMode = reactionMode;
+        $settings.design.leftMode = leftMode;
     }
 
     $: colors = detectColors($theme);
@@ -428,17 +428,15 @@
       </dd>
     </dl>
 
-    <dl class="settings-group">
+    <dl class="settings-group only-mobile">
       <dt class="settings-group__name">
-        {$_('advanced_break_title')}
+        {$_('left_mode')}
       </dt>
 
       <dd class="settings-group__content">
         <div class="input-toggle">
-          <input class="input-toggle__input" type="checkbox" id="advancedBreak" bind:checked={advancedBreak}><label class="input-toggle__label" for="advancedBreak"></label>
+          <input class="input-toggle__input" type="checkbox" id="leftMode" bind:checked={leftMode}><label class="input-toggle__label" for="leftMode"></label>
         </div>
-
-        <p class="settings-group__description">{$_('advanced_break_description')}</p>
       </dd>
     </dl>
   </div>

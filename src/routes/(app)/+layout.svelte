@@ -368,7 +368,7 @@
     class:decks={$settings?.design.layout === 'decks'}
     class:page={$page.url.pathname !== '/'}
     class:ios={isMobile.iOS()}
-    class:advanced-break={$settings.design?.advancedBreak}
+    class:left-mode={$settings?.design?.leftMode}
     class:superstar={$settings.design?.reactionMode === 'superstar'}
     style={outputInlineStyle($theme)}
     bind:this={app}

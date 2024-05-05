@@ -308,12 +308,6 @@ html {
     }
 }
 
-.advanced-break {
-    .timeline__text {
-        word-break: auto-phrase;
-    }
-}
-
 .pswp {
     &__button {
         display: grid !important;
@@ -357,4 +351,47 @@ html {
 
 :where([data-sonner-toast]) {
     padding: 16px !important;
+}
+
+.left-mode {
+    .footer {
+        &::before {
+            right: auto;
+            left: 20px;
+        }
+    }
+
+    .footer__wrap {
+        flex-direction: row-reverse;
+    }
+
+    .footer-round {
+        right: auto;
+        left: 11px;
+    }
+
+    .publish-sp-open {
+        right: auto;
+        left: 20px;
+    }
+
+    @media (max-width: 767px) {
+        .publish-bottom-buttons {
+            flex-direction: row-reverse;
+
+            .publish-form-bottom-publish {
+                margin-right: auto;
+                margin-left: 0 !important;
+            }
+        }
+
+        .publish-bb-nav {
+            flex-direction: row;
+
+            .publish-length {
+                margin-left: 0 !important;
+                margin-right: auto !important;
+            }
+        }
+    }
 }
