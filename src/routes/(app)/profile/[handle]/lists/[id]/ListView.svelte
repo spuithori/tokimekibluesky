@@ -25,29 +25,29 @@
       $agent.agent.api.com.atproto.identity.resolveHandle({handle: handle})
           .then(value => {
               did = value.data.did;
+
+              if ($junkColumns.findIndex(_column => _column.id === 'list_' + id) === -1) {
+                  junkColumns.set([...$junkColumns, {
+                      id: 'list_' + id,
+                      algorithm: {
+                          algorithm: 'at://' + did + '/app.bsky.graph.list/' + id,
+                          type: 'officialList',
+                          name: '',
+                      },
+                      style: 'default',
+                      settings: defaultDeckSettings,
+                      did: $agent.did(),
+                      handle: $agent.handle(),
+                      data: {
+                          feed: [],
+                          cursor: '',
+                      }
+                  }]);
+              }
           })
           .catch(e => {
               console.log(e);
           });
-  }
-
-  if ($junkColumns.findIndex(_column => _column.id === 'list_' + id) === -1) {
-      junkColumns.set([...$junkColumns, {
-          id: 'list_' + id,
-          algorithm: {
-              algorithm: 'at://' + did + '/app.bsky.graph.list/' + id,
-              type: 'officialList',
-              name: '',
-          },
-          style: 'default',
-          settings: defaultDeckSettings,
-          did: $agent.did(),
-          handle: $agent.handle(),
-          data: {
-              feed: [],
-              cursor: '',
-          }
-      }]);
   }
 
   async function muteList() {
@@ -122,7 +122,9 @@
   </div>
 
   {#if !isModerationList}
-    <DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'list_' + id)]} isJunk={true} name={title}></DeckRow>
+    {#if ($junkColumns.findIndex(_column => _column.id === 'list_' + id) !== -1)}
+      <DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'list_' + id)]} isJunk={true} name={title}></DeckRow>
+    {/if}
   {:else}
     <div class="mod-list-cover">
       <h2 class="mod-list-cover__title">{$_('mod_list_cover_title')}</h2>

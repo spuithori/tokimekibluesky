@@ -1151,7 +1151,7 @@
 
 .sticky-post {
     position: relative;
-    z-index: 22;
+    z-index: 1;
 }
 
 .sticky-text {
