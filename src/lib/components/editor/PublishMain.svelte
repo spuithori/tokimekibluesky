@@ -731,6 +731,7 @@
 
               .publish-bb-nav {
                   padding-left: 12px;
+                  gap: 8px;
               }
           }
       }

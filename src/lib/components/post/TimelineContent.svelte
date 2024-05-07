@@ -184,7 +184,7 @@
           <TimelineWarn labels={warnLabels}></TimelineWarn>
         {/if}
 
-        <Images images={post.embed.images} blobs={post.record.embed.images} {_agent} did={post.author.did}></Images>
+        <Images images={post.embed.images} blobs={post.record.embed.images} did={post.author.did}></Images>
       </div>
     {/if}
 
@@ -207,7 +207,7 @@
             <TimelineWarn labels={warnLabels}></TimelineWarn>
           {/if}
 
-          <Images images={post.embed.media.images} blobs={post.record.embed.media.images} did={post.author.did} {_agent}></Images>
+          <Images images={post.embed.media.images} blobs={post.record.embed.media.images} did={post.author.did}></Images>
         </div>
       {/if}
 

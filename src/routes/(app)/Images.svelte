@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {settings, isDataSaving, isImageOpen, agent} from '$lib/stores';
+    import {settings, isDataSaving, isImageOpen} from '$lib/stores';
     import {goto} from "$app/navigation";
     import GifImage from "$lib/components/post/GifImage.svelte";
     import PhotoSwipeLightbox from 'photoswipe/lightbox';
@@ -9,7 +9,6 @@
 
     export let images: any[];
     export let blobs: any[] = [];
-    export let _agent = $agent;
     export let did = '';
     export let folding = false;
 
@@ -125,7 +124,7 @@
     {#each images as image, index}
       <div class="timeline-image">
           {#if (blobs[index]?.image.mimeType === 'image/gif')}
-              <GifImage {did} {_agent} blob={blobs[index]?.image} alt={image.alt}></GifImage>
+              <GifImage {did} blob={blobs[index]?.image} alt={image.alt}></GifImage>
           {:else}
               <button on:click={() => open(index)} aria-label="画像を拡大する">
                   <img

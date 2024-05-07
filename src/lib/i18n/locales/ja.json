@@ -583,5 +583,9 @@
   "unregister_pin": "固定投稿を解除する",
   "success_register_pin": "固定投稿を設定しました。",
   "success_unregister_pin": "固定投稿を解除しました。",
-  "left_mode": "左手モード"
+  "left_mode": "左手モード",
+  "delete_and_edit": "削除して編集画面に戻す",
+  "delete_and_edit_confirm_description": "既存のリアクションは失われ、リプライツリーは引き継げません。",
+  "process_to_delete_and_edit": "投稿を復元中...",
+  "success_to_delete_and_edit": "投稿を編集画面に戻しました。"
 }

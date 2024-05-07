@@ -1,5 +1,6 @@
 import {accountsDb} from "$lib/db";
-import {agent, didHint} from "$lib/stores";
+import type {BskyAgent} from "@atproto/api";
+import imageCompression from "browser-image-compression";
 
 export function getAccountIdByDid(agents, did) {
     let id;
@@ -73,4 +74,31 @@ export async function getDidByHandle(handle, _agent) {
 
     const res = await _agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
     return res.data.did;
+}
+
+export async function getImageObjectFromBlob(did: string, blob: { cid: string, mimeType: string, alt: string, width: string, height: string }, _agent: BskyAgent) {
+    const res =  await _agent.api.com.atproto.sync.getBlob({did: did as string, cid: blob.cid});
+    const _blob = new Blob([res.data], {type: blob.mimeType});
+
+    return {
+        id: self.crypto.randomUUID(),
+        alt: blob.alt,
+        file: _blob,
+        base64: await imageCompression.getDataUrlFromFile(_blob),
+        isGif: blob.mimeType === 'image/gif',
+        width: blob.width,
+        height: blob.height,
+    };
+}
+
+export async function getImageBase64FromBlob(did: string, blob: { cid: string, mimeType: string }, _agent: BskyAgent) {
+    const res =  await _agent.api.com.atproto.sync.getBlob({did: did as string, cid: blob.cid});
+    const _blob = new Blob([res.data], {type: blob.mimeType});
+    return await imageCompression.getDataUrlFromFile(_blob);
+}
+
+export async function getService(did: string) {
+    const res = await fetch('https://plc.directory/' + did);
+    const json = await res.json();
+    return json?.service[0]?.serviceEndpoint;
 }

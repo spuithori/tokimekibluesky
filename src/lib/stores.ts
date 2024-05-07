@@ -340,3 +340,5 @@ export const timelineHashtags = writable([]);
 export const hashtagHistory = writable(localStorage.getItem('hashtagHistory')
     ? JSON.parse(localStorage.getItem('hashtagHistory') as string)
     : []);
+
+export const postPulse = writable([]);

@@ -4,7 +4,7 @@ import {
     agent,
     agents,
     hashtagHistory,
-    isPublishInstantFloat,
+    isPublishInstantFloat, postPulse,
     quotePost,
     replyRef,
     settings,
@@ -58,6 +58,8 @@ if (!$settings.langSelector) {
 
 $: isMobilePopState = isMobile ? $page.state.showPublish : false;
 
+$: handlePostPulse($postPulse);
+
 $: if (isMobile ? isFocus && isMobilePopState : isFocus) {
   document.documentElement.classList.add('scroll-lock');
 } else {
@@ -107,21 +109,16 @@ function handleKeydown(event: { key: string; }) {
     }
 }
 
-async function getReplyRefByUri(uri: string) {
-    if (!uri) {
+function handlePostPulse(posts) {
+    if (!posts || !posts.length) {
         return false;
     }
 
-    const res = await _agent.getFeed(uri);
-    let root = res.parent;
-    while (root.parent) {
-        root = root.parent;
-    }
-
-    return {
-        parent: res.post,
-        root: root.post,
-    }
+    postsPool = posts;
+    _agent = $agents.get(getAccountIdByDid($agents, posts[0].did));
+    unique = Symbol();
+    handleOpen();
+    postPulse.set([]);
 }
 
 $: quotePostObserve($quotePost);
