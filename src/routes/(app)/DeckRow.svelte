@@ -91,11 +91,9 @@
     }
 
     function handleScroll(event) {
-        const scroll = scrollDirection(event);
-
-        if (scroll) {
-            direction.set(scroll);
-        }
+        const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
+            direction.set(scrollDir);
+        });
     }
 
     function intersect(entries) {
@@ -158,7 +156,7 @@
     on:mouseenter={handleMouseEnter}
     on:mouseleave={handleMouseLeave}
     bind:this={column.scrollElement}
-    on:scroll={handleScroll}
+    on:scroll|passive={handleScroll}
 >
     <div class="deck-heading">
         {#if (!isJunk)}

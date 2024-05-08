@@ -309,11 +309,9 @@
   });
 
   function handleScroll(event) {
-      const scroll = scrollDirection(event);
-
-      if (scroll) {
-          direction.set(scroll);
-      }
+      const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
+          direction.set(scrollDir);
+      });
   }
 
   function handleColumnModalClose() {
@@ -346,7 +344,7 @@
   viewPortSetting();
 </script>
 
-<svelte:window on:scroll={handleScroll} bind:scrollY={scrolly}></svelte:window>
+<svelte:window on:scroll|passive={handleScroll} bind:scrollY={scrolly}></svelte:window>
 <svelte:head>
   <meta name="theme-color" content={baseColor}>
   <link rel="canonical" href="https://tokimeki.blue{$page.url.pathname}">
