@@ -587,5 +587,7 @@
   "delete_and_edit": "Delete and Edit",
   "delete_and_edit_confirm_description": "Existing reactions will be lost. The reply tree will not be taken over.",
   "process_to_delete_and_edit": "Restoring the post...",
-  "success_to_delete_and_edit": "Posts have been restored to the edit screen."
+  "success_to_delete_and_edit": "Posts have been restored to the edit screen.",
+  "disable_haptics": "Disable haptic feedback",
+  "enable_app_browser": "Use In-App browser"
 }
