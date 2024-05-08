@@ -8,6 +8,8 @@
     let se = $settings?.general.se || false;
     let devMode = $settings?.general.devMode || false;
     let enableBluefeed = $settings?.general.enableBluefeed || false;
+    let disableHaptics = $settings?.general.disableHaptics || false;
+    let enableAppBrowser = $settings?.general.enableAppBrowser || false;
 
 const languages = [
     {
@@ -35,6 +37,8 @@ $: {
     $settings.general.se = se;
     $settings.general.devMode = devMode;
     $settings.general.enableBluefeed = enableBluefeed;
+    $settings.general.disableHaptics = disableHaptics;
+    $settings.general.enableAppBrowser = enableAppBrowser;
 }
 </script>
 

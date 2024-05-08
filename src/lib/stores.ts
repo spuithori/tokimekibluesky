@@ -121,6 +121,8 @@ const defaultSettings = {
         hideWorkspaceButton: false,
         hideProfileCounts: false,
         enableBluefeed: false,
+        disableHaptics: false,
+        enableAppBrowser: false,
     },
     design: {
         skin: 'default',
