@@ -23,7 +23,7 @@
         didHint,
         pulseDelete,
         listAddModal,
-        agents, repostMutes, postMutes, bluefeedAddModal, postPulse
+        agents, repostMutes, postMutes, bluefeedAddModal, postPulse, sideState, isPublishInstantFloat
     } from '$lib/stores';
     import {
         AppBskyEmbedExternal,
@@ -337,6 +337,8 @@
             })
             _post.text = text;
 
+            $sideState = 'publish';
+            $isPublishInstantFloat = true;
             postPulse.set([_post]);
             toast.success($_('success_to_delete_and_edit'), {
                 id: toastId,

@@ -22,7 +22,7 @@
     export let index = 0;
     export let unique = Symbol();
     export let isJunk = false;
-    export let name;
+    export let name = undefined;
 
     const uniqueAgent = $agents.get(getAccountIdByDid($agents, column.did));
     let _agent = uniqueAgent || $agent;

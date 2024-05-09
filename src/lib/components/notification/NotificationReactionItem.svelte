@@ -73,7 +73,7 @@
 
                     {#if (AppBskyEmbedImages.isView(item.feed?.embed) && item.feed?.embed)}
                         <div class="notifications-item-images">
-                            <Images images={item.feed.embed.images} blobs={item.feed.record.embed.images} {_agent} did={item.feed.author.did} folding={true}></Images>
+                            <Images images={item.feed.embed.images} blobs={item.feed.record.embed.images} did={item.feed.author.did} folding={true}></Images>
                         </div>
                     {/if}
                 </div>

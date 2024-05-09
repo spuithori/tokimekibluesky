@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {agent} from '$lib/stores';
     import {createEventDispatcher, onMount} from 'svelte';
     import { _ } from 'svelte-i18n';
     import { GiphyFetch } from '@giphy/js-fetch-api';
@@ -7,7 +6,6 @@
     import { Grid } from '@giphy/svelte-components';
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
     let dialog;
     const gf = new GiphyFetch(PUBLIC_GIPHY_API_KEY);
     let offset = 0;
