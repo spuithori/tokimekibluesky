@@ -21,6 +21,25 @@
 
   if (isDid(handle)) {
       did = handle;
+
+      if ($junkColumns.findIndex(_column => _column.id === 'list_' + id) === -1) {
+          junkColumns.set([...$junkColumns, {
+              id: 'list_' + id,
+              algorithm: {
+                  algorithm: 'at://' + did + '/app.bsky.graph.list/' + id,
+                  type: 'officialList',
+                  name: '',
+              },
+              style: 'default',
+              settings: defaultDeckSettings,
+              did: $agent.did(),
+              handle: $agent.handle(),
+              data: {
+                  feed: [],
+                  cursor: '',
+              }
+          }]);
+      }
   } else {
       $agent.agent.api.com.atproto.identity.resolveHandle({handle: handle})
           .then(value => {
