@@ -139,7 +139,7 @@
             return false;
         }
 
-        if (scrollTop === 0 && feed.length > 40) {
+        if (scrollTop === 0 && feed.length > 40 && !isJunk) {
             const borderItem = feed[39];
 
             if (borderItem && borderItem.memoryCursor) {
