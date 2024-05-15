@@ -1,6 +1,6 @@
 <script lang="ts">
   import {agent, settings, sideState} from '$lib/stores';
-  import { Pen, Search, Bell, User2, GanttChartSquare, Store } from 'lucide-svelte';
+  import {Pen, Search, Bell, User2, GanttChartSquare, Store, MessageCircleMore} from 'lucide-svelte';
     import MyProfileBadge from "../../../routes/(app)/MyProfileBadge.svelte";
 
   function toggleSideNav(name) {
@@ -51,6 +51,17 @@
           aria-label="Feed Store Tab"
       >
         <GanttChartSquare color="var(--nav-secondary-icon-color)"></GanttChartSquare>
+      </button>
+    </li>
+
+    <li class="side-nav__item">
+      <button
+              class="side-nav__button"
+              class:side-nav__button--current={$sideState === 'chat'}
+              on:click={() => toggleSideNav('chat')}
+              aria-label="Chat Tab"
+      >
+        <MessageCircleMore color="var(--nav-secondary-icon-color)"></MessageCircleMore>
       </button>
     </li>
 

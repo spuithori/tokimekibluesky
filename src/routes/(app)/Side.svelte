@@ -6,6 +6,7 @@
   import {isPublishInstantFloat, settings, sideState} from "$lib/stores";
   import SideProfile from "$lib/components/side/SideProfile.svelte";
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
+  import SideChat from "$lib/components/side/SideChat.svelte";
 </script>
 
 <div
@@ -38,6 +39,10 @@
 
       {#if ($sideState === 'feeds' && $settings.design?.publishPosition !== 'bottom')}
         <SideMyFeeds></SideMyFeeds>
+      {/if}
+
+      {#if ($sideState === 'chat' && $settings.design?.publishPosition !== 'bottom')}
+        <SideChat></SideChat>
       {/if}
     </div>
   </div>
