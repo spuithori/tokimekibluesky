@@ -15,7 +15,7 @@
 
     $: profiles = liveQuery(async () => {
         const profiles = await accountsDb.profiles
-            .limit(5)
+            .limit(10)
             .toArray();
         return profiles;
     });
