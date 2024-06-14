@@ -84,7 +84,7 @@
 <style lang="postcss">
   .chat-publish {
       position: sticky;
-      bottom: 0;
+      bottom: calc(env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
       margin-inline: -16px;
       padding: 8px 16px;
       background-color: var(--timeline-bg-color);

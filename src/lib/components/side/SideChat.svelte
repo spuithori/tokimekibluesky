@@ -101,6 +101,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 16px;
+      margin-top: 16px;
   }
 
   .chat-settings-text {
