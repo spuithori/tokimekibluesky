@@ -6,6 +6,7 @@
     import { createLongPress } from 'svelte-interactions';
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { fly } from 'svelte/transition';
+    import {CHAT_PROXY} from "$lib/components/chat/chatConst";
 
     const { longPressAction } = createLongPress();
     const dispatch = createEventDispatcher();
@@ -166,6 +167,12 @@
             scrollEl.scrollTo({
                 top: scrollEl.scrollHeight,
                 behavior: 'smooth',
+            });
+
+            const updateReadRes = await _agent.agent.api.chat.bsky.convo.updateRead({convoId: column.algorithm.id}, {
+                headers: {
+                    'atproto-proxy': CHAT_PROXY,
+                }
             });
         } else {
             column.data.feed = [];
