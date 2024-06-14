@@ -102,3 +102,8 @@ export async function getService(did: string) {
     const json = await res.json();
     return json?.service[0]?.serviceEndpoint;
 }
+
+export function isEmojiSequenceOrCombination(str: string) {
+    const emojiRegexPattern = /^(?:(\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Component}|\p{Extended_Pictographic})(?:\u200d(\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Component}|\p{Extended_Pictographic}))*)$/u;
+    return emojiRegexPattern.test(str) && [...str].length === 1;
+}

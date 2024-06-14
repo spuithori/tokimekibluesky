@@ -13,6 +13,7 @@
     import IconColumnsMyPost from "$lib/icons/columns/IconColumnsMyPost.svelte";
     import IconColumnsMyMedia from "$lib/icons/columns/IconColumnsMyMedia.svelte";
     import IconColumnsAuthor from "$lib/icons/columns/IconColumnsAuthor.svelte";
+    import IconColumnsChat from "$lib/icons/columns/IconColumnsChat.svelte";
     const dispatch = createEventDispatcher();
 
     export let _agent;
@@ -70,6 +71,8 @@
         <IconColumnsMyMedia></IconColumnsMyMedia>
       {:else if (column.algorithm.type === 'author')}
         <IconColumnsAuthor></IconColumnsAuthor>
+      {:else if (column.algorithm.type === 'chat')}
+        <IconColumnsChat></IconColumnsChat>
       {:else}
         <IconColumnsHome></IconColumnsHome>
       {/if}

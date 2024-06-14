@@ -4,6 +4,8 @@
     import { languageMap } from "$lib/langs/languageMap";
     import { createEventDispatcher } from 'svelte';
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
+    import {backgroundsMap} from "$lib/columnBackgrounds";
+    import { FlaskConical } from 'lucide-svelte';
     const dispatch = createEventDispatcher();
     export let column;
     export let index;
@@ -23,6 +25,15 @@
     let onlyShowUnread = column.settings?.onlyShowUnread || false;
     let playSound = column.settings?.playSound || null;
     let hideCounts = column.settings?.hideCounts || false;
+    let isPopup = column.settings?.isPopup || false;
+    let popupPosition = column.settings?.popupPosition || {
+        x: 0,
+        y: 0,
+        width: 280,
+        height: 400,
+    };
+    let opacity = column.settings?.opacity || 100;
+    let background = column.settings?.background || '';
 
     $: _settings = {
         timeline: {
@@ -40,6 +51,10 @@
         onlyShowUnread: onlyShowUnread,
         playSound: playSound,
         hideCounts: hideCounts,
+        isPopup: isPopup,
+        popupPosition: popupPosition,
+        opacity: opacity,
+        background: background,
     }
 
     $: apply(_settings);
@@ -72,6 +87,7 @@
             onlyShowUnread: false,
             playSound: null,
             hideCounts: false,
+            opacity: 1.0
         }
     }
 
@@ -99,6 +115,18 @@
         {
             name: 'DoDon',
             value: 'sound5',
+        },
+        {
+            name: 'Notification1',
+            value: 'notification1',
+        },
+        {
+            name: 'Notification2',
+            value: 'notification2',
+        },
+        {
+            name: 'Notification3',
+            value: 'notification3',
         },
     ]
 
@@ -267,6 +295,14 @@
         }
         handleClickClose();
     }
+
+    function popupColumn() {
+        if (column.settings.isPopup) {
+            $columns[index].settings = {...$columns[index].settings, isPopup: false};
+        } else {
+            $columns[index].settings = {...$columns[index].settings, isPopup: true};
+        }
+    }
 </script>
 
 <div class="deck-settings-wrap deck-settings-wrap--{layout}">
@@ -285,7 +321,7 @@
             <p class="deck-settings-description">{$_('deck_settings_description')}</p>
 
             <div class="deck-settings-groups">
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'chat')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('column_style')}
@@ -319,23 +355,25 @@
                     </dl>
                 {/if}
 
-                <dl class="settings-group">
-                    <dt class="settings-group__name">
-                        {$_('column_width')}
-                    </dt>
+                {#if (!column.settings?.isPopup)}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('column_width')}
+                        </dt>
 
-                    <dd class="settings-group__content">
-                        <div class="radio-v-group radio-v-group--dwidth">
-                            {#each widthSettings as option}
-                                <div class="radio-v-group__item">
-                                    <input type="radio" id={column.id + option.value} bind:group={width} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
-                                </div>
-                            {/each}
-                        </div>
-                    </dd>
-                </dl>
+                        <dd class="settings-group__content">
+                            <div class="radio-v-group radio-v-group--dwidth">
+                                {#each widthSettings as option}
+                                    <div class="radio-v-group__item">
+                                        <input type="radio" id={column.id + option.value} bind:group={width} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
+                                    </div>
+                                {/each}
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('refresh_to_top')}
@@ -349,29 +387,31 @@
                     </dl>
                 {/if}
 
-                <dl class="settings-group">
-                    <dt class="settings-group__name">
-                        {$_('auto_refresh')}
-                    </dt>
+                {#if column.algorithm?.type !== 'chat'}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('auto_refresh')}
+                        </dt>
 
-                    <dd class="settings-group__content">
-                        <div class="form-select">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                        <dd class="settings-group__content">
+                            <div class="form-select">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
 
-                            <select class="form-select__select" bind:value={autoRefresh}>
-                                {#each autoRefreshSettings as option}
-                                    <option value="{option.value}">{option.name}</option>
-                                {/each}
-                            </select>
-                        </div>
-                    </dd>
-                </dl>
+                                <select class="form-select__select" bind:value={autoRefresh}>
+                                    {#each autoRefreshSettings as option}
+                                        <option value="{option.value}">{option.name}</option>
+                                    {/each}
+                                </select>
+                            </div>
+                        </dd>
+                    </dl>
 
-                {#if (autoRefresh === -1)}
-                    <p class="notice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>{$_('auto_refresh_realtime_notice')}</p>
+                    {#if (autoRefresh === -1)}
+                        <p class="notice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>{$_('auto_refresh_realtime_notice')}</p>
 
-                    {#if (column.algorithm.type === 'default')}
-                        <RealtimeFollows {_agent}></RealtimeFollows>
+                        {#if (column.algorithm.type === 'default')}
+                            <RealtimeFollows {_agent}></RealtimeFollows>
+                        {/if}
                     {/if}
                 {/if}
 
@@ -393,7 +433,46 @@
                     </dd>
                 </dl>
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search')}
+                {#if (column.settings?.isPopup)}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('column_opacity')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="range">
+                                <input class="range__input" type="range" min="60" max="100" step="1" bind:value={opacity}>
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
+
+                {#if (column.algorithm?.type === 'chat')}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('column_background')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="icons-radio-group icons-radio-group--grid icons-radio-group--bg">
+                                {#each backgroundsMap as [key, value]}
+                                    <div class="icons-radio icons-radio--skin">
+                                        <input type="radio" bind:group={background} id="bg_{key}" name="skin" value={key}>
+                                        <label for="bg_{key}">
+                                    <span class="icons-radio__ui">
+                                        {#if value.url}
+                                            <img src="{value.url}" alt="">
+                                        {/if}
+                                    </span>
+                                        </label>
+                                    </div>
+                                {/each}
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
+
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('auto_scroll')}
@@ -451,7 +530,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('hide_repost_frequency')}
@@ -527,6 +606,10 @@
                     <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/lists/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--link-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>{$_('column_list_info')}
                     </a>
                 {/if}
+
+                <button class="deck-column-delete-button deck-column-delete-button--popup only-pc" on:click={popupColumn}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-picture-in-picture-2"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/></svg>{$_('popup_column')}
+                </button>
 
                 <button class="deck-column-delete-button deck-column-delete-button--clear" on:click={clearColumn}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -660,6 +743,10 @@
 
         &--clear {
             color: var(--text-color-3);
+        }
+
+        &--popup {
+            color: var(--primary-color);
         }
 
         &--info {

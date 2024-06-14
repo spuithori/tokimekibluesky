@@ -1,0 +1,1 @@
+export const CHAT_PROXY = 'did:web:api.bsky.chat#bsky_chat';

@@ -395,3 +395,22 @@ html {
         }
     }
 }
+
+.chat-item {
+    &--me {
+        a {
+            color: #fff;
+            text-decoration: underline;
+        }
+    }
+}
+
+.grabber {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    right: 0;
+    bottom: 0;
+    margin-left: auto;
+    cursor: se-resize;
+}

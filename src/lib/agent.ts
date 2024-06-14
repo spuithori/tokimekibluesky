@@ -2,6 +2,7 @@ import type {AppBskyFeedGetTimeline, BskyAgent} from '@atproto/api';
 import {AppBskyEmbedImages} from "@atproto/api";
 import type { currentAlgorithm } from "../app.d.ts";
 import {parseISO} from "date-fns";
+import {CHAT_PROXY} from "$lib/components/chat/chatConst";
 
 type timelineOpt = {
     limit: number,
@@ -241,6 +242,20 @@ export class Agent {
             } else {
                 return [];
             }
+        } catch (e) {
+            console.error(e);
+            return [];
+        }
+    }
+
+    async getChatLogs(rev: string) {
+        try {
+            const res = await this.agent.api.chat.bsky.convo.getLog({cursor: rev}, {
+                headers: {
+                    'atproto-proxy': CHAT_PROXY,
+                }
+            });
+            return res.data.logs;
         } catch (e) {
             console.error(e);
             return [];

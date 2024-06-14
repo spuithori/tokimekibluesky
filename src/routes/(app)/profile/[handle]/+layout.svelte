@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent} from '$lib/stores';
+    import {agent, junkColumns, settings} from '$lib/stores';
     import { afterUpdate } from 'svelte';
     import { page } from '$app/stores';
     import type { LayoutData } from './$types';
@@ -12,6 +12,10 @@
     import PageModal from "$lib/components/ui/PageModal.svelte";
     import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
     import LabelerSubscribeButton from "$lib/components/labeler/LabelerSubscribeButton.svelte";
+    import {goto} from "$app/navigation";
+    import {CHAT_PROXY} from "$lib/components/chat/chatConst";
+    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {toast} from "svelte-sonner";
 
     export let data: LayoutData;
     let currentPage = 'posts';
@@ -84,6 +88,55 @@
         getProfile(handle, false);
     }
 
+    async function chatBegin() {
+        try {
+            const res = await $agent.agent.api.chat.bsky.convo.getConvoForMembers(
+                {
+                    members: [$agent.did(), profile.did as string]
+                },
+                {
+                    headers: {
+                        'atproto-proxy': CHAT_PROXY,
+                    }
+                }
+              );
+
+            const convo = res.data.convo;
+
+            if ($junkColumns.findIndex(_column => _column.id === 'chat_' + convo.id) === -1) {
+                junkColumns.set([...$junkColumns, {
+                    id: 'chat_' + convo.id,
+                    algorithm: {
+                        id: convo.id,
+                        type: 'chat',
+                        name: convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle,
+                    },
+                    style: 'default',
+                    settings: {
+                        ...defaultDeckSettings,
+                        playSound: 'notification1',
+                    },
+                    did: _agent.did(),
+                    handle: _agent.handle(),
+                    data: {
+                        feed: [],
+                        cursor: '',
+                    }
+                }]);
+            }
+
+            await goto(`/chat/${convo.id}`);
+        } catch (e) {
+            if (e.message === 'recipient has disabled incoming messages') {
+                toast.error($_('error_chat_incoming_disabled'));
+            } else if (e.message === 'Bad token scope') {
+                toast.error($_('app_password_scope_error'));
+            } else {
+                console.error(e);
+            }
+        }
+    }
+
     afterUpdate(async() => {
         isActive();
     })
@@ -107,6 +160,12 @@
               <div class="profile-follow-button">
                 <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
               </div>
+
+              {#if !$settings?.general?.disableChat}
+                <button class="profile-chat-button" on:click={chatBegin}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-plus"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                </button>
+              {/if}
             {:else if (isLabeler)}
               <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
             {:else}
@@ -166,5 +225,19 @@
 
     .user-profile-labeler-wrap {
         margin-top: 16px;
+    }
+
+    .profile-chat-button {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-content: center;
+        border-radius: 50%;
+        background-color: var(--bg-color-2);
+        transition: background-color .2s ease-in-out;
+
+        &:hover {
+            background-color: var(--border-color-1);
+        }
     }
 </style>

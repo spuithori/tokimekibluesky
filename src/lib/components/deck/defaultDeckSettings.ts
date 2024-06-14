@@ -12,6 +12,15 @@ type defaultDeckSettings = {
     width?: 'large' | 'medium' | 'small',
     icon?: string | null,
     hideCounts?: boolean,
+    background?: string,
+    isPopup?: boolean,
+    popupPosition?: {
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+    },
+    opacity: number,
 }
 
 export const defaultDeckSettings: defaultDeckSettings = {
@@ -28,4 +37,6 @@ export const defaultDeckSettings: defaultDeckSettings = {
     width: 'medium',
     icon: null,
     hideCounts: false,
+    isPopup: false,
+    opacity: 100,
 }

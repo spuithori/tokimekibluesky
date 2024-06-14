@@ -5,7 +5,7 @@
   let serverStatus = undefined;
 
   onMount(async () => {
-      try {
+      /* try {
           const res = await fetch('https://status.bsky.app/api/v2/status.json');
           const status = await res.json();
 
@@ -16,7 +16,7 @@
           }
       } catch (e) {
           console.error(e);
-      }
+      } */
   })
 </script>
 

@@ -347,6 +347,24 @@
     }
 }
 
+.chat-editor {
+    .tiptap {
+        height: auto;
+        min-height: 32px;
+        max-height: 120px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+}
+
+.bottom {
+    .chat-editor {
+        .tiptap {
+            height: auto;
+        }
+    }
+}
+
 .editor-mention {
     color: var(--primary-color);
 }

@@ -79,6 +79,12 @@ input[type=checkbox]{
             margin-bottom: 0;
         }
     }
+
+    &--boxed {
+        background-color: var(--bg-color-3);
+        padding: 16px;
+        border-radius: var(--border-radius-3);
+    }
 }
 
 .settings-wrap {

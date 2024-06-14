@@ -4,7 +4,7 @@
     import TimelineSelector from "./TimelineSelector.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
-    import {agent, agents, columns, direction, intersectingIndex} from "$lib/stores";
+    import {agent, agents, columns, direction, intersectingIndex, isChatColumnFront} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
@@ -17,6 +17,8 @@
     import {scrollDirection} from "$lib/scrollDirection";
     import {onDestroy, onMount} from "svelte";
     import {toast} from "svelte-sonner";
+    import ChatTimeline from "./ChatTimeline.svelte";
+    import {backgroundsMap} from "$lib/columnBackgrounds";
 
     export let column;
     export let index = 0;
@@ -35,6 +37,7 @@
     let isColumnAlreadyAdded = false;
     let hideReply;
     let hideRepost;
+    let refresh;
 
     $: if (isFiltered) {
         hideReply = 'me';
@@ -56,13 +59,22 @@
             return false;
         }
 
+        if (column.algorithm?.type === 'chat') {
+            return false;
+        }
+
         isTopScrolling = true;
 
-        el.scroll({
-            top: 0,
-            left: 0,
-            behavior: 'smooth',
-        });
+        if (el.scrollTop === 0) {
+            handleRefresh();
+        } else {
+            el.scroll({
+                top: 0,
+                left: 0,
+                behavior: 'smooth',
+            });
+        }
+
 
         setTimeout(() => {
             isTopScrolling = false;
@@ -100,6 +112,7 @@
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 intersectingIndex.set(index);
+                isChatColumnFront.set($columns[index].algorithm?.type === 'chat');
                 direction.set('up');
             }
         })
@@ -121,6 +134,18 @@
         } catch (e) {
             console.error(e);
             toast.error('Error: ' + e);
+        }
+    }
+
+    async function handleRefresh() {
+        await refresh();
+    }
+
+    function handleChangePopup() {
+        if (column.settings.isPopup) {
+            $columns[index].settings = {...$columns[index].settings, isPopup: false};
+        } else {
+            $columns[index].settings = {...$columns[index].settings, isPopup: true};
         }
     }
 
@@ -149,6 +174,8 @@
 
 <div
     class="deck-row deck-row--{column.settings?.width || 'medium'}"
+    class:deck-row--popup={column.settings?.isPopup === true}
+    class:deck-row--bg={column.settings?.background}
     class:deck-row--decks={$settings.design?.layout === 'decks'}
     class:deck-row--single={$settings.design?.layout === 'default'}
     class:deck-row--compact={$settings.design?.publishPosition === 'bottom'}
@@ -157,6 +184,7 @@
     on:mouseleave={handleMouseLeave}
     bind:this={column.scrollElement}
     on:scroll|passive={handleScroll}
+    style:background-image={column.settings?.background ? `url(${backgroundsMap.get(column.settings.background).url})` : 'none'}
 >
     <div class="deck-heading">
         {#if (!isJunk)}
@@ -199,11 +227,18 @@
                 </button>
             {/if}
 
+            {#if column.algorithm?.type === 'chat' && $settings.design?.layout === 'decks' && !isJunk}
+                <button class="deck-popup-button only-pc" on:click={handleChangePopup}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-picture-in-picture-2"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/></svg>
+                </button>
+            {/if}
+
             <ColumnRefreshButton
                 column={column}
                 index={index}
                 {_agent}
                 bind:unique={unique}
+                bind:refresh={refresh}
                 {isJunk}
             ></ColumnRefreshButton>
 
@@ -228,6 +263,13 @@
                             <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
                         {:else if (column.algorithm.type === 'thread')}
                             <ThreadTimeline column={column} index={index} {_agent}></ThreadTimeline>
+                        {:else if (column.algorithm.type === 'chat')}
+                            <ChatTimeline
+                                    column={column}
+                                    index={index}
+                                    {_agent}
+                                    on:refresh={handleRefresh}
+                            ></ChatTimeline>
                         {:else}
                             <TimelineSelector
                                     column={column}
@@ -307,8 +349,17 @@
             height: calc(100dvh);
         }
 
-        &__content {
+        &:has(.chat) {
+            position: static;
+        }
 
+        &__content {
+            &:has(.chat) {
+                min-height: calc(100% -  52px);
+                display: flex;
+                flex-direction: column;
+                flex-shrink: 0;
+            }
         }
 
         &--xxs {
@@ -410,6 +461,24 @@
                 @media (max-width: 767px) {
                     top: 0;
                 }
+            }
+        }
+
+        &--popup {
+            @media (min-width: 768px) {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+        }
+
+        &--bg {
+            background-size: cover;
+            background-position: center;
+
+            .deck-heading {
+                background-color: var(--bg-vail-bg-color);
+                backdrop-filter: blur(12px);
             }
         }
     }
@@ -538,6 +607,13 @@
     }
 
     .deck-row-column-add-button {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-content: center;
+    }
+
+    .deck-popup-button {
         width: 40px;
         height: 40px;
         display: grid;
