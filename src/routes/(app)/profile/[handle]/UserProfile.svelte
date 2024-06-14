@@ -8,6 +8,7 @@ import {format, parseISO} from 'date-fns';
 import ProfileCardWrapper from '../../ProfileCardWrapper.svelte';
 import {BskyAgent, RichText} from '@atproto/api';
 import { Eye, EyeOff } from 'lucide-svelte';
+import SocialProof from "$lib/components/profile/SocialProof.svelte";
 
 const dispatch = createEventDispatcher();
 
@@ -200,6 +201,10 @@ function toggleHideCounts() {
 
         {#if (firstPostDate)}
           <p class="profile-first"><a href="{firstPostUri}">{$_('first_post_date', {values: {date: firstPostDate }})}</a></p>
+        {/if}
+
+        {#if profile?.viewer?.knownFollowers && !$settings.general?.hideProfileCounts && profile.did !== $agent.did()}
+          <SocialProof knownFollowers={profile?.viewer?.knownFollowers} actor={profile.did}></SocialProof>
         {/if}
       {/if}
     </div>

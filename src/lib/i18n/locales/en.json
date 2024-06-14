@@ -612,5 +612,7 @@
   "chat_allow_none": "None",
   "chat_settings_allow_incoming": "Chat incoming settings",
   "error_chat_incoming_disabled": "Chat cannot be sent to this user.",
-  "app_password_scope_error": "You do not have permission to access chat. You will need to log in again with the app password that \"Allow access to your direct messages\"."
+  "app_password_scope_error": "You do not have permission to access chat. You will need to log in again with the app password that \"Allow access to your direct messages\".",
+  "social_proof_users": "Connected users",
+  "social_proof_text": "Followed by {name} and {count} others"
 }

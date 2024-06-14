@@ -612,5 +612,7 @@
   "chat_allow_none": "なし",
   "chat_settings_allow_incoming": "チャットの受信設定",
   "error_chat_incoming_disabled": "このユーザーにはチャットを送れません。",
-  "app_password_scope_error": "チャットへのアクセス許可がありません。「ダイレクトメッセージへのアクセスを許可」したアプリパスワードで再度ログインする必要があります。"
+  "app_password_scope_error": "チャットへのアクセス許可がありません。「ダイレクトメッセージへのアクセスを許可」したアプリパスワードで再度ログインする必要があります。",
+  "social_proof_users": "つながりのあるユーザー",
+  "social_proof_text": "{name}さんほか{count}人にフォローされています"
 }

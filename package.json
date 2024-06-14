@@ -35,7 +35,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@atproto/api": "^0.12.10",
+    "@atproto/api": "^0.12.19",
     "@emoji-mart/data": "^1.1.2",
     "@giphy/js-fetch-api": "^5.4.0",
     "@giphy/svelte-components": "^1.0.1",
