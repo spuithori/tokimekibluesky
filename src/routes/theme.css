@@ -268,6 +268,7 @@
 
     --deck-content-bg-color: var(--bg-color-1);
     --deck-content-backdrop-filter: none;
+    --bg-vail-bg-color: rgba(255, 255, 255, .35);
 
     /* Timeline */
     --timeline-padding: var(--default-padding);
@@ -356,5 +357,6 @@
 
     &.darkmode {
         --app-bg-image: var(--base-dark-bg-image);
+        --bg-vail-bg-color: rgba(0, 0, 0, .3);
     }
 }

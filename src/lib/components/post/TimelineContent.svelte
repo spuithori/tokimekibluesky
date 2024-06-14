@@ -117,7 +117,7 @@
 
 <div class="timeline__image">
   {#if $settings?.design.postsLayout !== 'minimum'}
-    <Avatar href="/profile/{ post.author.handle }" avatar={post.author.avatar}
+    <Avatar href="/profile/{ post.author.handle !== 'handle.invalid' ? post.author.handle : post.author.did }" avatar={post.author.avatar}
             handle={post.author.handle} {_agent}></Avatar>
   {/if}
 </div>

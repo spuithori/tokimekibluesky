@@ -44,6 +44,7 @@
   import GoogleAnalytics from "$lib/components/utils/GoogleAnalytics.svelte";
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
   import JunkColumnsObserver from "$lib/components/utils/JunkColumnsObserver.svelte";
+  import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
 
   let loaded = false;
   let isDarkMode = false;
@@ -409,6 +410,10 @@
 
     <NotificationCountObserver></NotificationCountObserver>
     <RealtimeListenersObserver></RealtimeListenersObserver>
+
+    {#if !$settings?.general?.disableChat}
+      <ChatUpdateObserver></ChatUpdateObserver>
+    {/if}
   {:else}
     <div>
 

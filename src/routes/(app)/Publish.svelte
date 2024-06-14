@@ -3,7 +3,7 @@ import { _ } from 'svelte-i18n';
 import {
     agent,
     agents,
-    hashtagHistory,
+    hashtagHistory, isChatColumnFront,
     isPublishInstantFloat, postPulse,
     quotePost,
     replyRef,
@@ -591,7 +591,10 @@ function applyDeleteThread(index) {
     </svg>
   </button>
 {:else}
-  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" class:publish-sp-open--left={$settings.design?.publishPosition === 'left'} on:click={handleOpen}>
+  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く"
+          class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}
+          class:publish-sp-open--hidden={$isChatColumnFront}
+          on:click={handleOpen}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
       <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="var(--bg-color-1)"/>
     </svg>
@@ -691,6 +694,13 @@ function applyDeleteThread(index) {
         &--vk {
             @media (max-width: 767px) {
                 display: none;
+            }
+        }
+
+        &--hidden {
+            @media (max-width: 767px) {
+                opacity: 0;
+                visibility: hidden;
             }
         }
     }

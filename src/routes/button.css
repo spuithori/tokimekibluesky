@@ -95,6 +95,14 @@ button {
     padding: 0 8px;
 }
 
+.button--ssl {
+    height: 36px;
+    border-radius: 18px;
+    min-width: 120px;
+    font-size: 14px;
+    padding: 0 12px;
+}
+
 .button--sm {
     height: 40px;
     border-radius: 20px;
@@ -115,6 +123,10 @@ button {
 .button--logout {
     min-width: 0;
     width: 100%;
+}
+
+.button--soft-rect {
+    border-radius: var(--border-radius-3);
 }
 
 .buttons-group {

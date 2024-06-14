@@ -133,6 +133,17 @@
       &--normal {
           max-width: min(740px, 94vw);
       }
+
+      &--fixed {
+          width: 500px;
+          height: 600px;
+          max-width: 94vw;
+          max-height: 90vh;
+
+          .v2-modal__inner {
+              height: 100%;
+          }
+      }
   }
 
   .v2-modal-contents {

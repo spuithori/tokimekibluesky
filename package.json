@@ -40,6 +40,7 @@
     "@giphy/js-fetch-api": "^5.4.0",
     "@giphy/svelte-components": "^1.0.1",
     "@ipld/car": "^5.2.4",
+    "@neodrag/svelte": "^2.0.6",
     "@sentry/sveltekit": "^7.110.1",
     "@splidejs/svelte-splide": "^0.2.9",
     "@supabase/supabase-js": "^2.20.0",

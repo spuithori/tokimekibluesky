@@ -18,7 +18,7 @@ type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification 
 }
 
 type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list',
+    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat',
     algorithm?: string,
     name?: string,
     list?: object,
@@ -81,6 +81,11 @@ export const syncColumns = derived(columns, ($columns, set) => {
     set(_columns);
 });
 
+export const columnChatLength = derived(columns, ($columns, set) => {
+    const chatColumns = $columns.filter(column => column?.algorithm?.type === 'chat');
+    set(chatColumns.length);
+})
+
 export const junkColumns = writable<columns[]>([]);
 
 export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
@@ -123,6 +128,7 @@ const defaultSettings = {
         enableBluefeed: false,
         disableHaptics: false,
         enableAppBrowser: false,
+        disableChat: false,
     },
     design: {
         skin: 'default',
@@ -344,3 +350,9 @@ export const hashtagHistory = writable(localStorage.getItem('hashtagHistory')
     : []);
 
 export const postPulse = writable([]);
+
+export const latestRevMap = writable(new Map<string, string>());
+
+export const chatPulse = writable([]);
+
+export const isChatColumnFront = writable<boolean>(false);

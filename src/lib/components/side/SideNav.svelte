@@ -54,16 +54,18 @@
       </button>
     </li>
 
-    <li class="side-nav__item">
-      <button
-              class="side-nav__button"
-              class:side-nav__button--current={$sideState === 'chat'}
-              on:click={() => toggleSideNav('chat')}
-              aria-label="Chat Tab"
-      >
-        <MessageCircleMore color="var(--nav-secondary-icon-color)"></MessageCircleMore>
-      </button>
-    </li>
+    {#if !$settings?.general?.disableChat}
+      <li class="side-nav__item">
+        <button
+                class="side-nav__button"
+                class:side-nav__button--current={$sideState === 'chat'}
+                on:click={() => toggleSideNav('chat')}
+                aria-label="Chat Tab"
+        >
+          <MessageCircleMore color="var(--nav-secondary-icon-color)"></MessageCircleMore>
+        </button>
+      </li>
+    {/if}
 
     <li class="side-nav__item side-nav__item--right">
       <a
@@ -82,6 +84,14 @@
         {/if}
       </div>
     </li>
+
+    {#if !$settings?.general?.disableChat}
+      <li class="side-nav__item">
+        <a href="/chat" class="side-nav__button">
+          <MessageCircleMore color="var(--bar-bottom-icon-color)"></MessageCircleMore>
+        </a>
+      </li>
+    {/if}
 
     <li class="side-nav__item">
       <a href="/search" class="side-nav__button">
