@@ -8,6 +8,7 @@
 
     export let title;
     export let size = 'normal';
+    export let disableState = false;
     const duration = 150;
     let el;
 
@@ -45,7 +46,7 @@
     })
 
     onDestroy(() => {
-        if ($page.state.showModal) {
+        if ($page.state.showModal && !disableState) {
             history.back();
         }
     })

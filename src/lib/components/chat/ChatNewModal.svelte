@@ -28,9 +28,9 @@
         const actor = e.detail.member;
 
         try {
-            const res = await $agent.agent.api.chat.bsky.convo.getConvoForMembers(
+            const res = await _agent.agent.api.chat.bsky.convo.getConvoForMembers(
                 {
-                    members: [$agent.did(), actor.did as string]
+                    members: [_agent.did(), actor.did as string]
                 },
                 {
                     headers: {
@@ -76,7 +76,7 @@
     }
 </script>
 
-<Modal title={$_('start_new_chat')} size="fixed" on:close>
+<Modal title={$_('start_new_chat')} size="fixed" disableState={true} on:close>
   <div class="new-chat">
     <div class="new-chat-search">
       <input type="text" class="new-chat-search__input" placeholder={$_('handle_or_name')} bind:value={search} on:keydown={handleKeyDown} autofocus>
