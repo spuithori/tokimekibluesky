@@ -15,6 +15,7 @@
     import {goto} from "$app/navigation";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {toast} from "svelte-sonner";
 
     export let data: LayoutData;
     let currentPage = 'posts';
@@ -126,7 +127,13 @@
 
             await goto(`/chat/${convo.id}`);
         } catch (e) {
-
+            if (e.message === 'recipient has disabled incoming messages') {
+                toast.error($_('error_chat_incoming_disabled'));
+            } else if (e.message === 'Bad token scope') {
+                toast.error($_('app_password_scope_error'));
+            } else {
+                console.error(e);
+            }
         }
     }
 

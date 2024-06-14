@@ -67,6 +67,8 @@
         } catch (e) {
             if (e.message === 'recipient has disabled incoming messages') {
                 toast.error($_('error_chat_incoming_disabled'));
+            } else if (e.message === 'Bad token scope') {
+                toast.error($_('app_password_scope_error'));
             } else {
                 console.error(e);
             }

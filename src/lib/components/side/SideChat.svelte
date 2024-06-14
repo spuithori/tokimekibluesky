@@ -6,6 +6,7 @@
   import ChatListItem from "$lib/components/chat/ChatListItem.svelte";
   import {CHAT_PROXY} from "$lib/components/chat/chatConst";
   import ChatNewModal from "$lib/components/chat/ChatNewModal.svelte";
+  import {toast} from "svelte-sonner";
 
   let convos = [];
   let _agent = $agent;
@@ -14,37 +15,19 @@
   async function handleAgentSelect(event) {
       _agent = event.detail.agent;
       convos = [];
-
-      try {
-          const res = await _agent.agent.api.chat.bsky.convo.listConvos({}, {
-              headers: {
-                  'atproto-proxy': CHAT_PROXY,
-              }
-          })
-
-          convos = res.data.convos;
-      } catch (e) {
-          console.error(e);
-      }
+      await loadConvos();
   }
 
   async function handleRefresh(event) {
       convos = [];
-
-      try {
-          const res = await _agent.agent.api.chat.bsky.convo.listConvos({}, {
-              headers: {
-                  'atproto-proxy': CHAT_PROXY,
-              }
-          })
-
-          convos = res.data.convos;
-      } catch (e) {
-          console.error(e);
-      }
+      await loadConvos();
   }
 
   onMount(async () => {
+      await loadConvos();
+  });
+
+  async function loadConvos() {
       try {
           const res = await _agent.agent.api.chat.bsky.convo.listConvos({}, {
               headers: {
@@ -52,13 +35,15 @@
               }
           })
 
-          console.log(res);
-
           convos = res.data.convos;
       } catch (e) {
           console.error(e);
+
+          if (e.message === 'Bad token scope') {
+              toast.error($_('app_password_scope_error'));
+          }
       }
-  });
+  }
 </script>
 
 <div class="side-chat">
