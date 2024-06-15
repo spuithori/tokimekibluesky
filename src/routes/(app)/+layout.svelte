@@ -45,6 +45,7 @@
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
   import JunkColumnsObserver from "$lib/components/utils/JunkColumnsObserver.svelte";
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
+  import {isSafariOrFirefox} from "$lib/util";
 
   let loaded = false;
   let isDarkMode = false;
@@ -219,6 +220,11 @@
 
   if (!$settings?.general.userLanguage) {
       $settings.general.userLanguage = window.navigator.language;
+  }
+
+  if (isSafariOrFirefox()) {
+      console.log('Disable WebFont in Safari and Firefox.');
+      $settings.design.nonoto = true;
   }
 
   // Migrate keyword mute.

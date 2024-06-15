@@ -10,6 +10,12 @@ input[type=checkbox]{
     height: 0;
     width: 0;
     visibility: hidden;
+
+    &:disabled {
+        & + .input-toggle__label {
+            opacity: .7;
+        }
+    }
 }
 
 .input-toggle__label {

@@ -5,6 +5,7 @@
     import {themesDb} from "$lib/db";
     import {builtInThemes} from "$lib/builtInThemes";
     import {defaultColors} from "$lib/defaultColors";
+    import {isSafariOrFirefox} from "$lib/util";
     let skin: string = $settings?.design.skin || 'default';
     let themePick: string = $settings?.design.theme || 'royalblue';
     let darkmode = $settings?.design.darkmode || false;
@@ -341,7 +342,7 @@
 
       <dd class="settings-group__content">
         <div class="input-toggle">
-          <input class="input-toggle__input" type="checkbox" id="nonoto" bind:checked={nonoto}><label class="input-toggle__label" for="nonoto"></label>
+          <input class="input-toggle__input" type="checkbox" id="nonoto" bind:checked={nonoto} disabled={isSafariOrFirefox()}><label class="input-toggle__label" for="nonoto"></label>
         </div>
       </dd>
     </dl>

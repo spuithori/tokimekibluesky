@@ -107,3 +107,10 @@ export function isEmojiSequenceOrCombination(str: string) {
     const emojiRegexPattern = /^(?:(\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Component}|\p{Extended_Pictographic})(?:\u200d(\p{Emoji_Presentation}|\p{Emoji_Modifier_Base}|\p{Emoji_Component}|\p{Extended_Pictographic}))*)$/u;
     return emojiRegexPattern.test(str) && [...str].length === 1;
 }
+
+export function isSafariOrFirefox() {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
+    const isFirefox = /firefox/.test(userAgent);
+    return isSafari || isFirefox;
+}
