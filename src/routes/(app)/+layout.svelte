@@ -421,7 +421,7 @@
   {/if}
 
   <Footer></Footer>
-  <Toaster position="top-center" theme={isDarkMode ? 'dark' : 'light'}></Toaster>
+  <Toaster position="top-center" theme={isDarkMode ? 'dark' : 'light'} closeButton></Toaster>
   <ReportObserver></ReportObserver>
   <ProfileStatusObserver></ProfileStatusObserver>
   <LinkWarningModal></LinkWarningModal>

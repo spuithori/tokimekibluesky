@@ -614,5 +614,7 @@
   "error_chat_incoming_disabled": "このユーザーにはチャットを送れません。",
   "app_password_scope_error": "チャットへのアクセス許可がありません。「ダイレクトメッセージへのアクセスを許可」したアプリパスワードで再度ログインする必要があります。",
   "social_proof_users": "つながりのあるユーザー",
-  "social_proof_text": "{name}さんほか{count}人にフォローされています"
+  "social_proof_text": "{name}さんほか{count}人にフォローされています",
+  "settings_news": "更新情報",
+  "settings_about_description": "更新情報はAT Protocolによるブログサービス、WhiteWind によって提供されています。"
 }
