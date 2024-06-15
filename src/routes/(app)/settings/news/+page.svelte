@@ -17,7 +17,7 @@
 </script>
 
 <svelte:head>
-  <title>{$_('settings_about')} - TOKIMEKI</title>
+  <title>{$_('settings_news')} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
