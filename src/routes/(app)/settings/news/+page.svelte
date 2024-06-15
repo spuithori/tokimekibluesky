@@ -5,7 +5,7 @@
     import {BskyAgent} from "@atproto/api";
     import {format, parseISO} from "date-fns";
 
-    const _agent = new BskyAgent({service: $agent.service()});
+    const _agent = new BskyAgent({service: 'https://puffball.us-east.host.bsky.network'});
     let posts = [];
     let cursor = '';
 
