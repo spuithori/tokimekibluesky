@@ -108,6 +108,7 @@ export function isEmojiSequenceOrCombination(str: string) {
     return emojiRegexPattern.test(str) && [...str].length === 1;
 }
 
+// @ts-ignore
 export function isSafariOrFirefox() {
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
