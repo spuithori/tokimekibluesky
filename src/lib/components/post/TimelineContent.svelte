@@ -117,7 +117,7 @@
 
 <div class="timeline__image">
   {#if $settings?.design.postsLayout !== 'minimum'}
-    <Avatar href="/profile/{ post.author.handle }" avatar={post.author.avatar}
+    <Avatar href="/profile/{ post.author.handle !== 'handle.invalid' ? post.author.handle : post.author.did }" avatar={post.author.avatar}
             handle={post.author.handle} {_agent}></Avatar>
   {/if}
 </div>
@@ -184,7 +184,7 @@
           <TimelineWarn labels={warnLabels}></TimelineWarn>
         {/if}
 
-        <Images images={post.embed.images} blobs={post.record.embed.images} {_agent} did={post.author.did}></Images>
+        <Images images={post.embed.images} blobs={post.record.embed.images} did={post.author.did}></Images>
       </div>
     {/if}
 
@@ -207,7 +207,7 @@
             <TimelineWarn labels={warnLabels}></TimelineWarn>
           {/if}
 
-          <Images images={post.embed.media.images} blobs={post.record.embed.media.images} did={post.author.did} {_agent}></Images>
+          <Images images={post.embed.media.images} blobs={post.record.embed.media.images} did={post.author.did}></Images>
         </div>
       {/if}
 

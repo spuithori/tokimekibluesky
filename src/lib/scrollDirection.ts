@@ -1,31 +1,29 @@
 let lastScrollY = 0;
+let ticking = false;
 
-export function scrollDirection(event) {
-    if (!event.target) {
-        return false;
-    }
-
-    const threshold = 80;
-    let scrollDir;
-
-    const scrollY = event.target.scrollTop ?? window.scrollY;
-
-    if (Math.abs(scrollY - lastScrollY) < threshold) {
+export function scrollDirection(node, threshold, callback): 'up' | 'down' | undefined {
+    if (!node) {
         return;
     }
 
-    scrollDir = scrollY > lastScrollY ? 'down' : 'up';
-    lastScrollY = scrollY > 0 ? scrollY : 0;
-
-    return scrollDir;
-}
-
-export function detectScrollDirection(event) {
-    const scroll = scrollDirection(event);
-
-    if (!scroll) {
-        return null;
+    const scrollY = node.scrollTop ?? node.scrollY ?? window.scrollY;
+    if (ticking) {
+        return;
     }
 
-    return scroll;
+    ticking = true;
+    window.requestAnimationFrame(() => {
+        let scrollDir;
+
+        if (Math.abs(scrollY - lastScrollY) < threshold) {
+            ticking = false;
+            return;
+        }
+
+        scrollDir = scrollY > lastScrollY ? 'down' : 'up';
+        lastScrollY = scrollY > 0 ? scrollY : 0;
+        ticking = false;
+
+        callback(scrollDir);
+    });
 }

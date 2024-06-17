@@ -44,6 +44,8 @@
   import GoogleAnalytics from "$lib/components/utils/GoogleAnalytics.svelte";
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
   import JunkColumnsObserver from "$lib/components/utils/JunkColumnsObserver.svelte";
+  import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
+  import {isSafariOrFirefox} from "$lib/util";
 
   let loaded = false;
   let isDarkMode = false;
@@ -220,6 +222,11 @@
       $settings.general.userLanguage = window.navigator.language;
   }
 
+  if (isSafariOrFirefox()) {
+      console.log('Disable WebFont in Safari and Firefox.');
+      $settings.design.nonoto = true;
+  }
+
   // Migrate keyword mute.
   if (Array.isArray($settings?.keywordMutes)) {
       $keywordMutes = [...$settings.keywordMutes, ...$keywordMutes];
@@ -309,11 +316,9 @@
   });
 
   function handleScroll(event) {
-      const scroll = scrollDirection(event);
-
-      if (scroll) {
-          direction.set(scroll);
-      }
+      const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
+          direction.set(scrollDir);
+      });
   }
 
   function handleColumnModalClose() {
@@ -346,7 +351,7 @@
   viewPortSetting();
 </script>
 
-<svelte:window on:scroll={handleScroll} bind:scrollY={scrolly}></svelte:window>
+<svelte:window on:scroll|passive={handleScroll} bind:scrollY={scrolly}></svelte:window>
 <svelte:head>
   <meta name="theme-color" content={baseColor}>
   <link rel="canonical" href="https://tokimeki.blue{$page.url.pathname}">
@@ -368,7 +373,7 @@
     class:decks={$settings?.design.layout === 'decks'}
     class:page={$page.url.pathname !== '/'}
     class:ios={isMobile.iOS()}
-    class:advanced-break={$settings.design?.advancedBreak}
+    class:left-mode={$settings?.design?.leftMode}
     class:superstar={$settings.design?.reactionMode === 'superstar'}
     style={outputInlineStyle($theme)}
     bind:this={app}
@@ -411,6 +416,10 @@
 
     <NotificationCountObserver></NotificationCountObserver>
     <RealtimeListenersObserver></RealtimeListenersObserver>
+
+    {#if !$settings?.general?.disableChat}
+      <ChatUpdateObserver></ChatUpdateObserver>
+    {/if}
   {:else}
     <div>
 
@@ -418,7 +427,7 @@
   {/if}
 
   <Footer></Footer>
-  <Toaster position="top-center" theme={isDarkMode ? 'dark' : 'light'}></Toaster>
+  <Toaster position="top-center" theme={isDarkMode ? 'dark' : 'light'} closeButton></Toaster>
   <ReportObserver></ReportObserver>
   <ProfileStatusObserver></ProfileStatusObserver>
   <LinkWarningModal></LinkWarningModal>

@@ -1,6 +1,15 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n';
-import {agent, agents, isPublishInstantFloat, quotePost, replyRef, settings, threadGate} from '$lib/stores';
+import {
+    agent,
+    agents,
+    hashtagHistory, isChatColumnFront,
+    isPublishInstantFloat, postPulse,
+    quotePost,
+    replyRef,
+    settings,
+    threadGate
+} from '$lib/stores';
 import {selfLabels} from "$lib/components/editor/publishStore";
 import { clickOutside } from '$lib/clickOutSide';
 import {
@@ -48,6 +57,8 @@ if (!$settings.langSelector) {
 }
 
 $: isMobilePopState = isMobile ? $page.state.showPublish : false;
+
+$: handlePostPulse($postPulse);
 
 $: if (isMobile ? isFocus && isMobilePopState : isFocus) {
   document.documentElement.classList.add('scroll-lock');
@@ -98,21 +109,16 @@ function handleKeydown(event: { key: string; }) {
     }
 }
 
-async function getReplyRefByUri(uri: string) {
-    if (!uri) {
+function handlePostPulse(posts) {
+    if (!posts || !posts.length) {
         return false;
     }
 
-    const res = await _agent.getFeed(uri);
-    let root = res.parent;
-    while (root.parent) {
-        root = root.parent;
-    }
-
-    return {
-        parent: res.post,
-        root: root.post,
-    }
+    postsPool = posts;
+    _agent = $agents.get(getAccountIdByDid($agents, posts[0].did));
+    unique = Symbol();
+    handleOpen();
+    postPulse.set([]);
 }
 
 $: quotePostObserve($quotePost);
@@ -521,7 +527,22 @@ async function publish(post, treeReplyRef = undefined) {
             );
         }
 
-        // toast.success($_('success_to_post'));
+        if (rt?.facets) {
+            const tags = rt.facets.map(facet => {
+                if (facet?.features[0]?.tag) {
+                    return facet.features[0].tag as string;
+                }
+            });
+            let _hashtagHistory = [...tags, ...$hashtagHistory];
+            _hashtagHistory = [...new Set(_hashtagHistory)];
+            $hashtagHistory = _hashtagHistory.filter(v => v !== null);
+
+            if ($hashtagHistory.length > 4) {
+                $hashtagHistory = $hashtagHistory.slice(0, 4);
+            }
+            localStorage.setItem('hashtagHistory', JSON.stringify($hashtagHistory));
+        }
+
         return create;
     } catch (error) {
         console.error((error as Error).message);
@@ -570,7 +591,10 @@ function applyDeleteThread(index) {
     </svg>
   </button>
 {:else}
-  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" class:publish-sp-open--left={$settings.design?.publishPosition === 'left'} on:click={handleOpen}>
+  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く"
+          class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}
+          class:publish-sp-open--hidden={$isChatColumnFront}
+          on:click={handleOpen}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
       <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="var(--bg-color-1)"/>
     </svg>
@@ -670,6 +694,13 @@ function applyDeleteThread(index) {
         &--vk {
             @media (max-width: 767px) {
                 display: none;
+            }
+        }
+
+        &--hidden {
+            @media (max-width: 767px) {
+                opacity: 0;
+                visibility: hidden;
             }
         }
     }

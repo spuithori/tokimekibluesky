@@ -181,6 +181,16 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, 75px);
     }
+
+    &--bg {
+        grid-template-columns: repeat(auto-fill, 64px);
+        gap: 8px;
+
+        .icons-radio__ui {
+            width: 64px;
+            height: 96px;
+        }
+    }
 }
 
 .icons-radio {

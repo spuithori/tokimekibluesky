@@ -2,6 +2,7 @@
   import ProfileCard from "./ProfileCard.svelte";
   import {agent, isDataSaving} from '$lib/stores';
   import {goto} from "$app/navigation";
+  import {page} from "$app/stores";
 
   export let _agent = $agent;
   export let avatar;
@@ -32,7 +33,9 @@
   }
 
   function handleClick() {
-      goto(href);
+      goto(href, {
+          replaceState: $page.state.showModal && $page.url.pathname !== '/',
+      });
   }
 </script>
 

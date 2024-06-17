@@ -1,6 +1,19 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss} from 'lucide-svelte';
+    import {
+        Trash2,
+        Users2,
+        Languages,
+        Copy,
+        AtSign,
+        ListPlus,
+        List,
+        Flag,
+        EyeOff,
+        Rss,
+        Pin,
+        Pencil
+    } from 'lucide-svelte';
     import {
         agent,
         settings,
@@ -10,9 +23,15 @@
         didHint,
         pulseDelete,
         listAddModal,
-        agents, repostMutes, postMutes, bluefeedAddModal
+        agents, repostMutes, postMutes, bluefeedAddModal, postPulse, sideState, isPublishInstantFloat
     } from '$lib/stores';
-    import {AppBskyFeedDefs} from '@atproto/api'
+    import {
+        AppBskyEmbedExternal,
+        AppBskyEmbedImages,
+        AppBskyEmbedRecord,
+        AppBskyFeedDefs,
+        BskyAgent
+    } from '@atproto/api'
     import { toast } from "svelte-sonner";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
     import {setContext} from "svelte";
@@ -22,8 +41,15 @@
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
     import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
-    import {getAccountIdByDid, getAllAgentDids} from "$lib/util.js";
+    import {
+        getAccountIdByDid,
+        getAllAgentDids,
+        getImageBase64FromBlob,
+        getImageObjectFromBlob,
+        getService
+    } from "$lib/util.js";
     import ReactionModal from "$lib/components/post/ReactionModal.svelte";
+    import {getTextArray} from "$lib/richtext";
 
     export let _agent = $agent;
     export let data: AppBskyFeedDefs.FeedViewPost;
@@ -32,6 +58,7 @@
     export let isThread: boolean = false;
     export let isMedia: boolean = false;
     export let isProfile: boolean = false;
+    export let isPinned: boolean = false;
     export let column = undefined;
     export let index = 0;
 
@@ -39,7 +66,9 @@
 
     let selectionText = '';
     let dialog;
+    let editDialog;
     let isDialogRender = false;
+    let isEditDialogRender = false;
     let isMenuOpen = false;
     let isShortCutNumberShown = false;
     let isTranslated = false;
@@ -49,6 +78,10 @@
     $: {
         if (dialog) {
             dialog.open();
+        }
+
+        if (editDialog) {
+            editDialog.open();
         }
     }
 
@@ -202,9 +235,123 @@
 
     function deletePostStep() {
         if ($settings.general.deleteConfirmSkip) {
-            deletePost(data.post.uri)
+            deletePost(data.post.uri);
         } else {
             isDialogRender = true;
+        }
+    }
+
+    function editPostStep() {
+        if ($settings.general.deleteConfirmSkip) {
+            editPost();
+        } else {
+            isEditDialogRender = true;
+        }
+    }
+
+    async function editPost() {
+        const toastId = toast.loading($_('process_to_delete_and_edit'), {
+            duration: 100000,
+        });
+
+        try {
+            let _post = { did: data.post.author.did };
+            const __agent = new BskyAgent({service: await getService(data.post.author.did)});
+
+            if (AppBskyEmbedImages.isView(data?.post?.embed)) {
+                const blobs = data.post.record.embed.images.map(image => {
+                    return {
+                        cid: image.image.ref.toString(),
+                        mimeType: image.image.mimeType,
+                        alt: image.alt,
+                        width: image.aspectRatio.width,
+                        height: image.aspectRatio.height,
+                    }
+                });
+
+                const promises = blobs.map(blob => getImageObjectFromBlob(data.post.author.did, blob, __agent));
+                _post.images = await Promise.all(promises);
+            }
+
+            if (AppBskyEmbedImages.isView(data?.post?.embed?.media)) {
+                const blobs = data.post.record.embed.media.images.map(image => {
+                    return {
+                        cid: image.image.ref.toString(),
+                        mimeType: image.image.mimeType,
+                        alt: image.alt,
+                        width: image.aspectRatio.width,
+                        height: image.aspectRatio.height,
+                    }
+                });
+
+                const promises = blobs.map(blob => getImageObjectFromBlob(data.post.author.did, blob, __agent));
+                _post.images = await Promise.all(promises);
+            }
+
+            if (AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record)) {
+                _post.quotePost = {
+                    ...data.post.embed.record,
+                    record: data.post.embed.record.value,
+                };
+            }
+
+            if (AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record?.record)) {
+                _post.quotePost = {
+                    ...data.post.embed.record.record,
+                    record: data.post.embed.record.record.value,
+                };
+            }
+
+            if (data.reply && !data.reply.parent?.notFound && !data.reply.parent?.blocked) {
+                _post.replyRef = {
+                    did: data.post.author.did,
+                    data: {
+                        parent: data.reply.parent,
+                        root: data.reply.root,
+                    }
+                }
+            }
+
+            if (AppBskyEmbedExternal.isView(data?.post?.embed)) {
+                _post.embedExternal = {
+                    $type: 'app.bsky.embed.external',
+                    external: structuredClone(data.post.embed.external),
+                };
+
+                if (data.post.embed.external?.thumb) {
+                    _post.externalImageBlob = await getImageBase64FromBlob(data.post.author.did, {cid: data.post.record.embed.external.thumb.ref.toString(), mimeType: data.post.record.embed.external.thumb.mimeType}, __agent);
+                }
+            }
+
+            let text = '';
+            getTextArray(data.post.record).forEach(item => {
+                if (item.isLink()) {
+                    text = text + `<a href="${item.link.uri}">${item.text}</a>`
+                } else if (item.isMention()) {
+                    text = text + `<span class="editor-mention" data-type="mention" data-id="${item.text.slice(1)}">${item.text}</span>`
+                } else if (item.isTag()) {
+                    text = text + `<span class="editor-hashtag">${item.text}</span>`
+                } else {
+                    text = text + item.text.replaceAll('\n', '<br>');
+                }
+            })
+            _post.text = text;
+
+            $sideState = 'publish';
+            $isPublishInstantFloat = true;
+            postPulse.set([_post]);
+            toast.success($_('success_to_delete_and_edit'), {
+                id: toastId,
+                duration: 2000,
+            });
+
+            await deletePost(data.post.uri);
+        } catch (e) {
+            console.error(e);
+           toast.error('Error', {
+               id: toastId,
+               duration: 5000,
+           })
         }
     }
 
@@ -315,6 +462,42 @@
             pulseDelete.set(undefined);
         }, 500)
     }
+
+    async function registerPin() {
+        isMenuOpen = false;
+
+        try {
+            await _agent.agent.upsertProfile(_profile => {
+                const profile = _profile || {};
+                profile.pinnedPost = data.post.uri;
+
+                return profile;
+            });
+
+            toast.success($_('success_register_pin'));
+            location.reload();
+        } catch (e) {
+
+        }
+    }
+
+    async function unregisterPin() {
+        isMenuOpen = false;
+
+        try {
+            await _agent.agent.upsertProfile(_profile => {
+                const profile = _profile || {};
+                profile.pinnedPost = undefined;
+
+                return profile;
+            });
+
+            toast.success($_('success_unregister_pin'));
+            location.reload();
+        } catch (e) {
+
+        }
+    }
 </script>
 
 <svelte:document on:selectionchange={handleSelectStart} />
@@ -329,6 +512,11 @@
   >
     {#if (isShortCutNumberShown && index < 9)}
       <p class="timeline-shortcut-number">{index + 1}</p>
+    {/if}
+
+    {#if isPinned}
+      <p class="sticky-text"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>{$_('pinned_post')}
+      </p>
     {/if}
 
     <div class="timeline-repost-messages">
@@ -403,6 +591,29 @@
               <span class="text-danger">{$_('delete_post')}</span>
             </button>
           </li>
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+            <button class="timeline-menu-list__button" on:click={editPostStep}>
+              <Pencil size="18" color="var(--danger-color)"></Pencil>
+              {$_('delete_and_edit')}
+            </button>
+          </li>
+
+          {#if (isPinned)}
+            <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+              <button class="timeline-menu-list__button" on:click={unregisterPin}>
+                <Pin size="18" color="var(--text-color-1)"></Pin>
+                {$_('unregister_pin')}
+              </button>
+            </li>
+          {:else}
+            <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+              <button class="timeline-menu-list__button" on:click={registerPin}>
+                <Pin size="18" color="var(--text-color-1)"></Pin>
+                {$_('register_pin')}
+              </button>
+            </li>
+          {/if}
         {/if}
 
         <li class="timeline-menu-list__item timeline-menu-list__item--translate">
@@ -495,6 +706,20 @@
           cancelText="{$_('cancel')}"
       >
         <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
+      </ConfirmModal>
+    {/if}
+
+    {#if (isEditDialogRender)}
+      <ConfirmModal
+          bind:this={editDialog}
+          on:ok={editPost}
+          on:cancel={() => {isEditDialogRender = false}}
+          confirmationName="deleteConfirmSkip"
+          yesText="{$_('delete')}"
+          cancelText="{$_('cancel')}"
+      >
+        <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
+        <p class="modal-description">{$_('delete_and_edit_confirm_description')}</p>
       </ConfirmModal>
     {/if}
 

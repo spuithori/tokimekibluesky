@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent} from '$lib/stores';
+    import {agent, junkColumns, settings} from '$lib/stores';
     import { afterUpdate } from 'svelte';
     import { page } from '$app/stores';
     import type { LayoutData } from './$types';
@@ -12,6 +12,10 @@
     import PageModal from "$lib/components/ui/PageModal.svelte";
     import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
     import LabelerSubscribeButton from "$lib/components/labeler/LabelerSubscribeButton.svelte";
+    import {goto} from "$app/navigation";
+    import {CHAT_PROXY} from "$lib/components/chat/chatConst";
+    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {toast} from "svelte-sonner";
 
     export let data: LayoutData;
     let currentPage = 'posts';
@@ -84,58 +88,113 @@
         getProfile(handle, false);
     }
 
+    async function chatBegin() {
+        try {
+            const res = await $agent.agent.api.chat.bsky.convo.getConvoForMembers(
+                {
+                    members: [$agent.did(), profile.did as string]
+                },
+                {
+                    headers: {
+                        'atproto-proxy': CHAT_PROXY,
+                    }
+                }
+              );
+
+            const convo = res.data.convo;
+
+            if ($junkColumns.findIndex(_column => _column.id === 'chat_' + convo.id) === -1) {
+                junkColumns.set([...$junkColumns, {
+                    id: 'chat_' + convo.id,
+                    algorithm: {
+                        id: convo.id,
+                        type: 'chat',
+                        name: convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle,
+                    },
+                    style: 'default',
+                    settings: {
+                        ...defaultDeckSettings,
+                        playSound: 'notification1',
+                    },
+                    did: _agent.did(),
+                    handle: _agent.handle(),
+                    data: {
+                        feed: [],
+                        cursor: '',
+                    }
+                }]);
+            }
+
+            await goto(`/chat/${convo.id}`);
+        } catch (e) {
+            if (e.message === 'recipient has disabled incoming messages') {
+                toast.error($_('error_chat_incoming_disabled'));
+            } else if (e.message === 'Bad token scope') {
+                toast.error($_('app_password_scope_error'));
+            } else {
+                console.error(e);
+            }
+        }
+    }
+
     afterUpdate(async() => {
         isActive();
     })
 </script>
 
-<PageModal>
-  <section class="page profile">
-    <div class="column-heading">
-      {#if profile}
-        <div class="column-heading__buttons">
-          <button class="settings-back" on:click={() => {history.back()}}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-          </button>
-        </div>
+{#key handle}
+  <PageModal>
+    <section class="page profile">
+      <div class="column-heading">
+        {#if profile}
+          <div class="column-heading__buttons">
+            <button class="settings-back" on:click={() => {history.back()}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            </button>
+          </div>
 
-        <h2 class="column-heading__title">{$_(currentPage)} - {profile.displayName || profile.handle}</h2>
+          <h2 class="column-heading__title">{$_(currentPage)} - {profile.displayName || profile.handle}</h2>
 
-        <div class="column-heading__buttons column-heading__buttons--right">
-          {#if (profile.did !== $agent.did() && !isLabeler)}
-            <div class="profile-follow-button">
-              <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
-            </div>
-          {:else if (isLabeler)}
-            <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
-          {:else}
-            <div class="profile-follow-button profile-follow-button--me">
-              <UserEdit {profile} on:update={onProfileUpdate}></UserEdit>
-            </div>
-          {/if}
+          <div class="column-heading__buttons column-heading__buttons--right">
+            {#if (profile.did !== $agent.did() && !isLabeler)}
+              <div class="profile-follow-button">
+                <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
+              </div>
 
-          <ProfileMenu {handle} {profile} on:refresh={handleRefresh}></ProfileMenu>
-        </div>
-      {/if}
+              {#if !$settings?.general?.disableChat}
+                <button class="profile-chat-button" on:click={chatBegin}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-plus"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                </button>
+              {/if}
+            {:else if (isLabeler)}
+              <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
+            {:else}
+              <div class="profile-follow-button profile-follow-button--me">
+                <UserEdit {profile} on:update={onProfileUpdate}></UserEdit>
+              </div>
+            {/if}
 
-      <a class="settings-back" href="/">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-      </a>
-    </div>
+            <ProfileMenu {handle} {profile} on:refresh={handleRefresh}></ProfileMenu>
+          </div>
+        {/if}
 
-    <div class="user-profile-wrap">
-      {#if profile}
-        <UserProfile handle={handle} profile={profile} isLabeler={isLabeler} on:refresh={handleRefresh}></UserProfile>
-      {/if}
+        <a class="settings-back" href="/">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </a>
+      </div>
 
-      {#if (isLabeler)}
-        <div class="user-profile-labeler-wrap">
-          <LabelerLabelList did={profile.did}></LabelerLabelList>
-        </div>
-      {/if}
-    </div>
+      <div class="user-profile-wrap">
+        {#if profile}
+          <UserProfile handle={handle} profile={profile} isLabeler={isLabeler} on:refresh={handleRefresh}></UserProfile>
+        {/if}
 
-    {#key $page.params.handle}
+        {#if (isLabeler)}
+          <div class="user-profile-labeler-wrap">
+            <LabelerLabelList did={profile.did}></LabelerLabelList>
+          </div>
+        {/if}
+      </div>
+
       <ul class="profile-tab">
         {#if (!isLabeler)}
           <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
@@ -151,9 +210,9 @@
       </ul>
 
       <slot></slot>
-    {/key}
-  </section>
-</PageModal>
+    </section>
+  </PageModal>
+{/key}
 
 <style lang="postcss">
     .user-profile-wrap {
@@ -166,5 +225,19 @@
 
     .user-profile-labeler-wrap {
         margin-top: 16px;
+    }
+
+    .profile-chat-button {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-content: center;
+        border-radius: 50%;
+        background-color: var(--bg-color-2);
+        transition: background-color .2s ease-in-out;
+
+        &:hover {
+            background-color: var(--border-color-1);
+        }
     }
 </style>

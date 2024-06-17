@@ -13,6 +13,7 @@
     import IconColumnsMyPost from "$lib/icons/columns/IconColumnsMyPost.svelte";
     import IconColumnsMyMedia from "$lib/icons/columns/IconColumnsMyMedia.svelte";
     import IconColumnsAuthor from "$lib/icons/columns/IconColumnsAuthor.svelte";
+    import IconColumnsChat from "$lib/icons/columns/IconColumnsChat.svelte";
     const dispatch = createEventDispatcher();
 
     export let _agent;
@@ -70,11 +71,13 @@
         <IconColumnsMyMedia></IconColumnsMyMedia>
       {:else if (column.algorithm.type === 'author')}
         <IconColumnsAuthor></IconColumnsAuthor>
+      {:else if (column.algorithm.type === 'chat')}
+        <IconColumnsChat></IconColumnsChat>
       {:else}
         <IconColumnsHome></IconColumnsHome>
       {/if}
 
-      <button class="column-list__remove" on:click={() => {columnRemove(column)}} aria-label="Remove">
+      <button class="column-list__remove" on:click={() => {columnRemove(column)}} on:touchend={() => {columnRemove(column)}} aria-label="Remove">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
       </button>
     </div>

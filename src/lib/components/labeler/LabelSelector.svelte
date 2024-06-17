@@ -3,7 +3,7 @@
   export let value = 'warn';
   export let name;
 
-  const contentLabelsSelections = [
+  export let contentLabelsSelections = [
       {
           value: 'hide',
           text: $_('hide'),

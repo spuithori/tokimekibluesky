@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import {createEventDispatcher, onDestroy, onMount} from 'svelte'
+    import {createEventDispatcher, onMount, onDestroy} from 'svelte'
     import {Editor} from '@tiptap/core'
     import Link from '@tiptap/extension-link';
     import Document from '@tiptap/extension-document';
@@ -10,11 +10,15 @@
     import Mention from '@tiptap/extension-mention';
     import Placeholder from '@tiptap/extension-placeholder';
     import History from  '@tiptap/extension-history';
-    import {agent, sharedText, replyRef} from "$lib/stores";
+    import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
+    import {agent, sharedText, replyRef, timelineHashtags, hashtagHistory} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
     import EditorBar from "$lib/components/editor/EditorBar.svelte";
     import {jsonToText} from "$lib/components/editor/richtext";
     import GiphyPickerModal from "$lib/components/publish/GiphyPickerModal.svelte";
+    import HashtagList from "$lib/components/editor/HashtagList.svelte";
+    import {Hashtag} from "$lib/components/editor/hashtag";
+    import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
     const dispatch = createEventDispatcher();
 
     export let json;
@@ -25,9 +29,11 @@
     let element;
     let editor;
     let mentionList;
+    let hashtagList;
 
     let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
     let mentionProps;
+    let hashtagProps;
     let linkDialog;
     let linkValue = '';
     let linkButtonDisabled = true;
@@ -52,7 +58,27 @@
                 }),
                 Paragraph,
                 Text,
-                Link.extend({ inclusive: false }).configure({
+                Link.extend({
+                    inclusive: false,
+                    parseHTML() {
+                        return [
+                            {
+                                tag: 'a[href]:not([href *= "javascript:" i])',
+                                getAttrs: node => {
+                                    if (TAG_REGEX.test(node.textContent) || MENTION_REGEX.test(node.textContent)) {
+                                        return false;
+                                    }
+
+                                    if (TAG_REGEX.test(node.textContent) || MENTION_REGEX.test(node.textContent)) {
+                                        return false;
+                                    }
+
+                                    return null;
+                                },
+                            }
+                        ]
+                    }
+                }).configure({
                     HTMLAttributes: {
                         class: 'editor-link',
                     },
@@ -108,6 +134,45 @@
                                     }
 
                                     return mentionList.handleKeyDown(props)
+                                }
+                            }
+                        }
+                    }
+                }),
+                TagDecorator,
+                Hashtag.configure({
+                    suggestion: {
+                        items: async ({query}) => {
+                            if (!query) {
+                                return [...new Set([...$hashtagHistory, ...$timelineHashtags])];
+                            }
+                        },
+                        render: () => {
+                            return {
+                                onStart: props => {
+                                    if (!props.clientRect) {
+                                        return
+                                    }
+
+                                    hashtagProps = props;
+                                },
+                                onUpdate: props => {
+                                    if (!props.clientRect) {
+                                        return
+                                    }
+
+                                    hashtagProps = props;
+                                },
+                                onExit() {
+                                    hashtagProps = null;
+                                },
+                                onKeyDown: props => {
+                                    if (props.event.key === 'Escape') {
+                                        hashtagProps = null;
+                                        return true;
+                                    }
+
+                                    return hashtagList.handleKeyDown(props)
                                 }
                             }
                         }
@@ -215,6 +280,10 @@
             gif: e.detail.gif,
         })
     }
+
+    function addHash() {
+        editor.chain().focus().insertContent('#').run();
+    }
 </script>
 
 <div class="publish-form-scrollable" bind:this={scrollable}>
@@ -267,6 +336,12 @@
         </svg>
       </button>
     </div>
+
+    <div class="publish-form-hash">
+      <button class="publish-form-image-add-button" on:click={addHash}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hash"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>
+      </button>
+    </div>
   </svelte:fragment>
 
   <div class="publish-form-bottom-publish" slot="bottom">
@@ -280,6 +355,10 @@
 
 {#if (mentionProps)}
   <MentionList props={mentionProps} bind:this={mentionList}></MentionList>
+{/if}
+
+{#if (hashtagProps)}
+  <HashtagList props={hashtagProps} bind:this={hashtagList}></HashtagList>
 {/if}
 
 <dialog class="editor-link-dialog" bind:this={linkDialog} on:close={submitLink}>
@@ -381,6 +460,12 @@
         svg {
             width: 24px;
             height: 24px;
+        }
+    }
+
+    .publish-form-hash {
+        @media (min-width: 768px) {
+            display: none;
         }
     }
 </style>

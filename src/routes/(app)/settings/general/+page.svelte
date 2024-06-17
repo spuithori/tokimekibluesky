@@ -8,6 +8,9 @@
     let se = $settings?.general.se || false;
     let devMode = $settings?.general.devMode || false;
     let enableBluefeed = $settings?.general.enableBluefeed || false;
+    let disableHaptics = $settings?.general.disableHaptics || false;
+    let enableAppBrowser = $settings?.general.enableAppBrowser || false;
+    let disableChat = $settings?.general?.disableChat || false;
 
 const languages = [
     {
@@ -35,6 +38,9 @@ $: {
     $settings.general.se = se;
     $settings.general.devMode = devMode;
     $settings.general.enableBluefeed = enableBluefeed;
+    $settings.general.disableHaptics = disableHaptics;
+    $settings.general.enableAppBrowser = enableAppBrowser;
+    $settings.general.disableChat = disableChat;
 }
 </script>
 
@@ -179,6 +185,18 @@ $: {
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="enableBluefeed" bind:checked={$settings.general.enableBluefeed}><label class="input-toggle__label" for="enableBluefeed"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('disable_chat')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="disableChat" bind:checked={$settings.general.disableChat}><label class="input-toggle__label" for="disableChat"></label>
         </div>
       </dd>
     </dl>

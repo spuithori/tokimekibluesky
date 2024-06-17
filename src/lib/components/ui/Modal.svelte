@@ -8,6 +8,7 @@
 
     export let title;
     export let size = 'normal';
+    export let disableState = false;
     const duration = 150;
     let el;
 
@@ -45,7 +46,7 @@
     })
 
     onDestroy(() => {
-        if ($page.state.showModal) {
+        if ($page.state.showModal && !disableState) {
             history.back();
         }
     })
@@ -132,6 +133,17 @@
 
       &--normal {
           max-width: min(740px, 94vw);
+      }
+
+      &--fixed {
+          width: 500px;
+          height: 600px;
+          max-width: 94vw;
+          max-height: 90vh;
+
+          .v2-modal__inner {
+              height: 100%;
+          }
       }
   }
 

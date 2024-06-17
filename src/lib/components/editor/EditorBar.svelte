@@ -1,17 +1,14 @@
 <script lang="ts">
 import {agent, replyRef, settings, threadGate} from "$lib/stores";
 import {_} from "svelte-i18n";
-import {languageMap} from "$lib/langs/languageMap";
 import Menu from "$lib/components/ui/Menu.svelte";
 import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
-import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
 import {createEventDispatcher} from "svelte";
 import {selfLabels} from "$lib/components/editor/publishStore";
 import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
 const dispatch = createEventDispatcher();
 
 export let _agent = $agent;
-let isLangSelectorOpen = false;
 let isEmojiPickerOpen = false;
 let isSelfLabelingMenuOpen = false;
 let isThreadGateOpen = false;
@@ -98,31 +95,14 @@ function handleEmojiPick(event) {
     </div>
   {/if}
 
-  <div class="publish-form-lang-selector">
-    <button class="publish-form-lang-selector-button" on:click={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      {#if ($settings.langSelector !== 'auto')}
-        {$_(languageMap.get($settings.langSelector).name)}
-      {/if}
-    </button>
-  </div>
-
   <slot name="bottom"></slot>
 </div>
-
-{#if (isLangSelectorOpen)}
-  <LangSelectorModal on:close={() => {isLangSelectorOpen = false}}></LangSelectorModal>
-{/if}
 
 {#if (isThreadGateOpen)}
   <ThreadGateModal on:close={() => {isThreadGateOpen = false}} {_agent}></ThreadGateModal>
 {/if}
 
 <style lang="postcss">
-    .publish-form-lang-selector {
-        position: relative;
-    }
-
     .publish-form-lang-selector-button {
         display: flex;
         align-items: center;

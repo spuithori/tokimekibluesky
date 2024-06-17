@@ -96,10 +96,10 @@ async function getRecord(_agent, uri, repost = undefined, retryCount = 0) {
         const res = await _agent.agent.api.app.bsky.feed.getPostThread({depth: 0, parentHeight: 1, uri: uri});
         let thread = res.data.thread;
 
-        if (thread?.parent && thread.post.record.reply) {
+        if (thread?.parent?.post && thread?.post?.record?.reply) {
             thread.reply = {
                 parent: thread.parent.post,
-                root: thread.post.record.reply.root,
+                root: thread?.post?.record?.reply?.root,
             }
         }
 

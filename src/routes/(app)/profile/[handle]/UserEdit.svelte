@@ -103,14 +103,14 @@
         }
 
         try {
-            await $agent.agent.api.com.atproto.repo.putRecord(
-                {
-                    repo: $agent.did(),
-                    rkey: 'self',
-                    collection: 'app.bsky.actor.profile',
-                    record: profileObj,
-                }
-            )
+            await $agent.agent.upsertProfile(_profile => {
+                const profile = _profile || {};
+
+                return {
+                    ...profile,
+                    ...profileObj,
+                };
+            });
             isEditOpen = false;
             dispatch('update');
         } catch (e) {
