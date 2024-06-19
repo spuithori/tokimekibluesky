@@ -1,51 +1,12 @@
 <script lang="ts">
-    import {columns, globalUnique, isColumnModalOpen, pauseColumn, settings} from '$lib/stores';
+    import {columns, globalUnique, isColumnModalOpen, settings} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import {_} from "svelte-i18n";
-    import { dndzone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
     let unique = Symbol();
-    let dragDisabled = true;
 
     if (Array.isArray($columns) && !$columns.length) {
         columns.set([]);
-    }
-
-    const flipDurationMs = 0;
-    function handleDndConsider(e) {
-        $pauseColumn = true;
-        const {items: newItems, info: {source, trigger}} = e.detail;
-        columns.set(newItems);
-
-        if (source === SOURCES.KEYBOARD && trigger === TRIGGERS.DRAG_STOPPED) {
-            dragDisabled = true;
-        }
-    }
-    function handleDndFinalize(e) {
-        $pauseColumn = false;
-        const {items: newItems, info: {source}} = e.detail;
-        columns.set(newItems);
-
-        if (source === SOURCES.POINTER) {
-            dragDisabled = true;
-        }
-
-        unique = Symbol();
-    }
-
-    function startDrag(e) {
-        e.preventDefault();
-        dragDisabled = false;
-    }
-
-    function handleKeyDown(e) {
-        if ((e.key === "Enter" || e.key === " ") && dragDisabled) {
-            dragDisabled = false;
-        }
-    }
-
-    function transformDraggedElement(draggedEl, data, index) {
-        draggedEl.classList.add('dragged-content');
     }
 </script>
 
@@ -57,29 +18,10 @@
       <div class="deck"
            class:deck--left-sidebar={$settings.design?.publishPosition === 'left'}
            class:deck--bottom={$settings.design?.publishPosition === 'bottom'}
-           use:dndzone="{{
-               items: $columns,
-               dragDisabled,
-               flipDurationMs,
-               transformDraggedElement,
-               type: 'columns',
-               dropFromOthersDisabled: true,
-               dropTargetClasses: ['dragging'],
-           }}" on:consider="{handleDndConsider}" on:finalize="{handleDndFinalize}"
       >
             {#each $columns as column, index (column.id)}
               {#if !column?.settings?.isPopup}
-                <div class="deck-drag-area-wrap">
-                  <div class="deck-drag-area"
-                       style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
-                       on:mousedown={startDrag}
-                       on:touchstart={startDrag}
-                       on:keydown={handleKeyDown}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-grip-vertical"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
-                  </div>
-
-                  <DeckRow {column} {index} {unique}></DeckRow>
-                </div>
+                <DeckRow {column} {index} {unique}></DeckRow>
               {:else}
                 <DeckPopupWrap {column} {index} {unique}></DeckPopupWrap>
               {/if}
@@ -171,23 +113,6 @@
       &__title {
           font-size: 24px;
           letter-spacing: .05em;
-      }
-  }
-
-  .deck-drag-area-wrap {
-      position: relative;
-  }
-
-  .deck-drag-area {
-      width: 24px;
-      height: 52px;
-      display: grid;
-      place-content: center;
-      position: absolute;
-      z-index: 100;
-
-      @media (max-width: 767px) {
-          display: none;
       }
   }
 </style>

@@ -19,6 +19,7 @@
     import {toast} from "svelte-sonner";
     import ChatTimeline from "./ChatTimeline.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
+    import {draggable, type DragOptions} from "@neodrag/svelte";
 
     export let column;
     export let index = 0;
@@ -38,6 +39,23 @@
     let hideReply;
     let hideRepost;
     let refresh;
+    let isDragging = false;
+    let reorderIndex = index;
+
+    let dragOptions: DragOptions = {
+        axis: 'x',
+        handle: '.deck-drag-area',
+        position: {
+            x: 0,
+            y: 0,
+        },
+        recomputeBounds: {
+            dragStart: true,
+            drag: true,
+            dragEnd: true,
+        },
+        cancel: '.grabber'
+    };
 
     $: if (isFiltered) {
         hideReply = 'me';
@@ -170,6 +188,80 @@
 
         }
     })
+
+    function handleDragStart(e) {
+        isDragging = true;
+    }
+
+    function handleDragEnd(e) {
+        console.log(e.detail)
+
+        dragOptions.position = {
+            x: 0,
+            y: 0,
+        }
+
+        $columns.forEach(_column => {
+            if (_column.scrollElement) {
+                _column.scrollElement.style.transform = 'translate3d(0, 0, 0)';
+            }
+        })
+
+        $columns = moveElement($columns, index, reorderIndex);
+
+        setTimeout(() => {
+            isDragging = false;
+        }, 350)
+    }
+
+    async function handleDragging(e) {
+        const x = e.detail.rootNode.getBoundingClientRect().left;
+
+        if (Math.sign(e.detail.offsetX) === 1) {
+            const prevColumn = $columns[reorderIndex]?.scrollElement;
+            const nextColumn = $columns[reorderIndex + 1]?.scrollElement;
+
+            if (reorderIndex < index) {
+                reorderIndex = index;
+            }
+
+            if (Math.abs(x) > nextColumn?.getBoundingClientRect().left) {
+                nextColumn.style.transform = `translate3d(${column.scrollElement.offsetWidth * -1}px, 0, 0)`;
+                reorderIndex = reorderIndex + 1;
+            }
+
+            if (Math.abs(x) < prevColumn.getBoundingClientRect().left) {
+                prevColumn.style.transform = 'translate3d(0, 0, 0)';
+                reorderIndex = reorderIndex - 1;
+            }
+        } else if (Math.sign(e.detail.offsetX) === -1) {
+            const prevColumn = $columns[reorderIndex - 1]?.scrollElement;
+            const nextColumn = $columns[reorderIndex]?.scrollElement;
+
+            if (reorderIndex > index) {
+                reorderIndex = index;
+            }
+
+            if (Math.abs(x) < prevColumn?.getBoundingClientRect().left) {
+                prevColumn.style.transform = `translate3d(${column.scrollElement.offsetWidth}px, 0, 0)`;
+                reorderIndex = reorderIndex - 1;
+            }
+
+            if (Math.abs(x) > nextColumn.getBoundingClientRect().left) {
+                nextColumn.style.transform = 'translate3d(0, 0, 0)';
+                reorderIndex = reorderIndex + 1;
+            }
+        } else {
+            reorderIndex = index;
+        }
+    }
+
+    function moveElement(arr, fromIndex, toIndex) {
+        const result = [...arr];
+        const element = result.splice(fromIndex, 1)[0];
+        result.splice(toIndex, 0, element);
+        return result;
+    }
 </script>
 
 <div
@@ -185,9 +277,20 @@
     bind:this={column.scrollElement}
     on:scroll|passive={handleScroll}
     style:background-image={column.settings?.background ? `url(${backgroundsMap.get(column.settings.background).url})` : 'none'}
+    class:dragging={isDragging}
+    use:draggable={dragOptions}
+    on:neodrag:start={handleDragStart}
+    on:neodrag:end={handleDragEnd}
+    on:neodrag={handleDragging}
 >
     <div class="deck-heading">
         {#if (!isJunk)}
+            {#if !column?.settings?.isPopup && $settings.design?.layout === 'decks'}
+                <div class="deck-drag-area">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-grip-vertical"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+                </div>
+            {/if}
+
             <div class="deck-heading__icon">
                 <button class="deck-heading__icon-picker-button" on:click={() => {isIconPickerOpen = !isIconPickerOpen}}>
                     {#if column.settings?.icon}
@@ -320,6 +423,7 @@
         scrollbar-width: thin;
         backdrop-filter: var(--deck-content-backdrop-filter);
         border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
+        transition: transform .3s cubic-bezier(0, 0, 0, 1);
 
         &::-webkit-scrollbar {
             width: 6px;
@@ -618,5 +722,27 @@
         height: 40px;
         display: grid;
         place-content: center;
+    }
+
+    .deck-drag-area {
+        width: 24px;
+        height: 52px;
+        display: grid;
+        place-content: center;
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 100;
+        cursor: grab;
+
+        @media (max-width: 767px) {
+            display: none;
+        }
+    }
+
+    .dragging {
+        position: relative;
+        z-index: 100000;
+        transition: none;
     }
 </style>
