@@ -424,6 +424,7 @@
         backdrop-filter: var(--deck-content-backdrop-filter);
         border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
         transition: transform .3s cubic-bezier(0, 0, 0, 1);
+        touch-action: initial !important;
 
         &::-webkit-scrollbar {
             width: 6px;
