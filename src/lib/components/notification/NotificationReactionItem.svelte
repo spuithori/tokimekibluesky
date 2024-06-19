@@ -9,6 +9,7 @@
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
     import {settings} from "$lib/stores";
+    import FeedEmbed from "$lib/components/feeds/FeedEmbed.svelte";
 
     export let item;
     export let _agent;
@@ -78,7 +79,11 @@
                     {/if}
                 </div>
             {:else}
-                <p class="notifications-item__content"></p>
+                {#if item.notifications[0].reasonSubject.includes('app.bsky.feed.generator')}
+                    <div class="notification-item__feed">
+                        <FeedEmbed {_agent} feedUri={item.notifications[0].reasonSubject}></FeedEmbed>
+                    </div>
+                {/if}
             {/if}
         </div>
     </div>
