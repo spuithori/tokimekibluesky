@@ -5,6 +5,7 @@
   import {isEmojiSequenceOrCombination} from "$lib/util";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import EmbedStamp from "$lib/components/post/EmbedStamp.svelte";
+  import {AppBskyEmbedRecord} from "@atproto/api";
 
   export let message;
   export let _agent = $agent;
@@ -29,7 +30,9 @@
     {#if message.embed.record?.isStamp}
       <EmbedStamp record={message.embed.record} {_agent}></EmbedStamp>
     {:else}
-      <EmbedRecord record={message.embed.record} {_agent}></EmbedRecord>
+      {#if (AppBskyEmbedRecord.isView(message.embed) && AppBskyEmbedRecord.isViewRecord(message.embed?.record)) }
+        <EmbedRecord record={message.embed.record} {_agent}></EmbedRecord>
+      {/if}
     {/if}
   </div>
 {/if}
