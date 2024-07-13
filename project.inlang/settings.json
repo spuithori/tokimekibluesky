@@ -4,7 +4,8 @@
     "ja",
     "en",
     "pt",
-    "ko-kr"
+    "ko-kr",
+    "bg"
   ],
   "modules": [
     "https://cdn.jsdelivr.net/npm/@inlang/plugin-json@latest/dist/index.js"

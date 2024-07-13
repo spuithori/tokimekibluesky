@@ -28,7 +28,11 @@ const languages = [
     {
         value: 'pt-BR',
         text: 'Português',
-    }
+    },
+    {
+        value: 'bg',
+        text: 'български',
+    },
 ]
 
 $: {

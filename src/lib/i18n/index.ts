@@ -10,10 +10,12 @@ register('pt-BR', () => import('./locales/pt.json'));
 register('ko', () => import('./locales/ko-kr.json'));
 register('fa', () => import('./locales/fa.json'));
 register('ar', () => import('./locales/ar.json'));
+register('bg', () => import('./locales/bg.json'));
 
 register('ja', () => import('./locales/languageMap/ja.json'));
 register('en', () => import('./locales/languageMap/en.json'));
 register('ko', () => import('./locales/languageMap/ko-kr.json'));
+register('bg', () => import('./locales/languageMap/bg.json'));
 
 register('ja', () => import('./locales/labeling/ja.json'));
 register('en', () => import('./locales/labeling/en.json'));
