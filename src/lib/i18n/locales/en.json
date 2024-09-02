@@ -616,5 +616,10 @@
   "social_proof_users": "Connected users",
   "social_proof_text": "Followed by {name} and {count} others",
   "settings_news": "Release note",
-  "settings_about_description": "Updates are hosted by WhiteWind, a blogging service provided by AT Protocol."
+  "settings_about_description": "Updates are hosted by WhiteWind, a blogging service provided by AT Protocol.",
+  "detach_quote": "Detach quote",
+  "un_detach_quote": "Undo detach quote",
+  "detach_information": "Show only to: You have detached the quote. You can undo it from the menu.",
+  "success_detach": "Quote detached.",
+  "success_un_detach": "The detached quote has been restored."
 }

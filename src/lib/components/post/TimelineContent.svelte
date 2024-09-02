@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {formattedKeywordMutes, labelDefs, labelerSettings, settings} from "$lib/stores";
+  import {agents, formattedKeywordMutes, labelDefs, labelerSettings, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
@@ -20,6 +20,8 @@
   import TimelineText from "$lib/components/post/TimelineText.svelte";
   import { toast } from "svelte-sonner";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
+  import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
+  import {getAllAgentDids, getDidFromUri} from "$lib/util";
 
   export let post;
   export let _agent;
@@ -222,6 +224,10 @@
       {#if (AppBskyFeedDefs.isGeneratorView(post.embed.record.record)) }
         <FeedsItem {_agent} feed={post.embed.record.record} layout="embed"></FeedsItem>
       {/if}
+    {/if}
+
+    {#if (AppBskyEmbedRecord.isViewDetached(post?.embed?.record) || AppBskyEmbedRecord.isViewDetached(post?.embed?.record?.record)) && getAllAgentDids($agents).includes(getDidFromUri(post?.embed?.record?.uri || post?.embed?.record?.record?.uri))}
+      <EmbedRecordDetached></EmbedRecordDetached>
     {/if}
   </div>
 

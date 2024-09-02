@@ -5,8 +5,8 @@
   let serverStatus = undefined;
 
   onMount(async () => {
-      /* try {
-          const res = await fetch('https://status.bsky.app/api/v2/status.json');
+      try {
+          const res = await fetch('https://bluesky.statuspage.io//api/v2/status.json');
           const status = await res.json();
 
           if (status?.status?.indicator === 'minor') {
@@ -16,7 +16,7 @@
           }
       } catch (e) {
           console.error(e);
-      } */
+      }
   })
 </script>
 

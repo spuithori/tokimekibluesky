@@ -6,6 +6,7 @@
     import InfiniteLoading from 'svelte-infinite-loading';
     import Modal from "$lib/components/ui/Modal.svelte";
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
+    import {AppBskyEmbedRecord} from "@atproto/api";
 
     export let uri;
     let quotes = [];
@@ -36,8 +37,10 @@
 
 <Modal title="{$_('quote')}" on:close>
   <div class="quotes">
-    {#each quotes as quote }
-      <TimelineItem data={quote}></TimelineItem>
+    {#each quotes as quote}
+      {#if !(AppBskyEmbedRecord.isViewDetached(quote?.post?.embed?.record) || AppBskyEmbedRecord.isViewDetached(quote?.post?.embed?.record?.record))}
+        <TimelineItem data={quote}></TimelineItem>
+      {/if}
     {/each}
   </div>
 
