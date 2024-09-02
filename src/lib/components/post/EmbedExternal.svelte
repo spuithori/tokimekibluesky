@@ -131,13 +131,13 @@
       &__logo {
           background-color: var(--bg-color-1);
           position: absolute;
-          top: 8px;
-          left: 8px;
-          opacity: .7;
+          top: 4px;
+          left: 4px;
+          opacity: .5;
 
           a {
               display: block;
-              width: 120px;
+              width: 90px;
               height: auto;
           }
       }
