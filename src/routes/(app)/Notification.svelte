@@ -235,6 +235,8 @@
                           <TimelineItem {_agent} data={{post: item.feed || item.notifications[0]}}></TimelineItem>
                       {:else if (item.reason === 'follow')}
                           <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
+                      {:else if (item.reason === 'starterpack-joined')}
+
                       {:else}
                           <NotificationReactionItem {_agent} {item}></NotificationReactionItem>
                       {/if}

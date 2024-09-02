@@ -616,5 +616,10 @@
   "social_proof_users": "つながりのあるユーザー",
   "social_proof_text": "{name}さんほか{count}人にフォローされています",
   "settings_news": "更新情報",
-  "settings_about_description": "更新情報はAT Protocolによるブログサービス、WhiteWind によって提供されています。"
+  "settings_about_description": "更新情報はAT Protocolによるブログサービス、WhiteWind によって提供されています。",
+  "detach_quote": "引用を剥がす",
+  "un_detach_quote": "剥がした引用を戻す",
+  "detach_information": "あなたにのみ表示: 引用を剥がしました。メニューから元に戻すことができます。",
+  "success_detach": "引用を剥がしました。",
+  "success_un_detach": "剥がした引用を元に戻しました。"
 }

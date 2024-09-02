@@ -173,6 +173,10 @@
           .feed__column {
               grid-template-columns: 40px 1fr;
           }
+
+          @container timeline-item (max-width: 345px) {
+              margin-left: -50px;
+          }
       }
   }
 

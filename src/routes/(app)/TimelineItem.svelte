@@ -12,7 +12,8 @@
         EyeOff,
         Rss,
         Pin,
-        Pencil
+        Pencil,
+        Sticker
     } from 'lucide-svelte';
     import {
         agent,
@@ -23,7 +24,7 @@
         didHint,
         pulseDelete,
         listAddModal,
-        agents, repostMutes, postMutes, bluefeedAddModal, postPulse, sideState, isPublishInstantFloat
+        agents, repostMutes, postMutes, bluefeedAddModal, postPulse, sideState, isPublishInstantFloat, pulseDetach
     } from '$lib/stores';
     import {
         AppBskyEmbedExternal,
@@ -43,7 +44,7 @@
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
     import {
         getAccountIdByDid,
-        getAllAgentDids,
+        getAllAgentDids, getDidFromUri,
         getImageBase64FromBlob,
         getImageObjectFromBlob,
         getService
@@ -124,6 +125,18 @@
     function handlePostDelete(uri) {
         if (uri === data?.post?.uri) {
             isHide = true;
+        }
+    }
+
+    $: handleEmbedDetach($pulseDetach)
+
+    function handleEmbedDetach(detach: pulseDetach) {
+        if (!detach) {
+            return false;
+        }
+
+        if (detach.uri === data?.post?.uri) {
+            data.post.embed = detach.embed;
         }
     }
 
@@ -498,6 +511,53 @@
 
         }
     }
+
+    async function detachQuote(uri: string, unDetach: boolean = false) {
+        isMenuOpen = false;
+        const rkey = uri.split('/').slice(-1)[0];
+        let detachedEmbeddingUris = [];
+        let embeddingRules = [];
+        const _agent = $agents.get(getAccountIdByDid($agents, getDidFromUri(uri)));
+
+        if (!_agent) {
+            return false;
+        }
+
+        try {
+            const { value } = await _agent.agent.app.bsky.feed.postgate.get({repo: _agent.did(), rkey: rkey});
+            detachedEmbeddingUris = value?.detachedEmbeddingUris || [];
+            embeddingRules = value?.embeddingRules || [];
+        } catch (e) {
+            //
+        }
+
+        try {
+            const res = await _agent.agent.com.atproto.repo.putRecord({
+                collection: 'app.bsky.feed.postgate',
+                rkey: rkey,
+                repo: _agent.did(),
+                record: {
+                    detachedEmbeddingUris: unDetach ? detachedEmbeddingUris.filter(_uri => _uri !== data.post.uri) : [...detachedEmbeddingUris, data.post.uri],
+                    embeddingRules: embeddingRules,
+                    post: uri,
+                    createdAt: new Date().toISOString(),
+                }
+            });
+
+            const _post = await _agent.getFeed(data.post.uri);
+
+            pulseDetach.set({
+                uri: data.post.uri,
+                unDetach: unDetach,
+                embed: _post.post.embed,
+            });
+
+            toast.success(unDetach ? $_('success_un_detach') : $_('success_detach'))
+        } catch (e) {
+            console.error(e);
+            toast.error(e);
+        }
+    }
 </script>
 
 <svelte:document on:selectionchange={handleSelectStart} />
@@ -676,6 +736,26 @@
             <button class="timeline-menu-list__button" on:click={mutePost}>
               <EyeOff size="18" color="var(--text-color-1)"></EyeOff>
               {$_('post_mute_on')}
+            </button>
+          </li>
+        {/if}
+
+        {#if (getAllAgentDids($agents).includes(data.post?.embed?.record?.author?.did || data.post?.embed?.record?.record?.author?.did))}
+          {#if (AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record?.record) || AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record))}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" on:click={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri)}}>
+                <Sticker size="18" color="var(--danger-color)"></Sticker>
+                {$_('detach_quote')}
+              </button>
+            </li>
+          {/if}
+        {/if}
+
+        {#if ((data.post?.embed?.record?.detached || data.post?.embed?.record?.record?.detached) && getAllAgentDids($agents).includes(getDidFromUri(data.post?.embed?.record?.uri || data.post?.embed?.record?.record?.uri)))}
+          <li class="timeline-menu-list__item">
+            <button class="timeline-menu-list__button" on:click={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri, true)}}>
+              <Sticker size="18" color="var(--danger-color)"></Sticker>
+              {$_('un_detach_quote')}
             </button>
           </li>
         {/if}

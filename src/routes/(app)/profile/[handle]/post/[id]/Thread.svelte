@@ -4,6 +4,7 @@
   import {_} from "svelte-i18n";
   import Likes from "$lib/components/thread/Likes.svelte";
   import { agent } from "$lib/stores";
+  import Quotes from "$lib/components/thread/Quotes.svelte";
 
   export let _agent = $agent;
   export let feeds = [];
@@ -40,9 +41,17 @@
             class:is-author-child={data.post.record.reply?.root ? data.post.author.did === data.post.record.reply.root.uri.split('/')[2] : false}
         >
           <TimelineItem data={data} isSingle={true} isThread={true} column={column} {_agent}>
-            {#if (data.post.likeCount > 0)}
-              <Likes uri={data.post.uri}></Likes>
-            {/if}
+            <div class="timeline-analytics-list">
+              {#if (data?.post?.quoteCount > 0)}
+                <Quotes uri={data.post.uri}>
+                  {data.post.quoteCount}
+                </Quotes>
+              {/if}
+
+              {#if (data.post.likeCount > 0)}
+                <Likes uri={data.post.uri}></Likes>
+              {/if}
+            </div>
           </TimelineItem>
 
           {#if (data.post.replyCount > 0 && depth === 6)}
@@ -83,5 +92,11 @@
           padding-right: 16px;
           box-shadow: inset 4px 0 var(--primary-color);
       }
+  }
+
+  .timeline-analytics-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
   }
 </style>

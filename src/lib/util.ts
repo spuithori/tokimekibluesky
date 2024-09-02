@@ -76,6 +76,13 @@ export async function getDidByHandle(handle, _agent) {
     return res.data.did;
 }
 
+export function getDidFromUri(uri: string | undefined) {
+    if (!uri) {
+        return undefined;
+    }
+    return uri.split('/')[2];
+}
+
 export async function getImageObjectFromBlob(did: string, blob: { cid: string, mimeType: string, alt: string, width: string, height: string }, _agent: BskyAgent) {
     const res =  await _agent.api.com.atproto.sync.getBlob({did: did as string, cid: blob.cid});
     const _blob = new Blob([res.data], {type: blob.mimeType});
@@ -108,6 +115,7 @@ export function isEmojiSequenceOrCombination(str: string) {
     return emojiRegexPattern.test(str) && [...str].length === 1;
 }
 
+// @ts-ignore
 export function isSafariOrFirefox() {
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);

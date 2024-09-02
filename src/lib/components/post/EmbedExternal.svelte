@@ -69,13 +69,17 @@
             </div>
           {:else if (getTenorUrl(external.uri) && $settings?.embed?.tenor)}
             <div class="timeline-tenor-external">
-              <img src={getTenorUrl(external.uri).url} width={getTenorUrl(external.uri).width} height={getTenorUrl(external.uri).height} alt="">
+              <a href="{external.uri}" target="_blank" rel="noopener nofollow noreferrer">
+                <img src={getTenorUrl(external.uri).url} width={getTenorUrl(external.uri).width} height={getTenorUrl(external.uri).height} alt="">
+              </a>
             </div>
           {:else if (getGiphyId(external.uri) && $settings?.embed?.giphy)}
             {#await getGiphyId(external.uri)}
             {:then gif}
               <div class="timeline-giphy-external">
-                <Gif {gif} width={'100%'} borderRadius={0}></Gif>
+                <a href="{external.uri}" target="_blank" rel="noopener nofollow noreferrer">
+                  <Gif {gif} width={'100%'} borderRadius={0}></Gif>
+                </a>
 
                 <div class="timeline-giphy-external__logo">
                   <a href="https://giphy.com/" target="_blank" rel="nofollow">
@@ -126,13 +130,26 @@
 
       &__logo {
           background-color: var(--bg-color-1);
-          padding: 8px 10px 0;
+          position: absolute;
+          top: 4px;
+          left: 4px;
+          opacity: .5;
 
           a {
               display: block;
-              width: 120px;
+              width: 90px;
               height: auto;
           }
+      }
+  }
+
+  .timeline-external--gif,
+  .timeline-external--tenor {
+      padding-bottom: 0;
+      overflow: hidden;
+
+      .timeline-external__content {
+          display: none;
       }
   }
 </style>

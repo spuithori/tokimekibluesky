@@ -7,7 +7,7 @@
     let me;
 
     onMount(async () => {
-        const res = await $agent.agent.api.app.bsky.actor.getProfile({actor: 'holybea.social'});
+        const res = await $agent.agent.api.app.bsky.actor.getProfile({actor: 'holybea.blue'});
         me = res.data;
     })
 </script>

@@ -305,6 +305,14 @@ export const pulseBookmark = writable<pulseReaction>(undefined);
 
 export const pulseDelete = writable<string | undefined>(undefined);
 
+type pulseDetach = {
+    uri: string,
+    unDetach: boolean,
+    embed: unknown,
+}
+
+export const pulseDetach = writable<pulseDetach | undefined>(undefined);
+
 export const isReactionButtonSettingsModalOpen = writable(false);
 
 export const workerTimer = readable(new Worker(timerWorkerUrl));
