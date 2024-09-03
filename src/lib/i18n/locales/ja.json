@@ -623,5 +623,5 @@
   "success_detach": "引用を剥がしました。",
   "success_un_detach": "剥がした引用を元に戻しました。",
   "postgate_quote_permission": "この投稿の引用を許可",
-  "post_gate_quote_label": "この投稿には引用できません"
+  "post_gate_quote_label": "この投稿は引用できません"
 }
