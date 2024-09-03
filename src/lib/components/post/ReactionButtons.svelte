@@ -59,7 +59,7 @@
   {/if}
 
   {#if $settings.design.reactionButtons.shown.includes('quote')}
-    <Quote {data}></Quote>
+    <Quote {data} embeddingDisabled={data.post.viewer?.embeddingDisabled}></Quote>
   {/if}
 
   {#if $settings.design.reactionButtons.shown.includes('bookmark')}

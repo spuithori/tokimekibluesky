@@ -483,7 +483,7 @@
   "thread_gate_reset_when_change_account": "The reply limit setting has been reset due to a change in the posting account.",
   "thread_gate_nobody_label": "이 게시물에는 아무도 회신할 수 없습니다",
   "thread_gate_custom_label": "일부 사용자만 회신할 수 있습니다",
-  "thread_gate_modal_title": "리플라이 제한",
+  "thread_gate_modal_title": "포스트 컨트롤",
   "thread_gate_modal_description": "이 게시물에 회신할 수 있는 계정을 선택합니다.",
   "advanced_break_title": "실험적: 일본어의 고도의 개행 제어",
   "advanced_break_description": "기계 학습을 이용한 자연스러운 반환이 활성화됩니다.Chrome, Edge 계열만 지원.",

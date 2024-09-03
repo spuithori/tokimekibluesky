@@ -483,7 +483,7 @@
   "thread_gate_reset_when_change_account": "The reply limit setting has been reset due to a change in the posting account.",
   "thread_gate_nobody_label": "Nobody can reply to this post",
   "thread_gate_custom_label": "Only some users can reply",
-  "thread_gate_modal_title": "Reply Limitation",
+  "thread_gate_modal_title": "Post Controls",
   "thread_gate_modal_description": "Select an account to which you can reply to this post.",
   "advanced_break_title": "Experimental: Advanced line break control for Japanese",
   "advanced_break_description": "Enables natural folding using machine learning. Only Chrome and Edge browsers are supported.",
@@ -621,5 +621,7 @@
   "un_detach_quote": "Undo detach quote",
   "detach_information": "Show only to: You have detached the quote. You can undo it from the menu.",
   "success_detach": "Quote detached.",
-  "success_un_detach": "The detached quote has been restored."
+  "success_un_detach": "The detached quote has been restored.",
+  "postgate_quote_permission": "Allow quote",
+  "post_gate_quote_label": "Can't quote this post"
 }

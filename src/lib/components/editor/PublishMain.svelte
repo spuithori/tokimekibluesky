@@ -1,6 +1,6 @@
 <script lang="ts">
     import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
-    import {isPublishInstantFloat, quotePost, replyRef, settings, threadGate} from "$lib/stores";
+    import {isPublishInstantFloat, postgate, quotePost, replyRef, settings, threadGate} from "$lib/stores";
     import {_} from "svelte-i18n";
     import {isFeedByUri} from "$lib/util";
     import {formatDistanceToNow, parseISO} from "date-fns";
@@ -25,6 +25,7 @@
     import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
     import {languageMap} from "$lib/langs/languageMap";
     import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
+    import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
     const dispatch = createEventDispatcher();
 
     export let post;
@@ -486,6 +487,10 @@
 
       {#if ($threadGate !== 'everybody' && !$replyRef)}
         <ThreadGateLabel></ThreadGateLabel>
+      {/if}
+
+      {#if !$postgate}
+        <PostGateLabel></PostGateLabel>
       {/if}
     </div>
   </Tiptap>

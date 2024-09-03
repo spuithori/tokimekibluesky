@@ -483,7 +483,7 @@
   "thread_gate_reset_when_change_account": "投稿アカウントを変更したため、返信制限設定がリセットされました。",
   "thread_gate_nobody_label": "この投稿には誰も返信できません",
   "thread_gate_custom_label": "一部のユーザーのみ返信できます",
-  "thread_gate_modal_title": "リプライ制限",
+  "thread_gate_modal_title": "投稿をコントロール",
   "thread_gate_modal_description": "この投稿に返信できるアカウントを選択します。",
   "advanced_break_title": "実験的: 日本語の高度な改行制御",
   "advanced_break_description": "機械学習を利用した自然な折り返しが有効になります。Chrome、Edge系のみ対応。",
@@ -621,5 +621,7 @@
   "un_detach_quote": "剥がした引用を戻す",
   "detach_information": "あなたにのみ表示: 引用を剥がしました。メニューから元に戻すことができます。",
   "success_detach": "引用を剥がしました。",
-  "success_un_detach": "剥がした引用を元に戻しました。"
+  "success_un_detach": "剥がした引用を元に戻しました。",
+  "postgate_quote_permission": "この投稿の引用を許可",
+  "post_gate_quote_label": "この投稿には引用できません"
 }

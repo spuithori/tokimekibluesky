@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, threadGate} from '$lib/stores';
+    import {agent, postgate, threadGate} from '$lib/stores';
     import {createEventDispatcher, onMount} from 'svelte';
     import { _ } from 'svelte-i18n';
     import {getAccountIdByDidFromDb} from "$lib/util";
@@ -54,6 +54,18 @@
 
     <div class="settings-group">
         <div class="settings-group__content">
+            <dl class="settings-group settings-group--column postgate-settings-group">
+                <dt class="settings-group__name">
+                    {$_('postgate_quote_permission')}
+                </dt>
+
+                <dd class="settings-group__content">
+                    <div class="input-toggle">
+                        <input class="input-toggle__input" type="checkbox" id="postgate" bind:checked={$postgate}><label class="input-toggle__label" for="postgate"></label>
+                    </div>
+                </dd>
+            </dl>
+
             <div class="big-radio-group big-radio-group--vertical">
                 <div class="big-radio big-radio--slim big-radio--fullwidth">
                     <input type="radio" id="everybody" name="threadGate" bind:group={_threadGate} value={'everybody'} on:click={() => {custom = []}}>
@@ -141,6 +153,17 @@
 
         @media (max-width: 767px) {
             grid-template-columns: 1fr;
+        }
+    }
+
+    .postgate-settings-group {
+        margin-bottom: 24px;
+        padding: 12px;
+        border: 2px solid var(--primary-color);
+        border-radius: var(--border-radius-3);
+
+        .settings-group__name {
+            font-weight: bold;
         }
     }
 </style>

@@ -331,6 +331,8 @@ type ThreadGate = 'everybody' | 'nobody' | string[];
 
 export const threadGate = writable<ThreadGate>('everybody');
 
+export const postgate = writable<boolean>(true)
+
 export const pauseColumn = writable<boolean>(false);
 
 export const bluefeedAddModal = writable({

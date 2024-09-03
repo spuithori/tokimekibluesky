@@ -4,7 +4,7 @@ import {
     agent,
     agents,
     hashtagHistory, isChatColumnFront,
-    isPublishInstantFloat, postPulse,
+    isPublishInstantFloat, postgate, postPulse,
     quotePost,
     replyRef,
     settings,
@@ -525,6 +525,23 @@ async function publish(post, treeReplyRef = undefined) {
                     allow: allow,
                 },
             );
+        }
+
+        if (!$postgate) {
+            await _agent.agent.api.app.bsky.feed.postgate.create(
+                {
+                    repo: _agent.did() as string,
+                    rkey: create.uri.split('/').slice(-1)[0],
+                },
+                {
+                    createdAt: new Date().toISOString(),
+                    detachedEmbeddingUris: [],
+                    embeddingRules: [{
+                        $type: 'app.bsky.feed.postgate#disableRule',
+                    }],
+                    post: create.uri,
+                }
+            )
         }
 
         if (rt?.facets) {
