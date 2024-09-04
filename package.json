@@ -36,6 +36,7 @@
   "type": "module",
   "dependencies": {
     "@atproto/api": "^0.13.5",
+    "@atproto/oauth-client-browser": "^0.2.0",
     "@emoji-mart/data": "^1.1.2",
     "@giphy/js-fetch-api": "^5.4.0",
     "@giphy/svelte-components": "^1.0.1",

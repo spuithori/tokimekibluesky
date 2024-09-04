@@ -1,0 +1,16 @@
+{
+  "client_id": "https://mc-stg.tokimeki.blue/client-metadata.json",
+  "client_name": "TOKIMEKI (Staging)",
+  "client_uri": "https://mc-stg.tokimeki.blue",
+  "logo_uri": "https://mc-stg.tokimeki.blue/pwa-512x512.png",
+  "tos_uri": "https://docs.tokimeki.blue/ja/privacy",
+  "policy_uri": "https://docs.tokimeki.blue/ja/privacy",
+  "redirect_uris": ["https://mc-stg.tokimeki.blue/callback"],
+  "scope": "atproto",
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "private_key_jwt",
+  "jwks_uri": "https://mc-stg.tokimeki.blue/jwks.json",
+  "application_type": "web",
+  "dpop_bound_access_tokens": true
+}
