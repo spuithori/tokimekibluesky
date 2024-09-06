@@ -1,12 +1,13 @@
 <script lang="ts">
   import {agent, formattedKeywordMutes, labelDefs, labelerSettings, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
-  import {AppBskyEmbedImages, AppBskyFeedPost} from "@atproto/api";
+  import {AppBskyEmbedImages, AppBskyEmbedVideo, AppBskyFeedPost} from "@atproto/api";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
   import {contentLabelling, detectWarn, keywordFilter} from "$lib/timelineFilter";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
+  import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
 
   export let record;
   export let _agent = $agent;
@@ -69,6 +70,10 @@
 
         <Images images={record.embeds[0].images} blobs={record?.value?.embed.images} did={record.author.did}></Images>
       </div>
+    {/if}
+
+    {#if AppBskyEmbedVideo.isView(record?.embeds[0])}
+      <EmbedVideo video={record.embeds[0]}></EmbedVideo>
     {/if}
   </div>
 

@@ -9,7 +9,7 @@
       AppBskyEmbedExternal,
       AppBskyEmbedImages,
       AppBskyEmbedRecord,
-      AppBskyEmbedRecordWithMedia, AppBskyFeedDefs,
+      AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs,
       AppBskyFeedPost
   } from "@atproto/api";
   import Images from "../../../routes/(app)/Images.svelte";
@@ -22,6 +22,7 @@
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
   import {getAllAgentDids, getDidFromUri} from "$lib/util";
+  import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
 
   export let post;
   export let _agent;
@@ -228,6 +229,10 @@
 
     {#if (AppBskyEmbedRecord.isViewDetached(post?.embed?.record) || AppBskyEmbedRecord.isViewDetached(post?.embed?.record?.record)) && getAllAgentDids($agents).includes(getDidFromUri(post?.embed?.record?.uri || post?.embed?.record?.record?.uri))}
       <EmbedRecordDetached></EmbedRecordDetached>
+    {/if}
+
+    {#if AppBskyEmbedVideo.isView(post?.embed)}
+      <EmbedVideo video={post.embed}></EmbedVideo>
     {/if}
   </div>
 

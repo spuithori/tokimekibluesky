@@ -23,6 +23,9 @@ register('en', () => import('./locales/labeling/en.json'));
 register('ja', () => import('./locales/labelingInfo/ja.json'));
 register('en', () => import('./locales/labelingInfo/en.json'));
 
+register('ja', () => import('./locales/plyr/ja.json'));
+register('en', () => import('./locales/plyr/en.json'));
+
 init({
     fallbackLocale: defaultLocale,
     initialLocale: browser ? window.navigator.language : defaultLocale,
