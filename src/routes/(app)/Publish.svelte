@@ -17,14 +17,14 @@ import {
     AppBskyEmbedImages,
     AppBskyEmbedRecord,
     AppBskyEmbedRecordWithMedia,
-    AppBskyEmbedExternal, AppBskyFeedPost
+    AppBskyEmbedExternal, AppBskyFeedPost, BskyAgent, AtpAgent, AppBskyVideoDefs
 } from '@atproto/api';
 import { toast } from 'svelte-sonner'
 import { goto, pushState } from '$app/navigation';
 import { page } from '$app/stores';
 import { db } from '$lib/db';
 import DraftModal from "$lib/components/draft/DraftModal.svelte";
-import {getAccountIdByDid} from "$lib/util";
+import {getAccountIdByDid, getServiceAuthToken} from "$lib/util";
 import type { Draft } from '$lib/db';
 import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
 import imageCompression from 'browser-image-compression';
@@ -413,6 +413,42 @@ async function publish(post, treeReplyRef = undefined) {
                 embedImages.images = [];
                 throw new Error(error);
             });
+    }
+
+    if (post.video) {
+        try {
+            const token = await getServiceAuthToken({lxm: 'com.atproto.repo.uploadBlob', exp: Date.now() / 1000 + 60 * 30}, _agent);
+
+            const xhr = new XMLHttpRequest();
+            const res = await new Promise<AppBskyVideoDefs.JobStatus>((resolve, reject) => {
+                xhr.upload.addEventListener('progress', e => {
+                    const progress = e.loaded / e.total;
+                    console.log(progress);
+                })
+                xhr.onloadend = () => {
+                    if (xhr.readyState === 4) {
+                        const uploadRes = JSON.parse(
+                            xhr.responseText,
+                        ) as AppBskyVideoDefs.JobStatus
+                        resolve(uploadRes)
+                    } else {
+                        reject(new Error(xhr.statusText));
+                    }
+                }
+                xhr.onerror = () => {
+                    reject(new Error(xhr.statusText));
+                }
+                xhr.open('POST', 'https://video.bsky.app/xrpc/app.bsky.video.uploadVideo?did=' + _agent.did() + '&name=' + 'y3K1DgedDUMp.mp4', true)
+                xhr.setRequestHeader('Content-Type', 'video/mp4')
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token)
+                xhr.send(post.video)
+            })
+
+            console.log(res);
+        } catch (e) {
+            console.log(e)
+            throw new Error(e);
+        }
     }
 
     if (post?.quotePost?.uri) {

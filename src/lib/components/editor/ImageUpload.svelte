@@ -22,6 +22,7 @@
     }
 
     export let images: Image[] = [];
+    export let video;
     let input;
 
     $: {
@@ -42,6 +43,14 @@
         const filesList = e.target.files || [];
 
         if (!filesList.length) {
+            return false;
+        }
+
+        if (filesList[0].type === 'video/mp4') {
+            console.log(filesList[0]);
+            const videoFile = filesList[0];
+            const videoDataUrl = await imageCompression.getDataUrlFromFile(videoFile);
+            video = await fetch(videoDataUrl).then(res => res.arrayBuffer());
             return false;
         }
 
@@ -106,7 +115,12 @@
     </div>
 </div>
 
-<input class="image-upload-input" type="file" accept="image/png, image/jpeg, image/gif, image/webp" multiple on:change={handleInputChange} bind:this={input}>
+<input class="image-upload-input" type="file" accept="image/png, image/jpeg, image/gif, image/webp,
+ video/mp4" multiple on:change={handleInputChange} bind:this={input}>
+
+{#if video}
+    ビデオアリ
+{/if}
 
 <style lang="postcss">
     .image-upload-drag-area {

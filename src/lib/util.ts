@@ -1,6 +1,7 @@
 import {accountsDb} from "$lib/db";
 import type {BskyAgent} from "@atproto/api";
 import imageCompression from "browser-image-compression";
+import type {Agent} from "$lib/agent";
 
 export function getAccountIdByDid(agents, did) {
     let id;
@@ -121,4 +122,17 @@ export function isSafariOrFirefox() {
     const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
     const isFirefox = /firefox/.test(userAgent);
     return isSafari || isFirefox;
+}
+
+export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: string, exp?: number, agent: any}, _agent: Agent) {
+    const agentHost = new URL(_agent.service() as string).hostname;
+    const agentAud = 'did:web:' + agentHost;
+
+    const res = await _agent.agent.api.com.atproto.server.getServiceAuth({
+        aud: aud || 'did:web:porcini.us-east.host.bsky.network',
+        lxm,
+        exp,
+    });
+
+    return res.data.token;
 }

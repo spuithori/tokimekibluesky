@@ -62,6 +62,7 @@
         id: string,
     }
     let images = [];
+    let video;
 
     let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
     let embedExternal: AppBskyEmbedExternal.Main | undefined;
@@ -238,6 +239,7 @@
         threadGate.set('everybody');
         selfLabels.set([]);
         images = [];
+        video = undefined;
         links = [];
         editor.setContent(post.json || post.text);
 
@@ -248,6 +250,10 @@
         if (post.images.length) {
             isPublishUploadClose = false;
             images = post.images;
+        }
+
+        if (post.video) {
+            video = post.video;
         }
 
         if (post.quotePost) {
@@ -296,6 +302,7 @@
                 quotePost: $quotePost || undefined,
                 replyRef: $replyRef || undefined,
                 images: images,
+                video: video,
                 owner: _agent.did() as string,
                 embedExternal: embedExternal,
                 selfLabels: $selfLabels || undefined,
@@ -313,6 +320,7 @@
             quotePost: $quotePost || undefined,
             replyRef: $replyRef || undefined,
             images: images,
+            video: video,
             owner: _agent.did() as string,
             embedExternal: embedExternal,
             selfLabels: $selfLabels || undefined,
@@ -399,6 +407,7 @@
       <ImageUpload
         bind:this={imageUploadEl}
         bind:images={images}
+        bind:video={video}
         on:preparestart={() => {isPublishEnabled = true}}
         on:prepareend={() => {isPublishEnabled = false}}
       ></ImageUpload>
