@@ -125,11 +125,11 @@ export function isSafariOrFirefox() {
 }
 
 export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: string, exp?: number}, _agent: Agent) {
-    const agentHost = new URL(_agent.service() as string).hostname;
+    const agentHost = new URL(await getService(_agent.did() as string)).hostname;
     const agentAud = 'did:web:' + agentHost;
 
     const res = await _agent.agent.api.com.atproto.server.getServiceAuth({
-        aud: aud || 'did:web:porcini.us-east.host.bsky.network',
+        aud: aud || agentAud,
         lxm,
         exp,
     });

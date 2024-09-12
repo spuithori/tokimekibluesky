@@ -27,7 +27,7 @@ export async function getIntervalProcessingUpload(jobId: string): Promise<any> {
 
                 if (jobStatus.blob) {
                     resolve(jobStatus.blob);
-                } else if (allowStatus.includes(jobStatus.state)) {
+                } else if (jobStatus.state !== 'JOB_STATE_FAILED') {
                     setTimeout(checkStatus, 1500);
                 } else {
                     reject(new Error(`Job is in an unexpected state: ${jobStatus.state}`));
