@@ -94,6 +94,9 @@
                 mimeType: videoFile.type,
                 ext: videoFile.type.split('/')[1],
             }
+
+            input.value = '';
+            dispatch('prepareend');
             return false;
         }
 
