@@ -26,6 +26,7 @@
     import {languageMap} from "$lib/langs/languageMap";
     import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
     import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
+    import {getUploadLimit} from "$lib/components/editor/videoUtil";
     const dispatch = createEventDispatcher();
 
     export let post;
@@ -48,6 +49,7 @@
     let isDragover = 0;
     let isVirtualKeyboard = false;
     let isLangSelectorOpen = false;
+    let isVideoUploadEnabled = false;
 
     const isMobile = navigator?.userAgentData?.mobile || false;
 
@@ -172,8 +174,14 @@
         }
     }
 
-    function handleAgentSelect(event) {
+    async function handleAgentSelect(event) {
         _agent = event.detail.agent;
+        isVideoUploadEnabled = false;
+
+        const limit = await getUploadLimit(_agent);
+        if (limit?.canUpload) {
+            isVideoUploadEnabled = true;
+        }
 
         if ($threadGate !== 'everybody') {
             $threadGate = 'everybody';
@@ -188,8 +196,8 @@
         return rt;
     }
 
-    function uploadContextOpen() {
-        imageUploadEl.open();
+    function uploadContextOpen(e) {
+        imageUploadEl.open(e?.detail?.isVideo);
     }
 
     async function handlePaste(e) {
@@ -242,6 +250,11 @@
         video = undefined;
         links = [];
         editor.setContent(post.json || post.text);
+
+        const limit = await getUploadLimit(_agent);
+        if (limit?.canUpload) {
+            isVideoUploadEnabled = true;
+        }
 
         if (!post.images) {
             post.images = [];
@@ -352,6 +365,7 @@
           on:pickgif={(e) => addGifLinkCard(e.detail.gif)}
           {_agent}
           isPublishEnabled={isEmpty || isPublishEnabled}
+          {isVideoUploadEnabled}
   >
     <svelte:fragment slot="top">
       {#if ($replyRef && typeof $replyRef !== 'string')}

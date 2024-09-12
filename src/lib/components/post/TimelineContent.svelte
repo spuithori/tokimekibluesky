@@ -214,6 +214,10 @@
         </div>
       {/if}
 
+      {#if AppBskyEmbedVideo.isView(post.embed?.media)}
+        <EmbedVideo video={post.embed.media}></EmbedVideo>
+      {/if}
+
       {#if AppBskyEmbedExternal.isView(post.embed.media)}
         <EmbedExternal external={post.embed.media.external}></EmbedExternal>
       {/if}

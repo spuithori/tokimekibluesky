@@ -124,7 +124,7 @@ export function isSafariOrFirefox() {
     return isSafari || isFirefox;
 }
 
-export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: string, exp?: number, agent: any}, _agent: Agent) {
+export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: string, exp?: number}, _agent: Agent) {
     const agentHost = new URL(_agent.service() as string).hostname;
     const agentAud = 'did:web:' + agentHost;
 

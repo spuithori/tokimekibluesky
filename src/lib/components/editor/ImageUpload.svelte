@@ -1,4 +1,5 @@
 <script lang="ts">
+    import {_} from 'svelte-i18n'
     import imageCompression from 'browser-image-compression';
     import {flip} from "svelte/animate";
     import { dndzone } from 'svelte-dnd-action';
@@ -11,6 +12,9 @@
         transformImageFilter
     } from "$lib/components/editor/imageUploadUtil";
     import {createEventDispatcher} from "svelte";
+    import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
+    import {X} from "lucide-svelte";
+    import {toast} from "svelte-sonner";
     const dispatch = createEventDispatcher();
 
     type Image = {
@@ -38,6 +42,28 @@
         images = e.detail.items;
     }
 
+    async function getVideoDimensions(file) {
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+
+            video.onloadedmetadata = function() {
+                window.URL.revokeObjectURL(video.src);
+                resolve({
+                    width: this.videoWidth,
+                    height: this.videoHeight,
+                    duration: this.duration,
+                });
+            };
+
+            video.onerror = function() {
+                reject('Error Get Video Dimensions');
+            };
+
+            video.src = window.URL.createObjectURL(file);
+        });
+    }
+
     async function handleInputChange(e) {
         dispatch('preparestart');
         const filesList = e.target.files || [];
@@ -47,10 +73,27 @@
         }
 
         if (filesList[0].type === 'video/mp4') {
-            console.log(filesList[0]);
             const videoFile = filesList[0];
+            const dimensions = await getVideoDimensions(videoFile);
+
+            if (videoFile.size / 1024 / 1024 > 50 || dimensions.duration > 60) {
+                toast.error($_('error_video_too_large'));
+                return false;
+            }
+
             const videoDataUrl = await imageCompression.getDataUrlFromFile(videoFile);
-            video = await fetch(videoDataUrl).then(res => res.arrayBuffer());
+            const videoBytes = await fetch(videoDataUrl).then(res => res.arrayBuffer());
+
+            video = {
+                aspectRatio: {
+                    width: dimensions.width,
+                    height: dimensions.height,
+                },
+                blob: videoFile,
+                bytes: videoBytes,
+                mimeType: videoFile.type,
+                ext: videoFile.type.split('/')[1],
+            }
             return false;
         }
 
@@ -90,12 +133,26 @@
         }];
     }
 
-    export function open() {
+    export function open(isVideo: boolean) {
+        if (isVideo) {
+            images = [];
+            input.setAttribute('accept', 'video/mp4, video/quicktime, video/webm');
+            input.removeAttribute('multiple');
+        } else {
+            video = undefined;
+            input.setAttribute('accept', 'image/png, image/jpeg, image/gif, image/webp');
+            input.setAttribute('multiple', '')
+        }
+
         input.click();
     }
 
     function handleDelete(e) {
         images = images.filter(image => image.id !== e.detail.id);
+    }
+
+    function handleVideoDelete() {
+        video = undefined;
     }
 </script>
 
@@ -115,11 +172,16 @@
     </div>
 </div>
 
-<input class="image-upload-input" type="file" accept="image/png, image/jpeg, image/gif, image/webp,
- video/mp4" multiple on:change={handleInputChange} bind:this={input}>
+<input class="image-upload-input" type="file" on:change={handleInputChange} bind:this={input}>
 
 {#if video}
-    ビデオアリ
+    <div class="video-upload-item">
+        <EmbedVideo video={video} isLocal={true}></EmbedVideo>
+
+        <button class="video-upload-item__close" on:click={handleVideoDelete}>
+            <X color="#fff" size="18"></X>
+        </button>
+    </div>
 {/if}
 
 <style lang="postcss">
@@ -148,5 +210,21 @@
     .image-upload-input {
         appearance: none;
         display: none;
+    }
+
+    .video-upload-item {
+        position: relative;
+
+        &__close {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, .7);
+            display: grid;
+            place-content: center;
+            position: absolute;
+            right: 8px;
+            top: 24px;
+        }
     }
 </style>

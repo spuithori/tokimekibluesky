@@ -7,6 +7,7 @@
     import 'vidstack/player/ui';
 
     export let video;
+    export let isLocal = false;
     let el;
 
     const plyrLang = {
@@ -57,7 +58,7 @@
 </script>
 
 <div class="timeline-video-wrap" style="--video-width: {video?.aspectRatio?.width}; --video-height: {video?.aspectRatio?.height}">
-  <media-player class="timeline-video-player" src="{video?.playlist}" playsInline crossOrigin>
+  <media-player class="timeline-video-player" class:timeline-video-player--local={isLocal} src="{isLocal ? { src: video?.blob, type: 'video/object' } : video?.playlist}" playsInline crossOrigin>
     <media-provider>
       <media-poster class="timeline-video-player__poster" src="{video?.thumbnail}"></media-poster>
     </media-provider>

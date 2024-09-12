@@ -465,4 +465,10 @@ html {
             display: none !important
         }
     }
+
+    &--local {
+        video {
+            position: static;
+        }
+    }
 }
