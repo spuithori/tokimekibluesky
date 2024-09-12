@@ -26,6 +26,7 @@
     import {languageMap} from "$lib/langs/languageMap";
     import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
     import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
+    import {getUploadLimit} from "$lib/components/editor/videoUtil";
     const dispatch = createEventDispatcher();
 
     export let post;
@@ -48,6 +49,7 @@
     let isDragover = 0;
     let isVirtualKeyboard = false;
     let isLangSelectorOpen = false;
+    let isVideoUploadEnabled = false;
 
     const isMobile = navigator?.userAgentData?.mobile || false;
 
@@ -62,6 +64,7 @@
         id: string,
     }
     let images = [];
+    let video;
 
     let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
     let embedExternal: AppBskyEmbedExternal.Main | undefined;
@@ -171,8 +174,14 @@
         }
     }
 
-    function handleAgentSelect(event) {
+    async function handleAgentSelect(event) {
         _agent = event.detail.agent;
+        isVideoUploadEnabled = false;
+
+        const limit = await getUploadLimit(_agent);
+        if (limit?.canUpload) {
+            isVideoUploadEnabled = true;
+        }
 
         if ($threadGate !== 'everybody') {
             $threadGate = 'everybody';
@@ -187,8 +196,8 @@
         return rt;
     }
 
-    function uploadContextOpen() {
-        imageUploadEl.open();
+    function uploadContextOpen(e) {
+        imageUploadEl.open(e?.detail?.isVideo);
     }
 
     async function handlePaste(e) {
@@ -238,8 +247,14 @@
         threadGate.set('everybody');
         selfLabels.set([]);
         images = [];
+        video = undefined;
         links = [];
         editor.setContent(post.json || post.text);
+
+        const limit = await getUploadLimit(_agent);
+        if (limit?.canUpload) {
+            isVideoUploadEnabled = true;
+        }
 
         if (!post.images) {
             post.images = [];
@@ -248,6 +263,10 @@
         if (post.images.length) {
             isPublishUploadClose = false;
             images = post.images;
+        }
+
+        if (post.video) {
+            video = post.video;
         }
 
         if (post.quotePost) {
@@ -296,6 +315,7 @@
                 quotePost: $quotePost || undefined,
                 replyRef: $replyRef || undefined,
                 images: images,
+                video: video,
                 owner: _agent.did() as string,
                 embedExternal: embedExternal,
                 selfLabels: $selfLabels || undefined,
@@ -313,6 +333,7 @@
             quotePost: $quotePost || undefined,
             replyRef: $replyRef || undefined,
             images: images,
+            video: video,
             owner: _agent.did() as string,
             embedExternal: embedExternal,
             selfLabels: $selfLabels || undefined,
@@ -344,6 +365,7 @@
           on:pickgif={(e) => addGifLinkCard(e.detail.gif)}
           {_agent}
           isPublishEnabled={isEmpty || isPublishEnabled}
+          {isVideoUploadEnabled}
   >
     <svelte:fragment slot="top">
       {#if ($replyRef && typeof $replyRef !== 'string')}
@@ -399,6 +421,7 @@
       <ImageUpload
         bind:this={imageUploadEl}
         bind:images={images}
+        bind:video={video}
         on:preparestart={() => {isPublishEnabled = true}}
         on:prepareend={() => {isPublishEnabled = false}}
       ></ImageUpload>

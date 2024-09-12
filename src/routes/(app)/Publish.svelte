@@ -17,19 +17,20 @@ import {
     AppBskyEmbedImages,
     AppBskyEmbedRecord,
     AppBskyEmbedRecordWithMedia,
-    AppBskyEmbedExternal, AppBskyFeedPost
+    AppBskyEmbedExternal, AppBskyFeedPost, BskyAgent, AtpAgent, AppBskyVideoDefs, AppBskyEmbedVideo
 } from '@atproto/api';
 import { toast } from 'svelte-sonner'
 import { goto, pushState } from '$app/navigation';
 import { page } from '$app/stores';
 import { db } from '$lib/db';
 import DraftModal from "$lib/components/draft/DraftModal.svelte";
-import {getAccountIdByDid} from "$lib/util";
+import {getAccountIdByDid, getServiceAuthToken} from "$lib/util";
 import type { Draft } from '$lib/db';
 import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
 import imageCompression from 'browser-image-compression';
 import PublishPool from "$lib/components/editor/PublishPool.svelte";
 import PublishMain from "$lib/components/editor/PublishMain.svelte";
+import {getIntervalProcessingUpload, getUploadLimit, getUploadStatus} from "$lib/components/editor/videoUtil";
 
 let _agent = $agent;
 let editor;
@@ -376,6 +377,7 @@ async function publish(post, treeReplyRef = undefined) {
         $type: 'app.bsky.embed.images',
         images: [],
     };
+    let embedVideo: AppBskyEmbedVideo.Main;
     let embedRecord: AppBskyEmbedRecord.Main;
     let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
     let embedExternal: AppBskyEmbedExternal.Main | undefined = post.embedExternal || undefined;
@@ -415,6 +417,82 @@ async function publish(post, treeReplyRef = undefined) {
             });
     }
 
+    if (post.video) {
+        try {
+            const videoToastId = toast.loading($_('process_to_video_upload'));
+            const token = await getServiceAuthToken({lxm: 'com.atproto.repo.uploadBlob', exp: Date.now() / 1000 + 60 * 30}, _agent);
+
+            const xhr = new XMLHttpRequest();
+            const res = await new Promise<AppBskyVideoDefs.JobStatus>((resolve, reject) => {
+                xhr.upload.addEventListener('progress', e => {
+                    const progress = e.loaded / e.total;
+
+                    toast.loading($_('process_to_video_upload') + '(' + Math.round(progress * 100) + '%)', {
+                        id: videoToastId,
+                        duration: 100000,
+                    });
+                })
+                xhr.onloadend = () => {
+                    if (xhr.readyState === 4) {
+                        const uploadRes = JSON.parse(
+                            xhr.responseText,
+                        ) as AppBskyVideoDefs.JobStatus
+                        resolve(uploadRes)
+                    } else {
+                        reject(new Error(xhr.statusText));
+                    }
+                }
+                xhr.onerror = () => {
+                    reject(new Error(xhr.statusText));
+                }
+
+                xhr.open('POST', `https://video.bsky.app/xrpc/app.bsky.video.uploadVideo?did=${_agent.did()}&name=${self.crypto.randomUUID()}.${post.video.ext}`, true)
+                xhr.setRequestHeader('Content-Type', post.video.mimeType)
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token)
+                xhr.send(post.video.bytes)
+            })
+
+            if (res.jobId) {
+                toast.loading($_('process_to_video_upload_processing'), {
+                    id: videoToastId,
+                    duration: 1000000,
+                });
+
+                try {
+                    res.blob = await getIntervalProcessingUpload(res.jobId);
+                } catch (e) {
+                    console.error(e);
+                    throw new Error('Upload failed');
+                }
+            }
+
+            if (res.blob) {
+                embedVideo = {
+                    $type: 'app.bsky.embed.video',
+                    video: res.blob,
+                    aspectRatio: {
+                        width: post.video?.aspectRatio?.width || 1280,
+                        height: post.video?.aspectRatio?.height || 720,
+                    }
+                }
+
+                toast.success($_('success_to_video_upload'), {
+                    id: videoToastId,
+                    duration: 1500,
+                });
+            } else {
+                throw new Error('Upload failed');
+            }
+        } catch (e) {
+            toast.error('Video upload failed!!!', {
+                id: videoToastId,
+                duration: 5000,
+            });
+            console.error(e);
+            throw new Error(e);
+        }
+    }
+
     if (post?.quotePost?.uri) {
         embedRecord = {
             $type: 'app.bsky.embed.record',
@@ -425,7 +503,17 @@ async function publish(post, treeReplyRef = undefined) {
         }
     }
 
-    if (embedImages.images.length && post?.quotePost?.uri) {
+    if (embedVideo && post?.quotePost?.uri) {
+        embedRecordWithMedia = {
+            $type: 'app.bsky.embed.recordWithMedia',
+            media: embedVideo,
+            record: embedRecord,
+        }
+
+        embed = embedRecordWithMedia;
+    } else if (embedVideo) {
+        embed = embedVideo;
+    } else if (embedImages.images.length && post?.quotePost?.uri) {
         embedRecordWithMedia = {
             $type: 'app.bsky.embed.recordWithMedia',
             media: embedImages,

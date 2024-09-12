@@ -623,5 +623,9 @@
   "success_detach": "Quote detached.",
   "success_un_detach": "The detached quote has been restored.",
   "postgate_quote_permission": "Allow quote",
-  "post_gate_quote_label": "Can't quote this post"
+  "post_gate_quote_label": "Can't quote this post",
+  "process_to_video_upload": "Video uploading...",
+  "process_to_video_upload_processing": "Video encoding...",
+  "success_to_video_upload": "Success to video upload.",
+  "error_video_too_large": "Video is too big or too long! You can upload videos up to 50 MB and no longer than 60 seconds."
 }
