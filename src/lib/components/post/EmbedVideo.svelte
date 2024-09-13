@@ -70,5 +70,9 @@
   .timeline-video-wrap {
       aspect-ratio: var(--video-width, 16) / var(--video-height, 9);
       max-height: 600px;
+
+      @container timeline-item (max-width: 345px) {
+          margin-left: -50px;
+      }
   }
 </style>

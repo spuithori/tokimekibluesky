@@ -418,8 +418,9 @@ async function publish(post, treeReplyRef = undefined) {
     }
 
     if (post.video) {
+        const videoToastId = toast.loading($_('process_to_video_upload'));
+
         try {
-            const videoToastId = toast.loading($_('process_to_video_upload'));
             const token = await getServiceAuthToken({lxm: 'com.atproto.repo.uploadBlob', exp: Date.now() / 1000 + 60 * 30}, _agent);
 
             const xhr = new XMLHttpRequest();

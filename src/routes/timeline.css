@@ -1005,6 +1005,12 @@
         }
     }
 
+    .timeline-video-wrap {
+        @container timeline-item (max-width: 345px) {
+            margin-left: 0 !important;
+        }
+    }
+
     .timeline-reply-bar {
         display: none;
     }
