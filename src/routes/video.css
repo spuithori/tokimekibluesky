@@ -50,7 +50,7 @@
         }
     }
 
-    &:hover {
+    &[data-hover] {
         .video-play-button {
             opacity: 1;
             visibility: visible;
@@ -72,6 +72,7 @@
     opacity: 0;
     transition: all .2s ease-in-out;
     aspect-ratio: 1 / 1;
+    pointer-events: none;
 
     &::before {
         content: '';
@@ -86,7 +87,7 @@
         transition: opacity .2s ease-in-out;
     }
 
-    &:hover {
+    &[data-hover] {
         &::before {
             opacity: 1;
         }
