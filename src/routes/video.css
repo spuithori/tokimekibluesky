@@ -72,7 +72,10 @@
     opacity: 0;
     transition: all .2s ease-in-out;
     aspect-ratio: 1 / 1;
-    pointer-events: none;
+    
+    @media (pointer: coarse) {
+        pointer-events: none;
+    }
 
     &::before {
         content: '';
