@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {labelerSettings, agent, subscribedLabelers, labelDefs} from '$lib/stores';
+    import {labelerSettings, agent, subscribedLabelers, labelDefs, settings} from '$lib/stores';
   import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
@@ -67,11 +67,11 @@
       {#if (isOfficial)}
         {$_('labeling_' + label[0])}
       {:else}
-        {defs[index].locales[0].name}
+      {defs[index].locales.find(locale => locale.lang === $settings.general.userLanguage)?.name ?? defs[index].locales[0]?.name}
       {/if}
     </h3>
 
-    <p class="moderation-settings-group__text">{defs[index].locales[0].description}</p>
+    <p class="moderation-settings-group__text">{defs[index].locales.find(locale => locale.lang === $settings.general.userLanguage)?.description ?? defs[index].locales[0]?.description}</p>
 
     {#if ($subscribedLabelers.includes(did))}
       <div class="moderation-settings-group__content">
