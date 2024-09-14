@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {settings} from '$lib/stores';
   import {_} from "svelte-i18n";
   import {createEventDispatcher} from "svelte";
   import LabelDetailModal from "$lib/components/post/LabelDetailModal.svelte";
@@ -59,7 +60,7 @@
           {#if (labels[0]?.source?.type === 'user' || labels[0]?.label?.src === 'did:plc:ar7c4by46qjdydhdevvrndac' || !labels[0]?.labelDef?.locales[0]?.name)}
             {$_('labeling_' + labels[0].label?.val)}
           {:else}
-            {labels[0]?.labelDef?.locales[0]?.name}
+          {labels[0]?.labelDef?.locales.find(locale => locale.lang === $settings.general.userLanguage)?.name ?? labels[0]?.labelDef?.locales[0]?.name}
           {/if}
         </li>
 
