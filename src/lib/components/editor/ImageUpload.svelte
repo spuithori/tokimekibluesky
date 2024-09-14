@@ -227,7 +227,7 @@
             place-content: center;
             position: absolute;
             right: 8px;
-            top: 24px;
+            top: 8px;
         }
     }
 </style>

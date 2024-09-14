@@ -236,7 +236,13 @@
     {/if}
 
     {#if AppBskyEmbedVideo.isView(post?.embed)}
-      <EmbedVideo video={post.embed}></EmbedVideo>
+      <div class="timeline-images-wrap">
+        {#if (isWarn === 'media')}
+          <TimelineWarn labels={warnLabels}></TimelineWarn>
+        {/if}
+
+        <EmbedVideo video={post.embed}></EmbedVideo>
+      </div>
     {/if}
   </div>
 

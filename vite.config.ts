@@ -2,6 +2,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import { defineConfig } from 'vite';
 import { sentrySvelteKit } from '@sentry/sveltekit';
+import { vite as vidstack } from 'vidstack/plugins';
 
 export default defineConfig({
 	define: {
@@ -11,6 +12,7 @@ export default defineConfig({
 	},
 
 	plugins: [
+		vidstack(),
 		sentrySvelteKit({
 			sourceMapsUploadOptions: {
 				org: process.env.SENTRY_ORG,
