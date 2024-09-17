@@ -102,6 +102,7 @@
   let cloudBookmarks = [];
   let feedColumnsRefreshing = true;
   let officialListColumnsRefreshing = true;
+  let cloudBookmarkColumnRefreshing = true;
 
   $: updateBookmark($bookmarks);
   $: updateList($userLists);
@@ -231,6 +232,8 @@
       await accountsDb.accounts.update(accountId, {
           cloudBookmarks: cloudBookmarks,
       });
+
+      cloudBookmarkColumnRefreshing = false;
   }
 
   function applyFeedColumns(feeds) {
@@ -316,7 +319,11 @@
 <div class="column-adder-group">
     <div class="column-adder-group__heading">
         <p class="column-adder-group__title">{$_('bookmark_cloud')}</p>
-        <a href="https://docs.tokimeki.blue/ja/usage/bookmark" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
+        <a href="https://docs.tokimeki.blue/ja/usage/bookmark-cloud" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
+
+        {#if (cloudBookmarkColumnRefreshing)}
+            <LoadingSpinner padding="0" size="14"></LoadingSpinner>
+        {/if}
 
         <button class="column-adder-group__add" on:click={() => {cloudBookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
     </div>
