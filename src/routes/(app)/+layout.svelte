@@ -46,8 +46,6 @@
   import JunkColumnsObserver from "$lib/components/utils/JunkColumnsObserver.svelte";
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
   import {isSafariOrFirefox} from "$lib/util";
-  import { dev } from '$app/environment';
-  import { inject } from '@vercel/analytics';
 
   let loaded = false;
   let isDarkMode = false;
@@ -55,18 +53,6 @@
   let app;
   let baseColor = '#fff';
   let isRepeater = localStorage.getItem('isRepeater') === 'true';
-
-  inject(
-      {
-          mode: dev ? 'development' : 'production',
-          beforeSend: event => {
-              if (event.url.includes('/settings') || event.url.includes('/login') || event.url.includes('/search') || event.url.includes('/shared') || event.url.includes('#post') || event.url.includes('/theme-store')) {
-                  return null;
-              }
-              return event;
-          }
-      },
-  );
 
   $: getCurrentTheme($settings.design?.skin);
   $: observeColor($theme);

@@ -96,7 +96,7 @@
 
         <p class="about-pp"><a href="https://docs.tokimeki.blue/" target="_blank" rel="noopener">{$_('document')}</a></p>
 
-        <p class="about-pp"><a href="https://tokimekibluesky-docs.vercel.app/privacy" target="_blank" rel="noopener">Privacy Policy</a></p>
+        <p class="about-pp"><a href="https://docs.tokimeki.blue/privacy" target="_blank" rel="noopener">{$_('privacy_policy')}</a></p>
 
         <p class="about-pp"><a href="https://forms.gle/U86Ndm2UUA5Tk4eu9" target="_blank" rel="noopener">{$_('feature_request_form')}</a></p>
       </div>

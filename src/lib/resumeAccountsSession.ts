@@ -28,6 +28,7 @@ async function resume(account) {
                 notification: account.notification || ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
                 feeds: account.feeds || [],
                 lists: account.lists || [],
+                cloudBookmarks: account.cloudBookmarks || [],
             })
         }
     })

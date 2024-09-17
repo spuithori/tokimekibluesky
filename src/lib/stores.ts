@@ -206,6 +206,11 @@ export const bookmarkModal = writable({
     data: undefined,
 })
 
+export const cloudBookmarkModal = writable({
+    open: false,
+    data: undefined,
+})
+
 export const listModal = writable({
     open: false,
     data: undefined,

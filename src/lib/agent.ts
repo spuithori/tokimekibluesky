@@ -39,6 +39,22 @@ export class Agent {
         }
     }
 
+    getToken(): string | undefined {
+        if (this.agent.session) {
+            return this.agent.session.accessJwt;
+        }
+    }
+
+    async getPdsUrl(): Promise<string | undefined> {
+        if (this.agent.pdsUrl) {
+            return this.agent.pdsUrl.origin;
+        } else {
+            const res = await fetch('https://plc.directory/' + this.did());
+            const json = await res.json();
+            return json?.service[0]?.serviceEndpoint;
+        }
+    }
+
     async getTimeline(timelineOpt: timelineOpt = {limit: 20, cursor: '', type: 'default'}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
         try {
             let res;
@@ -77,6 +93,30 @@ export class Agent {
                     limit: timelineOpt.limit, cursor: timelineOpt.cursor, list: timelineOpt.algorithm.algorithm})
             case 'bookmark':
                 return await this.agent.api.app.bsky.feed.getPosts({uris: timelineOpt.uris || []});
+            case 'cloudBookmark':
+                const cbres = await fetch(`${await this.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getFeed?owner=${this.did() as string}&id=${timelineOpt.algorithm.algorithm}&cursor=${timelineOpt.cursor || 0}&limit=${timelineOpt.limit}`, {
+                    method: 'GET',
+                    headers: {
+                        'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
+                        Authorization: 'Bearer ' + this.getToken(),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                const cbjson = await cbres.json();
+                const ress = await this.agent.api.app.bsky.feed.getPosts({uris: cbjson.posts});
+                let tempBookmarkFeeds: any[] = [];
+                ress.data.posts.forEach(post => {
+                    tempBookmarkFeeds.push({
+                        post: post,
+                    })
+                });
+
+                return {
+                    data: {
+                        cursor: cbjson.cursor,
+                        feed: tempBookmarkFeeds
+                    }
+                }
             case 'like':
                 return await this.agent.api.app.bsky.feed.getActorLikes({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string});
             case 'search':
