@@ -27,6 +27,8 @@
     import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
     import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
     import {getUploadLimit} from "$lib/components/editor/videoUtil";
+    import {getTenorUrl} from "$lib/components/post/embedUtil";
+    import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
     const dispatch = createEventDispatcher();
 
     export let post;
@@ -145,7 +147,7 @@
         }
     }
 
-    async function addGifLinkCard(gif) {
+    async function addGiphyLinkCard(gif) {
         if (!gif) {
             return false;
         }
@@ -163,6 +165,35 @@
                     uri: gif.url,
                     title: gif.title || '',
                     description: 'Discover & share this Animated GIF with everyone you know. GIPHY is how you search, share, discover, and create GIFs.',
+                }
+            }
+
+            isLinkCardAdding = false;
+        } catch (e) {
+            console.error(e);
+            toast.error('Error!');
+            isLinkCardAdding = false;
+        }
+    }
+
+    async function addTenorLinkCard(gif) {
+        if (!gif) {
+            return false;
+        }
+
+        try {
+            isLinkCardAdding = true;
+
+            const res = await fetch(gif.url);
+            const blob = await res.blob();
+            externalImageBlob = await imageCompression.getDataUrlFromFile(blob);
+
+            embedExternal = {
+                $type: 'app.bsky.embed.external',
+                external: {
+                    uri: gif.url,
+                    title: gif.title || '',
+                    description: 'GIF by Tenor.',
                 }
             }
 
@@ -362,7 +393,8 @@
           on:publish={() => {dispatch('publish')}}
           on:focus={() => {dispatch('focus')}}
           on:upload={uploadContextOpen}
-          on:pickgif={(e) => addGifLinkCard(e.detail.gif)}
+          on:picktenor={(e) => addTenorLinkCard(e.detail.gif)}
+          on:pickgiphy={(e) => addGiphyLinkCard(e.detail.gif)}
           {_agent}
           isPublishEnabled={isEmpty || isPublishEnabled}
           {isVideoUploadEnabled}
@@ -475,19 +507,25 @@
             <X color="#fff" size="18"></X>
           </button>
 
-          <div class="timeline-external timeline-external--record">
-            <div class="timeline-external__image">
-              {#if (externalImageBlob)}
-                <img src="{externalImageBlob}" alt="">
-              {/if}
+          {#if getTenorUrl(embedExternal.external.uri) && $settings?.embed?.tenor}
+            <div class="publish-tenor-external">
+              <EmbedTenor tenor={getTenorUrl(embedExternal.external.uri)}></EmbedTenor>
             </div>
+          {:else}
+            <div class="timeline-external timeline-external--record">
+              <div class="timeline-external__image">
+                {#if (externalImageBlob)}
+                  <img src="{externalImageBlob}" alt="">
+                {/if}
+              </div>
 
-            <div class="timeline-external__content">
-              <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
-              <p class="timeline-external__description">{embedExternal.external.description}</p>
-              <p class="timeline-external__url">{embedExternal.external.uri}</p>
+              <div class="timeline-external__content">
+                <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
+                <p class="timeline-external__description">{embedExternal.external.description}</p>
+                <p class="timeline-external__url">{embedExternal.external.uri}</p>
+              </div>
             </div>
-          </div>
+          {/if}
         </div>
       {/if}
 

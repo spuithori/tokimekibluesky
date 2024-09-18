@@ -129,6 +129,7 @@ const defaultSettings = {
         disableHaptics: false,
         enableAppBrowser: false,
         disableChat: false,
+        disableTenorAutoplay: false,
     },
     design: {
         skin: 'default',

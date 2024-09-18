@@ -141,6 +141,7 @@
             height: 100%;
             width: 60px;
             font-size: 14px;
+            color: var(--text-color-1);
             
             &--active {
                 background-color: var(--primary-color);

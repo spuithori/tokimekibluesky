@@ -1,39 +1,32 @@
 <script lang="ts">
     import {createEventDispatcher, onMount} from 'svelte';
-    import { _ } from 'svelte-i18n';
-    import { GiphyFetch } from '@giphy/js-fetch-api';
-    import { PUBLIC_GIPHY_API_KEY } from '$env/static/public';
-    import { Grid } from '@giphy/svelte-components';
+    import TenorPicker from "$lib/components/publish/TenorPicker.svelte";
+    import GiphyPicker from "$lib/components/publish/GiphyPicker.svelte";
     const dispatch = createEventDispatcher();
 
     let dialog;
-    const gf = new GiphyFetch(PUBLIC_GIPHY_API_KEY);
-    let offset = 0;
-    let term = '';
-    let innerWidth;
+    let tab = 'tenor';
 
     function close () {
         dispatch('close');
     }
 
-    function fetchGifs(offset) {
-        if (!gf) {
-            return false;
-        }
-
-        if (!term) {
-            return gf.trending({ offset, limit: 10 });
-        }
-
-        return gf.search(term, { offset, limit: 10 });
-    }
-
-    function handleClick(e) {
+    function handleTenorClick(e) {
         if (!e.detail.gif) {
             return false;
         }
 
-        dispatch('pickgif', {
+        dispatch('picktenor', {
+            gif: e.detail.gif,
+        });
+    }
+
+    function handleGiphyClick(e) {
+        if (!e.detail.gif) {
+            return false;
+        }
+
+        dispatch('pickgiphy', {
             gif: e.detail.gif,
         });
     }
@@ -43,34 +36,25 @@
     });
 </script>
 
-<svelte:window bind:innerWidth></svelte:window>
-
-<dialog class="giphy-modal" bind:this={dialog}>
-  <div class="giphy-modal-contents">
-    <div class="giphy-modal-heading">
-      <div class="giphy-modal-close">
-        <div role="button" class="giphy-modal-close__button" on:click={close}>
+<dialog class="gif-modal" bind:this={dialog}>
+  <div class="gif-modal-contents">
+    <div class="gif-modal-heading">
+      <div class="gif-modal-close">
+        <div role="button" class="gif-modal-close__button" on:click={close}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </div>
       </div>
 
-      <div class="giphy-modal-search">
-        <input type="text" class="giphy-modal-search__input" placeholder={$_('giphy_picker_placeholder')} bind:value={term}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <div class="gif-modal-tab">
+        <button class="gif-modal-tab__item" class:gif-modal-tab__item--current={tab === 'tenor'} on:click={() => {tab = 'tenor'}}>Tenor</button>
+        <button class="gif-modal-tab__item" class:gif-modal-tab__item--current={tab === 'giphy'} on:click={() => {tab = 'giphy'}}>GIPHY</button>
       </div>
     </div>
 
-    {#if (innerWidth)}
-      <div class="giphy-picker">
-        {#key term}
-          <Grid
-              width={innerWidth > 552 ? 484 : innerWidth - 52}
-              columns={2}
-              fetchGifs={fetchGifs}
-              on:click={handleClick}
-          ></Grid>
-        {/key}
-      </div>
+    {#if tab === 'tenor'}
+      <TenorPicker on:click={handleTenorClick}></TenorPicker>
+    {:else}
+      <GiphyPicker on:click={handleGiphyClick}></GiphyPicker>
     {/if}
   </div>
 
@@ -78,7 +62,7 @@
 </dialog>
 
 <style lang="postcss">
-    .giphy-modal {
+    .gif-modal {
         margin: auto;
         border: none;
         border-radius: var(--border-radius-3);
@@ -94,7 +78,7 @@
         }
     }
 
-    .giphy-modal-contents {
+    .gif-modal-contents {
         border-radius: var(--border-radius-3);
         background-color: var(--bg-color-1);
         width: 516px;
@@ -130,7 +114,7 @@
         }
     }
 
-    .giphy-modal-close {
+    .gif-modal-close {
         text-align: center;
         display: flex;
         justify-content: center;
@@ -149,7 +133,7 @@
         }
     }
 
-    .giphy-modal-heading {
+    .gif-modal-heading {
         position: sticky;
         top: 0;
         height: 60px;
@@ -159,39 +143,38 @@
         margin-bottom: 16px;
         background-color: var(--bg-color-1);
         z-index: 1;
+        border-bottom: 1px solid var(--border-color-2);
     }
 
-    .giphy-modal-search {
-        position: relative;
+    .gif-modal-tab {
+        width: 100%;
+        height: 60px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        padding-right: 60px;
 
-        &__input {
-            border: 1px solid var(--border-color-1);
-            background-color: var(--bg-color-2);
-            height: 40px;
-            border-radius: 20px;
-            padding: 0 40px 0 20px;
-            color: var(--text-color-1);
+        &__item {
+            position: relative;
 
-            &:placeholder-shown {
-                color: var(--text-color-3);
-            }
+            &--current {
+                font-weight: bold;
+                color: var(--primary-color);
 
-            @media (max-width: 767px) {
-                width: 200px;
+                &::before {
+                    content: '';
+                    display: block;
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    margin: auto;
+                    height: 4px;
+                    width: 20px;
+                    border-radius: 2px;
+                    background-color: var(--primary-color);
+                }
             }
         }
-
-        svg {
-            position: absolute;
-            right: 16px;
-            top: 0;
-            bottom: 0;
-            margin: auto;
-            pointer-events: none;
-        }
-    }
-
-    .giphy-picker {
 
     }
 </style>

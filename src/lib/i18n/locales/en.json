@@ -632,5 +632,7 @@
   "bookmark_cloud": "Cloud Bookmark (β)",
   "bookmark_cloud_add_description": "Cloud bookmarks are stored on the TOKIMEKI server and can be used on other devices.",
   "delete_bookmark": "Delete bookmark",
-  "privacy_policy": "Privacy Policy"
+  "privacy_policy": "Privacy Policy",
+  "tenor_picker_placeholder": "Search GIFs in Tenor",
+  "disable_tenor_autoplay": "Disable GIFs Autoplay (Tenor)"
 }

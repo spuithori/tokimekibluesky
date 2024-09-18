@@ -632,5 +632,7 @@
   "bookmark_cloud": "クラウドブックマーク(β)",
   "bookmark_cloud_add_description": "クラウドブックマークはTOKIMEKIサーバー上に保存され、他のデバイスでも利用できます。",
   "delete_bookmark": "ブックマークを削除",
-  "privacy_policy": "プライバシーポリシー"
+  "privacy_policy": "プライバシーポリシー",
+  "tenor_picker_placeholder": "TenorでGIFを検索",
+  "disable_tenor_autoplay": "Tenor GIFを自動再生しない"
 }

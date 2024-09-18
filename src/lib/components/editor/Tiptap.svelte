@@ -15,10 +15,10 @@
     import MentionList from "$lib/components/editor/MentionList.svelte";
     import EditorBar from "$lib/components/editor/EditorBar.svelte";
     import {jsonToText} from "$lib/components/editor/richtext";
-    import GiphyPickerModal from "$lib/components/publish/GiphyPickerModal.svelte";
     import HashtagList from "$lib/components/editor/HashtagList.svelte";
     import {Hashtag} from "$lib/components/editor/hashtag";
     import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
+    import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
     const dispatch = createEventDispatcher();
 
     export let json;
@@ -282,10 +282,18 @@
        editor.commands.setContent(content, true);
     }
 
-    function handlePickGif(e) {
+    function handlePickGiphy(e) {
         isGiphyPickerOpen = false;
 
-        dispatch('pickgif', {
+        dispatch('pickgiphy', {
+            gif: e.detail.gif,
+        })
+    }
+
+    function handlePickTenor(e) {
+        isGiphyPickerOpen = false;
+
+        dispatch('picktenor', {
             gif: e.detail.gif,
         })
     }
@@ -365,7 +373,11 @@
 </EditorBar>
 
 {#if (isGiphyPickerOpen)}
-  <GiphyPickerModal on:close={() => {isGiphyPickerOpen = false}} on:pickgif={handlePickGif}></GiphyPickerModal>
+  <GifPickerModal
+    on:close={() => {isGiphyPickerOpen = false}}
+    on:pickgiphy={handlePickGiphy}
+    on:picktenor={handlePickTenor}
+  ></GifPickerModal>
 {/if}
 
 {#if (mentionProps)}
