@@ -4,6 +4,7 @@ import { AtpAgent, AtpSessionData } from "@atproto/api";
 import { accountsDb } from "$lib/db";
 import { createEventDispatcher } from "svelte";
 import { toast } from "svelte-sonner";
+import { BrowserOAuthClient } from '@atproto/oauth-client-browser';
 const dispatch = createEventDispatcher();
 
 export let existingId = undefined;
@@ -40,6 +41,39 @@ async function login() {
         } else {
             toast.error(e.message);
         }
+    }
+}
+
+async function oauthInit() {
+    const client = new BrowserOAuthClient({
+        handleResolver: 'https://bsky.social',
+        clientMetadata: undefined,
+    });
+
+    const result: undefined | { session: OAuthSession; state?: string } = await client.init();
+
+    if (result) {
+        const { session, state } = result;
+
+        if (state != null) {
+            console.log(
+                `${session.sub} was successfully authenticated (state: ${state})`,
+            );
+        } else {
+            console.log(`${session.sub} was restored (last active session)`);
+        }
+    }
+
+    try {
+        await client.signIn('https://bsky.social', {
+            state: 'some value needed later',
+            //prompt: 'none',
+            ui_locales: 'ja',
+            signal: new AbortController().signal,
+        })
+    } catch (err) {
+        console.log(err)
+        console.log('The user aborted the authorization process by navigating "back"')
     }
 }
 
@@ -89,6 +123,8 @@ function cancel() {
 
       <div class="login-submit">
         <button class="button button--login button--login-submit" type="submit">{$_('login')}</button>
+
+        <button class="button button--login button--login-oauth" on:click|preventDefault={oauthInit}>{$_('login_with_oauth')}</button>
 
         <button class="text-button" on:click|preventDefault={cancel}>{$_('cancel')}</button>
       </div>
@@ -163,5 +199,11 @@ function cancel() {
             color: var(--text-color-1);
             background-color: var(--bg-color-2);
         }
+    }
+
+    .button--login-oauth {
+        background-color: #4a83fc;
+        margin-top: 16px;
+        margin-bottom: 16px;
     }
 </style>
