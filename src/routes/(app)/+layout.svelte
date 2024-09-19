@@ -54,18 +54,6 @@
   let baseColor = '#fff';
   let isRepeater = localStorage.getItem('isRepeater') === 'true';
 
-  /* inject(
-      {
-          mode: dev ? 'development' : 'production',
-          beforeSend: event => {
-              if (event.url.includes('/settings') || event.url.includes('/login') || event.url.includes('/search') || event.url.includes('/shared') || event.url.includes('#post') || event.url.includes('/theme-store')) {
-                  return null;
-              }
-              return event;
-          }
-      },
-  ); */
-
   $: getCurrentTheme($settings.design?.skin);
   $: observeColor($theme);
   $: detectHeadThemeColor($theme);

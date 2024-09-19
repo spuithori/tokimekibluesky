@@ -131,9 +131,11 @@ export function getTenorUrl(uri: string) {
         if (hostname === 'media.tenor.com') {
             const width = url.searchParams.get('ww');
             const height = url.searchParams.get('hh');
+            const mp4Url = url.toString().replace(url.search, '').replace(/AAAAC/g, 'AAAP1').replace(/\.gif$/i, '.mp4');
 
             return {
                 url: url,
+                mp4Url: mp4Url,
                 width: width,
                 height: height,
             };

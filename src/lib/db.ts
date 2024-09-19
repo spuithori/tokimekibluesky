@@ -81,6 +81,7 @@ export interface Account {
     notification?: notificationCategories[],
     feeds?: any[],
     lists?: any[],
+    cloudBookmarks?: any[],
 }
 
 export class AccountSubClassDexie extends Dexie {
@@ -93,6 +94,11 @@ export class AccountSubClassDexie extends Dexie {
         this.version(1).stores({
             profiles: '++id, name, createdAt, *accounts, primary, *columns',
             accounts: '++id, service, session, &did, avatar, name, following, notification, *feeds, *lists',
+        });
+
+        this.version(2).stores({
+            profiles: '++id, name, createdAt, *accounts, primary, *columns',
+            accounts: '++id, service, session, &did, avatar, name, following, notification, *feeds, *lists, *cloudBookmarks',
         });
     }
 }

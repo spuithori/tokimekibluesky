@@ -3,7 +3,7 @@
     import IconColumnsList from "$lib/icons/columns/IconColumnsList.svelte";
     import IconColumnsBookmark from "$lib/icons/columns/IconColumnsBookmark.svelte";
     import IconColumnsHome from "$lib/icons/columns/IconColumnsHome.svelte";
-    import {bookmarkModal, listModal, officialListModal} from "$lib/stores";
+    import {bookmarkModal, cloudBookmarkModal, listModal, officialListModal} from "$lib/stores";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
     import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
@@ -54,6 +54,15 @@
                 <button
                         class="algo-nav-edit"
                         on:click={() => {bookmarkModal.set({open: true, data: Number(column.algorithm.algorithm) })}}
+                        aria-label="Edit Bookmark"
+                >
+                    <IconColumnsEdit></IconColumnsEdit>
+                </button>
+            {:else if (column.algorithm.type === 'cloudBookmark')}
+                <IconColumnsBookmark></IconColumnsBookmark>
+                <button
+                        class="algo-nav-edit"
+                        on:click={() => {cloudBookmarkModal.set({open: true, data: column.algorithm.algorithm })}}
                         aria-label="Edit Bookmark"
                 >
                     <IconColumnsEdit></IconColumnsEdit>

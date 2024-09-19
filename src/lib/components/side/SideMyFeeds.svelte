@@ -15,6 +15,7 @@
     let currentTab: tab = 'all';
     let customFeeds = [];
     let officialLists = [];
+    let cloudBookmarks = [];
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
     let loaded = false;
 
@@ -42,6 +43,28 @@
         });
     }
 
+    async function updateCloudBookmarks() {
+        const accountId = await getAccountIdByDidFromDb(_agent.did());
+        const account = await accountsDb.accounts.get(accountId);
+        const bookmarks = account?.cloudBookmarks;
+        cloudBookmarks = bookmarks || [];
+
+        const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getBookmarks?owner=${_agent.did() as string}`, {
+            method: 'GET',
+            headers: {
+                'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
+                Authorization: 'Bearer ' + _agent.getToken(),
+                'Content-Type': 'application/json'
+            }
+        })
+        const json = await res.json();
+        cloudBookmarks = json.bookmarks;
+
+        await accountsDb.accounts.update(accountId, {
+            cloudBookmarks: cloudBookmarks,
+        });
+    }
+
     function getFeedUrl(uri, genre = 'feed') {
         if (!uri) {
             return false;
@@ -61,7 +84,7 @@
     }
 
     onMount(async () => {
-        await Promise.all([updateFeeds(), updateLists()]);
+        await Promise.all([updateFeeds(), updateLists(), updateCloudBookmarks()]);
         loaded = true;
     })
 </script>
@@ -120,6 +143,16 @@
                             </li>
                         {/if}
                     {/each}
+                {/if}
+
+                {#if cloudBookmarks.length}
+                  {#each cloudBookmarks as bookmark}
+                    <li class="side-feeds-list__item">
+                      <a class="side-feeds-list__link" href="/bookmark-cloud/{bookmark.id}" on:click={handleSelect}>
+                        <Bookmark color="var(--text-color-3)" size="20"></Bookmark>
+                        {bookmark.name}</a>
+                    </li>
+                  {/each}
                 {/if}
             </div>
         {/if}

@@ -12,6 +12,7 @@
     import ColumnModalChoices from "$lib/components/column/ColumnModalChoices.svelte";
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
     import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
+    import CloudBookmarkObserver from "$lib/components/bookmark/CloudBookmarkObserver.svelte";
 
     export let _columns = $syncColumns;
     export let profileId = Number(localStorage.getItem('currentProfile'));
@@ -44,6 +45,10 @@
         if (event.detail.id) {
             _columns = _columns.filter(_column => _column.algorithm.type !== 'bookmark' || Number(_column.algorithm.algorithm) !== event.detail.id)
         }
+    }
+
+    function handleCloudBookmarkClose(event) {
+        unique = Symbol();
     }
 
     function handleListClose(event) {
@@ -121,6 +126,7 @@
         <button class="modal-background-close" aria-hidden="true" on:click={save}></button>
 
         <BookmarkObserver on:close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
+        <CloudBookmarkObserver on:close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>
         <ListObserver on:close={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
         <OfficialListObserver _agent={$agents.get(currentAccount)} on:close={handleOfficialListClose}></OfficialListObserver>
     </div>

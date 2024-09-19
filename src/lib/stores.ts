@@ -129,6 +129,7 @@ const defaultSettings = {
         disableHaptics: false,
         enableAppBrowser: false,
         disableChat: false,
+        disableTenorAutoplay: false,
     },
     design: {
         skin: 'default',
@@ -202,6 +203,11 @@ export const formattedKeywordMutes = derived(keywordMutes, ($keywordMutes) => {
 export const preferences = writable();
 
 export const bookmarkModal = writable({
+    open: false,
+    data: undefined,
+})
+
+export const cloudBookmarkModal = writable({
     open: false,
     data: undefined,
 })

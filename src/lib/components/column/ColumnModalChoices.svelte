@@ -1,6 +1,6 @@
 <script lang="ts">
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import {agent, bookmarkModal, listModal, officialListModal, userLists} from "$lib/stores";
+  import {agent, bookmarkModal, cloudBookmarkModal, listModal, officialListModal, userLists} from "$lib/stores";
   import {_} from "svelte-i18n";
   import {liveQuery} from "dexie";
   import {accountsDb, db} from "$lib/db";
@@ -93,19 +93,23 @@
   ];
 
   let bookmarkColumns = [];
+  let cloudBookmarkColumns = [];
   let localListColumns = [];
   let officialListColumns = [];
   let feedColumns = [];
   let savedFeeds = [];
   let officialLists = [];
+  let cloudBookmarks = [];
   let feedColumnsRefreshing = true;
   let officialListColumnsRefreshing = true;
+  let cloudBookmarkColumnRefreshing = true;
 
   $: updateBookmark($bookmarks);
   $: updateList($userLists);
 
   $: applyFeedColumns(savedFeeds);
   $: applyOfficialListColumns(officialLists);
+  $: applyCloudBookmarkColumns(cloudBookmarks);
 
   function updateBookmark(bookmarks) {
       if (!bookmarks) {
@@ -203,6 +207,35 @@
       officialListColumnsRefreshing = false;
   }
 
+  async function updateCloudBookmarks() {
+      const accountId = await getAccountIdByDidFromDb(_agent.did());
+      const account = await accountsDb.accounts.get(accountId);
+      const bookmarks = account?.cloudBookmarks;
+      cloudBookmarks = bookmarks || [];
+
+      const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getBookmarks?owner=${_agent.did() as string}`, {
+          method: 'GET',
+          headers: {
+              'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
+              Authorization: 'Bearer ' + _agent.getToken(),
+              'Content-Type': 'application/json'
+          }
+      })
+
+      if (res.status !== 200) {
+          throw new Error('failed to get Cloud Bookmark');
+      }
+
+      const json = await res.json();
+      cloudBookmarks = json.bookmarks;
+
+      await accountsDb.accounts.update(accountId, {
+          cloudBookmarks: cloudBookmarks,
+      });
+
+      cloudBookmarkColumnRefreshing = false;
+  }
+
   function applyFeedColumns(feeds) {
       if (!feeds) {
           return false;
@@ -249,8 +282,29 @@
       })
   }
 
+  function applyCloudBookmarkColumns(bookmarks) {
+      cloudBookmarkColumns = bookmarks.map(bookmark => {
+          return  {
+              id: self.crypto.randomUUID(),
+              algorithm: {
+                  type: 'cloudBookmark',
+                  algorithm: bookmark.id,
+                  name: bookmark.name,
+              },
+              style: 'default',
+              settings: defaultDeckSettings,
+              did: _agent.did(),
+              handle: _agent.handle(),
+              data: {
+                  feed: [],
+                  cursor: '',
+              }
+          }
+      })
+  }
+
   onMount(async () => {
-      await Promise.all([updateLists(), updateFeeds()]);
+      await Promise.all([updateLists(), updateFeeds(), updateCloudBookmarks()]);
   })
 </script>
 
@@ -262,10 +316,28 @@
     <ColumnListAdder {_agent} items={basicColumns} on:add></ColumnListAdder>
 </div>
 
+<div class="column-adder-group">
+    <div class="column-adder-group__heading">
+        <p class="column-adder-group__title">{$_('bookmark_cloud')}</p>
+        <a href="https://docs.tokimeki.blue/ja/usage/bookmark-cloud" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
+
+        {#if (cloudBookmarkColumnRefreshing)}
+            <LoadingSpinner padding="0" size="14"></LoadingSpinner>
+        {/if}
+
+        <button class="column-adder-group__add" on:click={() => {cloudBookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
+    </div>
+
+    {#if (cloudBookmarkColumns.length)}
+        <ColumnListAdder {_agent} items={cloudBookmarkColumns} on:add></ColumnListAdder>
+    {:else}
+        <p class="column-adder-text">{$_('there_is_no_bookmark')}</p>
+    {/if}
+</div>
 
 <div class="column-adder-group">
     <div class="column-adder-group__heading">
-        <p class="column-adder-group__title">{$_('bookmark_columns')}</p>
+        <p class="column-adder-group__title">{$_('bookmark_local')}</p>
         <a href="https://docs.tokimeki.blue/ja/usage/bookmark" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
         <button class="column-adder-group__add" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
@@ -277,7 +349,6 @@
         <p class="column-adder-text">{$_('there_is_no_bookmark')}</p>
     {/if}
 </div>
-
 
 <div class="column-adder-group">
     <div class="column-adder-group__heading">
