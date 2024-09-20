@@ -26,7 +26,7 @@
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--timeline-reaction-reply-icon-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-reply"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
   </span>
 
-  {#if showCounts}
+  {#if showCounts && count}
     <span class="timeline-reaction__count">{ count || 0 }</span>
   {/if}
 </button>

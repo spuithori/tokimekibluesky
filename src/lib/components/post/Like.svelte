@@ -116,7 +116,7 @@
     {/if}
   </span>
 
-  {#if showCounts}
+  {#if showCounts && count}
     <span class="timeline-reaction__count">{ count || 0 }</span>
   {/if}
 </button>
