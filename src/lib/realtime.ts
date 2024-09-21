@@ -1,7 +1,7 @@
-import {addExtension, decode, decodeMultiple} from "cbor-x";
-import {CID} from "multiformats";
-import {CarReader} from "@ipld/car";
 import {realtime, realtimeStatuses} from '$lib/stores';
+import { PUBLIC_TOKIMEKI_STREAM_API } from '$env/static/public';
+
+const COLLECTIONS = ['app.bsky.feed.post', 'app.bsky.feed.repost', 'app.bsky.feed.like', 'app.bsky.graph.follow'];
 
 export class RealtimeClient {
     private host: string;
@@ -13,49 +13,33 @@ export class RealtimeClient {
 
     connect() {
         if (!this.socket) {
-            this.socket = new WebSocket('wss://' + this.host + '/xrpc/com.atproto.sync.subscribeRepos');
+            this.socket = new WebSocket(`${PUBLIC_TOKIMEKI_STREAM_API}/subscribe?${COLLECTIONS.map(item => `wantedCollections=${item}`).join('&')}`);
         }
 
-        addExtension({
-            Class: CID,
-            tag: 42,
-            encode: () => {
-                throw new Error('Cannot encode cids');
-            },
-            decode: (bytes) => {
-                if (bytes[0] !== 0) {
-                    throw new Error('Invalid cid');
-                }
-                return CID.decode(bytes.subarray(1)); // ignore leading 0x00
-            },
-        });
-
         this.socket.onmessage = async function (event) {
-            const messageBuf = await event.data.arrayBuffer();
-            const [header, body] = decodeMultiple(new Uint8Array(messageBuf));
-
-            if (header.op !== 1) {
+            if (!event.data) {
                 return;
             }
 
-            try {
-                const car = await CarReader.fromBytes(body.blocks);
+            const dataWrapper = JSON.parse(event.data);
+            const data = dataWrapper.commit;
 
-                for (const op of body.ops) {
-                    if (!op.cid) continue;
-                    const block = await car.get(op.cid);
-                    const record = decode(block.bytes);
-                    realtime.set({
-                        isConnected: true,
-                        data: {
-                            record: record,
-                            op: op,
-                            body: body,
-                        }
-                    })
-                }
-            } catch (e) {
-                // do nothing.
+            if (data?.type === 'c') {
+                const record = data.record;
+
+                realtime.set({
+                    isConnected: true,
+                    data: {
+                        record: record,
+                        op: {
+                            path: data.rkey,
+                            collection: data.collection,
+                        },
+                        body: {
+                            repo: dataWrapper.did,
+                        },
+                    }
+                })
             }
         };
 
@@ -71,6 +55,10 @@ export class RealtimeClient {
             realtimeStatuses.update((r: any[] | undefined) => {
                 return  [...r,  this.host];
             })
+        }
+
+        this.socket.onerror = async (event) => {
+            console.log(event)
         }
     }
 
@@ -129,7 +117,7 @@ async function getRecord(_agent, uri, repost = undefined, retryCount = 0) {
 export async function getPostRealtime(realtime, actors, _agent) {
     const path = realtime.data.op.path;
     const repo = realtime.data.body.repo;
-    const uri = 'at://' + repo + '/' + path;
+    const uri = 'at://' + repo + '/' + realtime.data.op.collection + '/' + path;
     const isStream: boolean = actors.some(actor => actor === repo);
 
     if (realtime.data.record.$type === 'app.bsky.feed.post' && typeof realtime.data.record.text === 'string') {

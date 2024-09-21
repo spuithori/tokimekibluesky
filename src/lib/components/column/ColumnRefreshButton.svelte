@@ -16,7 +16,7 @@
     export let _agent = $agent;
     export let unique = Symbol();
     export let isJunk = false;
-    const host = _agent.agent.service.host === 'bsky.social' ? 'bsky.network' : _agent.agent.service.host;
+    const host = _agent.agent.service.host === 'bsky.social' ? 'TOKIMEKI Stream' : _agent.agent.service.host;
 
     let __columns = isJunk ? junkColumns : columns;
     let isRefreshing = false;
