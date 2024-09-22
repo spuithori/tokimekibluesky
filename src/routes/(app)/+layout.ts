@@ -4,14 +4,7 @@ import type { LayoutLoad } from './$types';
 
 export const load: LayoutLoad = async () => {
     if(!Intl.Segmenter){
-        console.log('Intl.Segmenter polyfill used');
-        
-        const IntlSegmenterPolyfill = await import('intl-segmenter-polyfill');
-        const Segmenter = await IntlSegmenterPolyfill.createIntlSegmenterPolyfill(
-          fetch('/break_iterator.wasm')
-        )
-
-        Intl.Segmenter = Segmenter;
+        console.log('Intl.Segmenter not found. Browser is too old.');
     }
 
     locale.set(window.navigator.language);

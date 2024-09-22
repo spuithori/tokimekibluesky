@@ -64,7 +64,6 @@
     "dexie-export-import": "^4.1.1",
     "emoji-mart": "^5.5.2",
     "hls.js": "^1.5.15",
-    "intl-segmenter-polyfill": "^0.4.4",
     "lucide-svelte": "^0.441.0",
     "multiformats": "^11.0.2",
     "photoswipe": "^5.4.3",
