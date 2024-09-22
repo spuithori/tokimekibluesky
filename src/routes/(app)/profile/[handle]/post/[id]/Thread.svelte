@@ -1,6 +1,5 @@
 <script lang="ts">
   import TimelineItem from "../../../../TimelineItem.svelte";
-  import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import Likes from "$lib/components/thread/Likes.svelte";
   import { agent } from "$lib/stores";
@@ -13,12 +12,19 @@
   let item;
   let scrolled = false;
 
-  onMount(() => {
+  $: handleThreadUpdate(item);
+
+  function handleThreadUpdate(item) {
+      if (!item) {
+          return false;
+      }
+
       if (item && item.dataset.depth === '0') {
-          item.scrollIntoView({block: 'center'})
+          item.scrollIntoView({block: 'start'});
+
           scrolled = true;
       }
-  })
+  }
 </script>
 
 <div class="thread">
@@ -85,6 +91,8 @@
   }
 
   .thread-item {
+      scroll-margin-top: 120px;
+
       &[data-depth='0'] {
           margin-left: -16px;
           margin-right: -16px;

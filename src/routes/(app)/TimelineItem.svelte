@@ -24,7 +24,15 @@
         didHint,
         pulseDelete,
         listAddModal,
-        agents, repostMutes, postMutes, bluefeedAddModal, postPulse, sideState, isPublishInstantFloat, pulseDetach
+        agents,
+        repostMutes,
+        postMutes,
+        bluefeedAddModal,
+        postPulse,
+        sideState,
+        isPublishInstantFloat,
+        pulseDetach,
+        junkColumns
     } from '$lib/stores';
     import {
         AppBskyEmbedExternal,
@@ -51,6 +59,7 @@
     } from "$lib/util.js";
     import ReactionModal from "$lib/components/post/ReactionModal.svelte";
     import {getTextArray} from "$lib/richtext";
+    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 
     export let _agent = $agent;
     export let data: AppBskyFeedDefs.FeedViewPost;
@@ -382,10 +391,30 @@
             return false;
         }
 
-        const uri = '/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0];
+        const rkey = data.post.uri.split('/').slice(-1)[0];
+        const uri = '/profile/' + data.post.author.handle + '/post/' + rkey;
 
         if (uri === location.pathname) {
             return false;
+        }
+
+        if ($junkColumns.findIndex(_column => _column.id === 'thread_' + rkey) === -1) {
+            junkColumns.set([...$junkColumns, {
+                id: 'thread_' + rkey,
+                algorithm: {
+                    algorithm: 'at://' + data.post.author.did + '/app.bsky.feed.post/' + rkey,
+                    type: 'thread',
+                    name: 'Thread',
+                },
+                style: 'default',
+                settings: defaultDeckSettings,
+                did: $agent.did(),
+                handle: $agent.handle(),
+                data: {
+                    feed: [data],
+                    cursor: '',
+                }
+            }]);
         }
 
         didHint.set(data.post.author.did);

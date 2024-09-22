@@ -19,7 +19,7 @@
     const host = _agent.agent.service.host === 'bsky.social' ? 'TOKIMEKI Stream' : _agent.agent.service.host;
 
     let __columns = isJunk ? junkColumns : columns;
-    let isRefreshing = false;
+    export let isRefreshing = false;
 
     $: releasePosts(column.data.feed);
 
@@ -294,12 +294,12 @@
         <path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
       </svg>
     </button>
-  {/if}
-
-  {#if (isRefreshing && column.algorithm?.type !== 'chat')}
-    <div class="refresher" transition:fly={{ duration: 300, y: -100}}>
-      <LoadingSpinner padding={0} size={24}></LoadingSpinner>
-    </div>
+  {:else}
+    {#if (isRefreshing && column.algorithm?.type !== 'chat')}
+      <div class="refresher" transition:fly={{ duration: 300, y: -100}}>
+        <LoadingSpinner padding={0} size={24}></LoadingSpinner>
+      </div>
+    {/if}
   {/if}
 {/if}
 

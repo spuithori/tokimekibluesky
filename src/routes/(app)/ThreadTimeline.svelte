@@ -8,8 +8,8 @@
     export let column;
     export let index;
     export let _agent = $agent;
+    export let isRefreshing;
 
-    let feeds;
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
 
@@ -26,25 +26,27 @@
     }
 
     async function getPostThread() {
+        isRefreshing = true;
         const uri = column.algorithm.algorithm;
 
         try {
             const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-            feeds = [ raw.data.thread ];
+            column.data.feed = [ raw.data.thread ];
 
-            feeds.forEach(feed => {
+            column.data.feed.forEach(feed => {
                 if (!feed.blocked) {
                     isMutedIncludes(feed);
                 }
             });
         } catch (e) {
-            feeds = 'NotFound';
+            column.data.feed = 'NotFound';
         }
+
+        isRefreshing = false;
     }
 
     onMount(async () => {
         await getPostThread();
-        console.log(feeds);
     })
 </script>
 
@@ -57,20 +59,21 @@
     </div>
   {/if}
 
-  {#if !feeds}
+  {#if !column.data.feed.length}
     <div class="thread-loading">
       <img src={spinner} alt="">
     </div>
-  {:else if (feeds === 'NotFound')}
+  {:else if (column.data.feed === 'NotFound')}
     <p class="thread-error">{$_('error_thread_notfound')}</p>
   {:else}
-    <Thread feeds={feeds} depth={0} column={column} {_agent}></Thread>
+    <Thread feeds={column.data.feed} depth={0} column={column} {_agent}></Thread>
   {/if}
 </div>
 
 <style lang="postcss">
     .thread-wrap {
         position: relative;
+        margin-bottom: 100vh;
     }
 
     .thread-loading {

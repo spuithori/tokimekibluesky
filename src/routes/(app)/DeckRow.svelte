@@ -41,6 +41,7 @@
     let refresh;
     let isDragging = false;
     let reorderIndex = index;
+    let isRefreshing = false;
 
     let dragOptions: DragOptions = {
         axis: 'x',
@@ -283,7 +284,7 @@
     on:neodrag:end={handleDragEnd}
     on:neodrag={handleDragging}
 >
-    <div class="deck-heading">
+    <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'}>
         {#if (!isJunk)}
             {#if !column?.settings?.isPopup && $settings.design?.layout === 'decks'}
                 <div class="deck-drag-area">
@@ -343,6 +344,7 @@
                 bind:unique={unique}
                 bind:refresh={refresh}
                 {isJunk}
+                {isRefreshing}
             ></ColumnRefreshButton>
 
             {#if (!isJunk)}
@@ -365,7 +367,7 @@
                         {#if (column.algorithm.type === 'notification')}
                             <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
                         {:else if (column.algorithm.type === 'thread')}
-                            <ThreadTimeline column={column} index={index} {_agent}></ThreadTimeline>
+                            <ThreadTimeline column={column} index={index} {_agent} bind:isRefreshing={isRefreshing}></ThreadTimeline>
                         {:else if (column.algorithm.type === 'chat')}
                             <ChatTimeline
                                     column={column}
@@ -665,6 +667,12 @@
             display: flex;
             align-items: center;
             gap: 4px;
+        }
+
+        &--sticky {
+            position: sticky !important;
+            z-index: 100 !important;
+            top: 52px;
         }
     }
 
