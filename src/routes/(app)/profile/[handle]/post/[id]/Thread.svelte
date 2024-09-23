@@ -9,8 +9,11 @@
   export let feeds = [];
   export let depth = 0;
   export let column = undefined;
+  export let rootClientHeight = 0;
+
   let item;
   let scrolled = false;
+  let clientHeight;
 
   $: handleThreadUpdate(item);
 
@@ -20,6 +23,7 @@
       }
 
       if (item && item.dataset.depth === '0') {
+          rootClientHeight = clientHeight;
           item.scrollIntoView({block: 'start'});
 
           scrolled = true;
@@ -45,6 +49,7 @@
             class:is-final={data.post.replyCount === 0}
             class:has-child={data.post.replyCount > 0}
             class:is-author-child={data.post.record.reply?.root ? data.post.author.did === data.post.record.reply.root.uri.split('/')[2] : false}
+            bind:clientHeight={clientHeight}
         >
           <TimelineItem data={data} isSingle={true} isThread={true} column={column} {_agent}>
             <div class="timeline-analytics-list">

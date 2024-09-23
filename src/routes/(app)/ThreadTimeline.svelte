@@ -9,6 +9,7 @@
     export let index;
     export let _agent = $agent;
     export let isRefreshing;
+    let rootClientHeight = 0;
 
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
@@ -50,9 +51,9 @@
     })
 </script>
 
-<div class="timeline thread-wrap">
+<div class="timeline thread-wrap" style="--root-client-height: {rootClientHeight}px">
   {#if (isMuted && !isMuteDisplay)}
-    <div class="thread-notice" class:thread-notice--shown={isMuteDisplay}>
+    <div class="thread-notice">
       <p class="thread-notice__text">{$_('muted_user_thread')}</p>
 
       <button class="button button--sm" on:click={() => {isMuteDisplay = true}}>{$_('show_button')}</button>
@@ -66,14 +67,18 @@
   {:else if (column.data.feed === 'NotFound')}
     <p class="thread-error">{$_('error_thread_notfound')}</p>
   {:else}
-    <Thread feeds={column.data.feed} depth={0} column={column} {_agent}></Thread>
+    <Thread feeds={column.data.feed} depth={0} column={column} {_agent} bind:rootClientHeight={rootClientHeight}></Thread>
   {/if}
 </div>
 
 <style lang="postcss">
     .thread-wrap {
         position: relative;
-        margin-bottom: 100vh;
+        margin-bottom: calc(94vh - 120px - var(--root-client-height, 0px));
+
+        @media (max-width: 767px) {
+            margin-bottom: calc(100vh - 120px - var(--root-client-height, 0px));
+        }
     }
 
     .thread-loading {
