@@ -8,8 +8,10 @@
     import Images from "../../../routes/(app)/Images.svelte";
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
-    import {settings} from "$lib/stores";
+    import {didHint, junkColumns, settings} from "$lib/stores";
     import FeedEmbed from "$lib/components/feeds/FeedEmbed.svelte";
+    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {goto} from "$app/navigation";
 
     export let item;
     export let _agent;
@@ -24,6 +26,39 @@
         if (item.reason === 'repost') {
             isRepostsOpen = true;
         }
+    }
+
+    function handlePostClick() {
+        const rkey = item.feed.uri.split('/').slice(-1)[0];
+        const uri = '/profile/' + item.feed.author.handle + '/post/' + rkey;
+
+        if (uri === location.pathname) {
+            return false;
+        }
+
+        if ($junkColumns.findIndex(_column => _column.id === 'thread_' + rkey) === -1) {
+            junkColumns.set([...$junkColumns, {
+                id: 'thread_' + rkey,
+                algorithm: {
+                    algorithm: 'at://' + item.feed.author.did + '/app.bsky.feed.post/' + rkey,
+                    type: 'thread',
+                    name: 'Thread',
+                },
+                style: 'default',
+                settings: defaultDeckSettings,
+                did: _agent.did(),
+                handle: _agent.handle(),
+                data: {
+                    feed: [{
+                        post: item.feed,
+                    }],
+                    cursor: '',
+                }
+            }]);
+        }
+
+        didHint.set(item.feed.author.did);
+        goto(uri);
     }
 
     item.notifications = removeNotificationsDuplication(item.notifications);
@@ -70,7 +105,7 @@
 
             {#if (item.feed)}
                 <div class="notifications-item__content">
-                    <p><a href="{'/profile/' + item.feed.author.handle + '/post/' + item.feed.uri.split('/').slice(-1)[0]}">{item.feed.record.text}</a></p>
+                    <p><a href="{'/profile/' + item.feed.author.handle + '/post/' + item.feed.uri.split('/').slice(-1)[0]}" on:click|preventDefault={handlePostClick}>{item.feed.record.text}</a></p>
 
                     {#if (AppBskyEmbedImages.isView(item.feed?.embed) && item.feed?.embed)}
                         <div class="notifications-item-images">

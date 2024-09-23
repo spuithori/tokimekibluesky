@@ -1,5 +1,13 @@
 <script lang="ts">
-  import {agent, formattedKeywordMutes, labelDefs, labelerSettings, settings} from "$lib/stores";
+    import {
+        agent,
+        didHint,
+        formattedKeywordMutes,
+        junkColumns,
+        labelDefs,
+        labelerSettings,
+        settings
+    } from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import {AppBskyEmbedImages, AppBskyEmbedVideo, AppBskyFeedPost} from "@atproto/api";
   import {_} from "svelte-i18n";
@@ -8,6 +16,8 @@
   import {contentLabelling, detectWarn, keywordFilter} from "$lib/timelineFilter";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
+  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import {goto} from "$app/navigation";
 
   export let record;
   export let _agent = $agent;
@@ -20,6 +30,52 @@
 
   if (keywordFilter($formattedKeywordMutes, record.value.text, record.indexedAt)) {
       isMuted = true;
+  }
+
+  function handlePostClick() {
+      if (!record?.uri) {
+          return false;
+      }
+
+      const rkey = record.uri.split('/').slice(-1)[0];
+      const uri = '/profile/' + record.author.handle + '/post/' + rkey;
+
+      if (uri === location.pathname) {
+          return false;
+      }
+
+      if (!AppBskyFeedPost.isRecord(record.value)) {
+          return false;
+      }
+
+      let formattedPost = {
+          ...record,
+          record: record.value,
+      }
+
+      if ($junkColumns.findIndex(_column => _column.id === 'thread_' + rkey) === -1) {
+          junkColumns.set([...$junkColumns, {
+              id: 'thread_' + rkey,
+              algorithm: {
+                  algorithm: 'at://' + record.author.did + '/app.bsky.feed.post/' + rkey,
+                  type: 'thread',
+                  name: 'Thread',
+              },
+              style: 'default',
+              settings: defaultDeckSettings,
+              did: _agent.did(),
+              handle: _agent.handle(),
+              data: {
+                  feed: [{
+                      post: formattedPost,
+                  }],
+                  cursor: '',
+              }
+          }]);
+      }
+
+      didHint.set(record.author.did);
+      goto(uri);
   }
 </script>
 
@@ -85,5 +141,5 @@
             </svg>
             </span>
 
-  <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" aria-label="{$_('show_thread')}"></a>
+  <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" on:click|preventDefault={handlePostClick} aria-label="{$_('show_thread')}"></a>
 </div>
