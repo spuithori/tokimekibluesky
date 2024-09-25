@@ -74,10 +74,10 @@
 <style lang="postcss">
     .thread-wrap {
         position: relative;
-        margin-bottom: calc(94vh - 120px - var(--root-client-height, 0px));
+        padding-bottom: calc(94vh - 120px - var(--root-client-height, 0px));
 
         @media (max-width: 767px) {
-            margin-bottom: calc(100vh - 120px - var(--root-client-height, 0px));
+            padding-bottom: calc(100vh - 120px - var(--root-client-height, 0px));
         }
     }
 
