@@ -53,6 +53,10 @@
           record: record.value,
       }
 
+      if (AppBskyEmbedImages.isView(record.embeds[0])) {
+          formattedPost.embed = record.embeds[0];
+      }
+
       if ($junkColumns.findIndex(_column => _column.id === 'thread_' + rkey) === -1) {
           junkColumns.set([...$junkColumns, {
               id: 'thread_' + rkey,
