@@ -511,7 +511,10 @@
         try {
             await _agent.agent.upsertProfile(_profile => {
                 const profile = _profile || {};
-                profile.pinnedPost = data.post.uri;
+                profile.pinnedPost = {
+                    uri: data.post.uri,
+                    cid: data.post.cid,
+                };
 
                 return profile;
             });

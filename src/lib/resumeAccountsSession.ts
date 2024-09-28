@@ -14,7 +14,18 @@ async function resume(account) {
             try {
                 profile = await getAvatar(ag, account);
             } catch (e) {
-                //
+                if (e.message === 'The server gave an invalid response and may be out of date.') {
+                    console.error(e.message);
+
+                    await ag.upsertProfile(_profile => {
+                        const profile = _profile || {};
+                        profile.pinnedPost = undefined;
+
+                        return profile;
+                    });
+
+                    profile = await getAvatar(ag, account);
+                }
             }
 
             const id = await accountsDb.accounts.put({

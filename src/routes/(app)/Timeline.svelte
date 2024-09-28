@@ -9,7 +9,7 @@
   import {assignCursorFromLatest} from "$lib/components/column/releaseTimeline";
   import {playSound} from "$lib/sounds";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
-  import {isReasonRepost} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
+  import {isReasonRepost, isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import {toast} from "svelte-sonner";
 
   export let column;
@@ -155,6 +155,7 @@
                 {_agent}
                 isProfile={column.algorithm.type === 'author'}
                 isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
+                isPinned={isReasonPin(data?.reason)}
                 {hideReply}
                 {hideRepost}
         ></TimelineItem>

@@ -139,7 +139,7 @@ export class Agent {
                     }
                 }
             case 'author':
-                return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: timelineOpt.algorithm.algorithm as string});
+                return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: timelineOpt.algorithm.algorithm as string, includePins: true});
             case 'myPost':
                 return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string});
             case 'myMedia':
