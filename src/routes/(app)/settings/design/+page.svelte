@@ -8,6 +8,7 @@
     import {isSafariOrFirefox} from "$lib/util";
     let skin: string = $settings?.design.skin || 'default';
     let themePick: string = $settings?.design.theme || 'royalblue';
+    let fontTheme = $settings?.design.fontTheme || 'default';
     let darkmode = $settings?.design.darkmode || false;
     let nonoto = $settings?.design.nonoto || false;
     let layout = $settings?.design.layout || 'default';
@@ -31,6 +32,7 @@
     $: {
         $settings.design.skin = skin;
         $settings.design.theme = themePick;
+        $settings.design.fontTheme = fontTheme;
         $settings.design.darkmode = darkmode;
         $settings.design.nonoto = nonoto;
         $settings.design.layout = layout;
@@ -199,6 +201,35 @@
             {/each}
           {/if}
         </ul>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('font_theme')}
+      </dt>
+
+      <dd class="settings-group__content">
+        {#if (isSafariOrFirefox())}
+          <p class="notice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>{$_('font_theme_notice')}</p>
+        {/if}
+
+        <div class="radio-group">
+          <div class="radio">
+            <input type="radio" bind:group={fontTheme} id="fontThemeNoto" name="fontTheme" value={'default'}>
+            <label for="fontThemeNoto"><span class="radio__ui"></span>Noto Sans</label>
+          </div>
+
+          <div class="radio">
+            <input type="radio" bind:group={fontTheme} id="fontThemeZenMaru" name="fontTheme" value={'zenmaru'}>
+            <label for="fontThemeZenMaru"><span class="radio__ui"></span>Zen Maru Gothic</label>
+          </div>
+
+          <div class="radio">
+            <input type="radio" bind:group={fontTheme} id="fontThemeMurecho" name="fontTheme" value={'murecho'}>
+            <label for="fontThemeMurecho"><span class="radio__ui"></span>Murecho</label>
+          </div>
+        </div>
       </dd>
     </dl>
 

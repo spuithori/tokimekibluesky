@@ -353,7 +353,7 @@
     class:scrolled={scrolly > 52}
     class:sidebar={$settings.design?.publishPosition === 'left'}
     class:bottom={$settings.design?.publishPosition === 'bottom'}
-    class="app scroll-{$direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2}"
+    class="app scroll-{$direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
     dir="{$_('dir', {default: 'ltr'})}"
     class:compact={$settings.design?.postsLayout === 'compact'}
     class:minimum={$settings.design?.postsLayout === 'minimum'}

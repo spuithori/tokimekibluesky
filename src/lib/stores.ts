@@ -135,6 +135,7 @@ const defaultSettings = {
         skin: 'default',
         theme: 'jade',
         nonoto: false,
+        fontTheme: 'default',
         darkmode: false,
         absoluteTime: false,
         layout: 'default',

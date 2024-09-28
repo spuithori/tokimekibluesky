@@ -23,7 +23,7 @@
   "follow_button": "フォロー",
   "now_following_button": "フォロー中",
   "darkmode": "ダークモード",
-  "do_not_use_noto_sans": "Noto Sansを使用しない",
+  "do_not_use_noto_sans": "Webフォントを使用しない",
   "theme": "テーマ",
   "logout_button": "ログアウト",
   "title_thread": "スレッド",
@@ -634,5 +634,7 @@
   "delete_bookmark": "ブックマークを削除",
   "privacy_policy": "プライバシーポリシー",
   "tenor_picker_placeholder": "TenorでGIFを検索",
-  "disable_tenor_autoplay": "Tenor GIFを自動再生しない"
+  "disable_tenor_autoplay": "Tenor GIFを自動再生しない",
+  "font_theme": "フォントテーマ",
+  "font_theme_notice": "パフォーマンスの問題のため、ご利用のブラウザではWebフォントを利用できません。"
 }
