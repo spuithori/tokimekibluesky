@@ -11,6 +11,7 @@
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
   import {isReasonRepost, isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import {toast} from "svelte-sonner";
+  import {AppBskyEmbedImages} from "@atproto/api";
 
   export let column;
   export let index;
@@ -168,7 +169,7 @@
   {:else}
     <div class="media-list">
       {#each column.data.feed as data, index (data)}
-        {#if (data.post.embed?.images)}
+        {#if (AppBskyEmbedImages.isView(data.post?.embed) || AppBskyEmbedImages.isView(data.post?.embed?.media))}
           <MediaTimelineItem data={data} {_agent}></MediaTimelineItem>
         {/if}
       {/each}
