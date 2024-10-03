@@ -83,6 +83,10 @@
       @media (max-width: 767px) {
           display: none;
       }
+
+      @media (pointer: coarse) {
+          display: none;
+      }
   }
 
   .profile-card-heading {
