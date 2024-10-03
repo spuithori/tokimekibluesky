@@ -282,11 +282,6 @@
         links = [];
         editor.setContent(post.json || post.text);
 
-        const limit = await getUploadLimit(_agent);
-        if (limit?.canUpload) {
-            isVideoUploadEnabled = true;
-        }
-
         if (!post.images) {
             post.images = [];
         }
@@ -332,6 +327,11 @@
         }
 
         externalImageBlob = post.externalImageBlob;
+
+        const limit = await getUploadLimit(_agent);
+        if (limit?.canUpload) {
+            isVideoUploadEnabled = true;
+        }
     })
 
     function addThread() {
