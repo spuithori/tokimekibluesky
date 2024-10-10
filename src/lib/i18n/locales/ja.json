@@ -636,5 +636,7 @@
   "tenor_picker_placeholder": "TenorでGIFを検索",
   "disable_tenor_autoplay": "Tenor GIFを自動再生しない",
   "font_theme": "フォントテーマ",
-  "font_theme_notice": "パフォーマンスの問題のため、ご利用のブラウザではWebフォントを利用できません。"
+  "font_theme_notice": "パフォーマンスの問題のため、ご利用のブラウザではWebフォントを利用できません。",
+  "atmosphere_short_desc_linkat": "リンク集",
+  "atmosphere_short_desc_whitewind": "ブログ"
 }

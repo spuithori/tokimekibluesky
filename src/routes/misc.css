@@ -472,3 +472,19 @@ html {
         }
     }
 }
+
+.single {
+    .profile-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.profile-grid {
+    @container (min-width: 680px) {
+        .splide__list {
+            display: grid !important;
+            grid-template-columns: .65fr .35fr;
+            gap: 8px;
+        }
+    }
+}

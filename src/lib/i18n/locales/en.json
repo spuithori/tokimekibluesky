@@ -636,5 +636,7 @@
   "tenor_picker_placeholder": "Search GIFs in Tenor",
   "disable_tenor_autoplay": "Disable GIFs Autoplay (Tenor)",
   "font_theme": "Font theme",
-  "font_theme_notice": "Due to performance issues, Web fonts are not available in your browser."
+  "font_theme_notice": "Due to performance issues, Web fonts are not available in your browser.",
+  "atmosphere_short_desc_linkat": "Links",
+  "atmosphere_short_desc_whitewind": "Blog"
 }
