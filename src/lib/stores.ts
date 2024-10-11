@@ -130,6 +130,7 @@ const defaultSettings = {
         enableAppBrowser: false,
         disableChat: false,
         disableTenorAutoplay: false,
+        disableAtmosphere: false,
     },
     design: {
         skin: 'default',

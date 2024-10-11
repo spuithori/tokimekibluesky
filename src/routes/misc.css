@@ -487,4 +487,11 @@ html {
             gap: 8px;
         }
     }
+
+    &--disable-atmos {
+        .splide__list {
+            display: grid !important;
+            grid-template-columns: 1fr;
+        }
+    }
 }

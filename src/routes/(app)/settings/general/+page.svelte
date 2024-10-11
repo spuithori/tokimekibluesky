@@ -12,6 +12,7 @@
     let disableHaptics = $settings?.general.disableHaptics || false;
     let enableAppBrowser = $settings?.general.enableAppBrowser || false;
     let disableChat = $settings?.general?.disableChat || false;
+    let disableAtmosphere = $settings?.general?.disableAtmosphere || false;
 
 const languages = [
     {
@@ -47,6 +48,7 @@ $: {
     $settings.general.disableHaptics = disableHaptics;
     $settings.general.enableAppBrowser = enableAppBrowser;
     $settings.general.disableChat = disableChat;
+    $settings.general.disableAtmosphere = disableAtmosphere;
 }
 </script>
 
@@ -215,6 +217,18 @@ $: {
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="disableChat" bind:checked={$settings.general.disableChat}><label class="input-toggle__label" for="disableChat"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('disable_atmosphere')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="disableAtmosphere" bind:checked={$settings.general.disableAtmosphere}><label class="input-toggle__label" for="disableAtmosphere"></label>
         </div>
       </dd>
     </dl>

@@ -2,6 +2,7 @@
   import {SquareArrowOutUpRight} from "lucide-svelte";
   import {onMount} from "svelte";
   import {_} from "svelte-i18n";
+  import AtmosphereAboutModal from "$lib/components/profile/AtmosphereAboutModal.svelte";
 
   export let did;
   export let handle;
@@ -9,6 +10,11 @@
 
   let hasLinkat = false;
   let hasWhiteWind = false;
+  let isOpen = false;
+
+  function handleClose() {
+      isOpen = false;
+  }
 
   async function getLinkat() {
       try {
@@ -69,7 +75,15 @@
       </div>
     {/if}
   </div>
+
+  <button class="atmos-modal-toggle" aria-label="About" on:click={() => {isOpen = !isOpen}}>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+  </button>
 </div>
+
+{#if isOpen}
+  <AtmosphereAboutModal on:close={handleClose}></AtmosphereAboutModal>
+{/if}
 
 <style lang="postcss">
   .atmos-heading {
@@ -135,6 +149,20 @@
               inset: 0;
               z-index: 1;
           }
+      }
+  }
+
+  .atmos-modal-toggle {
+      display: grid;
+      place-content: center;
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      bottom: 4px;
+      right: 4px;
+
+      &:hover {
+          opacity: .7;
       }
   }
 </style>

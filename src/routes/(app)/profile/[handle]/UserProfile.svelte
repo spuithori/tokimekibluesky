@@ -144,7 +144,7 @@ function toggleHideCounts() {
       </div>
     {/if}
 
-    <div class="profile-grid" bind:clientWidth={gridWidth}>
+    <div class="profile-grid" class:profile-grid--disable-atmos={$settings?.general?.disableAtmosphere} bind:clientWidth={gridWidth}>
       <Splide options={ {
         gap: '8px',
         arrows: false,
@@ -152,7 +152,7 @@ function toggleHideCounts() {
         height: 'auto',
         fixedHeight: 'auto',
         padding: { left: '0', right: '40px' },
-        destroy: gridSliderDisable,
+        destroy: gridSliderDisable || $settings?.general?.disableAtmosphere,
       } }>
         <SplideSlide>
           <div class="profile-grid__left">
@@ -236,11 +236,13 @@ function toggleHideCounts() {
           </div>
         </SplideSlide>
 
-        <SplideSlide>
-          <div class="profile-grid__right">
-            <ProfileAtmosphere did={profile.did} handle={profile.handle} {_agent}></ProfileAtmosphere>
-          </div>
-        </SplideSlide>
+        {#if (!$settings?.general?.disableAtmosphere)}
+          <SplideSlide>
+            <div class="profile-grid__right">
+              <ProfileAtmosphere did={profile.did} handle={profile.handle} {_agent}></ProfileAtmosphere>
+            </div>
+          </SplideSlide>
+        {/if}
       </Splide>
     </div>
   </div>
