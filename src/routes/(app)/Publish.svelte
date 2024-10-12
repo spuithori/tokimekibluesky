@@ -386,7 +386,7 @@ async function publish(post, treeReplyRef = undefined) {
 
     const images = post.images;
 
-    if (!post.text && !images.length) {
+    if (!post.text && !images.length && !embedExternal) {
         isEnabled = false;
         return false;
     }

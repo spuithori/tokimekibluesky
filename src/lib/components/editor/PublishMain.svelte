@@ -79,7 +79,7 @@
     $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
     $: onPublishContentChange(publishContent);
     $: isPublishEnabled = publishContentLength > 300;
-    $: isEmpty = !publishContent && !images.length;
+    $: isEmpty = !publishContent && !images.length && !embedExternal;
     $: isThreaded(length, $replyRef);
     $: observeEnabled(isEmpty, isPublishEnabled, isProcessed, isLinkCardAdding);
 
@@ -335,7 +335,7 @@
     })
 
     function addThread() {
-        if (!publishContent && !images.length) {
+        if (!publishContent && !images.length && !embedExternal) {
             return false;
         }
 
