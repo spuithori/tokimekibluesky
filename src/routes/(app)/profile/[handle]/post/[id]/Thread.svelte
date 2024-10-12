@@ -2,7 +2,7 @@
   import TimelineItem from "../../../../TimelineItem.svelte";
   import {_} from "svelte-i18n";
   import Likes from "$lib/components/thread/Likes.svelte";
-  import { agent } from "$lib/stores";
+  import { agent, settings } from "$lib/stores";
   import Quotes from "$lib/components/thread/Quotes.svelte";
 
   export let _agent = $agent;
@@ -10,10 +10,12 @@
   export let depth = 0;
   export let column = undefined;
   export let rootClientHeight = 0;
+  export let scrollTop = undefined;
 
   let item;
   let scrolled = false;
   let clientHeight;
+  let firstOffset = 0;
 
   $: handleThreadUpdate(item);
 
@@ -24,7 +26,17 @@
 
       if (item && item.dataset.depth === '0') {
           rootClientHeight = clientHeight;
+
+          if (scrollTop !== undefined && firstOffset !== scrollTop) {
+              $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTo(0, scrollTop) : document.querySelector(':root').scrollTo(0, scrollTop)
+              return false;
+          }
+
           item.scrollIntoView({block: 'start'});
+
+          if (!scrolled) {
+              firstOffset = item.offsetTop;
+          }
 
           scrolled = true;
       }

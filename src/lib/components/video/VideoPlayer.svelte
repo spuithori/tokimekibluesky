@@ -4,7 +4,6 @@
     let player;
     export let src;
     export let poster;
-    export let options;
 
     import { LocalMediaStorage } from 'vidstack';
 

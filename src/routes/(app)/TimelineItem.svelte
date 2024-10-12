@@ -668,7 +668,6 @@
       <div class="menu-sub-list" slot="sub">
         <ReactionButtonsInMenu
             {_agent}
-            {isMedia}
             {data}
             on:repost={handleRepost}
             on:like={handleLike}

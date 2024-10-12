@@ -3,6 +3,27 @@
     import {page} from "$app/stores";
     import BookmarkView from "./BookmarkView.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
+    import type { Snapshot } from './$types';
+    import {isAfterReload, settings} from "$lib/stores";
+
+    export const snapshot: Snapshot = {
+        capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
+        restore: (value) => {
+            if(!$isAfterReload) {
+                [scrollY] = value;
+
+                setTimeout(() => {
+                    if ($settings.design.layout === 'decks') {
+                        document.querySelector('.modal-page-content').scroll(0, scrollY);
+                    } else {
+                        document.querySelector(':root').scroll(0, scrollY);
+                    }
+                }, 0)
+            }
+
+            isAfterReload.set(false);
+        }
+    };
 </script>
 
 <PageModal>

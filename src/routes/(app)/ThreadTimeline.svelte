@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent} from '$lib/stores';
+    import {agent, settings} from '$lib/stores';
     import spinner from '$lib/images/loading.svg';
     import Thread from './profile/[handle]/post/[id]/Thread.svelte';
     import {onMount} from "svelte";
@@ -9,6 +9,8 @@
     export let index;
     export let _agent = $agent;
     export let isRefreshing;
+    export let isJunk = false;
+    let scrollTop: undefined | Number = undefined;
     let rootClientHeight = 0;
 
     let isMuted: boolean = false;
@@ -39,6 +41,10 @@
                     isMutedIncludes(feed);
                 }
             });
+
+            if (isJunk) {
+                scrollTop = $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop;
+            }
         } catch (e) {
             column.data.feed = 'NotFound';
         }
@@ -67,7 +73,7 @@
   {:else if (column.data.feed === 'NotFound')}
     <p class="thread-error">{$_('error_thread_notfound')}</p>
   {:else}
-    <Thread feeds={column.data.feed} depth={0} column={column} {_agent} bind:rootClientHeight={rootClientHeight}></Thread>
+    <Thread feeds={column.data.feed} depth={0} column={column} {_agent} bind:rootClientHeight={rootClientHeight} scrollTop={scrollTop}></Thread>
   {/if}
 </div>
 
