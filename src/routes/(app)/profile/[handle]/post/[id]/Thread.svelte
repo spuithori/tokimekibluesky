@@ -27,7 +27,7 @@
       if (item && item.dataset.depth === '0') {
           rootClientHeight = clientHeight;
 
-          if (scrollTop !== undefined && firstOffset !== scrollTop) {
+          if (scrolled && scrollTop !== undefined && firstOffset !== scrollTop) {
               $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTo(0, scrollTop) : document.querySelector(':root').scrollTo(0, scrollTop)
               return false;
           }
