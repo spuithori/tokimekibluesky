@@ -450,4 +450,10 @@
         height: 100%;
         object-fit: cover;
     }
+
+    &--bottom {
+        width: 25%;
+        margin: auto;
+        aspect-ratio: auto;
+    }
 }

@@ -508,7 +508,7 @@
           </button>
 
           {#if getTenorUrl(embedExternal.external.uri) && $settings?.embed?.tenor}
-            <div class="publish-tenor-external">
+            <div class="publish-tenor-external" class:publish-tenor-external--bottom={$settings.design?.publishPosition === 'bottom'}>
               <EmbedTenor tenor={getTenorUrl(embedExternal.external.uri)}></EmbedTenor>
             </div>
           {:else}
