@@ -19,6 +19,7 @@
     import {Hashtag} from "$lib/components/editor/hashtag";
     import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
     import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
+    import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
     const dispatch = createEventDispatcher();
 
     export let json;
@@ -47,6 +48,9 @@
     onMount(() => {
         editor = new Editor({
             element: element,
+            editorProps: {
+                clipboardTextParser: clipboardTextParser,
+            },
             extensions: [
                 Document.extend({
                     addKeyboardShortcuts() {
