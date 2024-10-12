@@ -127,7 +127,9 @@
                 unique = Symbol();
             }
 
-            el.scrollTo(0, 0);
+            if (elInitialPosition === 0) {
+                el.scrollTo(0, 0);
+            }
 
             if (!isAutoRefresh) {
                 $columns[index].unreadCount !== 0
