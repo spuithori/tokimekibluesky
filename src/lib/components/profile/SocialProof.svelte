@@ -68,6 +68,7 @@
   .social-proof-button {
       color: inherit;
       text-align: left;
+      line-height: 1.3;
 
       &::before {
           content: '';

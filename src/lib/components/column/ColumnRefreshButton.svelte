@@ -3,12 +3,10 @@
     import {createEventDispatcher, onDestroy} from "svelte";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import {playSound} from "$lib/sounds";
-    import { createLongPress } from 'svelte-interactions';
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { fly } from 'svelte/transition';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
 
-    const { longPressAction } = createLongPress();
     const dispatch = createEventDispatcher();
 
     export let column;
@@ -16,10 +14,10 @@
     export let _agent = $agent;
     export let unique = Symbol();
     export let isJunk = false;
-    const host = _agent.agent.service.host === 'bsky.social' ? 'bsky.network' : _agent.agent.service.host;
+    const host = _agent.agent.service.host === 'bsky.social' ? 'TOKIMEKI Stream' : _agent.agent.service.host;
 
     let __columns = isJunk ? junkColumns : columns;
-    let isRefreshing = false;
+    export let isRefreshing = false;
 
     $: releasePosts(column.data.feed);
 
@@ -129,7 +127,9 @@
                 unique = Symbol();
             }
 
-            el.scrollTo(0, 0);
+            if (elInitialPosition === 0) {
+                el.scrollTo(0, 0);
+            }
 
             if (!isAutoRefresh) {
                 $columns[index].unreadCount !== 0
@@ -174,6 +174,20 @@
                     'atproto-proxy': CHAT_PROXY,
                 }
             });
+        } else if (column.algorithm.type === 'thread') {
+            const uri = column.algorithm.algorithm;
+
+            try {
+                const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
+
+                await __columns.update(_columns => {
+                    _columns[index].data.feed = [ raw.data.thread ];
+                    return _columns;
+                });
+
+            } catch (e) {
+                column.data.feed = 'NotFound';
+            }
         } else {
             column.data.feed = [];
             column.data.cursor = undefined;
@@ -224,23 +238,6 @@
         }
     }
 
-    function forceRefresh() {
-        isRefreshing = true;
-        column.data.feed = [];
-        column.data.cursor = undefined;
-
-        if (column.algorithm.type === 'notification') {
-            column.data.feedPool = [];
-            column.data.notificationGroup = [];
-        }
-
-        unique = Symbol();
-
-        setTimeout(() => {
-            isRefreshing = false;
-        }, 3000);
-    }
-
     function getScrollTop() {
         const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
         return el.scrollTop;
@@ -279,25 +276,25 @@
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={$realtimeStatuses.includes(host) ? 'var(--primary-color)' : 'var(--border-color-1)'} stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-radio"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>
   </button>
 {:else}
-  <!-- <button
-       class="refresh-button"
-       class:refresh-button--decks={$settings.design.layout === 'decks' || isJunk}
-       class:is-refreshing={isRefreshing}
-       aria-label="Refresh"
-       on:click={() => {refresh(false)}}
-       disabled={isRefreshing}
-       use:longPressAction
-       on:longpress={forceRefresh}
-   >
-       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
-         <path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
-       </svg>
-   </button> -->
-
-  {#if (isRefreshing && column.algorithm?.type !== 'chat')}
-    <div class="refresher" transition:fly={{ duration: 300, y: -100}}>
-      <LoadingSpinner padding={0} size={24}></LoadingSpinner>
-    </div>
+  {#if isJunk}
+    <button
+            class="refresh-button"
+            class:refresh-button--decks={$settings.design.layout === 'decks' || isJunk}
+            class:is-refreshing={isRefreshing}
+            aria-label="Refresh"
+            on:click={() => {refresh(false)}}
+            disabled={isRefreshing}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
+        <path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
+      </svg>
+    </button>
+  {:else}
+    {#if (isRefreshing && column.algorithm?.type !== 'chat')}
+      <div class="refresher" transition:fly={{ duration: 300, y: -100}}>
+        <LoadingSpinner padding={0} size={24}></LoadingSpinner>
+      </div>
+    {/if}
   {/if}
 {/if}
 
@@ -318,5 +315,9 @@
       z-index: 30;
       cursor: default;
       pointer-events: none;
+  }
+
+  .refresh-button {
+      order: -1;
   }
 </style>

@@ -58,6 +58,11 @@
       flex: var(--decks-flex, initial);
       background-color: var(--decks-bg-color, transparent);
       border-radius: var(--decks-border-radius, 0);
+      border-left: var(--decks-border-left, 0);
+
+      @media (max-width: 767px) {
+          border-left: none;
+      }
 
       &::-webkit-scrollbar {
           /* display: none; */

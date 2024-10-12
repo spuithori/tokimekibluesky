@@ -10,6 +10,7 @@
   } from "$lib/components/post/embedUtil";
   import {Spotify, Tweet, YouTube} from "sveltekit-embed";
   import { Gif } from '@giphy/svelte-components';
+  import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
   export let external;
 
   if (!$settings?.embed) {
@@ -69,9 +70,7 @@
             </div>
           {:else if (getTenorUrl(external.uri) && $settings?.embed?.tenor)}
             <div class="timeline-tenor-external">
-              <a href="{external.uri}" target="_blank" rel="noopener nofollow noreferrer">
-                <img src={getTenorUrl(external.uri).url} width={getTenorUrl(external.uri).width} height={getTenorUrl(external.uri).height} alt="">
-              </a>
+              <EmbedTenor tenor={getTenorUrl(external.uri)}></EmbedTenor>
             </div>
           {:else if (getGiphyId(external.uri) && $settings?.embed?.giphy)}
             {#await getGiphyId(external.uri)}

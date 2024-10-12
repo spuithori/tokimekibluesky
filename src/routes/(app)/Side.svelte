@@ -156,6 +156,7 @@
   .side-content {
       border-radius: var(--nav-content-border-radius);
       background-color: var(--nav-content-bg-color);
+      background-image: var(--nav-content-bg-image, none);
       border: var(--nav-content-border-width) solid var(--nav-content-border-color);
       flex: 1;
       overflow-y: auto;

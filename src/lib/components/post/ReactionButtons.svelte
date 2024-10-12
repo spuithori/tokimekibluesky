@@ -59,10 +59,10 @@
   {/if}
 
   {#if $settings.design.reactionButtons.shown.includes('quote')}
-    <Quote {data}></Quote>
+    <Quote {data} embeddingDisabled={data.post.viewer?.embeddingDisabled}></Quote>
   {/if}
 
   {#if $settings.design.reactionButtons.shown.includes('bookmark')}
-    <Bookmark post={data.post} bookmarkId={data?.bookmarkId} {_agent}></Bookmark>
+    <Bookmark post={data.post} {_agent}></Bookmark>
   {/if}
 </div>

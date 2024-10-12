@@ -9,8 +9,9 @@
   import {assignCursorFromLatest} from "$lib/components/column/releaseTimeline";
   import {playSound} from "$lib/sounds";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
-  import {isReasonRepost} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
+  import {isReasonRepost, isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import {toast} from "svelte-sonner";
+  import {AppBskyEmbedImages} from "@atproto/api";
 
   export let column;
   export let index;
@@ -155,6 +156,7 @@
                 {_agent}
                 isProfile={column.algorithm.type === 'author'}
                 isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
+                isPinned={isReasonPin(data?.reason)}
                 {hideReply}
                 {hideRepost}
         ></TimelineItem>
@@ -167,7 +169,7 @@
   {:else}
     <div class="media-list">
       {#each column.data.feed as data, index (data)}
-        {#if (data.post.embed?.images)}
+        {#if (AppBskyEmbedImages.isView(data.post?.embed) || AppBskyEmbedImages.isView(data.post?.embed?.media))}
           <MediaTimelineItem data={data} {_agent}></MediaTimelineItem>
         {/if}
       {/each}

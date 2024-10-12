@@ -9,6 +9,8 @@ import ProfileCardWrapper from '../../ProfileCardWrapper.svelte';
 import {BskyAgent, RichText} from '@atproto/api';
 import { Eye, EyeOff } from 'lucide-svelte';
 import SocialProof from "$lib/components/profile/SocialProof.svelte";
+import ProfileAtmosphere from "$lib/components/profile/ProfileAtmosphere.svelte";
+import {Splide, SplideSlide} from "@splidejs/svelte-splide";
 
 const dispatch = createEventDispatcher();
 
@@ -23,6 +25,8 @@ let isMenuOpen = false;
 let textArray;
 let unique = Symbol();
 let serviceHost = '';
+let gridWidth;
+let gridSliderDisable = false;
 const _agent = new BskyAgent({service: $agent.service()});
 getServiceHost()
     .then(value => {
@@ -34,6 +38,12 @@ getServiceHost()
 
 $: detectTextArray(profile.description);
 getFirstPostData(handle);
+
+$: if (gridWidth > 680) {
+    gridSliderDisable = true;
+} else {
+    gridSliderDisable = false;
+}
 
 function detectTextArray(text) {
     textArray = new RichText({text: text});
@@ -102,12 +112,6 @@ function toggleHideCounts() {
 
 {#if (profile.did)}
   <div class="user-profile">
-    {#if (profile.banner)}
-      <div class="profile-banner">
-        <img src="{profile.banner}" alt="" width="740" height="247">
-      </div>
-    {/if}
-
     {#if (profile.labels?.length)}
       <dl class="profile-reported">
         <dt class="profile-reported__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="19.999" viewBox="0 0 20 19.999">
@@ -134,86 +138,119 @@ function toggleHideCounts() {
       <p class="profile-muted">{$_('muting_this_user')}</p>
     {/if}
 
-    <div class="profile-column">
-      <div class="profile-avatar">
-        {#if (profile.avatar)}
-          <img src="{profile.avatar}" alt="">
-        {/if}
+    {#if (profile.banner)}
+      <div class="profile-banner">
+        <img src="{profile.banner}" alt="" width="740" height="247">
       </div>
+    {/if}
 
-      <div class="profile-content">
-        <h1 class="profile-display-name">{profile.displayName || profile.handle}</h1>
-        {#if (profile.displayName)}
-          <p class="profile-handle">@{profile.handle}</p>
-        {/if}
-
-        {#if ($settings?.general.devMode)}
-            {#if (serviceHost)}
-                <p class="profile-handle profile-handle--service"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>{serviceHost}</p>
-            {/if}
-        {/if}
-      </div>
-    </div>
-
-    <div class="profile-detail">
-      {#if (profile.description)}
-        <div class="profile-description">
-          <p class="profile-description__text">
-            {#each getTextArray(textArray) as item}
-              {#if (item.isLink() && item.link)}
-                {#if (isUriLocal(item.link.uri))}
-                  <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
-                {:else}
-                  <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+    <div class="profile-grid" class:profile-grid--disable-atmos={$settings?.general?.disableAtmosphere} bind:clientWidth={gridWidth}>
+      <Splide options={ {
+        gap: '8px',
+        arrows: false,
+        pagination: false,
+        height: 'auto',
+        fixedHeight: 'auto',
+        padding: { left: '0', right: '40px' },
+        destroy: gridSliderDisable || $settings?.general?.disableAtmosphere,
+      } }>
+        <SplideSlide>
+          <div class="profile-grid__left">
+            <div class="profile-column">
+              <div class="profile-avatar">
+                {#if (profile.avatar)}
+                  <img src="{profile.avatar}" alt="">
                 {/if}
-              {:else if (item.isMention() && item.mention)}
-                <ProfileCardWrapper handle="{item.text.slice(1)}">
-                  <a href="/profile/{item.text.slice(1)}">{item.text}</a>
-                </ProfileCardWrapper>
-              {:else if (item.isTag() && item.tag)}
-                <a href="/search?q={encodeURIComponent('#' + item.tag?.tag)}">{item.text}</a>
-              {:else}
-                <span>{item.text}</span>
+              </div>
+
+              <div class="profile-content">
+                <h1 class="profile-display-name">{profile.displayName || profile.handle}</h1>
+                {#if (profile.displayName)}
+                  <p class="profile-handle">@{profile.handle}</p>
+                {/if}
+
+                {#if ($settings?.general.devMode)}
+                  {#if (serviceHost)}
+                    <p class="profile-handle profile-handle--service"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>{serviceHost}</p>
+                  {/if}
+                {/if}
+              </div>
+            </div>
+
+            <div class="profile-detail">
+              {#if (profile.description)}
+                <div class="profile-description">
+                  <p class="profile-description__text">
+                    {#each getTextArray(textArray) as item}
+                      {#if (item.isLink() && item.link)}
+                        {#if (isUriLocal(item.link.uri))}
+                          <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
+                        {:else}
+                          <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
+                        {/if}
+                      {:else if (item.isMention() && item.mention)}
+                        <ProfileCardWrapper handle="{item.text.slice(1)}">
+                          <a href="/profile/{item.text.slice(1)}">{item.text}</a>
+                        </ProfileCardWrapper>
+                      {:else if (item.isTag() && item.tag)}
+                        <a href="/search?q={encodeURIComponent('#' + item.tag?.tag)}">{item.text}</a>
+                      {:else}
+                        <span>{item.text}</span>
+                      {/if}
+                    {/each}
+                  </p>
+                </div>
               {/if}
-            {/each}
-          </p>
-        </div>
-      {/if}
 
-      {#if (!isLabeler)}
-        <div class="profile-relationship">
-          <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
-          <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
-          <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.postsCount}</span> {$_('posts')}</p>
+              {#if (!isLabeler)}
+                <div class="profile-relationship">
+                  <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
+                  <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
+                  <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.postsCount}</span> {$_('posts')}</p>
 
-          <button class="profile-counts-toggle" on:click={toggleHideCounts} aria-label="Hide profile counts." title="Hide profile counts.">
-            {#if ($settings.general?.hideProfileCounts)}
-              <EyeOff color="var(--text-color-1)" size="22"></EyeOff>
-            {:else}
-              <Eye color="var(--text-color-1)" size="22"></Eye>
-            {/if}
-          </button>
+                  <button class="profile-counts-toggle" on:click={toggleHideCounts} aria-label="Hide profile counts." title="Hide profile counts.">
+                    {#if ($settings.general?.hideProfileCounts)}
+                      <EyeOff color="var(--text-color-1)" size="22"></EyeOff>
+                    {:else}
+                      <Eye color="var(--text-color-1)" size="22"></Eye>
+                    {/if}
+                  </button>
 
-          {#if (profile.viewer?.followedBy)}
-            <p class="profile-relationship__by">{$_('follows_you')}</p>
-          {/if}
-        </div>
+                  {#if (profile.viewer?.followedBy)}
+                    <p class="profile-relationship__by"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>{$_('follows_you')}
+                    </p>
+                  {/if}
+                </div>
 
-        {#if (firstPostDate)}
-          <p class="profile-first"><a href="{firstPostUri}">{$_('first_post_date', {values: {date: firstPostDate }})}</a></p>
+                {#if (firstPostDate)}
+                  <p class="profile-first"><a href="{firstPostUri}">{$_('first_post_date', {values: {date: firstPostDate }})}</a></p>
+                {:else}
+                  <p class="profile-first">{$_('first_post_date', {values: {date: '----/--/--' }})}</p>
+                {/if}
+
+                {#if profile?.viewer?.knownFollowers && !$settings.general?.hideProfileCounts && profile.did !== $agent.did()}
+                  <SocialProof knownFollowers={profile?.viewer?.knownFollowers} actor={profile.did}></SocialProof>
+                {/if}
+              {/if}
+            </div>
+          </div>
+        </SplideSlide>
+
+        {#if (!$settings?.general?.disableAtmosphere)}
+          <SplideSlide>
+            <div class="profile-grid__right">
+              <ProfileAtmosphere did={profile.did} handle={profile.handle} {_agent}></ProfileAtmosphere>
+            </div>
+          </SplideSlide>
         {/if}
-
-        {#if profile?.viewer?.knownFollowers && !$settings.general?.hideProfileCounts && profile.did !== $agent.did()}
-          <SocialProof knownFollowers={profile?.viewer?.knownFollowers} actor={profile.did}></SocialProof>
-        {/if}
-      {/if}
+      </Splide>
     </div>
   </div>
 {/if}
 
 <style lang="postcss">
     .user-profile {
-
+        container-type: inline-size;
     }
 
     .profile-banner {
@@ -264,8 +301,7 @@ function toggleHideCounts() {
     }
 
     .profile-display-name {
-        font-size: 24px;
-        margin-bottom: 2px;
+        font-size: 20px;
         line-height: 1.5;
         letter-spacing: .025em;
         font-weight: 900;
@@ -277,18 +313,14 @@ function toggleHideCounts() {
     }
 
     .profile-handle {
-        font-size: 16px;
+        font-size: 14px;
         color: var(--text-color-3);
         font-weight: bold;
-
-        @media (max-width: 767px) {
-            padding-right: 50px;
-        }
 
         &--service {
             font-size: 14px;
             font-weight: normal;
-            margin-top: 4px;
+            margin-top: 6px;
             display: grid;
             grid-template-columns: 16px 1fr;
             gap: 4px;
@@ -303,6 +335,7 @@ function toggleHideCounts() {
 
     .profile-description {
         &__text {
+            font-size: 14px;
             line-height: 1.75;
             white-space: pre-line;
         }
@@ -318,9 +351,23 @@ function toggleHideCounts() {
         gap: 0 15px;
         margin-top: 6px;
 
+        @media (max-width: 767px) {
+            font-size: 16px;
+        }
+
         &__by {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            gap: 4px;
             font-weight: 400;
-            font-size: 15px;
+            font-size: 13px;
+            width: fit-content;
+            padding: 2px 8px;
+            border-radius: var(--border-radius-2);
+            background-color: var(--bg-color-1);
+            color: var(--text-color-3);
+            margin-top: 2px;
         }
     }
 
@@ -380,6 +427,41 @@ function toggleHideCounts() {
             @media (max-width: 767px) {
                 margin-left: 25px;
             }
+        }
+    }
+
+    .profile-grid {
+        @container (max-width: 680px) {
+            grid-template-columns: 1fr;
+        }
+
+        &__left {
+            padding: 16px;
+            background-color: var(--bg-color-2);
+            border-radius: 10px;
+        }
+
+        &__right {
+            border-radius: 10px;
+            position: relative;
+            min-width: 0;
+            height: 100%;
+
+            &::before{
+                content: '';
+                position: absolute;
+                inset: 0;
+                border-radius: 10px;
+                border: 3px solid transparent;
+                background: linear-gradient(65deg, rgba(88, 220, 174, .7) 0%, rgba(167, 136, 223, .7) 20%, rgba(236, 103, 219, .7) 40%, rgba(218, 119, 142, .7) 60%, rgba(228, 142, 138, .7) 80%, rgba(236, 189, 94, .7) 100%) border-box border-box;
+                mask: linear-gradient(#fff 0%, #fff 100%) padding-box, linear-gradient(#fff 0%, #fff 100%) border-box;
+                mask-composite: exclude;
+                -webkit-mask-composite: destination-out;
+            }
+        }
+
+        @media (max-width: 767px) {
+            grid-template-columns: 1fr;
         }
     }
 </style>

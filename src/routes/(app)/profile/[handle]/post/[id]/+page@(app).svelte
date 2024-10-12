@@ -1,69 +1,11 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, didHint} from '$lib/stores';
     import { page } from '$app/stores';
-    import Thread from "./Thread.svelte";
-    import { beforeNavigate } from "$app/navigation";
-    import {isDid} from "$lib/util";
     import PageModal from "$lib/components/ui/PageModal.svelte";
-    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-
-    let isMuted: boolean = false;
-    let isMuteDisplay: boolean = false;
-
+    import ThreadView from "./ThreadView.svelte";
 
     $: handle = $page.params.handle;
     $: id = $page.params.id;
-
-    $: feeds = getPostThread(id, handle);
-
-    function isMutedIncludes(feed) {
-        isMuted = feed.post?.author.viewer.muted;
-
-        if (feed.parent && !isMuted) {
-            isMutedIncludes(feed.parent);
-        }
-
-        if (feed.replies?.length && !isMuted) {
-            isMutedIncludes(feed.replies[0]);
-        }
-    }
-
-    async function getDidByHandle(handle) {
-        if ($didHint) {
-            const _did = $didHint;
-            didHint.set('');
-            return _did;
-        }
-
-        if (isDid(handle)) {
-            return handle;
-        }
-
-        const res = await $agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
-        return res.data.did;
-    }
-
-    async function getPostThread(id, handle) {
-        const did = await getDidByHandle(handle);
-        const uri = 'at://' + did + '/app.bsky.feed.post/' + id;
-        const raw = await $agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-        let feeds = [ raw.data.thread ];
-
-        console.log(feeds);
-
-        feeds.forEach(feed => {
-            if (!feed.blocked) {
-                isMutedIncludes(feed);
-            }
-        });
-
-        return feeds;
-    }
-
-    beforeNavigate(async () => {
-        isMuteDisplay = false;
-    })
 </script>
 
 <PageModal>
@@ -83,31 +25,9 @@
     </div>
   </div>
 
-  <div class="timeline thread-wrap">
-    {#if (isMuted && !isMuteDisplay)}
-      <div class="thread-notice" class:thread-notice--shown={isMuteDisplay}>
-        <p class="thread-notice__text">{$_('muted_user_thread')}</p>
-
-        <button class="button button--sm" on:click={() => {isMuteDisplay = true}}>{$_('show_button')}</button>
-      </div>
-    {/if}
-
-    {#await feeds}
-      <LoadingSpinner size="50px"></LoadingSpinner>
-    {:then feeds}
-      <Thread feeds={feeds} depth={0}></Thread>
-    {:catch error}
-      {#if (error.error === 'NotFound')}
-        <p class="thread-error">{$_('error_thread_notfound')}</p>
-      {:else}
-        {error.message}
-      {/if}
-    {/await}
-  </div>
+  {#if handle}
+    {#key $page.params.id}
+      <ThreadView id={$page.params.id} handle={$page.params.handle}></ThreadView>
+    {/key}
+  {/if}
 </PageModal>
-
-<style lang="postcss">
-    .thread-wrap {
-        position: relative;
-    }
-</style>

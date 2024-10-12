@@ -4,6 +4,7 @@
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import DeckRow from "../../../../DeckRow.svelte";
+  import {getDidByHandle} from "$lib/util";
 
   export let id;
   export let handle;
@@ -11,25 +12,6 @@
 
   let feed;
   let savedFeeds = [];
-
-  if ($junkColumns.findIndex(_column => _column.id === 'feed_' + id) === -1) {
-      junkColumns.set([...$junkColumns, {
-          id: 'feed_' + id,
-          algorithm: {
-              algorithm: 'at://' + handle + '/app.bsky.feed.generator/' + id,
-              type: 'custom',
-              name: '',
-          },
-          style: 'default',
-          settings: defaultDeckSettings,
-          did: $agent.did(),
-          handle: $agent.handle(),
-          data: {
-              feed: [],
-              cursor: '',
-          }
-      }]);
-  }
 
   async function getSavedFeeds () {
       const preferenceRes = await $agent.agent.api.app.bsky.actor.getPreferences()
@@ -44,6 +26,27 @@
 
   onMount(async () => {
       await getSavedFeeds();
+      handle = await getDidByHandle(handle, $agent);
+
+      if ($junkColumns.findIndex(_column => _column.id === 'feed_' + id) === -1) {
+          junkColumns.set([...$junkColumns, {
+              id: 'feed_' + id,
+              algorithm: {
+                  algorithm: 'at://' + handle + '/app.bsky.feed.generator/' + id,
+                  type: 'custom',
+                  name: '',
+              },
+              style: 'default',
+              settings: defaultDeckSettings,
+              did: $agent.did(),
+              handle: $agent.handle(),
+              data: {
+                  feed: [],
+                  cursor: '',
+              }
+          }]);
+      }
+
       const res = await $agent.agent.api.app.bsky.feed.getFeedGenerator({feed: 'at://' + handle + '/app.bsky.feed.generator/' + id});
 
       if (res.data.isOnline) {

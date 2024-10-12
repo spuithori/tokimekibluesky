@@ -129,11 +129,14 @@ const defaultSettings = {
         disableHaptics: false,
         enableAppBrowser: false,
         disableChat: false,
+        disableTenorAutoplay: false,
+        disableAtmosphere: false,
     },
     design: {
         skin: 'default',
         theme: 'jade',
         nonoto: false,
+        fontTheme: 'default',
         darkmode: false,
         absoluteTime: false,
         layout: 'default',
@@ -202,6 +205,11 @@ export const formattedKeywordMutes = derived(keywordMutes, ($keywordMutes) => {
 export const preferences = writable();
 
 export const bookmarkModal = writable({
+    open: false,
+    data: undefined,
+})
+
+export const cloudBookmarkModal = writable({
     open: false,
     data: undefined,
 })
@@ -330,6 +338,8 @@ export const intersectingIndex = writable(0);
 type ThreadGate = 'everybody' | 'nobody' | string[];
 
 export const threadGate = writable<ThreadGate>('everybody');
+
+export const postgate = writable<boolean>(true)
 
 export const pauseColumn = writable<boolean>(false);
 

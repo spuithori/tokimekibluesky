@@ -22,7 +22,7 @@
             const res = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: data.params.handle, limit: 30, cursor: cursor, filter: 'posts_with_media'});
             cursor = res.data.cursor;
             for (const item of res.data.feed) {
-                if (item.post.embed && AppBskyEmbedImages.isView(item.post.embed)) {
+                if (AppBskyEmbedImages.isView(item.post?.embed) || AppBskyEmbedImages.isView(item.post?.embed?.media)) {
                     feeds.push(item);
                 }
             }

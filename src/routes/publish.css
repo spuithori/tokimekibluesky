@@ -48,6 +48,7 @@
                 border-top: none;
                 padding: 16px;
                 background-color: transparent;
+                background-image: none;
             }
 
             .publish-form {
@@ -72,6 +73,7 @@
 
 .publish-wrap {
     background-color: var(--publish-bg-color);
+    background-image: var(--publish-bg-image, none);
     border-top: 1px solid var(--border-color-1);
     padding: 16px 0 0;
     display: none;
@@ -435,5 +437,17 @@
         @media (min-width: 768px) {
             position: relative !important;
         }
+    }
+}
+
+.publish-tenor-external {
+    aspect-ratio: 1 / 1;
+    border-radius: var(--border-radius-2);
+    overflow: hidden;
+
+    video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 }

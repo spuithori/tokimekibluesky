@@ -1,6 +1,6 @@
 <script lang="ts">
     import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
-    import {isPublishInstantFloat, quotePost, replyRef, settings, threadGate} from "$lib/stores";
+    import {isPublishInstantFloat, postgate, quotePost, replyRef, settings, threadGate} from "$lib/stores";
     import {_} from "svelte-i18n";
     import {isFeedByUri} from "$lib/util";
     import {formatDistanceToNow, parseISO} from "date-fns";
@@ -25,6 +25,10 @@
     import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
     import {languageMap} from "$lib/langs/languageMap";
     import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
+    import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
+    import {getUploadLimit} from "$lib/components/editor/videoUtil";
+    import {getTenorUrl} from "$lib/components/post/embedUtil";
+    import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
     const dispatch = createEventDispatcher();
 
     export let post;
@@ -47,6 +51,7 @@
     let isDragover = 0;
     let isVirtualKeyboard = false;
     let isLangSelectorOpen = false;
+    let isVideoUploadEnabled = false;
 
     const isMobile = navigator?.userAgentData?.mobile || false;
 
@@ -61,6 +66,7 @@
         id: string,
     }
     let images = [];
+    let video;
 
     let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
     let embedExternal: AppBskyEmbedExternal.Main | undefined;
@@ -141,7 +147,7 @@
         }
     }
 
-    async function addGifLinkCard(gif) {
+    async function addGiphyLinkCard(gif) {
         if (!gif) {
             return false;
         }
@@ -170,8 +176,43 @@
         }
     }
 
-    function handleAgentSelect(event) {
+    async function addTenorLinkCard(gif) {
+        if (!gif) {
+            return false;
+        }
+
+        try {
+            isLinkCardAdding = true;
+
+            const res = await fetch(gif.url);
+            const blob = await res.blob();
+            externalImageBlob = await imageCompression.getDataUrlFromFile(blob);
+
+            embedExternal = {
+                $type: 'app.bsky.embed.external',
+                external: {
+                    uri: gif.url,
+                    title: gif.title || '',
+                    description: 'GIF by Tenor.',
+                }
+            }
+
+            isLinkCardAdding = false;
+        } catch (e) {
+            console.error(e);
+            toast.error('Error!');
+            isLinkCardAdding = false;
+        }
+    }
+
+    async function handleAgentSelect(event) {
         _agent = event.detail.agent;
+        isVideoUploadEnabled = false;
+
+        const limit = await getUploadLimit(_agent);
+        if (limit?.canUpload) {
+            isVideoUploadEnabled = true;
+        }
 
         if ($threadGate !== 'everybody') {
             $threadGate = 'everybody';
@@ -186,8 +227,8 @@
         return rt;
     }
 
-    function uploadContextOpen() {
-        imageUploadEl.open();
+    function uploadContextOpen(e) {
+        imageUploadEl.open(e?.detail?.isVideo);
     }
 
     async function handlePaste(e) {
@@ -237,6 +278,7 @@
         threadGate.set('everybody');
         selfLabels.set([]);
         images = [];
+        video = undefined;
         links = [];
         editor.setContent(post.json || post.text);
 
@@ -247,6 +289,10 @@
         if (post.images.length) {
             isPublishUploadClose = false;
             images = post.images;
+        }
+
+        if (post.video) {
+            video = post.video;
         }
 
         if (post.quotePost) {
@@ -281,6 +327,11 @@
         }
 
         externalImageBlob = post.externalImageBlob;
+
+        const limit = await getUploadLimit(_agent);
+        if (limit?.canUpload) {
+            isVideoUploadEnabled = true;
+        }
     })
 
     function addThread() {
@@ -295,6 +346,7 @@
                 quotePost: $quotePost || undefined,
                 replyRef: $replyRef || undefined,
                 images: images,
+                video: video,
                 owner: _agent.did() as string,
                 embedExternal: embedExternal,
                 selfLabels: $selfLabels || undefined,
@@ -312,6 +364,7 @@
             quotePost: $quotePost || undefined,
             replyRef: $replyRef || undefined,
             images: images,
+            video: video,
             owner: _agent.did() as string,
             embedExternal: embedExternal,
             selfLabels: $selfLabels || undefined,
@@ -340,9 +393,11 @@
           on:publish={() => {dispatch('publish')}}
           on:focus={() => {dispatch('focus')}}
           on:upload={uploadContextOpen}
-          on:pickgif={(e) => addGifLinkCard(e.detail.gif)}
+          on:picktenor={(e) => addTenorLinkCard(e.detail.gif)}
+          on:pickgiphy={(e) => addGiphyLinkCard(e.detail.gif)}
           {_agent}
           isPublishEnabled={isEmpty || isPublishEnabled}
+          {isVideoUploadEnabled}
   >
     <svelte:fragment slot="top">
       {#if ($replyRef && typeof $replyRef !== 'string')}
@@ -398,6 +453,7 @@
       <ImageUpload
         bind:this={imageUploadEl}
         bind:images={images}
+        bind:video={video}
         on:preparestart={() => {isPublishEnabled = true}}
         on:prepareend={() => {isPublishEnabled = false}}
       ></ImageUpload>
@@ -451,19 +507,25 @@
             <X color="#fff" size="18"></X>
           </button>
 
-          <div class="timeline-external timeline-external--record">
-            <div class="timeline-external__image">
-              {#if (externalImageBlob)}
-                <img src="{externalImageBlob}" alt="">
-              {/if}
+          {#if getTenorUrl(embedExternal.external.uri) && $settings?.embed?.tenor}
+            <div class="publish-tenor-external">
+              <EmbedTenor tenor={getTenorUrl(embedExternal.external.uri)}></EmbedTenor>
             </div>
+          {:else}
+            <div class="timeline-external timeline-external--record">
+              <div class="timeline-external__image">
+                {#if (externalImageBlob)}
+                  <img src="{externalImageBlob}" alt="">
+                {/if}
+              </div>
 
-            <div class="timeline-external__content">
-              <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
-              <p class="timeline-external__description">{embedExternal.external.description}</p>
-              <p class="timeline-external__url">{embedExternal.external.uri}</p>
+              <div class="timeline-external__content">
+                <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
+                <p class="timeline-external__description">{embedExternal.external.description}</p>
+                <p class="timeline-external__url">{embedExternal.external.uri}</p>
+              </div>
             </div>
-          </div>
+          {/if}
         </div>
       {/if}
 
@@ -486,6 +548,10 @@
 
       {#if ($threadGate !== 'everybody' && !$replyRef)}
         <ThreadGateLabel></ThreadGateLabel>
+      {/if}
+
+      {#if !$postgate}
+        <PostGateLabel></PostGateLabel>
       {/if}
     </div>
   </Tiptap>

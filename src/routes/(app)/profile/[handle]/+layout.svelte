@@ -166,7 +166,7 @@
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-plus"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
                 </button>
               {/if}
-            {:else if (isLabeler)}
+            {:else if (isLabeler && profile?.did)}
               <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
             {:else}
               <div class="profile-follow-button profile-follow-button--me">
@@ -188,7 +188,7 @@
           <UserProfile handle={handle} profile={profile} isLabeler={isLabeler} on:refresh={handleRefresh}></UserProfile>
         {/if}
 
-        {#if (isLabeler)}
+        {#if (isLabeler && profile?.did)}
           <div class="user-profile-labeler-wrap">
             <LabelerLabelList did={profile.did}></LabelerLabelList>
           </div>

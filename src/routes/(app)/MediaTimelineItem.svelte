@@ -1,9 +1,10 @@
 <script lang="ts">
     import {agent, settings} from '$lib/stores';
-    import { AppBskyFeedDefs } from '@atproto/api';
+    import {AppBskyEmbedImages, AppBskyFeedDefs} from '@atproto/api';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
     import {contentLabelling} from "$lib/timelineFilter";
+    import MediaTimelineThumbnail from "$lib/components/post/MediaTimelineThumbnail.svelte";
 
     export let _agent = $agent;
     export let data;
@@ -86,18 +87,10 @@
        class:media-item--warn={isWarn}
   >
     <button on:click={modalToggle} aria-label="画像を拡大する">
-      <img src="{data.post.embed.images[0].thumb}" alt="" loading="lazy">
-
-      {#if (data.post.embed.images.length > 1)}
-        <div class="media-item__count">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
-            <g id="グループ_88" data-name="グループ 88" transform="translate(-77 -224)">
-              <rect id="長方形_73" data-name="長方形 73" width="11" height="11" rx="1" transform="translate(80 224)" fill="#fff"/>
-              <rect id="長方形_74" data-name="長方形 74" width="2" height="11" rx="1" transform="translate(77 227)" fill="#fff"/>
-              <rect id="長方形_75" data-name="長方形 75" width="2" height="11" rx="1" transform="translate(77 238) rotate(-90)" fill="#fff"/>
-            </g>
-          </svg>
-          {data.post.embed.images.length}</div>
+      {#if (AppBskyEmbedImages.isView(data.post?.embed))}
+        <MediaTimelineThumbnail images={data.post.embed.images}></MediaTimelineThumbnail>
+      {:else if (AppBskyEmbedImages.isView(data.post?.embed?.media))}
+        <MediaTimelineThumbnail images={data.post.embed.media.images}></MediaTimelineThumbnail>
       {/if}
 
       {#if (isReasonRepost(data.reason))}
@@ -129,42 +122,6 @@
           position: relative;
       }
 
-      img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform .2s ease-in-out;
-
-          &:hover {
-              transform: scale(1.1);
-
-              @media (max-width: 767px) {
-                  transform: none;
-              }
-          }
-      }
-
-      &__count {
-          color: #fff;
-          background-color: rgba(0, 0, 0, .5);
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          font-size: 13px;
-          width: 40px;
-          height: 24px;
-          border-radius: 12px;
-          font-weight: bold;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 2px;
-
-          svg {
-              transform: scale(.8);
-          }
-      }
-
       &__is-repost {
           position: absolute;
           right: 10px;
@@ -185,20 +142,20 @@
           }
       }
 
-        &--warn {
-            &::before {
-                content: '';
-                display: block;
-                position: absolute;
-                left: 0;
-                top: 0;
-                bottom: 0;
-                right: 0;
-                background-color: rgba(0, 0, 0, .8);
-                backdrop-filter: blur(10px);
-                z-index: 10;
-                pointer-events: none;
-            }
-        }
+      &--warn {
+          &::before {
+              content: '';
+              display: block;
+              position: absolute;
+              left: 0;
+              top: 0;
+              bottom: 0;
+              right: 0;
+              background-color: rgba(0, 0, 0, .8);
+              backdrop-filter: blur(10px);
+              z-index: 10;
+              pointer-events: none;
+          }
+      }
   }
 </style>

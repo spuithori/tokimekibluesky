@@ -5,12 +5,14 @@
     let userLanguage = $settings?.general.userLanguage || window.navigator.language;
     let language = $settings?.general.language || window.navigator.language;
     let dataSaver = $settings?.general.dataSaver || false;
+    let disableTenorAutoplay = $settings?.general.disableTenorAutoplay || false;
     let se = $settings?.general.se || false;
     let devMode = $settings?.general.devMode || false;
     let enableBluefeed = $settings?.general.enableBluefeed || false;
     let disableHaptics = $settings?.general.disableHaptics || false;
     let enableAppBrowser = $settings?.general.enableAppBrowser || false;
     let disableChat = $settings?.general?.disableChat || false;
+    let disableAtmosphere = $settings?.general?.disableAtmosphere || false;
 
 const languages = [
     {
@@ -39,12 +41,14 @@ $: {
     $settings.general.userLanguage = userLanguage;
     $settings.general.language = language;
     $settings.general.dataSaver = dataSaver;
+    $settings.general.disableTenorAutoplay = disableTenorAutoplay;
     $settings.general.se = se;
     $settings.general.devMode = devMode;
     $settings.general.enableBluefeed = enableBluefeed;
     $settings.general.disableHaptics = disableHaptics;
     $settings.general.enableAppBrowser = enableAppBrowser;
     $settings.general.disableChat = disableChat;
+    $settings.general.disableAtmosphere = disableAtmosphere;
 }
 </script>
 
@@ -117,6 +121,18 @@ $: {
         </div>
 
         <p class="settings-group__description">{$_('data_saver_description')}</p>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('disable_tenor_autoplay')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="disableTenorAutoplay" bind:checked={disableTenorAutoplay}><label class="input-toggle__label" for="disableTenorAutoplay"></label>
+        </div>
       </dd>
     </dl>
 
@@ -201,6 +217,18 @@ $: {
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="disableChat" bind:checked={$settings.general.disableChat}><label class="input-toggle__label" for="disableChat"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('disable_atmosphere')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="disableAtmosphere" bind:checked={$settings.general.disableAtmosphere}><label class="input-toggle__label" for="disableAtmosphere"></label>
         </div>
       </dd>
     </dl>

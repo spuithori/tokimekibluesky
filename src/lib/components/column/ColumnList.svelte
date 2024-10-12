@@ -57,6 +57,8 @@
         <IconColumnsList></IconColumnsList>
       {:else if (column.algorithm.type === 'bookmark')}
         <IconColumnsBookmark></IconColumnsBookmark>
+      {:else if (column.algorithm.type === 'cloudBookmark')}
+        <IconColumnsBookmark></IconColumnsBookmark>
       {:else if (column.algorithm.type === 'notification')}
         <IconColumnsNotification></IconColumnsNotification>
       {:else if (column.algorithm.type === 'officialList')}

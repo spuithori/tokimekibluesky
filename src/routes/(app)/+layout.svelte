@@ -54,18 +54,6 @@
   let baseColor = '#fff';
   let isRepeater = localStorage.getItem('isRepeater') === 'true';
 
-  /* inject(
-      {
-          mode: dev ? 'development' : 'production',
-          beforeSend: event => {
-              if (event.url.includes('/settings') || event.url.includes('/login') || event.url.includes('/search') || event.url.includes('/shared') || event.url.includes('#post') || event.url.includes('/theme-store')) {
-                  return null;
-              }
-              return event;
-          }
-      },
-  ); */
-
   $: getCurrentTheme($settings.design?.skin);
   $: observeColor($theme);
   $: detectHeadThemeColor($theme);
@@ -365,7 +353,7 @@
     class:scrolled={scrolly > 52}
     class:sidebar={$settings.design?.publishPosition === 'left'}
     class:bottom={$settings.design?.publishPosition === 'bottom'}
-    class="app scroll-{$direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2}"
+    class="app scroll-{$direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
     dir="{$_('dir', {default: 'ltr'})}"
     class:compact={$settings.design?.postsLayout === 'compact'}
     class:minimum={$settings.design?.postsLayout === 'minimum'}

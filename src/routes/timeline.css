@@ -370,6 +370,10 @@
     }
 }
 
+.timeline__content {
+    min-width: 0;
+}
+
 .timeline__text {
     white-space: pre-line;
     line-height: 1.75;
@@ -1002,6 +1006,12 @@
     .timeline-twitter-external {
         @container timeline-item (max-width: 345px) {
             margin-left: 0;
+        }
+    }
+
+    .timeline-video-wrap {
+        @container timeline-item (max-width: 345px) {
+            margin-left: 0 !important;
         }
     }
 

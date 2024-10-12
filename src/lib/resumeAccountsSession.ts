@@ -14,7 +14,18 @@ async function resume(account) {
             try {
                 profile = await getAvatar(ag, account);
             } catch (e) {
-                //
+                if (e.message === 'The server gave an invalid response and may be out of date.') {
+                    console.error(e.message);
+
+                    await ag.upsertProfile(_profile => {
+                        const profile = _profile || {};
+                        profile.pinnedPost = undefined;
+
+                        return profile;
+                    });
+
+                    profile = await getAvatar(ag, account);
+                }
             }
 
             const id = await accountsDb.accounts.put({
@@ -28,6 +39,7 @@ async function resume(account) {
                 notification: account.notification || ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
                 feeds: account.feeds || [],
                 lists: account.lists || [],
+                cloudBookmarks: account.cloudBookmarks || [],
             })
         }
     })
@@ -38,6 +50,16 @@ async function resume(account) {
         })
         .catch(error => {
             console.log(error);
+
+            if (error.message === 'Failed to fetch') {
+                console.log('Connection failed. Try resumeSession 3 seconds.');
+                setTimeout(() => {
+                    resume(account);
+                }, 3000);
+
+                return;
+            }
+
             _missingAccounts = [..._missingAccounts, account];
             missingAccounts.set(_missingAccounts);
         });

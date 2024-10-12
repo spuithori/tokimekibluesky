@@ -20,6 +20,8 @@
     import ChatTimeline from "./ChatTimeline.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {draggable, type DragOptions} from "@neodrag/svelte";
+    import { createLongPress } from 'svelte-interactions';
+    const { longPressAction } = createLongPress();
 
     export let column;
     export let index = 0;
@@ -41,6 +43,7 @@
     let refresh;
     let isDragging = false;
     let reorderIndex = index;
+    let isRefreshing = false;
 
     let dragOptions: DragOptions = {
         axis: 'x',
@@ -262,6 +265,23 @@
         result.splice(toIndex, 0, element);
         return result;
     }
+
+    function forceRefresh() {
+        isRefreshing = true;
+        column.data.feed = [];
+        column.data.cursor = undefined;
+
+        if (column.algorithm.type === 'notification') {
+            column.data.feedPool = [];
+            column.data.notificationGroup = [];
+        }
+
+        unique = Symbol();
+
+        setTimeout(() => {
+            isRefreshing = false;
+        }, 2000);
+    }
 </script>
 
 <div
@@ -283,7 +303,7 @@
     on:neodrag:end={handleDragEnd}
     on:neodrag={handleDragging}
 >
-    <div class="deck-heading">
+    <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'}>
         {#if (!isJunk)}
             {#if !column?.settings?.isPopup && $settings.design?.layout === 'decks'}
                 <div class="deck-drag-area">
@@ -305,6 +325,8 @@
                     role="button"
                     class="deck-heading__scroll-area"
                     on:click={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root'), event)}}
+                    use:longPressAction
+                    on:longpress={forceRefresh}
                     aria-label="Back to top."
             >
                 <div class="deck-heading__title">
@@ -343,6 +365,7 @@
                 bind:unique={unique}
                 bind:refresh={refresh}
                 {isJunk}
+                {isRefreshing}
             ></ColumnRefreshButton>
 
             {#if (!isJunk)}
@@ -365,7 +388,7 @@
                         {#if (column.algorithm.type === 'notification')}
                             <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
                         {:else if (column.algorithm.type === 'thread')}
-                            <ThreadTimeline column={column} index={index} {_agent}></ThreadTimeline>
+                            <ThreadTimeline column={column} index={index} {_agent} bind:isRefreshing={isRefreshing}></ThreadTimeline>
                         {:else if (column.algorithm.type === 'chat')}
                             <ChatTimeline
                                     column={column}
@@ -665,6 +688,12 @@
             display: flex;
             align-items: center;
             gap: 4px;
+        }
+
+        &--sticky {
+            position: sticky !important;
+            z-index: 100 !important;
+            top: 52px;
         }
     }
 

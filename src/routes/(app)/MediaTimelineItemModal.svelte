@@ -1,13 +1,14 @@
 <script lang="ts">
     import { scale } from 'svelte/transition';
     import TimelineItem from "./TimelineItem.svelte";
-    import { Splide, SplideSlide } from '@splidejs/svelte-splide';
     import '@splidejs/svelte-splide/css';
     import {createEventDispatcher, onMount} from 'svelte';
     import { beforeNavigate } from "$app/navigation";
     import {agent} from "$lib/stores";
     const dispatch = createEventDispatcher();
     import { afterNavigate } from "$app/navigation";
+    import {AppBskyEmbedImages} from "@atproto/api";
+    import MediaTimelineSlider from "$lib/components/post/MediaTimelineSlider.svelte";
 
     export let _agent = $agent;
     export let data;
@@ -56,22 +57,10 @@
 
   <div class="media-content" transition:scale="{{duration: 350, opacity: 0.5, start: 0.8}}">
     <div class="media-content__image">
-
-      {#if (data.post.embed.images.length > 1)}
-
-        <Splide options={ {
-              gap   : '20px',
-          } }>
-          {#each data.post.embed.images as image}
-            <SplideSlide>
-              <img src="{image.fullsize}" alt="{image.alt}" width={image?.aspectRatio?.width} height={image?.aspectRatio?.height}>
-            </SplideSlide>
-          {/each}
-        </Splide>
-      {:else}
-        {#each data.post.embed.images as image}
-          <img src="{image.fullsize}" alt="{image.alt}" width={image?.aspectRatio?.width} height={image?.aspectRatio?.height}>
-        {/each}
+      {#if (AppBskyEmbedImages.isView(data.post?.embed))}
+        <MediaTimelineSlider images={data.post.embed.images}></MediaTimelineSlider>
+      {:else if (AppBskyEmbedImages.isView(data.post?.embed?.media))}
+        <MediaTimelineSlider images={data.post.embed.media.images}></MediaTimelineSlider>
       {/if}
     </div>
 
