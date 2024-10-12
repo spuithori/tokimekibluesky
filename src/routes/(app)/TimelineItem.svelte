@@ -520,7 +520,14 @@
             });
 
             toast.success($_('success_register_pin'));
-            location.reload();
+            const character = 'r';
+            const keyboardEvent = new KeyboardEvent('keydown', {
+                key: character,
+                code: character.toUpperCase(),
+                bubbles: true,
+                cancelable: true,
+            });
+            document.dispatchEvent(keyboardEvent);
         } catch (e) {
 
         }
@@ -538,7 +545,14 @@
             });
 
             toast.success($_('success_unregister_pin'));
-            location.reload();
+            const character = 'r';
+            const keyboardEvent = new KeyboardEvent('keydown', {
+                key: character,
+                code: character.toUpperCase(),
+                bubbles: true,
+                cancelable: true,
+            });
+            document.dispatchEvent(keyboardEvent);
         } catch (e) {
 
         }
