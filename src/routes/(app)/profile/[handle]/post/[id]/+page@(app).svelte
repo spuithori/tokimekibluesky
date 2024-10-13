@@ -8,7 +8,7 @@
     $: id = $page.params.id;
 </script>
 
-<PageModal>
+<PageModal isVirtual={true}>
   <div class="column-heading">
     <div class="column-heading__buttons">
       <button class="settings-back" on:click={() => {history.back()}}>

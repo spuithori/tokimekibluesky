@@ -88,22 +88,20 @@
 
     &.has-child {
         &.is-root {
-            &:not([data-depth='0']) {
-                position: relative;
+            position: relative;
 
-                &::before {
-                    content: '';
-                    position: absolute;
-                    width: 2px;
-                    top: 0;
-                    bottom: 0;
+            &::before {
+                content: '';
+                position: absolute;
+                width: 2px;
+                top: 0;
+                bottom: 0;
+                left: var(--bar-position);
+                background-color: var(--border-color-2);
+                transform: translateY(var(--bar-transform));
+
+                @media (max-width: 767px) {
                     left: var(--bar-position);
-                    background-color: var(--border-color-2);
-                    transform: translateY(var(--bar-transform));
-
-                    @media (max-width: 767px) {
-                        left: var(--bar-position);
-                    }
                 }
             }
         }

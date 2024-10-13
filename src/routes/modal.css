@@ -241,6 +241,22 @@
                 border-radius: 0;
             }
         }
+
+        &--virtual {
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+
+            .deck-row {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+
+                &__content {
+                    flex: 1;
+                }
+            }
+        }
     }
 }
 
