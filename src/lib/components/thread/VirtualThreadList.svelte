@@ -2,6 +2,7 @@
   import {agent} from '$lib/stores';
   import { createVirtualizer } from '@tanstack/svelte-virtual';
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
+  import {_} from "svelte-i18n";
 
   export let column;
   export let _agent = $agent;
@@ -51,6 +52,10 @@
           class:has-child={column.data.feed[data.index].post.replyCount > 0}
         >
           <VirtualThreadItem {column} depth={column.data.feed[data.index]?.depth} index={data.index} {_agent}></VirtualThreadItem>
+
+          {#if (column.data.feed[data.index]?.post?.replyCount > 0 && column.data.feed[data.index]?.depth === 6)}
+            <a href={'/profile/' + column.data.feed[data.index].post.author.handle + '/post/' + column.data.feed[data.index].post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
+          {/if}
         </div>
       {/each}
     </div>

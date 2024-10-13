@@ -4,8 +4,6 @@
     import Thread from './profile/[handle]/post/[id]/Thread.svelte';
     import {onMount} from "svelte";
     import {_} from "svelte-i18n";
-    import {isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
-    import TimelineItem from "./TimelineItem.svelte";
     import VirtualThreadList from "$lib/components/thread/VirtualThreadList.svelte";
 
     export let column;
@@ -16,6 +14,7 @@
     let scrollTop: undefined | Number = undefined;
     let rootClientHeight = 0;
     let rootIndex;
+    let rootDid;
 
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
@@ -69,30 +68,61 @@
                 flatPost(thread);
             }
 
+            flatThread = flatThread.filter(feed => feed.position !== 'authorChild');
+            flatThread = sortThread(flatThread);
             column.data.feed = flatThread;
+            column.data.feed.forEach(feed => {
+                if (!feed.blocked) {
+                    isMutedIncludes(feed);
+                }
+            });
+            console.log(flatThread);
             rootIndex = flatThread.findIndex(feed => feed.depth === 0);
         } catch (e) {
+            console.error(e);
             column.data.feed = 'NotFound';
         }
     }
 
-    function flatPost(thread, depth = 0, position: 'parent' | 'child' | undefined = undefined) {
+    function flatPost(thread, depth = 0, position: 'root' | 'parent' | 'child' | 'author' | 'authorChild' | undefined = 'root', beforeDid = undefined) {
         thread.forEach((feed, index) => {
             if (feed.parent) {
                 flatPost([feed.parent], depth - 1, 'parent');
             }
 
+            if (depth === 0) {
+                rootDid = feed.post.author.did;
+            }
+
             const _feed = {
                 ...feed,
                 depth,
-                position,
+                position: beforeDid === feed.post.author.did && rootDid === feed.post.author.did && depth !== 0 ? 'author' : position,
             }
             flatThread = [...flatThread, _feed];
 
             if (feed.replies?.length) {
-                flatPost(feed.replies, depth + 1, 'child');
+                flatPost(feed.replies, depth + 1, _feed.position === 'author' || _feed.position === 'authorChild' ? 'authorChild' : 'child', feed.post.author.did);
             }
         })
+    }
+
+    function sortThread(arr) {
+        const result = [];
+        const authorElements = [];
+        const otherElements = [];
+
+        for (const item of arr) {
+            if (item.depth <= 0) {
+                result.push(item);
+            } else if (item.position === 'author') {
+                authorElements.push(item);
+            } else {
+                otherElements.push(item);
+            }
+        }
+
+        return [...result, ...authorElements, ...otherElements];
     }
 
     onMount(async () => {
