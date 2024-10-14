@@ -18,8 +18,9 @@
 
     let isMuted: boolean = false;
     let isMuteDisplay: boolean = false;
-
+    
     let flatThread = [];
+    let unique = Symbol();
 
     function isMutedIncludes(feed) {
         isMuted = feed.post.author?.viewer.muted;
@@ -68,7 +69,7 @@
                 flatPost(thread);
             }
 
-            flatThread = flatThread.filter(feed => feed.position !== 'authorChild');
+            //flatThread = flatThread.filter(feed => feed.position !== 'authorChild');
             flatThread = sortThread(flatThread);
             column.data.feed = flatThread;
             column.data.feed.forEach(feed => {
@@ -78,6 +79,7 @@
             });
             console.log(flatThread);
             rootIndex = flatThread.findIndex(feed => feed.depth === 0);
+            unique = Symbol();
         } catch (e) {
             console.error(e);
             column.data.feed = 'NotFound';
@@ -150,7 +152,7 @@
   <p class="thread-error">{$_('error_thread_notfound')}</p>
 {:else}
   {#if (isJunk)}
-    <VirtualThreadList {_agent} {column} {rootIndex}></VirtualThreadList>
+    <VirtualThreadList {_agent} {column} {rootIndex} {unique}></VirtualThreadList>
   {:else}
     <div class="timeline thread-wrap" style="--root-client-height: {rootClientHeight}px" >
       <Thread feeds={column.data.feed} depth={0} column={column} {_agent} bind:rootClientHeight={rootClientHeight} scrollTop={scrollTop}></Thread>

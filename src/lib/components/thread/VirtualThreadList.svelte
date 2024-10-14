@@ -6,16 +6,18 @@
 
   export let column;
   export let _agent = $agent;
-
+  export let rootIndex = column.data.feed.findIndex(_feed => _feed.depth === 0);
+  export let unique;
+  let beforeUnique;
   let virtualListEl: HTMLDivElement
   let virtualItemEls: HTMLDivElement[] = []
-  export let rootIndex = column.data.feed.findIndex(_feed => _feed.depth === 0);
 
   $: virtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
       count: column.data.feed.length,
       getScrollElement: () => virtualListEl,
       estimateSize: () => 186,
       overscan: 5,
+      isScrollingResetDelay: 500,
   })
 
   $: items = $virtualizer.getVirtualItems()
@@ -25,14 +27,16 @@
           virtualItemEls.forEach((el) => $virtualizer.measureElement(el))
   }
 
-  $: changeRootIndex(column);
+  $: changeRootIndex(unique);
 
-  function changeRootIndex(column) {
-      if (!$virtualizer.isScrolling) {
+  function changeRootIndex(unique) {
+      if (unique !== beforeUnique) {
          setTimeout(() => {
              $virtualizer.scrollToIndex(rootIndex, {
                  align: 'start',
              });
+
+             beforeUnique = unique;
          }, 0)
       }
   }

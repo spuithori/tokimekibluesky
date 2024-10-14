@@ -171,6 +171,28 @@
         border-right: 1px solid var(--border-color-2);
         position: relative;
         z-index: 1001;
+
+        &--virtual {
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+
+            .deck-row {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+
+                &__content {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+
+                    .thread-timeline-scroller {
+                        flex: 1;
+                    }
+                }
+            }
+        }
     }
 }
 
