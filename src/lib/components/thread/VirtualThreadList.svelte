@@ -55,7 +55,7 @@
           class:is-final={column.data.feed[data.index].post.replyCount === 0}
           class:has-child={column.data.feed[data.index].post.replyCount > 0}
         >
-          <VirtualThreadItem {column} depth={column.data.feed[data.index]?.depth} index={data.index} {_agent}></VirtualThreadItem>
+          <VirtualThreadItem {column} index={data.index} {_agent}></VirtualThreadItem>
 
           {#if (column.data.feed[data.index]?.post?.replyCount > 0 && column.data.feed[data.index]?.depth === 6)}
             <a href={'/profile/' + column.data.feed[data.index].post.author.handle + '/post/' + column.data.feed[data.index].post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
