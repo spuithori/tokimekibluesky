@@ -46,21 +46,27 @@
   <div style="position: relative; height: {$virtualizer.getTotalSize()}px; width: 100%;">
     <div style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({items[0] ? items[0].start : 0}px);">
       {#each items as data, index (data.index)}
-        <div
-          bind:this={virtualItemEls[index]}
-          data-index={data.index}
-          data-depth={column.data.feed[data.index]?.depth}
-          class="thread-item"
-          class:is-root={!column.data.feed[0]?.post?.record?.reply}
-          class:is-final={column.data.feed[data.index].post.replyCount === 0}
-          class:has-child={column.data.feed[data.index].post.replyCount > 0}
-        >
-          <VirtualThreadItem {column} index={data.index} {_agent}></VirtualThreadItem>
+        {#if (!column.data.feed[data.index].blocked && !column.data.feed[data.index].notFound)}
+          <div
+            bind:this={virtualItemEls[index]}
+            data-index={data.index}
+            data-depth={column.data.feed[data.index]?.depth}
+            class="thread-item"
+            class:is-root={!column.data.feed[0]?.post?.record?.reply}
+            class:is-final={column.data.feed[data.index].post.replyCount === 0}
+            class:has-child={column.data.feed[data.index].post.replyCount > 0}
+          >
+            <VirtualThreadItem {column} index={data.index} {_agent}></VirtualThreadItem>
 
-          {#if (column.data.feed[data.index]?.post?.replyCount > 0 && column.data.feed[data.index]?.depth === 6)}
-            <a href={'/profile/' + column.data.feed[data.index].post.author.handle + '/post/' + column.data.feed[data.index].post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
-          {/if}
-        </div>
+            {#if (column.data.feed[data.index]?.post?.replyCount > 0 && column.data.feed[data.index]?.depth === 6)}
+              <a href={'/profile/' + column.data.feed[data.index].post.author.handle + '/post/' + column.data.feed[data.index].post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
+            {/if}
+          </div>
+        {:else}
+          <article class="timeline-hidden-item">
+            <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
+          </article>
+        {/if}
       {/each}
     </div>
   </div>
