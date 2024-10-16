@@ -283,18 +283,18 @@
 
   onMount(async() => {
       if (pwaInfo) {
-          const { registerSW } = await import('virtual:pwa-register')
+          const { registerSW } = await import('virtual:pwa-register');
           registerSW({
               immediate: true,
               onRegistered(r) {
-                 r && setInterval(() => {
+                 /* r && setInterval(() => {
                      r.update();
-                 }, 20000)
+                 }, 20000) */
 
-                  console.log(`SW Registered`)
+                  console.log('SW Registered');
               },
               onRegisterError(error) {
-                  console.log('SW registration error', error)
+                  console.log('SW registration error', error);
               }
           })
       }
