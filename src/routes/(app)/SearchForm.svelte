@@ -14,7 +14,9 @@
     }
 
     onMount(async () => {
-        searchArea.focus();
+        if (!search) {
+            searchArea.focus();
+        }
     })
 </script>
 

@@ -8,7 +8,8 @@ import {
     quotePost,
     replyRef,
     settings,
-    threadGate
+    threadGate,
+    direction,
 } from '$lib/stores';
 import {selfLabels} from "$lib/components/editor/publishStore";
 import { clickOutside } from '$lib/clickOutSide';
@@ -81,6 +82,8 @@ function handleOpen() {
             showPublish: true
         });
     }
+
+    direction.set('up');
 }
 
 function onClose() {
