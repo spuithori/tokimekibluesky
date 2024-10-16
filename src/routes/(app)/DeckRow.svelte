@@ -376,6 +376,10 @@
                 </button>
             {/if}
         </div>
+
+        {#if isIconPickerOpen}
+            <ColumnIconPicker on:change={handleIconChange} on:close={() => {isIconPickerOpen = false}} current={column.settings?.icon}></ColumnIconPicker>
+        {/if}
     </div>
 
     {#if isSettingsOpen}
@@ -413,10 +417,6 @@
                 {/if}
             {/key}
         {/key}
-    {/if}
-
-    {#if isIconPickerOpen}
-        <ColumnIconPicker on:change={handleIconChange} current={column.settings?.icon}></ColumnIconPicker>
     {/if}
 </div>
 
