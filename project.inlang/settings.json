@@ -5,7 +5,8 @@
     "en",
     "pt",
     "ko-kr",
-    "bg"
+    "bg",
+    "zh-cn"
   ],
   "modules": [
     "https://cdn.jsdelivr.net/npm/@inlang/plugin-json@latest/dist/index.js"
