@@ -1,5 +1,6 @@
 <script lang="ts">
   import { iconMap } from '$lib/columnIcons';
+  import { fly, fade } from 'svelte/transition';
   import {createEventDispatcher} from "svelte";
   const dispatch = createEventDispatcher();
 
@@ -10,9 +11,15 @@
           icon: key,
       });
   }
+
+  function close() {
+      dispatch('close');
+  }
 </script>
 
-<div class="column-icon-picker">
+<button class="column-icon-picker-bg" transition:fade={{ duration: 150 }} on:click={close} aria-label="Close"></button>
+
+<div class="column-icon-picker" transition:fly={{ duration:250, y: -30 }}>
   <ul class="icon-picker-list">
     {#each iconMap as [key, icon]}
       <button
@@ -59,5 +66,16 @@
               background-color: var(--bg-color-3);
           }
       }
+  }
+
+  .column-icon-picker-bg {
+      outline: none;
+      position: absolute;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: calc(100dvh - 52px);
+      background-color: rgba(255, 255, 255, 0);
+      backdrop-filter: blur(5px);
   }
 </style>

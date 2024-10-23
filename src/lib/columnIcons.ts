@@ -1,18 +1,5 @@
 import {
-    Aperture,
-    Bell,
-    Bird,
-    Bookmark, Bot, Box, Camera,
-    Cat,
-    Clapperboard,
-    Clock3,
-    Dog, FlaskConical, Heart,
-    Home, Image,
-    List, Newspaper,
-    Pencil,
-    Rainbow, Rss, Sparkles, Speaker,
-    Star,
-    Sun, Tent, TreePine, Apple, Beer, Coffee, IceCream, CakeSlice, Soup, UtensilsCrossed, Search, Repeat2, UserRound, Music, AtSign
+    Aperture, Bell, Bird, Bookmark, Bot, Box, Camera, Cat, Clapperboard, Clock3, Dog, FlaskConical, Heart, Home, Image, List, Newspaper, Pencil, Rainbow, Rss, Sparkles, Speaker, Star, Sun, Tent, TreePine, Apple, Beer, Coffee, IceCream, CakeSlice, Soup, UtensilsCrossed, Search, Repeat2, UserRound, Music, AtSign, Mic, Squirrel, PawPrint, Moon, Clover, Rocket, Gamepad2, Ghost, Crown, Gem, MessageCircleHeart, MessageCircleQuestion, Hash, Palette, Paintbrush, TypeOutline, NotepadText, Shirt,
 } from 'lucide-svelte';
 
 export const iconMap = new Map();
@@ -27,10 +14,18 @@ iconMap.set('home', Home)
     .set('mention', AtSign)
     .set('rainbow', Rainbow)
     .set('sun', Sun)
+    .set('moon', Moon)
     .set('clock', Clock3)
+    .set('rocket', Rocket)
+    .set('gamepad', Gamepad2)
+    .set('ghost', Ghost)
+    .set('crown', Crown)
+    .set('gem', Gem)
     .set('cat', Cat)
     .set('dog', Dog)
     .set('bird', Bird)
+    .set('squirrel', Squirrel)
+    .set('pawprint', PawPrint)
     .set('movie', Clapperboard)
     .set('star', Star)
     .set('speaker', Speaker)
@@ -45,7 +40,9 @@ iconMap.set('home', Home)
     .set('heart', Heart)
     .set('repost', Repeat2)
     .set('tree', TreePine)
+    .set('clover', Clover)
     .set('rss', Rss)
+    .set('shirt', Shirt)
     .set('tent', Tent)
     .set('apple', Apple)
     .set('beer', Beer)
@@ -54,4 +51,12 @@ iconMap.set('home', Home)
     .set('cake', CakeSlice)
     .set('soup', Soup)
     .set('dinner', UtensilsCrossed)
-    .set('music', Music);
+    .set('music', Music)
+    .set('mic', Mic)
+    .set('circleheart', MessageCircleHeart)
+    .set('circlequestion', MessageCircleQuestion)
+    .set('hash', Hash)
+    .set('palette', Palette)
+    .set('brush', Paintbrush)
+    .set('type', TypeOutline)
+    .set('notepad', NotepadText);

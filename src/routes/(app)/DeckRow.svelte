@@ -376,6 +376,10 @@
                 </button>
             {/if}
         </div>
+
+        {#if isIconPickerOpen}
+            <ColumnIconPicker on:change={handleIconChange} on:close={() => {isIconPickerOpen = false}} current={column.settings?.icon}></ColumnIconPicker>
+        {/if}
     </div>
 
     {#if isSettingsOpen}
@@ -388,7 +392,7 @@
                         {#if (column.algorithm.type === 'notification')}
                             <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
                         {:else if (column.algorithm.type === 'thread')}
-                            <ThreadTimeline column={column} index={index} {_agent} bind:isRefreshing={isRefreshing}></ThreadTimeline>
+                            <ThreadTimeline column={column} index={index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
                         {:else if (column.algorithm.type === 'chat')}
                             <ChatTimeline
                                     column={column}
@@ -413,10 +417,6 @@
                 {/if}
             {/key}
         {/key}
-    {/if}
-
-    {#if isIconPickerOpen}
-        <ColumnIconPicker on:change={handleIconChange} current={column.settings?.icon}></ColumnIconPicker>
     {/if}
 </div>
 

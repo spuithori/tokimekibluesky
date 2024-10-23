@@ -35,6 +35,10 @@ const languages = [
         value: 'bg',
         text: 'български',
     },
+    {
+        value: 'zh-CN',
+        text: '简体中文',
+    },
 ]
 
 $: {

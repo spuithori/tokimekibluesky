@@ -166,6 +166,24 @@
       @media (max-width: 767px) {
           border: none;
       }
+
+      @media (min-width: 768px) {
+          scrollbar-color: var(--scroll-bar-color) transparent;
+
+          &::-webkit-scrollbar {
+              width: 6px;
+          }
+
+          &::-webkit-scrollbar-thumb {
+              background: var(--scroll-bar-color);
+              border-radius: 0;
+          }
+
+          &::-webkit-scrollbar-track {
+              background: transparent;
+              border-radius: 0;
+          }
+      }
   }
 
   .side-content-publish {

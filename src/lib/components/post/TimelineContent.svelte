@@ -163,7 +163,7 @@
     <p class="timeline__handle">@{post.author.handle}</p>
   {/if}
 
-  <div class="timeline-warn-wrap" class:timeline-warn-wrap--warned={isWarn === 'content'}>
+  <div class="timeline-warn-wrap" class:timeline-warn-wrap--warned={isWarn === 'content' && warnBehavior !== 'inform'}>
     {#if (isWarn === 'content')}
       <TimelineWarn labels={warnLabels} behavior={warnBehavior}></TimelineWarn>
     {/if}

@@ -8,7 +8,8 @@ import {
     quotePost,
     replyRef,
     settings,
-    threadGate
+    threadGate,
+    direction,
 } from '$lib/stores';
 import {selfLabels} from "$lib/components/editor/publishStore";
 import { clickOutside } from '$lib/clickOutSide';
@@ -81,6 +82,8 @@ function handleOpen() {
             showPublish: true
         });
     }
+
+    direction.set('up');
 }
 
 function onClose() {
@@ -386,7 +389,7 @@ async function publish(post, treeReplyRef = undefined) {
 
     const images = post.images;
 
-    if (!post.text && !images.length) {
+    if (!post.text && !images.length && !embedExternal) {
         isEnabled = false;
         return false;
     }

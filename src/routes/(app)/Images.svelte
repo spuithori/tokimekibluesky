@@ -60,13 +60,13 @@
     lightbox.init();
 
     function open(index: any) {
-        galleryImages = galleryImages.map(image => {
+        galleryImages = galleryImages.map((image, index) => {
             if (!image.width) {
-                image.width = image.naturalWidth || 0;
+                image.width = images[index].naturalWidth || 0;
             }
 
             if (!image.height) {
-                image.height = image.naturalHeight || 0;
+                image.height = images[index].naturalHeight || 0;
             }
 
             return image;
@@ -123,20 +123,20 @@
   >
     {#each images as image, index}
       <div class="timeline-image">
-          {#if (blobs[index]?.image.mimeType === 'image/gif')}
-              <GifImage {did} blob={blobs[index]?.image} alt={image.alt}></GifImage>
-          {:else}
-              <button on:click={() => open(index)} aria-label="画像を拡大する">
-                  <img
-                      src="{image.thumb}"
-                      alt="{image.alt}"
-                      width={image?.aspectRatio?.width}
-                      height={image?.aspectRatio?.height}
-                      bind:naturalWidth={galleryImages[index].naturalWidth}
-                      bind:naturalHeight={galleryImages[index].naturalHeight}
-                  >
-              </button>
-          {/if}
+        {#if (blobs[index]?.image.mimeType === 'image/gif')}
+          <GifImage {did} blob={blobs[index]?.image} alt={image.alt}></GifImage>
+        {:else}
+          <button on:click={() => open(index)} aria-label="画像を拡大する">
+            <img
+                src="{image.thumb}"
+                alt="{image.alt}"
+                width={image?.aspectRatio?.width}
+                height={image?.aspectRatio?.height}
+                bind:naturalWidth={image.naturalWidth}
+                bind:naturalHeight={image.naturalHeight}
+            >
+          </button>
+        {/if}
       </div>
     {/each}
   </div>

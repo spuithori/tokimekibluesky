@@ -1,4 +1,4 @@
-import {ja, enUS, pt, ko, bg} from 'date-fns/locale';
+import {ja, enUS, pt, ko, bg, zhCN} from 'date-fns/locale';
 import {setDefaultOptions} from 'date-fns';
 
 export function detectDateFnsLocale(locale) {
@@ -15,6 +15,10 @@ export function detectDateFnsLocale(locale) {
             break;
         case 'bg':
             setDefaultOptions({ locale: bg });
+            break;
+        case 'zh':
+        case 'zh-CN':
+            setDefaultOptions({ locale: zhCN });
             break;
         default:
             setDefaultOptions({ locale: enUS });

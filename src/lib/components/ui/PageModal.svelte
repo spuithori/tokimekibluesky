@@ -2,6 +2,8 @@
   import {settings} from '$lib/stores';
   import {goto} from '$app/navigation';
 
+  export let isVirtual = false;
+
   function close() {
       goto('/', {
           noScroll: true,
@@ -20,7 +22,7 @@
 <svelte:window on:keydown={handleKeydown}></svelte:window>
 
 <div class="modal-page modal-page--{$settings.design?.layout}">
-  <div class="modal-page-content">
+  <div class="modal-page-content" class:modal-page-content--virtual={isVirtual}>
     <slot></slot>
   </div>
 

@@ -199,7 +199,7 @@
           background: var(--bar-bg-color);
           backdrop-filter: blur(8px);
           height: min-content;
-          padding: 0 8px;
+          padding: 0 4px 0 8px;
           width: 100vw;
           overflow-x: auto;
           overflow-y: initial;

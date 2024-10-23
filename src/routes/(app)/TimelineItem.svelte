@@ -520,7 +520,14 @@
             });
 
             toast.success($_('success_register_pin'));
-            location.reload();
+            const character = 'r';
+            const keyboardEvent = new KeyboardEvent('keydown', {
+                key: character,
+                code: character.toUpperCase(),
+                bubbles: true,
+                cancelable: true,
+            });
+            document.dispatchEvent(keyboardEvent);
         } catch (e) {
 
         }
@@ -538,7 +545,14 @@
             });
 
             toast.success($_('success_unregister_pin'));
-            location.reload();
+            const character = 'r';
+            const keyboardEvent = new KeyboardEvent('keydown', {
+                key: character,
+                code: character.toUpperCase(),
+                bubbles: true,
+                cancelable: true,
+            });
+            document.dispatchEvent(keyboardEvent);
         } catch (e) {
 
         }
@@ -611,15 +625,17 @@
       </p>
     {/if}
 
-    <div class="timeline-repost-messages">
-      {#if (isReasonRepost(data.reason))}
-        <p class="timeline-repost-message">
-          <ProfileCardWrapper handle="{data.reason.by.handle}" {_agent}>
-            <a href="/profile/{data.reason.by.handle}"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
-          </ProfileCardWrapper>
-        </p>
-      {/if}
-    </div>
+    {#if (!isThread)}
+      <div class="timeline-repost-messages">
+        {#if (isReasonRepost(data.reason))}
+          <p class="timeline-repost-message">
+            <ProfileCardWrapper handle="{data.reason.by.handle}" {_agent}>
+              <a href="/profile/{data.reason.by.handle}"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
+            </ProfileCardWrapper>
+          </p>
+        {/if}
+      </div>
+    {/if}
 
     {#if (data?.reply?.parent?.notFound || data?.reply?.parent?.blocked || data?.reply?.root?.notFound || data?.reply?.root?.blocked)}
       <article class="timeline-hidden-item">
@@ -668,7 +684,6 @@
       <div class="menu-sub-list" slot="sub">
         <ReactionButtonsInMenu
             {_agent}
-            {isMedia}
             {data}
             on:repost={handleRepost}
             on:like={handleLike}

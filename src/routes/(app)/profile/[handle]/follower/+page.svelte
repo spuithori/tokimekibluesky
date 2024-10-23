@@ -62,7 +62,8 @@
     {/each}
 
     <InfiniteLoading on:infinite={handleLoadMore}>
-      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+      <p slot="noMore" class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      <p slot="noResults" class="infinite-nomore"><span>{$_('no_more')}</span></p>
     </InfiniteLoading>
   </div>
 </div>

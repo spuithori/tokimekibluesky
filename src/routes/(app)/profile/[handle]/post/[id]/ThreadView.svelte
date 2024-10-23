@@ -48,7 +48,3 @@
 {#if ($junkColumns.findIndex(_column => _column.id === 'thread_' + id) !== -1)}
   <DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'thread_' + id)]} isJunk={true} name={title}></DeckRow>
 {/if}
-
-<style lang="postcss">
-
-</style>
