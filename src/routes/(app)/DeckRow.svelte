@@ -41,6 +41,7 @@
     }: Props = $props();
 
     const columnState = getColumnState(isJunk);
+    const fixedColumnState = getColumnState(false);
     let column = columnState.getColumn(index);
 
     const uniqueAgent = $agents.get(getAccountIdByDid($agents, column.did));
@@ -163,7 +164,7 @@
         _column.algorithm.name = name || column.algorithm.name;
 
         try {
-            columnState.add(_column);
+            fixedColumnState.add(_column);
 
             toast.success($_('column_added'));
             isColumnAlreadyAdded = true;
