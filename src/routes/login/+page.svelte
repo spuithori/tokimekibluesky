@@ -4,7 +4,7 @@
 
     let identifier = '';
     let service = 'https://bsky.social';
-    let isLoginModalOpen = false;
+    let isLoginModalOpen = $state(false);
     import { pwaInfo } from 'virtual:pwa-info';
     import { onMount } from 'svelte';
     import LoginModal from "$lib/components/acp/LoginModal.svelte";
@@ -66,7 +66,7 @@
     <p class="login-box__text">{$_('login_box_text_2')}</p>
 
     <div class="login-box__buttons">
-      <button class="button button--fullwidth" on:click={() => {isLoginModalOpen = true}}>{$_('login')}</button>
+      <button class="button button--fullwidth" onclick={() => {isLoginModalOpen = true}}>{$_('login')}</button>
       <a class="button button--border button--fullwidth" href="https://docs.tokimeki.blue/ja#%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88" target="_blank" rel="noopener">{$_('show_screenshots')}</a>
     </div>
 

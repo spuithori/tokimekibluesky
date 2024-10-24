@@ -4,7 +4,7 @@
     import {createEventDispatcher} from 'svelte';
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
+  let { _agent = $agent } = $props();
 
     function handleListRemove(event) {
         userLists.update(lists => {

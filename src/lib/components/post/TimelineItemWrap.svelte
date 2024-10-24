@@ -3,15 +3,17 @@
   import {agent} from "$lib/stores";
   import {onMount} from "svelte";
 
-  export let data;
-  export let column;
-  export let index;
-  export let _agent = $agent;
+  let {
+    data,
+    column,
+    index,
+    _agent = $agent
+  } = $props();
 
   let isMount = false;
-  let isVisible = true;
-  let height;
-  let el;
+  let isVisible = $state(true);
+  let height = $state();
+  let el = $state();
 
   onMount(async () => {
       isMount = true;

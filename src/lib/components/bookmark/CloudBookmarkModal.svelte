@@ -7,13 +7,12 @@
     import CloudBookmarkMenu from "$lib/components/bookmark/CloudBookmarkMenu.svelte";
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
 
-    export let id;
+  let { _agent = $agent, id } = $props();
     let bookmark = undefined;
-    let name = '';
-    let text = '';
-    let loading = false;
+    let name = $state('');
+    let text = $state('');
+    let loading = $state(false);
 
     async function save () {
         try {
@@ -127,8 +126,8 @@
       </dl>
 
       <div class="bookmark-modal-close">
-        <button class="button button--sm" on:click={save}>{$_('save_button')}</button>
-        <button class="button button--sm button--border button--danger" on:click={remove}>{$_('cancel')}</button>
+        <button class="button button--sm" onclick={save}>{$_('save_button')}</button>
+        <button class="button button--sm button--border button--danger" onclick={remove}>{$_('cancel')}</button>
       </div>
 
       <CloudBookmarkMenu {id} {_agent} on:close></CloudBookmarkMenu>

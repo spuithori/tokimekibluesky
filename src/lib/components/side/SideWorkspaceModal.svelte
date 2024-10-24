@@ -11,16 +11,16 @@
     import {HelpCircle} from "lucide-svelte";
     const dispatch = createEventDispatcher();
 
-    let isMenuOpen = false;
+    let isMenuOpen = $state(false);
 
-    $: profiles = liveQuery(async () => {
+    let profiles = $derived(liveQuery(async () => {
         const profiles = await accountsDb.profiles
             .limit(10)
             .toArray();
         return profiles;
-    });
+    }));
 
-    $: currentProfile = Number(localStorage.getItem('currentProfile') || profiles[0].id );
+    let currentProfile = $derived(Number(localStorage.getItem('currentProfile') || profiles[0].id ));
 
     function handleClose() {
         dispatch('close');
@@ -29,7 +29,7 @@
 
 <div class="side-workspace-modal"
      use:clickOutside={{ignoreElement: '.side-workspace-button'}}
-     on:outclick={handleClose}
+     onoutclick={handleClose}
      transition:fade={{duration: 100}}
 >
     <div class="side-workspace-modal-heading">
@@ -40,23 +40,27 @@
         </p>
 
         <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="regular-vertical-menu-button">
-            <svg slot="ref" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-more-horizontal"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            {#snippet ref()}
+                        <svg  xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-more-horizontal"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                    {/snippet}
 
-            <ul class="timeline-menu-list" slot="content">
-                <li class="timeline-menu-list__item">
-                    <button class="timeline-menu-list__button" on:click={() => {$settings.general.hideWorkspaceButton = true; handleClose()}}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
-                        <span>{$_('hide_this_button')}</span>
-                    </button>
-                </li>
+            {#snippet content()}
+                        <ul class="timeline-menu-list" >
+                    <li class="timeline-menu-list__item">
+                        <button class="timeline-menu-list__button" onclick={() => {$settings.general.hideWorkspaceButton = true; handleClose()}}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                            <span>{$_('hide_this_button')}</span>
+                        </button>
+                    </li>
 
-                <li class="timeline-menu-list__item">
-                    <a href="https://docs.tokimeki.blue/ja/usage/profiles" target="_blank" rel="noopener" class="timeline-menu-list__button">
-                        <HelpCircle size="20" color="var(--text-color-1)"></HelpCircle>
-                        <span>{$_('workspace_help')}</span>
-                    </a>
-                </li>
-            </ul>
+                    <li class="timeline-menu-list__item">
+                        <a href="https://docs.tokimeki.blue/ja/usage/profiles" target="_blank" rel="noopener" class="timeline-menu-list__button">
+                            <HelpCircle size="20" color="var(--text-color-1)"></HelpCircle>
+                            <span>{$_('workspace_help')}</span>
+                        </a>
+                    </li>
+                </ul>
+                    {/snippet}
         </Menu>
     </div>
 

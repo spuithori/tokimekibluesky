@@ -2,7 +2,7 @@
   import {onMount} from "svelte";
   import Sticker from "$lib/components/ui/Sticker.svelte";
   import {_} from "svelte-i18n";
-  let serverStatus = undefined;
+  let serverStatus = $state(undefined);
 
   onMount(async () => {
       try {

@@ -3,8 +3,8 @@
   import {_} from "svelte-i18n";
   import {accountsDb} from "$lib/db";
 
-  export let account;
-  let isLoginModalOpen = false;
+  let { account } = $props();
+  let isLoginModalOpen = $state(false);
 
   async function handleSuccess(event) {
       isLoginModalOpen = false;
@@ -43,8 +43,8 @@
   <h2 class="missing-account-item__title">{account.session?.handle}</h2>
 
   <div class="missing-account-item__buttons">
-    <button class="button button--sm" on:click={() => {isLoginModalOpen = true}}>{$_('login')}</button>
-    <button class="button button--border button--sm" on:click={handleDelete}>{$_('logout_button')}</button>
+    <button class="button button--sm" onclick={() => {isLoginModalOpen = true}}>{$_('login')}</button>
+    <button class="button button--border button--sm" onclick={handleDelete}>{$_('logout_button')}</button>
   </div>
 </div>
 

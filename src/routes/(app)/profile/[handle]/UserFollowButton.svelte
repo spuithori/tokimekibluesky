@@ -1,16 +1,15 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { _ } from 'svelte-i18n';
   import {createEventDispatcher, onMount} from "svelte";
   import {agent, changedFollowData} from "$lib/stores";
   const dispatch = createEventDispatcher();
 
-  export let _agent = $agent;
-  export let following;
-  export let user;
+  let { _agent = $agent, following = $bindable(), user } = $props();
   let rkey;
-  let isDisabled = false;
+  let isDisabled = $state(false);
 
-  $: handleFollowChange($changedFollowData);
 
   function generateRkey(following) {
       const followingPath = following.split('/');
@@ -22,8 +21,8 @@
       rkey = generateRkey(following);
   }
 
-  let follow = function () {};
-  let unfollow = function () {};
+  let follow = $state(function () {});
+  let unfollow = $state(function () {});
 
   async function handleFollowChange(data) {
       if (!data) {
@@ -74,12 +73,15 @@
           });
       }
   })
+  run(() => {
+    handleFollowChange($changedFollowData);
+  });
 </script>
 
 <div>
   {#if !following}
-    <button class="button button--sm button--follow" on:click={follow} disabled={isDisabled}>{$_('follow_button')}</button>
+    <button class="button button--sm button--follow" onclick={follow} disabled={isDisabled}>{$_('follow_button')}</button>
   {:else }
-    <button class="button button--sm button--following" on:click={unfollow} disabled={isDisabled} data-unfollow-name="{$_('unfollow_button')}">{$_('now_following_button')}</button>
+    <button class="button button--sm button--following" onclick={unfollow} disabled={isDisabled} data-unfollow-name="{$_('unfollow_button')}">{$_('now_following_button')}</button>
   {/if}
 </div>

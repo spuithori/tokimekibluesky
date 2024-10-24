@@ -10,9 +10,8 @@
     import {AppBskyEmbedImages} from "@atproto/api";
     import MediaTimelineSlider from "$lib/components/post/MediaTimelineSlider.svelte";
 
-    export let _agent = $agent;
-    export let data;
-    let el;
+  let { _agent = $agent, data } = $props();
+    let el = $state();
 
     function modalClose() {
         history.back();
@@ -46,14 +45,14 @@
     })
 </script>
 
-<svelte:window on:popstate={handlePopstate} on:keydown={handleKeydown}></svelte:window>
+<svelte:window onpopstate={handlePopstate} onkeydown={handleKeydown}></svelte:window>
 
 <dialog class="media-content-wrap" bind:this={el}>
-  <button on:click={modalClose} class="media-content-close" aria-label="Close">
+  <button onclick={modalClose} class="media-content-close" aria-label="Close">
     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
   </button>
 
-  <button on:click={modalClose} class="media-content-close-bg"></button>
+  <button onclick={modalClose} class="media-content-close-bg"></button>
 
   <div class="media-content" transition:scale="{{duration: 350, opacity: 0.5, start: 0.8}}">
     <div class="media-content__image">

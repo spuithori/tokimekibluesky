@@ -1,11 +1,11 @@
 <script lang="ts">
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
 
-    export let record;
-    export let _agent;
     import {getTextArray, isUriLocal} from "$lib/richtext";
     import {linkWarning, settings, timelineHashtags} from "$lib/stores";
     import {detectDifferentDomainUrl} from "$lib/util";
+    let { record, _agent } = $props();
+    const textArray = getTextArray(record);
 
     function handleUrlClick(e, item) {
         if (!$settings.general.linkWarningConfirmSkip) {
@@ -22,7 +22,7 @@
         }
     }
 
-    getTextArray(record).forEach(item => {
+    textArray.forEach(item => {
         if (item.isTag() && item.tag?.tag) {
             const index = $timelineHashtags.indexOf(item.tag.tag);
             if (index > -1) {
@@ -36,12 +36,12 @@
     })
 </script>
 
-{#each getTextArray(record) as item}
+{#each textArray as item}
     {#if (item.isLink() && item.link)}
         {#if (isUriLocal(item.link.uri))}
             <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
         {:else}
-            <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer" on:click={(e) => {handleUrlClick(e, item)}}>{item.text}</a>
+            <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer" onclick={(e) => {handleUrlClick(e, item)}}>{item.text}</a>
         {/if}
     {:else if (item.isMention() && item.mention)}
         <ProfileCardWrapper handle="{item.text.slice(1)}" {_agent}>

@@ -1,29 +1,43 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
-  import {agent, junkColumns} from "$lib/stores";
+  import {agent} from "$lib/stores";
   import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
   import {isDid} from "$lib/util";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import DeckRow from "../../../../DeckRow.svelte";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
-  export let id;
-  export let handle;
-  export let title = '';
-  export let isModerationList = false;
-  export let isMute = false;
-  export let isBlock = undefined;
+  interface Props {
+    id: any;
+    handle: any;
+    title?: string;
+    isModerationList?: boolean;
+    isMute?: boolean;
+    isBlock?: any;
+  }
+
+  let {
+    id,
+    handle,
+    title = $bindable(''),
+    isModerationList = $bindable(false),
+    isMute = $bindable(false),
+    isBlock = $bindable(undefined)
+  }: Props = $props();
+
+  const columnState = getColumnState(true);
 
   let timeline = [];
   let cursor = undefined;
   let feed;
-  let did = '';
-  let isButtonsDisable = false;
+  let did = $state('');
+  let isButtonsDisable = $state(false);
 
   if (isDid(handle)) {
       did = handle;
 
-      if ($junkColumns.findIndex(_column => _column.id === 'list_' + id) === -1) {
-          junkColumns.set([...$junkColumns, {
+      if (!columnState.hasColumn('list_' + id)) {
+          columnState.add({
               id: 'list_' + id,
               algorithm: {
                   algorithm: 'at://' + did + '/app.bsky.graph.list/' + id,
@@ -38,15 +52,15 @@
                   feed: [],
                   cursor: '',
               }
-          }]);
+          });
       }
   } else {
       $agent.agent.api.com.atproto.identity.resolveHandle({handle: handle})
           .then(value => {
               did = value.data.did;
 
-              if ($junkColumns.findIndex(_column => _column.id === 'list_' + id) === -1) {
-                  junkColumns.set([...$junkColumns, {
+              if (!columnState.hasColumn('list_' + id)) {
+                  columnState.add({
                       id: 'list_' + id,
                       algorithm: {
                           algorithm: 'at://' + did + '/app.bsky.graph.list/' + id,
@@ -61,7 +75,7 @@
                           feed: [],
                           cursor: '',
                       }
-                  }]);
+                  });
               }
           })
           .catch(e => {
@@ -141,8 +155,8 @@
   </div>
 
   {#if !isModerationList}
-    {#if ($junkColumns.findIndex(_column => _column.id === 'list_' + id) !== -1)}
-      <DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'list_' + id)]} isJunk={true} name={title}></DeckRow>
+    {#if (columnState.hasColumn('list_' + id))}
+      <DeckRow index={columnState.getColumnIndex('list_' + id)} isJunk={true} name={title}></DeckRow>
     {/if}
   {:else}
     <div class="mod-list-cover">
@@ -151,18 +165,18 @@
 
       <div class="mod-list-buttons">
         {#if isMute}
-          <button class="button button--sm button--border button--with-icon" on:click={unMuteList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-off"><path d="M20.5 14.9A9 9 0 0 0 9.1 3.5"/><path d="m2 2 20 20"/><path d="M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"/></svg>{$_('button_unmute')}
+          <button class="button button--sm button--border button--with-icon" onclick={unMuteList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-off"><path d="M20.5 14.9A9 9 0 0 0 9.1 3.5"/><path d="m2 2 20 20"/><path d="M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"/></svg>{$_('button_unmute')}
           </button>
         {:else}
-          <button class="button button--sm button--with-icon" on:click={muteList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-off"><path d="M20.5 14.9A9 9 0 0 0 9.1 3.5"/><path d="m2 2 20 20"/><path d="M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"/></svg>{$_('button_mute')}
+          <button class="button button--sm button--with-icon" onclick={muteList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-off"><path d="M20.5 14.9A9 9 0 0 0 9.1 3.5"/><path d="m2 2 20 20"/><path d="M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"/></svg>{$_('button_mute')}
           </button>
         {/if}
 
         {#if isBlock}
-          <button class="button button--sm button--border button--with-icon" on:click={unBlockList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-ban"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m4 5 14 12"/></svg>{$_('button_unblock')}
+          <button class="button button--sm button--border button--with-icon" onclick={unBlockList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-ban"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m4 5 14 12"/></svg>{$_('button_unblock')}
           </button>
         {:else}
-          <button class="button button--sm button--with-icon" on:click={blockList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-ban"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m4 5 14 12"/></svg>{$_('button_block')}
+          <button class="button button--sm button--with-icon" onclick={blockList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-ban"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m4 5 14 12"/></svg>{$_('button_block')}
           </button>
         {/if}
       </div>

@@ -5,10 +5,10 @@
     import {accountsDb} from "$lib/db";
     import {_} from "svelte-i18n";
 
-    $: profile = liveQuery(async () => {
+    let profile = $derived(liveQuery(async () => {
         const profile = await accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')));
         return profile;
-    })
+    }))
 </script>
 
 <div class="modal" transition:fly="{{ y: 30, duration: 250 }}">

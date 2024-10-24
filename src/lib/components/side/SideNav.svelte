@@ -14,7 +14,7 @@
       <button
           class="side-nav__button side-nav__button--publish"
           class:side-nav__button--current={$sideState === 'publish'}
-          on:click={() => toggleSideNav('publish')}
+          onclick={() => toggleSideNav('publish')}
           aria-label="Publish Tab"
       >
         <Pen color="var(--nav-secondary-icon-color)"></Pen>
@@ -25,7 +25,7 @@
       <button
           class="side-nav__button"
           class:side-nav__button--current={$sideState === 'profile'}
-          on:click={() => toggleSideNav('profile')}
+          onclick={() => toggleSideNav('profile')}
           aria-label="Profile Tab"
       >
         <User2 color="var(--nav-secondary-icon-color)"></User2>
@@ -36,7 +36,7 @@
       <button
           class="side-nav__button"
           class:side-nav__button--current={$sideState === 'notification'}
-          on:click={() => toggleSideNav('notification')}
+          onclick={() => toggleSideNav('notification')}
           aria-label="Notification Tab"
       >
         <Bell color="var(--nav-secondary-icon-color)"></Bell>
@@ -47,7 +47,7 @@
       <button
           class="side-nav__button"
           class:side-nav__button--current={$sideState === 'feeds'}
-          on:click={() => toggleSideNav('feeds')}
+          onclick={() => toggleSideNav('feeds')}
           aria-label="Feed Store Tab"
       >
         <GanttChartSquare color="var(--nav-secondary-icon-color)"></GanttChartSquare>
@@ -59,7 +59,7 @@
         <button
                 class="side-nav__button"
                 class:side-nav__button--current={$sideState === 'chat'}
-                on:click={() => toggleSideNav('chat')}
+                onclick={() => toggleSideNav('chat')}
                 aria-label="Chat Tab"
         >
           <MessageCircleMore color="var(--nav-secondary-icon-color)"></MessageCircleMore>

@@ -1,25 +1,23 @@
 <script lang="ts">
-    import {columns, globalUnique, isColumnModalOpen, settings} from '$lib/stores';
+    import {globalUnique, isColumnModalOpen, settings} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import {_} from "svelte-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
     let unique = Symbol();
-
-    if (Array.isArray($columns) && !$columns.length) {
-        columns.set([]);
-    }
+    const columnState = getColumnState();
 </script>
 
 <div class="deck-wrap">
   <div class="deck-divider"></div>
 
-  {#if $columns.length}
+  {#if columnState.columns.length}
     {#key $globalUnique}
       <div class="deck"
            class:deck--left-sidebar={$settings.design?.publishPosition === 'left'}
            class:deck--bottom={$settings.design?.publishPosition === 'bottom'}
       >
-            {#each $columns as column, index (column.id)}
+            {#each columnState.columns as column, index (column.id)}
               {#if !column?.settings?.isPopup}
                 <DeckRow {column} {index} {unique}></DeckRow>
               {:else}
@@ -36,7 +34,7 @@
 
       <h2 class="deck-empty__title">{$_('decks_empty_title')}</h2>
       <p class="deck-empty__text">{$_('decks_empty_text')}</p>
-      <button class="button" on:click={() => {$isColumnModalOpen = true}}>{$_('feed_quick_add')}</button>
+      <button class="button" onclick={() => {$isColumnModalOpen = true}}>{$_('feed_quick_add')}</button>
     </div>
   {/if}
 </div>

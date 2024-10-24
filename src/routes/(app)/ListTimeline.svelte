@@ -5,13 +5,11 @@
     import { parseISO } from 'date-fns';
     import MediaTimelineItem from "./MediaTimelineItem.svelte";
 
-    export let _agent = $agent;
-    export let column;
-    export let index;
+  let { _agent = $agent, column = $bindable(), index } = $props();
 
     let actors = [];
     let cursors = [];
-    let il;
+    let il = $state();
 
     let feedPool = [];
     let feed = [];
@@ -106,7 +104,9 @@
     {/if}
 
     <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
-      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+      {#snippet noMore()}
+            <p  class="infinite-nomore">もうないよ</p>
+          {/snippet}
     </InfiniteLoading>
   </div>
 {:else}

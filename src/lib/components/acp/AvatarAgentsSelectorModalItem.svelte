@@ -3,12 +3,16 @@
   import {accountsDb} from "$lib/db";
   const dispatch = createEventDispatcher();
 
-  export let agent;
-  export let key;
-  export let isCurrent = false;
+  interface Props {
+    agent: any;
+    key: any;
+    isCurrent?: boolean;
+  }
 
-  let avatar;
-  let displayName;
+  let { agent, key, isCurrent = false }: Props = $props();
+
+  let avatar = $state();
+  let displayName = $state();
 
   accountsDb.accounts.get(key)
       .then(value => {
@@ -24,7 +28,7 @@
 <div class="avatar-agents-selector-item"
      class:avatar-agents-selector-item--current={isCurrent}
      role="button"
-     on:click={handleSelect}
+     onclick={handleSelect}
 >
   <div class="avatar-agents-selector-item__avatar">
     {#if (avatar)}

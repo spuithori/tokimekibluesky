@@ -7,7 +7,7 @@
     import MediaTimelineItem from '../../../MediaTimelineItem.svelte';
     import { toast } from "svelte-sonner";
 
-    let feeds = [];
+    let feeds = $state([]);
     let media = [];
     let cursor = '';
 
@@ -15,7 +15,11 @@
         return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
     }
 
-    export let data: LayoutData;
+  interface Props {
+    data: LayoutData;
+  }
+
+  let { data }: Props = $props();
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         try {
@@ -59,8 +63,12 @@
   </div>
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    <p slot="noResults" class="infinite-nomore"><span>{$_('no_more')}</span></p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
+    {#snippet noResults()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
   </InfiniteLoading>
 </div>
 

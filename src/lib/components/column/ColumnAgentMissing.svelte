@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
 
-  export let column;
+  let { column } = $props();
 
 </script>
 

@@ -1,17 +1,22 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import {labelerSettings, agent, subscribedLabelers, labelDefs, settings} from '$lib/stores';
   import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
 
-  export let did;
-  export let isOfficial = false;
-  let defs = [];
-  let labels = [];
-  let renderLabels = {};
+  interface Props {
+    did: any;
+    isOfficial?: boolean;
+  }
+
+  let { did, isOfficial = false }: Props = $props();
+  let defs = $state([]);
+  let labels = $state([]);
+  let renderLabels = $state({});
   let ready = false;
 
-  $: changeLabel(renderLabels);
 
   onMount(async () => {
       const res = await $agent.agent.getLabelDefinitions([did]);
@@ -59,6 +64,9 @@
   function changeLabel(renderLabels) {
       applyLabelSettings();
   }
+  run(() => {
+    changeLabel(renderLabels);
+  });
 </script>
 
 {#each labels as label, index}

@@ -1,22 +1,17 @@
 <script lang="ts">
-	import {columns, isAfterReload, settings, sideState} from '$lib/stores';
+	import { isAfterReload, settings } from '$lib/stores';
 	import type { Snapshot } from './$types';
 	import {_} from 'svelte-i18n';
-	import {onMount} from "svelte";
 
 	let scrolls;
 
 	export const snapshot: Snapshot = {
-		capture: () => scrolls = $settings.design.layout === 'decks' ? $columns.map(column => column.scrollElement?.scrollTop) : document.querySelector(':root').scrollTop,
+		capture: () => scrolls = $settings.design.layout !== 'decks' ? document.querySelector(':root').scrollTop : undefined,
 		restore: (value) => {
 			if(!$isAfterReload && value) {
 				scrolls = value;
 
-				if ($settings.design.layout === 'decks') {
-					scrolls.forEach((scroll, index) => {
-						$columns[index].scrollElement.scrollTop = scroll;
-					})
-				} else {
+				if ($settings.design.layout !== 'decks') {
 					document.querySelector(':root').scrollTop = scrolls;
 				}
 			}
@@ -24,14 +19,9 @@
 			isAfterReload.set(false);
 		}
 	};
-
-	onMount(() => {
-		// $sideState = 'publish';
-	})
 </script>
 
 <svelte:head>
 	<title>{$_('page_title_home')} - TOKIMEKI</title>
 	<meta name="description" content="Timeline" />
 </svelte:head>
-

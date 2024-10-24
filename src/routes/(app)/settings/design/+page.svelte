@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import {_} from 'svelte-i18n';
     import { settings, theme } from '$lib/stores';
     import {liveQuery} from "dexie";
@@ -6,50 +8,26 @@
     import {builtInThemes} from "$lib/builtInThemes";
     import {defaultColors} from "$lib/defaultColors";
     import {isSafariOrFirefox} from "$lib/util";
-    let skin: string = $settings?.design.skin || 'default';
-    let themePick: string = $settings?.design.theme || 'royalblue';
-    let fontTheme = $settings?.design.fontTheme || 'default';
-    let darkmode = $settings?.design.darkmode || false;
-    let nonoto = $settings?.design.nonoto || false;
-    let layout = $settings?.design.layout || 'default';
-    let datetimeFormat = $settings?.design.datetimeFormat || 'yyyy-MM-dd HH:mm';
-    let absoluteTime = $settings?.design.absoluteTime || false;
-    let postsLayout = $settings?.design.postsLayout || 'default';
-    let postsImageLayout = $settings?.design.postsImageLayout || 'default';
-    let oneImageNoCrop = $settings?.design.oneImageNoCrop || false;
-    let fontSize = $settings?.design.fontSize || 2;
-    let externalLayout = $settings?.design.externalLayout || 'normal';
-    let mobilePostLayoutTop = $settings?.design.mobilePostLayoutTop || false;
-    let displayHandle = $settings?.design.displayHandle || false;
-    let reactionMode = $settings?.design.reactionMode || 'tokimeki';
-    let leftMode = $settings?.design.leftMode || false;
+    let skin: string = $state($settings?.design.skin || 'default');
+    let themePick: string = $state($settings?.design.theme || 'royalblue');
+    let fontTheme = $state($settings?.design.fontTheme || 'default');
+    let darkmode = $state($settings?.design.darkmode || false);
+    let nonoto = $state($settings?.design.nonoto || false);
+    let layout = $state($settings?.design.layout || 'default');
+    let datetimeFormat = $state($settings?.design.datetimeFormat || 'yyyy-MM-dd HH:mm');
+    let absoluteTime = $state($settings?.design.absoluteTime || false);
+    let postsLayout = $state($settings?.design.postsLayout || 'default');
+    let postsImageLayout = $state($settings?.design.postsImageLayout || 'default');
+    let oneImageNoCrop = $state($settings?.design.oneImageNoCrop || false);
+    let fontSize = $state($settings?.design.fontSize || 2);
+    let externalLayout = $state($settings?.design.externalLayout || 'normal');
+    let mobilePostLayoutTop = $state($settings?.design.mobilePostLayoutTop || false);
+    let displayHandle = $state($settings?.design.displayHandle || false);
+    let reactionMode = $state($settings?.design.reactionMode || 'tokimeki');
+    let leftMode = $state($settings?.design.leftMode || false);
 
-    $: myThemes = liveQuery(async () => {
-        const myThemes = await themesDb.themes.toArray();
-        return myThemes;
-    });
 
-    $: {
-        $settings.design.skin = skin;
-        $settings.design.theme = themePick;
-        $settings.design.fontTheme = fontTheme;
-        $settings.design.darkmode = darkmode;
-        $settings.design.nonoto = nonoto;
-        $settings.design.layout = layout;
-        $settings.design.absoluteTime = absoluteTime;
-        $settings.design.datetimeFormat = datetimeFormat;
-        $settings.design.postsLayout = postsLayout;
-        $settings.design.postsImageLayout = postsImageLayout;
-        $settings.design.oneImageNoCrop = oneImageNoCrop;
-        $settings.design.fontSize = fontSize;
-        $settings.design.externalLayout = externalLayout;
-        $settings.design.mobilePostLayoutTop = mobilePostLayoutTop;
-        $settings.design.displayHandle = displayHandle;
-        $settings.design.reactionMode = reactionMode;
-        $settings.design.leftMode = leftMode;
-    }
 
-    $: colors = detectColors($theme);
 
     const datetimeFormats = [
         {
@@ -83,6 +61,30 @@
 
         return defaultColors;
     }
+    let myThemes = $derived(liveQuery(async () => {
+        const myThemes = await themesDb.themes.toArray();
+        return myThemes;
+    }));
+    run(() => {
+        $settings.design.skin = skin;
+        $settings.design.theme = themePick;
+        $settings.design.fontTheme = fontTheme;
+        $settings.design.darkmode = darkmode;
+        $settings.design.nonoto = nonoto;
+        $settings.design.layout = layout;
+        $settings.design.absoluteTime = absoluteTime;
+        $settings.design.datetimeFormat = datetimeFormat;
+        $settings.design.postsLayout = postsLayout;
+        $settings.design.postsImageLayout = postsImageLayout;
+        $settings.design.oneImageNoCrop = oneImageNoCrop;
+        $settings.design.fontSize = fontSize;
+        $settings.design.externalLayout = externalLayout;
+        $settings.design.mobilePostLayoutTop = mobilePostLayoutTop;
+        $settings.design.displayHandle = displayHandle;
+        $settings.design.reactionMode = reactionMode;
+        $settings.design.leftMode = leftMode;
+    });
+    let colors = $derived(detectColors($theme));
 </script>
 
 <svelte:head>
@@ -92,7 +94,7 @@
 <div>
   <div class="column-heading">
     <div class="column-heading__buttons">
-      <button class="settings-back" on:click={() => {history.back()}}>
+      <button class="settings-back" onclick={() => {history.back()}}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
       </button>
     </div>
@@ -194,7 +196,7 @@
               >
                 <button
                     class="theme-picker__button"
-                    on:click={() => {themePick = color.id}}
+                    onclick={() => {themePick = color.id}}
                     aria-label=""
                     style:background={color.colorCode}></button>
               </li>

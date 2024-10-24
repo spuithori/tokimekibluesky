@@ -1,10 +1,12 @@
 <script lang="ts">
+    import { passive } from 'svelte/legacy';
+
     import {_} from 'svelte-i18n';
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import TimelineSelector from "./TimelineSelector.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
-    import {agent, agents, columns, direction, intersectingIndex, isChatColumnFront} from "$lib/stores";
+    import {agent, agents, direction, intersectingIndex, isChatColumnFront} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
@@ -21,31 +23,43 @@
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {draggable, type DragOptions} from "@neodrag/svelte";
     import { createLongPress } from 'svelte-interactions';
+    import {getColumnState} from "$lib/classes/columnState.svelte";
     const { longPressAction } = createLongPress();
 
-    export let column;
-    export let index = 0;
-    export let unique = Symbol();
-    export let isJunk = false;
-    export let name = undefined;
+    interface Props {
+        index?: number;
+        unique?: any;
+        isJunk?: boolean;
+        name?: any;
+    }
+
+    let {
+        index = 0,
+        unique = $bindable(Symbol()),
+        isJunk = false,
+        name = undefined
+    }: Props = $props();
+
+    const columnState = getColumnState(isJunk);
+    let column = columnState.getColumn(index);
 
     const uniqueAgent = $agents.get(getAccountIdByDid($agents, column.did));
     let _agent = uniqueAgent || $agent;
-    let isSettingsOpen = false;
-    let isTopScrolling;
-    let isScrollPaused = false;
-    let isIconPickerOpen = false;
+    let isSettingsOpen = $state(false);
+    let isTopScrolling = $state();
+    let isScrollPaused = $state(false);
+    let isIconPickerOpen = $state(false);
     let observer;
-    let isFiltered = false;
-    let isColumnAlreadyAdded = false;
-    let hideReply;
-    let hideRepost;
-    let refresh;
-    let isDragging = false;
+    let isFiltered = $state(false);
+    let isColumnAlreadyAdded = $state(false);
+    let hideReply = $state();
+    let hideRepost = $state();
+    let refreshEl = $state();
+    let isDragging = $state(false);
     let reorderIndex = index;
-    let isRefreshing = false;
+    let isRefreshing = $state(false);
 
-    let dragOptions: DragOptions = {
+    let dragOptions: DragOptions = $state({
         axis: 'x',
         handle: '.deck-drag-area',
         position: {
@@ -58,15 +72,17 @@
             dragEnd: true,
         },
         cancel: '.grabber'
-    };
+    });
 
-    $: if (isFiltered) {
-        hideReply = 'me';
-        hideRepost = 'none';
-    } else {
-        hideReply = 'all';
-        hideRepost = 'all';
-    }
+    $effect(() => {
+        if (isFiltered) {
+            hideReply = 'me';
+            hideRepost = 'none';
+        } else {
+            hideReply = 'all';
+            hideRepost = 'all';
+        }
+    })
 
     if (!column.data) {
         column.data = {
@@ -119,7 +135,7 @@
     }
 
     function handleIconChange(event) {
-        $columns[index].settings = {...$columns[index].settings, icon: event.detail.icon};
+        column.settings.icon = event.detail.icon;
         isIconPickerOpen = false;
     }
 
@@ -133,7 +149,7 @@
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 intersectingIndex.set(index);
-                isChatColumnFront.set($columns[index].algorithm?.type === 'chat');
+                isChatColumnFront.set(column.algorithm?.type === 'chat');
                 direction.set('up');
             }
         })
@@ -144,11 +160,10 @@
             ...column,
             id: self.crypto.randomUUID(),
         }
-
         _column.algorithm.name = name || column.algorithm.name;
 
         try {
-            $columns = [...$columns, _column];
+            columnState.add(_column);
 
             toast.success($_('column_added'));
             isColumnAlreadyAdded = true;
@@ -159,14 +174,14 @@
     }
 
     async function handleRefresh() {
-        await refresh();
+        await refreshEl.refresh();
     }
 
     function handleChangePopup() {
         if (column.settings.isPopup) {
-            $columns[index].settings = {...$columns[index].settings, isPopup: false};
+            column.settings = {...column.settings, isPopup: false};
         } else {
-            $columns[index].settings = {...$columns[index].settings, isPopup: true};
+            column.settings = {...column.settings, isPopup: true};
         }
     }
 
@@ -180,7 +195,7 @@
                 observer.observe(column.scrollElement);
             }
 
-            $columns[index].lastRefresh = new Date().toISOString();
+            column.lastRefresh = new Date().toISOString();
         }
     })
 
@@ -204,13 +219,13 @@
             y: 0,
         }
 
-        $columns.forEach(_column => {
+        columnState.columns.forEach(_column => {
             if (_column.scrollElement) {
                 _column.scrollElement.style.transform = 'translate3d(0, 0, 0)';
             }
         })
 
-        $columns = moveElement($columns, index, reorderIndex);
+        columnState.columns = moveElement(columnState.columns, index, reorderIndex);
 
         setTimeout(() => {
             isDragging = false;
@@ -221,8 +236,8 @@
         const x = e.detail.rootNode.getBoundingClientRect().left;
 
         if (Math.sign(e.detail.offsetX) === 1) {
-            const prevColumn = $columns[reorderIndex]?.scrollElement;
-            const nextColumn = $columns[reorderIndex + 1]?.scrollElement;
+            const prevColumn = columnState.columns[reorderIndex]?.scrollElement;
+            const nextColumn = columnState.columns[reorderIndex + 1]?.scrollElement;
 
             if (reorderIndex < index) {
                 reorderIndex = index;
@@ -238,8 +253,8 @@
                 reorderIndex = reorderIndex - 1;
             }
         } else if (Math.sign(e.detail.offsetX) === -1) {
-            const prevColumn = $columns[reorderIndex - 1]?.scrollElement;
-            const nextColumn = $columns[reorderIndex]?.scrollElement;
+            const prevColumn = columnState.columns[reorderIndex - 1]?.scrollElement;
+            const nextColumn = columnState.columns[reorderIndex]?.scrollElement;
 
             if (reorderIndex > index) {
                 reorderIndex = index;
@@ -292,16 +307,16 @@
     class:deck-row--single={$settings.design?.layout === 'default'}
     class:deck-row--compact={$settings.design?.publishPosition === 'bottom'}
     class:deck-row--junk={isJunk}
-    on:mouseenter={handleMouseEnter}
-    on:mouseleave={handleMouseLeave}
+    onmouseenter={handleMouseEnter}
+    onmouseleave={handleMouseLeave}
     bind:this={column.scrollElement}
-    on:scroll|passive={handleScroll}
+    use:passive={['scroll', () => handleScroll]}
     style:background-image={column.settings?.background ? `url(${backgroundsMap.get(column.settings.background).url})` : 'none'}
     class:dragging={isDragging}
     use:draggable={dragOptions}
-    on:neodrag:start={handleDragStart}
-    on:neodrag:end={handleDragEnd}
-    on:neodrag={handleDragging}
+    onneodrag:start={handleDragStart}
+    onneodrag:end={handleDragEnd}
+    onneodrag={handleDragging}
 >
     <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'}>
         {#if (!isJunk)}
@@ -312,9 +327,10 @@
             {/if}
 
             <div class="deck-heading__icon">
-                <button class="deck-heading__icon-picker-button" on:click={() => {isIconPickerOpen = !isIconPickerOpen}}>
+                <button class="deck-heading__icon-picker-button" onclick={() => {isIconPickerOpen = !isIconPickerOpen}}>
                     {#if column.settings?.icon}
-                        <svelte:component this={iconMap.get(column.settings.icon)} color="var(--deck-heading-icon-color)"></svelte:component>
+                        {@const SvelteComponent = iconMap.get(column.settings.icon)}
+                        <SvelteComponent color="var(--deck-heading-icon-color)"></SvelteComponent>
                     {:else}
                         <ColumnIcon type={column.algorithm.type}></ColumnIcon>
                     {/if}
@@ -324,9 +340,9 @@
             <div
                     role="button"
                     class="deck-heading__scroll-area"
-                    on:click={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root'), event)}}
+                    onclick={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root'), event)}}
                     use:longPressAction
-                    on:longpress={forceRefresh}
+                    onlongpress={forceRefresh}
                     aria-label="Back to top."
             >
                 <div class="deck-heading__title">
@@ -338,8 +354,8 @@
                 <dl class="profile-posts-nav">
                     <dt class="profile-posts-nav__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-filter"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></dt>
                     <dd class="profile-posts-nav__content">
-                        <button class="profile-posts-nav__button" on:click={() => {isFiltered = false}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
-                        <button class="profile-posts-nav__button" on:click={() => {isFiltered = true}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
+                        <button class="profile-posts-nav__button" onclick={() => {isFiltered = false}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
+                        <button class="profile-posts-nav__button" onclick={() => {isFiltered = true}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
                     </dd>
                 </dl>
             {/if}
@@ -347,23 +363,23 @@
 
         <div class="deck-heading__buttons">
             {#if (isJunk)}
-                <button class="deck-row-column-add-button" disabled={isColumnAlreadyAdded} on:click={columnAddFromJunk} aria-label="Add column">
+                <button class="deck-row-column-add-button" disabled={isColumnAlreadyAdded} onclick={columnAddFromJunk} aria-label="Add column">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={isColumnAlreadyAdded ? 'var(--border-color-1)' : 'var(--primary-color)'} stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-plus"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
                 </button>
             {/if}
 
             {#if column.algorithm?.type === 'chat' && $settings.design?.layout === 'decks' && !isJunk}
-                <button class="deck-popup-button only-pc" on:click={handleChangePopup}>
+                <button class="deck-popup-button only-pc" onclick={handleChangePopup}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-picture-in-picture-2"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/></svg>
                 </button>
             {/if}
 
             <ColumnRefreshButton
-                column={column}
+                bind:column={column}
                 index={index}
                 {_agent}
                 bind:unique={unique}
-                bind:refresh={refresh}
+                bind:this={refreshEl}
                 {isJunk}
                 {isRefreshing}
             ></ColumnRefreshButton>
@@ -371,7 +387,7 @@
             {#if (!isJunk)}
                 <ColumnButtons {column} {index} {_agent}></ColumnButtons>
 
-                <button class="deck-row-settings-button" on:click={handleSettingsClick}>
+                <button class="deck-row-settings-button" onclick={handleSettingsClick}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
                 </button>
             {/if}
@@ -390,7 +406,7 @@
                 {#if uniqueAgent}
                     <div class="deck-row__content">
                         {#if (column.algorithm.type === 'notification')}
-                            <NotificationTimeline column={column} index={index} {_agent} ></NotificationTimeline>
+                            <NotificationTimeline bind:column={column} index={index} {_agent} ></NotificationTimeline>
                         {:else if (column.algorithm.type === 'thread')}
                             <ThreadTimeline column={column} index={index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
                         {:else if (column.algorithm.type === 'chat')}
@@ -402,7 +418,7 @@
                             ></ChatTimeline>
                         {:else}
                             <TimelineSelector
-                                    column={column}
+                                    bind:column={column}
                                     index={index}
                                     {_agent}
                                     hideReply={column.algorithm.type === 'author' ? hideReply : undefined}

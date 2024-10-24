@@ -7,8 +7,8 @@
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
 
-    export let uri;
-    let likes = [];
+    let { uri } = $props();
+    let likes = $state([]);
     let cursor;
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
@@ -39,7 +39,11 @@
   </div>
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-    <p slot="noResults"></p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore">もうないよ</p>
+      {/snippet}
+    {#snippet noResults()}
+        <p ></p>
+      {/snippet}
   </InfiniteLoading>
 </Modal>

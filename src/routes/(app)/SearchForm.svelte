@@ -3,9 +3,8 @@
     import { page } from '$app/stores';
     import {createEventDispatcher, onMount} from "svelte";
     const dispatch = createEventDispatcher();
-    export let search = $page.url.searchParams.get('q') || '';
-    let searchArea;
-    export let path = location.pathname;
+    let searchArea = $state();
+  let { search = $bindable($page.url.searchParams.get('q') || ''), path = location.pathname } = $props();
 
     function handleSubmit() {
         dispatch('search', {
@@ -21,7 +20,7 @@
 </script>
 
 <div class="search">
-  <form action={path} method="get" data-sveltekit-replacestate data-sveltekit-keepfocus on:submit={handleSubmit}>
+  <form action={path} method="get" data-sveltekit-replacestate data-sveltekit-keepfocus onsubmit={handleSubmit}>
     <input type="text" name="q" required bind:value={search} bind:this={searchArea} placeholder="{$_(path + '_search')}">
     <button type="submit" class="search-submit" aria-label="Search">
       <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">

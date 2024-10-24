@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {_} from "svelte-i18n";
   import {agent, realtime} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
@@ -13,24 +15,24 @@
   import {toast} from "svelte-sonner";
   import {AppBskyEmbedImages} from "@atproto/api";
 
-  export let column;
-  export let index;
-  export let _agent = $agent;
-  export let hideReply;
-  export let hideRepost;
+  let {
+    column = $bindable(),
+    index,
+    _agent = $agent,
+    hideReply,
+    hideRepost
+  } = $props();
 
   let isActorsListFinished = false;
   let actors = [];
   let realtimeCounter = 0;
-  let isDividerLoading = false;
-  let dividerFillerHeight = 0;
+  let isDividerLoading = $state(false);
+  let dividerFillerHeight = $state(0);
   let retryCount = 0;
 
   if (column.settings?.autoRefresh === -1) {
       getActors();
   }
-
-  $: insertRealtimeData($realtime);
 
   function insertRealtimeData(realtime) {
       if (!isActorsListFinished) {
@@ -109,7 +111,7 @@
                   return duplicate ? { ...feed, isRootHide: true } : feed;
               });
           } else {
-              column.data.feed = [...column.data.feed, ...feed];
+              column.data.feed.push(...feed);
           }
 
           isDividerLoading = false;
@@ -143,6 +145,9 @@
           complete();
       }
   }
+  run(() => {
+    insertRealtimeData($realtime);
+  });
 </script>
 
 <div class="timeline timeline--{column.style}">
@@ -177,8 +182,12 @@
   {/if}
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    <p slot="noResults" class="infinite-nomore"><span>{$_('no_more')}</span></p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
+    {#snippet noResults()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
   </InfiniteLoading>
 
   {#if (isDividerLoading)}

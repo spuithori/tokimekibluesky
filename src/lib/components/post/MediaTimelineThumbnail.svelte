@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let images;
+  let { images } = $props();
 </script>
 
 <div class="media-thumbnail">

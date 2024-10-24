@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import {missingAccounts, profileStatus} from '$lib/stores';
   import { liveQuery } from 'dexie';
   import { accountsDb } from '$lib/db';
@@ -7,12 +9,12 @@
     import MissingProfileModal from "$lib/components/acp/MissingProfileModal.svelte";
     import MissingPrimaryModal from "$lib/components/acp/MissingPrimaryModal.svelte";
 
-  $: profile = liveQuery(async () => {
+  let profile = $derived(liveQuery(async () => {
       const profile = await accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')));
       return profile;
-  });
+  }));
 
-  $: {
+  run(() => {
       if ($profile) {
           if (!$profile.accounts.length) {
               // profileStatus.set(1);
@@ -24,7 +26,7 @@
       if ($missingAccounts.length) {
           profileStatus.set(3);
       }
-  }
+  });
 </script>
 
 {#if ($profileStatus === 1 || $profileStatus === 2)}

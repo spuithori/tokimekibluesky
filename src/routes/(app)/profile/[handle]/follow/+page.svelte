@@ -5,7 +5,7 @@
     import UserItem from '../UserItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
     import type { Snapshot } from './$types';
-    let follows = [];
+    let follows = $state([]);
     let cursor = '';
     let scrollY = 0;
 
@@ -28,7 +28,11 @@
         }
     };
 
-    export let data: LayoutData;
+  interface Props {
+    data: LayoutData;
+  }
+
+  let { data }: Props = $props();
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
         try {
@@ -59,8 +63,12 @@
     {/each}
 
     <InfiniteLoading on:infinite={handleLoadMore}>
-      <p slot="noMore" class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      <p slot="noResults" class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {#snippet noMore()}
+            <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+          {/snippet}
+      {#snippet noResults()}
+            <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+          {/snippet}
     </InfiniteLoading>
   </div>
 </div>

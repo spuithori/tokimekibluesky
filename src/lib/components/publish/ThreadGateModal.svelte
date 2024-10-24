@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import {agent, postgate, threadGate} from '$lib/stores';
     import {createEventDispatcher, onMount} from 'svelte';
     import { _ } from 'svelte-i18n';
@@ -8,18 +10,20 @@
     import Modal from "$lib/components/ui/Modal.svelte";
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
-    let officialLists = [];
-    let _threadGate = $threadGate || 'everybody';
-    let custom = [];
+    let { _agent = $agent } = $props();
+    let officialLists = $state([]);
+    let _threadGate = $state($threadGate || 'everybody');
+    let custom = $state([]);
 
-    $: {
+    run(() => {
         $threadGate = _threadGate;
-    }
+    });
 
-    $: if (custom.length !== 0) {
-        _threadGate = custom;
-    }
+    run(() => {
+        if (custom.length !== 0) {
+            _threadGate = custom;
+        }
+    });
 
     if (Array.isArray(_threadGate)) {
         custom = _threadGate;
@@ -34,7 +38,7 @@
         officialLists = res.data.lists;
 
         await accountsDb.accounts.update(accountId, {
-            lists: officialLists,
+            lists: $state.snapshot(officialLists),
         });
     }
 
@@ -68,7 +72,7 @@
 
             <div class="big-radio-group big-radio-group--vertical">
                 <div class="big-radio big-radio--slim big-radio--fullwidth">
-                    <input type="radio" id="everybody" name="threadGate" bind:group={_threadGate} value={'everybody'} on:click={() => {custom = []}}>
+                    <input type="radio" id="everybody" name="threadGate" bind:group={_threadGate} value={'everybody'} onclick={() => {custom = []}}>
                     <label for="everybody">
                                 <span class="big-radio__ui">
                                     <span class="big-radio__check">
@@ -82,7 +86,7 @@
                 </div>
 
                 <div class="big-radio big-radio--slim big-radio--fullwidth">
-                    <input type="radio" id="nobody" name="threadGate" bind:group={_threadGate} value={'nobody'} on:click={() => {custom = []; _threadGate = 'nobody'}}>
+                    <input type="radio" id="nobody" name="threadGate" bind:group={_threadGate} value={'nobody'} onclick={() => {custom = []; _threadGate = 'nobody'}}>
                     <label for="nobody">
                                 <span class="big-radio__ui">
                                     <span class="big-radio__check">
@@ -102,7 +106,7 @@
 
                 <div class="thread-gate-custom-list">
                     <div class="checkbox checkbox--padding checkbox--fullwidth">
-                        <input type="checkbox" class="checkbox__input" bind:group={custom} value={'mention'} on:change={handleCustomChange} id="mention">
+                        <input type="checkbox" class="checkbox__input" bind:group={custom} value={'mention'} onchange={handleCustomChange} id="mention">
                         <label class="checkbox__label" for="mention">
                             <span class="checkbox__ui"></span>
                             <span class="checkbox__text">{$_('thread_gate_mention_title')}</span>
@@ -110,7 +114,7 @@
                     </div>
 
                     <div class="checkbox checkbox--padding checkbox--fullwidth">
-                        <input type="checkbox" class="checkbox__input" bind:group={custom} value={'following'} on:change={handleCustomChange} id="following">
+                        <input type="checkbox" class="checkbox__input" bind:group={custom} value={'following'} onchange={handleCustomChange} id="following">
                         <label class="checkbox__label" for="following">
                             <span class="checkbox__ui"></span>
                             <span class="checkbox__text">{$_('thread_gate_following_title')}</span>
@@ -120,7 +124,7 @@
                     {#if officialLists.length}
                         {#each officialLists as list}
                             <div class="checkbox checkbox--padding checkbox--fullwidth">
-                                <input type="checkbox" class="checkbox__input" bind:group={custom} value={list.uri} on:change={handleCustomChange} id={list.uri}>
+                                <input type="checkbox" class="checkbox__input" bind:group={custom} value={list.uri} onchange={handleCustomChange} id={list.uri}>
                                 <label class="checkbox__label" for={list.uri}>
                                     <span class="checkbox__ui"></span>
                                     <span class="checkbox__text"><List color="var(--text-color-3)" size="18"></List>{list.name}</span>

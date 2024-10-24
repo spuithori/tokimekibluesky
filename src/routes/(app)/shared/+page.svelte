@@ -4,7 +4,11 @@
   import { sharedText } from '$lib/stores';
   import { goto } from '$app/navigation';
 
-  export let data: PageData;
+  interface Props {
+    data: PageData;
+  }
+
+  let { data }: Props = $props();
 
   const params = data.url.searchParams;
   const isNomove = params.get('nomove') === 'true';

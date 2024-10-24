@@ -5,9 +5,7 @@
     import MediaTimelineItem from './MediaTimelineItem.svelte';
     import {getBookmarkFeed, getBookmarkName} from "$lib/bookmark";
 
-    export let _agent = $agent;
-    export let column;
-    export let index;
+  let { _agent = $agent, column = $bindable(), index } = $props();
     let initialLoadFinished = false;
     let feeds;
 
@@ -64,6 +62,8 @@
   {/if}
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore">もうないよ</p>
+      {/snippet}
   </InfiniteLoading>
 </div>

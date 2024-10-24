@@ -1,11 +1,21 @@
 <script lang="ts">
   import {agent, isPublishInstantFloat, sideState} from '$lib/stores';
 
-  export let _agent = $agent;
-  export let post;
-  export let reply;
-  export let count;
-  export let showCounts = true;
+  interface Props {
+    _agent?: any;
+    post: any;
+    reply: any;
+    count: any;
+    showCounts?: boolean;
+  }
+
+  let {
+    _agent = $agent,
+    post,
+    reply,
+    count,
+    showCounts = true
+  }: Props = $props();
   function handleClick() {
       $replyRef = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } }
       $sideState = 'publish';
@@ -13,7 +23,7 @@
   }
 </script>
 
-<script lang="ts" context="module">
+<script lang="ts" module>
     import {replyRef} from '$lib/stores';
 
   export function replyFunc(post, reply) {
@@ -21,7 +31,7 @@
   }
 </script>
 
-<button class="timeline-reaction__item timeline-reaction__item--reply" on:click={handleClick} disabled={post?.viewer?.replyDisabled}>
+<button class="timeline-reaction__item timeline-reaction__item--reply" onclick={handleClick} disabled={post?.viewer?.replyDisabled}>
   <span class="timeline-reaction__icon" aria-label="返信">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--timeline-reaction-reply-icon-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-reply"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
   </span>

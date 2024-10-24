@@ -3,9 +3,13 @@
   import {agent} from "$lib/stores";
   import Avatar from "../../Avatar.svelte";
 
-  export let _agent = $agent;
-  export let user;
-  export let layout = 'default';
+  interface Props {
+    _agent?: any;
+    user: any;
+    layout?: string;
+  }
+
+  let { _agent = $agent, user = $bindable(), layout = 'default' }: Props = $props();
 
   function handleFollowChange(event) {
       user.viewer.following = event.detail.following;

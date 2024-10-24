@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import { db } from '$lib/db';
     import {liveQuery} from 'dexie';
     import { agent } from '$lib/stores';
@@ -7,15 +9,13 @@
     import { _ } from 'svelte-i18n';
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
 
-    export let id;
+  let { _agent = $agent, id } = $props();
     let bookmark = undefined;
-    let name = '';
-    let text = '';
+    let name = $state('');
+    let text = $state('');
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
 
-    $: getData($bookmarks);
 
     function getData(bookmarks) {
         if (!bookmarks) return false;
@@ -69,6 +69,9 @@
             });
         }
     }
+    run(() => {
+    getData($bookmarks);
+  });
 </script>
 
 <div class="bookmark-modal">
@@ -109,8 +112,8 @@
     </dl>
 
     <div class="bookmark-modal-close">
-      <button class="button button--sm" on:click={save}>{$_('save_button')}</button>
-      <button class="button button--sm button--border button--danger" on:click={remove}>{$_('remove')}</button>
+      <button class="button button--sm" onclick={save}>{$_('save_button')}</button>
+      <button class="button button--sm button--border button--danger" onclick={remove}>{$_('remove')}</button>
     </div>
   </div>
 </div>

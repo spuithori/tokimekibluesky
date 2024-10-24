@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import {agent, pulseRepost, settings} from '$lib/stores';
     import { toast } from 'svelte-sonner';
     import { _ } from 'svelte-i18n';
@@ -7,25 +9,30 @@
 
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
-    export let cid;
-    export let uri;
-    export let count;
-    export let repostViewer;
-    export let showCounts = true;
-    let isDialogRender = false;
+  interface Props {
+    _agent?: any;
+    cid: any;
+    uri: any;
+    count: any;
+    repostViewer: any;
+    showCounts?: boolean;
+  }
+
+  let {
+    _agent = $agent,
+    cid,
+    uri,
+    count = $bindable(),
+    repostViewer = $bindable(),
+    showCounts = true
+  }: Props = $props();
+    let isDialogRender = $state(false);
     let timeoutId;
-    let dialog;
+    let dialog = $state();
 
-    let isProcessed: boolean = false;
-    let isTransition: boolean = false;
-    $: handleLikeChange($pulseRepost);
+    let isProcessed: boolean = $state(false);
+    let isTransition: boolean = $state(false);
 
-    $: {
-        if (dialog) {
-            dialog.open();
-        }
-    }
 
     if ($settings.general?.repostConfirmSkip === undefined) {
         $settings.general.repostConfirmSkip = false;
@@ -120,6 +127,14 @@
             isDialogRender = true;
         }
     }
+    run(() => {
+    handleLikeChange($pulseRepost);
+  });
+    run(() => {
+        if (dialog) {
+            dialog.open();
+        }
+    });
 </script>
 
 <button
@@ -127,9 +142,9 @@
         class:timeline-reaction__item--transition={isTransition}
         class:timeline-reaction__item--active={repostViewer}
         disabled="{isProcessed}"
-        on:click="{repostStep}">
+        onclick={repostStep}>
   <span class="timeline-reaction__icon" aria-label="リポスト">
-     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--timeline-reaction-repost-icon-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2" on:animationend={() => {isTransition = false}}><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--timeline-reaction-repost-icon-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2" onanimationend={() => {isTransition = false}}><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
   </span>
 
   {#if showCounts && count}

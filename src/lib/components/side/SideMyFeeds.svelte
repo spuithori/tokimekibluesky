@@ -9,15 +9,15 @@
     import {getAccountIdByDidFromDb} from "$lib/util";
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
+  let { _agent = $agent } = $props();
 
     type tab = 'all' | 'feeds' | 'lists' | 'bookmarks';
-    let currentTab: tab = 'all';
-    let customFeeds = [];
-    let officialLists = [];
-    let cloudBookmarks = [];
+    let currentTab: tab = $state('all');
+    let customFeeds = $state([]);
+    let officialLists = $state([]);
+    let cloudBookmarks = $state([]);
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
-    let loaded = false;
+    let loaded = $state(false);
 
     async function updateLists() {
         const accountId = await getAccountIdByDidFromDb(_agent.did());
@@ -28,7 +28,7 @@
         officialLists = res.data.lists.filter(item => item?.purpose !== 'app.bsky.graph.defs#modlist');
 
         await accountsDb.accounts.update(accountId, {
-            lists: officialLists,
+            lists: $state.snapshot(officialLists),
         });
     }
 
@@ -39,7 +39,7 @@
         customFeeds = await $agent.getSavedFeeds();
 
         await accountsDb.accounts.update(accountId, {
-            feeds: customFeeds,
+            feeds: $state.snapshot(customFeeds),
         });
     }
 
@@ -62,7 +62,7 @@
             cloudBookmarks = json.bookmarks;
 
             await accountsDb.accounts.update(accountId, {
-                cloudBookmarks: cloudBookmarks,
+                cloudBookmarks: $state.snapshot(cloudBookmarks),
             });
         } catch (e) {
             cloudBookmarks = [];
@@ -96,13 +96,13 @@
 <div class="side-feeds">
   <div class="side-feeds-nav">
     <ul class="profile-tab profile-tab--small">
-      <li class="profile-tab__item" on:click={() => {selectCategory('all')}} class:profile-tab__item--active={currentTab === 'all'}><button>{$_('all')}</button></li>
+      <li class="profile-tab__item" onclick={() => {selectCategory('all')}} class:profile-tab__item--active={currentTab === 'all'}><button>{$_('all')}</button></li>
 
-      <li class="profile-tab__item" on:click={() => {selectCategory('feeds')}} class:profile-tab__item--active={currentTab === 'feeds'}><button>{$_('feeds')}</button></li>
+      <li class="profile-tab__item" onclick={() => {selectCategory('feeds')}} class:profile-tab__item--active={currentTab === 'feeds'}><button>{$_('feeds')}</button></li>
 
-      <li class="profile-tab__item" on:click={() => {selectCategory('lists')}} class:profile-tab__item--active={currentTab === 'lists'}><button>{$_('lists')}</button></li>
+      <li class="profile-tab__item" onclick={() => {selectCategory('lists')}} class:profile-tab__item--active={currentTab === 'lists'}><button>{$_('lists')}</button></li>
 
-      <li class="profile-tab__item" on:click={() => {selectCategory('bookmarks')}} class:profile-tab__item--active={currentTab === 'bookmarks'}><button>{$_('bookmarks_short')}</button></li>
+      <li class="profile-tab__item" onclick={() => {selectCategory('bookmarks')}} class:profile-tab__item--active={currentTab === 'bookmarks'}><button>{$_('bookmarks_short')}</button></li>
     </ul>
   </div>
 
@@ -112,7 +112,7 @@
                 {#if customFeeds.length}
                     {#each customFeeds as feed}
                         <li class="side-feeds-list__item">
-                            <a class="side-feeds-list__link" href="{getFeedUrl(feed.uri, 'feed')}" on:click={handleSelect}>
+                            <a class="side-feeds-list__link" href="{getFeedUrl(feed.uri, 'feed')}" onclick={handleSelect}>
                                 <Newspaper color="var(--text-color-3)" size="20"></Newspaper>
                                 {feed.name}</a>
                         </li>
@@ -126,7 +126,7 @@
                 {#if officialLists.length}
                     {#each officialLists as list}
                         <li class="side-feeds-list__item">
-                            <a class="side-feeds-list__link" href="{getFeedUrl(list.uri, 'lists')}" on:click={handleSelect}>
+                            <a class="side-feeds-list__link" href="{getFeedUrl(list.uri, 'lists')}" onclick={handleSelect}>
                                 <List color="var(--text-color-3)" size="20"></List>
                                 {list.name}</a>
                         </li>
@@ -141,7 +141,7 @@
                     {#each $bookmarks as bookmark}
                         {#if (bookmark.owner === $agent.did())}
                             <li class="side-feeds-list__item">
-                                <a class="side-feeds-list__link" href="/bookmark/{bookmark.id}" on:click={handleSelect}>
+                                <a class="side-feeds-list__link" href="/bookmark/{bookmark.id}" onclick={handleSelect}>
                                     <Bookmark color="var(--text-color-3)" size="20"></Bookmark>
                                     {bookmark.name}</a>
                             </li>
@@ -152,7 +152,7 @@
                 {#if cloudBookmarks.length}
                   {#each cloudBookmarks as bookmark}
                     <li class="side-feeds-list__item">
-                      <a class="side-feeds-list__link" href="/bookmark-cloud/{bookmark.id}" on:click={handleSelect}>
+                      <a class="side-feeds-list__link" href="/bookmark-cloud/{bookmark.id}" onclick={handleSelect}>
                         <Bookmark color="var(--text-color-3)" size="20"></Bookmark>
                         {bookmark.name}</a>
                     </li>

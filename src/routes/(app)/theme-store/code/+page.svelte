@@ -3,8 +3,8 @@
     import {onMount} from "svelte";
     import ThemeItem from "../ThemeItem.svelte";
 
-    let value = '';
-    let themes = [];
+    let value = $state('');
+    let themes = $state([]);
 
     async function getThemes() {
         const res = await fetch(`/api/get-themes`, {
@@ -25,7 +25,7 @@
 <div>
   <div class="column-heading">
     <div class="column-heading__buttons">
-      <button class="settings-back" on:click={() => {history.back()}}>
+      <button class="settings-back" onclick={() => {history.back()}}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
       </button>
     </div>
@@ -41,7 +41,7 @@
 
   <div class="settings-wrap">
     <section class="theme-store-section">
-      <form on:submit={getThemes} class="input-with-button">
+      <form onsubmit={getThemes} class="input-with-button">
         <input class="input-with-button__input" type="text" bind:value={value} placeholder="{$_('theme_code_input_placeholder')}">
         <button class="input-with-button__button button button--sm">{$_('theme_code_execute')}</button>
       </form>

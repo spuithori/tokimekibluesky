@@ -1,16 +1,18 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import {_} from "svelte-i18n";
     import { confetti } from '@neoconfetti/svelte';
     import {createEventDispatcher, onMount} from "svelte";
     import {settings} from "$lib/stores";
-    let layout = $settings?.design.layout || 'default';
+    let layout = $state($settings?.design.layout || 'default');
     const dispatch = createEventDispatcher();
 
-    $: {
+    run(() => {
         $settings.design.layout = layout;
-    }
+    });
 
-    let el;
+    let el = $state();
 
     function handleClose() {
         localStorage.setItem('isRepeater', 'true');
@@ -23,7 +25,7 @@
 
     <div class="welcome-modal-contents">
         <div class="welcome-modal-heading">
-            <button class="text-button" on:click={handleClose}>{$_('skip')}</button>
+            <button class="text-button" onclick={handleClose}>{$_('skip')}</button>
         </div>
 
         <h2 class="welcome-modal-title">{$_('welcome_to_tokimeki')}</h2>
@@ -70,7 +72,7 @@
         <p class="welcome-modal-text">{$_('welcome_to_tokimeki_text2')}</p>
 
         <div class="welcome-modal-close">
-            <button class="button button--sm" on:click={handleClose}>{$_('welcome_to_tokimeki_close')}</button>
+            <button class="button button--sm" onclick={handleClose}>{$_('welcome_to_tokimeki_close')}</button>
         </div>
     </div>
 </div>

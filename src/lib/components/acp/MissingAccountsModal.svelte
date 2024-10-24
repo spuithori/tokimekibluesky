@@ -4,7 +4,7 @@
   import {missingAccounts, profileStatus} from "$lib/stores";
   import MissingAccountItem from "$lib/components/acp/MissingAccountItem.svelte";
 
-  export let status;
+  let { status } = $props();
 
   function close() {
       profileStatus.set(0);
@@ -29,7 +29,7 @@
   </div>
 
   {#if ($missingAccounts.length === 0)}
-    <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
+    <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
   {/if}
 </div>
 

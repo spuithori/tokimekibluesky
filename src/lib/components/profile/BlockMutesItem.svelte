@@ -4,10 +4,14 @@
   import {agent} from "$lib/stores";
   import { VolumeX, ShieldBan } from 'lucide-svelte';
 
-  export let _agent = $agent;
-  export let category: 'block' | 'mute';
-  export let user;
-  let isDisabled = false;
+  interface Props {
+    _agent?: any;
+    category: 'block' | 'mute';
+    user: any;
+  }
+
+  let { _agent = $agent, category, user = $bindable() }: Props = $props();
+  let isDisabled = $state(false);
 
   async function mute() {
       isDisabled = true;
@@ -88,12 +92,12 @@
 
 
     <div class="bm-users-item__buttons">
-      <button class="button button--sm button--with-icon" disabled={isDisabled} on:click={user.viewer?.muted ? unmute : mute}>
+      <button class="button button--sm button--with-icon" disabled={isDisabled} onclick={user.viewer?.muted ? unmute : mute}>
         <VolumeX size="20"></VolumeX>
         {$_(user.viewer?.muted ? 'button_unmute' : 'button_mute')}
       </button>
 
-      <button class="button button--sm button--border button--danger button--with-icon"  disabled={isDisabled} on:click={user.viewer?.blocking ? unblock : block}>
+      <button class="button button--sm button--border button--danger button--with-icon"  disabled={isDisabled} onclick={user.viewer?.blocking ? unblock : block}>
         <ShieldBan size="20"></ShieldBan>
         {$_(user.viewer?.blocking ? 'button_unblock' : 'button_block')}
       </button>

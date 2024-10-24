@@ -6,21 +6,31 @@
     import {_} from "svelte-i18n";
     import VirtualThreadList from "$lib/components/thread/VirtualThreadList.svelte";
 
-    export let column;
-    export let index;
-    export let _agent = $agent;
-    export let isRefreshing;
-    export let isJunk = false;
-    let scrollTop: undefined | Number = undefined;
-    let rootClientHeight = 0;
-    let rootIndex;
+  interface Props {
+    column: any;
+    index: any;
+    _agent?: any;
+    isRefreshing: any;
+    isJunk?: boolean;
+  }
+
+  let {
+    column = $bindable(),
+    index,
+    _agent = $agent,
+    isRefreshing = $bindable(),
+    isJunk = false
+  }: Props = $props();
+    let scrollTop: undefined | Number = $state(undefined);
+    let rootClientHeight = $state(0);
+    let rootIndex = $state();
     let rootDid;
 
-    let isMuted: boolean = false;
-    let isMuteDisplay: boolean = false;
+    let isMuted: boolean = $state(false);
+    let isMuteDisplay: boolean = $state(false);
     
     let flatThread = [];
-    let unique = Symbol();
+    let unique = $state(Symbol());
 
     function isMutedIncludes(feed) {
         isMuted = feed.post.author?.viewer.muted;
@@ -140,7 +150,7 @@
   <div class="thread-notice">
     <p class="thread-notice__text">{$_('muted_user_thread')}</p>
 
-    <button class="button button--sm" on:click={() => {isMuteDisplay = true}}>{$_('show_button')}</button>
+    <button class="button button--sm" onclick={() => {isMuteDisplay = true}}>{$_('show_button')}</button>
   </div>
 {/if}
 

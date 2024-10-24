@@ -13,12 +13,13 @@
       $settings.design.reactionButtons = defaultReactionButtons;
   }
 
-  export let data;
-  export let _agent;
-  export let isMedia = false;
+  interface Props {
+    data: any;
+    _agent: any;
+    isMedia?: boolean;
+  }
 
-  let repostFunc;
-  let likeFunc;
+  let { data, _agent, isMedia = false }: Props = $props();
 </script>
 
 <div class="timeline-reaction timeline-reaction--{$settings ? $settings.design.reactionButtons.shown.length : '5'}">
@@ -39,7 +40,6 @@
         repostViewer={data.post.viewer?.repost}
         count={data.post.repostCount}
         on:repost
-        bind:repost={repostFunc}
         showCounts={$settings.design?.reactionButtons.repost.showCounts}
         {_agent}
     ></Repost>
@@ -52,7 +52,6 @@
         likeViewer={data.post.viewer?.like}
         count={data.post.likeCount}
         on:like
-        bind:vote={likeFunc}
         showCounts={$settings.design?.reactionButtons.like.showCounts}
         {_agent}
     ></Like>

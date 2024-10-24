@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import {agent, chatPulse, latestRevMap} from '$lib/stores';
     import InfiniteLoading from 'svelte-infinite-loading';
     import {_} from "svelte-i18n";
@@ -9,13 +11,10 @@
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     const dispatch = createEventDispatcher();
 
-    export let column;
-    export let index;
-    export let _agent = $agent;
+  let { column = $bindable(), index, _agent = $agent } = $props();
     let firstLoad = true;
     let retryCount = 0;
 
-    $: handleUpdate($chatPulse);
 
     function isDuplicateMessage(oldFeed, newFeed) {
         return oldFeed.id === newFeed.id;
@@ -97,12 +96,19 @@
             column.scrollElement.scrollTo(0, column.scrollElement.scrollHeight);
         }, 0)
     })
+    run(() => {
+    handleUpdate($chatPulse);
+  });
 </script>
 
 <div class="chat">
   <InfiniteLoading on:infinite={handleLoadMore} direction="top">
-    <p slot="noMore" class="infinite-nomore"></p>
-    <p slot="noResults" class="infinite-nomore"></p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore"></p>
+      {/snippet}
+    {#snippet noResults()}
+        <p  class="infinite-nomore"></p>
+      {/snippet}
   </InfiniteLoading>
 
   {#each column.data.feed as data, index (data)}

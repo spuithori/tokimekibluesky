@@ -1,4 +1,11 @@
-export type defaultDeckSettings = {
+export type currentAlgorithm = {
+    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat',
+    algorithm?: string,
+    name?: string,
+    list?: object,
+}
+
+type deckSettings = {
     timeline?: {
         hideRepost: 'all' | 'many' | 'soso' | 'less' | 'none' | null,
         hideReply: 'all' | 'following' | 'me' | null,
@@ -23,20 +30,19 @@ export type defaultDeckSettings = {
     opacity?: number,
 }
 
-export const defaultDeckSettings: defaultDeckSettings = {
-    timeline: {
-        hideRepost: null,
-        hideReply: null,
+export type Column = {
+    id: string,
+    algorithm: currentAlgorithm,
+    style: 'default' | 'media',
+    did: string,
+    handle?: string,
+    unreadCount?: number,
+    filter?: string[],
+    lastRefresh?: string,
+    settings: deckSettings,
+    data: {
+        feed: [],
+        cursor: string | number,
     },
-    langFilterEnabled: false,
-    langFilter: [],
-    autoRefresh: 0,
-    refreshToTop: false,
-    autoScroll: false,
-    autoScrollSpeed: 'normal',
-    width: 'medium',
-    icon: null,
-    hideCounts: false,
-    isPopup: false,
-    opacity: 100,
+    scrollElement?: HTMLDivElement,
 }

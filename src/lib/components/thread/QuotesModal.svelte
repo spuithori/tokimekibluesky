@@ -8,8 +8,8 @@
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
     import {AppBskyEmbedRecord} from "@atproto/api";
 
-    export let uri;
-    let quotes = [];
+  let { uri } = $props();
+    let quotes = $state([]);
     let cursor;
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
@@ -45,7 +45,11 @@
   </div>
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-    <p slot="noResults"></p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore">もうないよ</p>
+      {/snippet}
+    {#snippet noResults()}
+        <p ></p>
+      {/snippet}
   </InfiniteLoading>
 </Modal>

@@ -8,10 +8,10 @@ import {selfLabels} from "$lib/components/editor/publishStore";
 import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
 const dispatch = createEventDispatcher();
 
-export let _agent = $agent;
-let isEmojiPickerOpen = false;
-let isSelfLabelingMenuOpen = false;
-let isThreadGateOpen = false;
+  let { _agent = $agent, top, bottom } = $props();
+let isEmojiPickerOpen = $state(false);
+let isSelfLabelingMenuOpen = $state(false);
+let isThreadGateOpen = $state(false);
 
 const selfLabelsChoices = [
     {
@@ -55,10 +55,10 @@ function handleEmojiPick(event) {
 </script>
 
 <div class="publish-bottom-buttons">
-  <slot name="top"></slot>
+  {@render top?.()}
 
   <div class="publish-form-emoji-picker">
-    <button class="publish-form-emoji-picker-button" on:click={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
+    <button class="publish-form-emoji-picker-button" onclick={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-laugh"><circle cx="12" cy="12" r="10"/><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
     </button>
 
@@ -69,33 +69,37 @@ function handleEmojiPick(event) {
 
   <div class="publish-form-moderation">
     <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
-      <svg class:stroke-danger={$selfLabels.length} slot="ref" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      {#snippet ref()}
+            <svg class:stroke-danger={$selfLabels.length}  xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          {/snippet}
 
-      <ul slot="content" class="timeline-menu-list">
-        {#each selfLabelsChoices as choice, index}
-          <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" class:timeline-menu-list__button--active={$selfLabels.some(label => label.val === choice.val)} on:click={() => setSelfLabel(index)}>{choice.name}</button>
-          </li>
-        {/each}
+      {#snippet content()}
+            <ul  class="timeline-menu-list">
+          {#each selfLabelsChoices as choice, index}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" class:timeline-menu-list__button--active={$selfLabels.some(label => label.val === choice.val)} onclick={() => setSelfLabel(index)}>{choice.name}</button>
+            </li>
+          {/each}
 
-        {#if ($selfLabels.length)}
-          <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button text-danger" on:click={clearSelfLabels}>{$_('selflabels_remove')}</button>
-          </li>
-        {/if}
-      </ul>
+          {#if ($selfLabels.length)}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button text-danger" onclick={clearSelfLabels}>{$_('selflabels_remove')}</button>
+            </li>
+          {/if}
+        </ul>
+          {/snippet}
     </Menu>
   </div>
 
   {#if (!$replyRef)}
     <div class="publish-form-thread-gate">
-      <button class="publish-form-lang-selector-button" on:click={() => {isThreadGateOpen = !isThreadGateOpen}}>
+      <button class="publish-form-lang-selector-button" onclick={() => {isThreadGateOpen = !isThreadGateOpen}}>
         <svg class:stroke-danger={$threadGate !== 'everybody'} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square-warning"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v2"/><path d="M12 13h.01"/></svg>
       </button>
     </div>
   {/if}
 
-  <slot name="bottom"></slot>
+  {@render bottom?.()}
 </div>
 
 {#if (isThreadGateOpen)}

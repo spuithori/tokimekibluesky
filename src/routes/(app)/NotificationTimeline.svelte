@@ -1,17 +1,15 @@
 <script lang="ts">
     import Notification from "./Notification.svelte";
-    import {agent, columns} from '$lib/stores';
+    import {agent} from '$lib/stores';
 
-    export let column;
-    export let index;
-    export let _agent = $agent;
+    let { column = $bindable(), index, _agent = $agent } = $props();
 
     function handleCountUpdate(event) {
-        $columns[index].unreadCount = event.detail.count;
+        column.unreadCount = event.detail.count;
     }
 
     function handleFilterChange(event) {
-        $columns[index].filter = event.detail.filter;
+        column.filter = event.detail.filter;
     }
 </script>
 

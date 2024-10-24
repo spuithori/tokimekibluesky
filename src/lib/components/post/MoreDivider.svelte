@@ -2,7 +2,7 @@
   import {createEventDispatcher} from "svelte";
   const dispatch = createEventDispatcher();
 
-  let el;
+  let el = $state();
 
   function handleClick() {
       const posFromBottom = window.innerHeight - el.getBoundingClientRect().bottom;
@@ -12,7 +12,7 @@
 
 <button
     class="more-divider"
-    on:click={handleClick}
+    onclick={handleClick}
     bind:this={el}
     aria-label="Road More..."
 >

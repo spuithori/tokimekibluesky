@@ -2,6 +2,12 @@
     import { offset, flip, shift } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';
     import { fade } from 'svelte/transition';
+  interface Props {
+    ref?: import('svelte').Snippet;
+    content?: import('svelte').Snippet;
+  }
+
+  let { ref, content }: Props = $props();
 
     const [ floatingRef, floatingContent ] = createFloatingActions({
         strategy: 'absolute',
@@ -17,17 +23,17 @@
         ]
     });
 
-    let isShown: boolean = false;
+    let isShown: boolean = $state(false);
 </script>
 
-<span class="tooltip-wrap" on:mouseenter={() => isShown = true} on:mouseleave={() => isShown = false} use:floatingRef>
+<span class="tooltip-wrap" onmouseenter={() => isShown = true} onmouseleave={() => isShown = false} use:floatingRef>
   <span class="tooltip-ref">
-     <slot name="ref"></slot>
+     {@render ref?.()}
   </span>
 
   {#if isShown}
     <span class="tooltip-content" style="position:absolute" use:floatingContent transition:fade="{{ duration: 150, delay: 150 }}">
-      <slot name="content"></slot>
+      {@render content?.()}
     </span>
   {/if}
 </span>

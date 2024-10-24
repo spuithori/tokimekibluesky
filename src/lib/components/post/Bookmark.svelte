@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {accountsDb, db} from '$lib/db';
   import {_} from "svelte-i18n";
   import { liveQuery } from 'dexie';
@@ -7,36 +9,13 @@
   import Menu from "$lib/components/ui/Menu.svelte";
   import {getAccountIdByDidFromDb} from "$lib/util";
 
-  export let _agent = $agent;
-  export let post;
-  let cloudBookmarks = [];
-  let relatedBookmarks = [];
-  let isMenuOpen = false;
-  let alreadyBookmarks = [];
+  let { _agent = $agent, post } = $props();
+  let cloudBookmarks = $state([]);
+  let relatedBookmarks = $state([]);
+  let isMenuOpen = $state(false);
+  let alreadyBookmarks = $state([]);
 
-  $: bookmarks = liveQuery(async () => {
-      const bookmarks = await db.bookmarks
-          .where('owner')
-          .equals(_agent.did())
-          .toArray();
 
-      return bookmarks;
-  })
-
-  $: if (isMenuOpen) {
-      getCloudBookmarks();
-      getRelatedBookmarks();
-      const res = db.feeds
-          .where('uri')
-          .equals(post.uri)
-          .toArray()
-          .then(result => {
-              alreadyBookmarks = result;
-          })
-          .catch(error => {
-              console.error(error);
-          })
-  }
 
   async function add(bookmarkId: string) {
       try {
@@ -196,63 +175,91 @@
   function toggleMenu() {
       isMenuOpen = !isMenuOpen;
   }
+  let bookmarks = $derived(liveQuery(async () => {
+      const bookmarks = await db.bookmarks
+          .where('owner')
+          .equals(_agent.did())
+          .toArray();
+
+      return bookmarks;
+  }))
+  run(() => {
+    if (isMenuOpen) {
+        getCloudBookmarks();
+        getRelatedBookmarks();
+        const res = db.feeds
+            .where('uri')
+            .equals(post.uri)
+            .toArray()
+            .then(result => {
+                alreadyBookmarks = result;
+            })
+            .catch(error => {
+                console.error(error);
+            })
+    }
+  });
 </script>
 
 <div class="bookmark-wrap">
   <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="timeline-reaction__item timeline-reaction__item--bookmark">
-    <span class="timeline-reaction__icon" slot="ref">
-         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="15" viewBox="0 0 12 15">
-      <path id="bookmark" d="M2,1.5A1.5,1.5,0,0,1,3.5,0h9A1.5,1.5,0,0,1,14,1.5V15L8,12,2,15Z" transform="translate(-2)" fill="var(--timeline-reaction-bookmark-icon-color)"/>
-    </svg>
-    </span>
+    {#snippet ref()}
+        <span class="timeline-reaction__icon" >
+           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="15" viewBox="0 0 12 15">
+        <path id="bookmark" d="M2,1.5A1.5,1.5,0,0,1,3.5,0h9A1.5,1.5,0,0,1,14,1.5V15L8,12,2,15Z" transform="translate(-2)" fill="var(--timeline-reaction-bookmark-icon-color)"/>
+      </svg>
+      </span>
+      {/snippet}
 
-    <ul slot="content" class="timeline-menu-list">
-      {#if ($bookmarks)}
-        {#each $bookmarks as bookmark}
-          <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-            {#if (alreadyBookmarks.some(already => already.bookmark === bookmark.id))}
+    {#snippet content()}
+        <ul  class="timeline-menu-list">
+        {#if ($bookmarks)}
+          {#each $bookmarks as bookmark}
+            <li class="timeline-menu-list__item timeline-menu-list__item--mute">
+              {#if (alreadyBookmarks.some(already => already.bookmark === bookmark.id))}
+                <li class="timeline-menu-list__item timeline-menu-list__item--mute">
+                  <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {deleteBookmark(alreadyBookmarks[0].id)}}>
+                    {bookmark.name}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                  </button>
+                </li>
+              {:else}
+                <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {add(bookmark.id)}}>
+                  {bookmark.name}
+                </button>
+              {/if}
+            </li>
+          {:else}
+            {#if (!cloudBookmarks.length)}
               <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-                <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" on:click={() => {deleteBookmark(alreadyBookmarks[0].id)}}>
+                <button class="timeline-menu-list__button timeline-menu-list__button--bookmark">{$_('no_bookmark_folder')}</button>
+              </li>
+            {/if}
+          {/each}
+        {/if}
+
+        {#if cloudBookmarks}
+          {#each cloudBookmarks as bookmark}
+            {#if !relatedBookmarks.includes(bookmark.id)}
+              <li class="timeline-menu-list__item timeline-menu-list__item--mute">
+                <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {addCloud(bookmark.id)}}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                  {bookmark.name}
+                </button>
+              </li>
+            {:else}
+              <li class="timeline-menu-list__item timeline-menu-list__item--mute">
+                <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {deleteCloud(bookmark.id)}}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
                   {bookmark.name}
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                 </button>
               </li>
-            {:else}
-              <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" on:click={() => {add(bookmark.id)}}>
-                {bookmark.name}
-              </button>
             {/if}
-          </li>
-        {:else}
-          {#if (!cloudBookmarks.length)}
-            <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-              <button class="timeline-menu-list__button timeline-menu-list__button--bookmark">{$_('no_bookmark_folder')}</button>
-            </li>
-          {/if}
-        {/each}
-      {/if}
-
-      {#if cloudBookmarks}
-        {#each cloudBookmarks as bookmark}
-          {#if !relatedBookmarks.includes(bookmark.id)}
-            <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-              <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" on:click={() => {addCloud(bookmark.id)}}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-                {bookmark.name}
-              </button>
-            </li>
-          {:else}
-            <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-              <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" on:click={() => {deleteCloud(bookmark.id)}}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-                {bookmark.name}
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-              </button>
-            </li>
-          {/if}
-        {/each}
-      {/if}
-    </ul>
+          {/each}
+        {/if}
+      </ul>
+      {/snippet}
   </Menu>
 </div>
 

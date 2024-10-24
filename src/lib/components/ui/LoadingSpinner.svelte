@@ -1,7 +1,11 @@
 <script lang="ts">
-  export let size = 24;
-  export let padding = 32;
-  export let color = 'var(--text-color-1)';
+  interface Props {
+    size?: number;
+    padding?: number;
+    color?: string;
+  }
+
+  let { size = 24, padding = 32, color = 'var(--text-color-1)' }: Props = $props();
 </script>
 
 <div class="loading-spinner" style="padding: {padding}px">

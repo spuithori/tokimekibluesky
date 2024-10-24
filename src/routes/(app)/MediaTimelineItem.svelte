@@ -6,10 +6,14 @@
     import {contentLabelling} from "$lib/timelineFilter";
     import MediaTimelineThumbnail from "$lib/components/post/MediaTimelineThumbnail.svelte";
 
-    export let _agent = $agent;
-    export let data;
-    export let isProfile = false;
-    let isOpen = false;
+  interface Props {
+    _agent?: any;
+    data: any;
+    isProfile?: boolean;
+  }
+
+  let { _agent = $agent, data, isProfile = false }: Props = $props();
+    let isOpen = $state(false);
 
     const moderateData = contentLabelling(data.post, _agent.did(), $settings);
 
@@ -86,7 +90,7 @@
        class:media-item--reply={data.reply && data?.reply?.parent?.author?.did !== _agent.did()}
        class:media-item--warn={isWarn}
   >
-    <button on:click={modalToggle} aria-label="画像を拡大する">
+    <button onclick={modalToggle} aria-label="画像を拡大する">
       {#if (AppBskyEmbedImages.isView(data.post?.embed))}
         <MediaTimelineThumbnail images={data.post.embed.images}></MediaTimelineThumbnail>
       {:else if (AppBskyEmbedImages.isView(data.post?.embed?.media))}

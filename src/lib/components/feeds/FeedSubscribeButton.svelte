@@ -2,11 +2,15 @@
     import { _ } from 'svelte-i18n';
     import {agent, preferences} from "$lib/stores";
 
-    export let _agent = $agent;
-    export let feed;
-    export let subscribed = false;
+  interface Props {
+    _agent?: any;
+    feed: any;
+    subscribed?: boolean;
+  }
 
-    let isProcessing = false;
+  let { _agent = $agent, feed, subscribed = $bindable(false) }: Props = $props();
+
+    let isProcessing = $state(false);
 
     async function refreshSubscribe() {
         const res = await _agent.agent.api.app.bsky.actor.getPreferences();
@@ -72,11 +76,11 @@
 
 <div>
   {#if subscribed}
-    <button class="button button--ss button--following" disabled={isProcessing} on:click={unsubscribe} data-unfollow-name="{$_('unsubscribe_button')}">
+    <button class="button button--ss button--following" disabled={isProcessing} onclick={unsubscribe} data-unfollow-name="{$_('unsubscribe_button')}">
       {$_('subscribed_button')}
     </button>
   {:else}
-    <button class="button button--ss" disabled={isProcessing} on:click={subscribe}>
+    <button class="button button--ss" disabled={isProcessing} onclick={subscribe}>
       {$_('subscribe_button')}
     </button>
   {/if}

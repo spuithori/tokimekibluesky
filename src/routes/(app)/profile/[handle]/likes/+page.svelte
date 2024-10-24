@@ -6,11 +6,15 @@
     import InfiniteLoading from 'svelte-infinite-loading';
     import {BskyAgent} from "@atproto/api";
 
-    export let author = '';
-    let feeds = [];
+    let feeds = $state([]);
     let cursor = '';
 
-    export let data: LayoutData;
+  interface Props {
+    author?: string;
+    data: LayoutData;
+  }
+
+  let { author = '', data }: Props = $props();
     const _agent = new BskyAgent({service: $agent.service()});
 
     async function getFeedsFromRecords(records) {
@@ -65,7 +69,11 @@
   {/each}
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    <p slot="noResults" class="infinite-nomore"><span>{$_('no_more')}</span></p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
+    {#snippet noResults()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
   </InfiniteLoading>
 </div>

@@ -4,9 +4,7 @@
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
-    export let filter;
-    export let item;
-    export let _agent;
+    let { filter, item, _agent } = $props();
 </script>
 
 <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">

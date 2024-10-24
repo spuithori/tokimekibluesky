@@ -2,9 +2,8 @@
   import SocialProofModal from "$lib/components/profile/SocialProofModal.svelte";
   import {_} from "svelte-i18n";
 
-  export let knownFollowers;
-  export let actor;
-  let isModalOpen = false;
+  let { knownFollowers, actor } = $props();
+  let isModalOpen = $state(false);
 </script>
 
 {#if knownFollowers.followers.length}
@@ -18,7 +17,7 @@
     </div>
 
     <p class="social-proof-text">
-      <button class="social-proof-button" on:click={() => {isModalOpen = true}}>{$_('social_proof_text', {values: {name: knownFollowers.followers[0].displayName || knownFollowers.followers[0].handle, count: knownFollowers.count}})}</button>
+      <button class="social-proof-button" onclick={() => {isModalOpen = true}}>{$_('social_proof_text', {values: {name: knownFollowers.followers[0].displayName || knownFollowers.followers[0].handle, count: knownFollowers.count}})}</button>
     </p>
   </div>
 {/if}

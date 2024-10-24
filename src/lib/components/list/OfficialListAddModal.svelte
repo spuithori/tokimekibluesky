@@ -9,12 +9,11 @@
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
-    export let author;
+  let { _agent = $agent, author } = $props();
 
-    let lists = [];
+    let lists = $state([]);
     let isDisabled = false;
-    let ready = false;
+    let ready = $state(false);
 
     async function applyListItem(lists) {
         let listItems = [];

@@ -6,8 +6,12 @@
   import {agent, agents, profileStatus} from "$lib/stores";
   import {modifyAgents} from "$lib/modifyAgents";
 
-  export let status = 0;
-  export let profile;
+  interface Props {
+    status?: number;
+    profile: any;
+  }
+
+  let { status = 0, profile }: Props = $props();
 
   async function handleSuccess(event) {
       try {
@@ -43,7 +47,7 @@
     </div>
 
     {#if (status === 0)}
-      <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
+      <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
     {/if}
   </div>
 {/if}

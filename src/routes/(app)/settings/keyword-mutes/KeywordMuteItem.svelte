@@ -1,17 +1,18 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {_} from "svelte-i18n";
   import {keywordMutes} from '$lib/stores';
   import {defaultKeyword} from "$lib/timelineFilter";
 
-  export let keyword = defaultKeyword;
-  export let index;
+  let { keyword = $bindable(defaultKeyword), index } = $props();
 
   const regTime = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/
 
-  let startPercent;
-  let endPercent;
+  let startPercent = $state();
+  let endPercent = $state();
 
-  $: {
+  run(() => {
       $keywordMutes[index] = keyword;
 
       if (regTime.test(keyword.period.start)) {
@@ -25,7 +26,7 @@
           const minutes = Number(array[0]) * 60 + Number(array[1]);
           endPercent = minutes / 1440 * 100;
       }
-  }
+  });
 </script>
 
 <div class="keyword-mute">

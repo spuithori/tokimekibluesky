@@ -3,10 +3,14 @@
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   const dispatch = createEventDispatcher();
 
-  export let member;
-  export let action;
-  export let exclude = false;
-  let isPreparing = false;
+  interface Props {
+    member: any;
+    action: any;
+    exclude?: boolean;
+  }
+
+  let { member, action, exclude = false }: Props = $props();
+  let isPreparing = $state(false);
 
   function add() {
       dispatch('add', {
@@ -47,7 +51,7 @@
         <LoadingSpinner size={16} color="var(--text-color-1)" padding={0}></LoadingSpinner>
       {:else}
         {#if (action === 'add')}
-          <button on:click={add} class="list-member-button list-member-button--add" aria-label="Add">
+          <button onclick={add} class="list-member-button list-member-button--add" aria-label="Add">
             <svg xmlns="http://www.w3.org/2000/svg" width="11.773" height="11.772" viewBox="0 0 11.773 11.772">
               <g id="グループ_98" data-name="グループ 98" transform="translate(-751.114 -442.114)">
                 <path id="パス_24" data-name="パス 24" d="M.686-2.2H12.458V-4.746H.686Z" transform="translate(750.428 451.473)" fill="#fff"/>
@@ -56,7 +60,7 @@
             </svg>
           </button>
         {:else if (action === 'chat')}
-          <button on:click={chat} class="list-member-button list-member-button--add" aria-label="Add">
+          <button onclick={chat} class="list-member-button list-member-button--add" aria-label="Add">
             <svg xmlns="http://www.w3.org/2000/svg" width="11.773" height="11.772" viewBox="0 0 11.773 11.772">
               <g id="グループ_98" data-name="グループ 98" transform="translate(-751.114 -442.114)">
                 <path id="パス_24" data-name="パス 24" d="M.686-2.2H12.458V-4.746H.686Z" transform="translate(750.428 451.473)" fill="#fff"/>
@@ -65,7 +69,7 @@
             </svg>
           </button>
         {:else}
-          <button on:click={deleteMember} class="list-member-button list-member-button--delete" aria-label="Add">
+          <button onclick={deleteMember} class="list-member-button list-member-button--delete" aria-label="Add">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
               <g id="グループ_90" data-name="グループ 90" transform="translate(-745 -436)">
                 <circle id="bafkreidwy6swkoyicdm5nypbhyhk7z4o5fe7g5wiyo2255irpb3a6nwffy" cx="12" cy="12" r="12" transform="translate(745 436)" fill="#d81c2f"/>

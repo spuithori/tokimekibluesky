@@ -1,7 +1,7 @@
 <script lang="ts">
   import {Splide, SplideSlide} from "@splidejs/svelte-splide";
 
-  export let images;
+  let { images } = $props();
 </script>
 
 {#if (images.length > 1)}

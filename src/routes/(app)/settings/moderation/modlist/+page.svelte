@@ -6,10 +6,10 @@
     import {onMount} from "svelte";
     import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
 
-    let lists = [];
+    let lists = $state([]);
     let cursor: string | undefined = '';
-    let modLists = [];
-    let unique = Symbol();
+    let modLists = $state([]);
+    let unique = $state(Symbol());
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
         try {
@@ -46,7 +46,7 @@
 <div>
   <div class="column-heading">
     <div class="column-heading__buttons">
-      <button class="settings-back" on:click={() => {history.back()}}>
+      <button class="settings-back" onclick={() => {history.back()}}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
       </button>
     </div>
@@ -98,12 +98,16 @@
         </div>
 
         <div class="mod-list-new-buttons text-center">
-          <button class="button button--sm" on:click={() => {$officialListModal.open = true}}>{$_('new_create')}</button>
+          <button class="button button--sm" onclick={() => {$officialListModal.open = true}}>{$_('new_create')}</button>
         </div>
 
         <InfiniteLoading on:infinite={handleLoadMore}>
-          <p slot="noMore" class="infinite-nomore"></p>
-          <p slot="noResults" class="infinite-nomore"></p>
+          {#snippet noMore()}
+                    <p  class="infinite-nomore"></p>
+                  {/snippet}
+          {#snippet noResults()}
+                    <p  class="infinite-nomore"></p>
+                  {/snippet}
         </InfiniteLoading>
       </div>
     {/key}

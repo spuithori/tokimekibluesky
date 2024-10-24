@@ -1,54 +1,63 @@
 <script lang="ts">
-    import { offset, flip, shift } from 'svelte-floating-ui/dom';
-    import { createFloatingActions } from 'svelte-floating-ui';
-    import { fly } from 'svelte/transition';
-    import { liveQuery } from "dexie";
-    import {agent, agents} from "$lib/stores";
-    import {createEventDispatcher} from "svelte";
-    import { clickOutside } from '$lib/clickOutSide';
-    import {accountsDb} from '$lib/db';
-    import {getAccountIdByDid} from "$lib/util";
-    import AvatarAgentsSelectorModalItem from "$lib/components/acp/AvatarAgentsSelectorModalItem.svelte";
-    const dispatch = createEventDispatcher();
+  import { offset, flip, shift } from 'svelte-floating-ui/dom';
+  import { createFloatingActions } from 'svelte-floating-ui';
+  import { fly } from 'svelte/transition';
+  import { liveQuery } from "dexie";
+  import {agent, agents} from "$lib/stores";
+  import {createEventDispatcher} from "svelte";
+  import { clickOutside } from '$lib/clickOutSide';
+  import {accountsDb} from '$lib/db';
+  import {getAccountIdByDid} from "$lib/util";
+  import AvatarAgentsSelectorModalItem from "$lib/components/acp/AvatarAgentsSelectorModalItem.svelte";
+  const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
-    export let isDisabled = false;
-    export let style = 'default';
-    let isOpen = false;
+  interface Props {
+    _agent?: any;
+    isDisabled?: boolean;
+    style?: string;
+  }
 
-    const [ floatingRef, floatingContent ] = createFloatingActions({
-        strategy: 'absolute',
-        placement: 'bottom-start',
-        middleware: [
-            offset(10),
-            flip(),
-            shift(),
-        ]
-    });
+  let { _agent = $bindable($agent), isDisabled = false, style = 'default' }: Props = $props();
+  let isOpen = $state(false);
+  let avatar = $state();
 
-    $: avatar = liveQuery(async () => {
-        const account = await accountsDb.accounts.get(getAccountIdByDid($agents, _agent.did()));
-        return account.avatar;
-    })
+  const [ floatingRef, floatingContent ] = createFloatingActions({
+      strategy: 'absolute',
+      placement: 'bottom-start',
+      middleware: [
+          offset(10),
+          flip(),
+          shift(),
+      ]
+  });
 
-    async function selectAgent(key, agent) {
-        _agent = agent;
+  accountsDb.accounts.get(getAccountIdByDid($agents, _agent.did()))
+      .then(res => {
+          avatar = res.avatar;
+      });
 
-        dispatch('select', {
-            id: key,
-            agent: _agent,
-        });
+  async function selectAgent(key, agent) {
+      _agent = agent;
 
-        isOpen = false;
-    }
+      dispatch('select', {
+          id: key,
+          agent: _agent,
+      });
+
+      accountsDb.accounts.get(getAccountIdByDid($agents, _agent.did()))
+          .then(res => {
+              avatar = res.avatar;
+          });
+      isOpen = false;
+  }
 </script>
 
 {#if _agent}
   <div class="avatar-agents-selector-wrap" class:agents-selector-wrap--open={isOpen} aria-disabled={isDisabled}>
     <div class="avatar-agents-selector-current" use:floatingRef>
-      <button class="avatar-agents-selector-avatar" on:click={() => {isOpen = !isOpen}}>
-        {#if ($avatar)}
-          <img src="{$avatar}" alt="">
+      <button class="avatar-agents-selector-avatar" onclick={() => {isOpen = !isOpen}}>
+        {#if (avatar)}
+          <img src="{avatar}" alt="">
         {/if}
       </button>
     </div>
@@ -57,7 +66,7 @@
       <div class="avatar-agents-selector-modal"
            tabindex="-1"
            use:clickOutside={{ignoreElement: '.avatar-agents-selector-avatar'}}
-           on:outclick={() => (isOpen = false)}
+           onoutclick={() => (isOpen = false)}
            transition:fly="{{ y: 30, duration: 250 }}"
            use:floatingContent
       >

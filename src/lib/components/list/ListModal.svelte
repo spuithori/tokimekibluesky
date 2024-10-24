@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import {agent, userLists} from '$lib/stores';
     import {onMount} from "svelte";
     import ListMember from "./ListMember.svelte";
@@ -7,7 +9,6 @@
     import {_} from "svelte-i18n";
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
 
     type list = {
         id: string,
@@ -19,23 +20,18 @@
     let lists: list[] = localStorage.getItem('lists')
         ? JSON.parse(localStorage.getItem('lists'))
         : [];
-    export let id = new Date().getTime().toString();
-    let name = '';
+  let { _agent = $agent, id = new Date().getTime().toString() } = $props();
+    let name = $state('');
     let owner = '';
-    let members = [];
-    let search = '';
-    let searchMembers = [];
+    let members = $state([]);
+    let search = $state('');
+    let searchMembers = $state([]);
     let timer;
     let currentIndex = 0;
-    let ready = false;
-    let exportText;
-    let importText = '';
+    let ready = $state(false);
+    let exportText = $state();
+    let importText = $state('');
 
-    $: {
-        if (ready) {
-            handleNameChange(name)
-        }
-    }
 
     onMount(async () => {
         const index = lists.findIndex(list => list.id === id);
@@ -132,6 +128,11 @@
             toast.error($_('error_invalid_text'));
         }
     }
+    run(() => {
+        if (ready) {
+            handleNameChange(name)
+        }
+    });
 </script>
 
 <div class="list-modal">
@@ -188,7 +189,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">
                   <path id="search" d="M11.589,12.866A7.187,7.187,0,1,1,12.856,11.6l4.807,4.789-1.276,1.276-4.789-4.8Zm-4.4-.287A5.391,5.391,0,1,0,1.8,7.188a5.391,5.391,0,0,0,5.391,5.391Z" transform="translate(0.008 -0.002)" fill="var(--primary-color)"/>
                 </svg>
-                <input type="text" class="list-modal-search-input" bind:value={search} on:keydown={handleKeyDown} placeholder="{$_('handle_or_name')}">
+                <input type="text" class="list-modal-search-input" bind:value={search} onkeydown={handleKeyDown} placeholder="{$_('handle_or_name')}">
               </div>
 
               {#each searchMembers as member}
@@ -214,7 +215,7 @@
           <dd class="list-modal-group__content">
             <div class="list-modal-import-export-group">
               <input type="text" readonly class="list-modal-group__input" bind:value={exportText}>
-              <button class="button button--sm" on:click={exporting}><svg xmlns="http://www.w3.org/2000/svg" width="14.417" height="18" viewBox="0 0 14.417 18">
+              <button class="button button--sm" onclick={exporting}><svg xmlns="http://www.w3.org/2000/svg" width="14.417" height="18" viewBox="0 0 14.417 18">
                 <path id="clipboard" d="M6.532,2.345a2.7,2.7,0,0,1,5.352,0l1.829.36v.9h.9a1.8,1.8,0,0,1,1.8,1.8V16.221a1.8,1.8,0,0,1-1.8,1.8H3.8a1.8,1.8,0,0,1-1.8-1.8V5.409a1.807,1.807,0,0,1,1.8-1.8h.9v-.9l1.829-.36ZM4.7,5.409H3.8V16.221H14.615V5.409h-.9v.9H4.7Zm4.505-1.8a.9.9,0,1,0-.9-.9A.9.9,0,0,0,9.208,3.606Z" transform="translate(-2 -0.023)" fill="var(--bg-color-1)"/>
               </svg></button>
             </div>
@@ -230,7 +231,7 @@
           <dd class="list-modal-group__content">
             <div class="list-modal-import-export-group">
               <input type="text" class="list-modal-group__input" bind:value={importText}>
-              <button class="button button--sm" on:click={importing}>{$_('import')}</button>
+              <button class="button button--sm" onclick={importing}>{$_('import')}</button>
             </div>
           </dd>
         </dl>
@@ -238,8 +239,8 @@
     </details>
 
     <div class="list-modal-close">
-      <button class="button button--sm" on:click={close}>{$_('close_button')}</button>
-      <button class="button button--sm button--border button--danger" on:click={remove}>{$_('remove')}</button>
+      <button class="button button--sm" onclick={close}>{$_('close_button')}</button>
+      <button class="button button--sm button--border button--danger" onclick={remove}>{$_('remove')}</button>
     </div>
   </div>
 </div>

@@ -1,4 +1,6 @@
 <script>
+  import { run } from 'svelte/legacy';
+
     import { page } from '$app/stores';
     import SearchForm from '../../SearchForm.svelte';
     import { agent } from '$lib/stores';
@@ -6,12 +8,11 @@
     import InfiniteLoading from "svelte-infinite-loading";
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
     import {onMount} from "svelte";
-    let feeds = [];
+    let feeds = $state([]);
     let savedFeeds = [];
 
     let _agent = $agent;
 
-    $: getSearchFeeds($page.url.searchParams.get('q'));
 
     async function getSavedFeeds () {
         const preferenceRes = await _agent.agent.api.app.bsky.actor.getPreferences()
@@ -50,6 +51,9 @@
     onMount(async () => {
         await getSavedFeeds();
     })
+    run(() => {
+    getSearchFeeds($page.url.searchParams.get('q'));
+  });
 </script>
 
 {#key $page.url.searchParams.get('q')}
@@ -59,7 +63,9 @@
     {/each}
 
     <InfiniteLoading on:infinite={handleLoadMore}>
-      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+      {#snippet noMore()}
+            <p  class="infinite-nomore">もうないよ</p>
+          {/snippet}
     </InfiniteLoading>
   </div>
 {/key}

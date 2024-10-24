@@ -2,8 +2,7 @@
   import {agent} from "$lib/stores";
   import Images from "../../../routes/(app)/Images.svelte";
 
-  export let record;
-  export let _agent = $agent;
+  let { record, _agent = $agent } = $props();
 </script>
 
 <div class="stamp">

@@ -7,17 +7,17 @@
     import {accountsDb} from "$lib/db";
     import PushNotificationAccountItem from "./PushNotificationAccountItem.svelte";
 
-    let isChecked = false;
-    let isDisabled = false;
-    let enableAccounts = localStorage.getItem('pushNotificationAccounts') ? JSON.parse(localStorage.getItem('pushNotificationAccounts')) : [];
+    let isChecked = $state(false);
+    let isDisabled = $state(false);
+    let enableAccounts = $state(localStorage.getItem('pushNotificationAccounts') ? JSON.parse(localStorage.getItem('pushNotificationAccounts')) : []);
 
-    $: accounts = liveQuery(async () => {
+    let accounts = $derived(liveQuery(async () => {
         const accounts = await accountsDb.accounts
             .where('service')
             .equals('https://bsky.social')
             .toArray();
         return accounts;
-    })
+    }))
 
     async function pushToggle() {
         isDisabled = true;
@@ -73,7 +73,7 @@
 <div>
   <div class="column-heading">
     <div class="column-heading__buttons">
-      <button class="settings-back" on:click={() => {history.back()}}>
+      <button class="settings-back" onclick={() => {history.back()}}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
       </button>
     </div>
@@ -106,7 +106,7 @@
 
         <dd class="settings-group__content">
           <div class="input-toggle">
-            <input class="input-toggle__input" type="checkbox" id="pushToggle" bind:checked={isChecked} on:change={pushToggle} disabled={isDisabled}><label class="input-toggle__label" for="pushToggle"></label>
+            <input class="input-toggle__input" type="checkbox" id="pushToggle" bind:checked={isChecked} onchange={pushToggle} disabled={isDisabled}><label class="input-toggle__label" for="pushToggle"></label>
           </div>
         </dd>
       </dl>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import {accountsDb} from "$lib/db";
 
-  let message = '';
+  let message = $state('');
 
   async function deleteAccounts() {
       try {
@@ -35,9 +35,9 @@
   <p>リカバリー用ページ</p>
 
   <p>
-    <button class="button" on:click={deleteAccounts}>Delete All Account and Profile</button>
-    <button class="button" on:click={deleteSettings}>Delete All Settings</button>
-    <button class="button" on:click={deleteAll}>Delete All</button>
+    <button class="button" onclick={deleteAccounts}>Delete All Account and Profile</button>
+    <button class="button" onclick={deleteSettings}>Delete All Settings</button>
+    <button class="button" onclick={deleteAll}>Delete All</button>
   </p>
 
   <p>{message}</p>

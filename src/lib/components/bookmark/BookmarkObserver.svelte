@@ -5,7 +5,7 @@
     const dispatch = createEventDispatcher();
     let bookmark = undefined;
 
-    export let _agent = $agent;
+  let { _agent = $agent } = $props();
 
     function handleBookmarkClose(event) {
         $bookmarkModal.open = false;

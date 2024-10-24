@@ -6,10 +6,24 @@
     import {isPreventEvent} from "$lib/stores";
     import type { Placement } from '@floating-ui/core';
 
-    export let isMenuOpen = false;
-    export let buttonClassName = 'timeline-menu-toggle'
-    export let position: Placement = 'bottom-end';
-    let toggle;
+  interface Props {
+    isMenuOpen?: boolean;
+    buttonClassName?: string;
+    position?: Placement;
+    ref?: import('svelte').Snippet;
+    sub?: import('svelte').Snippet;
+    content?: import('svelte').Snippet;
+  }
+
+  let {
+    isMenuOpen = $bindable(false),
+    buttonClassName = 'timeline-menu-toggle',
+    position = 'bottom-end',
+    ref,
+    sub,
+    content
+  }: Props = $props();
+    let toggle = $state();
 
     const [ floatingRef, floatingContent ] = createFloatingActions({
         strategy: 'absolute',
@@ -44,16 +58,16 @@
       class={buttonClassName}
       aria-label="Open menu."
       bind:this={toggle}
-      on:click={menuOpen}
+      onclick={menuOpen}
       use:floatingRef
   >
-     <slot name="ref">
+     {#if ref}{@render ref()}{:else}
        <svg xmlns="http://www.w3.org/2000/svg" width="3" height="12" viewBox="0 0 3 12">
          <path id="dots-horizontal-triple"
                d="M9.5,9.5A1.5,1.5,0,1,1,11,8,1.5,1.5,0,0,1,9.5,9.5ZM9.5,5A1.5,1.5,0,1,1,11,3.5,1.5,1.5,0,0,1,9.5,5Zm0,9A1.5,1.5,0,1,1,11,12.5,1.5,1.5,0,0,1,9.5,14Z"
                transform="translate(-8 -2)" fill="var(--text-color-3)"/>
        </svg>
-     </slot>
+     {/if}
   </button>
 
   {#if isMenuOpen}
@@ -61,13 +75,13 @@
         class="timeline-menu"
         class:timeline-menu--shown={isMenuOpen}
         use:clickOutside={{ignoreElement: toggle}}
-        on:outclick={handleOutClick}
+        onoutclick={handleOutClick}
         transition:fly="{{ y: 30, duration: 250 }}"
         use:floatingContent
-        on:outroend={handleOutroEnd}
+        onoutroend={handleOutroEnd}
     >
-      <slot name="sub"></slot>
-      <slot name="content"></slot>
+      {@render sub?.()}
+      {@render content?.()}
     </nav>
   {/if}
 </div>

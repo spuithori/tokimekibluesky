@@ -1,17 +1,9 @@
 <script lang="ts">
+  import { run, passive } from 'svelte/legacy';
+
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
-  import {
-      agent,
-      agents,
-      columns,
-      currentTimeline,
-      isAfterReload,
-      isColumnModalOpen,
-      isMobileDataConnection, isReactionButtonSettingsModalOpen, keywordMutes, listAddModal,
-      profileStatus,
-      settings, syncColumns,
-      theme, direction, bluefeedAddModal, labelDefs, subscribedLabelers
+  import { agent, agents, currentTimeline, isAfterReload, isColumnModalOpen, isMobileDataConnection, isReactionButtonSettingsModalOpen, keywordMutes, listAddModal, profileStatus, settings, theme, direction, bluefeedAddModal, labelDefs, subscribedLabelers
   } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {pwaInfo} from 'virtual:pwa-info';
@@ -21,7 +13,6 @@
   import {scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
   import {page} from '$app/stores';
-  import {liveQuery} from 'dexie';
   import {accountsDb, themesDb} from '$lib/db';
   import ReportObserver from "$lib/components/report/ReportObserver.svelte";
   import {resumeAccountsSession} from "$lib/resumeAccountsSession";
@@ -46,17 +37,20 @@
   import JunkColumnsObserver from "$lib/components/utils/JunkColumnsObserver.svelte";
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
   import {isSafariOrFirefox} from "$lib/util";
+  import {initColumns} from "$lib/classes/columnState.svelte";
 
-  let loaded = false;
-  let isDarkMode = false;
-  let scrolly;
-  let app;
-  let baseColor = '#fff';
-  let isRepeater = localStorage.getItem('isRepeater') === 'true';
+  interface Props {
+    children?: import('svelte').Snippet;
+  }
 
-  $: getCurrentTheme($settings.design?.skin);
-  $: observeColor($theme);
-  $: detectHeadThemeColor($theme);
+  let { children }: Props = $props();
+
+  let loaded = $state(false);
+  let isDarkMode = $state(false);
+  let scrolly = $state();
+  let app = $state();
+  let baseColor = $state('#fff');
+  let isRepeater = $state(localStorage.getItem('isRepeater') === 'true');
 
   function detectHeadThemeColor(theme) {
       setTimeout(() => {
@@ -92,17 +86,9 @@
       }
   }
 
-  let profiles = liveQuery(
-      () => accountsDb.profiles.toArray()
-  );
-
-  $: {
-      if ($profiles) {
-          initProfile($profiles);
-      }
-  }
-
-  async function initProfile(profiles) {
+  async function initProfile() {
+    const profiles = await accountsDb.profiles.toArray();
+    console.log(profiles);
     const anyAccounts = await accountsDb.accounts
             .toArray();
 
@@ -126,7 +112,10 @@
           name: $_('workspace') + ' 1',
           primary: acs[0] as number,
         })
-      localStorage.setItem('currentProfile', id);
+        localStorage.setItem('currentProfile', id);
+
+        await initProfile();
+        return false;
     }
 
     const currentProfile = Number(localStorage.getItem('currentProfile'));
@@ -222,49 +211,11 @@
       $settings.keywordMutes = undefined;
   }
 
-  $: {
-      localStorage.setItem('settings', JSON.stringify($settings));
-      localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
-      locale.set($settings.general.language);
-  }
-
-  $: columnStorageSave($syncColumns);
-  $: detectDarkMode($settings.design?.darkmode, $theme?.options.darkmodeDisabled);
-  $: detectDateFnsLocale($settings.general?.language || window.navigator.language);
-
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
       if ($settings?.design.darkmode === 'prefer') {
           isDarkMode = event.matches
       }
   })
-
-  accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')))
-      .then(value => {
-          if (!value) {
-              return false;
-          }
-
-          if (value.columns) {
-              columns.set(value.columns);
-              //isColumnInitialLoad = true;
-          }
-      });
-
-  function columnStorageSave(columns) {
-      if (!loaded) {
-          return false;
-      }
-
-      const profileId = localStorage.getItem('currentProfile');
-      if (!profileId) {
-          return false;
-      }
-
-      const id = accountsDb.profiles.update(Number(profileId), {
-          columns: columns,
-      })
-      localStorage.setItem('columns', JSON.stringify(columns));
-  }
 
   function detectDarkMode(setting, isDarkmodeDisabled = false) {
       if (isDarkmodeDisabled) {
@@ -336,10 +287,26 @@
       return theme.style + colorStyle + darkmodeStyle;
   }
 
+  initProfile();
   viewPortSetting();
+  initColumns();
+
+  $effect(() => {
+      localStorage.setItem('settings', JSON.stringify($settings));
+      localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
+      locale.set($settings.general.language);
+      detectDateFnsLocale($settings.general?.language);
+  });
+
+  run(() => {
+      getCurrentTheme($settings.design?.skin);
+      observeColor($theme);
+      detectHeadThemeColor($theme);
+      detectDarkMode($settings.design?.darkmode, $theme?.options.darkmodeDisabled);
+  })
 </script>
 
-<svelte:window on:scroll|passive={handleScroll} bind:scrollY={scrolly}></svelte:window>
+<svelte:window use:passive={['scroll', () => handleScroll]} bind:scrollY={scrolly}></svelte:window>
 <svelte:head>
   <meta name="theme-color" content={baseColor}>
   <link rel="canonical" href="https://tokimeki.blue{$page.url.pathname}">
@@ -378,12 +345,12 @@
           <Decks></Decks>
         {/if}
 
-        <slot />
+        {@render children?.()}
       </main>
     </div>
 
     {#if $isColumnModalOpen}
-      <ColumnModal on:close={handleColumnModalClose} _columns={$columns}></ColumnModal>
+      <ColumnModal on:close={handleColumnModalClose}></ColumnModal>
     {/if}
 
     {#if $listAddModal.open}
@@ -420,7 +387,6 @@
   <ProfileStatusObserver></ProfileStatusObserver>
   <LinkWarningModal></LinkWarningModal>
   <ServerStatusSticker></ServerStatusSticker>
-  <JunkColumnsObserver></JunkColumnsObserver>
 </div>
 
 <style lang="postcss">

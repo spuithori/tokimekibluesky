@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import {_} from 'svelte-i18n'
     import imageCompression from 'browser-image-compression';
     import {flip} from "svelte/animate";
@@ -25,15 +27,19 @@
         isGif: boolean,
     }
 
-    export let images: Image[] = [];
-    export let video;
-    let input;
+    interface Props {
+        images?: Image[];
+        video: any;
+    }
 
-    $: {
+    let { images = $bindable([]), video = $bindable() }: Props = $props();
+    let input = $state();
+
+    run(() => {
         if (images.length > 4) {
             images = images.slice(0, 4);
         }
-    }
+    });
 
     function handleDndConsider(e) {
         images = e.detail.items;
@@ -164,8 +170,8 @@
          class:image-upload-drag-area--1item={images.length === 1}
          class:image-upload-drag-area--bottom={$settings.design?.publishPosition === 'bottom'}
          use:dndzone="{{items: images, flipDurationMs: 300, type: 'images', dropTargetStyle: ''}}"
-         on:consider="{handleDndConsider}"
-         on:finalize="{handleDndFinalize}"
+         onconsider={handleDndConsider}
+         onfinalize={handleDndFinalize}
     >
         {#each images as image (image.id)}
             <div animate:flip="{{duration: 300}}">
@@ -175,13 +181,13 @@
     </div>
 </div>
 
-<input class="image-upload-input" type="file" on:change={handleInputChange} bind:this={input}>
+<input class="image-upload-input" type="file" onchange={handleInputChange} bind:this={input}>
 
 {#if video}
     <div class="video-upload-item">
         <EmbedVideo video={video} isLocal={true}></EmbedVideo>
 
-        <button class="video-upload-item__close" on:click={handleVideoDelete}>
+        <button class="video-upload-item__close" onclick={handleVideoDelete}>
             <X color="#fff" size="18"></X>
         </button>
     </div>

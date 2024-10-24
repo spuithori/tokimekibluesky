@@ -1,4 +1,6 @@
 <script>
+  import { run } from 'svelte/legacy';
+
     import { page } from '$app/stores';
     import { agent } from '$lib/stores';
     let feeds = [];
@@ -6,9 +8,8 @@
     import InfiniteLoading from "svelte-infinite-loading";
     import UserItem from "../../profile/[handle]/UserItem.svelte";
     import {_} from "svelte-i18n";
-    let users = [];
+    let users = $state([]);
 
-    $: getSearchFeeds($page.url.searchParams.get('q'));
 
     async function getSearchFeeds(query) {
         if (query) {
@@ -32,6 +33,9 @@
             complete();
         }
     }
+    run(() => {
+    getSearchFeeds($page.url.searchParams.get('q'));
+  });
 </script>
 
 {#key $page.url.searchParams.get('q')}
@@ -41,12 +45,16 @@
     {/each}
 
     <InfiniteLoading on:infinite={handleLoadMore}>
-        <p slot="noMore" class="infinite-nomore">
-            {$_('no_more')}
-        </p>
-        <p slot="noResults" class="infinite-nomore">
-            {$_('no_results_search')}
-        </p>
+        {#snippet noMore()}
+            <p  class="infinite-nomore">
+              {$_('no_more')}
+          </p>
+          {/snippet}
+        {#snippet noResults()}
+            <p  class="infinite-nomore">
+              {$_('no_results_search')}
+          </p>
+          {/snippet}
     </InfiniteLoading>
   </div>
 {/key}

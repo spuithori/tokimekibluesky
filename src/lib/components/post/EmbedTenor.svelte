@@ -1,8 +1,8 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
 
-  export let tenor;
-  let paused;
+  let { tenor } = $props();
+  let paused = $state();
 
   if ($settings?.general?.disableTenorAutoplay) {
       paused = true;
@@ -28,7 +28,7 @@
            loop
     ></video>
 
-    <button class="gif-toggle" on:click={() => paused = !paused}></button>
+    <button class="gif-toggle" onclick={() => paused = !paused}></button>
   {:else}
     <img src={tenor.url} width={tenor.width} height={tenor.height} alt="">
   {/if}

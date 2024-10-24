@@ -1,7 +1,10 @@
 <script lang="ts">
-    import {agents, columns, pauseColumn, workerTimer} from "$lib/stores";
+  import {agents, pauseColumn, workerTimer} from "$lib/stores";
   import {getAccountIdByDid} from "$lib/util";
   import {onDestroy} from "svelte";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
+
+  const columnState = getColumnState();
 
   function updateCount() {
       let promises = [];
@@ -11,7 +14,7 @@
           return false;
       }
 
-      $columns.forEach((column, index) => {
+      columnState.columns.forEach((column, index) => {
           if (column.algorithm?.type !== 'notification') {
               return false;
           }
@@ -24,9 +27,8 @@
       Promise.allSettled(promises).then(results => {
           results.forEach((result, index) => {
               if (result.status === 'fulfilled') {
-                  $columns[notificationColumns[index]].unreadCount = result.value;
+                  columnState.columns[notificationColumns[index]].unreadCount = result.value;
               }
-
           })
       })
       .catch(e => {

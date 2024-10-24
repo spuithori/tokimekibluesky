@@ -9,9 +9,9 @@
     import { toast } from "svelte-sonner";
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
-    let data = getContext('timelineItem');
-    let el;
+  let { _agent = $bindable($agent) } = $props();
+    let data = $state(getContext('timelineItem'));
+    let el = $state();
     let currentAccount;
     let isLoading = false;
 
@@ -39,7 +39,7 @@
     })
 </script>
 
-<dialog class="dialog-modal" transition:fly="{{ y: 30, duration: 250 }}" bind:this={el} on:close={close}>
+<dialog class="dialog-modal" transition:fly="{{ y: 30, duration: 250 }}" bind:this={el} onclose={close}>
   <div class="dialog-modal-contents dialog-modal-contents--ml">
     <div class="reaction-modal-select">
       <p class="selector-label">{$_('reaction_other_account')}</p>
@@ -56,11 +56,11 @@
     {/key}
 
     <div class="modal-close">
-      <button class="button button--sm" on:click={close}>{$_('close_button')}</button>
+      <button class="button button--sm" onclick={close}>{$_('close_button')}</button>
     </div>
   </div>
 
-  <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
+  <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
 </dialog>
 
 <style lang="postcss">

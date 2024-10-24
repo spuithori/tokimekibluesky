@@ -5,10 +5,8 @@
     import Quotes from "$lib/components/thread/Quotes.svelte";
     const dispatch = createEventDispatcher();
 
-    export let column;
-    export let index;
-    export let _agent;
-    let item;
+  let { column, index, _agent } = $props();
+    let item = $state();
 </script>
 
 <TimelineItem

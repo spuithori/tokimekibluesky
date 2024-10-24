@@ -39,7 +39,7 @@
 <div>
   <div class="column-heading">
     <div class="column-heading__buttons">
-      <button class="settings-back" on:click={() => {history.back()}}>
+      <button class="settings-back" onclick={() => {history.back()}}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
       </button>
     </div>
@@ -57,13 +57,13 @@
     <p class="settings-description">{$_('keyword_mute_description')}</p>
 
     <div class="keyword-mutes-add">
-      <button class="button" on:click={add}>{$_('add_keyword')}</button>
+      <button class="button" onclick={add}>{$_('add_keyword')}</button>
     </div>
 
     {#each keywords as keyword, index}
       <div class="keyword-mute-wrap">
         <KeywordMuteItem keyword={keyword} index={index}></KeywordMuteItem>
-        <button class="keyword-mute-delete" on:click={() => {keywordDelete(index)}}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>
+        <button class="keyword-mute-delete" onclick={() => {keywordDelete(index)}}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>
       </div>
 
     {:else}

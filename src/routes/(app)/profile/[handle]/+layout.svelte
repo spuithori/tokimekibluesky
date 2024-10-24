@@ -1,6 +1,7 @@
+<!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, junkColumns, settings} from '$lib/stores';
+    import {agent, settings} from '$lib/stores';
     import { afterUpdate } from 'svelte';
     import { page } from '$app/stores';
     import type { LayoutData } from './$types';
@@ -16,6 +17,9 @@
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
+
+    const junkColumnState = getColumnState(true);
 
     export let data: LayoutData;
     let currentPage = 'posts';
@@ -103,8 +107,8 @@
 
             const convo = res.data.convo;
 
-            if ($junkColumns.findIndex(_column => _column.id === 'chat_' + convo.id) === -1) {
-                junkColumns.set([...$junkColumns, {
+            if (!junkColumnState.hasColumn('chat_' + convo.id)) {
+                junkColumnState.add({
                     id: 'chat_' + convo.id,
                     algorithm: {
                         id: convo.id,
@@ -122,7 +126,7 @@
                         feed: [],
                         cursor: '',
                     }
-                }]);
+                });
             }
 
             await goto(`/chat/${convo.id}`);

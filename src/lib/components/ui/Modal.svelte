@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { run, stopPropagation, preventDefault, createBubbler } from 'svelte/legacy';
+
+  const bubble = createBubbler();
     import { X } from 'lucide-svelte';
     import {createEventDispatcher, onDestroy, onMount} from 'svelte';
     import { pushState } from '$app/navigation';
@@ -6,11 +9,21 @@
     import { sineOut } from 'svelte/easing';
     const dispatch = createEventDispatcher();
 
-    export let title;
-    export let size = 'normal';
-    export let disableState = false;
+  interface Props {
+    title: any;
+    size?: string;
+    disableState?: boolean;
+    children?: import('svelte').Snippet;
+  }
+
+  let {
+    title,
+    size = 'normal',
+    disableState = false,
+    children
+  }: Props = $props();
     const duration = 150;
-    let el;
+    let el = $state();
 
     function close() {
         dispatch('close');
@@ -21,7 +34,7 @@
     }
 
     function back () {
-        history.back();
+        dispatch('close');
     }
 
     function modalTransition(node: HTMLElement, params) {
@@ -38,48 +51,34 @@
         };
     }
 
-    onMount(() => {
-        pushState('', {
-            ...$page.state,
-            showModal: true
-        });
-    })
-
-    onDestroy(() => {
-        if ($page.state.showModal && !disableState) {
-            history.back();
+    $effect.pre(() => {
+        if (el) {
+            open();
         }
-    })
-
-    $: if (el) {
-        open();
-    }
+    });
 </script>
 
-{#if $page.state.showModal}
-  <dialog
-          class="v2-modal v2-modal--{size}"
-          bind:this={el}
-          on:click|stopPropagation={back}
-          on:cancel|preventDefault={back}
-          on:outroend={close}
-          transition:modalTransition
-  >
-    <div class="v2-modal__inner" on:click|stopPropagation>
-      <div class="modal-heading">
-        <h2 class="modal-title modal-title--smaller">{title}</h2>
+<dialog
+        class="v2-modal v2-modal--{size}"
+        bind:this={el}
+        onclick={stopPropagation(back)}
+        oncancel={preventDefault(back)}
+        onoutroend={close}
+>
+  <div class="v2-modal__inner" onclick={stopPropagation(bubble('click'))}>
+    <div class="modal-heading">
+      <h2 class="modal-title modal-title--smaller">{title}</h2>
 
-        <button class="modal-close-button" on:click={back} aria-label="Close">
-          <X color="var(--text-color-1)"></X>
-        </button>
-      </div>
-
-      <div class="v2-modal-contents">
-        <slot></slot>
-      </div>
+      <button class="modal-close-button" onclick={back} aria-label="Close">
+        <X color="var(--text-color-1)"></X>
+      </button>
     </div>
-  </dialog>
-{/if}
+
+    <div class="v2-modal-contents">
+      {@render children?.()}
+    </div>
+  </div>
+</dialog>
 
 <style lang="postcss">
   .v2-modal {

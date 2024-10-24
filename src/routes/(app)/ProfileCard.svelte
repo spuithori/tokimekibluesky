@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { createBubbler } from 'svelte/legacy';
+
+  const bubble = createBubbler();
   import {onMount} from "svelte";
   import {agent, settings} from "$lib/stores";
   import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
@@ -14,9 +17,8 @@
       middleware: [offset(10), flip(), shift()],
   });
 
-  export let _agent = $agent;
-  export let handle;
-  let profile;
+  let { _agent = $agent, handle } = $props();
+  let profile = $state();
 
   onMount(async () => {
       const res = await _agent.agent.api.app.bsky.actor.getProfile({actor: handle});
@@ -27,7 +29,7 @@
 <span class="profile-card-target" use:floatingRef></span>
 {#if profile}
   <Portal target=".app">
-    <aside class="profile-card" on:mouseover on:mouseleave transition:fade="{{ duration: 100 }}" use:floatingContent>
+    <aside class="profile-card" onmouseover={bubble('mouseover')} onmouseleave={bubble('mouseleave')} transition:fade="{{ duration: 100 }}" use:floatingContent>
       <div class="profile-card-heading">
         <div class="profile-card-avatar">
           <img src="{profile.avatar}" alt="">

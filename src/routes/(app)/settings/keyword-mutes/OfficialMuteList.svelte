@@ -5,7 +5,7 @@
   import {createEventDispatcher} from "svelte";
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
   const dispatch = createEventDispatcher();
-  let words = [];
+  let words = $state([]);
   let _agent = $agent;
 
   async function handleAgentSelect(event) {
@@ -43,7 +43,7 @@
 {#each words as word}
   <div class="import-word">
     <p class="import-word__text">{word.value}</p>
-    <button class="button button--ss" on:click={() => {importWord(word.value)}}>{$_('import_word')}</button>
+    <button class="button button--ss" onclick={() => {importWord(word.value)}}>{$_('import_word')}</button>
   </div>
 {/each}
 

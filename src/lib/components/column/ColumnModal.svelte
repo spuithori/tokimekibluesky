@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import {agents, columns, syncColumns} from '$lib/stores';
+    import {agents} from '$lib/stores';
     import { createEventDispatcher } from 'svelte';
     import { toast } from "svelte-sonner";
     const dispatch = createEventDispatcher();
@@ -13,14 +13,16 @@
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
     import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
     import CloudBookmarkObserver from "$lib/components/bookmark/CloudBookmarkObserver.svelte";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    export let _columns = $syncColumns;
-    export let profileId = Number(localStorage.getItem('currentProfile'));
+    const columns = getColumnState();
+    let _columns = columns.getSyncColumns();
+    let profileId = Number(localStorage.getItem('currentProfile'));
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
-    let currentAccount;
-    let profile;
-    let unique = Symbol();
+    let currentAccount = $state();
+    let profile = $state();
+    let unique = $state(Symbol());
 
     accountsDb.profiles.get(profileId)
         .then(value => {
@@ -69,10 +71,10 @@
     function handleColumnAdd(event) {
         try {
             let addedColumn = structuredClone(event.detail.column);
-            addedColumn.id = self.crypto.randomUUID();
+            columns.add(addedColumn);
 
             toast.success($_('column_add_success'));
-            $columns = [...$columns, addedColumn];
+            //$columns = [...$columns, addedColumn];
             // save(false);
         } catch (e) {
             console.log(e);
@@ -80,7 +82,8 @@
     }
 
     function handleColumnRemove(event) {
-        $columns = $columns.filter(column => column.id !== event.detail.column.id);
+        //$columns = $columns.filter(column => column.id !== event.detail.column.id);
+        columns.remove(event.detail.column.id)
         // save(false);
     }
 </script>
@@ -119,11 +122,11 @@
             </div>
 
             <div class="modal-close">
-                <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
+                <button class="button button--sm" onclick={save}>{$_('close_button')}</button>
             </div>
         </div>
 
-        <button class="modal-background-close" aria-hidden="true" on:click={save}></button>
+        <button class="modal-background-close" aria-hidden="true" onclick={save}></button>
 
         <BookmarkObserver on:close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
         <CloudBookmarkObserver on:close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>

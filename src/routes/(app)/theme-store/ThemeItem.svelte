@@ -6,18 +6,22 @@
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
 
-  export let theme;
-  export let isBuiltIn = false;
+  interface Props {
+    theme: any;
+    isBuiltIn?: boolean;
+  }
 
-  let isMenuOpen = false;
+  let { theme, isBuiltIn = false }: Props = $props();
 
-  $: myTheme = liveQuery(async () => {
+  let isMenuOpen = $state(false);
+
+  let myTheme = $derived(liveQuery(async () => {
       const myTheme = await themesDb.themes.get(theme.id);
       return myTheme;
-  })
+  }))
 
   async function download() {
-      const id = await themesDb.themes.put({
+      const id = await themesDb.themes.put($state.snapshot({
           id: theme.id,
           createdAt: theme.created_at,
           updatedAt: theme.updated_at,
@@ -29,7 +33,7 @@
           keyword: theme.keyword,
           version: theme.version,
           code: theme.code,
-      })
+      }))
   }
 
   function activate() {
@@ -82,9 +86,9 @@
     <div class="theme-item__buttons">
       {#if (!isBuiltIn)}
         {#if (!$myTheme)}
-          <button class="button button--ss" on:click={download}>{$_('theme_install')}</button>
+          <button class="button button--ss" onclick={download}>{$_('theme_install')}</button>
         {:else}
-          <button class="text-button" on:click={download}>
+          <button class="text-button" onclick={download}>
             {#if ($myTheme ? $myTheme.version === theme.version : true)}
               {$_('theme_reinstall')}
             {:else}
@@ -98,7 +102,7 @@
         <button class="button button--ss" disabled>{$_('theme_current')}</button>
       {:else}
         {#if ($myTheme || isBuiltIn)}
-          <button class="button button--ss" on:click={activate}>{$_('theme_activate')}</button>
+          <button class="button button--ss" onclick={activate}>{$_('theme_activate')}</button>
         {/if}
       {/if}
     </div>
@@ -106,16 +110,18 @@
 
   {#if (!isBuiltIn)}
     <Menu bind:isMenuOpen={isMenuOpen}>
-      <ul class="timeline-menu-list" slot="content">
-        {#if $settings.design?.skin !== theme.id && $myTheme}
-          <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" on:click={uninstall}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-              <span>{$_('theme_uninstall')}</span>
-            </button>
-          </li>
-        {/if}
-      </ul>
+      {#snippet content()}
+            <ul class="timeline-menu-list" >
+          {#if $settings.design?.skin !== theme.id && $myTheme}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={uninstall}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                <span>{$_('theme_uninstall')}</span>
+              </button>
+            </li>
+          {/if}
+        </ul>
+          {/snippet}
     </Menu>
   {/if}
 </section>

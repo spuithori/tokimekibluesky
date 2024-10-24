@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {_} from 'svelte-i18n'
   import {agents, formattedKeywordMutes, labelDefs, labelerSettings, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
@@ -24,28 +26,45 @@
   import {getAllAgentDids, getDidFromUri} from "$lib/util";
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
 
-  export let post;
-  export let _agent;
-  export let isMedia = false;
-  export let isTranslated = false;
-  export let isSingle = false;
-  export let isProfile = false;
-  export let pulseTranslate = false;
+  interface Props {
+      post: any;
+      _agent: any;
+      isMedia?: boolean;
+      isTranslated?: boolean;
+      isSingle?: boolean;
+      isProfile?: boolean;
+      pulseTranslate?: boolean;
+      isHide?: any;
+      children?: import('svelte').Snippet;
+  }
 
-  let translatedRecord: undefined | AppBskyFeedPost.Record;
-  let warnLabels = [];
-  let warnBehavior: 'cover' | 'inform' = 'cover';
+  let {
+      post,
+      _agent,
+      isMedia = false,
+      isTranslated = $bindable(false),
+      isSingle = false,
+      isProfile = false,
+      pulseTranslate = $bindable(false),
+      isHide = $bindable(),
+      children
+  }: Props = $props();
+
+  $effect(() => {
+      isHide = detectHide(moderateData);
+  })
+
+  let translatedRecord: undefined | AppBskyFeedPost.Record = $state();
+  let warnLabels = $state([]);
+  let warnBehavior: 'cover' | 'inform' = $state('cover');
 
   const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
   const contentContext = isSingle || isProfile
       ? 'contentView'
       : 'contentList';
 
-  export let isHide = detectHide(moderateData);
   let isWarn: 'content' | 'media' | null = detectWarn(moderateData) || null;
   detectKeywordFilter();
-
-  $: translation(pulseTranslate);
 
   function detectHide(moderateData) {
       if (!moderateData) {
@@ -116,6 +135,9 @@
       isTranslated = true;
       pulseTranslate = false;
   }
+  run(() => {
+    translation(pulseTranslate);
+  });
 </script>
 
 <div class="timeline__image">
@@ -129,24 +151,36 @@
   <div class="timeline__meta">
     <p class="timeline__user">
       <Tooltip>
-        <span slot="ref">{ post.author.displayName || post.author.handle }</span>
-        <span slot="content" aria-hidden="true">@{ post.author.handle }</span>
+        {#snippet ref()}
+                <span >{ post.author.displayName || post.author.handle }</span>
+              {/snippet}
+        {#snippet content()}
+                <span  aria-hidden="true">@{ post.author.handle }</span>
+              {/snippet}
       </Tooltip></p>
 
     <p class="timeline__date">
       {#if $settings?.design.absoluteTime}
         <Tooltip>
-          <time slot="ref"
-                datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
-          <span slot="content" aria-hidden="true"
-                class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+          {#snippet ref()}
+                    <time 
+                  datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
+                  {/snippet}
+          {#snippet content()}
+                    <span  aria-hidden="true"
+                  class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+                  {/snippet}
         </Tooltip>
       {:else}
         <Tooltip>
-          <time slot="ref"
-                datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(post.indexedAt))}</time>
-          <span slot="content" aria-hidden="true"
-                class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+          {#snippet ref()}
+                    <time 
+                  datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(post.indexedAt))}</time>
+                  {/snippet}
+          {#snippet content()}
+                    <span  aria-hidden="true"
+                  class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+                  {/snippet}
         </Tooltip>
       {/if}
     </p>
@@ -155,7 +189,7 @@
       <button
           class="timeline-translate-button"
           disabled={isTranslated}
-          on:click={translation}>{$_(isTranslated ? 'already_translated' : 'translation')}</button>
+          onclick={translation}>{$_(isTranslated ? 'already_translated' : 'translation')}</button>
     {/if}
   </div>
 
@@ -246,5 +280,5 @@
     {/if}
   </div>
 
-  <slot></slot>
+  {@render children?.()}
 </div>

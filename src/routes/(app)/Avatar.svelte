@@ -1,16 +1,20 @@
 <script lang="ts">
+  import { preventDefault } from 'svelte/legacy';
+
   import ProfileCard from "./ProfileCard.svelte";
   import {agent, isDataSaving} from '$lib/stores';
   import {goto} from "$app/navigation";
   import {page} from "$app/stores";
 
-  export let _agent = $agent;
-  export let avatar;
-  export let handle;
-  export let href;
+  let {
+    _agent = $agent,
+    avatar,
+    handle,
+    href
+  } = $props();
 
   let avatarMouseOverTimeId;
-  let isProfileShown = false;
+  let isProfileShown = $state(false);
 
   async function handleAvatarMouseOver() {
       if (avatarMouseOverTimeId) {
@@ -40,7 +44,7 @@
 </script>
 
 <div class="avatar">
-  <a href={href} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave} on:click|preventDefault={handleClick}>
+  <a href={href} onmouseover={handleAvatarMouseOver} onmouseleave={handleAvatarMouseLeave} onclick={preventDefault(handleClick)}>
     {#if (avatar && !$isDataSaving)}
       <img loading="lazy" src="{avatar}" alt="">
     {/if}

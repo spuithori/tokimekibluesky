@@ -5,7 +5,7 @@
     import IconColumnsList from "$lib/icons/columns/IconColumnsList.svelte";
     import IconColumnsBookmark from "$lib/icons/columns/IconColumnsBookmark.svelte";
     import IconColumnsHome from "$lib/icons/columns/IconColumnsHome.svelte";
-    import {columns, pauseColumn} from "$lib/stores";
+    import { pauseColumn } from "$lib/stores";
     import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
     import IconColumnsSearch from "$lib/icons/columns/IconColumnsSearch.svelte";
@@ -14,10 +14,11 @@
     import IconColumnsMyMedia from "$lib/icons/columns/IconColumnsMyMedia.svelte";
     import IconColumnsAuthor from "$lib/icons/columns/IconColumnsAuthor.svelte";
     import IconColumnsChat from "$lib/icons/columns/IconColumnsChat.svelte";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
     const dispatch = createEventDispatcher();
+    const columnState = getColumnState();
 
-    export let _agent;
-    export let items;
+    let { _agent, items = $bindable() } = $props();
     const flipDurationMs = 300;
     function handleDndConsider(e) {
         $pauseColumn = true;
@@ -26,7 +27,7 @@
     function handleDndFinalize(e) {
         $pauseColumn = false;
         items = e.detail.items;
-        $columns = items;
+        columnState.columns = items;
     }
 
     function columnRemove(column) {
@@ -36,7 +37,7 @@
     }
 </script>
 
-<div class="column-list" use:dndzone={{items: items, flipDurationMs}} on:consider={handleDndConsider} on:finalize={handleDndFinalize}>
+<div class="column-list" use:dndzone={{items: items, flipDurationMs}} onconsider={handleDndConsider} onfinalize={handleDndFinalize}>
   {#each items as column, index (column.id)}
     <div class="column-list__item" animate:flip="{{duration: flipDurationMs}}">
       <div class="column-list__content">
@@ -79,7 +80,7 @@
         <IconColumnsHome></IconColumnsHome>
       {/if}
 
-      <button class="column-list__remove" on:click={() => {columnRemove(column)}} on:touchend={() => {columnRemove(column)}} aria-label="Remove">
+      <button class="column-list__remove" onclick={() => {columnRemove(column)}} ontouchend={() => {columnRemove(column)}} aria-label="Remove">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
       </button>
     </div>

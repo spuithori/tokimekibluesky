@@ -3,9 +3,8 @@
   import {onMount} from "svelte";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
 
-  export let _agent = $agent;
-  export let feedUri;
-  let feed: string;
+  let { _agent = $agent, feedUri } = $props();
+  let feed: string = $state();
 
   onMount(async () => {
       try {

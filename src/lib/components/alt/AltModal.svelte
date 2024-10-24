@@ -5,7 +5,7 @@
     import Modal from "$lib/components/ui/Modal.svelte";
     const dispatch = createEventDispatcher();
 
-    export let images;
+  let { images } = $props();
 
     function close() {
         dispatch('close', {

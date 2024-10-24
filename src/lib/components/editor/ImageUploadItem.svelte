@@ -4,7 +4,7 @@
     import {createEventDispatcher} from "svelte";
     const dispatch = createEventDispatcher();
 
-    export let image;
+    let { image } = $props();
 
     function handleDelete() {
         dispatch('delete', {
@@ -22,7 +22,7 @@
         </div>
     {/if}
 
-    <button class="image-upload-item__close" on:click={handleDelete}>
+    <button class="image-upload-item__close" onclick={handleDelete}>
         <X color="#fff" size="18"></X>
     </button>
 

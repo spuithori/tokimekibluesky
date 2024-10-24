@@ -1,12 +1,16 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import {agent, agents, labelDefs, labelerSettings, subscribedLabelers} from "$lib/stores";
   import {_} from "svelte-i18n";
 
-  export let did;
-  export let size = 'sm';
+  interface Props {
+    did: any;
+    size?: string;
+  }
 
-  $: subscribed = $subscribedLabelers.includes(did);
-  $: applyLabelDefs($subscribedLabelers);
+  let { did, size = 'sm' }: Props = $props();
+
 
   function subscribe() {
       $subscribedLabelers = [...$subscribedLabelers, did];
@@ -41,12 +45,16 @@
         labelDefs.set(await $agent.agent.getLabelDefinitions(subscribedLabelers));
         localStorage.setItem('labelDefs', JSON.stringify($labelDefs));
     }
+  let subscribed = $derived($subscribedLabelers.includes(did));
+  run(() => {
+    applyLabelDefs($subscribedLabelers);
+  });
 </script>
 
 {#if (did !== 'did:plc:ar7c4by46qjdydhdevvrndac')}
   {#if (subscribed)}
-    <button class="button button--{size} button--following" on:click={unsubscribe} data-unfollow-name="{$_('label_unsubscribe')}">{$_('label_unsubscribe')}</button>
+    <button class="button button--{size} button--following" onclick={unsubscribe} data-unfollow-name="{$_('label_unsubscribe')}">{$_('label_unsubscribe')}</button>
   {:else}
-    <button class="button button--{size} button--follow" on:click={subscribe}>{$_('label_subscribe')}</button>
+    <button class="button button--{size} button--follow" onclick={subscribe}>{$_('label_subscribe')}</button>
   {/if}
 {/if}

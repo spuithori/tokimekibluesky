@@ -11,7 +11,7 @@
   import {Spotify, Tweet, YouTube} from "sveltekit-embed";
   import { Gif } from '@giphy/svelte-components';
   import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
-  export let external;
+  let { external } = $props();
 
   if (!$settings?.embed) {
       $settings.embed = {

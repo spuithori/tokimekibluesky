@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
 import {createEventDispatcher} from 'svelte';
 import {_} from 'svelte-i18n';
 import {agent, settings} from '$lib/stores';
@@ -14,19 +16,23 @@ import {Splide, SplideSlide} from "@splidejs/svelte-splide";
 
 const dispatch = createEventDispatcher();
 
-export let handle;
-export let profile = getProfile(handle);
-export let isLabeler = false;
+  interface Props {
+    handle: any;
+    profile?: any;
+    isLabeler?: boolean;
+  }
+
+  let { handle, profile = $bindable(getProfile(handle)), isLabeler = false }: Props = $props();
 
 let currentPage = 'posts';
-let firstPostDate = '';
-let firstPostUri = '';
+let firstPostDate = $state('');
+let firstPostUri = $state('');
 let isMenuOpen = false;
-let textArray;
+let textArray = $state();
 let unique = Symbol();
-let serviceHost = '';
-let gridWidth;
-let gridSliderDisable = false;
+let serviceHost = $state('');
+let gridWidth = $state();
+let gridSliderDisable = $state(false);
 const _agent = new BskyAgent({service: $agent.service()});
 getServiceHost()
     .then(value => {
@@ -36,14 +42,8 @@ getServiceHost()
         serviceHost = '';
     });
 
-$: detectTextArray(profile.description);
 getFirstPostData(handle);
 
-$: if (gridWidth > 680) {
-    gridSliderDisable = true;
-} else {
-    gridSliderDisable = false;
-}
 
 function detectTextArray(text) {
     textArray = new RichText({text: text});
@@ -108,6 +108,16 @@ function toggleHideCounts() {
 
     $settings.general.hideProfileCounts = !$settings.general.hideProfileCounts;
 }
+run(() => {
+    detectTextArray(profile.description);
+  });
+run(() => {
+    if (gridWidth > 680) {
+      gridSliderDisable = true;
+  } else {
+      gridSliderDisable = false;
+  }
+  });
 </script>
 
 {#if (profile.did)}
@@ -208,7 +218,7 @@ function toggleHideCounts() {
                   <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
                   <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.postsCount}</span> {$_('posts')}</p>
 
-                  <button class="profile-counts-toggle" on:click={toggleHideCounts} aria-label="Hide profile counts." title="Hide profile counts.">
+                  <button class="profile-counts-toggle" onclick={toggleHideCounts} aria-label="Hide profile counts." title="Hide profile counts.">
                     {#if ($settings.general?.hideProfileCounts)}
                       <EyeOff color="var(--text-color-1)" size="22"></EyeOff>
                     {:else}

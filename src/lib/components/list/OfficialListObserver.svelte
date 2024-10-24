@@ -4,8 +4,12 @@
     import OfficialListModal from "$lib/components/list/OfficialListModal.svelte";
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
-    export let purpose = 'app.bsky.graph.defs#curatelist';
+  interface Props {
+    _agent?: any;
+    purpose?: string;
+  }
+
+  let { _agent = $agent, purpose = 'app.bsky.graph.defs#curatelist' }: Props = $props();
 
     function handleListClose(event) {
         $officialListModal = {

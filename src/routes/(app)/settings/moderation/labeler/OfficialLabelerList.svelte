@@ -7,9 +7,9 @@
     import spinner from "$lib/images/loading.svg";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     const dispatch = createEventDispatcher();
-    let labelers = [];
+    let labelers = $state([]);
     let _agent = $agent;
-    let ready = false;
+    let ready = $state(false);
 
     async function handleAgentSelect(event) {
         ready = false;

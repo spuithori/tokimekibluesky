@@ -2,19 +2,21 @@
     import {createEventDispatcher, onMount} from 'svelte';
     import { _ } from 'svelte-i18n';
     import Modal from "$lib/components/ui/Modal.svelte";
-    import {agent, junkColumns} from "$lib/stores";
+    import {agent} from "$lib/stores";
     import ListMember from "$lib/components/list/ListMember.svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {goto} from "$app/navigation";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
-    export let convos;
-    let search = '';
-    let actors = [];
+    let { _agent = $agent, convos } = $props();
+    let search = $state('');
+    let actors = $state([]);
     let timer;
+
+    const columnState = getColumnState(true);
 
     async function handleKeyDown() {
         clearTimeout(timer);
@@ -41,8 +43,8 @@
 
             const convo = res.data.convo;
 
-            if ($junkColumns.findIndex(_column => _column.id === 'chat_' + convo.id) === -1) {
-                junkColumns.set([...$junkColumns, {
+            if (!columnState.hasColumn('chat_' + convo.id)) {
+                columnState.add({
                     id: 'chat_' + convo.id,
                     algorithm: {
                         id: convo.id,
@@ -60,7 +62,7 @@
                         feed: [],
                         cursor: '',
                     }
-                }]);
+                });
             }
 
             await goto(`/chat/${convo.id}`);
@@ -79,7 +81,7 @@
 <Modal title={$_('start_new_chat')} size="fixed" disableState={true} on:close>
   <div class="new-chat">
     <div class="new-chat-search">
-      <input type="text" class="new-chat-search__input" placeholder={$_('handle_or_name')} bind:value={search} on:keydown={handleKeyDown} autofocus>
+      <input type="text" class="new-chat-search__input" placeholder={$_('handle_or_name')} bind:value={search} onkeydown={handleKeyDown} autofocus>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
     </div>
 

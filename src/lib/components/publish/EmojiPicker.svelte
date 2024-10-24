@@ -8,7 +8,7 @@
   const dispatch = createEventDispatcher();
 
   let theme = $settings?.design.darkmode === true ? 'dark' : 'light';
-  let el;
+  let el = $state();
 
   function handleEmojiPick(data) {
       dispatch('pick', {
@@ -34,7 +34,7 @@
 </script>
 
 <div class="emoji-picker-wrap"
-     on:outclick={handleClickOutside}
+     onoutclick={handleClickOutside}
      use:clickOutside={{ignoreElement: '.publish-form-emoji-picker-button'}}
 >
   <div bind:this={el}></div>

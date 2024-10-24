@@ -1,7 +1,7 @@
 <script lang="ts">
   import LabelerSubscribeButton from "$lib/components/labeler/LabelerSubscribeButton.svelte";
 
-  export let labeler;
+  let { labeler } = $props();
 </script>
 
 <article class="labeler-user">

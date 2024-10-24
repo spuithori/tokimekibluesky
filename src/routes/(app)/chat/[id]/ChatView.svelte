@@ -1,14 +1,14 @@
 <script lang="ts">
-    import {agent, junkColumns} from '$lib/stores';
+    import {agent} from '$lib/stores';
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import DeckRow from "../../DeckRow.svelte";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    export let _agent = $agent;
-    export let id;
-    export let name;
+    let { _agent = $agent, id, name = $bindable() } = $props();
+    const columnState = getColumnState(true);
 
-    if ($junkColumns.findIndex(_column => _column.id === 'chat_' + id) === -1) {
-        junkColumns.set([...$junkColumns, {
+    if (!columnState.hasColumn('chat_' + id)) {
+        columnState.add({
             id: 'chat_' + id,
             algorithm: {
                 id: id,
@@ -23,14 +23,15 @@
                 feed: [],
                 cursor: '',
             }
-        }]);
+        });
     } else {
-        $junkColumns[$junkColumns.findIndex(_column => _column.id === 'chat_' + id)].data = {
+        const index = columnState.getColumnIndex('chat_' + id);
+        columnState.columns[index].data = {
             feed: [],
             cursor: '',
         };
-        name = $junkColumns[$junkColumns.findIndex(_column => _column.id === 'chat_' + id)].algorithm.name;
+        name = columnState.columns[index].algorithm.name;
     }
 </script>
 
-<DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'chat_' + id)]} isJunk={true}></DeckRow>
+<DeckRow index={columnState.getColumnIndex('chat_' + id)} isJunk={true}></DeckRow>

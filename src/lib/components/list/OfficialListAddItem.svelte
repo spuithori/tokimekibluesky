@@ -1,14 +1,17 @@
 <script lang="ts">
+  import { run, preventDefault } from 'svelte/legacy';
+
   import spinner from "$lib/images/loading.svg";
   import {agent} from "$lib/stores";
   import { toast } from "svelte-sonner";
 
-  export let _agent = $agent;
-  export let list;
-  export let memberDid;
+  let { _agent = $agent, list = $bindable(), memberDid } = $props();
 
-  $: isChecked = list.listItem !== '';
-  let isDisabled = false;
+  let isChecked;
+  run(() => {
+    isChecked = list.listItem !== '';
+  });
+  let isDisabled = $state(false);
 
   async function handleChange() {
       isDisabled = true;
@@ -63,7 +66,7 @@
       </div>
     {/if}
     <div class="input-toggle">
-      <input class="input-toggle__input" type="checkbox" id={list.uri} bind:checked={isChecked} disabled={isDisabled} on:click|preventDefault={handleChange}><label class="input-toggle__label" for={list.uri}></label>
+      <input class="input-toggle__input" type="checkbox" id={list.uri} bind:checked={isChecked} disabled={isDisabled} onclick={preventDefault(handleChange)}><label class="input-toggle__label" for={list.uri}></label>
     </div>
   </div>
 </div>

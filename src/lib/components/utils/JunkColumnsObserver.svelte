@@ -1,10 +1,14 @@
 <script lang="ts">
+  /* import { run } from 'svelte/legacy';
+
   import {junkColumns} from "$lib/stores";
   import {onNavigate} from "$app/navigation";
 
-  $: if ($junkColumns.length > 20) {
-      $junkColumns.shift();
-  }
+  run(() => {
+    if ($junkColumns.length > 20) {
+        $junkColumns.shift();
+    }
+  });
 
   onNavigate(async (navigation) => {
       return new Promise((resolve) => {
@@ -19,5 +23,5 @@
 
           resolve();
       });
-  })
+  }) */
 </script>

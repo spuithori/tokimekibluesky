@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: Identifier 'Filter' has already been declared -->
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import {agent, realtime, settings} from '$lib/stores';

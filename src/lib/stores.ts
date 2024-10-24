@@ -3,90 +3,12 @@ import type {Agent} from '$lib/agent';
 import type {
     AppBskyActorDefs,
     AppBskyFeedDefs,
-    AppBskyFeedPost,
-    AppBskyNotificationListNotifications
 } from '@atproto/api';
-import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 import type {Theme} from "$lib/types/theme";
 import {defaultReactionButtons} from "$lib/defaultSettings";
 import timerWorkerUrl from '$lib/workers/timer.js?url'
 import {keywordStringToArray} from "$lib/timelineFilter";
 import type {keyword} from "$lib/timelineFilter";
-
-type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification & {
-    feed?: AppBskyFeedPost
-}
-
-type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat',
-    algorithm?: string,
-    name?: string,
-    list?: object,
-}
-
-type columns = {
-    id?: string | number,
-    algorithm: currentAlgorithm,
-    style: 'default' | 'media',
-    did?: string,
-    handle?: string,
-    unreadCount?: number,
-    filter?: string[],
-    lastRefresh?: string,
-    settings: defaultDeckSettings,
-    data: {
-        feed: [],
-        cursor: '',
-    }
-}
-
-type cursor = string | number | undefined;
-
-const defaultColumns = [{
-    id: 1,
-    algorithm: {
-        type: 'default',
-        name: 'HOME'
-    },
-    style: 'default',
-    settings: defaultDeckSettings,
-    unreadCount: 0,
-    data: {
-        feed: [],
-        cursor: '',
-    }
-}];
-const storageColumns = localStorage.getItem('columns') || JSON.stringify([]);
-export const columns = writable<columns[]>(JSON.parse(storageColumns));
-
-export const syncColumns = derived(columns, ($columns, set) => {
-    let _columns = [];
-    $columns.forEach(column => {
-        let c = {};
-        for (const [key, value] of Object.entries(column)) {
-            if (key !== 'scrollElement') {
-                c[key] = value;
-            }
-
-            if (key === 'data') {
-                c['data'] = {
-                    feed: [],
-                    cursor: '',
-                }
-            }
-        }
-
-        _columns.push(c);
-    })
-    set(_columns);
-});
-
-export const columnChatLength = derived(columns, ($columns, set) => {
-    const chatColumns = $columns.filter(column => column?.algorithm?.type === 'chat');
-    set(chatColumns.length);
-})
-
-export const junkColumns = writable<columns[]>([]);
 
 export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
@@ -95,8 +17,6 @@ export const agent = writable<Agent>(undefined);
 export const agents = writable(new Map<number, Agent>());
 
 export const notificationCount = writable(0);
-
-export const notifications = writable<NotificationWithFeed[]>([]);
 
 export const quotePost = writable<AppBskyFeedDefs.PostView | undefined>();
 
@@ -112,8 +32,6 @@ export const sharedText = writable<string>('');
 export const userLists = writable(localStorage.getItem('lists')
     ? JSON.parse(localStorage.getItem('lists'))
     : []);
-
-export const bookmarksStore = writable(undefined);
 
 const defaultSettings = {
     general: {

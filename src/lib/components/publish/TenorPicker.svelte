@@ -5,7 +5,7 @@
     const dispatch = createEventDispatcher();
 
     let dialog;
-    let term = '';
+    let term = $state('');
 
     function handleClick(e) {
         if (!e.detail.gif) {

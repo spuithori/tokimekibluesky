@@ -1,13 +1,14 @@
 <script lang="ts">
-    import {agent, junkColumns} from '$lib/stores';
+    import {agent} from '$lib/stores';
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import DeckRow from "../../DeckRow.svelte";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    export let _agent = $agent;
-    export let id;
+    let { _agent = $agent, id } = $props();
+    const columnState = getColumnState(true);
 
-    if ($junkColumns.findIndex(_column => _column.id === 'bookmark_' + id) === -1) {
-        junkColumns.set([...$junkColumns, {
+    if (!columnState.hasColumn('bookmark_' + id)) {
+        columnState.add( {
             id: 'bookmark_' + id,
             algorithm: {
                 list: id,
@@ -22,8 +23,8 @@
                 feed: [],
                 cursor: '',
             }
-        }]);
+        });
     }
 </script>
 
-<DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'bookmark_' + id)]} isJunk={true}></DeckRow>
+<DeckRow index={columnState.getColumnIndex('bookmark_' + id)} isJunk={true}></DeckRow>

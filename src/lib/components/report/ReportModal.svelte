@@ -6,8 +6,8 @@
     import Modal from "$lib/components/ui/Modal.svelte";
     const dispatch = createEventDispatcher();
 
-    let reason = 'com.atproto.moderation.defs#reasonSpam';
-    let reasonText = '';
+    let reason = $state('com.atproto.moderation.defs#reasonSpam');
+    let reasonText = $state('');
 
     if (!$reportModal.data) {
         dispatch('close');
@@ -99,7 +99,7 @@
     </dl>
 
     <div class="report-modal-close">
-        <button class="button button--sm" on:click={send}>{$_('report_send')}</button>
+        <button class="button button--sm" onclick={send}>{$_('report_send')}</button>
     </div>
 </Modal>
 
