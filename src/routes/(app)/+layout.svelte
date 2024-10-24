@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { run, passive } from 'svelte/legacy';
+  import { passive } from 'svelte/legacy';
 
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
@@ -34,7 +34,6 @@
   import ServerStatusSticker from "$lib/components/status/ServerStatusSticker.svelte";
   import GoogleAnalytics from "$lib/components/utils/GoogleAnalytics.svelte";
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
-  import JunkColumnsObserver from "$lib/components/utils/JunkColumnsObserver.svelte";
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
   import {isSafariOrFirefox} from "$lib/util";
   import {initColumns} from "$lib/classes/columnState.svelte";
@@ -298,10 +297,16 @@
       detectDateFnsLocale($settings.general?.language);
   });
 
-  run(() => {
+  $effect(() => {
       getCurrentTheme($settings.design?.skin);
+  })
+
+  $effect(() => {
       observeColor($theme);
       detectHeadThemeColor($theme);
+  })
+
+  $effect(() => {
       detectDarkMode($settings.design?.darkmode, $theme?.options.darkmodeDisabled);
   })
 </script>
