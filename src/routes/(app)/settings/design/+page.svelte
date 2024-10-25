@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
+    import { run } from 'svelte/legacy';
 
     import {_} from 'svelte-i18n';
     import { settings, theme } from '$lib/stores';
@@ -26,8 +26,32 @@
     let reactionMode = $state($settings?.design.reactionMode || 'tokimeki');
     let leftMode = $state($settings?.design.leftMode || false);
 
+    let colors = $derived(detectColors($theme));
 
+    let myThemes = $derived(liveQuery(async () => {
+        const myThemes = await themesDb.themes.toArray();
+        return myThemes;
+    }));
 
+    run(() => {
+        $settings.design.skin = skin;
+        $settings.design.theme = themePick;
+        $settings.design.fontTheme = fontTheme;
+        $settings.design.darkmode = darkmode;
+        $settings.design.nonoto = nonoto;
+        $settings.design.layout = layout;
+        $settings.design.absoluteTime = absoluteTime;
+        $settings.design.datetimeFormat = datetimeFormat;
+        $settings.design.postsLayout = postsLayout;
+        $settings.design.postsImageLayout = postsImageLayout;
+        $settings.design.oneImageNoCrop = oneImageNoCrop;
+        $settings.design.fontSize = fontSize;
+        $settings.design.externalLayout = externalLayout;
+        $settings.design.mobilePostLayoutTop = mobilePostLayoutTop;
+        $settings.design.displayHandle = displayHandle;
+        $settings.design.reactionMode = reactionMode;
+        $settings.design.leftMode = leftMode;
+    });
 
     const datetimeFormats = [
         {
@@ -61,30 +85,6 @@
 
         return defaultColors;
     }
-    let myThemes = $derived(liveQuery(async () => {
-        const myThemes = await themesDb.themes.toArray();
-        return myThemes;
-    }));
-    run(() => {
-        $settings.design.skin = skin;
-        $settings.design.theme = themePick;
-        $settings.design.fontTheme = fontTheme;
-        $settings.design.darkmode = darkmode;
-        $settings.design.nonoto = nonoto;
-        $settings.design.layout = layout;
-        $settings.design.absoluteTime = absoluteTime;
-        $settings.design.datetimeFormat = datetimeFormat;
-        $settings.design.postsLayout = postsLayout;
-        $settings.design.postsImageLayout = postsImageLayout;
-        $settings.design.oneImageNoCrop = oneImageNoCrop;
-        $settings.design.fontSize = fontSize;
-        $settings.design.externalLayout = externalLayout;
-        $settings.design.mobilePostLayoutTop = mobilePostLayoutTop;
-        $settings.design.displayHandle = displayHandle;
-        $settings.design.reactionMode = reactionMode;
-        $settings.design.leftMode = leftMode;
-    });
-    let colors = $derived(detectColors($theme));
 </script>
 
 <svelte:head>

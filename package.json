@@ -63,6 +63,7 @@
     "date-fns": "^2.29.3",
     "dexie": "^4.0.4",
     "dexie-export-import": "^4.1.1",
+    "embla-carousel-svelte": "^8.3.0",
     "emoji-mart": "^5.5.2",
     "hls.js": "^1.5.15",
     "lucide-svelte": "^0.453.0",
