@@ -1,21 +1,20 @@
 <script lang="ts">
-import {_} from "svelte-i18n";
-import {onMount} from "svelte";
-import ThemeItem from "./ThemeItem.svelte";
-import {Splide, SplideSlide} from "@splidejs/svelte-splide";
+  import {_} from "svelte-i18n";
+  import {onMount} from "svelte";
+  import ThemeItem from "./ThemeItem.svelte";
 
-let themes = $state([]);
+  let themes = $state([]);
 
-onMount(async () => {
-    const res = await fetch(`/api/get-themes`, {
-        method: 'post',
-        body: JSON.stringify({
-            code: null,
-        })
-    });
-    const data = await res.json();
-    themes = data;
-})
+  onMount(async () => {
+      const res = await fetch(`/api/get-themes`, {
+          method: 'post',
+          body: JSON.stringify({
+              code: null,
+          })
+      });
+      const data = await res.json();
+      themes = data;
+  })
 </script>
 
 <svelte:head>
@@ -41,6 +40,7 @@ onMount(async () => {
 
   <div class="theme-store-wrap">
     {#if themes.length}
+      <!--
       <section class="theme-store-slider">
         <Splide options={{
           type: 'loop',
@@ -57,6 +57,7 @@ onMount(async () => {
           {/each}
         </Splide>
       </section>
+      -->
     {/if}
 
     <p class="theme-store-supporter-recommend">{$_('theme_store_supporter_recommend_1')}<a href="https://tokimeki.fanbox.cc/" target="_blank">pixivFANBOX</a>{$_('theme_store_supporter_recommend_2')}</p>

@@ -1,7 +1,6 @@
 <script lang="ts">
     import { scale } from 'svelte/transition';
     import TimelineItem from "./TimelineItem.svelte";
-    import '@splidejs/svelte-splide/css';
     import {createEventDispatcher, onMount} from 'svelte';
     import { beforeNavigate } from "$app/navigation";
     import {agent} from "$lib/stores";
@@ -10,7 +9,7 @@
     import {AppBskyEmbedImages} from "@atproto/api";
     import MediaTimelineSlider from "$lib/components/post/MediaTimelineSlider.svelte";
 
-  let { _agent = $agent, data } = $props();
+    let { _agent = $agent, data } = $props();
     let el = $state();
 
     function modalClose() {
