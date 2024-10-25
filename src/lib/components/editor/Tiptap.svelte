@@ -60,6 +60,13 @@
     let scrollable = $state();
     let isGiphyPickerOpen = $state(false);
 
+    $effect(() => {
+        addSharedText($sharedText);
+    })
+
+    $effect(() => {
+        changePlaceholder($replyRef);
+    })
 
     onMount(() => {
         editor = new Editor({
@@ -321,12 +328,6 @@
     function addHash() {
         editor.chain().focus().insertContent('#').run();
     }
-    run(() => {
-    addSharedText($sharedText);
-  });
-    run(() => {
-    changePlaceholder($replyRef);
-  });
 </script>
 
 <div class="publish-form-scrollable" bind:this={scrollable}>

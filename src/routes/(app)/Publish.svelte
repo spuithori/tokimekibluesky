@@ -34,6 +34,7 @@
   import PublishPool from "$lib/components/editor/PublishPool.svelte";
   import PublishMain from "$lib/components/editor/PublishMain.svelte";
   import {getIntervalProcessingUpload, getUploadLimit, getUploadStatus} from "$lib/components/editor/videoUtil";
+  import {tick} from "svelte";
 
   let _agent = $state($agent);
   let editor = $state();
@@ -81,9 +82,7 @@
           isFocus = true;
       }
 
-      setTimeout(() => {
-        editor.focus();
-      }, 100);
+      tick().then(() => { editor.focus(); });
 
       if (isMobile) {
           pushState('', {

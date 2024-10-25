@@ -78,10 +78,11 @@
                 dividerPost.isDivider = true;
             }
 
-            column.data.feed.forEach(feed => {
+            column.data.feed = column.data.feed.map(feed => {
                 if (res.data.feed.some(item => isDuplicatePost(feed, item))) {
                     feed.memoryCursor = res.data.cursor;
                 }
+                return feed;
             });
 
             if (column.data.feed.length === 0) {
@@ -230,7 +231,6 @@
 
                 if (lastCursorIndex !== -1) {
                     column.data.feed.splice(lastCursorIndex + 1);
-                    column.data.feed = column.data.feed;
                     column.data.cursor = borderItem.memoryCursor;
                 }
             }

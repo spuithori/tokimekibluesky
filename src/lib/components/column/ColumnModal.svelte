@@ -16,7 +16,6 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
     const columns = getColumnState();
-    let _columns = columns.columns;
     let profileId = Number(localStorage.getItem('currentProfile'));
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
@@ -45,7 +44,7 @@
 
     function handleBookmarkClose(event) {
         if (event.detail.id) {
-            _columns = _columns.filter(_column => _column.algorithm.type !== 'bookmark' || Number(_column.algorithm.algorithm) !== event.detail.id)
+            columns.columns = columns.columns.filter(_column => _column.algorithm.type !== 'bookmark' || Number(_column.algorithm.algorithm) !== event.detail.id)
         }
     }
 
@@ -56,7 +55,7 @@
     function handleListClose(event) {
         if (event.detail.id) {
             console.log(event.detail.id)
-            _columns = _columns.filter(_column => _column.algorithm.type !== 'list' || _column.algorithm.algorithm !== event.detail.id)
+            columns.columns = columns.columns.filter(_column => _column.algorithm.type !== 'list' || _column.algorithm.algorithm !== event.detail.id)
         }
     }
 
@@ -114,7 +113,7 @@
                         <h3 class="column-group__title">{$_('active_columns')}</h3>
                         <p class="column-group__description">{$_('active_columns_description')}</p>
 
-                        <ColumnList items={_columns} on:remove={handleColumnRemove} _agent={$agents.get(currentAccount)}></ColumnList>
+                        <ColumnList items={columns.columns} on:remove={handleColumnRemove} _agent={$agents.get(currentAccount)}></ColumnList>
                     </div>
                 </div>
             </div>

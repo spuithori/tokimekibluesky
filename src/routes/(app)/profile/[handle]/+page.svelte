@@ -4,6 +4,7 @@
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import DeckRow from "../../DeckRow.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {tick} from "svelte";
 
   interface Props {
     data: LayoutData;
@@ -37,13 +38,13 @@
         if(!$isAfterReload) {
           [scrollY] = value;
 
-          setTimeout(() => {
+          tick().then(() => {
               if ($settings.design.layout === 'decks') {
                   document.querySelector('.modal-page-content').scroll(0, scrollY);
               } else {
                   document.querySelector(':root').scroll(0, scrollY);
               }
-          }, 0)
+          });
         }
 
         isAfterReload.set(false);

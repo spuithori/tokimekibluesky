@@ -3,6 +3,7 @@
   import { createVirtualizer } from '@tanstack/svelte-virtual';
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
   import {_} from "svelte-i18n";
+  import {tick} from "svelte";
 
   export let column;
   export let _agent = $agent;
@@ -31,13 +32,13 @@
 
   function changeRootIndex(unique) {
       if (unique !== beforeUnique) {
-         setTimeout(() => {
-             $virtualizer.scrollToIndex(rootIndex, {
-                 align: 'start',
-             });
+          tick().then(() => {
+              $virtualizer.scrollToIndex(rootIndex, {
+                  align: 'start',
+              });
 
-             beforeUnique = unique;
-         }, 0)
+              beforeUnique = unique;
+          })
       }
   }
 </script>
