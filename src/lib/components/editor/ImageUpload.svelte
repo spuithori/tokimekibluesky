@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import {_} from 'svelte-i18n'
     import imageCompression from 'browser-image-compression';
     import {flip} from "svelte/animate";
@@ -35,11 +33,11 @@
     let { images = $bindable([]), video = $bindable() }: Props = $props();
     let input = $state();
 
-    run(() => {
+    $effect(() => {
         if (images.length > 4) {
             images = images.slice(0, 4);
         }
-    });
+    })
 
     function handleDndConsider(e) {
         images = e.detail.items;

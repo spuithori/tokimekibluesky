@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import {_} from "svelte-i18n";
   import {agent, realtime} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
@@ -29,6 +27,10 @@
   let isDividerLoading = $state(false);
   let dividerFillerHeight = $state(0);
   let retryCount = 0;
+
+  $effect(() => {
+      insertRealtimeData($realtime);
+  })
 
   if (column.settings?.autoRefresh === -1) {
       getActors();
@@ -145,9 +147,6 @@
           complete();
       }
   }
-  run(() => {
-    insertRealtimeData($realtime);
-  });
 </script>
 
 <div class="timeline timeline--{column.style}">

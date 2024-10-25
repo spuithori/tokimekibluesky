@@ -1,13 +1,11 @@
 <script lang="ts">
-  import { passive } from 'svelte/legacy';
-
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
   import { agent, agents, currentTimeline, isAfterReload, isColumnModalOpen, isMobileDataConnection, isReactionButtonSettingsModalOpen, keywordMutes, listAddModal, profileStatus, settings, theme, direction, bluefeedAddModal, labelDefs, subscribedLabelers
   } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {pwaInfo} from 'virtual:pwa-info';
-  import {onMount} from 'svelte';
+  import {onMount, tick} from 'svelte';
   import { Toaster } from 'svelte-sonner';
   import viewPortSetting from '$lib/viewport';
   import {scrollDirection} from "$lib/scrollDirection";
@@ -31,7 +29,6 @@
   import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
   import {isMobile} from "$lib/detectDevice";
   import WelcomeModal from "$lib/components/utils/WelcomeModal.svelte";
-  import ServerStatusSticker from "$lib/components/status/ServerStatusSticker.svelte";
   import GoogleAnalytics from "$lib/components/utils/GoogleAnalytics.svelte";
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
@@ -52,9 +49,9 @@
   let isRepeater = $state(localStorage.getItem('isRepeater') === 'true');
 
   function detectHeadThemeColor(theme) {
-      setTimeout(() => {
+      tick().then(() => {
           baseColor = app ? getComputedStyle(app).getPropertyValue('--base-bg-color') : '#fff';
-      }, 100);
+      })
   }
 
   function getCurrentTheme(skin) {
@@ -292,8 +289,14 @@
 
   $effect(() => {
       localStorage.setItem('settings', JSON.stringify($settings));
+  })
+
+  $effect(() => {
       localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
-      locale.set($settings.general.language);
+  })
+
+  $effect(() => {
+      locale.set($settings.general?.language);
       detectDateFnsLocale($settings.general?.language);
   });
 
@@ -391,7 +394,6 @@
   <ReportObserver></ReportObserver>
   <ProfileStatusObserver></ProfileStatusObserver>
   <LinkWarningModal></LinkWarningModal>
-  <ServerStatusSticker></ServerStatusSticker>
 </div>
 
 <style lang="postcss">

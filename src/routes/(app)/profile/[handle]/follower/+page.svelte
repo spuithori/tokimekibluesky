@@ -5,6 +5,7 @@
     import UserItem from "../UserItem.svelte";
     import InfiniteLoading from 'svelte-infinite-loading';
     import type { Snapshot } from './$types';
+    import {tick} from "svelte";
     let followers = $state([]);
     let cursor = '';
     let scrollY = 0;
@@ -15,13 +16,13 @@
           if(!$isAfterReload) {
             [followers, cursor, scrollY] = value;
 
-            setTimeout(() => {
+            tick().then(() => {
                 if ($settings.design.layout === 'decks') {
                     document.querySelector('.modal-page-content').scroll(0, scrollY);
                 } else {
                     document.querySelector(':root').scroll(0, scrollY);
                 }
-            }, 0)
+            });
           }
 
           isAfterReload.set(false);

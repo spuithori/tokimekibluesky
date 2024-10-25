@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { passive } from 'svelte/legacy';
-
     import {_} from 'svelte-i18n';
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import TimelineSelector from "./TimelineSelector.svelte";
@@ -310,8 +308,8 @@
     class:deck-row--junk={isJunk}
     onmouseenter={handleMouseEnter}
     onmouseleave={handleMouseLeave}
+    onscroll={handleScroll}
     bind:this={column.scrollElement}
-    use:passive={['scroll', () => handleScroll]}
     style:background-image={column.settings?.background ? `url(${backgroundsMap.get(column.settings.background).url})` : 'none'}
     class:dragging={isDragging}
     use:draggable={dragOptions}

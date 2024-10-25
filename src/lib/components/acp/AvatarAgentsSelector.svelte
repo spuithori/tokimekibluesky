@@ -2,7 +2,6 @@
   import { offset, flip, shift } from 'svelte-floating-ui/dom';
   import { createFloatingActions } from 'svelte-floating-ui';
   import { fly } from 'svelte/transition';
-  import { liveQuery } from "dexie";
   import {agent, agents} from "$lib/stores";
   import {createEventDispatcher} from "svelte";
   import { clickOutside } from '$lib/clickOutSide';

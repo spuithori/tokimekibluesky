@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {agent, isPublishInstantFloat, sideState} from '$lib/stores';
+  import {agent, isPublishInstantFloat, sideState, replyRef} from '$lib/stores';
 
   interface Props {
     _agent?: any;
@@ -16,18 +16,11 @@
     count,
     showCounts = true
   }: Props = $props();
+
   function handleClick() {
       $replyRef = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } }
       $sideState = 'publish';
       $isPublishInstantFloat = true;
-  }
-</script>
-
-<script lang="ts" module>
-    import {replyRef} from '$lib/stores';
-
-  export function replyFunc(post, reply) {
-      replyRef.set({ did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } })
   }
 </script>
 

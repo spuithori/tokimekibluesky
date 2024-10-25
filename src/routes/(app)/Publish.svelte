@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import { _ } from 'svelte-i18n';
   import {
       agent,
@@ -64,18 +62,25 @@
 
   let isMobilePopState = $derived(isMobile ? $page.state.showPublish : false);
 
-  run(() => {
-      handlePostPulse($postPulse);
-
+  $effect(() => {
       if (isMobile ? isFocus && isMobilePopState : isFocus) {
           document.documentElement.classList.add('scroll-lock');
       } else {
           document.documentElement.classList.remove('scroll-lock');
       }
+  })
 
+  $effect(() => {
+      handlePostPulse($postPulse);
+  })
+
+  $effect(() => {
       quotePostObserve($quotePost);
+  })
+
+  $effect(() => {
       replyRefObserve($replyRef);
-  });
+  })
 
   function handleOpen() {
       if (!isFocus) {

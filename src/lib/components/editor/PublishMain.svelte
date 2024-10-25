@@ -1,38 +1,38 @@
 <script lang="ts">
-  import { run, createBubbler, preventDefault } from 'svelte/legacy';
+  import { createBubbler, preventDefault } from 'svelte/legacy';
 
   const bubble = createBubbler();
-    import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
-    import {isPublishInstantFloat, postgate, quotePost, replyRef, settings, threadGate} from "$lib/stores";
-    import {_} from "svelte-i18n";
-    import {isFeedByUri} from "$lib/util";
-    import {formatDistanceToNow, parseISO} from "date-fns";
-    import spinner from "$lib/images/loading.svg";
-    import {
-        AppBskyEmbedExternal,
-        AppBskyEmbedImages,
-        AppBskyEmbedRecord,
-        AppBskyEmbedRecordWithMedia, RichText
-    } from "@atproto/api";
-    import Tiptap from "$lib/components/editor/Tiptap.svelte";
-    import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
-    import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
-    import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
-    import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
-    import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
-    import {X} from "lucide-svelte";
-    import { toast } from "svelte-sonner";
-    import imageCompression from "browser-image-compression";
-    import {createEventDispatcher, onMount} from "svelte";
-    import AltModal from "$lib/components/alt/AltModal.svelte";
-    import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
-    import {languageMap} from "$lib/langs/languageMap";
-    import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
-    import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
-    import {getUploadLimit} from "$lib/components/editor/videoUtil";
-    import {getTenorUrl} from "$lib/components/post/embedUtil";
-    import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
-    const dispatch = createEventDispatcher();
+  import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
+  import {isPublishInstantFloat, postgate, quotePost, replyRef, settings, threadGate} from "$lib/stores";
+  import {_} from "svelte-i18n";
+  import {isFeedByUri} from "$lib/util";
+  import {formatDistanceToNow, parseISO} from "date-fns";
+  import spinner from "$lib/images/loading.svg";
+  import {
+      AppBskyEmbedExternal,
+      AppBskyEmbedImages,
+      AppBskyEmbedRecord,
+      AppBskyEmbedRecordWithMedia, RichText
+  } from "@atproto/api";
+  import Tiptap from "$lib/components/editor/Tiptap.svelte";
+  import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
+  import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
+  import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
+  import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
+  import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
+  import {X} from "lucide-svelte";
+  import { toast } from "svelte-sonner";
+  import imageCompression from "browser-image-compression";
+  import {createEventDispatcher, onMount} from "svelte";
+  import AltModal from "$lib/components/alt/AltModal.svelte";
+  import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
+  import {languageMap} from "$lib/langs/languageMap";
+  import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
+  import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
+  import {getUploadLimit} from "$lib/components/editor/videoUtil";
+  import {getTenorUrl} from "$lib/components/post/embedUtil";
+  import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
+  const dispatch = createEventDispatcher();
 
   interface Props {
     post: any;
@@ -89,6 +89,24 @@
         $settings.langSelector = 'auto';
     }
 
+    let publishContentLength = $derived(new RichText({text: publishContent}).graphemeLength);
+    let isEmpty = $derived(!publishContent && !images.length && !embedExternal);
+
+    $effect(() => {
+        onPublishContentChange(publishContent);
+    })
+
+    $effect(() => {
+        isPublishEnabled = publishContentLength > 300;
+    })
+
+    $effect(() => {
+        isThreaded(length, $replyRef);
+    })
+
+    $effect(() => {
+        observeEnabled(isEmpty, isPublishEnabled, isProcessed, isLinkCardAdding);
+    })
 
     function observeEnabled(isEmpty, isPublishEnabled, isProcessed, isLinkCardAdding) {
         isEnabled = isEmpty || isPublishEnabled || isProcessed || isLinkCardAdding;
@@ -380,20 +398,6 @@
             lang: $settings.langSelector || [],
         }
     }
-    let publishContentLength = $derived(new RichText({text: publishContent}).graphemeLength);
-    run(() => {
-    onPublishContentChange(publishContent);
-  });
-    run(() => {
-    isPublishEnabled = publishContentLength > 300;
-  });
-    let isEmpty = $derived(!publishContent && !images.length && !embedExternal);
-    run(() => {
-    isThreaded(length, $replyRef);
-  });
-    run(() => {
-    observeEnabled(isEmpty, isPublishEnabled, isProcessed, isLinkCardAdding);
-  });
 </script>
 
 <svelte:document onpaste={handlePaste} />
