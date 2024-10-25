@@ -111,7 +111,6 @@
             });
         }
 
-
         setTimeout(() => {
             isTopScrolling = false;
         }, 1000);
@@ -435,11 +434,10 @@
     {/if}
 </div>
 
-{#if column.scrollElement && column.scrollElement instanceof HTMLElement}
+{#if column.scrollElement && column.scrollElement instanceof HTMLElement && column.settings?.autoScroll}
     <ColumnAutoScrolling
         column={column}
         index={index}
-        {_agent}
         {isTopScrolling}
         {isScrollPaused}
         {unique}

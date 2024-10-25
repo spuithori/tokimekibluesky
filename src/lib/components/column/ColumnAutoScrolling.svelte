@@ -1,13 +1,10 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
-  import {agent, isImageOpen, settings} from "$lib/stores";
-  import {onDestroy, onMount} from "svelte";
+  import {isImageOpen, settings} from "$lib/stores";
+  import {onDestroy} from "svelte";
 
   interface Props {
     column: any;
     index: any;
-    _agent?: any;
     unique: any;
     isTopScrolling?: boolean;
     isScrollPaused?: boolean;
@@ -16,27 +13,46 @@
   let {
     column,
     index,
-    _agent = $agent,
     unique,
     isTopScrolling = false,
     isScrollPaused = false
   }: Props = $props();
 
-  let scrollId = $state();
+  let scrollId;
   let scrollSpeed = 24;
 
+  $effect(() => {
+      scrolling(column.settings?.autoScroll);
+  })
 
+  $effect(() => {
+      scrollSpeedChange(column.settings?.autoScrollSpeed);
+  })
 
+  $effect(() => {
+      if (isTopScrolling) {
+          clearInterval(scrollId);
+      }
+  })
 
+  $effect(() => {
+      if (isScrollPaused) {
+          clearInterval(scrollId);
+      } else {
+          scrolling(column.settings?.autoScroll);
+      }
+  })
+
+  $effect(() => {
+      if ($isImageOpen) {
+          clearInterval(scrollId);
+      } else {
+          scrolling(column.settings?.autoScroll);
+      }
+  })
 
   onDestroy(() => {
       clearInterval(scrollId);
-  });
-
-  onMount(() => {
-      if (column.settings?.autoScroll) {
-          scrolling(column.settings.autoScroll);
-      }
   });
 
   function scrollSpeedChange(autoScrollSpeed) {
@@ -77,30 +93,5 @@
           clearInterval(scrollId);
       }
   }
-  run(() => {
-    scrolling(column.settings?.autoScroll);
-  });
-  run(() => {
-    scrollSpeedChange(column.settings?.autoScrollSpeed);
-  });
-  run(() => {
-    if (isTopScrolling) {
-        clearInterval(scrollId);
-    }
-  });
-  run(() => {
-    if (isScrollPaused) {
-        clearInterval(scrollId);
-    } else {
-        scrolling(column.settings?.autoScroll);
-    }
-  });
-  run(() => {
-    if ($isImageOpen) {
-        clearInterval(scrollId);
-    } else {
-        scrolling(column.settings?.autoScroll);
-    }
-  });
 </script>
 
