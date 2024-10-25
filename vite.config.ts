@@ -11,7 +11,7 @@ export default defineConfig({
 	},
 
 	plugins: [
-		vidstack(),
+		vidstack({ include: /src\/lib\/components\/video\// }),
 		sveltekit(),
 		SvelteKitPWA({
 			srcDir: 'src',

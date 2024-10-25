@@ -1,5 +1,5 @@
 <script lang="ts">
-    import VideoPlayer from "$lib/components/video/VideoPlayer.svelte";
+  import VideoPlayer from "$lib/components/video/VideoPlayer.svelte";
   interface Props {
     video: any;
     isLocal?: boolean;

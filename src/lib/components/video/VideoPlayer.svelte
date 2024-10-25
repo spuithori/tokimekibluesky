@@ -1,12 +1,20 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
     import 'vidstack/bundle';
+    import { LocalMediaStorage } from 'vidstack';
     import VideoLayout from "$lib/components/video/VideoLayout.svelte";
     let player = $state();
 
-    import { LocalMediaStorage } from 'vidstack';
-  let { src, poster } = $props();
+    let { src, poster } = $props();
+
+    $effect.pre(() => {
+        if (player) {
+            try {
+                player.storage = new CustomLocalMediaStorage();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    })
 
     class CustomLocalMediaStorage extends LocalMediaStorage {
         async getTime() {
@@ -15,24 +23,14 @@
 
         async setTime() {}
     }
-
-    run(() => {
-    if (player) {
-          try {
-              player.storage = new CustomLocalMediaStorage();
-          } catch (e) {
-              console.error(e);
-          }
-      }
-  });
 </script>
 
 <media-player
-        class="video-player"
-        src={src}
-        crossOrigin
-        playsInline
-        bind:this={player}
+    class="video-player"
+    src={src}
+    crossOrigin
+    playsInline
+    bind:this={player}
 >
   <media-provider class="video-player__provider">
     <media-poster class="video-player__poster" src={poster}></media-poster>
