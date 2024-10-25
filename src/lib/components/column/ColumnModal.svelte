@@ -16,7 +16,7 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
     const columns = getColumnState();
-    let _columns = columns.getSyncColumns();
+    let _columns = columns.columns;
     let profileId = Number(localStorage.getItem('currentProfile'));
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
@@ -70,11 +70,10 @@
 
     function handleColumnAdd(event) {
         try {
-            let addedColumn = structuredClone(event.detail.column);
+            let addedColumn = structuredClone($state.snapshot(event.detail.column));
             columns.add(addedColumn);
 
             toast.success($_('column_add_success'));
-            //$columns = [...$columns, addedColumn];
             // save(false);
         } catch (e) {
             console.log(e);
@@ -82,7 +81,6 @@
     }
 
     function handleColumnRemove(event) {
-        //$columns = $columns.filter(column => column.id !== event.detail.column.id);
         columns.remove(event.detail.column.id)
         // save(false);
     }
@@ -116,7 +114,7 @@
                         <h3 class="column-group__title">{$_('active_columns')}</h3>
                         <p class="column-group__description">{$_('active_columns_description')}</p>
 
-                        <ColumnList bind:items={_columns} on:remove={handleColumnRemove} _agent={$agents.get(currentAccount)}></ColumnList>
+                        <ColumnList items={_columns} on:remove={handleColumnRemove} _agent={$agents.get(currentAccount)}></ColumnList>
                     </div>
                 </div>
             </div>

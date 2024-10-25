@@ -409,7 +409,7 @@
                         {#if (column.algorithm.type === 'notification')}
                             <NotificationTimeline bind:column={column} index={index} {_agent} ></NotificationTimeline>
                         {:else if (column.algorithm.type === 'thread')}
-                            <ThreadTimeline column={column} index={index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
+                            <ThreadTimeline bind:column={column} index={index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
                         {:else if (column.algorithm.type === 'chat')}
                             <ChatTimeline
                                     column={column}

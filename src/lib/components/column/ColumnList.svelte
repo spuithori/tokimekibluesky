@@ -18,7 +18,7 @@
     const dispatch = createEventDispatcher();
     const columnState = getColumnState();
 
-    let { _agent, items = $bindable() } = $props();
+    let { _agent, items } = $props();
     const flipDurationMs = 300;
     function handleDndConsider(e) {
         $pauseColumn = true;

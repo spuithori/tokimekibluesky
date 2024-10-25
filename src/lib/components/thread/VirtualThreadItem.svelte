@@ -5,12 +5,10 @@
     import Quotes from "$lib/components/thread/Quotes.svelte";
     const dispatch = createEventDispatcher();
 
-  let { column, index, _agent } = $props();
-    let item = $state();
+    let { column, index, _agent } = $props();
 </script>
 
 <TimelineItem
-    bind:this={item}
     data={ column.data.feed[index] }
     index={index}
     column={column}

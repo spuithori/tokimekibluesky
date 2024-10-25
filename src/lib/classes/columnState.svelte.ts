@@ -4,6 +4,13 @@ import {accountsDb} from "$lib/db";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
+    syncColumns = $derived(this.columns.map(({ scrollElement, data, ...rest }) => ({
+        ...rest,
+        data: {
+            feed: [],
+            cursor: ''
+        }
+    })));
 
     constructor(isJunk: boolean = false) {
         if (isJunk) {
@@ -26,9 +33,9 @@ export class ColumnState {
             }
 
             const id = accountsDb.profiles.update(Number(profileId), {
-                columns: $state.snapshot(this.getSyncColumns()),
+                columns: $state.snapshot(this.syncColumns),
             })
-            localStorage.setItem('columns', JSON.stringify(this.getSyncColumns()));
+            localStorage.setItem('columns', JSON.stringify(this.syncColumns));
         })
     }
 
@@ -50,16 +57,6 @@ export class ColumnState {
 
     getColumnIndex(id: string) {
         return this.columns.findIndex(column => column.id === id);
-    }
-
-    getSyncColumns() {
-        return this.columns.map(({ scrollElement, data, ...rest }) => ({
-            ...rest,
-            data: {
-                feed: [],
-                cursor: ''
-            }
-        }));
     }
 }
 

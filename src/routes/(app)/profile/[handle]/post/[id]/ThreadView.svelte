@@ -49,4 +49,6 @@
     })
 </script>
 
-<DeckRow index={columnState.getColumnIndex('thread_' + id)} isJunk={true} name={title}></DeckRow>
+{#if (columnState.hasColumn('thread_' + id))}
+  <DeckRow index={columnState.getColumnIndex('thread_' + id)} isJunk={true} name={title}></DeckRow>
+{/if}

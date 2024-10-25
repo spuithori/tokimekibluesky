@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import {agents, isRealtimeListenersModalOpen} from "$lib/stores";
   import {getAccountIdByDid} from "$lib/util";
   import {RealtimeClient} from "$lib/realtime";
@@ -13,10 +11,13 @@
   let listeners = $state(new Set());
   let clients = new Map();
 
-  run(() => {
-      updateRealtimeListeners(columnState.getSyncColumns());
+  $effect(() => {
+      updateRealtimeListeners(columnState.columns);
+  })
+
+  $effect(() => {
       updateRealtimeConnection(listeners);
-  });
+  })
 
   function updateRealtimeListeners(columns) {
       let _listeners = new Set();
