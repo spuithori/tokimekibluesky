@@ -1,10 +1,8 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import {agent, pulseLike, settings} from '$lib/stores';
   import { toast } from 'svelte-sonner';
   import { _ } from 'svelte-i18n';
-  import { createEventDispatcher } from 'svelte';
+  import {createEventDispatcher, tick} from 'svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -25,10 +23,13 @@
     likeViewer = $bindable(),
     showCounts = true
   }: Props = $props();
-  let timeoutId;
 
   let isProcessed: boolean = $state(false);
   let isTransition: boolean = $state(false);
+
+  $effect(() => {
+      handleLikeChange($pulseLike);
+  })
 
   function handleLikeChange(data) {
       if (!data) {
@@ -79,12 +80,8 @@
                   did: _agent.did() as string
               });
 
-              if (timeoutId) {
-                  clearTimeout(timeoutId);
-              }
-              timeoutId = setTimeout(() => {
-                  pulseLike.set(undefined);
-              }, 1000)
+              await tick();
+              pulseLike.set(undefined);
           } catch(e) {
               toast.error($_('failed_to_like_after_reload'));
               console.log(e)
@@ -111,9 +108,6 @@
 
       isTransition = false;
   }
-  run(() => {
-    handleLikeChange($pulseLike);
-  });
 </script>
 
 <button

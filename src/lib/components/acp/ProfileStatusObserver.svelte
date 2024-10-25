@@ -1,36 +1,19 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
-    import {missingAccounts, profileStatus} from '$lib/stores';
-  import { liveQuery } from 'dexie';
-  import { accountsDb } from '$lib/db';
+  import {missingAccounts, profileStatus} from '$lib/stores';
   import ProfileStatusModal from "$lib/components/acp/ProfileStatusModal.svelte";
-    import MissingAccountsModal from "$lib/components/acp/MissingAccountsModal.svelte";
-    import MissingProfileModal from "$lib/components/acp/MissingProfileModal.svelte";
-    import MissingPrimaryModal from "$lib/components/acp/MissingPrimaryModal.svelte";
+  import MissingAccountsModal from "$lib/components/acp/MissingAccountsModal.svelte";
+  import MissingProfileModal from "$lib/components/acp/MissingProfileModal.svelte";
+  import MissingPrimaryModal from "$lib/components/acp/MissingPrimaryModal.svelte";
 
-  let profile = $derived(liveQuery(async () => {
-      const profile = await accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')));
-      return profile;
-  }));
-
-  run(() => {
-      if ($profile) {
-          if (!$profile.accounts.length) {
-              // profileStatus.set(1);
-          } else {
-              // profileStatus.set(0);
-          }
-      }
-
+  $effect(() => {
       if ($missingAccounts.length) {
           profileStatus.set(3);
       }
-  });
+  })
 </script>
 
 {#if ($profileStatus === 1 || $profileStatus === 2)}
-  <ProfileStatusModal status={$profileStatus} profile={$profile}></ProfileStatusModal>
+  <ProfileStatusModal status={$profileStatus}></ProfileStatusModal>
 {/if}
 
 {#if ($profileStatus === 3)}

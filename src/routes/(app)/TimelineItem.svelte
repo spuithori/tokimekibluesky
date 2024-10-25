@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
     import {_} from 'svelte-i18n'
     import {
         Trash2,
@@ -127,6 +125,30 @@
 
     let isHide = $state();
     let isReplyHide = $state();
+
+    $effect(() => {
+        if (editDialog) {
+            editDialog.open();
+        }
+    })
+
+    $effect(() => {
+        if (dialog) {
+            dialog.open();
+        }
+    })
+
+    $effect(() => {
+        localStorage.setItem('postMutes', JSON.stringify($postMutes));
+    })
+
+    $effect(() => {
+        handlePostDelete($pulseDelete);
+    })
+
+    $effect(() => {
+        handleEmbedDetach($pulseDetach);
+    })
 
     detectPostMuteFilter();
     detectRepostMuteFilter();
@@ -608,24 +630,6 @@
             toast.error(e);
         }
     }
-    run(() => {
-        if (dialog) {
-            dialog.open();
-        }
-
-        if (editDialog) {
-            editDialog.open();
-        }
-    });
-    run(() => {
-        localStorage.setItem('postMutes', JSON.stringify($postMutes));
-    });
-    run(() => {
-    handlePostDelete($pulseDelete);
-  });
-    run(() => {
-    handleEmbedDetach($pulseDetach)
-  });
 </script>
 
 <svelte:document onselectionchange={handleSelectStart} />

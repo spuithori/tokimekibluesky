@@ -1,11 +1,4 @@
-<script>
-  /**
-   * @typedef {Object} Props
-   * @property {any} handle
-   * @property {string} [color]
-   */
-
-  /** @type {Props} */
+<script lang="ts">
   let { handle, color = 'var(--text-color-1)' } = $props();
 </script>
 

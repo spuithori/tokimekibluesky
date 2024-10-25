@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
-  import { fade, fly } from 'svelte/transition';
+  import { fly } from 'svelte/transition';
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
   import {accountsDb} from "$lib/db";
   import {agent, agents, profileStatus} from "$lib/stores";
@@ -11,10 +11,17 @@
     profile: any;
   }
 
-  let { status = 0, profile }: Props = $props();
+  let { status = 0 }: Props = $props();
+  let profile = $state();
+
+   accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')))
+      .then(value => {
+          profile = value;
+      });
 
   async function handleSuccess(event) {
       try {
+          console.log(profile)
           const _accounts = [...profile.accounts, event.detail.id]
           const id = await accountsDb.profiles.update(profile.id, {
               accounts: _accounts,

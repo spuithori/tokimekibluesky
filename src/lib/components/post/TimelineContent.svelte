@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import {_} from 'svelte-i18n'
   import {agents, formattedKeywordMutes, labelDefs, labelerSettings, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
@@ -52,6 +50,10 @@
 
   $effect(() => {
       isHide = detectHide(moderateData);
+  })
+
+  $effect(() => {
+      translation(pulseTranslate);
   })
 
   let translatedRecord: undefined | AppBskyFeedPost.Record = $state();
@@ -135,9 +137,6 @@
       isTranslated = true;
       pulseTranslate = false;
   }
-  run(() => {
-    translation(pulseTranslate);
-  });
 </script>
 
 <div class="timeline__image">
@@ -152,35 +151,35 @@
     <p class="timeline__user">
       <Tooltip>
         {#snippet ref()}
-                <span >{ post.author.displayName || post.author.handle }</span>
-              {/snippet}
+          <span >{ post.author.displayName || post.author.handle }</span>
+        {/snippet}
         {#snippet content()}
-                <span  aria-hidden="true">@{ post.author.handle }</span>
-              {/snippet}
+          <span  aria-hidden="true">@{ post.author.handle }</span>
+        {/snippet}
       </Tooltip></p>
 
     <p class="timeline__date">
       {#if $settings?.design.absoluteTime}
         <Tooltip>
           {#snippet ref()}
-                    <time 
-                  datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
-                  {/snippet}
+            <time
+          datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
+          {/snippet}
           {#snippet content()}
-                    <span  aria-hidden="true"
-                  class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-                  {/snippet}
+            <span  aria-hidden="true"
+          class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+          {/snippet}
         </Tooltip>
       {:else}
         <Tooltip>
           {#snippet ref()}
-                    <time 
-                  datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(post.indexedAt))}</time>
-                  {/snippet}
+            <time
+          datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(post.indexedAt))}</time>
+          {/snippet}
           {#snippet content()}
-                    <span  aria-hidden="true"
-                  class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-                  {/snippet}
+            <span  aria-hidden="true"
+          class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+          {/snippet}
         </Tooltip>
       {/if}
     </p>

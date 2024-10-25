@@ -1,13 +1,11 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
+  import {agent, pulseRepost, settings} from '$lib/stores';
+  import { toast } from 'svelte-sonner';
+  import { _ } from 'svelte-i18n';
+  import {createEventDispatcher, tick} from 'svelte';
+  import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
 
-    import {agent, pulseRepost, settings} from '$lib/stores';
-    import { toast } from 'svelte-sonner';
-    import { _ } from 'svelte-i18n';
-    import { createEventDispatcher } from 'svelte';
-    import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
-
-    const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher();
 
   interface Props {
     _agent?: any;
@@ -26,115 +24,112 @@
     repostViewer = $bindable(),
     showCounts = true
   }: Props = $props();
-    let isDialogRender = $state(false);
-    let timeoutId;
-    let dialog = $state();
 
-    let isProcessed: boolean = $state(false);
-    let isTransition: boolean = $state(false);
+  let isDialogRender = $state(false);
+  let dialog = $state();
 
+  let isProcessed: boolean = $state(false);
+  let isTransition: boolean = $state(false);
 
-    if ($settings.general?.repostConfirmSkip === undefined) {
-        $settings.general.repostConfirmSkip = false;
-    }
+  $effect(() => {
+      handleLikeChange($pulseRepost);
+  })
 
-    function handleLikeChange(data) {
-        if (!data) {
-            return false;
-        }
+  $effect(() => {
+      if (dialog) {
+          dialog.open();
+      }
+  })
 
-        const isSameDid = data.did === _agent.did();
+  if ($settings.general?.repostConfirmSkip === undefined) {
+      $settings.general.repostConfirmSkip = false;
+  }
 
-        if (uri === data.uri) {
-            count = data.count;
-            repostViewer = isSameDid ? data.viewer : repostViewer;
+  function handleLikeChange(data) {
+      if (!data) {
+          return false;
+      }
 
-            dispatch('repost', {
-                count: data.count,
-                viewer: repostViewer,
-            });
-        }
-    }
+      const isSameDid = data.did === _agent.did();
 
-    export async function repost(cid: string, uri: string, repostViewer) {
-        isProcessed = true;
-        isTransition = true;
+      if (uri === data.uri) {
+          count = data.count;
+          repostViewer = isSameDid ? data.viewer : repostViewer;
 
-        if (!repostViewer) {
-            count = count + 1;
-        } else {
-            count = count - 1;
-        }
+          dispatch('repost', {
+              count: data.count,
+              viewer: repostViewer,
+          });
+      }
+  }
 
-        pulseRepost.set({
-            uri: uri,
-            count: count,
-            viewer: repostViewer,
-            did: _agent.did() as string
-        })
+  export async function repost(cid: string, uri: string, repostViewer) {
+      isProcessed = true;
+      isTransition = true;
 
-        try {
-            const repost = await _agent.setRepost(cid, uri, repostViewer || '');
+      if (!repostViewer) {
+          count = count + 1;
+      } else {
+          count = count - 1;
+      }
 
-            try {
-                repostViewer = repost?.uri || undefined;
-                isProcessed = false;
+      pulseRepost.set({
+          uri: uri,
+          count: count,
+          viewer: repostViewer,
+          did: _agent.did() as string
+      })
 
-                pulseRepost.set({
-                    uri: uri,
-                    count: count,
-                    viewer: repostViewer,
-                    did: _agent.did() as string
-                })
+      try {
+          const repost = await _agent.setRepost(cid, uri, repostViewer || '');
 
-                toast.success($_('success_to_repost_or_delete_repost'));
+          try {
+              repostViewer = repost?.uri || undefined;
+              isProcessed = false;
 
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                }
-                timeoutId = setTimeout(() => {
-                    pulseRepost.set(undefined);
-                }, 1000)
-            } catch(e) {
-                toast.error($_('failed_to_repost_after_reload'));
-                console.log(e)
-                isProcessed = false;
-            }
-        } catch (e) {
-            toast.error($_('failed_to_repost'));
-            console.error(e);
-            isProcessed = false;
+              pulseRepost.set({
+                  uri: uri,
+                  count: count,
+                  viewer: repostViewer,
+                  did: _agent.did() as string
+              })
 
-            if (!repostViewer) {
-                count = count - 1;
-            } else {
-                count = count + 1;
-            }
+              toast.success($_('success_to_repost_or_delete_repost'));
 
-            pulseRepost.set({
-                uri: uri,
-                count: count,
-                viewer: repostViewer,
-                did: _agent.did() as string
-            })
-        }
-    }
+              await tick();
+              pulseRepost.set(undefined);
+          } catch(e) {
+              toast.error($_('failed_to_repost_after_reload'));
+              console.log(e)
+              isProcessed = false;
+          }
+      } catch (e) {
+          toast.error($_('failed_to_repost'));
+          console.error(e);
+          isProcessed = false;
 
-    function repostStep() {
-        if ($settings.general.repostConfirmSkip) {
-            repost(cid, uri, repostViewer);
-        } else {
-            isDialogRender = true;
-        }
-    }
-    run(() => {
-    handleLikeChange($pulseRepost);
-  });
-    run(() => {
-        if (dialog) {
-            dialog.open();
-        }
-    });
+          if (!repostViewer) {
+              count = count - 1;
+          } else {
+              count = count + 1;
+          }
+
+          pulseRepost.set({
+              uri: uri,
+              count: count,
+              viewer: repostViewer,
+              did: _agent.did() as string
+          })
+      }
+  }
+
+  function repostStep() {
+      if ($settings.general.repostConfirmSkip) {
+          repost(cid, uri, repostViewer);
+      } else {
+          isDialogRender = true;
+      }
+  }
 </script>
 
 <button
