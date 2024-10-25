@@ -33,18 +33,6 @@
   let gridWidth = $state(0);
   const _agent = new BskyAgent({service: $agent.service()});
 
-  $effect(() => {
-      if (slideEl) {
-          tick().then(() => {
-              console.log(slideEl.splide)
-
-              slideEl.splide.options = {
-                  destroy: true,
-              }
-          })
-      }
-  })
-
   getServiceHost()
       .then(value => {
           serviceHost = value;
