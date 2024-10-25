@@ -96,6 +96,7 @@
                     const offset = column.scrollElement.querySelector('.timeline').getBoundingClientRect().top + 16;
 
                     if (isJunk && $settings.design?.layout === 'decks') {
+                        await tick();
                         el.closest('.modal-page-content').scrollTo(0, topEl.getBoundingClientRect().top - offset)
                     } else {
                         await tick();

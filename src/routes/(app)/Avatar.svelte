@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { preventDefault } from 'svelte/legacy';
-
   import ProfileCard from "./ProfileCard.svelte";
   import {agent, isDataSaving} from '$lib/stores';
   import {goto} from "$app/navigation";
@@ -36,7 +34,8 @@
       }, 350)
   }
 
-  function handleClick() {
+  function handleClick(e) {
+      e.preventDefault();
       goto(href, {
           replaceState: $page.state.showModal && $page.url.pathname !== '/',
       });
@@ -44,7 +43,7 @@
 </script>
 
 <div class="avatar">
-  <a href={href} onmouseover={handleAvatarMouseOver} onmouseleave={handleAvatarMouseLeave} onclick={preventDefault(handleClick)}>
+  <a href={href} onmouseover={handleAvatarMouseOver} onmouseleave={handleAvatarMouseLeave} onclick={handleClick}>
     {#if (avatar && !$isDataSaving)}
       <img loading="lazy" src="{avatar}" alt="">
     {/if}

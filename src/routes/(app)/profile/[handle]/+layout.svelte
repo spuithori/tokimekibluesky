@@ -1,8 +1,6 @@
-<!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import {agent, settings} from '$lib/stores';
-    import { afterUpdate } from 'svelte';
     import { page } from '$app/stores';
     import type { LayoutData } from './$types';
     import UserProfile from "./UserProfile.svelte";
@@ -21,12 +19,24 @@
 
     const junkColumnState = getColumnState(true);
 
-    export let data: LayoutData;
-    let currentPage = 'posts';
-    let profile;
-    let isLabeler = false;
+    interface Props {
+        data: LayoutData;
+    }
 
-    $: handle = $page.params.handle;
+    let { data }: Props = $props();
+
+    let currentPage = $state('posts');
+    let profile = $state();
+    let isLabeler = $state(false);
+    let handle = $derived($page.params.handle);
+
+    $effect.pre(() => {
+        isActive(data.url.pathname);
+    })
+
+    $effect(() => {
+        getProfile(handle);
+    })
 
     export const snapshot: Snapshot = {
         capture: () => [profile],
@@ -34,8 +44,6 @@
             [profile] = value;
         }
     };
-
-    $: getProfile(handle);
 
     function getProfile(handle, clear = true) {
         if (clear) {
@@ -60,8 +68,7 @@
         handleRefresh();
     }
 
-    function isActive() {
-        const path = data.url.pathname;
+    function isActive(path) {
         const paths = path.split('/');
 
         switch (paths[3]) {
@@ -140,10 +147,6 @@
             }
         }
     }
-
-    afterUpdate(async() => {
-        isActive();
-    })
 </script>
 
 {#key handle}

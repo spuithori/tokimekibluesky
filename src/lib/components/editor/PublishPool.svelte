@@ -6,7 +6,7 @@
   let {
     post,
     index,
-    _agent,
+    _agent = $bindable(),
     isEnabled
   } = $props();
 

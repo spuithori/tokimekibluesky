@@ -5,7 +5,11 @@
     import {linkWarning, settings, timelineHashtags} from "$lib/stores";
     import {detectDifferentDomainUrl} from "$lib/util";
     let { record, _agent } = $props();
-    const textArray = getTextArray(record);
+    let textArray = $state(getTextArray(record));
+
+    $effect(() => {
+        textArray = getTextArray(record);
+    })
 
     function handleUrlClick(e, item) {
         if (!$settings.general.linkWarningConfirmSkip) {

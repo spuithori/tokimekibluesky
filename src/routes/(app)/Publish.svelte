@@ -163,11 +163,11 @@
       try {
           postsPool[currentPost] = publishMainEl.getThread();
 
-          const id = await db.drafts.add({
+          const id = await db.drafts.add($state.snapshot({
               createdAt: Date.now(),
               owner: _agent.did() as string,
               ...postsPool[currentPost],
-          });
+          }));
 
           if (!isContinueMode) {
               isFocus = false;
