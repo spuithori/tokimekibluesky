@@ -84,7 +84,6 @@
 
   async function initProfile() {
     const profiles = await accountsDb.profiles.toArray();
-    console.log(profiles);
     const anyAccounts = await accountsDb.accounts
             .toArray();
 
