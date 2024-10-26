@@ -47,7 +47,7 @@
                   return false;
               }
 
-              column.data.feed = [value, ...column.data.feed];
+              column.data.feed.unshift(value);
               realtimeCounter = realtimeCounter + 1;
 
               if (realtimeCounter === 20) {
@@ -79,7 +79,6 @@
       isDividerLoading = true;
       dividerFillerHeight = e.detail.pos;
       column.data.feed.splice(index + 1);
-      column.data.feed = column.data.feed;
   }
 
   function isDuplicatePost(oldFeed, newFeed) {

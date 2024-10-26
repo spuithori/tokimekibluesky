@@ -205,8 +205,6 @@ export const isImageOpen = writable(false);
 
 export const isColumnModalOpen = writable(false);
 
-export const globalUnique = writable(null);
-
 export const sideState = writable<'publish' | 'search' | 'notification' | 'profile' | 'settings' | 'none'>('publish');
 
 export const isPublishInstantFloat = writable(false);

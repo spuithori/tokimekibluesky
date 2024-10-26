@@ -1,15 +1,11 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import { _ } from 'svelte-i18n';
-  import {createEventDispatcher, onMount} from "svelte";
-  import {agent, changedFollowData} from "$lib/stores";
-  const dispatch = createEventDispatcher();
+  import { onMount } from "svelte";
+  import { agent, changedFollowData } from "$lib/stores";
 
-  let { _agent = $agent, following = $bindable(), user } = $props();
+  let { _agent = $agent, following = $bindable(), user, followChange = function () {} } = $props();
   let rkey;
   let isDisabled = $state(false);
-
 
   function generateRkey(following) {
       const followingPath = following.split('/');
@@ -24,7 +20,11 @@
   let follow = $state(function () {});
   let unfollow = $state(function () {});
 
-  async function handleFollowChange(data) {
+  $effect(() => {
+      handleFollowChange($changedFollowData);
+  })
+
+  function handleFollowChange(data) {
       if (!data) {
           return false;
       }
@@ -32,7 +32,7 @@
       if (data.did === user.did) {
           following = data.following;
 
-          dispatch('followchange', {
+          followChange({
               did: user.did,
               following: following,
           });
@@ -73,9 +73,6 @@
           });
       }
   })
-  run(() => {
-    handleFollowChange($changedFollowData);
-  });
 </script>
 
 <div>

@@ -3,11 +3,9 @@
   import {RichText} from "@atproto/api";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
   import {agent, settings} from "$lib/stores";
-  import {createEventDispatcher} from "svelte";
   import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-  const dispatch = createEventDispatcher();
 
-  let { id, column = $bindable(), _agent = $agent } = $props();
+  let { id, column = $bindable(), _agent = $agent, onrefresh } = $props();
   let text = $state('');
   let json = $state();
   let editor = $state();
@@ -56,7 +54,7 @@
           text = '';
           json = undefined;
           editor.clear();
-          dispatch('refresh');
+          onrefresh();
       } catch (e) {
           console.error(e);
       }

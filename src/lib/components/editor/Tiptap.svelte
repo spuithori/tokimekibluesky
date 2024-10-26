@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { run, preventDefault } from 'svelte/legacy';
+  import { preventDefault } from 'svelte/legacy';
 
     import {_} from 'svelte-i18n';
     import {createEventDispatcher, onMount, onDestroy} from 'svelte'

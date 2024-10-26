@@ -412,7 +412,7 @@
                                     column={column}
                                     index={index}
                                     {_agent}
-                                    on:refresh={handleRefresh}
+                                    onrefresh={handleRefresh}
                             ></ChatTimeline>
                         {:else}
                             <TimelineSelector

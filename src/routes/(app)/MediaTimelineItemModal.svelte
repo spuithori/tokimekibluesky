@@ -1,26 +1,25 @@
 <script lang="ts">
     import { scale } from 'svelte/transition';
     import TimelineItem from "./TimelineItem.svelte";
-    import {createEventDispatcher, onMount} from 'svelte';
+    import { onMount } from 'svelte';
     import { beforeNavigate } from "$app/navigation";
     import {agent} from "$lib/stores";
-    const dispatch = createEventDispatcher();
     import { afterNavigate } from "$app/navigation";
     import {AppBskyEmbedImages} from "@atproto/api";
     import MediaTimelineSlider from "$lib/components/post/MediaTimelineSlider.svelte";
 
-    let { _agent = $agent, data } = $props();
+    let { _agent = $agent, data, close } = $props();
     let el = $state();
 
     function modalClose() {
         history.back();
-        dispatch('close');
+        close();
     }
 
     function handlePopstate(e) {
         document.body.classList.remove('scroll-lock');
         el.close();
-        dispatch('close');
+        close();
     }
 
     function handleKeydown(event) {
@@ -39,7 +38,7 @@
 
     afterNavigate((_navigation) => {
         if (_navigation.to?.url.hash !== '#open') {
-            dispatch('close');
+            close();
         }
     })
 </script>

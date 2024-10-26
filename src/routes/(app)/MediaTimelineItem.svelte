@@ -108,7 +108,7 @@
   </div>
 
   {#if (isOpen)}
-    <MediaTimelineItemModal data={data} on:close={handleClose} {_agent}></MediaTimelineItemModal>
+    <MediaTimelineItemModal data={data} close={handleClose} {_agent}></MediaTimelineItemModal>
   {/if}
 {/if}
 

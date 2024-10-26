@@ -1,13 +1,13 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
-    import type { LayoutData } from '../$types';
-    import {agent} from "$lib/stores";
-    import TimelineItem from '../../../TimelineItem.svelte';
-    import InfiniteLoading from 'svelte-infinite-loading';
-    import {BskyAgent} from "@atproto/api";
+  import { _ } from 'svelte-i18n';
+  import type { LayoutData } from '../$types';
+  import {agent} from "$lib/stores";
+  import TimelineItem from '../../../TimelineItem.svelte';
+  import InfiniteLoading from 'svelte-infinite-loading';
+  import {BskyAgent} from "@atproto/api";
 
-    let feeds = $state([]);
-    let cursor = '';
+  let feeds = $state([]);
+  let cursor = '';
 
   interface Props {
     author?: string;
@@ -15,48 +15,48 @@
   }
 
   let { author = '', data }: Props = $props();
-    const _agent = new BskyAgent({service: $agent.service()});
+  const _agent = new BskyAgent({service: $agent.service()});
 
-    async function getFeedsFromRecords(records) {
-        const uris = records.map(record => {
-            return record.value.subject.uri;
-        })
+  async function getFeedsFromRecords(records) {
+      const uris = records.map(record => {
+          return record.value.subject.uri;
+      })
 
-        const res = await $agent.agent.api.app.bsky.feed.getPosts({uris: uris});
-        let feeds = [];
-        res.data.posts.forEach(post => {
-            feeds.push({
-                post: post,
-            })
-        });
-        return  feeds;
-    }
+      const res = await $agent.agent.api.app.bsky.feed.getPosts({uris: uris});
+      let feeds = [];
+      res.data.posts.forEach(post => {
+          feeds.push({
+              post: post,
+          })
+      });
+      return  feeds;
+  }
 
-    async function getRecords() {
-        return await _agent.api.com.atproto.repo.listRecords({
-            collection: "app.bsky.feed.like",
-            limit: 20,
-            reverse: false,
-            cursor: cursor,
-            repo: data.params.handle});
-    }
+  async function getRecords() {
+      return await _agent.api.com.atproto.repo.listRecords({
+          collection: "app.bsky.feed.like",
+          limit: 20,
+          reverse: false,
+          cursor: cursor,
+          repo: data.params.handle});
+  }
 
-    const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        try {
-            const likesArrayRes = await getRecords();
-            cursor = likesArrayRes.data.cursor;
-            feeds = [...feeds, ...await getFeedsFromRecords(likesArrayRes.data.records)];
+  const handleLoadMore = async ({ detail: { loaded, complete } }) => {
+      try {
+          const likesArrayRes = await getRecords();
+          cursor = likesArrayRes.data.cursor;
+          feeds = [...feeds, ...await getFeedsFromRecords(likesArrayRes.data.records)];
 
-            if (cursor) {
-                loaded();
-            } else {
-                complete();
-            }
-        } catch (e) {
-            console.error(e);
-            complete();
-        }
-    }
+          if (cursor) {
+              loaded();
+          } else {
+              complete();
+          }
+      } catch (e) {
+          console.error(e);
+          complete();
+      }
+  }
 </script>
 
 <svelte:head>

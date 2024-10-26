@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, currentTimeline, globalUnique} from '$lib/stores';
+    import {agent, currentTimeline} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -32,18 +32,16 @@
 </script>
 
 <div class="single-wrap">
-  {#key $globalUnique}
-    <div class="single-timeline-wrap">
-      {#key $currentTimeline}
-        {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
-          <DeckRow
-              column={columnState.columns[$currentTimeline]}
-              index={$currentTimeline}
-          ></DeckRow>
-        {/if}
-      {/key}
-    </div>
-  {/key}
+  <div class="single-timeline-wrap">
+    {#key $currentTimeline}
+      {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
+        <DeckRow
+                column={columnState.columns[$currentTimeline]}
+                index={$currentTimeline}
+        ></DeckRow>
+      {/if}
+    {/key}
+  </div>
 </div>
 
 <style lang="postcss">

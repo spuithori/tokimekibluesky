@@ -1,20 +1,18 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
     import {agent, chatPulse, latestRevMap} from '$lib/stores';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import {_} from "svelte-i18n";
     import ChatItem from "$lib/components/chat/ChatItem.svelte";
     import ChatPublish from "$lib/components/chat/ChatPublish.svelte";
-    import {createEventDispatcher, onMount} from "svelte";
-    import { flip } from 'svelte/animate';
+    import { onMount } from "svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-    const dispatch = createEventDispatcher();
 
-  let { column = $bindable(), index, _agent = $agent } = $props();
+    let { column = $bindable(), index, _agent = $agent, onrefresh } = $props();
     let firstLoad = true;
     let retryCount = 0;
 
+    $effect(() => {
+        handleUpdate($chatPulse);
+    })
 
     function isDuplicateMessage(oldFeed, newFeed) {
         return oldFeed.id === newFeed.id;
@@ -26,7 +24,7 @@
         }
 
         if (logs.some(log => log.convoId === column.algorithm.id)) {
-            dispatch('refresh');
+            onrefresh();
         }
     }
 
@@ -96,9 +94,6 @@
             column.scrollElement.scrollTo(0, column.scrollElement.scrollHeight);
         }, 0)
     })
-    run(() => {
-    handleUpdate($chatPulse);
-  });
 </script>
 
 <div class="chat">
@@ -117,7 +112,7 @@
     </div>
   {/each}
 
-  <ChatPublish id={column.algorithm.id} {column} {_agent} on:refresh></ChatPublish>
+  <ChatPublish id={column.algorithm.id} {column} {_agent} {onrefresh}></ChatPublish>
 </div>
 
 <style lang="postcss">

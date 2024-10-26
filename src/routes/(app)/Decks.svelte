@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {globalUnique, isColumnModalOpen, settings} from '$lib/stores';
+    import {isColumnModalOpen, settings} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import {_} from "svelte-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
@@ -12,20 +12,18 @@
   <div class="deck-divider"></div>
 
   {#if columnState.columns.length}
-    {#key $globalUnique}
-      <div class="deck"
-           class:deck--left-sidebar={$settings.design?.publishPosition === 'left'}
-           class:deck--bottom={$settings.design?.publishPosition === 'bottom'}
-      >
-            {#each columnState.columns as column, index (column.id)}
-              {#if !column?.settings?.isPopup}
-                <DeckRow {column} {index} {unique}></DeckRow>
-              {:else}
-                <DeckPopupWrap {column} {index} {unique}></DeckPopupWrap>
-              {/if}
-            {/each}
-      </div>
-    {/key}
+    <div class="deck"
+         class:deck--left-sidebar={$settings.design?.publishPosition === 'left'}
+         class:deck--bottom={$settings.design?.publishPosition === 'bottom'}
+    >
+      {#each columnState.columns as column, index (column.id)}
+        {#if !column?.settings?.isPopup}
+          <DeckRow {column} {index} {unique}></DeckRow>
+        {:else}
+          <DeckPopupWrap {column} {index} {unique}></DeckPopupWrap>
+        {/if}
+      {/each}
+    </div>
   {:else}
     <div class="deck-empty">
       <div class="deck-empty__icon">

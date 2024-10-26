@@ -1,18 +1,11 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { page } from '$app/stores';
-    import {createEventDispatcher, onMount} from "svelte";
-    const dispatch = createEventDispatcher();
+    import { onMount } from "svelte";
     let searchArea = $state();
-  let { search = $bindable($page.url.searchParams.get('q') || ''), path = location.pathname } = $props();
+    let { search = $bindable($page.url.searchParams.get('q') || ''), path = location.pathname } = $props();
 
-    function handleSubmit() {
-        dispatch('search', {
-          q: search
-        });
-    }
-
-    onMount(async () => {
+    onMount(() => {
         if (!search) {
             searchArea.focus();
         }
@@ -20,7 +13,7 @@
 </script>
 
 <div class="search">
-  <form action={path} method="get" data-sveltekit-replacestate data-sveltekit-keepfocus onsubmit={handleSubmit}>
+  <form action={path} method="get" data-sveltekit-replacestate data-sveltekit-keepfocus>
     <input type="text" name="q" required bind:value={search} bind:this={searchArea} placeholder="{$_(path + '_search')}">
     <button type="submit" class="search-submit" aria-label="Search">
       <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">

@@ -11,8 +11,8 @@
 
   let { _agent = $agent, user = $bindable(), layout = 'default' }: Props = $props();
 
-  function handleFollowChange(event) {
-      user.viewer.following = event.detail.following;
+  function handleFollowChange(obj) {
+      user.viewer.following = obj.following;
   }
 </script>
 
@@ -28,7 +28,7 @@
 
   {#if (user.did !== _agent.did())}
     <div class="user-item__buttons">
-      <UserFollowButton following="{user.viewer?.following}" user={user} on:followchange={handleFollowChange} {_agent}></UserFollowButton>
+      <UserFollowButton following="{user.viewer?.following}" user={user} followChange={handleFollowChange} {_agent}></UserFollowButton>
     </div>
   {/if}
 </div>
