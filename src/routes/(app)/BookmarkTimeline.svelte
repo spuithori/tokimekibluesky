@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { agent } from '$lib/stores';
-    import TimelineItem from './TimelineItem.svelte';
-    import InfiniteLoading from 'svelte-infinite-loading';
-    import MediaTimelineItem from './MediaTimelineItem.svelte';
-    import {getBookmarkFeed, getBookmarkName} from "$lib/bookmark";
+  import { agent } from '$lib/stores';
+  import TimelineItem from './TimelineItem.svelte';
+  import InfiniteLoading from 'svelte-infinite-loading';
+  import MediaTimelineItem from './MediaTimelineItem.svelte';
+  import {getBookmarkFeed, getBookmarkName} from "$lib/bookmark";
 
   let { _agent = $agent, column = $bindable(), index } = $props();
     let initialLoadFinished = false;

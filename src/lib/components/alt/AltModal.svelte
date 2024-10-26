@@ -1,20 +1,12 @@
 <script lang="ts">
-    import {createEventDispatcher} from 'svelte';
-    import { _ } from 'svelte-i18n';
-    import AltModalItem from "$lib/components/alt/AltModalItem.svelte";
-    import Modal from "$lib/components/ui/Modal.svelte";
-    const dispatch = createEventDispatcher();
+  import { _ } from 'svelte-i18n';
+  import AltModalItem from "$lib/components/alt/AltModalItem.svelte";
+  import Modal from "$lib/components/ui/Modal.svelte";
 
-  let { images } = $props();
-
-    function close() {
-        dispatch('close', {
-            images: images,
-        });
-    }
+  let { images, close } = $props();
 </script>
 
-<Modal title={$_('alt_insert')} size="normal" on:close={close}>
+<Modal title={$_('alt_insert')} size="normal" on:close={() => {close(images)}}>
   <div class="alt-modal-list">
     {#each images as image}
       <AltModalItem {image}></AltModalItem>

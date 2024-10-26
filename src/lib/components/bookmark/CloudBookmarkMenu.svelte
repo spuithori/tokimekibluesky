@@ -1,48 +1,42 @@
 <script lang="ts">
-    import {createEventDispatcher} from "svelte";
-    import {agent} from "$lib/stores";
-    import {_} from "svelte-i18n";
-    import Menu from "$lib/components/ui/Menu.svelte";
-    import { toast } from 'svelte-sonner';
+  import {agent} from "$lib/stores";
+  import {_} from "svelte-i18n";
+  import Menu from "$lib/components/ui/Menu.svelte";
+  import { toast } from 'svelte-sonner';
 
-    const dispatch = createEventDispatcher();
+  let { _agent = $agent, id, close } = $props();
 
-  let { _agent = $agent, id } = $props();
+  let isMenuOpen = $state(false);
 
-    let isMenuOpen = $state(false);
+  async function deleteBookmark() {
+      if (!id) {
+          return false;
+      }
 
-    async function deleteBookmark() {
-        if (!id) {
-            return false;
-        }
+      try {
+          toast.loading($_('bookmark_deleting_process'));
 
-        try {
-            toast.loading($_('bookmark_deleting_process'));
+          const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.deleteBookmark`, {
+              method: 'POST',
+              body: JSON.stringify({
+                  bookmark: {
+                      id: id,
+                      owner: _agent.did() as string,
+                  }
+              }),
+              headers: {
+                  'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
+                  Authorization: 'Bearer ' + _agent.getToken(),
+                  'Content-Type': 'application/json'
+              }
+          })
 
-            const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.deleteBookmark`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    bookmark: {
-                        id: id,
-                        owner: _agent.did() as string,
-                    }
-                }),
-                headers: {
-                    'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                    Authorization: 'Bearer ' + _agent.getToken(),
-                    'Content-Type': 'application/json'
-                }
-            })
-
-            toast.success($_('bookmark_delete_success'));
-            dispatch('close', {
-                clear: true,
-                id: id,
-            });
-        } catch (e) {
-            toast.error('Error: ' + e);
-        }
-    }
+          toast.success($_('bookmark_delete_success'));
+          close(true, id);
+      } catch (e) {
+          toast.error('Error: ' + e);
+      }
+  }
 </script>
 
 <div class="list-menu-wrap">

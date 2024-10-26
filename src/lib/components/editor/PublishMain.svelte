@@ -290,8 +290,8 @@
         isDragover = isDragover - 1;
     }
 
-    function handleAltClose(event: CustomEvent<{ images: BeforeUploadImage[] }>) {
-        images = event.detail.images;
+    function handleAltClose(_images: BeforeUploadImage[]) {
+        images = _images;
         isAltModalOpen = false;
         editor.focus();
     }
@@ -616,7 +616,7 @@
 {/if}
 
 {#if (isAltModalOpen)}
-  <AltModal images={images} on:close={handleAltClose}></AltModal>
+  <AltModal images={images} close={handleAltClose}></AltModal>
 {/if}
 
 <style lang="postcss">

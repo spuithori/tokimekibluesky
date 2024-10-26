@@ -1,49 +1,41 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
-    import { toast } from 'svelte-sonner';
-    import { _ } from 'svelte-i18n';
-    import { db } from '$lib/db';
-    import { agent } from "$lib/stores";
-    import {liveQuery} from "dexie";
-    const dispatch = createEventDispatcher();
-    import { format } from 'date-fns';
+  import { toast } from 'svelte-sonner';
+  import { _ } from 'svelte-i18n';
+  import { db } from '$lib/db';
+  import { agent } from "$lib/stores";
+  import { liveQuery } from "dexie";
+  import { format } from 'date-fns';
 
-    import type { Draft } from '$lib/db';
-    import Modal from "$lib/components/ui/Modal.svelte";
+  import type { Draft } from '$lib/db';
+  import Modal from "$lib/components/ui/Modal.svelte";
 
-  let { _agent = $agent } = $props();
+  let { _agent = $agent, onuse } = $props();
 
-    let drafts = $derived(liveQuery(async () => {
-        const drafts = await db.drafts
-            .where('owner')
-            .equals(_agent.did())
-            .toArray();
+  let drafts = $derived(liveQuery(async () => {
+      const drafts = await db.drafts
+          .where('owner')
+          .equals(_agent.did())
+          .toArray();
+      return drafts;
+  }))
 
-        console.log(drafts)
+  async function use(draft: Draft) {
+      try {
+          const id = await db.drafts.delete(draft.id);
+          onuse(draft);
+      } catch (e) {
+          toast.error($_('error') + ': ' + e);
+      }
+  }
 
-        return drafts;
-    }))
+  async function deleteDraft(draft: Draft) {
+      try {
+          const id = await db.drafts.delete(draft.id);
 
-    async function use(draft: Draft) {
-        try {
-            const id = await db.drafts.delete(draft.id);
-
-            dispatch('use', {
-                draft: draft,
-            });
-        } catch (e) {
-            toast.error($_('error') + ': ' + e);
-        }
-    }
-
-    async function deleteDraft(draft: Draft) {
-        try {
-            const id = await db.drafts.delete(draft.id);
-
-            toast.success($_('draft_delete_success'));
-        } catch (e) {
-            toast.error($_('error') + ': ' + e);
-        }
+          toast.success($_('draft_delete_success'));
+      } catch (e) {
+          toast.error($_('error') + ': ' + e);
+      }
     }
 </script>
 

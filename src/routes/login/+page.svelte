@@ -1,16 +1,14 @@
 <script lang="ts">
     import '../styles.css';
     import { goto } from '$app/navigation';
-
-    let identifier = '';
-    let service = 'https://bsky.social';
-    let isLoginModalOpen = $state(false);
     import { pwaInfo } from 'virtual:pwa-info';
     import { onMount } from 'svelte';
     import LoginModal from "$lib/components/acp/LoginModal.svelte";
     import {_} from "svelte-i18n";
     import { Toaster } from "svelte-sonner";
     import {accountsDb} from "$lib/db";
+
+    let isLoginModalOpen = $state(false);
 
     function handleSuccess() {
         goto('/');
@@ -29,10 +27,6 @@
             registerSW({
                 immediate: true,
                 onRegistered(r) {
-                    r && setInterval(() => {
-                        r.update()
-                    }, 20000)
-
                     console.log(`SW Registered`)
                 },
                 onRegisterError(error) {
@@ -69,12 +63,9 @@
       <button class="button button--fullwidth" onclick={() => {isLoginModalOpen = true}}>{$_('login')}</button>
       <a class="button button--border button--fullwidth" href="https://docs.tokimeki.blue/ja#%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88" target="_blank" rel="noopener">{$_('show_screenshots')}</a>
     </div>
-
   </div>
 
-  <div class="login-bg-picture">
-
-  </div>
+  <div class="login-bg-picture"></div>
 </section>
 
 {#if isLoginModalOpen}

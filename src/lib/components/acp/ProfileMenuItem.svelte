@@ -1,9 +1,7 @@
 <script lang="ts">
-    import {createEventDispatcher} from "svelte";
     import {_} from "svelte-i18n";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    const dispatch = createEventDispatcher();
     const columnState = getColumnState();
 
     interface Props {
@@ -20,10 +18,9 @@
         }
 
         isDisabled = true;
-        dispatch('reload');
 
         localStorage.setItem('currentProfile', profile.id);
-        columnState.columns = profile.columns
+        columnState.columns = profile.columns;
         location.reload();
     }
 </script>

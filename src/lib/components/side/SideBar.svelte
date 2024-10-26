@@ -173,7 +173,7 @@
 </div>
 
 {#if (isWorkspaceModalOpen)}
-    <SideWorkspaceModal on:close={() => {isWorkspaceModalOpen = false}}></SideWorkspaceModal>
+    <SideWorkspaceModal close={() => {isWorkspaceModalOpen = false}}></SideWorkspaceModal>
 {/if}
 
 <style lang="postcss">

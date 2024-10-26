@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { agent } from '$lib/stores';
-    import BookmarkTimeline from './BookmarkTimeline.svelte';
-    import ListTimeline from './ListTimeline.svelte';
-    import Timeline from './Timeline.svelte';
+  import { agent } from '$lib/stores';
+  import BookmarkTimeline from './BookmarkTimeline.svelte';
+  import ListTimeline from './ListTimeline.svelte';
+  import Timeline from './Timeline.svelte';
 
   let {
     column = $bindable(),

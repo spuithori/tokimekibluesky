@@ -1,77 +1,66 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
+  import { db } from '$lib/db';
+  import { liveQuery } from 'dexie';
+  import { agent } from '$lib/stores';
+  import { toast } from 'svelte-sonner';
+  import { _ } from 'svelte-i18n';
 
-    import { db } from '$lib/db';
-    import {liveQuery} from 'dexie';
-    import { agent } from '$lib/stores';
-    import {createEventDispatcher} from 'svelte';
-    import { toast } from 'svelte-sonner';
-    import { _ } from 'svelte-i18n';
-    const dispatch = createEventDispatcher();
+  let { _agent = $agent, id, close } = $props();
+  let bookmark = undefined;
+  let name = $state('');
+  let text = $state('');
+  let bookmarks = liveQuery(() => db.bookmarks.toArray());
 
+  $effect(() => {
+      getData($bookmarks);
+  })
 
-  let { _agent = $agent, id } = $props();
-    let bookmark = undefined;
-    let name = $state('');
-    let text = $state('');
-    let bookmarks = liveQuery(() => db.bookmarks.toArray());
+  function getData(bookmarks) {
+      if (!bookmarks) return false;
+      bookmark = bookmarks.find(bookmark => bookmark.id === id);
+      name = bookmark?.name ?? '';
+      text = bookmark?.text ?? '';
+  }
 
+  async function save () {
+      try {
+          const id = await db.bookmarks.put({
+              id: bookmark?.id || undefined,
+              name: name,
+              text: text,
+              owner: _agent.did(),
+              createdAt: Date.now(),
+          })
 
-    function getData(bookmarks) {
-        if (!bookmarks) return false;
-        bookmark = bookmarks.find(bookmark => bookmark.id === id);
-        name = bookmark?.name ?? '';
-        text = bookmark?.text ?? '';
-    }
+          toast.success($_('bookmark_save_success'));
 
-    async function save () {
-        try {
-            const id = await db.bookmarks.put({
-                id: bookmark?.id || undefined,
-                name: name,
-                text: text,
-                owner: _agent.did(),
-                createdAt: Date.now(),
-            })
+          close(false);
+      } catch (e) {
+          toast.error('Error: ' + e);
+      }
+  }
 
-            toast.success($_('bookmark_save_success'));
-            dispatch('close', {
-                clear: false,
-            });
-        } catch (e) {
-            toast.error('Error: ' + e);
-        }
-    }
+  async function remove () {
+      if (id) {
+          try {
+              const bid = await db.bookmarks.delete(id);
+              await db.feeds
+                  .where('bookmark')
+                  .equals(id)
+                  .delete()
+                  .then((deleteCount) => {
+                      console.log(deleteCount + ' bookmarks deleted.')
+                  });
 
-    async function remove () {
-        if (id) {
-            try {
-                const bid = await db.bookmarks.delete(id);
-                await db.feeds
-                    .where('bookmark')
-                    .equals(id)
-                    .delete()
-                    .then((deleteCount) => {
-                        console.log(deleteCount + ' bookmarks deleted.')
-                    });
-
-                toast.success($_('bookmark_delete_success'));
-                dispatch('close', {
-                    clear: true,
-                    id: id,
-                });
-            } catch (e) {
-                toast.error('Error: ' + e);
-            }
-        } else {
-            dispatch('close', {
-                clear: true,
-            });
-        }
-    }
-    run(() => {
-    getData($bookmarks);
-  });
+              toast.success($_('bookmark_delete_success'));
+              close(true, id);
+          } catch (e) {
+              toast.error('Error: ' + e);
+          }
+      } else {
+          close(true);
+      }
+  }
 </script>
 
 <div class="bookmark-modal">

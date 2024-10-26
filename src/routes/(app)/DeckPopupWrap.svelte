@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import DeckRow from "./DeckRow.svelte";
   import type {DragOptions} from "@neodrag/svelte";
   import { draggable } from "@neodrag/svelte";
@@ -13,6 +11,7 @@
 
   let { column, index = 0, unique = Symbol() }: Props = $props();
   let el = $state();
+  let isPopupEnable = $derived(column?.settings?.isPopup);
 
   let dragOptions: DragOptions = $state({
       disabled: true,
@@ -29,6 +28,10 @@
       },
       cancel: '.grabber'
   });
+
+  $effect(() => {
+      handlePopup(isPopupEnable);
+  })
 
   function handlePopup() {
       if (isPopupEnable) {
@@ -53,11 +56,6 @@
       el.style.setProperty('--popup-offset-x', `${e.detail.offsetX}px`);
       el.style.setProperty('--popup-offset-y', `${e.detail.offsetY}px`);
   }
-  let isPopupEnable = $derived(column?.settings?.isPopup);
-
-  run(() => {
-    handlePopup(isPopupEnable);
-  });
 </script>
 
 <div

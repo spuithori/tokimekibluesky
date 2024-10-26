@@ -185,13 +185,12 @@
       }
   }
 
-  async function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
+  async function handleDraftUse(draft: Draft) {
       isDraftModalOpen = false;
       editor.clear();
       quotePost.set(undefined);
       replyRef.set(undefined);
 
-      const draft = event.detail.draft;
       postsPool = [{
           ...draft,
       }];
@@ -782,7 +781,7 @@
   </div>
 
   {#if (isDraftModalOpen)}
-    <DraftModal {_agent} on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
+    <DraftModal {_agent} onuse={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
   {/if}
 </section>
 

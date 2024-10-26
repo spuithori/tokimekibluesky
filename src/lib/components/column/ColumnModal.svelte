@@ -42,13 +42,13 @@
         }
     }
 
-    function handleBookmarkClose(event) {
-        if (event.detail.id) {
-            columns.columns = columns.columns.filter(_column => _column.algorithm.type !== 'bookmark' || Number(_column.algorithm.algorithm) !== event.detail.id)
+    function handleBookmarkClose(clear: boolean, id) {
+        if (clear) {
+            columns.columns = columns.columns.filter(_column => _column.algorithm.type !== 'bookmark' || Number(_column.algorithm.algorithm) !== id)
         }
     }
 
-    function handleCloudBookmarkClose(event) {
+    function handleCloudBookmarkClose(clear: boolean, id: number) {
         unique = Symbol();
     }
 
@@ -125,8 +125,8 @@
 
         <button class="modal-background-close" aria-hidden="true" onclick={save}></button>
 
-        <BookmarkObserver on:close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
-        <CloudBookmarkObserver on:close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>
+        <BookmarkObserver close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
+        <CloudBookmarkObserver close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>
         <ListObserver on:close={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
         <OfficialListObserver _agent={$agents.get(currentAccount)} on:close={handleOfficialListClose}></OfficialListObserver>
     </div>

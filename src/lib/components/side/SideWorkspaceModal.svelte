@@ -4,13 +4,14 @@
     import {_} from "svelte-i18n";
     import ProfileMenuItem from "$lib/components/acp/ProfileMenuItem.svelte";
     import { clickOutside } from '$lib/clickOutSide';
-    import {createEventDispatcher} from "svelte";
     import { fade } from 'svelte/transition';
     import Menu from "$lib/components/ui/Menu.svelte";
     import {settings} from "$lib/stores";
     import {HelpCircle} from "lucide-svelte";
-    const dispatch = createEventDispatcher();
 
+    let {
+        close
+    } = $props();
     let isMenuOpen = $state(false);
 
     let profiles = $derived(liveQuery(async () => {
@@ -23,7 +24,7 @@
     let currentProfile = $derived(Number(localStorage.getItem('currentProfile') || profiles[0].id ));
 
     function handleClose() {
-        dispatch('close');
+        close();
     }
 </script>
 
@@ -67,7 +68,7 @@
     {#if $profiles}
         <div class="p-menu-profiles">
             {#each $profiles as profile}
-                <ProfileMenuItem {profile} isCurrent={currentProfile === profile.id} on:reload></ProfileMenuItem>
+                <ProfileMenuItem {profile} isCurrent={currentProfile === profile.id}></ProfileMenuItem>
             {/each}
         </div>
     {/if}
