@@ -2,6 +2,8 @@ export type pulseReaction = {
     viewer: string | undefined,
     did: string,
     uri: string,
+    count: number,
+    unique: Symbol,
 } | undefined;
 
 class Pulse {

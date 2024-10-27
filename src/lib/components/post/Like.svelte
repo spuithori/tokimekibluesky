@@ -2,7 +2,7 @@
   import { agent, settings } from '$lib/stores';
   import { toast } from 'svelte-sonner';
   import { _ } from 'svelte-i18n';
-  import {pulse} from "$lib/components/post/reactionPulse.svelte";
+  import {pulse, type pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 
   interface Props {
     _agent?: any;
@@ -29,16 +29,16 @@
   })
 
   function handlePulse(pulse: pulseReaction) {
-      if (!pulse) {
+      if (pulse?.uri !== uri) {
           return false;
       }
 
+      console.log(pulse);
+
       const isSameDid = pulse.did === _agent.did();
 
-      if (uri === pulse.uri) {
-          count = pulse.viewer ? count + 1 : count - 1;
-          likeViewer = isSameDid ? pulse.viewer : likeViewer;
-      }
+      count = pulse.count;
+      likeViewer = isSameDid ? pulse.viewer : likeViewer;
   }
 
   export async function vote(cid: string, uri: string, likeViewer) {
@@ -56,6 +56,8 @@
           viewer: likeViewer,
           did: _agent.did(),
           uri: uri,
+          count: likeViewer ? count + 1 : count - 1,
+          unique: Symbol(),
       }
 
       isProcessed = false;

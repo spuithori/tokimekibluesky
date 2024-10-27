@@ -163,7 +163,6 @@
         }
     }
 
-
     function handleEmbedDetach(detach: pulseDetach) {
         if (!detach) {
             return false;

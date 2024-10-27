@@ -40,16 +40,14 @@
   })
 
   function handlePulse(pulse: pulseReaction) {
-      if (!pulse) {
+      if (pulse?.uri !== uri) {
           return false;
       }
 
       const isSameDid = pulse.did === _agent.did();
 
-      if (uri === pulse.uri) {
-          count = pulse.viewer ? count + 1 : count - 1;
-          repostViewer = isSameDid ? pulse.viewer : repostViewer;
-      }
+      count = pulse.count;
+      repostViewer = isSameDid ? pulse.viewer : repostViewer;
   }
 
   if ($settings.general?.repostConfirmSkip === undefined) {
@@ -76,6 +74,8 @@
           viewer: repostViewer,
           did: _agent.did(),
           uri: uri,
+          count: repostViewer ? count + 1 : count - 1,
+          unique: Symbol(),
       }
   }
 
