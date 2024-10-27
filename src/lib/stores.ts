@@ -215,18 +215,6 @@ export const theme = writable<Theme | undefined>(undefined);
 
 export const missingAccounts = writable([]);
 
-type pulseReaction = {
-    uri: string,
-    count: number | undefined,
-    viewer: string | undefined,
-    did: string,
-} | undefined;
-export const pulseLike = writable<pulseReaction>(undefined);
-
-export const pulseRepost = writable<pulseReaction>(undefined);
-
-export const pulseBookmark = writable<pulseReaction>(undefined);
-
 export const pulseDelete = writable<string | undefined>(undefined);
 
 type pulseDetach = {

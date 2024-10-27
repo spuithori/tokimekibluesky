@@ -5,36 +5,31 @@
     import Repost from "$lib/components/post/Repost.svelte";
     import Reply from "$lib/components/post/Reply.svelte";
     import Bookmark from "$lib/components/post/Bookmark.svelte";
-    import {createEventDispatcher} from "svelte";
     import Quote from "$lib/components/post/Quote.svelte";
-    const dispatch = createEventDispatcher();
 
     if (!$settings.design.reactionButtons) {
         $settings.design.reactionButtons = defaultReactionButtons;
     }
+
+    let { post, _agent } = $props();
 
     function share() {
         const url = 'https://bsky.app/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0];
 
         navigator.share({
             url: url,
-            text: data.post.record.text,
+            text: post.record.text,
             title: '',
         })
     }
-
-  let { data, _agent } = $props();
-
-    let repostFunc = $state();
-    let likeFunc = $state();
 </script>
 
 <div class="timeline-reaction-in-menu timeline-reaction-in-menu--{$settings ? $settings.design.reactionButtons.shown.length : '5'}">
   {#if !$settings.design.reactionButtons.shown.includes('reply')}
     <Reply
-        post={data.post}
-        reply={data.post.record.reply}
-        count={data.post.replyCount}
+        {post}
+        reply={post.record.reply}
+        count={post.replyCount || 0}
         showCounts={false}
         {_agent}
     ></Reply>
@@ -42,12 +37,10 @@
 
   {#if !$settings.design.reactionButtons.shown.includes('repost')}
     <Repost
-        cid={data.post.cid}
-        uri={data.post.uri}
-        repostViewer={data.post.viewer?.repost}
-        count={data.post.repostCount}
-        on:repost
-        bind:repost={repostFunc}
+        cid={post.cid}
+        uri={post.uri}
+        repostViewer={post.viewer?.repost}
+        count={post.repostCount}
         showCounts={false}
         {_agent}
     ></Repost>
@@ -55,23 +48,21 @@
 
   {#if !$settings.design.reactionButtons.shown.includes('like')}
     <Like
-        cid={data.post.cid}
-        uri={data.post.uri}
-        likeViewer={data.post.viewer?.like}
-        count={data.post.likeCount}
-        on:like
-        bind:vote={likeFunc}
+        cid={post.cid}
+        uri={post.uri}
+        likeViewer={post.viewer?.like}
+        count={post.likeCount}
         showCounts={false}
         {_agent}
     ></Like>
   {/if}
 
   {#if !$settings.design.reactionButtons.shown.includes('quote')}
-    <Quote {data}></Quote>
+    <Quote {post}></Quote>
   {/if}
 
   {#if !$settings.design.reactionButtons.shown.includes('bookmark')}
-    <Bookmark post={data.post} bookmarkId={data?.bookmarkId} {_agent}></Bookmark>
+    <Bookmark {post} {_agent}></Bookmark>
   {/if}
 
   <button class="timeline-share-button" onclick={share}>

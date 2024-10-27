@@ -1,14 +1,14 @@
 <script lang="ts">
   import {isPublishInstantFloat, quotePost, sideState} from "$lib/stores";
   interface Props {
-    data: any;
+    post: any;
     embeddingDisabled?: boolean;
   }
 
-  let { data, embeddingDisabled = false }: Props = $props();
+  let { post, embeddingDisabled = false }: Props = $props();
 
   function handleClick() {
-      $quotePost = data.post;
+      $quotePost = post;
       $sideState = 'publish';
       $isPublishInstantFloat = true;
   }

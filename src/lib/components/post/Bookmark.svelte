@@ -15,7 +15,30 @@
   let isMenuOpen = $state(false);
   let alreadyBookmarks = $state([]);
 
+  let bookmarks = $derived(liveQuery(async () => {
+      const bookmarks = await db.bookmarks
+          .where('owner')
+          .equals(_agent.did())
+          .toArray();
+      return bookmarks;
+  }))
 
+  run(() => {
+      if (isMenuOpen) {
+          getCloudBookmarks();
+          getRelatedBookmarks();
+          const res = db.feeds
+              .where('uri')
+              .equals(post.uri)
+              .toArray()
+              .then(result => {
+                  alreadyBookmarks = result;
+              })
+              .catch(error => {
+                  console.error(error);
+              })
+      }
+  });
 
   async function add(bookmarkId: string) {
       try {
@@ -175,30 +198,6 @@
   function toggleMenu() {
       isMenuOpen = !isMenuOpen;
   }
-  let bookmarks = $derived(liveQuery(async () => {
-      const bookmarks = await db.bookmarks
-          .where('owner')
-          .equals(_agent.did())
-          .toArray();
-
-      return bookmarks;
-  }))
-  run(() => {
-    if (isMenuOpen) {
-        getCloudBookmarks();
-        getRelatedBookmarks();
-        const res = db.feeds
-            .where('uri')
-            .equals(post.uri)
-            .toArray()
-            .then(result => {
-                alreadyBookmarks = result;
-            })
-            .catch(error => {
-                console.error(error);
-            })
-    }
-  });
 </script>
 
 <div class="bookmark-wrap">

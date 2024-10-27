@@ -45,7 +45,6 @@
     import Menu from "$lib/components/ui/Menu.svelte";
     import {goto} from "$app/navigation";
     import TimelineContent from "$lib/components/post/TimelineContent.svelte";
-    import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
     import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
     import {
@@ -693,15 +692,6 @@
 
     <div class="timeline__column">
       <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isHide} {pulseTranslate}>
-
-        <ReactionButtons
-            {_agent}
-            {isMedia}
-            {data}
-            on:repost={handleRepost}
-            on:like={handleLike}
-        ></ReactionButtons>
-
         {@render children?.()}
       </TimelineContent>
     </div>
@@ -711,9 +701,7 @@
             <div class="menu-sub-list" >
           <ReactionButtonsInMenu
               {_agent}
-              {data}
-              on:repost={handleRepost}
-              on:like={handleLike}
+              post={data.post}
           ></ReactionButtonsInMenu>
         </div>
           {/snippet}

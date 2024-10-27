@@ -23,6 +23,7 @@
   import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
   import {getAllAgentDids, getDidFromUri} from "$lib/util";
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
+  import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
 
   interface Props {
       post: any;
@@ -280,4 +281,6 @@
   </div>
 
   {@render children?.()}
+
+  <ReactionButtons {_agent} {post}></ReactionButtons>
 </div>

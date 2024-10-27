@@ -1,11 +1,9 @@
 <script lang="ts">
-  import {agent, pulseRepost, settings} from '$lib/stores';
+  import { agent, settings } from '$lib/stores';
   import { toast } from 'svelte-sonner';
   import { _ } from 'svelte-i18n';
-  import {createEventDispatcher, tick} from 'svelte';
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
-
-  const dispatch = createEventDispatcher();
+  import {pulse, type pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 
   interface Props {
     _agent?: any;
@@ -20,8 +18,8 @@
     _agent = $agent,
     cid,
     uri,
-    count = $bindable(),
-    repostViewer = $bindable(),
+    count,
+    repostViewer,
     showCounts = true
   }: Props = $props();
 
@@ -32,94 +30,52 @@
   let isTransition: boolean = $state(false);
 
   $effect(() => {
-      handleLikeChange($pulseRepost);
-  })
-
-  $effect(() => {
       if (dialog) {
           dialog.open();
       }
   })
 
-  if ($settings.general?.repostConfirmSkip === undefined) {
-      $settings.general.repostConfirmSkip = false;
-  }
+  $effect(() => {
+      handlePulse(pulse.repost);
+  })
 
-  function handleLikeChange(data) {
-      if (!data) {
+  function handlePulse(pulse: pulseReaction) {
+      if (!pulse) {
           return false;
       }
 
-      const isSameDid = data.did === _agent.did();
+      const isSameDid = pulse.did === _agent.did();
 
-      if (uri === data.uri) {
-          count = data.count;
-          repostViewer = isSameDid ? data.viewer : repostViewer;
-
-          dispatch('repost', {
-              count: data.count,
-              viewer: repostViewer,
-          });
+      if (uri === pulse.uri) {
+          count = pulse.viewer ? count + 1 : count - 1;
+          repostViewer = isSameDid ? pulse.viewer : repostViewer;
       }
+  }
+
+  if ($settings.general?.repostConfirmSkip === undefined) {
+      $settings.general.repostConfirmSkip = false;
   }
 
   export async function repost(cid: string, uri: string, repostViewer) {
       isProcessed = true;
       isTransition = true;
 
-      if (!repostViewer) {
-          count = count + 1;
-      } else {
-          count = count - 1;
-      }
-
-      pulseRepost.set({
-          uri: uri,
-          count: count,
-          viewer: repostViewer,
-          did: _agent.did() as string
-      })
-
       try {
           const repost = await _agent.setRepost(cid, uri, repostViewer || '');
+          repostViewer = repost?.uri || undefined;
+          isProcessed = false;
 
-          try {
-              repostViewer = repost?.uri || undefined;
-              isProcessed = false;
-
-              pulseRepost.set({
-                  uri: uri,
-                  count: count,
-                  viewer: repostViewer,
-                  did: _agent.did() as string
-              })
-
-              toast.success($_('success_to_repost_or_delete_repost'));
-
-              await tick();
-              pulseRepost.set(undefined);
-          } catch(e) {
-              toast.error($_('failed_to_repost_after_reload'));
-              console.log(e)
-              isProcessed = false;
-          }
+          toast.success($_('success_to_repost_or_delete_repost'));
       } catch (e) {
           toast.error($_('failed_to_repost'));
           console.error(e);
           isProcessed = false;
+      }
 
-          if (!repostViewer) {
-              count = count - 1;
-          } else {
-              count = count + 1;
-          }
-
-          pulseRepost.set({
-              uri: uri,
-              count: count,
-              viewer: repostViewer,
-              did: _agent.did() as string
-          })
+      pulse.repost = {
+          viewer: repostViewer,
+          did: _agent.did(),
+          uri: uri,
       }
   }
 
