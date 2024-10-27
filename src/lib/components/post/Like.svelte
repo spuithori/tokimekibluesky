@@ -33,8 +33,6 @@
           return false;
       }
 
-      console.log(pulse);
-
       const isSameDid = pulse.did === _agent.did();
 
       count = pulse.count;

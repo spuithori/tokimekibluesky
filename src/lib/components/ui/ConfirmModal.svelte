@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {createEventDispatcher} from "svelte";
+    import {createEventDispatcher, onMount} from "svelte";
   import {_} from "svelte-i18n";
   import {settings} from "$lib/stores";
 
@@ -35,6 +35,10 @@
   export function open() {
       el.showModal();
   }
+
+  onMount(() => {
+      el.showModal();
+  })
 </script>
 
 <dialog class="dialog-modal" bind:this={el} onclose={close}>

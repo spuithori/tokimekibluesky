@@ -126,22 +126,6 @@
     let isReplyHide = $state();
 
     $effect(() => {
-        if (editDialog) {
-            editDialog.open();
-        }
-    })
-
-    $effect(() => {
-        if (dialog) {
-            dialog.open();
-        }
-    })
-
-    $effect(() => {
-        localStorage.setItem('postMutes', JSON.stringify($postMutes));
-    })
-
-    $effect(() => {
         handlePostDelete($pulseDelete);
     })
 
@@ -155,7 +139,6 @@
     function probability(n) {
       return Math.random() < n / 100;
     }
-
 
     function handlePostDelete(uri) {
         if (uri === data?.post?.uri) {
@@ -521,6 +504,7 @@
 
     function mutePost() {
         $postMutes = [...$postMutes, data.post.uri];
+        localStorage.setItem('postMutes', JSON.stringify($postMutes));
         pulseDelete.set(data.post.uri);
         toast.success($_('post_mute_success'));
 

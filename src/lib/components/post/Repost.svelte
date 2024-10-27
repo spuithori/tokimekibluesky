@@ -30,12 +30,6 @@
   let isTransition: boolean = $state(false);
 
   $effect(() => {
-      if (dialog) {
-          dialog.open();
-      }
-  })
-
-  $effect(() => {
       handlePulse(pulse.repost);
   })
 
