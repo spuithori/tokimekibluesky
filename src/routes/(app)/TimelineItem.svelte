@@ -100,8 +100,6 @@
     setContext('timelineItem', data);
 
     let selectionText = '';
-    let dialog = $state();
-    let editDialog = $state();
     let isDialogRender = $state(false);
     let isEditDialogRender = $state(false);
     let isMenuOpen = $state(false);
@@ -826,7 +824,6 @@
 
     {#if (isDialogRender)}
       <ConfirmModal
-          bind:this={dialog}
           on:ok={() => {deletePost(data.post.uri)}}
           on:cancel={() => {isDialogRender = false}}
           confirmationName="deleteConfirmSkip"
@@ -839,7 +836,6 @@
 
     {#if (isEditDialogRender)}
       <ConfirmModal
-          bind:this={editDialog}
           on:ok={editPost}
           on:cancel={() => {isEditDialogRender = false}}
           confirmationName="deleteConfirmSkip"

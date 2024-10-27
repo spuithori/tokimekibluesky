@@ -24,8 +24,6 @@
   }: Props = $props();
 
   let isDialogRender = $state(false);
-  let dialog = $state();
-
   let isProcessed: boolean = $state(false);
   let isTransition: boolean = $state(false);
 
@@ -99,7 +97,6 @@
 
 {#if (isDialogRender)}
   <ConfirmModal
-      bind:this={dialog}
       on:ok={() => {repost(cid, uri, repostViewer)}}
       on:cancel={() => {isDialogRender = false}}
       confirmationName="repostConfirmSkip"
