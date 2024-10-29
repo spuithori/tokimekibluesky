@@ -88,7 +88,6 @@
                   isMutedIncludes(feed);
               }
           });
-          console.log(flatThread);
           rootIndex = flatThread.findIndex(feed => feed.depth === 0);
           unique = Symbol();
       } catch (e) {

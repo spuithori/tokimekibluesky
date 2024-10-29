@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { preventDefault } from 'svelte/legacy';
     import {_} from "svelte-i18n";
     import {Heart, Repeat2, Star} from "lucide-svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
@@ -32,7 +31,9 @@
         }
     }
 
-    function handlePostClick() {
+    function handlePostClick(e) {
+        e.preventDefault();
+
         const rkey = item.feed.uri.split('/').slice(-1)[0];
         const uri = '/profile/' + item.feed.author.handle + '/post/' + rkey;
 
@@ -65,7 +66,7 @@
         goto(uri);
     }
 
-    item.notifications = removeNotificationsDuplication(item.notifications);
+    // item.notifications = removeNotificationsDuplication(item.notifications);
 </script>
 
 <article class="notifications-item notifications-item--reaction notifications-item--{item.reason}">
@@ -109,11 +110,11 @@
 
             {#if (item.feed)}
                 <div class="notifications-item__content">
-                    <p><a href="{'/profile/' + item.feed.author.handle + '/post/' + item.feed.uri.split('/').slice(-1)[0]}" onclick={preventDefault(handlePostClick)}>{item.feed.record.text}</a></p>
+                    <p><a href="{'/profile/' + item.feed.author.handle + '/post/' + item.feed.uri.split('/').slice(-1)[0]}" onclick={handlePostClick}>{item.feed.record.text}</a></p>
 
                     {#if (AppBskyEmbedImages.isView(item.feed?.embed) && item.feed?.embed)}
                         <div class="notifications-item-images">
-                            <Images images={item.feed.embed.images} blobs={item.feed.record.embed.images} did={item.feed.author.did} folding={true}></Images>
+                            <Images images={item.feed.embed.images} blobs={item.feed.record.embed.images} did={item.feed.author.did}></Images>
                         </div>
                     {/if}
                 </div>

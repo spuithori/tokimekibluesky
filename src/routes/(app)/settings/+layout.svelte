@@ -171,15 +171,6 @@
             <p class="p-menu-nav__title"><a href="/settings/lang-filter" onclick={close}>{$_('settings_lang_filter')}</a></p>
           </li>
 
-          <!--
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/invite-codes'}>
-            <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/invite-codes" on:click={close}>{$_('settings_invite_codes')}</a></p>
-          </li>
-          -->
-
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/push-notification'}>
             <div class="p-menu-nav__icon">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-ring"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/><path d="M22 8c0-2.3-.8-4.3-2-6"/></svg>
@@ -207,6 +198,13 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
             </div>
             <p class="p-menu-nav__title"><a href="/settings/about" onclick={close}>{$_('settings_about')}</a></p>
+          </li>
+
+          <li class="p-menu-nav__item">
+            <div class="p-menu-nav__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22.006" height="21.998"><defs><linearGradient id="supportIcon" x1=".196" x2=".943" y1="-.064" y2=".909" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#ca2d95"/><stop offset="1" stop-color="#e0965d"/></linearGradient></defs><g fill="url(#supportIcon)" data-name="グループ 3" transform="translate(-.989 -1.005)"><path d="M12 1a4.975 4.975 0 0 1 3.815 1.767q.216-.019.433-.019a5 5 0 0 1 4.982 5.433 5 5 0 0 1 0 7.628 4.972 4.972 0 0 1-1.443 3.963 5.034 5.034 0 0 1-3.539 1.468q-.21 0-.419-.018a5 5 0 0 1-7.644 0q-.214.018-.429.018a5 5 0 0 1-4.983-5.419 5 5 0 0 1 0-7.657 5 5 0 0 1 4.982-5.411q.215 0 .43.019A4.975 4.975 0 0 1 12 1Zm3.37 3.85a1 1 0 0 1-.842-.461 3 3 0 0 0-5.055 0 1 1 0 0 1-1.061.437A3 3 0 0 0 4.826 8.4a1 1 0 0 1-.441 1.062 3 3 0 0 0 0 5.07 1 1 0 0 1 .441 1.068 3 3 0 0 0 3.585 3.577 1 1 0 0 1 1.063.439 3 3 0 0 0 5.063 0 1 1 0 0 1 1.06-.439 3 3 0 0 0 3.577-3.585 1 1 0 0 1 .437-1.061 3 3 0 0 0 0-5.055 1 1 0 0 1-.437-1.062 3 3 0 0 0-3.585-3.585 1 1 0 0 1-.219.021Z" data-name="パス 4"/><path d="M12 19a1 1 0 0 1-1-1v-6.586L8.293 8.707a1 1 0 0 1 1.414-1.414l3 3A1 1 0 0 1 13 11v7a1 1 0 0 1-1 1Z" data-name="パス 5"/><path d="M12 12a1 1 0 0 1-.707-1.707l3-3a1 1 0 0 1 1.414 1.414l-3 3A1 1 0 0 1 12 12Z" data-name="パス 6"/><path d="M15 13H9a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2Z" data-name="パス 7"/><path d="M15 17H9a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2Z" data-name="パス 8"/></g></svg>
+            </div>
+            <p class="p-menu-nav__title"><a target="_blank" href="https://tokimeki.fanbox.cc/" onclick={close}>{$_('settings_support')}</a></p>
           </li>
         </ul>
       </div>

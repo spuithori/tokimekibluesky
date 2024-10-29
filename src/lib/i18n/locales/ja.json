@@ -640,5 +640,6 @@
   "atmosphere_short_desc_linkat": "リンク集",
   "atmosphere_short_desc_whitewind": "ブログ",
   "atmosphere_description": "このユーザーが利用している Atmosphere サービスのリストです。\nAT Protocol では、Bluesky以外にもさまざまなサービスを作成・公開することができます。\n設定⚙️→全般 から非表示にできます。",
-  "disable_atmosphere": "Atmosphere プロフィールを非表示にする"
+  "disable_atmosphere": "Atmosphere プロフィールを非表示にする",
+  "settings_support": "TOKIMEKIを支援する"
 }

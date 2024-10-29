@@ -26,6 +26,7 @@
           data: data,
           locale: $locale,
           theme: theme,
+          dynamicWidth: true,
       };
       const picker = new Picker(pickerOptions);
 

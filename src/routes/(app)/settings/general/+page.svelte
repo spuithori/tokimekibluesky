@@ -205,7 +205,6 @@ run(() => {
     <dl class="settings-group">
       <dt class="settings-group__name">
         {$_('enable_bluefeed')}
-        <span class="new-label">NEW</span>
       </dt>
 
       <dd class="settings-group__content">

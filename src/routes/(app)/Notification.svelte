@@ -1,8 +1,7 @@
-<!-- @migration-task Error while migrating Svelte code: Identifier 'Filter' has already been declared -->
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import {agent, realtime, settings} from '$lib/stores';
-    import { type AppBskyNotificationListNotifications } from '@atproto/api';
+    import {type AppBskyNotificationListNotifications} from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
     import {createEventDispatcher} from "svelte";
     import TimelineItem from "./TimelineItem.svelte";
@@ -13,15 +12,37 @@
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
     import {playSound} from "$lib/sounds";
 
-    export let _agent = $agent;
-    export let isPage = false;
-
-    export let notifications: AppBskyNotificationListNotifications.Notification[] = [];
-    export let cursor = '';
-
     type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow';
-    export let filter: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
-    let filters: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+
+    interface Props {
+        _agent: any,
+        isPage: boolean,
+        notifications: AppBskyNotificationListNotifications.Notification[],
+        cursor: any,
+        filter: Filter[],
+        feedPool: any,
+        notificationGroup: any,
+        isOnlyShowUnread: boolean,
+        sound: any,
+        lastRefresh: any,
+        id: any,
+    }
+
+    let {
+        _agent = $agent,
+        isPage = false,
+        notifications = $bindable([]),
+        cursor = $bindable(''),
+        feedPool = $bindable([]),
+        notificationGroup = $bindable([]),
+        lastRefresh = $bindable(undefined),
+        filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'],
+        isOnlyShowUnread = false,
+        sound = null,
+        id = null,
+    }: Props = $props();
+
+    let filters: Filter[] = $state(['like', 'repost', 'reply', 'mention', 'quote', 'follow']);
     let filterIcons = {
         like: $settings?.design?.reactionMode === 'superstar' ? Star : Heart,
         repost: Repeat2,
@@ -30,14 +51,7 @@
         quote: Quote,
         follow: UserPlus2,
     };
-
-    export let feedPool = [];
-    export let notificationGroup = [];
-    export let isOnlyShowUnread = false;
-    export let sound = null;
-    export let lastRefresh = undefined;
-    export let id = null;
-    let unique = Symbol();
+    let unique = $state(Symbol());
 
     async function getNotificationsFilter(setFilter: Filter[]) {
         filter = setFilter;
@@ -47,7 +61,9 @@
         cursor = '';
     }
 
-    $: realtimeNotificationCount($realtime.data)
+    $effect(() => {
+        realtimeNotificationCount($realtime.data);
+    })
 
     async function realtimeNotificationCount(data) {
         if (!data) {
