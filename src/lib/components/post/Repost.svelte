@@ -3,7 +3,7 @@
   import { toast } from 'svelte-sonner';
   import { _ } from 'svelte-i18n';
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
-  import {pulse, type pulseReaction} from "$lib/components/post/reactionPulse.svelte";
+  import { pulse, type pulseReaction } from "$lib/components/post/reactionPulse.svelte";
 
   interface Props {
     _agent?: any;
@@ -18,8 +18,8 @@
     _agent = $agent,
     cid,
     uri,
-    count,
-    repostViewer,
+    count = $bindable(),
+    repostViewer = $bindable(),
     showCounts = true
   }: Props = $props();
 

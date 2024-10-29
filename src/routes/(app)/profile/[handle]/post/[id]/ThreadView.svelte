@@ -15,8 +15,6 @@
     let { id, handle = $bindable(), title = '' }: Props = $props();
     const columnState = getColumnState(true);
 
-    let feed;
-
     onMount(async () => {
         if ($didHint) {
             const _did = $didHint;

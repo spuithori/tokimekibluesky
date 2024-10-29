@@ -35,8 +35,8 @@
     <Repost
         cid={post.cid}
         uri={post.uri}
-        repostViewer={post.viewer?.repost}
-        count={post.repostCount}
+        bind:repostViewer={post.viewer.repost}
+        bind:count={post.repostCount}
         showCounts={$settings.design?.reactionButtons.repost.showCounts}
         {_agent}
     ></Repost>
@@ -46,8 +46,8 @@
     <Like
         cid={post.cid}
         uri={post.uri}
-        likeViewer={post.viewer?.like}
-        count={post.likeCount}
+        bind:likeViewer={post.viewer.like}
+        bind:count={post.likeCount}
         showCounts={$settings.design?.reactionButtons.like.showCounts}
         {_agent}
     ></Like>
