@@ -1,57 +1,57 @@
 <script lang="ts">
-import {agent, replyRef, settings, threadGate} from "$lib/stores";
-import {_} from "svelte-i18n";
-import Menu from "$lib/components/ui/Menu.svelte";
-import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
-import {createEventDispatcher} from "svelte";
-import {selfLabels} from "$lib/components/editor/publishStore";
-import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
-const dispatch = createEventDispatcher();
+  import {agent, replyRef, threadGate} from "$lib/stores";
+  import {_} from "svelte-i18n";
+  import Menu from "$lib/components/ui/Menu.svelte";
+  import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
+  import {createEventDispatcher} from "svelte";
+  import {selfLabels} from "$lib/components/editor/publishStore";
+  import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
+  const dispatch = createEventDispatcher();
 
   let { _agent = $agent, top, bottom } = $props();
-let isEmojiPickerOpen = $state(false);
-let isSelfLabelingMenuOpen = $state(false);
-let isThreadGateOpen = $state(false);
+  let isEmojiPickerOpen = $state(false);
+  let isSelfLabelingMenuOpen = $state(false);
+  let isThreadGateOpen = $state(false);
 
-const selfLabelsChoices = [
-    {
-        name: $_('labeling_sexual'),
-        val: 'sexual',
-    },
-    {
-        name: $_('labeling_nudity'),
-        val: 'nudity',
-    },
-    {
-        name: $_('labeling_porn'),
-        val: 'porn',
-    },
-    {
-        name: $_('labeling_gore'),
-        val: 'gore',
-    },
-];
+  const selfLabelsChoices = [
+      {
+          name: $_('labeling_sexual'),
+          val: 'sexual',
+      },
+      {
+          name: $_('labeling_nudity'),
+          val: 'nudity',
+      },
+      {
+          name: $_('labeling_porn'),
+          val: 'porn',
+      },
+      {
+          name: $_('labeling_gore'),
+          val: 'gore',
+      },
+  ];
 
-function setSelfLabel(index) {
-    $selfLabels = [
-        {
-            val: selfLabelsChoices[index].val,
-        }
-    ];
-    isSelfLabelingMenuOpen = false;
-}
+  function setSelfLabel(index) {
+      $selfLabels = [
+          {
+              val: selfLabelsChoices[index].val,
+          }
+      ];
+      isSelfLabelingMenuOpen = false;
+  }
 
-function clearSelfLabels() {
-    selfLabels.set([]);
-    isSelfLabelingMenuOpen = false;
-}
+  function clearSelfLabels() {
+      selfLabels.set([]);
+      isSelfLabelingMenuOpen = false;
+  }
 
-function handleEmojiPick(event) {
-    const emoji = event.detail.emoji.native;
-    dispatch('emojiPicked', {
-        emoji,
-    })
-}
+  function handleEmojiPick(event) {
+      const emoji = event.detail.emoji.native;
+      dispatch('emojiPicked', {
+          emoji,
+      })
+  }
 </script>
 
 <div class="publish-bottom-buttons">

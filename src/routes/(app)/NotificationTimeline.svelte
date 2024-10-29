@@ -21,11 +21,11 @@
           sound={column.settings?.playSound}
           on:update={handleCountUpdate}
           on:change={handleFilterChange}
-          notifications={column.data.feed}
-          cursor={column.data.cursor}
-          feedPool={column.data.feedPool}
-          notificationGroup={column.data.notificationGroup}
-          lastRefresh={column.lastRefresh}
+          bind:notifications={column.data.feed}
+          bind:cursor={column.data.cursor}
+          bind:feedPool={column.data.feedPool}
+          bind:notificationGroup={column.data.notificationGroup}
+          bind:lastRefresh={column.lastRefresh}
           filter={column.filter || ['like', 'repost', 'reply', 'mention', 'quote', 'follow']}
           id={column.id}
   ></Notification>

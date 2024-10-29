@@ -31,16 +31,28 @@
     let {
         _agent = $agent,
         isPage = false,
-        notifications = $bindable([]),
-        cursor = $bindable(''),
-        feedPool = $bindable([]),
-        notificationGroup = $bindable([]),
-        lastRefresh = $bindable(undefined),
+        notifications = $bindable(),
+        cursor = $bindable(),
+        feedPool = $bindable(),
+        notificationGroup = $bindable(),
+        lastRefresh = $bindable(),
         filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'],
         isOnlyShowUnread = false,
         sound = null,
         id = null,
     }: Props = $props();
+
+    if (!notifications) {
+        notifications = [];
+    }
+
+    if (!notificationGroup) {
+        notificationGroup = [];
+    }
+
+    if (!feedPool) {
+        feedPool = [];
+    }
 
     let filters: Filter[] = $state(['like', 'repost', 'reply', 'mention', 'quote', 'follow']);
     let filterIcons = {
@@ -156,8 +168,8 @@
             : res.data.notifications;
 
         const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, feedPool);
-        notifications = [...notifications, ...resNotifications];
-        notificationGroup = [...notificationGroup, ...newNotificationGroup];
+        notifications.push(...resNotifications);
+        notificationGroup.push(...newNotificationGroup);
         feedPool = newFeedPool;
 
         if (cursor && resNotifications.length) {

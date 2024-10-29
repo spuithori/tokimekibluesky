@@ -18,7 +18,7 @@
       AppBskyEmbedImages,
       AppBskyEmbedRecord,
       AppBskyEmbedRecordWithMedia,
-      AppBskyEmbedExternal, AppBskyFeedPost, BskyAgent, AtpAgent, AppBskyVideoDefs, AppBskyEmbedVideo
+      AppBskyEmbedExternal, AppBskyVideoDefs, AppBskyEmbedVideo
   } from '@atproto/api';
   import { toast } from 'svelte-sonner'
   import { goto, pushState } from '$app/navigation';
@@ -31,7 +31,7 @@
   import imageCompression from 'browser-image-compression';
   import PublishPool from "$lib/components/editor/PublishPool.svelte";
   import PublishMain from "$lib/components/editor/PublishMain.svelte";
-  import {getIntervalProcessingUpload, getUploadLimit, getUploadStatus} from "$lib/components/editor/videoUtil";
+  import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
   import {tick} from "svelte";
 
   let _agent = $state($agent);
