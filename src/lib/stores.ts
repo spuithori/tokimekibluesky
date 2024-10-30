@@ -68,6 +68,7 @@ const defaultSettings = {
         displayHandle: false,
         reactionMode: 'tokimeki',
         leftMode: false,
+        hideSide: false,
     },
     timeline: {
         hideRepost: 'all',

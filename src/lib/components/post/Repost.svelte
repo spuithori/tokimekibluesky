@@ -137,7 +137,7 @@
         &--transition {
             svg {
                 stroke: var(--timeline-reaction-reposted-icon-color);
-                animation: cubic-bezier(0, 0, 0.09, 1) .5s s-XogTlpWZ1Mmo-repost-in forwards;
+                animation: cubic-bezier(0, 0, 0.09, 1) .5s repost-in forwards;
             }
         }
 

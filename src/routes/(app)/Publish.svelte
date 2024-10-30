@@ -196,9 +196,9 @@
       }];
       unique = Symbol();
 
-      setTimeout(() => {
+      tick().then(() => {
           editor.focus();
-      }, 100);
+      });
   }
 
   async function languageDetect(text) {

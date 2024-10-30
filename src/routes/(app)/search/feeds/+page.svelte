@@ -3,7 +3,7 @@
     import { agent } from '$lib/stores';
     import InfiniteLoading from "svelte-infinite-loading";
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
-    import {onMount} from "svelte";
+    import {onMount, tick} from "svelte";
     let cursor = '';
     let feeds = $state([]);
     let savedFeeds = [];
@@ -48,12 +48,12 @@
         }
     }
 
+    tick().then(() => {
+        tempTimeout = true;
+    })
+
     onMount(async () => {
         await getSavedFeeds();
-
-        setTimeout(() => {
-            tempTimeout = true;
-        }, 0)
     })
 </script>
 

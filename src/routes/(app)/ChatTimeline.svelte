@@ -3,7 +3,7 @@
     import InfiniteLoading from 'svelte-infinite-loading';
     import ChatItem from "$lib/components/chat/ChatItem.svelte";
     import ChatPublish from "$lib/components/chat/ChatPublish.svelte";
-    import { onMount } from "svelte";
+    import {tick} from "svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
 
     let { column = $bindable(), index, _agent = $agent, onrefresh } = $props();
@@ -55,9 +55,9 @@
                     $latestRevMap.set(_agent.did(), res.data.messages[0].rev);
                 }
 
-                setTimeout(() => {
+                tick().then(() => {
                     column.scrollElement.scrollTo(0, column.scrollElement.scrollHeight);
-                }, 0)
+                });
             }
 
             if (column.data.cursor && res.data.messages.length) {
@@ -89,11 +89,11 @@
         }
     }
 
-    onMount(async () => {
-        setTimeout(() => {
+    $effect.pre(() => {
+        tick().then(() => {
             column.scrollElement.scrollTo(0, column.scrollElement.scrollHeight);
-        }, 0)
-    })
+        })
+    });
 </script>
 
 <div class="chat">

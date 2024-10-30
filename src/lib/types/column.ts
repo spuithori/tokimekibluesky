@@ -28,6 +28,7 @@ type deckSettings = {
         height: number,
     },
     opacity?: number,
+    collapse?: boolean,
 }
 
 export type Column = {

@@ -19,7 +19,6 @@
   let {
     title,
     size = 'normal',
-    disableState = false,
     children
   }: Props = $props();
     const duration = 150;

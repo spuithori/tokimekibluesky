@@ -1,44 +1,8 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {
-        Trash2,
-        Users2,
-        Languages,
-        Copy,
-        AtSign,
-        ListPlus,
-        List,
-        Flag,
-        EyeOff,
-        Rss,
-        Pin,
-        Pencil,
-        Sticker
-    } from 'lucide-svelte';
-    import {
-        agent,
-        settings,
-        isPreventEvent,
-        reportModal,
-        didHint,
-        pulseDelete,
-        listAddModal,
-        agents,
-        repostMutes,
-        postMutes,
-        bluefeedAddModal,
-        postPulse,
-        sideState,
-        isPublishInstantFloat,
-        pulseDetach,
-    } from '$lib/stores';
-    import {
-        AppBskyEmbedExternal,
-        AppBskyEmbedImages,
-        AppBskyEmbedRecord,
-        AppBskyFeedDefs,
-        BskyAgent
-    } from '@atproto/api'
+    import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker } from 'lucide-svelte';
+    import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, postPulse, sideState, isPublishInstantFloat, pulseDetach } from '$lib/stores';
+    import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
     import { toast } from "svelte-sonner";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
     import {setContext} from "svelte";
@@ -47,13 +11,7 @@
     import TimelineContent from "$lib/components/post/TimelineContent.svelte";
     import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
-    import {
-        getAccountIdByDid,
-        getAllAgentDids, getDidFromUri,
-        getImageBase64FromBlob,
-        getImageObjectFromBlob,
-        getService
-    } from "$lib/util.js";
+    import { getAccountIdByDid, getAllAgentDids, getDidFromUri, getImageBase64FromBlob, getImageObjectFromBlob, getService } from "$lib/util.js";
     import ReactionModal from "$lib/components/post/ReactionModal.svelte";
     import {getTextArray} from "$lib/richtext";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
@@ -468,16 +426,6 @@
       }
     }
 
-    function handleLike(event) {
-        data.post.likeCount = event.detail.count;
-        data.post.viewer.like = event.detail.viewer;
-    }
-
-    function handleRepost(event) {
-        data.post.repostCount = event.detail.count;
-        data.post.viewer.repost = event.detail.viewer;
-    }
-
     function detectRepostMuteFilter() {
         if (!isReasonRepost(data.reason)) {
             return false;
@@ -679,16 +627,16 @@
 
     <Menu bind:isMenuOpen={isMenuOpen}>
       {#snippet sub()}
-            <div class="menu-sub-list" >
+        <div class="menu-sub-list">
           <ReactionButtonsInMenu
               {_agent}
               post={data.post}
           ></ReactionButtonsInMenu>
         </div>
-          {/snippet}
+      {/snippet}
 
       {#snippet content()}
-            <ul class="timeline-menu-list" >
+        <ul class="timeline-menu-list" >
           {#if (getAllAgentDids($agents).includes(data.post.author.did))}
             <li class="timeline-menu-list__item timeline-menu-list__item--delete">
               <button class="timeline-menu-list__button" onclick={deletePostStep}>
@@ -812,7 +760,7 @@
             </button>
           </li>
         </ul>
-          {/snippet}
+      {/snippet}
     </Menu>
 
     {#if ($settings?.general.devMode)}
