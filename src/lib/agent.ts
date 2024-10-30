@@ -301,4 +301,14 @@ export class Agent {
             return [];
         }
     }
+
+    async getAvatar(did: string) {
+        try {
+            const res = await this.agent.api.app.bsky.actor.getProfile({actor: did});
+            return res.data.avatar;
+        } catch (e) {
+            console.error(e);
+            return undefined;
+        }
+    }
 }

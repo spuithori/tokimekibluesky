@@ -102,20 +102,20 @@
       }
 
       @media (min-width: 768px) {
-          scrollbar-color: var(--primary-color) var(--bg-color-3);
+          scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
 
           &::-webkit-scrollbar {
-              width: 10px;
+              width: 6px;
           }
 
           &::-webkit-scrollbar-thumb {
-              background: var(--primary-color);
-              border-radius: 5px;
+              background: var(--scroll-bar-color);
+              border-radius: 0;
           }
 
           &::-webkit-scrollbar-track {
-              background: var(--bg-color-3);
-              border-radius: 5px;
+              background: var(--scroll-bar-bg-color);
+              border-radius: 0;
           }
       }
 

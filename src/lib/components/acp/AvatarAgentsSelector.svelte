@@ -8,6 +8,7 @@
   import {accountsDb} from '$lib/db';
   import {getAccountIdByDid} from "$lib/util";
   import AvatarAgentsSelectorModalItem from "$lib/components/acp/AvatarAgentsSelectorModalItem.svelte";
+  import type {Agent} from "$lib/agent";
   const dispatch = createEventDispatcher();
 
   interface Props {
@@ -30,22 +31,25 @@
       ]
   });
 
-  accountsDb.accounts.get(getAccountIdByDid($agents, _agent.did()))
-      .then(res => {
-          avatar = res.avatar;
-      });
+  $effect.pre(() => {
+      selectAgent(_agent);
+  })
 
-  async function selectAgent(key, agent) {
-      _agent = agent;
-
+  function selectAgent(agent: Agent) {
       dispatch('select', {
-          id: key,
-          agent: _agent,
+          agent: agent,
       });
 
-      accountsDb.accounts.get(getAccountIdByDid($agents, _agent.did()))
+      accountsDb.accounts.get(getAccountIdByDid($agents, agent.did()))
           .then(res => {
               avatar = res.avatar;
+
+              if (!avatar) {
+                  agent.getAvatar(agent.did())
+                      .then(_res => {
+                          avatar = _res;
+                      });
+              }
           });
       isOpen = false;
   }
@@ -72,10 +76,10 @@
         {#each $agents as [key, agent]}
           {#if (agent.agent?.session)}
             <AvatarAgentsSelectorModalItem
-              agent={agent}
-              key={key}
+              {agent}
+              {key}
               isCurrent={agent.agent.session.handle === _agent.agent.session.handle}
-              on:select={() => {selectAgent(key, agent)}}
+              onselect={() => {_agent = agent}}
             ></AvatarAgentsSelectorModalItem>
           {/if}
         {/each}
@@ -94,6 +98,7 @@
       overflow: hidden;
       border-radius: 50%;
       background-color: var(--primary-color);
+      width: 100%;
 
       img {
           width: 100%;

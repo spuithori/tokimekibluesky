@@ -1,7 +1,5 @@
 <script lang="ts">
-  import {createEventDispatcher} from "svelte";
   import {accountsDb} from "$lib/db";
-  const dispatch = createEventDispatcher();
 
   interface Props {
     agent: any;
@@ -9,7 +7,7 @@
     isCurrent?: boolean;
   }
 
-  let { agent, key, isCurrent = false }: Props = $props();
+  let { agent, key, isCurrent = false ,onselect }: Props = $props();
 
   let avatar = $state();
   let displayName = $state();
@@ -19,21 +17,17 @@
           avatar = value?.avatar;
           displayName = value?.name;
       })
-
- function handleSelect() {
-     dispatch('select');
- }
 </script>
 
 <div class="avatar-agents-selector-item"
-     class:avatar-agents-selector-item--current={isCurrent}
      role="button"
-     onclick={handleSelect}
+     tabindex="-1"
+     class:avatar-agents-selector-item--current={isCurrent}
+     onclick={onselect}
 >
   <div class="avatar-agents-selector-item__avatar">
     {#if (avatar)}
       <img src="{avatar}" alt="">
-    {:else}
     {/if}
   </div>
 
@@ -61,10 +55,6 @@
 
       &--current {
           border: 2px solid var(--primary-color);
-      }
-
-      &--selected {
-          background-color: var(--bg-color-2);
       }
 
       &:hover {

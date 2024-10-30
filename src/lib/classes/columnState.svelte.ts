@@ -35,6 +35,9 @@ export class ColumnState {
             const id = accountsDb.profiles.update(Number(profileId), {
                 columns: $state.snapshot(this.syncColumns),
             })
+        })
+
+        $effect(() => {
             localStorage.setItem('columns', JSON.stringify(this.syncColumns));
         })
     }
