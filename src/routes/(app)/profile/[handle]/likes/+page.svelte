@@ -5,9 +5,11 @@
   import TimelineItem from '../../../TimelineItem.svelte';
   import InfiniteLoading from 'svelte-infinite-loading';
   import {BskyAgent} from "@atproto/api";
+  import {tick} from "svelte";
 
   let feeds = $state([]);
   let cursor = '';
+  let tempActive = $state(false);
 
   interface Props {
     author?: string;
@@ -57,23 +59,29 @@
           complete();
       }
   }
+
+  tick().then(() => {
+      tempActive = true;
+  })
 </script>
 
 <svelte:head>
   <title>{data.params.handle} {$_('page_title_likes')} - TOKIMEKI</title>
 </svelte:head>
 
-<div class="timeline">
-  {#each feeds as data (data)}
-    <TimelineItem data={ data }></TimelineItem>
-  {/each}
+{#if (tempActive)}
+  <div class="timeline">
+    {#each feeds as data (data)}
+      <TimelineItem data={ data }></TimelineItem>
+    {/each}
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    {#snippet noMore()}
+    <InfiniteLoading on:infinite={handleLoadMore}>
+      {#snippet noMore()}
         <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
       {/snippet}
-    {#snippet noResults()}
+      {#snippet noResults()}
         <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
       {/snippet}
-  </InfiniteLoading>
-</div>
+    </InfiniteLoading>
+  </div>
+{/if}

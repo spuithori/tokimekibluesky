@@ -9,6 +9,7 @@
     let followers = $state([]);
     let cursor = '';
     let scrollY = 0;
+    let tempActive = $state(false);
 
     export const snapshot: Snapshot = {
         capture: () => [followers, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
@@ -54,25 +55,32 @@
             complete();
         }
     }
+
+    tick().then(() => {
+        tempActive = true;
+    })
 </script>
 
 <svelte:head>
   <title>{data.params.handle} {$_('page_title_followers')} - TOKIMEKI</title>
 </svelte:head>
 
-<div class="user-items-list">
-  <div class="user-timeline">
-    {#each followers as user (user)}
-      <UserItem user={user}></UserItem>
-    {/each}
+{#if (tempActive)}
+  <div class="user-items-list">
+    <div class="user-timeline">
+      {#each followers as user (user)}
+        <UserItem user={user}></UserItem>
+      {/each}
 
-    <InfiniteLoading on:infinite={handleLoadMore}>
-      {#snippet noMore()}
-            <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-          {/snippet}
-      {#snippet noResults()}
-            <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-          {/snippet}
-    </InfiniteLoading>
+      <InfiniteLoading on:infinite={handleLoadMore}>
+        {#snippet noMore()}
+          <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+        {/snippet}
+        {#snippet noResults()}
+          <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+        {/snippet}
+      </InfiniteLoading>
+    </div>
   </div>
-</div>
+
+{/if}

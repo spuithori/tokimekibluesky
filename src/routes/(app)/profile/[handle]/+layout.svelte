@@ -23,7 +23,7 @@
         data: LayoutData;
     }
 
-    let { data }: Props = $props();
+    let { data, children }: Props = $props();
 
     let currentPage = $state('posts');
     let profile = $state();
@@ -216,7 +216,7 @@
         {/if}
       </ul>
 
-      <slot></slot>
+      {@render children?.()}
     </section>
   </PageModal>
 {/key}
