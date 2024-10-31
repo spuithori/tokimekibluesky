@@ -1,12 +1,10 @@
 <script lang="ts">
-  import {createEventDispatcher} from "svelte";
-  const dispatch = createEventDispatcher();
-
+  let { onDividerClick } = $props();
   let el = $state();
 
   function handleClick() {
       const posFromBottom = window.innerHeight - el.getBoundingClientRect().bottom;
-      dispatch('click', {pos: posFromBottom});
+      onDividerClick(posFromBottom);
   }
 </script>
 

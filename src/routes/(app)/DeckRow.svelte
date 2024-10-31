@@ -1,7 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
     import NotificationTimeline from "./NotificationTimeline.svelte";
-    import TimelineSelector from "./TimelineSelector.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
     import {agent, agents, direction, intersectingIndex, isChatColumnFront} from "$lib/stores";
@@ -22,6 +21,9 @@
     import {draggable, type DragOptions} from "@neodrag/svelte";
     import { createLongPress } from 'svelte-interactions';
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import Timeline from "./Timeline.svelte";
+    import BookmarkTimeline from "./BookmarkTimeline.svelte";
+    import ListTimeline from "./ListTimeline.svelte";
     const { longPressAction } = createLongPress();
 
     interface Props {
@@ -325,7 +327,7 @@
             {/if}
 
             <div class="deck-heading__icon">
-                <button class="deck-heading__icon-picker-button" onclick={() => {isIconPickerOpen = !isIconPickerOpen}}>
+                <button class="deck-heading__icon-picker-button" aria-label="Change icon" onclick={() => {isIconPickerOpen = !isIconPickerOpen}}>
                     {#if column.settings?.icon}
                         {@const SvelteComponent = iconMap.get(column.settings.icon)}
                         <SvelteComponent color="var(--deck-heading-icon-color)"></SvelteComponent>
@@ -367,7 +369,7 @@
             {/if}
 
             {#if column.algorithm?.type === 'chat' && $settings.design?.layout === 'decks' && !isJunk}
-                <button class="deck-popup-button only-pc" onclick={handleChangePopup}>
+                <button class="deck-popup-button only-pc" aria-label="Popup" onclick={handleChangePopup}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-picture-in-picture-2"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/></svg>
                 </button>
             {/if}
@@ -385,7 +387,7 @@
             {#if (!isJunk)}
                 <ColumnButtons {column} {index} {_agent}></ColumnButtons>
 
-                <button class="deck-row-settings-button" onclick={handleSettingsClick}>
+                <button class="deck-row-settings-button" aria-label="Settings" onclick={handleSettingsClick}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
                 </button>
             {/if}
@@ -414,14 +416,18 @@
                                     {_agent}
                                     onrefresh={handleRefresh}
                             ></ChatTimeline>
+                        {:else if (column.algorithm.type === 'list')}
+                            <ListTimeline bind:column {index} {_agent}></ListTimeline>
+                        {:else if (column.algorithm.type === 'bookmark')}
+                            <BookmarkTimeline bind:column {index} {_agent}></BookmarkTimeline>
                         {:else}
-                            <TimelineSelector
-                                    bind:column={column}
-                                    index={index}
+                            <Timeline
+                                    bind:column
+                                    {index}
                                     {_agent}
                                     hideReply={column.algorithm.type === 'author' ? hideReply : undefined}
                                     hideRepost={column.algorithm.type === 'author' ? hideRepost : undefined}
-                            ></TimelineSelector>
+                            ></Timeline>
                         {/if}
                     </div>
                 {:else}

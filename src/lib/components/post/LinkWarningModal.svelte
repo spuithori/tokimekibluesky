@@ -1,10 +1,14 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import {_} from "svelte-i18n";
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
   import {linkWarning} from "$lib/stores";
   let dialog = $state();
+
+  $effect(() => {
+      if (dialog) {
+          dialog.open();
+      }
+  })
 
   function handleOk(uri) {
       window.open(uri);
@@ -14,12 +18,6 @@
   function handleCancel() {
       linkWarning.set(undefined);
   }
-
-  run(() => {
-      if (dialog) {
-          dialog.open();
-      }
-  });
 </script>
 
 {#if $linkWarning}

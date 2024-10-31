@@ -73,11 +73,11 @@
       isActorsListFinished = true;
   }
 
-  function handleDividerClick(index, cursor, e) {
+  function handleDividerClick(index, cursor, pos) {
       column.data.cursor = cursor;
       column.data.feed[index].isDivider = false;
       isDividerLoading = true;
-      dividerFillerHeight = e.detail.pos;
+      dividerFillerHeight = pos;
       column.data.feed.splice(index + 1);
   }
 
@@ -153,9 +153,9 @@
     {#each column.data.feed as data, index (data)}
       {#if (data?.post?.author?.did)}
         <TimelineItem
-                data={ data }
-                index={index}
-                column={column}
+                {data}
+                {index}
+                {column}
                 {_agent}
                 isProfile={column.algorithm.type === 'author'}
                 isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
@@ -166,7 +166,7 @@
       {/if}
 
       {#if data.isDivider}
-        <MoreDivider on:click={(e) => {handleDividerClick(index, data.memoryCursor, e)}}></MoreDivider>
+        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}}></MoreDivider>
       {/if}
     {/each}
   {:else}
