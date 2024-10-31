@@ -4,12 +4,6 @@
     }
 }
 
-.algo-nav {
-    @media (max-width: 767px) {
-        transition: all .25s cubic-bezier(0.16, 0.01, 0.3, 0.98) .075s;
-    }
-}
-
 .page-nav-title {
     @media (max-width: 767px) {
         transition: all .25s cubic-bezier(0.16, 0.01, 0.3, 0.98);
@@ -30,12 +24,6 @@
 
 .scroll-down {
     .header {
-        @media (max-width: 767px) {
-            transform: translateY(-80px);
-        }
-    }
-
-    .algo-nav {
         @media (max-width: 767px) {
             transform: translateY(-80px);
         }
