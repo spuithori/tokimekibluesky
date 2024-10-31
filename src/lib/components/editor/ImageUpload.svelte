@@ -112,8 +112,7 @@
             }
         }
 
-        await Promise.all(promises);
-
+        images = await Promise.all(promises);
         input.value = '';
         dispatch('prepareend');
     }
@@ -129,7 +128,7 @@
         const isGif = await transformImageFilter(file);
         const {width, height} = resizeAspectRatioSize(await getImageSize(file));
 
-        images = [...images, {
+        return {
             id: self.crypto.randomUUID(),
             alt: alt,
             file: file,
@@ -137,7 +136,7 @@
             isGif: isGif,
             width: Math.floor(width),
             height: Math.floor(height),
-        }];
+        }
     }
 
     export function open(isVideo: boolean) {

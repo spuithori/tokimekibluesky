@@ -278,7 +278,7 @@
             }
         }
 
-        await Promise.all(promises);
+        images = await Promise.all(promises);
         isProcessed = false;
     }
 
