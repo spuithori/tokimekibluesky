@@ -380,7 +380,6 @@
       $isPublishInstantFloat = false;
       postsPool = [{}];
       currentPost = 0;
-      unique = Symbol();
       writes = [];
       tid = undefined;
 
@@ -645,7 +644,7 @@
                   rkey: rkey,
                   value: {
                       createdAt: new Date().toISOString(),
-                      post: create.uri,
+                      post: uri,
                       allow: allow,
                   }
               })
@@ -699,9 +698,9 @@
       postsPool[currentPost] = e.detail.data;
       postsPool.splice(currentPost + 1, 0, {});
       currentPost = currentPost + 1;
-      setTimeout(() => {
+      tick().then(() => {
           editor.focus();
-      }, 100);
+      })
   }
 
   function applyChangeThread(e) {
@@ -719,9 +718,9 @@
           postsPool = postsPool;
       }
 
-      setTimeout(() => {
+      tick().then(() => {
           editor.focus();
-      }, 100);
+      })
   }
 </script>
 

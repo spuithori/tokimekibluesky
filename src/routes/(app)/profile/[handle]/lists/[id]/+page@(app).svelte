@@ -5,6 +5,7 @@
     import PageModal from "$lib/components/ui/PageModal.svelte";
     import type { Snapshot } from './$types';
     import {isAfterReload, settings} from "$lib/stores";
+    import {tick} from "svelte";
 
     let title = $state('');
 
@@ -14,13 +15,13 @@
             if(!$isAfterReload) {
                 [scrollY] = value;
 
-                setTimeout(() => {
+                tick(() => {
                     if ($settings.design.layout === 'decks') {
                         document.querySelector('.modal-page-content').scroll(0, scrollY);
                     } else {
                         document.querySelector(':root').scroll(0, scrollY);
                     }
-                }, 0)
+                })
             }
 
             isAfterReload.set(false);
