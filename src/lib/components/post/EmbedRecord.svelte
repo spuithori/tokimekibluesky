@@ -53,6 +53,7 @@
       let formattedPost = {
           ...record,
           record: record.value,
+          viewer: record.viewer ?? {},
       }
 
       if (AppBskyEmbedImages.isView(record.embeds[0])) {

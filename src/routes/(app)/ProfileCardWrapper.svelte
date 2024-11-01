@@ -2,7 +2,7 @@
     import ProfileCard from "./ProfileCard.svelte";
     import { agent } from '$lib/stores';
 
-  let { _agent = $agent, handle, children } = $props();
+    let { _agent = $agent, handle, children } = $props();
 
     let avatarMouseOverTimeId;
     let isProfileShown = $state(false);

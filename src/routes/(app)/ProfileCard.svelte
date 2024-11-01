@@ -7,67 +7,71 @@
   import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
   import { fade } from 'svelte/transition';
   import {_} from "svelte-i18n";
-  import Portal from "svelte-portal";
   import { offset, flip, shift } from '@floating-ui/dom';
   import { createFloatingActions } from 'svelte-floating-ui';
 
   const [floatingRef, floatingContent] = createFloatingActions({
       strategy: 'fixed',
       placement: 'bottom-start',
-      middleware: [offset(10), flip(), shift()],
+      middleware: [offset(20), flip(), shift()],
   });
 
   let { _agent = $agent, handle } = $props();
   let profile = $state();
+  let el = $state();
 
   onMount(async () => {
       const res = await _agent.agent.api.app.bsky.actor.getProfile({actor: handle});
       profile = res.data;
   })
+
+  $effect(() => {
+      if (el) {
+          el.showPopover();
+      }
+  })
 </script>
 
 <span class="profile-card-target" use:floatingRef></span>
 {#if profile}
-  <Portal target=".app">
-    <aside class="profile-card" onmouseover={bubble('mouseover')} onmouseleave={bubble('mouseleave')} transition:fade="{{ duration: 100 }}" use:floatingContent>
-      <div class="profile-card-heading">
-        <div class="profile-card-avatar">
-          <img src="{profile.avatar}" alt="">
-        </div>
-
-        <div class="profile-card-name">
-          {#if (profile.displayName)}
-            <h3 class="profile-card-displayname">{profile.displayName}</h3>
-          {/if}
-
-          <p class="profile-card-handle">{profile.handle}</p>
-        </div>
+  <aside class="profile-card" onmouseover={bubble('mouseover')} onmouseleave={bubble('mouseleave')} transition:fade="{{ duration: 100 }}" use:floatingContent bind:this={el} popover="manual">
+    <div class="profile-card-heading">
+      <div class="profile-card-avatar">
+        <img src="{profile.avatar}" alt="">
       </div>
 
-      {#if (profile.description)}
-        <p class="profile-card-description">
-          {profile.description}
-        </p>
+      <div class="profile-card-name">
+        {#if (profile.displayName)}
+          <h3 class="profile-card-displayname">{profile.displayName}</h3>
+        {/if}
+
+        <p class="profile-card-handle">{profile.handle}</p>
+      </div>
+    </div>
+
+    {#if (profile.description)}
+      <p class="profile-card-description">
+        {profile.description}
+      </p>
+    {/if}
+
+    <div class="profile-relationship">
+      <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
+      <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
+
+      {#if (profile.viewer?.followedBy)}
+        <p class="profile-relationship__by">{$_('follows_you')}</p>
       {/if}
+    </div>
 
-      <div class="profile-relationship">
-        <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
-        <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
-
-        {#if (profile.viewer?.followedBy)}
-          <p class="profile-relationship__by">{$_('follows_you')}</p>
-        {/if}
-      </div>
-
-      <div class="profile-card-button">
-        {#if (profile.did !== _agent.did())}
-          <div class="user-item__buttons">
-            <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
-          </div>
-        {/if}
-      </div>
-    </aside>
-  </Portal>
+    <div class="profile-card-button">
+      {#if (profile.did !== _agent.did())}
+        <div class="user-item__buttons">
+          <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
+        </div>
+      {/if}
+    </div>
+  </aside>
 {/if}
 
 <style lang="postcss">
@@ -76,11 +80,13 @@
       left: 0;
       top: calc(100% + 10px);
       background-color: var(--bg-color-1);
+      color: var(--text-color-1);
       box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 8px 16px rgba(0, 0, 0, .14);
       padding: 20px;
       border-radius: 6px;
       z-index: 100000;
       width: 300px;
+      border: none;
 
       @media (max-width: 767px) {
           display: none;

@@ -1,40 +1,47 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
-  import {
-      agent,
-      agents,
-      hashtagHistory, isChatColumnFront,
-      isPublishInstantFloat, postgate, postPulse,
-      quotePost,
-      replyRef,
-      settings,
-      threadGate,
-      direction,
-  } from '$lib/stores';
-  import {selfLabels} from "$lib/components/editor/publishStore";
-  import { clickOutside } from '$lib/clickOutSide';
-  import {
-      RichText,
-      AppBskyEmbedImages,
-      AppBskyEmbedRecord,
-      AppBskyEmbedRecordWithMedia,
-      AppBskyEmbedExternal, AppBskyVideoDefs, AppBskyEmbedVideo
-  } from '@atproto/api';
-  import { toast } from 'svelte-sonner'
-  import { goto, pushState } from '$app/navigation';
-  import { page } from '$app/stores';
-  import { db } from '$lib/db';
-  import DraftModal from "$lib/components/draft/DraftModal.svelte";
-  import {getAccountIdByDid, getServiceAuthToken} from "$lib/util";
-  import type { Draft } from '$lib/db';
-  import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-  import imageCompression from 'browser-image-compression';
-  import PublishPool from "$lib/components/editor/PublishPool.svelte";
-  import PublishMain from "$lib/components/editor/PublishMain.svelte";
-  import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
-  import {tick} from "svelte";
+    import {_} from 'svelte-i18n';
+    import {
+        agent,
+        agents,
+        direction,
+        hashtagHistory,
+        isChatColumnFront,
+        isPublishInstantFloat,
+        postgate,
+        postPulse,
+        quotePost,
+        replyRef,
+        settings,
+        threadGate,
+    } from '$lib/stores';
+    import {selfLabels} from "$lib/components/editor/publishStore";
+    import {clickOutside} from '$lib/clickOutSide';
+    import {
+        AppBskyEmbedExternal,
+        AppBskyEmbedImages,
+        AppBskyEmbedRecord,
+        AppBskyEmbedRecordWithMedia,
+        AppBskyEmbedVideo,
+        AppBskyVideoDefs,
+        RichText
+    } from '@atproto/api';
+    import {toast} from 'svelte-sonner'
+    import {goto, pushState} from '$app/navigation';
+    import {page} from '$app/stores';
+    import type {Draft} from '$lib/db';
+    import {db} from '$lib/db';
+    import DraftModal from "$lib/components/draft/DraftModal.svelte";
+    import {getAccountIdByDid, getServiceAuthToken} from "$lib/util";
+    import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
+    import imageCompression from 'browser-image-compression';
+    import PublishPool from "$lib/components/editor/PublishPool.svelte";
+    import PublishMain from "$lib/components/editor/PublishMain.svelte";
+    import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
+    import {tick} from "svelte";
+    import {TID} from "@atproto/common-web";
+    import {computeCid} from "$lib/components/editor/postUtil";
 
-  let _agent = $state($agent);
+    let _agent = $state($agent);
   let editor = $state();
   let isFocus = $state(false);
   let isContinueMode = $state(false);
@@ -48,6 +55,8 @@
   let currentPost = $state(0);
   let getCurrentThreadData = $state();
   let publishMainEl = $state();
+  let writes = [];
+  let tid: TID | undefined;
 
   const isMobile = navigator?.userAgentData?.mobile || false;
 
@@ -296,6 +305,12 @@
               i = i + 1;
           }
 
+          await _agent.agent.api.com.atproto.repo.applyWrites({
+              repo: _agent.did(),
+              writes: writes,
+              validate: true,
+          })
+
           await afterPublish();
 
           isPublishing = false;
@@ -313,9 +328,8 @@
               duration: 5000,
           });
 
-          postsPool.splice(0, i - 1);
-          currentPost = 0;
-          unique = Symbol();
+          writes = [];
+          tid = undefined;
       }
   }
 
@@ -367,11 +381,12 @@
       postsPool = [{}];
       currentPost = 0;
       unique = Symbol();
+      writes = [];
+      tid = undefined;
 
       if (isContinueMode) {
-          setTimeout(() => {
-              editor.focus();
-          }, 100)
+          await tick();
+          editor.focus();
       }
   }
 
@@ -575,23 +590,32 @@
           }
       } : undefined;
 
+      tid = TID.next(tid);
+      const rkey = tid.toString()
+      const uri = `at://${_agent.did()}/app.bsky.feed.post/${rkey}`
+
       try {
-          const create = await _agent.agent.api.app.bsky.feed.post.create(
-              { repo: _agent.did() as string },
-              {
-                  embed: embed,
-                  facets: rt ? rt.facets : undefined,
-                  text: rt ? rt.text : '',
-                  createdAt: new Date().toISOString(),
-                  reply: treeReplyRef || shortReplyRef,
-                  via: 'TOKIMEKI',
-                  langs: lang.length ? lang : undefined,
-                  labels: selfLabels.length ? {
-                      $type: 'com.atproto.label.defs#selfLabels',
-                      values: selfLabels || [],
-                  } : undefined,
-              },
-          );
+          const record = {
+              $type: 'app.bsky.feed.post',
+              embed: embed,
+              facets: rt ? rt.facets : undefined,
+              text: rt ? rt.text : '',
+              createdAt: new Date().toISOString(),
+              reply: treeReplyRef || shortReplyRef,
+              langs: lang.length ? lang : undefined,
+              labels: selfLabels.length ? {
+                  $type: 'com.atproto.label.defs#selfLabels',
+                  values: selfLabels || [],
+              } : undefined,
+              via: 'TOKIMEKI',
+          };
+
+          writes.push({
+              $type: 'com.atproto.repo.applyWrites#create',
+              collection: 'app.bsky.feed.post',
+              rkey: rkey,
+              value: record,
+          })
 
           if (post.threadGate !== 'everybody' && !post.replyRef) {
               let allow = [];
@@ -615,34 +639,32 @@
                   })
               }
 
-              await _agent.agent.api.app.bsky.feed.threadgate.create(
-                  {
-                      repo: _agent.did() as string,
-                      rkey: create.uri.split('/').slice(-1)[0],
-                  },
-                  {
+              writes.push({
+                  $type: 'com.atproto.repo.applyWrites#create',
+                  collection: 'app.bsky.feed.threadgate',
+                  rkey: rkey,
+                  value: {
                       createdAt: new Date().toISOString(),
                       post: create.uri,
                       allow: allow,
-                  },
-              );
+                  }
+              })
           }
 
           if (!$postgate) {
-              await _agent.agent.api.app.bsky.feed.postgate.create(
-                  {
-                      repo: _agent.did() as string,
-                      rkey: create.uri.split('/').slice(-1)[0],
-                  },
-                  {
+              writes.push({
+                  $type: 'com.atproto.repo.applyWrites#create',
+                  collection: 'app.bsky.feed.postgate',
+                  rkey: rkey,
+                  value: {
                       createdAt: new Date().toISOString(),
                       detachedEmbeddingUris: [],
                       embeddingRules: [{
                           $type: 'app.bsky.feed.postgate#disableRule',
                       }],
-                      post: create.uri,
+                      post: uri,
                   }
-              )
+              })
           }
 
           if (rt?.facets) {
@@ -661,7 +683,10 @@
               localStorage.setItem('hashtagHistory', JSON.stringify($hashtagHistory));
           }
 
-          return create;
+          return {
+              cid: await computeCid(record),
+              uri,
+          };
       } catch (error) {
           console.error((error as Error).message);
           toast.error($_('failed_to_post') + ':' + (error as Error).message);

@@ -166,7 +166,6 @@
 
     profileStatus.set(0);
     loaded = true;
-    //isColumnInitialLoad = true;
   }
 
   if (!$settings.version) {
@@ -233,10 +232,6 @@
           registerSW({
               immediate: true,
               onRegistered(r) {
-                 /* r && setInterval(() => {
-                     r.update();
-                 }, 20000) */
-
                   console.log('SW Registered');
               },
               onRegisterError(error) {
@@ -383,9 +378,7 @@
       <ChatUpdateObserver></ChatUpdateObserver>
     {/if}
   {:else}
-    <div>
-
-    </div>
+    <div></div>
   {/if}
 
   <Footer></Footer>
