@@ -461,18 +461,22 @@
       {/snippet}
 
     {#snippet avatar()}
-        <div class="publish-form-agents-selector" >
+      <div class="publish-form-agents-selector">
         <AvatarAgentsSelector
                 {_agent}
                 isDisabled={isAccountSelectDisabled}
                 on:select={handleAgentSelect}
                 style={'publish'}
         ></AvatarAgentsSelector>
+
+        {#if (!$replyRef)}
+          <button class="add-thread-button" disabled={isEnabled} onclick={addThread} aria-label="{$_('post_add_thread')}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></button>
+        {/if}
       </div>
-      {/snippet}
+    {/snippet}
 
     {#snippet normal()}
-        <div class="publish-upload" >
+        <div class="publish-upload">
         {#if (images.length)}
           <button class="publish-alt-text-button" onclick={() => {isAltModalOpen = true}}>
             <span class="ai-label">AI</span>
@@ -604,10 +608,6 @@
     <p class="publish-length">
       <span class="publish-length__current" class:over={publishContentLength > 300}>{300 - publishContentLength}</span>
     </p>
-
-    {#if (!$replyRef)}
-      <button class="add-thread-button" disabled={isEnabled} onclick={addThread}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-plus"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/></svg>{$_('post_add_thread')}</button>
-    {/if}
   </div>
 </div>
 
@@ -644,11 +644,27 @@
 
   .add-thread-button {
       height: 40px;
-      color: var(--primary-color);
+      width: 40px;
+      color: var(--text-color-2);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      margin-top: 24px;
+      position: relative;
+
+      &::before {
+          content: '';
+          display: block;
+          position: absolute;
+          left: 0;
+          right: 0;
+          margin: auto;
+          height: 24px;
+          width: 2px;
+          background-color: currentColor;
+          bottom: calc(100% - 4px);
+      }
       
       &:disabled {
           cursor: not-allowed;

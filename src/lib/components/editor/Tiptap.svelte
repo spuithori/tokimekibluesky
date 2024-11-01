@@ -515,7 +515,7 @@
         display: grid;
         grid-template-columns: 40px 1fr;
         gap: 8px;
-        padding: 12px 0 12px 12px;
+        padding: 12px;
     }
 
     .publish-form-gif {

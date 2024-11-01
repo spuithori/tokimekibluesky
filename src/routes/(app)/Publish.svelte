@@ -776,8 +776,7 @@
     {#key unique}
       {#key currentPost}
         {#each postsPool as post, index}
-
-          <div class="publish-item-wrap">
+          <div class="publish-item-wrap" data-index="{index}">
             {#if (index > 0)}
               <button class="publish-item-delete" onclick={() => {applyDeleteThread(index)}} aria-label="delete"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
             {/if}
@@ -798,7 +797,6 @@
               <PublishPool {post} {index} bind:_agent={_agent} on:change={applyChangeThread} isEnabled={isPublishing}></PublishPool>
             {/if}
           </div>
-
         {/each}
       {/key}
     {/key}
@@ -971,6 +969,29 @@
 
     .publish-item-wrap {
         position: relative;
+
+        &::before {
+            content: '';
+            display: block;
+            position: absolute;
+            width: 2px;
+            background-color: var(--border-color-1);
+            left: 31px;
+            top: 0;
+            bottom: 0;
+        }
+
+        &:last-child {
+            &::before {
+                bottom: 12px;
+            }
+        }
+
+        &[data-index='0'] {
+            &::before {
+                top: 12px;
+            }
+        }
     }
 
     .publish-item-delete {
@@ -983,7 +1004,7 @@
     .vk-publish-group {
         .publish-wrap {
             @media (max-width: 767px) {
-                padding-bottom: 46px;
+                padding-bottom: 86px;
             }
         }
     }

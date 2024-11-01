@@ -430,6 +430,15 @@
             position: fixed !important;
         }
     }
+
+    .publish-bb-nav {
+        @media (max-width: 767px) {
+            position: fixed !important;
+            bottom: 46px;
+            z-index: 100;
+            background: var(--publish-textarea-bg-color);
+        }
+    }
 }
 
 .publish-group--bottom {
