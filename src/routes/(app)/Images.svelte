@@ -24,8 +24,16 @@
     let galleryImages = [];
     let isFold = $state($settings?.design.postsImageLayout === 'folding' || $isDataSaving || folding);
     let isOpen = false;
+    let natural = $state([]);
 
-    for (const image of images) {
+    natural = images.map(() => {
+        return {
+            width: 0,
+            height: 0,
+        }
+    });
+
+    images.forEach((image, index) => {
         galleryImages.push({
             src: image.fullsize,
             msrc: image.thumb,
@@ -33,7 +41,7 @@
             height: image?.aspectRatio?.height,
             alt: image.alt ? 'ALT: ' + image.alt : '',
         })
-    }
+    })
 
     const lightbox = new PhotoSwipeLightbox({
         dataSource: galleryImages,
@@ -71,11 +79,11 @@
     function open(index: any) {
         galleryImages = galleryImages.map((image, index) => {
             if (!image.width) {
-                image.width = images[index].naturalWidth || 0;
+                image.width = natural[index].width || 0;
             }
 
             if (!image.height) {
-                image.height = images[index].naturalHeight || 0;
+                image.height = natural[index].height || 0;
             }
 
             return image;
@@ -141,6 +149,8 @@
                 alt="{image.alt}"
                 width={image?.aspectRatio?.width}
                 height={image?.aspectRatio?.height}
+                bind:naturalWidth={natural[index].width}
+                bind:naturalHeight={natural[index].height}
             >
           </button>
         {/if}
