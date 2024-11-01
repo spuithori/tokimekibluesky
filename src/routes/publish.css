@@ -434,9 +434,19 @@
     .publish-bb-nav {
         @media (max-width: 767px) {
             position: fixed !important;
-            bottom: 46px;
+            bottom: calc(env(keyboard-inset-height, 0px) + 46px);
             z-index: 100;
             background: var(--publish-textarea-bg-color);
+        }
+    }
+
+    .publish-item-wrap {
+        @media (max-width: 767px) {
+            &:not(:last-child) {
+                &::after {
+                    bottom: 0 !important;
+                }
+            }
         }
     }
 }

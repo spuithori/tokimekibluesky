@@ -976,9 +976,27 @@
             position: absolute;
             width: 2px;
             background-color: var(--border-color-1);
-            left: 31px;
+            left: 32px;
             top: 0;
             bottom: 0;
+        }
+
+        &:not(:last-child) {
+            &::after {
+                content: '';
+                display: block;
+                position: absolute;
+                left: 32px;
+                margin: auto;
+                bottom: 40px;
+                top: 114px;
+                width: 2px;
+                background-color: var(--border-color-1);
+
+                @media (max-width: 767px) {
+                    left: 31px;
+                }
+            }
         }
 
         &:last-child {
