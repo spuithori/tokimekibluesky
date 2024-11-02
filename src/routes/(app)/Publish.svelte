@@ -361,6 +361,7 @@
       currentPost = 0;
       writes = [];
       tid = undefined;
+      unique = Symbol();
 
       if (isContinueMode) {
           await tick();
@@ -754,7 +755,7 @@
 
     {#key unique}
       {#key currentPost}
-        {#each postsPool as post, index (post)}
+        {#each postsPool as post, index}
           <div class="publish-item-wrap" data-index="{index}">
             {#if (index > 0)}
               <button class="publish-item-delete" onclick={() => {applyDeleteThread(index)}} aria-label="delete"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
