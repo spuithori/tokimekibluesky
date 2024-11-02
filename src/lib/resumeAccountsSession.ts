@@ -9,32 +9,13 @@ async function resume(account) {
     const ag = new BskyAgent({
         service: account.service,
         persistSession: async (evt: AtpSessionEvent, sess?: AtpSessionData) => {
-            let profile;
-
-            try {
-                profile = await getAvatar(ag, account);
-            } catch (e) {
-                if (e.message === 'The server gave an invalid response and may be out of date.') {
-                    console.error(e.message);
-
-                    await ag.upsertProfile(_profile => {
-                        const profile = _profile || {};
-                        profile.pinnedPost = undefined;
-
-                        return profile;
-                    });
-
-                    profile = await getAvatar(ag, account);
-                }
-            }
-
             const id = await accountsDb.accounts.put({
                 id: account.id,
                 session: sess || account.session,
                 did: account.did,
                 service: account.service,
-                avatar: profile ? profile.avatar : '',
-                name: profile ? profile.displayName : '',
+                avatar: account.avatar || '',
+                name: account.name || '',
                 following: account.following || undefined,
                 notification: account.notification || ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
                 feeds: account.feeds || [],
@@ -68,14 +49,6 @@ async function resume(account) {
         id: account.id,
         agent: ag,
     };
-}
-
-async function getAvatar(ag, account) {
-    const res = await ag.api.app.bsky.actor.getProfile({actor: account.did});
-    return {
-        avatar: res.data.avatar || '',
-        displayName: res.data.displayName || '',
-    }
 }
 
 export async function resumeAccountsSession (accounts) {

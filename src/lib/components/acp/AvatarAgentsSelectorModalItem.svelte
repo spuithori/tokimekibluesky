@@ -1,5 +1,6 @@
 <script lang="ts">
   import {accountsDb} from "$lib/db";
+  import {onMount} from "svelte";
 
   interface Props {
     agent: any;
@@ -17,6 +18,22 @@
           avatar = value?.avatar;
           displayName = value?.name;
       })
+
+  onMount(async () => {
+      try {
+          const profile = await agent.agent.api.app.bsky.actor.getProfile({actor: agent.did() as string});
+
+          avatar = profile.data?.avatar || '';
+          displayName = profile.data?.displayName || '';
+
+          accountsDb.accounts.update(key, {
+              avatar: avatar,
+              name: displayName,
+          });
+      } catch (e) {
+          console.error(e);
+      }
+  })
 </script>
 
 <div class="avatar-agents-selector-item"

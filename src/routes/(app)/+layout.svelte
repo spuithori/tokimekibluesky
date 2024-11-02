@@ -377,11 +377,12 @@
     {#if !$settings?.general?.disableChat}
       <ChatUpdateObserver></ChatUpdateObserver>
     {/if}
+
+    <Footer></Footer>
   {:else}
     <div></div>
   {/if}
 
-  <Footer></Footer>
   <Toaster position="top-center" theme={isDarkMode ? 'dark' : 'light'} closeButton></Toaster>
   <ReportObserver></ReportObserver>
   <ProfileStatusObserver></ProfileStatusObserver>
