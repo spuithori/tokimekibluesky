@@ -641,5 +641,6 @@
   "atmosphere_short_desc_whitewind": "Blog",
   "atmosphere_description": "Here is a list of Atmosphere services used by this user.\nAT Protocol allows you to create and publish various services in addition to Bluesky.\nYou can hide them from the Settings -> General.",
   "disable_atmosphere": "Hide Atmosphere profile",
-  "settings_support": "Support TOKIMEKI"
+  "settings_support": "Support TOKIMEKI",
+  "unfollow_confirm_title": "May I unfollow?"
 }

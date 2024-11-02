@@ -29,6 +29,10 @@
               accounts: _accounts,
           });
 
+          if (_accounts.length === 1) {
+              await handleSwitchMain(event);
+          }
+
           if (isCurrent) {
               agents.set(await modifyAgents(_accounts));
           }
@@ -109,7 +113,7 @@
 
     <Menu bind:isMenuOpen={isMenuOpen}>
       {#snippet content()}
-            <ul class="timeline-menu-list" >
+        <ul class="timeline-menu-list" >
           {#if (!isCurrent)}
             <li class="timeline-menu-list__item timeline-menu-list__item--delete">
               <button class="timeline-menu-list__button" onclick={() => {deleteProfile(profile.id)}}>
@@ -126,7 +130,7 @@
             </button>
           </li>
         </ul>
-          {/snippet}
+      {/snippet}
     </Menu>
   </div>
 
