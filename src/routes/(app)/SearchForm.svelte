@@ -1,6 +1,5 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { page } from '$app/stores';
     import { onMount } from "svelte";
     let searchArea = $state();
     let { search = $bindable(), path = location.pathname } = $props();
