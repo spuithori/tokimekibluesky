@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { run, preventDefault } from 'svelte/legacy';
+  import { preventDefault } from 'svelte/legacy';
 
   import spinner from "$lib/images/loading.svg";
   import {agent} from "$lib/stores";
@@ -7,11 +7,12 @@
 
   let { _agent = $agent, list = $bindable(), memberDid } = $props();
 
-  let isChecked;
-  run(() => {
-    isChecked = list.listItem !== '';
-  });
+  let isChecked = $state();
   let isDisabled = $state(false);
+
+  $effect(() => {
+      isChecked = list.listItem !== '';
+  })
 
   async function handleChange() {
       isDisabled = true;

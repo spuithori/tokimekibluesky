@@ -73,10 +73,9 @@
 <Modal title="{$_('list_instant_manage')}" on:close>
   <p class="list-add-author">{author.displayName || author.handle}</p>
 
-
   <div class="list-add-list">
     {#if ready}
-      {#each lists as list (list)}
+      {#each lists as list, index (list)}
         <OfficialListAddItem {list} {_agent} memberDid={author.did}></OfficialListAddItem>
       {:else}
         まずリストをつくろうね。
