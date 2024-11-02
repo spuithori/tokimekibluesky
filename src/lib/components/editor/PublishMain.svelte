@@ -282,7 +282,10 @@
             }
         }
 
-        images = await Promise.all(promises);
+        if (promises.length) {
+            images = await Promise.all(promises);
+        }
+
         isProcessed = false;
     }
 
