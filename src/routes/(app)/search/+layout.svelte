@@ -13,7 +13,11 @@
   let { data, children }: Props = $props();
   let currentPage = $state(data.url.pathname.split('/')[2] ?? 'posts');
   let params = $derived($page.url.searchParams.get('q'));
-  let q = $state(params || '');
+  let q = $state('');
+
+  $effect(() => {
+      q = params;
+  })
 </script>
 
 <PageModal>

@@ -3,7 +3,7 @@
     import { page } from '$app/stores';
     import { onMount } from "svelte";
     let searchArea = $state();
-    let { search = $bindable($page.url.searchParams.get('q') || ''), path = location.pathname } = $props();
+    let { search = $bindable(), path = location.pathname } = $props();
 
     onMount(() => {
         if (!search) {
