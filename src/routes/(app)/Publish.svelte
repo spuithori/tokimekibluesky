@@ -1,47 +1,26 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
-    import {
-        agent,
-        agents,
-        direction,
-        hashtagHistory,
-        isChatColumnFront,
-        isPublishInstantFloat,
-        postgate,
-        postPulse,
-        quotePost,
-        replyRef,
-        settings,
-        threadGate,
-    } from '$lib/stores';
-    import {selfLabels} from "$lib/components/editor/publishStore";
-    import {clickOutside} from '$lib/clickOutSide';
-    import {
-        AppBskyEmbedExternal,
-        AppBskyEmbedImages,
-        AppBskyEmbedRecord,
-        AppBskyEmbedRecordWithMedia,
-        AppBskyEmbedVideo,
-        AppBskyVideoDefs,
-        RichText
-    } from '@atproto/api';
-    import {toast} from 'svelte-sonner'
-    import {goto, pushState} from '$app/navigation';
-    import {page} from '$app/stores';
-    import type {Draft} from '$lib/db';
-    import {db} from '$lib/db';
-    import DraftModal from "$lib/components/draft/DraftModal.svelte";
-    import {getAccountIdByDid, getServiceAuthToken} from "$lib/util";
-    import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-    import imageCompression from 'browser-image-compression';
-    import PublishPool from "$lib/components/editor/PublishPool.svelte";
-    import PublishMain from "$lib/components/editor/PublishMain.svelte";
-    import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
-    import {tick} from "svelte";
-    import {TID} from "@atproto/common-web";
-    import {computeCid} from "$lib/components/editor/postUtil";
+  import {_} from 'svelte-i18n';
+  import { agent, agents, direction, hashtagHistory, isChatColumnFront, isPublishInstantFloat, postgate, postPulse, quotePost, replyRef, settings, threadGate } from '$lib/stores';
+  import {selfLabels} from "$lib/components/editor/publishStore";
+  import {clickOutside} from '$lib/clickOutSide';
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
+  import {toast} from 'svelte-sonner'
+  import {goto, pushState} from '$app/navigation';
+  import {page} from '$app/stores';
+  import type {Draft} from '$lib/db';
+  import {db} from '$lib/db';
+  import DraftModal from "$lib/components/draft/DraftModal.svelte";
+  import {getAccountIdByDid, getServiceAuthToken} from "$lib/util";
+  import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
+  import imageCompression from 'browser-image-compression';
+  import PublishPool from "$lib/components/editor/PublishPool.svelte";
+  import PublishMain from "$lib/components/editor/PublishMain.svelte";
+  import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
+  import {tick} from "svelte";
+  import {TID} from "@atproto/common-web";
+  import {computeCid} from "$lib/components/editor/postUtil";
 
-    let _agent = $state($agent);
+  let _agent = $state($agent);
   let editor = $state();
   let isFocus = $state(false);
   let isContinueMode = $state(false);
@@ -775,7 +754,7 @@
 
     {#key unique}
       {#key currentPost}
-        {#each postsPool as post, index}
+        {#each postsPool as post, index (post)}
           <div class="publish-item-wrap" data-index="{index}">
             {#if (index > 0)}
               <button class="publish-item-delete" onclick={() => {applyDeleteThread(index)}} aria-label="delete"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
@@ -783,15 +762,15 @@
 
             {#if (index === currentPost)}
               <PublishMain
-                      {post}
-                      bind:_agent={_agent}
-                      on:focus={handleOpen}
-                      on:add={applyAddThread}
-                      on:publish={publishAll}
-                      bind:this={publishMainEl}
-                      bind:editor={editor}
-                      bind:isEnabled={isEnabled}
-                      length={postsPool.length}
+                  {post}
+                  bind:_agent={_agent}
+                  on:focus={handleOpen}
+                  on:add={applyAddThread}
+                  on:publish={publishAll}
+                  bind:this={publishMainEl}
+                  bind:editor={editor}
+                  bind:isEnabled={isEnabled}
+                  length={postsPool.length}
               ></PublishMain>
             {:else}
               <PublishPool {post} {index} bind:_agent={_agent} on:change={applyChangeThread} isEnabled={isPublishing}></PublishPool>

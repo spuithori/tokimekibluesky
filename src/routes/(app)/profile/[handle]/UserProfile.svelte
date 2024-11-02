@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {createEventDispatcher, tick} from 'svelte';
+  import {createEventDispatcher} from 'svelte';
   import {_} from 'svelte-i18n';
   import {agent, settings} from '$lib/stores';
   import {getTextArray, isUriLocal} from '$lib/richtext';
@@ -20,7 +20,7 @@
     isLabeler?: boolean;
   }
 
-  let { handle, profile = $bindable(getProfile(handle)), isLabeler = false }: Props = $props();
+  let { handle, profile = $bindable(getProfile(handle)), isLabeler = false, children }: Props = $props();
 
   let firstPostDate = $state('');
   let firstPostUri = $state('');
@@ -219,6 +219,10 @@
                     <SocialProof knownFollowers={profile?.viewer?.knownFollowers} actor={profile.did}></SocialProof>
                   {/if}
                 {/if}
+
+                <div class="profile-slot">
+                  {@render children?.()}
+                </div>
               </div>
             </div>
           </div>
@@ -465,5 +469,9 @@
     .embla__slide {
         flex: 0 0 calc(100% - 50px);
         min-width: 0;
+    }
+
+    .profile-slot {
+        margin-top: 16px;
     }
 </style>

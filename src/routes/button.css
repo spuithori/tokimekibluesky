@@ -61,32 +61,6 @@ button {
     background-color: var(--follow-color);
 }
 
-.button--following:hover {
-    opacity: 1;
-}
-
-.button--following::before {
-    content: attr(data-unfollow-name);
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    background-color: var(--danger-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: all .1s ease-in-out;
-}
-
-.button--following:hover::before {
-    opacity: 1;
-    visibility: visible;
-    transform: scale(1.2);
-}
-
 .button--ss {
     height: 30px;
     border-radius: 15px;

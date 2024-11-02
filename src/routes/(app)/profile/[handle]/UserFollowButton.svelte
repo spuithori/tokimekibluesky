@@ -1,11 +1,12 @@
 <script lang="ts">
   import { _ } from 'svelte-i18n';
-  import { onMount } from "svelte";
   import { agent, changedFollowData } from "$lib/stores";
+  import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
 
   let { _agent = $agent, following = $bindable(), user, followChange = function () {} } = $props();
   let rkey;
   let isDisabled = $state(false);
+  let isUnfollowDialogRender = $state(false);
 
   function generateRkey(following) {
       const followingPath = following.split('/');
@@ -16,9 +17,6 @@
   if (following) {
       rkey = generateRkey(following);
   }
-
-  let follow = $state(function () {});
-  let unfollow = $state(function () {});
 
   $effect(() => {
       handleFollowChange($changedFollowData);
@@ -39,46 +37,60 @@
       }
   }
 
-  onMount(async () => {
-      follow = async function () {
-          isDisabled = true;
-          const res = await _agent.agent.api.app.bsky.graph.follow.create(
-              { repo: _agent.did() },
-              {
-                  subject: user.did,
-                  createdAt: new Date().toISOString(),
-              },
-          );
-          generateRkey(res.uri);
-          isDisabled = false;
+  async function follow() {
+      isDisabled = true;
+      const res = await _agent.agent.api.app.bsky.graph.follow.create(
+          { repo: _agent.did() },
+          {
+              subject: user.did,
+              createdAt: new Date().toISOString(),
+          },
+      );
+      generateRkey(res.uri);
+      isDisabled = false;
 
-          changedFollowData.set({
-              did: user.did,
-              following: res.uri,
-          });
-      }
+      changedFollowData.set({
+          did: user.did,
+          following: res.uri,
+      });
+  }
 
-      unfollow = async function () {
-          isDisabled = true;
-          const res = await _agent.agent.api.app.bsky.graph.follow.delete({
+  async function unfollow() {
+      isDisabled = true;
+      const res = await _agent.agent.api.app.bsky.graph.follow.delete({
               repo: _agent.did(),
               rkey: rkey,
-              },
-          );
-          isDisabled = false;
+          },
+      );
+      isDisabled = false;
 
-          changedFollowData.set({
-              did: user.did,
-              following: undefined,
-          });
-      }
-  })
+      changedFollowData.set({
+          did: user.did,
+          following: undefined,
+      });
+  }
+
+  function unfollowSkip() {
+      isUnfollowDialogRender = true;
+  }
 </script>
 
 <div>
   {#if !following}
     <button class="button button--sm button--follow" onclick={follow} disabled={isDisabled}>{$_('follow_button')}</button>
-  {:else }
-    <button class="button button--sm button--following" onclick={unfollow} disabled={isDisabled} data-unfollow-name="{$_('unfollow_button')}">{$_('now_following_button')}</button>
+  {:else}
+    <button class="button button--sm button--following" onclick={unfollowSkip} disabled={isDisabled} data-unfollow-name="{$_('unfollow_button')}">{$_('now_following_button')}</button>
   {/if}
 </div>
+
+{#if (isUnfollowDialogRender)}
+  <ConfirmModal
+          on:ok={unfollow}
+          on:cancel={() => {isUnfollowDialogRender = false}}
+          yesText="{$_('unfollow_button')}"
+          cancelText="{$_('cancel')}"
+  >
+    <h3 class="modal-title modal-title--smaller modal-title--center">{$_('unfollow_confirm_title')}</h3>
+    <p class="modal-description"></p>
+  </ConfirmModal>
+{/if}

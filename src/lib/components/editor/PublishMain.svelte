@@ -357,10 +357,10 @@
 
         externalImageBlob = post.externalImageBlob;
 
-        const limit = await getUploadLimit(_agent);
+        /* const limit = await getUploadLimit(_agent);
         if (limit?.canUpload) {
             isVideoUploadEnabled = true;
-        }
+        } */
     })
 
     function addThread() {
@@ -702,7 +702,7 @@
         padding: 0 5px;
         font-size: 14px;
         height: 30px;
-        max-width: 120px;
+        max-width: 140px;
         white-space: nowrap;
 
         svg {
