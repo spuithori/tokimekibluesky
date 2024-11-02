@@ -26,7 +26,7 @@
           data: data,
           locale: $locale,
           theme: theme,
-          dynamicWidth: true,
+          dynamicWidth: $settings.design?.publishPosition !== 'bottom',
       };
       const picker = new Picker(pickerOptions);
 
