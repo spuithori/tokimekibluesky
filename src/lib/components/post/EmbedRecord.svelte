@@ -1,13 +1,5 @@
 <script lang="ts">
-  import { preventDefault } from 'svelte/legacy';
-  import {
-      agent,
-      didHint,
-      formattedKeywordMutes,
-      labelDefs,
-      labelerSettings,
-      settings
-  } from "$lib/stores";
+  import { agent, didHint, labelDefs, labelerSettings, settings } from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import {AppBskyEmbedImages, AppBskyEmbedVideo, AppBskyFeedPost} from "@atproto/api";
   import {_} from "svelte-i18n";
@@ -19,6 +11,7 @@
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {goto} from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
 
   let { record, _agent = $agent } = $props();
   let moderateData = contentLabelling(record, _agent.did(), $settings, $labelDefs, $labelerSettings);
@@ -30,11 +23,13 @@
 
   const junkColumnState = getColumnState(true);
 
-  if (keywordFilter($formattedKeywordMutes, record.value.text, record.indexedAt)) {
+  if (keywordFilter(keywordMuteState.formattedKeywords, record.value.text, record.indexedAt)) {
       isMuted = true;
   }
 
-  function handlePostClick() {
+  function handlePostClick(e) {
+      e.preventDefault();
+
       if (!record?.uri) {
           return false;
       }
@@ -148,5 +143,5 @@
             </svg>
             </span>
 
-  <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" onclick={preventDefault(handlePostClick)} aria-label="{$_('show_thread')}"></a>
+  <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" onclick={handlePostClick} aria-label="{$_('show_thread')}"></a>
 </div>

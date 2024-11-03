@@ -100,26 +100,11 @@ const defaultSettings = {
 const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);
 export const settings = writable(JSON.parse(storageSettings));
 
-const storageKeywordMutes = localStorage.getItem('keywordMutes') || JSON.stringify([]);
-export const keywordMutes = writable<keyword[]>(JSON.parse(storageKeywordMutes));
-
 const storageRepostMutes = localStorage.getItem('repostMutes') || JSON.stringify([]);
 export const repostMutes = writable<string[]>(JSON.parse(storageRepostMutes));
 
 const storagePostMutes = localStorage.getItem('postMutes') || JSON.stringify([]);
 export const postMutes = writable<string[]>(JSON.parse(storagePostMutes));
-
-export const formattedKeywordMutes = derived(keywordMutes, ($keywordMutes) => {
-    const initialMutes = structuredClone($keywordMutes);
-    if (!initialMutes || !initialMutes.length) {
-        return [];
-    }
-
-    return initialMutes.map(mute => {
-        mute.word = keywordStringToArray(mute.word);
-        return mute;
-    });
-});
 
 export const preferences = writable();
 

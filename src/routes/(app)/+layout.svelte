@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
-  import { agent, agents, currentTimeline, isAfterReload, isColumnModalOpen, isMobileDataConnection, isReactionButtonSettingsModalOpen, keywordMutes, listAddModal, profileStatus, settings, theme, direction, bluefeedAddModal, labelDefs, subscribedLabelers
+  import { agent, agents, currentTimeline, isAfterReload, isColumnModalOpen, isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, profileStatus, settings, theme, direction, bluefeedAddModal, labelDefs, subscribedLabelers
   } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {pwaInfo} from 'virtual:pwa-info';
@@ -196,13 +196,6 @@
   if (isSafariOrFirefox()) {
       console.log('Disable WebFont in Safari and Firefox.');
       $settings.design.nonoto = true;
-  }
-
-  // Migrate keyword mute.
-  if (Array.isArray($settings?.keywordMutes)) {
-      $keywordMutes = [...$settings.keywordMutes, ...$keywordMutes];
-      localStorage.setItem('keywordMutes', JSON.stringify($keywordMutes));
-      $settings.keywordMutes = undefined;
   }
 
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {

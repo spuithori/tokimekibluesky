@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {agents, formattedKeywordMutes, labelDefs, labelerSettings, settings} from "$lib/stores";
+  import {agents, labelDefs, labelerSettings, settings} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
@@ -24,6 +24,7 @@
   import {getAllAgentDids, getDidFromUri} from "$lib/util";
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
+  import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
 
   interface Props {
       post: any;
@@ -116,7 +117,7 @@
   function detectKeywordFilter() {
       let text = post.record.text;
 
-      if (keywordFilter($formattedKeywordMutes, text, post.indexedAt)) {
+      if (keywordFilter(keywordMuteState.formattedKeywords, text, post.indexedAt)) {
           isHide = true;
       }
   }
