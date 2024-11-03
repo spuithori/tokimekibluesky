@@ -1,14 +1,9 @@
 import {derived, readable, writable} from 'svelte/store';
 import type {Agent} from '$lib/agent';
-import type {
-    AppBskyActorDefs,
-    AppBskyFeedDefs,
-} from '@atproto/api';
+import type { AppBskyActorDefs } from '@atproto/api';
 import type {Theme} from "$lib/types/theme";
 import {defaultReactionButtons} from "$lib/defaultSettings";
 import timerWorkerUrl from '$lib/workers/timer.js?url'
-import {keywordStringToArray} from "$lib/timelineFilter";
-import type {keyword} from "$lib/timelineFilter";
 
 export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
@@ -17,15 +12,6 @@ export const agent = writable<Agent>(undefined);
 export const agents = writable(new Map<number, Agent>());
 
 export const notificationCount = writable(0);
-
-export const quotePost = writable<AppBskyFeedDefs.PostView | undefined>();
-
-type replyRef = {
-    did: string,
-    data: AppBskyFeedDefs.ReplyRef | string | undefined
-} | undefined;
-
-export const replyRef = writable<replyRef>();
 
 export const sharedText = writable<string>('');
 
@@ -119,11 +105,6 @@ export const cloudBookmarkModal = writable({
 })
 
 export const listModal = writable({
-    open: false,
-    data: undefined,
-})
-
-export const feedsModal = writable({
     open: false,
     data: undefined,
 })

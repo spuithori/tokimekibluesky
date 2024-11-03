@@ -8,5 +8,7 @@ type replyRef = {
 class PostState {
     quote = $state<AppBskyFeedDefs.PostView | undefined>();
     reply = $state<replyRef>();
+    quotePulse = $state<Symbol | undefined>();
+    replyPulse = $state<Symbol | undefined>();
 }
 export const postState = new PostState();

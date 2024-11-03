@@ -3,7 +3,7 @@
 
   const bubble = createBubbler();
   import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
-  import {isPublishInstantFloat, postgate, quotePost, replyRef, settings, threadGate} from "$lib/stores";
+  import {isPublishInstantFloat, postgate, settings, threadGate} from "$lib/stores";
   import {_} from "svelte-i18n";
   import {isFeedByUri} from "$lib/util";
   import {formatDistanceToNow, parseISO} from "date-fns";
@@ -34,6 +34,7 @@
   import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
   import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
+  import {postState} from "$lib/classes/postState.svelte";
   const dispatch = createEventDispatcher();
 
   interface Props {
@@ -105,7 +106,7 @@
     })
 
     $effect(() => {
-        isThreaded(length, $replyRef);
+        isThreaded(length, postState.reply);
     })
 
     $effect(() => {
@@ -123,7 +124,7 @@
 
         if (length > 1) {
             toast.error($_('reply_disable_when_threaded'));
-            replyRef.set(undefined);
+            postState.reply = undefined;
         }
     }
 
@@ -305,8 +306,8 @@
 
     onMount(async () => {
         editor.clear();
-        quotePost.set(undefined);
-        replyRef.set(undefined);
+        postState.quote = undefined;
+        postState.reply = undefined;
         threadGate.set('everybody');
         selfLabels.set([]);
         images = [];
@@ -328,17 +329,17 @@
         }
 
         if (post.quotePost) {
-            quotePost.set(post.quotePost);
+            postState.quote = post.quotePost;
         }
 
         if (post.replyRef) {
             if (post.replyRef.did) {
-                replyRef.set(post.replyRef);
+                postState.reply = post.replyRef;
             } else {
-                replyRef.set({
+                postState.reply = {
                     did: _agent.did(),
                     data: post.replyRef,
-                })
+                }
             }
         }
 
@@ -375,8 +376,8 @@
             data: {
                 text: publishContent,
                 json: publishContentJson,
-                quotePost: $quotePost || undefined,
-                replyRef: $replyRef || undefined,
+                quotePost: postState.quote || undefined,
+                replyRef: postState.reply || undefined,
                 images: images,
                 video: video,
                 owner: _agent.did() as string,
@@ -393,8 +394,8 @@
         return {
             text: publishContent,
             json: publishContentJson,
-            quotePost: $quotePost || undefined,
-            replyRef: $replyRef || undefined,
+            quotePost: postState.quote || undefined,
+            replyRef: postState.reply || undefined,
             images: images,
             video: video,
             owner: _agent.did() as string,
@@ -466,28 +467,28 @@
   >
     {#snippet top()}
       
-        {#if ($replyRef && typeof $replyRef !== 'string')}
+        {#if (postState.reply && typeof postState.reply !== 'string')}
           <div class="publish-quote publish-quote--reply">
-            <button class="publish-quote__delete" onclick={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
+            <button class="publish-quote__delete" onclick={() => {postState.reply = undefined; isPublishInstantFloat.set(false);}}>
               <X color="#fff" size="18"></X>
             </button>
 
             <div class="timeline-external timeline-external--record timeline-external--record-publish">
               <div class="timeline-external__image timeline-external__image--round">
-                {#if ($replyRef.data.parent.author.avatar)}
-                  <img src="{$replyRef.data.parent.author.avatar}" alt="">
+                {#if (postState.reply.data.parent.author.avatar)}
+                  <img src="{postState.reply.data.parent.author.avatar}" alt="">
                 {/if}
               </div>
 
               <div class="timeline-external__content">
                 <div class="timeline__meta timeline__meta--member">
-                  <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
+                  <p class="timeline__user">{postState.reply.data.parent.author.displayName || postState.reply.data.parent.author.handle}</p>
 
-                  <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
+                  <ThreadMembersList uri={postState.reply.data.parent.uri} {_agent}></ThreadMembersList>
                 </div>
 
                 <p class="timeline-external__description">
-                  {$replyRef.data.parent.record.text}
+                  {postState.reply.data.parent.record.text}
                 </p>
               </div>
 
@@ -509,7 +510,7 @@
                 style={'publish'}
         ></AvatarAgentsSelector>
 
-        {#if (!$replyRef)}
+        {#if (!postState.reply)}
           <button class="add-thread-button" disabled={isEnabled} onclick={addThread} aria-label="{$_('post_add_thread')}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></button>
         {/if}
       </div>
@@ -532,36 +533,36 @@
           on:prepareend={() => {isPublishEnabled = false}}
         ></ImageUpload>
 
-        {#if $quotePost?.uri}
-          {#if (isFeedByUri($quotePost.uri))}
+        {#if postState.quote?.uri}
+          {#if (isFeedByUri(postState.quote.uri))}
             <div class="quote-feed-wrap">
-              <button class="publish-quote__delete" onclick={() => {$quotePost = undefined}}>
+              <button class="publish-quote__delete" onclick={() => {postState.quote = undefined}}>
                 <X color="#fff" size="18"></X>
               </button>
 
-              <FeedsItem {_agent} feed={$quotePost} layout="publish"></FeedsItem>
+              <FeedsItem {_agent} feed={postState.quote} layout="publish"></FeedsItem>
             </div>
           {:else}
             <div class="publish-quote">
-              <button class="publish-quote__delete" onclick={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}>
+              <button class="publish-quote__delete" onclick={() => {postState.quote = undefined; isPublishInstantFloat.set(false);}}>
                 <X color="#fff" size="18"></X>
               </button>
 
               <div class="timeline-external timeline-external--record timeline-external--record-publish-quote">
                 <div class="timeline-external__image timeline-external__image--round">
-                  {#if ($quotePost.author.avatar)}
-                    <img src="{$quotePost.author.avatar}" alt="">
+                  {#if (postState.quote.author.avatar)}
+                    <img src="{postState.quote.author.avatar}" alt="">
                   {/if}
                 </div>
 
                 <div class="timeline-external__content">
                   <div class="timeline__meta">
-                    <p class="timeline__user" title="{$quotePost.author.handle}">{ $quotePost.author.displayName || $quotePost.author.handle }</p>
-                    <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt))}</p>
+                    <p class="timeline__user" title="{postState.quote.author.handle}">{ postState.quote.author.displayName || postState.quote.author.handle }</p>
+                    <p class="timeline__date">{formatDistanceToNow(parseISO(postState.quote.record.createdAt))}</p>
                   </div>
 
                   <p class="timeline-external__description">
-                    {$quotePost.record.text}
+                    {postState.quote.record.text}
                   </p>
                 </div>
 
@@ -620,7 +621,7 @@
           </div>
         {/if}
 
-        {#if ($threadGate !== 'everybody' && !$replyRef)}
+        {#if ($threadGate !== 'everybody' && !postState.reply)}
           <ThreadGateLabel></ThreadGateLabel>
         {/if}
 
@@ -673,7 +674,7 @@
       </Menu>
     </div>
 
-    {#if (!$replyRef)}
+    {#if (!postState.reply)}
       <div class="publish-form-thread-gate">
         <button class="publish-form-lang-selector-button" onclick={() => {isThreadGateOpen = !isThreadGateOpen}}>
           <svg class:stroke-danger={$threadGate !== 'everybody'} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square-warning"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v2"/><path d="M12 13h.01"/></svg>

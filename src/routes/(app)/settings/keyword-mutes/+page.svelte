@@ -6,7 +6,7 @@
     import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
 
     function add() {
-        keywordMuteState.keywords.push(defaultKeyword)
+        keywordMuteState.keywords.push(defaultKeyword);
     }
 
     function keywordDelete(index) {

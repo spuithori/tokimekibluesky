@@ -13,7 +13,7 @@
     import Placeholder from '@tiptap/extension-placeholder';
     import History from  '@tiptap/extension-history';
     import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
-    import {agent, sharedText, replyRef, timelineHashtags, hashtagHistory} from "$lib/stores";
+    import {agent, sharedText, timelineHashtags, hashtagHistory} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
     import EditorBar from "$lib/components/editor/EditorBar.svelte";
     import {jsonToText} from "$lib/components/editor/richtext";
@@ -22,6 +22,7 @@
     import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
     import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
     import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
+  import {postState} from "$lib/classes/postState.svelte";
     const dispatch = createEventDispatcher();
 
   interface Props {
@@ -65,7 +66,7 @@
     })
 
     $effect(() => {
-        changePlaceholder($replyRef);
+        changePlaceholder(postState.reply);
     })
 
     onMount(() => {

@@ -4,12 +4,13 @@
   import { _ } from 'svelte-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import { createEventDispatcher } from 'svelte';
-  import {agent, quotePost} from "$lib/stores";
+  import {agent} from "$lib/stores";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {goto} from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {postState} from "$lib/classes/postState.svelte";
   const dispatch = createEventDispatcher();
   const columnState = getColumnState();
 
@@ -68,7 +69,8 @@
   }
 
   function handleEmbedClick() {
-      $quotePost = feed;
+      postState.quote = feed;
+      postState.quotePulse = Symbol();
       goto('/');
   }
 </script>

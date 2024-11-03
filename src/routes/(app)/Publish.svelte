@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
-  import { agent, agents, direction, hashtagHistory, isChatColumnFront, isPublishInstantFloat, postgate, postPulse, quotePost, replyRef, settings, threadGate } from '$lib/stores';
+  import { agent, agents, direction, hashtagHistory, isChatColumnFront, isPublishInstantFloat, postgate, postPulse, settings, threadGate } from '$lib/stores';
   import {selfLabels} from "$lib/components/editor/publishStore";
   import {clickOutside} from '$lib/clickOutSide';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
@@ -19,6 +19,7 @@
   import {tick} from "svelte";
   import {TID} from "@atproto/common-web";
   import {computeCid} from "$lib/components/editor/postUtil";
+  import {postState} from "$lib/classes/postState.svelte";
 
   let _agent = $state($agent);
   let editor = $state();
@@ -63,11 +64,15 @@
   })
 
   $effect(() => {
-      quotePostObserve($quotePost);
+      if (postState.quotePulse) {
+          quoteObserve(postState.quote?.uri);
+      }
   })
 
   $effect(() => {
-      replyRefObserve($replyRef);
+      if (postState.replyPulse) {
+          replyObserve(postState.reply);
+      }
   })
 
   function handleOpen() {
@@ -88,6 +93,8 @@
 
   function onClose() {
       if (isFocus) {
+          postState.quotePulse = undefined;
+          postState.replyPulse = undefined;
           isFocus = false;
           editor.blur();
 
@@ -126,16 +133,16 @@
   }
 
 
-  function quotePostObserve(quotePost) {
-      if (quotePost?.uri) {
+  function quoteObserve(uri) {
+      if (uri) {
           handleOpen();
       }
   }
 
-  function replyRefObserve(replyRef) {
-      if (replyRef) {
+  function replyObserve(reply) {
+      if (reply) {
           handleOpen();
-          _agent = $agents.get(getAccountIdByDid($agents, replyRef.did));
+          _agent = $agents.get(getAccountIdByDid($agents, reply.did));
       } else {
           _agent = $agent;
       }
@@ -161,8 +168,8 @@
               isFocus = false;
           }
           editor.clear();
-          quotePost.set(undefined);
-          replyRef.set(undefined);
+          postState.quote = undefined;
+          postState.reply = undefined;
           postsPool = [{}];
           unique = Symbol();
           $isPublishInstantFloat = false;
@@ -176,8 +183,8 @@
   async function handleDraftUse(draft: Draft) {
       isDraftModalOpen = false;
       editor.clear();
-      quotePost.set(undefined);
-      replyRef.set(undefined);
+      postState.quote = undefined;
+      postState.reply = undefined;
 
       postsPool = [{
           ...draft,
@@ -352,8 +359,8 @@
           onClose();
       }
       editor.clear();
-      quotePost.set(undefined);
-      replyRef.set(undefined);
+      postState.quote = undefined;
+      postState.reply = undefined;
       selfLabels.set([]);
       threadGate.set('everybody');
       $isPublishInstantFloat = false;
