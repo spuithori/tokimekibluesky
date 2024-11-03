@@ -562,13 +562,14 @@
 
 <svelte:document onselectionchange={handleSelectStart} />
 
-{#if (!isHide)}
+{#if !isHide}
   <article class="timeline__item"
-           class:timeline__item--repost={isReasonRepost(data.reason)}
-           class:timeline__item--reply={data.reply && data.reply?.parent?.author?.did !== _agent.did()}
-           class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
-           class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
-           onclick={handleClick}
+     class:timeline__item--repost={isReasonRepost(data.reason)}
+     class:timeline__item--reply={data.reply && data.reply?.parent?.author?.did !== _agent.did()}
+     class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
+     class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
+     class:timeline__item--hide={isHide}
+     onclick={handleClick}
   >
     {#if (isShortCutNumberShown && index < 9)}
       <p class="timeline-shortcut-number">{index + 1}</p>
@@ -620,7 +621,7 @@
     {/if}
 
     <div class="timeline__column">
-      <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isHide} {pulseTranslate}>
+      <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide {pulseTranslate}>
         {@render children?.()}
       </TimelineContent>
     </div>
@@ -810,5 +811,9 @@
 <style lang="postcss">
   .timeline-hidden-item {
       margin-bottom: 16px;
+  }
+
+  .timeline__item--hide {
+      display: none !important;
   }
 </style>

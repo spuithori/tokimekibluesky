@@ -50,10 +50,6 @@
   }: Props = $props();
 
   $effect(() => {
-      isHide = detectHide(moderateData);
-  })
-
-  $effect(() => {
       translation(pulseTranslate);
   })
 
@@ -67,6 +63,7 @@
       : 'contentList';
 
   let isWarn: 'content' | 'media' | null = detectWarn(moderateData) || null;
+  isHide = detectHide(moderateData);
   detectKeywordFilter();
 
   function detectHide(moderateData) {
