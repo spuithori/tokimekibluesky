@@ -112,7 +112,7 @@
             }
         }
 
-        images = await Promise.all(promises);
+        images = [...images, ...await Promise.all(promises)];
         input.value = '';
         dispatch('prepareend');
     }
