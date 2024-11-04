@@ -57,6 +57,7 @@
   let translatedRecord: undefined | AppBskyFeedPost.Record = $state();
   let warnLabels = $state([]);
   let warnBehavior: 'cover' | 'inform' = $state('cover');
+  let timeUnique = $state(Symbol());
 
   const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
   const contentContext = isSingle || isProfile
@@ -146,6 +147,16 @@
       post.viewer.repost = repost.viewer;
       post.repostCount = repost.count;
   }
+
+  $effect(() => {
+      const interval = setInterval(() => {
+          timeUnique = Symbol();
+      }, 10000);
+
+      return () => {
+          clearInterval(interval);
+      };
+  });
 </script>
 
 <div class="timeline__image">
@@ -171,23 +182,21 @@
       {#if $settings?.design.absoluteTime}
         <Tooltip>
           {#snippet ref()}
-            <time
-          datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
+            <time datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
           {/snippet}
           {#snippet content()}
-            <span  aria-hidden="true"
-          class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+            <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
           {/snippet}
         </Tooltip>
       {:else}
         <Tooltip>
           {#snippet ref()}
-            <time
-          datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(post.indexedAt))}</time>
+            {#key timeUnique}
+              <time datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(post.indexedAt))}</time>
+            {/key}
           {/snippet}
           {#snippet content()}
-            <span  aria-hidden="true"
-          class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+            <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
           {/snippet}
         </Tooltip>
       {/if}
