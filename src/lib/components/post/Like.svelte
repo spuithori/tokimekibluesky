@@ -33,6 +33,10 @@
 
       count = pulse.count;
       viewer = isSameDid ? pulse.viewer : viewer;
+
+      // TODO: progress.
+      post.likeCount = count;
+      post.viewer.like = viewer;
   }
 
   export async function vote(cid: string, uri: string, viewer) {

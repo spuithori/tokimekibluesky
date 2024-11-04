@@ -36,6 +36,10 @@
 
       count = pulse.count;
       viewer = isSameDid ? pulse.viewer : viewer;
+
+      // TODO: progress.
+      post.repostCount = count;
+      post.viewer.repost = viewer;
   }
 
   if ($settings.general?.repostConfirmSkip === undefined) {

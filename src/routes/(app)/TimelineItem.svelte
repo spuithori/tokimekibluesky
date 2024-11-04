@@ -35,7 +35,7 @@
 
     let {
         _agent = $agent,
-        data = $bindable(),
+        data,
         isReplyExpanded = false,
         isSingle = false,
         isThread = false,
