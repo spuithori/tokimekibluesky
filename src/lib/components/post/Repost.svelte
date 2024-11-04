@@ -7,76 +7,69 @@
 
   interface Props {
     _agent?: any;
-    cid: any;
-    uri: any;
-    count: any;
-    repostViewer: any;
+    post: any;
     showCounts?: boolean;
   }
 
   let {
     _agent = $agent,
-    cid,
-    uri,
-    count,
-    repostViewer,
+    post,
     showCounts = true,
-    onrepost
   }: Props = $props();
 
   let isDialogRender = $state(false);
   let isProcessed: boolean = $state(false);
   let isTransition: boolean = $state(false);
+  let count = $state(post.repostCount);
+  let viewer = $state(post.viewer?.repost);
 
   $effect(() => {
       handlePulse(pulse.repost);
   })
 
   function handlePulse(pulse: pulseReaction) {
-      if (pulse?.uri !== uri) {
+      if (pulse?.uri !== post.uri) {
           return false;
       }
 
       const isSameDid = pulse.did === _agent.did();
 
-      onrepost({
-          count: pulse.count,
-          viewer: isSameDid ? pulse.viewer : repostViewer,
-      });
+      count = pulse.count;
+      viewer = isSameDid ? pulse.viewer : viewer;
   }
 
   if ($settings.general?.repostConfirmSkip === undefined) {
       $settings.general.repostConfirmSkip = false;
   }
 
-  export async function repost(cid: string, uri: string, repostViewer) {
+  export async function repost(cid: string, uri: string, viewer) {
       isProcessed = true;
       isTransition = true;
 
       try {
-          const repost = await _agent.setRepost(cid, uri, repostViewer || '');
-          repostViewer = repost?.uri || undefined;
-          isProcessed = false;
+          const repost = await _agent.setRepost(cid, uri, viewer || '');
+          const repostViewer = repost?.uri || undefined;
+
+          pulse.repost = {
+              viewer: repostViewer,
+              did: _agent.did(),
+              uri: uri,
+              count: repostViewer ? count + 1 : count - 1,
+              unique: Symbol(),
+          }
 
           toast.success($_('success_to_repost_or_delete_repost'));
       } catch (e) {
           toast.error($_('failed_to_repost'));
           console.error(e);
-          isProcessed = false;
       }
 
-      pulse.repost = {
-          viewer: repostViewer,
-          did: _agent.did(),
-          uri: uri,
-          count: repostViewer ? count + 1 : count - 1,
-          unique: Symbol(),
-      }
+      isProcessed = false;
   }
 
   function repostStep() {
       if ($settings.general.repostConfirmSkip) {
-          repost(cid, uri, repostViewer);
+          repost(post.cid, post.uri, viewer);
       } else {
           isDialogRender = true;
       }
@@ -85,8 +78,8 @@
 
 <button
         class="timeline-reaction__item timeline-reaction__item--repost"
+        class:timeline-reaction__item--active={viewer}
         class:timeline-reaction__item--transition={isTransition}
-        class:timeline-reaction__item--active={repostViewer}
         disabled="{isProcessed}"
         onclick={repostStep}>
   <span class="timeline-reaction__icon" aria-label="リポスト">
@@ -100,7 +93,7 @@
 
 {#if (isDialogRender)}
   <ConfirmModal
-      on:ok={() => {repost(cid, uri, repostViewer)}}
+      on:ok={() => {repost(post.cid, post.uri, viewer)}}
       on:cancel={() => {isDialogRender = false}}
       confirmationName="repostConfirmSkip"
       yesText="{$_('repost')}"

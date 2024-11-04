@@ -17,7 +17,7 @@
     isMedia?: boolean;
   }
 
-  let { post, _agent, onlike, onrepost }: Props = $props();
+  let { post, _agent }: Props = $props();
 </script>
 
 <div class="timeline-reaction timeline-reaction--{$settings ? $settings.design.reactionButtons.shown.length : '5'}">
@@ -33,25 +33,17 @@
 
   {#if $settings.design.reactionButtons.shown.includes('repost')}
     <Repost
-        cid={post.cid}
-        uri={post.uri}
-        repostViewer={post.viewer.repost}
-        count={post.repostCount}
-        showCounts={$settings.design?.reactionButtons.repost.showCounts}
+        {post}
         {_agent}
-        {onrepost}
+        showCounts={$settings.design?.reactionButtons.repost.showCounts}
     ></Repost>
   {/if}
 
   {#if $settings.design.reactionButtons.shown.includes('like')}
     <Like
-        cid={post.cid}
-        uri={post.uri}
-        likeViewer={post.viewer.like}
-        count={post.likeCount}
-        showCounts={$settings.design?.reactionButtons.like.showCounts}
+        {post}
         {_agent}
-        {onlike}
+        showCounts={$settings.design?.reactionButtons.like.showCounts}
     ></Like>
   {/if}
 

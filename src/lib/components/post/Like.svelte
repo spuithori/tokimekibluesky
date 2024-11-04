@@ -6,59 +6,52 @@
 
   interface Props {
     _agent?: any;
-    cid: any;
-    uri: any;
-    count: any;
-    likeViewer: any;
+    post: any;
     showCounts?: boolean;
   }
 
   let {
     _agent = $agent,
-    cid,
-    uri,
-    count,
-    likeViewer,
+    post,
     showCounts = true,
-    onlike,
   }: Props = $props();
 
   let isProcessed: boolean = $state(false);
+  let count = $state(post.likeCount);
+  let viewer = $state(post.viewer?.like);
 
   $effect(() => {
       handlePulse(pulse.like);
   })
 
   function handlePulse(pulse: pulseReaction) {
-      if (pulse?.uri !== uri) {
+      if (pulse?.uri !== post.uri) {
           return false;
       }
 
       const isSameDid = pulse.did === _agent.did();
 
-      onlike({
-          count: pulse.count,
-          viewer: isSameDid ? pulse.viewer : likeViewer,
-      });
+      count = pulse.count;
+      viewer = isSameDid ? pulse.viewer : viewer;
   }
 
-  export async function vote(cid: string, uri: string, likeViewer) {
+  export async function vote(cid: string, uri: string, viewer) {
       isProcessed = true;
 
       try {
-          const like = await _agent.setVote(cid, uri, likeViewer || '');
-          likeViewer = like?.uri || undefined;
+          const like = await _agent.setVote(cid, uri, viewer || '');
+          const likeViewer = like?.uri || undefined;
+
+          pulse.like = {
+              viewer: likeViewer,
+              did: _agent.did(),
+              uri: uri,
+              count: likeViewer ? count + 1 : count - 1,
+              unique: Symbol(),
+          }
       } catch (e) {
           toast.error($_('failed_to_like'));
           console.error(e);
-      }
-
-      pulse.like = {
-          viewer: likeViewer,
-          did: _agent.did(),
-          uri: uri,
-          count: likeViewer ? count + 1 : count - 1,
-          unique: Symbol(),
       }
 
       isProcessed = false;
@@ -67,10 +60,10 @@
 
 <button
     class="timeline-reaction__item timeline-reaction__item--like"
-    class:timeline-reaction__item--active={likeViewer}
+    class:timeline-reaction__item--active={viewer}
     class:timeline-reaction__item--transition={isProcessed}
     disabled="{isProcessed}"
-    onclick={() => vote(cid, uri, likeViewer)}
+    onclick={() => vote(post.cid, post.uri, viewer)}
 >
   <span class="timeline-reaction__icon" aria-label="いいね">
     {#if ($settings?.design?.reactionMode === 'superstar')}

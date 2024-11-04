@@ -22,16 +22,6 @@
             title: '',
         })
     }
-
-    function onlike(like) {
-        post.viewer.like = like.viewer;
-        post.likeCount = like.count;
-    }
-
-    function onrepost(repost) {
-        post.viewer.repost = repost.viewer;
-        post.repostCount = repost.count;
-    }
 </script>
 
 <div class="timeline-reaction-in-menu timeline-reaction-in-menu--{$settings ? $settings.design.reactionButtons.shown.length : '5'}">
@@ -47,25 +37,17 @@
 
   {#if !$settings.design.reactionButtons.shown.includes('repost')}
     <Repost
-        cid={post.cid}
-        uri={post.uri}
-        repostViewer={post.viewer?.repost}
-        count={post.repostCount}
-        showCounts={false}
+        {post}
         {_agent}
-        {onrepost}
+        showCounts={false}
     ></Repost>
   {/if}
 
   {#if !$settings.design.reactionButtons.shown.includes('like')}
     <Like
-        cid={post.cid}
-        uri={post.uri}
-        likeViewer={post.viewer?.like}
-        count={post.likeCount}
-        showCounts={false}
+        {post}
         {_agent}
-        {onlike}
+        showCounts={false}
     ></Like>
   {/if}
 

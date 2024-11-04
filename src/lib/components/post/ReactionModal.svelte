@@ -37,16 +37,6 @@
   onMount(() => {
       el.showModal();
   })
-
-  function onlike(like) {
-      data.post.viewer.like = like.viewer;
-      data.post.likeCount = like.count;
-  }
-
-  function onrepost(repost) {
-      data.post.viewer.repost = repost.viewer;
-      data.post.repostCount = repost.count;
-  }
 </script>
 
 <dialog class="dialog-modal" transition:fly="{{ y: 30, duration: 250 }}" bind:this={el} onclose={close}>
@@ -61,8 +51,6 @@
         <ReactionButtons
             {_agent}
             post={data.post}
-            {onlike}
-            {onrepost}
         ></ReactionButtons>
       </div>
     {/key}

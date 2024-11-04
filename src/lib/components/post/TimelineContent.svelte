@@ -138,16 +138,6 @@
       pulseTranslate = false;
   }
 
-  function onlike(like) {
-      post.viewer.like = like.viewer;
-      post.likeCount = like.count;
-  }
-
-  function onrepost(repost) {
-      post.viewer.repost = repost.viewer;
-      post.repostCount = repost.count;
-  }
-
   $effect(() => {
       const interval = setInterval(() => {
           timeUnique = Symbol();
@@ -299,5 +289,5 @@
 
   {@render children?.()}
 
-  <ReactionButtons {_agent} {post} {onlike} {onrepost}></ReactionButtons>
+  <ReactionButtons {_agent} {post}></ReactionButtons>
 </div>
