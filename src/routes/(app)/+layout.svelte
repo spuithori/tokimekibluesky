@@ -43,7 +43,6 @@
 
   let loaded = $state(false);
   let isDarkMode = $state(false);
-  let scrolly = $state();
   let app = $state();
   let baseColor = $state('#fff');
   let isRepeater = $state(localStorage.getItem('isRepeater') === 'true');
@@ -238,9 +237,11 @@
   });
 
   function handleScroll(event) {
-      const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
-          direction.set(scrollDir);
-      });
+      if ($settings.design.layout !== 'decks') {
+          const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
+              direction.set(scrollDir);
+          });
+      }
   }
 
   function handleColumnModalClose() {
@@ -301,7 +302,7 @@
   })
 </script>
 
-<svelte:window onscroll={handleScroll} bind:scrollY={scrolly}></svelte:window>
+<svelte:window onscroll={handleScroll}></svelte:window>
 <svelte:head>
   <meta name="theme-color" content={baseColor}>
   <link rel="canonical" href="https://tokimeki.blue{$page.url.pathname}">
@@ -312,7 +313,6 @@
 <div
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={isDarkMode}
-    class:scrolled={scrolly > 52}
     class:sidebar={$settings.design?.publishPosition === 'left'}
     class:bottom={$settings.design?.publishPosition === 'bottom'}
     class="app scroll-{$direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"

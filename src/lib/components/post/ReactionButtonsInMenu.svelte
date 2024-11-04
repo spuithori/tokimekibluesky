@@ -11,16 +11,26 @@
         $settings.design.reactionButtons = defaultReactionButtons;
     }
 
-    let { post, _agent } = $props();
+    let { post = $bindable(), _agent } = $props();
 
     function share() {
-        const url = 'https://bsky.app/profile/' + data.post.author.handle + '/post/' + data.post.uri.split('/').slice(-1)[0];
+        const url = 'https://bsky.app/profile/' + post.author.handle + '/post/' + post.uri.split('/').slice(-1)[0];
 
         navigator.share({
             url: url,
             text: post.record.text,
             title: '',
         })
+    }
+
+    function onlike(like) {
+        post.viewer.like = like.viewer;
+        post.likeCount = like.count;
+    }
+
+    function onrepost(repost) {
+        post.viewer.repost = repost.viewer;
+        post.repostCount = repost.count;
     }
 </script>
 
@@ -43,6 +53,7 @@
         count={post.repostCount}
         showCounts={false}
         {_agent}
+        {onrepost}
     ></Repost>
   {/if}
 
@@ -54,6 +65,7 @@
         count={post.likeCount}
         showCounts={false}
         {_agent}
+        {onlike}
     ></Like>
   {/if}
 

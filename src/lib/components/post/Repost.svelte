@@ -18,9 +18,10 @@
     _agent = $agent,
     cid,
     uri,
-    count = $bindable(),
-    repostViewer = $bindable(),
-    showCounts = true
+    count,
+    repostViewer,
+    showCounts = true,
+    onrepost
   }: Props = $props();
 
   let isDialogRender = $state(false);
@@ -38,8 +39,10 @@
 
       const isSameDid = pulse.did === _agent.did();
 
-      count = pulse.count;
-      repostViewer = isSameDid ? pulse.viewer : repostViewer;
+      onrepost({
+          count: pulse.count,
+          viewer: isSameDid ? pulse.viewer : repostViewer,
+      });
   }
 
   if ($settings.general?.repostConfirmSkip === undefined) {

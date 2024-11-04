@@ -631,7 +631,7 @@
         <div class="menu-sub-list">
           <ReactionButtonsInMenu
               {_agent}
-              post={data.post}
+              bind:post={data.post}
           ></ReactionButtonsInMenu>
         </div>
       {/snippet}
@@ -797,7 +797,7 @@
     {/if}
 
     {#if (isReactionModalOpen)}
-      <ReactionModal {_agent} on:close={() => {isReactionModalOpen = false}}></ReactionModal>
+      <ReactionModal {_agent} onclose={() => {isReactionModalOpen = false}}></ReactionModal>
     {/if}
   </article>
 {:else}

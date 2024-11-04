@@ -17,9 +17,10 @@
     _agent = $agent,
     cid,
     uri,
-    count = $bindable(),
-    likeViewer = $bindable(),
-    showCounts = true
+    count,
+    likeViewer,
+    showCounts = true,
+    onlike,
   }: Props = $props();
 
   let isProcessed: boolean = $state(false);
@@ -35,8 +36,10 @@
 
       const isSameDid = pulse.did === _agent.did();
 
-      count = pulse.count;
-      likeViewer = isSameDid ? pulse.viewer : likeViewer;
+      onlike({
+          count: pulse.count,
+          viewer: isSameDid ? pulse.viewer : likeViewer,
+      });
   }
 
   export async function vote(cid: string, uri: string, likeViewer) {

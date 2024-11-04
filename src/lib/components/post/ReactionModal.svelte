@@ -1,14 +1,14 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
   import { fly } from 'svelte/transition';
-  import {createEventDispatcher, getContext, onMount} from 'svelte';
+  import {getContext, onMount} from 'svelte';
   import {agent, agents} from "$lib/stores";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
   import {getAccountIdByDid} from "$lib/util";
   import { toast } from "svelte-sonner";
-  const dispatch = createEventDispatcher();
 
+  let { onclose } = $props();
   let data = $state(getContext('timelineItem'));
   let el = $state();
   let _agent = $state($agent);
@@ -17,7 +17,7 @@
 
   function close() {
       el.close();
-      dispatch('close');
+      onclose();
   }
 
   async function handleSelect(event) {
@@ -37,6 +37,16 @@
   onMount(() => {
       el.showModal();
   })
+
+  function onlike(like) {
+      data.post.viewer.like = like.viewer;
+      data.post.likeCount = like.count;
+  }
+
+  function onrepost(repost) {
+      data.post.viewer.repost = repost.viewer;
+      data.post.repostCount = repost.count;
+  }
 </script>
 
 <dialog class="dialog-modal" transition:fly="{{ y: 30, duration: 250 }}" bind:this={el} onclose={close}>
@@ -51,6 +61,8 @@
         <ReactionButtons
             {_agent}
             post={data.post}
+            {onlike}
+            {onrepost}
         ></ReactionButtons>
       </div>
     {/key}
