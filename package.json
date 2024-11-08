@@ -13,7 +13,7 @@
   "devDependencies": {
     "@neoconfetti/svelte": "^1.0.0",
     "@sveltejs/adapter-auto": "^3.3.1",
-    "@sveltejs/kit": "^2.7.3",
+    "@sveltejs/kit": "^2.8.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@types/cookie": "^0.5.1",
     "@vite-pwa/sveltekit": "^0.3.0",
@@ -24,7 +24,7 @@
     "postcss-load-config": "^4.0.1",
     "postcss-nested": "6.0.1",
     "postcss-preset-env": "*",
-    "svelte": "^5.1.9",
+    "svelte": "^5.1.12",
     "svelte-check": "^4.0.5",
     "svelte-floating-ui": "^1.5.9",
     "svelte-preprocess": "^6.0.3",

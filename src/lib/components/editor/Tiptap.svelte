@@ -1,29 +1,29 @@
 <script lang="ts">
   import { preventDefault } from 'svelte/legacy';
 
-    import {_} from 'svelte-i18n';
-    import {createEventDispatcher, onMount, onDestroy} from 'svelte'
-    import {Editor} from '@tiptap/core'
-    import Link from '@tiptap/extension-link';
-    import Document from '@tiptap/extension-document';
-    import Text from '@tiptap/extension-text';
-    import Paragraph from '@tiptap/extension-paragraph';
-    import HardBreak from '@tiptap/extension-hard-break';
-    import Mention from '@tiptap/extension-mention';
-    import Placeholder from '@tiptap/extension-placeholder';
-    import History from  '@tiptap/extension-history';
-    import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
-    import {agent, sharedText, timelineHashtags, hashtagHistory} from "$lib/stores";
-    import MentionList from "$lib/components/editor/MentionList.svelte";
-    import EditorBar from "$lib/components/editor/EditorBar.svelte";
-    import {jsonToText} from "$lib/components/editor/richtext";
-    import HashtagList from "$lib/components/editor/HashtagList.svelte";
-    import {Hashtag} from "$lib/components/editor/hashtag";
-    import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
-    import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
-    import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
+  import {_} from 'svelte-i18n';
+  import {createEventDispatcher, onMount, onDestroy} from 'svelte'
+  import {Editor} from '@tiptap/core'
+  import Link from '@tiptap/extension-link';
+  import Document from '@tiptap/extension-document';
+  import Text from '@tiptap/extension-text';
+  import Paragraph from '@tiptap/extension-paragraph';
+  import HardBreak from '@tiptap/extension-hard-break';
+  import Mention from '@tiptap/extension-mention';
+  import Placeholder from '@tiptap/extension-placeholder';
+  import History from  '@tiptap/extension-history';
+  import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
+  import {agent, sharedText, timelineHashtags, hashtagHistory} from "$lib/stores";
+  import MentionList from "$lib/components/editor/MentionList.svelte";
+  import EditorBar from "$lib/components/editor/EditorBar.svelte";
+  import {jsonToText} from "$lib/components/editor/richtext";
+  import HashtagList from "$lib/components/editor/HashtagList.svelte";
+  import {Hashtag} from "$lib/components/editor/hashtag";
+  import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
+  import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
+  import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
   import {postState} from "$lib/classes/postState.svelte";
-    const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher();
 
   interface Props {
     json: any;
@@ -60,6 +60,7 @@
     let linkButtonDisabled = $state(true);
     let scrollable = $state();
     let isGiphyPickerOpen = $state(false);
+    let isLinkActive = $state(false);
 
     $effect(() => {
         addSharedText($sharedText);
@@ -216,6 +217,7 @@
                 editor = editor;
             },
             onSelectionUpdate: ({ editor }) => {
+                isLinkActive = editor.isActive('link');
                 const { view, state } = editor;
                 const { from, to } = view.state.selection;
                 const text = state.doc.textBetween(from, to, '');
@@ -348,20 +350,18 @@
   
       <nav class="editor-menu-wrap">
         <ul class="editor-menu">
-          {#if (editor)}
-            {#if (editor.isActive('link'))}
-              <li class="editor-menu__item">
-                <button class="editor-menu__button" onclick={removeLink}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-unlink"><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><line x1="8" x2="8" y1="2" y2="5"/><line x1="2" x2="5" y1="8" y2="8"/><line x1="16" x2="16" y1="19" y2="22"/><line x1="19" x2="22" y1="16" y2="16"/></svg>
-                </button>
-              </li>
-            {:else}
-              <li class="editor-menu__item">
-                <button class="editor-menu__button" onclick={addLink} disabled={linkButtonDisabled}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                </button>
-              </li>
-            {/if}
+          {#if (isLinkActive)}
+            <li class="editor-menu__item">
+              <button class="editor-menu__button" onclick={removeLink}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-unlink"><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><line x1="8" x2="8" y1="2" y2="5"/><line x1="2" x2="5" y1="8" y2="8"/><line x1="16" x2="16" y1="19" y2="22"/><line x1="19" x2="22" y1="16" y2="16"/></svg>
+              </button>
+            </li>
+          {:else}
+            <li class="editor-menu__item">
+              <button class="editor-menu__button" onclick={addLink} disabled={linkButtonDisabled}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              </button>
+            </li>
           {/if}
         </ul>
       </nav>
