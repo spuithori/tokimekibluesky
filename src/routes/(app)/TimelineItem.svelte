@@ -300,7 +300,7 @@
             if (AppBskyEmbedExternal.isView(data?.post?.embed)) {
                 _post.embedExternal = {
                     $type: 'app.bsky.embed.external',
-                    external: structuredClone(data.post.embed.external),
+                    external: structuredClone($state.snapshot(data.post.embed.external)),
                 };
 
                 if (data.post.embed.external?.thumb) {
