@@ -421,8 +421,8 @@
           val: 'porn',
       },
       {
-          name: $_('labeling_gore'),
-          val: 'gore',
+          name: $_('labeling_graphic-media'),
+          val: 'graphic-media',
       },
   ];
 

@@ -20,8 +20,8 @@ export interface formattedKeyword extends keyword {
 
 export const defaultKeyword: keyword = {
     enabled: true,
-        word: '',
-        period: {
+    word: '',
+    period: {
         start: '00:00',
         end: '23:59',
     },
