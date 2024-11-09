@@ -642,5 +642,7 @@
   "atmosphere_description": "このユーザーが利用している Atmosphere サービスのリストです。\nAT Protocol では、Bluesky以外にもさまざまなサービスを作成・公開することができます。\n設定⚙️→全般 から非表示にできます。",
   "disable_atmosphere": "Atmosphere プロフィールを非表示にする",
   "settings_support": "TOKIMEKIを支援する",
-  "unfollow_confirm_title": "フォロー解除するよ？"
+  "unfollow_confirm_title": "フォロー解除するよ？",
+  "login_2fa_code": "2要素認証コード",
+  "login_2fa_code_send": "2要素認証コードをメールアドレスに送信しました。確認の上コードを入力してください。"
 }
