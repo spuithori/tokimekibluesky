@@ -8,8 +8,6 @@
   export let column;
   export let _agent = $agent;
   export let rootIndex = column.data.feed.findIndex(_feed => _feed.depth === 0);
-  export let unique;
-  let beforeUnique;
   let virtualListEl: HTMLDivElement
   let virtualItemEls: HTMLDivElement[] = []
 
@@ -28,18 +26,14 @@
           virtualItemEls.forEach((el) => $virtualizer.measureElement(el))
   }
 
-  $: changeRootIndex(unique);
+  $: changeRootIndex(column);
 
-  function changeRootIndex(unique) {
-      if (unique !== beforeUnique) {
-          tick().then(() => {
-              $virtualizer.scrollToIndex(rootIndex, {
-                  align: 'start',
-              });
-
-              beforeUnique = unique;
-          })
-      }
+  function changeRootIndex(column) {
+      tick().then(() => {
+          $virtualizer.scrollToIndex(rootIndex, {
+              align: 'start',
+          });
+      })
   }
 </script>
 

@@ -1,9 +1,7 @@
 <script lang="ts">
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
-    import {createEventDispatcher} from "svelte";
     import Likes from "$lib/components/thread/Likes.svelte";
     import Quotes from "$lib/components/thread/Quotes.svelte";
-    const dispatch = createEventDispatcher();
 
     let { column, index, _agent } = $props();
 </script>

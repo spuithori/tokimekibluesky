@@ -31,7 +31,6 @@
   let isMuteDisplay: boolean = $state(false);
 
   let flatThread = [];
-  let unique = $state(Symbol());
 
   function isMutedIncludes(feed) {
       isMuted = feed.post.author?.viewer.muted;
@@ -89,7 +88,6 @@
               }
           });
           rootIndex = flatThread.findIndex(feed => feed.depth === 0);
-          unique = Symbol();
       } catch (e) {
           console.error(e);
           column.data.feed = 'NotFound';
@@ -162,7 +160,7 @@
   <p class="thread-error">{$_('error_thread_notfound')}</p>
 {:else}
   {#if (isJunk)}
-    <VirtualThreadList {_agent} {column} {rootIndex} {unique}></VirtualThreadList>
+    <VirtualThreadList {_agent} {column} {rootIndex}></VirtualThreadList>
   {:else}
     <div class="timeline thread-wrap" style="--root-client-height: {rootClientHeight}px" >
       <Thread feeds={column.data.feed} depth={0} column={column} {_agent} bind:rootClientHeight={rootClientHeight} scrollTop={scrollTop}></Thread>

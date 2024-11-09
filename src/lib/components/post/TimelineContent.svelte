@@ -287,7 +287,7 @@
     {/if}
   </div>
 
-  {@render children?.()}
-
   <ReactionButtons {_agent} {post}></ReactionButtons>
+
+  {@render children?.()}
 </div>
