@@ -703,7 +703,7 @@
     position: relative;
 
     &__input {
-        height: 48px;
+        height: 40px;
         padding: 0 16px;
         border: 1px solid var(--border-color-1);
         color: var(--text-color-1);

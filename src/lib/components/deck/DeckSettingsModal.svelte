@@ -6,6 +6,7 @@
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {Search} from "lucide-svelte";
     const dispatch = createEventDispatcher();
 
     const columnState = getColumnState();
@@ -309,6 +310,12 @@
             column.settings = {...column.settings, isPopup: true};
         }
     }
+
+    function handleSearchChange() {
+        column.algorithm.name = `${$_('search')} "${column.algorithm.algorithm}"`;
+        column.data.feed = [];
+        column.data.cursor = '';
+    }
 </script>
 
 <div class="deck-settings-wrap deck-settings-wrap--{layout}">
@@ -327,6 +334,21 @@
             <p class="deck-settings-description">{$_('deck_settings_description')}</p>
 
             <div class="deck-settings-groups">
+                {#if (column.algorithm?.type === 'search')}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('/search_search')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-text input-text--icon">
+                                <Search size="20" color="var(--text-color-1)"></Search>
+                                <input class="input-text__input" type="text" bind:value={column.algorithm.algorithm} onchange={handleSearchChange}>
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
+
                 {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'chat')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
