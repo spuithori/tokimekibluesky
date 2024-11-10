@@ -15,7 +15,7 @@
         _agent?: any;
         unique?: any;
         isJunk?: boolean;
-        isRefreshing?: boolean;
+        isRefreshing?: boolean | string;
     }
 
     let {
@@ -56,7 +56,7 @@
             return false;
         }
 
-        isRefreshing = true;
+        isRefreshing = isAutoRefresh ? 'auto' : true;
         const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
         const elInitialPosition = el.scrollTop;
 
@@ -290,7 +290,7 @@
       </svg>
     </button>
   {:else}
-    {#if (isRefreshing && column.algorithm?.type !== 'chat')}
+    {#if (isRefreshing === true && column.algorithm?.type !== 'chat')}
       <div class="refresher" transition:fly={{ duration: 300, y: -100}}>
         <LoadingSpinner padding={0} size={24}></LoadingSpinner>
       </div>
