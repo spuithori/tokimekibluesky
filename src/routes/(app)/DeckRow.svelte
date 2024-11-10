@@ -375,7 +375,7 @@
             {/if}
 
             <ColumnRefreshButton
-                bind:column={column}
+                bind:column
                 index={index}
                 {_agent}
                 bind:unique={unique}
@@ -406,7 +406,7 @@
                 {#if uniqueAgent}
                     <div class="deck-row__content">
                         {#if (column.algorithm.type === 'notification')}
-                            <NotificationTimeline bind:column={column} index={index} {_agent} ></NotificationTimeline>
+                            <NotificationTimeline {index} {isJunk} {_agent} ></NotificationTimeline>
                         {:else if (column.algorithm.type === 'thread')}
                             <ThreadTimeline bind:column={column} index={index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
                         {:else if (column.algorithm.type === 'chat')}
@@ -422,9 +422,9 @@
                             <BookmarkTimeline bind:column {index} {_agent}></BookmarkTimeline>
                         {:else}
                             <Timeline
-                                    bind:column
                                     {index}
                                     {_agent}
+                                    {isJunk}
                                     hideReply={column.algorithm.type === 'author' ? hideReply : undefined}
                                     hideRepost={column.algorithm.type === 'author' ? hideRepost : undefined}
                             ></Timeline>

@@ -1,8 +1,11 @@
 <script lang="ts">
     import Notification from "./Notification.svelte";
     import {agent} from '$lib/stores';
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    let { column = $bindable(), index, _agent = $agent } = $props();
+    let { index, isJunk, _agent = $agent } = $props();
+    const columnState = getColumnState(isJunk);
+    const column = columnState.getColumn(index);
 
     function handleCountUpdate(event) {
         column.unreadCount = event.detail.count;

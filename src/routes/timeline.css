@@ -1176,3 +1176,9 @@
     font-size: var(--timeline-repost-font-size);
     letter-spacing: .025em;
 }
+
+.menu-tag-link {
+    &:hover {
+        display: none;
+    }
+}

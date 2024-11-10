@@ -644,5 +644,7 @@
   "settings_support": "Support TOKIMEKI",
   "unfollow_confirm_title": "May I unfollow?",
   "login_2fa_code": "2FA Code",
-  "login_2fa_code_send": "The two-factor authentication code has been sent to your e-mail address. Please confirm and enter the code."
+  "login_2fa_code_send": "The two-factor authentication code has been sent to your e-mail address. Please confirm and enter the code.",
+  "tag_instant_mute": "Add to Keyword Mute",
+  "success_mute_tag": "{tag} added to keyword mute."
 }

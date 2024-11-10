@@ -172,7 +172,7 @@
       {#if $settings?.design.absoluteTime}
         <Tooltip>
           {#snippet ref()}
-            <time datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
+            <span>{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
           {/snippet}
           {#snippet content()}
             <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
@@ -182,7 +182,7 @@
         <Tooltip>
           {#snippet ref()}
             {#key timeUnique}
-              <time datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(post.indexedAt))}</time>
+              <span>{formatDistanceToNow(parseISO(post.indexedAt))}</span>
             {/key}
           {/snippet}
           {#snippet content()}

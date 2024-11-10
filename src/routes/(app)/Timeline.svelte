@@ -6,21 +6,23 @@
   import MediaTimelineItem from "./MediaTimelineItem.svelte";
   import {getPostRealtime} from "$lib/realtime";
   import {getDbFollows} from "$lib/getActorsList";
-  import {assignCursorFromLatest} from "$lib/components/column/releaseTimeline";
   import {playSound} from "$lib/sounds";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
   import {isReasonRepost, isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import {toast} from "svelte-sonner";
   import {AppBskyEmbedImages} from "@atproto/api";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
   let {
-    column = $bindable(),
     index,
     _agent = $agent,
+    isJunk,
     hideReply,
-    hideRepost
+    hideRepost,
   } = $props();
 
+  const columnState = getColumnState(isJunk);
+  const column = columnState.getColumn(index);
   let isActorsListFinished = false;
   let actors = [];
   let realtimeCounter = 0;
@@ -52,12 +54,28 @@
 
               if (realtimeCounter === 20) {
                   realtimeCounter = 0;
-                  assignCursorFromLatest(_agent, column);
+
+                  _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm})
+                      .then((res) => {
+                          const refPost = res.data.feed.slice(-1)[0];
+                          const cursor = res.data.cursor;
+                          let i = 0;
+
+                          while (i < 20) {
+                              column.data.feed[i].memoryCursor = cursor;
+
+                              if (isDuplicatePost(column.data.feed[i], refPost)) {
+                                  break;
+                              }
+
+                              i++;
+                          }
+                      });
               }
 
-            if (column.settings?.playSound) {
-              playSound(value?.post.indexedAt, column.lastRefresh, column.settings.playSound)
-            }
+              if (column.settings?.playSound) {
+                  playSound(value?.post.indexedAt, column.lastRefresh, column.settings.playSound)
+              }
           });
   }
 

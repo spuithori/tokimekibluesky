@@ -644,5 +644,7 @@
   "settings_support": "TOKIMEKIを支援する",
   "unfollow_confirm_title": "フォロー解除するよ？",
   "login_2fa_code": "2要素認証コード",
-  "login_2fa_code_send": "2要素認証コードをメールアドレスに送信しました。確認の上コードを入力してください。"
+  "login_2fa_code_send": "2要素認証コードをメールアドレスに送信しました。確認の上コードを入力してください。",
+  "tag_instant_mute": "キーワードミュートに追加",
+  "success_mute_tag": "{tag} をキーワードミュートに追加しました。"
 }

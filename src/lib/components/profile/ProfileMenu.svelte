@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
-    import {agent, listAddModal, repostMutes, userLists} from "$lib/stores";
+  import {agent, listAddModal, repostMutes} from "$lib/stores";
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
@@ -12,100 +10,98 @@
   let { profile, handle } = $props();
   let isMenuOpen = $state(false);
 
-  run(() => {
+  async function mute() {
+      try {
+          isMenuOpen = false;
+          const mute = await $agent.agent.api.app.bsky.graph.muteActor({actor: handle});
+
+          dispatch('refresh');
+      } catch (e) {
+          console.error(e)
+      }
+  }
+
+  async function unmute() {
+      try {
+          isMenuOpen = false;
+          const mute = await $agent.agent.api.app.bsky.graph.unmuteActor({actor: handle});
+
+          dispatch('refresh');
+      } catch (e) {
+          console.error(e)
+      }
+  }
+
+  async function getDidByHandle(handle) {
+      const res = await $agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
+      return res.data.did;
+  }
+
+  async function block() {
+      try {
+          isMenuOpen = false;
+          const did = await getDidByHandle(handle);
+          const block = await $agent.agent.api.app.bsky.graph.block.create(
+              { repo: $agent.did() },
+              {
+                  subject: did,
+                  createdAt: new Date().toISOString(),
+              });
+          dispatch('refresh');
+      } catch (e) {
+          console.error(e)
+      }
+  }
+
+  async function unblock(uri) {
+      try {
+          isMenuOpen = false;
+          const did = await getDidByHandle(handle);
+          const rkey = uri.split('/').slice(-1)[0];
+          const block = await $agent.agent.api.app.bsky.graph.block.delete(
+              {rkey: rkey, repo: $agent.did() },
+              {
+                  subject: did,
+                  createdAt: new Date().toISOString(),
+              });
+          dispatch('refresh');
+      } catch (e) {
+          console.error(e)
+      }
+  }
+
+  async function copyDid() {
+      const data = await profile;
+      navigator.clipboard.writeText(data.did)
+          .then(() => {
+              toast.success($_('success_copy_did'));
+          }, () => {
+              toast.success($_('failed_copy'));
+          });
+
+      isMenuOpen = false;
+  }
+
+  function repostMute() {
+      $repostMutes = [...$repostMutes, profile.did];
       localStorage.setItem('repostMutes', JSON.stringify($repostMutes));
-  });
+      toast.success($_('success_repost_mute'));
+  }
 
-    async function mute() {
-        try {
-            isMenuOpen = false;
-            const mute = await $agent.agent.api.app.bsky.graph.muteActor({actor: handle});
-
-            dispatch('refresh');
-        } catch (e) {
-            console.error(e)
-        }
-    }
-
-    async function unmute() {
-        try {
-            isMenuOpen = false;
-            const mute = await $agent.agent.api.app.bsky.graph.unmuteActor({actor: handle});
-
-            dispatch('refresh');
-        } catch (e) {
-            console.error(e)
-        }
-    }
-
-    async function getDidByHandle(handle) {
-        const res = await $agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
-        return res.data.did;
-    }
-
-    async function block() {
-        try {
-            isMenuOpen = false;
-            const did = await getDidByHandle(handle);
-            const block = await $agent.agent.api.app.bsky.graph.block.create(
-                { repo: $agent.did() },
-                {
-                    subject: did,
-                    createdAt: new Date().toISOString(),
-                });
-            dispatch('refresh');
-        } catch (e) {
-            console.error(e)
-        }
-    }
-
-    async function unblock(uri) {
-        try {
-            isMenuOpen = false;
-            const did = await getDidByHandle(handle);
-            const rkey = uri.split('/').slice(-1)[0];
-            const block = await $agent.agent.api.app.bsky.graph.block.delete(
-                {rkey: rkey, repo: $agent.did() },
-                {
-                    subject: did,
-                    createdAt: new Date().toISOString(),
-                });
-            dispatch('refresh');
-        } catch (e) {
-            console.error(e)
-        }
-    }
-
-    async function copyDid() {
-        const data = await profile;
-        navigator.clipboard.writeText(data.did)
-            .then(() => {
-                toast.success($_('success_copy_did'));
-            }, () => {
-                toast.success($_('failed_copy'));
-            });
-
-        isMenuOpen = false;
-    }
-
-    function repostMute() {
-        $repostMutes = [...$repostMutes, profile.did];
-        toast.success($_('success_repost_mute'));
-    }
-
-    function repostUnmute() {
-        $repostMutes = $repostMutes.filter(dids => dids !== profile.did);
-        toast.success($_('success_repost_unmute'));
-    }
+  function repostUnmute() {
+      $repostMutes = $repostMutes.filter(dids => dids !== profile.did);
+      localStorage.setItem('repostMutes', JSON.stringify($repostMutes));
+      toast.success($_('success_repost_unmute'));
+  }
 </script>
 
 <div class="profile-menu-wrap">
   <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="profile-menu-toggle">
     {#snippet ref()}
-        <svg  xmlns="http://www.w3.org/2000/svg" width="4.5" height="18" viewBox="0 0 4.5 18">
+      <svg  xmlns="http://www.w3.org/2000/svg" width="4.5" height="18" viewBox="0 0 4.5 18">
         <path id="dots-horizontal-triple" d="M10.25,13.25A2.25,2.25,0,1,1,12.5,11,2.25,2.25,0,0,1,10.25,13.25Zm0-6.75A2.25,2.25,0,1,1,12.5,4.25,2.25,2.25,0,0,1,10.25,6.5Zm0,13.5a2.25,2.25,0,1,1,2.25-2.25A2.25,2.25,0,0,1,10.25,20Z" transform="translate(-8 -2)" fill="var(--text-color-3)"/>
       </svg>
-      {/snippet}
+    {/snippet}
 
     {#snippet content()}
         <ul  class="timeline-menu-list">

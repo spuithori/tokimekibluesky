@@ -1,9 +1,10 @@
 <script lang="ts">
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
-
     import {getTextArray, isUriLocal} from "$lib/richtext";
     import {linkWarning, settings, timelineHashtags} from "$lib/stores";
     import {detectDifferentDomainUrl} from "$lib/util";
+    import TimelineTagLink from "$lib/components/post/TimelineTagLink.svelte";
+
     let { record, _agent } = $props();
     let textArray = $state(getTextArray(record));
 
@@ -52,8 +53,17 @@
             <a href="/profile/{item.text.slice(1)}">{item.text}</a>
         </ProfileCardWrapper>
     {:else if (item.isTag() && item.tag)}
-        <a href="/search?q={encodeURIComponent('#' + item.tag?.tag)}">{item.text}</a>
+        <div class="tag-wrap">
+            <TimelineTagLink {item}></TimelineTagLink>
+        </div>
     {:else}
         <span>{item.text}</span>
     {/if}
 {/each}
+
+<style lang="postcss">
+    .tag-wrap {
+        display: inline-block;
+        position: relative;
+    }
+</style>

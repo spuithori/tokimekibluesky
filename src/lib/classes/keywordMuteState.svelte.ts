@@ -1,7 +1,7 @@
-import {type keyword, keywordStringToArray} from "$lib/timelineFilter";
+import {defaultKeyword, type keyword, keywordStringToArray} from "$lib/timelineFilter";
 
 class KeywordMuteState {
-    keywords = $state<keyword[]>();
+    keywords = $state<keyword[]>([]);
     formattedKeywords = $derived.by(() => {
         const initialMutes = structuredClone($state.snapshot(this.keywords));
         if (!initialMutes || !initialMutes.length) {
@@ -17,6 +17,13 @@ class KeywordMuteState {
     constructor() {
         const storageKeywordMutes = localStorage.getItem('keywordMutes') || JSON.stringify([]);
         this.keywords = JSON.parse(storageKeywordMutes);
+    }
+
+    add(word: string) {
+        this.keywords.push({
+            ...defaultKeyword,
+            word: word,
+        })
     }
 }
 

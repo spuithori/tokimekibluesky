@@ -221,7 +221,7 @@
         }
 
         if (isJunk && !isRefreshing) {
-            return  false;
+            return false;
         }
 
         if (scrollTop === 0 && feed.length > 40) {
