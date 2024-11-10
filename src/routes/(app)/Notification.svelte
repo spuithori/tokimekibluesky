@@ -3,9 +3,7 @@
     import {agent, realtime, settings} from '$lib/stores';
     import {type AppBskyNotificationListNotifications} from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import {createEventDispatcher} from "svelte";
     import TimelineItem from "./TimelineItem.svelte";
-    const dispatch = createEventDispatcher();
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
     import {AtSign, Heart, Repeat2, UserPlus2, Filter, Reply, Quote, Star} from 'lucide-svelte';
@@ -40,6 +38,8 @@
         isOnlyShowUnread = false,
         sound = null,
         id = null,
+        onupdate,
+        onchange,
     }: Props = $props();
 
     if (!notifications) {
@@ -120,9 +120,7 @@
 
     async function observeRealtimeNotification() {
         const res = await _agent.agent.api.app.bsky.notification.getUnreadCount();
-        dispatch('update', {
-            count: res.data.count,
-        });
+        onupdate(res.data.count)
         await putNotifications(res.data.count);
     }
 
@@ -168,8 +166,8 @@
             : res.data.notifications;
 
         const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, feedPool);
-        notifications.push(...resNotifications);
-        notificationGroup.push(...newNotificationGroup);
+        notifications = [...notifications, ...resNotifications];
+        notificationGroup = [...notificationGroup, ...newNotificationGroup];
         feedPool = newFeedPool;
 
         if (cursor && resNotifications.length) {
@@ -182,9 +180,7 @@
     function changeFilter(filter: Filter[]) {
         getNotificationsFilter(filter);
         unique = Symbol();
-        dispatch('change', {
-            filter: filter,
-        });
+        onchange(filter);
     }
 </script>
 

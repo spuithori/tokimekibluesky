@@ -7,12 +7,12 @@
     const columnState = getColumnState(isJunk);
     const column = columnState.getColumn(index);
 
-    function handleCountUpdate(event) {
-        column.unreadCount = event.detail.count;
+    function handleCountUpdate(count: number) {
+        column.unreadCount = count;
     }
 
-    function handleFilterChange(event) {
-        column.filter = event.detail.filter;
+    function handleFilterChange(filter: any) {
+        column.filter = filter;
     }
 </script>
 
@@ -22,8 +22,8 @@
           {_agent}
           isOnlyShowUnread={column.settings?.onlyShowUnread}
           sound={column.settings?.playSound}
-          on:update={handleCountUpdate}
-          on:change={handleFilterChange}
+          onupdate={handleCountUpdate}
+          onchange={handleFilterChange}
           bind:notifications={column.data.feed}
           bind:cursor={column.data.cursor}
           bind:feedPool={column.data.feedPool}
