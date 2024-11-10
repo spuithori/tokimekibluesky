@@ -75,16 +75,6 @@
         cancel: '.grabber'
     });
 
-    $effect(() => {
-        if (isFiltered) {
-            hideReply = 'me';
-            hideRepost = 'none';
-        } else {
-            hideReply = 'all';
-            hideRepost = 'all';
-        }
-    })
-
     if (!column.data) {
         column.data = {
             feed: [],
@@ -297,6 +287,22 @@
             isRefreshing = false;
         }, 2000);
     }
+
+    function changeAuthorFilter(isFilter: boolean) {
+        if (isFilter) {
+            hideReply = 'me';
+            hideRepost = 'none';
+            isFiltered = true;
+        } else {
+            hideReply = 'all';
+            hideRepost = 'all';
+            isFiltered = false;
+        }
+
+        column.data.feed = [];
+        column.data.cursor = undefined;
+        unique = Symbol();
+    }
 </script>
 
 <div
@@ -354,8 +360,8 @@
                 <dl class="profile-posts-nav">
                     <dt class="profile-posts-nav__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-filter"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></dt>
                     <dd class="profile-posts-nav__content">
-                        <button class="profile-posts-nav__button" onclick={() => {isFiltered = false}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
-                        <button class="profile-posts-nav__button" onclick={() => {isFiltered = true}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
+                        <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(false)}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
+                        <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(true)}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
                     </dd>
                 </dl>
             {/if}
@@ -401,42 +407,40 @@
     {#if isSettingsOpen}
         <DeckSettingsModal {column} {index} {_agent} layout={$settings.design?.layout} on:close={handleSettingsClick}></DeckSettingsModal>
     {:else}
-        {#key unique}
-            {#key isFiltered}
-                {#if uniqueAgent}
-                    <div class="deck-row__content">
-                        {#if (column.algorithm.type === 'notification')}
-                            <NotificationTimeline {index} {isJunk} {_agent} ></NotificationTimeline>
-                        {:else if (column.algorithm.type === 'thread')}
-                            <ThreadTimeline bind:column={column} index={index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
-                        {:else if (column.algorithm.type === 'chat')}
-                            <ChatTimeline
-                                    column={column}
-                                    index={index}
-                                    {_agent}
-                                    onrefresh={handleRefresh}
-                            ></ChatTimeline>
-                        {:else if (column.algorithm.type === 'list')}
-                            <ListTimeline bind:column {index} {_agent}></ListTimeline>
-                        {:else if (column.algorithm.type === 'bookmark')}
-                            <BookmarkTimeline bind:column {index} {_agent}></BookmarkTimeline>
-                        {:else}
-                            <Timeline
-                                    {index}
-                                    {_agent}
-                                    {isJunk}
-                                    hideReply={column.algorithm.type === 'author' ? hideReply : undefined}
-                                    hideRepost={column.algorithm.type === 'author' ? hideRepost : undefined}
-                            ></Timeline>
-                        {/if}
-                    </div>
+        {#if uniqueAgent}
+            <div class="deck-row__content">
+                {#if (column.algorithm.type === 'notification')}
+                    <NotificationTimeline {index} {isJunk} {_agent} {unique}></NotificationTimeline>
+                {:else if (column.algorithm.type === 'thread')}
+                    <ThreadTimeline bind:column={column} index={index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
+                {:else if (column.algorithm.type === 'chat')}
+                    <ChatTimeline
+                            column={column}
+                            index={index}
+                            {_agent}
+                            {unique}
+                            onrefresh={handleRefresh}
+                    ></ChatTimeline>
+                {:else if (column.algorithm.type === 'list')}
+                    <ListTimeline bind:column {index} {_agent} {unique}></ListTimeline>
+                {:else if (column.algorithm.type === 'bookmark')}
+                    <BookmarkTimeline bind:column {index} {_agent} {unique}></BookmarkTimeline>
                 {:else}
-                    <div class="deck-row__content">
-                        <ColumnAgentMissing {column}></ColumnAgentMissing>
-                    </div>
+                    <Timeline
+                            {index}
+                            {_agent}
+                            {isJunk}
+                            {unique}
+                            hideReply={column.algorithm.type === 'author' ? hideReply : undefined}
+                            hideRepost={column.algorithm.type === 'author' ? hideRepost : undefined}
+                    ></Timeline>
                 {/if}
-            {/key}
-        {/key}
+            </div>
+        {:else}
+            <div class="deck-row__content">
+                <ColumnAgentMissing {column}></ColumnAgentMissing>
+            </div>
+        {/if}
     {/if}
 </div>
 

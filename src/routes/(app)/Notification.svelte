@@ -40,6 +40,7 @@
         id = null,
         onupdate,
         onchange,
+        unique = Symbol(),
     }: Props = $props();
 
     if (!notifications) {
@@ -63,7 +64,6 @@
         quote: Quote,
         follow: UserPlus2,
     };
-    let unique = $state(Symbol());
 
     async function getNotificationsFilter(setFilter: Filter[]) {
         filter = setFilter;

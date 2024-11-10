@@ -17,6 +17,7 @@
     index,
     _agent = $agent,
     isJunk,
+    unique,
     hideReply,
     hideRepost,
   } = $props();
@@ -197,14 +198,16 @@
     </div>
   {/if}
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    {#snippet noMore()}
-        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      {/snippet}
-    {#snippet noResults()}
-        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      {/snippet}
-  </InfiniteLoading>
+  {#key unique}
+    <InfiniteLoading on:infinite={handleLoadMore}>
+      {#snippet noMore()}
+          <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+        {/snippet}
+      {#snippet noResults()}
+          <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+        {/snippet}
+    </InfiniteLoading>
+  {/key}
 
   {#if (isDividerLoading)}
     <div class="more-divider-filler" style="--more-divider-filler-height: {dividerFillerHeight}px"></div>

@@ -3,7 +3,7 @@
     import {agent} from '$lib/stores';
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    let { index, isJunk, _agent = $agent } = $props();
+    let { index, isJunk, _agent = $agent, unique } = $props();
     const columnState = getColumnState(isJunk);
     const column = columnState.getColumn(index);
 
@@ -31,5 +31,6 @@
           bind:lastRefresh={column.lastRefresh}
           filter={column.filter || ['like', 'repost', 'reply', 'mention', 'quote', 'follow']}
           id={column.id}
+          {unique}
   ></Notification>
 </div>

@@ -6,7 +6,7 @@
     import {tick} from "svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
 
-    let { column = $bindable(), index, _agent = $agent, onrefresh } = $props();
+    let { column = $bindable(), index, _agent = $agent, onrefresh, unique } = $props();
     let firstLoad = true;
     let retryCount = 0;
 
@@ -97,14 +97,16 @@
 </script>
 
 <div class="chat">
-  <InfiniteLoading on:infinite={handleLoadMore} direction="top">
-    {#snippet noMore()}
-        <p  class="infinite-nomore"></p>
-      {/snippet}
-    {#snippet noResults()}
-        <p  class="infinite-nomore"></p>
-      {/snippet}
-  </InfiniteLoading>
+  {#key unique}
+    <InfiniteLoading on:infinite={handleLoadMore} direction="top">
+      {#snippet noMore()}
+          <p  class="infinite-nomore"></p>
+        {/snippet}
+      {#snippet noResults()}
+          <p  class="infinite-nomore"></p>
+        {/snippet}
+    </InfiniteLoading>
+  {/key}
 
   {#each column.data.feed as data, index (data)}
     <div>
