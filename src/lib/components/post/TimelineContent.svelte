@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {agents, labelDefs, labelerSettings, settings} from "$lib/stores";
+  import {agents, labelDefs, labelerSettings, settings, workerTimer} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
@@ -25,6 +25,7 @@
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
+  import {onDestroy} from "svelte";
 
   interface Props {
       post: any;
@@ -57,7 +58,7 @@
   let translatedRecord: undefined | AppBskyFeedPost.Record = $state();
   let warnLabels = $state([]);
   let warnBehavior: 'cover' | 'inform' = $state('cover');
-  let timeUnique = $state(Symbol());
+  let timeDistanceToNow = $state(formatDistanceToNow(parseISO(post.indexedAt)));
 
   const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
   const contentContext = isSingle || isProfile
@@ -138,15 +139,17 @@
       pulseTranslate = false;
   }
 
-  $effect(() => {
-      const interval = setInterval(() => {
-          timeUnique = Symbol();
-      }, 10000);
+  function handleTimer(e) {
+      if (e.data % 5 === 0) {
+          timeDistanceToNow = formatDistanceToNow(parseISO(post.indexedAt));
+      }
+  }
 
-      return () => {
-          clearInterval(interval);
-      };
-  });
+  $workerTimer.addEventListener('message', handleTimer);
+
+  onDestroy(() => {
+      $workerTimer.removeEventListener('message', handleTimer);
+  })
 </script>
 
 <div class="timeline__image">
@@ -181,9 +184,7 @@
       {:else}
         <Tooltip>
           {#snippet ref()}
-            {#key timeUnique}
-              <span>{formatDistanceToNow(parseISO(post.indexedAt))}</span>
-            {/key}
+            <span>{timeDistanceToNow}</span>
           {/snippet}
           {#snippet content()}
             <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>

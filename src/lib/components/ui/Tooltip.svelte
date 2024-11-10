@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { offset, flip, shift } from 'svelte-floating-ui/dom';
-    import { createFloatingActions } from 'svelte-floating-ui';
-    import { fade } from 'svelte/transition';
+  import { offset, flip, shift } from 'svelte-floating-ui/dom';
+  import { createFloatingActions } from 'svelte-floating-ui';
+  import { fade } from 'svelte/transition';
   interface Props {
     ref?: import('svelte').Snippet;
     content?: import('svelte').Snippet;
@@ -9,21 +9,21 @@
 
   let { ref, content }: Props = $props();
 
-    const [ floatingRef, floatingContent ] = createFloatingActions({
-        strategy: 'absolute',
-        placement: 'top',
-        middleware: [
-            offset(5),
-            flip({
-                padding: {
-                    top: 80
-                }
-            }),
-            shift(),
-        ]
-    });
+  const [ floatingRef, floatingContent ] = createFloatingActions({
+      strategy: 'absolute',
+      placement: 'top',
+      middleware: [
+          offset(5),
+          flip({
+              padding: {
+                  top: 80
+              }
+          }),
+          shift(),
+      ]
+  });
 
-    let isShown: boolean = $state(false);
+  let isShown: boolean = $state(false);
 </script>
 
 <span class="tooltip-wrap" onmouseenter={() => isShown = true} onmouseleave={() => isShown = false} use:floatingRef>

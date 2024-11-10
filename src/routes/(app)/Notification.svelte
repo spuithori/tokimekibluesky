@@ -247,29 +247,29 @@
         </div>
     {/if}
 
+    <div class="notifications-list">
+        {#each notificationGroup as item, index (item)}
+            <div class="notifications-list__item">
+                {#if item?.notifications[0]?.isRead === false}
+                    <span class="notifications-list__new"></span>
+                {/if}
+
+                {#if (filter.includes(item.reason))}
+                    {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+                        <TimelineItem {_agent} data={{post: item.feed || item.notifications[0]}}></TimelineItem>
+                    {:else if (item.reason === 'follow')}
+                        <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
+                    {:else if (item.reason === 'starterpack-joined')}
+
+                    {:else}
+                        <NotificationReactionItem {_agent} {item}></NotificationReactionItem>
+                    {/if}
+                {/if}
+            </div>
+        {/each}
+    </div>
+
     {#key unique}
-        <div class="notifications-list">
-          {#each notificationGroup as item, index (item)}
-              <div class="notifications-list__item">
-                  {#if item?.notifications[0]?.isRead === false}
-                      <span class="notifications-list__new"></span>
-                  {/if}
-
-                  {#if (filter.includes(item.reason))}
-                      {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-                          <TimelineItem {_agent} data={{post: item.feed || item.notifications[0]}}></TimelineItem>
-                      {:else if (item.reason === 'follow')}
-                          <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
-                      {:else if (item.reason === 'starterpack-joined')}
-
-                      {:else}
-                          <NotificationReactionItem {_agent} {item}></NotificationReactionItem>
-                      {/if}
-                  {/if}
-              </div>
-          {/each}
-        </div>
-
         <InfiniteLoading on:infinite={handleLoadMore}>
             <p slot="noMore" class="infinite-nomore">
                 {$_('no_more')}
