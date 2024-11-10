@@ -599,7 +599,7 @@
     {:else}
       {#if (data.reply && !isSingle && !isReplyHide)}
         {#if (isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
-          <div class="timeline__column timeline__column--reply">
+          <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
             <TimelineContent post={data.reply.root} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
           </div>
 
@@ -610,7 +610,7 @@
           {/if}
         {/if}
 
-        <div class="timeline__column timeline__column--reply">
+        <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
           {#if (!isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
             <span class="timeline-reply-bar"></span>
           {/if}

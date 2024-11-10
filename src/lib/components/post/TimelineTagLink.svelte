@@ -23,6 +23,7 @@
   function muteTag() {
       keywordMuteState.add(item.text);
       toast.success($_('success_mute_tag', {values: {tag: item.text}}));
+      localStorage.setItem('keywordMutes', JSON.stringify($state.snapshot(keywordMuteState.keywords)));
       isTagMenuOpen = false;
   }
 </script>
