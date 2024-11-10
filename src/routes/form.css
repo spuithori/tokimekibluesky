@@ -698,3 +698,31 @@
         }
     }
 }
+
+.input-text {
+    position: relative;
+
+    &__input {
+        height: 48px;
+        padding: 0 16px;
+        border: 1px solid var(--border-color-1);
+        color: var(--text-color-1);
+        border-radius: var(--border-radius-3);
+        width: 100%;
+    }
+
+    svg {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 16px;
+        margin: auto;
+        pointer-events: none;
+    }
+
+    &--icon {
+        .input-text__input {
+            padding-left: 48px;
+        }
+    }
+}
