@@ -223,7 +223,7 @@
       maxWidthOrHeight: 3000,
       fileType: 'image/jpeg',
       useWebWorker: true,
-      initialQuality: 0.8,
+      initialQuality: 0.85,
     });
 
     return await _agent.agent.api.com.atproto.repo.uploadBlob(image.isGif ? image.file : compressed, {

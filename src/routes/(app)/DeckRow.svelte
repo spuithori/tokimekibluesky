@@ -422,7 +422,9 @@
                             onrefresh={handleRefresh}
                     ></ChatTimeline>
                 {:else if (column.algorithm.type === 'list')}
-                    <ListTimeline bind:column {index} {_agent} {unique}></ListTimeline>
+                    {#key unique}
+                        <ListTimeline bind:column {index} {_agent} {unique}></ListTimeline>
+                    {/key}
                 {:else if (column.algorithm.type === 'bookmark')}
                     <BookmarkTimeline bind:column {index} {_agent} {unique}></BookmarkTimeline>
                 {:else}
