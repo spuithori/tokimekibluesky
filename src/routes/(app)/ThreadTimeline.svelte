@@ -33,7 +33,7 @@
   let flatThread = [];
 
   function isMutedIncludes(feed) {
-      isMuted = feed.post.author?.viewer.muted;
+      isMuted = feed.post?.author?.viewer?.muted;
 
       if (feed.parent && !isMuted) {
           isMutedIncludes(feed.parent);
@@ -107,7 +107,7 @@
           const _feed = {
               ...feed,
               depth,
-              position: beforeDid === feed.post.author.did && rootDid === feed.post.author.did && depth !== 0 ? 'author' : position,
+              position: beforeDid === feed.post?.author?.did && rootDid === feed.post?.author?.did && depth !== 0 ? 'author' : position,
           }
           flatThread = [...flatThread, _feed];
 
