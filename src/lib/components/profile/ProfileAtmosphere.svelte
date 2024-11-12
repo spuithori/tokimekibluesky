@@ -8,6 +8,7 @@
 
   let hasLinkat = $state(false);
   let hasWhiteWind = $state(false);
+  let hasPinkSea = $state(false);
   let isOpen = $state(false);
 
   function handleClose() {
@@ -42,8 +43,22 @@
       }
   }
 
+  async function getPinkSea() {
+      try {
+          const res = await _agent.api.com.atproto.repo.listRecords({
+              repo: did,
+              collection: 'com.shinolabs.pinksea.oekaki',
+              limit: 1,
+          });
+          const records = res.data.records;
+          return records.length > 0;
+      } catch (e) {
+          return false;
+      }
+  }
+
   onMount(async () => {
-      [hasLinkat, hasWhiteWind] = await Promise.all([getLinkat(), getWhiteWind()]);
+      [hasLinkat, hasWhiteWind, hasPinkSea] = await Promise.all([getLinkat(), getWhiteWind(), getPinkSea()]);
   })
 </script>
 
@@ -66,6 +81,17 @@
       <div class="atmos-item atmos-item--whitewind">
         <p class="atmos-item__title"><strong>WhiteWind</strong> - {$_('atmosphere_short_desc_whitewind')}</p>
         <a class="atmos-item__link" href="https://whtwnd.com/{handle}" target="_blank" rel="noreferrer noopener nofollow">whtwnd.com</a>
+
+        <span class="atmos-item__ext">
+          <SquareArrowOutUpRight size="16" color="var(--text-color-3)"></SquareArrowOutUpRight>
+      </span>
+      </div>
+    {/if}
+
+    {#if (hasPinkSea)}
+      <div class="atmos-item atmos-item--pinksea">
+        <p class="atmos-item__title"><strong>PinkSea</strong> - {$_('atmosphere_short_desc_pinksea')}</p>
+        <a class="atmos-item__link" href="https://pinksea.art/{did}" target="_blank" rel="noreferrer noopener nofollow">pinksea.art</a>
 
         <span class="atmos-item__ext">
           <SquareArrowOutUpRight size="16" color="var(--text-color-3)"></SquareArrowOutUpRight>
