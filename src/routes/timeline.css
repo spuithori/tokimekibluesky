@@ -1178,6 +1178,9 @@
 }
 
 .menu-tag-link {
+    position: absolute;
+    bottom: 0;
+
     &:hover {
         display: none;
     }
