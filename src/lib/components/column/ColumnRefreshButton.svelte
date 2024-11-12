@@ -27,7 +27,7 @@
         isRefreshing = $bindable(false)
     }: Props = $props();
 
-    const host = _agent.agent.service.host === 'bsky.social' ? 'TOKIMEKI Stream' : _agent.agent.service.host;
+    const host = _agent.agent.service.host === 'bsky.social' ? 'Jetstream (us-west2)' : _agent.agent.service.host;
 
     $effect(() => {
         releasePosts(column.data.feed);
