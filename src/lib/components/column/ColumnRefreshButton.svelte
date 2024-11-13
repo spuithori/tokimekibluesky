@@ -119,8 +119,8 @@
                 return column.filter.includes(item.reason);
             });
             let resNotifications = column.settings?.onlyShowUnread
-                ? _notifications.filter(notification => !notification.isRead)
-                : _notifications;
+                ? res.data.notifications.filter(notification => !notification.isRead)
+                : res.data.notifications;
 
             if (!isAutoRefresh && column.settings?.onlyShowUnread) {
                 resNotifications = resNotifications.filter(notification => !column.data.feed.some(_notification => notification.uri === _notification.uri));

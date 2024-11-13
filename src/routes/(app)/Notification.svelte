@@ -134,8 +134,8 @@
             return filter.includes(item.reason);
         });
         const resNotifications = isOnlyShowUnread
-            ? __notifications.filter(notification => !notification.isRead)
-            : __notifications;
+            ? res.data.notifications.filter(notification => !notification.isRead)
+            : res.data.notifications;
 
         const _notifications = mergeNotifications([...resNotifications, ...notifications]);
         const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(_notifications, true, _agent, feedPool || []);
@@ -167,8 +167,8 @@
                 return filter.includes(item.reason);
             });
             const resNotifications = isOnlyShowUnread
-                    ? _notifications.filter(notification => !notification.isRead)
-                    : _notifications;
+                    ? res.data.notifications.filter(notification => !notification.isRead)
+                    : res.data.notifications;
 
             const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, feedPool);
             notifications = [...notifications, ...resNotifications];
