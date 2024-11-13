@@ -116,7 +116,11 @@
                 cursor: '',
             });
 
-            if (!Array.isArray(column.filter) || !column.filter.length) {
+            if (!Array.isArray(column.filter)) {
+                column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+            }
+
+            if (!column.filter.length) {
                 column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
             }
 
