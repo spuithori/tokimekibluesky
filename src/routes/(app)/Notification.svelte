@@ -159,6 +159,10 @@
             });
             cursor = res.data.cursor;
 
+            if (!filter.length) {
+                filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+            }
+
             const _notifications = res.data.notifications.filter(item => {
                 return filter.includes(item.reason);
             });
