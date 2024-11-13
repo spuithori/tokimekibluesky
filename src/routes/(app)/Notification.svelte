@@ -101,6 +101,7 @@
             const subject = record.subject;
 
             if (subject === _agent.did()) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 await observeRealtimeNotification();
             }
         }
@@ -121,18 +122,10 @@
     async function observeRealtimeNotification() {
         const res = await _agent.agent.api.app.bsky.notification.getUnreadCount();
         onupdate(res.data.count)
-        await putNotifications(res.data.count);
+        await putNotifications();
     }
 
-    async function putNotifications(count) {
-        if (!$realtime.isConnected) {
-            return false;
-        }
-
-        if (!isPage) {
-            // return false;
-        }
-
+    async function putNotifications() {
         const res = await _agent.agent.api.app.bsky.notification.listNotifications({
             limit: 10,
             cursor: '',
