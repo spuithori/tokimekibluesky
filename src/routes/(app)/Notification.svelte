@@ -130,9 +130,12 @@
             limit: 10,
             cursor: '',
         });
+        const __notifications = res.data.notifications.filter(item => {
+            return filter.includes(item.reason);
+        });
         const resNotifications = isOnlyShowUnread
-            ? res.data.notifications.filter(notification => !notification.isRead)
-            : res.data.notifications;
+            ? __notifications.filter(notification => !notification.isRead)
+            : __notifications;
 
         const _notifications = mergeNotifications([...resNotifications, ...notifications]);
         const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(_notifications, true, _agent, feedPool || []);
@@ -150,13 +153,17 @@
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         const res = await _agent.agent.api.app.bsky.notification.listNotifications({
-            limit: 25,
+            limit: 50,
             cursor: cursor,
         });
         cursor = res.data.cursor;
+
+        const _notifications = res.data.notifications.filter(item => {
+            return filter.includes(item.reason);
+        });
         const resNotifications = isOnlyShowUnread
-            ? res.data.notifications.filter(notification => !notification.isRead)
-            : res.data.notifications;
+            ? _notifications.filter(notification => !notification.isRead)
+            : _notifications;
 
         const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, feedPool);
         notifications = [...notifications, ...resNotifications];

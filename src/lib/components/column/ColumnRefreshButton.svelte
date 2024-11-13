@@ -112,12 +112,15 @@
             return false;
         } else if (column.algorithm.type === 'notification') {
             const res = await _agent.agent.api.app.bsky.notification.listNotifications({
-                limit: 25,
+                limit: 50,
                 cursor: '',
             });
+            const _notifications = res.data.notifications.filter(item => {
+                return column.filter.includes(item.reason);
+            });
             let resNotifications = column.settings?.onlyShowUnread
-                ? res.data.notifications.filter(notification => !notification.isRead)
-                : res.data.notifications;
+                ? _notifications.filter(notification => !notification.isRead)
+                : _notifications;
 
             if (!isAutoRefresh && column.settings?.onlyShowUnread) {
                 resNotifications = resNotifications.filter(notification => !column.data.feed.some(_notification => notification.uri === _notification.uri));
