@@ -152,27 +152,32 @@
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        const res = await _agent.agent.api.app.bsky.notification.listNotifications({
-            limit: 50,
-            cursor: cursor,
-        });
-        cursor = res.data.cursor;
+        try {
+            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+                limit: 50,
+                cursor: cursor,
+            });
+            cursor = res.data.cursor;
 
-        const _notifications = res.data.notifications.filter(item => {
-            return filter.includes(item.reason);
-        });
-        const resNotifications = isOnlyShowUnread
-            ? _notifications.filter(notification => !notification.isRead)
-            : _notifications;
+            const _notifications = res.data.notifications.filter(item => {
+                return filter.includes(item.reason);
+            });
+            const resNotifications = isOnlyShowUnread
+                    ? _notifications.filter(notification => !notification.isRead)
+                    : _notifications;
 
-        const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, feedPool);
-        notifications = [...notifications, ...resNotifications];
-        notificationGroup = [...notificationGroup, ...newNotificationGroup];
-        feedPool = newFeedPool;
+            const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, feedPool);
+            notifications = [...notifications, ...resNotifications];
+            notificationGroup = [...notificationGroup, ...newNotificationGroup];
+            feedPool = newFeedPool;
 
-        if (cursor && resNotifications.length) {
-            loaded();
-        } else {
+            if (cursor && resNotifications.length) {
+                loaded();
+            } else {
+                complete();
+            }
+        } catch (e) {
+            console.error(e);
             complete();
         }
     }
