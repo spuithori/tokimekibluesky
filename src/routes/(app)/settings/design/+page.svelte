@@ -25,6 +25,7 @@
     let displayHandle = $state($settings?.design.displayHandle || false);
     let reactionMode = $state($settings?.design.reactionMode || 'tokimeki');
     let leftMode = $state($settings?.design.leftMode || false);
+    let disableProfilePopup = $state($settings?.design.disableProfilePopup || false);
 
     let colors = $derived(detectColors($theme));
 
@@ -51,6 +52,7 @@
         $settings.design.displayHandle = displayHandle;
         $settings.design.reactionMode = reactionMode;
         $settings.design.leftMode = leftMode;
+        $settings.design.disableProfilePopup = disableProfilePopup;
     });
 
     const datetimeFormats = [
@@ -470,6 +472,18 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="leftMode" bind:checked={leftMode}><label class="input-toggle__label" for="leftMode"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group only-pc">
+      <dt class="settings-group__name">
+        {$_('disable_profile_popup')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="disableProfilePopup" bind:checked={disableProfilePopup}><label class="input-toggle__label" for="disableProfilePopup"></label>
         </div>
       </dd>
     </dl>

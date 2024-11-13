@@ -1,6 +1,6 @@
 <script lang="ts">
   import ProfileCard from "./ProfileCard.svelte";
-  import {agent, isDataSaving} from '$lib/stores';
+  import {agent, isDataSaving, settings} from '$lib/stores';
   import {goto} from "$app/navigation";
   import {page} from "$app/stores";
 
@@ -15,6 +15,10 @@
   let isProfileShown = $state(false);
 
   async function handleAvatarMouseOver() {
+      if ($settings?.design?.disableProfilePopup) {
+          return false;
+      }
+
       if (avatarMouseOverTimeId) {
           clearTimeout(avatarMouseOverTimeId);
       }
@@ -25,6 +29,10 @@
   }
 
   async function handleAvatarMouseLeave() {
+      if ($settings?.design?.disableProfilePopup) {
+          return false;
+      }
+
       if (avatarMouseOverTimeId) {
           clearTimeout(avatarMouseOverTimeId);
       }

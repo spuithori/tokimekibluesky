@@ -54,6 +54,7 @@ const defaultSettings = {
         displayHandle: false,
         reactionMode: 'tokimeki',
         leftMode: false,
+        disableProfilePopup: false,
         hideSide: false,
     },
     timeline: {

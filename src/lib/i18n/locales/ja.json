@@ -647,5 +647,6 @@
   "login_2fa_code_send": "2要素認証コードをメールアドレスに送信しました。確認の上コードを入力してください。",
   "tag_instant_mute": "キーワードミュートに追加",
   "success_mute_tag": "{tag} をキーワードミュートに追加しました。",
-  "atmosphere_short_desc_pinksea": "おえかき"
+  "atmosphere_short_desc_pinksea": "おえかき",
+  "disable_profile_popup": "プロフィールのポップアップを無効化"
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
     import ProfileCard from "./ProfileCard.svelte";
-    import { agent } from '$lib/stores';
+    import { agent, settings } from '$lib/stores';
 
     let { _agent = $agent, handle, children } = $props();
 
@@ -8,6 +8,10 @@
     let isProfileShown = $state(false);
 
     async function handleMouseOver() {
+        if ($settings?.design?.disableProfilePopup) {
+            return false;
+        }
+
         if (avatarMouseOverTimeId) {
             clearTimeout(avatarMouseOverTimeId);
         }
@@ -18,6 +22,10 @@
     }
 
     async function handleMouseLeave() {
+        if ($settings?.design?.disableProfilePopup) {
+            return false;
+        }
+
         if (avatarMouseOverTimeId) {
             clearTimeout(avatarMouseOverTimeId);
         }
