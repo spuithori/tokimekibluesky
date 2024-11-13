@@ -115,6 +115,11 @@
                 limit: 25,
                 cursor: '',
             });
+
+            if (!Array.isArray(column.filter) || !column.filter.length) {
+                column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+            }
+
             const _notifications = res.data.notifications.filter(item => {
                 return column.filter.includes(item.reason);
             });
