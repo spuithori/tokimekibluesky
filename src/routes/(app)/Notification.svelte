@@ -34,7 +34,7 @@
         feedPool = $bindable(),
         notificationGroup = $bindable(),
         lastRefresh = $bindable(),
-        filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'],
+        filter = $bindable(['like', 'repost', 'reply', 'mention', 'quote', 'follow']),
         isOnlyShowUnread = false,
         sound = null,
         id = null,
@@ -159,7 +159,7 @@
             });
             cursor = res.data.cursor;
 
-            if (!filter.length) {
+            if (!filter.length || !Array.isArray(filter)) {
                 filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
             }
 
