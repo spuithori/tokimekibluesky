@@ -171,7 +171,7 @@
             notificationGroup = [...notificationGroup, ...newNotificationGroup];
             feedPool = newFeedPool;
 
-            if (cursor && resNotifications.length) {
+            if (cursor && res.data.notifications.length) {
                 loaded();
             } else {
                 complete();
