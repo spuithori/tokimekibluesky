@@ -1,19 +1,16 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
-    import type { LayoutData } from '../$types';
-    import { agent } from '$lib/stores';
-    import InfiniteLoading from 'svelte-infinite-loading';
-    import {AppBskyEmbedImages, AppBskyFeedDefs} from '@atproto/api';
-    import MediaTimelineItem from '../../../MediaTimelineItem.svelte';
-    import { toast } from "svelte-sonner";
+  import { _ } from 'svelte-i18n';
+  import type { LayoutData } from '../$types';
+  import InfiniteLoading from 'svelte-infinite-loading';
+  import {AppBskyEmbedImages} from '@atproto/api';
+  import MediaTimelineItem from '../../../MediaTimelineItem.svelte';
+  import { toast } from "svelte-sonner";
+  import {getAgentContext} from "../state.svelte";
 
-    let feeds = $state([]);
-    let media = [];
-    let cursor = '';
-
-    const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
-        return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
-    }
+  const agentContext = getAgentContext();
+  let feeds = $state([]);
+  let media = [];
+  let cursor = '';
 
   interface Props {
     data: LayoutData;
@@ -21,34 +18,34 @@
 
   let { data }: Props = $props();
 
-    const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        try {
-            const res = await $agent.agent.api.app.bsky.feed.getAuthorFeed({actor: data.params.handle, limit: 30, cursor: cursor, filter: 'posts_with_media'});
-            cursor = res.data.cursor;
-            for (const item of res.data.feed) {
-                if (AppBskyEmbedImages.isView(item.post?.embed) || AppBskyEmbedImages.isView(item.post?.embed?.media)) {
-                    feeds.push(item);
-                }
-            }
-            feeds = feeds;
+  const handleLoadMore = async ({ detail: { loaded, complete } }) => {
+      try {
+          const res = await agentContext.agent.agent.api.app.bsky.feed.getAuthorFeed({actor: data.params.handle, limit: 30, cursor: cursor, filter: 'posts_with_media'});
+          cursor = res.data.cursor;
+          for (const item of res.data.feed) {
+              if (AppBskyEmbedImages.isView(item.post?.embed) || AppBskyEmbedImages.isView(item.post?.embed?.media)) {
+                  feeds.push(item);
+              }
+          }
+          feeds = feeds;
 
-            if (cursor) {
-                loaded();
-            } else {
-                complete();
-            }
-        } catch(e) {
-            if (e.error === 'BlockedActor') {
-                toast.error($_('error_get_posts_because_blocking'));
-                complete();
-            }
+          if (cursor) {
+              loaded();
+          } else {
+              complete();
+          }
+      } catch(e) {
+          if (e.error === 'BlockedActor') {
+              toast.error($_('error_get_posts_because_blocking'));
+              complete();
+          }
 
-            if (e.error === 'BlockedByActor') {
-                toast.error($_('error_get_posts_because_blocked'));
-                complete();
-            }
-        }
-    }
+          if (e.error === 'BlockedByActor') {
+              toast.error($_('error_get_posts_because_blocked'));
+              complete();
+          }
+      }
+  }
 </script>
 
 <svelte:head>

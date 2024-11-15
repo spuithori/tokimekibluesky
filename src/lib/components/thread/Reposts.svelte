@@ -5,7 +5,7 @@
     import {onDestroy} from "svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
 
-    let { uri } = $props();
+    let { uri, _agent } = $props();
     let isOpen = $state(false);
 
     function handleClose() {
@@ -28,7 +28,7 @@
 <button class="likes-heading" onclick={() => {isOpen = true}}>{$_('reposted_users')}</button>
 
 {#if (isOpen)}
-    <RepostsModal {uri} on:close={handleClose}></RepostsModal>
+    <RepostsModal {uri} {_agent} on:close={handleClose}></RepostsModal>
 {/if}
 
 <style lang="postcss">

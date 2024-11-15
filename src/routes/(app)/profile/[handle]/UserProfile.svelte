@@ -20,18 +20,18 @@
     isLabeler?: boolean;
   }
 
-  let { handle, profile = $bindable(getProfile(handle)), isLabeler = false, children }: Props = $props();
+  let { handle, profile = $bindable(getProfile(handle)), isLabeler = false, _agent = $agent, children }: Props = $props();
 
   let firstPostDate = $state('');
   let firstPostUri = $state('');
   let textArray = $derived.by(() => {
       const rich = new RichText({text: profile.description})
-      rich.detectFacets($agent.agent);
+      rich.detectFacets(_agent.agent);
       return getTextArray(rich);
   });
   let serviceHost = $state('');
   let gridWidth = $state(0);
-  const _agent = new BskyAgent({service: $agent.service()});
+  const __agent = new BskyAgent({service: _agent.service()});
 
   getServiceHost()
       .then(value => {
@@ -45,7 +45,7 @@
 
   async function getFirstRecord(handle) {
       try {
-          return await _agent.api.com.atproto.repo.listRecords({
+          return await __agent.api.com.atproto.repo.listRecords({
               collection: "app.bsky.feed.post",
               limit: 1,
               reverse: true,
@@ -76,7 +76,7 @@
           return false;
       }
 
-      const res = await $agent.agent.api.app.bsky.actor.getProfile({actor: handle});
+      const res = await _agent.agent.api.app.bsky.actor.getProfile({actor: handle});
       profile = res.data;
 
       if (profile.labels && Array.isArray(profile.labels)) {
@@ -101,7 +101,7 @@
 
 {#if (profile.did)}
   <div class="user-profile">
-    {#if (profile.labels?.length)}
+    {#if (profile?.labels?.length)}
       <dl class="profile-reported">
         <dt class="profile-reported__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="19.999" viewBox="0 0 20 19.999">
           <path id="exclamation-solid" d="M2.93,17.07a10,10,0,1,1,14.142,0,10,10,0,0,1-14.142,0ZM9,5v6h2V5Zm0,8v2h2V13Z" transform="translate(0)" fill="#ffffff"/>
@@ -114,7 +114,7 @@
     {/if}
 
     {#if (profile.viewer?.blocking)}
-      {#if (profile.viewer.blocking.split('/').slice(-3)[0] === $agent.did())}
+      {#if (profile.viewer.blocking.split('/').slice(-3)[0] === _agent.did())}
         <p class="profile-muted">{$_('blocking_this_user')}</p>
       {/if}
     {/if}
@@ -215,8 +215,8 @@
                     <p class="profile-first">{$_('first_post_date', {values: {date: '----/--/--' }})}</p>
                   {/if}
 
-                  {#if profile?.viewer?.knownFollowers && !$settings.general?.hideProfileCounts && profile.did !== $agent.did()}
-                    <SocialProof knownFollowers={profile?.viewer?.knownFollowers} actor={profile.did}></SocialProof>
+                  {#if profile?.viewer?.knownFollowers && !$settings.general?.hideProfileCounts && profile.did !== _agent.did()}
+                    <SocialProof knownFollowers={profile?.viewer?.knownFollowers} actor={profile.did} {_agent}></SocialProof>
                   {/if}
                 {/if}
 
@@ -230,7 +230,7 @@
           {#if (!$settings?.general?.disableAtmosphere)}
             <div class="embla__slide">
               <div class="profile-grid__right">
-                <ProfileAtmosphere did={profile.did} handle={profile.handle} {_agent}></ProfileAtmosphere>
+                <ProfileAtmosphere did={profile.did} handle={profile.handle} _agent={__agent}></ProfileAtmosphere>
               </div>
             </div>
           {/if}

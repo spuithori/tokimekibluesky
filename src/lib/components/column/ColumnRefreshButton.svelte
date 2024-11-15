@@ -193,6 +193,11 @@
                 }
             });
         } else if (column.algorithm.type === 'thread') {
+            if (isJunk) {
+                isRefreshing = false;
+                return false;
+            }
+
             const uri = column.algorithm.algorithm;
 
             try {

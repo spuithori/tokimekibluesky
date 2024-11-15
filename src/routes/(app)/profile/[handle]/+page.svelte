@@ -1,15 +1,18 @@
 <script lang="ts">
   import type {LayoutData, Snapshot} from './$types';
-  import {agent, isAfterReload, settings} from '$lib/stores';
+  import {isAfterReload, settings} from '$lib/stores';
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import DeckRow from "../../DeckRow.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {tick} from "svelte";
+  import {getAgentContext} from "./state.svelte";
 
   interface Props {
     data: LayoutData;
   }
   let { data }: Props = $props();
+
+  const agentContext = getAgentContext();
   const columnState = getColumnState(true);
   let tempActive = $state(false);
   let scrollY = 0;
@@ -24,8 +27,8 @@
           },
           style: 'default',
           settings: defaultDeckSettings,
-          did: $agent.did(),
-          handle: $agent.handle(),
+          did: agentContext.agent.did(),
+          handle: agentContext.agent.handle(),
           data: {
               feed: [],
               cursor: '',

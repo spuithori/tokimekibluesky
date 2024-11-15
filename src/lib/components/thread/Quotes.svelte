@@ -5,7 +5,7 @@
     import {onDestroy} from "svelte";
     import QuotesModal from "$lib/components/thread/QuotesModal.svelte";
 
-  let { uri, children } = $props();
+  let { uri, _agent, children } = $props();
     let isOpen = $state(false);
 
     function handleClose() {
@@ -31,7 +31,7 @@
 </button>
 
 {#if (isOpen)}
-  <QuotesModal {uri} on:close={handleClose}></QuotesModal>
+  <QuotesModal {uri} {_agent} on:close={handleClose}></QuotesModal>
 {/if}
 
 <style lang="postcss">

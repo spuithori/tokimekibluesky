@@ -133,6 +133,11 @@
           max-width: min(740px, 94vw);
       }
 
+      &--small {
+          width: 500px;
+          max-width: 94vw;
+      }
+
       &--fixed {
           width: 500px;
           height: 600px;

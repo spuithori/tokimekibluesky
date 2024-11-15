@@ -11,6 +11,8 @@ export const agent = writable<Agent>(undefined);
 
 export const agents = writable(new Map<number, Agent>());
 
+export const junkAgentDid = writable<string | undefined>(undefined);
+
 export const notificationCount = writable(0);
 
 export const sharedText = writable<string>('');

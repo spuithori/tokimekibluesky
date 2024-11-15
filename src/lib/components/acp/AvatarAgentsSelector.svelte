@@ -3,13 +3,11 @@
   import { createFloatingActions } from 'svelte-floating-ui';
   import { fly } from 'svelte/transition';
   import {agent, agents} from "$lib/stores";
-  import {createEventDispatcher} from "svelte";
   import { clickOutside } from '$lib/clickOutSide';
   import {accountsDb} from '$lib/db';
   import {getAccountIdByDid} from "$lib/util";
   import AvatarAgentsSelectorModalItem from "$lib/components/acp/AvatarAgentsSelectorModalItem.svelte";
   import type {Agent} from "$lib/agent";
-  const dispatch = createEventDispatcher();
 
   interface Props {
     _agent?: any;
@@ -17,7 +15,7 @@
     style?: string;
   }
 
-  let { _agent = $bindable($agent), isDisabled = false, style = 'default' }: Props = $props();
+  let { _agent = $bindable($agent), isDisabled = false, style = 'default', onselect }: Props = $props();
   let isOpen = $state(false);
   let avatar = $state();
 
@@ -36,9 +34,7 @@
   })
 
   function selectAgent(agent: Agent) {
-      dispatch('select', {
-          agent: agent,
-      });
+      onselect(agent);
 
       accountsDb.accounts.get(getAccountIdByDid($agents, agent.did()))
           .then(res => {

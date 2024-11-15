@@ -1,64 +1,68 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
-    import type { LayoutData } from '../$types';
-    import {agent, isAfterReload, settings} from "$lib/stores";
-    import UserItem from "../UserItem.svelte";
-    import InfiniteLoading from 'svelte-infinite-loading';
-    import type { Snapshot } from './$types';
-    import {tick} from "svelte";
-    let followers = $state([]);
-    let cursor = '';
-    let scrollY = 0;
-    let tempActive = $state(false);
+  import { _ } from 'svelte-i18n';
+  import type { LayoutData } from '../$types';
+  import {isAfterReload, settings} from "$lib/stores";
+  import UserItem from "../UserItem.svelte";
+  import InfiniteLoading from 'svelte-infinite-loading';
+  import type { Snapshot } from './$types';
+  import {tick} from "svelte";
+  import {getAgentContext} from "../state.svelte";
 
-    export const snapshot: Snapshot = {
-        capture: () => [followers, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
-        restore: (value) => {
-          if(!$isAfterReload) {
-            [followers, cursor, scrollY] = value;
+  const agentContext = getAgentContext();
+  let followers = $state([]);
+  let cursor = '';
+  let scrollY = 0;
+  let tempActive = $state(false);
 
-            tick().then(() => {
-                if ($settings.design.layout === 'decks') {
-                    document.querySelector('.modal-page-content').scroll(0, scrollY);
-                } else {
-                    document.querySelector(':root').scroll(0, scrollY);
-                }
-            });
-          }
+  export const snapshot: Snapshot = {
+      capture: () => [followers, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
+      restore: (value) => {
+        if(!$isAfterReload) {
+          [followers, cursor, scrollY] = value;
 
-          isAfterReload.set(false);
+          tick().then(() => {
+              if ($settings.design.layout === 'decks') {
+                  document.querySelector('.modal-page-content').scroll(0, scrollY);
+              } else {
+                  document.querySelector(':root').scroll(0, scrollY);
+              }
+          });
         }
-    };
+
+        isAfterReload.set(false);
+      }
+  };
+
   interface Props {
     data: LayoutData;
   }
 
   let { data }: Props = $props();
 
-    async function handleLoadMore({ detail: { loaded, complete } }) {
-        try {
-            let raw = await $agent.agent.api.app.bsky.graph.getFollowers({
-                actor: data.params.handle,
-                limit: 20,
-                cursor: cursor
-            });
-            cursor = raw.data.cursor;
-            followers = [...new Map([...followers, ...raw.data.followers].map(follower => [follower.did, follower])).values()];
+  async function handleLoadMore({ detail: { loaded, complete } }) {
+      try {
+          let raw = await agentContext.agent.agent.api.app.bsky.graph.getFollowers({
+              actor: data.params.handle,
+              limit: 20,
+              cursor: cursor
+          });
+          cursor = raw.data.cursor;
+          followers = [...new Map([...followers, ...raw.data.followers].map(follower => [follower.did, follower])).values()];
 
-            if (cursor) {
-                loaded();
-            } else {
-                complete();
-            }
-        } catch (e) {
-            console.error(e);
-            complete();
-        }
-    }
+          if (cursor) {
+              loaded();
+          } else {
+              complete();
+          }
+      } catch (e) {
+          console.error(e);
+          complete();
+      }
+  }
 
-    tick().then(() => {
-        tempActive = true;
-    })
+  tick().then(() => {
+      tempActive = true;
+  })
 </script>
 
 <svelte:head>
@@ -69,7 +73,7 @@
   <div class="user-items-list">
     <div class="user-timeline">
       {#each followers as user (user)}
-        <UserItem user={user}></UserItem>
+        <UserItem {user} _agent={agentContext.agent}></UserItem>
       {/each}
 
       <InfiniteLoading on:infinite={handleLoadMore}>

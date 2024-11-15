@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {agent, settings} from '$lib/stores';
+  import {settings} from '$lib/stores';
   import spinner from '$lib/images/loading.svg';
   import Thread from './profile/[handle]/post/[id]/Thread.svelte';
   import {onMount} from "svelte";
@@ -17,7 +17,7 @@
   let {
     column = $bindable(),
     index,
-    _agent = $agent,
+    _agent,
     isRefreshing = $bindable(),
     isJunk = false
   }: Props = $props();
@@ -160,7 +160,9 @@
   <p class="thread-error">{$_('error_thread_notfound')}</p>
 {:else}
   {#if (isJunk)}
-    <VirtualThreadList {_agent} {column} {rootIndex}></VirtualThreadList>
+    {#key column.data.feed}
+      <VirtualThreadList {_agent} {column} {rootIndex}></VirtualThreadList>
+    {/key}
   {:else}
     <div class="timeline thread-wrap" style="--root-client-height: {rootClientHeight}px" >
       <Thread feeds={column.data.feed} depth={0} column={column} {_agent} bind:rootClientHeight={rootClientHeight} scrollTop={scrollTop}></Thread>

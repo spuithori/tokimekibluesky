@@ -37,15 +37,18 @@
         index = 0,
         unique = $bindable(Symbol()),
         isJunk = false,
-        name = undefined
+        name = undefined,
+        _agent,
     }: Props = $props();
 
     const columnState = getColumnState(isJunk);
     const fixedColumnState = getColumnState(false);
     let column = columnState.getColumn(index);
 
-    const uniqueAgent = $agents.get(getAccountIdByDid($agents, column.did));
-    let _agent = uniqueAgent || $agent;
+    if (!_agent) {
+        _agent = $agents.get(getAccountIdByDid($agents, column.did)) || $agent;
+    }
+
     let isSettingsOpen = $state(false);
     let isTopScrolling = $state();
     let isScrollPaused = $state(false);
@@ -149,6 +152,8 @@
         const _column = {
             ...column,
             id: self.crypto.randomUUID(),
+            did: _agent.did() as string,
+            handle: _agent.handle(),
         }
         _column.algorithm.name = name || column.algorithm.name;
 
@@ -407,7 +412,7 @@
     {#if isSettingsOpen}
         <DeckSettingsModal {column} {index} {_agent} layout={$settings.design?.layout} on:close={handleSettingsClick}></DeckSettingsModal>
     {:else}
-        {#if uniqueAgent}
+        {#if _agent}
             <div class="deck-row__content">
                 {#if (column.algorithm.type === 'notification')}
                     <NotificationTimeline {index} {isJunk} {_agent} {unique}></NotificationTimeline>

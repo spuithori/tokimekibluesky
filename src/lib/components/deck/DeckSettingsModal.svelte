@@ -783,4 +783,8 @@
             color: var(--link-color);
         }
     }
+
+    .column-heading {
+        padding-right: 8px;
+    }
 </style>

@@ -12,7 +12,8 @@
       title?: string;
     }
 
-    let { id, handle = $bindable(), title = '' }: Props = $props();
+    let { id, handle = $bindable(), title = '', _agent = $agent }: Props = $props();
+    let columnId = $derived(`thread_${id}`);
     const columnState = getColumnState(true);
 
     onMount(async () => {
@@ -23,12 +24,12 @@
         }
 
         if (!isDid(handle)) {
-            handle = await getDidByHandle(handle, $agent);
+            handle = await getDidByHandle(handle, _agent);
         }
 
-        if (!columnState.hasColumn('thread_' + id)) {
+        if (!columnState.hasColumn(columnId)) {
             columnState.add({
-                id: 'thread_' + id,
+                id: columnId,
                 algorithm: {
                     algorithm: 'at://' + handle + '/app.bsky.feed.post/' + id,
                     type: 'thread',
@@ -36,8 +37,8 @@
                 },
                 style: 'default',
                 settings: defaultDeckSettings,
-                did: $agent.did(),
-                handle: $agent.handle(),
+                did: _agent.did(),
+                handle: _agent.handle(),
                 data: {
                     feed: [],
                     cursor: '',
@@ -47,6 +48,8 @@
     })
 </script>
 
-{#if (columnState.hasColumn('thread_' + id))}
-  <DeckRow index={columnState.getColumnIndex('thread_' + id)} isJunk={true} name={title}></DeckRow>
+{#if (columnState.hasColumn(columnId))}
+  {#key _agent}
+    <DeckRow index={columnState.getColumnIndex(columnId)} isJunk={true} name={title} {_agent}></DeckRow>
+  {/key}
 {/if}

@@ -127,6 +127,10 @@
 
       &--float {
           z-index: 1002;
+
+          @media (max-width: 767px) {
+              z-index: 1000;
+          }
       }
 
       @media (max-width: 767px) {

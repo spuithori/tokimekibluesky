@@ -4,10 +4,11 @@
     import FeedPreview from "./FeedPreview.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
     import type { Snapshot } from './$types';
-    import {isAfterReload, settings} from "$lib/stores";
+    import {isAfterReload, settings, agent} from "$lib/stores";
     import {tick} from "svelte";
 
     let title = $state('');
+    let _agent = $state($agent);
 
     export const snapshot: Snapshot = {
         capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
@@ -47,6 +48,6 @@
   </div>
 
   {#key $page.params.id}
-    <FeedPreview id={$page.params.id} handle={$page.params.handle} bind:title={title}></FeedPreview>
+    <FeedPreview id={$page.params.id} handle={$page.params.handle} bind:title={title} {_agent}></FeedPreview>
   {/key}
 </PageModal>

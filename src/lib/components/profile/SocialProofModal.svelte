@@ -1,19 +1,18 @@
 <script>
     import {_} from "svelte-i18n";
     import {createEventDispatcher} from 'svelte';
-    import { agent } from "$lib/stores";
     const dispatch = createEventDispatcher();
     import InfiniteLoading from 'svelte-infinite-loading';
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
 
-  let { actor } = $props();
+    let { actor, _agent } = $props();
     let followers = $state([]);
     let cursor;
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
         try {
-            const res = await $agent.agent.api.app.bsky.graph.getKnownFollowers({actor: actor, cursor: cursor});
+            const res = await _agent.agent.api.app.bsky.graph.getKnownFollowers({actor: actor, cursor: cursor});
             console.log(res)
             cursor = res.data.cursor;
             followers = [...followers, ...res.data.followers];

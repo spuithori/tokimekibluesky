@@ -2,10 +2,9 @@
     import {_} from 'svelte-i18n';
     import {createEventDispatcher} from 'svelte';
     import {fly} from 'svelte/transition';
-    import {agent} from '$lib/stores';
     import imageCompression from 'browser-image-compression';
 
-  let { profile } = $props();
+    let { profile, _agent } = $props();
 
     const dispatch = createEventDispatcher();
 
@@ -73,7 +72,7 @@
             bannerBase64 = await imageCompression.getDataUrlFromFile(image);
         }
 
-        const fileBlob = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
+        const fileBlob = await _agent.agent.api.com.atproto.repo.uploadBlob(image, {
             encoding: 'image/jpeg',
         });
         isSubmitDisabled = false;
@@ -84,7 +83,7 @@
     async function submit() {
         let currentProfile;
         try {
-            currentProfile = await $agent.agent.api.app.bsky.actor.profile.get({ repo: $agent.did(), rkey: 'self' });
+            currentProfile = await _agent.agent.api.app.bsky.actor.profile.get({ repo: _agent.did(), rkey: 'self' });
         } catch(e) {
            console.log(e)
         }
@@ -103,7 +102,7 @@
         }
 
         try {
-            await $agent.agent.upsertProfile(_profile => {
+            await _agent.agent.upsertProfile(_profile => {
                 const profile = _profile || {};
 
                 return {

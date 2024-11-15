@@ -6,7 +6,9 @@
   import InfiniteLoading from 'svelte-infinite-loading';
   import {BskyAgent} from "@atproto/api";
   import {tick} from "svelte";
+  import {getAgentContext} from "../state.svelte";
 
+  const agentContext = getAgentContext();
   let feeds = $state([]);
   let cursor = '';
   let tempActive = $state(false);
@@ -24,7 +26,7 @@
           return record.value.subject.uri;
       })
 
-      const res = await $agent.agent.api.app.bsky.feed.getPosts({uris: uris});
+      const res = await agentContext.agent.agent.api.app.bsky.feed.getPosts({uris: uris});
       let feeds = [];
       res.data.posts.forEach(post => {
           feeds.push({

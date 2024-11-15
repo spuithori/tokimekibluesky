@@ -1,4 +1,7 @@
 .profile-tab {
+    position: sticky;
+    top: 52px;
+    z-index: 1;
     display: flex;
     gap: 16px;
     list-style: none;
@@ -7,6 +10,7 @@
     font-size: 15px;
     font-weight: bold;
     border-bottom: 1px solid var(--border-color-2);
+    background-color: var(--bg-color-1);
     white-space: nowrap;
 
     @media (max-width: 767px) {

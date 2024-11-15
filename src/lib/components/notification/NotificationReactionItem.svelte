@@ -94,8 +94,7 @@
             <div class="notification-authors">
                 {#each item.notifications as notification (notification)}
                     <div class="notification-author">
-                        <Avatar href="/profile/{ notification.author.handle }" avatar={notification.author.avatar}
-                                handle={notification.author.handle} {_agent}></Avatar>
+                        <Avatar href="/profile/{ notification.author.handle }" avatar={notification.author.avatar} handle={notification.author.handle} {_agent} profile={notification.author}></Avatar>
                     </div>
                 {/each}
             </div>
@@ -130,11 +129,11 @@
 </article>
 
 {#if isLikesOpen}
-    <LikesModal uri={item.feed.uri} on:close={() => {isLikesOpen = false}}></LikesModal>
+    <LikesModal uri={item.feed.uri} on:close={() => {isLikesOpen = false}} {_agent}></LikesModal>
 {/if}
 
 {#if isRepostsOpen}
-    <RepostsModal uri={item.feed.uri} on:close={() => {isRepostsOpen = false}}></RepostsModal>
+    <RepostsModal uri={item.feed.uri} on:close={() => {isRepostsOpen = false}} {_agent}></RepostsModal>
 {/if}
 
 <style lang="postcss">

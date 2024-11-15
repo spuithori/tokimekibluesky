@@ -5,7 +5,7 @@
   import LikesModal from "$lib/components/thread/LikesModal.svelte";
   import {onDestroy} from "svelte";
 
-  let { uri } = $props();
+  let { uri, _agent } = $props();
   let isOpen = $state(false);
 
   function handleClose() {
@@ -28,7 +28,7 @@
 <button class="likes-heading" onclick={() => {isOpen = true}}>{$_('liked_users')}</button>
 
 {#if (isOpen)}
-  <LikesModal {uri} on:close={handleClose}></LikesModal>
+  <LikesModal {uri} {_agent} on:close={handleClose}></LikesModal>
 {/if}
 
 <style lang="postcss">

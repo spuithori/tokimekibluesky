@@ -16,6 +16,9 @@
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
+    import {setAgentContext} from "./state.svelte";
+    import {profileHintState} from "$lib/classes/profileHintState.svelte";
 
     const junkColumnState = getColumnState(true);
 
@@ -29,13 +32,23 @@
     let profile = $state();
     let isLabeler = $state(false);
     let handle = $derived($page.params.handle);
+    let _agent = $state($agent);
+    let agentContext = setAgentContext(_agent);
+
+    if (profileHintState.hasProfile(handle)) {
+        profile = $state.snapshot(profileHintState.profile);
+        if (profile.labels && Array.isArray(profile.labels)) {
+            profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');
+        }
+        profileHintState.clear();
+    }
 
     $effect.pre(() => {
         isActive(data.url.pathname);
     })
 
     $effect(() => {
-        getProfile(handle);
+        getProfile(handle, false);
     })
 
     export const snapshot: Snapshot = {
@@ -50,7 +63,7 @@
             profile = undefined;
         }
 
-        $agent.agent.api.app.bsky.actor.getProfile({actor: handle})
+        _agent.agent.api.app.bsky.actor.getProfile({actor: handle})
             .then(res => {
                 profile = res.data
 
@@ -101,9 +114,9 @@
 
     async function chatBegin() {
         try {
-            const res = await $agent.agent.api.chat.bsky.convo.getConvoForMembers(
+            const res = await _agent.agent.api.chat.bsky.convo.getConvoForMembers(
                 {
-                    members: [$agent.did(), profile.did as string]
+                    members: [_agent.did(), profile.did as string]
                 },
                 {
                     headers: {
@@ -120,15 +133,15 @@
                     algorithm: {
                         id: convo.id,
                         type: 'chat',
-                        name: convo.members.filter(member => member.did !== $agent.did())[0].displayName || convo.members.filter(member => member.did !== $agent.did())[0].handle,
+                        name: convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle,
                     },
                     style: 'default',
                     settings: {
                         ...defaultDeckSettings,
                         playSound: 'notification1',
                     },
-                    did: $agent.did(),
-                    handle: $agent.handle(),
+                    did: _agent.did(),
+                    handle: _agent.handle(),
                     data: {
                         feed: [],
                         cursor: '',
@@ -160,10 +173,15 @@
             </button>
           </div>
 
-          <h2 class="column-heading__title">{$_(currentPage)} - {profile.displayName || profile.handle}</h2>
+          <div class="column-heading__selector">
+            <AvatarAgentsSelector
+                bind:_agent
+                onselect={(agent) => {agentContext.agent = agent}}
+            ></AvatarAgentsSelector>
+          </div>
 
           <div class="column-heading__buttons column-heading__buttons--right">
-            {#if (profile.did !== $agent.did() && !isLabeler)}
+            {#if (profile.did !== _agent.did() && !isLabeler)}
               {#if !$settings?.general?.disableChat}
                 <button class="profile-heading-button" on:click={chatBegin}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-plus"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
@@ -177,7 +195,7 @@
               
             {:else}
               <div class="profile-follow-button profile-follow-button--me">
-                <UserEdit {profile} on:update={onProfileUpdate}></UserEdit>
+                <UserEdit {profile} {_agent} on:update={onProfileUpdate}></UserEdit>
               </div>
 
               <a class="profile-heading-button" href="/search?q=from:{handle}%20">
@@ -196,9 +214,9 @@
 
       <div class="user-profile-wrap">
         {#if profile}
-          <UserProfile handle={handle} profile={profile} isLabeler={isLabeler} on:refresh={handleRefresh}>
-            {#if (profile.did !== $agent.did() && !isLabeler)}
-              <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
+          <UserProfile {handle} {profile} {isLabeler} {_agent} on:refresh={handleRefresh}>
+            {#if (profile.did !== _agent.did() && !isLabeler)}
+              <UserFollowButton following="{profile.viewer?.following}" user={profile} {_agent}></UserFollowButton>
             {:else if (isLabeler && profile?.did)}
               <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
             {/if}
@@ -226,7 +244,9 @@
         {/if}
       </ul>
 
-      {@render children?.()}
+      {#key agentContext.agent}
+        {@render children?.()}
+      {/key}
     </section>
   </PageModal>
 {/key}

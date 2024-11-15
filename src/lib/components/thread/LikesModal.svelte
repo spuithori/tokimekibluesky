@@ -7,13 +7,13 @@
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
 
-    let { uri } = $props();
+    let { uri, _agent = $agent } = $props();
     let likes = $state([]);
     let cursor;
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
         try {
-            const res = await $agent.agent.api.app.bsky.feed.getLikes({uri: uri, cursor: cursor});
+            const res = await _agent.agent.api.app.bsky.feed.getLikes({uri: uri, cursor: cursor});
             cursor = res.data.cursor;
             likes = [...likes, ...res.data.likes];
 
@@ -29,7 +29,7 @@
     }
 </script>
 
-<Modal title="{$_('liked_users')}" on:close>
+<Modal title="{$_('liked_users')}" size="small" on:close>
   <div class="likes">
     {#each likes as like }
       {#if (!like.actor.viewer?.muted)}

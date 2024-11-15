@@ -16,13 +16,13 @@
 >
   <div class="timeline-analytics-list">
     {#if (column.data.feed[index]?.post?.quoteCount > 0)}
-      <Quotes uri={column.data.feed[index].post.uri}>
+      <Quotes uri={column.data.feed[index].post.uri} {_agent}>
         {column.data.feed[index].post.quoteCount}
       </Quotes>
     {/if}
 
     {#if (column.data.feed[index]?.post?.likeCount > 0)}
-      <Likes uri={column.data.feed[index].post.uri}></Likes>
+      <Likes uri={column.data.feed[index].post.uri} {_agent}></Likes>
     {/if}
   </div>
 </TimelineItem>

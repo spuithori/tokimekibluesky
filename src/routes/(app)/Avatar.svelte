@@ -3,12 +3,14 @@
   import {agent, isDataSaving, settings} from '$lib/stores';
   import {goto} from "$app/navigation";
   import {page} from "$app/stores";
+  import {profileHintState} from "$lib/classes/profileHintState.svelte";
 
   let {
     _agent = $agent,
     avatar,
     handle,
-    href
+    href,
+    profile = undefined,
   } = $props();
 
   let avatarMouseOverTimeId;
@@ -44,6 +46,11 @@
 
   function handleClick(e) {
       e.preventDefault();
+
+      if (profile) {
+          profileHintState.set(profile);
+      }
+
       goto(href, {
           replaceState: $page.state.showModal && $page.url.pathname !== '/',
       });
@@ -58,7 +65,7 @@
   </a>
 
   {#if (isProfileShown)}
-    <ProfileCard handle={handle} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave} {_agent}></ProfileCard>
+    <ProfileCard {handle} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave} {_agent}></ProfileCard>
   {/if}
 </div>
 

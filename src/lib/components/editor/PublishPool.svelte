@@ -23,6 +23,7 @@
           {_agent}
           isDisabled={'true'}
           style={'publish'}
+          onselect={() => {}}
     ></AvatarAgentsSelector>
   </div>
 

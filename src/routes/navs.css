@@ -148,8 +148,8 @@
     height: 52px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 0 8px 0 16px;
+    gap: 12px;
+    padding: 0 16px;
     position: sticky;
     top: 0;
     background-color: var(--bg-color-1);
@@ -170,6 +170,13 @@
         @media (max-width: 767px) {
             font-size: 14px;
         }
+    }
+
+    &__selector {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 2px solid var(--primary-color);
     }
 
     &__buttons {

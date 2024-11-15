@@ -1,7 +1,7 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
     import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2 } from 'lucide-svelte';
-    import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, postPulse, sideState, isPublishInstantFloat, pulseDetach } from '$lib/stores';
+    import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, postPulse, sideState, isPublishInstantFloat, pulseDetach, junkAgentDid } from '$lib/stores';
     import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
     import { toast } from "svelte-sonner";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
@@ -380,6 +380,7 @@
             })
         }
 
+        junkAgentDid.set(_agent.did());
         didHint.set(data.post.author.did);
         goto(uri);
     }

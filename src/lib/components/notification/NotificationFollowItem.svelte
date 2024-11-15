@@ -11,7 +11,7 @@
     <div class="notifications-item__avatar">
         {#if $settings?.design.postsLayout !== 'minimum'}
             <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}
-                    handle={item.author.handle} {_agent}></Avatar>
+                    handle={item.author.handle} profile={item.author} {_agent}></Avatar>
         {/if}
     </div>
 

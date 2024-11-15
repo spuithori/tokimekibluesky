@@ -2,7 +2,7 @@
   import SocialProofModal from "$lib/components/profile/SocialProofModal.svelte";
   import {_} from "svelte-i18n";
 
-  let { knownFollowers, actor } = $props();
+  let { knownFollowers, actor, _agent } = $props();
   let isModalOpen = $state(false);
 </script>
 
@@ -23,7 +23,7 @@
 {/if}
 
 {#if isModalOpen}
-  <SocialProofModal {actor} on:close={() => {isModalOpen = false}}></SocialProofModal>
+  <SocialProofModal {actor} {_agent} on:close={() => {isModalOpen = false}}></SocialProofModal>
 {/if}
 
 <style lang="postcss">

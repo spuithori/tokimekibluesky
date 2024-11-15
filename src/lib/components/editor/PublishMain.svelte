@@ -235,8 +235,8 @@
         }
     }
 
-    async function handleAgentSelect(event) {
-        _agent = event.detail.agent;
+    async function handleAgentSelect(agent) {
+        _agent = agent;
         isVideoUploadEnabled = false;
 
         const limit = await getUploadLimit(_agent);
@@ -506,7 +506,7 @@
         <AvatarAgentsSelector
                 {_agent}
                 isDisabled={isAccountSelectDisabled}
-                on:select={handleAgentSelect}
+                onselect={handleAgentSelect}
                 style={'publish'}
         ></AvatarAgentsSelector>
 
