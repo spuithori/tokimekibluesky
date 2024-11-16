@@ -2,7 +2,8 @@ import { detect, detectAll } from 'tinyld';
 import type { Config } from '@sveltejs/adapter-vercel';
 
 async function languageDetect(text = '') {
-    const detect = detectAll(text);
+    let detect = detectAll(text);
+    detect = detect.filter((item) => item.accuracy > 0.3);
     return detect.slice(0, 3);
 }
 
