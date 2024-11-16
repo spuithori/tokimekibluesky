@@ -2,7 +2,12 @@
   import {settings} from '$lib/stores';
   import {goto} from '$app/navigation';
 
-  export let isVirtual = false;
+  interface Props {
+    isVirtual?: boolean;
+    children?: import('svelte').Snippet;
+  }
+
+  let { isVirtual = false, children }: Props = $props();
 
   function close() {
       goto('/', {
@@ -19,15 +24,15 @@
   }
 </script>
 
-<svelte:window on:keydown={handleKeydown}></svelte:window>
+<svelte:window onkeydown={handleKeydown}></svelte:window>
 
 <div class="modal-page modal-page--{$settings.design?.layout}">
   <div class="modal-page-content" class:modal-page-content--virtual={isVirtual}>
-    <slot></slot>
+    {@render children?.()}
   </div>
 
   {#if $settings.design?.layout === 'decks'}
-    <button class="modal-page-bg-close" on:click={close}></button>
+    <button class="modal-page-bg-close" onclick={close}></button>
   {/if}
 </div>
 

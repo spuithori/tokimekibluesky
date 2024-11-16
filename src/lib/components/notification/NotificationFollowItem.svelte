@@ -4,16 +4,14 @@
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
-    export let filter;
-    export let item;
-    export let _agent;
+    let { filter, item, _agent } = $props();
 </script>
 
 <article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
     <div class="notifications-item__avatar">
         {#if $settings?.design.postsLayout !== 'minimum'}
             <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}
-                    handle={item.author.handle} {_agent}></Avatar>
+                    handle={item.author.handle} profile={item.author} {_agent}></Avatar>
         {/if}
     </div>
 

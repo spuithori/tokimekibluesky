@@ -4,20 +4,32 @@
   import { _ } from 'svelte-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import { createEventDispatcher } from 'svelte';
-  import {agent, columns, quotePost} from "$lib/stores";
+  import {agent} from "$lib/stores";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {goto} from "$app/navigation";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {postState} from "$lib/classes/postState.svelte";
   const dispatch = createEventDispatcher();
+  const columnState = getColumnState();
 
-  export let _agent = $agent;
-  export let feed;
-  export let subscribed = false;
-  export let layout = 'default';
-  let isCreatorOpen = false;
-  let isColumnAdded = false;
-  let isMenuOpen = false;
+  interface Props {
+    _agent?: any;
+    feed: any;
+    subscribed?: boolean;
+    layout?: string;
+  }
+
+  let {
+    _agent = $agent,
+    feed,
+    subscribed = false,
+    layout = 'default'
+  }: Props = $props();
+  let isCreatorOpen = $state(false);
+  let isColumnAdded = $state(false);
+  let isMenuOpen = $state(false);
 
   async function setCurrentFeed () {
       dispatch('close', {
@@ -45,7 +57,7 @@
       }
 
       try {
-          $columns = [...$columns, _column];
+          columnState.add(_column);
 
           dispatch('add');
           toast.success($_('column_added'));
@@ -57,7 +69,8 @@
   }
 
   function handleEmbedClick() {
-      $quotePost = feed;
+      postState.quote = feed;
+      postState.quotePulse = Symbol();
       goto('/');
   }
 </script>
@@ -80,9 +93,9 @@
         {/if}
 
         {#if (layout === 'default' || layout === 'embed')}
-          <button class="button button--ss" on:click={addColumn} disabled={isColumnAdded}>{$_('feed_quick_add')}</button>
+          <button class="button button--ss" onclick={addColumn} disabled={isColumnAdded}>{$_('feed_quick_add')}</button>
 
-          <a href="/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" on:click={setCurrentFeed} class="button button--border button--ss">{$_('feed_show_button')}</a>
+          <a href="/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" onclick={setCurrentFeed} class="button button--border button--ss">{$_('feed_show_button')}</a>
         {/if}
       </div>
     </div>
@@ -90,26 +103,28 @@
 
   {#if (layout !== 'publish')}
     <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="timeline-menu-toggle timeline-menu-toggle--feed">
-        <ul class="timeline-menu-list" slot="content">
-            <li class="timeline-menu-list__item">
-                <a class="timeline-menu-list__button" href="https://bsky.app/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" target="_blank">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-                    <span>{$_('open_social_app')}</span>
-                </a>
-            </li>
+        {#snippet content()}
+            <ul class="timeline-menu-list" >
+              <li class="timeline-menu-list__item">
+                  <a class="timeline-menu-list__button" href="https://bsky.app/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" target="_blank">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+                      <span>{$_('open_social_app')}</span>
+                  </a>
+              </li>
 
-            <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button" on:click={handleEmbedClick}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
-                <span>{$_('embed_feed_button')}</span>
-              </button>
-            </li>
-        </ul>
+              <li class="timeline-menu-list__item">
+                <button class="timeline-menu-list__button" onclick={handleEmbedClick}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+                  <span>{$_('embed_feed_button')}</span>
+                </button>
+              </li>
+          </ul>
+          {/snippet}
     </Menu>
   {/if}
 
   {#if (layout !== 'embed' && layout !== 'publish')}
-    <button class="feed-creator-toggle" on:click={() => {isCreatorOpen = !isCreatorOpen}}><svg xmlns="http://www.w3.org/2000/svg" width="11.599" height="7.421" viewBox="0 0 11.599 7.421">
+    <button class="feed-creator-toggle" onclick={() => {isCreatorOpen = !isCreatorOpen}}><svg xmlns="http://www.w3.org/2000/svg" width="11.599" height="7.421" viewBox="0 0 11.599 7.421">
       <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l4.389,5.01,4.388-5.01" transform="translate(-4391.997 -793.447)" fill="none" stroke="var(--text-color-3)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
     </svg>{$_('feeds_toggle_creator')}</button>
 

@@ -1,16 +1,14 @@
 <script lang="ts">
-    import { settings } from '$lib/stores';
-    import {createEventDispatcher} from 'svelte';
-    import { _ } from 'svelte-i18n';
-    import {languageMap} from "$lib/langs/languageMap";
-    import Modal from "$lib/components/ui/Modal.svelte";
-    const dispatch = createEventDispatcher();
+  import { settings } from '$lib/stores';
+  import { _ } from 'svelte-i18n';
+  import {languageMap} from "$lib/langs/languageMap";
+  import Modal from "$lib/components/ui/Modal.svelte";
 
-    let langSelector = $settings.langSelector || [];
+  let langSelector = $state($settings.langSelector || []);
 
-    $: {
-        $settings.langSelector = langSelector;
-    }
+  $effect(() => {
+      $settings.langSelector = langSelector;
+  })
 </script>
 
 <Modal title={$_('user_language_settings')} on:close>

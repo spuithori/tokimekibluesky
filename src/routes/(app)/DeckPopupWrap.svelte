@@ -2,14 +2,18 @@
   import DeckRow from "./DeckRow.svelte";
   import type {DragOptions} from "@neodrag/svelte";
   import { draggable } from "@neodrag/svelte";
-  import { columns } from "$lib/stores";
 
-  export let column;
-  export let index = 0;
-  export let unique = Symbol();
-  let el;
+  interface Props {
+    column: any;
+    index?: number;
+    unique?: any;
+  }
 
-  let dragOptions: DragOptions = {
+  let { column, index = 0, unique = Symbol() }: Props = $props();
+  let el = $state();
+  let isPopupEnable = $derived(column?.settings?.isPopup);
+
+  let dragOptions: DragOptions = $state({
       disabled: true,
       defaultPosition: {
           x: column?.settings?.popupPosition?.x || 0,
@@ -23,10 +27,11 @@
           dragEnd: false,
       },
       cancel: '.grabber'
-  };
+  });
 
-  $: isPopupEnable = column?.settings?.isPopup;
-  $: handlePopup(isPopupEnable);
+  $effect(() => {
+      handlePopup(isPopupEnable);
+  })
 
   function handlePopup() {
       if (isPopupEnable) {
@@ -46,7 +51,7 @@
           x: e.detail.offsetX,
           y: e.detail.offsetY,
       }
-      $columns[index].settings = {...$columns[index].settings, popupPosition: position};
+      column.settings = {...column.settings, popupPosition: position};
 
       el.style.setProperty('--popup-offset-x', `${e.detail.offsetX}px`);
       el.style.setProperty('--popup-offset-y', `${e.detail.offsetY}px`);
@@ -60,7 +65,7 @@
         ...dragOptions,
         onDrag: ({offsetX, offsetY}) => { dragOptions.position = { x: offsetX, y: offsetY }}
     }}
-    on:neodrag:end={handleChangePosition}
+    onneodrag:end={handleChangePosition}
     style="--deck-popup-opacity: {column?.settings?.opacity || 100}"
     style:--popup-width={column?.settings?.popupPosition?.width}
     style:--popup-height={column?.settings?.popupPosition?.height}

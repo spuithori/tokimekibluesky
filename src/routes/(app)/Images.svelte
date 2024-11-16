@@ -7,16 +7,33 @@
     import PhotoSwipeDynamicCaption from 'photoswipe-dynamic-caption-plugin';
     import {onDestroy} from "svelte";
 
-    export let images: any[];
-    export let blobs: any[] = [];
-    export let did = '';
-    export let folding = false;
+  interface Props {
+    images: any[];
+    blobs?: any[];
+    did?: string;
+    folding?: boolean;
+  }
+
+  let {
+    images,
+    blobs = [],
+    did = '',
+    folding = false
+  }: Props = $props();
 
     let galleryImages = [];
-    let isFold = $settings?.design.postsImageLayout === 'folding' || $isDataSaving || folding;
+    let isFold = $state($settings?.design.postsImageLayout === 'folding' || $isDataSaving || folding);
     let isOpen = false;
+    let natural = $state([]);
 
-    for (const image of images) {
+    natural = images.map(() => {
+        return {
+            width: 0,
+            height: 0,
+        }
+    });
+
+    images.forEach((image, index) => {
         galleryImages.push({
             src: image.fullsize,
             msrc: image.thumb,
@@ -24,7 +41,7 @@
             height: image?.aspectRatio?.height,
             alt: image.alt ? 'ALT: ' + image.alt : '',
         })
-    }
+    })
 
     const lightbox = new PhotoSwipeLightbox({
         dataSource: galleryImages,
@@ -62,11 +79,11 @@
     function open(index: any) {
         galleryImages = galleryImages.map((image, index) => {
             if (!image.width) {
-                image.width = images[index].naturalWidth || 0;
+                image.width = natural[index].width || 0;
             }
 
             if (!image.height) {
-                image.height = images[index].naturalHeight || 0;
+                image.height = natural[index].height || 0;
             }
 
             return image;
@@ -105,10 +122,10 @@
     })
 </script>
 
-<svelte:window on:popstate={handlePopstate} />
+<svelte:window onpopstate={handlePopstate} />
 
 {#if isFold}
-  <button class="image-unfold-button" on:click={unfold}>
+  <button class="image-unfold-button" onclick={unfold}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17.143" viewBox="0 0 20 17.143">
       <path id="image" d="M49.143,64H34.857A2.86,2.86,0,0,0,32,66.857V78.286a2.86,2.86,0,0,0,2.857,2.857H49.143A2.86,2.86,0,0,0,52,78.286V66.857A2.86,2.86,0,0,0,49.143,64Zm-3.571,2.857A2.143,2.143,0,1,1,43.429,69a2.143,2.143,0,0,1,2.143-2.143ZM34.857,79.714a1.429,1.429,0,0,1-1.429-1.429V75.267L37.662,71.5a2.146,2.146,0,0,1,2.938.085l2.9,2.893-5.233,5.233Zm15.714-1.429a1.429,1.429,0,0,1-1.429,1.429H40.287l5.421-5.421a2.13,2.13,0,0,1,2.752-.007l2.112,1.76Z" transform="translate(-32 -64)" fill="#aeaeae"/>
     </svg>
@@ -126,14 +143,14 @@
         {#if (blobs[index]?.image.mimeType === 'image/gif')}
           <GifImage {did} blob={blobs[index]?.image} alt={image.alt}></GifImage>
         {:else}
-          <button on:click={() => open(index)} aria-label="画像を拡大する">
+          <button onclick={() => open(index)} aria-label="画像を拡大する">
             <img
                 src="{image.thumb}"
                 alt="{image.alt}"
                 width={image?.aspectRatio?.width}
                 height={image?.aspectRatio?.height}
-                bind:naturalWidth={image.naturalWidth}
-                bind:naturalHeight={image.naturalHeight}
+                bind:naturalWidth={natural[index].width}
+                bind:naturalHeight={natural[index].height}
             >
           </button>
         {/if}

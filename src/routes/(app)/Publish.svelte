@@ -1,700 +1,720 @@
 <script lang="ts">
-import { _ } from 'svelte-i18n';
-import {
-    agent,
-    agents,
-    hashtagHistory, isChatColumnFront,
-    isPublishInstantFloat, postgate, postPulse,
-    quotePost,
-    replyRef,
-    settings,
-    threadGate,
-    direction,
-} from '$lib/stores';
-import {selfLabels} from "$lib/components/editor/publishStore";
-import { clickOutside } from '$lib/clickOutSide';
-import {
-    RichText,
-    AppBskyEmbedImages,
-    AppBskyEmbedRecord,
-    AppBskyEmbedRecordWithMedia,
-    AppBskyEmbedExternal, AppBskyFeedPost, BskyAgent, AtpAgent, AppBskyVideoDefs, AppBskyEmbedVideo
-} from '@atproto/api';
-import { toast } from 'svelte-sonner'
-import { goto, pushState } from '$app/navigation';
-import { page } from '$app/stores';
-import { db } from '$lib/db';
-import DraftModal from "$lib/components/draft/DraftModal.svelte";
-import {getAccountIdByDid, getServiceAuthToken} from "$lib/util";
-import type { Draft } from '$lib/db';
-import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-import imageCompression from 'browser-image-compression';
-import PublishPool from "$lib/components/editor/PublishPool.svelte";
-import PublishMain from "$lib/components/editor/PublishMain.svelte";
-import {getIntervalProcessingUpload, getUploadLimit, getUploadStatus} from "$lib/components/editor/videoUtil";
-
-let _agent = $agent;
-let editor;
-let isFocus = false;
-let isContinueMode = false;
-let isDraftModalOpen = false;
-let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
-let isVirtualKeyboard = false;
-let isEnabled = true;
-let isPublishing = false;
-let unique = Symbol();
-let postsPool = [{}];
-let currentPost = 0;
-let getCurrentThreadData;
-
-const isMobile = navigator?.userAgentData?.mobile || false;
-
-if ('virtualKeyboard' in navigator) {
-    navigator.virtualKeyboard.overlaysContent = true;
-    isVirtualKeyboard = true;
-}
-
-if (!$settings.langSelector) {
-    $settings.langSelector = 'auto';
-}
-
-$: isMobilePopState = isMobile ? $page.state.showPublish : false;
-
-$: handlePostPulse($postPulse);
-
-$: if (isMobile ? isFocus && isMobilePopState : isFocus) {
-  document.documentElement.classList.add('scroll-lock');
-} else {
-  document.documentElement.classList.remove('scroll-lock');
-}
-
-function handleOpen() {
-    if (!isFocus) {
-        isFocus = true;
-    }
-
-    setTimeout(() => {
-      editor.focus();
-    }, 100);
-
-    if (isMobile) {
-        pushState('', {
-            showPublish: true
-        });
-    }
-
-    direction.set('up');
-}
-
-function onClose() {
-    if (isFocus) {
-        isFocus = false;
-        editor.blur();
-
-        if (isMobile && $page.state.showPublish) {
-            history.back();
-        }
-    }
-}
-
-function handleKeydown(event: { key: string; }) {
-    const activeElement = document.activeElement?.tagName;
-
-    if (event.key === 'n' && !(activeElement === 'TEXTAREA' || activeElement === 'INPUT')) {
-        handleOpen();
-    }
-
-    if (event.key === '/' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
-        goto('/search');
-    }
-
-    if (event.key === 'Escape' && isFocus) {
-        onClose();
-    }
-}
-
-function handlePostPulse(posts) {
-    if (!posts || !posts.length) {
-        return false;
-    }
-
-    postsPool = posts;
-    _agent = $agents.get(getAccountIdByDid($agents, posts[0].did));
-    unique = Symbol();
-    handleOpen();
-    postPulse.set([]);
-}
-
-$: quotePostObserve($quotePost);
-$: replyRefObserve($replyRef);
-
-function quotePostObserve(quotePost) {
-    if (quotePost?.uri) {
-        handleOpen();
-    }
-}
-
-function replyRefObserve(replyRef) {
-    if (replyRef) {
-        handleOpen();
-        _agent = $agents.get(getAccountIdByDid($agents, replyRef.did));
-    } else {
-        _agent = $agent;
-    }
-}
-
-function handleOutClick() {
-    if (!isContinueMode) {
-        onClose();
-    }
-}
-
-async function saveDraft() {
-    try {
-        postsPool[currentPost] = getCurrentThreadData();
-
-        const id = await db.drafts.add({
-            createdAt: Date.now(),
-            owner: _agent.did() as string,
-            ...postsPool[currentPost],
-        });
-
-        if (!isContinueMode) {
-            isFocus = false;
-        }
-        editor.clear();
-        quotePost.set(undefined);
-        replyRef.set(undefined);
-        postsPool = [{}];
-        unique = Symbol();
-        $isPublishInstantFloat = false;
-
-        toast.success($_('draft_add_success'));
-    } catch (e) {
-        toast.error($_('error') + ': ' + e);
-    }
-}
-
-async function handleDraftUse(event: CustomEvent<{ draft: Draft }>) {
-    isDraftModalOpen = false;
-    editor.clear();
-    quotePost.set(undefined);
-    replyRef.set(undefined);
-
-    const draft = event.detail.draft;
-    postsPool = [{
-        ...draft,
-    }];
-    unique = Symbol();
-
-    setTimeout(() => {
-        editor.focus();
-    }, 100);
-}
-
-async function languageDetect(text) {
-    try {
-        const res = await fetch(`/api/language-detect`, {
-            method: 'post',
-            body: JSON.stringify({
-                text: text,
-            })
-        });
-        const langs = await res.json() as { lang: string; }[];
-
-        if (langs.length) {
-            return langs.map(lg => lg.lang);
-        } else {
-            return [];
-        }
-    } catch (e) {
-        console.error(e);
-        return [];
-    }
-}
-
-async function uploadBlobWithCompression(image) {
-  const compressed = await imageCompression(image.file, {
-    maxSizeMB: 0.925,
-    maxWidthOrHeight: 3000,
-    fileType: 'image/jpeg',
-    useWebWorker: true,
-    initialQuality: 0.8,
-  });
-
-  return await _agent.agent.api.com.atproto.repo.uploadBlob(image.isGif ? image.file : compressed, {
-    encoding: 'image/jpeg',
-  });
-}
-
-async function uploadExternalImage(_blob) {
-    if (_blob) {
-        try {
-            const imageRes = await fetch(_blob);
-            let blob = await imageRes.blob();
-
-            if (blob.type === 'image/gif') {
-                blob = await imageCompression(blob, {
-                    maxSizeMB: 0.925,
-                    maxWidthOrHeight: 3000,
-                    fileType: 'image/jpeg',
-                    useWebWorker: true,
-                    initialQuality: 0.8,
-                });
-            }
-
-            const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
-                encoding: 'image/jpeg',
-            });
-            return res.data.blob;
-        } catch (e) {
-            toast.error(e);
-        }
-    }
-}
-
-async function publishAll() {
-    if (isEnabled) {
-        return false;
-    }
-
-    isPublishing = true;
-    postsPool[currentPost] = getCurrentThreadData();
-    const toastId = toast.loading($_('process_to_post'));
-
-    let i = 1;
-    let root;
-    let parent;
-    let _replyRef;
-
-    try {
-        for (const post of postsPool) {
-            toast.loading($_('process_to_post') + '(' + i + '/' + postsPool.length +  ')', {
-                id: toastId,
-                duration: 100000,
-            })
-            parent = await publish(post, _replyRef);
-
-            if (postsPool.length > 1 && i === 1) {
-                root = structuredClone(parent);
-            }
-
-            _replyRef = {
-                root: root,
-                parent: parent,
-            }
-
-            i = i + 1;
-        }
-
-        await afterPublish();
-
-        isPublishing = false;
-        toast.success($_('success_to_post'), {
-            id: toastId,
-            duration: 1500,
-        });
-    } catch (e) {
-        isPublishing = false;
-        isEnabled = false;
-
-        console.error(e);
-        toast.error('Error: ' + e, {
-            id: toastId,
-            duration: 5000,
-        });
-
-        postsPool.splice(0, i - 1);
-        currentPost = 0;
-        unique = Symbol();
-    }
-}
-
-async function afterPublish(rt = undefined) {
-    if (rt && Array.isArray(rt.facets)) {
-        try {
-            const dids: string[] = rt.facets.map(facet => {
-                if (facet.features[0].did) {
-                    return facet.features[0].did as string
-                }
-            }).filter(results => results !== undefined);
-            const promises = dids.map(did => _agent.agent.com.atproto.repo.describeRepo({repo: did}));
-            let actors: { did: string; handle: string; isHistory: boolean; }[] = [];
-
-            await Promise.all(promises)
-                .then(ress => {
-                    actors = ress.map(res => {
-                        return {
-                            did: res.data.did,
-                            handle: res.data.handle,
-                            isHistory: true,
-                        }
-                    });
-                })
-
-            mentionsHistory = [...actors, ...mentionsHistory];
-            mentionsHistory = Array.from(new Set(mentionsHistory.map(a => a.did))).map(did => {
-                return mentionsHistory.find(a => a.did === did)
-            });
-            if (mentionsHistory.length > 4) {
-                mentionsHistory = mentionsHistory.slice(0, 4);
-            }
-            localStorage.setItem('mentionsHistory', JSON.stringify(mentionsHistory));
-        } catch (e) {
-            // do nothing.
-        }
-    }
-
-    isEnabled = false;
-    if (!isContinueMode) {
-        onClose();
-    }
-    editor.clear();
-    quotePost.set(undefined);
-    replyRef.set(undefined);
-    selfLabels.set([]);
-    threadGate.set('everybody');
-    $isPublishInstantFloat = false;
-    postsPool = [{}];
-    currentPost = 0;
-    unique = Symbol();
-
-    if (isContinueMode) {
-        setTimeout(() => {
-            editor.focus();
-        }, 100)
-    }
-}
-
-async function publish(post, treeReplyRef = undefined) {
-    isEnabled = true;
-
-    type BeforeUploadImage = {
-        image: Blob | File,
-        alt: string,
-        id: string,
-    }
-
-    let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
-    let embedImages: AppBskyEmbedImages.Main = {
-        $type: 'app.bsky.embed.images',
-        images: [],
-    };
-    let embedVideo: AppBskyEmbedVideo.Main;
-    let embedRecord: AppBskyEmbedRecord.Main;
-    let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
-    let embedExternal: AppBskyEmbedExternal.Main | undefined = post.embedExternal || undefined;
-    let lang: string[] = [];
-    let selfLabels = [];
-
-    const images = post.images;
-
-    if (!post.text && !images.length && !embedExternal) {
-        isEnabled = false;
-        return false;
-    }
-
-    lang = post.lang === 'auto' ? await languageDetect(post.text) : [post.lang];
-    selfLabels = post.selfLabels ? post.selfLabels : [];
-
-    if (images.length) {
-        const filePromises = images.map(image => {
-            return uploadBlobWithCompression(image);
-        });
-
-        await Promise.all(filePromises)
-            .then(results => results.forEach((result, index) => {
-                embedImages.images.push({
-                    image: result.data.blob,
-                    alt: images[index].alt || '',
-                    aspectRatio: {
-                        width: images[index].width || undefined,
-                        height: images[index].height || undefined,
-                    }
-                });
-            }))
-            .catch(error => {
-                isEnabled = false;
-                embedImages.images = [];
-                throw new Error(error);
-            });
-    }
-
-    if (post.video) {
-        const videoToastId = toast.loading($_('process_to_video_upload'));
-
-        try {
-            const token = await getServiceAuthToken({lxm: 'com.atproto.repo.uploadBlob', exp: Date.now() / 1000 + 60 * 30}, _agent);
-
-            const xhr = new XMLHttpRequest();
-            const res = await new Promise<AppBskyVideoDefs.JobStatus>((resolve, reject) => {
-                xhr.upload.addEventListener('progress', e => {
-                    const progress = e.loaded / e.total;
-
-                    toast.loading($_('process_to_video_upload') + '(' + Math.round(progress * 100) + '%)', {
-                        id: videoToastId,
-                        duration: 100000,
-                    });
-                })
-                xhr.onloadend = () => {
-                    if (xhr.readyState === 4) {
-                        const uploadRes = JSON.parse(
-                            xhr.responseText,
-                        ) as AppBskyVideoDefs.JobStatus
-                        resolve(uploadRes)
-                    } else {
-                        reject(new Error(xhr.statusText));
-                    }
-                }
-                xhr.onerror = () => {
-                    reject(new Error(xhr.statusText));
-                }
-
-                xhr.open('POST', `https://video.bsky.app/xrpc/app.bsky.video.uploadVideo?did=${_agent.did()}&name=${self.crypto.randomUUID()}.${post.video.ext}`, true)
-                xhr.setRequestHeader('Content-Type', post.video.mimeType)
-                xhr.setRequestHeader('Authorization', 'Bearer ' + token)
-                xhr.send(post.video.bytes)
-            })
-
-            if (res.jobId) {
-                toast.loading($_('process_to_video_upload_processing'), {
-                    id: videoToastId,
-                    duration: 1000000,
-                });
-
-                try {
-                    res.blob = await getIntervalProcessingUpload(res.jobId);
-                } catch (e) {
-                    console.error(e);
-                    throw new Error('Upload failed');
-                }
-            }
-
-            if (res.blob) {
-                embedVideo = {
-                    $type: 'app.bsky.embed.video',
-                    video: res.blob,
-                    aspectRatio: {
-                        width: post.video?.aspectRatio?.width || 1280,
-                        height: post.video?.aspectRatio?.height || 720,
-                    }
-                }
-
-                toast.success($_('success_to_video_upload'), {
-                    id: videoToastId,
-                    duration: 1500,
-                });
-            } else {
-                throw new Error('Upload failed');
-            }
-        } catch (e) {
-            toast.error('Video upload failed!!!', {
-                id: videoToastId,
-                duration: 5000,
-            });
-            console.error(e);
-            throw new Error(e);
-        }
-    }
-
-    if (post?.quotePost?.uri) {
-        embedRecord = {
-            $type: 'app.bsky.embed.record',
-            record: {
-                cid: post.quotePost.cid,
-                uri: post.quotePost.uri,
-            },
-        }
-    }
-
-    if (embedVideo && post?.quotePost?.uri) {
-        embedRecordWithMedia = {
-            $type: 'app.bsky.embed.recordWithMedia',
-            media: embedVideo,
-            record: embedRecord,
-        }
-
-        embed = embedRecordWithMedia;
-    } else if (embedVideo) {
-        embed = embedVideo;
-    } else if (embedImages.images.length && post?.quotePost?.uri) {
-        embedRecordWithMedia = {
-            $type: 'app.bsky.embed.recordWithMedia',
-            media: embedImages,
-            record: embedRecord,
-        }
-
-        embed = embedRecordWithMedia;
-    } else if (embedExternal && post?.quotePost?.uri) {
-        embedExternal.external.thumb = await uploadExternalImage(post?.externalImageBlob);
-        embedRecordWithMedia = {
-            $type: 'app.bsky.embed.recordWithMedia',
-            media: embedExternal,
-            record: embedRecord,
-        }
-
-        embed = embedRecordWithMedia;
-    } else {
-        if (embedImages.images.length) {
-            embed = embedImages;
-        }
-
-        if (post?.quotePost?.uri) {
-            embed = embedRecord;
-        }
-
-        if (embedExternal && !embedImages.images.length && !post?.quotePost?.uri) {
-            embed = embedExternal;
-            embed.external.thumb = await uploadExternalImage(post?.externalImageBlob);
-        }
-    }
-
-    let rt: RichText | undefined;
-
-    if (post.text) {
-        rt = await detectRichTextWithEditorJson(_agent, post.text, post.json);
-    }
-
-    const shortReplyRef = post.replyRef ? {
-        root: {
-            cid: post.replyRef.data.root.cid,
-            uri: post.replyRef.data.root.uri,
-        },
-        parent: {
-            cid: post.replyRef.data.parent.cid,
-            uri: post.replyRef.data.parent.uri,
-        }
-    } : undefined;
-
-    try {
-        const create = await _agent.agent.api.app.bsky.feed.post.create(
-            { repo: _agent.did() as string },
-            {
-                embed: embed,
-                facets: rt ? rt.facets : undefined,
-                text: rt ? rt.text : '',
-                createdAt: new Date().toISOString(),
-                reply: treeReplyRef || shortReplyRef,
-                via: 'TOKIMEKI',
-                langs: lang.length ? lang : undefined,
-                labels: selfLabels.length ? {
-                    $type: 'com.atproto.label.defs#selfLabels',
-                    values: selfLabels || [],
-                } : undefined,
-            },
-        );
-
-        if (post.threadGate !== 'everybody' && !post.replyRef) {
-            let allow = [];
-
-            if (Array.isArray(post.threadGate)) {
-                allow = post.threadGate.map(item => {
-                    if (item === 'mention') {
-                        return {
-                            $type: 'app.bsky.feed.threadgate#mentionRule',
-                        }
-                    } else if(item === 'following') {
-                        return {
-                            $type: 'app.bsky.feed.threadgate#followingRule',
-                        }
-                    } else {
-                        return {
-                            $type: 'app.bsky.feed.threadgate#listRule',
-                            list: item,
-                        }
-                    }
-                })
-            }
-
-            await _agent.agent.api.app.bsky.feed.threadgate.create(
-                {
-                    repo: _agent.did() as string,
-                    rkey: create.uri.split('/').slice(-1)[0],
-                },
-                {
-                    createdAt: new Date().toISOString(),
-                    post: create.uri,
-                    allow: allow,
-                },
-            );
-        }
-
-        if (!$postgate) {
-            await _agent.agent.api.app.bsky.feed.postgate.create(
-                {
-                    repo: _agent.did() as string,
-                    rkey: create.uri.split('/').slice(-1)[0],
-                },
-                {
-                    createdAt: new Date().toISOString(),
-                    detachedEmbeddingUris: [],
-                    embeddingRules: [{
-                        $type: 'app.bsky.feed.postgate#disableRule',
-                    }],
-                    post: create.uri,
-                }
-            )
-        }
-
-        if (rt?.facets) {
-            const tags = rt.facets.map(facet => {
-                if (facet?.features[0]?.tag) {
-                    return facet.features[0].tag as string;
-                }
-            });
-            let _hashtagHistory = [...tags, ...$hashtagHistory];
-            _hashtagHistory = [...new Set(_hashtagHistory)];
-            $hashtagHistory = _hashtagHistory.filter(v => v !== null);
-
-            if ($hashtagHistory.length > 4) {
-                $hashtagHistory = $hashtagHistory.slice(0, 4);
-            }
-            localStorage.setItem('hashtagHistory', JSON.stringify($hashtagHistory));
-        }
-
-        return create;
-    } catch (error) {
-        console.error((error as Error).message);
-        toast.error($_('failed_to_post') + ':' + (error as Error).message);
-        isEnabled = false;
-        throw error;
-    }
-}
-
-function applyAddThread(e) {
-    postsPool[currentPost] = e.detail.data;
-    postsPool.splice(currentPost + 1, 0, {});
-    currentPost = currentPost + 1;
-    setTimeout(() => {
-        editor.focus();
-    }, 100);
-}
-
-function applyChangeThread(e) {
-    postsPool[currentPost] = getCurrentThreadData();
-    currentPost = e.detail.index;
-}
-
-function applyDeleteThread(index) {
-    postsPool[currentPost] = getCurrentThreadData();
-    postsPool.splice(index, 1);
-
-    if (currentPost !== 0) {
-        currentPost = currentPost - 1;
-    } else {
-        postsPool = postsPool;
-    }
-
-    setTimeout(() => {
-        editor.focus();
-    }, 100);
-}
+  import {_} from 'svelte-i18n';
+  import { agent, agents, direction, hashtagHistory, isChatColumnFront, isPublishInstantFloat, postgate, postPulse, settings, threadGate } from '$lib/stores';
+  import {selfLabels} from "$lib/components/editor/publishStore";
+  import {clickOutside} from '$lib/clickOutSide';
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
+  import {toast} from 'svelte-sonner'
+  import {goto, pushState} from '$app/navigation';
+  import {page} from '$app/stores';
+  import type {Draft} from '$lib/db';
+  import {db} from '$lib/db';
+  import DraftModal from "$lib/components/draft/DraftModal.svelte";
+  import {getAccountIdByDid, getServiceAuthToken} from "$lib/util";
+  import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
+  import imageCompression from 'browser-image-compression';
+  import PublishPool from "$lib/components/editor/PublishPool.svelte";
+  import PublishMain from "$lib/components/editor/PublishMain.svelte";
+  import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
+  import {tick} from "svelte";
+  import {TID} from "@atproto/common-web";
+  import {computeCid} from "$lib/components/editor/postUtil";
+  import {postState} from "$lib/classes/postState.svelte";
+
+  let _agent = $state($agent);
+  let editor = $state();
+  let isFocus = $state(false);
+  let isContinueMode = $state(false);
+  let isDraftModalOpen = $state(false);
+  let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
+  let isVirtualKeyboard = $state(false);
+  let isEnabled = $state(true);
+  let isPublishing = $state(false);
+  let unique = $state(Symbol());
+  let postsPool = $state([{}]);
+  let currentPost = $state(0);
+  let getCurrentThreadData = $state();
+  let publishMainEl = $state();
+  let writes = [];
+  let tid: TID | undefined;
+
+  const isMobile = navigator?.userAgentData?.mobile || false;
+
+  if ('virtualKeyboard' in navigator) {
+      navigator.virtualKeyboard.overlaysContent = true;
+      isVirtualKeyboard = true;
+  }
+
+  if (!$settings.langSelector) {
+      $settings.langSelector = 'auto';
+  }
+
+  let isMobilePopState = $derived(isMobile ? $page.state.showPublish : false);
+
+  $effect(() => {
+      if (isMobile ? isFocus && isMobilePopState : isFocus) {
+          document.documentElement.classList.add('scroll-lock');
+      } else {
+          document.documentElement.classList.remove('scroll-lock');
+      }
+  })
+
+  $effect(() => {
+      handlePostPulse($postPulse);
+  })
+
+  $effect(() => {
+      if (postState.quotePulse) {
+          quoteObserve(postState.quote?.uri);
+      }
+  })
+
+  $effect(() => {
+      if (postState.replyPulse) {
+          replyObserve(postState.reply);
+      }
+  })
+
+  function handleOpen() {
+      if (!isFocus) {
+          isFocus = true;
+      }
+
+      tick().then(() => { editor.focus(); });
+
+      if (isMobile) {
+          pushState('', {
+              showPublish: true
+          });
+      }
+
+      direction.set('up');
+  }
+
+  function onClose() {
+      if (isFocus) {
+          postState.quotePulse = undefined;
+          postState.replyPulse = undefined;
+          isFocus = false;
+          editor.blur();
+
+          if (isMobile && $page.state.showPublish) {
+              history.back();
+          }
+      }
+  }
+
+  function handleKeydown(event: { key: string; }) {
+      const activeElement = document.activeElement?.tagName;
+
+      if (event.key === 'n' && !(activeElement === 'TEXTAREA' || activeElement === 'INPUT')) {
+          handleOpen();
+      }
+
+      if (event.key === '/' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
+          goto('/search');
+      }
+
+      if (event.key === 'Escape' && isFocus) {
+          onClose();
+      }
+  }
+
+  function handlePostPulse(posts) {
+      if (!posts || !posts.length) {
+          return false;
+      }
+
+      postsPool = posts;
+      _agent = $agents.get(getAccountIdByDid($agents, posts[0].did));
+      unique = Symbol();
+      handleOpen();
+      postPulse.set([]);
+  }
+
+
+  function quoteObserve(uri) {
+      if (uri) {
+          handleOpen();
+      }
+  }
+
+  function replyObserve(reply) {
+      if (reply) {
+          handleOpen();
+          _agent = $agents.get(getAccountIdByDid($agents, reply.did));
+      } else {
+          _agent = $agent;
+      }
+  }
+
+  function handleOutClick() {
+      if (!isContinueMode) {
+          onClose();
+      }
+  }
+
+  async function saveDraft() {
+      try {
+          postsPool[currentPost] = publishMainEl.getThread();
+
+          const id = await db.drafts.add($state.snapshot({
+              createdAt: Date.now(),
+              owner: _agent.did() as string,
+              ...postsPool[currentPost],
+          }));
+
+          if (!isContinueMode) {
+              isFocus = false;
+          }
+          editor.clear();
+          postState.quote = undefined;
+          postState.reply = undefined;
+          postsPool = [{}];
+          unique = Symbol();
+          $isPublishInstantFloat = false;
+
+          toast.success($_('draft_add_success'));
+      } catch (e) {
+          toast.error($_('error') + ': ' + e);
+      }
+  }
+
+  async function handleDraftUse(draft: Draft) {
+      isDraftModalOpen = false;
+      editor.clear();
+      postState.quote = undefined;
+      postState.reply = undefined;
+
+      postsPool = [{
+          ...draft,
+      }];
+      unique = Symbol();
+
+      tick().then(() => {
+          editor.focus();
+      });
+  }
+
+  async function languageDetect(text) {
+      try {
+          const res = await fetch(`/api/language-detect`, {
+              method: 'post',
+              body: JSON.stringify({
+                  text: text,
+              })
+          });
+          const langs = await res.json() as { lang: string; }[];
+
+          if (langs.length) {
+              return langs.map(lg => lg.lang);
+          } else {
+              return [];
+          }
+      } catch (e) {
+          console.error(e);
+          return [];
+      }
+  }
+
+  async function uploadBlobWithCompression(image) {
+    const compressed = await imageCompression(image.file, {
+      maxSizeMB: 0.925,
+      maxWidthOrHeight: 3000,
+      fileType: 'image/jpeg',
+      useWebWorker: true,
+      initialQuality: 0.85,
+    });
+
+    return await _agent.agent.api.com.atproto.repo.uploadBlob(image.isGif ? image.file : compressed, {
+      encoding: 'image/jpeg',
+    });
+  }
+
+  async function uploadExternalImage(_blob) {
+      if (_blob) {
+          try {
+              const imageRes = await fetch(_blob);
+              let blob = await imageRes.blob();
+
+              if (blob.type === 'image/gif') {
+                  blob = await imageCompression(blob, {
+                      maxSizeMB: 0.925,
+                      maxWidthOrHeight: 3000,
+                      fileType: 'image/jpeg',
+                      useWebWorker: true,
+                      initialQuality: 0.8,
+                  });
+              }
+
+              const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
+                  encoding: 'image/jpeg',
+              });
+              return res.data.blob;
+          } catch (e) {
+              toast.error(e);
+          }
+      }
+  }
+
+  async function publishAll() {
+      if (isEnabled) {
+          return false;
+      }
+
+      isPublishing = true;
+      postsPool[currentPost] = publishMainEl.getThread();
+      const toastId = toast.loading($_('process_to_post'));
+
+      let i = 1;
+      let root;
+      let parent;
+      let _replyRef;
+
+      try {
+          for (const post of postsPool) {
+              toast.loading($_('process_to_post') + '(' + i + '/' + postsPool.length +  ')', {
+                  id: toastId,
+                  duration: 100000,
+              })
+              parent = await publish(post, _replyRef);
+
+              if (postsPool.length > 1 && i === 1) {
+                  root = structuredClone(parent);
+              }
+
+              _replyRef = {
+                  root: root,
+                  parent: parent,
+              }
+
+              i = i + 1;
+          }
+
+          await _agent.agent.api.com.atproto.repo.applyWrites({
+              repo: _agent.did(),
+              writes: writes,
+              validate: true,
+          })
+
+          await afterPublish();
+
+          isPublishing = false;
+          toast.success($_('success_to_post'), {
+              id: toastId,
+              duration: 1500,
+          });
+      } catch (e) {
+          isPublishing = false;
+          isEnabled = false;
+
+          console.error(e);
+          toast.error('Error: ' + e, {
+              id: toastId,
+              duration: 5000,
+          });
+
+          writes = [];
+          tid = undefined;
+      }
+  }
+
+  async function afterPublish(rt = undefined) {
+      if (rt && Array.isArray(rt.facets)) {
+          try {
+              const dids: string[] = rt.facets.map(facet => {
+                  if (facet.features[0].did) {
+                      return facet.features[0].did as string
+                  }
+              }).filter(results => results !== undefined);
+              const promises = dids.map(did => _agent.agent.com.atproto.repo.describeRepo({repo: did}));
+              let actors: { did: string; handle: string; isHistory: boolean; }[] = [];
+
+              await Promise.all(promises)
+                  .then(ress => {
+                      actors = ress.map(res => {
+                          return {
+                              did: res.data.did,
+                              handle: res.data.handle,
+                              isHistory: true,
+                          }
+                      });
+                  })
+
+              mentionsHistory = [...actors, ...mentionsHistory];
+              mentionsHistory = Array.from(new Set(mentionsHistory.map(a => a.did))).map(did => {
+                  return mentionsHistory.find(a => a.did === did)
+              });
+              if (mentionsHistory.length > 4) {
+                  mentionsHistory = mentionsHistory.slice(0, 4);
+              }
+              localStorage.setItem('mentionsHistory', JSON.stringify(mentionsHistory));
+          } catch (e) {
+              // do nothing.
+          }
+      }
+
+      isEnabled = false;
+      if (!isContinueMode) {
+          onClose();
+      }
+      editor.clear();
+      postState.quote = undefined;
+      postState.reply = undefined;
+      selfLabels.set([]);
+      threadGate.set('everybody');
+      $isPublishInstantFloat = false;
+      postsPool = [{}];
+      currentPost = 0;
+      writes = [];
+      tid = undefined;
+      unique = Symbol();
+
+      if (isContinueMode) {
+          await tick();
+          editor.focus();
+      }
+  }
+
+  async function publish(post, treeReplyRef = undefined) {
+      isEnabled = true;
+
+      type BeforeUploadImage = {
+          image: Blob | File,
+          alt: string,
+          id: string,
+      }
+
+      let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
+      let embedImages: AppBskyEmbedImages.Main = {
+          $type: 'app.bsky.embed.images',
+          images: [],
+      };
+      let embedVideo: AppBskyEmbedVideo.Main;
+      let embedRecord: AppBskyEmbedRecord.Main;
+      let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
+      let embedExternal: AppBskyEmbedExternal.Main | undefined = post.embedExternal || undefined;
+      let lang: string[] = [];
+      let selfLabels = [];
+
+      const images = post.images;
+
+      if (!post.text && !images.length && !embedExternal) {
+          isEnabled = false;
+          return false;
+      }
+
+      lang = post.lang === 'auto' ? await languageDetect(post.text) : [post.lang];
+      selfLabels = post.selfLabels ? post.selfLabels : [];
+
+      if (images.length) {
+          const filePromises = images.map(image => {
+              return uploadBlobWithCompression(image);
+          });
+
+          await Promise.all(filePromises)
+              .then(results => results.forEach((result, index) => {
+                  embedImages.images.push({
+                      image: result.data.blob,
+                      alt: images[index].alt || '',
+                      aspectRatio: {
+                          width: images[index].width || undefined,
+                          height: images[index].height || undefined,
+                      }
+                  });
+              }))
+              .catch(error => {
+                  isEnabled = false;
+                  embedImages.images = [];
+                  throw new Error(error);
+              });
+      }
+
+      if (post.video) {
+          const videoToastId = toast.loading($_('process_to_video_upload'));
+
+          try {
+              const token = await getServiceAuthToken({lxm: 'com.atproto.repo.uploadBlob', exp: Date.now() / 1000 + 60 * 30}, _agent);
+
+              const xhr = new XMLHttpRequest();
+              const res = await new Promise<AppBskyVideoDefs.JobStatus>((resolve, reject) => {
+                  xhr.upload.addEventListener('progress', e => {
+                      const progress = e.loaded / e.total;
+
+                      toast.loading($_('process_to_video_upload') + '(' + Math.round(progress * 100) + '%)', {
+                          id: videoToastId,
+                          duration: 100000,
+                      });
+                  })
+                  xhr.onloadend = () => {
+                      if (xhr.readyState === 4) {
+                          const uploadRes = JSON.parse(
+                              xhr.responseText,
+                          ) as AppBskyVideoDefs.JobStatus
+                          resolve(uploadRes)
+                      } else {
+                          reject(new Error(xhr.statusText));
+                      }
+                  }
+                  xhr.onerror = () => {
+                      reject(new Error(xhr.statusText));
+                  }
+
+                  xhr.open('POST', `https://video.bsky.app/xrpc/app.bsky.video.uploadVideo?did=${_agent.did()}&name=${self.crypto.randomUUID()}.${post.video.ext}`, true)
+                  xhr.setRequestHeader('Content-Type', post.video.mimeType)
+                  xhr.setRequestHeader('Authorization', 'Bearer ' + token)
+                  xhr.send(post.video.bytes)
+              })
+
+              if (res.jobId) {
+                  toast.loading($_('process_to_video_upload_processing'), {
+                      id: videoToastId,
+                      duration: 1000000,
+                  });
+
+                  try {
+                      res.blob = await getIntervalProcessingUpload(res.jobId);
+                  } catch (e) {
+                      console.error(e);
+                      throw new Error('Upload failed');
+                  }
+              }
+
+              if (res.blob) {
+                  embedVideo = {
+                      $type: 'app.bsky.embed.video',
+                      video: res.blob,
+                      aspectRatio: {
+                          width: post.video?.aspectRatio?.width || 1280,
+                          height: post.video?.aspectRatio?.height || 720,
+                      }
+                  }
+
+                  toast.success($_('success_to_video_upload'), {
+                      id: videoToastId,
+                      duration: 1500,
+                  });
+              } else {
+                  throw new Error('Upload failed');
+              }
+          } catch (e) {
+              toast.error('Video upload failed!!!', {
+                  id: videoToastId,
+                  duration: 5000,
+              });
+              console.error(e);
+              throw new Error(e);
+          }
+      }
+
+      if (post?.quotePost?.uri) {
+          embedRecord = {
+              $type: 'app.bsky.embed.record',
+              record: {
+                  cid: post.quotePost.cid,
+                  uri: post.quotePost.uri,
+              },
+          }
+      }
+
+      if (embedVideo && post?.quotePost?.uri) {
+          embedRecordWithMedia = {
+              $type: 'app.bsky.embed.recordWithMedia',
+              media: embedVideo,
+              record: embedRecord,
+          }
+
+          embed = embedRecordWithMedia;
+      } else if (embedVideo) {
+          embed = embedVideo;
+      } else if (embedImages.images.length && post?.quotePost?.uri) {
+          embedRecordWithMedia = {
+              $type: 'app.bsky.embed.recordWithMedia',
+              media: embedImages,
+              record: embedRecord,
+          }
+
+          embed = embedRecordWithMedia;
+      } else if (embedExternal && post?.quotePost?.uri) {
+          embedExternal.external.thumb = await uploadExternalImage(post?.externalImageBlob);
+          embedRecordWithMedia = {
+              $type: 'app.bsky.embed.recordWithMedia',
+              media: embedExternal,
+              record: embedRecord,
+          }
+
+          embed = embedRecordWithMedia;
+      } else {
+          if (embedImages.images.length) {
+              embed = embedImages;
+          }
+
+          if (post?.quotePost?.uri) {
+              embed = embedRecord;
+          }
+
+          if (embedExternal && !embedImages.images.length && !post?.quotePost?.uri) {
+              embed = embedExternal;
+              embed.external.thumb = await uploadExternalImage(post?.externalImageBlob);
+          }
+      }
+
+      let rt: RichText | undefined;
+
+      if (post.text) {
+          rt = await detectRichTextWithEditorJson(_agent, post.text, post.json);
+      }
+
+      const shortReplyRef = post.replyRef ? {
+          root: {
+              cid: post.replyRef.data.root.cid,
+              uri: post.replyRef.data.root.uri,
+          },
+          parent: {
+              cid: post.replyRef.data.parent.cid,
+              uri: post.replyRef.data.parent.uri,
+          }
+      } : undefined;
+
+      tid = TID.next(tid);
+      const rkey = tid.toString()
+      const uri = `at://${_agent.did()}/app.bsky.feed.post/${rkey}`
+
+      try {
+          const record = {
+              $type: 'app.bsky.feed.post',
+              embed: embed,
+              facets: rt ? rt.facets : undefined,
+              text: rt ? rt.text : '',
+              createdAt: new Date().toISOString(),
+              reply: treeReplyRef || shortReplyRef,
+              langs: lang.length ? lang : undefined,
+              labels: selfLabels.length ? {
+                  $type: 'com.atproto.label.defs#selfLabels',
+                  values: selfLabels || [],
+              } : undefined,
+              via: 'TOKIMEKI',
+          };
+
+          writes.push({
+              $type: 'com.atproto.repo.applyWrites#create',
+              collection: 'app.bsky.feed.post',
+              rkey: rkey,
+              value: record,
+          })
+
+          if (post.threadGate !== 'everybody' && !post.replyRef) {
+              let allow = [];
+
+              if (Array.isArray(post.threadGate)) {
+                  allow = post.threadGate.map(item => {
+                      if (item === 'mention') {
+                          return {
+                              $type: 'app.bsky.feed.threadgate#mentionRule',
+                          }
+                      } else if(item === 'following') {
+                          return {
+                              $type: 'app.bsky.feed.threadgate#followingRule',
+                          }
+                      } else {
+                          return {
+                              $type: 'app.bsky.feed.threadgate#listRule',
+                              list: item,
+                          }
+                      }
+                  })
+              }
+
+              writes.push({
+                  $type: 'com.atproto.repo.applyWrites#create',
+                  collection: 'app.bsky.feed.threadgate',
+                  rkey: rkey,
+                  value: {
+                      createdAt: new Date().toISOString(),
+                      post: uri,
+                      allow: allow,
+                  }
+              })
+          }
+
+          if (!$postgate) {
+              writes.push({
+                  $type: 'com.atproto.repo.applyWrites#create',
+                  collection: 'app.bsky.feed.postgate',
+                  rkey: rkey,
+                  value: {
+                      createdAt: new Date().toISOString(),
+                      detachedEmbeddingUris: [],
+                      embeddingRules: [{
+                          $type: 'app.bsky.feed.postgate#disableRule',
+                      }],
+                      post: uri,
+                  }
+              })
+          }
+
+          if (rt?.facets) {
+              const tags = rt.facets.map(facet => {
+                  if (facet?.features[0]?.tag) {
+                      return facet.features[0].tag as string;
+                  }
+              });
+              let _hashtagHistory = [...tags, ...$hashtagHistory];
+              _hashtagHistory = [...new Set(_hashtagHistory)];
+              $hashtagHistory = _hashtagHistory.filter(v => v !== null);
+
+              if ($hashtagHistory.length > 4) {
+                  $hashtagHistory = $hashtagHistory.slice(0, 4);
+              }
+              localStorage.setItem('hashtagHistory', JSON.stringify($hashtagHistory));
+          }
+
+          return {
+              cid: await computeCid(record),
+              uri,
+          };
+      } catch (error) {
+          console.error((error as Error).message);
+          toast.error($_('failed_to_post') + ':' + (error as Error).message);
+          isEnabled = false;
+          throw error;
+      }
+  }
+
+  function applyAddThread(e) {
+      postsPool[currentPost] = e.detail.data;
+      postsPool.splice(currentPost + 1, 0, {});
+      currentPost = currentPost + 1;
+      tick().then(() => {
+          editor.focus();
+      })
+  }
+
+  function applyChangeThread(e) {
+      postsPool[currentPost] = publishMainEl.getThread();
+      currentPost = e.detail.index;
+  }
+
+  function applyDeleteThread(index) {
+      postsPool[currentPost] = publishMainEl.getThread();
+      postsPool.splice(index, 1);
+
+      if (currentPost !== 0) {
+          currentPost = currentPost - 1;
+      } else {
+          postsPool = postsPool;
+      }
+
+      tick().then(() => {
+          editor.focus();
+      })
+  }
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 {#if (isMobile ? isFocus && isMobilePopState : isFocus)}
-  <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} aria-label="投稿ウィンドウを閉じる" on:click={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
+  <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} aria-label="投稿ウィンドウを閉じる" onclick={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
     <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
       <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
     </svg>
@@ -703,7 +723,7 @@ function applyDeleteThread(index) {
   <button class="publish-sp-open" aria-label="投稿ウィンドウを開く"
           class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}
           class:publish-sp-open--hidden={$isChatColumnFront}
-          on:click={handleOpen}>
+          onclick={handleOpen}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
       <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="var(--bg-color-1)"/>
     </svg>
@@ -716,14 +736,14 @@ function applyDeleteThread(index) {
          class:publish-group--bottom={$settings.design?.publishPosition === 'bottom'}
          class:vk-publish-group={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
          use:clickOutside={{ignoreElement: '.publish-sp-open'}}
-         on:outclick={handleOutClick}
+         onoutclick={handleOutClick}
 >
   <div class="publish-wrap">
     <div class="publish-buttons">
       {#if (!isEnabled)}
-        <button class="publish-draft-button publish-save-draft" on:click={saveDraft} disabled={postsPool.length > 1}>{$_('drafts_save')}</button>
+        <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postsPool.length > 1}>{$_('drafts_save')}</button>
       {:else}
-        <button class="publish-draft-button publish-view-draft" on:click={() => {isDraftModalOpen = true}} disabled={postsPool.length > 1}>{$_('drafts')}</button>
+        <button class="publish-draft-button publish-view-draft" onclick={() => {isDraftModalOpen = true}} disabled={postsPool.length > 1}>{$_('drafts')}</button>
       {/if}
 
       <div class="publish-form-continue-mode">
@@ -733,9 +753,9 @@ function applyDeleteThread(index) {
         </div>
       </div>
 
-      <button class="publish-form__submit" class:publish-form__submit--hide={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} on:click={publishAll} disabled={isEnabled}>{$_('publish_button_send')}</button>
+      <button class="publish-form__submit" class:publish-form__submit--hide={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} onclick={publishAll} disabled={isEnabled}>{$_('publish_button_send')}</button>
 
-      <button class="publish-form-sp-close" on:click={onClose}>
+      <button class="publish-form-sp-close" onclick={onClose}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
@@ -743,36 +763,34 @@ function applyDeleteThread(index) {
     {#key unique}
       {#key currentPost}
         {#each postsPool as post, index}
-
-          <div class="publish-item-wrap">
+          <div class="publish-item-wrap" data-index="{index}">
             {#if (index > 0)}
-              <button class="publish-item-delete" on:click={() => {applyDeleteThread(index)}} aria-label="delete"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+              <button class="publish-item-delete" onclick={() => {applyDeleteThread(index)}} aria-label="delete"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
             {/if}
 
             {#if (index === currentPost)}
               <PublishMain
-                      {post}
-                      bind:_agent={_agent}
-                      on:focus={handleOpen}
-                      on:add={applyAddThread}
-                      on:publish={publishAll}
-                      bind:getThread={getCurrentThreadData}
-                      bind:editor={editor}
-                      bind:isEnabled={isEnabled}
-                      length={postsPool.length}
+                  {post}
+                  bind:_agent={_agent}
+                  on:focus={handleOpen}
+                  on:add={applyAddThread}
+                  on:publish={publishAll}
+                  bind:this={publishMainEl}
+                  bind:editor={editor}
+                  bind:isEnabled={isEnabled}
+                  length={postsPool.length}
               ></PublishMain>
             {:else}
               <PublishPool {post} {index} bind:_agent={_agent} on:change={applyChangeThread} isEnabled={isPublishing}></PublishPool>
             {/if}
           </div>
-
         {/each}
       {/key}
     {/key}
   </div>
 
   {#if (isDraftModalOpen)}
-    <DraftModal {_agent} on:use={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
+    <DraftModal {_agent} onuse={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
   {/if}
 </section>
 
@@ -938,6 +956,47 @@ function applyDeleteThread(index) {
 
     .publish-item-wrap {
         position: relative;
+
+        &::before {
+            content: '';
+            display: block;
+            position: absolute;
+            width: 2px;
+            background-color: var(--border-color-1);
+            left: 32px;
+            top: 0;
+            bottom: 0;
+        }
+
+        &:not(:last-child) {
+            &::after {
+                content: '';
+                display: block;
+                position: absolute;
+                left: 32px;
+                margin: auto;
+                bottom: 40px;
+                top: 114px;
+                width: 2px;
+                background-color: var(--border-color-1);
+
+                @media (max-width: 767px) {
+                    left: 31px;
+                }
+            }
+        }
+
+        &:last-child {
+            &::before {
+                bottom: 12px;
+            }
+        }
+
+        &[data-index='0'] {
+            &::before {
+                top: 12px;
+            }
+        }
     }
 
     .publish-item-delete {
@@ -950,7 +1009,7 @@ function applyDeleteThread(index) {
     .vk-publish-group {
         .publish-wrap {
             @media (max-width: 767px) {
-                padding-bottom: 46px;
+                padding-bottom: 86px;
             }
         }
     }

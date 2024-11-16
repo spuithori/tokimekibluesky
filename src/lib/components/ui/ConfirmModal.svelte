@@ -1,13 +1,23 @@
 <script lang="ts">
-  import {createEventDispatcher} from "svelte";
+    import {createEventDispatcher, onMount} from "svelte";
   import {_} from "svelte-i18n";
   import {settings} from "$lib/stores";
 
   const dispatch = createEventDispatcher();
-  export let yesText = 'OK';
-  export let cancelText = 'Cancel';
-  export let confirmationName = undefined;
-  let el;
+  interface Props {
+    yesText?: string;
+    cancelText?: string;
+    confirmationName?: any;
+    children?: import('svelte').Snippet;
+  }
+
+  let {
+    yesText = 'OK',
+    cancelText = 'Cancel',
+    confirmationName = undefined,
+    children
+  }: Props = $props();
+  let el = $state();
 
   function ok() {
       dispatch('ok');
@@ -25,11 +35,15 @@
   export function open() {
       el.showModal();
   }
+
+  onMount(() => {
+      el.showModal();
+  })
 </script>
 
-<dialog class="dialog-modal" bind:this={el} on:close={close}>
+<dialog class="dialog-modal" bind:this={el} onclose={close}>
   <div class="dialog-modal-contents">
-    <slot></slot>
+    {@render children?.()}
 
     {#if confirmationName}
       <div class="skip-confirmation">
@@ -44,8 +58,8 @@
     {/if}
 
     <div class="dialog-modal-buttons">
-      <button class="button button--sm" on:click={ok}>{yesText}</button>
-      <button class="text-button" on:click={cancel}>{cancelText}</button>
+      <button class="button button--sm" onclick={ok}>{yesText}</button>
+      <button class="text-button" onclick={cancel}>{cancelText}</button>
     </div>
   </div>
 </dialog>

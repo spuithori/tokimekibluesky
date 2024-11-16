@@ -1,14 +1,17 @@
 <script lang="ts">
-  import {createEventDispatcher} from "svelte";
   import {accountsDb} from "$lib/db";
-  const dispatch = createEventDispatcher();
+  import {onMount} from "svelte";
 
-  export let agent;
-  export let key;
-  export let isCurrent = false;
+  interface Props {
+    agent: any;
+    key: any;
+    isCurrent?: boolean;
+  }
 
-  let avatar;
-  let displayName;
+  let { agent, key, isCurrent = false ,onselect }: Props = $props();
+
+  let avatar = $state();
+  let displayName = $state();
 
   accountsDb.accounts.get(key)
       .then(value => {
@@ -16,20 +19,32 @@
           displayName = value?.name;
       })
 
- function handleSelect() {
-     dispatch('select');
- }
+  onMount(async () => {
+      try {
+          const profile = await agent.agent.api.app.bsky.actor.getProfile({actor: agent.did() as string});
+
+          avatar = profile.data?.avatar || '';
+          displayName = profile.data?.displayName || '';
+
+          accountsDb.accounts.update(key, {
+              avatar: avatar,
+              name: displayName,
+          });
+      } catch (e) {
+          console.error(e);
+      }
+  })
 </script>
 
 <div class="avatar-agents-selector-item"
-     class:avatar-agents-selector-item--current={isCurrent}
      role="button"
-     on:click={handleSelect}
+     tabindex="-1"
+     class:avatar-agents-selector-item--current={isCurrent}
+     onclick={onselect}
 >
   <div class="avatar-agents-selector-item__avatar">
     {#if (avatar)}
       <img src="{avatar}" alt="">
-    {:else}
     {/if}
   </div>
 
@@ -57,10 +72,6 @@
 
       &--current {
           border: 2px solid var(--primary-color);
-      }
-
-      &--selected {
-          background-color: var(--bg-color-2);
       }
 
       &:hover {

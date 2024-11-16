@@ -1,6 +1,10 @@
 <script lang="ts">
-  export let type = 'home';
-  export let color = 'var(--deck-heading-icon-color)';
+  interface Props {
+    type?: string;
+    color?: string;
+  }
+
+  let { type = 'home', color = 'var(--deck-heading-icon-color)' }: Props = $props();
 </script>
 
 {#if (type === 'default' || type === 'realtime')}

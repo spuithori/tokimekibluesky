@@ -1,103 +1,70 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import {
-        Trash2,
-        Users2,
-        Languages,
-        Copy,
-        AtSign,
-        ListPlus,
-        List,
-        Flag,
-        EyeOff,
-        Rss,
-        Pin,
-        Pencil,
-        Sticker
-    } from 'lucide-svelte';
-    import {
-        agent,
-        settings,
-        isPreventEvent,
-        reportModal,
-        columns,
-        didHint,
-        pulseDelete,
-        listAddModal,
-        agents,
-        repostMutes,
-        postMutes,
-        bluefeedAddModal,
-        postPulse,
-        sideState,
-        isPublishInstantFloat,
-        pulseDetach,
-        junkColumns
-    } from '$lib/stores';
-    import {
-        AppBskyEmbedExternal,
-        AppBskyEmbedImages,
-        AppBskyEmbedRecord,
-        AppBskyFeedDefs,
-        BskyAgent
-    } from '@atproto/api'
+    import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2 } from 'lucide-svelte';
+    import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, postPulse, sideState, isPublishInstantFloat, pulseDetach, junkAgentDid } from '$lib/stores';
+    import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
     import { toast } from "svelte-sonner";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
     import {setContext} from "svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
     import {goto} from "$app/navigation";
     import TimelineContent from "$lib/components/post/TimelineContent.svelte";
-    import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
     import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
-    import {
-        getAccountIdByDid,
-        getAllAgentDids, getDidFromUri,
-        getImageBase64FromBlob,
-        getImageObjectFromBlob,
-        getService
-    } from "$lib/util.js";
+    import { getAccountIdByDid, getAllAgentDids, getDidFromUri, getImageBase64FromBlob, getImageObjectFromBlob, getService } from "$lib/util.js";
     import ReactionModal from "$lib/components/post/ReactionModal.svelte";
     import {getTextArray} from "$lib/richtext";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    export let _agent = $agent;
-    export let data: AppBskyFeedDefs.FeedViewPost;
-    export let isReplyExpanded = false;
-    export let isSingle: boolean = false;
-    export let isThread: boolean = false;
-    export let isMedia: boolean = false;
-    export let isProfile: boolean = false;
-    export let isPinned: boolean = false;
-    export let column = undefined;
-    export let index = 0;
+    interface Props {
+        _agent?: any;
+        data: AppBskyFeedDefs.FeedViewPost;
+        isReplyExpanded?: boolean;
+        isSingle?: boolean;
+        isThread?: boolean;
+        isMedia?: boolean;
+        isProfile?: boolean;
+        isPinned?: boolean;
+        column?: any;
+        index?: number;
+        hideReply?: any;
+        hideRepost?: any;
+        children?: import('svelte').Snippet;
+    }
 
+    let {
+        _agent = $agent,
+        data,
+        isReplyExpanded = false,
+        isSingle = false,
+        isThread = false,
+        isMedia = false,
+        isProfile = false,
+        isPinned = false,
+        column = undefined,
+        index = 0,
+        hideReply = column && column.settings?.timeline.hideReply
+            ? column.settings?.timeline.hideReply
+            : $settings.timeline?.hideReply || 'all',
+        hideRepost = column && column.settings?.timeline.hideRepost
+            ? column.settings?.timeline.hideRepost
+            : $settings.timeline?.hideRepost || 'all',
+        children
+    }: Props = $props();
+
+    const columnState = getColumnState();
+    const junkColumnState = getColumnState(true);
     setContext('timelineItem', data);
 
     let selectionText = '';
-    let dialog;
-    let editDialog;
-    let isDialogRender = false;
-    let isEditDialogRender = false;
-    let isMenuOpen = false;
+    let isDialogRender = $state(false);
+    let isEditDialogRender = $state(false);
+    let isMenuOpen = $state(false);
     let isShortCutNumberShown = false;
     let isTranslated = false;
-    let isReactionModalOpen = false;
-    let pulseTranslate = false;
-
-    $: {
-        if (dialog) {
-            dialog.open();
-        }
-
-        if (editDialog) {
-            editDialog.open();
-        }
-    }
-
-    $: {
-        localStorage.setItem('postMutes', JSON.stringify($postMutes));
-    }
+    let isReactionModalOpen = $state(false);
+    let pulseTranslate = $state(false);
 
     if ($settings.general?.deleteConfirmSkip === undefined) {
         $settings.general.deleteConfirmSkip = false;
@@ -111,33 +78,29 @@
         delete data.reply;
     }
 
-    let isHide;
-    let isReplyHide;
+    let isHide = $state();
+    let isReplyHide = $state();
+
+    $effect(() => {
+        handlePostDelete($pulseDelete);
+    })
+
+    $effect(() => {
+        handleEmbedDetach($pulseDetach);
+    })
 
     detectPostMuteFilter();
     detectRepostMuteFilter();
 
-    export let hideReply = column && column.settings?.timeline.hideReply
-                  ? column.settings?.timeline.hideReply
-                  : $settings.timeline?.hideReply || 'all';
-
-    export let hideRepost = column && column.settings?.timeline.hideRepost
-            ? column.settings?.timeline.hideRepost
-            : $settings.timeline?.hideRepost || 'all';
-
     function probability(n) {
       return Math.random() < n / 100;
     }
-
-    $: handlePostDelete($pulseDelete);
 
     function handlePostDelete(uri) {
         if (uri === data?.post?.uri) {
             isHide = true;
         }
     }
-
-    $: handleEmbedDetach($pulseDetach)
 
     function handleEmbedDetach(detach: pulseDetach) {
         if (!detach) {
@@ -337,7 +300,7 @@
             if (AppBskyEmbedExternal.isView(data?.post?.embed)) {
                 _post.embedExternal = {
                     $type: 'app.bsky.embed.external',
-                    external: structuredClone(data.post.embed.external),
+                    external: structuredClone($state.snapshot(data.post.embed.external)),
                 };
 
                 if (data.post.embed.external?.thumb) {
@@ -398,8 +361,8 @@
             return false;
         }
 
-        if ($junkColumns.findIndex(_column => _column.id === 'thread_' + rkey) === -1) {
-            junkColumns.set([...$junkColumns, {
+        if (!junkColumnState.hasColumn('thread_' + rkey)) {
+            junkColumnState.add({
                 id: 'thread_' + rkey,
                 algorithm: {
                     algorithm: 'at://' + data.post.author.did + '/app.bsky.feed.post/' + rkey,
@@ -414,9 +377,10 @@
                     feed: [data],
                     cursor: '',
                 }
-            }]);
+            })
         }
 
+        junkAgentDid.set(_agent.did());
         didHint.set(data.post.author.did);
         goto(uri);
     }
@@ -434,7 +398,7 @@
             return false;
         }
 
-        $columns = [...$columns, {
+        columnState.add({
             id: self.crypto.randomUUID(),
             algorithm: {
                 type: 'thread',
@@ -444,7 +408,7 @@
             style: 'default',
             did: _agent.did(),
             handle: _agent.handle(),
-        }];
+        });
 
         setTimeout(() => {
             document.querySelector('.deck').scrollLeft = 9999;
@@ -461,16 +425,6 @@
           cid: data.post.cid,
         }
       }
-    }
-
-    function handleLike(event) {
-        data.post.likeCount = event.detail.count;
-        data.post.viewer.like = event.detail.viewer;
-    }
-
-    function handleRepost(event) {
-        data.post.repostCount = event.detail.count;
-        data.post.viewer.repost = event.detail.viewer;
     }
 
     function detectRepostMuteFilter() {
@@ -497,6 +451,7 @@
 
     function mutePost() {
         $postMutes = [...$postMutes, data.post.uri];
+        localStorage.setItem('postMutes', JSON.stringify($postMutes));
         pulseDelete.set(data.post.uri);
         toast.success($_('post_mute_success'));
 
@@ -606,15 +561,16 @@
     }
 </script>
 
-<svelte:document on:selectionchange={handleSelectStart} />
+<svelte:document onselectionchange={handleSelectStart} />
 
-{#if (!isHide)}
+{#if !isHide}
   <article class="timeline__item"
-           class:timeline__item--repost={isReasonRepost(data.reason)}
-           class:timeline__item--reply={data.reply && data.reply?.parent?.author?.did !== _agent.did()}
-           class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
-           class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
-           on:click={handleClick}
+     class:timeline__item--repost={isReasonRepost(data.reason)}
+     class:timeline__item--reply={data.reply && data.reply?.parent?.author?.did !== _agent.did()}
+     class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
+     class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
+     class:timeline__item--hide={isHide}
+     onclick={handleClick}
   >
     {#if (isShortCutNumberShown && index < 9)}
       <p class="timeline-shortcut-number">{index + 1}</p>
@@ -630,7 +586,7 @@
         {#if (isReasonRepost(data.reason))}
           <p class="timeline-repost-message">
             <ProfileCardWrapper handle="{data.reason.by.handle}" {_agent}>
-              <a href="/profile/{data.reason.by.handle}"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
+              <a href="/profile/{data.reason.by.handle}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
             </ProfileCardWrapper>
           </p>
         {/if}
@@ -644,7 +600,7 @@
     {:else}
       {#if (data.reply && !isSingle && !isReplyHide)}
         {#if (isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
-          <div class="timeline__column timeline__column--reply">
+          <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
             <TimelineContent post={data.reply.root} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
           </div>
 
@@ -655,7 +611,7 @@
           {/if}
         {/if}
 
-        <div class="timeline__column timeline__column--reply">
+        <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
           {#if (!isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
             <span class="timeline-reply-bar"></span>
           {/if}
@@ -666,154 +622,147 @@
     {/if}
 
     <div class="timeline__column">
-      <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isHide} {pulseTranslate}>
-
-        <ReactionButtons
-            {_agent}
-            {isMedia}
-            {data}
-            on:repost={handleRepost}
-            on:like={handleLike}
-        ></ReactionButtons>
-
-        <slot></slot>
+      <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide {pulseTranslate}>
+        {@render children?.()}
       </TimelineContent>
     </div>
 
     <Menu bind:isMenuOpen={isMenuOpen}>
-      <div class="menu-sub-list" slot="sub">
-        <ReactionButtonsInMenu
-            {_agent}
-            {data}
-            on:repost={handleRepost}
-            on:like={handleLike}
-        ></ReactionButtonsInMenu>
-      </div>
+      {#snippet sub()}
+        <div class="menu-sub-list">
+          <ReactionButtonsInMenu
+              {_agent}
+              bind:post={data.post}
+          ></ReactionButtonsInMenu>
+        </div>
+      {/snippet}
 
-      <ul class="timeline-menu-list" slot="content">
-        {#if (getAllAgentDids($agents).includes(data.post.author.did))}
-          <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-            <button class="timeline-menu-list__button" on:click={deletePostStep}>
-              <Trash2 size="18" color="var(--danger-color)"></Trash2>
-              <span class="text-danger">{$_('delete_post')}</span>
-            </button>
-          </li>
-
-          <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-            <button class="timeline-menu-list__button" on:click={editPostStep}>
-              <Pencil size="18" color="var(--danger-color)"></Pencil>
-              {$_('delete_and_edit')}
-            </button>
-          </li>
-
-          {#if (isPinned)}
+      {#snippet content()}
+        <ul class="timeline-menu-list" >
+          {#if (getAllAgentDids($agents).includes(data.post.author.did))}
             <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-              <button class="timeline-menu-list__button" on:click={unregisterPin}>
-                <Pin size="18" color="var(--text-color-1)"></Pin>
-                {$_('unregister_pin')}
+              <button class="timeline-menu-list__button" onclick={deletePostStep}>
+                <Trash2 size="18" color="var(--danger-color)"></Trash2>
+                <span class="text-danger">{$_('delete_post')}</span>
               </button>
             </li>
-          {:else}
+
             <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-              <button class="timeline-menu-list__button" on:click={registerPin}>
-                <Pin size="18" color="var(--text-color-1)"></Pin>
-                {$_('register_pin')}
+              <button class="timeline-menu-list__button" onclick={editPostStep}>
+                <Pencil size="18" color="var(--danger-color)"></Pencil>
+                {$_('delete_and_edit')}
+              </button>
+            </li>
+
+            {#if (isPinned)}
+              <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+                <button class="timeline-menu-list__button" onclick={unregisterPin}>
+                  <Pin size="18" color="var(--text-color-1)"></Pin>
+                  {$_('unregister_pin')}
+                </button>
+              </li>
+            {:else}
+              <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+                <button class="timeline-menu-list__button" onclick={registerPin}>
+                  <Pin size="18" color="var(--text-color-1)"></Pin>
+                  {$_('register_pin')}
+                </button>
+              </li>
+            {/if}
+          {/if}
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--translate">
+            <button class="timeline-menu-list__button" onclick={translation}>
+              <Languages size="18" color="var(--text-color-1)"></Languages>
+              {$_('translation')}
+            </button>
+          </li>
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--copy-url">
+            <button class="timeline-menu-list__button" onclick={copyThreadUrl}>
+              <Copy size="18" color="var(--text-color-1)"></Copy>
+              {$_('copy_url')}
+            </button>
+          </li>
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
+            <button class="timeline-menu-list__button" onclick={copyHandle}>
+              <AtSign size="18" color="var(--text-color-1)"></AtSign>
+              {$_('copy_handle')}
+            </button>
+          </li>
+
+          {#if ($settings.design?.layout === 'decks')}
+            <li class="timeline-menu-list__item timeline-menu-list__item--report">
+              <button class="timeline-menu-list__button" onclick={addThreadColumn}>
+                <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
+                {$_('add_thread_column')}
               </button>
             </li>
           {/if}
-        {/if}
 
-        <li class="timeline-menu-list__item timeline-menu-list__item--translate">
-          <button class="timeline-menu-list__button" on:click={translation}>
-            <Languages size="18" color="var(--text-color-1)"></Languages>
-            {$_('translation')}
-          </button>
-        </li>
-
-        <li class="timeline-menu-list__item timeline-menu-list__item--copy-url">
-          <button class="timeline-menu-list__button" on:click={copyThreadUrl}>
-            <Copy size="18" color="var(--text-color-1)"></Copy>
-            {$_('copy_url')}
-          </button>
-        </li>
-
-        <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
-          <button class="timeline-menu-list__button" on:click={copyHandle}>
-            <AtSign size="18" color="var(--text-color-1)"></AtSign>
-            {$_('copy_handle')}
-          </button>
-        </li>
-
-        {#if ($settings.design?.layout === 'decks')}
           <li class="timeline-menu-list__item timeline-menu-list__item--report">
-            <button class="timeline-menu-list__button" on:click={addThreadColumn}>
-              <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
-              {$_('add_thread_column')}
+            <button class="timeline-menu-list__button" onclick={() => {$listAddModal = {open: true, author: data.post.author, did: _agent.did()}}}>
+              <List size="18" color="var(--text-color-1)"></List>
+              {$_('list_instant_manage')}
             </button>
           </li>
-        {/if}
 
-        <li class="timeline-menu-list__item timeline-menu-list__item--report">
-          <button class="timeline-menu-list__button" on:click={() => {$listAddModal = {open: true, author: data.post.author, did: _agent.did()}}}>
-            <List size="18" color="var(--text-color-1)"></List>
-            {$_('list_instant_manage')}
-          </button>
-        </li>
-
-        {#if $settings?.general?.enableBluefeed || false}
-          <li class="timeline-menu-list__item timeline-menu-list__item--bluefeed">
-            <button class="timeline-menu-list__button" on:click={() => {$bluefeedAddModal = {open: true, post: data.post, did: _agent.did()}}}>
-              <Rss size="18" color="var(--text-color-1)"></Rss>
-              {$_('add_bluefeed')}
-            </button>
-          </li>
-        {/if}
-
-        {#if ($agents.size > 1)}
-          <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" on:click={() => {isReactionModalOpen = true}}>
-              <Users2 size="18" color="var(--text-color-1)"></Users2>
-              {$_('reaction_other_account_menu')}
-            </button>
-          </li>
-        {/if}
-
-        {#if (!getAllAgentDids($agents).includes(data.post.author.did))}
-          <li class="timeline-menu-list__item timeline-menu-list__item--hide">
-            <button class="timeline-menu-list__button" on:click={mutePost}>
-              <EyeOff size="18" color="var(--text-color-1)"></EyeOff>
-              {$_('post_mute_on')}
-            </button>
-          </li>
-        {/if}
-
-        {#if (getAllAgentDids($agents).includes(data.post?.embed?.record?.author?.did || data.post?.embed?.record?.record?.author?.did))}
-          {#if (AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record?.record) || AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record))}
-            <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button" on:click={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri)}}>
-                <Sticker size="18" color="var(--danger-color)"></Sticker>
-                {$_('detach_quote')}
+          {#if $settings?.general?.enableBluefeed || false}
+            <li class="timeline-menu-list__item timeline-menu-list__item--bluefeed">
+              <button class="timeline-menu-list__button" onclick={() => {$bluefeedAddModal = {open: true, post: data.post, did: _agent.did()}}}>
+                <Rss size="18" color="var(--text-color-1)"></Rss>
+                {$_('add_bluefeed')}
               </button>
             </li>
           {/if}
-        {/if}
 
-        {#if ((data.post?.embed?.record?.detached || data.post?.embed?.record?.record?.detached) && getAllAgentDids($agents).includes(getDidFromUri(data.post?.embed?.record?.uri || data.post?.embed?.record?.record?.uri)))}
-          <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" on:click={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri, true)}}>
-              <Sticker size="18" color="var(--danger-color)"></Sticker>
-              {$_('un_detach_quote')}
+          {#if ($agents.size > 1)}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={() => {isReactionModalOpen = true}}>
+                <Users2 size="18" color="var(--text-color-1)"></Users2>
+                {$_('reaction_other_account_menu')}
+              </button>
+            </li>
+          {/if}
+
+          {#if (!getAllAgentDids($agents).includes(data.post.author.did))}
+            <li class="timeline-menu-list__item timeline-menu-list__item--hide">
+              <button class="timeline-menu-list__button" onclick={mutePost}>
+                <EyeOff size="18" color="var(--text-color-1)"></EyeOff>
+                {$_('post_mute_on')}
+              </button>
+            </li>
+          {/if}
+
+          {#if (getAllAgentDids($agents).includes(data.post?.embed?.record?.author?.did || data.post?.embed?.record?.record?.author?.did))}
+            {#if (AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record?.record) || AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record))}
+              <li class="timeline-menu-list__item">
+                <button class="timeline-menu-list__button" onclick={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri)}}>
+                  <Sticker size="18" color="var(--danger-color)"></Sticker>
+                  {$_('detach_quote')}
+                </button>
+              </li>
+            {/if}
+          {/if}
+
+          {#if ((data.post?.embed?.record?.detached || data.post?.embed?.record?.record?.detached) && getAllAgentDids($agents).includes(getDidFromUri(data.post?.embed?.record?.uri || data.post?.embed?.record?.record?.uri)))}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri, true)}}>
+                <Sticker size="18" color="var(--danger-color)"></Sticker>
+                {$_('un_detach_quote')}
+              </button>
+            </li>
+          {/if}
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--report">
+            <button class="timeline-menu-list__button" onclick={report}>
+              <Flag size="18" color="var(--danger-color)"></Flag>
+              {$_('report')}
             </button>
           </li>
-        {/if}
-
-        <li class="timeline-menu-list__item timeline-menu-list__item--report">
-          <button class="timeline-menu-list__button" on:click={report}>
-            <Flag size="18" color="var(--danger-color)"></Flag>
-            {$_('report')}
-          </button>
-        </li>
-      </ul>
+        </ul>
+      {/snippet}
     </Menu>
 
     {#if ($settings?.general.devMode)}
@@ -825,7 +774,6 @@
 
     {#if (isDialogRender)}
       <ConfirmModal
-          bind:this={dialog}
           on:ok={() => {deletePost(data.post.uri)}}
           on:cancel={() => {isDialogRender = false}}
           confirmationName="deleteConfirmSkip"
@@ -838,7 +786,6 @@
 
     {#if (isEditDialogRender)}
       <ConfirmModal
-          bind:this={editDialog}
           on:ok={editPost}
           on:cancel={() => {isEditDialogRender = false}}
           confirmationName="deleteConfirmSkip"
@@ -851,7 +798,7 @@
     {/if}
 
     {#if (isReactionModalOpen)}
-      <ReactionModal {_agent} on:close={() => {isReactionModalOpen = false}}></ReactionModal>
+      <ReactionModal {_agent} onclose={() => {isReactionModalOpen = false}}></ReactionModal>
     {/if}
   </article>
 {:else}
@@ -865,5 +812,9 @@
 <style lang="postcss">
   .timeline-hidden-item {
       margin-bottom: 16px;
+  }
+
+  .timeline__item--hide {
+      display: none !important;
   }
 </style>

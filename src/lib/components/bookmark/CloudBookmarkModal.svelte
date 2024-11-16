@@ -1,88 +1,83 @@
 <script lang="ts">
-    import { agent } from '$lib/stores';
-    import {createEventDispatcher, onMount} from 'svelte';
-    import { toast } from 'svelte-sonner';
-    import { _ } from 'svelte-i18n';
-    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-    import CloudBookmarkMenu from "$lib/components/bookmark/CloudBookmarkMenu.svelte";
-    const dispatch = createEventDispatcher();
+  import { agent } from '$lib/stores';
+  import { onMount } from 'svelte';
+  import { toast } from 'svelte-sonner';
+  import { _ } from 'svelte-i18n';
+  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+  import CloudBookmarkMenu from "$lib/components/bookmark/CloudBookmarkMenu.svelte";
 
-    export let _agent = $agent;
+  let { _agent = $agent, id, close } = $props();
+  let bookmark = undefined;
+  let name = $state('');
+  let text = $state('');
+  let loading = $state(false);
 
-    export let id;
-    let bookmark = undefined;
-    let name = '';
-    let text = '';
-    let loading = false;
+  async function save () {
+      try {
+          const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.addBookmark`, {
+              method: 'POST',
+              body: JSON.stringify({
+                  bookmark: {
+                      id: id || undefined,
+                      owner: _agent.did() as string,
+                      name: name,
+                      text: text,
+                  }
+              }),
+              headers: {
+                  'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
+                  Authorization: 'Bearer ' + _agent.getToken(),
+                  'Content-Type': 'application/json'
+              }
+          })
 
-    async function save () {
-        try {
-            const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.addBookmark`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    bookmark: {
-                        id: id || undefined,
-                        owner: _agent.did() as string,
-                        name: name,
-                        text: text,
-                    }
-                }),
-                headers: {
-                    'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                    Authorization: 'Bearer ' + _agent.getToken(),
-                    'Content-Type': 'application/json'
-                }
-            })
+          if (res.status !== 200) {
+              throw new Error('failed to save Cloud Bookmark');
+          }
 
-            if (res.status !== 200) {
-                throw new Error('failed to save Cloud Bookmark');
-            }
+          toast.success($_('bookmark_save_success'));
+          close(false);
+      } catch (e) {
+          toast.error('Error: ' + e);
+      }
+  }
 
-            toast.success($_('bookmark_save_success'));
-            dispatch('close', {
-                clear: false,
-            });
-        } catch (e) {
-            toast.error('Error: ' + e);
-        }
-    }
+  async function remove () {
+      close(false);
+  }
 
-    async function remove () {
-        dispatch('close');
-    }
+  onMount(async () => {
+      if (id) {
+          loading = true;
 
-    onMount(async () => {
-        if (id) {
-            loading = true;
+          try {
+              const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getBookmark?owner=${_agent.did() as string}&id=${id}`, {
+                  method: 'GET',
+                  headers: {
+                      'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
+                      Authorization: 'Bearer ' + _agent.getToken(),
+                      'Content-Type': 'application/json'
+                  }
+              })
 
-            try {
-                const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getBookmark?owner=${_agent.did() as string}&id=${id}`, {
-                    method: 'GET',
-                    headers: {
-                        'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                        Authorization: 'Bearer ' + _agent.getToken(),
-                        'Content-Type': 'application/json'
-                    }
-                })
+              if (res.status !== 200) {
+                  throw new Error('failed to get Cloud Bookmark');
+              }
 
-                if (res.status !== 200) {
-                    throw new Error('failed to get Cloud Bookmark');
-                }
+              const json = await res.json();
 
-                const json = await res.json();
+              if (json?.bookmark) {
+                  name = json.bookmark.name;
+                  text = json.bookmark?.text;
+              }
 
-                if (json?.bookmark) {
-                    name = json.bookmark.name;
-                    text = json.bookmark?.text;
-                }
-
-                loading = false;
-            } catch (e) {
-                console.error(e);
-                dispatch('close');
-            }
-        }
-    })
+              loading = false;
+          } catch (e) {
+              console.error(e);
+              close(false);
+          }
+      }
+  })
 </script>
 
 <div class="bookmark-modal">
@@ -127,11 +122,11 @@
       </dl>
 
       <div class="bookmark-modal-close">
-        <button class="button button--sm" on:click={save}>{$_('save_button')}</button>
-        <button class="button button--sm button--border button--danger" on:click={remove}>{$_('cancel')}</button>
+        <button class="button button--sm" onclick={save}>{$_('save_button')}</button>
+        <button class="button button--sm button--border button--danger" onclick={remove}>{$_('cancel')}</button>
       </div>
 
-      <CloudBookmarkMenu {id} {_agent} on:close></CloudBookmarkMenu>
+      <CloudBookmarkMenu {id} {_agent} {close}></CloudBookmarkMenu>
     {/if}
   </div>
 </div>

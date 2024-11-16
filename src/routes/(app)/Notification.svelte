@@ -1,26 +1,61 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import {agent, realtime, settings} from '$lib/stores';
-    import { type AppBskyNotificationListNotifications } from '@atproto/api';
+    import {type AppBskyNotificationListNotifications} from '@atproto/api';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import {createEventDispatcher} from "svelte";
     import TimelineItem from "./TimelineItem.svelte";
-    const dispatch = createEventDispatcher();
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
     import {AtSign, Heart, Repeat2, UserPlus2, Filter, Reply, Quote, Star} from 'lucide-svelte';
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
     import {playSound} from "$lib/sounds";
 
-    export let _agent = $agent;
-    export let isPage = false;
-
-    export let notifications: AppBskyNotificationListNotifications.Notification[] = [];
-    export let cursor = '';
-
     type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow';
-    export let filter: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
-    let filters: Filter[] = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+
+    interface Props {
+        _agent: any,
+        isPage: boolean,
+        notifications: AppBskyNotificationListNotifications.Notification[],
+        cursor: any,
+        filter: Filter[],
+        feedPool: any,
+        notificationGroup: any,
+        isOnlyShowUnread: boolean,
+        sound: any,
+        lastRefresh: any,
+        id: any,
+    }
+
+    let {
+        _agent = $agent,
+        isPage = false,
+        notifications = $bindable(),
+        cursor = $bindable(),
+        feedPool = $bindable(),
+        notificationGroup = $bindable(),
+        lastRefresh = $bindable(),
+        filter = $bindable(['like', 'repost', 'reply', 'mention', 'quote', 'follow']),
+        isOnlyShowUnread = false,
+        sound = null,
+        id = null,
+        onupdate,
+        onchange,
+        unique = Symbol(),
+    }: Props = $props();
+
+    if (!notifications) {
+        notifications = [];
+    }
+
+    if (!notificationGroup) {
+        notificationGroup = [];
+    }
+
+    if (!feedPool) {
+        feedPool = [];
+    }
+
+    let filters: Filter[] = $state(['like', 'repost', 'reply', 'mention', 'quote', 'follow']);
     let filterIcons = {
         like: $settings?.design?.reactionMode === 'superstar' ? Star : Heart,
         repost: Repeat2,
@@ -30,14 +65,6 @@
         follow: UserPlus2,
     };
 
-    export let feedPool = [];
-    export let notificationGroup = [];
-    export let isOnlyShowUnread = false;
-    export let sound = null;
-    export let lastRefresh = undefined;
-    export let id = null;
-    let unique = Symbol();
-
     async function getNotificationsFilter(setFilter: Filter[]) {
         filter = setFilter;
         notifications = [];
@@ -46,7 +73,9 @@
         cursor = '';
     }
 
-    $: realtimeNotificationCount($realtime.data)
+    $effect(() => {
+        realtimeNotificationCount($realtime.data);
+    })
 
     async function realtimeNotificationCount(data) {
         if (!data) {
@@ -72,6 +101,7 @@
             const subject = record.subject;
 
             if (subject === _agent.did()) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 await observeRealtimeNotification();
             }
         }
@@ -91,28 +121,21 @@
 
     async function observeRealtimeNotification() {
         const res = await _agent.agent.api.app.bsky.notification.getUnreadCount();
-        dispatch('update', {
-            count: res.data.count,
-        });
-        await putNotifications(res.data.count);
+        onupdate(res.data.count)
+        await putNotifications();
     }
 
-    async function putNotifications(count) {
-        if (!$realtime.isConnected) {
-            return false;
-        }
-
-        if (!isPage) {
-            // return false;
-        }
-
+    async function putNotifications() {
         const res = await _agent.agent.api.app.bsky.notification.listNotifications({
             limit: 10,
             cursor: '',
         });
+        const __notifications = res.data.notifications.filter(item => {
+            return filter.includes(item.reason);
+        });
         const resNotifications = isOnlyShowUnread
-            ? res.data.notifications.filter(notification => !notification.isRead)
-            : res.data.notifications;
+            ? __notifications.filter(notification => !notification.isRead)
+            : __notifications;
 
         const _notifications = mergeNotifications([...resNotifications, ...notifications]);
         const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(_notifications, true, _agent, feedPool || []);
@@ -129,23 +152,36 @@
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-        const res = await _agent.agent.api.app.bsky.notification.listNotifications({
-            limit: 25,
-            cursor: cursor,
-        });
-        cursor = res.data.cursor;
-        const resNotifications = isOnlyShowUnread
-            ? res.data.notifications.filter(notification => !notification.isRead)
-            : res.data.notifications;
+        try {
+            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+                limit: 25,
+                cursor: cursor,
+            });
+            cursor = res.data.cursor;
 
-        const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, feedPool);
-        notifications = [...notifications, ...resNotifications];
-        notificationGroup = [...notificationGroup, ...newNotificationGroup];
-        feedPool = newFeedPool;
+            if (!filter.length) {
+                filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+            }
 
-        if (cursor && resNotifications.length) {
-            loaded();
-        } else {
+            const _notifications = res.data.notifications.filter(item => {
+                return filter.includes(item.reason);
+            });
+            const resNotifications = isOnlyShowUnread
+                    ? _notifications.filter(notification => !notification.isRead)
+                    : _notifications;
+
+            const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, feedPool);
+            notifications = [...notifications, ...resNotifications];
+            notificationGroup = [...notificationGroup, ...newNotificationGroup];
+            feedPool = newFeedPool;
+
+            if (cursor && res.data.notifications.length) {
+                loaded();
+            } else {
+                complete();
+            }
+        } catch (e) {
+            console.error(e);
             complete();
         }
     }
@@ -153,9 +189,7 @@
     function changeFilter(filter: Filter[]) {
         getNotificationsFilter(filter);
         unique = Symbol();
-        dispatch('change', {
-            filter: filter,
-        });
+        onchange(filter);
     }
 </script>
 
@@ -222,29 +256,29 @@
         </div>
     {/if}
 
+    <div class="notifications-list">
+        {#each notificationGroup as item, index (item)}
+            <div class="notifications-list__item">
+                {#if item?.notifications[0]?.isRead === false}
+                    <span class="notifications-list__new"></span>
+                {/if}
+
+                {#if (filter.includes(item.reason))}
+                    {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+                        <TimelineItem {_agent} data={{post: item.feed || item.notifications[0]}}></TimelineItem>
+                    {:else if (item.reason === 'follow')}
+                        <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
+                    {:else if (item.reason === 'starterpack-joined')}
+
+                    {:else}
+                        <NotificationReactionItem {_agent} {item}></NotificationReactionItem>
+                    {/if}
+                {/if}
+            </div>
+        {/each}
+    </div>
+
     {#key unique}
-        <div class="notifications-list">
-          {#each notificationGroup as item, index (item)}
-              <div class="notifications-list__item">
-                  {#if item?.notifications[0]?.isRead === false}
-                      <span class="notifications-list__new"></span>
-                  {/if}
-
-                  {#if (filter.includes(item.reason))}
-                      {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-                          <TimelineItem {_agent} data={{post: item.feed || item.notifications[0]}}></TimelineItem>
-                      {:else if (item.reason === 'follow')}
-                          <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
-                      {:else if (item.reason === 'starterpack-joined')}
-
-                      {:else}
-                          <NotificationReactionItem {_agent} {item}></NotificationReactionItem>
-                      {/if}
-                  {/if}
-              </div>
-          {/each}
-        </div>
-
         <InfiniteLoading on:infinite={handleLoadMore}>
             <p slot="noMore" class="infinite-nomore">
                 {$_('no_more')}

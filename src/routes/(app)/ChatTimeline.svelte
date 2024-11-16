@@ -1,21 +1,18 @@
 <script lang="ts">
     import {agent, chatPulse, latestRevMap} from '$lib/stores';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import {_} from "svelte-i18n";
     import ChatItem from "$lib/components/chat/ChatItem.svelte";
     import ChatPublish from "$lib/components/chat/ChatPublish.svelte";
-    import {createEventDispatcher, onMount} from "svelte";
-    import { flip } from 'svelte/animate';
+    import {tick} from "svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-    const dispatch = createEventDispatcher();
 
-    export let column;
-    export let index;
-    export let _agent = $agent;
+    let { column = $bindable(), index, _agent = $agent, onrefresh, unique } = $props();
     let firstLoad = true;
     let retryCount = 0;
 
-    $: handleUpdate($chatPulse);
+    $effect(() => {
+        handleUpdate($chatPulse);
+    })
 
     function isDuplicateMessage(oldFeed, newFeed) {
         return oldFeed.id === newFeed.id;
@@ -27,7 +24,7 @@
         }
 
         if (logs.some(log => log.convoId === column.algorithm.id)) {
-            dispatch('refresh');
+            onrefresh();
         }
     }
 
@@ -58,9 +55,9 @@
                     $latestRevMap.set(_agent.did(), res.data.messages[0].rev);
                 }
 
-                setTimeout(() => {
+                tick().then(() => {
                     column.scrollElement.scrollTo(0, column.scrollElement.scrollHeight);
-                }, 0)
+                });
             }
 
             if (column.data.cursor && res.data.messages.length) {
@@ -92,18 +89,24 @@
         }
     }
 
-    onMount(async () => {
-        setTimeout(() => {
+    $effect.pre(() => {
+        tick().then(() => {
             column.scrollElement.scrollTo(0, column.scrollElement.scrollHeight);
-        }, 0)
-    })
+        })
+    });
 </script>
 
 <div class="chat">
-  <InfiniteLoading on:infinite={handleLoadMore} direction="top">
-    <p slot="noMore" class="infinite-nomore"></p>
-    <p slot="noResults" class="infinite-nomore"></p>
-  </InfiniteLoading>
+  {#key unique}
+    <InfiniteLoading on:infinite={handleLoadMore} direction="top">
+      {#snippet noMore()}
+          <p  class="infinite-nomore"></p>
+        {/snippet}
+      {#snippet noResults()}
+          <p  class="infinite-nomore"></p>
+        {/snippet}
+    </InfiniteLoading>
+  {/key}
 
   {#each column.data.feed as data, index (data)}
     <div>
@@ -111,7 +114,7 @@
     </div>
   {/each}
 
-  <ChatPublish id={column.algorithm.id} {column} {_agent} on:refresh></ChatPublish>
+  <ChatPublish id={column.algorithm.id} {column} {_agent} {onrefresh}></ChatPublish>
 </div>
 
 <style lang="postcss">

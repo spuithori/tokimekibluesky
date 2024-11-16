@@ -4,7 +4,7 @@
   import {createEventDispatcher} from "svelte";
   const dispatch = createEventDispatcher();
 
-  export let current;
+  let { current } = $props();
 
   function changeIcon(key) {
       dispatch('change', {
@@ -17,21 +17,22 @@
   }
 </script>
 
-<button class="column-icon-picker-bg" transition:fade={{ duration: 150 }} on:click={close} aria-label="Close"></button>
-
 <div class="column-icon-picker" transition:fly={{ duration:250, y: -30 }}>
   <ul class="icon-picker-list">
     {#each iconMap as [key, icon]}
+      {@const SvelteComponent = icon}
       <button
           class="icon-picker-list__button"
           class:icon-picker-list__button--current={key === current}
-          on:click={() => {changeIcon(key)}}
+          onclick={() => {changeIcon(key)}}
       >
-        <svelte:component this={icon} color="var(--text-color-1)"></svelte:component>
+        <SvelteComponent color="var(--text-color-1)"></SvelteComponent>
       </button>
     {/each}
   </ul>
 </div>
+
+<button class="column-icon-picker-bg" transition:fade={{ duration: 150 }} onclick={close} aria-label="Close"></button>
 
 <style lang="postcss">
   .column-icon-picker {
@@ -43,6 +44,7 @@
       right: 16px;
       box-shadow: 0 0 10px var(--box-shadow-color-1);
       border-radius: 6px;
+      z-index: 1;
   }
 
   .icon-picker-list {

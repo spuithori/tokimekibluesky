@@ -1,14 +1,13 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {agent} from "$lib/stores";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
 
-  export let _agent = $agent;
-  export let uri;
-  $: target = uri.split('/')[2];
-  let members = [];
+  let { _agent = $agent, uri } = $props();
+  let members = $state([]);
 
-  $: getMembers(uri);
 
   function addData(feed) {
       if (!members.some(member => member.did === feed.post.author.did) && feed.post.author.did !== target && feed.post.author.did !== _agent.did()) {
@@ -33,6 +32,10 @@
           addData(res.data.thread.parent);
       }
   }
+  let target = $derived(uri.split('/')[2]);
+  run(() => {
+    getMembers(uri);
+  });
 </script>
 
 {#if members.length}

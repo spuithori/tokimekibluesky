@@ -1,92 +1,9 @@
 import {derived, readable, writable} from 'svelte/store';
 import type {Agent} from '$lib/agent';
-import type {
-    AppBskyActorDefs,
-    AppBskyFeedDefs,
-    AppBskyFeedPost,
-    AppBskyNotificationListNotifications
-} from '@atproto/api';
-import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+import type { AppBskyActorDefs } from '@atproto/api';
 import type {Theme} from "$lib/types/theme";
 import {defaultReactionButtons} from "$lib/defaultSettings";
 import timerWorkerUrl from '$lib/workers/timer.js?url'
-import {keywordStringToArray} from "$lib/timelineFilter";
-import type {keyword} from "$lib/timelineFilter";
-
-type NotificationWithFeed = & AppBskyNotificationListNotifications.Notification & {
-    feed?: AppBskyFeedPost
-}
-
-type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat',
-    algorithm?: string,
-    name?: string,
-    list?: object,
-}
-
-type columns = {
-    id?: string | number,
-    algorithm: currentAlgorithm,
-    style: 'default' | 'media',
-    did?: string,
-    handle?: string,
-    unreadCount?: number,
-    filter?: string[],
-    lastRefresh?: string,
-    settings: defaultDeckSettings,
-    data: {
-        feed: [],
-        cursor: '',
-    }
-}
-
-type cursor = string | number | undefined;
-
-const defaultColumns = [{
-    id: 1,
-    algorithm: {
-        type: 'default',
-        name: 'HOME'
-    },
-    style: 'default',
-    settings: defaultDeckSettings,
-    unreadCount: 0,
-    data: {
-        feed: [],
-        cursor: '',
-    }
-}];
-const storageColumns = localStorage.getItem('columns') || JSON.stringify([]);
-export const columns = writable<columns[]>(JSON.parse(storageColumns));
-
-export const syncColumns = derived(columns, ($columns, set) => {
-    let _columns = [];
-    $columns.forEach(column => {
-        let c = {};
-        for (const [key, value] of Object.entries(column)) {
-            if (key !== 'scrollElement') {
-                c[key] = value;
-            }
-
-            if (key === 'data') {
-                c['data'] = {
-                    feed: [],
-                    cursor: '',
-                }
-            }
-        }
-
-        _columns.push(c);
-    })
-    set(_columns);
-});
-
-export const columnChatLength = derived(columns, ($columns, set) => {
-    const chatColumns = $columns.filter(column => column?.algorithm?.type === 'chat');
-    set(chatColumns.length);
-})
-
-export const junkColumns = writable<columns[]>([]);
 
 export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
@@ -94,26 +11,15 @@ export const agent = writable<Agent>(undefined);
 
 export const agents = writable(new Map<number, Agent>());
 
+export const junkAgentDid = writable<string | undefined>(undefined);
+
 export const notificationCount = writable(0);
-
-export const notifications = writable<NotificationWithFeed[]>([]);
-
-export const quotePost = writable<AppBskyFeedDefs.PostView | undefined>();
-
-type replyRef = {
-    did: string,
-    data: AppBskyFeedDefs.ReplyRef | string | undefined
-} | undefined;
-
-export const replyRef = writable<replyRef>();
 
 export const sharedText = writable<string>('');
 
 export const userLists = writable(localStorage.getItem('lists')
     ? JSON.parse(localStorage.getItem('lists'))
     : []);
-
-export const bookmarksStore = writable(undefined);
 
 const defaultSettings = {
     general: {
@@ -150,6 +56,8 @@ const defaultSettings = {
         displayHandle: false,
         reactionMode: 'tokimeki',
         leftMode: false,
+        disableProfilePopup: false,
+        hideSide: false,
     },
     timeline: {
         hideRepost: 'all',
@@ -181,26 +89,11 @@ const defaultSettings = {
 const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);
 export const settings = writable(JSON.parse(storageSettings));
 
-const storageKeywordMutes = localStorage.getItem('keywordMutes') || JSON.stringify([]);
-export const keywordMutes = writable<keyword[]>(JSON.parse(storageKeywordMutes));
-
 const storageRepostMutes = localStorage.getItem('repostMutes') || JSON.stringify([]);
 export const repostMutes = writable<string[]>(JSON.parse(storageRepostMutes));
 
 const storagePostMutes = localStorage.getItem('postMutes') || JSON.stringify([]);
 export const postMutes = writable<string[]>(JSON.parse(storagePostMutes));
-
-export const formattedKeywordMutes = derived(keywordMutes, ($keywordMutes) => {
-    const initialMutes = structuredClone($keywordMutes);
-    if (!initialMutes || !initialMutes.length) {
-        return [];
-    }
-
-    return initialMutes.map(mute => {
-        mute.word = keywordStringToArray(mute.word);
-        return mute;
-    });
-});
 
 export const preferences = writable();
 
@@ -215,11 +108,6 @@ export const cloudBookmarkModal = writable({
 })
 
 export const listModal = writable({
-    open: false,
-    data: undefined,
-})
-
-export const feedsModal = writable({
     open: false,
     data: undefined,
 })
@@ -287,8 +175,6 @@ export const isImageOpen = writable(false);
 
 export const isColumnModalOpen = writable(false);
 
-export const globalUnique = writable(null);
-
 export const sideState = writable<'publish' | 'search' | 'notification' | 'profile' | 'settings' | 'none'>('publish');
 
 export const isPublishInstantFloat = writable(false);
@@ -298,18 +184,6 @@ export const didHint = writable('');
 export const theme = writable<Theme | undefined>(undefined);
 
 export const missingAccounts = writable([]);
-
-type pulseReaction = {
-    uri: string,
-    count: number | undefined,
-    viewer: string | undefined,
-    did: string,
-} | undefined;
-export const pulseLike = writable<pulseReaction>(undefined);
-
-export const pulseRepost = writable<pulseReaction>(undefined);
-
-export const pulseBookmark = writable<pulseReaction>(undefined);
 
 export const pulseDelete = writable<string | undefined>(undefined);
 

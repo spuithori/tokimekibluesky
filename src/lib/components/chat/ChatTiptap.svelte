@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { preventDefault } from 'svelte/legacy';
+
     import {_} from 'svelte-i18n';
     import {createEventDispatcher, onMount, onDestroy} from 'svelte'
     import {Editor} from '@tiptap/core'
@@ -20,23 +22,38 @@
     import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
     const dispatch = createEventDispatcher();
 
-    export let json;
-    export let text = '';
-    export let _agent = $agent;
-    export let isPublishEnabled;
+  interface Props {
+    json: any;
+    text?: string;
+    _agent?: any;
+    isPublishEnabled: any;
+    top?: import('svelte').Snippet;
+    avatar?: import('svelte').Snippet;
+    normal?: import('svelte').Snippet;
+  }
 
-    let element;
+  let {
+    json = $bindable(),
+    text = $bindable(''),
+    _agent = $agent,
+    isPublishEnabled,
+    top,
+    avatar,
+    normal
+  }: Props = $props();
+
+    let element = $state();
     let editor;
-    let mentionList;
-    let hashtagList;
+    let mentionList = $state();
+    let hashtagList = $state();
 
     let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
-    let mentionProps;
-    let hashtagProps;
-    let linkDialog;
-    let linkValue = '';
+    let mentionProps = $state();
+    let hashtagProps = $state();
+    let linkDialog = $state();
+    let linkValue = $state('');
     let linkButtonDisabled = true;
-    let scrollable;
+    let scrollable = $state();
 
     onMount(() => {
         editor = new Editor({
@@ -241,10 +258,10 @@
 </script>
 
 <div class="chat-publish-form" bind:this={scrollable}>
-  <slot name="top"></slot>
+  {@render top?.()}
 
   <div class="chat-editor-column">
-    <slot name="avatar"></slot>
+    {@render avatar?.()}
 
     <div class="chat-editor" bind:this={element}>
       <!-- <button class="chat-editor-stamp-button">
@@ -252,12 +269,12 @@
       </button> -->
     </div>
 
-    <button class="chat-editor-submit" disabled={isPublishEnabled} on:click={() => {dispatch('publish')}}>
+    <button class="chat-editor-submit" disabled={isPublishEnabled} onclick={() => {dispatch('publish')}}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal"><path d="m3 3 3 9-3 9 19-9Z"/><path d="M6 12h16"/></svg>
     </button>
   </div>
 
-  <slot name="normal"></slot>
+  {@render normal?.()}
 </div>
 
 {#if (mentionProps)}
@@ -268,15 +285,15 @@
   <HashtagList props={hashtagProps} bind:this={hashtagList}></HashtagList>
 {/if}
 
-<dialog class="editor-link-dialog" bind:this={linkDialog} on:close={submitLink}>
+<dialog class="editor-link-dialog" bind:this={linkDialog} onclose={submitLink}>
   <form>
     <input type="text" class="editor-link-dialog__input" bind:value={linkValue} placeholder="https://tokimeki.blue">
-    <button class="editor-link-dialog__button" on:click|preventDefault={() => {linkDialog.close(linkValue)}}>
+    <button class="editor-link-dialog__button" onclick={preventDefault(() => {linkDialog.close(linkValue)})}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-corner-down-left"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
     </button>
   </form>
 
-  <button class="modal-background-close" on:click={() => {linkDialog.close()}}></button>
+  <button class="modal-background-close" onclick={() => {linkDialog.close()}}></button>
 </dialog>
 
 <style lang="postcss">

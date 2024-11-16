@@ -1,45 +1,45 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
-    import { fly } from 'svelte/transition';
-    import {createEventDispatcher, getContext, onMount} from 'svelte';
-    import {agent, agents} from "$lib/stores";
-    import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
-    import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
-    import {getAccountIdByDid} from "$lib/util";
-    import { toast } from "svelte-sonner";
-    const dispatch = createEventDispatcher();
+  import {_} from "svelte-i18n";
+  import { fly } from 'svelte/transition';
+  import {getContext, onMount} from 'svelte';
+  import {agent, agents} from "$lib/stores";
+  import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
+  import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
+  import {getAccountIdByDid} from "$lib/util";
+  import { toast } from "svelte-sonner";
 
-    export let _agent = $agent;
-    let data = getContext('timelineItem');
-    let el;
-    let currentAccount;
-    let isLoading = false;
+  let { onclose } = $props();
+  let data = $state(getContext('timelineItem'));
+  let el = $state();
+  let _agent = $state($agent);
+  let currentAccount;
+  let isLoading = false;
 
-    function close() {
-        el.close();
-        dispatch('close');
-    }
+  function close() {
+      el.close();
+      onclose();
+  }
 
-    async function handleSelect(event) {
-        isLoading = true;
-        currentAccount = event.detail.id;
-        _agent = $agents.get(currentAccount);
+  async function handleSelect(event) {
+      isLoading = true;
+      currentAccount = event.detail.id;
+      _agent = $agents.get(currentAccount);
 
-        try {
-            data = await _agent.getFeed(data.post.uri);
-            isLoading = false;
-        } catch (e) {
-            toast.error(e);
-            close();
-        }
-    }
+      try {
+          data = await _agent.getFeed(data.post.uri);
+          isLoading = false;
+      } catch (e) {
+          toast.error(e);
+          close();
+      }
+  }
 
-    onMount(() => {
-        el.showModal();
-    })
+  onMount(() => {
+      el.showModal();
+  })
 </script>
 
-<dialog class="dialog-modal" transition:fly="{{ y: 30, duration: 250 }}" bind:this={el} on:close={close}>
+<dialog class="dialog-modal" transition:fly="{{ y: 30, duration: 250 }}" bind:this={el} onclose={close}>
   <div class="dialog-modal-contents dialog-modal-contents--ml">
     <div class="reaction-modal-select">
       <p class="selector-label">{$_('reaction_other_account')}</p>
@@ -50,17 +50,17 @@
       <div class="reaction-modal-buttons">
         <ReactionButtons
             {_agent}
-            {data}
+            post={data.post}
         ></ReactionButtons>
       </div>
     {/key}
 
     <div class="modal-close">
-      <button class="button button--sm" on:click={close}>{$_('close_button')}</button>
+      <button class="button button--sm" onclick={close}>{$_('close_button')}</button>
     </div>
   </div>
 
-  <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
+  <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
 </dialog>
 
 <style lang="postcss">

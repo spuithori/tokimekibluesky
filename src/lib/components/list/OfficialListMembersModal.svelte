@@ -5,7 +5,7 @@
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
 
-    export let members;
+    let { members } = $props();
 </script>
 
 <Modal title="{$_('official_list_member')}" on:close>

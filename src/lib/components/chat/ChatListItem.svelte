@@ -1,7 +1,7 @@
 <script lang="ts">
     import {format, formatDistanceToNow, parseISO} from "date-fns";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
-    import {agent, columns, junkColumns} from "$lib/stores";
+    import {agent} from "$lib/stores";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
     import {_} from "svelte-i18n";
@@ -10,14 +10,16 @@
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {createEventDispatcher} from "svelte";
     import {goto} from "$app/navigation";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
     const dispatch = createEventDispatcher();
+    const columnState = getColumnState();
+    const junkColumnState = getColumnState(true);
 
-    export let convo;
-    export let _agent = $agent;
-    let isMenuOpen = false;
+    let { convo, _agent = $agent } = $props();
+    let isMenuOpen = $state(false);
 
     function addColumn(id, name, isPopup = false) {
-        $columns = [...$columns, {
+        columnState.add({
             id: self.crypto.randomUUID(),
             algorithm: {
                 type: 'chat',
@@ -36,7 +38,7 @@
                 feed: [],
                 cursor: '',
             }
-        }];
+        })
         toast.success($_('column_added'));
     }
 
@@ -92,8 +94,8 @@
     }
 
     function handleOpen() {
-        if ($junkColumns.findIndex(_column => _column.id === 'chat_' + convo.id) === -1) {
-            junkColumns.set([...$junkColumns, {
+        if (!junkColumnState.hasColumn('chat_' + convo.id)) {
+            junkColumnState.add({
                 id: 'chat_' + convo.id,
                 algorithm: {
                     id: convo.id,
@@ -111,7 +113,7 @@
                     feed: [],
                     cursor: '',
                 }
-            }]);
+            });
         }
 
         goto('/chat/' + convo.id);
@@ -142,47 +144,49 @@
 
     <p class="convo-item__text">{convo.lastMessage.text}</p>
 
-    <button class="convo-item__button" on:click={handleOpen}></button>
+    <button class="convo-item__button" onclick={handleOpen}></button>
 
     <Menu bind:isMenuOpen={isMenuOpen}>
-      <ul class="timeline-menu-list" slot="content">
-        <li class="timeline-menu-list__item only-pc">
-          <button class="timeline-menu-list__button" on:click={() => addColumn(convo.id, convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle, true)}>
-            <PictureInPicture2 size="18" color="var(--text-color-1)"></PictureInPicture2>
-            {$_('chat_menu_add_popup')}
-          </button>
-        </li>
-
-        <li class="timeline-menu-list__item">
-          <button class="timeline-menu-list__button" on:click={() => addColumn(convo.id, convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle, false)}>
-            <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
-            {$_('chat_menu_add_column')}
-          </button>
-        </li>
-
-        <li class="timeline-menu-list__item">
-          <button class="timeline-menu-list__button" on:click={leaveChat}>
-            <LogOut size="18" color="var(--text-color-1)"></LogOut>
-            {$_('chat_menu_leave')}
-          </button>
-        </li>
-
-        {#if convo.muted}
-          <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" on:click={unMuteChat}>
-              <MessageCircleOff size="18" color="var(--text-color-1)"></MessageCircleOff>
-              {$_('chat_menu_unmute')}
+      {#snippet content()}
+            <ul class="timeline-menu-list" >
+          <li class="timeline-menu-list__item only-pc">
+            <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle, true)}>
+              <PictureInPicture2 size="18" color="var(--text-color-1)"></PictureInPicture2>
+              {$_('chat_menu_add_popup')}
             </button>
           </li>
-        {:else}
+
           <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" on:click={muteChat}>
-              <MessageCircleOff size="18" color="var(--text-color-1)"></MessageCircleOff>
-              {$_('chat_menu_mute')}
+            <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle, false)}>
+              <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
+              {$_('chat_menu_add_column')}
             </button>
           </li>
-        {/if}
-      </ul>
+
+          <li class="timeline-menu-list__item">
+            <button class="timeline-menu-list__button" onclick={leaveChat}>
+              <LogOut size="18" color="var(--text-color-1)"></LogOut>
+              {$_('chat_menu_leave')}
+            </button>
+          </li>
+
+          {#if convo.muted}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={unMuteChat}>
+                <MessageCircleOff size="18" color="var(--text-color-1)"></MessageCircleOff>
+                {$_('chat_menu_unmute')}
+              </button>
+            </li>
+          {:else}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={muteChat}>
+                <MessageCircleOff size="18" color="var(--text-color-1)"></MessageCircleOff>
+                {$_('chat_menu_mute')}
+              </button>
+            </li>
+          {/if}
+        </ul>
+          {/snippet}
     </Menu>
   </div>
 </article>

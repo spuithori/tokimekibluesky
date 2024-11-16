@@ -640,5 +640,13 @@
   "atmosphere_short_desc_linkat": "リンク集",
   "atmosphere_short_desc_whitewind": "ブログ",
   "atmosphere_description": "このユーザーが利用している Atmosphere サービスのリストです。\nAT Protocol では、Bluesky以外にもさまざまなサービスを作成・公開することができます。\n設定⚙️→全般 から非表示にできます。",
-  "disable_atmosphere": "Atmosphere プロフィールを非表示にする"
+  "disable_atmosphere": "Atmosphere プロフィールを非表示にする",
+  "settings_support": "TOKIMEKIを支援する",
+  "unfollow_confirm_title": "フォロー解除するよ？",
+  "login_2fa_code": "2要素認証コード",
+  "login_2fa_code_send": "2要素認証コードをメールアドレスに送信しました。確認の上コードを入力してください。",
+  "tag_instant_mute": "キーワードミュートに追加",
+  "success_mute_tag": "{tag} をキーワードミュートに追加しました。",
+  "atmosphere_short_desc_pinksea": "おえかき",
+  "disable_profile_popup": "プロフィールのポップアップを無効化"
 }

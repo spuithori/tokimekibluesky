@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {agent, bookmarkModal, cloudBookmarkModal, listModal, officialListModal, userLists} from "$lib/stores";
   import {_} from "svelte-i18n";
@@ -12,7 +14,7 @@
 
   let bookmarks = liveQuery(() => db.bookmarks.toArray());
 
-  export let _agent = $agent;
+  let { _agent = $agent } = $props();
 
   let basicColumns = [
       {
@@ -92,24 +94,19 @@
       },
   ];
 
-  let bookmarkColumns = [];
-  let cloudBookmarkColumns = [];
-  let localListColumns = [];
-  let officialListColumns = [];
-  let feedColumns = [];
-  let savedFeeds = [];
-  let officialLists = [];
-  let cloudBookmarks = [];
-  let feedColumnsRefreshing = true;
-  let officialListColumnsRefreshing = true;
-  let cloudBookmarkColumnRefreshing = true;
+  let bookmarkColumns = $state([]);
+  let cloudBookmarkColumns = $state([]);
+  let localListColumns = $state([]);
+  let officialListColumns = $state([]);
+  let feedColumns = $state([]);
+  let savedFeeds = $state([]);
+  let officialLists = $state([]);
+  let cloudBookmarks = $state([]);
+  let feedColumnsRefreshing = $state(true);
+  let officialListColumnsRefreshing = $state(true);
+  let cloudBookmarkColumnRefreshing = $state(true);
 
-  $: updateBookmark($bookmarks);
-  $: updateList($userLists);
 
-  $: applyFeedColumns(savedFeeds);
-  $: applyOfficialListColumns(officialLists);
-  $: applyCloudBookmarkColumns(cloudBookmarks);
 
   function updateBookmark(bookmarks) {
       if (!bookmarks) {
@@ -180,7 +177,7 @@
       try {
           savedFeeds = await _agent.getSavedFeeds();
           await accountsDb.accounts.update(accountId, {
-              feeds: savedFeeds,
+              feeds: $state.snapshot(savedFeeds),
           });
       } catch (e) {
           await accountsDb.accounts.update(accountId, {
@@ -201,7 +198,7 @@
       officialLists = res.data.lists.filter(item => item?.purpose !== 'app.bsky.graph.defs#modlist');
 
       await accountsDb.accounts.update(accountId, {
-          lists: officialLists,
+          lists: $state.snapshot(officialLists),
       });
 
       officialListColumnsRefreshing = false;
@@ -230,7 +227,7 @@
       cloudBookmarks = json.bookmarks;
 
       await accountsDb.accounts.update(accountId, {
-          cloudBookmarks: cloudBookmarks,
+          cloudBookmarks: $state.snapshot(cloudBookmarks),
       });
 
       cloudBookmarkColumnRefreshing = false;
@@ -306,6 +303,21 @@
   onMount(async () => {
       await Promise.all([updateLists(), updateFeeds(), updateCloudBookmarks()]);
   })
+  run(() => {
+    updateBookmark($bookmarks);
+  });
+  run(() => {
+    updateList($userLists);
+  });
+  run(() => {
+    applyFeedColumns(savedFeeds);
+  });
+  run(() => {
+    applyOfficialListColumns(officialLists);
+  });
+  run(() => {
+    applyCloudBookmarkColumns(cloudBookmarks);
+  });
 </script>
 
 <div class="column-adder-group">
@@ -325,7 +337,7 @@
             <LoadingSpinner padding="0" size="14"></LoadingSpinner>
         {/if}
 
-        <button class="column-adder-group__add" on:click={() => {cloudBookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
+        <button class="column-adder-group__add" onclick={() => {cloudBookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
     </div>
 
     {#if (cloudBookmarkColumns.length)}
@@ -340,7 +352,7 @@
         <p class="column-adder-group__title">{$_('bookmark_local')}</p>
         <a href="https://docs.tokimeki.blue/ja/usage/bookmark" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
-        <button class="column-adder-group__add" on:click={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
+        <button class="column-adder-group__add" onclick={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
     </div>
 
     {#if (bookmarkColumns.length)}
@@ -355,7 +367,7 @@
         <p class="column-adder-group__title">{$_('local_list_columns')}</p>
         <a href="https://docs.tokimeki.blue/ja/usage/list#%E3%83%AD%E3%83%BC%E3%82%AB%E3%83%AB%E3%83%AA%E3%82%B9%E3%83%88%E3%81%A8%E3%81%AF" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
-        <button class="column-adder-group__add" on:click={() => {listModal.set({open: true, data: undefined })}}>{$_('new_create')}</button>
+        <button class="column-adder-group__add" onclick={() => {listModal.set({open: true, data: undefined })}}>{$_('new_create')}</button>
     </div>
 
     {#if (localListColumns.length)}
@@ -374,7 +386,7 @@
             <LoadingSpinner padding="0" size="14"></LoadingSpinner>
         {/if}
 
-        <button class="column-adder-group__add" on:click={() => {$officialListModal.open = true}}>{$_('new_create')}</button>
+        <button class="column-adder-group__add" onclick={() => {$officialListModal.open = true}}>{$_('new_create')}</button>
     </div>
 
     {#if (officialListColumns.length)}

@@ -3,12 +3,11 @@
   import { createVirtualizer } from '@tanstack/svelte-virtual';
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
   import {_} from "svelte-i18n";
+  import {tick} from "svelte";
 
   export let column;
   export let _agent = $agent;
   export let rootIndex = column.data.feed.findIndex(_feed => _feed.depth === 0);
-  export let unique;
-  let beforeUnique;
   let virtualListEl: HTMLDivElement
   let virtualItemEls: HTMLDivElement[] = []
 
@@ -17,7 +16,6 @@
       getScrollElement: () => virtualListEl,
       estimateSize: () => 186,
       overscan: 5,
-      isScrollingResetDelay: 500,
   })
 
   $: items = $virtualizer.getVirtualItems()
@@ -27,18 +25,27 @@
           virtualItemEls.forEach((el) => $virtualizer.measureElement(el))
   }
 
-  $: changeRootIndex(unique);
+  $: changeRootIndex(column);
+  $: scrollOffset = $virtualizer.scrollOffset;
 
-  function changeRootIndex(unique) {
-      if (unique !== beforeUnique) {
-         setTimeout(() => {
-             $virtualizer.scrollToIndex(rootIndex, {
-                 align: 'start',
-             });
+  function changeRootIndex(column) {
+      const _offset = scrollOffset;
 
-             beforeUnique = unique;
-         }, 0)
+      if (scrollOffset) {
+          tick().then(() => {
+              $virtualizer.scrollToOffset(_offset, {
+                  align: 'start',
+              });
+          })
+
+          return false;
       }
+
+      tick().then(() => {
+          $virtualizer.scrollToIndex(rootIndex, {
+              align: 'start',
+          });
+      })
   }
 </script>
 
@@ -57,6 +64,10 @@
             class:has-child={column.data.feed[data.index].post.replyCount > 0}
           >
             <VirtualThreadItem {column} index={data.index} {_agent}></VirtualThreadItem>
+
+            {#if (column.data.feed[data.index]?.depth > 1)}
+              <span class="thread-round-border"></span>
+            {/if}
 
             {#if (column.data.feed[data.index]?.post?.replyCount > 0 && column.data.feed[data.index]?.depth === 6)}
               <a href={'/profile/' + column.data.feed[data.index].post.author.handle + '/post/' + column.data.feed[data.index].post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
@@ -84,6 +95,8 @@
   }
 
   .thread-item {
+      position: relative;
+
       &[data-depth='0'] {
           position: relative;
 
@@ -97,5 +110,41 @@
               background-color: var(--primary-color);
           }
       }
+
+      /* &[data-depth='1'] {
+          margin-left: 0;
+      }
+
+      &[data-depth='2'] {
+          margin-left: 32px;
+      }
+
+      &[data-depth='3'] {
+          margin-left: 64px;
+      }
+
+      &[data-depth='4'] {
+          margin-left: 96px;
+      }
+
+      &[data-depth='5'] {
+          margin-left: 128px;
+      }
+
+      &[data-depth='6'] {
+          margin-left: 160px;
+      } */
   }
+
+  /* .thread-round-border {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-bottom: 2px solid var(--border-color-1);
+      border-left: 2px solid var(--border-color-1);
+      border-radius: 0 0 0 10px;
+      left: -10px;
+      top: 10px;
+      z-index: -1;
+  } */
 </style>

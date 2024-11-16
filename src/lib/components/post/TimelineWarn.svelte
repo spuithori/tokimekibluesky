@@ -5,10 +5,14 @@
   import LabelDetailModal from "$lib/components/post/LabelDetailModal.svelte";
   const dispatch = createEventDispatcher();
 
-  export let labels;
-  export let behavior = 'cover';
-  let isVisible = false;
-  let isInfoOpen = false;
+  interface Props {
+    labels: any;
+    behavior?: string;
+  }
+
+  let { labels, behavior = 'cover' }: Props = $props();
+  let isVisible = $state(false);
+  let isInfoOpen = $state(false);
 
   if (behavior === 'inform') {
       isVisible = true;
@@ -43,10 +47,10 @@
   </div>
 
   <div class="timeline-warn-button">
-    <button class="text-button" on:click={handleClick}>{$_('show_button')}</button>
+    <button class="text-button" onclick={handleClick}>{$_('show_button')}</button>
   </div>
 
-  <button class="timeline-warn-info-button" on:click={() => {isInfoOpen = true}}>
+  <button class="timeline-warn-info-button" onclick={() => {isInfoOpen = true}}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
   </button>
 </div>
@@ -72,7 +76,7 @@
       </div>
 
       <div class="timeline-warn-button">
-        <button class="text-button" on:click={handleHideClick}>{$_('hide_button')}</button>
+        <button class="text-button" onclick={handleHideClick}>{$_('hide_button')}</button>
       </div>
     </div>
   {:else}
@@ -90,7 +94,7 @@
           {/each}
 
           <li class="timeline-small-warn-list__button">
-            <button class="timeline-small-warn-list-button" on:click={() => {isInfoOpen = true}}>
+            <button class="timeline-small-warn-list-button" onclick={() => {isInfoOpen = true}}>
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
             </button>
           </li>

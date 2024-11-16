@@ -1,18 +1,26 @@
 <script lang="ts">
   import ProfileCard from "./ProfileCard.svelte";
-  import {agent, isDataSaving} from '$lib/stores';
+  import {agent, isDataSaving, settings} from '$lib/stores';
   import {goto} from "$app/navigation";
   import {page} from "$app/stores";
+  import {profileHintState} from "$lib/classes/profileHintState.svelte";
 
-  export let _agent = $agent;
-  export let avatar;
-  export let handle;
-  export let href;
+  let {
+    _agent = $agent,
+    avatar,
+    handle,
+    href,
+    profile = undefined,
+  } = $props();
 
   let avatarMouseOverTimeId;
-  let isProfileShown = false;
+  let isProfileShown = $state(false);
 
   async function handleAvatarMouseOver() {
+      if ($settings?.design?.disableProfilePopup) {
+          return false;
+      }
+
       if (avatarMouseOverTimeId) {
           clearTimeout(avatarMouseOverTimeId);
       }
@@ -23,6 +31,10 @@
   }
 
   async function handleAvatarMouseLeave() {
+      if ($settings?.design?.disableProfilePopup) {
+          return false;
+      }
+
       if (avatarMouseOverTimeId) {
           clearTimeout(avatarMouseOverTimeId);
       }
@@ -32,7 +44,13 @@
       }, 350)
   }
 
-  function handleClick() {
+  function handleClick(e) {
+      e.preventDefault();
+
+      if (profile) {
+          profileHintState.set(profile);
+      }
+
       goto(href, {
           replaceState: $page.state.showModal && $page.url.pathname !== '/',
       });
@@ -40,14 +58,14 @@
 </script>
 
 <div class="avatar">
-  <a href={href} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave} on:click|preventDefault={handleClick}>
+  <a href={href} onmouseover={handleAvatarMouseOver} onmouseleave={handleAvatarMouseLeave} onclick={handleClick}>
     {#if (avatar && !$isDataSaving)}
       <img loading="lazy" src="{avatar}" alt="">
     {/if}
   </a>
 
   {#if (isProfileShown)}
-    <ProfileCard handle={handle} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave} {_agent}></ProfileCard>
+    <ProfileCard {handle} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave} {_agent}></ProfileCard>
   {/if}
 </div>
 

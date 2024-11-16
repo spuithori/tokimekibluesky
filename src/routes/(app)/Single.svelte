@@ -1,12 +1,14 @@
 <script lang="ts">
-    import {agent, currentTimeline, columns, globalUnique} from '$lib/stores';
+    import {agent, currentTimeline} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
+    const columnState = getColumnState();
     let unique = Symbol();
 
-    if (!$columns.length) {
-        columns.set([{
+    if (!columnState.columns.length) {
+        columnState.add({
             id: self.crypto.randomUUID(),
             algorithm: {
                 type: 'default',
@@ -21,27 +23,25 @@
                 feed: [],
                 cursor: '',
             }
-        }]);
+        })
     }
 
-    if (!$columns[$currentTimeline]) {
+    if (!columnState.columns[$currentTimeline]) {
         currentTimeline.set(0);
     }
 </script>
 
 <div class="single-wrap">
-  {#key $globalUnique}
-    <div class="single-timeline-wrap">
-      {#key $currentTimeline}
-        {#if ($columns.length && $columns[$currentTimeline])}
-          <DeckRow
-              column={$columns[$currentTimeline]}
-              index={$currentTimeline}
-          ></DeckRow>
-        {/if}
-      {/key}
-    </div>
-  {/key}
+  <div class="single-timeline-wrap">
+    {#key $currentTimeline}
+      {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
+        <DeckRow
+                column={columnState.columns[$currentTimeline]}
+                index={$currentTimeline}
+        ></DeckRow>
+      {/if}
+    {/key}
+  </div>
 </div>
 
 <style lang="postcss">

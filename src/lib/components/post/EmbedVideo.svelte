@@ -1,7 +1,11 @@
 <script lang="ts">
-    import VideoPlayer from "$lib/components/video/VideoPlayer.svelte";
-    export let video;
-    export let isLocal = false;
+  import VideoPlayer from "$lib/components/video/VideoPlayer.svelte";
+  interface Props {
+    video: any;
+    isLocal?: boolean;
+  }
+
+  let { video, isLocal = false }: Props = $props();
 </script>
 
 <div class="timeline-video-wrap" style="--video-width: {video?.aspectRatio?.width}; --video-height: {video?.aspectRatio?.height}">

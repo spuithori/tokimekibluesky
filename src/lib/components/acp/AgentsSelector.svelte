@@ -4,10 +4,14 @@
     import { clickOutside } from '$lib/clickOutSide';
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
-    export let isDisabled = false;
-    export let style = 'default';
-    let isOpen = false;
+  interface Props {
+    _agent?: any;
+    isDisabled?: boolean;
+    style?: string;
+  }
+
+  let { _agent = $bindable($agent), isDisabled = false, style = 'default' }: Props = $props();
+    let isOpen = $state(false);
 
     function selectAgent(key, agent) {
         _agent = agent;
@@ -27,8 +31,8 @@
 
     <div class="agents-selector"
          use:clickOutside={{ignoreElement: '.agents-selector'}}
-         on:outclick={() => (isOpen = false)}>
-      <button class="agents-selector__item agents-selector__item--front" on:click={() => {isOpen = !isOpen}}>
+         onoutclick={() => (isOpen = false)}>
+      <button class="agents-selector__item agents-selector__item--front" onclick={() => {isOpen = !isOpen}}>
         <span class="agents-selector__title">@{_agent.agent.session.handle}</span>
       </button>
 
@@ -36,7 +40,7 @@
         {#each $agents as [key, agent]}
           {#if (agent.agent?.session)}
             {#if (agent.agent.session.handle !== _agent.agent.session.handle)}
-              <button class="agents-selector__item" on:click={() => {selectAgent(key, agent)}}>
+              <button class="agents-selector__item" onclick={() => {selectAgent(key, agent)}}>
                 <span class="agents-selector__title">@{agent.agent.session.handle}</span>
               </button>
             {/if}

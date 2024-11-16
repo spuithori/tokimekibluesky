@@ -1,13 +1,11 @@
 <script lang="ts">
-    import { agent } from '$lib/stores';
-    import TimelineItem from './TimelineItem.svelte';
-    import InfiniteLoading from 'svelte-infinite-loading';
-    import MediaTimelineItem from './MediaTimelineItem.svelte';
-    import {getBookmarkFeed, getBookmarkName} from "$lib/bookmark";
+  import { agent } from '$lib/stores';
+  import TimelineItem from './TimelineItem.svelte';
+  import InfiniteLoading from 'svelte-infinite-loading';
+  import MediaTimelineItem from './MediaTimelineItem.svelte';
+  import {getBookmarkFeed, getBookmarkName} from "$lib/bookmark";
 
-    export let _agent = $agent;
-    export let column;
-    export let index;
+  let { _agent = $agent, column = $bindable(), index, unique } = $props();
     let initialLoadFinished = false;
     let feeds;
 
@@ -63,7 +61,11 @@
     </div>
   {/if}
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-  </InfiniteLoading>
+  {#key unique}
+    <InfiniteLoading on:infinite={handleLoadMore}>
+      {#snippet noMore()}
+        <p  class="infinite-nomore">もうないよ</p>
+      {/snippet}
+    </InfiniteLoading>
+  {/key}
 </div>

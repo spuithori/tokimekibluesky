@@ -13,6 +13,7 @@
 
 <div class="reaction-button-settings-list">
   {#each reactions as item, index (item)}
+    {@const SvelteComponent = icons[index]}
     <div class="reaction-button-settings-item reaction-button-settings-item--{item}">
       <div class="reaction-button-settings-item__heading">
         <h3 class="reaction-button-settings-item__title">{$_(item)}</h3>
@@ -22,7 +23,7 @@
         </div>
 
         <span class="reaction-button-settings-item__icon">
-              <svelte:component this={icons[index]}></svelte:component>
+              <SvelteComponent></SvelteComponent>
             </span>
       </div>
 

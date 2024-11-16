@@ -3,19 +3,15 @@
   import {RichText} from "@atproto/api";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
   import {agent, settings} from "$lib/stores";
-  import {createEventDispatcher} from "svelte";
   import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-  const dispatch = createEventDispatcher();
 
-  export let id;
-  export let column;
-  export let _agent = $agent;
-  let text = '';
-  let json;
-  let editor;
+  let { id, column = $bindable(), _agent = $agent, onrefresh } = $props();
+  let text = $state('');
+  let json = $state();
+  let editor = $state();
 
-  $: publishContentLength = new RichText({text: text}).graphemeLength;
-  $: isPublishEnabled = publishContentLength > 300;
+  let publishContentLength = $derived(new RichText({text: text}).graphemeLength);
+  let isPublishEnabled = $derived(publishContentLength > 300);
 
   async function publish() {
       try {
@@ -58,7 +54,7 @@
           text = '';
           json = undefined;
           editor.clear();
-          dispatch('refresh');
+          onrefresh();
       } catch (e) {
           console.error(e);
       }

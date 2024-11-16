@@ -5,11 +5,15 @@
     import InfiniteLoading from 'svelte-infinite-loading';
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
     import {onMount} from "svelte";
-    let feeds = [];
+    let feeds = $state([]);
     let cursor: string | undefined = '';
     let savedFeeds = [];
 
-    export let data: LayoutData;
+  interface Props {
+    data: LayoutData;
+  }
+
+  let { data }: Props = $props();
 
     async function getSavedFeeds () {
         const preferenceRes = await $agent.agent.api.app.bsky.actor.getPreferences()
@@ -56,8 +60,12 @@
   </div>
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    <p slot="noResults" class="infinite-nomore"><span>{$_('no_more')}</span></p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
+    {#snippet noResults()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
   </InfiniteLoading>
 </div>
 

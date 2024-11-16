@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {agents, formattedKeywordMutes, labelDefs, labelerSettings, settings} from "$lib/stores";
+  import {agents, labelDefs, labelerSettings, settings, workerTimer} from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
@@ -23,29 +23,51 @@
   import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
   import {getAllAgentDids, getDidFromUri} from "$lib/util";
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
+  import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
+  import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
+  import {onDestroy} from "svelte";
 
-  export let post;
-  export let _agent;
-  export let isMedia = false;
-  export let isTranslated = false;
-  export let isSingle = false;
-  export let isProfile = false;
-  export let pulseTranslate = false;
+  interface Props {
+      post: any;
+      _agent: any;
+      isMedia?: boolean;
+      isTranslated?: boolean;
+      isSingle?: boolean;
+      isProfile?: boolean;
+      pulseTranslate?: boolean;
+      isHide?: any;
+      children?: import('svelte').Snippet;
+  }
 
-  let translatedRecord: undefined | AppBskyFeedPost.Record;
-  let warnLabels = [];
-  let warnBehavior: 'cover' | 'inform' = 'cover';
+  let {
+      post,
+      _agent,
+      isMedia = false,
+      isTranslated = $bindable(false),
+      isSingle = false,
+      isProfile = false,
+      pulseTranslate = $bindable(false),
+      isHide = $bindable(),
+      children
+  }: Props = $props();
+
+  $effect(() => {
+      translation(pulseTranslate);
+  })
+
+  let translatedRecord: undefined | AppBskyFeedPost.Record = $state();
+  let warnLabels = $state([]);
+  let warnBehavior: 'cover' | 'inform' = $state('cover');
+  let timeDistanceToNow = $state(formatDistanceToNow(parseISO(post.indexedAt)));
 
   const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
   const contentContext = isSingle || isProfile
       ? 'contentView'
       : 'contentList';
 
-  export let isHide = detectHide(moderateData);
   let isWarn: 'content' | 'media' | null = detectWarn(moderateData) || null;
+  isHide = detectHide(moderateData);
   detectKeywordFilter();
-
-  $: translation(pulseTranslate);
 
   function detectHide(moderateData) {
       if (!moderateData) {
@@ -97,7 +119,7 @@
   function detectKeywordFilter() {
       let text = post.record.text;
 
-      if (keywordFilter($formattedKeywordMutes, text, post.indexedAt)) {
+      if (keywordFilter(keywordMuteState.formattedKeywords, text, post.indexedAt)) {
           isHide = true;
       }
   }
@@ -116,12 +138,23 @@
       isTranslated = true;
       pulseTranslate = false;
   }
+
+  function handleTimer(e) {
+      if (e.data % 5 === 0) {
+          timeDistanceToNow = formatDistanceToNow(parseISO(post.indexedAt));
+      }
+  }
+
+  $workerTimer.addEventListener('message', handleTimer);
+
+  onDestroy(() => {
+      $workerTimer.removeEventListener('message', handleTimer);
+  })
 </script>
 
 <div class="timeline__image">
   {#if $settings?.design.postsLayout !== 'minimum'}
-    <Avatar href="/profile/{ post.author.handle !== 'handle.invalid' ? post.author.handle : post.author.did }" avatar={post.author.avatar}
-            handle={post.author.handle} {_agent}></Avatar>
+    <Avatar href="/profile/{ post.author.handle !== 'handle.invalid' ? post.author.handle : post.author.did }" avatar={post.author.avatar} profile={post.author} handle={post.author.handle} {_agent}></Avatar>
   {/if}
 </div>
 
@@ -129,24 +162,32 @@
   <div class="timeline__meta">
     <p class="timeline__user">
       <Tooltip>
-        <span slot="ref">{ post.author.displayName || post.author.handle }</span>
-        <span slot="content" aria-hidden="true">@{ post.author.handle }</span>
+        {#snippet ref()}
+          <span >{ post.author.displayName || post.author.handle }</span>
+        {/snippet}
+        {#snippet content()}
+          <span  aria-hidden="true">@{ post.author.handle }</span>
+        {/snippet}
       </Tooltip></p>
 
     <p class="timeline__date">
       {#if $settings?.design.absoluteTime}
         <Tooltip>
-          <time slot="ref"
-                datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
-          <span slot="content" aria-hidden="true"
-                class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+          {#snippet ref()}
+            <span>{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
+          {/snippet}
+          {#snippet content()}
+            <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+          {/snippet}
         </Tooltip>
       {:else}
         <Tooltip>
-          <time slot="ref"
-                datetime="{format(parseISO(post.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(post.indexedAt))}</time>
-          <span slot="content" aria-hidden="true"
-                class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+          {#snippet ref()}
+            <span>{timeDistanceToNow}</span>
+          {/snippet}
+          {#snippet content()}
+            <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+          {/snippet}
         </Tooltip>
       {/if}
     </p>
@@ -155,7 +196,7 @@
       <button
           class="timeline-translate-button"
           disabled={isTranslated}
-          on:click={translation}>{$_(isTranslated ? 'already_translated' : 'translation')}</button>
+          onclick={translation}>{$_(isTranslated ? 'already_translated' : 'translation')}</button>
     {/if}
   </div>
 
@@ -246,5 +287,7 @@
     {/if}
   </div>
 
-  <slot></slot>
+  <ReactionButtons {_agent} {post}></ReactionButtons>
+
+  {@render children?.()}
 </div>

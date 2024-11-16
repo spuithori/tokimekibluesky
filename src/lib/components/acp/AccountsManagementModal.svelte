@@ -7,10 +7,10 @@
     import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
     const dispatch = createEventDispatcher();
 
-    $: accounts = liveQuery(async () => {
+    let accounts = $derived(liveQuery(async () => {
         const accounts = await accountsDb.accounts.toArray();
         return accounts;
-    });
+    }));
 
     function close() {
         dispatch('close');
@@ -45,5 +45,5 @@
     {/if}
   </div>
 
-  <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
+  <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
 </div>

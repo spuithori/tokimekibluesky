@@ -4,7 +4,12 @@
     import type {LayoutData} from "./$types";
     import {page} from "$app/stores";
 
-    export let data: LayoutData;
+  interface Props {
+    data: LayoutData;
+    children?: import('svelte').Snippet;
+  }
+
+  let { data, children }: Props = $props();
     let navs = [];
 </script>
 
@@ -38,7 +43,7 @@
             <div class="p-menu-nav__icon">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/design" on:click={close}>{$_('settings_design_in_themes')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/design" onclick={close}>{$_('settings_design_in_themes')}</a></p>
           </li>
         </ul>
       </div>
@@ -47,7 +52,7 @@
         {#key data.pathname}
           <div class="settings-content-container" in:fly={{ x: 25, duration: 100, delay: 100 }}
                out:fly={{ duration: 100 }}>
-            <slot></slot>
+            {@render children?.()}
           </div>
         {/key}
       </div>

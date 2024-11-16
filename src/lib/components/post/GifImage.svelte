@@ -4,10 +4,14 @@
     import {BskyAgent} from "@atproto/api";
     import {getService} from "$lib/util";
 
-    let url = '';
-    export let did;
-    export let blob;
-    export let alt = '';
+    let url = $state('');
+    interface Props {
+        did: any;
+        blob: any;
+        alt?: string;
+    }
+
+    let { did, blob, alt = '' }: Props = $props();
 
     async function getUrlByBlob(blob) {
         try {

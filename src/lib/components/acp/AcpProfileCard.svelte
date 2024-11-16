@@ -2,18 +2,25 @@
   import {accountsDb} from "$lib/db";
   import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
-  import {agent, agents, columns, currentTimeline} from "$lib/stores";
+  import {agent, agents, currentTimeline} from "$lib/stores";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {_} from "svelte-i18n";
   import { toast } from "svelte-sonner";
   import {modifyAgents} from "$lib/modifyAgents";
   import AcpProfileNameModal from "$lib/components/acp/AcpProfileNameModal.svelte";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
-  export let profile;
-  export let isCurrent = false;
+  const columnState = getColumnState();
 
-  let isMenuOpen = false;
-  let isNameModalOpen = false;
+  interface Props {
+    profile: any;
+    isCurrent?: boolean;
+  }
+
+  let { profile, isCurrent = false }: Props = $props();
+
+  let isMenuOpen = $state(false);
+  let isNameModalOpen = $state(false);
 
   async function handleSuccess(event) {
       try {
@@ -21,6 +28,10 @@
           const id = await accountsDb.profiles.update(profile.id, {
               accounts: _accounts,
           });
+
+          if (_accounts.length === 1) {
+              await handleSwitchMain(event);
+          }
 
           if (isCurrent) {
               agents.set(await modifyAgents(_accounts));
@@ -33,7 +44,7 @@
 
   async function changeProfile() {
       localStorage.setItem('currentProfile', profile.id);
-      columns.set(profile.columns);
+      columnState.columns = profile.columns;
       currentTimeline.set(0);
       location.reload();
   }
@@ -95,29 +106,31 @@
     <p class="acp-card__name">{profile.name}</p>
 
     {#if (!isCurrent)}
-      <button class="button button--ss" on:click={changeProfile}>{$_('profile_switch')}</button>
+      <button class="button button--ss" onclick={changeProfile}>{$_('profile_switch')}</button>
     {:else}
       <button class="button button--ss button--border" disabled>{$_('profile_current')}</button>
     {/if}
 
     <Menu bind:isMenuOpen={isMenuOpen}>
-      <ul class="timeline-menu-list" slot="content">
-        {#if (!isCurrent)}
-          <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-            <button class="timeline-menu-list__button" on:click={() => {deleteProfile(profile.id)}}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-x"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="m14.5 7-5 5"/><path d="m9.5 7 5 5"/></svg>
-              <span class="text-danger">{$_('delete_profile')}</span>
+      {#snippet content()}
+        <ul class="timeline-menu-list" >
+          {#if (!isCurrent)}
+            <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+              <button class="timeline-menu-list__button" onclick={() => {deleteProfile(profile.id)}}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-x"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="m14.5 7-5 5"/><path d="m9.5 7 5 5"/></svg>
+                <span class="text-danger">{$_('delete_profile')}</span>
+              </button>
+            </li>
+          {/if}
+
+          <li class="timeline-menu-list__item">
+            <button class="timeline-menu-list__button" onclick={() => {isNameModalOpen = true}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-square"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+              <span>{$_('profile_change_name')}</span>
             </button>
           </li>
-        {/if}
-
-        <li class="timeline-menu-list__item">
-          <button class="timeline-menu-list__button" on:click={() => {isNameModalOpen = true}}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-square"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
-            <span>{$_('profile_change_name')}</span>
-          </button>
-        </li>
-      </ul>
+        </ul>
+      {/snippet}
     </Menu>
   </div>
 

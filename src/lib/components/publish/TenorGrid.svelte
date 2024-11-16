@@ -5,10 +5,14 @@
   import {createEventDispatcher} from "svelte";
   const dispatch = createEventDispatcher();
 
-  export let category: 'search' | 'featured';
-  export let term: string;
+  interface Props {
+    category: 'search' | 'featured';
+    term: string;
+  }
+
+  let { category, term }: Props = $props();
   let cursor = '';
-  let gifs = [];
+  let gifs = $state([]);
 
   function handleClick(gif) {
       const width = gif.media_formats.gif.dims[0];
@@ -55,15 +59,19 @@
 <div class="tenor-grid-wrap">
   <div class="tenor-grid">
     {#each gifs as gif}
-      <button class="tenor-grid__item" on:click={() => handleClick(gif)}>
+      <button class="tenor-grid__item" onclick={() => handleClick(gif)}>
         <img src="{gif.media_formats.tinygif.url}" alt="">
       </button>
     {/each}
   </div>
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    <p slot="noResults" class="infinite-nomore"><span>{$_('no_more')}</span></p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
+    {#snippet noResults()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
   </InfiniteLoading>
 </div>
 

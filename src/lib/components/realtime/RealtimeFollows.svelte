@@ -5,10 +5,10 @@
   import {getAccountIdByDidFromDb} from "$lib/util";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
-  export let _agent;
+  let { _agent } = $props();
 
-  let follows = [];
-  let isFollowsListRefreshing = true;
+  let follows = $state([]);
+  let isFollowsListRefreshing = $state(true);
 
   async function refreshFollowsList() {
       isFollowsListRefreshing = true;
@@ -28,7 +28,7 @@
   {#if (isFollowsListRefreshing)}
     <LoadingSpinner size="20" padding="0"></LoadingSpinner>
   {/if}
-  <button class="button button--ss" disabled={isFollowsListRefreshing} on:click={refreshFollowsList}>{$_('realtime_follows_refresh')}</button>
+  <button class="button button--ss" disabled={isFollowsListRefreshing} onclick={refreshFollowsList}>{$_('realtime_follows_refresh')}</button>
 </div>
 
 <style lang="postcss">

@@ -1,74 +1,66 @@
 <script lang="ts">
-    import { db } from '$lib/db';
-    import {liveQuery} from 'dexie';
-    import { agent } from '$lib/stores';
-    import {createEventDispatcher} from 'svelte';
-    import { toast } from 'svelte-sonner';
-    import { _ } from 'svelte-i18n';
-    const dispatch = createEventDispatcher();
+  import { db } from '$lib/db';
+  import { liveQuery } from 'dexie';
+  import { agent } from '$lib/stores';
+  import { toast } from 'svelte-sonner';
+  import { _ } from 'svelte-i18n';
 
-    export let _agent = $agent;
+  let { _agent = $agent, id, close } = $props();
+  let bookmark = undefined;
+  let name = $state('');
+  let text = $state('');
+  let bookmarks = liveQuery(() => db.bookmarks.toArray());
 
-    export let id;
-    let bookmark = undefined;
-    let name = '';
-    let text = '';
-    let bookmarks = liveQuery(() => db.bookmarks.toArray());
+  $effect(() => {
+      getData($bookmarks);
+  })
 
-    $: getData($bookmarks);
+  function getData(bookmarks) {
+      if (!bookmarks) return false;
+      bookmark = bookmarks.find(bookmark => bookmark.id === id);
+      name = bookmark?.name ?? '';
+      text = bookmark?.text ?? '';
+  }
 
-    function getData(bookmarks) {
-        if (!bookmarks) return false;
-        bookmark = bookmarks.find(bookmark => bookmark.id === id);
-        name = bookmark?.name ?? '';
-        text = bookmark?.text ?? '';
-    }
+  async function save () {
+      try {
+          const id = await db.bookmarks.put({
+              id: bookmark?.id || undefined,
+              name: name,
+              text: text,
+              owner: _agent.did(),
+              createdAt: Date.now(),
+          })
 
-    async function save () {
-        try {
-            const id = await db.bookmarks.put({
-                id: bookmark?.id || undefined,
-                name: name,
-                text: text,
-                owner: _agent.did(),
-                createdAt: Date.now(),
-            })
+          toast.success($_('bookmark_save_success'));
 
-            toast.success($_('bookmark_save_success'));
-            dispatch('close', {
-                clear: false,
-            });
-        } catch (e) {
-            toast.error('Error: ' + e);
-        }
-    }
+          close(false);
+      } catch (e) {
+          toast.error('Error: ' + e);
+      }
+  }
 
-    async function remove () {
-        if (id) {
-            try {
-                const bid = await db.bookmarks.delete(id);
-                await db.feeds
-                    .where('bookmark')
-                    .equals(id)
-                    .delete()
-                    .then((deleteCount) => {
-                        console.log(deleteCount + ' bookmarks deleted.')
-                    });
+  async function remove () {
+      if (id) {
+          try {
+              const bid = await db.bookmarks.delete(id);
+              await db.feeds
+                  .where('bookmark')
+                  .equals(id)
+                  .delete()
+                  .then((deleteCount) => {
+                      console.log(deleteCount + ' bookmarks deleted.')
+                  });
 
-                toast.success($_('bookmark_delete_success'));
-                dispatch('close', {
-                    clear: true,
-                    id: id,
-                });
-            } catch (e) {
-                toast.error('Error: ' + e);
-            }
-        } else {
-            dispatch('close', {
-                clear: true,
-            });
-        }
-    }
+              toast.success($_('bookmark_delete_success'));
+              close(true, id);
+          } catch (e) {
+              toast.error('Error: ' + e);
+          }
+      } else {
+          close(true);
+      }
+  }
 </script>
 
 <div class="bookmark-modal">
@@ -109,8 +101,8 @@
     </dl>
 
     <div class="bookmark-modal-close">
-      <button class="button button--sm" on:click={save}>{$_('save_button')}</button>
-      <button class="button button--sm button--border button--danger" on:click={remove}>{$_('remove')}</button>
+      <button class="button button--sm" onclick={save}>{$_('save_button')}</button>
+      <button class="button button--sm button--border button--danger" onclick={remove}>{$_('remove')}</button>
     </div>
   </div>
 </div>

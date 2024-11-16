@@ -1,8 +1,11 @@
 <script lang="ts">
-    import {agent, agents, chatPulse, columns, latestRevMap, pauseColumn, workerTimer} from "$lib/stores";
+    import {agent, agents, chatPulse, latestRevMap, pauseColumn, workerTimer} from "$lib/stores";
     import {onDestroy} from "svelte";
     import {getAccountIdByDid} from "$lib/util";
     import {page} from "$app/stores";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
+
+    const columnState = getColumnState();
 
     async function updateChatLog() {
         let promises = [];
@@ -17,7 +20,7 @@
             return false;
         }
 
-        $columns.forEach((column, index) => {
+        columnState.columns.forEach((column, index) => {
             if (column.algorithm?.type !== 'chat') {
                 return false;
             }

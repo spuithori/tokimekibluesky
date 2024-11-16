@@ -3,8 +3,9 @@
     import { offset, flip } from "svelte-floating-ui/dom";
     import { createFloatingActions } from 'svelte-floating-ui'
 
-    export let props;
-    let selectedIndex = 0;
+    let { props } = $props();
+    let selectedIndex = $state(0);
+    const _props = $state(props);
 
     const [floatingRef, floatingContent] = createFloatingActions({
         strategy: 'fixed',
@@ -19,12 +20,12 @@
             return {
                 x: 0,
                 y: 0,
-                top: props.clientRect()?.top,
-                left: props.clientRect()?.left,
+                top: _props.clientRect()?.top,
+                left: _props.clientRect()?.left,
                 bottom: 0,
                 right: 0,
-                width: props.clientRect()?.width,
-                height: props.clientRect()?.height,
+                width: _props.clientRect()?.width,
+                height: _props.clientRect()?.height,
             }
         }}
     floatingRef(virtualElement);
@@ -43,14 +44,14 @@
 
     export function handleKeyDown({ event }) {
         if (event.key === 'ArrowUp') {
-            if (props?.items) {
+            if (_props?.items) {
                 handleArrowUp();
                 return true;
             }
         }
 
         if (event.key === 'ArrowDown') {
-            if (props?.items) {
+            if (_props?.items) {
                 handleArrowDown();
                 return true;
             }
@@ -58,7 +59,7 @@
 
         if (event.key === 'Enter' && !event.ctrlKey) {
             handleEnter();
-            if (props?.items) {
+            if (_props?.items) {
                 return true;
             }
         }
@@ -80,7 +81,7 @@
 {#if props?.items}
   <div class="hashtag-list" use:floatingContent>
       {#each props.items as item, index}
-        <button class="hashtag-list__item" class:hashtag-list__item--selected={index === selectedIndex} on:click={() => {selectItem(index)}}>
+        <button class="hashtag-list__item" class:hashtag-list__item--selected={index === selectedIndex} onclick={() => {selectItem(index)}}>
           <span class="hashtag-list__name">#{item}</span>
         </button>
       {/each}

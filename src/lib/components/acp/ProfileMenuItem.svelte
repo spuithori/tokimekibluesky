@@ -1,13 +1,16 @@
 <script lang="ts">
-    import {columns} from "$lib/stores";
-    import {createEventDispatcher} from "svelte";
     import {_} from "svelte-i18n";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    const dispatch = createEventDispatcher();
+    const columnState = getColumnState();
 
-    export let profile;
-    export let isCurrent = false;
-    let isDisabled = false;
+    interface Props {
+        profile: any;
+        isCurrent?: boolean;
+    }
+
+    let { profile, isCurrent = false }: Props = $props();
+    let isDisabled = $state(false);
 
     async function changeProfile() {
         if (isCurrent) {
@@ -15,15 +18,14 @@
         }
 
         isDisabled = true;
-        dispatch('reload');
 
         localStorage.setItem('currentProfile', profile.id);
-        columns.set(profile.columns);
+        columnState.columns = profile.columns;
         location.reload();
     }
 </script>
 
-<button class="p-menu-profile" class:p-menu-profile--current={isCurrent} on:click={changeProfile} disabled={isDisabled}>
+<button class="p-menu-profile" class:p-menu-profile--current={isCurrent} onclick={changeProfile} disabled={isDisabled}>
     <span class="p-menu-profile__title">{profile.name}</span>
     <span class="p-menu-profile__columns">{profile.columns.length}{$_('workspace_columns_length')}</span>
 </button>

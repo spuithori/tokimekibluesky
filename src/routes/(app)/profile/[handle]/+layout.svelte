@@ -1,7 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, junkColumns, settings} from '$lib/stores';
-    import { afterUpdate } from 'svelte';
+    import {agent, settings} from '$lib/stores';
     import { page } from '$app/stores';
     import type { LayoutData } from './$types';
     import UserProfile from "./UserProfile.svelte";
@@ -16,13 +15,34 @@
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
+    import {setAgentContext} from "./state.svelte";
+    import {profileHintState} from "$lib/classes/profileHintState.svelte";
+    import {untrack} from "svelte";
 
-    export let data: LayoutData;
-    let currentPage = 'posts';
-    let profile;
-    let isLabeler = false;
+    const junkColumnState = getColumnState(true);
 
-    $: handle = $page.params.handle;
+    interface Props {
+        data: LayoutData;
+    }
+
+    let { data, children }: Props = $props();
+
+    let currentPage = $state('posts');
+    let profile = $state();
+    let isLabeler = $state(false);
+    let handle = $derived($page.params.handle);
+    let _agent = $state($agent);
+    let agentContext = setAgentContext(_agent);
+
+    $effect.pre(() => {
+        isActive(data.url.pathname);
+    })
+
+    $effect(() => {
+        getProfile(handle, true);
+    })
 
     export const snapshot: Snapshot = {
         capture: () => [profile],
@@ -31,33 +51,33 @@
         }
     };
 
-    $: getProfile(handle);
-
     function getProfile(handle, clear = true) {
-        if (clear) {
-            profile = undefined;
-        }
+        untrack(() => {
+            if (clear) {
+                profile = undefined;
+            }
 
-        $agent.agent.api.app.bsky.actor.getProfile({actor: handle})
-            .then(res => {
-                profile = res.data
+            if (profileHintState.hasProfile(handle)) {
+                profile = $state.snapshot(profileHintState.profile);
+                profileHintState.clear();
+            }
 
-                if (profile.labels && Array.isArray(profile.labels)) {
-                  profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');
-                }
+            _agent.agent.api.app.bsky.actor.getProfile({actor: handle})
+                .then(res => {
+                    profile = res.data
 
-                if (profile?.associated?.labeler) {
-                    isLabeler = true;
-                }
-            })
+                    if (profile?.associated?.labeler) {
+                        isLabeler = true;
+                    }
+                })
+        })
     }
 
     function onProfileUpdate() {
         handleRefresh();
     }
 
-    function isActive() {
-        const path = data.url.pathname;
+    function isActive(path) {
         const paths = path.split('/');
 
         switch (paths[3]) {
@@ -90,9 +110,9 @@
 
     async function chatBegin() {
         try {
-            const res = await $agent.agent.api.chat.bsky.convo.getConvoForMembers(
+            const res = await _agent.agent.api.chat.bsky.convo.getConvoForMembers(
                 {
-                    members: [$agent.did(), profile.did as string]
+                    members: [_agent.did(), profile.did as string]
                 },
                 {
                     headers: {
@@ -103,8 +123,8 @@
 
             const convo = res.data.convo;
 
-            if ($junkColumns.findIndex(_column => _column.id === 'chat_' + convo.id) === -1) {
-                junkColumns.set([...$junkColumns, {
+            if (!junkColumnState.hasColumn('chat_' + convo.id)) {
+                junkColumnState.add({
                     id: 'chat_' + convo.id,
                     algorithm: {
                         id: convo.id,
@@ -122,7 +142,7 @@
                         feed: [],
                         cursor: '',
                     }
-                }]);
+                });
             }
 
             await goto(`/chat/${convo.id}`);
@@ -136,10 +156,6 @@
             }
         }
     }
-
-    afterUpdate(async() => {
-        isActive();
-    })
 </script>
 
 {#key handle}
@@ -153,25 +169,34 @@
             </button>
           </div>
 
-          <h2 class="column-heading__title">{$_(currentPage)} - {profile.displayName || profile.handle}</h2>
+          <div class="column-heading__selector">
+            <AvatarAgentsSelector
+                bind:_agent
+                onselect={(agent) => {agentContext.agent = agent}}
+            ></AvatarAgentsSelector>
+          </div>
 
           <div class="column-heading__buttons column-heading__buttons--right">
-            {#if (profile.did !== $agent.did() && !isLabeler)}
-              <div class="profile-follow-button">
-                <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
-              </div>
-
+            {#if (profile.did !== _agent.did() && !isLabeler)}
               {#if !$settings?.general?.disableChat}
-                <button class="profile-chat-button" on:click={chatBegin}>
+                <button class="profile-heading-button" on:click={chatBegin}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-plus"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
                 </button>
               {/if}
+
+              <a class="profile-heading-button" href="/search?q=from:{handle}%20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </a>
             {:else if (isLabeler && profile?.did)}
-              <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
+              
             {:else}
               <div class="profile-follow-button profile-follow-button--me">
-                <UserEdit {profile} on:update={onProfileUpdate}></UserEdit>
+                <UserEdit {profile} {_agent} on:update={onProfileUpdate}></UserEdit>
               </div>
+
+              <a class="profile-heading-button" href="/search?q=from:{handle}%20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </a>
             {/if}
 
             <ProfileMenu {handle} {profile} on:refresh={handleRefresh}></ProfileMenu>
@@ -185,7 +210,13 @@
 
       <div class="user-profile-wrap">
         {#if profile}
-          <UserProfile handle={handle} profile={profile} isLabeler={isLabeler} on:refresh={handleRefresh}></UserProfile>
+          <UserProfile {handle} {profile} {isLabeler} {_agent} on:refresh={handleRefresh}>
+            {#if (profile.did !== _agent.did() && !isLabeler)}
+              <UserFollowButton following="{profile.viewer?.following}" user={profile} {_agent}></UserFollowButton>
+            {:else if (isLabeler && profile?.did)}
+              <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
+            {/if}
+          </UserProfile>
         {/if}
 
         {#if (isLabeler && profile?.did)}
@@ -209,7 +240,9 @@
         {/if}
       </ul>
 
-      <slot></slot>
+      {#key agentContext.agent}
+        {@render children?.()}
+      {/key}
     </section>
   </PageModal>
 {/key}
@@ -227,7 +260,7 @@
         margin-top: 16px;
     }
 
-    .profile-chat-button {
+    .profile-heading-button {
         width: 40px;
         height: 40px;
         display: grid;
@@ -239,5 +272,9 @@
         &:hover {
             background-color: var(--border-color-1);
         }
+    }
+
+    .profile-tab {
+        background-color: var(--bg-color-1);
     }
 </style>

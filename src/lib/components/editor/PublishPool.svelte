@@ -3,10 +3,12 @@
   import {createEventDispatcher} from "svelte";
   const dispatch = createEventDispatcher();
 
-  export let post;
-  export let index;
-  export let _agent;
-  export let isEnabled;
+  let {
+    post,
+    index,
+    _agent = $bindable(),
+    isEnabled
+  } = $props();
 
   function changeThread() {
       dispatch('change', {
@@ -21,12 +23,13 @@
           {_agent}
           isDisabled={'true'}
           style={'publish'}
+          onselect={() => {}}
     ></AvatarAgentsSelector>
   </div>
 
   <div class="publish-pool__content">
     <p class="publish-pool__text">{post.text}</p>
-    <button class="publish-pool__button" on:click={changeThread} disabled={isEnabled}></button>
+    <button class="publish-pool__button" onclick={changeThread} disabled={isEnabled}></button>
   </div>
 </div>
 

@@ -1,28 +1,33 @@
 <script lang="ts">
   import {agent, isPublishInstantFloat, sideState} from '$lib/stores';
+  import {postState} from "$lib/classes/postState.svelte";
 
-  export let _agent = $agent;
-  export let post;
-  export let reply;
-  export let count;
-  export let showCounts = true;
+  interface Props {
+    _agent?: any;
+    post: any;
+    reply: any;
+    count: any;
+    showCounts?: boolean;
+  }
+
+  let {
+    _agent = $agent,
+    post,
+    reply,
+    count,
+    showCounts = true
+  }: Props = $props();
+
   function handleClick() {
-      $replyRef = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } }
+      postState.reply = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } }
+      postState.replyPulse = Symbol();
       $sideState = 'publish';
       $isPublishInstantFloat = true;
   }
 </script>
 
-<script lang="ts" context="module">
-    import {replyRef} from '$lib/stores';
-
-  export function replyFunc(post, reply) {
-      replyRef.set({ did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } })
-  }
-</script>
-
-<button class="timeline-reaction__item timeline-reaction__item--reply" on:click={handleClick} disabled={post?.viewer?.replyDisabled}>
-  <span class="timeline-reaction__icon" aria-label="返信">
+<button class="timeline-reaction__item timeline-reaction__item--reply" onclick={handleClick} disabled={post?.viewer?.replyDisabled} aria-label="返信">
+  <span class="timeline-reaction__icon">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--timeline-reaction-reply-icon-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-reply"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
   </span>
 
@@ -54,7 +59,7 @@
         }
 
         &:disabled {
-            opacity: .5;
+            opacity: .4;
         }
     }
 </style>

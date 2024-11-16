@@ -7,8 +7,7 @@
   import EmbedStamp from "$lib/components/post/EmbedStamp.svelte";
   import {AppBskyEmbedRecord} from "@atproto/api";
 
-  export let message;
-  export let _agent = $agent;
+  let { message, _agent = $agent } = $props();
 </script>
 
 {#if message.text}

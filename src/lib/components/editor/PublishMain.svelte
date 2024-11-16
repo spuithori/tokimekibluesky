@@ -1,57 +1,75 @@
 <script lang="ts">
-    import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
-    import {isPublishInstantFloat, postgate, quotePost, replyRef, settings, threadGate} from "$lib/stores";
-    import {_} from "svelte-i18n";
-    import {isFeedByUri} from "$lib/util";
-    import {formatDistanceToNow, parseISO} from "date-fns";
-    import spinner from "$lib/images/loading.svg";
-    import {
-        AppBskyEmbedExternal,
-        AppBskyEmbedImages,
-        AppBskyEmbedRecord,
-        AppBskyEmbedRecordWithMedia, RichText
-    } from "@atproto/api";
-    import Tiptap from "$lib/components/editor/Tiptap.svelte";
-    import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
-    import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
-    import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
-    import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
-    import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
-    import {X} from "lucide-svelte";
-    import { toast } from "svelte-sonner";
-    import imageCompression from "browser-image-compression";
-    import {createEventDispatcher, onMount} from "svelte";
-    import AltModal from "$lib/components/alt/AltModal.svelte";
-    import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
-    import {languageMap} from "$lib/langs/languageMap";
-    import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
-    import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
-    import {getUploadLimit} from "$lib/components/editor/videoUtil";
-    import {getTenorUrl} from "$lib/components/post/embedUtil";
-    import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
-    const dispatch = createEventDispatcher();
+  import { createBubbler, preventDefault } from 'svelte/legacy';
 
-    export let post;
-    export let _agent;
-    export let length = 0;
-    export let editor;
-    export let isEnabled;
-    let publishContent = '';
-    let publishContentJson;
-    let isPublishEnabled = false;
-    let isProcessed = false;
+  const bubble = createBubbler();
+  import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
+  import {isPublishInstantFloat, postgate, settings, threadGate} from "$lib/stores";
+  import {_} from "svelte-i18n";
+  import {isFeedByUri} from "$lib/util";
+  import {formatDistanceToNow, parseISO} from "date-fns";
+  import spinner from "$lib/images/loading.svg";
+  import {
+      AppBskyEmbedExternal,
+      AppBskyEmbedImages,
+      AppBskyEmbedRecord,
+      AppBskyEmbedRecordWithMedia, RichText
+  } from "@atproto/api";
+  import Tiptap from "$lib/components/editor/Tiptap.svelte";
+  import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
+  import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
+  import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
+  import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
+  import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
+  import {X} from "lucide-svelte";
+  import { toast } from "svelte-sonner";
+  import imageCompression from "browser-image-compression";
+  import {createEventDispatcher, onMount} from "svelte";
+  import AltModal from "$lib/components/alt/AltModal.svelte";
+  import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
+  import {languageMap} from "$lib/langs/languageMap";
+  import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
+  import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
+  import {getUploadLimit} from "$lib/components/editor/videoUtil";
+  import {getTenorUrl} from "$lib/components/post/embedUtil";
+  import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
+  import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
+  import Menu from "$lib/components/ui/Menu.svelte";
+  import {postState} from "$lib/classes/postState.svelte";
+  const dispatch = createEventDispatcher();
+
+  interface Props {
+    post: any;
+    _agent: any;
+    length?: number;
+    editor: any;
+    isEnabled: any;
+  }
+
+  let {
+    post = $bindable(),
+    _agent = $bindable(),
+    length = 0,
+    editor = $bindable(),
+    isEnabled = $bindable()
+  }: Props = $props();
+    let publishContent = $state('');
+    let publishContentJson = $state();
+    let isPublishEnabled = $state(false);
+    let isProcessed = $state(false);
     let isAccountSelectDisabled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    let links: string[] = [];
-    let externalImageBlob: string = '';
+    let links: string[] = $state([]);
+    let externalImageBlob: string = $state('');
     let isPublishUploadClose = false;
-    let isAltModalOpen = false;
-    let isLinkCardAdding = false;
-    let imageUploadEl;
-    let isDragover = 0;
-    let isVirtualKeyboard = false;
-    let isLangSelectorOpen = false;
-    let isVideoUploadEnabled = false;
+    let isAltModalOpen = $state(false);
+    let isLinkCardAdding = $state(false);
+    let imageUploadEl = $state();
+    let isDragover = $state(0);
+    let isVirtualKeyboard = $state(false);
+    let isLangSelectorOpen = $state(false);
+    let isVideoUploadEnabled = $state(false);
+    let isThreadGateOpen = $state(false);
+    let isSelfLabelingMenuOpen = $state(false);
 
     const isMobile = navigator?.userAgentData?.mobile || false;
 
@@ -65,23 +83,35 @@
         alt: string,
         id: string,
     }
-    let images = [];
-    let video;
+    let images = $state([]);
+    let video = $state();
 
     let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
-    let embedExternal: AppBskyEmbedExternal.Main | undefined;
+    let embedExternal: AppBskyEmbedExternal.Main | undefined = $state();
     let lang: string[] = [];
 
     if (!$settings.langSelector) {
         $settings.langSelector = 'auto';
     }
 
-    $: publishContentLength = new RichText({text: publishContent}).graphemeLength;
-    $: onPublishContentChange(publishContent);
-    $: isPublishEnabled = publishContentLength > 300;
-    $: isEmpty = !publishContent && !images.length && !embedExternal;
-    $: isThreaded(length, $replyRef);
-    $: observeEnabled(isEmpty, isPublishEnabled, isProcessed, isLinkCardAdding);
+    let publishContentLength = $derived(new RichText({text: publishContent}).graphemeLength);
+    let isEmpty = $derived(!publishContent && !images.length && !embedExternal);
+
+    $effect(() => {
+        onPublishContentChange(publishContent);
+    })
+
+    $effect(() => {
+        isPublishEnabled = publishContentLength > 300;
+    })
+
+    $effect(() => {
+        isThreaded(length, postState.reply);
+    })
+
+    $effect(() => {
+        observeEnabled(isEmpty, isPublishEnabled, isProcessed, isLinkCardAdding);
+    })
 
     function observeEnabled(isEmpty, isPublishEnabled, isProcessed, isLinkCardAdding) {
         isEnabled = isEmpty || isPublishEnabled || isProcessed || isLinkCardAdding;
@@ -94,7 +124,7 @@
 
         if (length > 1) {
             toast.error($_('reply_disable_when_threaded'));
-            replyRef.set(undefined);
+            postState.reply = undefined;
         }
     }
 
@@ -205,8 +235,8 @@
         }
     }
 
-    async function handleAgentSelect(event) {
-        _agent = event.detail.agent;
+    async function handleAgentSelect(agent) {
+        _agent = agent;
         isVideoUploadEnabled = false;
 
         const limit = await getUploadLimit(_agent);
@@ -253,7 +283,10 @@
             }
         }
 
-        await Promise.all(promises);
+        if (promises.length) {
+            images = [...images, ...await Promise.all(promises)];
+        }
+
         isProcessed = false;
     }
 
@@ -265,16 +298,16 @@
         isDragover = isDragover - 1;
     }
 
-    function handleAltClose(event: CustomEvent<{ images: BeforeUploadImage[] }>) {
-        images = event.detail.images;
+    function handleAltClose(_images: BeforeUploadImage[]) {
+        images = _images;
         isAltModalOpen = false;
         editor.focus();
     }
 
     onMount(async () => {
         editor.clear();
-        quotePost.set(undefined);
-        replyRef.set(undefined);
+        postState.quote = undefined;
+        postState.reply = undefined;
         threadGate.set('everybody');
         selfLabels.set([]);
         images = [];
@@ -296,17 +329,17 @@
         }
 
         if (post.quotePost) {
-            quotePost.set(post.quotePost);
+            postState.quote = post.quotePost;
         }
 
         if (post.replyRef) {
             if (post.replyRef.did) {
-                replyRef.set(post.replyRef);
+                postState.reply = post.replyRef;
             } else {
-                replyRef.set({
+                postState.reply = {
                     did: _agent.did(),
                     data: post.replyRef,
-                })
+                }
             }
         }
 
@@ -328,10 +361,10 @@
 
         externalImageBlob = post.externalImageBlob;
 
-        const limit = await getUploadLimit(_agent);
+        /* const limit = await getUploadLimit(_agent);
         if (limit?.canUpload) {
             isVideoUploadEnabled = true;
-        }
+        } */
     })
 
     function addThread() {
@@ -343,8 +376,8 @@
             data: {
                 text: publishContent,
                 json: publishContentJson,
-                quotePost: $quotePost || undefined,
-                replyRef: $replyRef || undefined,
+                quotePost: postState.quote || undefined,
+                replyRef: postState.reply || undefined,
                 images: images,
                 video: video,
                 owner: _agent.did() as string,
@@ -361,8 +394,8 @@
         return {
             text: publishContent,
             json: publishContentJson,
-            quotePost: $quotePost || undefined,
-            replyRef: $replyRef || undefined,
+            quotePost: postState.quote || undefined,
+            replyRef: postState.reply || undefined,
             images: images,
             video: video,
             owner: _agent.did() as string,
@@ -373,18 +406,51 @@
             lang: $settings.langSelector || [],
         }
     }
+
+  const selfLabelsChoices = [
+      {
+          name: $_('labeling_sexual'),
+          val: 'sexual',
+      },
+      {
+          name: $_('labeling_nudity'),
+          val: 'nudity',
+      },
+      {
+          name: $_('labeling_porn'),
+          val: 'porn',
+      },
+      {
+          name: $_('labeling_graphic-media'),
+          val: 'graphic-media',
+      },
+  ];
+
+  function setSelfLabel(index) {
+      $selfLabels = [
+          {
+              val: selfLabelsChoices[index].val,
+          }
+      ];
+      isSelfLabelingMenuOpen = false;
+  }
+
+  function clearSelfLabels() {
+      selfLabels.set([]);
+      isSelfLabelingMenuOpen = false;
+  }
 </script>
 
-<svelte:document on:paste={handlePaste} />
+<svelte:document onpaste={handlePaste} />
 
 <div class="publish-form"
      class:publish-form--expand={$isPublishFormExpand}
      class:publish-form--dragover={isDragover}
      class:publish-form--fit={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
-     on:dragover|preventDefault
-     on:drop|preventDefault={handleDrop}
-     on:dragenter|preventDefault={handleDragover}
-     on:dragleave|preventDefault={handleDragleave}
+     ondragover={preventDefault(bubble('dragover'))}
+     ondrop={preventDefault(handleDrop)}
+     ondragenter={preventDefault(handleDragover)}
+     ondragleave={preventDefault(handleDragleave)}
 >
   <Tiptap
           bind:text={publishContent}
@@ -399,161 +465,171 @@
           isPublishEnabled={isEmpty || isPublishEnabled}
           {isVideoUploadEnabled}
   >
-    <svelte:fragment slot="top">
-      {#if ($replyRef && typeof $replyRef !== 'string')}
-        <div class="publish-quote publish-quote--reply">
-          <button class="publish-quote__delete" on:click={() => {replyRef.set(undefined); isPublishInstantFloat.set(false);}}>
-            <X color="#fff" size="18"></X>
-          </button>
-
-          <div class="timeline-external timeline-external--record timeline-external--record-publish">
-            <div class="timeline-external__image timeline-external__image--round">
-              {#if ($replyRef.data.parent.author.avatar)}
-                <img src="{$replyRef.data.parent.author.avatar}" alt="">
-              {/if}
-            </div>
-
-            <div class="timeline-external__content">
-              <div class="timeline__meta timeline__meta--member">
-                <p class="timeline__user">{$replyRef.data.parent.author.displayName || $replyRef.data.parent.author.handle}</p>
-
-                <ThreadMembersList uri={$replyRef.data.parent.uri} {_agent}></ThreadMembersList>
-              </div>
-
-              <p class="timeline-external__description">
-                {$replyRef.data.parent.record.text}
-              </p>
-            </div>
-
-            <span class="timeline-external__icon">
-
-            </span>
-          </div>
-        </div>
-      {/if}
-    </svelte:fragment>
-
-    <div class="publish-form-agents-selector" slot="avatar">
-      <AvatarAgentsSelector
-              {_agent}
-              isDisabled={isAccountSelectDisabled}
-              on:select={handleAgentSelect}
-              style={'publish'}
-      ></AvatarAgentsSelector>
-    </div>
-
-    <div class="publish-upload" slot="normal">
-      {#if (images.length)}
-        <button class="publish-alt-text-button" on:click={() => {isAltModalOpen = true}}>
-          <span class="ai-label">AI</span>
-          {$_('add_alt_text')}
-        </button>
-      {/if}
-
-      <ImageUpload
-        bind:this={imageUploadEl}
-        bind:images={images}
-        bind:video={video}
-        on:preparestart={() => {isPublishEnabled = true}}
-        on:prepareend={() => {isPublishEnabled = false}}
-      ></ImageUpload>
-
-      {#if $quotePost?.uri}
-        {#if (isFeedByUri($quotePost.uri))}
-          <div class="quote-feed-wrap">
-            <button class="publish-quote__delete" on:click={() => {$quotePost = undefined}}>
+    {#snippet top()}
+      
+        {#if (postState.reply && typeof postState.reply !== 'string')}
+          <div class="publish-quote publish-quote--reply">
+            <button class="publish-quote__delete" onclick={() => {postState.reply = undefined; isPublishInstantFloat.set(false);}}>
               <X color="#fff" size="18"></X>
             </button>
 
-            <FeedsItem {_agent} feed={$quotePost} layout="publish"></FeedsItem>
-          </div>
-        {:else}
-          <div class="publish-quote">
-            <button class="publish-quote__delete" on:click={() => {quotePost.set(undefined); isPublishInstantFloat.set(false);}}>
-              <X color="#fff" size="18"></X>
-            </button>
-
-            <div class="timeline-external timeline-external--record timeline-external--record-publish-quote">
+            <div class="timeline-external timeline-external--record timeline-external--record-publish">
               <div class="timeline-external__image timeline-external__image--round">
-                {#if ($quotePost.author.avatar)}
-                  <img src="{$quotePost.author.avatar}" alt="">
+                {#if (postState.reply.data.parent.author.avatar)}
+                  <img src="{postState.reply.data.parent.author.avatar}" alt="">
                 {/if}
               </div>
 
               <div class="timeline-external__content">
-                <div class="timeline__meta">
-                  <p class="timeline__user" title="{$quotePost.author.handle}">{ $quotePost.author.displayName || $quotePost.author.handle }</p>
-                  <p class="timeline__date">{formatDistanceToNow(parseISO($quotePost.record.createdAt))}</p>
+                <div class="timeline__meta timeline__meta--member">
+                  <p class="timeline__user">{postState.reply.data.parent.author.displayName || postState.reply.data.parent.author.handle}</p>
+
+                  <ThreadMembersList uri={postState.reply.data.parent.uri} {_agent}></ThreadMembersList>
                 </div>
 
                 <p class="timeline-external__description">
-                  {$quotePost.record.text}
+                  {postState.reply.data.parent.record.text}
                 </p>
               </div>
 
               <span class="timeline-external__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
-              <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
-            </svg>
-            </span>
+
+              </span>
             </div>
           </div>
         {/if}
-      {/if}
+      
+      {/snippet}
 
-      {#if (embedExternal && !images.length)}
-        <div class="publish-quote publish-quote--external">
-          <button class="publish-quote__delete" on:click={() => {embedExternal = undefined; externalImageBlob = ''}}>
-            <X color="#fff" size="18"></X>
+    {#snippet avatar()}
+      <div class="publish-form-agents-selector">
+        <AvatarAgentsSelector
+                {_agent}
+                isDisabled={isAccountSelectDisabled}
+                onselect={handleAgentSelect}
+                style={'publish'}
+        ></AvatarAgentsSelector>
+
+        {#if (!postState.reply)}
+          <button class="add-thread-button" disabled={isEnabled} onclick={addThread} aria-label="{$_('post_add_thread')}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></button>
+        {/if}
+      </div>
+    {/snippet}
+
+    {#snippet normal()}
+        <div class="publish-upload">
+        {#if (images.length)}
+          <button class="publish-alt-text-button" onclick={() => {isAltModalOpen = true}}>
+            <span class="ai-label">AI</span>
+            {$_('add_alt_text')}
           </button>
+        {/if}
 
-          {#if getTenorUrl(embedExternal.external.uri) && $settings?.embed?.tenor}
-            <div class="publish-tenor-external" class:publish-tenor-external--bottom={$settings.design?.publishPosition === 'bottom'}>
-              <EmbedTenor tenor={getTenorUrl(embedExternal.external.uri)}></EmbedTenor>
+        <ImageUpload
+          bind:this={imageUploadEl}
+          bind:images={images}
+          bind:video={video}
+          on:preparestart={() => {isPublishEnabled = true}}
+          on:prepareend={() => {isPublishEnabled = false}}
+        ></ImageUpload>
+
+        {#if postState.quote?.uri}
+          {#if (isFeedByUri(postState.quote.uri))}
+            <div class="quote-feed-wrap">
+              <button class="publish-quote__delete" onclick={() => {postState.quote = undefined}}>
+                <X color="#fff" size="18"></X>
+              </button>
+
+              <FeedsItem {_agent} feed={postState.quote} layout="publish"></FeedsItem>
             </div>
           {:else}
-            <div class="timeline-external timeline-external--record">
-              <div class="timeline-external__image">
-                {#if (externalImageBlob)}
-                  <img src="{externalImageBlob}" alt="">
-                {/if}
-              </div>
+            <div class="publish-quote">
+              <button class="publish-quote__delete" onclick={() => {postState.quote = undefined; isPublishInstantFloat.set(false);}}>
+                <X color="#fff" size="18"></X>
+              </button>
 
-              <div class="timeline-external__content">
-                <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
-                <p class="timeline-external__description">{embedExternal.external.description}</p>
-                <p class="timeline-external__url">{embedExternal.external.uri}</p>
+              <div class="timeline-external timeline-external--record timeline-external--record-publish-quote">
+                <div class="timeline-external__image timeline-external__image--round">
+                  {#if (postState.quote.author.avatar)}
+                    <img src="{postState.quote.author.avatar}" alt="">
+                  {/if}
+                </div>
+
+                <div class="timeline-external__content">
+                  <div class="timeline__meta">
+                    <p class="timeline__user" title="{postState.quote.author.handle}">{ postState.quote.author.displayName || postState.quote.author.handle }</p>
+                    <p class="timeline__date">{formatDistanceToNow(parseISO(postState.quote.record.createdAt))}</p>
+                  </div>
+
+                  <p class="timeline-external__description">
+                    {postState.quote.record.text}
+                  </p>
+                </div>
+
+                <span class="timeline-external__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
+                <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
+              </svg>
+              </span>
               </div>
             </div>
           {/if}
-        </div>
-      {/if}
+        {/if}
 
-      {#if (!embedExternal && links.length && !images.length)}
-        <div class="link-card-registerer">
-          {#each links as link}
-            <button
-                    disabled={isLinkCardAdding}
-                    class="link-card-registerer-button"
-                    on:click={() => {addLinkCard(link)}}
-            >
-              {#if (isLinkCardAdding)}
-                <img class="loading-spinner" src={spinner} alt="">
-              {/if}
-              {$_('link_card_embed')}: {link}
+        {#if (embedExternal && !images.length)}
+          <div class="publish-quote publish-quote--external">
+            <button class="publish-quote__delete" onclick={() => {embedExternal = undefined; externalImageBlob = ''}}>
+              <X color="#fff" size="18"></X>
             </button>
-          {/each}
-        </div>
-      {/if}
 
-      {#if ($threadGate !== 'everybody' && !$replyRef)}
-        <ThreadGateLabel></ThreadGateLabel>
-      {/if}
+            {#if getTenorUrl(embedExternal.external.uri) && $settings?.embed?.tenor}
+              <div class="publish-tenor-external" class:publish-tenor-external--bottom={$settings.design?.publishPosition === 'bottom'}>
+                <EmbedTenor tenor={getTenorUrl(embedExternal.external.uri)}></EmbedTenor>
+              </div>
+            {:else}
+              <div class="timeline-external timeline-external--record">
+                <div class="timeline-external__image">
+                  {#if (externalImageBlob)}
+                    <img src="{externalImageBlob}" alt="">
+                  {/if}
+                </div>
 
-      {#if !$postgate}
-        <PostGateLabel></PostGateLabel>
-      {/if}
-    </div>
+                <div class="timeline-external__content">
+                  <p class="timeline-external__title"><a href="{embedExternal.external.uri}" target="_blank" rel="noopener nofollow noreferrer">{embedExternal.external.title}</a></p>
+                  <p class="timeline-external__description">{embedExternal.external.description}</p>
+                  <p class="timeline-external__url">{embedExternal.external.uri}</p>
+                </div>
+              </div>
+            {/if}
+          </div>
+        {/if}
+
+        {#if (!embedExternal && links.length && !images.length)}
+          <div class="link-card-registerer">
+            {#each links as link}
+              <button
+                disabled={isLinkCardAdding}
+                class="link-card-registerer-button"
+                onclick={() => {addLinkCard(link)}}
+              >
+                {#if (isLinkCardAdding)}
+                  <img class="loading-spinner" src={spinner} alt="">
+                {/if}
+                {$_('link_card_embed')}: {link}
+              </button>
+            {/each}
+          </div>
+        {/if}
+
+        {#if ($threadGate !== 'everybody' && !postState.reply)}
+          <ThreadGateLabel></ThreadGateLabel>
+        {/if}
+
+        {#if !$postgate}
+          <PostGateLabel></PostGateLabel>
+        {/if}
+      </div>
+    {/snippet}
   </Tiptap>
 
   {#if ($selfLabels.length)}
@@ -563,7 +639,7 @@
   {/if}
 
   <div class="publish-bb-nav">
-    <button class="publish-form-lang-selector-button" on:click={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
+    <button class="publish-form-lang-selector-button" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
       {#if ($settings.langSelector !== 'auto')}
         <span>{$_(languageMap.get($settings.langSelector).name)}</span>
@@ -574,8 +650,36 @@
       <span class="publish-length__current" class:over={publishContentLength > 300}>{300 - publishContentLength}</span>
     </p>
 
-    {#if (!$replyRef)}
-      <button class="add-thread-button" disabled={isEnabled} on:click={addThread}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-plus"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/></svg>{$_('post_add_thread')}</button>
+    <div class="publish-form-moderation">
+      <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
+        {#snippet ref()}
+          <svg class:stroke-danger={$selfLabels.length}  xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        {/snippet}
+
+        {#snippet content()}
+          <ul  class="timeline-menu-list">
+            {#each selfLabelsChoices as choice, index}
+              <li class="timeline-menu-list__item">
+                <button class="timeline-menu-list__button" class:timeline-menu-list__button--active={$selfLabels.some(label => label.val === choice.val)} onclick={() => setSelfLabel(index)}>{choice.name}</button>
+              </li>
+            {/each}
+
+            {#if ($selfLabels.length)}
+              <li class="timeline-menu-list__item">
+                <button class="timeline-menu-list__button text-danger" onclick={clearSelfLabels}>{$_('selflabels_remove')}</button>
+              </li>
+            {/if}
+          </ul>
+        {/snippet}
+      </Menu>
+    </div>
+
+    {#if (!postState.reply)}
+      <div class="publish-form-thread-gate">
+        <button class="publish-form-lang-selector-button" onclick={() => {isThreadGateOpen = !isThreadGateOpen}}>
+          <svg class:stroke-danger={$threadGate !== 'everybody'} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square-warning"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v2"/><path d="M12 13h.01"/></svg>
+        </button>
+      </div>
     {/if}
   </div>
 </div>
@@ -585,7 +689,11 @@
 {/if}
 
 {#if (isAltModalOpen)}
-  <AltModal images={images} on:close={handleAltClose}></AltModal>
+  <AltModal images={images} close={handleAltClose}></AltModal>
+{/if}
+
+{#if (isThreadGateOpen)}
+  <ThreadGateModal on:close={() => {isThreadGateOpen = false}} {_agent}></ThreadGateModal>
 {/if}
 
 <style lang="postcss">
@@ -598,7 +706,7 @@
         padding: 0 5px;
         font-size: 14px;
         height: 30px;
-        max-width: 120px;
+        max-width: 140px;
         white-space: nowrap;
 
         svg {
@@ -613,11 +721,27 @@
 
   .add-thread-button {
       height: 40px;
-      color: var(--primary-color);
+      width: 40px;
+      color: var(--text-color-2);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      margin-top: 24px;
+      position: relative;
+
+      &::before {
+          content: '';
+          display: block;
+          position: absolute;
+          left: 0;
+          right: 0;
+          margin: auto;
+          height: 24px;
+          width: 2px;
+          background-color: currentColor;
+          bottom: calc(100% - 4px);
+      }
       
       &:disabled {
           cursor: not-allowed;
@@ -773,7 +897,7 @@
       border-top: 1px solid var(--border-color-2);
       height: 40px;
       width: 100%;
-      padding: 0 16px 0 8px;
+      padding: 0 16px;
       display: flex;
       align-items: center;
       gap: 4px;
@@ -801,5 +925,20 @@
               }
           }
       }
+  }
+
+  .publish-form-lang-selector-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--text-color-1);
+      padding: 0 5px;
+      font-size: 14px;
+      height: 30px;
+  }
+
+  .publish-form-moderation {
+      position: relative;
   }
 </style>

@@ -1,12 +1,20 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {_} from 'svelte-i18n';
   import type {LayoutData} from "./$types";
   import {page} from "$app/stores";
+  import { ArrowLeft, BellRing, Database, GanttChartSquare, Hand, Heart, Layers, Palette, Rocket, Settings, WholeWord, X } from "lucide-svelte";
 
-  export let data: LayoutData;
-  let navs = [];
+  interface Props {
+    data: LayoutData;
+    children?: import('svelte').Snippet;
+  }
 
-  $: {
+  let { data, children }: Props = $props();
+  let navs = $state([]);
+
+  run(() => {
       navs = [
           {
               name: 'profiles',
@@ -39,33 +47,9 @@
               disabled: false,
           },
           {
-              name: 'blocks',
-              path: '/settings/blocks',
-              display: $_('settings_blocks'),
-              disabled: false,
-          },
-          {
-              name: 'mutes',
-              path: '/settings/mutes',
-              display: $_('settings_mutes'),
-              disabled: false,
-          },
-          {
               name: 'keyword-mutes',
               path: '/settings/keyword-mutes',
               display: $_('settings_keyword_mutes'),
-              disabled: false,
-          },
-          {
-              name: 'lang-filter',
-              path: '/settings/lang-filter',
-              display: $_('settings_lang_filter'),
-              disabled: false,
-          },
-          {
-              name: 'invite-codes',
-              path: '/settings/invite-codes',
-              display: $_('settings_invite_codes'),
               disabled: false,
           },
           {
@@ -87,11 +71,7 @@
               disabled: false,
           },
       ]
-  }
-
-  function close() {
-
-  }
+  });
 </script>
 
 <div class="settings-modal" class:settings-modal--transparent-bg={$page.url.pathname === '/settings/design'}>
@@ -100,8 +80,8 @@
       <div class="settings-toc">
         <div class="column-heading only-mobile">
           <div class="column-heading__buttons">
-            <button class="settings-back" on:click={() => {history.back()}}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            <button class="settings-back" aria-label="Back" onclick={() => {history.back()}}>
+              <ArrowLeft size="24" color="var(--text-color-1)"></ArrowLeft>
             </button>
           </div>
 
@@ -109,7 +89,7 @@
 
           <div class="column-heading__buttons column-heading__buttons--right">
             <a class="settings-back" href="/">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <X size="24" color="var(--text-color-1)"></X>
             </a>
           </div>
         </div>
@@ -117,89 +97,80 @@
         <ul class="p-menu-nav">
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/profiles'}>
             <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layers"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+              <Layers size="24" color="var(--text-color-1)"></Layers>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/profiles" on:click={close}>{$_('settings_profiles')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/profiles">{$_('settings_profiles')}</a></p>
           </li>
 
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/general'}>
             <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+              <Settings size="24" color="var(--text-color-1)"></Settings>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/general" on:click={close}>{$_('settings_general')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/general">{$_('settings_general')}</a></p>
           </li>
 
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/design'}>
             <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+              <Palette size="24" color="var(--text-color-1)"></Palette>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/design" on:click={close}>{$_('settings_design')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/design">{$_('settings_design')}</a></p>
           </li>
 
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/timeline'}>
             <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gantt-chart-square"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 8h7"/><path d="M8 12h6"/><path d="M11 16h5"/></svg>
+              <GanttChartSquare size="24" color="var(--text-color-1)"></GanttChartSquare>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/timeline" on:click={close}>{$_('settings_timeline')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/timeline">{$_('settings_timeline')}</a></p>
           </li>
 
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/moderation'}>
             <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hand"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+              <Hand size="24" color="var(--text-color-1)"></Hand>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/moderation" on:click={close}>{$_('settings_moderation')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/moderation">{$_('settings_moderation')}</a></p>
           </li>
 
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/keyword-mutes'}>
             <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-whole-word"><circle cx="7" cy="12" r="3"/><path d="M10 9v6"/><circle cx="17" cy="12" r="3"/><path d="M14 7v8"/><path d="M22 17v1c0 .5-.5 1-1 1H3c-.5 0-1-.5-1-1v-1"/></svg>
+              <WholeWord size="24" color="var(--text-color-1)"></WholeWord>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/keyword-mutes" on:click={close}>{$_('settings_keyword_mutes')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/keyword-mutes">{$_('settings_keyword_mutes')}</a></p>
           </li>
-
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/lang-filter'}>
-            <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe-2"><path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/><path d="M7 3.34V5a3 3 0 0 0 3 3v0a2 2 0 0 1 2 2v0c0 1.1.9 2 2 2v0a2 2 0 0 0 2-2v0c0-1.1.9-2 2-2h3.17"/><path d="M11 21.95V18a2 2 0 0 0-2-2v0a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/><circle cx="12" cy="12" r="10"/></svg>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/lang-filter" on:click={close}>{$_('settings_lang_filter')}</a></p>
-          </li>
-
-          <!--
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/invite-codes'}>
-            <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/invite-codes" on:click={close}>{$_('settings_invite_codes')}</a></p>
-          </li>
-          -->
 
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/push-notification'}>
             <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-ring"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/><path d="M22 8c0-2.3-.8-4.3-2-6"/></svg>
+              <BellRing size="24" color="var(--text-color-1)"></BellRing>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/push-notification" on:click={close}>{$_('settings_push_notification')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/push-notification">{$_('settings_push_notification')}</a></p>
           </li>
 
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/data'}>
             <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+              <Database size="24" color="var(--text-color-1)"></Database>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/data" on:click={close}>{$_('settings_data_management')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/data">{$_('settings_data_management')}</a></p>
           </li>
 
           <li class="p-menu-nav__item p-menu-nav__item--bottom" class:p-menu-nav__item--current={$page.url.pathname === '/settings/news'}>
             <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+              <Rocket size="24" color="var(--text-color-1)"></Rocket>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/news" on:click={close}>{$_('settings_news')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/news">{$_('settings_news')}</a></p>
             <span class="new-label">NEW</span>
           </li>
 
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/about'}>
             <div class="p-menu-nav__icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+              <Heart size="24" color="var(--text-color-1)"></Heart>
             </div>
-            <p class="p-menu-nav__title"><a href="/settings/about" on:click={close}>{$_('settings_about')}</a></p>
+            <p class="p-menu-nav__title"><a href="/settings/about">{$_('settings_about')}</a></p>
+          </li>
+
+          <li class="p-menu-nav__item">
+            <div class="p-menu-nav__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22.006" height="21.998"><defs><linearGradient id="supportIcon" x1=".196" x2=".943" y1="-.064" y2=".909" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#ca2d95"/><stop offset="1" stop-color="#e0965d"/></linearGradient></defs><g fill="url(#supportIcon)" data-name="グループ 3" transform="translate(-.989 -1.005)"><path d="M12 1a4.975 4.975 0 0 1 3.815 1.767q.216-.019.433-.019a5 5 0 0 1 4.982 5.433 5 5 0 0 1 0 7.628 4.972 4.972 0 0 1-1.443 3.963 5.034 5.034 0 0 1-3.539 1.468q-.21 0-.419-.018a5 5 0 0 1-7.644 0q-.214.018-.429.018a5 5 0 0 1-4.983-5.419 5 5 0 0 1 0-7.657 5 5 0 0 1 4.982-5.411q.215 0 .43.019A4.975 4.975 0 0 1 12 1Zm3.37 3.85a1 1 0 0 1-.842-.461 3 3 0 0 0-5.055 0 1 1 0 0 1-1.061.437A3 3 0 0 0 4.826 8.4a1 1 0 0 1-.441 1.062 3 3 0 0 0 0 5.07 1 1 0 0 1 .441 1.068 3 3 0 0 0 3.585 3.577 1 1 0 0 1 1.063.439 3 3 0 0 0 5.063 0 1 1 0 0 1 1.06-.439 3 3 0 0 0 3.577-3.585 1 1 0 0 1 .437-1.061 3 3 0 0 0 0-5.055 1 1 0 0 1-.437-1.062 3 3 0 0 0-3.585-3.585 1 1 0 0 1-.219.021Z" data-name="パス 4"/><path d="M12 19a1 1 0 0 1-1-1v-6.586L8.293 8.707a1 1 0 0 1 1.414-1.414l3 3A1 1 0 0 1 13 11v7a1 1 0 0 1-1 1Z" data-name="パス 5"/><path d="M12 12a1 1 0 0 1-.707-1.707l3-3a1 1 0 0 1 1.414 1.414l-3 3A1 1 0 0 1 12 12Z" data-name="パス 6"/><path d="M15 13H9a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2Z" data-name="パス 7"/><path d="M15 17H9a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2Z" data-name="パス 8"/></g></svg>
+            </div>
+            <p class="p-menu-nav__title"><a target="_blank" href="https://tokimeki.fanbox.cc/">{$_('settings_support')}</a></p>
           </li>
         </ul>
       </div>
@@ -207,7 +178,7 @@
       <div class="settings-content">
         {#key data.pathname}
           <div class="settings-content-container">
-            <slot></slot>
+            {@render children?.()}
           </div>
         {/key}
       </div>

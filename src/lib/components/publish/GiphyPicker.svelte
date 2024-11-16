@@ -8,8 +8,8 @@
 
     const gf = new GiphyFetch(PUBLIC_GIPHY_API_KEY);
     let offset = 0;
-    let term = '';
-    let innerWidth;
+    let term = $state('');
+    let innerWidth = $state();
 
     function close () {
         dispatch('close');

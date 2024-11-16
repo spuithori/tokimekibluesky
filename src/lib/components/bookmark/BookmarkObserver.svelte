@@ -1,18 +1,16 @@
 <script lang="ts">
-    import {agent, bookmarkModal} from "$lib/stores";
-    import BookmarkModal from "$lib/components/bookmark/BookmarkModal.svelte";
-    import {createEventDispatcher} from 'svelte';
-    const dispatch = createEventDispatcher();
-    let bookmark = undefined;
+  import {agent, bookmarkModal} from "$lib/stores";
+  import BookmarkModal from "$lib/components/bookmark/BookmarkModal.svelte";
+  let bookmark = undefined;
 
-    export let _agent = $agent;
+  let { _agent = $agent, close } = $props();
 
-    function handleBookmarkClose(event) {
-        $bookmarkModal.open = false;
-        dispatch('close', event.detail);
-    }
+  function handleBookmarkClose(clear: boolean) {
+      $bookmarkModal.open = false;
+      close(clear);
+  }
 </script>
 
 {#if ($bookmarkModal.open)}
-  <BookmarkModal id={$bookmarkModal.data} on:close={handleBookmarkClose} {_agent}></BookmarkModal>
+  <BookmarkModal id={$bookmarkModal.data} close={handleBookmarkClose} {_agent}></BookmarkModal>
 {/if}

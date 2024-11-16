@@ -8,13 +8,13 @@
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
     import {AppBskyEmbedRecord} from "@atproto/api";
 
-    export let uri;
-    let quotes = [];
+    let { uri, _agent = $agent } = $props();
+    let quotes = $state([]);
     let cursor;
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
         try {
-            const res = await $agent.agent.api.app.bsky.feed.getQuotes({uri: uri, cursor: cursor});
+            const res = await _agent.agent.api.app.bsky.feed.getQuotes({uri: uri, cursor: cursor});
             cursor = res.data.cursor;
             const wrapRes = res.data.posts.map(post => {
                 return {
@@ -45,7 +45,11 @@
   </div>
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore">もうないよ</p>
-    <p slot="noResults"></p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore">もうないよ</p>
+      {/snippet}
+    {#snippet noResults()}
+        <p ></p>
+      {/snippet}
   </InfiniteLoading>
 </Modal>

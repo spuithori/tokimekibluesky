@@ -1,23 +1,37 @@
 <script lang="ts">
+  import Thread from './Thread.svelte';
   import TimelineItem from "../../../../TimelineItem.svelte";
   import {_} from "svelte-i18n";
   import Likes from "$lib/components/thread/Likes.svelte";
   import { agent, settings } from "$lib/stores";
   import Quotes from "$lib/components/thread/Quotes.svelte";
 
-  export let _agent = $agent;
-  export let feeds = [];
-  export let depth = 0;
-  export let column = undefined;
-  export let rootClientHeight = 0;
-  export let scrollTop = undefined;
+  interface Props {
+    _agent?: any;
+    feeds?: any;
+    depth?: number;
+    column?: any;
+    rootClientHeight?: number;
+    scrollTop?: any;
+  }
 
-  let item;
+  let {
+    _agent = $agent,
+    feeds = [],
+    depth = 0,
+    column = undefined,
+    rootClientHeight = $bindable(0),
+    scrollTop = undefined
+  }: Props = $props();
+
+  let item = $state();
   let scrolled = false;
-  let clientHeight;
+  let clientHeight = $state();
   let firstOffset = 0;
 
-  $: handleThreadUpdate(item);
+  $effect(() => {
+      handleThreadUpdate(item);
+  })
 
   function handleThreadUpdate(item) {
       if (!item) {
@@ -48,7 +62,7 @@
     {#if (!data.notFound)}
       {#if (data.parent)}
         <div class="thread-parent">
-          <svelte:self feeds={[data.parent]} depth={depth - 1} column={column}></svelte:self>
+          <Thread feeds={[data.parent]} depth={depth - 1} column={column}></Thread>
         </div>
       {/if}
 
@@ -89,9 +103,9 @@
 
       {#if (data.replies?.length)}
         <div class="thread-replies">
-          <button class="thread-replies-more" class:thread-replies-more--open={data.repliesOpen} on:click={() => {data.repliesOpen = true}}>{$_('show_replies')}</button>
+          <button class="thread-replies-more" class:thread-replies-more--open={data.repliesOpen} onclick={() => {data.repliesOpen = true}}>{$_('show_replies')}</button>
 
-          <svelte:self feeds={data.replies} depth={depth + 1} column={column}></svelte:self>
+          <Thread feeds={data.replies} depth={depth + 1} column={column}></Thread>
         </div>
       {/if}
     {:else}

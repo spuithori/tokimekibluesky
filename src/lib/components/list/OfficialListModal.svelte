@@ -9,17 +9,21 @@
     import OfficialListMenu from "$lib/components/list/OfficialListMenu.svelte";
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
-    export let purpose = 'app.bsky.graph.defs#curatelist';
-    let isDisabled = false;
-    export let uri = '';
-    let name = 'new list';
-    let members = [];
-    let existingMembers = [];
-    let search = '';
-    let searchMembers = [];
+    let isDisabled = $state(false);
+  interface Props {
+    _agent?: any;
+    purpose?: string;
+    uri?: string;
+  }
+
+  let { _agent = $agent, purpose = 'app.bsky.graph.defs#curatelist', uri = $bindable('') }: Props = $props();
+    let name = $state('new list');
+    let members = $state([]);
+    let existingMembers = $state([]);
+    let search = $state('');
+    let searchMembers = $state([]);
     let timer;
-    let ready = false;
+    let ready = $state(false);
     let exportText;
     let importText = '';
 
@@ -278,7 +282,7 @@
                   <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">
                     <path id="search" d="M11.589,12.866A7.187,7.187,0,1,1,12.856,11.6l4.807,4.789-1.276,1.276-4.789-4.8Zm-4.4-.287A5.391,5.391,0,1,0,1.8,7.188a5.391,5.391,0,0,0,5.391,5.391Z" transform="translate(0.008 -0.002)" fill="var(--primary-color)"/>
                   </svg>
-                  <input type="text" class="list-modal-search-input" bind:value={search} on:keydown={handleKeyDown} placeholder="{$_('handle_or_name')}">
+                  <input type="text" class="list-modal-search-input" bind:value={search} onkeydown={handleKeyDown} placeholder="{$_('handle_or_name')}">
                 </div>
 
                 {#each searchMembers as member}
@@ -300,8 +304,8 @@
     {/if}
 
     <div class="list-modal-close">
-      <button class="button button--sm" on:click={save} disabled={isDisabled}>{$_('save_button')}</button>
-      <button class="button button--sm button--border button--danger" on:click={remove}>{$_('cancel')}</button>
+      <button class="button button--sm" onclick={save} disabled={isDisabled}>{$_('save_button')}</button>
+      <button class="button button--sm button--border button--danger" onclick={remove}>{$_('cancel')}</button>
     </div>
   </div>
 </div>

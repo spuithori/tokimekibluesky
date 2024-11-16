@@ -1,44 +1,58 @@
 <script lang="ts">
-  import {agent, isImageOpen, settings} from "$lib/stores";
-  import {onDestroy, onMount} from "svelte";
+  import {isImageOpen, settings} from "$lib/stores";
+  import {onDestroy} from "svelte";
 
-  export let column;
-  export let index;
-  export let _agent = $agent;
-  export let unique;
-  export let isTopScrolling = false;
-  export let isScrollPaused = false;
+  interface Props {
+    column: any;
+    index: any;
+    unique: any;
+    isTopScrolling?: boolean;
+    isScrollPaused?: boolean;
+  }
+
+  let {
+    column,
+    index,
+    unique,
+    isTopScrolling = false,
+    isScrollPaused = false
+  }: Props = $props();
 
   let scrollId;
   let scrollSpeed = 24;
 
-  $: scrolling(column.settings?.autoScroll);
-  $: scrollSpeedChange(column.settings?.autoScrollSpeed);
-
-  $: if (isTopScrolling) {
-      clearInterval(scrollId);
-  }
-
-  $: if (isScrollPaused) {
-      clearInterval(scrollId);
-  } else {
+  $effect(() => {
       scrolling(column.settings?.autoScroll);
-  }
+  })
 
-  $: if ($isImageOpen) {
-      clearInterval(scrollId);
-  } else {
-      scrolling(column.settings?.autoScroll);
-  }
+  $effect(() => {
+      scrollSpeedChange(column.settings?.autoScrollSpeed);
+  })
+
+  $effect(() => {
+      if (isTopScrolling) {
+          clearInterval(scrollId);
+      }
+  })
+
+  $effect(() => {
+      if (isScrollPaused) {
+          clearInterval(scrollId);
+      } else {
+          scrolling(column.settings?.autoScroll);
+      }
+  })
+
+  $effect(() => {
+      if ($isImageOpen) {
+          clearInterval(scrollId);
+      } else {
+          scrolling(column.settings?.autoScroll);
+      }
+  })
 
   onDestroy(() => {
       clearInterval(scrollId);
-  });
-
-  onMount(() => {
-      if (column.settings?.autoScroll) {
-          scrolling(column.settings.autoScroll);
-      }
   });
 
   function scrollSpeedChange(autoScrollSpeed) {

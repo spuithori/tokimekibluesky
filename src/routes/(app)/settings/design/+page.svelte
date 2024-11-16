@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import {_} from 'svelte-i18n';
     import { settings, theme } from '$lib/stores';
     import {liveQuery} from "dexie";
@@ -6,30 +8,35 @@
     import {builtInThemes} from "$lib/builtInThemes";
     import {defaultColors} from "$lib/defaultColors";
     import {isSafariOrFirefox} from "$lib/util";
-    let skin: string = $settings?.design.skin || 'default';
-    let themePick: string = $settings?.design.theme || 'royalblue';
-    let fontTheme = $settings?.design.fontTheme || 'default';
-    let darkmode = $settings?.design.darkmode || false;
-    let nonoto = $settings?.design.nonoto || false;
-    let layout = $settings?.design.layout || 'default';
-    let datetimeFormat = $settings?.design.datetimeFormat || 'yyyy-MM-dd HH:mm';
-    let absoluteTime = $settings?.design.absoluteTime || false;
-    let postsLayout = $settings?.design.postsLayout || 'default';
-    let postsImageLayout = $settings?.design.postsImageLayout || 'default';
-    let oneImageNoCrop = $settings?.design.oneImageNoCrop || false;
-    let fontSize = $settings?.design.fontSize || 2;
-    let externalLayout = $settings?.design.externalLayout || 'normal';
-    let mobilePostLayoutTop = $settings?.design.mobilePostLayoutTop || false;
-    let displayHandle = $settings?.design.displayHandle || false;
-    let reactionMode = $settings?.design.reactionMode || 'tokimeki';
-    let leftMode = $settings?.design.leftMode || false;
+    import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+    import {ChevronRight, GalleryVertical, Palette} from "lucide-svelte";
+    let skin: string = $state($settings?.design.skin || 'default');
+    let themePick: string = $state($settings?.design.theme || 'royalblue');
+    let fontTheme = $state($settings?.design.fontTheme || 'default');
+    let darkmode = $state($settings?.design.darkmode || false);
+    let nonoto = $state($settings?.design.nonoto || false);
+    let layout = $state($settings?.design.layout || 'default');
+    let datetimeFormat = $state($settings?.design.datetimeFormat || 'yyyy-MM-dd HH:mm');
+    let absoluteTime = $state($settings?.design.absoluteTime || false);
+    let postsLayout = $state($settings?.design.postsLayout || 'default');
+    let postsImageLayout = $state($settings?.design.postsImageLayout || 'default');
+    let oneImageNoCrop = $state($settings?.design.oneImageNoCrop || false);
+    let fontSize = $state($settings?.design.fontSize || 2);
+    let externalLayout = $state($settings?.design.externalLayout || 'normal');
+    let mobilePostLayoutTop = $state($settings?.design.mobilePostLayoutTop || false);
+    let displayHandle = $state($settings?.design.displayHandle || false);
+    let reactionMode = $state($settings?.design.reactionMode || 'tokimeki');
+    let leftMode = $state($settings?.design.leftMode || false);
+    let disableProfilePopup = $state($settings?.design.disableProfilePopup || false);
 
-    $: myThemes = liveQuery(async () => {
+    let colors = $derived(detectColors($theme));
+
+    let myThemes = $derived(liveQuery(async () => {
         const myThemes = await themesDb.themes.toArray();
         return myThemes;
-    });
+    }));
 
-    $: {
+    run(() => {
         $settings.design.skin = skin;
         $settings.design.theme = themePick;
         $settings.design.fontTheme = fontTheme;
@@ -47,9 +54,8 @@
         $settings.design.displayHandle = displayHandle;
         $settings.design.reactionMode = reactionMode;
         $settings.design.leftMode = leftMode;
-    }
-
-    $: colors = detectColors($theme);
+        $settings.design.disableProfilePopup = disableProfilePopup;
+    });
 
     const datetimeFormats = [
         {
@@ -90,33 +96,21 @@
 </svelte:head>
 
 <div>
-  <div class="column-heading">
-    <div class="column-heading__buttons">
-      <button class="settings-back" on:click={() => {history.back()}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-      </button>
-    </div>
-
-    <h1 class="column-heading__title">{$_('settings_design')}</h1>
-
-    <div class="column-heading__buttons column-heading__buttons--right">
-      <a class="settings-back" href="/">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-      </a>
-    </div>
-  </div>
+  <SettingsHeader>
+    {$_('settings_design')}
+  </SettingsHeader>
 
   <div class="settings-wrap">
     <div class="settings-child-nav">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gallery-vertical"><path d="M3 2h18"/><rect width="18" height="12" x="3" y="6" rx="2"/><path d="M3 22h18"/></svg>
+      <GalleryVertical size="24"></GalleryVertical>
       <a href="/settings/design/embed">{$_('settings_embed')}<br><span>{$_('settings_embed_description')}</span></a>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+      <ChevronRight size="20"></ChevronRight>
     </div>
 
     <div class="settings-child-nav">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+      <Palette size="24"></Palette>
       <a href="/theme-store">{$_('theme_store')}<br><span>{$_('theme_store_description')}</span></a>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+      <ChevronRight size="20"></ChevronRight>
     </div>
 
     <dl class="settings-group">
@@ -194,7 +188,7 @@
               >
                 <button
                     class="theme-picker__button"
-                    on:click={() => {themePick = color.id}}
+                    onclick={() => {themePick = color.id}}
                     aria-label=""
                     style:background={color.colorCode}></button>
               </li>
@@ -468,6 +462,18 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="leftMode" bind:checked={leftMode}><label class="input-toggle__label" for="leftMode"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group only-pc">
+      <dt class="settings-group__name">
+        {$_('disable_profile_popup')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="disableProfilePopup" bind:checked={disableProfilePopup}><label class="input-toggle__label" for="disableProfilePopup"></label>
         </div>
       </dd>
     </dl>

@@ -7,13 +7,13 @@
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
 
-    export let uri;
-    let reposts = [];
+    let { uri, _agent = $agent } = $props();
+    let reposts = $state([]);
     let cursor;
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
         try {
-            const res = await $agent.agent.api.app.bsky.feed.getRepostedBy({uri: uri, cursor: cursor});
+            const res = await _agent.agent.api.app.bsky.feed.getRepostedBy({uri: uri, cursor: cursor});
             cursor = res.data.cursor;
             reposts = [...reposts, ...res.data.repostedBy];
 
@@ -29,7 +29,7 @@
     }
 </script>
 
-<Modal title="{$_('reposted_users')}" on:close>
+<Modal title="{$_('reposted_users')}" size="small" on:close>
     <div class="likes">
         {#each reposts as repost }
             {#if (!repost.viewer?.muted)}
@@ -39,7 +39,11 @@
     </div>
 
     <InfiniteLoading on:infinite={handleLoadMore}>
-        <p slot="noMore" class="infinite-nomore">もうないよ</p>
-        <p slot="noResults"></p>
+        {#snippet noMore()}
+                <p  class="infinite-nomore">もうないよ</p>
+            {/snippet}
+        {#snippet noResults()}
+                <p ></p>
+            {/snippet}
     </InfiniteLoading>
 </Modal>

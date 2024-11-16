@@ -5,7 +5,7 @@
   import { page } from '$app/stores';
   import {LayoutList, UserCheck2, UserPlus2, Image, Heart, ShieldBan, VolumeX} from 'lucide-svelte';
 
-  let _agent = $agent;
+  let _agent = $state($agent);
 
   function handleAgentSelect(event) {
       _agent = event.detail.agent;

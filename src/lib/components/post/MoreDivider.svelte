@@ -1,18 +1,16 @@
 <script lang="ts">
-  import {createEventDispatcher} from "svelte";
-  const dispatch = createEventDispatcher();
-
-  let el;
+  let { onDividerClick } = $props();
+  let el = $state();
 
   function handleClick() {
       const posFromBottom = window.innerHeight - el.getBoundingClientRect().bottom;
-      dispatch('click', {pos: posFromBottom});
+      onDividerClick(posFromBottom);
   }
 </script>
 
 <button
     class="more-divider"
-    on:click={handleClick}
+    onclick={handleClick}
     bind:this={el}
     aria-label="Road More..."
 >

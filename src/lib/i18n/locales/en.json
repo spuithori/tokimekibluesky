@@ -640,5 +640,13 @@
   "atmosphere_short_desc_linkat": "Links",
   "atmosphere_short_desc_whitewind": "Blog",
   "atmosphere_description": "Here is a list of Atmosphere services used by this user.\nAT Protocol allows you to create and publish various services in addition to Bluesky.\nYou can hide them from the Settings -> General.",
-  "disable_atmosphere": "Hide Atmosphere profile"
+  "disable_atmosphere": "Hide Atmosphere profile",
+  "settings_support": "Support TOKIMEKI",
+  "unfollow_confirm_title": "May I unfollow?",
+  "login_2fa_code": "2FA Code",
+  "login_2fa_code_send": "The two-factor authentication code has been sent to your e-mail address. Please confirm and enter the code.",
+  "tag_instant_mute": "Add to Keyword Mute",
+  "success_mute_tag": "{tag} added to keyword mute.",
+  "atmosphere_short_desc_pinksea": "Draw",
+  "disable_profile_popup": "Disable profile popup"
 }

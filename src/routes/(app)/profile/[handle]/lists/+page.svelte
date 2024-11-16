@@ -5,10 +5,14 @@
     import InfiniteLoading from 'svelte-infinite-loading';
     import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
     import {getDidByHandle} from "$lib/util";
-    let lists = [];
+    let lists = $state([]);
     let cursor: string | undefined = '';
 
-    export let data: LayoutData;
+  interface Props {
+    data: LayoutData;
+  }
+
+  let { data }: Props = $props();
 
     async function handleLoadMore({ detail: { loaded, complete } }) {
         try {
@@ -41,8 +45,12 @@
   </div>
 
   <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    <p slot="noResults" class="infinite-nomore"><span>{$_('no_more')}</span></p>
+    {#snippet noMore()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
+    {#snippet noResults()}
+        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
   </InfiniteLoading>
 </div>
 

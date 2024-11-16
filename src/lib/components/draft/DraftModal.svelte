@@ -1,49 +1,41 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
-    import { toast } from 'svelte-sonner';
-    import { _ } from 'svelte-i18n';
-    import { db } from '$lib/db';
-    import { agent } from "$lib/stores";
-    import {liveQuery} from "dexie";
-    const dispatch = createEventDispatcher();
-    import { format } from 'date-fns';
+  import { toast } from 'svelte-sonner';
+  import { _ } from 'svelte-i18n';
+  import { db } from '$lib/db';
+  import { agent } from "$lib/stores";
+  import { liveQuery } from "dexie";
+  import { format } from 'date-fns';
 
-    import type { Draft } from '$lib/db';
-    import Modal from "$lib/components/ui/Modal.svelte";
+  import type { Draft } from '$lib/db';
+  import Modal from "$lib/components/ui/Modal.svelte";
 
-    export let _agent = $agent;
+  let { _agent = $agent, onuse } = $props();
 
-    $: drafts = liveQuery(async () => {
-        const drafts = await db.drafts
-            .where('owner')
-            .equals(_agent.did())
-            .toArray();
+  let drafts = $derived(liveQuery(async () => {
+      const drafts = await db.drafts
+          .where('owner')
+          .equals(_agent.did())
+          .toArray();
+      return drafts;
+  }))
 
-        console.log(drafts)
+  async function use(draft: Draft) {
+      try {
+          const id = await db.drafts.delete(draft.id);
+          onuse(draft);
+      } catch (e) {
+          toast.error($_('error') + ': ' + e);
+      }
+  }
 
-        return drafts;
-    })
+  async function deleteDraft(draft: Draft) {
+      try {
+          const id = await db.drafts.delete(draft.id);
 
-    async function use(draft: Draft) {
-        try {
-            const id = await db.drafts.delete(draft.id);
-
-            dispatch('use', {
-                draft: draft,
-            });
-        } catch (e) {
-            toast.error($_('error') + ': ' + e);
-        }
-    }
-
-    async function deleteDraft(draft: Draft) {
-        try {
-            const id = await db.drafts.delete(draft.id);
-
-            toast.success($_('draft_delete_success'));
-        } catch (e) {
-            toast.error($_('error') + ': ' + e);
-        }
+          toast.success($_('draft_delete_success'));
+      } catch (e) {
+          toast.error($_('error') + ': ' + e);
+      }
     }
 </script>
 
@@ -80,9 +72,9 @@
             </div>
           {/if}
 
-          <button class="drafts__button" on:click={() => {use(draft)}} aria-label="Use this."></button>
+          <button class="drafts__button" onclick={() => {use(draft)}} aria-label="Use this."></button>
 
-          <button class="drafts__delete" on:click={() => {deleteDraft(draft)}} aria-label="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="18.75" viewBox="0 0 15 18.75">
+          <button class="drafts__delete" onclick={() => {deleteDraft(draft)}} aria-label="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="18.75" viewBox="0 0 15 18.75">
             <path id="trash" d="M67.75,1.875,69.625,0h3.75L75.25,1.875H79V3.75H64V1.875Zm-2.813,3.75H78.063L77.125,18.75H65.875ZM69.625,7.5v9.375h.938V7.5Zm2.813,0v9.375h.938V7.5Z" transform="translate(-64)" fill="#d81c2f"/>
           </svg></button>
         </div>

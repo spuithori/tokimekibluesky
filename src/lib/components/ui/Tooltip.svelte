@@ -1,33 +1,22 @@
 <script lang="ts">
-    import { offset, flip, shift } from 'svelte-floating-ui/dom';
-    import { createFloatingActions } from 'svelte-floating-ui';
-    import { fade } from 'svelte/transition';
+  import { fade } from 'svelte/transition';
+  interface Props {
+    ref?: import('svelte').Snippet;
+    content?: import('svelte').Snippet;
+  }
 
-    const [ floatingRef, floatingContent ] = createFloatingActions({
-        strategy: 'absolute',
-        placement: 'top',
-        middleware: [
-            offset(5),
-            flip({
-                padding: {
-                    top: 80
-                }
-            }),
-            shift(),
-        ]
-    });
-
-    let isShown: boolean = false;
+  let { ref, content }: Props = $props();
+  let isShown: boolean = $state(false);
 </script>
 
-<span class="tooltip-wrap" on:mouseenter={() => isShown = true} on:mouseleave={() => isShown = false} use:floatingRef>
+<span class="tooltip-wrap" onmouseenter={() => isShown = true} onmouseleave={() => isShown = false}>
   <span class="tooltip-ref">
-     <slot name="ref"></slot>
+     {@render ref?.()}
   </span>
 
   {#if isShown}
-    <span class="tooltip-content" style="position:absolute" use:floatingContent transition:fade="{{ duration: 150, delay: 150 }}">
-      <slot name="content"></slot>
+    <span class="tooltip-content" transition:fade="{{ duration: 150, delay: 100 }}">
+      {@render content?.()}
     </span>
   {/if}
 </span>
@@ -35,10 +24,15 @@
 <style lang="postcss">
     .tooltip-wrap {
         display: inline-block;
+        position: relative;
     }
 
   .tooltip-content {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
       background-color: rgba(0, 0, 0, .75);
+      top: calc(100% + 4px);
       color: #fff;
       width: max-content;
       padding: 0 10px;

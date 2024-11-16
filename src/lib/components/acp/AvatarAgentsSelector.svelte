@@ -1,54 +1,62 @@
 <script lang="ts">
-    import { offset, flip, shift } from 'svelte-floating-ui/dom';
-    import { createFloatingActions } from 'svelte-floating-ui';
-    import { fly } from 'svelte/transition';
-    import { liveQuery } from "dexie";
-    import {agent, agents} from "$lib/stores";
-    import {createEventDispatcher} from "svelte";
-    import { clickOutside } from '$lib/clickOutSide';
-    import {accountsDb} from '$lib/db';
-    import {getAccountIdByDid} from "$lib/util";
-    import AvatarAgentsSelectorModalItem from "$lib/components/acp/AvatarAgentsSelectorModalItem.svelte";
-    const dispatch = createEventDispatcher();
+  import { offset, flip, shift } from 'svelte-floating-ui/dom';
+  import { createFloatingActions } from 'svelte-floating-ui';
+  import { fly } from 'svelte/transition';
+  import {agent, agents} from "$lib/stores";
+  import { clickOutside } from '$lib/clickOutSide';
+  import {accountsDb} from '$lib/db';
+  import {getAccountIdByDid} from "$lib/util";
+  import AvatarAgentsSelectorModalItem from "$lib/components/acp/AvatarAgentsSelectorModalItem.svelte";
+  import type {Agent} from "$lib/agent";
 
-    export let _agent = $agent;
-    export let isDisabled = false;
-    export let style = 'default';
-    let isOpen = false;
+  interface Props {
+    _agent?: any;
+    isDisabled?: boolean;
+    style?: string;
+  }
 
-    const [ floatingRef, floatingContent ] = createFloatingActions({
-        strategy: 'absolute',
-        placement: 'bottom-start',
-        middleware: [
-            offset(10),
-            flip(),
-            shift(),
-        ]
-    });
+  let { _agent = $bindable($agent), isDisabled = false, style = 'default', onselect }: Props = $props();
+  let isOpen = $state(false);
+  let avatar = $state();
 
-    $: avatar = liveQuery(async () => {
-        const account = await accountsDb.accounts.get(getAccountIdByDid($agents, _agent.did()));
-        return account.avatar;
-    })
+  const [ floatingRef, floatingContent ] = createFloatingActions({
+      strategy: 'absolute',
+      placement: 'bottom-start',
+      middleware: [
+          offset(10),
+          flip(),
+          shift(),
+      ]
+  });
 
-    async function selectAgent(key, agent) {
-        _agent = agent;
+  $effect.pre(() => {
+      selectAgent(_agent);
+  })
 
-        dispatch('select', {
-            id: key,
-            agent: _agent,
-        });
+  function selectAgent(agent: Agent) {
+      onselect(agent);
 
-        isOpen = false;
-    }
+      accountsDb.accounts.get(getAccountIdByDid($agents, agent.did()))
+          .then(res => {
+              avatar = res.avatar;
+
+              if (!avatar) {
+                  agent.getAvatar(agent.did())
+                      .then(_res => {
+                          avatar = _res;
+                      });
+              }
+          });
+      isOpen = false;
+  }
 </script>
 
 {#if _agent}
   <div class="avatar-agents-selector-wrap" class:agents-selector-wrap--open={isOpen} aria-disabled={isDisabled}>
     <div class="avatar-agents-selector-current" use:floatingRef>
-      <button class="avatar-agents-selector-avatar" on:click={() => {isOpen = !isOpen}}>
-        {#if ($avatar)}
-          <img src="{$avatar}" alt="">
+      <button class="avatar-agents-selector-avatar" onclick={() => {isOpen = !isOpen}}>
+        {#if (avatar)}
+          <img src="{avatar}" alt="">
         {/if}
       </button>
     </div>
@@ -57,17 +65,17 @@
       <div class="avatar-agents-selector-modal"
            tabindex="-1"
            use:clickOutside={{ignoreElement: '.avatar-agents-selector-avatar'}}
-           on:outclick={() => (isOpen = false)}
+           onoutclick={() => (isOpen = false)}
            transition:fly="{{ y: 30, duration: 250 }}"
            use:floatingContent
       >
         {#each $agents as [key, agent]}
           {#if (agent.agent?.session)}
             <AvatarAgentsSelectorModalItem
-              agent={agent}
-              key={key}
+              {agent}
+              {key}
               isCurrent={agent.agent.session.handle === _agent.agent.session.handle}
-              on:select={() => {selectAgent(key, agent)}}
+              onselect={() => {_agent = agent}}
             ></AvatarAgentsSelectorModalItem>
           {/if}
         {/each}
@@ -86,6 +94,7 @@
       overflow: hidden;
       border-radius: 50%;
       background-color: var(--primary-color);
+      width: 100%;
 
       img {
           width: 100%;

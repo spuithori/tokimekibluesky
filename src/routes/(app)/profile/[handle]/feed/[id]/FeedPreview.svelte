@@ -1,20 +1,26 @@
 <script lang="ts">
-  import {agent, junkColumns} from "$lib/stores";
   import {onMount} from "svelte";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import DeckRow from "../../../../DeckRow.svelte";
   import {getDidByHandle} from "$lib/util";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
-  export let id;
-  export let handle;
-  export let title = '';
+  interface Props {
+    id: any;
+    handle: any;
+    title?: string;
+  }
 
-  let feed;
+  let { id, handle = $bindable(), title = $bindable(''), _agent }: Props = $props();
+
+  const columnState = getColumnState(true);
+  let feed = $state();
+  let columnId = $derived(`feed_${id}_${_agent.did()}`);
   let savedFeeds = [];
 
   async function getSavedFeeds () {
-      const preferenceRes = await $agent.agent.api.app.bsky.actor.getPreferences()
+      const preferenceRes = await _agent.agent.api.app.bsky.actor.getPreferences()
       const preference = preferenceRes.data.preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')
       savedFeeds = preference[0]?.saved || [];
   }
@@ -26,11 +32,11 @@
 
   onMount(async () => {
       await getSavedFeeds();
-      handle = await getDidByHandle(handle, $agent);
+      handle = await getDidByHandle(handle, _agent);
 
-      if ($junkColumns.findIndex(_column => _column.id === 'feed_' + id) === -1) {
-          junkColumns.set([...$junkColumns, {
-              id: 'feed_' + id,
+      if (!columnState.hasColumn(columnId)) {
+          columnState.add({
+              id: columnId,
               algorithm: {
                   algorithm: 'at://' + handle + '/app.bsky.feed.generator/' + id,
                   type: 'custom',
@@ -38,16 +44,16 @@
               },
               style: 'default',
               settings: defaultDeckSettings,
-              did: $agent.did(),
-              handle: $agent.handle(),
+              did: _agent.did(),
+              handle: _agent.handle(),
               data: {
                   feed: [],
                   cursor: '',
               }
-          }]);
+          });
       }
 
-      const res = await $agent.agent.api.app.bsky.feed.getFeedGenerator({feed: 'at://' + handle + '/app.bsky.feed.generator/' + id});
+      const res = await _agent.agent.api.app.bsky.feed.getFeedGenerator({feed: 'at://' + handle + '/app.bsky.feed.generator/' + id});
 
       if (res.data.isOnline) {
           feed = res.data.view;
@@ -58,12 +64,12 @@
 
 <div class="page-feeds-item">
   {#if (feed)}
-    <FeedsItem feed={feed} subscribed={isSaved(feed)} layout={'page'} on:close></FeedsItem>
+    <FeedsItem feed={feed} subscribed={isSaved(feed)} layout={'page'} {_agent} on:close></FeedsItem>
   {/if}
 </div>
 
-{#if ($junkColumns.findIndex(_column => _column.id === 'feed_' + id) !== -1)}
-  <DeckRow column={$junkColumns[$junkColumns.findIndex(_column => _column.id === 'feed_' + id)]} isJunk={true} name={title}></DeckRow>
+{#if (columnState.hasColumn(columnId))}
+  <DeckRow index={columnState.getColumnIndex(columnId)} isJunk={true} name={title} {_agent}></DeckRow>
 {/if}
 
 <style lang="postcss">

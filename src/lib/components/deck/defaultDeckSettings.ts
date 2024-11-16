@@ -1,4 +1,4 @@
-type defaultDeckSettings = {
+export type defaultDeckSettings = {
     timeline?: {
         hideRepost: 'all' | 'many' | 'soso' | 'less' | 'none' | null,
         hideReply: 'all' | 'following' | 'me' | null,
@@ -20,7 +20,7 @@ type defaultDeckSettings = {
         width: number,
         height: number,
     },
-    opacity: number,
+    opacity?: number,
 }
 
 export const defaultDeckSettings: defaultDeckSettings = {

@@ -4,13 +4,12 @@
   import {_} from "svelte-i18n";
   import AtmosphereAboutModal from "$lib/components/profile/AtmosphereAboutModal.svelte";
 
-  export let did;
-  export let handle;
-  export let _agent;
+  let { did, handle, _agent } = $props();
 
-  let hasLinkat = false;
-  let hasWhiteWind = false;
-  let isOpen = false;
+  let hasLinkat = $state(false);
+  let hasWhiteWind = $state(false);
+  let hasPinkSea = $state(false);
+  let isOpen = $state(false);
 
   function handleClose() {
       isOpen = false;
@@ -44,8 +43,22 @@
       }
   }
 
+  async function getPinkSea() {
+      try {
+          const res = await _agent.api.com.atproto.repo.listRecords({
+              repo: did,
+              collection: 'com.shinolabs.pinksea.oekaki',
+              limit: 1,
+          });
+          const records = res.data.records;
+          return records.length > 0;
+      } catch (e) {
+          return false;
+      }
+  }
+
   onMount(async () => {
-      [hasLinkat, hasWhiteWind] = await Promise.all([getLinkat(), getWhiteWind()]);
+      [hasLinkat, hasWhiteWind, hasPinkSea] = await Promise.all([getLinkat(), getWhiteWind(), getPinkSea()]);
   })
 </script>
 
@@ -74,9 +87,20 @@
       </span>
       </div>
     {/if}
+
+    {#if (hasPinkSea)}
+      <div class="atmos-item atmos-item--pinksea">
+        <p class="atmos-item__title"><strong>PinkSea</strong> - {$_('atmosphere_short_desc_pinksea')}</p>
+        <a class="atmos-item__link" href="https://pinksea.art/{did}" target="_blank" rel="noreferrer noopener nofollow">pinksea.art</a>
+
+        <span class="atmos-item__ext">
+          <SquareArrowOutUpRight size="16" color="var(--text-color-3)"></SquareArrowOutUpRight>
+      </span>
+      </div>
+    {/if}
   </div>
 
-  <button class="atmos-modal-toggle" aria-label="About" on:click={() => {isOpen = !isOpen}}>
+  <button class="atmos-modal-toggle" aria-label="About" onclick={() => {isOpen = !isOpen}}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
   </button>
 </div>

@@ -6,31 +6,38 @@
   import MediaTimelineItem from "./MediaTimelineItem.svelte";
   import {getPostRealtime} from "$lib/realtime";
   import {getDbFollows} from "$lib/getActorsList";
-  import {assignCursorFromLatest} from "$lib/components/column/releaseTimeline";
   import {playSound} from "$lib/sounds";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
   import {isReasonRepost, isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import {toast} from "svelte-sonner";
   import {AppBskyEmbedImages} from "@atproto/api";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
-  export let column;
-  export let index;
-  export let _agent = $agent;
-  export let hideReply;
-  export let hideRepost;
+  let {
+    index,
+    _agent = $agent,
+    isJunk,
+    unique,
+    hideReply,
+    hideRepost,
+  } = $props();
 
+  const columnState = getColumnState(isJunk);
+  const column = columnState.getColumn(index);
   let isActorsListFinished = false;
   let actors = [];
   let realtimeCounter = 0;
-  let isDividerLoading = false;
-  let dividerFillerHeight = 0;
+  let isDividerLoading = $state(false);
+  let dividerFillerHeight = $state(0);
   let retryCount = 0;
+
+  $effect(() => {
+      insertRealtimeData($realtime);
+  })
 
   if (column.settings?.autoRefresh === -1) {
       getActors();
   }
-
-  $: insertRealtimeData($realtime);
 
   function insertRealtimeData(realtime) {
       if (!isActorsListFinished) {
@@ -43,17 +50,37 @@
                   return false;
               }
 
-              column.data.feed = [value, ...column.data.feed];
+              column.data.feed.unshift(value);
               realtimeCounter = realtimeCounter + 1;
 
               if (realtimeCounter === 20) {
                   realtimeCounter = 0;
-                  assignCursorFromLatest(_agent, column);
+
+                  _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm})
+                      .then((res) => {
+                          const refPost = res.data.feed.slice(-1)[0];
+                          const cursor = res.data.cursor;
+                          let i = 0;
+
+                          while (i < 20) {
+                              column.data.feed[i].memoryCursor = cursor;
+
+                              if (isDuplicatePost(column.data.feed[i], refPost)) {
+                                  break;
+                              }
+
+                              i++;
+                          }
+                      });
               }
 
-            if (column.settings?.playSound) {
-              playSound(value?.post.indexedAt, column.lastRefresh, column.settings.playSound)
-            }
+              if (column.settings?.playSound) {
+                  playSound(value?.post.indexedAt, column.lastRefresh, column.settings.playSound)
+              }
+
+              if (column.data.feed.length > 40) {
+                  column.data.feed = column.data.feed.slice(0, 40);
+              }
           });
   }
 
@@ -69,13 +96,12 @@
       isActorsListFinished = true;
   }
 
-  function handleDividerClick(index, cursor, e) {
+  function handleDividerClick(index, cursor, pos) {
       column.data.cursor = cursor;
       column.data.feed[index].isDivider = false;
       isDividerLoading = true;
-      dividerFillerHeight = e.detail.pos;
+      dividerFillerHeight = pos;
       column.data.feed.splice(index + 1);
-      column.data.feed = column.data.feed;
   }
 
   function isDuplicatePost(oldFeed, newFeed) {
@@ -109,7 +135,7 @@
                   return duplicate ? { ...feed, isRootHide: true } : feed;
               });
           } else {
-              column.data.feed = [...column.data.feed, ...feed];
+              column.data.feed.push(...feed);
           }
 
           isDividerLoading = false;
@@ -150,9 +176,9 @@
     {#each column.data.feed as data, index (data)}
       {#if (data?.post?.author?.did)}
         <TimelineItem
-                data={ data }
-                index={index}
-                column={column}
+                {data}
+                {index}
+                {column}
                 {_agent}
                 isProfile={column.algorithm.type === 'author'}
                 isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
@@ -163,7 +189,7 @@
       {/if}
 
       {#if data.isDivider}
-        <MoreDivider on:click={(e) => {handleDividerClick(index, data.memoryCursor, e)}}></MoreDivider>
+        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}}></MoreDivider>
       {/if}
     {/each}
   {:else}
@@ -176,10 +202,16 @@
     </div>
   {/if}
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    <p slot="noMore" class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    <p slot="noResults" class="infinite-nomore"><span>{$_('no_more')}</span></p>
-  </InfiniteLoading>
+  {#key unique}
+    <InfiniteLoading on:infinite={handleLoadMore}>
+      {#snippet noMore()}
+          <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+        {/snippet}
+      {#snippet noResults()}
+          <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
+        {/snippet}
+    </InfiniteLoading>
+  {/key}
 
   {#if (isDividerLoading)}
     <div class="more-divider-filler" style="--more-divider-filler-height: {dividerFillerHeight}px"></div>

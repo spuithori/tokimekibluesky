@@ -3,8 +3,9 @@
   import { offset, flip } from "svelte-floating-ui/dom";
   import { createFloatingActions } from 'svelte-floating-ui'
 
-  export let props;
-  let selectedIndex = 0;
+  let { props } = $props();
+  let selectedIndex = $state(0);
+  const _props = $state(props);
 
   const [floatingRef, floatingContent] = createFloatingActions({
       strategy: 'fixed',
@@ -19,12 +20,12 @@
           return {
               x: 0,
               y: 0,
-              top: props.clientRect()?.top,
-              left: props.clientRect()?.left,
+              top: _props.clientRect()?.top,
+              left: _props.clientRect()?.left,
               bottom: 0,
               right: 0,
-              width: props.clientRect()?.width,
-              height: props.clientRect()?.height,
+              width: _props.clientRect()?.width,
+              height: _props.clientRect()?.height,
           }
       }}
   floatingRef(virtualElement);
@@ -69,7 +70,7 @@
 
 <div class="mentions-list" use:floatingContent>
   {#each props.items as item, index}
-    <button class="mentions-list__item" class:mentions-list__item--selected={index === selectedIndex} on:click={() => {selectItem(index)}}>
+    <button class="mentions-list__item" class:mentions-list__item--selected={index === selectedIndex} onclick={() => {selectItem(index)}}>
       <span class="mentions-list__avatar">
         {#if (item.avatar)}
           <img src="{item.avatar}" alt="">

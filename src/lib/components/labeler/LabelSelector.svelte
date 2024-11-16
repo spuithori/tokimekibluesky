@@ -1,9 +1,13 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
-  export let value = 'warn';
-  export let name;
 
-  export let contentLabelsSelections = [
+  interface Props {
+    value?: string;
+    name: any;
+    contentLabelsSelections?: any;
+  }
+
+  let { value = $bindable('warn'), name, contentLabelsSelections = [
       {
           value: 'hide',
           text: $_('hide'),
@@ -16,7 +20,7 @@
           value: 'ignore',
           text: $_('show'),
       }
-  ];
+  ] }: Props = $props();
 </script>
 
 <div class="label-selector">

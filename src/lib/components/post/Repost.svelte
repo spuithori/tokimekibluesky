@@ -1,135 +1,93 @@
 <script lang="ts">
-    import {agent, pulseRepost, settings} from '$lib/stores';
-    import { toast } from 'svelte-sonner';
-    import { _ } from 'svelte-i18n';
-    import { createEventDispatcher } from 'svelte';
-    import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
+  import { agent, settings } from '$lib/stores';
+  import { toast } from 'svelte-sonner';
+  import { _ } from 'svelte-i18n';
+  import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
+  import { pulse, type pulseReaction } from "$lib/components/post/reactionPulse.svelte";
 
-    const dispatch = createEventDispatcher();
+  interface Props {
+    _agent?: any;
+    post: any;
+    showCounts?: boolean;
+  }
 
-    export let _agent = $agent;
-    export let cid;
-    export let uri;
-    export let count;
-    export let repostViewer;
-    export let showCounts = true;
-    let isDialogRender = false;
-    let timeoutId;
-    let dialog;
+  let {
+    _agent = $agent,
+    post,
+    showCounts = true,
+  }: Props = $props();
 
-    let isProcessed: boolean = false;
-    let isTransition: boolean = false;
-    $: handleLikeChange($pulseRepost);
+  let isDialogRender = $state(false);
+  let isProcessed: boolean = $state(false);
+  let isTransition: boolean = $state(false);
+  let count = $state(post.repostCount);
+  let viewer = $state(post.viewer?.repost);
 
-    $: {
-        if (dialog) {
-            dialog.open();
-        }
-    }
+  $effect(() => {
+      handlePulse(pulse.repost);
+  })
 
-    if ($settings.general?.repostConfirmSkip === undefined) {
-        $settings.general.repostConfirmSkip = false;
-    }
+  function handlePulse(pulse: pulseReaction) {
+      if (pulse?.uri !== post.uri) {
+          return false;
+      }
 
-    function handleLikeChange(data) {
-        if (!data) {
-            return false;
-        }
+      const isSameDid = pulse.did === _agent.did();
 
-        const isSameDid = data.did === _agent.did();
+      count = pulse.count;
+      viewer = isSameDid ? pulse.viewer : viewer;
 
-        if (uri === data.uri) {
-            count = data.count;
-            repostViewer = isSameDid ? data.viewer : repostViewer;
+      // TODO: progress.
+      post.repostCount = count;
+      post.viewer.repost = viewer;
+  }
 
-            dispatch('repost', {
-                count: data.count,
-                viewer: repostViewer,
-            });
-        }
-    }
+  if ($settings.general?.repostConfirmSkip === undefined) {
+      $settings.general.repostConfirmSkip = false;
+  }
 
-    export async function repost(cid: string, uri: string, repostViewer) {
-        isProcessed = true;
-        isTransition = true;
+  export async function repost(cid: string, uri: string, viewer) {
+      isProcessed = true;
+      isTransition = true;
 
-        if (!repostViewer) {
-            count = count + 1;
-        } else {
-            count = count - 1;
-        }
+      try {
+          const repost = await _agent.setRepost(cid, uri, viewer || '');
+          const repostViewer = repost?.uri || undefined;
 
-        pulseRepost.set({
-            uri: uri,
-            count: count,
-            viewer: repostViewer,
-            did: _agent.did() as string
-        })
+          pulse.repost = {
+              viewer: repostViewer,
+              did: _agent.did(),
+              uri: uri,
+              count: repostViewer ? count + 1 : count - 1,
+              unique: Symbol(),
+          }
 
-        try {
-            const repost = await _agent.setRepost(cid, uri, repostViewer || '');
+          toast.success($_('success_to_repost_or_delete_repost'));
+      } catch (e) {
+          toast.error($_('failed_to_repost'));
+          console.error(e);
+      }
 
-            try {
-                repostViewer = repost?.uri || undefined;
-                isProcessed = false;
+      isProcessed = false;
+  }
 
-                pulseRepost.set({
-                    uri: uri,
-                    count: count,
-                    viewer: repostViewer,
-                    did: _agent.did() as string
-                })
-
-                toast.success($_('success_to_repost_or_delete_repost'));
-
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                }
-                timeoutId = setTimeout(() => {
-                    pulseRepost.set(undefined);
-                }, 1000)
-            } catch(e) {
-                toast.error($_('failed_to_repost_after_reload'));
-                console.log(e)
-                isProcessed = false;
-            }
-        } catch (e) {
-            toast.error($_('failed_to_repost'));
-            console.error(e);
-            isProcessed = false;
-
-            if (!repostViewer) {
-                count = count - 1;
-            } else {
-                count = count + 1;
-            }
-
-            pulseRepost.set({
-                uri: uri,
-                count: count,
-                viewer: repostViewer,
-                did: _agent.did() as string
-            })
-        }
-    }
-
-    function repostStep() {
-        if ($settings.general.repostConfirmSkip) {
-            repost(cid, uri, repostViewer);
-        } else {
-            isDialogRender = true;
-        }
-    }
+  function repostStep() {
+      if ($settings.general.repostConfirmSkip) {
+          repost(post.cid, post.uri, viewer);
+      } else {
+          isDialogRender = true;
+      }
+  }
 </script>
 
 <button
         class="timeline-reaction__item timeline-reaction__item--repost"
+        class:timeline-reaction__item--active={viewer}
         class:timeline-reaction__item--transition={isTransition}
-        class:timeline-reaction__item--active={repostViewer}
         disabled="{isProcessed}"
-        on:click="{repostStep}">
+        onclick={repostStep}>
   <span class="timeline-reaction__icon" aria-label="リポスト">
-     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--timeline-reaction-repost-icon-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2" on:animationend={() => {isTransition = false}}><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--timeline-reaction-repost-icon-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2" onanimationend={() => {isTransition = false}}><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
   </span>
 
   {#if showCounts && count}
@@ -139,8 +97,7 @@
 
 {#if (isDialogRender)}
   <ConfirmModal
-      bind:this={dialog}
-      on:ok={() => {repost(cid, uri, repostViewer)}}
+      on:ok={() => {repost(post.cid, post.uri, viewer)}}
       on:cancel={() => {isDialogRender = false}}
       confirmationName="repostConfirmSkip"
       yesText="{$_('repost')}"
@@ -180,7 +137,7 @@
         &--transition {
             svg {
                 stroke: var(--timeline-reaction-reposted-icon-color);
-                animation: cubic-bezier(0, 0, 0.09, 1) .5s s-XogTlpWZ1Mmo-repost-in forwards;
+                animation: cubic-bezier(0, 0, 0.09, 1) .5s repost-in forwards;
             }
         }
 

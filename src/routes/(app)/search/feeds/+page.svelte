@@ -1,17 +1,18 @@
 <script>
     import { page } from '$app/stores';
-    import SearchForm from '../../SearchForm.svelte';
     import { agent } from '$lib/stores';
-    let cursor = '';
     import InfiniteLoading from "svelte-infinite-loading";
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
-    import {onMount} from "svelte";
-    let feeds = [];
+    import {onMount, tick} from "svelte";
+    let cursor = '';
+    let feeds = $state([]);
     let savedFeeds = [];
-
     let _agent = $agent;
+    let tempTimeout = $state(false);
 
-    $: getSearchFeeds($page.url.searchParams.get('q'));
+    $effect(() => {
+        getSearchFeeds($page.url.searchParams.get('q'));
+    })
 
     async function getSavedFeeds () {
         const preferenceRes = await _agent.agent.api.app.bsky.actor.getPreferences()
@@ -47,19 +48,33 @@
         }
     }
 
+    tick().then(() => {
+        tempTimeout = true;
+    })
+
     onMount(async () => {
         await getSavedFeeds();
     })
 </script>
 
-{#key $page.url.searchParams.get('q')}
-  <div class="user-timeline">
-    {#each feeds as feed (feed)}
-      <FeedsItem feed={feed} subscribed={isSaved(feed)} on:close></FeedsItem>
-    {/each}
+<div class="divider"></div>
 
+<div class="user-timeline">
+  {#each feeds as feed (feed)}
+    <FeedsItem feed={feed} subscribed={isSaved(feed)} on:close></FeedsItem>
+  {/each}
+
+  {#if tempTimeout}
     <InfiniteLoading on:infinite={handleLoadMore}>
-      <p slot="noMore" class="infinite-nomore">もうないよ</p>
+      {#snippet noMore()}
+        <p class="infinite-nomore">もうないよ</p>
+      {/snippet}
     </InfiniteLoading>
-  </div>
-{/key}
+  {/if}
+</div>
+
+<style lang="postcss">
+  .divider {
+      padding-top: 16px;
+  }
+</style>

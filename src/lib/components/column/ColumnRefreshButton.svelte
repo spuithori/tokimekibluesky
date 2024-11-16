@@ -1,6 +1,6 @@
 <script lang="ts">
-    import {agent, columns, junkColumns, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
-    import {createEventDispatcher, onDestroy} from "svelte";
+    import {agent, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
+    import {createEventDispatcher, onDestroy, tick} from "svelte";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import {playSound} from "$lib/sounds";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -9,17 +9,29 @@
 
     const dispatch = createEventDispatcher();
 
-    export let column;
-    export let index;
-    export let _agent = $agent;
-    export let unique = Symbol();
-    export let isJunk = false;
-    const host = _agent.agent.service.host === 'bsky.social' ? 'TOKIMEKI Stream' : _agent.agent.service.host;
+    interface Props {
+        column: any;
+        index: any;
+        _agent?: any;
+        unique?: any;
+        isJunk?: boolean;
+        isRefreshing?: boolean | string;
+    }
 
-    let __columns = isJunk ? junkColumns : columns;
-    export let isRefreshing = false;
+    let {
+        column = $bindable(),
+        index,
+        _agent = $agent,
+        unique = $bindable(Symbol()),
+        isJunk = false,
+        isRefreshing = $bindable(false)
+    }: Props = $props();
 
-    $: releasePosts(column.data.feed);
+    const host = _agent.agent.service.host === 'bsky.social' ? 'Jetstream (us-west2)' : _agent.agent.service.host;
+
+    $effect(() => {
+        releasePosts(column.data.feed);
+    })
 
     function isDuplicatePost(oldFeed, newFeed) {
         return newFeed.reason
@@ -44,7 +56,7 @@
             return false;
         }
 
-        isRefreshing = true;
+        isRefreshing = isAutoRefresh ? 'auto' : true;
         const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
         const elInitialPosition = el.scrollTop;
 
@@ -57,37 +69,37 @@
                 return false;
             }
 
-            await __columns.update(_columns => {
-                const newFeed = res.data.feed.filter(feed => {
-                    return !column.data.feed.some(item => isDuplicatePost(item, feed));
-                }).map(feed => ({...feed, memoryCursor: res.data.cursor}));
+            const newFeed = res.data.feed.filter(feed => {
+                return !column.data.feed.some(item => isDuplicatePost(item, feed));
+            }).map(feed => ({...feed, memoryCursor: res.data.cursor}));
 
-                if (newFeed.length === 20 && column.data.feed.length !== 0) {
-                    const dividerPost = newFeed.slice(-1)[0];
-                    dividerPost.isDivider = true;
+            if (newFeed.length === 20 && column.data.feed.length !== 0) {
+                const dividerPost = newFeed.slice(-1)[0];
+                dividerPost.isDivider = true;
+            }
+
+            column.data.feed = column.data.feed.map(feed => {
+                if (res.data.feed.some(item => isDuplicatePost(feed, item))) {
+                    feed.memoryCursor = res.data.cursor;
                 }
-
-                column.data.feed.forEach(feed => {
-                    if (res.data.feed.some(item => isDuplicatePost(feed, item))) {
-                        feed.memoryCursor = res.data.cursor;
-                    }
-                });
-
-                if (column.data.feed.length === 0) {
-                    _columns[_columns.findIndex(_column => _column.id === column.id)].data.cursor = res.data.cursor;
-                }
-
-                _columns[_columns.findIndex(_column => _column.id === column.id)].data.feed = [...newFeed, ...column.data.feed];
-                return _columns;
+                return feed;
             });
+
+            if (column.data.feed.length === 0) {
+                column.data.cursor = res.data.cursor;
+            }
+
+            column.data.feed.unshift(...newFeed);
 
             if (elInitialPosition === 0 && column.settings?.refreshToTop !== true && topEl) {
                 if (column.style !== 'media') {
                     const offset = column.scrollElement.querySelector('.timeline').getBoundingClientRect().top + 16;
 
                     if (isJunk && $settings.design?.layout === 'decks') {
+                        await tick();
                         el.closest('.modal-page-content').scrollTo(0, topEl.getBoundingClientRect().top - offset)
                     } else {
+                        await tick();
                         el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
                     }
                 }
@@ -103,9 +115,21 @@
                 limit: 25,
                 cursor: '',
             });
+
+            if (!Array.isArray(column.filter)) {
+                column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+            }
+
+            if (!column.filter.length) {
+                column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
+            }
+
+            const _notifications = res.data.notifications.filter(item => {
+                return column.filter.includes(item.reason);
+            });
             let resNotifications = column.settings?.onlyShowUnread
-                ? res.data.notifications.filter(notification => !notification.isRead)
-                : res.data.notifications;
+                ? _notifications.filter(notification => !notification.isRead)
+                : _notifications;
 
             if (!isAutoRefresh && column.settings?.onlyShowUnread) {
                 resNotifications = resNotifications.filter(notification => !column.data.feed.some(_notification => notification.uri === _notification.uri));
@@ -115,13 +139,9 @@
 
             const { notifications: notificationGroup, feedPool: newFeedPool } = await getNotifications(notifications, true, _agent, column.data.feedPool || []);
 
-            await __columns.update(_columns => {
-                _columns[index].data.feed = notifications;
-                _columns[index].data.notificationGroup = notificationGroup;
-                _columns[index].data.feedPool = newFeedPool;
-
-                return _columns;
-            });
+            column.data.feed = notifications;
+            column.data.notificationGroup = notificationGroup;
+            column.data.feedPool = newFeedPool;
 
             if (column.settings?.onlyShowUnread) {
                 unique = Symbol();
@@ -132,8 +152,8 @@
             }
 
             if (!isAutoRefresh) {
-                $columns[index].unreadCount !== 0
-                    ? $columns[index].unreadCount = 0
+                column.unreadCount !== 0
+                    ? column.unreadCount = 0
                     : await _agent.getNotificationCount();
 
                 await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
@@ -150,20 +170,18 @@
                 return false;
             }
 
-            await __columns.update(_columns => {
-                const newFeed = res.data.messages.filter(feed => {
-                    return !column.data.feed.some(item => isDuplicateMessage(item, feed));
-                }).reverse();
+            const newFeed = res.data.messages.filter(feed => {
+                return !column.data.feed.some(item => isDuplicateMessage(item, feed));
+            }).reverse();
 
-                if (column.data.feed.length === 0) {
-                    _columns[_columns.findIndex(_column => _column.id === column.id)].data.cursor = res.data.cursor;
-                }
+            if (column.data.feed.length === 0) {
+                column.data.cursor = res.data.cursor;
+            }
 
-                _columns[_columns.findIndex(_column => _column.id === column.id)].data.feed = [...column.data.feed, ...newFeed];
-                return _columns;
-            });
+            column.data.feed = [...column.data.feed, ...newFeed];
 
             const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+            await tick();
             scrollEl.scrollTo({
                 top: scrollEl.scrollHeight,
                 behavior: 'smooth',
@@ -175,16 +193,16 @@
                 }
             });
         } else if (column.algorithm.type === 'thread') {
+            if (isJunk) {
+                isRefreshing = false;
+                return false;
+            }
+
             const uri = column.algorithm.algorithm;
 
             try {
                 const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-
-                await __columns.update(_columns => {
-                    _columns[index].data.feed = [ raw.data.thread ];
-                    return _columns;
-                });
-
+                column.data.feed = [ raw.data.thread ];
             } catch (e) {
                 column.data.feed = 'NotFound';
             }
@@ -208,7 +226,7 @@
             console.error(e);
         }
 
-        $columns[index].lastRefresh = new Date().toISOString();
+        column.lastRefresh = new Date().toISOString();
         isRefreshing = false;
     }
 
@@ -220,7 +238,7 @@
         }
 
         if (isJunk && !isRefreshing) {
-            return  false;
+            return false;
         }
 
         if (scrollTop === 0 && feed.length > 40) {
@@ -231,7 +249,6 @@
 
                 if (lastCursorIndex !== -1) {
                     column.data.feed.splice(lastCursorIndex + 1);
-                    column.data.feed = column.data.feed;
                     column.data.cursor = borderItem.memoryCursor;
                 }
             }
@@ -265,13 +282,13 @@
     })
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 {#if column.settings?.autoRefresh === -1}
   <button
           class="refresh-button refresh-button--realtime refresh-button--decks"
           aria-label="Realtime Connecting"
-          on:click={() => {$isRealtimeListenersModalOpen = true}}
+          onclick={() => {$isRealtimeListenersModalOpen = true}}
   >
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={$realtimeStatuses.includes(host) ? 'var(--primary-color)' : 'var(--border-color-1)'} stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-radio"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>
   </button>
@@ -282,7 +299,7 @@
             class:refresh-button--decks={$settings.design.layout === 'decks' || isJunk}
             class:is-refreshing={isRefreshing}
             aria-label="Refresh"
-            on:click={() => {refresh(false)}}
+            onclick={() => {refresh(false)}}
             disabled={isRefreshing}
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
@@ -290,7 +307,7 @@
       </svg>
     </button>
   {:else}
-    {#if (isRefreshing && column.algorithm?.type !== 'chat')}
+    {#if (isRefreshing === true && column.algorithm?.type !== 'chat')}
       <div class="refresher" transition:fly={{ duration: 300, y: -100}}>
         <LoadingSpinner padding={0} size={24}></LoadingSpinner>
       </div>

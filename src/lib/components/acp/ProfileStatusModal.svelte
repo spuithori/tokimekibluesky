@@ -1,13 +1,23 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
-  import { fade, fly } from 'svelte/transition';
+  import { fly } from 'svelte/transition';
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
   import {accountsDb} from "$lib/db";
   import {agent, agents, profileStatus} from "$lib/stores";
   import {modifyAgents} from "$lib/modifyAgents";
 
-  export let status = 0;
-  export let profile;
+  interface Props {
+    status?: number;
+    profile: any;
+  }
+
+  let { status = 0 }: Props = $props();
+  let profile = $state();
+
+  accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')))
+    .then(value => {
+        profile = value;
+    });
 
   async function handleSuccess(event) {
       try {
@@ -43,7 +53,7 @@
     </div>
 
     {#if (status === 0)}
-      <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
+      <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
     {/if}
   </div>
 {/if}

@@ -4,7 +4,7 @@
     import {pauseColumn} from "$lib/stores";
     const dispatch = createEventDispatcher();
 
-    export let name;
+  let { name = $bindable() } = $props();
 
     async function close() {
         dispatch('nameChange', {
@@ -29,11 +29,11 @@
     </div>
 
     <div class="modal-close">
-      <button class="button button--sm" on:click={close}>OK</button>
+      <button class="button button--sm" onclick={close}>OK</button>
     </div>
   </div>
 
-  <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
+  <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
 </div>
 
 <style lang="postcss">

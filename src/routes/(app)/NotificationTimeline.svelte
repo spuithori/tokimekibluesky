@@ -1,17 +1,18 @@
 <script lang="ts">
     import Notification from "./Notification.svelte";
-    import {agent, columns} from '$lib/stores';
+    import {agent} from '$lib/stores';
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    export let column;
-    export let index;
-    export let _agent = $agent;
+    let { index, isJunk, _agent = $agent, unique } = $props();
+    const columnState = getColumnState(isJunk);
+    const column = columnState.getColumn(index);
 
-    function handleCountUpdate(event) {
-        $columns[index].unreadCount = event.detail.count;
+    function handleCountUpdate(count: number) {
+        column.unreadCount = count;
     }
 
-    function handleFilterChange(event) {
-        $columns[index].filter = event.detail.filter;
+    function handleFilterChange(filter: any) {
+        column.filter = filter;
     }
 </script>
 
@@ -21,8 +22,8 @@
           {_agent}
           isOnlyShowUnread={column.settings?.onlyShowUnread}
           sound={column.settings?.playSound}
-          on:update={handleCountUpdate}
-          on:change={handleFilterChange}
+          onupdate={handleCountUpdate}
+          onchange={handleFilterChange}
           bind:notifications={column.data.feed}
           bind:cursor={column.data.cursor}
           bind:feedPool={column.data.feedPool}
@@ -30,5 +31,6 @@
           bind:lastRefresh={column.lastRefresh}
           filter={column.filter || ['like', 'repost', 'reply', 'mention', 'quote', 'follow']}
           id={column.id}
+          {unique}
   ></Notification>
 </div>

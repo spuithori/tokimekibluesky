@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
     import {_} from 'svelte-i18n';
     import { db } from '$lib/db';
     import Dexie from "dexie";
@@ -6,18 +8,19 @@
     import { format } from "date-fns";
     import { toast } from "svelte-sonner";
     import {postMutes} from "$lib/stores";
+  import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
 
-    let bookmarkExportButtonDisabled = false;
-    let bookmarkImportButtonDisabled = true;
-    let files;
+    let bookmarkExportButtonDisabled = $state(false);
+    let bookmarkImportButtonDisabled = $state(true);
+    let files = $state();
 
-    $: {
+    run(() => {
         if (files && files[0]) {
             bookmarkImportButtonDisabled = false;
         } else {
             bookmarkImportButtonDisabled = true;
         }
-    }
+    });
 
     async function bookmarkExport() {
         const blob = await exportDB(db);
@@ -63,21 +66,9 @@
 </svelte:head>
 
 <div>
-  <div class="column-heading">
-    <div class="column-heading__buttons">
-      <button class="settings-back" on:click={() => {history.back()}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-      </button>
-    </div>
-
-    <h1 class="column-heading__title">{$_('settings_data_management')}</h1>
-
-    <div class="column-heading__buttons column-heading__buttons--right">
-      <a class="settings-back" href="/">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-      </a>
-    </div>
-  </div>
+  <SettingsHeader>
+    {$_('settings_data_management')}
+  </SettingsHeader>
 
   <div class="settings-wrap">
     <p class="settings-description">{$_('import_export_description')}</p>
@@ -87,7 +78,7 @@
       <p class="bookmark-import-export__description">{$_('bookmark_export_description')}</p>
 
       <div class="bookmark-import-export__buttons">
-        <button class="button" on:click={bookmarkExport} disabled={bookmarkExportButtonDisabled}>{$_('bookmark_export_button')}</button>
+        <button class="button" onclick={bookmarkExport} disabled={bookmarkExportButtonDisabled}>{$_('bookmark_export_button')}</button>
       </div>
     </div>
 
@@ -98,7 +89,7 @@
 
       <div class="bookmark-import-export__buttons">
         <input class="mb10" type="file" accept=".tokimekib" bind:files>
-        <button class="button button--danger button--border" on:click={bookmarkImport} disabled={bookmarkImportButtonDisabled}>{$_('bookmark_import_button')}</button>
+        <button class="button button--danger button--border" onclick={bookmarkImport} disabled={bookmarkImportButtonDisabled}>{$_('bookmark_import_button')}</button>
       </div>
     </div>
 
@@ -107,7 +98,7 @@
       <p class="bookmark-import-export__description">{$_('delete_post_mutes_description_prefix')}: {$postMutes.length}</p>
 
       <div class="bookmark-import-export__buttons">
-        <button class="button button--danger button--border" on:click={deletePostMutes}>{$_('delete')}</button>
+        <button class="button button--danger button--border" onclick={deletePostMutes}>{$_('delete')}</button>
       </div>
     </div>
   </div>

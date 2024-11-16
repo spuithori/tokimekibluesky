@@ -1,6 +1,5 @@
-<script>
-  export let handle;
-  export let color = 'var(--text-color-1)';
+<script lang="ts">
+  let { handle, color = 'var(--text-color-1)' } = $props();
 </script>
 
 <div class="my-profile-badge">

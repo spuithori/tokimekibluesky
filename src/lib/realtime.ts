@@ -24,7 +24,7 @@ export class RealtimeClient {
             const dataWrapper = JSON.parse(event.data);
             const data = dataWrapper.commit;
 
-            if (data?.type === 'c') {
+            if (data?.operation === 'create') {
                 const record = data.record;
 
                 realtime.set({

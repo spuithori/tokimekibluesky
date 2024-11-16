@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { preventDefault } from 'svelte/legacy';
+
 import {_} from "svelte-i18n";
 import { AtpAgent, AtpSessionData } from "@atproto/api";
 import { accountsDb } from "$lib/db";
@@ -6,12 +8,18 @@ import { createEventDispatcher } from "svelte";
 import { toast } from "svelte-sonner";
 const dispatch = createEventDispatcher();
 
-export let existingId = undefined;
-export let identifier = '';
-export let isMissing = false;
-let password = '';
+  interface Props {
+    existingId?: any;
+    identifier?: string;
+    isMissing?: boolean;
+  }
+
+  let { existingId = undefined, identifier = $bindable(''), isMissing = false }: Props = $props();
+let password = $state('');
 let errorMessage = '';
-let service = 'https://bsky.social';
+let service = $state('https://bsky.social');
+let isTwoFactor = $state(false);
+let twoFactorValue = $state('');
 
 async function login() {
     const agent = new AtpAgent({
@@ -19,7 +27,7 @@ async function login() {
     });
 
     try {
-        await agent.login({identifier: identifier, password: password});
+        await agent.login({identifier: identifier, password: password, authFactorToken: isTwoFactor ? twoFactorValue : undefined});
 
         const id = await accountsDb.accounts.put({
             id: existingId,
@@ -37,6 +45,9 @@ async function login() {
     } catch (e) {
         if (e.name === 'ConstraintError') {
             toast.error($_('login_duplicate_account'));
+        } else if (e.error === 'AuthFactorTokenRequired') {
+            toast.info($_('login_2fa_code_send'));
+            isTwoFactor = true;
         } else {
             toast.error(e.message);
         }
@@ -54,7 +65,7 @@ function cancel() {
       <p>{errorMessage}</p>
     {/if}
 
-    <form action="#" on:submit|preventDefault={login}>
+    <form action="#" onsubmit={preventDefault(login)}>
       <dl class="input-group">
         <dt class="input-group__name input-group__name--show">
           <label for="service">{$_('login_service')}</label>
@@ -87,10 +98,23 @@ function cancel() {
         </dd>
       </dl>
 
+      {#if (isTwoFactor)}
+        <dl class="input-group">
+          <dt class="input-group__name input-group__name--show">
+            <label for="2fa">{$_('login_2fa_code')}</label>
+          </dt>
+
+          <dd class="input-group__content">
+            <span class="input-group__prefix"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock-keyhole"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg></span>
+            <input class="input-group__input" type="text" name="2fa" id="2fa" placeholder="XXXX-XXXX" bind:value="{twoFactorValue}" required />
+          </dd>
+        </dl>
+      {/if}
+
       <div class="login-submit">
         <button class="button button--login button--login-submit" type="submit">{$_('login')}</button>
 
-        <button class="text-button" on:click|preventDefault={cancel}>{$_('cancel')}</button>
+        <button class="text-button" onclick={preventDefault(cancel)}>{$_('cancel')}</button>
       </div>
     </form>
 

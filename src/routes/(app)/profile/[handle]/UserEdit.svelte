@@ -2,29 +2,28 @@
     import {_} from 'svelte-i18n';
     import {createEventDispatcher} from 'svelte';
     import {fly} from 'svelte/transition';
-    import {agent} from '$lib/stores';
     import imageCompression from 'browser-image-compression';
 
-    export let profile;
+    let { profile, _agent } = $props();
 
     const dispatch = createEventDispatcher();
 
-    let isEditOpen = false;
-    let displayName = profile.displayName;
-    let description = profile.description;
-    let currentAvatar = profile.avatar;
-    let currentBanner = profile.banner;
+    let isEditOpen = $state(false);
+    let displayName = $state(profile.displayName);
+    let description = $state(profile.description);
+    let currentAvatar = $state(profile.avatar);
+    let currentBanner = $state(profile.banner);
     let avatar;
     let banner;
     let errorMessage = '';
 
-    let isSubmitDisabled = false;
-    let submitButtonText = $_('submit_button_submit');
+    let isSubmitDisabled = $state(false);
+    let submitButtonText = $state($_('submit_button_submit'));
 
-    let avatarInput;
-    let bannerInput;
-    let avatarBase64 = '';
-    let bannerBase64 = '';
+    let avatarInput = $state();
+    let bannerInput = $state();
+    let avatarBase64 = $state('');
+    let bannerBase64 = $state('');
 
     function editToggle() {
         isEditOpen = isEditOpen !== true;
@@ -73,7 +72,7 @@
             bannerBase64 = await imageCompression.getDataUrlFromFile(image);
         }
 
-        const fileBlob = await $agent.agent.api.com.atproto.repo.uploadBlob(image, {
+        const fileBlob = await _agent.agent.api.com.atproto.repo.uploadBlob(image, {
             encoding: 'image/jpeg',
         });
         isSubmitDisabled = false;
@@ -84,7 +83,7 @@
     async function submit() {
         let currentProfile;
         try {
-            currentProfile = await $agent.agent.api.app.bsky.actor.profile.get({ repo: $agent.did(), rkey: 'self' });
+            currentProfile = await _agent.agent.api.app.bsky.actor.profile.get({ repo: _agent.did(), rkey: 'self' });
         } catch(e) {
            console.log(e)
         }
@@ -103,7 +102,7 @@
         }
 
         try {
-            await $agent.agent.upsertProfile(_profile => {
+            await _agent.agent.upsertProfile(_profile => {
                 const profile = _profile || {};
 
                 return {
@@ -121,7 +120,7 @@
 </script>
 
 <div>
-  <button class="button button--sm" on:click={editToggle}>{$_('edit_profile_button')}</button>
+  <button class="button button--sm" onclick={editToggle}>{$_('edit_profile_button')}</button>
 
   {#if (isEditOpen)}
     <div class="modal modal--edit" transition:fly="{{ y: 30, duration: 250 }}">
@@ -133,14 +132,14 @@
             </dt>
 
             <dd class="input-group__content">
-              <button class="edit-avatar-input-wrap" on:click={() => {avatarInput.click()}}>
+              <button class="edit-avatar-input-wrap" onclick={() => {avatarInput.click()}}>
                   <span class="edit-avatar-previous" style="background-image: url({currentAvatar})"></span>
 
                   {#if (avatarBase64)}
                       <img src="{avatarBase64}" alt="" class="edit-avatar-preview">
                   {/if}
                   
-                  <input type="file" accept="image/jpeg, image/png" bind:this={avatarInput} on:change={onAvatarSelected} class="edit-input">
+                  <input type="file" accept="image/jpeg, image/png" bind:this={avatarInput} onchange={onAvatarSelected} class="edit-input">
               </button>
             </dd>
           </dl>
@@ -153,14 +152,14 @@
             </dt>
 
             <dd class="input-group__content">
-              <button class="edit-banner-input-wrap" on:click={() => {bannerInput.click()}}>
+              <button class="edit-banner-input-wrap" onclick={() => {bannerInput.click()}}>
                   <span class="edit-banner-previous" style="background-image: url({currentBanner})"></span>
 
                   {#if (bannerBase64)}
                       <img src="{bannerBase64}" alt="" class="edit-banner-preview">
                   {/if}
 
-                  <input type="file" accept="image/jpeg, image/png" bind:this={bannerInput} on:change={onBannerSelected} class="edit-input">
+                  <input type="file" accept="image/jpeg, image/png" bind:this={bannerInput} onchange={onBannerSelected} class="edit-input">
               </button>
             </dd>
           </dl>
@@ -189,8 +188,8 @@
         </div>
 
         <div class="edit-buttons">
-          <button class="button" on:click={submit} disabled={isSubmitDisabled}>{submitButtonText}</button>
-          <button class="button button--border" on:click={editToggle}>{$_('edit_cancel_button')}</button>
+          <button class="button" onclick={submit} disabled={isSubmitDisabled}>{submitButtonText}</button>
+          <button class="button button--border" onclick={editToggle}>{$_('edit_cancel_button')}</button>
         </div>
       </div>
     </div>

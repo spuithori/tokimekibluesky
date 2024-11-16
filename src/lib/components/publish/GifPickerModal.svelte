@@ -4,8 +4,8 @@
     import GiphyPicker from "$lib/components/publish/GiphyPicker.svelte";
     const dispatch = createEventDispatcher();
 
-    let dialog;
-    let tab = 'tenor';
+    let dialog = $state();
+    let tab = $state('tenor');
 
     function close () {
         dispatch('close');
@@ -40,14 +40,14 @@
   <div class="gif-modal-contents">
     <div class="gif-modal-heading">
       <div class="gif-modal-close">
-        <div role="button" class="gif-modal-close__button" on:click={close}>
+        <div role="button" class="gif-modal-close__button" onclick={close}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </div>
       </div>
 
       <div class="gif-modal-tab">
-        <button class="gif-modal-tab__item" class:gif-modal-tab__item--current={tab === 'tenor'} on:click={() => {tab = 'tenor'}}>Tenor</button>
-        <button class="gif-modal-tab__item" class:gif-modal-tab__item--current={tab === 'giphy'} on:click={() => {tab = 'giphy'}}>GIPHY</button>
+        <button class="gif-modal-tab__item" class:gif-modal-tab__item--current={tab === 'tenor'} onclick={() => {tab = 'tenor'}}>Tenor</button>
+        <button class="gif-modal-tab__item" class:gif-modal-tab__item--current={tab === 'giphy'} onclick={() => {tab = 'giphy'}}>GIPHY</button>
       </div>
     </div>
 
@@ -58,7 +58,7 @@
     {/if}
   </div>
 
-  <button class="modal-background-close" aria-hidden="true" on:click={close}></button>
+  <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
 </dialog>
 
 <style lang="postcss">

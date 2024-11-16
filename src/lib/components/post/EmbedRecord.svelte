@@ -1,13 +1,5 @@
 <script lang="ts">
-    import {
-        agent,
-        didHint,
-        formattedKeywordMutes,
-        junkColumns,
-        labelDefs,
-        labelerSettings,
-        settings
-    } from "$lib/stores";
+  import { agent, didHint, labelDefs, labelerSettings, settings } from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import {AppBskyEmbedImages, AppBskyEmbedVideo, AppBskyFeedPost} from "@atproto/api";
   import {_} from "svelte-i18n";
@@ -18,21 +10,26 @@
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {goto} from "$app/navigation";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
 
-  export let record;
-  export let _agent = $agent;
+  let { record, _agent = $agent } = $props();
   let moderateData = contentLabelling(record, _agent.did(), $settings, $labelDefs, $labelerSettings);
 
   let isWarn = detectWarn(moderateData, 'contentView');
 
-  let isMuteDisplay = false;
-  let isMuted = record.author.viewer.muted;
+  let isMuteDisplay = $state(false);
+  let isMuted = $state(record.author.viewer.muted);
 
-  if (keywordFilter($formattedKeywordMutes, record.value.text, record.indexedAt)) {
+  const junkColumnState = getColumnState(true);
+
+  if (keywordFilter(keywordMuteState.formattedKeywords, record.value.text, record.indexedAt)) {
       isMuted = true;
   }
 
-  function handlePostClick() {
+  function handlePostClick(e) {
+      e.preventDefault();
+
       if (!record?.uri) {
           return false;
       }
@@ -51,14 +48,15 @@
       let formattedPost = {
           ...record,
           record: record.value,
+          viewer: record.viewer ?? {},
       }
 
       if (AppBskyEmbedImages.isView(record.embeds[0])) {
           formattedPost.embed = record.embeds[0];
       }
 
-      if ($junkColumns.findIndex(_column => _column.id === 'thread_' + rkey) === -1) {
-          junkColumns.set([...$junkColumns, {
+      if (!junkColumnState.hasColumn('thread_' + rkey)) {
+          junkColumnState.add({
               id: 'thread_' + rkey,
               algorithm: {
                   algorithm: 'at://' + record.author.did + '/app.bsky.feed.post/' + rkey,
@@ -75,7 +73,7 @@
                   }],
                   cursor: '',
               }
-          }]);
+          });
       }
 
       didHint.set(record.author.did);
@@ -87,7 +85,7 @@
   {#if (isMuted && !isMuteDisplay)}
     <div class="thread-notice thread-notice--quote" class:thread-notice--shown={isMuteDisplay}>
       <p class="thread-notice__text">{$_('muted_user_embed')}<br>
-        <button class="text-button" on:click={() => {isMuteDisplay = true}}>{$_('show_button')}</button></p>
+        <button class="text-button" onclick={() => {isMuteDisplay = true}}>{$_('show_button')}</button></p>
     </div>
   {/if}
 
@@ -145,5 +143,5 @@
             </svg>
             </span>
 
-  <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" on:click|preventDefault={handlePostClick} aria-label="{$_('show_thread')}"></a>
+  <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" onclick={handlePostClick} aria-label="{$_('show_thread')}"></a>
 </div>

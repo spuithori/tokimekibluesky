@@ -1,14 +1,17 @@
 <script lang="ts">
     import ProfileCard from "./ProfileCard.svelte";
-    import { agent } from '$lib/stores';
+    import { agent, settings } from '$lib/stores';
 
-    export let _agent = $agent;
-    export let handle;
+    let { _agent = $agent, handle, children } = $props();
 
     let avatarMouseOverTimeId;
-    let isProfileShown = false;
+    let isProfileShown = $state(false);
 
     async function handleMouseOver() {
+        if ($settings?.design?.disableProfilePopup) {
+            return false;
+        }
+
         if (avatarMouseOverTimeId) {
             clearTimeout(avatarMouseOverTimeId);
         }
@@ -19,6 +22,10 @@
     }
 
     async function handleMouseLeave() {
+        if ($settings?.design?.disableProfilePopup) {
+            return false;
+        }
+
         if (avatarMouseOverTimeId) {
             clearTimeout(avatarMouseOverTimeId);
         }
@@ -29,8 +36,8 @@
     }
 </script>
 
-<div class="profile-card-wrap" on:mouseover={handleMouseOver} on:mouseleave={handleMouseLeave}>
-  <slot></slot>
+<div class="profile-card-wrap" onmouseover={handleMouseOver} onmouseleave={handleMouseLeave}>
+  {@render children?.()}
 
   {#if (isProfileShown)}
     <ProfileCard handle={handle} on:mouseover={handleMouseOver} on:mouseleave={handleMouseLeave} {_agent}></ProfileCard>

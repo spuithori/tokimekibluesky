@@ -9,12 +9,11 @@
     import Modal from "$lib/components/ui/Modal.svelte";
     const dispatch = createEventDispatcher();
 
-    export let _agent = $agent;
-    export let post;
+  let { _agent = $agent, post } = $props();
 
-    let feeds = [];
+    let feeds = $state([]);
     let isDisabled = false;
-    let ready = false;
+    let ready = $state(false);
 
     onMount(async () => {
         isDisabled = true;

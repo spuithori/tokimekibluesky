@@ -5,15 +5,19 @@
   import {accountsDb} from "$lib/db";
   const dispatch = createEventDispatcher();
 
-  export let account;
-  export let isEnabled = false;
-  const category = ['reply', 'like', 'repost', 'follow', 'quote', 'mention'];
-  let selectedCategory = account.notification;
+  interface Props {
+    account: any;
+    isEnabled?: boolean;
+  }
 
-  $: _account = liveQuery(async () => {
+  let { account, isEnabled = $bindable(false) }: Props = $props();
+  const category = ['reply', 'like', 'repost', 'follow', 'quote', 'mention'];
+  let selectedCategory = $state(account.notification);
+
+  let _account = $derived(liveQuery(async () => {
       const _account = await accountsDb.accounts.get(account.id);
       return _account;
-  })
+  }))
 
   function changeToggle() {
       dispatch('change', {
@@ -43,7 +47,7 @@
 
     <dd class="settings-group__content">
       <div class="input-toggle">
-        <input class="input-toggle__input" type="checkbox" id={account.did} bind:checked={isEnabled} on:change={changeToggle}><label class="input-toggle__label" for={account.did}></label>
+        <input class="input-toggle__input" type="checkbox" id={account.did} bind:checked={isEnabled} onchange={changeToggle}><label class="input-toggle__label" for={account.did}></label>
       </div>
     </dd>
   </dl>
@@ -65,7 +69,7 @@
                       type="checkbox"
                       id={account.did + term}
                       bind:group={selectedCategory}
-                      on:change={handleCategoryChange}
+                      onchange={handleCategoryChange}
                       name={term}
                       value={term}
                   ><label class="input-toggle__label" for={account.did + term}></label>

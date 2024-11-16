@@ -1,146 +1,154 @@
 <script lang="ts">
-    import {agent, settings} from '$lib/stores';
-    import spinner from '$lib/images/loading.svg';
-    import Thread from './profile/[handle]/post/[id]/Thread.svelte';
-    import {onMount} from "svelte";
-    import {_} from "svelte-i18n";
-    import VirtualThreadList from "$lib/components/thread/VirtualThreadList.svelte";
+  import {settings} from '$lib/stores';
+  import spinner from '$lib/images/loading.svg';
+  import Thread from './profile/[handle]/post/[id]/Thread.svelte';
+  import {onMount} from "svelte";
+  import {_} from "svelte-i18n";
+  import VirtualThreadList from "$lib/components/thread/VirtualThreadList.svelte";
 
-    export let column;
-    export let index;
-    export let _agent = $agent;
-    export let isRefreshing;
-    export let isJunk = false;
-    let scrollTop: undefined | Number = undefined;
-    let rootClientHeight = 0;
-    let rootIndex;
-    let rootDid;
+  interface Props {
+    column: any;
+    index: any;
+    _agent?: any;
+    isRefreshing: any;
+    isJunk?: boolean;
+  }
 
-    let isMuted: boolean = false;
-    let isMuteDisplay: boolean = false;
-    
-    let flatThread = [];
-    let unique = Symbol();
+  let {
+    column = $bindable(),
+    index,
+    _agent,
+    isRefreshing = $bindable(),
+    isJunk = false
+  }: Props = $props();
 
-    function isMutedIncludes(feed) {
-        isMuted = feed.post.author?.viewer.muted;
+  let scrollTop: undefined | Number = $state(undefined);
+  let rootClientHeight = $state(0);
+  let rootIndex = $state();
+  let rootDid;
 
-        if (feed.parent && !isMuted) {
-            isMutedIncludes(feed.parent);
-        }
+  let isMuted: boolean = $state(false);
+  let isMuteDisplay: boolean = $state(false);
 
-        if (feed.replies?.length && !isMuted) {
-            isMutedIncludes(feed.replies[0]);
-        }
-    }
+  let flatThread = [];
 
-    async function getPostThread() {
-        isRefreshing = true;
-        const uri = column.algorithm.algorithm;
+  function isMutedIncludes(feed) {
+      isMuted = feed.post?.author?.viewer?.muted;
 
-        try {
-            const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-            column.data.feed = [ raw.data.thread ];
+      if (feed.parent && !isMuted) {
+          isMutedIncludes(feed.parent);
+      }
 
-            column.data.feed.forEach(feed => {
-                if (!feed.blocked) {
-                    isMutedIncludes(feed);
-                }
-            });
+      if (feed.replies?.length && !isMuted) {
+          isMutedIncludes(feed.replies[0]);
+      }
+  }
 
-            if (isJunk) {
-                scrollTop = $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop;
-            }
-        } catch (e) {
-            column.data.feed = 'NotFound';
-        }
+  async function getPostThread() {
+      isRefreshing = true;
+      const uri = column.algorithm.algorithm;
 
-        isRefreshing = false;
-    }
+      try {
+          const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
+          column.data.feed = [ raw.data.thread ];
 
-    async function getFlatThread() {
-        const uri = column.algorithm.algorithm;
+          column.data.feed.forEach(feed => {
+              if (!feed.blocked) {
+                  isMutedIncludes(feed);
+              }
+          });
 
-        try {
-            const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-            const thread = [ raw.data.thread ];
+          if (isJunk) {
+              scrollTop = $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop;
+          }
+      } catch (e) {
+          column.data.feed = 'NotFound';
+      }
 
-            if (thread.length) {
-                flatPost(thread);
-            }
+      isRefreshing = false;
+  }
 
-            //flatThread = flatThread.filter(feed => feed.position !== 'authorChild');
-            flatThread = sortThread(flatThread);
-            column.data.feed = flatThread;
-            column.data.feed.forEach(feed => {
-                if (!feed.blocked) {
-                    isMutedIncludes(feed);
-                }
-            });
-            console.log(flatThread);
-            rootIndex = flatThread.findIndex(feed => feed.depth === 0);
-            unique = Symbol();
-        } catch (e) {
-            console.error(e);
-            column.data.feed = 'NotFound';
-        }
-    }
+  async function getFlatThread() {
+      const uri = column.algorithm.algorithm;
 
-    function flatPost(thread, depth = 0, position: 'root' | 'parent' | 'child' | 'author' | 'authorChild' | undefined = 'root', beforeDid = undefined) {
-        thread.forEach((feed, index) => {
-            if (feed.parent) {
-                flatPost([feed.parent], depth - 1, 'parent');
-            }
+      try {
+          const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
+          const thread = [ raw.data.thread ];
 
-            if (depth === 0) {
-                rootDid = feed.post.author.did;
-            }
+          if (thread.length) {
+              flatPost(thread);
+          }
 
-            const _feed = {
-                ...feed,
-                depth,
-                position: beforeDid === feed.post.author.did && rootDid === feed.post.author.did && depth !== 0 ? 'author' : position,
-            }
-            flatThread = [...flatThread, _feed];
+          //flatThread = flatThread.filter(feed => feed.position !== 'authorChild');
+          flatThread = sortThread(flatThread);
+          column.data.feed = flatThread;
+          column.data.feed.forEach(feed => {
+              if (!feed.blocked) {
+                  isMutedIncludes(feed);
+              }
+          });
+          rootIndex = flatThread.findIndex(feed => feed.depth === 0);
+      } catch (e) {
+          console.error(e);
+          column.data.feed = 'NotFound';
+      }
+  }
 
-            if (feed.replies?.length) {
-                flatPost(feed.replies, depth + 1, _feed.position === 'author' || _feed.position === 'authorChild' ? 'authorChild' : 'child', feed.post.author.did);
-            }
-        })
-    }
+  function flatPost(thread, depth = 0, position: 'root' | 'parent' | 'child' | 'author' | 'authorChild' | undefined = 'root', beforeDid = undefined) {
+      thread.forEach((feed, index) => {
+          if (feed.parent) {
+              flatPost([feed.parent], depth - 1, 'parent');
+          }
 
-    function sortThread(arr) {
-        const result = [];
-        const authorElements = [];
-        const otherElements = [];
+          if (depth === 0) {
+              rootDid = feed.post.author.did;
+          }
 
-        for (const item of arr) {
-            if (item.depth <= 0) {
-                result.push(item);
-            } else if (item.position === 'author') {
-                authorElements.push(item);
-            } else {
-                otherElements.push(item);
-            }
-        }
+          const _feed = {
+              ...feed,
+              depth,
+              position: beforeDid === feed.post?.author?.did && rootDid === feed.post?.author?.did && depth !== 0 ? 'author' : position,
+          }
+          flatThread = [...flatThread, _feed];
 
-        return [...result, ...authorElements, ...otherElements];
-    }
+          if (feed.replies?.length) {
+              flatPost(feed.replies, depth + 1, _feed.position === 'author' || _feed.position === 'authorChild' ? 'authorChild' : 'child', feed.post.author.did);
+          }
+      })
+  }
 
-    onMount(async () => {
-        if (isJunk) {
-            await getFlatThread();
-        } else {
-            await getPostThread();
-        }
-    })
+  function sortThread(arr) {
+      const result = [];
+      const authorElements = [];
+      const otherElements = [];
+
+      for (const item of arr) {
+          if (item.depth <= 0) {
+              result.push(item);
+          } else if (item.position === 'author') {
+              authorElements.push(item);
+          } else {
+              otherElements.push(item);
+          }
+      }
+
+      return [...result, ...authorElements, ...otherElements];
+  }
+
+  onMount(async () => {
+      if (isJunk) {
+          await getFlatThread();
+      } else {
+          await getPostThread();
+      }
+  })
 </script>
 
 {#if (isMuted && !isMuteDisplay)}
   <div class="thread-notice">
     <p class="thread-notice__text">{$_('muted_user_thread')}</p>
 
-    <button class="button button--sm" on:click={() => {isMuteDisplay = true}}>{$_('show_button')}</button>
+    <button class="button button--sm" onclick={() => {isMuteDisplay = true}}>{$_('show_button')}</button>
   </div>
 {/if}
 
@@ -152,7 +160,9 @@
   <p class="thread-error">{$_('error_thread_notfound')}</p>
 {:else}
   {#if (isJunk)}
-    <VirtualThreadList {_agent} {column} {rootIndex} {unique}></VirtualThreadList>
+    {#key column.data.feed}
+      <VirtualThreadList {_agent} {column} {rootIndex}></VirtualThreadList>
+    {/key}
   {:else}
     <div class="timeline thread-wrap" style="--root-client-height: {rootClientHeight}px" >
       <Thread feeds={column.data.feed} depth={0} column={column} {_agent} bind:rootClientHeight={rootClientHeight} scrollTop={scrollTop}></Thread>

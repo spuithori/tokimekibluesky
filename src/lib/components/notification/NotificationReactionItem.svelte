@@ -8,15 +8,18 @@
     import Images from "../../../routes/(app)/Images.svelte";
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
-    import {didHint, junkColumns, settings} from "$lib/stores";
+    import {didHint, settings} from "$lib/stores";
     import FeedEmbed from "$lib/components/feeds/FeedEmbed.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {goto} from "$app/navigation";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    export let item;
-    export let _agent;
-    let isLikesOpen = false;
-    let isRepostsOpen = false;
+    let { item = $bindable(), _agent } = $props();
+
+    const junkColumnState = getColumnState(true);
+
+    let isLikesOpen = $state(false);
+    let isRepostsOpen = $state(false);
 
     function handleClick() {
         if (item.reason === 'like') {
@@ -28,7 +31,9 @@
         }
     }
 
-    function handlePostClick() {
+    function handlePostClick(e) {
+        e.preventDefault();
+
         const rkey = item.feed.uri.split('/').slice(-1)[0];
         const uri = '/profile/' + item.feed.author.handle + '/post/' + rkey;
 
@@ -36,8 +41,8 @@
             return false;
         }
 
-        if ($junkColumns.findIndex(_column => _column.id === 'thread_' + rkey) === -1) {
-            junkColumns.set([...$junkColumns, {
+        if (!junkColumnState.hasColumn('thread_' + rkey)) {
+            junkColumnState.add({
                 id: 'thread_' + rkey,
                 algorithm: {
                     algorithm: 'at://' + item.feed.author.did + '/app.bsky.feed.post/' + rkey,
@@ -54,28 +59,28 @@
                     }],
                     cursor: '',
                 }
-            }]);
+            });
         }
 
         didHint.set(item.feed.author.did);
         goto(uri);
     }
 
-    item.notifications = removeNotificationsDuplication(item.notifications);
+    // item.notifications = removeNotificationsDuplication(item.notifications);
 </script>
 
 <article class="notifications-item notifications-item--reaction notifications-item--{item.reason}">
     <div class="notification-column">
         <div class="notification-column__icons">
             {#if (item.reason === 'repost')}
-                <button class="notification-icon notification-icon--repost" on:click={handleClick}>
+                <button class="notification-icon notification-icon--repost" onclick={handleClick}>
                     <Repeat2 color="var(--bg-color-1)" size="18"></Repeat2>
                 </button>
 
             {/if}
 
             {#if (item.reason === 'like')}
-                <button class="notification-icon notification-icon--like" on:click={handleClick}>
+                <button class="notification-icon notification-icon--like" onclick={handleClick}>
                     {#if ($settings?.design?.reactionMode === 'superstar')}
                         <Star color="var(--bg-color-1)" size="18"></Star>
                     {:else}
@@ -89,8 +94,7 @@
             <div class="notification-authors">
                 {#each item.notifications as notification (notification)}
                     <div class="notification-author">
-                        <Avatar href="/profile/{ notification.author.handle }" avatar={notification.author.avatar}
-                                handle={notification.author.handle} {_agent}></Avatar>
+                        <Avatar href="/profile/{ notification.author.handle }" avatar={notification.author.avatar} handle={notification.author.handle} {_agent} profile={notification.author}></Avatar>
                     </div>
                 {/each}
             </div>
@@ -105,11 +109,11 @@
 
             {#if (item.feed)}
                 <div class="notifications-item__content">
-                    <p><a href="{'/profile/' + item.feed.author.handle + '/post/' + item.feed.uri.split('/').slice(-1)[0]}" on:click|preventDefault={handlePostClick}>{item.feed.record.text}</a></p>
+                    <p><a href="{'/profile/' + item.feed.author.handle + '/post/' + item.feed.uri.split('/').slice(-1)[0]}" onclick={handlePostClick}>{item.feed.record.text}</a></p>
 
                     {#if (AppBskyEmbedImages.isView(item.feed?.embed) && item.feed?.embed)}
                         <div class="notifications-item-images">
-                            <Images images={item.feed.embed.images} blobs={item.feed.record.embed.images} did={item.feed.author.did} folding={true}></Images>
+                            <Images images={item.feed.embed.images} blobs={item.feed.record.embed.images} did={item.feed.author.did}></Images>
                         </div>
                     {/if}
                 </div>
@@ -125,11 +129,11 @@
 </article>
 
 {#if isLikesOpen}
-    <LikesModal uri={item.feed.uri} on:close={() => {isLikesOpen = false}}></LikesModal>
+    <LikesModal uri={item.feed.uri} on:close={() => {isLikesOpen = false}} {_agent}></LikesModal>
 {/if}
 
 {#if isRepostsOpen}
-    <RepostsModal uri={item.feed.uri} on:close={() => {isRepostsOpen = false}}></RepostsModal>
+    <RepostsModal uri={item.feed.uri} on:close={() => {isRepostsOpen = false}} {_agent}></RepostsModal>
 {/if}
 
 <style lang="postcss">

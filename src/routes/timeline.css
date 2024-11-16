@@ -610,6 +610,7 @@
     visibility: hidden;
     opacity: 0;
     transition: all .2s ease-in-out;
+    min-width: 150px;
 
     @media (max-width: 767px) {
 
@@ -1174,4 +1175,13 @@
     font-weight: bold;
     font-size: var(--timeline-repost-font-size);
     letter-spacing: .025em;
+}
+
+.menu-tag-link {
+    position: absolute;
+    bottom: 0;
+
+    &:hover {
+        display: none;
+    }
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import {agents, columns, syncColumns} from '$lib/stores';
+    import {agents} from '$lib/stores';
     import { createEventDispatcher } from 'svelte';
     import { toast } from "svelte-sonner";
     const dispatch = createEventDispatcher();
@@ -13,14 +13,15 @@
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
     import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
     import CloudBookmarkObserver from "$lib/components/bookmark/CloudBookmarkObserver.svelte";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    export let _columns = $syncColumns;
-    export let profileId = Number(localStorage.getItem('currentProfile'));
+    const columns = getColumnState();
+    let profileId = Number(localStorage.getItem('currentProfile'));
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
-    let currentAccount;
-    let profile;
-    let unique = Symbol();
+    let currentAccount = $state();
+    let profile = $state();
+    let unique = $state(Symbol());
 
     accountsDb.profiles.get(profileId)
         .then(value => {
@@ -41,20 +42,20 @@
         }
     }
 
-    function handleBookmarkClose(event) {
-        if (event.detail.id) {
-            _columns = _columns.filter(_column => _column.algorithm.type !== 'bookmark' || Number(_column.algorithm.algorithm) !== event.detail.id)
+    function handleBookmarkClose(clear: boolean, id) {
+        if (clear) {
+            columns.columns = columns.columns.filter(_column => _column.algorithm.type !== 'bookmark' || Number(_column.algorithm.algorithm) !== id)
         }
     }
 
-    function handleCloudBookmarkClose(event) {
+    function handleCloudBookmarkClose(clear: boolean, id: number) {
         unique = Symbol();
     }
 
     function handleListClose(event) {
         if (event.detail.id) {
             console.log(event.detail.id)
-            _columns = _columns.filter(_column => _column.algorithm.type !== 'list' || _column.algorithm.algorithm !== event.detail.id)
+            columns.columns = columns.columns.filter(_column => _column.algorithm.type !== 'list' || _column.algorithm.algorithm !== event.detail.id)
         }
     }
 
@@ -68,11 +69,10 @@
 
     function handleColumnAdd(event) {
         try {
-            let addedColumn = structuredClone(event.detail.column);
-            addedColumn.id = self.crypto.randomUUID();
+            let addedColumn = structuredClone($state.snapshot(event.detail.column));
+            columns.add(addedColumn);
 
             toast.success($_('column_add_success'));
-            $columns = [...$columns, addedColumn];
             // save(false);
         } catch (e) {
             console.log(e);
@@ -80,7 +80,7 @@
     }
 
     function handleColumnRemove(event) {
-        $columns = $columns.filter(column => column.id !== event.detail.column.id);
+        columns.remove(event.detail.column.id)
         // save(false);
     }
 </script>
@@ -113,20 +113,20 @@
                         <h3 class="column-group__title">{$_('active_columns')}</h3>
                         <p class="column-group__description">{$_('active_columns_description')}</p>
 
-                        <ColumnList bind:items={_columns} on:remove={handleColumnRemove} _agent={$agents.get(currentAccount)}></ColumnList>
+                        <ColumnList items={columns.columns} on:remove={handleColumnRemove} _agent={$agents.get(currentAccount)}></ColumnList>
                     </div>
                 </div>
             </div>
 
             <div class="modal-close">
-                <button class="button button--sm" on:click={save}>{$_('close_button')}</button>
+                <button class="button button--sm" onclick={save}>{$_('close_button')}</button>
             </div>
         </div>
 
-        <button class="modal-background-close" aria-hidden="true" on:click={save}></button>
+        <button class="modal-background-close" aria-hidden="true" onclick={save}></button>
 
-        <BookmarkObserver on:close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
-        <CloudBookmarkObserver on:close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>
+        <BookmarkObserver close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
+        <CloudBookmarkObserver close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>
         <ListObserver on:close={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
         <OfficialListObserver _agent={$agents.get(currentAccount)} on:close={handleOfficialListClose}></OfficialListObserver>
     </div>

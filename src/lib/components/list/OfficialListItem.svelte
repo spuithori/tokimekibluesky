@@ -1,26 +1,43 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import {agent, columns, officialListModal} from "$lib/stores";
+  import {agent, officialListModal} from "$lib/stores";
   import { toast } from "svelte-sonner";
   import {createEventDispatcher} from "svelte";
   import {List} from "lucide-svelte";
   import OfficialListMembersModal from "$lib/components/list/OfficialListMembersModal.svelte";
   import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
   const dispatch = createEventDispatcher();
 
-  export let _agent = $agent;
+  const columnState = getColumnState();
 
-  export let list = undefined;
-  export let title = '';
-  export let isModerationList = list?.purpose === 'app.bsky.graph.defs#modlist' || false;
-  let items = [];
-  export let uri = '';
-  export let isMute = false;
-  export let isBlock = undefined;
-  export let editable = false;
-  let isColumnAdded;
-  let isMembersOpen = false;
+  let items = $state([]);
+  interface Props {
+    _agent?: any;
+    list?: any;
+    title?: string;
+    isModerationList?: any;
+    uri?: string;
+    isMute?: boolean;
+    isBlock?: any;
+    editable?: boolean;
+    children?: import('svelte').Snippet;
+  }
+
+  let {
+    _agent = $agent,
+    list = $bindable(undefined),
+    title = $bindable(''),
+    isModerationList = $bindable(list?.purpose === 'app.bsky.graph.defs#modlist' || false),
+    uri = '',
+    isMute = $bindable(false),
+    isBlock = $bindable(undefined),
+    editable = false,
+    children
+  }: Props = $props();
+  let isColumnAdded = $state();
+  let isMembersOpen = $state(false);
 
   if (!list && uri) {
       _agent.agent.api.app.bsky.graph.getList({list: uri, limit: 100})
@@ -56,7 +73,7 @@
       }
 
       try {
-          $columns = [...$columns, _column];
+          columnState.add(_column);
 
           dispatch('add');
           toast.success($_('column_added'));
@@ -85,7 +102,7 @@
 
       <p class="list-item__description">
         {#if items.length}
-          <button class="list-item__members-button" on:click={() => {isMembersOpen = true}}>{items.length}{$_('list_members_length_suffix')}</button>
+          <button class="list-item__members-button" onclick={() => {isMembersOpen = true}}>{items.length}{$_('list_members_length_suffix')}</button>
           {#if list.description}
             ・
           {/if}
@@ -99,19 +116,19 @@
         {/if}
       </p>
 
-      <slot></slot>
+      {@render children?.()}
     </div>
 
     <div class="list-item__buttons">
       {#if isModerationList}
       {:else}
-        <button class="button button--ss" on:click={addColumn} disabled={isColumnAdded}>{$_('feed_quick_add')}</button>
+        <button class="button button--ss" onclick={addColumn} disabled={isColumnAdded}>{$_('feed_quick_add')}</button>
       {/if}
 
       {#if editable}
         <button
           class="algo-nav-edit"
-          on:click={() => {$officialListModal = {open: true, uri: list.uri}}}
+          onclick={() => {$officialListModal = {open: true, uri: list.uri}}}
           aria-label="Edit list"
         >
           <IconColumnsEdit></IconColumnsEdit>
