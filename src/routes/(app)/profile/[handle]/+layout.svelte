@@ -29,20 +29,39 @@
 
     let { data, children }: Props = $props();
 
-    let currentPage = $state('posts');
     let profile = $state();
     let isLabeler = $state(false);
     let handle = $derived($page.params.handle);
     let _agent = $state($agent);
     let agentContext = setAgentContext(_agent);
+    let currentPage = $derived.by(() => {
+        try {
+            const paths = data.url.pathname.split('/');
 
-    $effect.pre(() => {
-        isActive(data.url.pathname);
-    })
+            switch (paths[3]) {
+                case 'follow':
+                    return 'follow';
+                case 'follower':
+                    return 'follower';
+                case 'media':
+                    return 'media';
+                case 'likes':
+                    return 'likes';
+                case 'feed':
+                    return 'feed';
+                case 'lists':
+                    return 'lists';
+                default:
+                    return 'posts';
+            }
+        } catch (e) {
+            return 'posts';
+        }
+    });
 
     $effect(() => {
         getProfile(handle, true);
-    })
+    });
 
     export const snapshot: Snapshot = {
         capture: () => [profile],
@@ -75,33 +94,6 @@
 
     function onProfileUpdate() {
         handleRefresh();
-    }
-
-    function isActive(path) {
-        const paths = path.split('/');
-
-        switch (paths[3]) {
-            case 'follow':
-                currentPage = 'follow';
-                break;
-            case 'follower':
-                currentPage = 'follower';
-                break;
-            case 'media':
-                currentPage = 'media';
-                break;
-            case 'likes':
-                currentPage = 'likes';
-                break;
-            case 'feed':
-                currentPage = 'feed';
-                break;
-            case 'lists':
-                currentPage = 'lists';
-                break;
-            default:
-                currentPage = 'posts';
-        }
     }
 
     function handleRefresh() {
@@ -228,15 +220,15 @@
 
       <ul class="profile-tab">
         {#if (!isLabeler)}
-          <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
-          <li class="profile-tab__item" on:click={() => currentPage = 'follow'} class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
-          <li class="profile-tab__item" on:click={() => currentPage = 'follower'} class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
-          <li class="profile-tab__item" on:click={() => currentPage = 'media'} class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{$_('media')}</a></li>
-          <li class="profile-tab__item" on:click={() => currentPage = 'likes'} class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
-          <li class="profile-tab__item" on:click={() => currentPage = 'feed'} class:profile-tab__item--active={currentPage === 'feed'}><a href="/profile/{data.params.handle}/feed" data-sveltekit-noscroll>{$_('feeds')}</a></li>
-          <li class="profile-tab__item" on:click={() => currentPage = 'lists'} class:profile-tab__item--active={currentPage === 'lists'}><a href="/profile/{data.params.handle}/lists" data-sveltekit-noscroll>{$_('lists')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{$_('media')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'feed'}><a href="/profile/{data.params.handle}/feed" data-sveltekit-noscroll>{$_('feeds')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'lists'}><a href="/profile/{data.params.handle}/lists" data-sveltekit-noscroll>{$_('lists')}</a></li>
         {:else}
-          <li class="profile-tab__item" on:click={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
         {/if}
       </ul>
 
