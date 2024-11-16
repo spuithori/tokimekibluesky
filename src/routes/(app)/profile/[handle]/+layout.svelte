@@ -61,16 +61,16 @@
                 profile = $state.snapshot(profileHintState.profile);
                 profileHintState.clear();
             }
-
-            _agent.agent.api.app.bsky.actor.getProfile({actor: handle})
-                .then(res => {
-                    profile = res.data
-
-                    if (profile?.associated?.labeler) {
-                        isLabeler = true;
-                    }
-                })
         })
+
+        _agent.agent.api.app.bsky.actor.getProfile({actor: handle})
+            .then(res => {
+                profile = res.data
+
+                if (profile?.associated?.labeler) {
+                    isLabeler = true;
+                }
+            })
     }
 
     function onProfileUpdate() {
