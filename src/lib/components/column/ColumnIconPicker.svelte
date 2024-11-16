@@ -44,6 +44,7 @@
       right: 16px;
       box-shadow: 0 0 10px var(--box-shadow-color-1);
       border-radius: 6px;
+      z-index: 1;
   }
 
   .icon-picker-list {

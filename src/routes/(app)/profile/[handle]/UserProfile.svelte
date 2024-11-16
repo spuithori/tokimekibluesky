@@ -104,11 +104,13 @@
     {#if (profile?.labels?.length)}
       <dl class="profile-reported">
         <dt class="profile-reported__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="19.999" viewBox="0 0 20 19.999">
-          <path id="exclamation-solid" d="M2.93,17.07a10,10,0,1,1,14.142,0,10,10,0,0,1-14.142,0ZM9,5v6h2V5Zm0,8v2h2V13Z" transform="translate(0)" fill="#ffffff"/>
+          <path id="exclamation-solid" d="M2.93,17.07a10,10,0,1,1,14.142,0,10,10,0,0,1-14.142,0ZM9,5v6h2V5Zm0,8v2h2V13Z" transform="translate(0)" fill="var(--danger-color)"/>
         </svg>{$_('reporting_this_user')}: </dt>
 
         {#each profile.labels as label}
-          <dd class="profile-reported__content">{$_(label.val)}</dd>
+          {#if (label?.val !== '!no-unauthenticated')}
+            <dd class="profile-reported__content">{$_(label.val)}</dd>
+          {/if}
         {/each}
       </dl>
     {/if}
@@ -383,19 +385,23 @@
     }
 
     .profile-reported {
-        background-color: var(--danger-color);
-        color: #fff;
+        color: var(--text-color-1);
         font-weight: bold;
         padding: 10px;
         border-radius: 6px;
         margin-bottom: 15px;
-        display: flex;
+        display: none;
         flex-wrap: wrap;
         gap: 0 5px;
-        font-size: 18px;
+        font-size: 16px;
+        border: 2px solid var(--danger-color);
+
+        &:has(.profile-reported__content) {
+            display: flex;
+        }
 
         @media (max-width: 767px) {
-            font-size: 15px;
+            font-size: 14px;
             display: block;
         }
 
