@@ -640,6 +640,13 @@
     "atmosphere_short_desc_linkat": "链接集",
     "atmosphere_short_desc_whitewind": "博客",
     "atmosphere_description": "此用户正在使用的 Atmosphere 服务列表。\nAT Protocol 可创建并发布各种服务。\n可通过设置⚙️→通用 隐藏。",
-    "disable_atmosphere": "隐藏 Atmosphere 个人资料"
-  }
-  
+    "disable_atmosphere": "隐藏 Atmosphere 个人资料",
+    "settings_support": "支持 TOKIMEKI",
+    "unfollow_confirm_title": "确认取消关注吗？",
+    "login_2fa_code": "双重认证代码",
+    "login_2fa_code_send": "请输入通过邮件发送的双重认证代码。",
+    "tag_instant_mute": "添加到关键词静音",
+    "success_mute_tag": "{tag} 已被添加到关键词静音。",
+    "atmosphere_short_desc_pinksea": "PinkSea",
+    "disable_profile_popup": "禁用弹出式个人资料"
+}
