@@ -66,12 +66,12 @@
       : 'contentList';
 
   let isWarn: 'content' | 'media' | null = detectWarn(moderateData) || null;
-  isHide = detectHide(moderateData);
+  isHide = detectHide(moderateData, isHide);
   detectKeywordFilter();
 
-  function detectHide(moderateData) {
+  function detectHide(moderateData, current) {
       if (!moderateData) {
-          return false;
+          return current;
       }
 
       try {
@@ -79,10 +79,10 @@
               return true;
           }
       } catch (e) {
-          return false;
+          // Nothing.
       }
 
-      return false;
+      return current;
   }
 
   function detectWarn(moderateData) {
