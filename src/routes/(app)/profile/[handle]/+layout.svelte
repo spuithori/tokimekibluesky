@@ -19,6 +19,7 @@
     import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
     import {setAgentContext} from "./state.svelte";
     import {profileHintState} from "$lib/classes/profileHintState.svelte";
+    import {untrack} from "svelte";
 
     const junkColumnState = getColumnState(true);
 
@@ -35,20 +36,12 @@
     let _agent = $state($agent);
     let agentContext = setAgentContext(_agent);
 
-    if (profileHintState.hasProfile(handle)) {
-        profile = $state.snapshot(profileHintState.profile);
-        if (profile.labels && Array.isArray(profile.labels)) {
-            profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');
-        }
-        profileHintState.clear();
-    }
-
     $effect.pre(() => {
         isActive(data.url.pathname);
     })
 
     $effect(() => {
-        getProfile(handle, false);
+        getProfile(handle, true);
     })
 
     export const snapshot: Snapshot = {
@@ -59,22 +52,32 @@
     };
 
     function getProfile(handle, clear = true) {
-        if (clear) {
-            profile = undefined;
-        }
+        untrack(() => {
+            if (clear) {
+                profile = undefined;
+            }
 
-        _agent.agent.api.app.bsky.actor.getProfile({actor: handle})
-            .then(res => {
-                profile = res.data
-
+            if (profileHintState.hasProfile(handle)) {
+                profile = $state.snapshot(profileHintState.profile);
                 if (profile.labels && Array.isArray(profile.labels)) {
-                  profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');
+                    profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');
                 }
+                profileHintState.clear();
+            }
 
-                if (profile?.associated?.labeler) {
-                    isLabeler = true;
-                }
-            })
+            _agent.agent.api.app.bsky.actor.getProfile({actor: handle})
+                .then(res => {
+                    profile = res.data
+
+                    if (profile.labels && Array.isArray(profile.labels)) {
+                      profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');
+                    }
+
+                    if (profile?.associated?.labeler) {
+                        isLabeler = true;
+                    }
+                })
+        })
     }
 
     function onProfileUpdate() {
