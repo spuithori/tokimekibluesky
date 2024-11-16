@@ -396,13 +396,16 @@
         font-size: 16px;
         border: 2px solid var(--danger-color);
 
-        &:has(.profile-reported__content) {
-            display: flex;
-        }
-
         @media (max-width: 767px) {
             font-size: 14px;
-            display: block;
+        }
+
+        &:has(.profile-reported__content) {
+            display: flex;
+
+            @media (max-width: 767px) {
+                display: block;
+            }
         }
 
         &__name {
