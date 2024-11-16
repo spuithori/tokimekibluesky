@@ -273,4 +273,8 @@
             background-color: var(--border-color-1);
         }
     }
+
+    .profile-tab {
+        background-color: var(--bg-color-1);
+    }
 </style>

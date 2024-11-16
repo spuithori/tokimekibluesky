@@ -10,7 +10,6 @@
     font-size: 15px;
     font-weight: bold;
     border-bottom: 1px solid var(--border-color-2);
-    background-color: var(--bg-color-1);
     white-space: nowrap;
 
     @media (max-width: 767px) {
