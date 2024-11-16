@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
+    import { run } from 'svelte/legacy';
 
     import {_} from 'svelte-i18n';
     import {settings, subscribedLabelers} from '$lib/stores';
     import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
     import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
+    import {ChevronRight, Globe2, MessageCircleMore, MessageCircleOff, Shield} from "lucide-svelte";
+    import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
 
     type contentLabelsSelect = 'hide' | 'warn' | 'ignore';
     type contentLabels = {
@@ -50,39 +52,33 @@
 </svelte:head>
 
 <div>
-  <div class="column-heading">
-    <div class="column-heading__buttons">
-      <button class="settings-back" onclick={() => {history.back()}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-      </button>
-    </div>
-
-    <h1 class="column-heading__title">{$_('settings_moderation')}</h1>
-
-    <div class="column-heading__buttons column-heading__buttons--right">
-      <a class="settings-back" href="/">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-      </a>
-    </div>
-  </div>
+  <SettingsHeader>
+    {$_('settings_moderation')}
+  </SettingsHeader>
 
   <div class="settings-wrap">
     <div class="settings-child-nav">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-off"><path d="M20.5 14.9A9 9 0 0 0 9.1 3.5"/><path d="m2 2 20 20"/><path d="M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"/></svg>
+      <MessageCircleOff size="24"></MessageCircleOff>
       <a href="/settings/moderation/modlist">{$_('settings_mod_list')}<br><span>{$_('settings_mod_list_description')}</span></a>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+      <ChevronRight size="20"></ChevronRight>
     </div>
 
     <div class="settings-child-nav">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+      <Shield size="24"></Shield>
       <a href="/settings/moderation/labeler">{$_('settings_labeler')}<br><span>{$_('settings_labeler_description')}</span></a>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+      <ChevronRight size="20"></ChevronRight>
     </div>
 
     <div class="settings-child-nav">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-more"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+      <MessageCircleMore size="24"></MessageCircleMore>
       <a href="/settings/moderation/chat">{$_('settings_chat')}<br><span>{$_('settings_chat_description')}</span></a>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+      <ChevronRight size="20"></ChevronRight>
+    </div>
+
+    <div class="settings-child-nav">
+      <Globe2 size="24"></Globe2>
+      <a href="/settings/moderation/lang-filter">{$_('settings_lang_filter')}</a>
+      <ChevronRight size="20"></ChevronRight>
     </div>
 
     <h2 class="moderation-group-title">{$_('global_label_settings')}</h2>

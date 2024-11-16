@@ -17,8 +17,6 @@
   }
 </script>
 
-<button class="column-icon-picker-bg" transition:fade={{ duration: 150 }} onclick={close} aria-label="Close"></button>
-
 <div class="column-icon-picker" transition:fly={{ duration:250, y: -30 }}>
   <ul class="icon-picker-list">
     {#each iconMap as [key, icon]}
@@ -33,6 +31,8 @@
     {/each}
   </ul>
 </div>
+
+<button class="column-icon-picker-bg" transition:fade={{ duration: 150 }} onclick={close} aria-label="Close"></button>
 
 <style lang="postcss">
   .column-icon-picker {

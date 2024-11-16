@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
+    import { run } from 'svelte/legacy';
 
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
+    import { ChevronRight, SmilePlus } from "lucide-svelte";
+    import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     let hideRepost = $state($settings.timeline.hideRepost || 'all');
     let hideReply = $state($settings.timeline.hideReply || 'all');
 
@@ -57,27 +59,15 @@
 </svelte:head>
 
 <div>
-  <div class="column-heading">
-    <div class="column-heading__buttons">
-      <button class="settings-back" onclick={() => {history.back()}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-      </button>
-    </div>
-
-    <h1 class="column-heading__title">{$_('settings_timeline')}</h1>
-
-    <div class="column-heading__buttons column-heading__buttons--right">
-      <a class="settings-back" href="/">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-      </a>
-    </div>
-  </div>
+  <SettingsHeader>
+    {$_('settings_timeline')}
+  </SettingsHeader>
 
   <div class="settings-wrap">
     <div class="settings-child-nav">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smile-plus"><path d="M22 11v1a10 10 0 1 1-9-10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/><path d="M16 5h6"/><path d="M19 2v6"/></svg>
+      <SmilePlus size="24"></SmilePlus>
       <a href="/settings/timeline/reaction">{$_('reaction_button_settings')}<br><span>{$_('reaction_button_settings_description')}</span></a>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+      <ChevronRight size="20"></ChevronRight>
     </div>
 
     <dl class="settings-group">
