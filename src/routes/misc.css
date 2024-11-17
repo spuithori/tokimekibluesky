@@ -163,12 +163,6 @@
         width: 64px;
     }
 
-    .layout-decks .page {
-        margin: 0 auto;
-        max-width: 740px;
-        width: 100%;
-    }
-
     .main {
         width: calc(100% - 64px);
 
@@ -217,35 +211,6 @@
         &--realtime {
             @media (max-width: 767px) {
                 position: static;
-            }
-        }
-    }
-}
-
-.scroll-down.app {
-    .deck-row:not(.deck-row--junk) {
-        .deck-heading {
-            @media (max-width: 767px) {
-                opacity: 0;
-                visibility: hidden;
-                transform: translateY(-48px);
-            }
-        }
-    }
-
-    .side-bar {
-        @media (max-width: 767px) {
-            transform: translateY(-48px);
-        }
-    }
-
-    &.single {
-        .deck-row:not(.deck-row--junk) {
-            .refresh-button {
-                @media (max-width: 767px) {
-                    opacity: 0;
-                    visibility: hidden;
-                }
             }
         }
     }

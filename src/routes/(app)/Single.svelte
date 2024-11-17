@@ -1,5 +1,6 @@
 <script lang="ts">
-    import {agent, currentTimeline} from '$lib/stores';
+    import {agent, currentTimeline, settings} from '$lib/stores';
+    import {page} from '$app/stores';
     import DeckRow from "./DeckRow.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -31,7 +32,7 @@
     }
 </script>
 
-<div class="single-wrap">
+<div class="single-wrap" class:single-wrap--page={$page.url.pathname !== '/'} class:single-wrap--bottom={$settings.design?.publishPosition === 'bottom'}>
   <div class="single-timeline-wrap">
     {#key $currentTimeline}
       {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
@@ -50,5 +51,25 @@
         border-right: 1px solid var(--border-color-2);
         min-height: 100vh;
         background-color: var(--bg-color-1);
+
+        &--page {
+            position: fixed;
+            overflow: hidden;
+            left: 402px;
+            top: 0;
+            right: 0;
+            margin: auto;
+            min-height: 100dvh;
+            max-width: 528px;
+
+            @media (max-width: 767px) {
+                left: 0;
+            }
+        }
+
+        &--bottom {
+            left: 70px;
+            max-width: 626px;
+        }
     }
 </style>

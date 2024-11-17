@@ -5,6 +5,7 @@
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import {fly} from 'svelte/transition';
   import {goto} from "$app/navigation";
+  import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
 
   let isFeedsModalOpen = $state(false);
 
@@ -20,7 +21,7 @@
 
 <svelte:window onpopstate={handlePopstate} />
 
-<footer class="footer" class:footer--hidden={$isChatColumnFront}>
+<footer class="footer" class:footer--hidden={$isChatColumnFront} class:footer--scroll-down={scrollDirectionState.direction === 'down'}>
   <div class="footer__wrap">
     <div class="footer__item">
       {#if $page.url.pathname !== '/'}
@@ -82,7 +83,7 @@
   </div>
 {/if}
 
-<div class="footer-round"></div>
+<div class="footer-round" class:footer-round--scroll-down={scrollDirectionState.direction === 'down'}></div>
 
 <style lang="postcss">
   .footer {
@@ -140,6 +141,12 @@
               }
           }
       }
+
+      &--scroll-down {
+          @media (max-width: 767px) {
+              transform: translateY(calc(70px + var(--safe-area-bottom)));
+          }
+      }
   }
 
   .footer-round {
@@ -156,6 +163,12 @@
 
       @media (min-width: 767px) {
           display: none;
+      }
+
+      &--scroll-down {
+          @media (max-width: 767px) {
+              transform: scale(.7);
+          }
       }
   }
 

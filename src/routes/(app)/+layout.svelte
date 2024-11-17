@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
-  import { agent, agents, currentTimeline, isAfterReload, isColumnModalOpen, isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, profileStatus, settings, theme, direction, bluefeedAddModal, labelDefs, subscribedLabelers
+  import { agent, agents, currentTimeline, isAfterReload, isColumnModalOpen, isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers
   } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {pwaInfo} from 'virtual:pwa-info';
@@ -34,6 +34,7 @@
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
   import {isSafariOrFirefox} from "$lib/util";
   import {initColumns} from "$lib/classes/columnState.svelte";
+  import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -239,7 +240,7 @@
   function handleScroll(event) {
       if ($settings.design.layout !== 'decks') {
           const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
-              direction.set(scrollDir);
+              scrollDirectionState.direction = scrollDir;
           });
       }
   }
@@ -315,13 +316,12 @@
     class:darkmode={isDarkMode}
     class:sidebar={$settings.design?.publishPosition === 'left'}
     class:bottom={$settings.design?.publishPosition === 'bottom'}
-    class="app scroll-{$direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
+    class="app theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
     dir="{$_('dir', {default: 'ltr'})}"
     class:compact={$settings.design?.postsLayout === 'compact'}
     class:minimum={$settings.design?.postsLayout === 'minimum'}
     class:single={$settings?.design.layout !== 'decks'}
     class:decks={$settings?.design.layout === 'decks'}
-    class:page={$page.url.pathname !== '/'}
     class:ios={isMobile.iOS()}
     class:left-mode={$settings?.design?.leftMode}
     class:superstar={$settings.design?.reactionMode === 'superstar'}

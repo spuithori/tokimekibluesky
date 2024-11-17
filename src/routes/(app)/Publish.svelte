@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
-  import { agent, agents, direction, hashtagHistory, isChatColumnFront, isPublishInstantFloat, postgate, postPulse, settings, threadGate } from '$lib/stores';
+  import { agent, agents, hashtagHistory, isChatColumnFront, isPublishInstantFloat, postgate, postPulse, settings, threadGate } from '$lib/stores';
   import {selfLabels} from "$lib/components/editor/publishStore";
   import {clickOutside} from '$lib/clickOutSide';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
@@ -20,6 +20,7 @@
   import {TID} from "@atproto/common-web";
   import {computeCid} from "$lib/components/editor/postUtil";
   import {postState} from "$lib/classes/postState.svelte";
+  import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
 
   let _agent = $state($agent);
   let editor = $state();
@@ -88,7 +89,7 @@
           });
       }
 
-      direction.set('up');
+      scrollDirectionState.direction = 'up';
   }
 
   function onClose() {

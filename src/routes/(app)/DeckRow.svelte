@@ -3,7 +3,7 @@
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
-    import {agent, agents, direction, intersectingIndex, isChatColumnFront} from "$lib/stores";
+    import {agent, agents, intersectingIndex, isChatColumnFront} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
@@ -24,6 +24,7 @@
     import Timeline from "./Timeline.svelte";
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
     import ListTimeline from "./ListTimeline.svelte";
+    import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     const { longPressAction } = createLongPress();
 
     interface Props {
@@ -134,7 +135,7 @@
 
     function handleScroll(event) {
         const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
-            direction.set(scrollDir);
+            scrollDirectionState.direction = scrollDir;
         });
     }
 
@@ -143,7 +144,7 @@
             if (entry.isIntersecting) {
                 intersectingIndex.set(index);
                 isChatColumnFront.set(column.algorithm?.type === 'chat');
-                direction.set('up');
+                scrollDirectionState.direction = 'up';
             }
         })
     }
@@ -329,7 +330,7 @@
     onneodrag:end={handleDragEnd}
     onneodrag={handleDragging}
 >
-    <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'}>
+    <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk}>
         {#if (!isJunk)}
             {#if !column?.settings?.isPopup && $settings.design?.layout === 'decks'}
                 <div class="deck-drag-area">
@@ -725,6 +726,14 @@
             position: sticky !important;
             z-index: 100 !important;
             top: 52px;
+        }
+
+        &--scroll-down {
+            @media (max-width: 767px) {
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-48px);
+            }
         }
     }
 

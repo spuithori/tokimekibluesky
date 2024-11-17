@@ -14,6 +14,7 @@
     import SideNav from "$lib/components/side/SideNav.svelte";
     import SideWorkspaceModal from "$lib/components/side/SideWorkspaceModal.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
 
     const columnState = getColumnState();
 
@@ -78,7 +79,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="side-bar side-bar--{$settings.design?.publishPosition}" class:side-bar--sp-open={isMobileBarOpen} onclick={() => {isMobileBarOpen = false}}>
+<div class="side-bar side-bar--{$settings.design?.publishPosition}" class:side-bar--sp-open={isMobileBarOpen} onclick={() => {isMobileBarOpen = false}} class:side-bar--scroll-down={scrollDirectionState.direction === 'down'}>
   <div class="side-bar__list side-bar__top">
     {#if (!$settings.general?.hideWorkspaceButton)}
         <div class="side-workspace">
@@ -235,6 +236,14 @@
       &--sp-open {
           @media (max-width: 767px) {
               display: none;
+          }
+      }
+
+      &--scroll-down {
+          @media (max-width: 767px) {
+              opacity: 0;
+              visibility: hidden;
+              transform: translateY(-48px);
           }
       }
   }

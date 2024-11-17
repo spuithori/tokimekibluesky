@@ -136,30 +136,6 @@
 }
 
 .single {
-    &.page {
-        .single-wrap {
-            position: fixed;
-            overflow: hidden;
-            left: 402px;
-            top: 0;
-            right: 0;
-            margin: auto;
-            min-height: 100dvh;
-            max-width: 528px;
-
-            @media (max-width: 767px) {
-                left: 0;
-            }
-        }
-
-        &.bottom {
-            .single-wrap {
-                left: 70px;
-                max-width: 626px;
-            }
-        }
-    }
-
     .modal-page {
         position: static;
     }

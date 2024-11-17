@@ -10,20 +10,6 @@
     }
 }
 
-.scroll-down {
-    .footer {
-        @media (max-width: 767px) {
-            transform: translateY(calc(70px + var(--safe-area-bottom)));
-        }
-    }
-
-    .footer-round {
-        @media (max-width: 767px) {
-            transform: scale(.7);
-        }
-    }
-}
-
 .refresh-button {
     width: 40px;
     border: none;
