@@ -658,9 +658,10 @@
         border-radius: var(--deck-border-radius) var(--deck-border-radius) 0 0;
         min-width: 0;
         backdrop-filter: var(--deck-heading-backdrop-filter);
+        will-change: transform, opacity;
 
         @media (max-width: 767px) {
-            transition: all .2s ease-in-out;
+            transition: opacity .2s ease-in-out, visibility .2s ease-in-out, transform .2s ease-in-out;
         }
 
         &__scroll-area {

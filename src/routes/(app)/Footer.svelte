@@ -152,6 +152,7 @@
       bottom: calc(11px + var(--safe-area-bottom));
       box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
       z-index: 11;
+      will-change: transform;
 
       @media (min-width: 767px) {
           display: none;

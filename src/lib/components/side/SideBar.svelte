@@ -203,9 +203,8 @@
           height: min-content;
           padding: 0 4px 0 8px;
           width: 100vw;
-          overflow-x: auto;
-          overflow-y: initial;
-          transition: all .2s ease-in-out;
+          overflow-y: hidden;
+          transition: transform .2s ease-in-out, opacity .2s ease-in-out, visibility .2s ease-in-out;
       }
 
       &__list {
