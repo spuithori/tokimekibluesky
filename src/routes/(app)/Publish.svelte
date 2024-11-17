@@ -405,6 +405,10 @@
       }
 
       lang = post.lang === 'auto' ? await languageDetect(post.text) : [post.lang];
+      if (!lang.length && $settings?.general?.userLanguage) {
+          lang = [$settings.general.userLanguage];
+      }
+
       selfLabels = post.selfLabels ? post.selfLabels : [];
 
       if (images.length) {
