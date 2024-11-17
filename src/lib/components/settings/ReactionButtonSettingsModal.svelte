@@ -1,14 +1,10 @@
 <script lang="ts">
-  import {isReactionButtonSettingsModalOpen, settings} from "$lib/stores";
+  import {settings} from "$lib/stores";
   import {_} from "svelte-i18n";
   import {Bookmark, Heart, Quote, Repeat2, Reply} from "lucide-svelte";
 
   const reactions = ['reply', 'repost', 'like', 'quote', 'bookmark'];
   const icons = [Reply, Repeat2, Heart, Quote, Bookmark]
-
-  function close() {
-      isReactionButtonSettingsModalOpen.set(false);
-  }
 </script>
 
 <div class="reaction-button-settings-list">

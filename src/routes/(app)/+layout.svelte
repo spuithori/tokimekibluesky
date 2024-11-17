@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
-  import { agent, agents, currentTimeline, isAfterReload, isColumnModalOpen, isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers
+  import { agent, agents, currentTimeline, isAfterReload, isColumnModalOpen, isMobileDataConnection, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers
   } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {pwaInfo} from 'virtual:pwa-info';
@@ -23,7 +23,6 @@
   import {builtInThemes} from "$lib/builtInThemes";
   import {defaultColors} from "$lib/defaultColors";
   import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
-  import ReactionButtonSettingsModal from "$lib/components/settings/ReactionButtonSettingsModal.svelte";
   import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
   import {detectDateFnsLocale} from "$lib/detectDateFnsLocale";
   import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
@@ -354,10 +353,6 @@
 
     {#if $bluefeedAddModal.open}
       <BluefeedAddObserver></BluefeedAddObserver>
-    {/if}
-
-    {#if $isReactionButtonSettingsModalOpen}
-      <ReactionButtonSettingsModal></ReactionButtonSettingsModal>
     {/if}
 
     {#if (!isRepeater)}

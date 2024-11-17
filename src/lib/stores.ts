@@ -195,8 +195,6 @@ type pulseDetach = {
 
 export const pulseDetach = writable<pulseDetach | undefined>(undefined);
 
-export const isReactionButtonSettingsModalOpen = writable(false);
-
 export const workerTimer = readable(new Worker(timerWorkerUrl));
 
 export const isRealtimeListenersModalOpen = writable(false);
