@@ -64,7 +64,7 @@
       backdrop-filter: var(--side-backdrop-filter);
 
       @media (max-width: 767px) {
-          position: sticky;
+          position: static;
           grid-template-columns: 0;
           background-color: transparent;
           height: auto;
@@ -127,14 +127,6 @@
 
       &--float {
           z-index: 1002;
-
-          @media (max-width: 767px) {
-              z-index: 1000;
-          }
-      }
-
-      @media (max-width: 767px) {
-
       }
   }
 
