@@ -53,8 +53,8 @@
     class:timeline-external--tenor={getTenorUrl(external.uri) && $settings?.embed?.tenor}
   >
     {#if ($settings?.design.externalLayout !== 'compact')}
-      <div class="timeline-external__image">
         {#if (external.thumb)}
+          <div class="timeline-external__image">
           {#if (getYouTubeUrl(external.uri) && $settings?.embed?.youtube)}
             <YouTube youTubeId={getYouTubeUrl(external.uri)}></YouTube>
           {:else if (getSpotifyUri(external.uri) && $settings?.embed?.spotify)}
@@ -91,8 +91,8 @@
           {:else}
             <img src="{external.thumb}" alt="">
           {/if}
+          </div>
         {/if}
-      </div>
     {/if}
 
     <div class="timeline-external__content">
