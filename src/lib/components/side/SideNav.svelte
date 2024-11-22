@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { agent } from '$lib/stores';
-  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound } from 'lucide-svelte';
+  import { agent, settings } from '$lib/stores';
+  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp } from 'lucide-svelte';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
@@ -10,6 +10,7 @@
   import { publishState } from "$lib/classes/publishState.svelte";
   import {type SideItem, sideState} from "$lib/classes/sideState.svelte";
   import { goto } from "$app/navigation";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
   let { footer = false } = $props();
   let isFeedsModalOpen = $state(false);
@@ -17,6 +18,7 @@
   let isNotificationModalOpen = $state(false);
   let isMenuOpen = $state(false);
   let refreshTimeout = $state(false);
+  const columnState = getColumnState();
 
   function handleMenuAction(item: SideItem) {
       isMenuOpen = false;
@@ -40,7 +42,28 @@
           case 'refresher':
             handleRefresh();
             break;
-          default:
+          case 'scroll-top':
+            try {
+                if ($settings.design?.layout === 'decks') {
+                    columnState.columns.forEach(column => {
+                        if (column?.scrollElement) {
+                            column.scrollElement.scroll({
+                                top: 0,
+                                left: 0,
+                                behavior: 'smooth',
+                            });
+                        }
+                    })
+                } else {
+                    document.querySelector(':root').scroll({
+                        top: 0,
+                        left: 0,
+                        behavior: 'smooth',
+                    });
+                }
+            } catch (e) {
+                // nothing.
+            }
       }
   }
 
@@ -81,6 +104,8 @@
           <UserRound color="var(--nav-secondary-icon-color)"></UserRound>
         {:else if (item === 'refresher')}
           <RefreshCcw color={refreshTimeout ? 'var(--border-color-1)' : 'var(--nav-secondary-icon-color)'}></RefreshCcw>
+        {:else if (item === 'scroll-top')}
+          <CircleArrowUp color="var(--nav-secondary-icon-color)"></CircleArrowUp>
         {/if}
       </button>
     </li>
@@ -250,7 +275,7 @@
       bottom: 16px;
       left: 64px;
       right: 8px;
-      height: calc(100vh - 64px);
+      height: calc(100dvh - 64px);
       z-index: 9999;
       width: calc(308px + 32px);
 

@@ -655,5 +655,6 @@
   "publish_position_popup": "Popup",
   "immersive_mode": "Immersive",
   "profile": "Profile",
-  "refresher": "Refresh (All)"
+  "refresher": "Refresh (All)",
+  "scroll-top": "Scroll Top"
 }
