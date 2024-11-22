@@ -1,105 +1,137 @@
 <script lang="ts">
-  import {agent, settings, sideState} from '$lib/stores';
-  import {Pen, Search, Bell, User2, GanttChartSquare, Store, MessageCircleMore} from 'lucide-svelte';
-    import MyProfileBadge from "../../../routes/(app)/MyProfileBadge.svelte";
+  import { agent } from '$lib/stores';
+  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound } from 'lucide-svelte';
+  import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
+  import { fly } from 'svelte/transition';
+  import SideMenu from "$lib/components/side/SideMenu.svelte";
+  import SideChat from "$lib/components/side/SideChat.svelte";
+  import { clickOutside } from '$lib/clickOutSide';
+  import Notification from "../../../routes/(app)/Notification.svelte";
+  import { publishState } from "$lib/classes/publishState.svelte";
+  import {type SideItem, sideState} from "$lib/classes/sideState.svelte";
+  import { goto } from "$app/navigation";
 
-  function toggleSideNav(name) {
-      $sideState = name;
+  let { footer = false } = $props();
+  let isFeedsModalOpen = $state(false);
+  let isChatModalOpen = $state(false);
+  let isNotificationModalOpen = $state(false);
+  let isMenuOpen = $state(false);
+  let refreshTimeout = $state(false);
+
+  function handleMenuAction(item: SideItem) {
+      isMenuOpen = false;
+
+      switch (item) {
+          case 'feeds':
+            isFeedsModalOpen = !isFeedsModalOpen;
+            break;
+          case 'chat':
+            isChatModalOpen = !isChatModalOpen;
+            break;
+          case 'notifications':
+            isNotificationModalOpen = !isNotificationModalOpen
+            break;
+          case 'search':
+            goto('/search');
+            break;
+          case 'profile':
+            goto(`/profile/${$agent.handle()}`);
+            break;
+          case 'refresher':
+            handleRefresh();
+            break;
+          default:
+      }
+  }
+
+  function handleRefresh() {
+      if (refreshTimeout) {
+          return false;
+      }
+      refreshTimeout = true;
+
+      const character = 'r';
+      const keyboardEvent = new KeyboardEvent('keydown', {
+          key: character,
+          code: character.toUpperCase(),
+          bubbles: true,
+          cancelable: true,
+      });
+      document.dispatchEvent(keyboardEvent);
+
+      setTimeout(() => {
+          refreshTimeout = false;
+      }, 3000);
   }
 </script>
 
-<ul class="side-nav side-nav--{$settings.design?.publishPosition}">
-  {#if $settings.design?.publishPosition !== 'bottom'}
+<ul class="side-nav" class:side-nav--vertical={publishState.isBottom} class:side-nav--footer={footer}>
+  {#each sideState.items as item}
     <li class="side-nav__item">
-      <button
-          class="side-nav__button side-nav__button--publish"
-          class:side-nav__button--current={$sideState === 'publish'}
-          onclick={() => toggleSideNav('publish')}
-          aria-label="Publish Tab"
-      >
-        <Pen color="var(--nav-secondary-icon-color)"></Pen>
-      </button>
-    </li>
-
-    <li class="side-nav__item">
-      <button
-          class="side-nav__button"
-          class:side-nav__button--current={$sideState === 'profile'}
-          onclick={() => toggleSideNav('profile')}
-          aria-label="Profile Tab"
-      >
-        <User2 color="var(--nav-secondary-icon-color)"></User2>
-      </button>
-    </li>
-
-    <li class="side-nav__item">
-      <button
-          class="side-nav__button"
-          class:side-nav__button--current={$sideState === 'notification'}
-          onclick={() => toggleSideNav('notification')}
-          aria-label="Notification Tab"
-      >
-        <Bell color="var(--nav-secondary-icon-color)"></Bell>
-      </button>
-    </li>
-
-    <li class="side-nav__item">
-      <button
-          class="side-nav__button"
-          class:side-nav__button--current={$sideState === 'feeds'}
-          onclick={() => toggleSideNav('feeds')}
-          aria-label="Feed Store Tab"
-      >
-        <GanttChartSquare color="var(--nav-secondary-icon-color)"></GanttChartSquare>
-      </button>
-    </li>
-
-    {#if !$settings?.general?.disableChat}
-      <li class="side-nav__item">
-        <button
-                class="side-nav__button"
-                class:side-nav__button--current={$sideState === 'chat'}
-                onclick={() => toggleSideNav('chat')}
-                aria-label="Chat Tab"
-        >
+      <button class="side-nav__button" onclick={() => {handleMenuAction(item)}}>
+        {#if (item === 'feeds')}
+          <GanttChartSquare color="var(--nav-secondary-icon-color)"></GanttChartSquare>
+        {:else if (item === 'chat')}
           <MessageCircleMore color="var(--nav-secondary-icon-color)"></MessageCircleMore>
-        </button>
-      </li>
-    {/if}
-
-    <li class="side-nav__item side-nav__item--right">
-      <a
-          href="/search"
-          class="side-nav__button"
-          aria-label="Search"
-      >
-        <Search color="var(--bar-bottom-icon-color)"></Search>
-      </a>
-    </li>
-  {:else}
-    <li class="side-nav__item">
-      <div class="side-nav__button">
-        {#if ($agent)}
-          <MyProfileBadge handle={$agent.handle()} color="var(--bar-bottom-icon-color)"></MyProfileBadge>
+        {:else if (item === 'notifications')}
+          <Bell color="var(--nav-secondary-icon-color)"></Bell>
+        {:else if (item === 'search')}
+          <Search color="var(--nav-secondary-icon-color)"></Search>
+        {:else if (item === 'profile')}
+          <UserRound color="var(--nav-secondary-icon-color)"></UserRound>
+        {:else if (item === 'refresher')}
+          <RefreshCcw color={refreshTimeout ? 'var(--border-color-1)' : 'var(--nav-secondary-icon-color)'}></RefreshCcw>
         {/if}
-      </div>
+      </button>
     </li>
+  {/each}
 
-    {#if !$settings?.general?.disableChat}
-      <li class="side-nav__item">
-        <a href="/chat" class="side-nav__button">
-          <MessageCircleMore color="var(--bar-bottom-icon-color)"></MessageCircleMore>
-        </a>
-      </li>
+  <li class="side-nav__item side-nav__item--right">
+    <button class="side-nav__button" aria-label="Search" onclick={() => {isMenuOpen = !isMenuOpen}}>
+      <Ellipsis color="var(--nav-secondary-icon-color)"></Ellipsis>
+    </button>
+
+    {#if (isMenuOpen)}
+      <SideMenu {footer} onclose={() => isMenuOpen = false} onaction={handleMenuAction}></SideMenu>
     {/if}
-
-    <li class="side-nav__item">
-      <a href="/search" class="side-nav__button">
-        <Search color="var(--bar-bottom-icon-color)"></Search>
-      </a>
-    </li>
-  {/if}
+  </li>
 </ul>
+
+{#if isFeedsModalOpen}
+  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--feeds'}} onoutclick={() => {isFeedsModalOpen = false}}>
+    <div class="side-modal__content">
+      <SideMyFeeds on:close={() => {isFeedsModalOpen = false}}></SideMyFeeds>
+    </div>
+
+    <button class="side-modal__close only-mobile" onclick={() => {isFeedsModalOpen = false}}>
+      <CircleX size="36" color="var(--text-color-1)"></CircleX>
+    </button>
+  </div>
+{/if}
+
+{#if isChatModalOpen}
+  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--chat'}} onoutclick={() => {isChatModalOpen = false}}>
+    <div class="side-modal__content">
+      <SideChat on:close={() => {isChatModalOpen = false}}></SideChat>
+    </div>
+
+    <button class="side-modal__close only-mobile" onclick={() => {isChatModalOpen = false}}>
+      <CircleX size="36" color="var(--text-color-1)"></CircleX>
+    </button>
+  </div>
+{/if}
+
+{#if isNotificationModalOpen}
+  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--notification'}} onoutclick={() => {isNotificationModalOpen = false}}>
+    <div class="side-modal__content">
+      <Notification isPage={true} on:close={() => {isNotificationModalOpen = false}}></Notification>
+    </div>
+
+    <button class="side-modal__close only-mobile" onclick={() => {isNotificationModalOpen = false}}>
+      <CircleX size="36" color="var(--text-color-1)"></CircleX>
+    </button>
+  </div>
+{/if}
 
 <style lang="postcss">
   .side-nav {
@@ -113,6 +145,11 @@
       &__item {
           &--right {
               margin-left: auto;
+              position: relative;
+
+              @media (max-width: 767px) {
+                  margin-left: 0;
+              }
           }
       }
 
@@ -169,7 +206,7 @@
           }
       }
 
-      &--bottom {
+      &--vertical {
           flex-direction: column;
           gap: 8px;
 
@@ -187,6 +224,85 @@
                   display: none;
               }
           }
+      }
+
+      &--footer {
+          flex-direction: row;
+
+          @media (max-width: 767px) {
+              flex: 1;
+              display: flex;
+              justify-content: space-around;
+              padding-right: 80px;
+              padding-left: 6px;
+              overflow-y: hidden;
+
+              &::-webkit-scrollbar {
+                  display: none;
+              }
+          }
+      }
+  }
+
+  .side-modal {
+      position: absolute;
+      top: 56px;
+      bottom: 16px;
+      left: 64px;
+      right: 8px;
+      height: calc(100vh - 64px);
+      z-index: 9999;
+      width: calc(308px + 32px);
+
+      @media (max-width: 767px) {
+          top: auto;
+          bottom: 64px;
+          left: 0;
+          right: 0;
+          width: auto;
+      }
+
+      &__content {
+          position: absolute;
+          inset: 12px 16px;
+          box-shadow: 0 0 12px var(--box-shadow-color-1);
+          border-radius: var(--border-radius-3);
+          overscroll-behavior-y: none;
+          background-color: var(--bg-color-1);
+          overflow-x: hidden;
+          max-width: 308px;
+
+          @media (max-width: 767px) {
+              max-width: initial;
+          }
+
+          @media (min-width: 768px) {
+              scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+
+              &::-webkit-scrollbar {
+                  width: 6px;
+              }
+
+              &::-webkit-scrollbar-thumb {
+                  background: var(--scroll-bar-color);
+                  border-radius: 0;
+              }
+
+              &::-webkit-scrollbar-track {
+                  background: var(--scroll-bar-bg-color);
+                  border-radius: 0;
+              }
+          }
+      }
+
+      &__close {
+          position: absolute;
+          bottom: 24px;
+          width: 36px;
+          height: 36px;
+          left: 0;
+          right: 0;
+          margin: auto;
       }
   }
 </style>

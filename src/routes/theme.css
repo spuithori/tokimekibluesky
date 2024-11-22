@@ -266,6 +266,15 @@
     --deck-heading-button-icon-secondary-color: var(--text-color-3);
     --deck-border-right: inherit;
 
+    /* Single */
+    --single-xxs-width: 380px;
+    --single-xs-width: 420px;
+    --single-s-width: 460px;
+    --single-m-width: 528px;
+    --single-l-width: 600px;
+    --single-xl-width: 680px;
+    --single-xxl-width: 760px;
+
     --deck-content-bg-color: var(--bg-color-1);
     --deck-content-backdrop-filter: none;
     --bg-vail-bg-color: rgba(255, 255, 255, .35);

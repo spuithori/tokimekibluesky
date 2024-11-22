@@ -10,6 +10,10 @@
     }
 }
 
+.text-center {
+    text-align: center;
+}
+
 .text-danger {
     color: var(--danger-color);
 }
@@ -17,10 +21,10 @@
 .block-link {
     color: inherit;
     display: block;
-}
 
-.block-link:hover {
-    text-decoration: none;
+    &:hover {
+        text-decoration: none;
+    }
 }
 
 .primary-color {
@@ -60,20 +64,6 @@
 
 .mb10 {
     margin-bottom: 10px;
-}
-
-.invite-codes-user {
-    .user-item__title {
-        font-size: 15px;
-        line-height: 1.3;
-        margin-bottom: 2px;
-        word-break: break-all;
-    }
-
-    .user-item {
-        border-bottom: none;
-        padding-bottom: 0;
-    }
 }
 
 .accordion {
@@ -119,20 +109,6 @@
     }
 }
 
-.text-center {
-    text-align: center;
-}
-
-.header.header--side {
-    .settings-box {
-        left: 10px;
-
-        @media (max-width: 767px) {
-            left: 0;
-        }
-    }
-}
-
 .side-bar-button {
     &--current {
         svg {
@@ -149,73 +125,6 @@
     }
 }
 
-.deck-divider {
-    width: var(--deck-divider-width);
-    flex-shrink: 0;
-
-    @media (max-width: 767px) {
-        display: none;
-    }
-}
-
-.bottom {
-    .deck-divider {
-        width: 64px;
-    }
-
-    .main {
-        width: calc(100% - 64px);
-
-        @media (max-width: 767px) {
-            width: 100%;
-        }
-    }
-
-    .tiptap {
-        height: 120px;
-    }
-}
-
-.single {
-    background-attachment: fixed;
-
-    .single-timeline-wrap {
-        .deck-row {
-            width: auto !important;
-            border-radius: 0;
-            border: none;
-            overflow: visible;
-
-            &__content {
-                overflow-y: initial !important;
-            }
-        }
-    }
-
-    &.bottom {
-        .deck-heading {
-            transition: transform .2s ease-in-out;
-            border-radius: 0;
-        }
-
-        .modal-page-content {
-            z-index: auto;
-        }
-    }
-
-    .refresh-button {
-        @media (max-width: 767px) {
-            position: fixed;
-        }
-
-        &--realtime {
-            @media (max-width: 767px) {
-                position: static;
-            }
-        }
-    }
-}
-
 .side-nav {
     &__button {
         &--current {
@@ -226,30 +135,10 @@
     }
 }
 
-html {
-    overflow-y: scroll;
-
-    &:has(.decks) {
-        overflow-y: hidden;
-    }
-}
-
 .theme-item {
     .timeline-menu-toggle {
         right: 10px;
         top: 10px;
-    }
-}
-
-.dragging {
-    .deck-row__content {
-
-    }
-}
-
-.dragged-content {
-    .deck-row__content {
-
     }
 }
 
@@ -435,12 +324,6 @@ html {
         video {
             position: static;
         }
-    }
-}
-
-.single {
-    .profile-grid {
-        grid-template-columns: 1fr !important;
     }
 }
 

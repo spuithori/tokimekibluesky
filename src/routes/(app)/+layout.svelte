@@ -5,7 +5,7 @@
   } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {pwaInfo} from 'virtual:pwa-info';
-  import {onMount, tick} from 'svelte';
+  import {onMount, tick, untrack} from 'svelte';
   import { Toaster } from 'svelte-sonner';
   import viewPortSetting from '$lib/viewport';
   import {scrollDirection} from "$lib/scrollDirection";
@@ -55,14 +55,17 @@
 
   function getCurrentTheme(skin) {
       const isBuiltInTheme = builtInThemes.find(_theme => _theme.name === skin);
-      if (isBuiltInTheme) {
-          $theme = isBuiltInTheme;
-      } else {
-          themesDb.themes.get(skin)
-              .then(value => {
-                  $theme = value;
-              });
-      }
+
+      untrack(() => {
+          if (isBuiltInTheme) {
+              $theme = isBuiltInTheme;
+          } else {
+              themesDb.themes.get(skin)
+                  .then(value => {
+                      $theme = value;
+                  });
+          }
+      })
   }
 
   function observeColor(theme) {
@@ -70,15 +73,17 @@
           return false;
       }
 
-      const colors = Array.isArray(theme.options?.colors) ? theme.options.colors : defaultColors;
+      untrack(() => {
+          const colors = Array.isArray(theme.options?.colors) ? theme.options.colors : defaultColors;
 
-      if (!colors.length) {
-          return false;
-      }
+          if (!colors.length) {
+              return false;
+          }
 
-      if (!colors.some(color => color.id === $settings.design?.theme)) {
-          $settings.design.theme = colors[0].id;
-      }
+          if (!colors.some(color => color.id === $settings.design?.theme)) {
+              $settings.design.theme = colors[0].id;
+          }
+      });
   }
 
   async function initProfile() {
@@ -173,7 +178,7 @@
   console.log('settings version: ' + $settings.version || 0);
 
   if ($settings.version < 2) {
-      $settings.design.publishPosition = 'left';
+      // $settings.design.publishPosition = 'left';
       $settings.design.skin = 'default';
       $settings.version = 2;
   }
@@ -311,28 +316,23 @@
 <GoogleAnalytics></GoogleAnalytics>
 
 <div
+    class="app theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={isDarkMode}
-    class:sidebar={$settings.design?.publishPosition === 'left'}
-    class:bottom={$settings.design?.publishPosition === 'bottom'}
-    class="app theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
-    dir="{$_('dir', {default: 'ltr'})}"
-    class:compact={$settings.design?.postsLayout === 'compact'}
-    class:minimum={$settings.design?.postsLayout === 'minimum'}
     class:single={$settings?.design.layout !== 'decks'}
-    class:decks={$settings?.design.layout === 'decks'}
     class:ios={isMobile.iOS()}
     class:left-mode={$settings?.design?.leftMode}
     class:superstar={$settings.design?.reactionMode === 'superstar'}
     style={outputInlineStyle($theme)}
+    dir="{$_('dir', {default: 'ltr'})}"
     bind:this={app}
 >
   {#if (loaded)}
     <div class="wrap"
-         class:layout-sidebar={$settings.design?.publishPosition === 'left'}>
+         class:layout-decks={$settings.design.layout === 'decks'}>
       <Side></Side>
 
-      <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
+      <main class="main">
         {#if $settings.design.layout !== 'decks'}
           <Single></Single>
         {:else}
@@ -396,36 +396,14 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      box-sizing: border-box;
+      min-width: 0;
   }
-
-  .sidebar {
-      .main {
-          width: 100%;
-          min-width: 0;
-      }
-  }
-
 
   .single {
+      background-attachment: fixed;
+
       .wrap {
-          width: 100%;
-          max-width: 940px;
           margin: 0 auto;
-          align-items: flex-start;
-      }
-
-      &.bottom {
-          .wrap {
-              align-items: stretch;
-              max-width: 740px;
-          }
-
-          .main {
-              @media (max-width: 767px) {
-                  padding-top: 0;
-              }
-          }
       }
   }
 </style>

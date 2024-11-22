@@ -2,8 +2,8 @@
   import { createBubbler, preventDefault } from 'svelte/legacy';
 
   const bubble = createBubbler();
-  import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
-  import {isPublishInstantFloat, postgate, settings, threadGate} from "$lib/stores";
+  import {selfLabels} from "$lib/components/editor/publishStore";
+  import {postgate, settings, threadGate} from "$lib/stores";
   import {_} from "svelte-i18n";
   import {isFeedByUri} from "$lib/util";
   import {formatDistanceToNow, parseISO} from "date-fns";
@@ -444,7 +444,6 @@
 <svelte:document onpaste={handlePaste} />
 
 <div class="publish-form"
-     class:publish-form--expand={$isPublishFormExpand}
      class:publish-form--dragover={isDragover}
      class:publish-form--fit={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
      ondragover={preventDefault(bubble('dragover'))}
@@ -469,7 +468,7 @@
       
         {#if (postState.reply && typeof postState.reply !== 'string')}
           <div class="publish-quote publish-quote--reply">
-            <button class="publish-quote__delete" onclick={() => {postState.reply = undefined; isPublishInstantFloat.set(false);}}>
+            <button class="publish-quote__delete" onclick={() => {postState.reply = undefined}}>
               <X color="#fff" size="18"></X>
             </button>
 
@@ -544,7 +543,7 @@
             </div>
           {:else}
             <div class="publish-quote">
-              <button class="publish-quote__delete" onclick={() => {postState.quote = undefined; isPublishInstantFloat.set(false);}}>
+              <button class="publish-quote__delete" onclick={() => {postState.quote = undefined}}>
                 <X color="#fff" size="18"></X>
               </button>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
-  import { agent, agents, hashtagHistory, isChatColumnFront, isPublishInstantFloat, postgate, postPulse, settings, threadGate } from '$lib/stores';
+  import { agent, agents, hashtagHistory, isChatColumnFront, postgate, postPulse, settings, threadGate } from '$lib/stores';
   import {selfLabels} from "$lib/components/editor/publishStore";
   import {clickOutside} from '$lib/clickOutSide';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
@@ -21,10 +21,11 @@
   import {computeCid} from "$lib/components/editor/postUtil";
   import {postState} from "$lib/classes/postState.svelte";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
+  import {publishState} from "$lib/classes/publishState.svelte";
+  import {Pin, PinOff, X} from "lucide-svelte";
 
   let _agent = $state($agent);
   let editor = $state();
-  let isFocus = $state(false);
   let isContinueMode = $state(false);
   let isDraftModalOpen = $state(false);
   let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
@@ -53,7 +54,7 @@
   let isMobilePopState = $derived(isMobile ? $page.state.showPublish : false);
 
   $effect(() => {
-      if (isMobile ? isFocus && isMobilePopState : isFocus) {
+      if (isMobile ? publishState.show && isMobilePopState : publishState.show) {
           document.documentElement.classList.add('scroll-lock');
       } else {
           document.documentElement.classList.remove('scroll-lock');
@@ -76,9 +77,17 @@
       }
   })
 
+  $effect(() => {
+      if (publishState.show) {
+          tick().then(() => {
+              editor.focus();
+          });
+      }
+  })
+
   function handleOpen() {
-      if (!isFocus) {
-          isFocus = true;
+      if (!publishState.show) {
+          publishState.show = true;
       }
 
       tick().then(() => { editor.focus(); });
@@ -92,11 +101,15 @@
       scrollDirectionState.direction = 'up';
   }
 
-  function onClose() {
-      if (isFocus) {
+  function onClose(force: boolean = false) {
+      if (publishState.layout === 'left' && !force) {
+          return false;
+      }
+
+      if (publishState.show) {
           postState.quotePulse = undefined;
           postState.replyPulse = undefined;
-          isFocus = false;
+          publishState.show = false;
           editor.blur();
 
           if (isMobile && $page.state.showPublish) {
@@ -116,7 +129,7 @@
           goto('/search');
       }
 
-      if (event.key === 'Escape' && isFocus) {
+      if (event.key === 'Escape' && publishState.show) {
           onClose();
       }
   }
@@ -150,9 +163,11 @@
   }
 
   function handleOutClick() {
-      if (!isContinueMode) {
-          onClose();
+      if (isContinueMode || publishState.layout !== 'bottom') {
+          return false;
       }
+
+      onClose();
   }
 
   async function saveDraft() {
@@ -166,14 +181,13 @@
           }));
 
           if (!isContinueMode) {
-              isFocus = false;
+              publishState.show = false;
           }
           editor.clear();
           postState.quote = undefined;
           postState.reply = undefined;
           postsPool = [{}];
           unique = Symbol();
-          $isPublishInstantFloat = false;
 
           toast.success($_('draft_add_success'));
       } catch (e) {
@@ -364,7 +378,6 @@
       postState.reply = undefined;
       selfLabels.set([]);
       threadGate.set('everybody');
-      $isPublishInstantFloat = false;
       postsPool = [{}];
       currentPost = 0;
       writes = [];
@@ -718,17 +731,14 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if (isMobile ? isFocus && isMobilePopState : isFocus)}
-  <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} aria-label="投稿ウィンドウを閉じる" onclick={onClose} class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}>
+{#if (isMobile ? publishState.show && isMobilePopState : publishState.show)}
+  <button class="only-mobile publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} aria-label="投稿ウィンドウを閉じる" onclick={() => {onClose(true)}}>
     <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
       <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
     </svg>
   </button>
 {:else}
-  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く"
-          class:publish-sp-open--left={$settings.design?.publishPosition === 'left'}
-          class:publish-sp-open--hidden={$isChatColumnFront}
-          onclick={handleOpen}>
+  <button class="only-mobile publish-sp-open" aria-label="投稿ウィンドウを開く" class:publish-sp-open--hidden={$isChatColumnFront} onclick={handleOpen}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
       <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="var(--bg-color-1)"/>
     </svg>
@@ -736,13 +746,18 @@
 {/if}
 
 <section class="publish-group"
-         class:publish-group--expanded={isMobile ? isFocus && isMobilePopState : isFocus}
-         class:publish-group--left={$settings.design?.publishPosition === 'left'}
-         class:publish-group--bottom={$settings.design?.publishPosition === 'bottom'}
+         class:publish-group--expanded={isMobile ? publishState.show && isMobilePopState : publishState.show}
+         class:publish-group--left={publishState.layout === 'left'}
+         class:publish-group--bottom={publishState.layout === 'bottom'}
+         class:publish-group--popup={publishState.layout === 'popup'}
          class:vk-publish-group={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
-         use:clickOutside={{ignoreElement: '.publish-sp-open'}}
+         use:clickOutside={{ignoreElement: '.publish-sp-open, .side-publish-button'}}
          onoutclick={handleOutClick}
 >
+  {#if (publishState.layout === 'popup')}
+    <div class="publish-bg-close" onclick={onClose}></div>
+  {/if}
+
   <div class="publish-wrap">
     <div class="publish-buttons">
       {#if (!isEnabled)}
@@ -754,14 +769,21 @@
       <div class="publish-form-continue-mode">
         <div class="publish-form-continue-mode-input" class:checked={isContinueMode}>
           <input id="continue_mode" type="checkbox" bind:checked={isContinueMode}>
-          <label for="continue_mode">{$_('continuous_mode')}</label>
+          <label for="continue_mode">
+            {#if (isContinueMode)}
+              <Pin size="18"></Pin>
+            {:else}
+              <PinOff size="18"></PinOff>
+            {/if}
+            {$_('continuous_mode')}
+          </label>
         </div>
       </div>
 
       <button class="publish-form__submit" class:publish-form__submit--hide={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} onclick={publishAll} disabled={isEnabled}>{$_('publish_button_send')}</button>
 
       <button class="publish-form-sp-close" onclick={onClose}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <X color="var(--primary-color)"></X>
       </button>
     </div>
 
@@ -812,6 +834,7 @@
         align-items: center;
         justify-content: center;
         z-index: 2001;
+        pointer-events: auto;
 
         @media (max-width: 767px) {
             display: flex;
@@ -861,7 +884,7 @@
     }
 
     .publish-form-continue-mode {
-        margin-right: 20px;
+        margin-right: 16px;
 
         @media (max-width: 767px) {
             display: none;
@@ -870,11 +893,11 @@
 
     .publish-form-continue-mode-input {
         border: 1px solid var(--border-color-1);
-        color: var(--text-color-3);
-        padding: 0 10px;
+        color: var(--border-color-1);
+        padding: 0 12px;
         font-size: 14px;
         height: 30px;
-        border-radius: 4px;
+        border-radius: 15px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -884,6 +907,10 @@
 
         label {
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
 
             &::before {
                 content: '';
@@ -895,22 +922,10 @@
             }
         }
 
-        &::before {
-            content: '';
-            display: block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: var(--border-color-1);
-        }
-
         &.checked {
             border-color: var(--primary-color);
             color: var(--primary-color);
-
-            &::before {
-                background-color: var(--primary-color);
-            }
+            font-weight: bold;
         }
     }
 
@@ -1016,6 +1031,17 @@
             @media (max-width: 767px) {
                 padding-bottom: 86px;
             }
+        }
+    }
+
+    .publish-bg-close {
+        position: fixed;
+        inset: 0;
+        cursor: pointer;
+        z-index: -1;
+
+        @media (max-width: 767px) {
+            display: none;
         }
     }
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {isPublishInstantFloat, sideState} from "$lib/stores";
   import {postState} from "$lib/classes/postState.svelte";
+  import {publishState} from "$lib/classes/publishState.svelte";
   interface Props {
     post: any;
     embeddingDisabled?: boolean;
@@ -11,8 +11,7 @@
   function handleClick() {
       postState.quote = post;
       postState.quotePulse = Symbol();
-      $sideState = 'publish';
-      $isPublishInstantFloat = true;
+      publishState.show = true;
   }
 </script>
 

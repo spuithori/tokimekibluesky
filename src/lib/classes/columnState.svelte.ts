@@ -50,6 +50,10 @@ export class ColumnState {
         this.columns = this.columns.filter(column => column.id !== id);
     }
 
+    removeAll() {
+        this.columns = [];
+    }
+
     getColumn(index: number) {
         return this.columns[index];
     }

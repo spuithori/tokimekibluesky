@@ -1,9 +1,7 @@
 <script lang="ts">
   import {settings} from '$lib/stores';
   import {_} from "svelte-i18n";
-  import {createEventDispatcher} from "svelte";
   import LabelDetailModal from "$lib/components/post/LabelDetailModal.svelte";
-  const dispatch = createEventDispatcher();
 
   interface Props {
     labels: any;
@@ -19,7 +17,6 @@
   }
 
   function handleClick() {
-      // dispatch('visible');
       isVisible = true;
   }
 

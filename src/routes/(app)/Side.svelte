@@ -2,48 +2,24 @@
   import SideBar from "$lib/components/side/SideBar.svelte";
   import SideNav from "$lib/components/side/SideNav.svelte";
   import Publish from "./Publish.svelte";
-  import Notification from "./Notification.svelte";
-  import {isPublishInstantFloat, settings, sideState} from "$lib/stores";
-  import SideProfile from "$lib/components/side/SideProfile.svelte";
-  import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
-  import SideChat from "$lib/components/side/SideChat.svelte";
+  import { settings } from "$lib/stores";
+  import { publishState } from "$lib/classes/publishState.svelte";
 </script>
 
 <div
     class="side"
     class:side--single={$settings.design?.layout !== 'decks'}
-    class:side--hidden={$settings.design?.publishPosition !== 'left'}
-    class:side--float={$isPublishInstantFloat}
+    class:side--hidden={publishState.isBottom}
 >
   <SideBar></SideBar>
 
   <div class="side-main">
-    {#if $settings.design?.publishPosition !== 'bottom'}
+    {#if publishState.isSideShown}
       <SideNav></SideNav>
     {/if}
 
-    <div class="side-content side-content--{$sideState}">
-      <div class="side-content-publish" class:side-content-publish--visible={$sideState === 'publish' || $settings.design?.publishPosition === 'bottom'}>
-        <Publish></Publish>
-      </div>
-
-      {#if ($sideState === 'notification' && $settings.design?.publishPosition !== 'bottom')}
-        <div class="side-notification">
-          <Notification isPage={true}></Notification>
-        </div>
-      {/if}
-
-      {#if ($sideState === 'profile' && $settings.design?.publishPosition !== 'bottom')}
-        <SideProfile></SideProfile>
-      {/if}
-
-      {#if ($sideState === 'feeds' && $settings.design?.publishPosition !== 'bottom')}
-        <SideMyFeeds></SideMyFeeds>
-      {/if}
-
-      {#if ($sideState === 'chat' && $settings.design?.publishPosition !== 'bottom')}
-        <SideChat></SideChat>
-      {/if}
+    <div class="side-content">
+      <Publish></Publish>
     </div>
   </div>
 </div>
@@ -59,9 +35,8 @@
       top: 0;
       bottom: 0;
       left: 0;
-      z-index: 1000;
+      z-index: 1002;
       background-color: var(--side-bg-color);
-      backdrop-filter: var(--side-backdrop-filter);
 
       @media (max-width: 767px) {
           position: static;
@@ -75,9 +50,9 @@
       &--single {
           position: sticky;
           height: 100dvh;
-          z-index: 1000;
 
           @media (max-width: 767px) {
+              position: static;
               grid-template-columns: 0;
               background-color: transparent;
               height: auto;
@@ -87,9 +62,8 @@
       }
 
       &--hidden {
+          padding-right: 0;
           grid-template-columns: 64px;
-          backdrop-filter: none;
-          padding: 0;
 
           @media (max-width: 767px) {
               grid-template-columns: 0;
@@ -155,7 +129,6 @@
       background-image: var(--nav-content-bg-image, none);
       border: var(--nav-content-border-width) solid var(--nav-content-border-color);
       flex: 1;
-      overflow-y: auto;
       max-height: calc(100svh - 60px);
       box-shadow: var(--side-box-shadow);
 
@@ -180,25 +153,5 @@
               border-radius: 0;
           }
       }
-  }
-
-  .side-content-publish {
-      display: none;
-      pointer-events: visible;
-      height: 100%;
-
-      @media (max-width: 767px) {
-          display: block;
-      }
-
-      &--visible {
-          display: block;
-      }
-  }
-
-  .side-notification {
-      padding: 16px;
-      overflow: auto;
-      max-height: calc(100svh - 62px);
   }
 </style>

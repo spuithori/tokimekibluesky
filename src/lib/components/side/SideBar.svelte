@@ -1,20 +1,14 @@
 <script lang="ts">
-    import {
-        agents,
-        currentTimeline,
-        settings,
-        isColumnModalOpen,
-        intersectingIndex
-    } from "$lib/stores";
+    import { agents, currentTimeline, settings, isColumnModalOpen, intersectingIndex } from "$lib/stores";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import {page} from '$app/stores';
-    import {Settings} from "lucide-svelte";
+    import {Home, Layers, Pen, PenOff, Settings, SquarePlus} from "lucide-svelte";
     import {iconMap} from "$lib/columnIcons";
-    import {_} from "svelte-i18n";
     import SideNav from "$lib/components/side/SideNav.svelte";
     import SideWorkspaceModal from "$lib/components/side/SideWorkspaceModal.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
+    import {publishState} from "$lib/classes/publishState.svelte";
 
     const columnState = getColumnState();
 
@@ -39,10 +33,6 @@
         }
     }
 
-    function handleMobileBarToggle() {
-        isMobileBarOpen = !isMobileBarOpen;
-    }
-
     function handleKeydown(event) {
         if ($page.url.pathname !== '/') {
             return false;
@@ -59,13 +49,13 @@
             }
         }
 
-        if (event.key === String('h') && isInactive) {
+        /* if (event.key === String('h') && isInactive) {
             if ($settings.design.publishPosition === 'left') {
                 $settings.design.publishPosition = 'bottom';
             } else {
                 $settings.design.publishPosition = 'left';
             }
-        }
+        } */
 
         columnState.columns.forEach((column, index) => {
             const i = index + 1;
@@ -79,7 +69,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="side-bar side-bar--{$settings.design?.publishPosition}" class:side-bar--sp-open={isMobileBarOpen} onclick={() => {isMobileBarOpen = false}} class:side-bar--scroll-down={scrollDirectionState.direction === 'down'}>
+<div class="side-bar side-bar--{publishState.layout}" class:side-bar--sp-open={isMobileBarOpen} onclick={() => {isMobileBarOpen = false}} class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--immersive-mode={$settings.design?.immersiveMode}>
   <div class="side-bar__list side-bar__top">
     {#if (!$settings.general?.hideWorkspaceButton)}
         <div class="side-workspace">
@@ -88,10 +78,22 @@
                     onclick={() => {isWorkspaceModalOpen = !isWorkspaceModalOpen}}
                     aria-label="ワークスペース一覧を開く"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layers"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+              <Layers size="20" color="var(--primary-color)"></Layers>
             </button>
         </div>
     {/if}
+
+    <button
+          class="side-publish-button"
+          onclick={() => {publishState.show = !publishState.show}}
+          aria-label="Publish Tab"
+    >
+      {#if (publishState.show)}
+        <PenOff color="var(--bar-primary-icon-color)"></PenOff>
+      {:else}
+        <Pen color="var(--bar-primary-icon-color)"></Pen>
+      {/if}
+    </button>
 
     {#if $page.url.pathname === '/'}
       {#if $agents.size > 0}
@@ -99,7 +101,7 @@
             class="side-bar-button"
             onclick={() => {$isColumnModalOpen = true}}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-primary-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-square"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+          <SquarePlus color="var(--bar-primary-icon-color)"></SquarePlus>
         </button>
       {/if}
 
@@ -131,13 +133,13 @@
           class="side-bar-button"
           href="/"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <Home color="var(--bar-bottom-icon-color)"></Home>
       </a>
     {/if}
   </div>
 
   <div class="side-bar__list side-bar__bottom">
-    {#if ($settings.design?.publishPosition !== 'left')}
+    {#if (publishState.isBottom)}
       <div class="side-bar__nav">
         <SideNav></SideNav>
       </div>
@@ -150,26 +152,6 @@
     <a class="side-bar-button only-mobile" href="/settings">
       <Settings color="var(--bar-bottom-icon-color)"></Settings>
     </a>
-
-    {#if ($settings.design?.layout === 'decks')}
-      <button class="side-bar-button only-pc" title="{$_('change_single_column_mode')}" onclick={() => {$settings.design.layout = 'default'}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rectangle-vertical"><rect width="12" height="20" x="6" y="2" rx="2"/></svg>
-      </button>
-    {:else}
-      <button class="side-bar-button only-pc" title="{$_('change_multi_column_mode')}" onclick={() => {$settings.design.layout = 'decks'}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-columns"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="12" x2="12" y1="3" y2="21"/></svg>
-      </button>
-    {/if}
-
-    {#if ($settings.design?.publishPosition !== 'left')}
-      <button class="side-bar-button only-pc" title="{$_('change_default_mode')}" onclick={() => {$settings.design.publishPosition = 'left'}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/></svg>
-      </button>
-    {:else}
-      <button class="side-bar-button only-pc" title="{$_('change_compact_mode')}" onclick={() => {$settings.design.publishPosition = 'bottom'}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bar-bottom-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-bottom"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="15" y2="15"/></svg>
-      </button>
-    {/if}
   </div>
 </div>
 
@@ -179,13 +161,13 @@
 
 <style lang="postcss">
   .side-bar {
-      padding-top: 4px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding-bottom: 8px;
+      padding: 4px 0 8px;
       overflow-y: auto;
       scrollbar-width: none;
+      transition: transform .2s ease-in-out, opacity .2s ease-in-out, visibility .2s ease-in-out;
 
       &::-webkit-scrollbar{
           display:none;
@@ -205,7 +187,6 @@
           padding: 0 4px 0 8px;
           width: 100vw;
           overflow-y: hidden;
-          transition: transform .2s ease-in-out, opacity .2s ease-in-out, visibility .2s ease-in-out;
       }
 
       &__list {
@@ -220,19 +201,6 @@
           }
       }
 
-      &--bottom {
-          position: sticky;
-          top: 0;
-          height: 100vh;
-          padding-top: 10px;
-
-          @media (max-width: 767px) {
-              position: fixed;
-              height: min-content;
-              padding: 0 8px;
-          }
-      }
-
       &--sp-open {
           @media (max-width: 767px) {
               display: none;
@@ -244,6 +212,15 @@
               opacity: 0;
               visibility: hidden;
               transform: translateY(-48px);
+          }
+      }
+
+      &--immersive-mode {
+          &.side-bar--scroll-down {
+              @media (min-width: 768px) {
+                  opacity: 0;
+                  visibility: hidden;
+              }
           }
       }
   }
@@ -348,6 +325,20 @@
       &:hover,
       &--active {
           transform: translateY(2px);
+      }
+  }
+
+  .side-publish-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 5px;
+      display: grid;
+      place-content: center;
+      background-color: var(--nav-content-bg-color);
+      margin-bottom: 6px;
+
+      @media (max-width: 767px) {
+          display: none;
       }
   }
 </style>

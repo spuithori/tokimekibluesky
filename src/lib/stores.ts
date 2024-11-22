@@ -57,7 +57,8 @@ const defaultSettings = {
         reactionMode: 'tokimeki',
         leftMode: false,
         disableProfilePopup: false,
-        hideSide: false,
+        immersiveMode: false,
+        singleWidth: 'medium',
     },
     timeline: {
         hideRepost: 'all',
@@ -174,10 +175,6 @@ export const profileStatus = writable<number>(0);
 export const isImageOpen = writable(false);
 
 export const isColumnModalOpen = writable(false);
-
-export const sideState = writable<'publish' | 'search' | 'notification' | 'profile' | 'settings' | 'none'>('publish');
-
-export const isPublishInstantFloat = writable(false);
 
 export const didHint = writable('');
 

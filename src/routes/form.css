@@ -103,7 +103,11 @@
 
 .radio-group {
     .radio {
-        margin-bottom: 10px;
+        margin-bottom: 8px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
     }
 }
 
@@ -163,11 +167,40 @@
             bottom: 0;
             right: 0;
             margin: auto;
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             background-color: var(--primary-color);
             visibility: hidden;
+        }
+    }
+
+    &--boxed {
+        input {
+            &:checked {
+                & + label {
+                    background-color: var(--primary-color);
+                    color: var(--bg-color-1);
+                    font-weight: bold;
+                }
+            }
+        }
+
+        label {
+            background-color: var(--bg-color-2);
+            width: 100%;
+            padding: 8px;
+            border-radius: var(--border-radius-2);
+
+            &:hover {
+                background-color: var(--bg-color-3);
+            }
+        }
+
+        .radio__ui {
+            &::before {
+                background-color: var(--bg-color-1);
+            }
         }
     }
 }
