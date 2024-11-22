@@ -32,7 +32,10 @@ async function resume(account) {
         .catch(error => {
             console.log(error);
 
-            if (error.message === 'Failed to fetch') {
+            if (error.message === 'Token has expired') {
+                _missingAccounts = [..._missingAccounts, account];
+                missingAccounts.set(_missingAccounts);
+            } else {
                 console.log('Connection failed. Try resumeSession 3 seconds.');
                 setTimeout(() => {
                     resume(account);
@@ -40,9 +43,6 @@ async function resume(account) {
 
                 return;
             }
-
-            _missingAccounts = [..._missingAccounts, account];
-            missingAccounts.set(_missingAccounts);
         });
 
     return {

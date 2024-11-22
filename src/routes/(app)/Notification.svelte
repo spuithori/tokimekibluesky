@@ -193,7 +193,7 @@
     }
 </script>
 
-<div class="notifications-wrap">
+<div class="notifications-wrap" class:notifications-wrap--side={isPage}>
     {#if (isPage)}
         <div class="notifications-menu">
             <ul class="notifications-filter-list">
@@ -311,6 +311,10 @@
       height: 100%;
       display: flex;
       flex-direction: column;
+
+      &--side {
+          padding: 16px;
+      }
   }
 
   .notifications-list {

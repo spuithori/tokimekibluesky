@@ -327,10 +327,6 @@
     color: var(--timeline-user-color);
 }
 
-.timeline__image {
-
-}
-
 .timeline__column {
     display: grid;
     grid-template-columns: 56px 1fr;
@@ -748,10 +744,6 @@
     }
 }
 
-.timeline-tooltip {
-
-}
-
 .timeline-warn-wrap {
     position: relative;
 
@@ -830,11 +822,6 @@
     @media (max-width: 767px) {
         left: 24px;
     }
-}
-
-.sample-post {
-    pointer-events: none;
-    margin-bottom: 20px;
 }
 
 .sticky {
@@ -1022,18 +1009,6 @@
 
     .timeline-reaction {
         margin-left: 0;
-    }
-}
-
-.deck {
-    .timeline {
-        @media (max-width: 767px) {
-            margin: 0;
-        }
-    }
-
-    .style-nav {
-
     }
 }
 

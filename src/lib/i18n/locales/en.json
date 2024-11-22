@@ -193,7 +193,7 @@
   "folding": "Folding",
   "one_image_no_crop": "No cropping when there is only one image",
   "layout": "Layout",
-  "decks": "DECKS",
+  "decks": "Deck",
   "column_settings": "Columns settings",
   "active_columns": "Active Columns",
   "inactive_columns": "Inactive Columns",
@@ -648,5 +648,13 @@
   "tag_instant_mute": "Add to Keyword Mute",
   "success_mute_tag": "{tag} added to keyword mute.",
   "atmosphere_short_desc_pinksea": "Draw",
-  "disable_profile_popup": "Disable profile popup"
+  "disable_profile_popup": "Disable profile popup",
+  "publish_position": "✨ Publish layout",
+  "publish_position_left": "Sidebar",
+  "publish_position_bottom": "Bottom",
+  "publish_position_popup": "Popup",
+  "immersive_mode": "Immersive",
+  "profile": "Profile",
+  "refresher": "Refresh (All)",
+  "scroll-top": "Scroll Top"
 }

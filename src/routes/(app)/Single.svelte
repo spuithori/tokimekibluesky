@@ -4,6 +4,7 @@
     import DeckRow from "./DeckRow.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {publishState} from "$lib/classes/publishState.svelte";
 
     const columnState = getColumnState();
     let unique = Symbol();
@@ -32,7 +33,7 @@
     }
 </script>
 
-<div class="single-wrap" class:single-wrap--page={$page.url.pathname !== '/'} class:single-wrap--bottom={$settings.design?.publishPosition === 'bottom'}>
+<div class="single-wrap" class:single-wrap--page={$page.url.pathname !== '/'} class:single-wrap--bottom={publishState.isBottom}>
   <div class="single-timeline-wrap">
     {#key $currentTimeline}
       {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
@@ -51,6 +52,12 @@
         border-right: 1px solid var(--border-color-2);
         min-height: 100vh;
         background-color: var(--bg-color-1);
+        width: var(--single-m-width);
+        max-width: 100%;
+
+        @media (max-width: 767px) {
+            width: 100vw;
+        }
 
         &--page {
             position: fixed;
@@ -60,7 +67,6 @@
             right: 0;
             margin: auto;
             min-height: 100dvh;
-            max-width: 528px;
 
             @media (max-width: 767px) {
                 left: 0;
@@ -68,8 +74,11 @@
         }
 
         &--bottom {
-            left: 70px;
-            max-width: 626px;
+            left: 64px;
+
+            @media (max-width: 767px) {
+                left: 0;
+            }
         }
     }
 </style>

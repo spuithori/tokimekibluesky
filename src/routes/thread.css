@@ -3,23 +3,6 @@
     flex-direction: column;
 }
 
-.compact {
-    .thread-item {
-        --bar-position: 22px;
-        --bar-transform: 10px;
-        --bar-position-current: 38px;
-    }
-}
-
-.minimum {
-    .thread-item {
-        &::before,
-        &::after {
-            content: none !important;
-        }
-    }
-}
-
 .thread-item {
     --bar-position: 27px;
     --bar-transform: 16px;
@@ -28,6 +11,19 @@
     @media (max-width: 767px) {
         --bar-position: 23px;
         --bar-position-current: 39px;
+    }
+
+    &--compact {
+        --bar-position: 22px;
+        --bar-transform: 10px;
+        --bar-position-current: 38px;
+    }
+
+    &--minimum {
+        &::before,
+        &::after {
+            content: none !important;
+        }
     }
 
     &.has-child {

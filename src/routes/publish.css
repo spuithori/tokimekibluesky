@@ -1,11 +1,3 @@
-.sidebar {
-    .filepond--item {
-        @media (min-width: 768px) {
-            width: calc(50% - 0.5em);
-        }
-    }
-}
-
 .publish-group {
     position: fixed;
     left: 0;
@@ -16,7 +8,7 @@
     @media (max-width: 767px) {
         overflow: auto;
         overscroll-behavior: none;
-        z-index: 2000;
+        pointer-events: auto;
     }
 
     &--expanded {
@@ -40,13 +32,14 @@
             z-index: 100;
             position: static;
             height: 100%;
+            overflow-x: hidden;
 
             .publish-wrap {
                 display: flex;
                 flex-direction: column;
                 width: auto;
                 border-top: none;
-                padding: 16px;
+                padding: 12px 16px;
                 background-color: transparent;
                 background-image: none;
             }
@@ -66,6 +59,42 @@
             .publish-alt-text-button {
                 position: static;
                 width: 100%;
+            }
+        }
+    }
+
+    &--popup {
+        @media (min-width: 768px) {
+            top: 0;
+            background-color: rgba(0, 0, 0, .5);
+            place-content: center;
+            padding: 16px;
+            display: none;
+
+            &.publish-group--expanded {
+                display: grid;
+            }
+
+            .publish-wrap {
+                display: block;
+                width: 600px;
+                padding: 16px;
+                border-radius: var(--border-radius-4);
+                overflow-x: hidden;
+            }
+        }
+    }
+
+    &--bottom {
+        @media (min-width: 768px) {
+            .publish-item-wrap {
+                max-width: 740px;
+                width: 100%;
+                margin: 0 auto;
+            }
+
+            .tiptap {
+                height: 120px;
             }
         }
     }
@@ -141,16 +170,6 @@
     }
 }
 
-.publish-form-scrollable {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-
-    @media (max-width: 767px) {
-        overflow-y: auto;
-    }
-}
-
 .publish-form__input {
     background-color: var(--publish-textarea-bg-color);
     color: var(--publish-textarea-color);
@@ -207,9 +226,14 @@
     }
 }
 
-.filepond--drop-label label {
-    font-size: 14px;
-    color: var(--text-color-3);
+.publish-form-scrollable {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    @media (max-width: 767px) {
+        overflow-y: auto;
+    }
 }
 
 .publish-upload-close {
@@ -220,18 +244,6 @@
 
     @media (max-width: 767px) {
         display: none;
-    }
-}
-
-.filepond--browser {
-    @media (max-width: 767px) {
-        pointer-events: none;
-    }
-}
-
-.filepond--drop-label {
-    @media (max-width: 767px) {
-        pointer-events: none;
     }
 }
 
@@ -264,35 +276,11 @@
     height: 30px;
     border-radius: 4px;
 }
+
 .publish-form-moderation {
     &--active {
         .publish-form-moderation-button {
             color: var(--danger-color);
-        }
-    }
-}
-
-.publish-position-switcher {
-    display: flex;
-    position: absolute;
-    top: 10px;
-    left: 10px;
-
-    @media (max-width: 767px) {
-        display: none;
-    }
-
-    &__button {
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 30px;
-        height: 30px;
-        transition: .2s all ease-in-out;
-
-        &:hover {
-            background-color: var(--border-color-1);
         }
     }
 }
@@ -309,10 +297,8 @@
         left: 0;
         top: 40px;
     }
-}
 
-.sidebar {
-    .emoji-picker-wrap {
+    &--sidebar {
         bottom: auto;
         left: 0;
         right: 0;
@@ -320,6 +306,14 @@
 
         em-emoji-picker {
             width: 100%;
+        }
+    }
+
+    &--popup {
+        em-emoji-picker {
+            width: 400px;
+            max-width: 90vw;
+            height: 300px;
         }
     }
 }
@@ -359,30 +353,12 @@
     }
 }
 
-.bottom {
-    .chat-editor {
-        .tiptap {
-            height: auto;
-        }
-    }
-}
-
 .editor-mention {
     color: var(--primary-color);
 }
 
 .editor-hashtag {
     color: var(--primary-color);
-}
-
-.publish-form--expand {
-    .editor {
-        flex: 1;
-    }
-
-    .tiptap {
-        height: 100%;
-    }
 }
 
 .editor-link {
@@ -447,14 +423,6 @@
                     bottom: 0 !important;
                 }
             }
-        }
-    }
-}
-
-.publish-group--bottom {
-    .publish-bottom-buttons {
-        @media (min-width: 768px) {
-            position: relative !important;
         }
     }
 }

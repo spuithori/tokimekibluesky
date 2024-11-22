@@ -1,6 +1,7 @@
 <script lang="ts">
   import {settings} from '$lib/stores';
   import {goto} from '$app/navigation';
+  import {publishState} from "$lib/classes/publishState.svelte";
 
   interface Props {
     isVirtual?: boolean;
@@ -26,7 +27,7 @@
 
 <svelte:window onkeydown={handleKeydown}></svelte:window>
 
-<div class="modal-page modal-page--{$settings.design?.layout}">
+<div class="modal-page modal-page--{$settings.design?.layout}" class:modal-page--side={publishState.isSideShown}>
   <div class="modal-page-content" class:modal-page-content--virtual={isVirtual}>
     {@render children?.()}
   </div>
@@ -45,5 +46,15 @@
       right: 0;
       width: 100%;
       height: 100%;
+  }
+
+  .modal-page {
+      &--default {
+          width: var(--single-m-width);
+
+          @media (max-width: 767px) {
+              width: 100vw;
+          }
+      }
   }
 </style>

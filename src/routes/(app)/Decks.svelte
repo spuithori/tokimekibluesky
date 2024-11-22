@@ -4,18 +4,16 @@
     import {_} from "svelte-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {publishState} from "$lib/classes/publishState.svelte";
     let unique = Symbol();
     const columnState = getColumnState();
 </script>
 
 <div class="deck-wrap">
-  <div class="deck-divider"></div>
+  <div class="deck-divider" class:deck-divider--compact={publishState.isBottom}></div>
 
   {#if columnState.columns.length}
-    <div class="deck"
-         class:deck--left-sidebar={$settings.design?.publishPosition === 'left'}
-         class:deck--bottom={$settings.design?.publishPosition === 'bottom'}
-    >
+    <div class="deck">
       {#each columnState.columns as column, index (column.id)}
         {#if !column?.settings?.isPopup}
           <DeckRow {column} {index} {unique}></DeckRow>
@@ -42,12 +40,23 @@
       display: flex;
   }
 
+  .deck-divider {
+      width: var(--deck-divider-width);
+      flex-shrink: 0;
+
+      @media (max-width: 767px) {
+          display: none;
+      }
+
+      &--compact {
+          width: 64px;
+      }
+  }
+
   .deck {
-      left: 0;
-      bottom: 0;
       display: flex;
       gap: var(--decks-gap);
-      overflow-x: auto;
+      overflow-y: hidden;
       padding: var(--decks-padding) 0;
       margin: var(--decks-margin) var(--decks-margin) var(--decks-margin) 0;
       height: calc(100dvh - var(--decks-margin, 0px) * 2);
@@ -56,12 +65,7 @@
       border-radius: var(--decks-border-radius, 0);
       border-left: var(--decks-border-left, 0);
 
-      @media (max-width: 767px) {
-          border-left: none;
-      }
-
       &::-webkit-scrollbar {
-          /* display: none; */
           height: 8px;
 
           @media (max-width: 767px) {
@@ -81,22 +85,9 @@
           scroll-snap-type: x mandatory;
           top: 85px;
           padding: 0;
-          height: calc(100dvh);
+          height: 100dvh;
           margin: 0;
-      }
-
-      &--left-sidebar {
-          @media (min-width: 768px) {
-              left: 360px;
-              /* width: calc(100vw - 360px); */
-              height: calc(100dvh - var(--decks-margin) * 2);
-              z-index: auto;
-              position: static;
-          }
-      }
-
-      &--bottom {
-
+          border-left: none;
       }
   }
 

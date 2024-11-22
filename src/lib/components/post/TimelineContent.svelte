@@ -25,7 +25,7 @@
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
-  import {onDestroy} from "svelte";
+  import {onDestroy, untrack} from "svelte";
 
   interface Props {
       post: any;
@@ -61,7 +61,7 @@
   let timeDistanceToNow = $state(formatDistanceToNow(parseISO(post.indexedAt)));
 
   const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
-  const contentContext = isSingle || isProfile
+  const contentContext = isSingle
       ? 'contentView'
       : 'contentList';
 
@@ -129,14 +129,16 @@
           return false;
       }
 
-      try {
-        translatedRecord = await formatTranslateRecord(post.record.text, $settings.general?.userLanguage, _agent, post.record);
-      } catch (e) {
-        toast.error('Translate error.')
-      }
+      await untrack(async () => {
+          try {
+              translatedRecord = await formatTranslateRecord(post.record.text, $settings.general?.userLanguage, _agent, post.record);
+          } catch (e) {
+              toast.error('Translate error.')
+          }
 
-      isTranslated = true;
-      pulseTranslate = false;
+          isTranslated = true;
+          pulseTranslate = false;
+      })
   }
 
   function handleTimer(e) {

@@ -193,7 +193,7 @@
   "folding": "折りたたむ",
   "one_image_no_crop": "画像が1枚のとき、トリミングしない",
   "layout": "レイアウト",
-  "decks": "DECKS",
+  "decks": "デック",
   "column_settings": "カラムの追加と管理",
   "active_columns": "現在のカラム",
   "inactive_columns": "非アクティブなカラム",
@@ -648,5 +648,13 @@
   "tag_instant_mute": "キーワードミュートに追加",
   "success_mute_tag": "{tag} をキーワードミュートに追加しました。",
   "atmosphere_short_desc_pinksea": "おえかき",
-  "disable_profile_popup": "プロフィールのポップアップを無効化"
+  "disable_profile_popup": "プロフィールのポップアップを無効化",
+  "publish_position": "✨ 投稿のレイアウト",
+  "publish_position_left": "サイドバー",
+  "publish_position_bottom": "ボトム",
+  "publish_position_popup": "ポップアップ",
+  "immersive_mode": "集中モード",
+  "profile": "プロフィール",
+  "refresher": "すべて更新",
+  "scroll-top": "上にスクロール"
 }

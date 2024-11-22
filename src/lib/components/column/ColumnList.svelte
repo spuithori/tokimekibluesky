@@ -100,11 +100,11 @@
             gap: 10px;
             align-items: center;
             padding: 6px 10px 6px 40px;
-            box-shadow: 0 0 10px var(--box-shadow-color-1);
             border-radius: 6px;
             font-weight: bold;
             background-color: var(--bg-color-1);
             cursor: default;
+            border: 2px solid var(--border-color-1);
         }
 
         &__content {

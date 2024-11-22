@@ -39,7 +39,6 @@
         z-index: 21;
         gap: 5px;
         border-radius: 0 0 var(--border-radius-3) var(--border-radius-3);
-        position: sticky;
         bottom: 0;
         background: linear-gradient(to top, var(--publish-textarea-bg-color) 0%, var(--publish-textarea-bg-color) 80%, transparent);
 
