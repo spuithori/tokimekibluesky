@@ -70,7 +70,10 @@
     function handleColumnAdd(event) {
         try {
             let addedColumn = structuredClone($state.snapshot(event.detail.column));
-            columns.add(addedColumn);
+            columns.add({
+                ...addedColumn,
+                id: self.crypto.randomUUID(),
+            });
 
             toast.success($_('column_add_success'));
             // save(false);
