@@ -26,7 +26,6 @@
 
   let _agent = $state($agent);
   let editor = $state();
-  let isContinueMode = $state(false);
   let isDraftModalOpen = $state(false);
   let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
   let isVirtualKeyboard = $state(false);
@@ -159,7 +158,7 @@
   }
 
   function handleOutClick() {
-      if (isContinueMode || publishState.layout !== 'bottom') {
+      if (publishState.pinned || publishState.layout !== 'bottom') {
           return false;
       }
 
@@ -176,7 +175,7 @@
               ...postsPool[currentPost],
           }));
 
-          if (!isContinueMode) {
+          if (!publishState.pinned) {
               publishState.show = false;
           }
           editor.clear();
@@ -366,7 +365,7 @@
       }
 
       isEnabled = false;
-      if (!isContinueMode) {
+      if (!publishState.pinned) {
           onClose();
       }
       editor.clear();
@@ -380,7 +379,7 @@
       tid = undefined;
       unique = Symbol();
 
-      if (isContinueMode) {
+      if (publishState.pinned) {
           await tick();
           editor.focus();
       }
@@ -763,15 +762,14 @@
       {/if}
 
       <div class="publish-form-continue-mode">
-        <div class="publish-form-continue-mode-input" class:checked={isContinueMode}>
-          <input id="continue_mode" type="checkbox" bind:checked={isContinueMode}>
+        <div class="publish-form-continue-mode-input" class:checked={publishState.pinned}>
+          <input id="continue_mode" type="checkbox" bind:checked={publishState.pinned} aria-label="{$_('continuous_mode')}">
           <label for="continue_mode">
-            {#if (isContinueMode)}
+            {#if (publishState.pinned)}
               <Pin size="18"></Pin>
             {:else}
               <PinOff size="18"></PinOff>
             {/if}
-            {$_('continuous_mode')}
           </label>
         </div>
       </div>
@@ -888,9 +886,10 @@
     }
 
     .publish-form-continue-mode-input {
-        border: 1px solid var(--border-color-1);
-        color: var(--border-color-1);
-        padding: 0 12px;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        opacity: .6;
+        padding: 0 6px;
         font-size: 14px;
         height: 30px;
         border-radius: 15px;
@@ -900,6 +899,10 @@
         gap: 4px;
         cursor: pointer;
         position: relative;
+
+        input {
+            position: absolute;
+        }
 
         label {
             cursor: pointer;
@@ -919,8 +922,7 @@
         }
 
         &.checked {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
+            opacity: 1;
             font-weight: bold;
         }
     }
