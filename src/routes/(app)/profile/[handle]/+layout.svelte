@@ -269,7 +269,7 @@
     .profile-tab {
         position: sticky;
         top: 52px;
-        z-index: 1;
+        z-index: 2;
         background-color: var(--bg-color-1);
     }
 </style>
