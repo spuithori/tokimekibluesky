@@ -53,46 +53,56 @@
     class:timeline-external--tenor={getTenorUrl(external.uri) && $settings?.embed?.tenor}
   >
     {#if ($settings?.design.externalLayout !== 'compact')}
+      {#if (getYouTubeUrl(external.uri) && $settings?.embed?.youtube)}
+        <div class="timeline-external__image">
+          <YouTube youTubeId={getYouTubeUrl(external.uri)}></YouTube>
+        </div>
+      {:else if (getSpotifyUri(external.uri) && $settings?.embed?.spotify)}
+        <div class="timeline-external__image">
+          <Spotify spotifyLink={getSpotifyUri(external.uri)} height="152px" width="100%"></Spotify>
+        </div>
+      {:else if (getBluemotionUrl(external.uri) && $settings?.embed?.bluemotion)}
+        <div class="timeline-external__image">
+          <div class="timeline-bluemotion-external">
+            <iframe
+                    src="https://www.bluemotion.app/embed{getBluemotionUrl(external.uri)}"
+                    title="Bluemotion video player"
+                    loading="lazy"
+                    frameBorder="0"
+            ></iframe>
+          </div>
+        </div>
+      {:else if (getTenorUrl(external.uri) && $settings?.embed?.tenor)}
+        <div class="timeline-external__image">
+          <div class="timeline-tenor-external">
+            <EmbedTenor tenor={getTenorUrl(external.uri)}></EmbedTenor>
+          </div>
+        </div>
+      {:else if (getGiphyId(external.uri) && $settings?.embed?.giphy)}
+        {#await getGiphyId(external.uri)}
+        {:then gif}
+          <div class="timeline-external__image">
+            <div class="timeline-giphy-external">
+              <a href="{external.uri}" target="_blank" rel="noopener nofollow noreferrer">
+                <Gif {gif} width={'100%'} borderRadius={0}></Gif>
+              </a>
+
+              <div class="timeline-giphy-external__logo">
+                <a href="https://giphy.com/" target="_blank" rel="nofollow">
+                  <img src="/giphy-logo.png" alt="Powered by GIPHY">
+                </a>
+              </div>
+            </div>
+          </div>
+        {:catch error}
+        {/await}
+      {:else}
         {#if (external.thumb)}
           <div class="timeline-external__image">
-          {#if (getYouTubeUrl(external.uri) && $settings?.embed?.youtube)}
-            <YouTube youTubeId={getYouTubeUrl(external.uri)}></YouTube>
-          {:else if (getSpotifyUri(external.uri) && $settings?.embed?.spotify)}
-            <Spotify spotifyLink={getSpotifyUri(external.uri)} height="152px" width="100%"></Spotify>
-          {:else if (getBluemotionUrl(external.uri) && $settings?.embed?.bluemotion)}
-            <div class="timeline-bluemotion-external">
-              <iframe
-                  src="https://www.bluemotion.app/embed{getBluemotionUrl(external.uri)}"
-                  title="Bluemotion video player"
-                  loading="lazy"
-                  frameBorder="0"
-              ></iframe>
-            </div>
-          {:else if (getTenorUrl(external.uri) && $settings?.embed?.tenor)}
-            <div class="timeline-tenor-external">
-              <EmbedTenor tenor={getTenorUrl(external.uri)}></EmbedTenor>
-            </div>
-          {:else if (getGiphyId(external.uri) && $settings?.embed?.giphy)}
-            {#await getGiphyId(external.uri)}
-            {:then gif}
-              <div class="timeline-giphy-external">
-                <a href="{external.uri}" target="_blank" rel="noopener nofollow noreferrer">
-                  <Gif {gif} width={'100%'} borderRadius={0}></Gif>
-                </a>
-
-                <div class="timeline-giphy-external__logo">
-                  <a href="https://giphy.com/" target="_blank" rel="nofollow">
-                    <img src="/giphy-logo.png" alt="Powered by GIPHY">
-                  </a>
-                </div>
-              </div>
-            {:catch error}
-            {/await}
-          {:else}
             <img src="{external.thumb}" alt="">
-          {/if}
           </div>
         {/if}
+      {/if}
     {/if}
 
     <div class="timeline-external__content">
