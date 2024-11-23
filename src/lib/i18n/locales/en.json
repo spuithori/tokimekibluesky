@@ -656,5 +656,6 @@
   "immersive_mode": "Immersive",
   "profile": "Profile",
   "refresher": "Refresh (All)",
-  "scroll-top": "Scroll Top"
+  "scroll-top": "Scroll Top",
+  "fixed_footer": "Footer fixed"
 }

@@ -59,6 +59,7 @@ const defaultSettings = {
         disableProfilePopup: false,
         immersiveMode: false,
         singleWidth: 'medium',
+        fixedFooter: false,
     },
     timeline: {
         hideRepost: 'all',

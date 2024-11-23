@@ -65,6 +65,18 @@
 
 <dialog class="side-menu" class:side-menu--bottom={publishState.isBottom} transition:fly="{{ y: 16, duration: 250 }}" bind:this={el} onclose={onclose} onclick={handleClick} use:floatingContent>
   <div class="side-menu-row">
+    <dl class="settings-group settings-group--column only-mobile">
+      <dt class="settings-group__name">
+        {$_('fixed_footer')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="fixedFooter" bind:checked={$settings.design.fixedFooter}><label class="input-toggle__label" for="fixedFooter"></label>
+        </div>
+      </dd>
+    </dl>
+
     <ul class="side-items-list">
       {#each ALL_ITEMS as item}
         <li class="side-items-list__item">

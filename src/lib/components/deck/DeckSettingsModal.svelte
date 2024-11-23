@@ -380,7 +380,7 @@
                 {/if}
 
                 {#if (!column.settings?.isPopup)}
-                    <dl class="settings-group">
+                    <dl class="settings-group only-pc">
                         <dt class="settings-group__name">
                             {$_('column_width')}
                         </dt>

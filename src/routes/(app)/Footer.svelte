@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { isChatColumnFront } from "$lib/stores";
+  import { isChatColumnFront, settings } from "$lib/stores";
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import {fly} from 'svelte/transition';
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
@@ -14,7 +14,7 @@
 
 <svelte:window onpopstate={handlePopstate} />
 
-<footer class="footer" class:footer--hidden={$isChatColumnFront} class:footer--scroll-down={scrollDirectionState.direction === 'down'}>
+<footer class="footer" class:footer--hidden={$isChatColumnFront} class:footer--scroll-down={scrollDirectionState.direction === 'down'} class:footer--fixed={$settings.design?.fixedFooter}>
   <div class="footer__wrap">
     <SideNav footer={true}></SideNav>
   </div>
@@ -32,7 +32,7 @@
   </div>
 {/if}
 
-<div class="footer-round" class:footer-round--scroll-down={scrollDirectionState.direction === 'down'}></div>
+<div class="footer-round" class:footer-round--scroll-down={scrollDirectionState.direction === 'down'} class:footer-round--fixed={$settings.design?.fixedFooter}></div>
 
 <style lang="postcss">
   .footer {
@@ -84,6 +84,10 @@
       &--scroll-down {
           @media (max-width: 767px) {
               transform: translateY(calc(70px + var(--safe-area-bottom)));
+
+              &.footer--fixed {
+                  transform: none;
+              }
           }
       }
   }
@@ -111,6 +115,10 @@
       &--scroll-down {
           @media (max-width: 767px) {
               transform: scale(.7);
+
+              &.footer-round--fixed {
+                  transform: none;
+              }
           }
       }
   }
