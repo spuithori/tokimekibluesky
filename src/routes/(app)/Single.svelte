@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, currentTimeline, settings} from '$lib/stores';
+    import {agent, currentTimeline} from '$lib/stores';
     import {page} from '$app/stores';
     import DeckRow from "./DeckRow.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
@@ -52,7 +52,7 @@
         border-right: 1px solid var(--border-color-2);
         min-height: 100vh;
         background-color: var(--bg-color-1);
-        width: var(--single-m-width);
+        width: var(--single-column-width, var(--single-m-width));
         max-width: 100%;
 
         @media (max-width: 767px) {

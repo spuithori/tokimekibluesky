@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import { currentTimeline } from "$lib/stores";
+    import { currentTimeline, settings } from "$lib/stores";
     import { languageMap } from "$lib/langs/languageMap";
     import { createEventDispatcher } from 'svelte';
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
@@ -255,10 +255,6 @@
     ];
 
     const autoScrollSpeedSettings = [
-        /* {
-            name: $_('auto_scroll_speed_auto'),
-            value: 'auto',
-        }, */
         {
             name: $_('auto_scroll_speed_slow'),
             value: 'slow',
@@ -392,9 +388,15 @@
                         <dd class="settings-group__content">
                             <div class="radio-v-group radio-v-group--dwidth">
                                 {#each widthSettings as option}
-                                    <div class="radio-v-group__item">
-                                        <input type="radio" id={column.id + option.value} bind:group={width} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
-                                    </div>
+                                    {#if ($settings.design?.layout === 'decks')}
+                                        <div class="radio-v-group__item">
+                                            <input type="radio" id={column.id + option.value} bind:group={width} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
+                                        </div>
+                                    {:else}
+                                        <div class="radio-v-group__item">
+                                            <input type="radio" id={column.id + option.value} bind:group={$settings.design.singleWidth} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
+                                        </div>
+                                    {/if}
                                 {/each}
                             </div>
                         </dd>
@@ -637,9 +639,11 @@
                     </a>
                 {/if}
 
-                <button class="deck-column-delete-button deck-column-delete-button--popup only-pc" onclick={popupColumn}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-picture-in-picture-2"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/></svg>{$_('popup_column')}
-                </button>
+                {#if ($settings.design?.layout === 'decks')}
+                    <button class="deck-column-delete-button deck-column-delete-button--popup only-pc" onclick={popupColumn}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-picture-in-picture-2"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/></svg>{$_('popup_column')}
+                    </button>
+                {/if}
 
                 <button class="deck-column-delete-button deck-column-delete-button--clear" onclick={clearColumn}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"

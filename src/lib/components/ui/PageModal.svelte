@@ -50,7 +50,7 @@
 
   .modal-page {
       &--default {
-          width: var(--single-m-width);
+          width: var(--single-column-width, var(--single-m-width));
 
           @media (max-width: 767px) {
               width: 100vw;

@@ -332,7 +332,7 @@
          class:layout-decks={$settings.design.layout === 'decks'}>
       <Side></Side>
 
-      <main class="main">
+      <main class="main main--scw-{$settings.design?.singleWidth}">
         {#if $settings.design.layout !== 'decks'}
           <Single></Single>
         {:else}
@@ -397,6 +397,34 @@
       display: flex;
       flex-direction: column;
       min-width: 0;
+
+      &--scw-xxs {
+          --single-column-width: var(--single-xxs-width);
+      }
+
+      &--scw-xs {
+          --single-column-width: var(--single-xs-width);
+      }
+
+      &--scw-small {
+          --single-column-width: var(--single-s-width);
+      }
+
+      &--scw-medium {
+          --single-column-width: var(--single-m-width);
+      }
+
+      &--scw-large {
+          --single-column-width: var(--single-l-width);
+      }
+
+      &--scw-xl {
+          --single-column-width: var(--single-xl-width);
+      }
+
+      &--scw-xxl {
+          --single-column-width: var(--single-xxl-width);
+      }
   }
 
   .single {
