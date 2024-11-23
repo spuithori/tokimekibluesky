@@ -10,7 +10,7 @@ class PublishState {
         this.layout = localStorage.getItem('layout') as Layout || 'left';
 
         if (this.layout === 'left') {
-            this.show = true;
+            // this.show = true;
         }
 
         $effect.root(() => {

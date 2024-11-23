@@ -102,10 +102,6 @@
   }
 
   function onClose(force: boolean = false) {
-      if (publishState.layout === 'left' && !force) {
-          return false;
-      }
-
       if (publishState.show) {
           postState.quotePulse = undefined;
           postState.replyPulse = undefined;
