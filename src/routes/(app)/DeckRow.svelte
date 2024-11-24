@@ -477,12 +477,15 @@
         background-color: var(--deck-content-bg-color);
         overflow-y: scroll;
         height: 100%;
-        scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
-        scrollbar-width: thin;
         backdrop-filter: var(--deck-content-backdrop-filter);
         border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
         transition: transform .3s cubic-bezier(0, 0, 0, 1);
         touch-action: initial !important;
+
+        @supports (-moz-appearance: none) {
+            scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+            scrollbar-width: thin;
+        }
 
         &::-webkit-scrollbar {
             width: 6px;
@@ -490,20 +493,19 @@
 
         &::-webkit-scrollbar-thumb {
             background: var(--scroll-bar-color);
-            border-radius: 6px;
         }
 
         &::-webkit-scrollbar-track {
             background: var(--scroll-bar-bg-color);
-            border-radius: 6px;
-            margin-top: 52px;
-
-            @media (max-width: 767px) {
-                margin-top: 98px;
-            }
+            margin-top: 51px;
+            margin-bottom: 1px;
+            border-radius: 0 0 var(--deck-border-radius) 0;
+            border-top: 1px solid var(--deck-border-color);
         }
 
         @media (max-width: 767px) {
+            scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+            scrollbar-width: thin;
             width: 100vw;
             scroll-snap-align: start;
             scroll-snap-stop: always;
