@@ -660,5 +660,6 @@
   "fixed_footer": "フッター固定",
   "bluecast": "Bluecast",
   "side_bluecast_title": "配信中のBluecast",
-  "bluecast_time_suffix": "前に開始"
+  "bluecast_time_suffix": "前に開始",
+  "bluecast_nothing": "現在はライブ配信がありません。"
 }

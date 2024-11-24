@@ -660,5 +660,6 @@
   "fixed_footer": "Footer fixed",
   "bluecast": "Bluecast",
   "side_bluecast_title": "Live now on Bluecast",
-  "bluecast_time_suffix": " ago"
+  "bluecast_time_suffix": " ago",
+  "bluecast_nothing": "There is no live at this time."
 }

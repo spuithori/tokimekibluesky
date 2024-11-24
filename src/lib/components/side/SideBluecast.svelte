@@ -42,6 +42,8 @@
           {/if}
         </div>
       </div>
+    {:else}
+      <p class="bluecast-nothing">{$_('bluecast_nothing')}</p>
     {/each}
   </div>
 </div>
@@ -155,5 +157,10 @@
             flex-wrap: wrap;
             margin-bottom: 4px;
         }
+    }
+
+    .bluecast-nothing {
+        margin-top: 16px;
+        color: var(--text-color-3);
     }
 </style>
