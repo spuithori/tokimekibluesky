@@ -1,6 +1,6 @@
 <script lang="ts">
   import { agent, settings } from '$lib/stores';
-  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp } from 'lucide-svelte';
+  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic } from 'lucide-svelte';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
@@ -11,11 +11,13 @@
   import {type SideItem, sideState} from "$lib/classes/sideState.svelte";
   import { goto } from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import SideBluecast from "$lib/components/side/SideBluecast.svelte";
 
   let { footer = false } = $props();
   let isFeedsModalOpen = $state(false);
   let isChatModalOpen = $state(false);
   let isNotificationModalOpen = $state(false);
+  let isBluecastModalOpen = $state(false);
   let isMenuOpen = $state(false);
   let refreshTimeout = $state(false);
   const columnState = getColumnState();
@@ -64,6 +66,10 @@
             } catch (e) {
                 // nothing.
             }
+            break;
+          case 'bluecast':
+              isBluecastModalOpen = !isBluecastModalOpen
+              break;
       }
   }
 
@@ -91,7 +97,7 @@
 <ul class="side-nav" class:side-nav--vertical={publishState.isBottom} class:side-nav--footer={footer}>
   {#each sideState.items as item}
     <li class="side-nav__item">
-      <button class="side-nav__button" onclick={() => {handleMenuAction(item)}}>
+      <button class="side-nav__button side-nav__button--{item}" onclick={() => {handleMenuAction(item)}}>
         {#if (item === 'feeds')}
           <GanttChartSquare color="var(--nav-secondary-icon-color)"></GanttChartSquare>
         {:else if (item === 'chat')}
@@ -106,6 +112,8 @@
           <RefreshCcw color={refreshTimeout ? 'var(--border-color-1)' : 'var(--nav-secondary-icon-color)'}></RefreshCcw>
         {:else if (item === 'scroll-top')}
           <CircleArrowUp color="var(--nav-secondary-icon-color)"></CircleArrowUp>
+        {:else if (item === 'bluecast')}
+          <Mic color="var(--nav-secondary-icon-color)"></Mic>
         {/if}
       </button>
     </li>
@@ -147,12 +155,24 @@
 {/if}
 
 {#if isNotificationModalOpen}
-  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--notification'}} onoutclick={() => {isNotificationModalOpen = false}}>
+  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--notifications'}} onoutclick={() => {isNotificationModalOpen = false}}>
     <div class="side-modal__content">
       <Notification isPage={true} on:close={() => {isNotificationModalOpen = false}}></Notification>
     </div>
 
     <button class="side-modal__close only-mobile" onclick={() => {isNotificationModalOpen = false}}>
+      <CircleX size="36" color="var(--text-color-1)"></CircleX>
+    </button>
+  </div>
+{/if}
+
+{#if isBluecastModalOpen}
+  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--bluecast'}} onoutclick={() => {isBluecastModalOpen = false}}>
+    <div class="side-modal__content">
+      <SideBluecast></SideBluecast>
+    </div>
+
+    <button class="side-modal__close only-mobile" onclick={() => {isBluecastModalOpen = false}}>
       <CircleX size="36" color="var(--text-color-1)"></CircleX>
     </button>
   </div>

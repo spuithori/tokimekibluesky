@@ -4,7 +4,7 @@
     import { offset, shift } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';
     import { fly } from 'svelte/transition';
-    import { AppWindowMac, Bell, CircleArrowUp, Columns3, GanttChartSquare, Heart, MessageCircleMore, PanelBottomOpen, PanelLeftOpen, Pin, PinOff, RectangleVertical, RefreshCcw, Search, UserRound } from "lucide-svelte";
+    import { AppWindowMac, Bell, CircleArrowUp, Columns3, GanttChartSquare, Heart, MessageCircleMore, Mic, PanelBottomOpen, PanelLeftOpen, Pin, PinOff, RectangleVertical, RefreshCcw, Search, UserRound } from "lucide-svelte";
     import { publishState } from '$lib/classes/publishState.svelte';
     import {ALL_ITEMS, sideState} from "$lib/classes/sideState.svelte";
 
@@ -94,6 +94,8 @@
             <RefreshCcw size="18" color="var(--nav-secondary-icon-color)"></RefreshCcw>
           {:else if (item === 'scroll-top')}
             <CircleArrowUp size="18" color="var(--nav-secondary-icon-color)"></CircleArrowUp>
+          {:else if (item === 'bluecast')}
+            <Mic size="18" color="var(--nav-secondary-icon-color)"></Mic>
           {/if}
 
           <button class="side-items-list__button" onclick={() => {onaction(item)}}>

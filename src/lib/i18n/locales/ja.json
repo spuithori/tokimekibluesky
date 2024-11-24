@@ -657,5 +657,8 @@
   "profile": "プロフィール",
   "refresher": "すべて更新",
   "scroll-top": "上にスクロール",
-  "fixed_footer": "フッター固定"
+  "fixed_footer": "フッター固定",
+  "bluecast": "Bluecast",
+  "side_bluecast_title": "配信中のBluecast",
+  "bluecast_time_suffix": "前に開始"
 }
