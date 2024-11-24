@@ -247,6 +247,11 @@
                 margin-right: auto !important;
             }
         }
+
+        .side-nav--footer {
+            padding-right: 6px !important;
+            padding-left: 80px !important;
+        }
     }
 }
 
