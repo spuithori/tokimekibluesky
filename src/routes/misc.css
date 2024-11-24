@@ -252,6 +252,12 @@
             padding-right: 6px !important;
             padding-left: 80px !important;
         }
+
+        .publish-sp-open {
+            svg {
+                transform: scale(-1, 1);
+            }
+        }
     }
 }
 
