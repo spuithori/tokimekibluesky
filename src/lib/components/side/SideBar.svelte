@@ -145,7 +145,7 @@
       </div>
     {/if}
 
-    <a class="side-bar-button only-pc" href="/settings/general">
+    <a class="side-bar-button side-bar-button--settings only-pc" href="/settings/general">
       <Settings color="var(--bar-bottom-icon-color)"></Settings>
     </a>
 
@@ -164,6 +164,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      gap: 8px;
       padding: 4px 0 8px;
       overflow-y: auto;
       scrollbar-width: none;
@@ -177,6 +178,7 @@
           display: flex;
           flex-direction: row;
           position: fixed;
+          gap: 0;
           top: 0;
           left: 0;
           right: 0;
@@ -273,6 +275,12 @@
                   transform: scaleY(1);
               }
           }
+      }
+
+      &--settings {
+          position: sticky;
+          bottom: 0;
+          background: var(--bar-bg-color);
       }
 
       &__count {
