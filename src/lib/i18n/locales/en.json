@@ -657,5 +657,8 @@
   "profile": "Profile",
   "refresher": "Refresh (All)",
   "scroll-top": "Scroll Top",
-  "fixed_footer": "Footer fixed"
+  "fixed_footer": "Footer fixed",
+  "bluecast": "Bluecast",
+  "side_bluecast_title": "Live now on Bluecast",
+  "bluecast_time_suffix": " ago"
 }
