@@ -18,16 +18,16 @@
 
 <div class="timeline">
   <Notification
-          isPage={false}
+          isPage={isJunk}
           {_agent}
           isOnlyShowUnread={column.settings?.onlyShowUnread}
           sound={column.settings?.playSound}
           onupdate={handleCountUpdate}
           onchange={handleFilterChange}
-          bind:notifications={column.data.feed}
+          bind:notifications={column.data.notifications}
           bind:cursor={column.data.cursor}
           bind:feedPool={column.data.feedPool}
-          bind:notificationGroup={column.data.notificationGroup}
+          bind:notificationGroup={column.data.feed}
           bind:lastRefresh={column.lastRefresh}
           filter={column.filter || ['like', 'repost', 'reply', 'mention', 'quote', 'follow']}
           id={column.id}

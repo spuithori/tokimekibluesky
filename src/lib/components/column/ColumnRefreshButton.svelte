@@ -135,12 +135,12 @@
                 resNotifications = resNotifications.filter(notification => !column.data.feed.some(_notification => notification.uri === _notification.uri));
             }
 
-            const notifications = mergeNotifications(column.settings?.onlyShowUnread ? [...resNotifications] : [...resNotifications, ...column.data.feed], !isAutoRefresh);
+            const notifications = mergeNotifications(column.settings?.onlyShowUnread ? [...resNotifications] : [...resNotifications, ...column.data.notifications], !isAutoRefresh);
 
             const { notifications: notificationGroup, feedPool: newFeedPool } = await getNotifications(notifications, true, _agent, column.data.feedPool || []);
 
-            column.data.feed = notifications;
-            column.data.notificationGroup = notificationGroup;
+            column.data.notifications = notifications;
+            column.data.feed = notificationGroup;
             column.data.feedPool = newFeedPool;
 
             if (column.settings?.onlyShowUnread) {
@@ -264,14 +264,22 @@
         const activeElement = document.activeElement?.tagName;
 
         if (event.key === 'r' && (activeElement === 'BODY' || activeElement === 'BUTTON') && !isRefreshing) {
-            refresh();
+            try {
+                refresh();
+            } catch (e) {
+                console.error(e);
+            }
         }
     }
 
     function handleTimer(e) {
         if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0) {
             if (e.data % Number(column.settings.autoRefresh) === 0) {
-                refresh(true);
+                try {
+                    refresh(true);
+                } catch (e) {
+                    console.error(e);
+                }
             }
         }
     }

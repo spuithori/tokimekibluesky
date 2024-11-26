@@ -48,7 +48,7 @@
   }: Props = $props();
 
     let element = $state();
-    let editor = $state();
+    let editor;
     let mentionList = $state();
     let hashtagList = $state();
 

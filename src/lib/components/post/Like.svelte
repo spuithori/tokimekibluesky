@@ -2,7 +2,7 @@
   import { agent, settings } from '$lib/stores';
   import { toast } from 'svelte-sonner';
   import { _ } from 'svelte-i18n';
-  import { pulse, type pulseReaction } from "$lib/components/post/reactionPulse.svelte";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
   interface Props {
     _agent?: any;
@@ -14,30 +14,12 @@
     _agent = $agent,
     post,
     showCounts = true,
+    isModal = false,
   }: Props = $props();
 
+  const columnState = getColumnState(false);
+  const junkColumnState = getColumnState(true);
   let isProcessed: boolean = $state(false);
-  let count = $state(post.likeCount);
-  let viewer = $state(post.viewer?.like);
-
-  $effect(() => {
-      handlePulse(pulse.like);
-  })
-
-  function handlePulse(pulse: pulseReaction) {
-      if (pulse?.uri !== post.uri) {
-          return false;
-      }
-
-      const isSameDid = pulse.did === _agent.did();
-
-      count = pulse.count;
-      viewer = isSameDid ? pulse.viewer : viewer;
-
-      // TODO: progress.
-      post.likeCount = count;
-      post.viewer.like = viewer;
-  }
 
   export async function vote(cid: string, uri: string, viewer) {
       isProcessed = true;
@@ -45,13 +27,20 @@
       try {
           const like = await _agent.setVote(cid, uri, viewer || '');
           const likeViewer = like?.uri || undefined;
-
-          pulse.like = {
+          const pulse = {
               viewer: likeViewer,
               did: _agent.did(),
               uri: uri,
-              count: likeViewer ? count + 1 : count - 1,
+              count: likeViewer ? post.likeCount + 1 : post.likeCount - 1,
               unique: Symbol(),
+          };
+
+          columnState.updateLike(pulse);
+          junkColumnState.updateLike(pulse);
+
+          if (isModal) {
+              post.likeCount = pulse.count;
+              post.viewer.like = pulse.viewer;
           }
       } catch (e) {
           toast.error($_('failed_to_like'));
@@ -64,10 +53,10 @@
 
 <button
     class="timeline-reaction__item timeline-reaction__item--like"
-    class:timeline-reaction__item--active={viewer}
+    class:timeline-reaction__item--active={post.viewer?.like}
     class:timeline-reaction__item--transition={isProcessed}
     disabled="{isProcessed}"
-    onclick={() => vote(post.cid, post.uri, viewer)}
+    onclick={() => vote(post.cid, post.uri, post.viewer?.like)}
 >
   <span class="timeline-reaction__icon" aria-label="いいね">
     {#if ($settings?.design?.reactionMode === 'superstar')}
@@ -77,8 +66,8 @@
     {/if}
   </span>
 
-  {#if showCounts && count}
-    <span class="timeline-reaction__count">{ count || 0 }</span>
+  {#if showCounts && post.likeCount}
+    <span class="timeline-reaction__count">{ post.likeCount || 0 }</span>
   {/if}
 </button>
 

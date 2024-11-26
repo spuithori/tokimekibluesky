@@ -39,7 +39,7 @@
         sound = null,
         id = null,
         onupdate,
-        onchange,
+        onchange = () => {},
         unique = Symbol(),
     }: Props = $props();
 
@@ -175,7 +175,7 @@
             notificationGroup = [...notificationGroup, ...newNotificationGroup];
             feedPool = newFeedPool;
 
-            if (cursor && res.data.notifications.length) {
+            if (cursor && isOnlyShowUnread ? resNotifications.length : res.data.notifications.length) {
                 loaded();
             } else {
                 complete();
@@ -193,7 +193,7 @@
     }
 </script>
 
-<div class="notifications-wrap" class:notifications-wrap--side={isPage}>
+<div class="notifications-wrap">
     {#if (isPage)}
         <div class="notifications-menu">
             <ul class="notifications-filter-list">
@@ -265,7 +265,7 @@
 
                 {#if (filter.includes(item.reason))}
                     {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-                        <TimelineItem {_agent} data={{post: item.feed || item.notifications[0]}}></TimelineItem>
+                        <TimelineItem {_agent} data={{post: item.post || item.notifications[0]}}></TimelineItem>
                     {:else if (item.reason === 'follow')}
                         <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
                     {:else if (item.reason === 'starterpack-joined')}
@@ -311,10 +311,6 @@
       height: 100%;
       display: flex;
       flex-direction: column;
-
-      &--side {
-          padding: 16px;
-      }
   }
 
   .notifications-list {

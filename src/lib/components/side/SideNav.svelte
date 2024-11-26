@@ -12,6 +12,7 @@
   import { goto } from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import SideBluecast from "$lib/components/side/SideBluecast.svelte";
+  import SideNotification from "$lib/components/side/SideNotification.svelte";
 
   let { footer = false } = $props();
   let isFeedsModalOpen = $state(false);
@@ -157,7 +158,7 @@
 {#if isNotificationModalOpen}
   <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--notifications'}} onoutclick={() => {isNotificationModalOpen = false}}>
     <div class="side-modal__content">
-      <Notification isPage={true} on:close={() => {isNotificationModalOpen = false}}></Notification>
+      <SideNotification></SideNotification>
     </div>
 
     <button class="side-modal__close only-mobile" onclick={() => {isNotificationModalOpen = false}}>

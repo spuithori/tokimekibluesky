@@ -43,7 +43,7 @@ export function bundleByProperties(array: any[], property1: string, property2: s
 
     return bundledArray.map(array => ({
         reason: array[0].reason,
-        feed: array[0].feed || undefined,
+        post: array[0].post || undefined,
         notifications: array,
         latestIndexedAt: array[0].indexedAt,
         subject: () => {
@@ -74,7 +74,7 @@ export async function getNotifications(ctx, putBefore = false, _agent, currentFe
     }
 
     bundled.forEach(array => {
-        array.feed = feedPool.find(post => post.uri === array.subject());
+        array.post = feedPool.find(post => post.uri === array.subject());
     })
     bundled = bundled.sort((a, b) => parseISO(b.latestIndexedAt).getTime() - parseISO(a.latestIndexedAt).getTime());
 

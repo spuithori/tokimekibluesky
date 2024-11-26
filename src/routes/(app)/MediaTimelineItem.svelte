@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, settings} from '$lib/stores';
+    import {agent, settings, labelDefs, labelerSettings} from '$lib/stores';
     import {AppBskyEmbedImages, AppBskyFeedDefs} from '@atproto/api';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
@@ -15,7 +15,7 @@
   let { _agent = $agent, data, isProfile = false }: Props = $props();
     let isOpen = $state(false);
 
-    const moderateData = contentLabelling(data.post, _agent.did(), $settings);
+    const moderateData = contentLabelling(data.post, _agent.did(), $settings, $labelDefs, $labelerSettings);
 
     let isHide = detectHide(moderateData);
     let isWarn = detectWarn(moderateData) || false;

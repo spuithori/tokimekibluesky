@@ -172,7 +172,11 @@
     }
 
     async function handleRefresh() {
-        await refreshEl.refresh();
+        try {
+            await refreshEl.refresh();
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     function handleChangePopup() {
@@ -202,6 +206,14 @@
             observer.unobserve(column.scrollElement);
         } catch (e) {
 
+        }
+
+        try {
+            if (column.scrollElement) {
+                column.scrollElement = null;
+            }
+        } catch (e) {
+            console.error(e);
         }
     })
 
@@ -378,7 +390,7 @@
         {/if}
 
         <div class="deck-heading__buttons">
-            {#if (isJunk)}
+            {#if (isJunk && column.algorithm?.type !== 'authorLike')}
                 <button class="deck-row-column-add-button" disabled={isColumnAlreadyAdded} onclick={columnAddFromJunk} aria-label="Add column">
                     <SquarePlus color={isColumnAlreadyAdded ? 'var(--border-color-1)' : 'var(--primary-color)'}></SquarePlus>
                 </button>

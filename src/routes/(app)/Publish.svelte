@@ -791,7 +791,7 @@
 
             {#if (index === currentPost)}
               <PublishMain
-                  {post}
+                  bind:post={postsPool[index]}
                   bind:_agent={_agent}
                   on:focus={handleOpen}
                   on:add={applyAddThread}

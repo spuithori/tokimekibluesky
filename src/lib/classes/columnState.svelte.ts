@@ -1,6 +1,8 @@
 import type {Column} from "$lib/types/column";
 import {getContext, setContext} from "svelte";
 import {accountsDb} from "$lib/db";
+import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
+import {AppBskyFeedDefs} from "@atproto/api";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
@@ -64,6 +66,76 @@ export class ColumnState {
 
     getColumnIndex(id: string) {
         return this.columns.findIndex(column => column.id === id);
+    }
+
+    updateLike(pulse: pulseReaction) {
+        if (!pulse) {
+            return;
+        }
+
+        try {
+            this.columns.forEach(column => {
+                const feed = column?.data?.feed;
+                if (!feed) return;
+
+                const did = column.did;
+
+                feed.forEach((item: AppBskyFeedDefs.FeedViewPost) => {
+                    const postsToCheck = [
+                        item?.post,
+                        item?.reply?.parent,
+                        item?.reply?.root
+                    ].filter(post => post?.uri === pulse.uri);
+
+                    postsToCheck.forEach(post => {
+                        if (post) {
+                            post.likeCount = pulse.count;
+                            post.viewer = {
+                                ...post.viewer,
+                                like: did === pulse.did ? pulse.viewer : post.viewer?.like
+                            };
+                        }
+                    });
+                });
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    updateRepost(pulse: pulseReaction) {
+        if (!pulse) {
+            return;
+        }
+
+        try {
+            this.columns.forEach(column => {
+                const feed = column?.data?.feed;
+                if (!feed) return;
+
+                const did = column.did;
+
+                feed.forEach((item: AppBskyFeedDefs.FeedViewPost) => {
+                    const postsToCheck = [
+                        item?.post,
+                        item?.reply?.parent,
+                        item?.reply?.root
+                    ].filter(post => post?.uri === pulse.uri);
+
+                    postsToCheck.forEach(post => {
+                        if (post) {
+                            post.repostCount = pulse.count;
+                            post.viewer = {
+                                ...post.viewer,
+                                repost: did === pulse.did ? pulse.viewer : post.viewer?.repost
+                            };
+                        }
+                    });
+                });
+            });
+        } catch (e) {
+            console.error(e);
+        }
     }
 }
 
