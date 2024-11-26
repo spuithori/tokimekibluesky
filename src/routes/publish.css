@@ -295,10 +295,9 @@
     }
 
     &--sidebar {
-        bottom: auto;
         left: 0;
         right: 0;
-        top: 50px;
+        top: calc(100% - 48px);
 
         em-emoji-picker {
             width: 100%;
