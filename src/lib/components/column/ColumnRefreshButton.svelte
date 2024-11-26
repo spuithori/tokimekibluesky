@@ -219,7 +219,7 @@
                         playSound(column.data?.feed.slice(-1)[0].sentAt, column.lastRefresh, column.settings.playSound)
                     }
                 } else {
-                    playSound(column.algorithm.type === 'notification' ? column.data?.feed[0]?.indexedAt : column.data?.feed[0]?.post.indexedAt, column.lastRefresh, column.settings.playSound)
+                    playSound(column.algorithm.type === 'notification' ? column.data?.notifications[0]?.indexedAt : column.data?.feed[0]?.post.indexedAt, column.lastRefresh, column.settings.playSound)
                 }
             }
         } catch (e) {
