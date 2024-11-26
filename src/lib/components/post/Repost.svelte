@@ -62,7 +62,7 @@
 
   function repostStep() {
       if ($settings.general.repostConfirmSkip) {
-          repost(post.cid, post.uri, viewer);
+          repost(post.cid, post.uri, post.viewer?.repost);
       } else {
           isDialogRender = true;
       }
