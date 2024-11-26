@@ -116,7 +116,7 @@
   function handleKeydown(event: { key: string; }) {
       const activeElement = document.activeElement?.tagName;
 
-      if (event.key === 'n' && !(activeElement === 'TEXTAREA' || activeElement === 'INPUT')) {
+      if (event.key === 'n' && !(activeElement === 'TEXTAREA' || activeElement === 'INPUT' || document.activeElement.classList.contains('tiptap'))) {
           handleOpen();
       }
 
