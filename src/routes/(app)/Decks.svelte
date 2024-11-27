@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {isColumnModalOpen, settings} from '$lib/stores';
+    import {isColumnModalOpen} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import {_} from "svelte-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";

@@ -77,10 +77,6 @@
               if (column.settings?.playSound) {
                   playSound(value?.post.indexedAt, column.lastRefresh, column.settings.playSound)
               }
-
-              if (column.data.feed.length > 40) {
-                  column.data.feed = column.data.feed.slice(0, 40);
-              }
           });
   }
 
