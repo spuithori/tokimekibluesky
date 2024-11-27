@@ -257,7 +257,7 @@
     {/if}
 
     <div class="notifications-list">
-        {#each notificationGroup as item, index (item)}
+        {#each notificationGroup as item, index (item.latestIndexedAt)}
             <div class="notifications-list__item">
                 {#if item?.notifications[0]?.isRead === false}
                     <span class="notifications-list__new"></span>

@@ -130,8 +130,8 @@
         isScrollPaused = false;
     }
 
-    function handleIconChange(event) {
-        column.settings.icon = event.detail.icon;
+    function handleIconChange(icon) {
+        column.settings.icon = icon;
         isIconPickerOpen = false;
     }
 
@@ -413,7 +413,7 @@
             ></ColumnRefreshButton>
 
             {#if (!isJunk)}
-                <ColumnButtons {column} {index} {_agent}></ColumnButtons>
+                <ColumnButtons {column}></ColumnButtons>
 
                 <button class="deck-row-settings-button" aria-label="Settings" onclick={handleSettingsClick}>
                     <Settings2 color="var(--text-color-3)"></Settings2>
@@ -422,7 +422,7 @@
         </div>
 
         {#if isIconPickerOpen}
-            <ColumnIconPicker on:change={handleIconChange} on:close={() => {isIconPickerOpen = false}} current={column.settings?.icon}></ColumnIconPicker>
+            <ColumnIconPicker onchange={handleIconChange} onclose={() => {isIconPickerOpen = false}} current={column.settings?.icon}></ColumnIconPicker>
         {/if}
     </div>
 
@@ -524,19 +524,6 @@
             box-shadow: none;
             padding-top: 46px;
             height: calc(100dvh);
-        }
-
-        &:has(.chat) {
-            position: static;
-        }
-
-        &__content {
-            &:has(.chat) {
-                min-height: calc(100% -  52px);
-                display: flex;
-                flex-direction: column;
-                flex-shrink: 0;
-            }
         }
 
         &--xxs {

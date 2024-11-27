@@ -1,20 +1,8 @@
 <script lang="ts">
   import { iconMap } from '$lib/columnIcons';
   import { fly, fade } from 'svelte/transition';
-  import {createEventDispatcher} from "svelte";
-  const dispatch = createEventDispatcher();
 
-  let { current } = $props();
-
-  function changeIcon(key) {
-      dispatch('change', {
-          icon: key,
-      });
-  }
-
-  function close() {
-      dispatch('close');
-  }
+  let { current, onchange, onclose } = $props();
 </script>
 
 <div class="column-icon-picker" transition:fly={{ duration:250, y: -30 }}>
@@ -24,7 +12,7 @@
       <button
           class="icon-picker-list__button"
           class:icon-picker-list__button--current={key === current}
-          onclick={() => {changeIcon(key)}}
+          onclick={() => {onchange(key)}}
       >
         <SvelteComponent color="var(--text-color-1)"></SvelteComponent>
       </button>
@@ -32,7 +20,7 @@
   </ul>
 </div>
 
-<button class="column-icon-picker-bg" transition:fade={{ duration: 150 }} onclick={close} aria-label="Close"></button>
+<button class="column-icon-picker-bg" transition:fade={{ duration: 150 }} onclick={onclose} aria-label="Close"></button>
 
 <style lang="postcss">
   .column-icon-picker {
