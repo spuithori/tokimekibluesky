@@ -2,6 +2,7 @@
   import {settings} from '$lib/stores';
   import {goto} from '$app/navigation';
   import {publishState} from "$lib/classes/publishState.svelte";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
   interface Props {
     isVirtual?: boolean;
@@ -9,8 +10,11 @@
   }
 
   let { isVirtual = false, children }: Props = $props();
+  const columnState = getColumnState(true);
 
   function close() {
+      columnState.removeAll();
+      
       goto('/', {
           noScroll: true,
       });
