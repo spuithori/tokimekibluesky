@@ -1,16 +1,8 @@
 <script lang="ts">
-    import IconColumnsFeed from "$lib/icons/columns/IconColumnsFeed.svelte";
-    import IconColumnsList from "$lib/icons/columns/IconColumnsList.svelte";
-    import IconColumnsBookmark from "$lib/icons/columns/IconColumnsBookmark.svelte";
-    import IconColumnsHome from "$lib/icons/columns/IconColumnsHome.svelte";
     import {bookmarkModal, cloudBookmarkModal, listModal, officialListModal} from "$lib/stores";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
-    import IconColumnsNotification from "$lib/icons/columns/IconColumnsNotification.svelte";
     import {createEventDispatcher} from "svelte";
-    import IconColumnsLike from "$lib/icons/columns/IconColumnsLike.svelte";
-    import IconColumnsMyPost from "$lib/icons/columns/IconColumnsMyPost.svelte";
-    import IconColumnsMyMedia from "$lib/icons/columns/IconColumnsMyMedia.svelte";
-    import IconColumnsAuthor from "$lib/icons/columns/IconColumnsAuthor.svelte";
+    import {Bell, Bookmark, Heart, Home, Image, List, Newspaper, Pencil, PlusCircle, UserRound} from "lucide-svelte";
 
     const dispatch = createEventDispatcher();
     let { items, _agent } = $props();
@@ -25,6 +17,60 @@
 <div class="column-list">
     {#each items as column, index (column.id)}
         <div class="column-list__item">
+            <div class="column-list__icon">
+                {#if (column.algorithm.type === 'custom')}
+                    <Newspaper size="20" color="var(--text-color-1)"></Newspaper>
+                {:else if (column.algorithm.type === 'list')}
+                    <List size="20" color="var(--text-color-1)"></List>
+                    <button
+                            class="algo-nav-edit"
+                            onclick={() => {listModal.set({open: true, data: column.algorithm.algorithm })}}
+                            aria-label="Edit list"
+                    >
+                        <IconColumnsEdit></IconColumnsEdit>
+                    </button>
+                {:else if (column.algorithm.type === 'bookmark')}
+                    <Bookmark size="20" color="var(--text-color-1)"></Bookmark>
+                    <button
+                            class="algo-nav-edit"
+                            onclick={() => {bookmarkModal.set({open: true, data: Number(column.algorithm.algorithm) })}}
+                            aria-label="Edit Bookmark"
+                    >
+                        <IconColumnsEdit></IconColumnsEdit>
+                    </button>
+                {:else if (column.algorithm.type === 'cloudBookmark')}
+                    <Bookmark size="20" color="var(--text-color-1)"></Bookmark>
+                    <button
+                            class="algo-nav-edit"
+                            onclick={() => {cloudBookmarkModal.set({open: true, data: column.algorithm.algorithm })}}
+                            aria-label="Edit Bookmark"
+                    >
+                        <IconColumnsEdit></IconColumnsEdit>
+                    </button>
+                {:else if (column.algorithm.type === 'notification')}
+                    <Bell size="20" color="var(--text-color-1)"></Bell>
+                {:else if (column.algorithm.type === 'officialList')}
+                    <List size="20" color="var(--text-color-1)"></List>
+                    <button
+                            class="algo-nav-edit"
+                            onclick={() => {$officialListModal = {open: true, uri: column.algorithm.algorithm}}}
+                            aria-label="Edit list"
+                    >
+                        <IconColumnsEdit></IconColumnsEdit>
+                    </button>
+                {:else if (column.algorithm.type === 'like')}
+                    <Heart size="20" color="var(--text-color-1)"></Heart>
+                {:else if (column.algorithm.type === 'myPost')}
+                    <Pencil size="20" color="var(--text-color-1)"></Pencil>
+                {:else if (column.algorithm.type === 'myMedia')}
+                    <Image size="20" color="var(--text-color-1)"></Image>
+                {:else if (column.algorithm.type === 'author')}
+                    <UserRound size="20" color="var(--text-color-1)"></UserRound>
+                {:else}
+                    <Home size="20" color="var(--text-color-1)"></Home>
+                {/if}
+            </div>
+
             <div class="column-list__content">
                 <p class="column-list__title">
                     {column.algorithm.name}
@@ -37,59 +83,7 @@
                 {/if}
             </div>
 
-            {#if (column.algorithm.type === 'custom')}
-                <IconColumnsFeed></IconColumnsFeed>
-            {:else if (column.algorithm.type === 'list')}
-                <IconColumnsList></IconColumnsList>
-                <button
-                        class="algo-nav-edit"
-                        onclick={() => {listModal.set({open: true, data: column.algorithm.algorithm })}}
-                        aria-label="Edit list"
-                >
-                    <IconColumnsEdit></IconColumnsEdit>
-                </button>
-            {:else if (column.algorithm.type === 'bookmark')}
-                <IconColumnsBookmark></IconColumnsBookmark>
-                <button
-                        class="algo-nav-edit"
-                        onclick={() => {bookmarkModal.set({open: true, data: Number(column.algorithm.algorithm) })}}
-                        aria-label="Edit Bookmark"
-                >
-                    <IconColumnsEdit></IconColumnsEdit>
-                </button>
-            {:else if (column.algorithm.type === 'cloudBookmark')}
-                <IconColumnsBookmark></IconColumnsBookmark>
-                <button
-                        class="algo-nav-edit"
-                        onclick={() => {cloudBookmarkModal.set({open: true, data: column.algorithm.algorithm })}}
-                        aria-label="Edit Bookmark"
-                >
-                    <IconColumnsEdit></IconColumnsEdit>
-                </button>
-            {:else if (column.algorithm.type === 'notification')}
-                <IconColumnsNotification></IconColumnsNotification>
-            {:else if (column.algorithm.type === 'officialList')}
-                <IconColumnsList></IconColumnsList>
-                <button
-                        class="algo-nav-edit"
-                        onclick={() => {$officialListModal = {open: true, uri: column.algorithm.algorithm}}}
-                        aria-label="Edit list"
-                >
-                    <IconColumnsEdit></IconColumnsEdit>
-                </button>
-            {:else if (column.algorithm.type === 'like')}
-                <IconColumnsLike></IconColumnsLike>
-            {:else if (column.algorithm.type === 'myPost')}
-                <IconColumnsMyPost></IconColumnsMyPost>
-            {:else if (column.algorithm.type === 'myMedia')}
-                <IconColumnsMyMedia></IconColumnsMyMedia>
-            {:else if (column.algorithm.type === 'author')}
-                <IconColumnsAuthor></IconColumnsAuthor>
-            {:else}
-                <IconColumnsHome></IconColumnsHome>
-            {/if}
-
-            <button class="column-list__add" onclick={() => {addColumn(column)}} aria-label="Add"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-circle"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></button>
+            <button class="column-list__add" onclick={() => {addColumn(column)}} aria-label="Add"><PlusCircle color="var(--text-color-1)"></PlusCircle></button>
         </div>
     {/each}
 </div>
@@ -106,7 +100,7 @@
             display: flex;
             gap: 10px;
             align-items: center;
-            padding: 6px 10px 6px 40px;
+            padding: 6px 12px;
             border-radius: 6px;
             font-weight: bold;
             background-color: var(--bg-color-1);
@@ -140,5 +134,13 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+    }
+
+    .algo-nav-edit {
+        position: absolute;
+        right: 44px;
+        top: 0;
+        bottom: 0;
+        margin: auto;
     }
 </style>
