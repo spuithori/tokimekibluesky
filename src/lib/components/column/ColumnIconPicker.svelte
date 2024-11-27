@@ -65,7 +65,5 @@
       left: 0;
       right: 0;
       height: calc(100dvh - 52px);
-      background-color: rgba(255, 255, 255, 0);
-      backdrop-filter: blur(5px);
   }
 </style>
