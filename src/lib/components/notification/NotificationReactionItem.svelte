@@ -119,7 +119,7 @@
                 </div>
             {:else}
                 {#if item.notifications[0].reasonSubject.includes('app.bsky.feed.generator')}
-                    <div class="notification-item__feed">
+                    <div class="notifications-item__feed">
                         <FeedEmbed {_agent} feedUri={item.notifications[0].reasonSubject}></FeedEmbed>
                     </div>
                 {/if}
