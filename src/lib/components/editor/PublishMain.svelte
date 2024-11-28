@@ -640,8 +640,10 @@
   <div class="publish-bb-nav">
     <button class="publish-form-lang-selector-button" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      {#if ($settings.langSelector !== 'auto')}
-        <span>{$_(languageMap.get($settings.langSelector).name)}</span>
+      {#if ($settings.langSelector !== 'auto' && Array.isArray($settings.langSelector))}
+        {#each $settings.langSelector as lang}
+          <span>{$_(languageMap.get(lang)?.name)}</span>
+        {/each}
       {/if}
     </button>
 

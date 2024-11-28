@@ -413,9 +413,13 @@
           return false;
       }
 
-      lang = post.lang === 'auto' ? await languageDetect(post.text) : [post.lang];
+      lang = post.lang === 'auto' ? await languageDetect(post.text) : post.lang;
       if (!lang.length && $settings?.general?.userLanguage) {
           lang = [$settings.general.userLanguage];
+      }
+
+      if (!Array.isArray(lang)) {
+          lang = [lang];
       }
 
       selfLabels = post.selfLabels ? post.selfLabels : [];
