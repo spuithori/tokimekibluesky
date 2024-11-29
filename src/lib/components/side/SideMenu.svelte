@@ -83,8 +83,8 @@
 
 <dialog class="side-menu" class:side-menu--bottom={publishState.isBottom} transition:fly="{{ y: 16, duration: 250 }}" bind:this={el} onclose={onclose} onclick={handleClick} use:floatingContent>
   <div class="side-menu-row">
-    <div class="side-menu-sp-header">
-      <a class="side-bar-button only-mobile" href="/settings">
+    <div class="side-menu-sp-header only-mobile">
+      <a class="side-bar-button" href="/settings" onclick={onclose}>
         <Settings color="var(--bar-bottom-icon-color)"></Settings>
       </a>
     </div>
