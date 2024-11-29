@@ -4,7 +4,25 @@
     import { offset, shift } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';
     import { fly } from 'svelte/transition';
-    import { AppWindowMac, Bell, CircleArrowUp, Columns3, GanttChartSquare, Heart, MessageCircleMore, Mic, PanelBottomOpen, PanelLeftOpen, Pin, PinOff, RectangleVertical, RefreshCcw, Search, UserRound } from "lucide-svelte";
+    import {
+        AppWindowMac,
+        Bell,
+        CircleArrowUp,
+        Columns3,
+        GanttChartSquare,
+        Heart,
+        MessageCircleMore,
+        Mic,
+        PanelBottomOpen,
+        PanelLeftOpen,
+        Pin,
+        PinOff,
+        RectangleVertical,
+        RefreshCcw,
+        Search,
+        Settings,
+        UserRound
+    } from "lucide-svelte";
     import { publishState } from '$lib/classes/publishState.svelte';
     import {ALL_ITEMS, sideState} from "$lib/classes/sideState.svelte";
 
@@ -65,7 +83,13 @@
 
 <dialog class="side-menu" class:side-menu--bottom={publishState.isBottom} transition:fly="{{ y: 16, duration: 250 }}" bind:this={el} onclose={onclose} onclick={handleClick} use:floatingContent>
   <div class="side-menu-row">
-    <dl class="settings-group settings-group--column only-mobile">
+    <div class="side-menu-sp-header">
+      <a class="side-bar-button only-mobile" href="/settings">
+        <Settings color="var(--bar-bottom-icon-color)"></Settings>
+      </a>
+    </div>
+
+    <dl class="settings-group settings-group--column settings-group--pb0 only-mobile">
       <dt class="settings-group__name">
         {$_('fixed_footer')}
       </dt>
@@ -347,5 +371,16 @@
           left: -7.5px;
           margin: auto;
       }
+  }
+
+  .settings-group--pb0 {
+      padding-bottom: 0;
+  }
+
+  .side-menu-sp-header {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+      padding-top: 4px;
   }
 </style>

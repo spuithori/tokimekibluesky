@@ -148,10 +148,6 @@
     <a class="side-bar-button side-bar-button--settings only-pc" href="/settings/general">
       <Settings color="var(--bar-bottom-icon-color)"></Settings>
     </a>
-
-    <a class="side-bar-button only-mobile" href="/settings">
-      <Settings color="var(--bar-bottom-icon-color)"></Settings>
-    </a>
   </div>
 </div>
 
