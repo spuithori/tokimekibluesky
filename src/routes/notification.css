@@ -126,3 +126,11 @@
     grid-template-columns: 28px 1fr;
     gap: 8px;
 }
+
+.notifications-item-images {
+    .timeline-images {
+        @container timeline-item (max-width: 345px) {
+            margin-left: 0 !important;
+        }
+    }
+}
