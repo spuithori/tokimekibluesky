@@ -37,7 +37,7 @@
   </div>
 
   {#if $settings.design?.layout === 'decks'}
-    <button class="modal-page-bg-close" onclick={close}></button>
+    <button class="modal-page-bg-close" onclick={close} aria-hidden="true"></button>
   {/if}
 </div>
 

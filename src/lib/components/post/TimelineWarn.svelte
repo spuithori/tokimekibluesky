@@ -106,6 +106,30 @@
 {/if}
 
 <style lang="postcss">
+  .timeline-warn {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: var(--bg-color-2);
+      border: 1px solid var(--border-color-1);
+      border-radius: 6px;
+      z-index: 10;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      padding: 10px 20px;
+
+      @container timeline-item (max-width: 345px) {
+          margin-left: -50px;
+      }
+
+      &--hide {
+          display: none;
+      }
+  }
+
   .timeline-warn-heading {
       display: flex;
       justify-content: center;
@@ -124,6 +148,10 @@
       border-radius: 6px;
       padding: 8px;
       margin-bottom: 8px;
+
+      @container timeline-item (max-width: 345px) {
+          margin-left: -50px;
+      }
 
       .timeline-warn-list {
           font-size: 13px;
