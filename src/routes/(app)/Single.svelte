@@ -31,6 +31,10 @@
     if (!columnState.columns[$currentTimeline]) {
         currentTimeline.set(0);
     }
+
+    $effect(() => {
+        localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
+    });
 </script>
 
 <div class="single-wrap" class:single-wrap--page={$page.url.pathname !== '/'} class:single-wrap--bottom={publishState.isBottom}>

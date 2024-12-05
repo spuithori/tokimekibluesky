@@ -1,8 +1,7 @@
 <script lang="ts">
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
-  import { agent, agents, currentTimeline, isAfterReload, isColumnModalOpen, isMobileDataConnection, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers
-  } from '$lib/stores';
+  import { agent, agents, isAfterReload, isColumnModalOpen, isMobileDataConnection, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {pwaInfo} from 'virtual:pwa-info';
   import {onMount, tick, untrack} from 'svelte';
@@ -34,6 +33,7 @@
   import {isSafariOrFirefox} from "$lib/util";
   import {initColumns} from "$lib/classes/columnState.svelte";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
+  import {on} from "svelte/events";
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -42,10 +42,23 @@
   let { children }: Props = $props();
 
   let loaded = $state(false);
-  let isDarkMode = $state(false);
   let app = $state();
   let baseColor = $state('#fff');
   let isRepeater = $state(localStorage.getItem('isRepeater') === 'true');
+  let preferredDarkMode = $state(window.matchMedia('(prefers-color-scheme: dark)').matches);
+  let isDarkMode = $derived.by(() => {
+      if ($theme?.options?.darkmodeDisabled) {
+          return false;
+      }
+
+      if ($settings?.design?.darkmode === true) {
+          return true;
+      } else if ($settings?.design?.darkmode === 'prefer') {
+          return preferredDarkMode;
+      } else {
+          return false;
+      }
+  });
 
   function detectHeadThemeColor(theme) {
       tick().then(() => {
@@ -178,7 +191,6 @@
   console.log('settings version: ' + $settings.version || 0);
 
   if ($settings.version < 2) {
-      // $settings.design.publishPosition = 'left';
       $settings.design.skin = 'default';
       $settings.version = 2;
   }
@@ -200,27 +212,6 @@
   if (isSafariOrFirefox()) {
       console.log('Disable WebFont in Safari and Firefox.');
       $settings.design.nonoto = true;
-  }
-
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
-      if ($settings?.design.darkmode === 'prefer') {
-          isDarkMode = event.matches
-      }
-  })
-
-  function detectDarkMode(setting, isDarkmodeDisabled = false) {
-      if (isDarkmodeDisabled) {
-          isDarkMode = false;
-          return false;
-      }
-
-      if (setting === true) {
-          isDarkMode = true;
-      } else if (setting === 'prefer') {
-          isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      } else {
-          isDarkMode = false;
-      }
   }
 
   onMount(async() => {
@@ -282,11 +273,7 @@
 
   $effect(() => {
       localStorage.setItem('settings', JSON.stringify($settings));
-  })
-
-  $effect(() => {
-      localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
-  })
+  });
 
   $effect(() => {
       locale.set($settings.general?.language);
@@ -295,16 +282,22 @@
 
   $effect(() => {
       getCurrentTheme($settings.design?.skin);
-  })
+  });
 
   $effect(() => {
       observeColor($theme);
       detectHeadThemeColor($theme);
-  })
+  });
 
   $effect(() => {
-      detectDarkMode($settings.design?.darkmode, $theme?.options.darkmodeDisabled);
-  })
+      if ($settings?.design?.darkmode === 'prefer') {
+          const query = window.matchMedia('(prefers-color-scheme: dark)');
+
+          return on(query, 'change', (e) => {
+              preferredDarkMode = e.matches;
+          });
+      }
+  });
 </script>
 
 <svelte:window onscroll={handleScroll}></svelte:window>
