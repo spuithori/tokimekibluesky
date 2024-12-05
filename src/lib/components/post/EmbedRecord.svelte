@@ -101,15 +101,12 @@
     {/if}
 
     <div class="timeline__meta">
-      <p class="timeline__user"
-         title="{record.author.handle}">{ record.author.displayName || record.author.handle }</p>
+      <p class="timeline__user">{ record.author.displayName || record.author.handle }</p>
       <p class="timeline__date">
         {#if $settings?.design.absoluteTime}
-          <time datetime="{format(parseISO(record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
-                title="{format(parseISO(record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{format(parseISO(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</time>
+          <span>{format(parseISO(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
         {:else}
-          <time datetime="{format(parseISO(record.indexedAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}"
-                title="{format(parseISO(record.indexedAt), 'yyyy-MM-dd HH:mm:ss')}">{formatDistanceToNow(parseISO(record.indexedAt))}</time>
+          <span>{formatDistanceToNow(parseISO(record.indexedAt))}</span>
         {/if}
       </p>
     </div>
