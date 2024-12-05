@@ -661,5 +661,7 @@
   "bluecast": "Bluecast",
   "side_bluecast_title": "Live now on Bluecast",
   "bluecast_time_suffix": " ago",
-  "bluecast_nothing": "There is no live at this time."
+  "bluecast_nothing": "There is no live at this time.",
+  "tag_instant_copy": "Copy hashtag",
+  "success_copy_tag": "{tag} copied to the clipboard."
 }
