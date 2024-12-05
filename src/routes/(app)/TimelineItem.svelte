@@ -561,243 +561,245 @@
 
 <svelte:document onselectionchange={handleSelectStart} />
 
-<article class="timeline__item"
-         class:timeline__item--repost={isReasonRepost(data.reason)}
-         class:timeline__item--reply={data.reply && data.reply?.parent?.author?.did !== _agent.did()}
-         class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
-         class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
-         class:timeline__item--hide={isHide}
-         onclick={handleClick}
->
-  {#if (isShortCutNumberShown && index < 9)}
-    <p class="timeline-shortcut-number">{index + 1}</p>
-  {/if}
+{#if (!isHide)}
+  <article class="timeline__item"
+           class:timeline__item--repost={isReasonRepost(data.reason)}
+           class:timeline__item--reply={data.reply && data.reply?.parent?.author?.did !== _agent.did()}
+           class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
+           class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
+           class:timeline__item--hide={isHide}
+           onclick={handleClick}
+  >
+    {#if (isShortCutNumberShown && index < 9)}
+      <p class="timeline-shortcut-number">{index + 1}</p>
+    {/if}
 
-  {#if isPinned}
-    <p class="sticky-text"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>{$_('pinned_post')}
-    </p>
-  {/if}
+    {#if isPinned}
+      <p class="sticky-text"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>{$_('pinned_post')}
+      </p>
+    {/if}
 
-  {#if (!isThread)}
-    <div class="timeline-repost-messages">
-      {#if (isReasonRepost(data.reason))}
-        <p class="timeline-repost-message">
-          <ProfileCardWrapper handle="{data.reason.by.handle}" {_agent}>
-            <a href="/profile/{data.reason.by.handle}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
-          </ProfileCardWrapper>
-        </p>
-      {/if}
-    </div>
-  {/if}
-
-  {#if (data?.reply?.parent?.notFound || data?.reply?.parent?.blocked || data?.reply?.root?.notFound || data?.reply?.root?.blocked)}
-    <article class="timeline-hidden-item">
-      <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
-    </article>
-  {:else}
-    {#if (data.reply && !isSingle && !isReplyHide)}
-      {#if (isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
-        <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
-          <TimelineContent post={data.reply.root} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
-        </div>
-
-        {#if (data.reply.parent?.record?.reply?.parent?.uri !== data.reply.root.uri)}
-          <p class="timeline-read-thread-link">
-            <a href={'/profile/' + data.reply.root.author.handle + '/post/' + data.reply.root.uri.split('/').slice(-1)[0]}>{$_('read_this_thread')}</a>
+    {#if (!isThread)}
+      <div class="timeline-repost-messages">
+        {#if (isReasonRepost(data.reason))}
+          <p class="timeline-repost-message">
+            <ProfileCardWrapper handle="{data.reason.by.handle}" {_agent}>
+              <a href="/profile/{data.reason.by.handle}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
+            </ProfileCardWrapper>
           </p>
         {/if}
-      {/if}
-
-      <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
-        {#if (!isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
-          <span class="timeline-reply-bar"></span>
-        {/if}
-
-        <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
       </div>
     {/if}
-  {/if}
 
-  <div class="timeline__column">
-    <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide {pulseTranslate}>
-      {@render children?.()}
-    </TimelineContent>
-  </div>
+    {#if (data?.reply?.parent?.notFound || data?.reply?.parent?.blocked || data?.reply?.root?.notFound || data?.reply?.root?.blocked)}
+      <article class="timeline-hidden-item">
+        <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
+      </article>
+    {:else}
+      {#if (data.reply && !isSingle && !isReplyHide)}
+        {#if (isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
+          <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
+            <TimelineContent post={data.reply.root} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
+          </div>
 
-  <Menu bind:isMenuOpen={isMenuOpen}>
-    {#snippet sub()}
-      <div class="menu-sub-list">
-        <ReactionButtonsInMenu
-                {_agent}
-                bind:post={data.post}
-        ></ReactionButtonsInMenu>
-      </div>
-    {/snippet}
-
-    {#snippet content()}
-      <ul class="timeline-menu-list" >
-        {#if (getAllAgentDids($agents).includes(data.post.author.did))}
-          <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-            <button class="timeline-menu-list__button" onclick={deletePostStep}>
-              <Trash2 size="18" color="var(--danger-color)"></Trash2>
-              <span class="text-danger">{$_('delete_post')}</span>
-            </button>
-          </li>
-
-          <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-            <button class="timeline-menu-list__button" onclick={editPostStep}>
-              <Pencil size="18" color="var(--danger-color)"></Pencil>
-              {$_('delete_and_edit')}
-            </button>
-          </li>
-
-          {#if (isPinned)}
-            <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-              <button class="timeline-menu-list__button" onclick={unregisterPin}>
-                <Pin size="18" color="var(--text-color-1)"></Pin>
-                {$_('unregister_pin')}
-              </button>
-            </li>
-          {:else}
-            <li class="timeline-menu-list__item timeline-menu-list__item--delete">
-              <button class="timeline-menu-list__button" onclick={registerPin}>
-                <Pin size="18" color="var(--text-color-1)"></Pin>
-                {$_('register_pin')}
-              </button>
-            </li>
+          {#if (data.reply.parent?.record?.reply?.parent?.uri !== data.reply.root.uri)}
+            <p class="timeline-read-thread-link">
+              <a href={'/profile/' + data.reply.root.author.handle + '/post/' + data.reply.root.uri.split('/').slice(-1)[0]}>{$_('read_this_thread')}</a>
+            </p>
           {/if}
         {/if}
 
-        <li class="timeline-menu-list__item timeline-menu-list__item--translate">
-          <button class="timeline-menu-list__button" onclick={translation}>
-            <Languages size="18" color="var(--text-color-1)"></Languages>
-            {$_('translation')}
-          </button>
-        </li>
-
-        <li class="timeline-menu-list__item timeline-menu-list__item--copy-url">
-          <button class="timeline-menu-list__button" onclick={copyThreadUrl}>
-            <Copy size="18" color="var(--text-color-1)"></Copy>
-            {$_('copy_url')}
-          </button>
-        </li>
-
-        <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
-          <button class="timeline-menu-list__button" onclick={copyHandle}>
-            <AtSign size="18" color="var(--text-color-1)"></AtSign>
-            {$_('copy_handle')}
-          </button>
-        </li>
-
-        {#if ($settings.design?.layout === 'decks')}
-          <li class="timeline-menu-list__item timeline-menu-list__item--report">
-            <button class="timeline-menu-list__button" onclick={addThreadColumn}>
-              <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
-              {$_('add_thread_column')}
-            </button>
-          </li>
-        {/if}
-
-        <li class="timeline-menu-list__item timeline-menu-list__item--report">
-          <button class="timeline-menu-list__button" onclick={() => {$listAddModal = {open: true, author: data.post.author, did: _agent.did()}}}>
-            <List size="18" color="var(--text-color-1)"></List>
-            {$_('list_instant_manage')}
-          </button>
-        </li>
-
-        {#if $settings?.general?.enableBluefeed || false}
-          <li class="timeline-menu-list__item timeline-menu-list__item--bluefeed">
-            <button class="timeline-menu-list__button" onclick={() => {$bluefeedAddModal = {open: true, post: data.post, did: _agent.did()}}}>
-              <Rss size="18" color="var(--text-color-1)"></Rss>
-              {$_('add_bluefeed')}
-            </button>
-          </li>
-        {/if}
-
-        {#if ($agents.size > 1)}
-          <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" onclick={() => {isReactionModalOpen = true}}>
-              <Users2 size="18" color="var(--text-color-1)"></Users2>
-              {$_('reaction_other_account_menu')}
-            </button>
-          </li>
-        {/if}
-
-        {#if (!getAllAgentDids($agents).includes(data.post.author.did))}
-          <li class="timeline-menu-list__item timeline-menu-list__item--hide">
-            <button class="timeline-menu-list__button" onclick={mutePost}>
-              <EyeOff size="18" color="var(--text-color-1)"></EyeOff>
-              {$_('post_mute_on')}
-            </button>
-          </li>
-        {/if}
-
-        {#if (getAllAgentDids($agents).includes(data.post?.embed?.record?.author?.did || data.post?.embed?.record?.record?.author?.did))}
-          {#if (AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record?.record) || AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record))}
-            <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button" onclick={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri)}}>
-                <Sticker size="18" color="var(--danger-color)"></Sticker>
-                {$_('detach_quote')}
-              </button>
-            </li>
+        <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
+          {#if (!isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
+            <span class="timeline-reply-bar"></span>
           {/if}
-        {/if}
 
-        {#if ((data.post?.embed?.record?.detached || data.post?.embed?.record?.record?.detached) && getAllAgentDids($agents).includes(getDidFromUri(data.post?.embed?.record?.uri || data.post?.embed?.record?.record?.uri)))}
-          <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" onclick={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri, true)}}>
-              <Sticker size="18" color="var(--danger-color)"></Sticker>
-              {$_('un_detach_quote')}
-            </button>
-          </li>
-        {/if}
+          <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
+        </div>
+      {/if}
+    {/if}
 
-        <li class="timeline-menu-list__item timeline-menu-list__item--report">
-          <button class="timeline-menu-list__button" onclick={report}>
-            <Flag size="18" color="var(--danger-color)"></Flag>
-            {$_('report')}
-          </button>
-        </li>
-      </ul>
-    {/snippet}
-  </Menu>
-
-  {#if ($settings?.general.devMode)}
-    <div class="timeline-dev">
-      <p>langs: {data.post.record?.langs ?? ' '}</p>
-      <p>via: {data.post.record?.via ?? ' '}</p>
+    <div class="timeline__column">
+      <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide {pulseTranslate}>
+        {@render children?.()}
+      </TimelineContent>
     </div>
-  {/if}
 
-  {#if (isDialogRender)}
-    <ConfirmModal
-            on:ok={() => {deletePost(data.post.uri)}}
-            on:cancel={() => {isDialogRender = false}}
-            confirmationName="deleteConfirmSkip"
-            yesText="{$_('delete')}"
-            cancelText="{$_('cancel')}"
-    >
-      <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
-    </ConfirmModal>
-  {/if}
+    <Menu bind:isMenuOpen={isMenuOpen}>
+      {#snippet sub()}
+        <div class="menu-sub-list">
+          <ReactionButtonsInMenu
+                  {_agent}
+                  bind:post={data.post}
+          ></ReactionButtonsInMenu>
+        </div>
+      {/snippet}
 
-  {#if (isEditDialogRender)}
-    <ConfirmModal
-            on:ok={editPost}
-            on:cancel={() => {isEditDialogRender = false}}
-            confirmationName="deleteConfirmSkip"
-            yesText="{$_('delete')}"
-            cancelText="{$_('cancel')}"
-    >
-      <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
-      <p class="modal-description">{$_('delete_and_edit_confirm_description')}</p>
-    </ConfirmModal>
-  {/if}
+      {#snippet content()}
+        <ul class="timeline-menu-list" >
+          {#if (getAllAgentDids($agents).includes(data.post.author.did))}
+            <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+              <button class="timeline-menu-list__button" onclick={deletePostStep}>
+                <Trash2 size="18" color="var(--danger-color)"></Trash2>
+                <span class="text-danger">{$_('delete_post')}</span>
+              </button>
+            </li>
 
-  {#if (isReactionModalOpen)}
-    <ReactionModal {_agent} onclose={() => {isReactionModalOpen = false}}></ReactionModal>
-  {/if}
-</article>
+            <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+              <button class="timeline-menu-list__button" onclick={editPostStep}>
+                <Pencil size="18" color="var(--danger-color)"></Pencil>
+                {$_('delete_and_edit')}
+              </button>
+            </li>
+
+            {#if (isPinned)}
+              <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+                <button class="timeline-menu-list__button" onclick={unregisterPin}>
+                  <Pin size="18" color="var(--text-color-1)"></Pin>
+                  {$_('unregister_pin')}
+                </button>
+              </li>
+            {:else}
+              <li class="timeline-menu-list__item timeline-menu-list__item--delete">
+                <button class="timeline-menu-list__button" onclick={registerPin}>
+                  <Pin size="18" color="var(--text-color-1)"></Pin>
+                  {$_('register_pin')}
+                </button>
+              </li>
+            {/if}
+          {/if}
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--translate">
+            <button class="timeline-menu-list__button" onclick={translation}>
+              <Languages size="18" color="var(--text-color-1)"></Languages>
+              {$_('translation')}
+            </button>
+          </li>
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--copy-url">
+            <button class="timeline-menu-list__button" onclick={copyThreadUrl}>
+              <Copy size="18" color="var(--text-color-1)"></Copy>
+              {$_('copy_url')}
+            </button>
+          </li>
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
+            <button class="timeline-menu-list__button" onclick={copyHandle}>
+              <AtSign size="18" color="var(--text-color-1)"></AtSign>
+              {$_('copy_handle')}
+            </button>
+          </li>
+
+          {#if ($settings.design?.layout === 'decks')}
+            <li class="timeline-menu-list__item timeline-menu-list__item--report">
+              <button class="timeline-menu-list__button" onclick={addThreadColumn}>
+                <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
+                {$_('add_thread_column')}
+              </button>
+            </li>
+          {/if}
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--report">
+            <button class="timeline-menu-list__button" onclick={() => {$listAddModal = {open: true, author: data.post.author, did: _agent.did()}}}>
+              <List size="18" color="var(--text-color-1)"></List>
+              {$_('list_instant_manage')}
+            </button>
+          </li>
+
+          {#if $settings?.general?.enableBluefeed || false}
+            <li class="timeline-menu-list__item timeline-menu-list__item--bluefeed">
+              <button class="timeline-menu-list__button" onclick={() => {$bluefeedAddModal = {open: true, post: data.post, did: _agent.did()}}}>
+                <Rss size="18" color="var(--text-color-1)"></Rss>
+                {$_('add_bluefeed')}
+              </button>
+            </li>
+          {/if}
+
+          {#if ($agents.size > 1)}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={() => {isReactionModalOpen = true}}>
+                <Users2 size="18" color="var(--text-color-1)"></Users2>
+                {$_('reaction_other_account_menu')}
+              </button>
+            </li>
+          {/if}
+
+          {#if (!getAllAgentDids($agents).includes(data.post.author.did))}
+            <li class="timeline-menu-list__item timeline-menu-list__item--hide">
+              <button class="timeline-menu-list__button" onclick={mutePost}>
+                <EyeOff size="18" color="var(--text-color-1)"></EyeOff>
+                {$_('post_mute_on')}
+              </button>
+            </li>
+          {/if}
+
+          {#if (getAllAgentDids($agents).includes(data.post?.embed?.record?.author?.did || data.post?.embed?.record?.record?.author?.did))}
+            {#if (AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record?.record) || AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record))}
+              <li class="timeline-menu-list__item">
+                <button class="timeline-menu-list__button" onclick={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri)}}>
+                  <Sticker size="18" color="var(--danger-color)"></Sticker>
+                  {$_('detach_quote')}
+                </button>
+              </li>
+            {/if}
+          {/if}
+
+          {#if ((data.post?.embed?.record?.detached || data.post?.embed?.record?.record?.detached) && getAllAgentDids($agents).includes(getDidFromUri(data.post?.embed?.record?.uri || data.post?.embed?.record?.record?.uri)))}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri, true)}}>
+                <Sticker size="18" color="var(--danger-color)"></Sticker>
+                {$_('un_detach_quote')}
+              </button>
+            </li>
+          {/if}
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--report">
+            <button class="timeline-menu-list__button" onclick={report}>
+              <Flag size="18" color="var(--danger-color)"></Flag>
+              {$_('report')}
+            </button>
+          </li>
+        </ul>
+      {/snippet}
+    </Menu>
+
+    {#if ($settings?.general.devMode)}
+      <div class="timeline-dev">
+        <p>langs: {data.post.record?.langs ?? ' '}</p>
+        <p>via: {data.post.record?.via ?? ' '}</p>
+      </div>
+    {/if}
+
+    {#if (isDialogRender)}
+      <ConfirmModal
+              on:ok={() => {deletePost(data.post.uri)}}
+              on:cancel={() => {isDialogRender = false}}
+              confirmationName="deleteConfirmSkip"
+              yesText="{$_('delete')}"
+              cancelText="{$_('cancel')}"
+      >
+        <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
+      </ConfirmModal>
+    {/if}
+
+    {#if (isEditDialogRender)}
+      <ConfirmModal
+              on:ok={editPost}
+              on:cancel={() => {isEditDialogRender = false}}
+              confirmationName="deleteConfirmSkip"
+              yesText="{$_('delete')}"
+              cancelText="{$_('cancel')}"
+      >
+        <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
+        <p class="modal-description">{$_('delete_and_edit_confirm_description')}</p>
+      </ConfirmModal>
+    {/if}
+
+    {#if (isReactionModalOpen)}
+      <ReactionModal {_agent} onclose={() => {isReactionModalOpen = false}}></ReactionModal>
+    {/if}
+  </article>
+{/if}
 
 <style lang="postcss">
   .timeline-hidden-item {
@@ -805,6 +807,6 @@
   }
 
   .timeline__item--hide {
-      display: none !important;
+      display: none;
   }
 </style>

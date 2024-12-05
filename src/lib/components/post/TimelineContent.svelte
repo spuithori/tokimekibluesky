@@ -5,13 +5,7 @@
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, keywordFilter} from "$lib/timelineFilter";
-  import {
-      AppBskyEmbedExternal,
-      AppBskyEmbedImages,
-      AppBskyEmbedRecord,
-      AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs,
-      AppBskyFeedPost
-  } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost } from "@atproto/api";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {formatTranslateRecord} from "$lib/translate";
@@ -67,9 +61,14 @@
 
   let isWarn: 'content' | 'media' | null = detectWarn(moderateData) || null;
   isHide = detectHide(moderateData, isHide);
-  detectKeywordFilter();
 
   function detectHide(moderateData, current) {
+      let text = post.record.text;
+
+      if (keywordFilter(keywordMuteState.formattedKeywords, text, post.indexedAt)) {
+          return true;
+      }
+
       if (!moderateData) {
           return current;
       }
@@ -114,14 +113,6 @@
       }
 
       return null;
-  }
-
-  function detectKeywordFilter() {
-      let text = post.record.text;
-
-      if (keywordFilter(keywordMuteState.formattedKeywords, text, post.indexedAt)) {
-          isHide = true;
-      }
   }
 
   async function translation(pulse = true) {
