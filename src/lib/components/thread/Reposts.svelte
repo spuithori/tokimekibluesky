@@ -1,8 +1,5 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import {_} from "svelte-i18n";
-    import {onDestroy} from "svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
 
     let { uri, _agent } = $props();
@@ -12,17 +9,17 @@
         isOpen = false;
     }
 
-    run(() => {
+    $effect(() => {
         if (isOpen) {
-            document.body.classList.add('scroll-lock');
+            document.documentElement.classList.add('scroll-lock');
         } else {
-            document.body.classList.remove('scroll-lock');
+            document.documentElement.classList.remove('scroll-lock');
         }
-    });
 
-    onDestroy(() => {
-        document.body.classList.remove('scroll-lock');
-    })
+        return () => {
+            document.documentElement.classList.remove('scroll-lock');
+        };
+    });
 </script>
 
 <button class="likes-heading" onclick={() => {isOpen = true}}>{$_('reposted_users')}</button>

@@ -201,11 +201,11 @@
   {#key unique}
     <InfiniteLoading on:infinite={handleLoadMore}>
       {#snippet noMore()}
-          <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-        {/snippet}
+        <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
       {#snippet noResults()}
-          <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-        {/snippet}
+        <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
     </InfiniteLoading>
   {/key}
 

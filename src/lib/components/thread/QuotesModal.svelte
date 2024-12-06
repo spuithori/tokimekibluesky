@@ -1,8 +1,6 @@
 <script>
     import {_} from "svelte-i18n";
-    import {createEventDispatcher} from 'svelte';
     import { agent } from "$lib/stores";
-    const dispatch = createEventDispatcher();
     import InfiniteLoading from 'svelte-infinite-loading';
     import Modal from "$lib/components/ui/Modal.svelte";
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
@@ -46,10 +44,10 @@
 
   <InfiniteLoading on:infinite={handleLoadMore}>
     {#snippet noMore()}
-        <p  class="infinite-nomore">もうないよ</p>
-      {/snippet}
+      <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
+    {/snippet}
     {#snippet noResults()}
-        <p ></p>
-      {/snippet}
+      <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
+    {/snippet}
   </InfiniteLoading>
 </Modal>
