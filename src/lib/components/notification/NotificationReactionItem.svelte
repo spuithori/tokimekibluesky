@@ -110,13 +110,13 @@
             {#if (item.post)}
                 <div class="notifications-item__content">
                     <p><a href="{'/profile/' + item.post.author.handle + '/post/' + item.post.uri.split('/').slice(-1)[0]}" onclick={handlePostClick}>{item.post.record.text}</a></p>
-
-                    {#if (AppBskyEmbedImages.isView(item.post?.embed) && item.post?.embed)}
-                        <div class="notifications-item-images">
-                            <Images images={item.post.embed.images} blobs={item.post.record.embed.images} did={item.post.author.did}></Images>
-                        </div>
-                    {/if}
                 </div>
+
+                {#if (AppBskyEmbedImages.isView(item.post?.embed) && item.post?.embed)}
+                    <div class="notifications-item-images">
+                        <Images images={item.post.embed.images} blobs={item.post.record.embed.images} did={item.post.author.did}></Images>
+                    </div>
+                {/if}
             {:else}
                 {#if item.notifications[0].reasonSubject.includes('app.bsky.feed.generator')}
                     <div class="notifications-item__feed">
