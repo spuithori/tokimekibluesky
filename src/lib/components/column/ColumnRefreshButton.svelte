@@ -1,16 +1,14 @@
 <script lang="ts">
     import {agent, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
-    import {createEventDispatcher, onDestroy, tick} from "svelte";
+    import {onDestroy, tick} from "svelte";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import {playSound} from "$lib/sounds";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { fly } from 'svelte/transition';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-
-    const dispatch = createEventDispatcher();
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
     interface Props {
-        column: any;
         index: any;
         _agent?: any;
         unique?: any;
@@ -19,13 +17,15 @@
     }
 
     let {
-        column = $bindable(),
         index,
         _agent = $agent,
         unique = $bindable(Symbol()),
         isJunk = false,
         isRefreshing = $bindable(false)
     }: Props = $props();
+
+    const columnState = getColumnState(isJunk);
+    let column = columnState.getColumn(index);
 
     const host = _agent.agent.service.host === 'bsky.social' ? 'Jetstream (us-west2)' : _agent.agent.service.host;
 

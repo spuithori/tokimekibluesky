@@ -403,8 +403,7 @@
             {/if}
 
             <ColumnRefreshButton
-                bind:column
-                index={index}
+                {index}
                 {_agent}
                 bind:unique={unique}
                 bind:this={refreshEl}
@@ -437,8 +436,8 @@
                     <ThreadTimeline bind:column={column} index={index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
                 {:else if (column.algorithm.type === 'chat')}
                     <ChatTimeline
-                            column={column}
-                            index={index}
+                            {column}
+                            {index}
                             {_agent}
                             {unique}
                             onrefresh={handleRefresh}
