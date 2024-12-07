@@ -101,7 +101,7 @@
 
             <h2 class="notifications-item__title">
                 <span class="notifications-item__name">
-                  <ProfileCardWrapper handle="{item.notifications[0].author.handle}" {_agent}>
+                  <ProfileCardWrapper handle={item.notifications[0].author.handle} {_agent}>
                     <a class="notifications-item__link" href="/profile/{item.notifications[0].author.handle}">{item.notifications[0].author.displayName || item.notifications[0].author.handle}</a>
                   </ProfileCardWrapper>
                 </span> {$_(getReasonText(item.notifications.length === 1 ? item.reason : item.reason + '_multiple'))}

@@ -8,12 +8,7 @@
   import {isFeedByUri} from "$lib/util";
   import {formatDistanceToNow, parseISO} from "date-fns";
   import spinner from "$lib/images/loading.svg";
-  import {
-      AppBskyEmbedExternal,
-      AppBskyEmbedImages,
-      AppBskyEmbedRecord,
-      AppBskyEmbedRecordWithMedia, RichText
-  } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, RichText } from "@atproto/api";
   import Tiptap from "$lib/components/editor/Tiptap.svelte";
   import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
   import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
@@ -70,8 +65,6 @@
     let isVideoUploadEnabled = $state(false);
     let isThreadGateOpen = $state(false);
     let isSelfLabelingMenuOpen = $state(false);
-
-    const isMobile = navigator?.userAgentData?.mobile || false;
 
     if ('virtualKeyboard' in navigator) {
         navigator.virtualKeyboard.overlaysContent = true;
@@ -304,7 +297,7 @@
         editor.focus();
     }
 
-    onMount(async () => {
+    onMount(() => {
         editor.clear();
         postState.quote = undefined;
         postState.reply = undefined;
@@ -360,11 +353,6 @@
         }
 
         externalImageBlob = post.externalImageBlob;
-
-        /* const limit = await getUploadLimit(_agent);
-        if (limit?.canUpload) {
-            isVideoUploadEnabled = true;
-        } */
     })
 
     function addThread() {
@@ -566,10 +554,10 @@
                 </div>
 
                 <span class="timeline-external__icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
-                <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
-              </svg>
-              </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
+                    <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
+                  </svg>
+                </span>
               </div>
             </div>
           {/if}

@@ -7,6 +7,7 @@
   import {CHAT_PROXY} from "$lib/components/chat/chatConst";
   import ChatNewModal from "$lib/components/chat/ChatNewModal.svelte";
   import {toast} from "svelte-sonner";
+  import {MessageCirclePlus, Settings2} from "lucide-svelte";
 
   let convos = $state([]);
   let _agent = $state($agent);
@@ -55,9 +56,14 @@
 
   <div class="side-chat-nav">
     <p class="chat-settings-text">
-      <a href="/settings/moderation/chat" aria-label="{$_('settings_chat')}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></a></p>
+      <a href="/settings/moderation/chat" aria-label="{$_('settings_chat')}">
+        <Settings2 size="20" color="var(--text-color-2)"></Settings2>
+      </a>
+    </p>
 
-    <button class="button button--ssl button--soft-rect button--with-icon" onclick={() => {isModalOpen = true}}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-plus"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>{$_('start_new_chat')}
+    <button class="button button--ssl button--soft-rect button--with-icon" onclick={() => {isModalOpen = true}}>
+      <MessageCirclePlus size="20"></MessageCirclePlus>
+      {$_('start_new_chat')}
     </button>
   </div>
 

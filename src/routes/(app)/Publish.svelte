@@ -34,7 +34,6 @@
   let unique = $state(Symbol());
   let postsPool = $state([{}]);
   let currentPost = $state(0);
-  let getCurrentThreadData = $state();
   let publishMainEl = $state();
   let writes = [];
   let tid: TID | undefined;
@@ -836,12 +835,6 @@
 
         @media (max-width: 767px) {
             display: flex;
-        }
-
-        &--left {
-            @media (min-width: 768px) {
-                display: none;
-            }
         }
 
         &--vk {
