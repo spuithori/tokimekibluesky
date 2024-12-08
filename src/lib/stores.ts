@@ -37,6 +37,7 @@ const defaultSettings = {
         disableChat: false,
         disableTenorAutoplay: false,
         disableAtmosphere: false,
+        losslessImageUpload: false,
     },
     design: {
         skin: 'default',

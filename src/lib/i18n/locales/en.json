@@ -663,5 +663,8 @@
   "bluecast_time_suffix": " ago",
   "bluecast_nothing": "There is no live at this time.",
   "tag_instant_copy": "Copy hashtag",
-  "success_copy_tag": "{tag} copied to the clipboard."
+  "success_copy_tag": "{tag} copied to the clipboard.",
+  "publish_config_modal_title": "Post customize",
+  "lossless_image_upload_mode": "Lossless image upload (as possible)",
+  "lossless_image_upload_mode_notice": "If the image size is larger than 1MB, an error will occur and you will not be able to post. An error may also occur if the image format is not JPG/PNG."
 }

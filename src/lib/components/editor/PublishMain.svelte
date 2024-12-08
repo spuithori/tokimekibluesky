@@ -30,6 +30,7 @@
   import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {postState} from "$lib/classes/postState.svelte";
+  import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
   const dispatch = createEventDispatcher();
 
   interface Props {
@@ -65,6 +66,7 @@
     let isVideoUploadEnabled = $state(false);
     let isThreadGateOpen = $state(false);
     let isSelfLabelingMenuOpen = $state(false);
+    let isConfigOpen = $state(false);
 
     if ('virtualKeyboard' in navigator) {
         navigator.virtualKeyboard.overlaysContent = true;
@@ -670,6 +672,12 @@
         </button>
       </div>
     {/if}
+
+    <div class="publish-form-thread-gate">
+      <button class="publish-form-lang-selector-button" onclick={() => {isConfigOpen = !isConfigOpen}}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -683,6 +691,10 @@
 
 {#if (isThreadGateOpen)}
   <ThreadGateModal on:close={() => {isThreadGateOpen = false}} {_agent}></ThreadGateModal>
+{/if}
+
+{#if (isConfigOpen)}
+  <PublishConfigModal on:close={() => {isConfigOpen = false}}></PublishConfigModal>
 {/if}
 
 <style lang="postcss">

@@ -2,13 +2,12 @@
     import { run } from 'svelte/legacy';
 
     import {agent, postgate, threadGate} from '$lib/stores';
-    import {createEventDispatcher, onMount} from 'svelte';
+    import {onMount} from 'svelte';
     import { _ } from 'svelte-i18n';
     import {getAccountIdByDidFromDb} from "$lib/util";
     import {accountsDb} from "$lib/db";
     import {List} from "lucide-svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
-    const dispatch = createEventDispatcher();
 
     let { _agent = $agent } = $props();
     let officialLists = $state([]);
