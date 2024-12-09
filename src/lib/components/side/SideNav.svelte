@@ -6,7 +6,6 @@
   import SideMenu from "$lib/components/side/SideMenu.svelte";
   import SideChat from "$lib/components/side/SideChat.svelte";
   import { clickOutside } from '$lib/clickOutSide';
-  import Notification from "../../../routes/(app)/Notification.svelte";
   import { publishState } from "$lib/classes/publishState.svelte";
   import {type SideItem, sideState} from "$lib/classes/sideState.svelte";
   import { goto } from "$app/navigation";

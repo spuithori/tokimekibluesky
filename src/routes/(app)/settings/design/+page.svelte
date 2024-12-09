@@ -515,6 +515,18 @@
         </div>
       </dd>
     </dl>
+
+    <dl class="settings-group only-pc">
+      <dt class="settings-group__name">
+        {$_('display_mutual_following')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="displayMutualDisplay" bind:checked={$settings.design.mutualDisplay}><label class="input-toggle__label" for="displayMutualDisplay"></label>
+        </div>
+      </dd>
+    </dl>
   </div>
 </div>
 

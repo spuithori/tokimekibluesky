@@ -1,7 +1,9 @@
 <script lang="ts">
+  import {_} from 'svelte-i18n';
   import UserFollowButton from "./UserFollowButton.svelte";
-  import {agent} from "$lib/stores";
+  import {agent, settings} from "$lib/stores";
   import Avatar from "../../Avatar.svelte";
+  import {Handshake} from "lucide-svelte";
 
   interface Props {
     _agent?: any;
@@ -23,6 +25,13 @@
     <div class="user-item__content">
       <h3 class="user-item__title">{user.displayName || user.handle}</h3>
       <p class="user-item__text">{user.handle}</p>
+
+      {#if (user.viewer?.followedBy && $settings?.design?.mutualDisplay)}
+        <p class="profile-relationship-by">
+          <Handshake size="18" color="var(--text-color-3)"></Handshake>
+          {$_('follows_you')}
+        </p>
+      {/if}
     </div>
   </article>
 

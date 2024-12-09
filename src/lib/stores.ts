@@ -61,6 +61,7 @@ const defaultSettings = {
         immersiveMode: false,
         singleWidth: 'medium',
         fixedFooter: false,
+        mutualDisplay: false,
     },
     timeline: {
         hideRepost: 'all',

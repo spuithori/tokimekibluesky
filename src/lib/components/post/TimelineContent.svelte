@@ -20,6 +20,7 @@
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import {onDestroy, untrack} from "svelte";
+  import {Handshake} from "lucide-svelte";
 
   interface Props {
       post: any;
@@ -148,6 +149,12 @@
 <div class="timeline__image">
   {#if $settings?.design.postsLayout !== 'minimum'}
     <Avatar href="/profile/{ post.author.handle !== 'handle.invalid' ? post.author.handle : post.author.did }" avatar={post.author.avatar} profile={post.author} handle={post.author.handle} {_agent}></Avatar>
+
+    {#if (post.author?.viewer?.followedBy && $settings?.design?.mutualDisplay)}
+      <div class="avatar-mutual-badge">
+        <Handshake size="16" color="var(--primary-color)"></Handshake>
+      </div>
+    {/if}
   {/if}
 </div>
 

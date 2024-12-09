@@ -227,6 +227,12 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+.timeline__image {
+    &:has(.avatar-mutual-badge) {
+        position: relative;
+    }
+}
+
 .timeline-repost-message {
     font-size: var(--timeline-repost-font-size);
     letter-spacing: .025em;
@@ -1121,4 +1127,16 @@
     &:hover {
         display: none;
     }
+}
+
+.avatar-mutual-badge {
+    width: 24px;
+    height: 24px;
+    background-color: var(--bg-color-2);
+    display: grid;
+    place-content: center;
+    border-radius: 50%;
+    position: absolute;
+    right: 0;
+    bottom: -12px;
 }
