@@ -2,12 +2,10 @@
     import {_} from "svelte-i18n";
     import { currentTimeline, settings } from "$lib/stores";
     import { languageMap } from "$lib/langs/languageMap";
-    import { createEventDispatcher } from 'svelte';
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {Search} from "lucide-svelte";
-    const dispatch = createEventDispatcher();
 
     const columnState = getColumnState();
 
@@ -22,7 +20,8 @@
         column,
         index,
         _agent,
-        layout = 'default'
+        layout = 'default',
+        onclose,
     }: Props = $props();
 
     let hideRepost = $state(column.settings?.timeline.hideRepost || null);
@@ -274,7 +273,7 @@
     ];
 
     function handleClickClose() {
-        dispatch('close');
+        onclose();
     }
 
     function toggleStyle(style: 'default' | 'media') {

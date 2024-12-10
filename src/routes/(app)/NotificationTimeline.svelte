@@ -179,36 +179,19 @@
 </script>
 
 <div class="timeline">
-  <!-- <Notification
-          isPage={isJunk}
-          {_agent}
-          isOnlyShowUnread={column.settings?.onlyShowUnread}
-          sound={column.settings?.playSound}
-          onupdate={handleCountUpdate}
-          onchange={handleFilterChange}
-          bind:notifications={column.data.notifications}
-          bind:cursor={column.data.cursor}
-          bind:feedPool={column.data.feedPool}
-          bind:notificationGroup={column.data.feed}
-          bind:lastRefresh={column.lastRefresh}
-          filter={column.filter || ['like', 'repost', 'reply', 'mention', 'quote', 'follow']}
-          id={column.id}
-          {unique}
-  ></Notification> -->
-
   <div class="notifications-wrap">
     {#if (isJunk)}
       <div class="notifications-menu">
         <ul class="notifications-filter-list">
           <li class="notifications-filter-list__item">
             <button class="notifications-filter-button"
-                    on:click={() => {changeFilter(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}}
+                    onclick={() => {changeFilter(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}}
                     class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}>{$_('all')}</button>
           </li>
 
           <li class="notifications-filter-list__item">
             <button class="notifications-filter-button"
-                    on:click={() => {changeFilter(['reply', 'mention', 'quote'])}}
+                    onclick={() => {changeFilter(['reply', 'mention', 'quote'])}}
                     class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['reply', 'mention', 'quote'])}
                     aria-label="Reply, Mention, and Quotes">
               <AtSign size="18" color="var(--text-color-1)"></AtSign>
@@ -216,7 +199,7 @@
           </li>
 
           <li class="notifications-filter-list__item">
-            <button class="notifications-filter-button" on:click={() => {changeFilter(['like'])}}
+            <button class="notifications-filter-button" onclick={() => {changeFilter(['like'])}}
                     class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])}
                     aria-label="Like">
               {#if ($settings?.design?.reactionMode === 'superstar')}
@@ -228,7 +211,7 @@
           </li>
 
           <li class="notifications-filter-list__item">
-            <button class="notifications-filter-button" on:click={() => {changeFilter(['repost'])}}
+            <button class="notifications-filter-button" onclick={() => {changeFilter(['repost'])}}
                     class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['repost'])}
                     aria-label="Repost">
               <Repeat2 size="18" color="var(--text-color-1)"></Repeat2>
@@ -236,7 +219,7 @@
           </li>
 
           <li class="notifications-filter-list__item">
-            <button class="notifications-filter-button" on:click={() => {changeFilter(['follow'])}}
+            <button class="notifications-filter-button" onclick={() => {changeFilter(['follow'])}}
                     class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['follow'])}
                     aria-label="Follow">
               <UserPlus2 size="20" color="var(--text-color-1)"></UserPlus2>
@@ -249,7 +232,7 @@
         <ul class="notifications-filter">
           {#each filters as item, index (item)}
             <li class="notifications-filter__item" aria-label={$_(item)}>
-              <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={filter} value={item} on:change={() => {changeFilter(filter)}}>
+              <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={filter} value={item} onchange={() => {changeFilter(filter)}}>
               <label class="notifications-filter__label" for={id + '_' + item}>
                 <svelte:component this={filterIcons[item]} size="20"></svelte:component>
               </label>
@@ -268,7 +251,7 @@
 
           {#if (filter.includes(item.reason))}
             {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-              <TimelineItem {_agent} data={{post: item.post || item.notifications[0]}}></TimelineItem>
+              <TimelineItem {_agent} data={{post: item.post}}></TimelineItem>
             {:else if (item.reason === 'follow')}
               <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
             {:else if (item.reason === 'starterpack-joined')}
@@ -350,14 +333,6 @@
 
         &__item {
             font-size: 14px;
-
-            &--push {
-                margin-left: auto;
-
-                @media (max-width: 767px) {
-
-                }
-            }
         }
     }
 

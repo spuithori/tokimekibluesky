@@ -426,7 +426,7 @@
     </div>
 
     {#if isSettingsOpen}
-        <DeckSettingsModal {column} {index} {_agent} layout={$settings.design?.layout} on:close={handleSettingsClick}></DeckSettingsModal>
+        <DeckSettingsModal {column} {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick}></DeckSettingsModal>
     {:else}
         {#if _agent}
             <div class="deck-row__content">
