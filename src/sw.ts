@@ -8,7 +8,7 @@ cleanupOutdatedCaches();
 
 precacheAndRoute(self.__WB_MANIFEST);
 
-type rawType = 'like' | 'follow' | 'reply' | 'repost' | 'quote' | 'mention' | 'unknown';
+type rawType = 'like' | 'follow' | 'reply' | 'repost' | 'quote' | 'mention' | 'post' | 'unknown';
 
 function chooseBadge(rawType: rawType) {
     const badgeImage = {
@@ -19,6 +19,7 @@ function chooseBadge(rawType: rawType) {
         repost: '/badge-repost.png',
         mention: '/badge-mention.png',
         quote: '/badge-quote.png',
+        post: '/badge-bell.png',
     }
 
     switch (rawType) {
@@ -34,6 +35,8 @@ function chooseBadge(rawType: rawType) {
             return badgeImage.quote;
         case 'mention':
             return badgeImage.mention;
+        case 'post':
+            return badgeImage.post;
         default:
             return badgeImage.default;
     }
@@ -54,7 +57,7 @@ async function execNotification(data) {
     const categories = account.notification || [];
     const avatar = account.avatar || '/swbadge.png';
 
-    if (!categories.includes(data.type)) {
+    if (!categories.includes(data.type) && data.type !== 'post') {
         return;
     }
 
@@ -62,6 +65,7 @@ async function execNotification(data) {
         body: data.text,
         badge: badge,
         icon: avatar,
+        data: data.targetUrl,
         actions: [
             {
                 action: 'open',
@@ -86,15 +90,31 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
 
-    if (event.action === 'open') {
-        const targetUrl = '/';
+    const urlData = event.notification.data;
+    const urlToOpen = new URL(urlData || '/', self.location.origin).href;
 
-        event.waitUntil(clients.matchAll({ type: 'window' }).then(clientsArr => {
-            const hadWindowToFocus = clientsArr.some(windowClient => windowClient.url === targetUrl ? (windowClient.focus(), true) : false);
+    const promiseChain = clients
+        .matchAll({
+            type: 'window',
+            includeUncontrolled: true,
+        })
+        .then((windowClients) => {
+            let matchingClient = null;
 
-            if (!hadWindowToFocus) clients.openWindow(targetUrl).then(windowClient => windowClient ? windowClient.focus() : null);
-        }));
-    } else {
-        clients.openWindow('/');
-    }
+            for (let i = 0; i < windowClients.length; i++) {
+                const windowClient = windowClients[i];
+                if (windowClient.url === urlToOpen) {
+                    matchingClient = windowClient;
+                    break;
+                }
+            }
+
+            if (matchingClient) {
+                return matchingClient.focus();
+            } else {
+                return clients.openWindow(urlToOpen);
+            }
+        });
+
+    event.waitUntil(promiseChain);
 }, false);

@@ -20,6 +20,7 @@
     import {setAgentContext} from "./state.svelte";
     import {profileHintState} from "$lib/classes/profileHintState.svelte";
     import {untrack} from "svelte";
+    import UserNotification from "./UserNotification.svelte";
 
     const junkColumnState = getColumnState(true);
 
@@ -204,7 +205,10 @@
         {#if profile}
           <UserProfile {handle} {profile} {isLabeler} {_agent} on:refresh={handleRefresh}>
             {#if (profile.did !== _agent.did() && !isLabeler)}
-              <UserFollowButton following="{profile.viewer?.following}" user={profile} {_agent}></UserFollowButton>
+              <div class="user-profile-buttons">
+                <UserFollowButton following="{profile.viewer?.following}" user={profile} {_agent}></UserFollowButton>
+                <UserNotification {_agent} {profile}></UserNotification>
+              </div>
             {:else if (isLabeler && profile?.did)}
               <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
             {/if}
@@ -271,5 +275,10 @@
         top: 52px;
         z-index: 2;
         background-color: var(--bg-color-1);
+    }
+
+    .user-profile-buttons {
+        display: flex;
+        gap: 8px;
     }
 </style>
