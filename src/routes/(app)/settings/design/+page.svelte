@@ -516,7 +516,7 @@
       </dd>
     </dl>
 
-    <dl class="settings-group only-pc">
+    <dl class="settings-group">
       <dt class="settings-group__name">
         {$_('display_mutual_following')}
       </dt>
