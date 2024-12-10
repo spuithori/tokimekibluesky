@@ -5,7 +5,7 @@
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, keywordFilter} from "$lib/timelineFilter";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, BskyAgent } from "@atproto/api";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {formatTranslateRecord} from "$lib/translate";
@@ -20,7 +20,7 @@
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import {onDestroy, untrack} from "svelte";
-  import {Handshake} from "lucide-svelte";
+  import {Eye, Handshake} from "lucide-svelte";
 
   interface Props {
       post: any;
@@ -54,6 +54,7 @@
   let warnLabels = $state([]);
   let warnBehavior: 'cover' | 'inform' = $state('cover');
   let timeDistanceToNow = $state(formatDistanceToNow(parseISO(post.indexedAt)));
+  let skyblurText = $state('');
 
   const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
   const contentContext = isSingle
@@ -139,6 +140,26 @@
       }
   }
 
+  async function handleSkyblurShow() {
+      try {
+          const __agent = new BskyAgent({service: _agent.service()});
+          const rkey = post?.record?.['uk.skyblur.post.uri'].split('/').slice(-1)[0];
+          const res = await __agent.api.com.atproto.repo.getRecord({
+              collection: "uk.skyblur.post",
+              repo: post.author.did,
+              rkey: rkey,
+          });
+
+          if (res?.data?.value?.text) {
+              skyblurText = res.data.value.text.replace(/[\[\]]/g, '');
+          } else {
+              throw new Error('Skyblur text not found.');
+          }
+      } catch (e) {
+          console.error(e);
+      }
+  }
+
   $workerTimer.addEventListener('message', handleTimer);
 
   onDestroy(() => {
@@ -209,9 +230,25 @@
       <TimelineWarn labels={warnLabels} behavior={warnBehavior}></TimelineWarn>
     {/if}
 
-    <p class="timeline__text" dir="auto">
-      <TimelineText record={post.record} {_agent}></TimelineText>
-    </p>
+    {#if (!skyblurText)}
+      <p class="timeline__text" dir="auto">
+        <TimelineText record={post.record} {_agent}></TimelineText>
+      </p>
+
+      {#if (post?.record?.['uk.skyblur.post.uri'])}
+        <button class="skyblur-show" onclick={handleSkyblurShow}>
+          <Eye size="18" color="var(--primary-color)"></Eye>
+          {$_('show_skyblur_text')}
+        </button>
+      {/if}
+    {:else}
+      <p class="timeline__text" dir="auto">
+        <TimelineText record={{
+          ...post.record,
+          text: skyblurText,
+      }} {_agent}></TimelineText>
+      </p>
+    {/if}
 
     {#if (translatedRecord)}
       <div class="timeline-translated-text" dir="auto">
