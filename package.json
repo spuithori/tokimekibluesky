@@ -13,7 +13,7 @@
   "devDependencies": {
     "@neoconfetti/svelte": "^2.2.1",
     "@sveltejs/adapter-auto": "^3.3.1",
-    "@sveltejs/kit": "^2.9.0",
+    "@sveltejs/kit": "^2.9.1",
     "@sveltejs/vite-plugin-svelte": "^5.0.1",
     "@vite-pwa/sveltekit": "^0.6.6",
     "@vitejs/plugin-basic-ssl": "^1.2.0",
@@ -23,7 +23,7 @@
     "postcss-load-config": "^4.0.1",
     "postcss-nested": "6.0.1",
     "postcss-preset-env": "*",
-    "svelte": "^5.8.1",
+    "svelte": "^5.10.0",
     "svelte-check": "^4.1.1",
     "svelte-floating-ui": "^1.5.9",
     "svelte-preprocess": "^6.0.3",
@@ -36,7 +36,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@atproto/api": "^0.13.19",
+    "@atproto/api": "^0.13.20",
     "@atproto/common-web": "^0.3.1",
     "@emoji-mart/data": "^1.2.1",
     "@giphy/js-fetch-api": "^5.6.0",

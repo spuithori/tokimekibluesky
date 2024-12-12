@@ -138,15 +138,16 @@
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
         try {
-            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
-                limit: 25,
-                cursor: column.data.cursor,
-            });
-            column.data.cursor = res.data.cursor;
-
             if (!filter.length) {
                 filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
             }
+
+            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+                limit: 25,
+                cursor: column.data.cursor,
+                reasons: filter,
+            });
+            column.data.cursor = res.data.cursor;
 
             const _notifications = res.data.notifications.filter(item => {
                 return filter.includes(item.reason);

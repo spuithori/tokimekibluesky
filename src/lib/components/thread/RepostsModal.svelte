@@ -27,7 +27,7 @@
     }
 </script>
 
-<Modal title="{$_('reposted_users')}" size="small" on:close>
+<Modal title={$_('reposted_users')} size="small" on:close>
     <div class="likes">
         {#each reposts as repost }
             {#if (!repost.viewer?.muted)}

@@ -27,7 +27,7 @@
     }
 </script>
 
-<Modal title="{$_('liked_users')}" size="small" on:close>
+<Modal title={$_('liked_users')} size="small" on:close>
   <div class="likes">
     {#each likes as like }
       {#if (!like.actor.viewer?.muted)}

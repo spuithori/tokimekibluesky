@@ -111,11 +111,6 @@
         } else if (column.algorithm.type === 'realtime') {
             return false;
         } else if (column.algorithm.type === 'notification') {
-            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
-                limit: 25,
-                cursor: '',
-            });
-
             if (!Array.isArray(column.filter)) {
                 column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
             }
@@ -123,6 +118,12 @@
             if (!column.filter.length) {
                 column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
             }
+
+            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+                limit: 25,
+                cursor: '',
+                reasons: column.filter,
+            });
 
             const _notifications = res.data.notifications.filter(item => {
                 return column.filter.includes(item.reason);
