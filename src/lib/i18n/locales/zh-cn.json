@@ -660,7 +660,7 @@
     "fixed_footer": "锁定页脚",
     "bluecast": "Bluecast",
     "side_bluecast_title": "在 Bluecast 上直播",
-    "bluecast_time_suffix": " ago",
+    "bluecast_time_suffix": " 之前",
     "bluecast_nothing": "现在暂时没有直播。",
     "tag_instant_copy": "复制标签",
     "success_copy_tag": "已复制标签 {tag}。",
