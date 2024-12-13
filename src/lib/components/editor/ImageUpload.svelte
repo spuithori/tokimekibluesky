@@ -15,6 +15,7 @@
     import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
     import {X} from "lucide-svelte";
     import {toast} from "svelte-sonner";
+    import {publishState} from "$lib/classes/publishState.svelte";
     const dispatch = createEventDispatcher();
 
     type Image = {
@@ -165,7 +166,7 @@
 <div class="image-upload">
     <div class="image-upload-drag-area"
          class:image-upload-drag-area--1item={images.length === 1}
-         class:image-upload-drag-area--bottom={$settings.design?.publishPosition === 'bottom'}
+         class:image-upload-drag-area--bottom={publishState.layout === 'bottom'}
          use:dndzone="{{items: images, flipDurationMs: 300, type: 'images', dropTargetStyle: ''}}"
          onconsider={handleDndConsider}
          onfinalize={handleDndFinalize}

@@ -4,7 +4,7 @@
   import { createLongPress } from "svelte-interactions";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import {toast} from "svelte-sonner";
-  import {WholeWord} from "lucide-svelte";
+  import {Copy, WholeWord} from "lucide-svelte";
   const { longPressAction } = createLongPress();
 
   let { item } = $props();
@@ -26,6 +26,17 @@
       localStorage.setItem('keywordMutes', JSON.stringify($state.snapshot(keywordMuteState.keywords)));
       isTagMenuOpen = false;
   }
+
+  function copyTag() {
+      navigator.clipboard.writeText(item.text)
+          .then(() => {
+              toast.success($_('success_copy_tag', {values: {tag: item.text}}));
+          }, () => {
+              toast.success($_('failed_copy'));
+          });
+
+      isTagMenuOpen = false;
+  }
 </script>
 
 <Menu bind:isMenuOpen={isTagMenuOpen} isLongPress={isTagMenuOpen} buttonClassName="menu-tag-link" position="bottom-start">
@@ -36,6 +47,13 @@
         <button class="timeline-menu-list__button" onclick={muteTag}>
           <WholeWord size="20" color="var(--danger-color)"></WholeWord>
           <span class="text-danger">{$_('tag_instant_mute')}</span>
+        </button>
+      </li>
+
+      <li class="timeline-menu-list__item">
+        <button class="timeline-menu-list__button" onclick={copyTag}>
+          <Copy size="20" color="var(--text-color-1)"></Copy>
+          <span>{$_('tag_instant_copy')}</span>
         </button>
       </li>
     </ul>

@@ -34,8 +34,8 @@
     function handlePostClick(e) {
         e.preventDefault();
 
-        const rkey = item.feed.uri.split('/').slice(-1)[0];
-        const uri = '/profile/' + item.feed.author.handle + '/post/' + rkey;
+        const rkey = item.post.uri.split('/').slice(-1)[0];
+        const uri = '/profile/' + item.post.author.handle + '/post/' + rkey;
 
         if (uri === location.pathname) {
             return false;
@@ -45,7 +45,7 @@
             junkColumnState.add({
                 id: 'thread_' + rkey,
                 algorithm: {
-                    algorithm: 'at://' + item.feed.author.did + '/app.bsky.feed.post/' + rkey,
+                    algorithm: 'at://' + item.post.author.did + '/app.bsky.feed.post/' + rkey,
                     type: 'thread',
                     name: 'Thread',
                 },
@@ -55,14 +55,14 @@
                 handle: _agent.handle(),
                 data: {
                     feed: [{
-                        post: item.feed,
+                        post: item.post,
                     }],
                     cursor: '',
                 }
             });
         }
 
-        didHint.set(item.feed.author.did);
+        didHint.set(item.post.author.did);
         goto(uri);
     }
 
@@ -101,25 +101,25 @@
 
             <h2 class="notifications-item__title">
                 <span class="notifications-item__name">
-                  <ProfileCardWrapper handle="{item.notifications[0].author.handle}" {_agent}>
+                  <ProfileCardWrapper handle={item.notifications[0].author.handle} {_agent}>
                     <a class="notifications-item__link" href="/profile/{item.notifications[0].author.handle}">{item.notifications[0].author.displayName || item.notifications[0].author.handle}</a>
                   </ProfileCardWrapper>
                 </span> {$_(getReasonText(item.notifications.length === 1 ? item.reason : item.reason + '_multiple'))}
             </h2>
 
-            {#if (item.feed)}
+            {#if (item.post)}
                 <div class="notifications-item__content">
-                    <p><a href="{'/profile/' + item.feed.author.handle + '/post/' + item.feed.uri.split('/').slice(-1)[0]}" onclick={handlePostClick}>{item.feed.record.text}</a></p>
-
-                    {#if (AppBskyEmbedImages.isView(item.feed?.embed) && item.feed?.embed)}
-                        <div class="notifications-item-images">
-                            <Images images={item.feed.embed.images} blobs={item.feed.record.embed.images} did={item.feed.author.did}></Images>
-                        </div>
-                    {/if}
+                    <p><a href="{'/profile/' + item.post.author.handle + '/post/' + item.post.uri.split('/').slice(-1)[0]}" onclick={handlePostClick}>{item.post.record.text}</a></p>
                 </div>
+
+                {#if (AppBskyEmbedImages.isView(item.post?.embed) && item.post?.embed)}
+                    <div class="notifications-item-images">
+                        <Images images={item.post.embed.images} blobs={item.post.record.embed.images} did={item.post.author.did}></Images>
+                    </div>
+                {/if}
             {:else}
                 {#if item.notifications[0].reasonSubject.includes('app.bsky.feed.generator')}
-                    <div class="notification-item__feed">
+                    <div class="notifications-item__feed">
                         <FeedEmbed {_agent} feedUri={item.notifications[0].reasonSubject}></FeedEmbed>
                     </div>
                 {/if}
@@ -129,11 +129,11 @@
 </article>
 
 {#if isLikesOpen}
-    <LikesModal uri={item.feed.uri} on:close={() => {isLikesOpen = false}} {_agent}></LikesModal>
+    <LikesModal uri={item.post.uri} on:close={() => {isLikesOpen = false}} {_agent}></LikesModal>
 {/if}
 
 {#if isRepostsOpen}
-    <RepostsModal uri={item.feed.uri} on:close={() => {isRepostsOpen = false}} {_agent}></RepostsModal>
+    <RepostsModal uri={item.post.uri} on:close={() => {isRepostsOpen = false}} {_agent}></RepostsModal>
 {/if}
 
 <style lang="postcss">

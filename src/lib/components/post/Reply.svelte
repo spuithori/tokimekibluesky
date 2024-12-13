@@ -1,6 +1,7 @@
 <script lang="ts">
-  import {agent, isPublishInstantFloat, sideState} from '$lib/stores';
+  import {agent} from '$lib/stores';
   import {postState} from "$lib/classes/postState.svelte";
+  import {publishState} from "$lib/classes/publishState.svelte";
 
   interface Props {
     _agent?: any;
@@ -21,8 +22,7 @@
   function handleClick() {
       postState.reply = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } }
       postState.replyPulse = Symbol();
-      $sideState = 'publish';
-      $isPublishInstantFloat = true;
+      publishState.show = true;
   }
 </script>
 

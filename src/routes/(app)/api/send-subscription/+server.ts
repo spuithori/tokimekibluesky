@@ -6,7 +6,7 @@ const supabase = createClient(
     SUPABASE_ANON_KEY
 );
 
-async function subscription(subscription, did, language) {
+async function subscription(subscription: any, did: string, language: string, notifications: string) {
     const addDatabase = async () => {
         const { error } = await supabase
             .from('v2-notification')
@@ -15,6 +15,7 @@ async function subscription(subscription, did, language) {
                     subscription: subscription,
                     accounts: did,
                     language: language,
+                    notifications: notifications,
                 },
                 {
                     onConflict: 'subscription',
@@ -33,11 +34,9 @@ async function subscription(subscription, did, language) {
 export async function POST ({ request }) {
     if (request.method === 'POST') {
         const textObj = await request.json();
-        // console.log(textObj);
 
-        await subscription(textObj.subscription, textObj.did, textObj.language);
+        await subscription(textObj.subscription, textObj.did, textObj.language, textObj.notifications);
 
-        // await subscription(subscription, did);
         return new Response('200', { status: 200 });
     }
 }

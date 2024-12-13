@@ -1,139 +1,19 @@
-.header {
-    @media (max-width: 767px) {
-        transition: all .25s cubic-bezier(0.16, 0.01, 0.3, 0.98);
-    }
-}
-
-.page-nav-title {
-    @media (max-width: 767px) {
-        transition: all .25s cubic-bezier(0.16, 0.01, 0.3, 0.98);
-    }
-}
-
-.footer {
-    @media (max-width: 767px) {
-        transition: all .25s cubic-bezier(0.16, 0.01, 0.3, 0.98);
-    }
-}
-
-.footer-round {
-    @media (max-width: 767px) {
-        transition: all .25s cubic-bezier(0.16, 0.01, 0.3, 0.98) .075s;
-    }
-}
-
-.scroll-down {
-    .header {
-        @media (max-width: 767px) {
-            transform: translateY(-80px);
-        }
-    }
-
-    .page-nav-title {
-        @media (max-width: 767px) {
-            transform: translateY(-80px) translateX(-50%);
-        }
-    }
-
-    .footer {
-        @media (max-width: 767px) {
-            transform: translateY(calc(70px + var(--safe-area-bottom)));
-        }
-    }
-
-    .footer-round {
-        @media (max-width: 767px) {
-            transform: scale(.7);
-        }
-    }
-}
-
-.page-nav-title {
-    position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 16px;
-    font-weight: 900;
-    text-align: center;
-    z-index: 101;
-    font-size: 24px;
-    line-height: 1.5;
-    margin: auto;
-    display: inline-flex;
-    letter-spacing: .05em;
-
-    @media (max-width: 767px) {
-        font-size: 18px;
-        top: 28px;
-    }
-}
-
 .refresh-button {
     width: 40px;
+    height: 40px;
     border: none;
     box-shadow: none;
-    background-color: var(--bg-color-1);
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 20px;
-    z-index: 21;
+    display: grid;
+    place-content: center;
     outline: none;
 
     &:focus-visible {
         outline: none;
     }
 
-    @media (max-width: 767px) {
-        bottom: calc(100px + var(--safe-area-bottom));
-        right: 0;
-        left: auto;
-        border-radius: 20px 0 0 20px;
-        width: 100px;
-        border: none;
-        background-color: var(--primary-color);
-        visibility: visible;
-        opacity: 1;
-        transition: all .25s ease-in-out;
-
-        path {
-            fill: #fff;
-        }
-    }
-
     &.is-refreshing {
         svg {
             animation: rotation .8s linear infinite;
-        }
-    }
-
-    &--decks {
-        @media (max-width: 767px) {
-            position: static !important;
-            width: 40px;
-            border: none;
-            box-shadow: none;
-            background-color: var(--bg-color-1);
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 20px;
-            opacity: 1;
-            visibility: visible;
-            transition: all .25s ease-in-out;
-            z-index: 21;
-
-            path {
-                fill: var(--primary-color);
-            }
-
-            &.refresh-button--realtime {
-                path {
-                    fill: none;
-                }
-            }
         }
     }
 }

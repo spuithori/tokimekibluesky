@@ -2,18 +2,13 @@
   import { createBubbler, preventDefault } from 'svelte/legacy';
 
   const bubble = createBubbler();
-  import {isPublishFormExpand, selfLabels} from "$lib/components/editor/publishStore";
-  import {isPublishInstantFloat, postgate, settings, threadGate} from "$lib/stores";
+  import {selfLabels} from "$lib/components/editor/publishStore";
+  import {postgate, settings, threadGate} from "$lib/stores";
   import {_} from "svelte-i18n";
   import {isFeedByUri} from "$lib/util";
   import {formatDistanceToNow, parseISO} from "date-fns";
   import spinner from "$lib/images/loading.svg";
-  import {
-      AppBskyEmbedExternal,
-      AppBskyEmbedImages,
-      AppBskyEmbedRecord,
-      AppBskyEmbedRecordWithMedia, RichText
-  } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, RichText } from "@atproto/api";
   import Tiptap from "$lib/components/editor/Tiptap.svelte";
   import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
   import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
@@ -35,6 +30,7 @@
   import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {postState} from "$lib/classes/postState.svelte";
+  import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
   const dispatch = createEventDispatcher();
 
   interface Props {
@@ -70,8 +66,7 @@
     let isVideoUploadEnabled = $state(false);
     let isThreadGateOpen = $state(false);
     let isSelfLabelingMenuOpen = $state(false);
-
-    const isMobile = navigator?.userAgentData?.mobile || false;
+    let isConfigOpen = $state(false);
 
     if ('virtualKeyboard' in navigator) {
         navigator.virtualKeyboard.overlaysContent = true;
@@ -304,7 +299,7 @@
         editor.focus();
     }
 
-    onMount(async () => {
+    onMount(() => {
         editor.clear();
         postState.quote = undefined;
         postState.reply = undefined;
@@ -360,11 +355,6 @@
         }
 
         externalImageBlob = post.externalImageBlob;
-
-        /* const limit = await getUploadLimit(_agent);
-        if (limit?.canUpload) {
-            isVideoUploadEnabled = true;
-        } */
     })
 
     function addThread() {
@@ -444,7 +434,6 @@
 <svelte:document onpaste={handlePaste} />
 
 <div class="publish-form"
-     class:publish-form--expand={$isPublishFormExpand}
      class:publish-form--dragover={isDragover}
      class:publish-form--fit={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
      ondragover={preventDefault(bubble('dragover'))}
@@ -469,7 +458,7 @@
       
         {#if (postState.reply && typeof postState.reply !== 'string')}
           <div class="publish-quote publish-quote--reply">
-            <button class="publish-quote__delete" onclick={() => {postState.reply = undefined; isPublishInstantFloat.set(false);}}>
+            <button class="publish-quote__delete" onclick={() => {postState.reply = undefined}}>
               <X color="#fff" size="18"></X>
             </button>
 
@@ -544,7 +533,7 @@
             </div>
           {:else}
             <div class="publish-quote">
-              <button class="publish-quote__delete" onclick={() => {postState.quote = undefined; isPublishInstantFloat.set(false);}}>
+              <button class="publish-quote__delete" onclick={() => {postState.quote = undefined}}>
                 <X color="#fff" size="18"></X>
               </button>
 
@@ -567,10 +556,10 @@
                 </div>
 
                 <span class="timeline-external__icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
-                <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
-              </svg>
-              </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28.705" height="25.467" viewBox="0 0 28.705 25.467">
+                    <path id="パス_3" data-name="パス 3" d="M-21.352-46.169H-9.525v6.82A26.369,26.369,0,0,1-16.777-20.7h-5.266A26.721,26.721,0,0,0-15.7-34.342h-5.655Zm16.273,0H6.662v6.82A26.079,26.079,0,0,1-.59-20.7H-5.77A25.477,25.477,0,0,0,.489-34.342H-5.079Z" transform="translate(22.043 46.169)" fill="var(--primary-color)"/>
+                  </svg>
+                </span>
               </div>
             </div>
           {/if}
@@ -641,8 +630,10 @@
   <div class="publish-bb-nav">
     <button class="publish-form-lang-selector-button" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      {#if ($settings.langSelector !== 'auto')}
-        <span>{$_(languageMap.get($settings.langSelector).name)}</span>
+      {#if ($settings.langSelector !== 'auto' && Array.isArray($settings.langSelector))}
+        {#each $settings.langSelector as lang}
+          <span>{$_(languageMap.get(lang)?.name)}</span>
+        {/each}
       {/if}
     </button>
 
@@ -681,6 +672,12 @@
         </button>
       </div>
     {/if}
+
+    <div class="publish-form-thread-gate">
+      <button class="publish-form-lang-selector-button" onclick={() => {isConfigOpen = !isConfigOpen}}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -694,6 +691,10 @@
 
 {#if (isThreadGateOpen)}
   <ThreadGateModal on:close={() => {isThreadGateOpen = false}} {_agent}></ThreadGateModal>
+{/if}
+
+{#if (isConfigOpen)}
+  <PublishConfigModal on:close={() => {isConfigOpen = false}}></PublishConfigModal>
 {/if}
 
 <style lang="postcss">

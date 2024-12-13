@@ -1,7 +1,4 @@
 .profile-tab {
-    position: sticky;
-    top: 52px;
-    z-index: 1;
     display: flex;
     gap: 16px;
     list-style: none;

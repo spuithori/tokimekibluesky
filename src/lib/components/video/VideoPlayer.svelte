@@ -1,10 +1,15 @@
 <script lang="ts">
     import 'vidstack/bundle';
     import { LocalMediaStorage } from 'vidstack';
-    import VideoLayout from "$lib/components/video/VideoLayout.svelte";
+    import VideoLayout from '$lib/components/video/VideoLayout.svelte';
+    import Hls from 'hls.js';
     let player = $state();
 
     let { src, poster } = $props();
+
+    const hls = new Hls({
+        maxMaxBufferLength: 10,
+    })
 
     $effect.pre(() => {
         if (player) {

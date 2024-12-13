@@ -1,72 +1,22 @@
 <script lang="ts">
-  import MyProfileBadge from "./MyProfileBadge.svelte";
-  import {agent, isChatColumnFront, settings} from "$lib/stores";
-  import {page} from "$app/stores";
+  import { isChatColumnFront, settings } from "$lib/stores";
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import {fly} from 'svelte/transition';
-  import {goto} from "$app/navigation";
+  import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
+  import SideNav from "$lib/components/side/SideNav.svelte";
 
   let isFeedsModalOpen = $state(false);
 
   function handlePopstate() {
       isFeedsModalOpen = false;
   }
-
-  function handleFeedsModalOpen() {
-      isFeedsModalOpen = !isFeedsModalOpen;
-      goto('', {noScroll: true});
-  }
 </script>
 
 <svelte:window onpopstate={handlePopstate} />
 
-<footer class="footer" class:footer--hidden={$isChatColumnFront}>
+<footer class="footer" class:footer--hidden={$isChatColumnFront} class:footer--scroll-down={scrollDirectionState.direction === 'down'} class:footer--fixed={$settings.design?.fixedFooter}>
   <div class="footer__wrap">
-    <div class="footer__item">
-      {#if $page.url.pathname !== '/'}
-        <a
-            class="side-bar-button"
-            href="/"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        </a>
-      {:else}
-        <button
-            class="side-bar-button"
-            onclick={handleFeedsModalOpen}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gantt-chart-square"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 8h7"/><path d="M8 12h6"/><path d="M11 16h5"/></svg>
-        </button>
-      {/if}
-    </div>
-
-    {#if !$settings?.general?.disableChat}
-      <div class="footer__item footer__item--chat">
-        <a href="/chat">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-more"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
-        </a>
-      </div>
-    {/if}
-
-    <div class="footer__item">
-      <a href="/search">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      </a>
-    </div>
-
-    <div class="footer__item footer__me">
-      {#if ($agent)}
-        <MyProfileBadge handle={$agent.handle()}></MyProfileBadge>
-      {/if}
-    </div>
-
-    <div class="footer__item">
-      <a href="/notification">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-      </a>
-    </div>
-
-    <div class="footer__item"></div>
+    <SideNav footer={true}></SideNav>
   </div>
 </footer>
 
@@ -82,7 +32,7 @@
   </div>
 {/if}
 
-<div class="footer-round"></div>
+<div class="footer-round" class:footer-round--scroll-down={scrollDirectionState.direction === 'down'} class:footer-round--fixed={$settings.design?.fixedFooter}></div>
 
 <style lang="postcss">
   .footer {
@@ -99,6 +49,10 @@
           display: none;
       }
 
+      @media (max-width: 767px) {
+          transition: transform .25s cubic-bezier(0.16, 0.01, 0.3, 0.98);
+      }
+
       &::before {
           content: '';
           display: block;
@@ -113,22 +67,8 @@
       &__wrap {
           display: flex;
           align-items: center;
-          padding: 0 40px var(--safe-area-bottom) 20px;
+          padding: 0 0 var(--safe-area-bottom);
           height: calc(60px + var(--safe-area-bottom));
-          justify-content: space-between;
-      }
-
-      &__item {
-          width: 38px;
-          height: 38px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          &--chat {
-
-          }
       }
 
       &--hidden {
@@ -137,6 +77,16 @@
 
               & ~ .footer-round {
                   display: none;
+              }
+          }
+      }
+
+      &--scroll-down {
+          @media (max-width: 767px) {
+              transform: translateY(calc(70px + var(--safe-area-bottom)));
+
+              &.footer--fixed {
+                  transform: none;
               }
           }
       }
@@ -152,9 +102,24 @@
       bottom: calc(11px + var(--safe-area-bottom));
       box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
       z-index: 11;
+      will-change: transform;
 
       @media (min-width: 767px) {
           display: none;
+      }
+
+      @media (max-width: 767px) {
+          transition: transform .25s cubic-bezier(0.16, 0.01, 0.3, 0.98) .075s;
+      }
+
+      &--scroll-down {
+          @media (max-width: 767px) {
+              transform: scale(.7);
+
+              &.footer-round--fixed {
+                  transform: none;
+              }
+          }
       }
   }
 

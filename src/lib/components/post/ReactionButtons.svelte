@@ -14,10 +14,10 @@
   interface Props {
     post: any;
     _agent: any;
-    isMedia?: boolean;
+    isModal?: boolean;
   }
 
-  let { post, _agent }: Props = $props();
+  let { post, _agent, isModal = false }: Props = $props();
 </script>
 
 <div class="timeline-reaction timeline-reaction--{$settings ? $settings.design.reactionButtons.shown.length : '5'}">
@@ -36,6 +36,7 @@
         {post}
         {_agent}
         showCounts={$settings.design?.reactionButtons.repost.showCounts}
+        {isModal}
     ></Repost>
   {/if}
 
@@ -44,6 +45,7 @@
         {post}
         {_agent}
         showCounts={$settings.design?.reactionButtons.like.showCounts}
+        {isModal}
     ></Like>
   {/if}
 

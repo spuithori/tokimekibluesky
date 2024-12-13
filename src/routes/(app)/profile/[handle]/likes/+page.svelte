@@ -1,65 +1,40 @@
 <script lang="ts">
   import { _ } from 'svelte-i18n';
   import type { LayoutData } from '../$types';
-  import {agent} from "$lib/stores";
-  import TimelineItem from '../../../TimelineItem.svelte';
-  import InfiniteLoading from 'svelte-infinite-loading';
-  import {BskyAgent} from "@atproto/api";
   import {tick} from "svelte";
   import {getAgentContext} from "../state.svelte";
-
-  const agentContext = getAgentContext();
-  let feeds = $state([]);
-  let cursor = '';
-  let tempActive = $state(false);
+  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import DeckRow from "../../../DeckRow.svelte";
+  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 
   interface Props {
-    author?: string;
-    data: LayoutData;
+      data: LayoutData;
   }
 
-  let { author = '', data }: Props = $props();
-  const _agent = new BskyAgent({service: $agent.service()});
+  let { data }: Props = $props();
 
-  async function getFeedsFromRecords(records) {
-      const uris = records.map(record => {
-          return record.value.subject.uri;
-      })
+  const agentContext = getAgentContext();
+  const columnState = getColumnState(true);
+  let tempActive = $state(false);
+  let columnId = $derived(`like_${data.params.handle}_${agentContext.agent.did()}`);
 
-      const res = await agentContext.agent.agent.api.app.bsky.feed.getPosts({uris: uris});
-      let feeds = [];
-      res.data.posts.forEach(post => {
-          feeds.push({
-              post: post,
-          })
-      });
-      return  feeds;
-  }
-
-  async function getRecords() {
-      return await _agent.api.com.atproto.repo.listRecords({
-          collection: "app.bsky.feed.like",
-          limit: 20,
-          reverse: false,
-          cursor: cursor,
-          repo: data.params.handle});
-  }
-
-  const handleLoadMore = async ({ detail: { loaded, complete } }) => {
-      try {
-          const likesArrayRes = await getRecords();
-          cursor = likesArrayRes.data.cursor;
-          feeds = [...feeds, ...await getFeedsFromRecords(likesArrayRes.data.records)];
-
-          if (cursor) {
-              loaded();
-          } else {
-              complete();
+  if (!columnState.hasColumn(columnId)) {
+      columnState.add({
+          id: columnId,
+          algorithm: {
+              algorithm: data.params.handle,
+              type: 'authorLike',
+              name: '',
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: agentContext.agent.did(),
+          handle: agentContext.agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
           }
-      } catch (e) {
-          console.error(e);
-          complete();
-      }
+      });
   }
 
   tick().then(() => {
@@ -71,19 +46,6 @@
   <title>{data.params.handle} {$_('page_title_likes')} - TOKIMEKI</title>
 </svelte:head>
 
-{#if (tempActive)}
-  <div class="timeline">
-    {#each feeds as data (data)}
-      <TimelineItem data={ data }></TimelineItem>
-    {/each}
-
-    <InfiniteLoading on:infinite={handleLoadMore}>
-      {#snippet noMore()}
-        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      {/snippet}
-      {#snippet noResults()}
-        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      {/snippet}
-    </InfiniteLoading>
-  </div>
+{#if (columnState.hasColumn(columnId) && tempActive)}
+  <DeckRow index={columnState.getColumnIndex(columnId)} isJunk={true}></DeckRow>
 {/if}

@@ -1,11 +1,10 @@
 <script lang="ts">
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
-  import { agent, agents, currentTimeline, isAfterReload, isColumnModalOpen, isMobileDataConnection, isReactionButtonSettingsModalOpen, listAddModal, profileStatus, settings, theme, direction, bluefeedAddModal, labelDefs, subscribedLabelers
-  } from '$lib/stores';
+  import { agent, agents, isAfterReload, isColumnModalOpen, isMobileDataConnection, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers } from '$lib/stores';
   import {goto} from '$app/navigation';
   import {pwaInfo} from 'virtual:pwa-info';
-  import {onMount, tick} from 'svelte';
+  import {onMount, tick, untrack} from 'svelte';
   import { Toaster } from 'svelte-sonner';
   import viewPortSetting from '$lib/viewport';
   import {scrollDirection} from "$lib/scrollDirection";
@@ -23,7 +22,6 @@
   import {builtInThemes} from "$lib/builtInThemes";
   import {defaultColors} from "$lib/defaultColors";
   import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
-  import ReactionButtonSettingsModal from "$lib/components/settings/ReactionButtonSettingsModal.svelte";
   import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
   import {detectDateFnsLocale} from "$lib/detectDateFnsLocale";
   import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
@@ -34,6 +32,8 @@
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
   import {isSafariOrFirefox} from "$lib/util";
   import {initColumns} from "$lib/classes/columnState.svelte";
+  import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
+  import {on} from "svelte/events";
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -42,10 +42,23 @@
   let { children }: Props = $props();
 
   let loaded = $state(false);
-  let isDarkMode = $state(false);
   let app = $state();
   let baseColor = $state('#fff');
   let isRepeater = $state(localStorage.getItem('isRepeater') === 'true');
+  let preferredDarkMode = $state(window.matchMedia('(prefers-color-scheme: dark)').matches);
+  let isDarkMode = $derived.by(() => {
+      if ($theme?.options?.darkmodeDisabled) {
+          return false;
+      }
+
+      if ($settings?.design?.darkmode === true) {
+          return true;
+      } else if ($settings?.design?.darkmode === 'prefer') {
+          return preferredDarkMode;
+      } else {
+          return false;
+      }
+  });
 
   function detectHeadThemeColor(theme) {
       tick().then(() => {
@@ -55,14 +68,17 @@
 
   function getCurrentTheme(skin) {
       const isBuiltInTheme = builtInThemes.find(_theme => _theme.name === skin);
-      if (isBuiltInTheme) {
-          $theme = isBuiltInTheme;
-      } else {
-          themesDb.themes.get(skin)
-              .then(value => {
-                  $theme = value;
-              });
-      }
+
+      untrack(() => {
+          if (isBuiltInTheme) {
+              $theme = isBuiltInTheme;
+          } else {
+              themesDb.themes.get(skin)
+                  .then(value => {
+                      $theme = value;
+                  });
+          }
+      })
   }
 
   function observeColor(theme) {
@@ -70,15 +86,17 @@
           return false;
       }
 
-      const colors = Array.isArray(theme.options?.colors) ? theme.options.colors : defaultColors;
+      untrack(() => {
+          const colors = Array.isArray(theme.options?.colors) ? theme.options.colors : defaultColors;
 
-      if (!colors.length) {
-          return false;
-      }
+          if (!colors.length) {
+              return false;
+          }
 
-      if (!colors.some(color => color.id === $settings.design?.theme)) {
-          $settings.design.theme = colors[0].id;
-      }
+          if (!colors.some(color => color.id === $settings.design?.theme)) {
+              $settings.design.theme = colors[0].id;
+          }
+      });
   }
 
   async function initProfile() {
@@ -173,7 +191,6 @@
   console.log('settings version: ' + $settings.version || 0);
 
   if ($settings.version < 2) {
-      $settings.design.publishPosition = 'left';
       $settings.design.skin = 'default';
       $settings.version = 2;
   }
@@ -197,27 +214,6 @@
       $settings.design.nonoto = true;
   }
 
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
-      if ($settings?.design.darkmode === 'prefer') {
-          isDarkMode = event.matches
-      }
-  })
-
-  function detectDarkMode(setting, isDarkmodeDisabled = false) {
-      if (isDarkmodeDisabled) {
-          isDarkMode = false;
-          return false;
-      }
-
-      if (setting === true) {
-          isDarkMode = true;
-      } else if (setting === 'prefer') {
-          isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      } else {
-          isDarkMode = false;
-      }
-  }
-
   onMount(async() => {
       if (pwaInfo) {
           const { registerSW } = await import('virtual:pwa-register');
@@ -239,7 +235,7 @@
   function handleScroll(event) {
       if ($settings.design.layout !== 'decks') {
           const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
-              direction.set(scrollDir);
+              scrollDirectionState.direction = scrollDir;
           });
       }
   }
@@ -277,11 +273,7 @@
 
   $effect(() => {
       localStorage.setItem('settings', JSON.stringify($settings));
-  })
-
-  $effect(() => {
-      localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
-  })
+  });
 
   $effect(() => {
       locale.set($settings.general?.language);
@@ -290,16 +282,22 @@
 
   $effect(() => {
       getCurrentTheme($settings.design?.skin);
-  })
+  });
 
   $effect(() => {
       observeColor($theme);
       detectHeadThemeColor($theme);
-  })
+  });
 
   $effect(() => {
-      detectDarkMode($settings.design?.darkmode, $theme?.options.darkmodeDisabled);
-  })
+      if ($settings?.design?.darkmode === 'prefer') {
+          const query = window.matchMedia('(prefers-color-scheme: dark)');
+
+          return on(query, 'change', (e) => {
+              preferredDarkMode = e.matches;
+          });
+      }
+  });
 </script>
 
 <svelte:window onscroll={handleScroll}></svelte:window>
@@ -311,29 +309,23 @@
 <GoogleAnalytics></GoogleAnalytics>
 
 <div
+    class="app theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={isDarkMode}
-    class:sidebar={$settings.design?.publishPosition === 'left'}
-    class:bottom={$settings.design?.publishPosition === 'bottom'}
-    class="app scroll-{$direction} theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
-    dir="{$_('dir', {default: 'ltr'})}"
-    class:compact={$settings.design?.postsLayout === 'compact'}
-    class:minimum={$settings.design?.postsLayout === 'minimum'}
     class:single={$settings?.design.layout !== 'decks'}
-    class:decks={$settings?.design.layout === 'decks'}
-    class:page={$page.url.pathname !== '/'}
     class:ios={isMobile.iOS()}
     class:left-mode={$settings?.design?.leftMode}
     class:superstar={$settings.design?.reactionMode === 'superstar'}
     style={outputInlineStyle($theme)}
+    dir="{$_('dir', {default: 'ltr'})}"
     bind:this={app}
 >
   {#if (loaded)}
     <div class="wrap"
-         class:layout-sidebar={$settings.design?.publishPosition === 'left'}>
+         class:layout-decks={$settings.design.layout === 'decks'}>
       <Side></Side>
 
-      <main class="main" class:layout-decks={$settings.design.layout === 'decks'}>
+      <main class="main main--scw-{$settings.design?.singleWidth}">
         {#if $settings.design.layout !== 'decks'}
           <Single></Single>
         {:else}
@@ -354,10 +346,6 @@
 
     {#if $bluefeedAddModal.open}
       <BluefeedAddObserver></BluefeedAddObserver>
-    {/if}
-
-    {#if $isReactionButtonSettingsModalOpen}
-      <ReactionButtonSettingsModal></ReactionButtonSettingsModal>
     {/if}
 
     {#if (!isRepeater)}
@@ -401,36 +389,42 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      box-sizing: border-box;
-  }
+      min-width: 0;
 
-  .sidebar {
-      .main {
-          width: 100%;
-          min-width: 0;
+      &--scw-xxs {
+          --single-column-width: var(--single-xxs-width);
+      }
+
+      &--scw-xs {
+          --single-column-width: var(--single-xs-width);
+      }
+
+      &--scw-small {
+          --single-column-width: var(--single-s-width);
+      }
+
+      &--scw-medium {
+          --single-column-width: var(--single-m-width);
+      }
+
+      &--scw-large {
+          --single-column-width: var(--single-l-width);
+      }
+
+      &--scw-xl {
+          --single-column-width: var(--single-xl-width);
+      }
+
+      &--scw-xxl {
+          --single-column-width: var(--single-xxl-width);
       }
   }
-
 
   .single {
+      background-attachment: fixed;
+
       .wrap {
-          width: 100%;
-          max-width: 940px;
           margin: 0 auto;
-          align-items: flex-start;
-      }
-
-      &.bottom {
-          .wrap {
-              align-items: stretch;
-              max-width: 740px;
-          }
-
-          .main {
-              @media (max-width: 767px) {
-                  padding-top: 0;
-              }
-          }
       }
   }
 </style>

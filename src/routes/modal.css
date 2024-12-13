@@ -50,9 +50,6 @@
     @media (max-width: 767px) {
         width: 100%;
     }
-
-    &--dialog {
-    }
 }
 
 .modal-close {
@@ -136,30 +133,6 @@
 }
 
 .single {
-    &.page {
-        .single-wrap {
-            position: fixed;
-            overflow: hidden;
-            left: 402px;
-            top: 0;
-            right: 0;
-            margin: auto;
-            min-height: 100dvh;
-            max-width: 528px;
-
-            @media (max-width: 767px) {
-                left: 0;
-            }
-        }
-
-        &.bottom {
-            .single-wrap {
-                left: 70px;
-                max-width: 626px;
-            }
-        }
-    }
-
     .modal-page {
         position: static;
     }
@@ -196,16 +169,33 @@
     }
 }
 
-.decks {
+.layout-decks {
     .modal-page {
         position: fixed;
+        top: var(--decks-margin);
+        bottom: var(--decks-margin);
         left: 0;
-        top: 0;
-        right: 0;
+        right: var(--decks-margin);
         z-index: 1001;
-        margin: auto;
-        height: 100dvh;
-        background-color: rgba(0, 0, 0, .5);
+        margin: auto auto auto 64px;
+        background-color: rgba(0, 0, 0, .35);
+        border-radius: var(--decks-border-radius);
+
+        @media (max-width: 767px) {
+            margin-left: 0;
+            top: 0;
+            bottom: 0;
+            height: 100dvh;
+            border-radius: 0;
+        }
+
+        &--side {
+            margin-left: calc(var(--deck-divider-width));
+
+            @media (max-width: 767px) {
+                margin-left: 0;
+            }
+        }
 
         @media (min-width: 768px) {
             scrollbar-color: var(--primary-color) var(--bg-color-3);
@@ -240,6 +230,7 @@
         background-color: var(--bg-color-1);
         overflow-y: scroll;
         z-index: 1;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, .3);
 
         @media (max-width: 767px) {
             height: 100dvh;

@@ -1,7 +1,5 @@
 <script>
     import {_} from "svelte-i18n";
-    import {createEventDispatcher} from 'svelte';
-    const dispatch = createEventDispatcher();
     import InfiniteLoading from 'svelte-infinite-loading';
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
@@ -29,9 +27,9 @@
     }
 </script>
 
-<Modal title="{$_('social_proof_users')}" on:close>
+<Modal title={$_('social_proof_users')} on:close>
   <div class="likes">
-    {#each followers as actor }
+    {#each followers as actor}
       {#if (!actor.viewer?.muted)}
         <UserItem user={actor}></UserItem>
       {/if}

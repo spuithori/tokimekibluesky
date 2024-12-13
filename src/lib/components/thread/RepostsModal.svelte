@@ -1,8 +1,6 @@
 <script>
     import {_} from "svelte-i18n";
-    import {createEventDispatcher} from 'svelte';
     import { agent } from "$lib/stores";
-    const dispatch = createEventDispatcher();
     import InfiniteLoading from 'svelte-infinite-loading';
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
@@ -29,7 +27,7 @@
     }
 </script>
 
-<Modal title="{$_('reposted_users')}" size="small" on:close>
+<Modal title={$_('reposted_users')} size="small" on:close>
     <div class="likes">
         {#each reposts as repost }
             {#if (!repost.viewer?.muted)}
@@ -40,10 +38,10 @@
 
     <InfiniteLoading on:infinite={handleLoadMore}>
         {#snippet noMore()}
-                <p  class="infinite-nomore">もうないよ</p>
-            {/snippet}
+            <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
+        {/snippet}
         {#snippet noResults()}
-                <p ></p>
-            {/snippet}
+            <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
+        {/snippet}
     </InfiniteLoading>
 </Modal>

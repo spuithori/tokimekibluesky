@@ -162,6 +162,18 @@ input[type=checkbox] {
 .lang-filter-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        width: 2px;
+        background-color: var(--bg-color-1);
+        z-index: 1;
+    }
 
     &__item {
         padding: 8px 12px;
@@ -171,9 +183,10 @@ input[type=checkbox] {
         align-items: center;
         justify-content: space-between;
         position: relative;
+        border-right: 1px solid var(--border-color-1);
 
-        &:nth-child(2n - 1) {
-            border-right: 1px solid var(--border-color-1);
+        &--fullwidth {
+            grid-column: 1 / 3;
         }
     }
 

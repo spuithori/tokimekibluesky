@@ -11,6 +11,7 @@
     let isChecked = $state(false);
     let isDisabled = $state(false);
     let enableAccounts = $state(localStorage.getItem('pushNotificationAccounts') ? JSON.parse(localStorage.getItem('pushNotificationAccounts')) : []);
+    let notifications = $state(localStorage.getItem('pushNotificationNotifications') ? JSON.parse(localStorage.getItem('pushNotificationNotifications')) : []);
 
     let accounts = $derived(liveQuery(async () => {
         const accounts = await accountsDb.accounts
@@ -25,7 +26,7 @@
 
         if (isChecked) {
             try {
-                await sub(enableAccounts, $locale);
+                await sub(enableAccounts, $locale, notifications);
                 toast.success($_('push_subscription_success'));
                 isChecked = true;
             } catch (e) {
@@ -51,7 +52,7 @@
 
         try {
             if (isChecked) {
-                await sub(enableAccounts, $locale);
+                await sub(enableAccounts, $locale, notifications);
                 toast.success($_('push_subscription_success'));
             }
 

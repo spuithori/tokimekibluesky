@@ -24,6 +24,14 @@
     --ui-font: ui-rounded, sans-serif;
 }
 
+html {
+    overflow-x: hidden;
+
+    &:has(.single) {
+        overflow-y: scroll;
+    }
+}
+
 body {
     min-height: 100dvh;
     font-weight: 400;
@@ -68,5 +76,7 @@ img {
 }
 
 .scroll-lock {
-    overflow: hidden;
+    @media (max-width: 767px) {
+        overflow: hidden;
+    }
 }

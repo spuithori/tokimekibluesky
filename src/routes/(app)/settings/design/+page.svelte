@@ -9,7 +9,8 @@
     import {defaultColors} from "$lib/defaultColors";
     import {isSafariOrFirefox} from "$lib/util";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
-    import {ChevronRight, GalleryVertical, Palette} from "lucide-svelte";
+    import {AppWindowMac, ChevronRight, GalleryVertical, Palette, PanelBottomOpen, PanelLeftOpen} from "lucide-svelte";
+    import {publishState} from "$lib/classes/publishState.svelte";
     let skin: string = $state($settings?.design.skin || 'default');
     let themePick: string = $state($settings?.design.theme || 'royalblue');
     let fontTheme = $state($settings?.design.fontTheme || 'default');
@@ -112,6 +113,43 @@
       <a href="/theme-store">{$_('theme_store')}<br><span>{$_('theme_store_description')}</span></a>
       <ChevronRight size="20"></ChevronRight>
     </div>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('publish_position')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="radio-group">
+          <div class="radio radio--boxed">
+            <input type="radio" bind:group={publishState.layout} id="publishPositionLeft" name="publishPosition" value={'left'}>
+            <label for="publishPositionLeft">
+              <span class="radio__ui"></span>
+              <PanelLeftOpen size="16"></PanelLeftOpen>
+              {$_('publish_position_left')}
+            </label>
+          </div>
+
+          <div class="radio radio--boxed">
+            <input type="radio" bind:group={publishState.layout} id="publishPositionBottom" name="publishPosition" value={'bottom'}>
+            <label for="publishPositionBottom">
+              <span class="radio__ui"></span>
+              <PanelBottomOpen size="16"></PanelBottomOpen>
+              {$_('publish_position_bottom')}
+            </label>
+          </div>
+
+          <div class="radio radio--boxed">
+            <input type="radio" bind:group={publishState.layout} id="publishPositionPopup" name="publishPosition" value={'popup'}>
+            <label for="publishPositionPopup">
+              <span class="radio__ui"></span>
+              <AppWindowMac size="16"></AppWindowMac>
+              {$_('publish_position_popup')}
+            </label>
+          </div>
+        </div>
+      </dd>
+    </dl>
 
     <dl class="settings-group">
       <dt class="settings-group__name">
@@ -474,6 +512,18 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="disableProfilePopup" bind:checked={disableProfilePopup}><label class="input-toggle__label" for="disableProfilePopup"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('display_mutual_following')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="displayMutualDisplay" bind:checked={$settings.design.mutualDisplay}><label class="input-toggle__label" for="displayMutualDisplay"></label>
         </div>
       </dd>
     </dl>

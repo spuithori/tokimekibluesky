@@ -3,6 +3,7 @@ import {AppBskyEmbedImages} from "@atproto/api";
 import type { currentAlgorithm } from "../app.d.ts";
 import {parseISO} from "date-fns";
 import {CHAT_PROXY} from "$lib/components/chat/chatConst";
+import {listRecordsWithBsky} from "$lib/util";
 
 type timelineOpt = {
     limit: number,
@@ -140,6 +141,35 @@ export class Agent {
                 }
             case 'author':
                 return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: timelineOpt.algorithm.algorithm as string, includePins: true});
+            case 'authorLike':
+                const authorLikeRes = await listRecordsWithBsky(this, 'app.bsky.feed.like', timelineOpt.limit, timelineOpt.cursor, timelineOpt.algorithm.algorithm as string);
+                const likePosts = await this.getFeedsFromRecords(authorLikeRes.data.records);
+
+                return {
+                    data: {
+                        cursor: authorLikeRes.data.cursor,
+                        feed: likePosts,
+                    }
+                }
+            case 'authorMedia':
+                const mediaRes = await this.agent.api.app.bsky.feed.getAuthorFeed({
+                    actor: timelineOpt.algorithm.algorithm,
+                    limit: timelineOpt.limit,
+                    cursor: timelineOpt.cursor,
+                    filter: 'posts_with_media'
+                });
+
+                const mediaPosts = mediaRes.data.feed.filter(item =>
+                    AppBskyEmbedImages.isView(item.post?.embed) ||
+                    AppBskyEmbedImages.isView(item.post?.embed?.media)
+                );
+
+                return {
+                    data: {
+                        cursor: mediaRes.data.cursor,
+                        feed: mediaPosts,
+                    }
+                }
             case 'myPost':
                 return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string});
             case 'myMedia':
@@ -310,5 +340,20 @@ export class Agent {
             console.error(e);
             return undefined;
         }
+    }
+
+    async getFeedsFromRecords(records) {
+        const uris = records.map(record => {
+            return record.value.subject.uri;
+        })
+
+        const res = await this.agent.api.app.bsky.feed.getPosts({uris: uris});
+        let feeds = [];
+        res.data.posts.forEach(post => {
+            feeds.push({
+                post: post,
+            })
+        });
+        return feeds;
     }
 }

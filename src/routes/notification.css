@@ -102,6 +102,14 @@
     &__link {
         color: var(--notification-link-color);
     }
+
+    &__feed {
+        .feed {
+            .feed__buttons {
+                display: none;
+            }
+        }
+    }
 }
 
 .notifications-new {
@@ -117,4 +125,12 @@
     display: grid;
     grid-template-columns: 28px 1fr;
     gap: 8px;
+}
+
+.notifications-item-images {
+    .timeline-images {
+        @container timeline-item (max-width: 345px) {
+            margin-left: 0 !important;
+        }
+    }
 }

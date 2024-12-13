@@ -1,8 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
-  import {createEventDispatcher} from "svelte";
   import Modal from "$lib/components/ui/Modal.svelte";
-  const dispatch = createEventDispatcher();
 
   let { labels = [] } = $props();
 </script>

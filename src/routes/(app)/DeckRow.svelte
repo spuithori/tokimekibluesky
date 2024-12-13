@@ -3,7 +3,7 @@
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
-    import {agent, agents, direction, intersectingIndex, isChatColumnFront} from "$lib/stores";
+    import {agent, agents, intersectingIndex, isChatColumnFront} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
@@ -24,6 +24,9 @@
     import Timeline from "./Timeline.svelte";
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
     import ListTimeline from "./ListTimeline.svelte";
+    import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
+    import {publishState} from "$lib/classes/publishState.svelte";
+    import {Filter, GripVertical, PictureInPicture2, Settings2, SquarePlus} from "lucide-svelte";
     const { longPressAction } = createLongPress();
 
     interface Props {
@@ -127,14 +130,14 @@
         isScrollPaused = false;
     }
 
-    function handleIconChange(event) {
-        column.settings.icon = event.detail.icon;
+    function handleIconChange(icon) {
+        column.settings.icon = icon;
         isIconPickerOpen = false;
     }
 
     function handleScroll(event) {
         const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
-            direction.set(scrollDir);
+            scrollDirectionState.direction = scrollDir;
         });
     }
 
@@ -143,7 +146,7 @@
             if (entry.isIntersecting) {
                 intersectingIndex.set(index);
                 isChatColumnFront.set(column.algorithm?.type === 'chat');
-                direction.set('up');
+                scrollDirectionState.direction = 'up';
             }
         })
     }
@@ -169,7 +172,11 @@
     }
 
     async function handleRefresh() {
-        await refreshEl.refresh();
+        try {
+            await refreshEl.refresh();
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     function handleChangePopup() {
@@ -199,6 +206,14 @@
             observer.unobserve(column.scrollElement);
         } catch (e) {
 
+        }
+
+        try {
+            if (column.scrollElement) {
+                column.scrollElement = null;
+            }
+        } catch (e) {
+            console.error(e);
         }
     })
 
@@ -316,7 +331,7 @@
     class:deck-row--bg={column.settings?.background}
     class:deck-row--decks={$settings.design?.layout === 'decks'}
     class:deck-row--single={$settings.design?.layout === 'default'}
-    class:deck-row--compact={$settings.design?.publishPosition === 'bottom'}
+    class:deck-row--compact={publishState.layout === 'bottom'}
     class:deck-row--junk={isJunk}
     onmouseenter={handleMouseEnter}
     onmouseleave={handleMouseLeave}
@@ -329,11 +344,11 @@
     onneodrag:end={handleDragEnd}
     onneodrag={handleDragging}
 >
-    <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'}>
+    <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk}>
         {#if (!isJunk)}
             {#if !column?.settings?.isPopup && $settings.design?.layout === 'decks'}
                 <div class="deck-drag-area">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-grip-vertical"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+                    <GripVertical size="20" color="var(--border-color-1)"></GripVertical>
                 </div>
             {/if}
 
@@ -363,7 +378,9 @@
         {:else}
             {#if (column.algorithm.type === 'author')}
                 <dl class="profile-posts-nav">
-                    <dt class="profile-posts-nav__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-filter"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></dt>
+                    <dt class="profile-posts-nav__name">
+                        <Filter size="20" color="var(--text-color-3)"></Filter>
+                    </dt>
                     <dd class="profile-posts-nav__content">
                         <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(false)}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
                         <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(true)}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
@@ -373,21 +390,20 @@
         {/if}
 
         <div class="deck-heading__buttons">
-            {#if (isJunk)}
+            {#if (isJunk && column.algorithm?.type !== 'authorLike')}
                 <button class="deck-row-column-add-button" disabled={isColumnAlreadyAdded} onclick={columnAddFromJunk} aria-label="Add column">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={isColumnAlreadyAdded ? 'var(--border-color-1)' : 'var(--primary-color)'} stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-plus"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                    <SquarePlus color={isColumnAlreadyAdded ? 'var(--border-color-1)' : 'var(--primary-color)'}></SquarePlus>
                 </button>
             {/if}
 
             {#if column.algorithm?.type === 'chat' && $settings.design?.layout === 'decks' && !isJunk}
                 <button class="deck-popup-button only-pc" aria-label="Popup" onclick={handleChangePopup}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-picture-in-picture-2"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/></svg>
+                    <PictureInPicture2 color="var(--text-color-1)"></PictureInPicture2>
                 </button>
             {/if}
 
             <ColumnRefreshButton
-                bind:column
-                index={index}
+                {index}
                 {_agent}
                 bind:unique={unique}
                 bind:this={refreshEl}
@@ -396,21 +412,21 @@
             ></ColumnRefreshButton>
 
             {#if (!isJunk)}
-                <ColumnButtons {column} {index} {_agent}></ColumnButtons>
+                <ColumnButtons {column}></ColumnButtons>
 
                 <button class="deck-row-settings-button" aria-label="Settings" onclick={handleSettingsClick}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+                    <Settings2 color="var(--text-color-3)"></Settings2>
                 </button>
             {/if}
         </div>
 
         {#if isIconPickerOpen}
-            <ColumnIconPicker on:change={handleIconChange} on:close={() => {isIconPickerOpen = false}} current={column.settings?.icon}></ColumnIconPicker>
+            <ColumnIconPicker onchange={handleIconChange} onclose={() => {isIconPickerOpen = false}} current={column.settings?.icon}></ColumnIconPicker>
         {/if}
     </div>
 
     {#if isSettingsOpen}
-        <DeckSettingsModal {column} {index} {_agent} layout={$settings.design?.layout} on:close={handleSettingsClick}></DeckSettingsModal>
+        <DeckSettingsModal {column} {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick}></DeckSettingsModal>
     {:else}
         {#if _agent}
             <div class="deck-row__content">
@@ -420,8 +436,8 @@
                     <ThreadTimeline bind:column={column} index={index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
                 {:else if (column.algorithm.type === 'chat')}
                     <ChatTimeline
-                            column={column}
-                            index={index}
+                            {column}
+                            {index}
                             {_agent}
                             {unique}
                             onrefresh={handleRefresh}
@@ -472,12 +488,15 @@
         background-color: var(--deck-content-bg-color);
         overflow-y: scroll;
         height: 100%;
-        scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
-        scrollbar-width: thin;
         backdrop-filter: var(--deck-content-backdrop-filter);
         border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
         transition: transform .3s cubic-bezier(0, 0, 0, 1);
         touch-action: initial !important;
+
+        @supports (-moz-appearance: none) {
+            scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+            scrollbar-width: thin;
+        }
 
         &::-webkit-scrollbar {
             width: 6px;
@@ -485,39 +504,25 @@
 
         &::-webkit-scrollbar-thumb {
             background: var(--scroll-bar-color);
-            border-radius: 6px;
         }
 
         &::-webkit-scrollbar-track {
             background: var(--scroll-bar-bg-color);
-            border-radius: 6px;
-            margin-top: 52px;
-
-            @media (max-width: 767px) {
-                margin-top: 98px;
-            }
+            margin-top: 51px;
+            margin-bottom: 1px;
+            border-radius: 0 0 var(--deck-border-radius) 0;
+            border-top: 1px solid var(--deck-border-color);
         }
 
         @media (max-width: 767px) {
+            scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+            scrollbar-width: thin;
             width: 100vw;
             scroll-snap-align: start;
             scroll-snap-stop: always;
             box-shadow: none;
             padding-top: 46px;
             height: calc(100dvh);
-        }
-
-        &:has(.chat) {
-            position: static;
-        }
-
-        &__content {
-            &:has(.chat) {
-                min-height: calc(100% -  52px);
-                display: flex;
-                flex-direction: column;
-                flex-shrink: 0;
-            }
         }
 
         &--xxs {
@@ -576,20 +581,12 @@
             }
         }
 
-        &--decks {
-            .deck-row__content {
-
-            }
-
-            .deck-heading {
-
-            }
-        }
-
         &--single {
-            overflow-y: visible;
             height: auto;
             border: none;
+            width: auto;
+            border-radius: 0;
+            overflow: visible;
 
             .deck-heading {
                 @media (max-width: 767px) {
@@ -658,9 +655,10 @@
         border-radius: var(--deck-border-radius) var(--deck-border-radius) 0 0;
         min-width: 0;
         backdrop-filter: var(--deck-heading-backdrop-filter);
+        will-change: transform, opacity;
 
         @media (max-width: 767px) {
-            transition: all .2s ease-in-out;
+            transition: opacity .2s ease-in-out, visibility .2s ease-in-out, transform .2s ease-in-out;
         }
 
         &__scroll-area {
@@ -725,6 +723,14 @@
             z-index: 100 !important;
             top: 52px;
         }
+
+        &--scroll-down {
+            @media (max-width: 767px) {
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-48px);
+            }
+        }
     }
 
     .deck-row-settings-button {
@@ -733,7 +739,7 @@
         display: grid;
         place-content: center;
         z-index: 21;
-        border-radius: 2px;
+        border-radius: var(--border-radius-2);
 
         &:hover {
             background-color: var(--bg-color-2);

@@ -6,11 +6,7 @@
     import TimelineTagLink from "$lib/components/post/TimelineTagLink.svelte";
 
     let { record, _agent } = $props();
-    let textArray = $state(getTextArray(record));
-
-    $effect(() => {
-        textArray = getTextArray(record);
-    })
+    let textArray = $derived(getTextArray(record));
 
     function handleUrlClick(e, item) {
         if (!$settings.general.linkWarningConfirmSkip) {
@@ -49,7 +45,7 @@
             <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer" onclick={(e) => {handleUrlClick(e, item)}}>{item.text}</a>
         {/if}
     {:else if (item.isMention() && item.mention)}
-        <ProfileCardWrapper handle="{item.text.slice(1)}" {_agent}>
+        <ProfileCardWrapper handle={item.text.slice(1)} {_agent}>
             <a href="/profile/{item.text.slice(1)}">{item.text}</a>
         </ProfileCardWrapper>
     {:else if (item.isTag() && item.tag)}

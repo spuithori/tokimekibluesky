@@ -5,13 +5,7 @@
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, keywordFilter} from "$lib/timelineFilter";
-  import {
-      AppBskyEmbedExternal,
-      AppBskyEmbedImages,
-      AppBskyEmbedRecord,
-      AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs,
-      AppBskyFeedPost
-  } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, BskyAgent } from "@atproto/api";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {formatTranslateRecord} from "$lib/translate";
@@ -25,7 +19,8 @@
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
-  import {onDestroy} from "svelte";
+  import {onDestroy, untrack} from "svelte";
+  import {Eye, Handshake} from "lucide-svelte";
 
   interface Props {
       post: any;
@@ -59,17 +54,23 @@
   let warnLabels = $state([]);
   let warnBehavior: 'cover' | 'inform' = $state('cover');
   let timeDistanceToNow = $state(formatDistanceToNow(parseISO(post.indexedAt)));
+  let skyblurText = $state('');
 
   const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
-  const contentContext = isSingle || isProfile
+  const contentContext = isSingle
       ? 'contentView'
       : 'contentList';
 
   let isWarn: 'content' | 'media' | null = detectWarn(moderateData) || null;
   isHide = detectHide(moderateData, isHide);
-  detectKeywordFilter();
 
   function detectHide(moderateData, current) {
+      let text = post.record.text;
+
+      if (keywordFilter(keywordMuteState.formattedKeywords, text, post.indexedAt)) {
+          return true;
+      }
+
       if (!moderateData) {
           return current;
       }
@@ -116,32 +117,46 @@
       return null;
   }
 
-  function detectKeywordFilter() {
-      let text = post.record.text;
-
-      if (keywordFilter(keywordMuteState.formattedKeywords, text, post.indexedAt)) {
-          isHide = true;
-      }
-  }
-
   async function translation(pulse = true) {
       if (!pulse) {
           return false;
       }
 
-      try {
-        translatedRecord = await formatTranslateRecord(post.record.text, $settings.general?.userLanguage, _agent, post.record);
-      } catch (e) {
-        toast.error('Translate error.')
-      }
+      await untrack(async () => {
+          try {
+              translatedRecord = await formatTranslateRecord(post.record.text, $settings.general?.userLanguage, _agent, post.record);
+          } catch (e) {
+              toast.error('Translate error.')
+          }
 
-      isTranslated = true;
-      pulseTranslate = false;
+          isTranslated = true;
+          pulseTranslate = false;
+      })
   }
 
   function handleTimer(e) {
       if (e.data % 5 === 0) {
           timeDistanceToNow = formatDistanceToNow(parseISO(post.indexedAt));
+      }
+  }
+
+  async function handleSkyblurShow() {
+      try {
+          const __agent = new BskyAgent({service: _agent.service()});
+          const rkey = post?.record?.['uk.skyblur.post.uri'].split('/').slice(-1)[0];
+          const res = await __agent.api.com.atproto.repo.getRecord({
+              collection: "uk.skyblur.post",
+              repo: post.author.did,
+              rkey: rkey,
+          });
+
+          if (res?.data?.value?.text) {
+              skyblurText = res.data.value.text.replace(/[\[\]]/g, '');
+          } else {
+              throw new Error('Skyblur text not found.');
+          }
+      } catch (e) {
+          console.error(e);
       }
   }
 
@@ -155,6 +170,12 @@
 <div class="timeline__image">
   {#if $settings?.design.postsLayout !== 'minimum'}
     <Avatar href="/profile/{ post.author.handle !== 'handle.invalid' ? post.author.handle : post.author.did }" avatar={post.author.avatar} profile={post.author} handle={post.author.handle} {_agent}></Avatar>
+
+    {#if (post.author?.viewer?.followedBy && $settings?.design?.mutualDisplay)}
+      <div class="avatar-mutual-badge">
+        <Handshake size="16" color="var(--primary-color)"></Handshake>
+      </div>
+    {/if}
   {/if}
 </div>
 
@@ -209,9 +230,25 @@
       <TimelineWarn labels={warnLabels} behavior={warnBehavior}></TimelineWarn>
     {/if}
 
-    <p class="timeline__text" dir="auto">
-      <TimelineText record={post.record} {_agent}></TimelineText>
-    </p>
+    {#if (!skyblurText)}
+      <p class="timeline__text" dir="auto">
+        <TimelineText record={post.record} {_agent}></TimelineText>
+      </p>
+
+      {#if (post?.record?.['uk.skyblur.post.uri'])}
+        <button class="skyblur-show" onclick={handleSkyblurShow}>
+          <Eye size="18" color="var(--primary-color)"></Eye>
+          {$_('show_skyblur_text')}
+        </button>
+      {/if}
+    {:else}
+      <p class="timeline__text" dir="auto">
+        <TimelineText record={{
+          ...post.record,
+          text: skyblurText,
+      }} {_agent}></TimelineText>
+      </p>
+    {/if}
 
     {#if (translatedRecord)}
       <div class="timeline-translated-text" dir="auto">

@@ -146,8 +146,8 @@
 
       &__column {
           display: grid;
-          grid-template-columns: 60px 1fr;
-          gap: 15px;
+          grid-template-columns: 46px 1fr;
+          gap: 8px;
           padding: 15px 10px;
       }
 

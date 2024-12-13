@@ -77,10 +77,6 @@
               if (column.settings?.playSound) {
                   playSound(value?.post.indexedAt, column.lastRefresh, column.settings.playSound)
               }
-
-              if (column.data.feed.length > 40) {
-                  column.data.feed = column.data.feed.slice(0, 40);
-              }
           });
   }
 
@@ -205,11 +201,11 @@
   {#key unique}
     <InfiniteLoading on:infinite={handleLoadMore}>
       {#snippet noMore()}
-          <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-        {/snippet}
+        <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
       {#snippet noResults()}
-          <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-        {/snippet}
+        <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/snippet}
     </InfiniteLoading>
   {/key}
 

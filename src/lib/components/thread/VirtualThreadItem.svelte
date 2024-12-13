@@ -2,6 +2,7 @@
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
     import Likes from "$lib/components/thread/Likes.svelte";
     import Quotes from "$lib/components/thread/Quotes.svelte";
+    import Reposts from "$lib/components/thread/Reposts.svelte";
 
     let { column, index, _agent } = $props();
 </script>
@@ -19,6 +20,10 @@
       <Quotes uri={column.data.feed[index].post.uri} {_agent}>
         {column.data.feed[index].post.quoteCount}
       </Quotes>
+    {/if}
+
+    {#if (column.data.feed[index]?.post?.repostCount > 0)}
+      <Reposts uri={column.data.feed[index].post.uri} {_agent}></Reposts>
     {/if}
 
     {#if (column.data.feed[index]?.post?.likeCount > 0)}

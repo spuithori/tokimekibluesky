@@ -1,5 +1,5 @@
 import {accountsDb} from "$lib/db";
-import type {BskyAgent} from "@atproto/api";
+import {BskyAgent} from "@atproto/api";
 import imageCompression from "browser-image-compression";
 import type {Agent} from "$lib/agent";
 
@@ -135,4 +135,15 @@ export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: 
     });
 
     return res.data.token;
+}
+
+export async function listRecordsWithBsky(agent: Agent, collection: string, limit: number, cursor: any, repo: string) {
+    const _agent = new BskyAgent({service: agent.service()});
+
+    return await _agent.api.com.atproto.repo.listRecords({
+        collection: collection,
+        limit: limit,
+        reverse: false,
+        cursor: cursor,
+        repo: repo});
 }

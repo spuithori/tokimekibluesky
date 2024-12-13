@@ -37,6 +37,7 @@ const defaultSettings = {
         disableChat: false,
         disableTenorAutoplay: false,
         disableAtmosphere: false,
+        losslessImageUpload: false,
     },
     design: {
         skin: 'default',
@@ -57,7 +58,10 @@ const defaultSettings = {
         reactionMode: 'tokimeki',
         leftMode: false,
         disableProfilePopup: false,
-        hideSide: false,
+        immersiveMode: false,
+        singleWidth: 'medium',
+        fixedFooter: false,
+        mutualDisplay: false,
     },
     timeline: {
         hideRepost: 'all',
@@ -175,10 +179,6 @@ export const isImageOpen = writable(false);
 
 export const isColumnModalOpen = writable(false);
 
-export const sideState = writable<'publish' | 'search' | 'notification' | 'profile' | 'settings' | 'none'>('publish');
-
-export const isPublishInstantFloat = writable(false);
-
 export const didHint = writable('');
 
 export const theme = writable<Theme | undefined>(undefined);
@@ -195,8 +195,6 @@ type pulseDetach = {
 
 export const pulseDetach = writable<pulseDetach | undefined>(undefined);
 
-export const isReactionButtonSettingsModalOpen = writable(false);
-
 export const workerTimer = readable(new Worker(timerWorkerUrl));
 
 export const isRealtimeListenersModalOpen = writable(false);
@@ -204,8 +202,6 @@ export const isRealtimeListenersModalOpen = writable(false);
 type LinkWarning = string | undefined;
 
 export const linkWarning = writable<LinkWarning>(undefined);
-
-export const direction = writable('up');
 
 export const intersectingIndex = writable(0);
 

@@ -1,16 +1,14 @@
 <script lang="ts">
     import {agent, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
-    import {createEventDispatcher, onDestroy, tick} from "svelte";
+    import {onDestroy, tick} from "svelte";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import {playSound} from "$lib/sounds";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { fly } from 'svelte/transition';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-
-    const dispatch = createEventDispatcher();
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
     interface Props {
-        column: any;
         index: any;
         _agent?: any;
         unique?: any;
@@ -19,13 +17,15 @@
     }
 
     let {
-        column = $bindable(),
         index,
         _agent = $agent,
         unique = $bindable(Symbol()),
         isJunk = false,
         isRefreshing = $bindable(false)
     }: Props = $props();
+
+    const columnState = getColumnState(isJunk);
+    let column = columnState.getColumn(index);
 
     const host = _agent.agent.service.host === 'bsky.social' ? 'Jetstream (us-west2)' : _agent.agent.service.host;
 
@@ -111,11 +111,6 @@
         } else if (column.algorithm.type === 'realtime') {
             return false;
         } else if (column.algorithm.type === 'notification') {
-            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
-                limit: 25,
-                cursor: '',
-            });
-
             if (!Array.isArray(column.filter)) {
                 column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
             }
@@ -123,6 +118,12 @@
             if (!column.filter.length) {
                 column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
             }
+
+            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+                limit: 25,
+                cursor: '',
+                reasons: column.filter,
+            });
 
             const _notifications = res.data.notifications.filter(item => {
                 return column.filter.includes(item.reason);
@@ -135,12 +136,12 @@
                 resNotifications = resNotifications.filter(notification => !column.data.feed.some(_notification => notification.uri === _notification.uri));
             }
 
-            const notifications = mergeNotifications(column.settings?.onlyShowUnread ? [...resNotifications] : [...resNotifications, ...column.data.feed], !isAutoRefresh);
+            const notifications = mergeNotifications(column.settings?.onlyShowUnread ? [...resNotifications] : [...resNotifications, ...column.data.notifications], !isAutoRefresh);
 
             const { notifications: notificationGroup, feedPool: newFeedPool } = await getNotifications(notifications, true, _agent, column.data.feedPool || []);
 
-            column.data.feed = notifications;
-            column.data.notificationGroup = notificationGroup;
+            column.data.notifications = notifications;
+            column.data.feed = notificationGroup;
             column.data.feedPool = newFeedPool;
 
             if (column.settings?.onlyShowUnread) {
@@ -219,7 +220,7 @@
                         playSound(column.data?.feed.slice(-1)[0].sentAt, column.lastRefresh, column.settings.playSound)
                     }
                 } else {
-                    playSound(column.algorithm.type === 'notification' ? column.data?.feed[0]?.indexedAt : column.data?.feed[0]?.post.indexedAt, column.lastRefresh, column.settings.playSound)
+                    playSound(column.algorithm.type === 'notification' ? column.data?.notifications[0]?.indexedAt : column.data?.feed[0]?.post.indexedAt, column.lastRefresh, column.settings.playSound)
                 }
             }
         } catch (e) {
@@ -264,14 +265,22 @@
         const activeElement = document.activeElement?.tagName;
 
         if (event.key === 'r' && (activeElement === 'BODY' || activeElement === 'BUTTON') && !isRefreshing) {
-            refresh();
+            try {
+                refresh();
+            } catch (e) {
+                console.error(e);
+            }
         }
     }
 
     function handleTimer(e) {
         if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0) {
             if (e.data % Number(column.settings.autoRefresh) === 0) {
-                refresh(true);
+                try {
+                    refresh(true);
+                } catch (e) {
+                    console.error(e);
+                }
             }
         }
     }

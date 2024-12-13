@@ -5,6 +5,13 @@
   import Modal from "$lib/components/ui/Modal.svelte";
 
   let langSelector = $state($settings.langSelector || []);
+  let disabled = $derived(langSelector.length >= 3);
+
+  $effect(() => {
+      if (Array.isArray(langSelector) && langSelector.includes('auto')) {
+          langSelector = langSelector.filter(lang => lang !== 'auto');
+      }
+  })
 
   $effect(() => {
       $settings.langSelector = langSelector;
@@ -13,7 +20,7 @@
 
 <Modal title={$_('user_language_settings')} on:close>
   <div class="lang-filter-list">
-    <div class="lang-filter-list__item">
+    <div class="lang-filter-list__item lang-filter-list__item--fullwidth">
       <p class="lang-filter-list__name"><label for="auto">{$_('lang_selector_auto')}</label></p>
 
       <div class="input-toggle">
@@ -27,8 +34,8 @@
         <p class="lang-filter-list__name"><label for={k}>{$_(v.name)}</label></p>
 
         <div class="input-toggle">
-          <input class="input-toggle__input" type="radio" id={k}
-                 value={k} name="Languages" bind:group={langSelector}><label class="input-toggle__label" for={k}></label>
+          <input class="input-toggle__input" type="checkbox" id={k}
+                 value={k} name="Languages" bind:group={langSelector} disabled={disabled && !langSelector.includes(k) && langSelector !== 'auto'}><label class="input-toggle__label" for={k}></label>
         </div>
       </div>
     {/each}

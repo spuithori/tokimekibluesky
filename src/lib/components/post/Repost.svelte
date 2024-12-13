@@ -3,7 +3,7 @@
   import { toast } from 'svelte-sonner';
   import { _ } from 'svelte-i18n';
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
-  import { pulse, type pulseReaction } from "$lib/components/post/reactionPulse.svelte";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
   interface Props {
     _agent?: any;
@@ -15,32 +15,14 @@
     _agent = $agent,
     post,
     showCounts = true,
+    isModal = false,
   }: Props = $props();
 
+  const columnState = getColumnState(false);
+  const junkColumnState = getColumnState(true);
   let isDialogRender = $state(false);
   let isProcessed: boolean = $state(false);
   let isTransition: boolean = $state(false);
-  let count = $state(post.repostCount);
-  let viewer = $state(post.viewer?.repost);
-
-  $effect(() => {
-      handlePulse(pulse.repost);
-  })
-
-  function handlePulse(pulse: pulseReaction) {
-      if (pulse?.uri !== post.uri) {
-          return false;
-      }
-
-      const isSameDid = pulse.did === _agent.did();
-
-      count = pulse.count;
-      viewer = isSameDid ? pulse.viewer : viewer;
-
-      // TODO: progress.
-      post.repostCount = count;
-      post.viewer.repost = viewer;
-  }
 
   if ($settings.general?.repostConfirmSkip === undefined) {
       $settings.general.repostConfirmSkip = false;
@@ -53,13 +35,20 @@
       try {
           const repost = await _agent.setRepost(cid, uri, viewer || '');
           const repostViewer = repost?.uri || undefined;
-
-          pulse.repost = {
+          const pulse = {
               viewer: repostViewer,
               did: _agent.did(),
               uri: uri,
-              count: repostViewer ? count + 1 : count - 1,
+              count: repostViewer ? post.repostCount + 1 : post.repostCount - 1,
               unique: Symbol(),
+          };
+
+          columnState.updateRepost(pulse);
+          junkColumnState.updateRepost(pulse);
+
+          if (isModal) {
+              post.repostCount = pulse.count;
+              post.viewer.repost = pulse.viewer;
           }
 
           toast.success($_('success_to_repost_or_delete_repost'));
@@ -73,7 +62,7 @@
 
   function repostStep() {
       if ($settings.general.repostConfirmSkip) {
-          repost(post.cid, post.uri, viewer);
+          repost(post.cid, post.uri, post.viewer?.repost);
       } else {
           isDialogRender = true;
       }
@@ -82,7 +71,7 @@
 
 <button
         class="timeline-reaction__item timeline-reaction__item--repost"
-        class:timeline-reaction__item--active={viewer}
+        class:timeline-reaction__item--active={post.viewer?.repost}
         class:timeline-reaction__item--transition={isTransition}
         disabled="{isProcessed}"
         onclick={repostStep}>
@@ -90,14 +79,14 @@
      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--timeline-reaction-repost-icon-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2" onanimationend={() => {isTransition = false}}><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
   </span>
 
-  {#if showCounts && count}
-    <span class="timeline-reaction__count">{ count || 0 }</span>
+  {#if showCounts && post.repostCount}
+    <span class="timeline-reaction__count">{ post.repostCount || 0 }</span>
   {/if}
 </button>
 
 {#if (isDialogRender)}
   <ConfirmModal
-      on:ok={() => {repost(post.cid, post.uri, viewer)}}
+      on:ok={() => {repost(post.cid, post.uri, post.viewer?.repost)}}
       on:cancel={() => {isDialogRender = false}}
       confirmationName="repostConfirmSkip"
       yesText="{$_('repost')}"

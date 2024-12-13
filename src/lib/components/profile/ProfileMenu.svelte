@@ -82,6 +82,18 @@
       isMenuOpen = false;
   }
 
+  async function copyUrl() {
+      const data = await profile;
+      navigator.clipboard.writeText(`https://bsky.app/profile/${data.handle}`)
+          .then(() => {
+              toast.success($_('success_copy_url'));
+          }, () => {
+              toast.success($_('failed_copy'));
+          });
+
+      isMenuOpen = false;
+  }
+
   function repostMute() {
       $repostMutes = [...$repostMutes, profile.did];
       localStorage.setItem('repostMutes', JSON.stringify($repostMutes));
@@ -189,6 +201,15 @@
               <path id="clipboard" d="M6.532,2.345a2.7,2.7,0,0,1,5.352,0l1.829.36v.9h.9a1.8,1.8,0,0,1,1.8,1.8V16.221a1.8,1.8,0,0,1-1.8,1.8H3.8a1.8,1.8,0,0,1-1.8-1.8V5.409a1.807,1.807,0,0,1,1.8-1.8h.9v-.9l1.829-.36ZM4.7,5.409H3.8V16.221H14.615V5.409h-.9v.9H4.7Zm4.505-1.8a.9.9,0,1,0-.9-.9A.9.9,0,0,0,9.208,3.606Z" transform="translate(-2 -0.023)" fill="var(--text-color-3)"/>
             </svg>
             <span>{$_('copy_did')}</span>
+          </button>
+        </li>
+
+        <li class="timeline-menu-list__item timeline-menu-list__item--copy">
+          <button class="timeline-menu-list__button" onclick={copyUrl}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14.417" height="18" viewBox="0 0 14.417 18">
+              <path id="clipboard" d="M6.532,2.345a2.7,2.7,0,0,1,5.352,0l1.829.36v.9h.9a1.8,1.8,0,0,1,1.8,1.8V16.221a1.8,1.8,0,0,1-1.8,1.8H3.8a1.8,1.8,0,0,1-1.8-1.8V5.409a1.807,1.807,0,0,1,1.8-1.8h.9v-.9l1.829-.36ZM4.7,5.409H3.8V16.221H14.615V5.409h-.9v.9H4.7Zm4.505-1.8a.9.9,0,1,0-.9-.9A.9.9,0,0,0,9.208,3.606Z" transform="translate(-2 -0.023)" fill="var(--text-color-3)"/>
+            </svg>
+            <span>{$_('copy_url')}</span>
           </button>
         </li>
 

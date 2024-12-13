@@ -51,6 +51,7 @@
         <ReactionButtons
             {_agent}
             post={data.post}
+            isModal={true}
         ></ReactionButtons>
       </div>
     {/key}
