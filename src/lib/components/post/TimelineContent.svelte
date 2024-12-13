@@ -232,7 +232,7 @@
 
     {#if (!skyblurText)}
       <p class="timeline__text" dir="auto">
-        <TimelineText record={post.record} {_agent}></TimelineText>
+        <TimelineText record={post.record} {_agent} handle={post?.author?.handle}></TimelineText>
       </p>
 
       {#if (post?.record?.['uk.skyblur.post.uri'])}
@@ -246,7 +246,7 @@
         <TimelineText record={{
           ...post.record,
           text: skyblurText,
-      }} {_agent}></TimelineText>
+      }} {_agent} handle={post?.author?.handle}></TimelineText>
       </p>
     {/if}
 

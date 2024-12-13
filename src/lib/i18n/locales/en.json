@@ -668,5 +668,7 @@
   "lossless_image_upload_mode": "Lossless image upload (as possible)",
   "lossless_image_upload_mode_notice": "If the image size is larger than 1MB, an error will occur and you will not be able to post. An error may also occur if the image format is not JPG/PNG.",
   "display_mutual_following": "Display Followed badge",
-  "show_skyblur_text": "Show hidden text by Skyblur"
+  "show_skyblur_text": "Show hidden text by Skyblur",
+  "back_to_exit_again": "Back again to exit.",
+  "tag_instant_user_search": "Search by user"
 }

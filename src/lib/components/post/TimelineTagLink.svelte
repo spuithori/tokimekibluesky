@@ -4,10 +4,10 @@
   import { createLongPress } from "svelte-interactions";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import {toast} from "svelte-sonner";
-  import {Copy, WholeWord} from "lucide-svelte";
+  import {Copy, UserRoundSearch, WholeWord} from "lucide-svelte";
   const { longPressAction } = createLongPress();
 
-  let { item } = $props();
+  let { item, handle = undefined } = $props();
   let isTagMenuOpen = $state(false);
 
   function handleTagLongClick() {
@@ -56,6 +56,15 @@
           <span>{$_('tag_instant_copy')}</span>
         </button>
       </li>
+
+      {#if (handle)}
+        <li class="timeline-menu-list__item">
+          <a class="timeline-menu-list__button" href="/search?q={encodeURIComponent(`${item.text} from:${handle}`)}">
+            <UserRoundSearch size="20" color="var(--text-color-1)"></UserRoundSearch>
+            <span>{$_('tag_instant_user_search')}</span>
+          </a>
+        </li>
+      {/if}
     </ul>
   {/snippet}
 </Menu>

@@ -1,15 +1,14 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
   import {agent, settings} from '$lib/stores';
-  import {getTextArray, isUriLocal} from '$lib/richtext';
   import {page} from '$app/stores';
   import {format, parseISO} from 'date-fns';
-  import ProfileCardWrapper from '../../ProfileCardWrapper.svelte';
   import {BskyAgent, RichText} from '@atproto/api';
   import {Eye, EyeOff, Handshake} from 'lucide-svelte';
   import SocialProof from "$lib/components/profile/SocialProof.svelte";
   import ProfileAtmosphere from "$lib/components/profile/ProfileAtmosphere.svelte";
   import emblaCarouselSvelte from 'embla-carousel-svelte';
+  import TimelineText from "$lib/components/post/TimelineText.svelte";
 
   interface Props {
     handle: any;
@@ -21,10 +20,10 @@
 
   let firstPostDate = $state('');
   let firstPostUri = $state('');
-  let textArray = $derived.by(() => {
-      const rich = new RichText({text: profile.description})
-      rich.detectFacets(_agent.agent);
-      return getTextArray(rich);
+  let textRecord = $derived.by(() => {
+    const rich = new RichText({text: profile.description});
+    rich.detectFacets(_agent.agent);
+    return rich;
   });
   let serviceHost = $state('');
   let gridWidth = $state(0);
@@ -167,23 +166,7 @@
                 {#if (profile.description)}
                   <div class="profile-description">
                     <p class="profile-description__text">
-                      {#each textArray as item}
-                        {#if (item.isLink() && item.link)}
-                          {#if (isUriLocal(item.link.uri))}
-                            <a href="{new URL(item.link.uri).pathname}">{item.text}</a>
-                          {:else}
-                            <a href="{item.link.uri}" target="_blank" rel="noopener nofollow noreferrer">{item.text}</a>
-                          {/if}
-                        {:else if (item.isMention() && item.mention)}
-                          <ProfileCardWrapper handle="{item.text.slice(1)}">
-                            <a href="/profile/{item.text.slice(1)}">{item.text}</a>
-                          </ProfileCardWrapper>
-                        {:else if (item.isTag() && item.tag)}
-                          <a href="/search?q={encodeURIComponent('#' + item.tag?.tag)}">{item.text}</a>
-                        {:else}
-                          <span>{item.text}</span>
-                        {/if}
-                      {/each}
+                      <TimelineText record={textRecord} {_agent} handle={profile.handle}></TimelineText>
                     </p>
                   </div>
                 {/if}

@@ -5,7 +5,7 @@
     import {detectDifferentDomainUrl} from "$lib/util";
     import TimelineTagLink from "$lib/components/post/TimelineTagLink.svelte";
 
-    let { record, _agent } = $props();
+    let { record, _agent, handle = undefined } = $props();
     let textArray = $derived(getTextArray(record));
 
     function handleUrlClick(e, item) {
@@ -50,7 +50,7 @@
         </ProfileCardWrapper>
     {:else if (item.isTag() && item.tag)}
         <div class="tag-wrap">
-            <TimelineTagLink {item}></TimelineTagLink>
+            <TimelineTagLink {item} {handle}></TimelineTagLink>
         </div>
     {:else}
         <span>{item.text}</span>
