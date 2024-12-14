@@ -18,8 +18,6 @@
     _agent = $agent,
     isJunk,
     unique,
-    hideReply,
-    hideRepost,
   } = $props();
 
   const columnState = getColumnState(isJunk);
@@ -179,8 +177,6 @@
                 isProfile={column.algorithm.type === 'author'}
                 isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
                 isPinned={isReasonPin(data?.reason)}
-                {hideReply}
-                {hideRepost}
         ></TimelineItem>
       {/if}
 

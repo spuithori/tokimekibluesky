@@ -28,8 +28,6 @@
         isPinned?: boolean;
         column?: any;
         index?: number;
-        hideReply?: any;
-        hideRepost?: any;
         children?: import('svelte').Snippet;
     }
 
@@ -44,12 +42,6 @@
         isPinned = false,
         column = undefined,
         index = 0,
-        hideReply = column && column.settings?.timeline.hideReply
-            ? column.settings?.timeline.hideReply
-            : $settings.timeline?.hideReply || 'all',
-        hideRepost = column && column.settings?.timeline.hideRepost
-            ? column.settings?.timeline.hideRepost
-            : $settings.timeline?.hideRepost || 'all',
         children
     }: Props = $props();
 
@@ -65,6 +57,12 @@
     let isTranslated = false;
     let isReactionModalOpen = $state(false);
     let pulseTranslate = $state(false);
+    let hideReply = column && column.settings?.timeline.hideReply
+      ? column.settings?.timeline.hideReply
+      : $settings.timeline?.hideReply || 'all';
+    let hideRepost = column && column.settings?.timeline.hideRepost
+        ? column.settings?.timeline.hideRepost
+        : $settings.timeline?.hideRepost || 'all';
 
     if ($settings.general?.deleteConfirmSkip === undefined) {
         $settings.general.deleteConfirmSkip = false;

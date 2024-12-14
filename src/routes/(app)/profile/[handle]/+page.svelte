@@ -26,7 +26,13 @@
               name: '@' + data.params.handle,
           },
           style: 'default',
-          settings: defaultDeckSettings,
+          settings: {
+            ...defaultDeckSettings,
+            timeline: {
+              hideReply: 'all',
+              hideRepost: 'all',
+            }
+          },
           did: agentContext.agent.did(),
           handle: agentContext.agent.handle(),
           data: {

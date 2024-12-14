@@ -59,8 +59,6 @@
     let observer;
     let isFiltered = $state(false);
     let isColumnAlreadyAdded = $state(false);
-    let hideReply = $state();
-    let hideRepost = $state();
     let refreshEl = $state();
     let isDragging = $state(false);
     let reorderIndex = index;
@@ -310,12 +308,12 @@
 
     function changeAuthorFilter(isFilter: boolean) {
         if (isFilter) {
-            hideReply = 'me';
-            hideRepost = 'none';
+            column.settings.timeline.hideReply = 'me';
+            column.settings.timeline.hideRepost = 'none';
             isFiltered = true;
         } else {
-            hideReply = 'all';
-            hideRepost = 'all';
+            column.settings.timeline.hideReply = 'all';
+            column.settings.timeline.hideRepost = 'all';
             isFiltered = false;
         }
 
@@ -435,13 +433,7 @@
                 {:else if (column.algorithm.type === 'thread')}
                     <ThreadTimeline bind:column={column} index={index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
                 {:else if (column.algorithm.type === 'chat')}
-                    <ChatTimeline
-                            {column}
-                            {index}
-                            {_agent}
-                            {unique}
-                            onrefresh={handleRefresh}
-                    ></ChatTimeline>
+                    <ChatTimeline {column} {index} {_agent} {unique} onrefresh={handleRefresh}></ChatTimeline>
                 {:else if (column.algorithm.type === 'list')}
                     {#key unique}
                         <ListTimeline bind:column {index} {_agent} {unique}></ListTimeline>
@@ -449,14 +441,7 @@
                 {:else if (column.algorithm.type === 'bookmark')}
                     <BookmarkTimeline bind:column {index} {_agent} {unique}></BookmarkTimeline>
                 {:else}
-                    <Timeline
-                            {index}
-                            {_agent}
-                            {isJunk}
-                            {unique}
-                            hideReply={column.algorithm.type === 'author' ? hideReply : undefined}
-                            hideRepost={column.algorithm.type === 'author' ? hideRepost : undefined}
-                    ></Timeline>
+                    <Timeline {index} {_agent} {isJunk} {unique}></Timeline>
                 {/if}
             </div>
         {:else}
@@ -468,13 +453,7 @@
 </div>
 
 {#if column.scrollElement && column.scrollElement instanceof HTMLElement && column.settings?.autoScroll}
-    <ColumnAutoScrolling
-        column={column}
-        index={index}
-        {isTopScrolling}
-        {isScrollPaused}
-        {unique}
-    ></ColumnAutoScrolling>
+    <ColumnAutoScrolling {column} {index} {isTopScrolling} {isScrollPaused} {unique}></ColumnAutoScrolling>
 {/if}
 
 <style lang="postcss">
