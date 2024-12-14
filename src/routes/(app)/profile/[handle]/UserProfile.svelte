@@ -27,6 +27,10 @@
   });
   let serviceHost = $state('');
   let gridWidth = $state(0);
+  let slideOptions = $derived({
+    loop: false,
+    watchDrag: gridWidth < 680,
+  });
   const __agent = new BskyAgent({service: _agent.service()});
 
   getServiceHost()
@@ -132,12 +136,7 @@
     {/if}
 
     <div class="profile-grid" class:profile-grid--disable-atmos={$settings?.general?.disableAtmosphere} bind:clientWidth={gridWidth}>
-      <div
-        class="embla"
-        use:emblaCarouselSvelte={{options: {
-            loop: false,
-        }}}
-      >
+      <div class="embla" use:emblaCarouselSvelte={{ options: slideOptions, plugins: [] }}>
         <div class="embla__container">
           <div class="embla__slide embla__slide--left">
             <div class="profile-grid__left">

@@ -22,21 +22,22 @@
 </span>
 
 <style lang="postcss">
-    .tooltip-wrap {
-        display: inline-block;
-        position: relative;
-    }
+  .tooltip-wrap {
+      display: inline-block;
+      position: relative;
+  }
 
   .tooltip-content {
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      background-color: rgba(0, 0, 0, .75);
+      background-color: var(--bg-color-2);
+      border: 1px solid var(--border-color-2);
       top: calc(100% + 4px);
-      color: #fff;
+      color: var(--text-color-1);
       width: max-content;
-      padding: 0 10px;
-      font-size: 13px;
+      padding: 0 8px;
+      font-size: 12px;
       height: 24px;
       border-radius: 4px;
       display: flex;
