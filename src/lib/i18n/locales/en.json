@@ -670,5 +670,6 @@
   "display_mutual_following": "Display Followed badge",
   "show_skyblur_text": "Show hidden text by Skyblur",
   "back_to_exit_again": "Back again to exit.",
-  "tag_instant_user_search": "Search by user"
+  "tag_instant_user_search": "Search by user",
+  "hide_quote": "Hide posts with quotes"
 }

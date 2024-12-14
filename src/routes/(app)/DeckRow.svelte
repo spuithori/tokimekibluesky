@@ -86,7 +86,7 @@
         }
     }
 
-    function handleHeaderClick(el, event) {
+    function handleHeaderClick(el) {
         if (!el.scroll) {
             return false;
         }

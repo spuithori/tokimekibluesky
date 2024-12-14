@@ -670,5 +670,6 @@
   "display_mutual_following": "フォローされているユーザーを明示化",
   "show_skyblur_text": "Skyblurで伏せられたテキストを表示",
   "back_to_exit_again": "もう1度戻るとアプリを終了します。",
-  "tag_instant_user_search": "このユーザーでハッシュタグ検索"
+  "tag_instant_user_search": "このユーザーでハッシュタグ検索",
+  "hide_quote": "引用付き投稿を非表示"
 }

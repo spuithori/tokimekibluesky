@@ -24,8 +24,9 @@
         onclose,
     }: Props = $props();
 
-    let hideRepost = $state(column.settings?.timeline.hideRepost || null);
-    let hideReply = $state(column.settings?.timeline.hideReply || null);
+    let hideRepost = $state(column.settings?.timeline?.hideRepost || null);
+    let hideReply = $state(column.settings?.timeline?.hideReply || null);
+    let hideQuote = $state(column.settings?.timeline?.hideQuote || null);
     let langFilterEnabled = $state(column.settings?.langFilterEnabled || false);
     let langFilter = $state(column.settings?.langFilter || []);
     let autoRefresh = $state(column.settings?.autoRefresh || 0);
@@ -61,6 +62,7 @@
             timeline: {
                 hideRepost: hideRepost,
                 hideReply: hideReply,
+                hideQuote: hideQuote,
             },
             langFilterEnabled: langFilterEnabled,
             langFilter: $state.snapshot(langFilter),
@@ -85,6 +87,7 @@
             timeline: {
                 hideRepost: null,
                 hideReply: null,
+                hideQuote: null,
             },
             langFilterEnabled: false,
             langFilter: [],
@@ -592,6 +595,18 @@
                                         <option value="{option.value}">{option.name}</option>
                                     {/each}
                                 </select>
+                            </div>
+                        </dd>
+                    </dl>
+
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('hide_quote')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'hideQuote'} bind:checked={hideQuote}><label class="input-toggle__label" for={column.id + 'hideQuote'}></label>
                             </div>
                         </dd>
                     </dl>

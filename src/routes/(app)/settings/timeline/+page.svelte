@@ -7,6 +7,7 @@
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     let hideRepost = $state($settings.timeline.hideRepost || 'all');
     let hideReply = $state($settings.timeline.hideReply || 'all');
+    let hideQuote = $state($settings.timeline.hideQuote || false);
 
     const replySettings = [
       {
@@ -49,8 +50,7 @@
     run(() => {
         $settings.timeline.hideRepost = hideRepost;
         $settings.timeline.hideReply = hideReply;
-
-        // localStorage.setItem('settings', JSON.stringify($settings));
+        $settings.timeline.hideQuote = hideQuote;
     });
 </script>
 
@@ -102,6 +102,18 @@
               <option value="{option.value}">{option.name}</option>
             {/each}
           </select>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('hide_quote')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="hideQuote" bind:checked={hideQuote}><label class="input-toggle__label" for="hideQuote"></label>
         </div>
       </dd>
     </dl>

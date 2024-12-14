@@ -66,6 +66,9 @@ const defaultSettings = {
     timeline: {
         hideRepost: 'all',
         hideReply: 'all',
+        hideMention: 'all',
+        hideQuote: false,
+        simpleReply: false,
     },
     moderation: {
         contentLabels: {

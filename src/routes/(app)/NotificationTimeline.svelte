@@ -252,7 +252,7 @@
 
           {#if (filter.includes(item.reason))}
             {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-              <TimelineItem {_agent} data={{post: item.post}}></TimelineItem>
+              <TimelineItem {_agent} data={{post: item.post}} {column}></TimelineItem>
             {:else if (item.reason === 'follow')}
               <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
             {:else if (item.reason === 'starterpack-joined')}

@@ -9,6 +9,9 @@ type deckSettings = {
     timeline?: {
         hideRepost: 'all' | 'many' | 'soso' | 'less' | 'none' | null,
         hideReply: 'all' | 'following' | 'me' | null,
+        hideMention: 'all' | 'following' | 'me' | null,
+        hideQuote: boolean | null,
+        simpleReply: boolean | null,
     },
     langFilterEnabled?: boolean,
     langFilter?: string[],

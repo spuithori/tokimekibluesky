@@ -2,7 +2,7 @@
     import {_} from 'svelte-i18n'
     import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2 } from 'lucide-svelte';
     import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, postPulse, pulseDetach, junkAgentDid } from '$lib/stores';
-    import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
+    import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
     import { toast } from "svelte-sonner";
     import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
     import {setContext} from "svelte";
@@ -57,12 +57,15 @@
     let isTranslated = false;
     let isReactionModalOpen = $state(false);
     let pulseTranslate = $state(false);
-    let hideReply = column && column.settings?.timeline.hideReply
-      ? column.settings?.timeline.hideReply
+    let hideReply = column?.settings?.timeline?.hideReply
+      ? column.settings.timeline.hideReply
       : $settings.timeline?.hideReply || 'all';
-    let hideRepost = column && column.settings?.timeline.hideRepost
-        ? column.settings?.timeline.hideRepost
-        : $settings.timeline?.hideRepost || 'all';
+    let hideRepost = column?.settings?.timeline?.hideRepost
+      ? column.settings.timeline.hideRepost
+      : $settings.timeline?.hideRepost || 'all';
+    let hideQuote = column?.settings?.timeline?.hideQuote
+      ? column.settings.timeline.hideQuote
+      : $settings.timeline?.hideQuote || false;
 
     if ($settings.general?.deleteConfirmSkip === undefined) {
         $settings.general.deleteConfirmSkip = false;
@@ -156,6 +159,12 @@
         if (data.reason.by.viewer?.muted) {
             isHide = true;
         }
+    }
+
+    if (hideQuote && column?.algorithm?.type !== 'notification') {
+      if (AppBskyEmbedRecord.isView(data?.post?.embed) || AppBskyEmbedRecordWithMedia.isView(data?.post?.embed)) {
+        isHide = true;
+      }
     }
 
     const langFilter = column && column.settings?.langFilterEnabled ? column.settings.langFilter : $settings.langFilter;

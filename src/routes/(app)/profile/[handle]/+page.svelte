@@ -31,6 +31,9 @@
             timeline: {
               hideReply: 'all',
               hideRepost: 'all',
+              hideQuote: false,
+              hideMention: 'all',
+              simpleReply: false,
             }
           },
           did: agentContext.agent.did(),
