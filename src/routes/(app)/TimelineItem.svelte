@@ -1,23 +1,23 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n'
-    import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2 } from 'lucide-svelte';
-    import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, postPulse, pulseDetach, junkAgentDid } from '$lib/stores';
-    import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
-    import { toast } from "svelte-sonner";
-    import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
-    import {setContext} from "svelte";
-    import Menu from "$lib/components/ui/Menu.svelte";
-    import {goto} from "$app/navigation";
-    import TimelineContent from "$lib/components/post/TimelineContent.svelte";
-    import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
-    import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
-    import { getAccountIdByDid, getAllAgentDids, getDidFromUri, getImageBase64FromBlob, getImageObjectFromBlob, getService } from "$lib/util.js";
-    import ReactionModal from "$lib/components/post/ReactionModal.svelte";
-    import {getTextArray} from "$lib/richtext";
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {_} from 'svelte-i18n'
+  import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2 } from 'lucide-svelte';
+  import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, postPulse, pulseDetach, junkAgentDid } from '$lib/stores';
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
+  import { toast } from "svelte-sonner";
+  import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
+  import {setContext} from "svelte";
+  import Menu from "$lib/components/ui/Menu.svelte";
+  import {goto} from "$app/navigation";
+  import TimelineContent from "$lib/components/post/TimelineContent.svelte";
+  import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
+  import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
+  import { getAccountIdByDid, getAllAgentDids, getDidFromUri, getImageBase64FromBlob, getImageObjectFromBlob, getService } from "$lib/util.js";
+  import ReactionModal from "$lib/components/post/ReactionModal.svelte";
+  import {getTextArray} from "$lib/richtext";
+  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    interface Props {
+  interface Props {
         _agent?: any;
         data: AppBskyFeedDefs.FeedViewPost;
         isReplyExpanded?: boolean;
@@ -205,6 +205,15 @@
             });
 
         isMenuOpen = false;
+    }
+
+    function sendMention() {
+      let _post = { did: _agent.did() };
+      const mention = `@${data.post.author.handle}`;
+      _post.text = `<span class="editor-mention" data-type="mention" data-id="${mention.slice(1)}">${mention}</span>`;
+      postPulse.set([_post]);
+
+      isMenuOpen = false;
     }
 
     async function deletePost(uri: string) {
@@ -692,8 +701,15 @@
 
           <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
             <button class="timeline-menu-list__button" onclick={copyHandle}>
-              <AtSign size="18" color="var(--text-color-1)"></AtSign>
+              <Copy size="18" color="var(--text-color-1)"></Copy>
               {$_('copy_handle')}
+            </button>
+          </li>
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
+            <button class="timeline-menu-list__button" onclick={sendMention}>
+              <AtSign size="18" color="var(--text-color-1)"></AtSign>
+              {$_('send_mention')}
             </button>
           </li>
 

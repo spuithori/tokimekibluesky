@@ -1,10 +1,10 @@
 <script lang="ts">
-  import {agent, listAddModal, repostMutes} from "$lib/stores";
+  import {agent, listAddModal, postPulse, repostMutes} from "$lib/stores";
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
   import {createEventDispatcher} from "svelte";
-  import {ShieldBan, VolumeX} from "lucide-svelte";
+  import {AtSign, ShieldBan, VolumeX} from "lucide-svelte";
   const dispatch = createEventDispatcher();
 
   let { profile, handle } = $props();
@@ -92,6 +92,15 @@
           });
 
       isMenuOpen = false;
+  }
+
+  function sendMention() {
+    let _post = {};
+    const mention = `@${profile.handle}`;
+    _post.text = `<span class="editor-mention" data-type="mention" data-id="${mention.slice(1)}">${mention}</span>`;
+    postPulse.set([_post]);
+
+    isMenuOpen = false;
   }
 
   function repostMute() {
@@ -212,6 +221,13 @@
             <span>{$_('copy_url')}</span>
           </button>
         </li>
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
+            <button class="timeline-menu-list__button" onclick={sendMention}>
+              <AtSign size="18" color="var(--text-color-1)"></AtSign>
+              {$_('send_mention')}
+            </button>
+          </li>
 
         <li class="timeline-menu-list__item timeline-menu-list__item--report">
           <button class="timeline-menu-list__button" onclick={() => {$listAddModal = {open: true, author: profile, did: $agent.did()}}}>
