@@ -29,6 +29,7 @@
 </script>
 
 <div class="side-workspace-modal"
+     class:side-workspace-modal--mobileV2={$settings?.design?.mobileNewUi}
      use:clickOutside={{ignoreElement: '.side-workspace-button'}}
      onoutclick={handleClose}
      transition:fade={{duration: 100}}
@@ -42,26 +43,19 @@
 
         <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="regular-vertical-menu-button">
             {#snippet ref()}
-                        <svg  xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-more-horizontal"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-                    {/snippet}
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-more-horizontal"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            {/snippet}
 
             {#snippet content()}
-                        <ul class="timeline-menu-list" >
-                    <li class="timeline-menu-list__item">
-                        <button class="timeline-menu-list__button" onclick={() => {$settings.general.hideWorkspaceButton = true; handleClose()}}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
-                            <span>{$_('hide_this_button')}</span>
-                        </button>
-                    </li>
-
-                    <li class="timeline-menu-list__item">
-                        <a href="https://docs.tokimeki.blue/ja/usage/profiles" target="_blank" rel="noopener" class="timeline-menu-list__button">
-                            <HelpCircle size="20" color="var(--text-color-1)"></HelpCircle>
-                            <span>{$_('workspace_help')}</span>
-                        </a>
-                    </li>
-                </ul>
-                    {/snippet}
+              <ul class="timeline-menu-list" >
+                <li class="timeline-menu-list__item">
+                    <a href="https://docs.tokimeki.blue/ja/usage/profiles" target="_blank" rel="noopener" class="timeline-menu-list__button">
+                        <HelpCircle size="20" color="var(--text-color-1)"></HelpCircle>
+                        <span>{$_('workspace_help')}</span>
+                    </a>
+                </li>
+              </ul>
+            {/snippet}
         </Menu>
     </div>
 
@@ -85,6 +79,11 @@
         padding: 12px 8px 8px;
         border-radius: var(--border-radius-2);
         box-shadow: 0 0 10px var(--box-shadow-color-1);
+
+        &--mobileV2 {
+            top: auto;
+            bottom: 118px;
+        }
     }
 
     .side-workspace-modal-heading {

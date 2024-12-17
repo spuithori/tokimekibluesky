@@ -62,6 +62,7 @@ const defaultSettings = {
         singleWidth: 'medium',
         fixedFooter: false,
         mutualDisplay: false,
+        mobileNewUi: false,
     },
     timeline: {
         hideRepost: 'all',

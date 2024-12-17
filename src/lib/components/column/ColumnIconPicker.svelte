@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { settings } from '$lib/stores';
   import { iconMap } from '$lib/columnIcons';
   import { fly, fade } from 'svelte/transition';
 
   let { current, onchange, onclose } = $props();
 </script>
 
-<div class="column-icon-picker" transition:fly={{ duration:250, y: -30 }}>
+<div class="column-icon-picker" class:column-icon-picker--mobileV2={$settings?.design?.mobileNewUi} transition:fly={{ duration:250, y: -30 }}>
   <ul class="icon-picker-list">
     {#each iconMap as [key, icon]}
       {@const SvelteComponent = icon}
@@ -33,6 +34,11 @@
       box-shadow: 0 0 10px var(--box-shadow-color-1);
       border-radius: 6px;
       z-index: 1;
+
+      &--mobileV2 {
+          top: auto;
+          bottom: 118px;
+      }
   }
 
   .icon-picker-list {
