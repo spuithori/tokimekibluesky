@@ -673,5 +673,6 @@
   "tag_instant_user_search": "このユーザーでハッシュタグ検索",
   "hide_quote": "引用付き投稿を非表示",
   "send_mention": "メンションを送る",
-  "columns": "カラム一覧"
+  "columns": "カラム一覧",
+  "mobile_new_ui": "実験的・新モバイルUI"
 }

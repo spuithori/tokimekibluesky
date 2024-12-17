@@ -528,7 +528,7 @@
       </dd>
     </dl>
 
-    <dl class="settings-group">
+    <dl class="settings-group only-mobile">
       <dt class="settings-group__name">
         {$_('mobile_new_ui')}
       </dt>

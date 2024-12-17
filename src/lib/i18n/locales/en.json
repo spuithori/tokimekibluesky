@@ -673,5 +673,6 @@
   "tag_instant_user_search": "Search by user",
   "hide_quote": "Hide posts with quotes",
   "send_mention": "Send mention",
-  "columns": "Columns"
+  "columns": "Columns",
+  "mobile_new_ui": "Experimental: New Mobile UI"
 }
