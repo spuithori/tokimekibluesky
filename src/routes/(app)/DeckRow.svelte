@@ -653,6 +653,10 @@
                 flex-direction: column;
                 padding-top: 0;
 
+                .deck-row__content {
+                    flex: 1;
+                }
+
                 .deck-heading {
                     order: 10;
                     top: auto;

@@ -62,7 +62,7 @@
 
     $effect(() => {
       if ($settings?.design?.mobileNewUi) {
-        if ($intersectingIndex) {
+        if ($intersectingIndex !== undefined) {
           mobileV2Visible = true;
 
           if (els[$intersectingIndex]) {
