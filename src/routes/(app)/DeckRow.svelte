@@ -3,7 +3,7 @@
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
-    import {agent, agents, intersectingIndex, isChatColumnFront} from "$lib/stores";
+    import {agent, agents, intersectingIndex, isChatColumnFront, isColumnModalOpen} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
@@ -26,7 +26,8 @@
     import ListTimeline from "./ListTimeline.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
-    import {Filter, GripVertical, PictureInPicture2, Settings2, SquarePlus} from "lucide-svelte";
+    import {Filter, GripVertical, Layers, PictureInPicture2, Settings2, SquarePlus} from "lucide-svelte";
+    import SideWorkspaceModal from "$lib/components/side/SideWorkspaceModal.svelte";
     const { longPressAction } = createLongPress();
 
     interface Props {
@@ -63,6 +64,7 @@
     let isDragging = $state(false);
     let reorderIndex = index;
     let isRefreshing = $state(false);
+    let isWorkspaceModalOpen = $state(false);
 
     let dragOptions: DragOptions = $state({
         axis: 'x',
@@ -330,6 +332,7 @@
     class:deck-row--decks={$settings.design?.layout === 'decks'}
     class:deck-row--single={$settings.design?.layout === 'default'}
     class:deck-row--compact={publishState.layout === 'bottom'}
+    class:deck-row--mobileV2={$settings.design?.mobileNewUi && !isJunk}
     class:deck-row--junk={isJunk}
     onmouseenter={handleMouseEnter}
     onmouseleave={handleMouseLeave}
@@ -348,6 +351,15 @@
                 <div class="deck-drag-area">
                     <GripVertical size="20" color="var(--border-color-1)"></GripVertical>
                 </div>
+            {/if}
+
+            {#if ($settings.design?.mobileNewUi && !isJunk)}
+                <button class="deck-heading-side-button"
+                    onclick={() => {isWorkspaceModalOpen = !isWorkspaceModalOpen}}
+                    aria-label="Open workspaces"
+                >
+                    <Layers size="20" color="var(--primary-color)"></Layers>
+                </button>
             {/if}
 
             <div class="deck-heading__icon">
@@ -418,6 +430,15 @@
             {/if}
         </div>
 
+        {#if ($settings.design?.mobileNewUi && !isJunk)}
+            <button
+                    class="deck-heading-side-button"
+                    onclick={() => {$isColumnModalOpen = true}}
+            >
+                <SquarePlus color="var(--bar-primary-icon-color)" size="22"></SquarePlus>
+            </button>
+        {/if}
+
         {#if isIconPickerOpen}
             <ColumnIconPicker onchange={handleIconChange} onclose={() => {isIconPickerOpen = false}} current={column.settings?.icon}></ColumnIconPicker>
         {/if}
@@ -454,6 +475,10 @@
 
 {#if column.scrollElement && column.scrollElement instanceof HTMLElement && column.settings?.autoScroll}
     <ColumnAutoScrolling {column} {index} {isTopScrolling} {isScrollPaused} {unique}></ColumnAutoScrolling>
+{/if}
+
+{#if (isWorkspaceModalOpen)}
+    <SideWorkspaceModal close={() => {isWorkspaceModalOpen = false}}></SideWorkspaceModal>
 {/if}
 
 <style lang="postcss">
@@ -613,6 +638,70 @@
             .deck-heading {
                 background-color: var(--bg-vail-bg-color);
                 backdrop-filter: blur(12px);
+            }
+        }
+
+        &--mobileV2 {
+            .deck-heading-side-button {
+                display: none;
+            }
+
+            @media (max-width: 767px) {
+                --deck-heading-icon-bg-color: transparent;
+                --deck-heading-icon-color: var(--text-color-3);
+                display: flex;
+                flex-direction: column;
+                padding-top: 0;
+
+                .deck-row__content {
+                    flex: 1;
+                }
+
+                .deck-heading {
+                    order: 10;
+                    top: auto;
+                    bottom: 0;
+                    flex-shrink: 0;
+                    border-bottom: none;
+                    border-top: 1px solid var(--deck-border-color);
+                    padding: 12px 10px calc(8px + 52px + var(--safe-area-bottom));
+                    height: calc(var(--deck-heading-height) + 56px + var(--safe-area-bottom));
+                    text-align: center;
+                    border-radius: 0;
+
+                    &--scroll-down {
+                        transform: translateY(0);
+                    }
+
+                    &::before {
+                        content: '';
+                        display: block;
+                        position: absolute;
+                        top: 8px;
+                        height: 44px;
+                        left: 54px;
+                        right: 54px;
+                        background-color: var(--bg-color-2);
+                        border-radius: var(--border-radius-3);
+                        z-index: -1;
+                    }
+                }
+
+                .deck-row-settings-button {
+                    width: 36px;
+                    height: 36px;
+
+                    &:hover {
+                        background-color: transparent;
+                    }
+                }
+
+                .deck-heading-side-button {
+                    display: grid;
+                    width: 44px;
+                    height: 44px;
+                    place-content: center;
+                }
             }
         }
     }

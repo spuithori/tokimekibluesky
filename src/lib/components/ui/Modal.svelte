@@ -160,7 +160,7 @@
 
   .modal-heading {
       background-color: var(--bg-color-1);
-      z-index: 2;
+      z-index: 21;
       border-bottom: 1px solid var(--border-color-1);
       position: sticky;
       top: 0;

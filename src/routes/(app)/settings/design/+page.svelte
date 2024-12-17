@@ -527,6 +527,18 @@
         </div>
       </dd>
     </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('mobile_new_ui')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="mobileNewUi" bind:checked={$settings.design.mobileNewUi}><label class="input-toggle__label" for="mobileNewUi"></label>
+        </div>
+      </dd>
+    </dl>
   </div>
 </div>
 

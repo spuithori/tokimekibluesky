@@ -735,16 +735,14 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if (isMobile ? publishState.show && isMobilePopState : publishState.show)}
-  <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} aria-label="投稿ウィンドウを閉じる" onclick={() => {onClose(true)}}>
+  <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} class:publish-sp-open--mobileV2={$settings.design?.mobileNewUi} aria-label="投稿ウィンドウを閉じる" onclick={() => {onClose(true)}}>
     <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
       <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
     </svg>
   </button>
 {:else}
-  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" class:publish-sp-open--hidden={$isChatColumnFront} onclick={handleOpen}>
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
-      <path id="edit-pencil" d="M12.3,3.7l4,4L4,20H0V16Zm1.4-1.4L16,0l4,4L17.7,6.3l-4-4Z" fill="var(--bg-color-1)"/>
-    </svg>
+  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" class:publish-sp-open--hidden={$isChatColumnFront} class:publish-sp-open--mobileV2={$settings.design?.mobileNewUi} onclick={handleOpen}>
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
   </button>
 {/if}
 
@@ -852,6 +850,16 @@
             @media (max-width: 767px) {
                 opacity: 0;
                 visibility: hidden;
+            }
+        }
+
+        &--mobileV2 {
+            @media (max-width: 767px) {
+                border-radius: 16px;
+                width: 48px;
+                height: 48px;
+                right: 20px;
+                bottom: calc(4px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
             }
         }
     }

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { agents, currentTimeline, settings, isColumnModalOpen, intersectingIndex } from "$lib/stores";
+    import { currentTimeline, settings, isColumnModalOpen, intersectingIndex } from "$lib/stores";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import {page} from '$app/stores';
     import {Home, Layers, Pen, PenOff, Settings, SquarePlus} from "lucide-svelte";
@@ -9,11 +9,13 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
+    import {untrack} from "svelte";
 
     const columnState = getColumnState();
-
-    let isMobileBarOpen = $state(false);
     let isWorkspaceModalOpen = $state(false);
+    let mobileV2Visible = $state(false);
+    let mobileV2Clear = false;
+    let els = $state([]);
 
     if (!columnState.columns[$currentTimeline]) {
         currentTimeline.set(0);
@@ -49,14 +51,6 @@
             }
         }
 
-        /* if (event.key === String('h') && isInactive) {
-            if ($settings.design.publishPosition === 'left') {
-                $settings.design.publishPosition = 'bottom';
-            } else {
-                $settings.design.publishPosition = 'left';
-            }
-        } */
-
         columnState.columns.forEach((column, index) => {
             const i = index + 1;
 
@@ -65,23 +59,43 @@
             }
         })
     }
+
+    $effect(() => {
+      if ($settings?.design?.mobileNewUi) {
+        if ($intersectingIndex !== undefined) {
+          mobileV2Visible = true;
+
+          if (els[$intersectingIndex]) {
+            els[$intersectingIndex].scrollIntoView({inline: 'center', behavior: 'smooth'});
+          }
+
+          if (mobileV2Clear) {
+            untrack(() => {
+              clearTimeout(mobileV2Clear);
+            })
+          }
+
+          mobileV2Clear = setTimeout(() => {
+            mobileV2Visible = false;
+          }, 2500);
+        }
+      }
+    });
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="side-bar side-bar--{publishState.layout}" class:side-bar--sp-open={isMobileBarOpen} onclick={() => {isMobileBarOpen = false}} class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--immersive-mode={$settings.design?.immersiveMode}>
+<div class="side-bar side-bar--{publishState.layout}" class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--immersive-mode={$settings.design?.immersiveMode}
+ class:side-bar--mobileV2={$settings?.design?.mobileNewUi}
+ class:side-bar--mobileV2-visible={mobileV2Visible && $settings?.design?.mobileNewUi}>
   <div class="side-bar__list side-bar__top">
-    {#if (!$settings.general?.hideWorkspaceButton)}
-        <div class="side-workspace">
-            <button class="side-workspace-button"
-                    class:side-workspace-button--active={isWorkspaceModalOpen}
-                    onclick={() => {isWorkspaceModalOpen = !isWorkspaceModalOpen}}
-                    aria-label="ワークスペース一覧を開く"
-            >
-              <Layers size="20" color="var(--primary-color)"></Layers>
-            </button>
-        </div>
-    {/if}
+    <button class="side-workspace-button"
+        class:side-workspace-button--active={isWorkspaceModalOpen}
+        onclick={() => {isWorkspaceModalOpen = !isWorkspaceModalOpen}}
+        aria-label="Open workspaces"
+    >
+      <Layers size="20" color="var(--primary-color)"></Layers>
+    </button>
 
     <button
           class="side-publish-button"
@@ -96,14 +110,12 @@
     </button>
 
     {#if $page.url.pathname === '/'}
-      {#if $agents.size > 0}
-        <button
-            class="side-bar-button"
-            onclick={() => {$isColumnModalOpen = true}}
-        >
-          <SquarePlus color="var(--bar-primary-icon-color)"></SquarePlus>
-        </button>
-      {/if}
+      <button
+          class="side-bar-button side-column-add-button"
+          onclick={() => {$isColumnModalOpen = true}}
+      >
+        <SquarePlus color="var(--bar-primary-icon-color)"></SquarePlus>
+      </button>
 
       {#each columnState.columns as column, index (column.id)}
         <button
@@ -113,6 +125,7 @@
             onclick={() => {handleColumnClick(column, index)}}
             aria-label={column.algorithm?.name}
             title={column.algorithm?.name}
+            bind:this={els[index]}
         >
           {#if column.settings?.icon}
             {@const SvelteComponent = iconMap.get(column.settings.icon)}
@@ -199,12 +212,6 @@
           }
       }
 
-      &--sp-open {
-          @media (max-width: 767px) {
-              display: none;
-          }
-      }
-
       &--scroll-down {
           @media (max-width: 767px) {
               opacity: 0;
@@ -218,6 +225,38 @@
               @media (min-width: 768px) {
                   opacity: 0;
                   visibility: hidden;
+              }
+          }
+      }
+
+      &--mobileV2 {
+          @media (max-width: 767px) {
+              backdrop-filter: none;
+              width: fit-content;
+              max-width: 80vw;
+              bottom: 128px;
+              top: auto;
+              left: 0;
+              right: 0;
+              margin: auto;
+              box-shadow: var(--timeline-embed-box-shadow);
+              border-radius: 24px;
+
+              transform: none !important;
+              opacity: 0;
+              visibility: hidden;
+
+              &.side-bar--mobileV2-visible {
+                  opacity: 1;
+                  visibility: visible;
+              }
+
+              .side-workspace-button {
+                 display: none;
+              }
+
+              .side-column-add-button {
+                 display: none;
               }
           }
       }
@@ -301,10 +340,6 @@
               font-size: 10px;
           }
       }
-  }
-
-  .side-workspace {
-      position: relative;
   }
 
   .side-workspace-button {

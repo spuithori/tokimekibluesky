@@ -1,14 +1,14 @@
 <script lang="ts">
     import { flip } from 'svelte/animate';
-    import { dndzone } from 'svelte-dnd-action';
+    import { dragHandleZone, dragHandle } from 'svelte-dnd-action';
     import { pauseColumn } from "$lib/stores";
-    import {createEventDispatcher} from "svelte";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
-    import { Bell, Bookmark, Heart, Home, Image, List, MessageCircleMore, Newspaper, Pencil, Search, UserRound, XCircle } from "lucide-svelte";
-    const dispatch = createEventDispatcher();
+    import { getColumnState } from "$lib/classes/columnState.svelte";
+    import {GripVertical, XCircle} from "lucide-svelte";
+    import {iconMap} from "$lib/columnIcons";
+    import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     const columnState = getColumnState();
 
-    let { _agent, items } = $props();
+    let { items, onviewcolumn = () => {} } = $props();
     const flipDurationMs = 300;
     function handleDndConsider(e) {
         $pauseColumn = true;
@@ -21,59 +21,37 @@
     }
 
     function columnRemove(column) {
-        dispatch('remove', {
-            column: column,
-        });
+        columnState.columns = columnState.columns.filter(_column => _column !== column);
+        items = columnState.columns;
     }
 </script>
 
-<div class="column-list" use:dndzone={{items: items, flipDurationMs}} onconsider={handleDndConsider} onfinalize={handleDndFinalize}>
+<div class="column-list" use:dragHandleZone={{items: items, flipDurationMs}} onconsider={handleDndConsider} onfinalize={handleDndFinalize}>
   {#each items as column, index (column.id)}
     <div class="column-list__item" animate:flip="{{duration: flipDurationMs}}">
+      <div class="column-list__grab" use:dragHandle>
+        <GripVertical size="20" color="var(--border-color-1)"></GripVertical>
+      </div>
+
       <div class="column-list__icon">
-        {#if (column.algorithm.type === 'custom')}
-          <Newspaper size="20" color="var(--text-color-1)"></Newspaper>
-        {:else if (column.algorithm.type === 'list')}
-          <List size="20" color="var(--text-color-1)"></List>
-        {:else if (column.algorithm.type === 'bookmark')}
-          <Bookmark size="20" color="var(--text-color-1)"></Bookmark>
-        {:else if (column.algorithm.type === 'cloudBookmark')}
-          <Bookmark size="20" color="var(--text-color-1)"></Bookmark>
-        {:else if (column.algorithm.type === 'notification')}
-          <Bell size="20" color="var(--text-color-1)"></Bell>
-        {:else if (column.algorithm.type === 'officialList')}
-          <List size="20" color="var(--text-color-1)"></List>
-        {:else if (column.algorithm.type === 'search')}
-          <Search size="20" color="var(--text-color-1)"></Search>
-        {:else if (column.algorithm.type === 'like')}
-          <Heart size="20" color="var(--text-color-1)"></Heart>
-        {:else if (column.algorithm.type === 'myPost')}
-          <Pencil size="20" color="var(--text-color-1)"></Pencil>
-        {:else if (column.algorithm.type === 'myMedia')}
-          <Image size="20" color="var(--text-color-1)"></Image>
-        {:else if (column.algorithm.type === 'author')}
-          <UserRound size="20" color="var(--text-color-1)"></UserRound>
-        {:else if (column.algorithm.type === 'chat')}
-          <MessageCircleMore size="20" color="var(--text-color-1)"></MessageCircleMore>
+        {#if column.settings?.icon}
+          {@const SvelteComponent = iconMap.get(column.settings.icon)}
+          <SvelteComponent color="var(--deck-heading-icon-color)"></SvelteComponent>
         {:else}
-          <Home size="20" color="var(--text-color-1)"></Home>
+          <ColumnIcon type={column.algorithm.type}></ColumnIcon>
         {/if}
       </div>
 
-      <div class="column-list__content">
-        <p class="column-list__title">
-          {column.algorithm.name}
-        </p>
+      <div role="button" class="column-list__content" onclick={() => {onviewcolumn(column, index)}}>
+        <p class="column-list__title">{column.algorithm.name}</p>
 
         {#if (column.handle)}
-          <p class="column-list__handle">
-            {column.handle}
-          </p>
+          <p class="column-list__handle">{column.handle}</p>
         {/if}
       </div>
 
       <button class="column-list__remove" onclick={() => {columnRemove(column)}} ontouchend={() => {columnRemove(column)}} aria-label="Remove">
-        <XCircle color="var(--text-color-1)"></XCircle>
+        <XCircle color="var(--text-color-1)" size="20"></XCircle>
       </button>
     </div>
   {/each}
@@ -82,16 +60,25 @@
 <style lang="postcss">
     .column-list {
         display: grid;
-        gap: 12px;
+        gap: 8px;
         grid-auto-rows: min-content;
         height: 100%;
+
+        &__grab {
+            position: absolute;
+            left: 4px;
+            top: 0;
+            bottom: 0;
+            display: grid;
+            place-content: center;
+        }
 
         &__item {
             position: relative;
             display: flex;
             gap: 10px;
             align-items: center;
-            padding: 6px 12px;
+            padding: 6px 12px 6px 28px;
             border-radius: 6px;
             font-weight: bold;
             background-color: var(--bg-color-1);
@@ -101,6 +88,7 @@
 
         &__content {
             flex: 1;
+            text-align: left;
         }
 
         &__title {

@@ -14,7 +14,8 @@
 
 <svelte:window onpopstate={handlePopstate} />
 
-<footer class="footer" class:footer--hidden={$isChatColumnFront} class:footer--scroll-down={scrollDirectionState.direction === 'down'} class:footer--fixed={$settings.design?.fixedFooter}>
+<footer class="footer" class:footer--hidden={$isChatColumnFront} class:footer--scroll-down={scrollDirectionState.direction === 'down'} class:footer--fixed={$settings.design?.fixedFooter}
+ class:footer--mobileV2={$settings.design?.mobileNewUi}>
   <div class="footer__wrap">
     <SideNav footer={true}></SideNav>
   </div>
@@ -40,7 +41,6 @@
       left: 0;
       right: 0;
       bottom: 0;
-      border-radius: 10px 10px 0 0;
       box-shadow: 0 -1px 6px rgba(61, 120, 209, .09);
       background-color: var(--bg-color-1);
       z-index: 999;
@@ -68,7 +68,7 @@
           display: flex;
           align-items: center;
           padding: 0 0 var(--safe-area-bottom);
-          height: calc(60px + var(--safe-area-bottom));
+          height: calc(56px + var(--safe-area-bottom));
       }
 
       &--hidden {
@@ -88,6 +88,19 @@
               &.footer--fixed {
                   transform: none;
               }
+          }
+      }
+
+      &--mobileV2 {
+          background-color: transparent;
+          box-shadow: none;
+
+          &::before {
+              content: none;
+          }
+
+          & + .footer-round {
+              display: none;
           }
       }
   }

@@ -6,7 +6,6 @@
     const dispatch = createEventDispatcher();
     import { liveQuery } from 'dexie';
     import {accountsDb, db} from '$lib/db';
-    import ColumnList from "$lib/components/column/ColumnList.svelte";
     import BookmarkObserver from "$lib/components/bookmark/BookmarkObserver.svelte";
     import ListObserver from "$lib/components/list/ListObserver.svelte";
     import ColumnModalChoices from "$lib/components/column/ColumnModalChoices.svelte";
@@ -14,6 +13,7 @@
     import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
     import CloudBookmarkObserver from "$lib/components/bookmark/CloudBookmarkObserver.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import Modal from "$lib/components/ui/Modal.svelte";
 
     const columns = getColumnState();
     let profileId = Number(localStorage.getItem('currentProfile'));
@@ -81,58 +81,34 @@
             console.log(e);
         }
     }
-
-    function handleColumnRemove(event) {
-        columns.remove(event.detail.column.id)
-        // save(false);
-    }
 </script>
 
 {#if ($agents.size > 0)}
-    <div class="modal">
-        <div class="modal-contents">
-            <h2 class="modal-title modal-title--smaller">{$_('column_settings')}</h2>
-
-            {#if (profile && currentAccount)}
-                <div class="column-modal-account">
-                    <AgentsSelector _agent={$agents.get(currentAccount)} on:select={handleSelect}></AgentsSelector>
-                </div>
-            {/if}
-
-            <div class="column-group-wrap">
-                <div class="column-group">
-                    <div class="column-group__item">
-                        {#key currentAccount}
-                            {#key unique}
-                                <ColumnModalChoices
-                                    _agent={$agents.get(currentAccount)}
-                                    on:add={handleColumnAdd}
-                                ></ColumnModalChoices>
-                            {/key}
-                        {/key}
-                    </div>
-
-                    <div class="column-group__item column-group__item--active">
-                        <h3 class="column-group__title">{$_('active_columns')}</h3>
-                        <p class="column-group__description">{$_('active_columns_description')}</p>
-
-                        <ColumnList items={columns.columns} on:remove={handleColumnRemove} _agent={$agents.get(currentAccount)}></ColumnList>
-                    </div>
-                </div>
+    <Modal title={$_('column_settings')} on:close={save}>
+        {#if (profile && currentAccount)}
+            <div class="column-modal-account">
+                <AgentsSelector _agent={$agents.get(currentAccount)} on:select={handleSelect}></AgentsSelector>
             </div>
+        {/if}
 
-            <div class="modal-close">
-                <button class="button button--sm" onclick={save}>{$_('close_button')}</button>
+        <div class="column-group-wrap">
+            <div class="column-group">
+                {#key currentAccount}
+                    {#key unique}
+                        <ColumnModalChoices
+                                _agent={$agents.get(currentAccount)}
+                                on:add={handleColumnAdd}
+                        ></ColumnModalChoices>
+                    {/key}
+                {/key}
             </div>
         </div>
+    </Modal>
 
-        <button class="modal-background-close" aria-hidden="true" onclick={save}></button>
-
-        <BookmarkObserver close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
-        <CloudBookmarkObserver close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>
-        <ListObserver on:close={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
-        <OfficialListObserver _agent={$agents.get(currentAccount)} on:close={handleOfficialListClose}></OfficialListObserver>
-    </div>
+    <BookmarkObserver close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
+    <CloudBookmarkObserver close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>
+    <ListObserver on:close={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
+    <OfficialListObserver _agent={$agents.get(currentAccount)} on:close={handleOfficialListClose}></OfficialListObserver>
 {/if}
 
 <style lang="postcss">
