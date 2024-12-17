@@ -70,7 +70,8 @@
 <style lang="postcss">
   .list-menu-wrap {
       position: absolute;
-      right: 16px;
-      top: 16px;
+      left: 16px;
+      top: 12px;
+      z-index: 22;
   }
 </style>

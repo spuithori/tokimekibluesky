@@ -7,6 +7,7 @@
     import {createEventDispatcher} from 'svelte';
     import { toast } from "svelte-sonner";
     import {_} from "svelte-i18n";
+  import Modal from "$lib/components/ui/Modal.svelte";
     const dispatch = createEventDispatcher();
 
 
@@ -135,150 +136,114 @@
     });
 </script>
 
-<div class="list-modal">
-  <div class="list-modal-contents">
-    <h2 class="list-modal-title">{$_('list_add_management')}</h2>
-    <p class="modal-description">{$_('list_add_description')}</p>
+<Modal title={$_('list_add_management')} on:close={close}>
+  <p class="modal-description">{$_('list_add_description')}</p>
 
-    <div class="list-modal-column">
-      <div class="list-modal-row">
-        <dl class="list-modal-group list-modal-group--name">
-          <dt class="list-modal-group__name">
-            <label for="listName">{$_('list_name')}</label>
-          </dt>
+  <div class="list-modal-column">
+    <div class="list-modal-row">
+      <dl class="list-modal-group list-modal-group--name">
+        <dt class="list-modal-group__name">
+          <label for="listName">{$_('list_name')}</label>
+        </dt>
 
-          <dd class="list-modal-group__content">
-            <div class="list-modal-name">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                <path id="edit-pencil" d="M9.84,2.96l3.2,3.2L3.2,16H0V12.8Zm1.12-1.12L12.8,0,16,3.2,14.16,5.04Z" fill="var(--text-color-1)"/>
-              </svg>
+        <dd class="list-modal-group__content">
+          <div class="list-modal-name">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+              <path id="edit-pencil" d="M9.84,2.96l3.2,3.2L3.2,16H0V12.8Zm1.12-1.12L12.8,0,16,3.2,14.16,5.04Z" fill="var(--text-color-1)"/>
+            </svg>
 
-              <input id="listName" type="text" class="list-modal-name__input" bind:value={name}>
-            </div>
-          </dd>
-        </dl>
+            <input id="listName" type="text" class="list-modal-name__input" bind:value={name}>
+          </div>
+        </dd>
+      </dl>
 
-        <dl class="list-modal-group">
-          <dt class="list-modal-group__name">
-            {$_('list_member')}
-          </dt>
+      <dl class="list-modal-group">
+        <dt class="list-modal-group__name">
+          {$_('list_member')}
+        </dt>
 
-          <dd class="list-modal-group__content">
-            <div class="list-modal-members">
-              {#each members as member}
-                {#if (typeof member !== 'string')}
-                  <ListMember member={member} action={'delete'} on:delete={handleDelete}></ListMember>
-                {/if}
-              {:else}
-                <p class="list-modal-members__none">{$_('there_is_no_list_member')}</p>
-              {/each}
-            </div>
-          </dd>
-        </dl>
-      </div>
-
-      <div class="list-modal-row">
-        <dl class="list-modal-group">
-          <dt class="list-modal-group__name">
-            {$_('user_search')}
-          </dt>
-
-          <dd class="list-modal-group__content">
-            <div class="list-modal-members">
-              <div class="list-modal-search">
-                <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">
-                  <path id="search" d="M11.589,12.866A7.187,7.187,0,1,1,12.856,11.6l4.807,4.789-1.276,1.276-4.789-4.8Zm-4.4-.287A5.391,5.391,0,1,0,1.8,7.188a5.391,5.391,0,0,0,5.391,5.391Z" transform="translate(0.008 -0.002)" fill="var(--primary-color)"/>
-                </svg>
-                <input type="text" class="list-modal-search-input" bind:value={search} onkeydown={handleKeyDown} placeholder="{$_('handle_or_name')}">
-              </div>
-
-              {#each searchMembers as member}
-                {#if (!members.find(m => m.did === member.did))}
-                  <ListMember member={member} action={'add'} on:add={handleAdd}></ListMember>
-                {/if}
-              {/each}
-            </div>
-          </dd>
-        </dl>
-      </div>
+        <dd class="list-modal-group__content">
+          <div class="list-modal-members">
+            {#each members as member}
+              {#if (typeof member !== 'string')}
+                <ListMember member={member} action={'delete'} on:delete={handleDelete}></ListMember>
+              {/if}
+            {:else}
+              <p class="list-modal-members__none">{$_('there_is_no_list_member')}</p>
+            {/each}
+          </div>
+        </dd>
+      </dl>
     </div>
 
-    <details class="list-modal-accordion list-modal-import-export">
-      <summary class="list-modal-accordion__title">{$_('import_export')}</summary>
+    <div class="list-modal-row">
+      <dl class="list-modal-group">
+        <dt class="list-modal-group__name">
+          {$_('user_search')}
+        </dt>
 
-      <div class="list-modal-accordion__content">
-        <dl class="list-modal-group list-modal-export">
-          <dt class="list-modal-group__name">
-            {$_('export_clipboard_copy')}
-          </dt>
-
-          <dd class="list-modal-group__content">
-            <div class="list-modal-import-export-group">
-              <input type="text" readonly class="list-modal-group__input" bind:value={exportText}>
-              <button class="button button--sm" onclick={exporting}><svg xmlns="http://www.w3.org/2000/svg" width="14.417" height="18" viewBox="0 0 14.417 18">
-                <path id="clipboard" d="M6.532,2.345a2.7,2.7,0,0,1,5.352,0l1.829.36v.9h.9a1.8,1.8,0,0,1,1.8,1.8V16.221a1.8,1.8,0,0,1-1.8,1.8H3.8a1.8,1.8,0,0,1-1.8-1.8V5.409a1.807,1.807,0,0,1,1.8-1.8h.9v-.9l1.829-.36ZM4.7,5.409H3.8V16.221H14.615V5.409h-.9v.9H4.7Zm4.505-1.8a.9.9,0,1,0-.9-.9A.9.9,0,0,0,9.208,3.606Z" transform="translate(-2 -0.023)" fill="var(--bg-color-1)"/>
-              </svg></button>
+        <dd class="list-modal-group__content">
+          <div class="list-modal-members">
+            <div class="list-modal-search">
+              <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">
+                <path id="search" d="M11.589,12.866A7.187,7.187,0,1,1,12.856,11.6l4.807,4.789-1.276,1.276-4.789-4.8Zm-4.4-.287A5.391,5.391,0,1,0,1.8,7.188a5.391,5.391,0,0,0,5.391,5.391Z" transform="translate(0.008 -0.002)" fill="var(--primary-color)"/>
+              </svg>
+              <input type="text" class="list-modal-search-input" bind:value={search} onkeydown={handleKeyDown} placeholder="{$_('handle_or_name')}">
             </div>
-          </dd>
-        </dl>
 
-        <dl class="list-modal-group list-modal-import">
-          <dt class="list-modal-group__name">
-            {$_('import')}<br>
-            <span class="text-danger">{$_('overwrite_current_member')}</span>
-          </dt>
-
-          <dd class="list-modal-group__content">
-            <div class="list-modal-import-export-group">
-              <input type="text" class="list-modal-group__input" bind:value={importText}>
-              <button class="button button--sm" onclick={importing}>{$_('import')}</button>
-            </div>
-          </dd>
-        </dl>
-      </div>
-    </details>
-
-    <div class="list-modal-close">
-      <button class="button button--sm" onclick={close}>{$_('close_button')}</button>
-      <button class="button button--sm button--border button--danger" onclick={remove}>{$_('remove')}</button>
+            {#each searchMembers as member}
+              {#if (!members.find(m => m.did === member.did))}
+                <ListMember member={member} action={'add'} on:add={handleAdd}></ListMember>
+              {/if}
+            {/each}
+          </div>
+        </dd>
+      </dl>
     </div>
   </div>
-</div>
+
+  <details class="list-modal-accordion list-modal-import-export">
+    <summary class="list-modal-accordion__title">{$_('import_export')}</summary>
+
+    <div class="list-modal-accordion__content">
+      <dl class="list-modal-group list-modal-export">
+        <dt class="list-modal-group__name">
+          {$_('export_clipboard_copy')}
+        </dt>
+
+        <dd class="list-modal-group__content">
+          <div class="list-modal-import-export-group">
+            <input type="text" readonly class="list-modal-group__input" bind:value={exportText}>
+            <button class="button button--sm" onclick={exporting}><svg xmlns="http://www.w3.org/2000/svg" width="14.417" height="18" viewBox="0 0 14.417 18">
+              <path id="clipboard" d="M6.532,2.345a2.7,2.7,0,0,1,5.352,0l1.829.36v.9h.9a1.8,1.8,0,0,1,1.8,1.8V16.221a1.8,1.8,0,0,1-1.8,1.8H3.8a1.8,1.8,0,0,1-1.8-1.8V5.409a1.807,1.807,0,0,1,1.8-1.8h.9v-.9l1.829-.36ZM4.7,5.409H3.8V16.221H14.615V5.409h-.9v.9H4.7Zm4.505-1.8a.9.9,0,1,0-.9-.9A.9.9,0,0,0,9.208,3.606Z" transform="translate(-2 -0.023)" fill="var(--bg-color-1)"/>
+            </svg></button>
+          </div>
+        </dd>
+      </dl>
+
+      <dl class="list-modal-group list-modal-import">
+        <dt class="list-modal-group__name">
+          {$_('import')}<br>
+          <span class="text-danger">{$_('overwrite_current_member')}</span>
+        </dt>
+
+        <dd class="list-modal-group__content">
+          <div class="list-modal-import-export-group">
+            <input type="text" class="list-modal-group__input" bind:value={importText}>
+            <button class="button button--sm" onclick={importing}>{$_('import')}</button>
+          </div>
+        </dd>
+      </dl>
+    </div>
+  </details>
+
+  <div class="list-modal-close">
+    <button class="button button--sm" onclick={close}>{$_('close_button')}</button>
+    <button class="button button--sm button--border button--danger" onclick={remove}>{$_('remove')}</button>
+  </div>
+</Modal>
 
 <style lang="postcss">
-  .list-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      z-index: 9999;
-      background-color: rgba(0, 0, 0, .5);
-      overflow: auto;
-      padding: 50px 0;
-
-      @media (max-width: 767px) {
-          display: block;
-          overscroll-behavior-y: none;
-          padding: 20px;
-      }
-  }
-
-  .list-modal-contents {
-      padding: 30px;
-      border-radius: 10px;
-      background-color: var(--bg-color-1);
-      width: 740px;
-      max-width: 100%;
-
-      @media (max-width: 767px) {
-          width: 100%;
-      }
-  }
-
   .list-modal-column {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -287,13 +252,6 @@
       @media (max-width: 767px) {
           display: block;
       }
-  }
-
-  .list-modal-title {
-      font-weight: 900;
-      font-size: 20px;
-      line-height: 1.5;
-      margin-bottom: 10px;
   }
 
   .list-modal-group {

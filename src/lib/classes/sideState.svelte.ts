@@ -1,6 +1,6 @@
-export type SideItem = 'feeds' | 'chat' | 'notifications' | 'search' | 'profile' | 'refresher' | 'scroll-top' | 'releaseJunk' | 'bluecast';
-const DEFAULT_ITEMS: SideItem[] = ['feeds', 'chat', 'search', 'profile'];
-export const ALL_ITEMS: SideItem[] = ['feeds', 'chat', 'notifications', 'search', 'profile', 'bluecast', 'refresher', 'scroll-top'];
+export type SideItem = 'feeds' | 'chat' | 'notifications' | 'search' | 'profile' | 'refresher' | 'scroll-top' | 'releaseJunk' | 'bluecast' | 'columns';
+const DEFAULT_ITEMS: SideItem[] = ['feeds', 'columns', 'search', 'profile'];
+export const ALL_ITEMS: SideItem[] = ['feeds', 'chat', 'notifications', 'search', 'profile', 'bluecast', 'refresher', 'scroll-top', 'columns'];
 
 class SideState {
     items: SideItem[] = $state(DEFAULT_ITEMS);

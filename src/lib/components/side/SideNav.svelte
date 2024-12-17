@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { agent, settings } from '$lib/stores';
-  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic } from 'lucide-svelte';
+  import {agent, currentTimeline, settings} from '$lib/stores';
+  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic, Square } from 'lucide-svelte';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
@@ -12,12 +12,14 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import SideBluecast from "$lib/components/side/SideBluecast.svelte";
   import SideNotification from "$lib/components/side/SideNotification.svelte";
+  import SideColumns from "$lib/components/side/SideColumns.svelte";
 
   let { footer = false } = $props();
   let isFeedsModalOpen = $state(false);
   let isChatModalOpen = $state(false);
   let isNotificationModalOpen = $state(false);
   let isBluecastModalOpen = $state(false);
+  let isColumnsModalOpen = $state(false);
   let isMenuOpen = $state(false);
   let refreshTimeout = $state(false);
   const columnState = getColumnState();
@@ -70,6 +72,9 @@
           case 'bluecast':
               isBluecastModalOpen = !isBluecastModalOpen
               break;
+          case 'columns':
+            isColumnsModalOpen = !isColumnsModalOpen
+            break;
       }
   }
 
@@ -91,6 +96,22 @@
       setTimeout(() => {
           refreshTimeout = false;
       }, 3000);
+  }
+
+  function handleViewColumn(column: any, index: number) {
+    if ($settings.design.layout === 'decks') {
+      if (column.scrollElement) {
+        column.scrollElement.scrollIntoView({inline: 'end', behavior: 'instant'});
+      }
+    } else {
+      if ($currentTimeline === index) {
+        return false;
+      }
+
+      currentTimeline.set(index);
+    }
+
+    isColumnsModalOpen = false;
   }
 </script>
 
@@ -114,6 +135,8 @@
           <CircleArrowUp color="var(--nav-secondary-icon-color)"></CircleArrowUp>
         {:else if (item === 'bluecast')}
           <Mic color="var(--nav-secondary-icon-color)"></Mic>
+        {:else if (item === 'columns')}
+          <Square color="var(--nav-secondary-icon-color)"></Square>
         {/if}
       </button>
     </li>
@@ -173,6 +196,18 @@
     </div>
 
     <button class="side-modal__close only-mobile" onclick={() => {isBluecastModalOpen = false}}>
+      <CircleX size="36" color="var(--text-color-1)"></CircleX>
+    </button>
+  </div>
+{/if}
+
+{#if isColumnsModalOpen}
+  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--columns'}} onoutclick={() => {isColumnsModalOpen = false}}>
+    <div class="side-modal__content">
+      <SideColumns onviewcolumn={handleViewColumn}></SideColumns>
+    </div>
+
+    <button class="side-modal__close only-mobile" onclick={() => {isColumnsModalOpen = false}}>
       <CircleX size="36" color="var(--text-color-1)"></CircleX>
     </button>
   </div>
