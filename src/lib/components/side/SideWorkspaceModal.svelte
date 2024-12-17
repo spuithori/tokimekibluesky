@@ -82,7 +82,7 @@
 
         &--mobileV2 {
             top: auto;
-            bottom: 118px;
+            bottom: calc(118px + var(--safe-area-bottom));
         }
     }
 

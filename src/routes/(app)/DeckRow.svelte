@@ -648,7 +648,7 @@
 
             @media (max-width: 767px) {
                 --deck-heading-icon-bg-color: transparent;
-                --deck-heading-icon-color: var(--primary-color);
+                --deck-heading-icon-color: var(--text-color-3);
                 display: flex;
                 flex-direction: column;
                 padding-top: 0;
