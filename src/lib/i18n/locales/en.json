@@ -672,5 +672,6 @@
   "back_to_exit_again": "Back again to exit.",
   "tag_instant_user_search": "Search by user",
   "hide_quote": "Hide posts with quotes",
-  "send_mention": "Send mention"
+  "send_mention": "Send mention",
+  "columns": "Columns"
 }
