@@ -42,6 +42,7 @@
       <li class="profile-tab__item" onclick={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/search?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('posts')}</a></li>
       <li class="profile-tab__item" onclick={() => currentPage = 'user'} class:profile-tab__item--active={currentPage === 'user'}><a href="/search/user?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('user')}</a></li>
       <li class="profile-tab__item" onclick={() => currentPage = 'feeds'} class:profile-tab__item--active={currentPage === 'feeds'}><a href="/search/feeds?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('feeds')}</a></li>
+      <li class="profile-tab__item" onclick={() => currentPage = 'trend'} class:profile-tab__item--active={currentPage === 'trend'}><a href="/search/trend" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('trend')}</a></li>
     </ul>
 
     <div class="page-search-content">

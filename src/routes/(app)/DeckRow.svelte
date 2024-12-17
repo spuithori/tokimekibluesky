@@ -648,6 +648,7 @@
 
             @media (max-width: 767px) {
                 --deck-heading-icon-bg-color: transparent;
+                --deck-heading-icon-color: var(--primary-color);
                 display: flex;
                 flex-direction: column;
                 padding-top: 0;
@@ -659,8 +660,8 @@
                     flex-shrink: 0;
                     border-bottom: none;
                     border-top: 1px solid var(--deck-border-color);
-                    padding: 12px 10px calc(8px + 52px);
-                    height: calc(var(--deck-heading-height) + 56px);
+                    padding: 12px 10px calc(8px + 52px + var(--safe-area-bottom));
+                    height: calc(var(--deck-heading-height) + 56px + var(--safe-area-bottom));
                     text-align: center;
                     border-radius: 0;
 
