@@ -333,6 +333,7 @@
     class:deck-row--single={$settings.design?.layout === 'default'}
     class:deck-row--compact={publishState.layout === 'bottom'}
     class:deck-row--mobileV2={$settings.design?.mobileNewUi && !isJunk}
+    class:deck-row--mobileV2-fixed={$settings.design?.fixedFooter}
     class:deck-row--junk={isJunk}
     onmouseenter={handleMouseEnter}
     onmouseleave={handleMouseLeave}
@@ -701,6 +702,14 @@
                     width: 44px;
                     height: 44px;
                     place-content: center;
+                }
+
+                &.deck-row--mobileV2-fixed {
+                    .deck-heading {
+                        transform: none !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                    }
                 }
             }
         }
