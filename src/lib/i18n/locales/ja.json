@@ -194,7 +194,7 @@
   "one_image_no_crop": "画像が1枚のとき、トリミングしない",
   "layout": "レイアウト",
   "decks": "デック",
-  "column_settings": "カラムの追加と管理",
+  "column_settings": "カラムの追加",
   "active_columns": "現在のカラム",
   "inactive_columns": "非アクティブなカラム",
   "data_saver": "データセーバー",
