@@ -674,5 +674,6 @@
   "hide_quote": "Hide posts with quotes",
   "send_mention": "Send mention",
   "columns": "Columns",
-  "mobile_new_ui": "Experimental: New Mobile UI"
+  "mobile_new_ui": "Experimental: New Mobile UI",
+  "bubble_timeline": "Bubble timeline"
 }

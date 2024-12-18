@@ -584,6 +584,7 @@
            class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
            class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
            class:timeline__item--hide={isHide}
+           class:timeline__item--bubble={$settings?.design?.bubbleTimeline}
            onclick={handleClick}
   >
     {#if (isShortCutNumberShown && index < 9)}
