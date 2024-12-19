@@ -675,5 +675,6 @@
   "send_mention": "メンションを送る",
   "columns": "カラム一覧",
   "mobile_new_ui": "実験的・新モバイルUI",
-  "bubble_timeline": "バブル型タイムライン"
+  "bubble_timeline": "バブル型タイムライン",
+  "tag_instant_post": "このタグで投稿"
 }

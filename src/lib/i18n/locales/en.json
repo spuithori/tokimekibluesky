@@ -675,5 +675,6 @@
   "send_mention": "Send mention",
   "columns": "Columns",
   "mobile_new_ui": "Experimental: New Mobile UI",
-  "bubble_timeline": "Bubble timeline"
+  "bubble_timeline": "Bubble-like timeline",
+  "tag_instant_post": "Post with tag"
 }

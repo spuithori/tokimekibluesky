@@ -361,6 +361,10 @@
     --scroll-bar-color: var(--border-color-1);
     --scroll-bar-bg-color: var(--bg-color-3);
 
+    /* Bubble */
+    --bubble-marin: 16px 0;
+    --bubble-padding: 16px;
+
     /* env */
     --safe-area-bottom: env(safe-area-inset-bottom);
 

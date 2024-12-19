@@ -4,7 +4,8 @@
   import { createLongPress } from "svelte-interactions";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import {toast} from "svelte-sonner";
-  import {Copy, UserRoundSearch, WholeWord} from "lucide-svelte";
+  import {Copy, Pencil, UserRoundSearch, WholeWord} from "lucide-svelte";
+  import {postPulse} from "$lib/stores";
   const { longPressAction } = createLongPress();
 
   let { item, handle = undefined } = $props();
@@ -37,6 +38,14 @@
 
       isTagMenuOpen = false;
   }
+
+  function postTag() {
+    let _post = {};
+    _post.text = `<span class="editor-hashtag">${item.text}</span>`;
+    postPulse.set([_post]);
+
+    isTagMenuOpen = false;
+  }
 </script>
 
 <Menu bind:isMenuOpen={isTagMenuOpen} isLongPress={isTagMenuOpen} buttonClassName="menu-tag-link" position="bottom-start">
@@ -65,6 +74,13 @@
           </a>
         </li>
       {/if}
+
+      <li class="timeline-menu-list__item">
+        <button class="timeline-menu-list__button" onclick={postTag}>
+          <Pencil size="20" color="var(--text-color-1)"></Pencil>
+          <span>{$_('tag_instant_post')}</span>
+        </button>
+      </li>
     </ul>
   {/snippet}
 </Menu>
