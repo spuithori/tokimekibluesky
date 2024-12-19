@@ -12,6 +12,12 @@
     &--nopt {
         padding-top: 0;
     }
+
+    &:has(.timeline__item--bubble) {
+        &:not(.timeline--notification) {
+            padding-top: 0;
+        }
+    }
 }
 
 .timeline-external {
@@ -33,7 +39,7 @@
     }
 
     @container timeline-item (max-width: 345px) {
-        margin-left: -50px;
+        margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * -1);
     }
 
     &__image {
@@ -215,7 +221,7 @@
 
 .timeline-twitter-external {
     @container timeline-item (max-width: 345px) {
-        margin-left: -50px;
+        margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * -1);
     }
 }
 
@@ -238,10 +244,6 @@
         .timeline-menu-toggle {
             top: 12px !important;
             right: 12px !important;
-        }
-
-        &:first-child {
-            margin-top: 0;
         }
     }
 }
@@ -292,16 +294,6 @@
         }
     }
 
-    &::before {
-        content: '・';
-    }
-
-    &:not(:last-child) {
-        &::after {
-            content: '・';
-        }
-    }
-
     &--noafter {
         &::after {
             content: none !important;
@@ -338,10 +330,11 @@
     font-size: var(--timeline-meta-font-size);
     margin-bottom: 6px;
     margin-top: 6px;
-    padding-right: 35px;
+    padding-right: 30px;
+    gap: 0 6px;
 
     &--member {
-        gap: 0 10px;
+        gap: 0 8px;
     }
 }
 
@@ -350,22 +343,17 @@
     letter-spacing: .025em;
     cursor: default;
     color: var(--timeline-user-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: fit-content;
 }
 
 .timeline__column {
     display: grid;
-    grid-template-columns: 56px 1fr;
+    grid-template-columns: var(--avatar-size) 1fr;
     align-items: flex-start;
-    gap: 15px;
-
-    @container timeline-item (max-width: 360px) {
-        grid-template-columns: 48px 1fr;
-    }
-
-    @container timeline-item (max-width: 320px) {
-        grid-template-columns: 40px 1fr;
-        gap: 10px;
-    }
+    gap: var(--avatar-gap);
 
     &--reply {
         margin-bottom: 20px;
@@ -384,10 +372,6 @@
                 left: 24px;
             }
         }
-    }
-
-    @media (max-width: 767px) {
-        grid-template-columns: 50px 1fr;
     }
 }
 
@@ -416,15 +400,15 @@
     color: var(--text-color-3);
 
     @container timeline-item (max-width: 345px) {
-        margin-left: -50px;
+        margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * -1);
     }
 
     @container timeline-item (max-width: 320px) {
-        margin-left: -50px;
+        margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * -1);
     }
 
     @container timeline-item (max-width: 290px) {
-        margin-left: -50px;
+        margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * -1);
     }
 
     &--notification {
@@ -558,7 +542,7 @@
     }
 
     @container timeline-item (max-width: 345px) {
-        margin-left: -50px;
+        margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * -1);
     }
 
     &--compact {
@@ -847,11 +831,10 @@
 
 .timeline__item--compact {
     padding: 10px 0;
+    --avatar-size: 46px;
+    --avatar-gap: 10px;
 
     .timeline__column {
-        grid-template-columns: 46px 1fr;
-        gap: 10px;
-
         &--reply {
             @media (max-width: 767px) {
                 margin-bottom: 15px;
@@ -887,30 +870,11 @@
         margin-top: 12px;
     }
 
-    .timeline-external {
-        &--record {
-            grid-template-columns: 36px 1fr;
-            gap: 8px;
-        }
-
-        &__description {
-            -webkit-line-clamp: 4;
-        }
-
-        &__url {
-            display: none;
-        }
-    }
-
     .timeline-reaction {
         &__item {
             border: none;
             height: 20px;
             font-size: 13px;
-
-            @container timeline-item (max-width: 290px) {
-
-            }
         }
 
         &__count {
@@ -948,9 +912,9 @@
 }
 
 .timeline__item--minimum {
-    .timeline__column {
-        grid-template-columns: 0 1fr;
+    --avatar-size: 0;
 
+    .timeline__column {
         &--reply {
             margin-bottom: 10px;
             border: 1px solid var(--border-color-1);

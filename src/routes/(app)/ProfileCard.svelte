@@ -45,7 +45,7 @@
           <h3 class="profile-card-displayname">{profile.displayName}</h3>
         {/if}
 
-        <p class="profile-card-handle">{profile.handle}</p>
+        <p class="profile-card-handle">@{profile.handle}</p>
       </div>
     </div>
 
@@ -87,6 +87,7 @@
       z-index: 100000;
       width: 300px;
       border: none;
+      overflow: hidden;
 
       @media (max-width: 767px) {
           display: none;
@@ -105,8 +106,14 @@
       margin-bottom: 10px;
   }
 
+  .profile-card-name {
+      min-width: 0;
+  }
+
   .profile-card-displayname {
       font-size: 15px;
+      white-space: wrap;
+      overflow-wrap: break-word;
   }
 
   .profile-card-handle {

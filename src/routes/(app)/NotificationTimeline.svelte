@@ -179,7 +179,7 @@
     }
 </script>
 
-<div class="timeline">
+<div class="timeline timeline--notification">
   <div class="notifications-wrap">
     {#if (isJunk)}
       <div class="notifications-menu">

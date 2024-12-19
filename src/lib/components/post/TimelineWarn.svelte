@@ -122,7 +122,7 @@
       padding: 10px 20px;
 
       @container timeline-item (max-width: 345px) {
-          margin-left: -50px;
+          margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * -1);
       }
 
       &--hide {
@@ -150,7 +150,7 @@
       margin-bottom: 8px;
 
       @container timeline-item (max-width: 345px) {
-          margin-left: -50px;
+          margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * -1);
       }
 
       .timeline-warn-list {

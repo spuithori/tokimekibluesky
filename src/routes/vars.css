@@ -80,4 +80,7 @@
     --default-icon-size: 24px;
     --default-padding: 16px;
     --default-border-width: 1px;
+
+    --avatar-size: 56px;
+    --avatar-gap: 16px;
 }

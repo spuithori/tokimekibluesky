@@ -7,7 +7,6 @@
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
-    import ColumnButtons from "$lib/components/column/ColumnButtons.svelte";
     import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
     import {settings} from "$lib/stores.js";
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
@@ -422,8 +421,6 @@
             ></ColumnRefreshButton>
 
             {#if (!isJunk)}
-                <ColumnButtons {column}></ColumnButtons>
-
                 <button class="deck-row-settings-button" aria-label="Settings" onclick={handleSettingsClick}>
                     <Settings2 color="var(--text-color-3)"></Settings2>
                 </button>

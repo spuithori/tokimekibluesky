@@ -190,7 +190,7 @@
           }
 
           @container timeline-item (max-width: 345px) {
-              margin-left: -50px;
+              margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * -1);
           }
       }
   }

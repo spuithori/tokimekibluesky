@@ -89,26 +89,28 @@
     </div>
   {/if}
 
-  {#if $settings?.design.postsLayout !== 'minimum'}
-    <Avatar href="/profile/{ record.author.handle }"
-            avatar={ record.author.avatar }
-            handle={ record.author.handle }></Avatar>
-  {/if}
-
   <div class="timeline-external__content">
     {#if isWarn && isWarn?.for === 'content'}
       <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
     {/if}
 
-    <div class="timeline__meta">
-      <p class="timeline__user">{ record.author.displayName || record.author.handle }</p>
-      <p class="timeline__date">
-        {#if $settings?.design.absoluteTime}
-          <span>{format(parseISO(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
-        {:else}
-          <span>{formatDistanceToNow(parseISO(record.indexedAt))}</span>
-        {/if}
-      </p>
+    <div class="timeline-external-heading">
+      <div class="timeline-external-avatar">
+        <Avatar href="/profile/{ record.author.handle }"
+                avatar={ record.author.avatar }
+                handle={ record.author.handle }></Avatar>
+      </div>
+
+      <div class="timeline__meta">
+        <p class="timeline__user">{ record.author.displayName || record.author.handle }</p>
+        <p class="timeline__date">
+          {#if $settings?.design.absoluteTime}
+            <span>{format(parseISO(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
+          {:else}
+            <span>{formatDistanceToNow(parseISO(record.indexedAt))}</span>
+          {/if}
+        </p>
+      </div>
     </div>
 
     {#if (AppBskyFeedPost.isRecord(record.value))}
@@ -142,3 +144,30 @@
 
   <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" onclick={handlePostClick} aria-label="{$_('show_thread')}"></a>
 </div>
+
+<style lang="postcss">
+  .timeline-external {
+      grid-template-columns: 1fr;
+      padding: 16px 12px;
+
+      &__content {
+        --avatar-gap: 0;
+        --avatar-width: 0;
+      }
+  }
+
+  .timeline-external-heading {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 8px;
+      align-items: flex-start;
+  }
+
+  .timeline__meta {
+      margin-top: 2px;
+      margin-bottom: 0;
+      padding-right: 0;
+      min-width: 0;
+      font-size: 13px;
+  }
+</style>

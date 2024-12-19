@@ -103,6 +103,7 @@
           width: 100%;
           height: auto;
           vertical-align: middle;
+          display: block;
       }
   }
 </style>

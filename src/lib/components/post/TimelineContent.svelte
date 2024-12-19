@@ -181,15 +181,7 @@
 
 <div class="timeline__content">
   <div class="timeline__meta">
-    <p class="timeline__user">
-      <Tooltip>
-        {#snippet ref()}
-          <span >{ post.author.displayName || post.author.handle }</span>
-        {/snippet}
-        {#snippet content()}
-          <span  aria-hidden="true">@{ post.author.handle }</span>
-        {/snippet}
-      </Tooltip></p>
+    <p class="timeline__user">{ post.author.displayName || post.author.handle }</p>
 
     <p class="timeline__date">
       {#if $settings?.design.absoluteTime}
