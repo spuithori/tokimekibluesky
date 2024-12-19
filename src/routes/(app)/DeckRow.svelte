@@ -27,7 +27,7 @@
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
     import {Filter, GripVertical, Layers, PictureInPicture2, Settings2, SquarePlus} from "lucide-svelte";
-    import SideWorkspaceModal from "$lib/components/side/SideWorkspaceModal.svelte";
+    import {modalState} from "$lib/classes/modalState.svelte";
     const { longPressAction } = createLongPress();
 
     interface Props {
@@ -64,7 +64,6 @@
     let isDragging = $state(false);
     let reorderIndex = index;
     let isRefreshing = $state(false);
-    let isWorkspaceModalOpen = $state(false);
 
     let dragOptions: DragOptions = $state({
         axis: 'x',
@@ -356,7 +355,7 @@
 
             {#if ($settings.design?.mobileNewUi && !isJunk)}
                 <button class="deck-heading-side-button"
-                    onclick={() => {isWorkspaceModalOpen = !isWorkspaceModalOpen}}
+                    onclick={() => {modalState.isWorkspaceModalOpen = !modalState.isWorkspaceModalOpen}}
                     aria-label="Open workspaces"
                 >
                     <Layers size="20" color="var(--primary-color)"></Layers>
@@ -476,10 +475,6 @@
 
 {#if column.scrollElement && column.scrollElement instanceof HTMLElement && column.settings?.autoScroll}
     <ColumnAutoScrolling {column} {index} {isTopScrolling} {isScrollPaused} {unique}></ColumnAutoScrolling>
-{/if}
-
-{#if (isWorkspaceModalOpen)}
-    <SideWorkspaceModal close={() => {isWorkspaceModalOpen = false}}></SideWorkspaceModal>
 {/if}
 
 <style lang="postcss">

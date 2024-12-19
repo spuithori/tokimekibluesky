@@ -10,9 +10,9 @@
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
     import {untrack} from "svelte";
+    import {modalState} from "$lib/classes/modalState.svelte";
 
     const columnState = getColumnState();
-    let isWorkspaceModalOpen = $state(false);
     let mobileV2Visible = $state(false);
     let mobileV2Clear = false;
     let els = $state([]);
@@ -90,12 +90,16 @@
  class:side-bar--mobileV2-visible={mobileV2Visible && $settings?.design?.mobileNewUi}>
   <div class="side-bar__list side-bar__top">
     <button class="side-workspace-button"
-        class:side-workspace-button--active={isWorkspaceModalOpen}
-        onclick={() => {isWorkspaceModalOpen = !isWorkspaceModalOpen}}
+        class:side-workspace-button--active={modalState.isWorkspaceModalOpen}
+        onclick={() => {modalState.isWorkspaceModalOpen = !modalState.isWorkspaceModalOpen}}
         aria-label="Open workspaces"
     >
       <Layers size="20" color="var(--primary-color)"></Layers>
     </button>
+
+    {#if (modalState.isWorkspaceModalOpen)}
+      <SideWorkspaceModal onclose={() => {modalState.isWorkspaceModalOpen = false}}></SideWorkspaceModal>
+    {/if}
 
     <button
           class="side-publish-button"
@@ -163,10 +167,6 @@
     </a>
   </div>
 </div>
-
-{#if (isWorkspaceModalOpen)}
-    <SideWorkspaceModal close={() => {isWorkspaceModalOpen = false}}></SideWorkspaceModal>
-{/if}
 
 <style lang="postcss">
   .side-bar {
