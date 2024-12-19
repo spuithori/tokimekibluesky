@@ -913,53 +913,23 @@
 
 .timeline__item--minimum {
     --avatar-size: 0;
+    --avatar-gap: 0;
 
     .timeline__column {
         &--reply {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             border: 1px solid var(--border-color-1);
-            padding: 5px;
+            border-radius: var(--border-radius-3);
+            padding: 8px;
 
             &::before {
                 content: none;
             }
-
-            .timeline__text {
-                display: -webkit-box;
-                -webkit-line-clamp: 1;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-        }
-    }
-
-    .timeline-external {
-        @container timeline-item (max-width: 345px) {
-            margin-left: 0;
-        }
-
-        &--record {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .timeline-twitter-external,
-    .timeline-video-wrap,
-    .timeline-images,
-    .timeline-warn,
-    .timeline-warn-hiding {
-        @container timeline-item (max-width: 345px) {
-            margin-left: 0 !important;
         }
     }
 
     .timeline-reply-bar {
         display: none;
-    }
-
-    .timeline-reaction {
-        margin-left: 0;
     }
 }
 
