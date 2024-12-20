@@ -92,11 +92,11 @@
 
         <InfiniteLoading on:infinite={handleLoadMore}>
           {#snippet noMore()}
-                    <p  class="infinite-nomore"></p>
-                  {/snippet}
+            <p class="infinite-nomore"></p>
+          {/snippet}
           {#snippet noResults()}
-                    <p  class="infinite-nomore"></p>
-                  {/snippet}
+            <p class="infinite-nomore"></p>
+          {/snippet}
         </InfiniteLoading>
       </div>
     {/key}

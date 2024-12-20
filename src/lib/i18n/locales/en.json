@@ -676,5 +676,7 @@
   "columns": "Columns",
   "mobile_new_ui": "Experimental: New Mobile UI",
   "bubble_timeline": "Bubble-like timeline",
-  "tag_instant_post": "Post with tag"
+  "tag_instant_post": "Post with tag",
+  "settings_repost_mute": "Repost Mutes",
+  "settings_repost_mute_description": "Manage and delete list"
 }

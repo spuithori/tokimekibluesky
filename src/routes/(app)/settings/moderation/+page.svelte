@@ -5,7 +5,7 @@
     import {settings, subscribedLabelers} from '$lib/stores';
     import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
     import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
-    import {ChevronRight, Globe2, MessageCircleMore, MessageCircleOff, Shield} from "lucide-svelte";
+    import {ChevronRight, Globe2, MessageCircleMore, MessageCircleOff, Repeat2, Shield} from "lucide-svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
 
     type contentLabelsSelect = 'hide' | 'warn' | 'ignore';
@@ -72,6 +72,12 @@
     <div class="settings-child-nav">
       <MessageCircleMore size="24"></MessageCircleMore>
       <a href="/settings/moderation/chat">{$_('settings_chat')}<br><span>{$_('settings_chat_description')}</span></a>
+      <ChevronRight size="20"></ChevronRight>
+    </div>
+
+    <div class="settings-child-nav">
+      <Repeat2 size="24"></Repeat2>
+      <a href="/settings/moderation/repost-mute">{$_('settings_repost_mute')}<br><span>{$_('settings_repost_mute_description')}</span></a>
       <ChevronRight size="20"></ChevronRight>
     </div>
 
