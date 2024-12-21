@@ -138,6 +138,7 @@
     }
 
     &--record-publish {
+        --timeline-embed-border: none;
         grid-template-columns: 40px 1fr;
         box-shadow: none;
         padding: 0;
