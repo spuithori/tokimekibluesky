@@ -7,7 +7,7 @@
     let { filter, item, _agent } = $props();
 </script>
 
-<article class="notifications-item notifications-item--follow notifications-item--filter-{filter}">
+<article class="notifications-item notifications-item--follow notifications-item--filter-{filter}" class:notifications-item--bubble={$settings?.design?.bubbleTimeline}>
     <div class="notifications-item__avatar">
         {#if $settings?.design.postsLayout !== 'minimum'}
             <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}

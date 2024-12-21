@@ -274,6 +274,7 @@
     --single-l-width: 600px;
     --single-xl-width: 680px;
     --single-xxl-width: 760px;
+    --single-border: 1px solid var(--border-color-2);
 
     --deck-content-bg-color: var(--bg-color-1);
     --deck-content-backdrop-filter: none;
@@ -353,6 +354,7 @@
     /* Notification */
     --notification-highlight-color: var(--base-bg-color);
     --notification-link-color: var(--link-color);
+    --notification-filter-border: 1px solid var(--border-color-2);
 
     /* Profile */
     --acp-main-label-bg-color: var(--primary-color);
@@ -364,6 +366,7 @@
     /* Bubble */
     --bubble-marin: 16px 0;
     --bubble-padding: 16px;
+    --bubble-bg-color: var(--timeline-bg-color);
 
     /* env */
     --safe-area-bottom: env(safe-area-inset-bottom);

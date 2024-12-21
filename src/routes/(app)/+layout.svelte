@@ -421,6 +421,7 @@
   }
 
   .single {
+      --deck-heading-height: calc(52px + 4px);
       background-attachment: fixed;
 
       .wrap {

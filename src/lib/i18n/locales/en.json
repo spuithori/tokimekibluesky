@@ -678,5 +678,6 @@
   "bubble_timeline": "Bubble-like timeline",
   "tag_instant_post": "Post with tag",
   "settings_repost_mute": "Repost Mutes",
-  "settings_repost_mute_description": "Manage and delete list"
+  "settings_repost_mute_description": "Manage and delete list",
+  "theme_for_bubble": "Optimized for Bubble"
 }

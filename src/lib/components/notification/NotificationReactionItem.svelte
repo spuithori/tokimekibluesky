@@ -69,7 +69,7 @@
     // item.notifications = removeNotificationsDuplication(item.notifications);
 </script>
 
-<article class="notifications-item notifications-item--reaction notifications-item--{item.reason}">
+<article class="notifications-item notifications-item--reaction notifications-item--{item.reason}" class:notifications-item--bubble={$settings?.design?.bubbleTimeline}>
     <div class="notification-column">
         <div class="notification-column__icons">
             {#if (item.reason === 'repost')}

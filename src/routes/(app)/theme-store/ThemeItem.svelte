@@ -81,6 +81,10 @@
           <dd class="theme-item-meta__content">{$_('theme_custom_color')}</dd>
         </div>
       {/if}
+
+      {#if theme?.keyword === 'bubble'}
+        <p class="theme-item-meta__bubble">{$_('theme_for_bubble')}</p>
+      {/if}
     </dl>
 
     <div class="theme-item__buttons">
@@ -179,6 +183,14 @@
       &__item {
           display: flex;
           gap: 4px;
+      }
+
+      &__bubble {
+          background-color: var(--primary-color);
+          color: var(--bg-color-1);
+          padding: 4px 8px;
+          border-radius: var(--border-radius-3);
+          font-size: 13px;
       }
   }
 </style>

@@ -52,8 +52,8 @@
 
 <style lang="postcss">
     .single-wrap {
-        border-left: 1px solid var(--border-color-2);
-        border-right: 1px solid var(--border-color-2);
+        border-left: var(--single-border);
+        border-right: var(--single-border);
         min-height: 100vh;
         background-color: var(--bg-color-1);
         width: var(--single-column-width, var(--single-m-width));

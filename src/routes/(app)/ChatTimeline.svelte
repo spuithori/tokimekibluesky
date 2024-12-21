@@ -119,7 +119,7 @@
 
 <style lang="postcss">
   .chat {
-      padding: var(--timeline-padding) var(--timeline-padding) calc(env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
+      padding: 16px 16px calc(env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
       flex: 1;
       display: flex;
       flex-direction: column;

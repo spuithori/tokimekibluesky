@@ -501,6 +501,7 @@
 
         &::-webkit-scrollbar-thumb {
             background: var(--scroll-bar-color);
+            border-radius: var(--scroll-bar-border-radius, 0);
         }
 
         &::-webkit-scrollbar-track {

@@ -179,131 +179,117 @@
     }
 </script>
 
-<div class="timeline timeline--notification">
-  <div class="notifications-wrap">
-    {#if (isJunk)}
-      <div class="notifications-menu">
-        <ul class="notifications-filter-list">
-          <li class="notifications-filter-list__item">
-            <button class="notifications-filter-button"
-                    onclick={() => {changeFilter(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}}
-                    class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}>{$_('all')}</button>
-          </li>
+{#if (isJunk)}
+  <div class="notifications-menu">
+    <ul class="notifications-filter-list">
+      <li class="notifications-filter-list__item">
+        <button class="notifications-filter-button"
+                onclick={() => {changeFilter(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}}
+                class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}>{$_('all')}</button>
+      </li>
 
-          <li class="notifications-filter-list__item">
-            <button class="notifications-filter-button"
-                    onclick={() => {changeFilter(['reply', 'mention', 'quote'])}}
-                    class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['reply', 'mention', 'quote'])}
-                    aria-label="Reply, Mention, and Quotes">
-              <AtSign size="18" color="var(--text-color-1)"></AtSign>
-            </button>
-          </li>
+      <li class="notifications-filter-list__item">
+        <button class="notifications-filter-button"
+                onclick={() => {changeFilter(['reply', 'mention', 'quote'])}}
+                class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['reply', 'mention', 'quote'])}
+                aria-label="Reply, Mention, and Quotes">
+          <AtSign size="18" color="var(--text-color-1)"></AtSign>
+        </button>
+      </li>
 
-          <li class="notifications-filter-list__item">
-            <button class="notifications-filter-button" onclick={() => {changeFilter(['like'])}}
-                    class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])}
-                    aria-label="Like">
-              {#if ($settings?.design?.reactionMode === 'superstar')}
-                <Star color="var(--text-color-1)" size="18"></Star>
-              {:else}
-                <Heart size="18" color="var(--text-color-1)"></Heart>
-              {/if}
-            </button>
-          </li>
-
-          <li class="notifications-filter-list__item">
-            <button class="notifications-filter-button" onclick={() => {changeFilter(['repost'])}}
-                    class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['repost'])}
-                    aria-label="Repost">
-              <Repeat2 size="18" color="var(--text-color-1)"></Repeat2>
-            </button>
-          </li>
-
-          <li class="notifications-filter-list__item">
-            <button class="notifications-filter-button" onclick={() => {changeFilter(['follow'])}}
-                    class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['follow'])}
-                    aria-label="Follow">
-              <UserPlus2 size="20" color="var(--text-color-1)"></UserPlus2>
-            </button>
-          </li>
-        </ul>
-      </div>
-    {:else}
-      <div class="notifications-filter-display">
-        <ul class="notifications-filter">
-          {#each filters as item, index (item)}
-            <li class="notifications-filter__item" aria-label={$_(item)}>
-              <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={filter} value={item} onchange={() => {changeFilter(filter)}}>
-              <label class="notifications-filter__label" for={id + '_' + item}>
-                <svelte:component this={filterIcons[item]} size="20"></svelte:component>
-              </label>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    {/if}
-
-    <div class="notifications-list">
-      {#each column.data.feed as item, index (item.latestIndexedAt)}
-        <div class="notifications-list__item">
-          {#if item?.notifications[0]?.isRead === false}
-            <span class="notifications-list__new"></span>
+      <li class="notifications-filter-list__item">
+        <button class="notifications-filter-button" onclick={() => {changeFilter(['like'])}}
+                class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])}
+                aria-label="Like">
+          {#if ($settings?.design?.reactionMode === 'superstar')}
+            <Star color="var(--text-color-1)" size="18"></Star>
+          {:else}
+            <Heart size="18" color="var(--text-color-1)"></Heart>
           {/if}
+        </button>
+      </li>
 
-          {#if (filter.includes(item.reason))}
-            {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-              <TimelineItem {_agent} data={{post: item.post}} {column}></TimelineItem>
-            {:else if (item.reason === 'follow')}
-              <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
-            {:else if (item.reason === 'starterpack-joined')}
+      <li class="notifications-filter-list__item">
+        <button class="notifications-filter-button" onclick={() => {changeFilter(['repost'])}}
+                class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['repost'])}
+                aria-label="Repost">
+          <Repeat2 size="18" color="var(--text-color-1)"></Repeat2>
+        </button>
+      </li>
 
-            {:else}
-              <NotificationReactionItem {_agent} {item}></NotificationReactionItem>
-            {/if}
-          {/if}
-        </div>
-      {/each}
-    </div>
-
-    {#key unique}
-      <InfiniteLoading on:infinite={handleLoadMore}>
-        <p slot="noMore" class="infinite-nomore">
-          {$_('no_more')}
-          {#if isOnlyShowUnread}
-            <br>({$_('only_show_unread')})
-          {/if}
-        </p>
-        <p slot="noResults" class="infinite-nomore">
-          {$_('no_results')}
-          {#if isOnlyShowUnread}
-            <br>({$_('only_show_unread')})
-          {/if}
-        </p>
-      </InfiniteLoading>
-    {/key}
+      <li class="notifications-filter-list__item">
+        <button class="notifications-filter-button" onclick={() => {changeFilter(['follow'])}}
+                class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['follow'])}
+                aria-label="Follow">
+          <UserPlus2 size="20" color="var(--text-color-1)"></UserPlus2>
+        </button>
+      </li>
+    </ul>
   </div>
+{:else}
+  <div class="notifications-filter-display">
+    <ul class="notifications-filter">
+      {#each filters as item, index (item)}
+        <li class="notifications-filter__item" aria-label={$_(item)}>
+          <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={filter} value={item} onchange={() => {changeFilter(filter)}}>
+          <label class="notifications-filter__label" for={id + '_' + item}>
+            <svelte:component this={filterIcons[item]} size="20"></svelte:component>
+          </label>
+        </li>
+      {/each}
+    </ul>
+  </div>
+{/if}
+
+<div class="timeline timeline--notification">
+  <div class="notifications-list">
+    {#each column.data.feed as item, index (item.latestIndexedAt)}
+      <div class="notifications-list__item">
+        {#if item?.notifications[0]?.isRead === false}
+          <span class="notifications-list__new"></span>
+        {/if}
+
+        {#if (filter.includes(item.reason))}
+          {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+            <TimelineItem {_agent} data={{post: item.post}} {column}></TimelineItem>
+          {:else if (item.reason === 'follow')}
+            <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
+          {:else if (item.reason === 'starterpack-joined')}
+
+          {:else}
+            <NotificationReactionItem {_agent} {item}></NotificationReactionItem>
+          {/if}
+        {/if}
+      </div>
+    {/each}
+  </div>
+
+  {#key unique}
+    <InfiniteLoading on:infinite={handleLoadMore}>
+      <p slot="noMore" class="infinite-nomore">
+        {$_('no_more')}
+        {#if isOnlyShowUnread}
+          <br>({$_('only_show_unread')})
+        {/if}
+      </p>
+      <p slot="noResults" class="infinite-nomore">
+        {$_('no_results')}
+        {#if isOnlyShowUnread}
+          <br>({$_('only_show_unread')})
+        {/if}
+      </p>
+    </InfiniteLoading>
+  {/key}
 </div>
 
 <style lang="postcss">
     .notifications-menu {
-        margin: 0 -16px;
-        padding: 0 16px;
+        padding: 16px 8px 0;
+        margin: var(--notification-filter-margin, 0);
         border-bottom: 1px solid var(--border-color-1);
-
-        @container timeline-item (max-width: 310px) {
-            padding: 0 8px;
-        }
-    }
-
-    .notifications-wrap {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
     }
 
     .notifications-list {
-        flex: 1;
-
         &__item {
             position: relative;
         }
@@ -314,8 +300,9 @@
             height: 8px;
             border-radius: 50%;
             background-color: var(--primary-color);
-            right: -12px;
-            top: 4px;
+            right: var(--notifications-new-right, -12px);
+            top: var(--notifications-new-top, 4px);;
+            z-index: 1;
         }
     }
 
@@ -325,12 +312,8 @@
         overflow: auto;
         white-space: nowrap;
         align-items: center;
-        gap: 5px 10px;
-
-        @container timeline-item (max-width: 320px) {
-            gap: 5px;
-            justify-content: space-between;
-        }
+        gap: 5px;
+        justify-content: space-between;
 
         &__item {
             font-size: 14px;
@@ -394,8 +377,10 @@
     }
 
     .notifications-filter-display {
-        border-bottom: 1px solid var(--border-color-2);
-        margin: 0 -16px;
-        padding: 0 16px 12px;
+        border-bottom: var(--notification-filter-border);
+        background-color: var(--notification-filter-bg-color, transparent);
+        border-radius: var(--notification-filter-border-radius, 0);
+        margin: var(--notification-filter-margin, 0);
+        padding: 12px 16px;
     }
 </style>
