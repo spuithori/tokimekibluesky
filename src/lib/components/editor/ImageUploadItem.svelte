@@ -1,15 +1,11 @@
 <script lang="ts">
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { X } from 'lucide-svelte';
-    import {createEventDispatcher} from "svelte";
-    const dispatch = createEventDispatcher();
 
-    let { image } = $props();
+    let { image, ondelete, onaltclick } = $props();
 
     function handleDelete() {
-        dispatch('delete', {
-            id: image.id,
-        });
+        ondelete(image.id);
     }
 </script>
 
@@ -23,8 +19,10 @@
     {/if}
 
     <button class="image-upload-item__close" onclick={handleDelete}>
-        <X color="#fff" size="18"></X>
+        <X color="#fff" size="20"></X>
     </button>
+
+    <button class="image-upload-item__alt" onclick={() => {onaltclick(image.id)}}>ALT</button>
 
     {#if (image.isGif)}
         <span class="gif-label">GIF</span>
@@ -56,8 +54,8 @@
         }
 
         &__close {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background-color: rgba(0, 0, 0, .7);
             display: grid;
@@ -65,6 +63,22 @@
             position: absolute;
             right: 8px;
             top: 8px;
+        }
+
+        &__alt {
+            width: 48px;
+            height: 32px;
+            border-radius: 24px;
+            background-color: rgba(0, 0, 0, .7);
+            display: grid;
+            place-content: center;
+            position: absolute;
+            left: 8px;
+            top: 8px;
+            color: #fff;
+            font-weight: bold;
+            letter-spacing: .05em;
+            font-size: 14px;
         }
     }
 </style>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { once } from 'svelte/legacy';
 
+  import {tick} from "svelte";
   import {_} from 'svelte-i18n';
   import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
@@ -8,7 +9,7 @@
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import { PUBLIC_DETECT_ALT_API_SERVER, PUBLIC_DETECT_ALT_API_HEADER } from '$env/static/public';
 
-  let { image = $bindable() } = $props();
+  let { image = $bindable(), altFocusPulse } = $props();
   let isProcessing = $state(false);
   let isMenuOpen = $state(false);
   let isUsed = $state(false);
@@ -40,6 +41,15 @@
 
       isProcessing = false;
       isUsed = true;
+  }
+
+  function focusing(el) {
+    if (altFocusPulse && altFocusPulse === image.id) {
+      tick().then(() => {
+        el.focus();
+        el.scrollIntoView(false);
+      })
+    }
   }
 </script>
 
@@ -75,7 +85,7 @@
 
   <div class="alt-modal-item__content">
     <div class="alt-modal-item__text">
-      <textarea class="alt-modal-textarea" bind:value={image.alt} disabled={isProcessing} placeholder="alt text..."></textarea>
+      <textarea class="alt-modal-textarea" bind:value={image.alt} disabled={isProcessing} use:focusing placeholder="alt text..."></textarea>
     </div>
   </div>
 </div>

@@ -3,13 +3,13 @@
   import AltModalItem from "$lib/components/alt/AltModalItem.svelte";
   import Modal from "$lib/components/ui/Modal.svelte";
 
-  let { images, close } = $props();
+  let { images, close, altFocusPulse } = $props();
 </script>
 
 <Modal title={$_('alt_insert')} size="normal" on:close={() => {close(images)}}>
   <div class="alt-modal-list">
     {#each images as image}
-      <AltModalItem {image}></AltModalItem>
+      <AltModalItem {image} {altFocusPulse}></AltModalItem>
     {/each}
   </div>
 

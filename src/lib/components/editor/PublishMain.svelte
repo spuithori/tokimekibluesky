@@ -67,6 +67,7 @@
     let isThreadGateOpen = $state(false);
     let isSelfLabelingMenuOpen = $state(false);
     let isConfigOpen = $state(false);
+    let altFocusPulse = $state();
 
     if ('virtualKeyboard' in navigator) {
         navigator.virtualKeyboard.overlaysContent = true;
@@ -429,6 +430,11 @@
       selfLabels.set([]);
       isSelfLabelingMenuOpen = false;
   }
+
+  function handleAltClick(id: string | number) {
+    altFocusPulse = id;
+    isAltModalOpen = true;
+  }
 </script>
 
 <svelte:document onpaste={handlePaste} />
@@ -506,20 +512,14 @@
     {/snippet}
 
     {#snippet normal()}
-        <div class="publish-upload">
-        {#if (images.length)}
-          <button class="publish-alt-text-button" onclick={() => {isAltModalOpen = true}}>
-            <span class="ai-label">AI</span>
-            {$_('add_alt_text')}
-          </button>
-        {/if}
-
+      <div class="publish-upload">
         <ImageUpload
           bind:this={imageUploadEl}
           bind:images={images}
           bind:video={video}
-          on:preparestart={() => {isPublishEnabled = true}}
-          on:prepareend={() => {isPublishEnabled = false}}
+          onpreparestart={() => {isPublishEnabled = true}}
+          onprepareend={() => {isPublishEnabled = false}}
+          onaltclick={handleAltClick}
         ></ImageUpload>
 
         {#if postState.quote?.uri}
@@ -686,7 +686,7 @@
 {/if}
 
 {#if (isAltModalOpen)}
-  <AltModal images={images} close={handleAltClose}></AltModal>
+  <AltModal images={images} close={handleAltClose} {altFocusPulse}></AltModal>
 {/if}
 
 {#if (isThreadGateOpen)}
@@ -750,23 +750,6 @@
       }
   }
 
-  .ai-label {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      background-color: rgba(0, 0, 0, .2);
-      color: var(--bg-color-1);
-      letter-spacing: .1em;
-      font-weight: bold;
-      font-size: 12px;
-      line-height: 1.05;
-      height: 20px;
-      border-radius: 10px;
-      padding: 0 8px 0 10px;
-      margin-right: 2px;
-  }
-
   .quote-feed-wrap {
       position: relative;
   }
@@ -776,34 +759,6 @@
       border-top: 1px solid var(--border-color-2);
       font-size: 14px;
       color: var(--text-color-3);
-  }
-
-  .publish-alt-text-button {
-      background-color: var(--primary-color);
-      color: var(--bg-color-1);
-      border-radius: 4px;
-      font-size: 14px;
-      width: 100%;
-      height: 30px;
-      z-index: 10;
-      font-weight: bold;
-      transition: opacity .2s ease-in-out, transform .05s ease-in-out;
-      margin-bottom: 8px;
-
-      &:hover {
-          opacity: .8;
-      }
-
-      &:active {
-          transform: scale(.99);
-      }
-
-      @media (max-width: 767px) {
-          position: relative;
-          top: auto;
-          left: auto;
-          width: 100%;
-      }
   }
 
   .link-card-registerer {

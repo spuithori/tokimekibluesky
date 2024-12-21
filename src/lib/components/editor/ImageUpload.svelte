@@ -4,19 +4,16 @@
     import {flip} from "svelte/animate";
     import { dndzone } from 'svelte-dnd-action';
     import ImageUploadItem from "$lib/components/editor/ImageUploadItem.svelte";
-    import {settings} from "$lib/stores";
     import {
         acceptedImageType,
         getImageSize,
         resizeAspectRatioSize,
         transformImageFilter
     } from "$lib/components/editor/imageUploadUtil";
-    import {createEventDispatcher} from "svelte";
     import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
     import {X} from "lucide-svelte";
     import {toast} from "svelte-sonner";
     import {publishState} from "$lib/classes/publishState.svelte";
-    const dispatch = createEventDispatcher();
 
     type Image = {
         id: string,
@@ -31,7 +28,7 @@
         video: any;
     }
 
-    let { images = $bindable([]), video = $bindable() }: Props = $props();
+    let { images = $bindable([]), video = $bindable(), onpreparestart = () => {}, onprepareend = () => {}, onaltclick = () => {} }: Props = $props();
     let input = $state();
 
     $effect(() => {
@@ -70,7 +67,7 @@
     }
 
     async function handleInputChange(e) {
-        dispatch('preparestart');
+        onpreparestart();
         const filesList = e.target.files || [];
 
         if (!filesList.length) {
@@ -101,7 +98,7 @@
             }
 
             input.value = '';
-            dispatch('prepareend');
+            onprepareend();
             return false;
         }
 
@@ -115,7 +112,7 @@
 
         images = [...images, ...await Promise.all(promises)];
         input.value = '';
-        dispatch('prepareend');
+        onprepareend();
     }
 
     export async function applyImageFromFile(file, alt = '') {
@@ -154,8 +151,8 @@
         input.click();
     }
 
-    function handleDelete(e) {
-        images = images.filter(image => image.id !== e.detail.id);
+    function handleDelete(id: string | number) {
+        images = images.filter(image => image.id !== id);
     }
 
     function handleVideoDelete() {
@@ -173,7 +170,7 @@
     >
         {#each images as image (image.id)}
             <div animate:flip="{{duration: 300}}">
-                <ImageUploadItem {image} on:delete={handleDelete}></ImageUploadItem>
+                <ImageUploadItem {image} ondelete={handleDelete} {onaltclick}></ImageUploadItem>
             </div>
         {/each}
     </div>
