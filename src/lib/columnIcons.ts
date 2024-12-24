@@ -1,4 +1,4 @@
-import { Aperture, Bell, Bird, Bookmark, Bot, Box, Camera, Cat, Clapperboard, Clock3, Dog, FlaskConical, Heart, Home, Image, List, Newspaper, Pencil, Rainbow, Rss, Sparkles, Speaker, Star, Sun, Tent, TreePine, Apple, Beer, Coffee, IceCream, CakeSlice, Soup, UtensilsCrossed, Search, Repeat2, UserRound, Music, AtSign, Mic, Squirrel, PawPrint, Moon, Clover, Rocket, Gamepad2, Ghost, Crown, Gem, MessageCircleHeart, MessageCircleQuestion, Hash, Palette, Paintbrush, TypeOutline, NotepadText, Shirt, CandyCane, Snowflake, TreePalm, Cannabis, MapPin, Pin, Cherry, Earth, IceCreamBowl, Nut, UserRoundSearch, UsersRound, ShoppingBasket, Castle, CassetteTape, Car, CarFront, Bike, Luggage, Sailboat, ThumbsUp, KeyRound, ChartSpline, PartyPopper, Cpu, Book, NotebookText, LibraryBig, BookOpenText, Bone, Fish, Candy } from 'lucide-svelte';
+import { Aperture, Bell, Bird, Bookmark, Bot, Box, Camera, Cat, Clapperboard, Clock3, Dog, FlaskConical, Heart, Home, Image, List, Newspaper, Pencil, Rainbow, Rss, Sparkles, Speaker, Star, Sun, Tent, TreePine, Apple, Beer, Coffee, IceCream, CakeSlice, Soup, UtensilsCrossed, Search, Repeat2, UserRound, Music, AtSign, Mic, Squirrel, PawPrint, Moon, Clover, Rocket, Gamepad2, Ghost, Crown, Gem, MessageCircleHeart, MessageCircleQuestion, Hash, Palette, Paintbrush, TypeOutline, NotepadText, Shirt, CandyCane, Snowflake, TreePalm, Cannabis, MapPin, Pin, Cherry, Earth, IceCreamBowl, Nut, UserRoundSearch, UsersRound, ShoppingBasket, Castle, CassetteTape, Car, CarFront, Bike, Luggage, Sailboat, ThumbsUp, KeyRound, ChartSpline, PartyPopper, Cpu, Book, NotebookText, LibraryBig, BookOpenText, Bone, Fish, Candy, Cake } from 'lucide-svelte';
 
 export const iconMap = new Map();
 
@@ -89,4 +89,5 @@ iconMap.set('home', Home)
     .set('bookopentext', BookOpenText)
     .set('bone', Bone)
     .set('fish', Fish)
-    .set('candy', Candy);
+    .set('candy', Candy)
+    .set('cakealt', Cake);
