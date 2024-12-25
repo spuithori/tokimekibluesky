@@ -105,9 +105,7 @@
   let feedColumnsRefreshing = $state(true);
   let officialListColumnsRefreshing = $state(true);
   let cloudBookmarkColumnRefreshing = $state(true);
-
-
-
+  
   function updateBookmark(bookmarks) {
       if (!bookmarks) {
           return false;
@@ -328,8 +326,6 @@
 
         <ColumnListAdder {_agent} items={basicColumns} on:add></ColumnListAdder>
     </div>
-
-
 
     <div class="column-adder-group">
         <div class="column-adder-group__heading">

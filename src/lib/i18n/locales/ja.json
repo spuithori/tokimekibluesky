@@ -679,5 +679,6 @@
   "tag_instant_post": "このタグで投稿",
   "settings_repost_mute": "リポストミュート",
   "settings_repost_mute_description": "ミュート一覧を管理・削除",
-  "theme_for_bubble": "バブル型に最適化"
+  "theme_for_bubble": "バブル型に最適化",
+  "pinned_feed": "ピン留めフィード"
 }

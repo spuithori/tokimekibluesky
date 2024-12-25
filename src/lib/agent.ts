@@ -1,6 +1,6 @@
 import type {AppBskyFeedGetTimeline, BskyAgent} from '@atproto/api';
 import {AppBskyEmbedImages} from "@atproto/api";
-import type { currentAlgorithm } from "../app.d.ts";
+import type {currentAlgorithm} from "../app.d.ts";
 import {parseISO} from "date-fns";
 import {CHAT_PROXY} from "$lib/components/chat/chatConst";
 import {listRecordsWithBsky} from "$lib/util";
@@ -279,6 +279,17 @@ export class Agent {
             } else {
                 return [];
             }
+        } catch (e) {
+            console.error(e);
+            return [];
+        }
+    }
+
+    async getV2PinnedFeeds() {
+        try {
+            const preferences = await this.getPreferences();
+            const savedFeeds = preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPrefV2')[0]?.items;
+            return savedFeeds.filter(savedFeed => savedFeed?.pinned);
         } catch (e) {
             console.error(e);
             return [];

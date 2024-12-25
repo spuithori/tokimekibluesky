@@ -131,6 +131,7 @@
 
       &--normal {
           max-width: min(740px, 94vw);
+          width: 100%;
       }
 
       &--small {
