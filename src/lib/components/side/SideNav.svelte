@@ -1,6 +1,6 @@
 <script lang="ts">
   import {agent, currentTimeline, settings} from '$lib/stores';
-  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic, Square } from 'lucide-svelte';
+  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic, Square, TrendingUp } from 'lucide-svelte';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
@@ -13,6 +13,7 @@
   import SideBluecast from "$lib/components/side/SideBluecast.svelte";
   import SideNotification from "$lib/components/side/SideNotification.svelte";
   import SideColumns from "$lib/components/side/SideColumns.svelte";
+  import SideTopic from "$lib/components/side/SideTopic.svelte";
 
   let { footer = false } = $props();
   let isFeedsModalOpen = $state(false);
@@ -20,6 +21,7 @@
   let isNotificationModalOpen = $state(false);
   let isBluecastModalOpen = $state(false);
   let isColumnsModalOpen = $state(false);
+  let isTopicModalOpen = $state(false);
   let isMenuOpen = $state(false);
   let refreshTimeout = $state(false);
   const columnState = getColumnState();
@@ -75,6 +77,9 @@
           case 'columns':
             isColumnsModalOpen = !isColumnsModalOpen
             break;
+          case 'topic':
+            isTopicModalOpen = !isTopicModalOpen
+            break;
       }
   }
 
@@ -127,6 +132,8 @@
           <Bell color="var(--nav-secondary-icon-color)"></Bell>
         {:else if (item === 'search')}
           <Search color="var(--nav-secondary-icon-color)"></Search>
+        {:else if (item === 'topic')}
+          <TrendingUp color="var(--nav-secondary-icon-color)"></TrendingUp>
         {:else if (item === 'profile')}
           <UserRound color="var(--nav-secondary-icon-color)"></UserRound>
         {:else if (item === 'refresher')}
@@ -208,6 +215,18 @@
     </div>
 
     <button class="side-modal__close only-mobile" onclick={() => {isColumnsModalOpen = false}}>
+      <CircleX size="36" color="var(--text-color-1)"></CircleX>
+    </button>
+  </div>
+{/if}
+
+{#if isTopicModalOpen}
+  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--topic'}} onoutclick={() => {isTopicModalOpen = false}}>
+    <div class="side-modal__content">
+      <SideTopic></SideTopic>
+    </div>
+
+    <button class="side-modal__close only-mobile" onclick={() => {isTopicModalOpen = false}}>
       <CircleX size="36" color="var(--text-color-1)"></CircleX>
     </button>
   </div>

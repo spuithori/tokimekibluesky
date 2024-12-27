@@ -4,7 +4,7 @@
     import { offset, shift } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';
     import { fly } from 'svelte/transition';
-    import { AppWindowMac, Bell, CircleArrowUp, Columns3, GanttChartSquare, Heart, MessageCircleMore, Mic, PanelBottomOpen, PanelLeftOpen, Pin, PinOff, RectangleVertical, RefreshCcw, Search, Settings, Square, UserRound } from "lucide-svelte";
+    import { AppWindowMac, Bell, CircleArrowUp, Columns3, GanttChartSquare, Heart, MessageCircleMore, Mic, PanelBottomOpen, PanelLeftOpen, Pin, PinOff, RectangleVertical, RefreshCcw, Search, Settings, Square, TrendingUp, UserRound } from "lucide-svelte";
     import { publishState } from '$lib/classes/publishState.svelte';
     import {ALL_ITEMS, sideState} from "$lib/classes/sideState.svelte";
 
@@ -94,6 +94,8 @@
             <Bell size="18" color="var(--nav-secondary-icon-color)"></Bell>
           {:else if (item === 'search')}
             <Search size="18" color="var(--nav-secondary-icon-color)"></Search>
+          {:else if (item === 'topic')}
+            <TrendingUp size="18" color="var(--nav-secondary-icon-color)"></TrendingUp>
           {:else if (item === 'profile')}
             <UserRound size="18" color="var(--nav-secondary-icon-color)"></UserRound>
           {:else if (item === 'refresher')}

@@ -680,5 +680,6 @@
   "settings_repost_mute": "Repost Mutes",
   "settings_repost_mute_description": "Manage and delete list",
   "theme_for_bubble": "Optimized for Bubble",
-  "pinned_feed": "Pinned Feeds"
+  "pinned_feed": "Pinned Feeds",
+  "topic": "Topics"
 }
