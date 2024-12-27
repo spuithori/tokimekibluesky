@@ -8,7 +8,7 @@
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import OfficialListModal from "$lib/components/list/OfficialListModal.svelte";
 
-  let { _agent = $agent, author, onclose = () => {} } = $props();
+  let { _agent = $agent, author } = $props();
 
     let lists = $state([]);
     let isDisabled = false;
@@ -70,10 +70,6 @@
     onMount(async () => {
       await initLists();
     })
-
-   function close() {
-       onclose();
-   }
 </script>
 
 <Modal title="{$_('list_instant_manage')}" size="small" on:close>

@@ -16,5 +16,5 @@
 </script>
 
 {#if ($listAddModal.open)}
-  <OfficialListAddModal {_agent} author={$listAddModal.author} onclose={handleListClose}></OfficialListAddModal>
+  <OfficialListAddModal {_agent} author={$listAddModal.author} on:close={handleListClose}></OfficialListAddModal>
 {/if}
