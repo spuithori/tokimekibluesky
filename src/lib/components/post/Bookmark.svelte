@@ -8,12 +8,15 @@
   import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {getAccountIdByDidFromDb} from "$lib/util";
+  import CloudBookmarkModal from "$lib/components/bookmark/CloudBookmarkModal.svelte";
+  import {untrack} from "svelte";
 
   let { _agent = $agent, post } = $props();
   let cloudBookmarks = $state([]);
   let relatedBookmarks = $state([]);
   let isMenuOpen = $state(false);
   let alreadyBookmarks = $state([]);
+  let isModalOpen = $state(false);
 
   let bookmarks = $derived(liveQuery(async () => {
       const bookmarks = await db.bookmarks
@@ -23,22 +26,35 @@
       return bookmarks;
   }))
 
-  run(() => {
-      if (isMenuOpen) {
-          getCloudBookmarks();
-          getRelatedBookmarks();
-          const res = db.feeds
-              .where('uri')
-              .equals(post.uri)
-              .toArray()
-              .then(result => {
-                  alreadyBookmarks = result;
-              })
-              .catch(error => {
-                  console.error(error);
-              })
-      }
+
+  $effect(() => {
+    if (isMenuOpen) {
+      untrack(() => {
+        initBookmarks();
+      });
+    }
   });
+
+  function initBookmarks() {
+    getCloudBookmarks();
+    getRelatedBookmarks();
+    const res = db.feeds
+      .where('uri')
+      .equals(post.uri)
+      .toArray()
+      .then(result => {
+        alreadyBookmarks = result;
+      })
+      .catch(error => {
+        console.error(error);
+      });
+
+    if (isModalOpen) {
+      isMenuOpen = true;
+    }
+
+    isModalOpen = false;
+  }
 
   async function add(bookmarkId: string) {
       try {
@@ -257,10 +273,21 @@
             {/if}
           {/each}
         {/if}
+
+        <li class="timeline-menu-list__item">
+          <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {isModalOpen = true}}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+            {$_('new_create')}
+          </button>
+        </li>
       </ul>
       {/snippet}
   </Menu>
 </div>
+
+{#if (isModalOpen)}
+  <CloudBookmarkModal id={undefined} close={initBookmarks} {_agent}></CloudBookmarkModal>
+{/if}
 
 <style lang="postcss">
   .bookmark-wrap {
