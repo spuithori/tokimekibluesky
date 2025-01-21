@@ -341,8 +341,7 @@
               flex: 1;
               display: flex;
               justify-content: space-around;
-              padding-right: 80px;
-              padding-left: 6px;
+              padding: 0 6px;
               overflow-y: hidden;
 
               &::-webkit-scrollbar {
