@@ -40,7 +40,7 @@
 
 <svelte:window onpopstate={handlePopstate} />
 
-<dialog class="video-modal" bind:this={el} in:fly="{{ y: 0, duration: 250 }}">
+<dialog class="video-modal" bind:this={el} in:fly="{{ y: 0, duration: 250 }}" oncancel={onclose} onclose={onclose}>
   <div class="video-modal__slide">
     <div
         class="embla"
