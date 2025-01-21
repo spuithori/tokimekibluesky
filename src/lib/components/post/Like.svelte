@@ -15,6 +15,7 @@
     post,
     showCounts = true,
     isModal = false,
+    isTok = false,
   }: Props = $props();
 
   const columnState = getColumnState(false);
@@ -53,6 +54,7 @@
 
 <button
     class="timeline-reaction__item timeline-reaction__item--like"
+    class:timeline-reaction__item--is-tok={isTok}
     class:timeline-reaction__item--active={post.viewer?.like}
     class:timeline-reaction__item--transition={isProcessed}
     disabled="{isProcessed}"
@@ -97,6 +99,18 @@
             svg {
                 fill: var(--timeline-reaction-liked-icon-color);
                 animation: ease-out .5s like-in forwards;
+            }
+        }
+
+        &--is-tok {
+            flex-direction: column;
+            gap: 1px;
+            font-size: 10px;
+
+            @media (max-width: 767px) {
+                .timeline-reaction__count {
+                    font-size: 10px;
+                }
             }
         }
 

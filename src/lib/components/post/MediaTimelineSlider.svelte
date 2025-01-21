@@ -46,8 +46,8 @@
     img {
         width: 100%;
         height: 100%;
-        max-height: 80vh;
         object-fit: contain;
+        object-position: center;
 
         @media (max-width: 959px) {
             height: auto;
@@ -57,16 +57,23 @@
     .embla {
         overflow: hidden;
         position: relative;
+        height: 100%;
     }
 
     .embla__container {
         display: flex;
         gap: 16px;
+        height: 100%;
     }
 
     .embla__slide {
         flex: 0 0 100%;
         min-width: 0;
+
+        @media (max-width: 959px) {
+            display: grid;
+            place-content: center;
+        }
     }
 
     .embla__prev {

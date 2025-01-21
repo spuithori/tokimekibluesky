@@ -33,8 +33,6 @@
   </div>
 {/if}
 
-<div class="footer-round" class:footer-round--scroll-down={scrollDirectionState.direction === 'down'} class:footer-round--fixed={$settings.design?.fixedFooter}></div>
-
 <style lang="postcss">
   .footer {
       position: fixed;
@@ -53,17 +51,6 @@
           transition: transform .25s cubic-bezier(0.16, 0.01, 0.3, 0.98);
       }
 
-      &::before {
-          content: '';
-          display: block;
-          position: absolute;
-          right: 20px;
-          top: calc(16px);
-          bottom: 0;
-          background-color: var(--bg-color-3);
-          width: 52px;
-      }
-
       &__wrap {
           display: flex;
           align-items: center;
@@ -74,10 +61,6 @@
       &--hidden {
           @media (max-width: 767px) {
               transform: translateY(calc(70px + var(--safe-area-bottom)));
-
-              & ~ .footer-round {
-                  display: none;
-              }
           }
       }
 
@@ -97,41 +80,6 @@
 
           &::before {
               content: none;
-          }
-
-          & + .footer-round {
-              display: none;
-          }
-      }
-  }
-
-  .footer-round {
-      position: fixed;
-      width: 70px;
-      height: 70px;
-      background-color: var(--bg-color-1);
-      border-radius: 50%;
-      right: 11px;
-      bottom: calc(11px + var(--safe-area-bottom));
-      box-shadow: 0 3px 6px rgba(0, 0, 0, .16);
-      z-index: 11;
-      will-change: transform;
-
-      @media (min-width: 767px) {
-          display: none;
-      }
-
-      @media (max-width: 767px) {
-          transition: transform .25s cubic-bezier(0.16, 0.01, 0.3, 0.98) .075s;
-      }
-
-      &--scroll-down {
-          @media (max-width: 767px) {
-              transform: scale(.7);
-
-              &.footer-round--fixed {
-                  transform: none;
-              }
           }
       }
   }

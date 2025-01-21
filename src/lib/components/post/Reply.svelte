@@ -2,6 +2,7 @@
   import {agent} from '$lib/stores';
   import {postState} from "$lib/classes/postState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
+  import {modalState} from "$lib/classes/modalState.svelte";
 
   interface Props {
     _agent?: any;
@@ -23,6 +24,8 @@
       postState.reply = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } }
       postState.replyPulse = Symbol();
       publishState.show = true;
+      modalState.isVideoModalOpen = false;
+      modalState.isMediaModalOpen = false;
   }
 </script>
 

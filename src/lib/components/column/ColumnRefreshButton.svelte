@@ -56,6 +56,12 @@
             return false;
         }
 
+        if (column.style === 'video') {
+            column.data.feed = [];
+            column.data.cursor = undefined;
+            unique = Symbol();
+        }
+
         isRefreshing = isAutoRefresh ? 'auto' : true;
         const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
         const elInitialPosition = el.scrollTop;

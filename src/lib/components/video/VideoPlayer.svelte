@@ -5,7 +5,7 @@
     import Hls from 'hls.js';
     let player = $state();
 
-    let { src, poster } = $props();
+    let { src, poster, isTok = false } = $props();
 
     const hls = new Hls({
         maxMaxBufferLength: 10,
@@ -32,10 +32,13 @@
 
 <media-player
     class="video-player"
+    class:video-player--is-tok={isTok}
     src={src}
     crossOrigin
     playsInline
     bind:this={player}
+    autoplay={isTok ? true : false}
+    loop={isTok ? true : false}
 >
   <media-provider class="video-player__provider">
     <media-poster class="video-player__poster" src={poster}></media-poster>

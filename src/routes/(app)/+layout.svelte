@@ -34,6 +34,8 @@
   import {initColumns} from "$lib/classes/columnState.svelte";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {on} from "svelte/events";
+  import {sideState} from "$lib/classes/sideState.svelte";
+  import TokBackground from "$lib/components/utils/TokBackground.svelte";
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -368,6 +370,10 @@
   <ReportObserver></ReportObserver>
   <ProfileStatusObserver></ProfileStatusObserver>
   <LinkWarningModal></LinkWarningModal>
+
+  {#if sideState.isTokStart}
+    <TokBackground></TokBackground>
+  {/if}
 </div>
 
 <style lang="postcss">

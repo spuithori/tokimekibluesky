@@ -3,14 +3,12 @@
   import {agent, realtime} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
   import InfiniteLoading from 'svelte-infinite-loading';
-  import MediaTimelineItem from "./MediaTimelineItem.svelte";
   import {getPostRealtime} from "$lib/realtime";
   import {getDbFollows} from "$lib/getActorsList";
   import {playSound} from "$lib/sounds";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
   import {isReasonRepost, isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import {toast} from "svelte-sonner";
-  import {AppBskyEmbedImages} from "@atproto/api";
   import {getColumnState} from "$lib/classes/columnState.svelte";
 
   let {
@@ -165,8 +163,10 @@
   }
 </script>
 
-<div class="timeline timeline--{column.style}">
-  {#if (column.style === 'default')}
+<div
+    class="timeline timeline--{column.style}"
+>
+  <div class:media-list={column.style === 'media'} class:video-list={column.style === 'video'}>
     {#each column.data.feed as data, index (data)}
       {#if (data?.post?.author?.did)}
         <TimelineItem
@@ -184,15 +184,7 @@
         <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}}></MoreDivider>
       {/if}
     {/each}
-  {:else}
-    <div class="media-list">
-      {#each column.data.feed as data, index (data)}
-        {#if (AppBskyEmbedImages.isView(data.post?.embed) || AppBskyEmbedImages.isView(data.post?.embed?.media))}
-          <MediaTimelineItem data={data} {_agent}></MediaTimelineItem>
-        {/if}
-      {/each}
-    </div>
-  {/if}
+  </div>
 
   {#key unique}
     <InfiniteLoading on:infinite={handleLoadMore}>

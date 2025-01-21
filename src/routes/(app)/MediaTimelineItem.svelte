@@ -3,22 +3,23 @@
     import {AppBskyEmbedImages, AppBskyFeedDefs} from '@atproto/api';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
-    import {contentLabelling} from "$lib/timelineFilter";
+    import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
     import MediaTimelineThumbnail from "$lib/components/post/MediaTimelineThumbnail.svelte";
+    import {modalState} from "$lib/classes/modalState.svelte";
 
-  interface Props {
-    _agent?: any;
-    data: any;
-    isProfile?: boolean;
-  }
+    interface Props {
+      _agent?: any;
+      data: any;
+      isProfile?: boolean;
+    }
 
-  let { _agent = $agent, data, isProfile = false }: Props = $props();
+    let { _agent = $agent, data, isProfile = false }: Props = $props();
     let isOpen = $state(false);
 
     const moderateData = contentLabelling(data.post, _agent.did(), $settings, $labelDefs, $labelerSettings);
-
-    let isHide = detectHide(moderateData);
-    let isWarn = detectWarn(moderateData) || false;
+    let isHide: boolean = $state(false);
+    let isWarn = detectWarn(moderateData, 'contentList');
+    isHide = detectHide(moderateData, 'contentList', isHide, data.post);
 
     const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
         return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
@@ -37,58 +38,18 @@
         isOpen = false;
     }
 
-    function detectHide(moderateData) {
-        if (!moderateData) {
-            return false;
-        }
-
-        try {
-            if (moderateData.ui('contentList').filter) {
-                return true;
-            }
-
-            if (moderateData.muted) {
-                return true;
-            }
-
-            if (moderateData.content.filter) {
-                console.log('should hide.');
-
-                return !(moderateData.content.cause.type === 'muted' && (isProfile || isSingle));
-            }
-        } catch (e) {
-            return false;
-        }
-
-        return false;
-    }
-
-    function detectWarn(moderateData) {
-        if (!moderateData) {
-            return false;
-        }
-
-        try {
-            if (moderateData.ui('contentMedia').blur) {
-                return true;
-            }
-
-            if (moderateData.ui('contentList').blur) {
-                return true;
-            }
-        } catch (e) {
-            return false;
-        }
-
-        return false;
-    }
+    $effect(() => {
+      if (!modalState.isMediaModalOpen) {
+        isOpen = false;
+      }
+    })
 </script>
 
 {#if (!isHide)}
   <div class="media-item"
        class:media-item--repost={isReasonRepost(data.reason)}
        class:media-item--reply={data.reply && data?.reply?.parent?.author?.did !== _agent.did()}
-       class:media-item--warn={isWarn}
+       class:media-item--warn={isWarn && isWarn.for === 'media'}
   >
     <button onclick={modalToggle} aria-label="画像を拡大する">
       {#if (AppBskyEmbedImages.isView(data.post?.embed))}
@@ -108,7 +69,7 @@
   </div>
 
   {#if (isOpen)}
-    <MediaTimelineItemModal data={data} close={handleClose} {_agent}></MediaTimelineItemModal>
+    <MediaTimelineItemModal {data} close={handleClose} {_agent}></MediaTimelineItemModal>
   {/if}
 {/if}
 

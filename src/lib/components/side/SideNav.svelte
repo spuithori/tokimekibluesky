@@ -1,6 +1,6 @@
 <script lang="ts">
   import {agent, currentTimeline, settings} from '$lib/stores';
-  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic, Square, TrendingUp } from 'lucide-svelte';
+  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic, Square, TrendingUp, Clapperboard } from 'lucide-svelte';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
@@ -80,6 +80,13 @@
           case 'topic':
             isTopicModalOpen = !isTopicModalOpen
             break;
+          case 'tokmek':
+            goto('/');
+            setTimeout(() => {
+              goto('/profile/did:plc:z72i7hdynmk6r22z27h6tvur/feed/thevids');
+            }, 250);
+            sideState.isTokStart = true;
+            break;
       }
   }
 
@@ -144,6 +151,8 @@
           <Mic color="var(--nav-secondary-icon-color)"></Mic>
         {:else if (item === 'columns')}
           <Square color="var(--nav-secondary-icon-color)"></Square>
+        {:else if (item === 'tokmek')}
+          <Clapperboard color="var(--nav-secondary-icon-color)"></Clapperboard>
         {/if}
       </button>
     </li>
@@ -332,8 +341,7 @@
               flex: 1;
               display: flex;
               justify-content: space-around;
-              padding-right: 80px;
-              padding-left: 6px;
+              padding: 0 6px;
               overflow-y: hidden;
 
               &::-webkit-scrollbar {

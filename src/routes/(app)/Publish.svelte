@@ -825,11 +825,11 @@
     .publish-sp-open {
         display: flex;
         position: fixed;
-        right: 20px;
-        bottom: calc(20px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
+        right: 16px;
+        bottom: calc(64px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
         width: 52px;
         height: 52px;
-        border-radius: 50%;
+        border-radius: 16px;
         background-color: var(--primary-color);
         align-items: center;
         justify-content: center;
@@ -855,11 +855,9 @@
 
         &--mobileV2 {
             @media (max-width: 767px) {
-                border-radius: 16px;
                 width: 48px;
                 height: 48px;
-                right: 20px;
-                bottom: calc(4px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
+                bottom: calc(112px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
             }
         }
     }

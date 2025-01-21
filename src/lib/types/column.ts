@@ -37,7 +37,7 @@ type deckSettings = {
 export type Column = {
     id: string,
     algorithm: currentAlgorithm,
-    style: 'default' | 'media',
+    style: 'default' | 'media' | 'video',
     did: string,
     handle?: string,
     unreadCount?: number,

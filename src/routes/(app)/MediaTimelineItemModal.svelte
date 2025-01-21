@@ -1,12 +1,13 @@
 <script lang="ts">
-    import { scale } from 'svelte/transition';
+    import { fly } from 'svelte/transition';
     import TimelineItem from "./TimelineItem.svelte";
-    import { onMount } from 'svelte';
     import { beforeNavigate } from "$app/navigation";
     import {agent} from "$lib/stores";
     import { afterNavigate } from "$app/navigation";
     import {AppBskyEmbedImages} from "@atproto/api";
     import MediaTimelineSlider from "$lib/components/post/MediaTimelineSlider.svelte";
+    import {modalState} from "$lib/classes/modalState.svelte";
+    import {X} from "lucide-svelte";
 
     let { _agent = $agent, data, close } = $props();
     let el = $state();
@@ -32,27 +33,34 @@
         document.body.classList.remove('scroll-lock');
     });
 
-    onMount(() => {
-        el.showModal();
-    })
-
     afterNavigate((_navigation) => {
         if (_navigation.to?.url.hash !== '#open') {
             close();
         }
     })
+
+    $effect(() => {
+      if (el) {
+        modalState.isMediaModalOpen = true;
+        el.showModal();
+      }
+
+      return () => {
+        modalState.isMediaModalOpen = false;
+      }
+    });
 </script>
 
 <svelte:window onpopstate={handlePopstate} onkeydown={handleKeydown}></svelte:window>
 
 <dialog class="media-content-wrap" bind:this={el}>
   <button onclick={modalClose} class="media-content-close" aria-label="Close">
-    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    <X size="24" color="#fff"></X>
   </button>
 
   <button onclick={modalClose} class="media-content-close-bg"></button>
 
-  <div class="media-content" transition:scale="{{duration: 350, opacity: 0.5, start: 0.8}}">
+  <div class="media-content" in:fly="{{ y: 0, duration: 250 }}">
     <div class="media-content__image">
       {#if (AppBskyEmbedImages.isView(data.post?.embed))}
         <MediaTimelineSlider images={data.post.embed.images}></MediaTimelineSlider>
@@ -75,11 +83,15 @@
         padding: 0 40px;
 
         &::backdrop {
-            background-color: rgba(0, 0, 0, .8);
+            background-color: rgba(0, 0, 0, .9);
         }
 
         @media (max-width: 767px) {
-            padding: 40px 10px 10px;
+            padding: 0;
+            margin: 0;
+            max-width: none;
+            max-height: none;
+            width: 100%;
         }
     }
 
@@ -90,6 +102,15 @@
         z-index: 50;
         width: 40px;
         height: 40px;
+        display: grid;
+        place-content: center;
+
+        @media (max-width: 959px) {
+            right: 8px;
+            top: 8px;
+            background-color: rgba(0, 0, 0, .5);
+            border-radius: 50%;
+        }
     }
 
     .media-content-close-bg {
@@ -108,8 +129,10 @@
         display: grid;
         grid-template-columns: auto 320px;
         background-color: var(--bg-color-1);
-        padding: 40px;
-        gap: 40px;
+        height: 90vh;
+        width: 70vw;
+        padding: 32px;
+        gap: 32px;
         border-radius: 10px;
         overflow: auto;
         overscroll-behavior: contain;
@@ -119,12 +142,17 @@
 
         @media (max-width: 959px) {
             display: block;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 0;
+            border-radius: 0;
+            width: 100%;
+            height: 100vh;
+            gap: 16px;
+            overflow-x: hidden;
         }
 
         &__image {
             height: 100%;
+            min-height: 0;
 
             @media (max-width: 959px) {
                 height: auto;
@@ -132,17 +160,8 @@
         }
 
         &__content {
-
-        }
-
-        img {
-            width: 100%;
-            height: 100%;
-            max-height: 80vh;
-            object-fit: contain;
-
             @media (max-width: 959px) {
-                height: auto;
+                padding: 16px;
             }
         }
     }
