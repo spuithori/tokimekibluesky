@@ -106,6 +106,12 @@
             flex-direction: column;
             gap: 1px;
             font-size: 10px;
+
+            @media (max-width: 767px) {
+                .timeline-reaction__count {
+                    font-size: 10px;
+                }
+            }
         }
 
         &:active {

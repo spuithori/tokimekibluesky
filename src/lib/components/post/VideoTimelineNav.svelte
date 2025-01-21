@@ -34,6 +34,7 @@
       gap: 16px;
       --timeline-reaction-like-hover-bg-color: transparent;
       --timeline-reaction-like-icon-hover-color: var(--timeline-reaction-like-icon-color);
+      --text-color-3: #fff;
 
       @media (max-width: 767px) {
           top: 8px;
@@ -52,6 +53,10 @@
           place-items: center;
           background-color: rgba(255, 255, 255, .1);
           border-radius: 50%;
+
+          @media (max-width: 767px) {
+              background-color: rgba(0, 0, 0, .5);
+          }
       }
   }
 </style>

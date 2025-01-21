@@ -52,6 +52,10 @@
       place-items: center;
       border-radius: 50%;
       background-color: rgba(255, 255, 255, .1);
+
+      @media (max-width: 767px) {
+          background-color: rgba(0, 0, 0, .5);
+      }
   }
 
   .embla__slide {

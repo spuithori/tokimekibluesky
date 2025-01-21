@@ -49,6 +49,10 @@
       place-items: center;
       background-color: rgba(255, 255, 255, .1);
       border-radius: 50%;
+
+      @media (max-width: 767px) {
+          background-color: rgba(0, 0, 0, .5);
+      }
   }
 
   .video-thread {
