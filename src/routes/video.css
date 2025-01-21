@@ -56,6 +56,12 @@
             visibility: visible;
         }
     }
+
+    &--is-tok {
+        .video-play-button {
+            display: none !important;
+        }
+    }
 }
 
 .video-play-button {

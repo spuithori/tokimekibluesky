@@ -328,3 +328,17 @@
         }
     }
 }
+
+.video-thread {
+    .deck-heading {
+        display: none !important;
+    }
+
+    .deck-row {
+        flex: 1;
+    }
+
+    .deck-row__content {
+        height: 100% !important;
+    }
+}

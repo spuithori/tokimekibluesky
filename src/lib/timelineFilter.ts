@@ -2,6 +2,7 @@ import {moderatePost} from '@atproto/api';
 import type {ModerationOpts} from '@atproto/api';
 import {isMatch, parse, parseISO, set} from "date-fns";
 import isWithinInterval from "date-fns/isWithinInterval";
+import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
 
 export interface keyword {
     enabled?: boolean,
@@ -119,9 +120,15 @@ export function keywordFilter(keywords, text, indexedAt) {
     return isHide;
 }
 
-export function detectHide(moderateData, contentContext: 'contentView' | 'contentList') {
+export function detectHide(moderateData, contentContext: 'contentView' | 'contentList', current, post) {
+    const text = post.record.text;
+
+    if (keywordFilter(keywordMuteState.formattedKeywords, text, post.indexedAt)) {
+        return true;
+    }
+
     if (!moderateData) {
-        return false;
+        return current;
     }
 
     try {
@@ -129,10 +136,10 @@ export function detectHide(moderateData, contentContext: 'contentView' | 'conten
             return true;
         }
     } catch (e) {
-        return false;
+        // Nothing.
     }
 
-    return false;
+    return current;
 }
 
 export function detectWarn(moderateData, contentContext: 'contentView' | 'contentList') {

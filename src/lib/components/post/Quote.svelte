@@ -1,6 +1,7 @@
 <script lang="ts">
   import {postState} from "$lib/classes/postState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
+  import {modalState} from "$lib/classes/modalState.svelte";
   interface Props {
     post: any;
     embeddingDisabled?: boolean;
@@ -12,6 +13,8 @@
       postState.quote = post;
       postState.quotePulse = Symbol();
       publishState.show = true;
+      modalState.isVideoModalOpen = false;
+      modalState.isMediaModalOpen = false;
   }
 </script>
 

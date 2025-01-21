@@ -4,7 +4,7 @@
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
-  import {contentLabelling, keywordFilter} from "$lib/timelineFilter";
+  import {contentLabelling, keywordFilter, detectHide} from "$lib/timelineFilter";
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, BskyAgent } from "@atproto/api";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
@@ -62,29 +62,7 @@
       : 'contentList';
 
   let isWarn: 'content' | 'media' | null = detectWarn(moderateData) || null;
-  isHide = detectHide(moderateData, isHide);
-
-  function detectHide(moderateData, current) {
-      let text = post.record.text;
-
-      if (keywordFilter(keywordMuteState.formattedKeywords, text, post.indexedAt)) {
-          return true;
-      }
-
-      if (!moderateData) {
-          return current;
-      }
-
-      try {
-          if (moderateData.ui(contentContext).filter) {
-              return true;
-          }
-      } catch (e) {
-          // Nothing.
-      }
-
-      return current;
-  }
+  isHide = detectHide(moderateData, contentContext, isHide, post);
 
   function detectWarn(moderateData) {
       if (!moderateData) {

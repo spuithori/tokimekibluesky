@@ -9,6 +9,10 @@
         container: none;
     }
 
+    &--video {
+        container: none;
+    }
+
     &--nopt {
         padding-top: 0;
     }
@@ -759,8 +763,8 @@
 }
 
 .profile-menu-toggle {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background-color: var(--bg-color-2);
     display: grid;
@@ -1105,4 +1109,10 @@
     &:hover {
         text-decoration: underline;
     }
+}
+
+.video-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
 }

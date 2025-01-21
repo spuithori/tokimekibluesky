@@ -5,10 +5,12 @@
     import PageModal from "$lib/components/ui/PageModal.svelte";
     import type { Snapshot } from './$types';
     import {isAfterReload, settings, agent} from "$lib/stores";
-    import {tick} from "svelte";
+    import {onMount, tick} from "svelte";
+    import FeedHeading from "$lib/components/feeds/FeedHeading.svelte";
 
     let title = $state('');
     let _agent = $state($agent);
+    let feed = $state();
 
     export const snapshot: Snapshot = {
         capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
@@ -28,6 +30,15 @@
             isAfterReload.set(false);
         }
     };
+
+    onMount(async () => {
+      try {
+        const res = await _agent.agent.api.app.bsky.feed.getFeedGenerator({feed: 'at://' + $page.params.handle + '/app.bsky.feed.generator/' + $page.params.id});
+        feed = res.data.view;
+      } catch (e) {
+        //
+      }
+    });
 </script>
 
 <PageModal>
@@ -38,7 +49,9 @@
       </button>
     </div>
 
-    <h1 class="column-heading__title">{$_('feeds')} - {title}</h1>
+    {#if feed}
+      <FeedHeading {_agent} {feed}></FeedHeading>
+    {/if}
 
     <div class="column-heading__buttons column-heading__buttons--right">
       <a class="settings-back" href="/">
@@ -47,7 +60,9 @@
     </div>
   </div>
 
-  {#key $page.params.id}
-    <FeedPreview id={$page.params.id} handle={$page.params.handle} bind:title={title} {_agent}></FeedPreview>
-  {/key}
+  {#if feed}
+    {#key $page.params.id}
+      <FeedPreview id={$page.params.id} handle={$page.params.handle} title={feed?.displayName} {_agent} contentMode={feed?.contentMode}></FeedPreview>
+    {/key}
+  {/if}
 </PageModal>

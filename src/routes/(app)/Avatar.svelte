@@ -4,6 +4,7 @@
   import {goto} from "$app/navigation";
   import {page} from "$app/stores";
   import {profileHintState} from "$lib/classes/profileHintState.svelte";
+  import {modalState} from "$lib/classes/modalState.svelte";
 
   let {
     _agent = $agent,
@@ -54,6 +55,9 @@
       goto(href, {
           replaceState: $page.state.showModal && $page.url.pathname !== '/',
       });
+
+      modalState.isVideoModalOpen = false;
+      modalState.isMediaModalOpen = false;
   }
 </script>
 
