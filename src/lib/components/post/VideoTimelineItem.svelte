@@ -41,7 +41,7 @@
 
 {#if (!isHide)}
   <div class="video-item" class:video-item--warn={isWarn && isWarn.for === 'media'} data-index={index} bind:this={el}>
-    {#if isWarn}
+    {#if isWarn && isWarn.for === 'media'}
       <div class="video-warn"></div>
     {/if}
 
