@@ -70,13 +70,13 @@
       min-width: 0;
       aspect-ratio: 9 / 16;
       position: relative;
-      --timeline-reaction-like-icon-color: var(--bg-color-2);
-      --text-color-3: var(--bg-color-2);
+      --timeline-reaction-like-icon-color: #fff;
+      --text-color-3: #fff;
       text-shadow: 0 1px 4px #333;
 
       &__thumbnail {
           height: 100%;
-          background-color: var(--text-color-1);
+          background-color: #000;
           border-radius: var(--border-radius-3);
           overflow: hidden;
 

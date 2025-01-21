@@ -62,9 +62,10 @@
       background-color: transparent;
       overflow: hidden;
       margin-left: auto;
+      color: var(--text-color-1);
 
       &__content {
-          background-color: #fff;
+          background-color: var(--bg-color-1);
           width: 100%;
           height: 100%;
           display: flex;
