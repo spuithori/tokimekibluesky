@@ -3,7 +3,6 @@
     import TimelineItem from './TimelineItem.svelte';
     import InfiniteLoading from 'svelte-infinite-loading';
     import { parseISO } from 'date-fns';
-    import MediaTimelineItem from "./MediaTimelineItem.svelte";
 
     let { _agent = $agent, column = $bindable(), index, unique } = $props();
 
@@ -89,19 +88,11 @@
 
 {#if (list.members.length)}
   <div class="timeline timeline--{column.style}">
-    {#if (column.style === 'default')}
+    <div class:media-list={column.style === 'media'} class:video-list={column.style === 'video'}>
       {#each column.data.feed as data, index (data)}
         <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
       {/each}
-    {:else}
-      <div class="media-list">
-        {#each column.data.feed as data (data)}
-          {#if (data.post.embed?.images)}
-            <MediaTimelineItem data={data} {_agent}></MediaTimelineItem>
-          {/if}
-        {/each}
-      </div>
-    {/if}
+    </div>
 
     <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
       {#snippet noMore()}

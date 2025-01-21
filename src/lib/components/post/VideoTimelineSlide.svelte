@@ -1,6 +1,5 @@
 <script lang="ts">
   import {settings, labelDefs, labelerSettings} from '$lib/stores';
-  import {AppBskyEmbedVideo} from "@atproto/api";
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import VideoTimelineNav from "$lib/components/post/VideoTimelineNav.svelte";
   import {X} from "lucide-svelte";
