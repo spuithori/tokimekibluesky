@@ -21,10 +21,6 @@
     emblaApi.on('slidesInView', logSlidesInView);
   }
 
-  function handlePopstate() {
-    onclose();
-  }
-
   $effect(() => {
     if (el) {
       modalState.isVideoModalOpen = true;
@@ -37,8 +33,6 @@
     }
   });
 </script>
-
-<svelte:window onpopstate={handlePopstate} />
 
 <dialog class="video-modal" bind:this={el} in:fly="{{ y: 0, duration: 250 }}" oncancel={onclose} onclose={onclose}>
   <div class="video-modal__slide">
