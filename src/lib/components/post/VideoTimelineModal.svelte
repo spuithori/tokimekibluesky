@@ -73,6 +73,7 @@
 
       @media (max-width: 767px) {
           margin: 0;
+          height: 100dvh;
           max-width: none !important;
           max-height: none !important;
       }
@@ -102,7 +103,7 @@
           gap: 16px;
 
           @media (max-width: 767px) {
-              height: 100vh;
+              height: 100dvh;
               gap: 0;
           }
       }
