@@ -30,5 +30,15 @@
   "page_title_followers": "abonnés",
   "page_title_follows": "abonnement",
   "submit_button_submit": "OK",
-  "submit_button_progress": "En cours…"
+  "submit_button_progress": "En cours…",
+  "edit_profile_button": "Editer votre profil",
+  "edit_avatar": "Avatar",
+  "edit_banner": "Bannière",
+  "edit_display_name": "Montrer nom",
+  "edit_description": "Description",
+  "edit_cancel_button": "Annuler",
+  "add_account": "Ajouter compte",
+  "current": "Actuel",
+  "switch": "Basculer",
+  "close_button": "Fermer"
 }
