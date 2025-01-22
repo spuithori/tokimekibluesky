@@ -1,7 +1,7 @@
 import {realtime, realtimeStatuses} from '$lib/stores';
 import { PUBLIC_TOKIMEKI_STREAM_API } from '$env/static/public';
 
-const COLLECTIONS = ['app.bsky.feed.post', 'app.bsky.feed.repost', 'app.bsky.feed.like', 'app.bsky.graph.follow'];
+const COLLECTIONS = ['app.bsky.feed.post', 'app.bsky.feed.repost'];
 
 export class RealtimeClient {
     private host: string;
