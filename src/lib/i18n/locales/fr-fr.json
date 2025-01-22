@@ -106,5 +106,18 @@
   "list_name": "Nom de la liste",
   "list_member": "Liste des membres (jusqu'à 10 utilisateurs recommandés)",
   "user_search": "Recherche d'utilisateurs",
-  "import_export": "Import/Export"
+  "import_export": "Import/Export",
+  "export_clipboard_copy": "Exporter (copier dans le presse-papier)",
+  "import": "Importer",
+  "overwrite_current_member": "Les membres de la liste existants seront écrasés.",
+  "remove": "Supprimer",
+  "success_import_list": "Liste importée avec succès.",
+  "error_invalid_text": "Erreur : chaîne non valide.",
+  "create_list": "Créer une liste locale",
+  "warn": "Attention",
+  "hide": "Cacher",
+  "show": "Afficher",
+  "this_content_warn": "Le contenu suivant est inclus",
+  "show_button": "Afficher",
+  "create_bookmark": "Créer un dossier de favoris"
 }
