@@ -375,5 +375,19 @@
   "bookmark": "Favoris",
   "show_counts": "Afficher les compteurs",
   "skip_confirmation_text": "Ne plus afficher",
-  "repost_confirm_title": "Voulez-vous republier/dépublier ?"
+  "repost_confirm_title": "Voulez-vous republier/dépublier ?",
+  "repost_confirm_text_1": "La citation peut être fait via",
+  "repost_confirm_text_2": "bouttons.",
+  "delete_confirm_title": "Voulez-vous supprimer ?",
+  "delete": "Supprimer",
+  "skip_repost_confirm": "Ne pas demander lors de la republication",
+  "skip_delete_confirm": "Ne pas demander lors de la suppression d'un message",
+  "profile_posts_nav": "Filtrer",
+  "profile_posts_nav_all": "Tout",
+  "profile_posts_nav_filtered": "Excepté les republications et réponses",
+  "show_screenshots": "Voir captures d'écran",
+  "login_box_text_1_1": "TOKIMEKI est un",
+  "login_box_text_1_2": "client de navigateur qui prend en compte le multicolonne et le multicompte.",
+  "login_box_text_2": "Il prend en charge PWA et peut être utilisé comme application sur mobile.",
+  "clear_column_posts": "Effacer les messages"
 }
