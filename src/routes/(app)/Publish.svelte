@@ -826,7 +826,7 @@
         display: flex;
         position: fixed;
         right: 16px;
-        bottom: calc(64px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
+        bottom: calc(16px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
         width: 52px;
         height: 52px;
         border-radius: 16px;
@@ -838,6 +838,7 @@
 
         @media (max-width: 767px) {
             display: flex;
+            bottom: calc(32px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
         }
 
         &--vk {

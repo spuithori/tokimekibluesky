@@ -121,6 +121,7 @@
 
       &__buttons {
           margin-left: auto;
+          flex-shrink: 0;
       }
 
       &__heading {

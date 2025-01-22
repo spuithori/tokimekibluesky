@@ -770,6 +770,7 @@
     display: grid;
     place-content: center;
     transition: background-color .2s ease-in-out;
+    flex-shrink: 0;
 
     &:hover {
         background-color: var(--border-color-1);
