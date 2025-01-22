@@ -2,23 +2,20 @@
   import {onMount} from "svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import DeckRow from "../../../../DeckRow.svelte";
-  import {getDidByHandle} from "$lib/util";
   import {getColumnState} from "$lib/classes/columnState.svelte";
 
-  let { id, handle, title, _agent, contentMode } = $props();
+  let { id, did, title, _agent, contentMode } = $props();
 
   const columnState = getColumnState(true);
   let feed = $state();
   let columnId = $derived(`feed_${id}_${_agent.did()}`);
 
   onMount(async () => {
-      handle = await getDidByHandle(handle, _agent);
-
       if (!columnState.hasColumn(columnId)) {
           columnState.add({
               id: columnId,
               algorithm: {
-                  algorithm: 'at://' + handle + '/app.bsky.feed.generator/' + id,
+                  algorithm: 'at://' + did + '/app.bsky.feed.generator/' + id,
                   type: 'custom',
                   name: title || '',
               },

@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
     import { page } from '$app/stores';
     import FeedPreview from "./FeedPreview.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
@@ -7,10 +6,12 @@
     import {isAfterReload, settings, agent} from "$lib/stores";
     import {onMount, tick} from "svelte";
     import FeedHeading from "$lib/components/feeds/FeedHeading.svelte";
+    import {getDidByHandle, isDid} from "$lib/util";
 
     let title = $state('');
     let _agent = $state($agent);
     let feed = $state();
+    let did = $state('');
 
     export const snapshot: Snapshot = {
         capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
@@ -33,7 +34,13 @@
 
     onMount(async () => {
       try {
-        const res = await _agent.agent.api.app.bsky.feed.getFeedGenerator({feed: 'at://' + $page.params.handle + '/app.bsky.feed.generator/' + $page.params.id});
+        if (isDid($page.params.handle)) {
+          did = $page.params.handle;
+        } else {
+          did = await getDidByHandle($page.params.handle, _agent);
+        }
+
+        const res = await _agent.agent.api.app.bsky.feed.getFeedGenerator({feed: 'at://' + did + '/app.bsky.feed.generator/' + $page.params.id});
         feed = res.data.view;
       } catch (e) {
         //
@@ -50,7 +57,7 @@
     </div>
 
     {#if feed}
-      <FeedHeading {_agent} {feed}></FeedHeading>
+      <FeedHeading {_agent} {feed} {did}></FeedHeading>
     {/if}
 
     <div class="column-heading__buttons column-heading__buttons--right">
@@ -62,7 +69,7 @@
 
   {#if feed}
     {#key $page.params.id}
-      <FeedPreview id={$page.params.id} handle={$page.params.handle} title={feed?.displayName} {_agent} contentMode={feed?.contentMode}></FeedPreview>
+      <FeedPreview id={$page.params.id} {did} title={feed?.displayName} {_agent} contentMode={feed?.contentMode}></FeedPreview>
     {/key}
   {/if}
 </PageModal>
