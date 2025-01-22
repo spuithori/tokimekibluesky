@@ -40,5 +40,13 @@
   "add_account": "Ajouter compte",
   "current": "Actuel",
   "switch": "Basculer",
-  "close_button": "Fermer"
+  "close_button": "Fermer",
+  "document": "Documents",
+  "current_account": "Compte actuel",
+  "search_button": "Recherche",
+  "keywords_search_experimental": "Recherche par mot-clé",
+  "likes": "Likes",
+  "first_post_date": "Publié pour la première fois le {date} .",
+  "failed_to_like": "Like échoué. Veuillez réessayer ou attendre un moment.",
+  "failed_to_post": "Publication échoué. Veuillez réessayer ou attendre un moment."
 }
