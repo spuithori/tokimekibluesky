@@ -358,5 +358,22 @@
   "official_list_add_management": "Ajouter une liste d'utilisateurs",
   "official_list_add_description": "La liste sera créée sur Bluesky. Il s’agit d’informations publiques et tout le monde pourra les consulter.",
   "official_list_member": "Membres",
-  "lists": "Liste"
+  "lists": "Liste",
+  "mute_list": "Liste en silence",
+  "page_title_lists": "Listes",
+  "official_list_edit": "Modifier liste des utilisateurs officiels",
+  "delete_list": "Supprimer liste",
+  "list_instant_manage": "Ajouter/supprimer liste",
+  "list_members_length_suffix": "membres",
+  "feeds": "Flux",
+  "bookmarks_short": "Favoris",
+  "change_single_column_mode": "Changer en colonne unique",
+  "change_multi_column_mode": "Changer en colonnes multiples (DECKS)",
+  "change_default_mode": "Changer en mode standard",
+  "change_compact_mode": "Changer en mode compact",
+  "reaction_button_settings": "Paramètres du bouton de réaction…",
+  "bookmark": "Favoris",
+  "show_counts": "Afficher les compteurs",
+  "skip_confirmation_text": "Ne plus afficher",
+  "repost_confirm_title": "Voulez-vous republier/dépublier ?"
 }
