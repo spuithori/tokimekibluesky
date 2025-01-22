@@ -257,6 +257,31 @@
 
               @media (max-width: 767px) {
                   margin-left: 0;
+                  position: sticky;
+                  right: 0;
+                  background-color: var(--bg-color-1);
+
+                  &::before {
+                      content: '';
+                      display: block;
+                      position: absolute;
+                      right: 100%;
+                      top: 0;
+                      bottom: 0;
+                      width: 8px;
+                      background-image: linear-gradient(to right, transparent, var(--bg-color-1));
+                  }
+
+                  &::after {
+                      content: '';
+                      display: block;
+                      position: absolute;
+                      left: 100%;
+                      width: 6px;
+                      background-color: var(--bg-color-1);
+                      top: 0;
+                      bottom: 0;
+                  }
               }
           }
       }
