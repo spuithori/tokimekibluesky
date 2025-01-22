@@ -58,5 +58,18 @@
   "copy_url": "Copier l'URL",
   "copy_handle": "Copier l'ID",
   "success_copy_url": "URL copié dans le presse-papier",
-  "success_copy_handle": "ID copié dans le presse-papier"
+  "success_copy_handle": "ID copié dans le presse-papier",
+  "failed_copy": "Echec de la copie dans le presse-papier",
+  "media": "Média",
+  "you": "Vous",
+  "about_text1": "TOKIMEKI est une application Web tierce de Bluesky.\nToujours cours de développement, vous pourriez rencontrer des bugs. Utilisez-le à vos propres risques et faites-nous part de vos commentaires !\nSoyons enthousiastes ensemble🌈🌈🌈",
+  "about_text2": "Suggestions",
+  "author": "Auteur",
+  "about_subhead": "Frisson résonne sur Bluesky !!",
+  "push_toggle_switch": "Activer les notifications push",
+  "push_notes": "Notes",
+  "push_text_1": "Les informations suivantes sont envoyées à la base de données",
+  "push_text_2": "(Nous n'envoyons ni ne recevons de données nécessitant une authentification)",
+  "push_text_3": "Actuellement, vous recevrez aussi des notifications des utilisateurs mis en silencieux.",
+  "push_text_4": "Les paramètres de notification de l’application/navigateur doivent être autorisés."
 }
