@@ -98,5 +98,13 @@
   "blocking_this_user": "Vous bloquez cet utilisateur",
   "blocked_by_this_user": "Vous êtes bloqué par cet utilisateur",
   "block_user": "Bloquer",
-  "unblock_user": "Débloquer"
+  "unblock_user": "Débloquer",
+  "error_get_posts_because_blocking": "Publication non récupérée car vous avez bloqué cet utilisateur.",
+  "error_get_posts_because_blocked": "Message non récupéré car vous avez été bloqué par cet utilisateur.",
+  "error_get_posts_because_blocked_or_blocking": "Votre message non récupéré car vous êtes ou avez été bloqué par cet utilisateur.",
+  "list_add_management": "Ajouter/gérer une liste locale",
+  "list_name": "Nom de la liste",
+  "list_member": "Liste des membres (jusqu'à 10 utilisateurs recommandés)",
+  "user_search": "Recherche d'utilisateurs",
+  "import_export": "Import/Export"
 }
