@@ -1,0 +1,14 @@
+{
+  "reposted_by": "Reposté par {name}",
+  "reply_to": "Réponse à {name}",
+  "delete_post": "Supprimé le message",
+  "quote_post": "Citer le message",
+  "show_thread": "Montrer thread",
+  "translation": "Traduire",
+  "liked_your_post": "a aimé votre message",
+  "reposted_your_post": "reposter votre message",
+  "quoted_your_post": "A cité votre message",
+  "replied_your_post": "A répondu à votre message",
+  "followed_you": "Vous suit",
+  "send_placeholder1": "Quoi de neuf ?"
+}
