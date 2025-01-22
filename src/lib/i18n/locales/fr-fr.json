@@ -537,5 +537,19 @@
   "bookmark_import_error": "Échec de l'importation des favoris et des brouillons",
   "bookmark_import_success": "Favoris et brouillons importés avec succès",
   "import_export_description": "Fonctionnalité expérimentale",
-  "post_mute_on": "Masquer message"
+  "post_mute_on": "Masquer message",
+  "hiding_post": "Ceci est un message masqué",
+  "delete_post_mutes": "Effacer les messages masqués",
+  "delete_post_mutes_description_prefix": "Nombre de messages masqués",
+  "post_mute_success": "Message masqué. Valable uniquement sur cet appareil (navigateur).",
+  "add_bluefeed": "Ajouter à Bluefeed",
+  "bluefeed_feeds_not_found": "Aucun flux Bluefeed créé n'a été trouvé.",
+  "add_bluefeed_description_suffix": "flux",
+  "bluefeed_add": "Ajouter",
+  "bluefeed_add_success": "Flux ajouté avec succès",
+  "bluefeed_add_duplicate": "Ce message a déjà été ajoutée à votre flux.",
+  "bluefeed_already_add": "Ajouté",
+  "enable_bluefeed": "Activer des fonctionnalités supplémentaires pour Bluefeed",
+  "bluefeed_feed_notfound": "Flux introuvable.",
+  "bluefeed_post_notfound": "Message introuvable."
 }
