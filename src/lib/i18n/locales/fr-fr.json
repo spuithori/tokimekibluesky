@@ -478,5 +478,13 @@
   "thread_gate_mention_title": "Utilisateurs mentionnés",
   "thread_gate_following_title": "Utilisateurs que vous suivez",
   "thread_gate_list_title": "Membres de la liste",
-  "thread_gate_custom_description": "Sélection multiple disponible"
+  "thread_gate_custom_description": "Sélection multiple disponible",
+  "thread_gate_reset_when_change_account": "Le paramètre de limite de réponse ont été réinitialisé à cause du changement de compte pour l'envoi",
+  "thread_gate_nobody_label": "Personne ne peut répondre à ce message",
+  "thread_gate_custom_label": "Seuls certains utilisateurs peuvent répondre",
+  "thread_gate_modal_title": "Contrôle des messages",
+  "thread_gate_modal_description": "Sélectionnez un compte pour répondre à ce message.",
+  "advanced_break_title": "Expérimental : contrôle avancé des sauts de ligne pour le japonais",
+  "advanced_break_description": "Permettre le replis naturel grâce à l'apprentissage automatique. Compatible avec les systèmes Chrome et Edge uniquement.",
+  "workspace_help": "A propos des espaces de travail"
 }
