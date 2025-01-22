@@ -417,5 +417,9 @@
   "button_mute": "Silencieux",
   "button_unmute": "Afficher",
   "button_block": "Bloquer",
-  "button_unblock": "Débloquer"
+  "button_unblock": "Débloquer",
+  "blocks_list": "Liste de blocage",
+  "mutes_list": "Liste des mis en silence",
+  "error_missing_parameter_account": "URL invalide. Il ne s'agit pas du compte auquel vous êtes actuellement connecté.",
+  "input_keyword_placeholder": "Séparées par des virgules (par ex mot 1, mot 2)"
 }
