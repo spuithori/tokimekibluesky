@@ -300,5 +300,21 @@
   "list_add_description": "Les listes spécifiques à TOKIMEKI sont stockées localement dans votre navigateur. Les données peuvent être perdues en raison de la suppression du cache, etc.\nSi vous souhaitez l'utiliser avec d'autres clients ou applications officielles, veuillez créer une liste d'utilisateurs.",
   "accounts_management_title": "Gestion des comptes",
   "no_account_in_profile": "Aucun compte configuré dans l'espace de travail",
-  "no_account_in_profile_description": "Vous devez ajouter un ou plusieurs comptes à votre espace de travail."
+  "no_account_in_profile_description": "Vous devez ajouter un ou plusieurs comptes à votre espace de travail.",
+  "profiles_and_accounts_management": "Espace de travail et comptes",
+  "width_xxs": "XXS",
+  "width_xs": "XS",
+  "width_xl": "XL",
+  "width_xxl": "XXL",
+  "p_menu_profiles": "Basculer d'espace de travail",
+  "p_menu_settings": "Paramètre",
+  "page_title_home": "Accueil",
+  "suggest_user": "Utilisateurs recommandés",
+  "posts/profiles": "Messages",
+  "search": "Recherche",
+  "auto_scroll_speed_faster": "Rapide",
+  "color_theme": "Couleur",
+  "page_title_media": "Médias",
+  "page_title_likes": "Likes",
+  "feed_quick_add": "Ajouter colonne"
 }
