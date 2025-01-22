@@ -401,5 +401,13 @@
   "realtime_listeners_status_0": "Connecté",
   "realtime_listeners_status_1": "Connecté",
   "realtime_listeners_status_3": "Déconnecté",
-  "realtime_listeners_status_undefined": "Déconnecté"
+  "realtime_listeners_status_undefined": "Déconnecté",
+  "datetime_format": "Format date-heure (ex 15 octobre 2023 11h32)",
+  "posts_font_size": "Taille de la police du message",
+  "selflabels_remove": "Retirer",
+  "link_warning_confirm_title": "Souhaitez-vous ouvrir le lien ?",
+  "open": "Ouvrir",
+  "skip_link_warning_confirm": "Ne vérifiez pas les chargements vers des liens qui diffèrent du texte",
+  "ai_alt_ocr": "Extraire le texte de l'image",
+  "ai_alt_description": "Générer un texte descriptif"
 }
