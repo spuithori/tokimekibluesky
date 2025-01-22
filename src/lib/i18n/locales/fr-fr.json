@@ -71,5 +71,14 @@
   "push_text_1": "Les informations suivantes sont envoyées à la base de données",
   "push_text_2": "(Nous n'envoyons ni ne recevons de données nécessitant une authentification)",
   "push_text_3": "Actuellement, vous recevrez aussi des notifications des utilisateurs mis en silencieux.",
-  "push_text_4": "Les paramètres de notification de l’application/navigateur doivent être autorisés."
+  "push_text_4": "Les paramètres de notification de l’application/navigateur doivent être autorisés.",
+  "push_text_5": "Veuillez lire la documentation pour obtenir des informations sur les environnements pris en charge.",
+  "push_text_6": "Disponible uniquement pour les comptes bsky.social.",
+  "push_settings": "Paramètres des notifications push",
+  "push_subscription_success": "Abonnement réussi.",
+  "push_subscription_failed": "Abonnement échoué.",
+  "push_subscription_unsubscribe": "Désabonné.",
+  "link_card_embed": "Lien intégré",
+  "images_uploading": "Envoi des images",
+  "images_upload_success": "Envoi des images réussis"
 }
