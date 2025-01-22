@@ -270,5 +270,12 @@
   "auto_scroll_speed_auto": "Auto",
   "auto_scroll_speed_slow": "Lent",
   "auto_scroll_speed_normal": "Normal",
-  "auto_scroll_speed_fast": "Rapide"
+  "auto_scroll_speed_fast": "Rapide",
+  "thread_members": "Membres",
+  "settings_profiles": "Espace de travail",
+  "delete_profile": "Supprimer l'espace de travail",
+  "switch_main_account": "Basculer sur le principal",
+  "profiles_description": "Toutes les pages autres que la page TOP (page de profil, recherche, etc.) sont accessibles via le compte principal. Vous ne pouvez pas accéder aux pages de profil sur un serveur différent de votre compte principal. Nous prévoyons d'améliorer cela à l'avenir.",
+  "profile_change_name": "Renommer",
+  "profile_switch": "Basculer"
 }
