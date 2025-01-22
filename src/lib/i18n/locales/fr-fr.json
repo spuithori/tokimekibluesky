@@ -291,5 +291,14 @@
   "mention": "Mention",
   "profile_account_missing_title": "Aucun compte configuré dans l'espace de travail",
   "column_account_missing_text_1": "{name} n'a pas été ajouté à votre espace de travail. Veuillez l'ajouter depuis les paramètres de l'espace de travail ou supprimer la colonne.",
-  "column_account_missing_text_2": "Nom de colonne inconnue. Cette colonne n'est plus disponible à cause d'une mise à jour, veuillez la retirer et la rajouter à nouveau."
+  "column_account_missing_text_2": "Nom de colonne inconnue. Cette colonne n'est plus disponible à cause d'une mise à jour, veuillez la retirer et la rajouter à nouveau.",
+  "login_duplicate_account": "Compte déjà ajouté",
+  "decks_empty_title": "la colonne est vide",
+  "decks_empty_text": "Ajoutons",
+  "accounts_management": "Gestion des comptes",
+  "bookmark_add_description": "Les signets sont enregistrés localement dans votre navigateur. Les données peuvent être perdues en raison de la suppression du cache, etc.",
+  "list_add_description": "Les listes spécifiques à TOKIMEKI sont stockées localement dans votre navigateur. Les données peuvent être perdues en raison de la suppression du cache, etc.\nSi vous souhaitez l'utiliser avec d'autres clients ou applications officielles, veuillez créer une liste d'utilisateurs.",
+  "accounts_management_title": "Gestion des comptes",
+  "no_account_in_profile": "Aucun compte configuré dans l'espace de travail",
+  "no_account_in_profile_description": "Vous devez ajouter un ou plusieurs comptes à votre espace de travail."
 }
