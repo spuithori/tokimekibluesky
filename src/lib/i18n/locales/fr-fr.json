@@ -119,5 +119,13 @@
   "show": "Afficher",
   "this_content_warn": "Le contenu suivant est inclus",
   "show_button": "Afficher",
-  "create_bookmark": "Créer un dossier de favoris"
+  "create_bookmark": "Créer un dossier de favoris",
+  "bookmark_add_management": "Création et gestion de dossiers de favoris",
+  "bookmark_name": "Titre",
+  "bookmark_description": "Description",
+  "no_bookmark_folder": "Dossier inexistant",
+  "save_button": "Sauvegarder",
+  "bookmark_save_success": "Favori enregistré avec succès.",
+  "bookmark_delete_success": "Favori supprimé avec succès.",
+  "bookmark_add_success": "Favori ajouté avec succès."
 }
