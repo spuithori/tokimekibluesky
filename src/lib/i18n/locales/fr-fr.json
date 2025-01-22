@@ -409,5 +409,13 @@
   "open": "Ouvrir",
   "skip_link_warning_confirm": "Ne vérifiez pas les chargements vers des liens qui diffèrent du texte",
   "ai_alt_ocr": "Extraire le texte de l'image",
-  "ai_alt_description": "Générer un texte descriptif"
+  "ai_alt_description": "Générer un texte descriptif",
+  "ai_alt_note": "Veuillez noter que lorsque vous utilisez la génération de texte ALT basée sur l'IA, vos images seront envoyées à un serveur externe pour analyse. Cette application n'est pas responsable des résultats générés.",
+  "missing_profile_title": "Veuillez sélectionner un espace de travail",
+  "blocking": "Blocage",
+  "muting": "Silencieux",
+  "button_mute": "Silencieux",
+  "button_unmute": "Afficher",
+  "button_block": "Bloquer",
+  "button_unblock": "Débloquer"
 }
