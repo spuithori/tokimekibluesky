@@ -580,5 +580,14 @@
   "pinned_post": "Epinglé",
   "register_pin": "Epinglé enregistré",
   "unregister_pin": "Epinglé non enregistré",
-  "success_register_pin": "message épinglé avec succès"
+  "success_register_pin": "Message épinglé avec succès",
+  "success_unregister_pin": "Epinglé non enregistré avec succès",
+  "left_mode": "Mode main gauche",
+  "delete_and_edit": "Supprimer et éditer",
+  "delete_and_edit_confirm_description": "Les réactions existantes seront perdues. Les arbres de réponses ne seront pas repris.",
+  "process_to_delete_and_edit": "Restauration du message…",
+  "success_to_delete_and_edit": "Messages restaurés sur l'écran d'édition",
+  "disable_haptics": "Désactiver le retour haptique",
+  "enable_app_browser": "Utilisez le navigateur intégré à l'application",
+  "column_opacity": "Opacité (expérimental)"
 }
