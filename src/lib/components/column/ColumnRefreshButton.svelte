@@ -275,6 +275,7 @@
                 refresh();
             } catch (e) {
                 console.error(e);
+                isRefreshing = false;
             }
         }
     }
@@ -286,6 +287,7 @@
                     refresh(true);
                 } catch (e) {
                     console.error(e);
+                    isRefreshing = false;
                 }
             }
         }
