@@ -1,20 +1,18 @@
 <script lang="ts">
-    import {agent, settings, labelDefs, labelerSettings} from '$lib/stores';
+    import {settings, labelDefs, labelerSettings} from '$lib/stores';
     import {AppBskyEmbedImages, AppBskyFeedDefs} from '@atproto/api';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
     import MediaTimelineThumbnail from "$lib/components/post/MediaTimelineThumbnail.svelte";
     import {modalState} from "$lib/classes/modalState.svelte";
+    import {EyeOff, Repeat} from "lucide-svelte";
 
-    interface Props {
-      _agent?: any;
-      data: any;
-      isProfile?: boolean;
-    }
-
-    let { _agent = $agent, data, isProfile = false }: Props = $props();
+    let { feed, index, data, _agent, isProfile = false } = $props();
     let isOpen = $state(false);
+    let el = $state();
+    let targetIndex = $state(index);
+    let targetEl = $state();
 
     const moderateData = contentLabelling(data.post, _agent.did(), $settings, $labelDefs, $labelerSettings);
     let isHide: boolean = $state(false);
@@ -26,6 +24,8 @@
     }
 
     function modalToggle() {
+        targetIndex = index;
+        targetEl = el;
         isOpen = isOpen !== true;
         document.body.classList.toggle('scroll-lock', isOpen);
 
@@ -36,6 +36,28 @@
 
     function handleClose() {
         isOpen = false;
+    }
+
+    function handlePrev() {
+      if (targetIndex > 0) {
+        handleSlideChange('prev');
+      }
+    }
+
+    function handleNext() {
+      if (targetIndex < feed.length - 1) {
+        handleSlideChange('next');
+      }
+    }
+
+    function handleSlideChange(direction: 'prev' | 'next') {
+      const currentEl = direction === 'next' ? targetEl.nextElementSibling : targetEl.previousElementSibling;
+
+      if (currentEl) {
+        currentEl.scrollIntoView({ block: 'end' });
+        targetIndex = currentEl.dataset.index;
+        targetEl = currentEl;
+      }
     }
 
     $effect(() => {
@@ -49,7 +71,8 @@
   <div class="media-item"
        class:media-item--repost={isReasonRepost(data.reason)}
        class:media-item--reply={data.reply && data?.reply?.parent?.author?.did !== _agent.did()}
-       class:media-item--warn={isWarn && isWarn.for === 'media'}
+       bind:this={el}
+       data-index={index}
   >
     <button onclick={modalToggle} aria-label="画像を拡大する">
       {#if (AppBskyEmbedImages.isView(data.post?.embed))}
@@ -60,17 +83,23 @@
 
       {#if (isReasonRepost(data.reason))}
         <div class="media-item__is-repost">
-          <svg xmlns="http://www.w3.org/2000/svg" width="65.627" height="40.176" viewBox="0 0 65.627 40.176">
-            <path id="retweet" d="M42.418,43.116a1.089,1.089,0,0,1-1.06,1.06H9.544c-1.226,0-1.06-1.292-1.06-2.121V22.967H2.121A2.135,2.135,0,0,1,0,20.846a2.028,2.028,0,0,1,.5-1.36L11.1,6.761a2.174,2.174,0,0,1,3.249,0l10.6,12.725a2.025,2.025,0,0,1,.5,1.36,2.135,2.135,0,0,1-2.121,2.121H16.967V35.693H36.055a1.134,1.134,0,0,1,.829.365l5.3,6.363A1.335,1.335,0,0,1,42.418,43.116ZM63.627,29.33a2.028,2.028,0,0,1-.5,1.36l-10.6,12.725a2.114,2.114,0,0,1-3.249,0l-10.6-12.725a2.025,2.025,0,0,1-.5-1.36A2.135,2.135,0,0,1,40.3,27.209H46.66V14.484H27.572a1.057,1.057,0,0,1-.829-.4l-5.3-6.363a1.136,1.136,0,0,1-.231-.664A1.089,1.089,0,0,1,22.269,6H54.083c1.226,0,1.06,1.292,1.06,2.121V27.209h6.363A2.135,2.135,0,0,1,63.627,29.33Z" transform="translate(1 -5)" fill="#ffffff" stroke="var(--primary-color)" stroke-width="2"/>
-          </svg>
+          <Repeat color="#fff"></Repeat>
+        </div>
+      {/if}
+
+      {#if (isWarn && isWarn.for === 'media')}
+        <div class="media-warn">
+          <EyeOff color="#fff"></EyeOff>
         </div>
       {/if}
     </button>
-  </div>
 
-  {#if (isOpen)}
-    <MediaTimelineItemModal {data} close={handleClose} {_agent}></MediaTimelineItemModal>
-  {/if}
+    {#key targetIndex}
+      {#if (isOpen)}
+        <MediaTimelineItemModal data={feed[targetIndex]} close={handleClose} onprev={handlePrev} onnext={handleNext} {_agent}></MediaTimelineItemModal>
+      {/if}
+    {/key}
+  </div>
 {/if}
 
 <style lang="postcss">
@@ -122,5 +151,15 @@
               pointer-events: none;
           }
       }
+  }
+
+  .media-warn {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, .8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: grid;
+      place-content: center;
   }
 </style>

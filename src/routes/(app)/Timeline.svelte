@@ -180,7 +180,7 @@
         ></TimelineItem>
       {/if}
 
-      {#if data.isDivider}
+      {#if data?.isDivider}
         <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}}></MoreDivider>
       {/if}
     {/each}
