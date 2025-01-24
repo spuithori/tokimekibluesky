@@ -46,17 +46,11 @@ export function bundleByProperties(array: any[], property1: string, property2: s
         post: array[0].post || undefined,
         notifications: array,
         latestIndexedAt: array[0].indexedAt,
-        subject: () => {
-            if (array[0].reasonSubject && array[0].reason !== 'reply' && array[0].reason !== 'quote') {
-                return array[0].reasonSubject
-            } else {
-                if (array[0].uri) {
-                    if (!array[0].uri.includes('app.bsky.graph.follow')) {
-                        return array[0].uri
-                    }
-                }
-            }
-        }
+        subject: array[0].reasonSubject && array[0].reason !== 'reply' && array[0].reason !==   'quote'
+            ? array[0].reasonSubject
+            : (array[0].uri && !array[0].uri.includes('app.bsky.graph.follow')
+                ? array[0].uri
+                : undefined)
     }));
 }
 
@@ -64,7 +58,7 @@ export async function getNotifications(ctx, putBefore = false, _agent, currentFe
     const _orig = ctx.filter(item => !item?.author?.viewer.muted);
     let bundled = bundleByProperties(_orig, 'reasonSubject', 'reason');
 
-    let subjects = [...new Set(bundled.map(array => array.subject()))];
+    let subjects = [...new Set(bundled.map(array => array.subject))];
     subjects = subjects.filter(subject => !currentFeedPool.some(post => post.uri === subject) && subject);
 
     let feedPool = currentFeedPool;
@@ -74,7 +68,7 @@ export async function getNotifications(ctx, putBefore = false, _agent, currentFe
     }
 
     bundled.forEach(array => {
-        array.post = feedPool.find(post => post.uri === array.subject());
+        array.post = feedPool.find(post => post.uri === array.subject);
     })
     bundled = bundled.sort((a, b) => parseISO(b.latestIndexedAt).getTime() - parseISO(a.latestIndexedAt).getTime());
 

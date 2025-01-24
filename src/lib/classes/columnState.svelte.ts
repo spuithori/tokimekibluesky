@@ -9,8 +9,8 @@ export class ColumnState {
     syncColumns = $derived(this.columns.map(({ scrollElement, data, ...rest }) => ({
         ...rest,
         data: {
-            feed: [],
-            cursor: ''
+            feed: data?.notifications ? [] : data?.feed || [],
+            cursor: data?.notifications ? '' : data?.cursor || '',
         }
     })));
 
@@ -25,11 +25,14 @@ export class ColumnState {
             return;
         }
 
-        const storageColumns = localStorage.getItem('columns') || JSON.stringify([]);
-        this.columns = JSON.parse(storageColumns);
+        const profileId = localStorage.getItem('currentProfile');
+
+        accountsDb.profiles.get(Number(profileId))
+          .then(res => {
+              this.columns = res?.columns || [];
+        });
 
         $effect(() => {
-            const profileId = localStorage.getItem('currentProfile');
             if (!profileId) {
                 return;
             }
@@ -37,11 +40,7 @@ export class ColumnState {
             const id = accountsDb.profiles.update(Number(profileId), {
                 columns: $state.snapshot(this.syncColumns),
             })
-        })
-
-        $effect(() => {
-            localStorage.setItem('columns', JSON.stringify(this.syncColumns));
-        })
+        });
     }
 
     add(column: Column) {
