@@ -44,7 +44,7 @@
 
   async function changeProfile() {
       localStorage.setItem('currentProfile', profile.id);
-      columnState.columns = profile.columns;
+      // columnState.columns = profile.columns;
       currentTimeline.set(0);
       location.reload();
   }
