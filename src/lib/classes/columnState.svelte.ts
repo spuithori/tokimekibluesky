@@ -33,11 +33,12 @@ export class ColumnState {
         });
 
         $effect(() => {
-            if (!profileId) {
+            const _id = localStorage.getItem('currentProfile');
+            if (!_id) {
                 return;
             }
 
-            const id = accountsDb.profiles.update(Number(profileId), {
+            const id = accountsDb.profiles.update(Number(_id), {
                 columns: $state.snapshot(this.syncColumns),
             })
         });
