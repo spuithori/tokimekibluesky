@@ -96,6 +96,26 @@
       column.data.feed.splice(index + 1);
   }
 
+  async function handleDividerUp(index, cursor) {
+    try {
+      const res = await _agent.getTimeline({limit: 100, cursor: cursor, algorithm: column.algorithm});
+
+      const feed = res.data.feed.filter(feed => {
+        return !column.data.feed.some(item => isDuplicatePost(item, feed));
+      }).map(item => {
+        item.memoryCursor = res.data.cursor;
+        return item;
+      });
+
+      column.data.feed.splice(index + 1, 0, ...feed);
+      column.data.feed[index].isDivider = false;
+      column.data.feed[index + feed.length].isDivider = true;
+
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   function isDuplicatePost(oldFeed, newFeed) {
       return newFeed.reason
           ? oldFeed.post.uri === newFeed.post.uri && oldFeed.reason?.indexedAt === newFeed.reason.indexedAt
@@ -181,7 +201,7 @@
       {/if}
 
       {#if data?.isDivider}
-        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}}></MoreDivider>
+        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={() => {handleDividerUp(index, data.memoryCursor)}} column={column}></MoreDivider>
       {/if}
     {/each}
   </div>
