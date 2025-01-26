@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {settings} from "$lib/stores";
   import {ArrowUpFromDot, MoreHorizontal} from "lucide-svelte";
   import {untrack, tick} from "svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -22,9 +23,10 @@
       untrack(() => {
         tick().then(() => {
           const posFromTop = el.offsetTop;
+          const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
 
           if (posFromTop) {
-            column.scrollElement.scrollTo(0, posFromTop);
+            scrollEl.scrollTo(0, posFromTop);
           }
         })
       })
