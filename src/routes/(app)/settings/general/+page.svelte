@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
+    import { run } from 'svelte/legacy';
 
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
     import {languageMap} from "$lib/langs/languageMap";
-  import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+    import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+    import {settingsState} from "$lib/classes/settingsState.svelte";
     let userLanguage = $state($settings?.general.userLanguage || window.navigator.language);
     let language = $state($settings?.general.language || window.navigator.language);
     let dataSaver = $state($settings?.general.dataSaver || false);
@@ -101,6 +102,19 @@ run(() => {
               <option value="{option.value}">{option.text}</option>
             {/each}
           </select>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('store_column_feed_data')}
+        <span class="new-label">NEW</span>
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="storeColumnFeedData" bind:checked={settingsState.settings.markedUnread}><label class="input-toggle__label" for="storeColumnFeedData"></label>
         </div>
       </dd>
     </dl>

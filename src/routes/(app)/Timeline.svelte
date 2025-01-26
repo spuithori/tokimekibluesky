@@ -10,6 +10,8 @@
   import {isReasonRepost, isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import {toast} from "svelte-sonner";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {isAfter} from "date-fns";
+  import {tick} from "svelte";
 
   let {
     index,
@@ -99,9 +101,24 @@
   async function handleDividerUp(index, cursor) {
     try {
       const res = await _agent.getTimeline({limit: 100, cursor: cursor, algorithm: column.algorithm});
+      const last = column.data.feed[index + 1];
+
+      if (!last) {
+        return false;
+      }
 
       const feed = res.data.feed.filter(feed => {
-        return !column.data.feed.some(item => isDuplicatePost(item, feed));
+        if (isReasonRepost(feed.reason)) {
+          if (isAfter(feed?.reason?.indexedAt, last?.reason?.indexedAt || last?.post?.indexedAt)) {
+            return true;
+          }
+        } else {
+          if (isAfter(feed?.post?.indexedAt, last?.reason?.indexedAt || last?.post?.indexedAt)) {
+            return true;
+          }
+        }
+
+        return false;
       }).map(item => {
         item.memoryCursor = res.data.cursor;
         return item;
@@ -111,6 +128,11 @@
       column.data.feed[index].isDivider = false;
       column.data.feed[index + feed.length].isDivider = true;
 
+      if (feed.length !== res.data.feed.length) {
+        tick().then(() => {
+          column.data.feed[index + feed.length].isDivider = false;
+        })
+      }
     } catch (e) {
       console.error(e);
     }

@@ -3,14 +3,15 @@ import {getContext, setContext} from "svelte";
 import {accountsDb} from "$lib/db";
 import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 import {AppBskyFeedDefs} from "@atproto/api";
+import {settingsState} from "$lib/classes/settingsState.svelte";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
     syncColumns = $derived(this.columns.map(({ scrollElement, data, ...rest }) => ({
         ...rest,
         data: {
-            feed: data?.notifications ? [] : data?.feed || [],
-            cursor: data?.notifications ? '' : data?.cursor || '',
+            feed: !settingsState?.settings?.markedUnread ? [] : data?.notifications ? [] : data?.feed || [],
+            cursor: !settingsState?.settings?.markedUnread ? '' : data?.notifications ? '' : data?.cursor || '',
         }
     })));
 
