@@ -682,5 +682,6 @@
   "theme_for_bubble": "バブル型に最適化",
   "pinned_feed": "ピン留めフィード",
   "topic": "トピック",
-  "tokmek": "TokMek"
+  "tokmek": "TokMek",
+  "store_column_feed_data": "アプリ終了後も取得タイムラインを保持(β)"
 }

@@ -682,5 +682,6 @@
   "theme_for_bubble": "Optimized for Bubble",
   "pinned_feed": "Pinned Feeds",
   "topic": "Topics",
-  "tokmek": "TokMek"
+  "tokmek": "TokMek",
+  "store_column_feed_data": "Keep the retrieval timeline when app closed (beta)"
 }
