@@ -494,20 +494,6 @@
 
     &--bookmark {
         justify-content: center;
-
-        &:hover {
-            @media (min-width: 768px) {
-                color: var(--timeline-reaction-bookmark-icon-hover-color);
-
-                .timeline-reaction__icon::after {
-                    background-color: var(--timeline-reaction-bookmark-hover-bg-color);
-                }
-
-                path {
-                    fill: var(--timeline-reaction-bookmark-icon-hover-color);
-                }
-            }
-        }
     }
 }
 

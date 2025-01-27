@@ -10,6 +10,7 @@
   import {getAccountIdByDidFromDb} from "$lib/util";
   import CloudBookmarkModal from "$lib/components/bookmark/CloudBookmarkModal.svelte";
   import {untrack} from "svelte";
+  import {Bookmark} from "lucide-svelte";
 
   let { _agent = $agent, post } = $props();
   let cloudBookmarks = $state([]);
@@ -219,12 +220,10 @@
 <div class="bookmark-wrap">
   <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="timeline-reaction__item timeline-reaction__item--bookmark">
     {#snippet ref()}
-        <span class="timeline-reaction__icon" >
-           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="15" viewBox="0 0 12 15">
-        <path id="bookmark" d="M2,1.5A1.5,1.5,0,0,1,3.5,0h9A1.5,1.5,0,0,1,14,1.5V15L8,12,2,15Z" transform="translate(-2)" fill="var(--timeline-reaction-bookmark-icon-color)"/>
-      </svg>
+      <span class="timeline-reaction__icon">
+        <Bookmark size="18" color="var(--timeline-reaction-bookmark-icon-color)"></Bookmark>
       </span>
-      {/snippet}
+    {/snippet}
 
     {#snippet content()}
         <ul  class="timeline-menu-list">
@@ -292,5 +291,17 @@
 <style lang="postcss">
   .bookmark-wrap {
       position: relative;
+  }
+
+  .timeline-reaction__icon {
+      &:hover {
+          @media (min-width: 768px) {
+              --timeline-reaction-bookmark-icon-color: var(--timeline-reaction-bookmark-icon-hover-color);
+
+              &::after {
+                  background-color: var(--timeline-reaction-bookmark-hover-bg-color);
+              }
+          }
+      }
   }
 </style>

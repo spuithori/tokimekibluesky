@@ -4,6 +4,7 @@
   import { _ } from 'svelte-i18n';
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {Repeat} from "lucide-svelte";
 
   interface Props {
     _agent?: any;
@@ -75,8 +76,8 @@
         class:timeline-reaction__item--transition={isTransition}
         disabled="{isProcessed}"
         onclick={repostStep}>
-  <span class="timeline-reaction__icon" aria-label="リポスト">
-     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--timeline-reaction-repost-icon-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2" onanimationend={() => {isTransition = false}}><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+  <span class="timeline-reaction__icon" onanimationend={() => {isTransition = false}} aria-label="Repost">
+    <Repeat size="18" color="var(--timeline-reaction-repost-icon-color)"></Repeat>
   </span>
 
   {#if showCounts && post.repostCount}
@@ -105,33 +106,28 @@
     .timeline-reaction__item {
         &:hover {
             @media (min-width: 768px) {
-                color: var(--timeline-reaction-repost-icon-hover-color);
+                --timeline-reaction-repost-icon-color: var(--timeline-reaction-repost-icon-hover-color);
 
                 .timeline-reaction__icon::after {
                     background-color: var(--timeline-reaction-repost-hover-bg-color);
-                }
-
-                path {
-                    stroke: var(--timeline-reaction-repost-icon-hover-color);
                 }
             }
         }
 
         &--active {
-            svg {
-                stroke: var(--timeline-reaction-reposted-icon-color);
-            }
+            --timeline-reaction-repost-icon-color: var(--timeline-reaction-reposted-icon-color);
         }
 
         &--transition {
-            svg {
-                stroke: var(--timeline-reaction-reposted-icon-color);
+            --timeline-reaction-repost-icon-color: var(--timeline-reaction-reposted-icon-color);
+
+            .timeline-reaction__icon {
                 animation: cubic-bezier(0, 0, 0.09, 1) .5s repost-in forwards;
             }
         }
 
         &:active {
-            svg {
+            .timeline-reaction__icon {
                 transform: scale(.85);
             }
         }
