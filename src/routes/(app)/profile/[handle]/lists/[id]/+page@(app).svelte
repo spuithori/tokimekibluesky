@@ -15,7 +15,7 @@
             if(!$isAfterReload) {
                 [scrollY] = value;
 
-                tick(() => {
+                tick().then(() => {
                     if ($settings.design.layout === 'decks') {
                         document.querySelector('.modal-page-content').scroll(0, scrollY);
                     } else {

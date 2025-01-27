@@ -14,10 +14,10 @@
     let did = $state('');
 
     export const snapshot: Snapshot = {
-        capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
+        capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop, feed],
         restore: (value) => {
             if(!$isAfterReload) {
-                [scrollY] = value;
+                [scrollY, feed] = value;
 
                 tick().then(() => {
                     if ($settings.design.layout === 'decks') {

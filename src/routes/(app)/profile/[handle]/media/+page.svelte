@@ -6,6 +6,8 @@
   import {tick} from "svelte";
   import DeckRow from "../../../DeckRow.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import type { Snapshot } from './$types';
+  import {isAfterReload, settings} from "$lib/stores";
 
   interface Props {
     data: LayoutData;
@@ -17,6 +19,25 @@
   const columnState = getColumnState(true);
   let tempActive = $state(false);
   let columnId = $derived(`media_${data.params.handle}_${agentContext.agent.did()}`);
+
+  export const snapshot: Snapshot = {
+    capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
+    restore: (value) => {
+      if(!$isAfterReload) {
+        [scrollY] = value;
+
+        tick().then(() => {
+          if ($settings.design.layout === 'decks') {
+            document.querySelector('.modal-page-content').scroll(0, scrollY);
+          } else {
+            document.querySelector(':root').scroll(0, scrollY);
+          }
+        });
+      }
+
+      isAfterReload.set(false);
+    }
+  };
 
   if (!columnState.hasColumn(columnId)) {
       columnState.add({
