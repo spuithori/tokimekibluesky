@@ -32,7 +32,7 @@
 
 <button class="timeline-reaction__item timeline-reaction__item--reply" onclick={handleClick} disabled={post?.viewer?.replyDisabled} aria-label="Reply">
   <span class="timeline-reaction__icon">
-    <MessageSquare size="18" color="var(--timeline-reaction-reply-icon-color)" strokeWidth="2.25"></MessageSquare>
+    <MessageSquare size="18" color="var(--timeline-reaction-reply-icon-color)"></MessageSquare>
   </span>
 
   {#if showCounts && count}
