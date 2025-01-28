@@ -77,7 +77,7 @@
         disabled="{isProcessed}"
         onclick={repostStep}>
   <span class="timeline-reaction__icon" onanimationend={() => {isTransition = false}} aria-label="Repost">
-    <Repeat size="18" color="var(--timeline-reaction-repost-icon-color)"></Repeat>
+    <Repeat size="16" color="var(--timeline-reaction-repost-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></Repeat>
   </span>
 
   {#if showCounts && post.repostCount}

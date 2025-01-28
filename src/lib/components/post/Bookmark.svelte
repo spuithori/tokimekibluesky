@@ -221,7 +221,7 @@
   <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="timeline-reaction__item timeline-reaction__item--bookmark">
     {#snippet ref()}
       <span class="timeline-reaction__icon">
-        <Bookmark size="18" color="var(--timeline-reaction-bookmark-icon-color)"></Bookmark>
+        <Bookmark size="16" color="var(--timeline-reaction-bookmark-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></Bookmark>
       </span>
     {/snippet}
 

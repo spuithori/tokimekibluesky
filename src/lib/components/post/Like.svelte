@@ -63,9 +63,9 @@
 >
   <span class="timeline-reaction__icon" aria-label="いいね">
     {#if ($settings?.design?.reactionMode === 'superstar')}
-      <Star size="18" color="var(--timeline-reaction-like-icon-color)" fill="var(--timeline-reaction-like-fill-color, transparent)"></Star>
+      <Star size="16" color="var(--timeline-reaction-like-icon-color)" fill="var(--timeline-reaction-like-fill-color, transparent)" absoluteStrokeWidth={true} strokeWidth="1.5"></Star>
     {:else}
-      <Heart size="18" color="var(--timeline-reaction-like-icon-color)" fill="var(--timeline-reaction-like-fill-color, transparent)"></Heart>
+      <Heart size="16" color="var(--timeline-reaction-like-icon-color)" fill="var(--timeline-reaction-like-fill-color, transparent)" absoluteStrokeWidth={true} strokeWidth="1.5"></Heart>
     {/if}
   </span>
 

@@ -21,7 +21,7 @@
 
 <button class="timeline-reaction__item timeline-reaction__item--quote" onclick={handleClick} aria-label="Quote" disabled={embeddingDisabled}>
   <span class="timeline-reaction__icon">
-    <Quote size="18" color="var(--timeline-reaction-like-icon-color)"></Quote>
+    <Quote size="16" color="var(--timeline-reaction-like-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></Quote>
   </span>
 </button>
 
