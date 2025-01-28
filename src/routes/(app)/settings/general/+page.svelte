@@ -43,6 +43,10 @@ const languages = [
         value: 'zh-CN',
         text: '简体中文',
     },
+    {
+      value: 'ru',
+      text: 'Русский',
+    },
 ]
 
 run(() => {
