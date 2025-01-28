@@ -567,8 +567,8 @@
     position: absolute;
     right: 5px;
     top: 20px;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background-color: var(--bg-color-1);
     display: flex;
@@ -881,7 +881,7 @@
 
     .timeline-menu-toggle {
         top: 5px;
-        right: -2px;
+        right: -4px;
         background-color: transparent;
 
         &--feed {
