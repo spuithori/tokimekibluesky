@@ -1,4 +1,4 @@
-import type {AppBskyFeedGetTimeline, BskyAgent} from '@atproto/api';
+import {AppBskyEmbedVideo, type AppBskyFeedGetTimeline, type BskyAgent} from '@atproto/api';
 import {AppBskyEmbedImages} from "@atproto/api";
 import type {currentAlgorithm} from "../app.d.ts";
 import {parseISO} from "date-fns";
@@ -168,6 +168,25 @@ export class Agent {
                     data: {
                         cursor: mediaRes.data.cursor,
                         feed: mediaPosts,
+                    }
+                }
+            case 'authorVideo':
+                const videoRes = await this.agent.api.app.bsky.feed.getAuthorFeed({
+                    actor: timelineOpt.algorithm.algorithm,
+                    limit: timelineOpt.limit,
+                    cursor: timelineOpt.cursor,
+                    filter: 'posts_with_video'
+                });
+
+                const videoPosts = videoRes.data.feed.filter(item =>
+                  AppBskyEmbedVideo.isView(item.post?.embed) ||
+                  AppBskyEmbedImages.isView(item.post?.embed?.media)
+                );
+
+                return {
+                    data: {
+                        cursor: videoRes.data.cursor,
+                        feed: videoPosts,
                     }
                 }
             case 'myPost':

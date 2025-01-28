@@ -683,5 +683,6 @@
   "pinned_feed": "ピン留めフィード",
   "topic": "トピック",
   "tokmek": "TokMek",
-  "store_column_feed_data": "アプリ終了後も取得タイムラインを保持(β)"
+  "store_column_feed_data": "アプリ終了後も取得タイムラインを保持(β)",
+  "video": "動画"
 }

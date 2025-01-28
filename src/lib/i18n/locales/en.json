@@ -683,5 +683,6 @@
   "pinned_feed": "Pinned Feeds",
   "topic": "Topics",
   "tokmek": "TokMek",
-  "store_column_feed_data": "Keep the retrieval timeline when app closed (beta)"
+  "store_column_feed_data": "Keep the retrieval timeline when app closed (beta)",
+  "video": "Video"
 }
