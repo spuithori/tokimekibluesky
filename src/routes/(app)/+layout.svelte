@@ -216,6 +216,13 @@
       $settings.design.nonoto = true;
   }
 
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist()
+      .then(res => {
+        console.log(`Storage persisted: ${res}`);
+      });
+  }
+
   onMount(async() => {
       if (pwaInfo) {
           const { registerSW } = await import('virtual:pwa-register');
