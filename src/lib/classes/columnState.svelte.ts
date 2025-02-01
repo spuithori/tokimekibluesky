@@ -14,6 +14,7 @@ export class ColumnState {
             cursor: !settingsState?.settings?.markedUnread ? '' : data?.notifications ? '' : data?.cursor || '',
         }
     })));
+    isColumnsLoaded = $state(false);
 
     constructor(isJunk: boolean = false) {
         if (isJunk) {
@@ -31,13 +32,16 @@ export class ColumnState {
         accountsDb.profiles.get(Number(profileId))
           .then(res => {
               this.columns = res?.columns || [];
+              this.isColumnsLoaded = true;
         });
 
         $effect(() => {
-            const _id = localStorage.getItem('currentProfile');
-            accountsDb.profiles.update(Number(_id), {
-                columns: $state.snapshot(this.syncColumns),
-            });
+            if (this.isColumnsLoaded) {
+                const _id = localStorage.getItem('currentProfile');
+                accountsDb.profiles.update(Number(_id), {
+                    columns: $state.snapshot(this.syncColumns),
+                });
+            }
         });
     }
 
