@@ -608,5 +608,18 @@
   "chat_settings_description": "Les paramètres de réception du chat sont enregistrés sur les serveurs Bluesky pour chaque compte. Les discussions déjà commencées ne sont pas affectées.",
   "chat_allow_all": "Tous",
   "chat_allow_following": "Abonnements",
-  "chat_allow_none": "Personne"
+  "chat_allow_none": "Personne",
+  "send_mention": "Envoyer une mention",
+  "columns": "Colonnes",
+  "mobile_new_ui": "Experimental : Nouvelle interface utilisateur mobile",
+  "bubble_timeline": "Timeline par bulles",
+  "tag_instant_post": "Publier avec tag",
+  "settings_repost_mute": "Republier les silencieux",
+  "settings_repost_mute_description": "Gérer et supprimer la liste",
+  "theme_for_bubble": "Optimisé pour les bulles",
+  "pinned_feed": "Flux épinglés",
+  "topic": "Discussions",
+  "tokmek": "TokMek",
+  "store_column_feed_data": "Conserver le point d'arrêt sur la timeline lors de la fermeture (beta)",
+  "video": "Video"
 }
