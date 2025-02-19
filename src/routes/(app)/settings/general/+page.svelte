@@ -47,6 +47,10 @@ const languages = [
       value: 'ru',
       text: 'Русский',
     },
+    {
+      value: 'fr',
+      text: 'Français',
+    },
 ]
 
 run(() => {
