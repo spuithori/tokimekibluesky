@@ -79,7 +79,7 @@
                 return !column.data.feed.some(item => isDuplicatePost(item, feed));
             }).map(feed => ({...feed, memoryCursor: res.data.cursor}));
 
-            if (newFeed.length === 20 && column.data.feed.length !== 0) {
+            if (newFeed.length === res.data.feed.length && column.data.feed.length !== 0) {
                 const dividerPost = newFeed.slice(-1)[0];
                 dividerPost.isDivider = true;
             }
@@ -275,6 +275,7 @@
                 refresh();
             } catch (e) {
                 console.error(e);
+                isRefreshing = false;
             }
         }
     }
@@ -286,6 +287,7 @@
                     refresh(true);
                 } catch (e) {
                     console.error(e);
+                    isRefreshing = false;
                 }
             }
         }

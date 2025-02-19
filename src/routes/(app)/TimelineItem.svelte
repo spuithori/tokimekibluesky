@@ -19,20 +19,6 @@
   import MediaTimelineItem from "./MediaTimelineItem.svelte";
   import VideoTimelineItem from "$lib/components/post/VideoTimelineItem.svelte";
 
-  interface Props {
-        _agent?: any;
-        data: AppBskyFeedDefs.FeedViewPost;
-        isReplyExpanded?: boolean;
-        isSingle?: boolean;
-        isThread?: boolean;
-        isMedia?: boolean;
-        isProfile?: boolean;
-        isPinned?: boolean;
-        column?: any;
-        index?: number;
-        children?: import('svelte').Snippet;
-    }
-
     let {
         _agent = $agent,
         data,
@@ -45,7 +31,7 @@
         column = undefined,
         index = 0,
         children
-    }: Props = $props();
+    } = $props();
 
     const columnState = getColumnState();
     const junkColumnState = getColumnState(true);
@@ -582,7 +568,7 @@
 {#if (!isHide)}
   {#if (column?.style === 'media')}
     {#if (AppBskyEmbedImages.isView(data?.post?.embed) || AppBskyEmbedImages.isView(data?.post?.embed?.media))}
-      <MediaTimelineItem {data} {_agent}></MediaTimelineItem>
+      <MediaTimelineItem feed={column.data.feed} {index} {data} {_agent}></MediaTimelineItem>
     {/if}
   {:else if (column?.style === 'video')}
     {#if AppBskyEmbedVideo.isView(data?.post?.embed)}

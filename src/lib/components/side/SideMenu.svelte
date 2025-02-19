@@ -1,7 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { settings } from '$lib/stores';
-    import { offset, shift } from 'svelte-floating-ui/dom';
+    import { offset, shift, size } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';
     import { fly } from 'svelte/transition';
     import { AppWindowMac, Bell, CircleArrowUp, Columns3, GanttChartSquare, Heart, MessageCircleMore, Mic, PanelBottomOpen, PanelLeftOpen, Pin, PinOff, RectangleVertical, RefreshCcw, Search, Settings, Square, TrendingUp, UserRound, Clapperboard } from "lucide-svelte";
@@ -38,6 +38,13 @@
                 mainAxis: mainAxis,
             }),
             shift(),
+            size({
+              apply({availableWidth, availableHeight, elements}) {
+                Object.assign(elements.floating.style, {
+                  maxHeight: `${Math.max(0, availableHeight - 16)}px`,
+                });
+              },
+            }),
         ]
     });
 

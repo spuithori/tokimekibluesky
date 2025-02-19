@@ -8,8 +8,8 @@
   "liked_your_post": "がいいね",
   "reposted_your_post": "がリポスト",
   "quoted_your_post": "が引用",
-  "replied_your_post": "が返信したよ",
-  "followed_you": "にフォローされたよ",
+  "replied_your_post": "が返信",
+  "followed_you": "がフォロー",
   "send_placeholder1": "ときめくメッセージを入力",
   "file_size_too_big": "ファイルがでかすぎます",
   "unsupported_file": "アップロードできない形式です",
@@ -682,5 +682,7 @@
   "theme_for_bubble": "バブル型に最適化",
   "pinned_feed": "ピン留めフィード",
   "topic": "トピック",
-  "tokmek": "TokMek"
+  "tokmek": "TokMek",
+  "store_column_feed_data": "アプリ終了後も取得タイムラインを保持(β)",
+  "video": "動画"
 }

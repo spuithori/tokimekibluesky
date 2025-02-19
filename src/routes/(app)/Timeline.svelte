@@ -10,6 +10,8 @@
   import {isReasonRepost, isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import {toast} from "svelte-sonner";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {isAfter} from "date-fns";
+  import {tick} from "svelte";
 
   let {
     index,
@@ -96,6 +98,46 @@
       column.data.feed.splice(index + 1);
   }
 
+  async function handleDividerUp(index, cursor) {
+    try {
+      const res = await _agent.getTimeline({limit: 100, cursor: cursor, algorithm: column.algorithm});
+      const last = column.data.feed[index + 1];
+
+      if (!last) {
+        return false;
+      }
+
+      const feed = res.data.feed.filter(feed => {
+        if (isReasonRepost(feed.reason)) {
+          if (isAfter(feed?.reason?.indexedAt, last?.reason?.indexedAt || last?.post?.indexedAt)) {
+            return true;
+          }
+        } else {
+          if (isAfter(feed?.post?.indexedAt, last?.reason?.indexedAt || last?.post?.indexedAt)) {
+            return true;
+          }
+        }
+
+        return false;
+      }).map(item => {
+        item.memoryCursor = res.data.cursor;
+        return item;
+      });
+
+      column.data.feed.splice(index + 1, 0, ...feed);
+      column.data.feed[index].isDivider = false;
+      column.data.feed[index + feed.length].isDivider = true;
+
+      if (feed.length !== res.data.feed.length) {
+        tick().then(() => {
+          column.data.feed[index + feed.length].isDivider = false;
+        })
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   function isDuplicatePost(oldFeed, newFeed) {
       return newFeed.reason
           ? oldFeed.post.uri === newFeed.post.uri && oldFeed.reason?.indexedAt === newFeed.reason.indexedAt
@@ -180,8 +222,8 @@
         ></TimelineItem>
       {/if}
 
-      {#if data.isDivider}
-        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}}></MoreDivider>
+      {#if data?.isDivider}
+        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={() => {handleDividerUp(index, data.memoryCursor)}} column={column}></MoreDivider>
       {/if}
     {/each}
   </div>

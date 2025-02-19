@@ -91,8 +91,10 @@
       tick().then(() => { editor.focus(); });
 
       if (isMobile) {
-          pushState('', {
+          tick().then(() => {
+            pushState('', {
               showPublish: true
+            });
           });
       }
 

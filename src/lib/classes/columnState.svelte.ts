@@ -3,16 +3,18 @@ import {getContext, setContext} from "svelte";
 import {accountsDb} from "$lib/db";
 import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 import {AppBskyFeedDefs} from "@atproto/api";
+import {settingsState} from "$lib/classes/settingsState.svelte";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
     syncColumns = $derived(this.columns.map(({ scrollElement, data, ...rest }) => ({
         ...rest,
         data: {
-            feed: [],
-            cursor: ''
+            feed: !settingsState?.settings?.markedUnread ? [] : data?.notifications ? [] : data?.feed || [],
+            cursor: !settingsState?.settings?.markedUnread ? '' : data?.notifications ? '' : data?.cursor || '',
         }
     })));
+    isColumnsLoaded = $state(false);
 
     constructor(isJunk: boolean = false) {
         if (isJunk) {
@@ -25,23 +27,22 @@ export class ColumnState {
             return;
         }
 
-        const storageColumns = localStorage.getItem('columns') || JSON.stringify([]);
-        this.columns = JSON.parse(storageColumns);
+        const profileId = localStorage.getItem('currentProfile');
+
+        accountsDb.profiles.get(Number(profileId))
+          .then(res => {
+              this.columns = res?.columns || [];
+              this.isColumnsLoaded = true;
+        });
 
         $effect(() => {
-            const profileId = localStorage.getItem('currentProfile');
-            if (!profileId) {
-                return;
+            if (this.isColumnsLoaded) {
+                const _id = localStorage.getItem('currentProfile');
+                accountsDb.profiles.update(Number(_id), {
+                    columns: $state.snapshot(this.syncColumns),
+                });
             }
-
-            const id = accountsDb.profiles.update(Number(profileId), {
-                columns: $state.snapshot(this.syncColumns),
-            })
-        })
-
-        $effect(() => {
-            localStorage.setItem('columns', JSON.stringify(this.syncColumns));
-        })
+        });
     }
 
     add(column: Column) {

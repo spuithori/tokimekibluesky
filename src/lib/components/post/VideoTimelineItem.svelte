@@ -6,6 +6,7 @@
   import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
   import {sideState} from "$lib/classes/sideState.svelte";
   import {onMount} from "svelte";
+  import {EyeOff} from "lucide-svelte";
 
   let { _agent = $agent, data, feed, index } = $props();
   let isOpen = $state(false);
@@ -41,10 +42,6 @@
 
 {#if (!isHide)}
   <div class="video-item" class:video-item--warn={isWarn && isWarn.for === 'media'} data-index={index} bind:this={el}>
-    {#if isWarn && isWarn.for === 'media'}
-      <div class="video-warn"></div>
-    {/if}
-
     <button class="video-item__toggle" onclick={() => {isOpen = true}} aria-label="Open"></button>
 
     <div class="video-item__thumbnail">
@@ -56,6 +53,12 @@
         <Like post={data.post} {_agent}></Like>
       </div>
     </div>
+
+    {#if (isWarn && isWarn.for === 'media')}
+      <div class="video-warn">
+        <EyeOff color="#fff"></EyeOff>
+      </div>
+    {/if}
   </div>
 
   {#if isOpen}
@@ -107,6 +110,8 @@
       background-color: rgba(0, 0, 0, .8);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
+      display: grid;
+      place-content: center;
   }
 
   .video-hidden {
