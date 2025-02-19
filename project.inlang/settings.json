@@ -2,16 +2,21 @@
   "sourceLanguageTag": "ja",
   "languageTags": [
     "ja",
-    "en",
-    "pt",
-    "ko-kr",
     "bg",
+    "en",
+    "fr-fr",
+    "ko-kr",
+    "pt",
     "zh-cn"
   ],
   "modules": [
     "https://cdn.jsdelivr.net/npm/@inlang/plugin-json@latest/dist/index.js"
   ],
   "plugin.inlang.json": {
-    "pathPattern": "./src/lib/i18n/locales/{languageTag}.json"
+    "pathPattern": "./src/lib/i18n/locales/{languageTag}.json",
+    "variableReferencePattern": [
+      "{",
+      "}"
+    ]
   }
 }
