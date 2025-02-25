@@ -45,7 +45,6 @@
     "@neodrag/svelte": "^2.0.6",
     "@supabase/supabase-js": "^2.20.0",
     "@sveltejs/adapter-vercel": "^5.5.0",
-    "@tanstack/svelte-virtual": "^3.11.2",
     "@tiptap/core": "^2.11.3",
     "@tiptap/extension-document": "^2.11.3",
     "@tiptap/extension-hard-break": "^2.11.3",
@@ -64,9 +63,9 @@
     "embla-carousel-svelte": "^8.5.1",
     "embla-carousel-wheel-gestures": "^8.0.1",
     "emoji-mart": "^5.6.0",
-    "hls.js": "^1.5.17",
+    "hls.js": "^1.5.20",
     "js-sha256": "^0.11.0",
-    "lucide-svelte": "^0.468.0",
+    "lucide-svelte": "^0.475.0",
     "multiformats": "^11.0.2",
     "photoswipe": "^5.4.4",
     "photoswipe-dynamic-caption-plugin": "^1.2.7",
@@ -75,7 +74,8 @@
     "svelte-infinite-loading": "git+https://github.com/spuithori/svelte-infinite-loading.git#v1.3.8-f2",
     "svelte-interactions": "^0.2.0",
     "svelte-sonner": "^0.3.28",
-    "sveltekit-embed": "^0.0.18",
-    "vidstack": "^1.12.12"
+    "sveltekit-embed": "^0.0.20",
+    "vidstack": "^1.12.13",
+    "virtua": "^0.40.0"
   }
 }

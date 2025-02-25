@@ -160,9 +160,7 @@
   <p class="thread-error">{$_('error_thread_notfound')}</p>
 {:else}
   {#if (isJunk)}
-    {#key column.data.feed}
-      <VirtualThreadList {_agent} {column} {rootIndex}></VirtualThreadList>
-    {/key}
+    <VirtualThreadList {_agent} {column} {rootIndex}></VirtualThreadList>
   {:else}
     <div class="timeline thread-wrap" style="--root-client-height: {rootClientHeight}px" >
       <Thread feeds={column.data.feed} depth={0} column={column} {_agent} bind:rootClientHeight={rootClientHeight} scrollTop={scrollTop}></Thread>

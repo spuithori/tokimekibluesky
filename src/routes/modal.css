@@ -146,25 +146,8 @@
         z-index: 1001;
 
         &--virtual {
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-
-            .deck-row {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-
-                &__content {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-
-                    .thread-timeline-scroller {
-                        flex: 1;
-                    }
-                }
-            }
+            overflow-x: hidden;
+            height: 100dvh;
         }
     }
 }
@@ -252,22 +235,6 @@
             &::-webkit-scrollbar-track {
                 background: var(--scroll-bar-bg-color);
                 border-radius: 0;
-            }
-        }
-
-        &--virtual {
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-
-            .deck-row {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-
-                &__content {
-                    flex: 1;
-                }
             }
         }
     }

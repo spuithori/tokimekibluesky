@@ -1,76 +1,55 @@
 <script lang="ts">
-  import {agent} from '$lib/stores';
-  import { createVirtualizer } from '@tanstack/svelte-virtual';
+  import {settings} from '$lib/stores';
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
+  import { WindowVirtualizer, Virtualizer } from "virtua/svelte";
   import {_} from "svelte-i18n";
-  import {tick} from "svelte";
 
-  export let column;
-  export let _agent = $agent;
-  export let rootIndex = column.data.feed.findIndex(_feed => _feed.depth === 0);
-  let virtualListEl: HTMLDivElement
-  let virtualItemEls: HTMLDivElement[] = []
+  let { column, _agent, rootIndex } = $props();
+  let parent = $state();
+  let el: VList = $state();
+  let Virtual = $settings?.design?.layout === 'decks' ? Virtualizer : WindowVirtualizer;
+  let isFirst = $state(true);
 
-  $: virtualizer = createVirtualizer<HTMLDivElement, HTMLDivElement>({
-      count: column.data.feed.length,
-      getScrollElement: () => virtualListEl,
-      estimateSize: () => 186,
-      overscan: 5,
-  })
-
-  $: items = $virtualizer.getVirtualItems()
-
-  $: {
-      if (virtualItemEls.length)
-          virtualItemEls.forEach((el) => $virtualizer.measureElement(el))
-  }
-
-  $: changeRootIndex(column);
-  $: scrollOffset = $virtualizer.scrollOffset;
-
-  function changeRootIndex(column) {
-      const _offset = scrollOffset;
-
-      if (scrollOffset) {
-          tick().then(() => {
-              $virtualizer.scrollToOffset(_offset, {
-                  align: 'start',
-              });
-          })
-
-          return false;
+  $effect(() => {
+    if (el) {
+      if (!rootIndex) {
+        rootIndex = column.data.feed.findIndex(_feed => _feed.depth === 0);
       }
 
-      tick().then(() => {
-          $virtualizer.scrollToIndex(rootIndex, {
-              align: 'start',
-          });
-      })
-  }
+      const offset = el.getScrollOffset();
+
+      if (!isFirst && !offset) {
+        el.scrollToIndex(rootIndex, {
+          align: 'start',
+          offset: -102 + offset,
+        });
+      }
+
+      isFirst = false;
+    }
+  });
 </script>
 
-<div class="thread-timeline-scroller" bind:this={virtualListEl}>
-  <div style="position: relative; height: {$virtualizer.getTotalSize()}px; width: 100%;">
-    <div style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({items[0] ? items[0].start : 0}px);">
-      {#each items as data, index (data.index)}
-        {#if (!column.data.feed[data.index].blocked && !column.data.feed[data.index].notFound)}
+<div class="timeline" class:end-filler={column.data.feed.length > 1} bind:this={parent}>
+  {#if (parent)}
+    <Virtualizer data={column.data.feed} scrollRef={parent.closest('.modal-page-content')} bind:this={el} startMargin={102}>
+      {#snippet children(item, index)}
+        {#if (!column.data.feed[index].blocked && !column.data.feed[index].notFound)}
           <div
-            bind:this={virtualItemEls[index]}
-            data-index={data.index}
-            data-depth={column.data.feed[data.index]?.depth}
-            class="thread-item"
-            class:is-root={!column.data.feed[0]?.post?.record?.reply}
-            class:is-final={column.data.feed[data.index].post.replyCount === 0}
-            class:has-child={column.data.feed[data.index].post.replyCount > 0}
+              data-depth={column.data.feed[index]?.depth}
+              class="thread-item"
+              class:is-root={!column.data.feed[0]?.post?.record?.reply}
+              class:is-final={column.data.feed[index].post.replyCount === 0}
+              class:has-child={column.data.feed[index].post.replyCount > 0}
           >
-            <VirtualThreadItem {column} index={data.index} {_agent}></VirtualThreadItem>
+            <VirtualThreadItem {column} {index} {_agent}></VirtualThreadItem>
 
-            {#if (column.data.feed[data.index]?.depth > 1)}
+            {#if (column.data.feed[index]?.depth > 1)}
               <span class="thread-round-border"></span>
             {/if}
 
-            {#if (column.data.feed[data.index]?.post?.replyCount > 0 && column.data.feed[data.index]?.depth === 6)}
-              <a href={'/profile/' + column.data.feed[data.index].post.author.handle + '/post/' + column.data.feed[data.index].post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
+            {#if (column.data.feed[index]?.post?.replyCount > 0 && column.data.feed[index]?.depth === 6)}
+              <a href={'/profile/' + column.data.feed[index].post.author.handle + '/post/' + column.data.feed[index].post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
             {/if}
           </div>
         {:else}
@@ -78,22 +57,12 @@
             <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
           </article>
         {/if}
-      {/each}
-    </div>
-  </div>
+      {/snippet}
+    </Virtualizer>
+  {/if}
 </div>
 
 <style lang="postcss">
-  .thread-timeline-scroller {
-      position: relative;
-      height: 100%;
-      width: 100%;
-      overflow-y: scroll;
-      contain: strict;
-      padding: 0 16px calc(94vh - 120px - var(--root-client-height, 0px));
-      overflow-anchor: none;
-  }
-
   .thread-item {
       position: relative;
 
@@ -147,4 +116,12 @@
       top: 10px;
       z-index: -1;
   } */
+  
+  .end-filler {
+      &::after {
+          content: '';
+          display: block;
+          height: calc(94vh - 120px - var(--root-client-height, 0px));
+      }
+  }
 </style>

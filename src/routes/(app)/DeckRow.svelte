@@ -792,6 +792,7 @@
             position: sticky !important;
             z-index: 100 !important;
             top: 52px;
+            border-radius: 0;
         }
 
         &--scroll-down {
