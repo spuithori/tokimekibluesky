@@ -205,20 +205,18 @@
   }
 </script>
 
-<div
-    class="timeline timeline--{column.style}"
->
+<div class="timeline timeline--{column.style}">
   <div class:media-list={column.style === 'media'} class:video-list={column.style === 'video'}>
     {#each column.data.feed as data, index (data)}
       {#if (data?.post?.author?.did)}
         <TimelineItem
-                {data}
-                {index}
-                {column}
-                {_agent}
-                isProfile={column.algorithm.type === 'author'}
-                isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
-                isPinned={isReasonPin(data?.reason)}
+            {data}
+            {index}
+            {column}
+            {_agent}
+            isProfile={column.algorithm.type === 'author'}
+            isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
+            isPinned={isReasonPin(data?.reason)}
         ></TimelineItem>
       {/if}
 

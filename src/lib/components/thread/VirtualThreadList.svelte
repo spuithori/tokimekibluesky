@@ -38,6 +38,8 @@
           <div
               data-depth={column.data.feed[index]?.depth}
               class="thread-item"
+              class:thread-item--compact={$settings?.design.postsLayout === 'compact'}
+              class:thread-item--minimum={$settings?.design.postsLayout === 'minimum'}
               class:is-root={!column.data.feed[0]?.post?.record?.reply}
               class:is-final={column.data.feed[index].post.replyCount === 0}
               class:has-child={column.data.feed[index].post.replyCount > 0}
