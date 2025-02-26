@@ -74,7 +74,7 @@
     "svelte-infinite-loading": "git+https://github.com/spuithori/svelte-infinite-loading.git#v1.3.8-f2",
     "svelte-interactions": "^0.2.0",
     "svelte-sonner": "^0.3.28",
-    "sveltekit-embed": "^0.0.20",
+    "sveltekit-embed": "0.0.18",
     "vidstack": "^1.12.13",
     "virtua": "^0.40.0"
   }
