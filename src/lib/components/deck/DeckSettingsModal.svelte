@@ -49,15 +49,6 @@
     let background = $state(column.settings?.background || '');
 
     $effect(() => {
-        if (column.algorithm?.type === 'notification') {
-            column.data = {
-                feed: [],
-                notificationGroup: [],
-                feedPool: [],
-                cursor: '',
-            }
-        }
-
         column.settings = {
             timeline: {
                 hideRepost: hideRepost,
@@ -318,16 +309,6 @@
 
 <div class="deck-settings-wrap deck-settings-wrap--{layout}">
     <div class="deck-settings">
-        <div class="column-heading">
-            <h2 class="column-heading__title">{$_('deck_settings')}</h2>
-
-            <div class="column-heading__buttons column-heading__buttons--right">
-                <button class="column-heading-button" aria-label="Save and close." onclick={handleClickClose}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><polyline points="20 6 9 17 4 12"/></svg>
-                </button>
-            </div>
-        </div>
-
         <div class="deck-settings-content">
             <p class="deck-settings-description">{$_('deck_settings_description')}</p>
 
@@ -671,27 +652,51 @@
 
 <style lang="postcss">
     .deck-settings-wrap {
-        position: relative;
-        top: -52px;
-        background-color: var(--bg-color-1);
-        border-radius: 10px;
+        position: absolute;
+        top: 60px;
+        left: 8px;
+        right: 8px;
+        height: calc(100dvh - 64px);
         padding: 0;
         z-index: 100;
+        background-color: var(--bg-color-1);
+        border: 2px solid var(--primary-color);
+        border-radius: var(--border-radius-4);
+        overflow: hidden;
 
-        .column-heading {
-            z-index: 100;
+        @media (max-width: 767px) {
+            height: calc(100dvh - 64px - 102px);
         }
     }
 
     .deck-settings {
         position: relative;
         z-index: 1;
+        overflow-x: hidden;
+        height: 100%;
+        overscroll-behavior-y: contain;
+
+        @supports (-moz-appearance: none) {
+            scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+            scrollbar-width: thin;
+        }
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--scroll-bar-color);
+        }
+
+        &::-webkit-scrollbar-track {
+            background: var(--scroll-bar-bg-color);
+        }
     }
 
     .deck-settings-description {
         color: var(--text-color-3);
         font-size: 14px;
-        margin-bottom: 15px;
     }
 
     .style-nav {
@@ -775,7 +780,8 @@
     }
 
     .deck-settings-content {
-        padding: 16px;
+        padding: 16px 12px;
+        min-height: calc(100% + 1px);
     }
 
     .deck-column-delete-button {
@@ -800,9 +806,5 @@
         &--info {
             color: var(--link-color);
         }
-    }
-
-    .column-heading {
-        padding-right: 8px;
     }
 </style>
