@@ -290,7 +290,7 @@
             column.data.feedPool = [];
             column.data.notificationGroup = [];
         }
-        handleClickClose();
+        onclose(true);
     }
 
     function popupColumn() {

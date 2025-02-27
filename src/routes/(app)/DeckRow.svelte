@@ -112,11 +112,11 @@
         }, 1000);
     }
 
-    function handleSettingsClick() {
+    function handleSettingsClick(clear = false) {
         isSettingsOpen = !isSettingsOpen;
 
-        if (!isSettingsOpen) {
-            // unique = Symbol();
+        if (clear) {
+            unique = Symbol();
         }
     }
 
