@@ -83,6 +83,21 @@ self.addEventListener('push', (event) => {
     if (event.data) {
         const data = JSON.parse(event.data.text());
 
+        event.waitUntil(
+          clients
+            .matchAll({type: 'window'})
+            .then(windowClients => {
+                if (windowClients.length > 0) {
+                    windowClients.forEach(client => {
+                        client.postMessage({
+                            type: 'notification_event',
+                            data: data,
+                        });
+                    });
+                }
+            })
+        );
+
         event.waitUntil(execNotification(data));
     }
 });

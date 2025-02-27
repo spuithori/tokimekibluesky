@@ -42,6 +42,16 @@
         column.data.feedPool = [];
     }
 
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data.type === 'notification_event') {
+        const eventDid = event.data.data?.did;
+
+        if (eventDid && eventDid === column.did) {
+          putNotifications();
+        }
+      }
+    });
+
     function onupdate(count: number) {
         column.unreadCount = count;
     }
