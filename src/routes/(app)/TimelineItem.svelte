@@ -373,8 +373,8 @@
                 },
                 style: 'default',
                 settings: defaultDeckSettings,
-                did: $agent.did(),
-                handle: $agent.handle(),
+                did: _agent.did(),
+                handle: _agent.handle(),
                 data: {
                     feed: [data],
                     cursor: '',

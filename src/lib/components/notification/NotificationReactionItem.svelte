@@ -8,7 +8,7 @@
     import Images from "../../../routes/(app)/Images.svelte";
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
-    import {didHint, settings} from "$lib/stores";
+    import {didHint, junkAgentDid, settings} from "$lib/stores";
     import FeedEmbed from "$lib/components/feeds/FeedEmbed.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {goto} from "$app/navigation";
@@ -62,6 +62,7 @@
             });
         }
 
+        junkAgentDid.set(_agent.did());
         didHint.set(item.post.author.did);
         goto(uri);
     }

@@ -1,6 +1,7 @@
 <script lang="ts">
     import {agent, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
     import {onDestroy, tick} from "svelte";
+    import { watch } from "runed";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import {playSound} from "$lib/sounds";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -31,6 +32,12 @@
 
     $effect(() => {
         releasePosts(column.data.feed);
+    })
+
+    watch(() => column.unreadCount, () => {
+      if (column.unreadCount) {
+        refresh(true);
+      }
     })
 
     function isDuplicatePost(oldFeed, newFeed) {

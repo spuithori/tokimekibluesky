@@ -7,8 +7,11 @@
   let { column, _agent, rootIndex } = $props();
   let parent = $state();
   let el: VList = $state();
-  let Virtual = $settings?.design?.layout === 'decks' ? Virtualizer : WindowVirtualizer;
+  // let Virtual = $settings?.design?.layout === 'decks' ? Virtualizer : WindowVirtualizer;
   let isFirst = $state(true);
+
+  column.did = _agent.did();
+  column.handle = _agent.handle();
 
   $effect(() => {
     if (el) {
