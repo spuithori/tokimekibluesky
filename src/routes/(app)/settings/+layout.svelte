@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import {_} from 'svelte-i18n';
   import type {LayoutData} from "./$types";
   import {page} from "$app/stores";
   import { ArrowLeft, BellRing, Database, GanttChartSquare, Hand, Heart, Layers, Palette, Rocket, Settings, WholeWord, X } from "lucide-svelte";
+  import { scale } from 'svelte/transition';
 
   interface Props {
     data: LayoutData;
@@ -12,70 +11,10 @@
   }
 
   let { data, children }: Props = $props();
-  let navs = $state([]);
-
-  run(() => {
-      navs = [
-          {
-              name: 'profiles',
-              path: '/settings/profiles',
-              display: $_('settings_profiles'),
-              disabled: false,
-          },
-          {
-              name: 'general',
-              path: '/settings/general',
-              display: $_('settings_general'),
-              disabled: false,
-          },
-          {
-              name: 'design',
-              path: '/settings/design',
-              display: $_('settings_design'),
-              disabled: false,
-          },
-          {
-              name: 'timeline',
-              path: '/settings/timeline',
-              display: $_('settings_timeline'),
-              disabled: false,
-          },
-          {
-              name: 'moderation',
-              path: '/settings/moderation',
-              display: $_('settings_moderation'),
-              disabled: false,
-          },
-          {
-              name: 'keyword-mutes',
-              path: '/settings/keyword-mutes',
-              display: $_('settings_keyword_mutes'),
-              disabled: false,
-          },
-          {
-              name: 'push-notification',
-              path: '/settings/push-notification',
-              display: $_('settings_push_notification'),
-              disabled: false,
-          },
-          {
-              name: 'news',
-              path: '/settings/news',
-              display: $_('settings_news'),
-              disabled: false,
-          },
-          {
-              name: 'about',
-              path: '/settings/about',
-              display: $_('settings_about'),
-              disabled: false,
-          },
-      ]
-  });
 </script>
 
 <div class="settings-modal" class:settings-modal--transparent-bg={$page.url.pathname === '/settings/design'}>
-  <div class="settings-modal-content">
+  <div class="settings-modal-content" in:scale={{duration: 250, opacity: 0, start: 0.98}}>
     <div class="settings-column" data-path="{data.pathname}">
       <div class="settings-toc">
         <div class="column-heading only-mobile">
