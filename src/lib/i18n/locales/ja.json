@@ -592,7 +592,7 @@
   "enable_app_browser": "アプリ内ブラウザーを使用する",
   "column_opacity": "不透明度（実験的）",
   "column_background": "背景テーマ（実験的）",
-  "popup_column": "ポップアップカラム（実験的）",
+  "popup_column": "ポップアップカラム",
   "chat": "チャット",
   "settings_chat": "チャット設定",
   "settings_chat_description": "チャット（DM）の受信許可設定",

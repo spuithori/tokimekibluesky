@@ -592,7 +592,7 @@
   "enable_app_browser": "Use In-App browser",
   "column_opacity": "Opacity (experimental)",
   "column_background": "Background theme (experimental)",
-  "popup_column": "Popup column (experimental)",
+  "popup_column": "Popup column",
   "chat": "Chat",
   "settings_chat": "Chat settings",
   "settings_chat_description": "Chat (DM) incoming settings",

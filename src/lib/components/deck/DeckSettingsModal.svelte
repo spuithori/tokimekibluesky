@@ -401,7 +401,7 @@
                     </dl>
                 {/if}
 
-                {#if column.algorithm?.type !== 'chat'}
+                {#if column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'notification'}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('auto_refresh')}
@@ -791,6 +791,7 @@
         gap: 4px;
         margin-top: 16px;
         color: var(--danger-color);
+        text-align: left;
 
         &:hover {
             text-decoration: underline;

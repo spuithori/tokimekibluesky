@@ -592,7 +592,7 @@
   "enable_app_browser": "在应用内浏览器中使用",
   "column_opacity": "列透明度（实验性）",
   "column_background": "背景主题（实验性）",
-  "popup_column": "浮动列（实验性）",
+  "popup_column": "浮动列",
   "chat": "私信",
   "settings_chat": "私信设置",
   "settings_chat_description": "私信（DM）的接收权限设置",
