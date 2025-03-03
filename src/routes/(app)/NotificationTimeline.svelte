@@ -47,7 +47,7 @@
         const eventDid = event.data.data?.did;
 
         if (eventDid && eventDid === column.did) {
-          putNotifications();
+          setTimeout(putNotifications, 2000);
         }
       }
     });
