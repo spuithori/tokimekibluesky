@@ -48,6 +48,7 @@
               class:thread-item--compact={$settings?.design.postsLayout === 'compact'}
               class:thread-item--minimum={$settings?.design.postsLayout === 'minimum'}
               class:thread-item--threaded={$settings?.design?.threaded}
+              class:thread-item--bubble={$settings?.design?.bubbleTimeline}
               class:is-root={!column.data.feed[0]?.post?.record?.reply}
               class:is-final={column.data.feed[index].post.replyCount === 0}
               class:has-child={column.data.feed[index].post.replyCount > 0}
@@ -139,10 +140,13 @@
               &--0 {
                   display: none;
               }
+          }
+      }
 
-              &--1 {
-
-              }
+      &--bubble {
+          .thread-depth-bar,
+          .thread-round-border {
+              display: none;
           }
       }
   }
