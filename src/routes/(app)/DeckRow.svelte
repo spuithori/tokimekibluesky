@@ -400,7 +400,7 @@
         <div class="deck-heading__buttons">
             {#if isJunk && column.algorithm?.type === 'thread'}
                 <button aria-label="Threaded Mode" class="deck-row-column-add-button" class:deck-row-column-add-button--active={$settings?.design?.threaded} onclick={() => {$settings.design.threaded = !$settings.design.threaded}}>
-                    <TextQuote color="var(--deck-row-settings-button-color, var(--text-color-1))"></TextQuote>
+                    <TextQuote color="var(--deck-row-settings-button-color, var(--primary-color))"></TextQuote>
                 </button>
             {/if}
 
