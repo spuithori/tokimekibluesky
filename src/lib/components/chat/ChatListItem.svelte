@@ -292,5 +292,6 @@
       font-family: var(--ui-font);
       pointer-events: none;
       cursor: default;
+      z-index: 1;
   }
 </style>

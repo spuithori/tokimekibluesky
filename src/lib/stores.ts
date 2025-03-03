@@ -64,6 +64,7 @@ const defaultSettings = {
         mutualDisplay: false,
         mobileNewUi: false,
         bubbleTimeline: false,
+        threaded: false,
     },
     timeline: {
         hideRepost: 'all',

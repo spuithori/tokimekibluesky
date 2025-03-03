@@ -13,6 +13,10 @@
   column.did = _agent.did();
   column.handle = _agent.handle();
 
+  if ($settings.design?.threaded === undefined) {
+    $settings.design.threaded = false;
+  }
+
   $effect(() => {
     if (el) {
       if (!rootIndex) {
@@ -43,6 +47,7 @@
               class="thread-item"
               class:thread-item--compact={$settings?.design.postsLayout === 'compact'}
               class:thread-item--minimum={$settings?.design.postsLayout === 'minimum'}
+              class:thread-item--threaded={$settings?.design?.threaded}
               class:is-root={!column.data.feed[0]?.post?.record?.reply}
               class:is-final={column.data.feed[index].post.replyCount === 0}
               class:has-child={column.data.feed[index].post.replyCount > 0}
@@ -51,6 +56,12 @@
 
             {#if (column.data.feed[index]?.depth > 1)}
               <span class="thread-round-border"></span>
+            {/if}
+
+            {#if $settings?.design?.threaded}
+              {#each {length: column.data.feed[index].depth}, i}
+                <span class="thread-depth-bar thread-depth-bar--{i}"></span>
+              {/each}
             {/if}
 
             {#if (column.data.feed[index]?.post?.replyCount > 0 && column.data.feed[index]?.depth === 6)}
@@ -85,42 +96,56 @@
           }
       }
 
-      /* &[data-depth='1'] {
-          margin-left: 0;
+      &--threaded {
+          &[data-depth='1'] {
+              margin-left: 0;
+          }
+
+          &[data-depth='2'] {
+              margin-left: 32px;
+          }
+
+          &[data-depth='3'] {
+              margin-left: 64px;
+          }
+
+          &[data-depth='4'] {
+              margin-left: 96px;
+          }
+
+          &[data-depth='5'] {
+              margin-left: 128px;
+          }
+
+          &[data-depth='6'] {
+              margin-left: 160px;
+          }
+
+          .thread-round-border {
+              position: absolute;
+              width: 10px;
+              height: 10px;
+              border-bottom: 2px solid var(--border-color-1);
+              border-left: 2px solid var(--border-color-1);
+              border-radius: 0 0 0 10px;
+              left: -10px;
+              top: 24px;
+              z-index: 0;
+          }
       }
 
-      &[data-depth='2'] {
-          margin-left: 32px;
-      }
+      &.is-final {
+          .thread-depth-bar {
+              &--0 {
+                  display: none;
+              }
 
-      &[data-depth='3'] {
-          margin-left: 64px;
-      }
+              &--1 {
 
-      &[data-depth='4'] {
-          margin-left: 96px;
+              }
+          }
       }
-
-      &[data-depth='5'] {
-          margin-left: 128px;
-      }
-
-      &[data-depth='6'] {
-          margin-left: 160px;
-      } */
   }
-
-  /* .thread-round-border {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      border-bottom: 2px solid var(--border-color-1);
-      border-left: 2px solid var(--border-color-1);
-      border-radius: 0 0 0 10px;
-      left: -10px;
-      top: 10px;
-      z-index: -1;
-  } */
   
   .end-filler {
       &::after {
@@ -128,5 +153,39 @@
           display: block;
           height: calc(94vh - 120px - var(--root-client-height, 0px));
       }
+  }
+
+  .thread-depth-bar {
+      &--0 {
+          --bar-top: 10px;
+      }
+
+      &--1 {
+          --bar-position: -10px;
+      }
+
+      &--2 {
+          --bar-position: -42px;
+      }
+
+      &--3 {
+          --bar-position: -74px;
+      }
+
+      &--4 {
+          --bar-position: -106px;
+      }
+
+      &--5 {
+          --bar-position: -138px;
+      }
+
+      position: absolute;
+      left: var(--bar-position);
+      top: var(--bar-top, 0);
+      bottom: 0;
+      background-color: var(--border-color-1);
+      width: 2px;
+      z-index: 0;
   }
 </style>

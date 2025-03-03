@@ -1,7 +1,7 @@
 <script lang="ts">
   import { agent, didHint, labelDefs, labelerSettings, settings } from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
-  import {AppBskyEmbedImages, AppBskyEmbedVideo, AppBskyFeedPost} from "@atproto/api";
+  import {AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedVideo, AppBskyFeedPost} from "@atproto/api";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
@@ -12,6 +12,7 @@
   import {goto} from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
+  import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
 
   let { record, _agent = $agent } = $props();
   let moderateData = contentLabelling(record, _agent.did(), $settings, $labelDefs, $labelerSettings);
@@ -131,6 +132,10 @@
 
     {#if AppBskyEmbedVideo.isView(record?.embeds[0])}
       <EmbedVideo video={record.embeds[0]}></EmbedVideo>
+    {/if}
+
+    {#if (AppBskyEmbedExternal.isView(record?.embeds[0]))}
+      <EmbedExternal external={record.embeds[0].external}></EmbedExternal>
     {/if}
   </div>
 

@@ -3,12 +3,11 @@
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
-    import {agent, agents, intersectingIndex, isChatColumnFront, isColumnModalOpen} from "$lib/stores";
+    import {agent, agents, intersectingIndex, isChatColumnFront, isColumnModalOpen, settings} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
-    import {settings} from "$lib/stores.js";
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
     import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
     import {iconMap} from "$lib/columnIcons";
@@ -25,7 +24,7 @@
     import ListTimeline from "./ListTimeline.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
-    import {Filter, GripVertical, Layers, PictureInPicture2, Settings2, SquarePlus} from "lucide-svelte";
+    import {Filter, GripVertical, Layers, PictureInPicture2, Settings2, SquarePlus, TextQuote} from "lucide-svelte";
     import {modalState} from "$lib/classes/modalState.svelte";
     const { longPressAction } = createLongPress();
 
@@ -399,6 +398,12 @@
         {/if}
 
         <div class="deck-heading__buttons">
+            {#if isJunk && column.algorithm?.type === 'thread'}
+                <button aria-label="Threaded Mode" class="deck-row-column-add-button" class:deck-row-column-add-button--active={$settings?.design?.threaded} onclick={() => {$settings.design.threaded = !$settings.design.threaded}}>
+                    <TextQuote color="var(--deck-row-settings-button-color, var(--text-color-1))"></TextQuote>
+                </button>
+            {/if}
+
             {#if (isJunk && column.algorithm?.type !== 'authorLike')}
                 <button class="deck-row-column-add-button" disabled={isColumnAlreadyAdded} onclick={columnAddFromJunk} aria-label="Add column">
                     <SquarePlus color={isColumnAlreadyAdded ? 'var(--border-color-1)' : 'var(--primary-color)'}></SquarePlus>
@@ -487,7 +492,6 @@
         height: 100%;
         backdrop-filter: var(--deck-content-backdrop-filter);
         border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
-        transition: transform .3s cubic-bezier(0, 0, 0, 1);
         touch-action: initial !important;
 
         @supports (-moz-appearance: none) {
@@ -861,6 +865,12 @@
         height: 40px;
         display: grid;
         place-content: center;
+        border-radius: var(--border-radius-2);
+
+        &--active {
+            background-color: var(--primary-color);
+            --deck-row-settings-button-color: var(--bg-color-1);
+        }
     }
 
     .deck-popup-button {

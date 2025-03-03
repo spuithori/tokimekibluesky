@@ -25,12 +25,9 @@
   let scrollTop: undefined | Number = $state(undefined);
   let rootClientHeight = $state(0);
   let rootIndex = $state();
-  let rootDid;
 
   let isMuted: boolean = $state(false);
   let isMuteDisplay: boolean = $state(false);
-
-  let flatThread = [];
 
   function isMutedIncludes(feed) {
       isMuted = feed.post?.author?.viewer?.muted;
@@ -73,66 +70,160 @@
 
       try {
           const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-          const thread = [ raw.data.thread ];
+          const authorDid = raw.data.thread?.post?.author?.did;
+          const transFormThread = transformThreadView(raw.data.thread);
+          const sortedThread = sortThreadView(transFormThread, authorDid);
 
-          if (thread.length) {
-              flatPost(thread);
-          }
-
-          //flatThread = flatThread.filter(feed => feed.position !== 'authorChild');
-          flatThread = sortThread(flatThread);
-          column.data.feed = flatThread;
+          column.data.feed = sortedThread.flat(Infinity);
           column.data.feed.forEach(feed => {
               if (!feed.blocked) {
                   isMutedIncludes(feed);
               }
           });
-          rootIndex = flatThread.findIndex(feed => feed.depth === 0);
+          rootIndex = sortedThread.flat(Infinity).findIndex(feed => feed.depth === 0);
       } catch (e) {
           console.error(e);
           column.data.feed = 'NotFound';
       }
   }
 
-  function flatPost(thread, depth = 0, position: 'root' | 'parent' | 'child' | 'author' | 'authorChild' | undefined = 'root', beforeDid = undefined) {
-      thread.forEach((feed, index) => {
-          if (feed.parent) {
-              flatPost([feed.parent], depth - 1, 'parent');
-          }
+  function transformThreadView(threadView) {
+    const result = [];
 
-          if (depth === 0) {
-              rootDid = feed.post.author.did;
-          }
-
-          const _feed = {
-              ...feed,
-              depth,
-              position: beforeDid === feed.post?.author?.did && rootDid === feed.post?.author?.did && depth !== 0 ? 'author' : position,
-          }
-          flatThread = [...flatThread, _feed];
-
-          if (feed.replies?.length) {
-              flatPost(feed.replies, depth + 1, _feed.position === 'author' || _feed.position === 'authorChild' ? 'authorChild' : 'child', feed.post.author.did);
-          }
-      })
-  }
-
-  function sortThread(arr) {
-      const result = [];
-      const authorElements = [];
-      const otherElements = [];
-
-      for (const item of arr) {
-          if (item.depth <= 0) {
-              result.push(item);
-          } else if (item.position === 'author') {
-              authorElements.push(item);
-          } else {
-              otherElements.push(item);
-          }
+    function processPost(postObject, depth = 0, isRoot = false) {
+      if (!postObject || !postObject.post) {
+        return;
       }
 
-      return [...result, ...authorElements, ...otherElements];
+      const post = postObject.post;
+
+      if (postObject.parent && isRoot) {
+        processPost(postObject.parent, depth - 1, true);
+      }
+
+      result.push({ depth: depth, post: post });
+
+      if (postObject.replies && postObject.replies.length > 0) {
+        result.push(processReplies(postObject.replies, depth + 1));
+      }
+    }
+
+    function processReplies(repliesArray, depth) {
+      const nestedReplies = [];
+
+      for (const replyObject of repliesArray) {
+        if (!replyObject || !replyObject.post) {
+          continue;
+        }
+
+        const currentReply = [{ depth: depth, post: replyObject.post }];
+        nestedReplies.push(currentReply);
+
+        if (replyObject.replies && replyObject.replies.length > 0) {
+          currentReply.push(processReplies(replyObject.replies, depth + 1));
+        }
+      }
+
+      return nestedReplies;
+    }
+
+    processPost(threadView, 0, true);
+    return result;
+  }
+
+  function sortThreadView(threadViewArray, authorDid) {
+    function comparePosts(a, b, depth) {
+      function getPost(item) {
+        if (Array.isArray(item)) {
+          return item[0]?.post;
+        }
+        return item.post;
+      }
+
+      const postA = getPost(a);
+      const postB = getPost(b);
+
+      if (!postA || !postB) {
+        return 0;
+      }
+
+      if (depth >= 1) {
+        const aIsRootAuthor = postA.author.did === authorDid;
+        const bIsRootAuthor = postB.author.did === authorDid;
+
+        if (aIsRootAuthor && !bIsRootAuthor) {
+          return -1;
+        } else if (!aIsRootAuthor && bIsRootAuthor) {
+          return 1;
+        }
+      }
+
+      if (depth >= 1) {
+        const dateA = new Date(postA.record.createdAt);
+        const dateB = new Date(postB.record.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      }
+
+      return 0;
+    }
+
+    function recursiveSort(array, depth) {
+      if (!Array.isArray(array)) {
+        return array;
+      }
+
+      if (depth <= 0) {
+        const newArray = [];
+        for (const item of array) {
+          if (Array.isArray(item)) {
+            newArray.push(recursiveSort(item, depth + 1));
+          } else {
+            newArray.push(item);
+          }
+        }
+        return newArray;
+
+      } else {
+        const elementsToCompare = [];
+        const newArray = [];
+
+        for (const item of array) {
+          if (Array.isArray(item)) {
+            const sortedInnerArray = recursiveSort(item, depth + 1);
+            elementsToCompare.push(sortedInnerArray);
+            newArray.push(sortedInnerArray);
+          } else {
+            elementsToCompare.push(item);
+            newArray.push(item);
+          }
+        }
+
+        elementsToCompare.sort((a, b) => comparePosts(a, b, depth));
+
+        const finalSortedArray = [];
+
+        for(const sortedItem of elementsToCompare) {
+          const originalIndex = newArray.findIndex(originalItem => {
+
+            if(Array.isArray(sortedItem) && Array.isArray(originalItem)){
+              return sortedItem[0]?.post?.cid === originalItem[0]?.post?.cid;
+            } else if (!Array.isArray(sortedItem) && !Array.isArray(originalItem)) {
+              return sortedItem.post.cid === originalItem.post.cid
+            }
+            return false;
+          })
+
+          if(originalIndex !== -1) {
+            finalSortedArray.push(newArray[originalIndex]);
+            newArray.splice(originalIndex, 1);
+          }
+        }
+
+        return finalSortedArray;
+      }
+    }
+
+    return recursiveSort(threadViewArray, 0);
   }
 
   onMount(async () => {

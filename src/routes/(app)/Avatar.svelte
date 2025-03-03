@@ -76,6 +76,7 @@
 <style lang="postcss">
   .avatar {
       position: relative;
+      z-index: 1;
 
       a {
           background-color: var(--primary-color);
