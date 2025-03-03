@@ -143,7 +143,7 @@
             playSound(column.data.notifications[0]?.indexedAt, column.lastRefresh, sound)
         }
 
-        column.lastRefresh = new Date().toISOString();
+        // column.lastRefresh = new Date().toISOString();
     }
 
     const handleLoadMore = async ({ detail: { loaded, complete } }) => {
