@@ -1,7 +1,7 @@
 <script lang="ts">
   import { agent, didHint, labelDefs, labelerSettings, settings } from "$lib/stores";
   import {format, formatDistanceToNow, parseISO} from "date-fns";
-  import {AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedVideo, AppBskyFeedPost} from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost } from "@atproto/api";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
@@ -13,8 +13,9 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
+  import EmbedRecord from './EmbedRecord.svelte'
 
-  let { record, _agent = $agent } = $props();
+  let { record, _agent = $agent, isChild = false } = $props();
   let moderateData = contentLabelling(record, _agent.did(), $settings, $labelDefs, $labelerSettings);
 
   let isWarn = detectWarn(moderateData, 'contentView');
@@ -52,7 +53,7 @@
           viewer: record.viewer ?? {},
       }
 
-      if (AppBskyEmbedImages.isView(record.embeds[0])) {
+      if (AppBskyEmbedImages.isView(record?.embeds[0])) {
           formattedPost.embed = record.embeds[0];
       }
 
@@ -120,22 +121,28 @@
       </p>
     {/if}
 
-    {#if (AppBskyEmbedImages.isView(record.embeds[0]))}
-      <div class="timeline-images-wrap timeline-images-wrap--record">
-        {#if isWarn && isWarn?.for === 'media'}
-          <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
-        {/if}
+    {#if !isChild}
+      {#if (AppBskyEmbedImages.isView(record?.embeds[0]))}
+        <div class="timeline-images-wrap timeline-images-wrap--record">
+          {#if isWarn && isWarn?.for === 'media'}
+            <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
+          {/if}
 
-        <Images images={record.embeds[0].images} blobs={record?.value?.embed.images} did={record.author.did}></Images>
-      </div>
-    {/if}
+          <Images images={record.embeds[0].images} blobs={record?.value?.embed.images} did={record.author.did}></Images>
+        </div>
+      {/if}
 
-    {#if AppBskyEmbedVideo.isView(record?.embeds[0])}
-      <EmbedVideo video={record.embeds[0]}></EmbedVideo>
-    {/if}
+      {#if AppBskyEmbedVideo.isView(record?.embeds[0])}
+        <EmbedVideo video={record.embeds[0]}></EmbedVideo>
+      {/if}
 
-    {#if (AppBskyEmbedExternal.isView(record?.embeds[0]))}
-      <EmbedExternal external={record.embeds[0].external}></EmbedExternal>
+      {#if (AppBskyEmbedExternal.isView(record?.embeds[0]))}
+        <EmbedExternal external={record.embeds[0].external}></EmbedExternal>
+      {/if}
+
+      {#if (AppBskyEmbedRecord.isView(record?.embeds[0]))}
+        <EmbedRecord record={record.embeds[0].record} {_agent} isChild={true}></EmbedRecord>
+      {/if}
     {/if}
   </div>
 

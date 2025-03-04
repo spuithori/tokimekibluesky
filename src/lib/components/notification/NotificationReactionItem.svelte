@@ -14,7 +14,7 @@
     import {goto} from "$app/navigation";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    let { item = $bindable(), _agent } = $props();
+    let { item, post, _agent } = $props();
 
     const junkColumnState = getColumnState(true);
 
@@ -34,8 +34,8 @@
     function handlePostClick(e) {
         e.preventDefault();
 
-        const rkey = item.post.uri.split('/').slice(-1)[0];
-        const uri = '/profile/' + item.post.author.handle + '/post/' + rkey;
+        const rkey = post.uri.split('/').slice(-1)[0];
+        const uri = '/profile/' + post.author.handle + '/post/' + rkey;
 
         if (uri === location.pathname) {
             return false;
@@ -45,7 +45,7 @@
             junkColumnState.add({
                 id: 'thread_' + rkey,
                 algorithm: {
-                    algorithm: 'at://' + item.post.author.did + '/app.bsky.feed.post/' + rkey,
+                    algorithm: 'at://' + post.author.did + '/app.bsky.feed.post/' + rkey,
                     type: 'thread',
                     name: 'Thread',
                 },
@@ -55,7 +55,7 @@
                 handle: _agent.handle(),
                 data: {
                     feed: [{
-                        post: item.post,
+                        post: post,
                     }],
                     cursor: '',
                 }
@@ -63,7 +63,7 @@
         }
 
         junkAgentDid.set(_agent.did());
-        didHint.set(item.post.author.did);
+        didHint.set(post.author.did);
         goto(uri);
     }
 
@@ -108,14 +108,14 @@
                 </span> {$_(getReasonText(item.notifications.length === 1 ? item.reason : item.reason + '_multiple'))}
             </h2>
 
-            {#if (item.post)}
+            {#if (post)}
                 <div class="notifications-item__content">
-                    <p><a href="{'/profile/' + item.post.author.handle + '/post/' + item.post.uri.split('/').slice(-1)[0]}" onclick={handlePostClick}>{item.post.record.text}</a></p>
+                    <p><a href="{'/profile/' + post.author.handle + '/post/' + post.uri.split('/').slice(-1)[0]}" onclick={handlePostClick}>{post.record.text}</a></p>
                 </div>
 
-                {#if (AppBskyEmbedImages.isView(item.post?.embed) && item.post?.embed)}
+                {#if (AppBskyEmbedImages.isView(post?.embed) && post?.embed)}
                     <div class="notifications-item-images">
-                        <Images images={item.post.embed.images} blobs={item.post.record.embed.images} did={item.post.author.did}></Images>
+                        <Images images={post.embed.images} blobs={post.record.embed.images} did={post.author.did}></Images>
                     </div>
                 {/if}
             {:else}
@@ -130,11 +130,11 @@
 </article>
 
 {#if isLikesOpen}
-    <LikesModal uri={item.post.uri} on:close={() => {isLikesOpen = false}} {_agent}></LikesModal>
+    <LikesModal uri={post.uri} on:close={() => {isLikesOpen = false}} {_agent}></LikesModal>
 {/if}
 
 {#if isRepostsOpen}
-    <RepostsModal uri={item.post.uri} on:close={() => {isRepostsOpen = false}} {_agent}></RepostsModal>
+    <RepostsModal uri={post.uri} on:close={() => {isRepostsOpen = false}} {_agent}></RepostsModal>
 {/if}
 
 <style lang="postcss">

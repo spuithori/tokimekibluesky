@@ -43,14 +43,14 @@ export function bundleByProperties(array: any[], property1: string, property2: s
 
     return bundledArray.map(array => ({
         reason: array[0].reason,
-        post: array[0].post || undefined,
         notifications: array,
         latestIndexedAt: array[0].indexedAt,
         subject: array[0].reasonSubject && array[0].reason !== 'reply' && array[0].reason !==   'quote'
             ? array[0].reasonSubject
             : (array[0].uri && !array[0].uri.includes('app.bsky.graph.follow')
                 ? array[0].uri
-                : undefined)
+                : undefined),
+        postIndex: undefined,
     }));
 }
 
@@ -58,18 +58,21 @@ export async function getNotifications(ctx, putBefore = false, _agent, currentFe
     const _orig = ctx.filter(item => !item?.author?.viewer.muted);
     let bundled = bundleByProperties(_orig, 'reasonSubject', 'reason');
 
-    let subjects = [...new Set(bundled.map(array => array.subject))];
-    subjects = subjects.filter(subject => !currentFeedPool.some(post => post.uri === subject) && subject);
+    let subjects = [...new Set(bundled
+      .map(array => array.subject)
+      .filter(subject => subject !== undefined))]
+      .filter(subject => !currentFeedPool.some(feed => feed.post.uri === subject));
 
     let feedPool = currentFeedPool;
-    if (subjects.length) {
+    if (subjects.length && subjects.length <= 25) {
         const res = await _agent.agent.api.app.bsky.feed.getPosts({uris: subjects});
-        feedPool = [...currentFeedPool, ...res.data.posts];
+        const formattedPosts = res.data.posts.map(post => ({ post: post }));
+        feedPool = [...currentFeedPool, ...formattedPosts];
     }
 
     bundled.forEach(array => {
-        array.post = feedPool.find(post => post.uri === array.subject);
-    })
+        array.postIndex = feedPool.findIndex(feed => feed.post.uri === array.subject);
+    });
     bundled = bundled.sort((a, b) => parseISO(b.latestIndexedAt).getTime() - parseISO(a.latestIndexedAt).getTime());
 
     return {

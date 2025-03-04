@@ -295,7 +295,7 @@
 
         if (column.algorithm.type === 'notification') {
             column.data.feedPool = [];
-            column.data.notificationGroup = [];
+            column.data.notifications = [];
         }
 
         unique = Symbol();

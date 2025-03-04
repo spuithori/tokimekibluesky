@@ -76,7 +76,7 @@ export class ColumnState {
 
         try {
             this.columns.forEach(column => {
-                const feed = column?.data?.feed;
+                const feed = column?.algorithm?.type === 'notification' ? column?.data?.feedPool : column?.data?.feed;
                 if (!feed) return;
 
                 const did = column.did;
@@ -111,7 +111,7 @@ export class ColumnState {
 
         try {
             this.columns.forEach(column => {
-                const feed = column?.data?.feed;
+                const feed = column?.algorithm?.type === 'notification' ? column?.data?.feedPool : column?.data?.feed;
                 if (!feed) return;
 
                 const did = column.did;
