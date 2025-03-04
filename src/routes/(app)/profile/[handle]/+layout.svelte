@@ -61,6 +61,7 @@
             return 'posts';
         }
     });
+    let isEditOpen = $state(false);
 
     $effect(() => {
         getProfile(handle, true);
@@ -96,6 +97,7 @@
     }
 
     function onProfileUpdate() {
+        isEditOpen = false;
         handleRefresh();
     }
 
@@ -159,7 +161,7 @@
       <div class="column-heading">
         {#if profile}
           <div class="column-heading__buttons">
-            <button class="settings-back" on:click={() => {history.back()}}>
+            <button class="settings-back" onclick={() => {history.back()}}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
             </button>
           </div>
@@ -174,7 +176,7 @@
           <div class="column-heading__buttons column-heading__buttons--right">
             {#if (profile.did !== _agent.did() && !isLabeler)}
               {#if !$settings?.general?.disableChat}
-                <button class="profile-heading-button" on:click={chatBegin}>
+                <button class="profile-heading-button" onclick={chatBegin}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-plus"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
                 </button>
               {/if}
@@ -186,7 +188,11 @@
               
             {:else}
               <div class="profile-follow-button profile-follow-button--me">
-                <UserEdit {profile} {_agent} on:update={onProfileUpdate}></UserEdit>
+                <button class="button button--sm" onclick={() => {isEditOpen = !isEditOpen}}>{$_('edit_profile_button')}</button>
+
+                {#if isEditOpen}
+                  <UserEdit {profile} {_agent} onupdate={onProfileUpdate} onclose={() => {isEditOpen = false}}></UserEdit>
+                {/if}
               </div>
 
               <a class="profile-heading-button" href="/search?q=from:{handle}%20">
@@ -194,7 +200,7 @@
               </a>
             {/if}
 
-            <ProfileMenu {handle} {profile} on:refresh={handleRefresh}></ProfileMenu>
+            <ProfileMenu {handle} {profile} onrefresh={handleRefresh}></ProfileMenu>
           </div>
         {/if}
 
@@ -205,7 +211,7 @@
 
       <div class="user-profile-wrap">
         {#if profile}
-          <UserProfile {handle} {profile} {isLabeler} {_agent} on:refresh={handleRefresh}>
+          <UserProfile {handle} {profile} {isLabeler} {_agent} onrefresh={handleRefresh}>
             {#if (profile.did !== _agent.did() && !isLabeler)}
               <div class="user-profile-buttons">
                 <UserFollowButton following="{profile.viewer?.following}" user={profile} {_agent}></UserFollowButton>
