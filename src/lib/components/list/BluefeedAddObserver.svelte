@@ -20,5 +20,5 @@
 </script>
 
 {#if ($bluefeedAddModal.open)}
-  <BluefeedAddModal {_agent} post={$bluefeedAddModal.post} on:close={handleListClose}></BluefeedAddModal>
+  <BluefeedAddModal {_agent} post={$bluefeedAddModal.post} onclose={handleListClose}></BluefeedAddModal>
 {/if}

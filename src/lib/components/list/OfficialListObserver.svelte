@@ -22,5 +22,5 @@
 </script>
 
 {#if ($officialListModal.open)}
-  <OfficialListModal {_agent} {purpose} uri={$officialListModal.uri} on:close={handleListClose}></OfficialListModal>
+  <OfficialListModal {_agent} {purpose} uri={$officialListModal.uri} onclose={handleListClose}></OfficialListModal>
 {/if}

@@ -1,15 +1,13 @@
 <script lang="ts">
     import {agent} from '$lib/stores';
     import {onMount} from "svelte";
-    import {createEventDispatcher} from 'svelte';
     import { toast } from "svelte-sonner";
     import {_} from "svelte-i18n";
     import BluefeedAddItem from "$lib/components/list/BluefeedAddItem.svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
-    const dispatch = createEventDispatcher();
 
-  let { _agent = $agent, post } = $props();
+    let { _agent = $agent, post, onclose } = $props();
 
     let feeds = $state([]);
     let isDisabled = false;
@@ -44,13 +42,9 @@
         ready = true;
         isDisabled = false;
     })
-
-    function close() {
-        dispatch('close');
-    }
 </script>
 
-<Modal title="{$_('add_bluefeed')}" on:close>
+<Modal title="{$_('add_bluefeed')}" {onclose}>
   <p class="modal-description">{_agent.handle()}{$_('add_bluefeed_description_suffix')}</p>
 
   <div class="list-add-list">

@@ -64,7 +64,7 @@
   }
 </script>
 
-<Modal title={$_('bookmark_add_management')} class="bookmark-modal" on:close={save}>
+<Modal title={$_('bookmark_add_management')} class="bookmark-modal" onclose={save}>
   <p class="modal-description">{$_('bookmark_add_description')}</p>
 
   <dl class="bookmark-modal-group">
