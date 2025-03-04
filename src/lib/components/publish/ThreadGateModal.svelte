@@ -52,7 +52,7 @@
     });
 </script>
 
-<Modal title={$_('thread_gate_modal_title')} {onclose}>
+<Modal title={$_('thread_gate_modal_title')} size="small" {onclose}>
     <p class="modal-description">{$_('thread_gate_modal_description')}</p>
 
     <div class="settings-group">

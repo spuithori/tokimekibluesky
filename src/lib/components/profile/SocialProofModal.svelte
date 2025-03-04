@@ -27,7 +27,7 @@
     }
 </script>
 
-<Modal title={$_('social_proof_users')} {onclose}>
+<Modal title={$_('social_proof_users')} size="small" {onclose}>
   <div class="likes">
     {#each followers as actor}
       {#if (!actor.viewer?.muted)}
