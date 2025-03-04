@@ -819,7 +819,7 @@
   </div>
 
   {#if (isDraftModalOpen)}
-    <DraftModal {_agent} onuse={handleDraftUse} on:close={() => {isDraftModalOpen = false}}></DraftModal>
+    <DraftModal {_agent} onuse={handleDraftUse} onclose={() => {isDraftModalOpen = false}}></DraftModal>
   {/if}
 </section>
 

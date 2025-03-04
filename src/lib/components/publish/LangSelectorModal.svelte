@@ -4,6 +4,7 @@
   import {languageMap} from "$lib/langs/languageMap";
   import Modal from "$lib/components/ui/Modal.svelte";
 
+  let { onclose } = $props();
   let langSelector = $state($settings.langSelector || []);
   let disabled = $derived(langSelector.length >= 3);
 
@@ -18,7 +19,7 @@
   })
 </script>
 
-<Modal title={$_('user_language_settings')} on:close>
+<Modal title={$_('user_language_settings')} {onclose}>
   <div class="lang-filter-list">
     <div class="lang-filter-list__item lang-filter-list__item--fullwidth">
       <p class="lang-filter-list__name"><label for="auto">{$_('lang_selector_auto')}</label></p>

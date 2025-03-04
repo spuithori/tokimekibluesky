@@ -2,10 +2,10 @@
   import {_} from 'svelte-i18n';
   import Modal from "$lib/components/ui/Modal.svelte";
 
-  let { labels = [] } = $props();
+  let { labels = [], onclose } = $props();
 </script>
 
-<Modal title="" on:close>
+<Modal title="" {onclose}>
   <div class="label-detail-group">
     {#each labels as label}
       <div class="label-detail">

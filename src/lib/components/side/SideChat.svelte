@@ -79,7 +79,7 @@
 </div>
 
 {#if isModalOpen}
-  <ChatNewModal {_agent} {convos} on:close={() => {isModalOpen = false}}></ChatNewModal>
+  <ChatNewModal {_agent} {convos} onclose={() => {isModalOpen = false}}></ChatNewModal>
 {/if}
 
 <style lang="postcss">

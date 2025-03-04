@@ -25,7 +25,7 @@
 <button class="likes-heading" onclick={() => {isOpen = true}}>{$_('reposted_users')}</button>
 
 {#if (isOpen)}
-    <RepostsModal {uri} {_agent} on:close={handleClose}></RepostsModal>
+    <RepostsModal {uri} {_agent} onclose={handleClose}></RepostsModal>
 {/if}
 
 <style lang="postcss">

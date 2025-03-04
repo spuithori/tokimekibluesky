@@ -1,9 +1,7 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
     import {agents} from '$lib/stores';
-    import { createEventDispatcher } from 'svelte';
     import { toast } from "svelte-sonner";
-    const dispatch = createEventDispatcher();
     import { liveQuery } from 'dexie';
     import {accountsDb, db} from '$lib/db';
     import BookmarkObserver from "$lib/components/bookmark/BookmarkObserver.svelte";
@@ -16,6 +14,8 @@
     import Modal from "$lib/components/ui/Modal.svelte";
     import {LayoutGrid, Pin} from "lucide-svelte";
     import ColumnChoicesPinned from "$lib/components/column/ColumnChoicesPinned.svelte";
+
+    let { onclose } = $props();
 
     const columns = getColumnState();
     let profileId = Number(localStorage.getItem('currentProfile'));
@@ -38,7 +38,7 @@
 
     async function save(isClose = true) {
         try {
-            dispatch('close');
+            onclose();
         } catch (e) {
             console.error(e);
             toast.error('Error: ' + e);
@@ -87,7 +87,7 @@
 </script>
 
 {#if ($agents.size > 0)}
-    <Modal title={$_('column_settings')} on:close={save}>
+    <Modal title={$_('column_settings')} onclose={save}>
         {#if (profile && currentAccount)}
             <div class="column-modal-account">
                 <AgentsSelector _agent={$agents.get(currentAccount)} on:select={handleSelect}></AgentsSelector>

@@ -4,7 +4,7 @@
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
 
-    let { actor, _agent } = $props();
+    let { actor, _agent, onclose } = $props();
     let followers = $state([]);
     let cursor;
 
@@ -27,7 +27,7 @@
     }
 </script>
 
-<Modal title={$_('social_proof_users')} on:close>
+<Modal title={$_('social_proof_users')} {onclose}>
   <div class="likes">
     {#each followers as actor}
       {#if (!actor.viewer?.muted)}

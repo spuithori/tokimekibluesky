@@ -224,7 +224,7 @@
     }
 </script>
 
-<Modal title={$_(purpose === 'app.bsky.graph.defs#curatelist' ? 'official_list_edit' : 'mod_list_edit')} on:close={remove}>
+<Modal title={$_(purpose === 'app.bsky.graph.defs#curatelist' ? 'official_list_edit' : 'mod_list_edit')} onclose={remove}>
   <p class="modal-description">{$_('official_list_add_description')}</p>
 
   {#if ready}

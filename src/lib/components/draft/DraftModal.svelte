@@ -9,7 +9,7 @@
   import type { Draft } from '$lib/db';
   import Modal from "$lib/components/ui/Modal.svelte";
 
-  let { _agent = $agent, onuse } = $props();
+  let { _agent = $agent, onuse, onclose } = $props();
 
   let drafts = $derived(liveQuery(async () => {
       const drafts = await db.drafts
@@ -39,7 +39,7 @@
     }
 </script>
 
-<Modal title={$_('drafts')} on:close>
+<Modal title={$_('drafts')} {onclose}>
   <div class="drafts">
     {#if ($drafts)}
       {#each $drafts as draft}

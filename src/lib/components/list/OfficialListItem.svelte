@@ -108,7 +108,7 @@
           {/if}
 
             {#if (isMembersOpen)}
-                <OfficialListMembersModal members={items} on:close={() => {isMembersOpen = false}}></OfficialListMembersModal>
+                <OfficialListMembersModal members={items} onclose={() => {isMembersOpen = false}}></OfficialListMembersModal>
             {/if}
         {/if}
         {#if list.description}

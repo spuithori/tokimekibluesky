@@ -130,11 +130,11 @@
 </article>
 
 {#if isLikesOpen}
-    <LikesModal uri={post.uri} on:close={() => {isLikesOpen = false}} {_agent}></LikesModal>
+    <LikesModal uri={post.uri} onclose={() => {isLikesOpen = false}} {_agent}></LikesModal>
 {/if}
 
 {#if isRepostsOpen}
-    <RepostsModal uri={post.uri} on:close={() => {isRepostsOpen = false}} {_agent}></RepostsModal>
+    <RepostsModal uri={post.uri} onclose={() => {isRepostsOpen = false}} {_agent}></RepostsModal>
 {/if}
 
 <style lang="postcss">

@@ -5,7 +5,7 @@
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
 
-    let { uri, _agent = $agent } = $props();
+    let { uri, _agent = $agent, onclose } = $props();
     let reposts = $state([]);
     let cursor;
 
@@ -27,7 +27,7 @@
     }
 </script>
 
-<Modal title={$_('reposted_users')} size="small" on:close>
+<Modal title={$_('reposted_users')} size="small" {onclose}>
     <div class="likes">
         {#each reposts as repost }
             {#if (!repost.viewer?.muted)}

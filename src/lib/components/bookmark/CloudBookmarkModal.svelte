@@ -81,7 +81,7 @@
   })
 </script>
 
-<Modal title={$_('bookmark_add_management')} on:close={remove}>
+<Modal title={$_('bookmark_add_management')} onclose={remove}>
   {#if (loading)}
     <LoadingSpinner></LoadingSpinner>
   {:else}

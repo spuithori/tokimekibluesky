@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {createEventDispatcher, onMount} from 'svelte';
     import { _ } from 'svelte-i18n';
     import Modal from "$lib/components/ui/Modal.svelte";
     import {agent} from "$lib/stores";
@@ -9,9 +8,8 @@
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    const dispatch = createEventDispatcher();
 
-    let { _agent = $agent, convos } = $props();
+    let { _agent = $agent, convos, onclose } = $props();
     let search = $state('');
     let actors = $state([]);
     let timer;
@@ -78,7 +76,7 @@
     }
 </script>
 
-<Modal title={$_('start_new_chat')} size="fixed" disableState={true} on:close>
+<Modal title={$_('start_new_chat')} size="fixed" disableState={true} {onclose}>
   <div class="new-chat">
     <div class="new-chat-search">
       <input type="text" class="new-chat-search__input" placeholder={$_('handle_or_name')} bind:value={search} onkeydown={handleKeyDown} autofocus>

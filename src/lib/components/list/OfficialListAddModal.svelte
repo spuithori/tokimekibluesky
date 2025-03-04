@@ -8,7 +8,7 @@
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import OfficialListModal from "$lib/components/list/OfficialListModal.svelte";
 
-  let { _agent = $agent, author } = $props();
+  let { _agent = $agent, author, onclose } = $props();
 
     let lists = $state([]);
     let isDisabled = false;
@@ -72,7 +72,7 @@
     })
 </script>
 
-<Modal title="{$_('list_instant_manage')}" size="small" on:close>
+<Modal title="{$_('list_instant_manage')}" size="small" {onclose}>
   <p class="list-add-author">{author.displayName || author.handle}</p>
 
   <div class="list-add-list">

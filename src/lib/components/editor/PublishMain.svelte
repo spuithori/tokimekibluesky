@@ -682,7 +682,7 @@
 </div>
 
 {#if (isLangSelectorOpen)}
-  <LangSelectorModal on:close={() => {isLangSelectorOpen = false}}></LangSelectorModal>
+  <LangSelectorModal onclose={() => {isLangSelectorOpen = false}}></LangSelectorModal>
 {/if}
 
 {#if (isAltModalOpen)}
@@ -690,11 +690,11 @@
 {/if}
 
 {#if (isThreadGateOpen)}
-  <ThreadGateModal on:close={() => {isThreadGateOpen = false}} {_agent}></ThreadGateModal>
+  <ThreadGateModal onclose={() => {isThreadGateOpen = false}} {_agent}></ThreadGateModal>
 {/if}
 
 {#if (isConfigOpen)}
-  <PublishConfigModal on:close={() => {isConfigOpen = false}}></PublishConfigModal>
+  <PublishConfigModal onclose={() => {isConfigOpen = false}}></PublishConfigModal>
 {/if}
 
 <style lang="postcss">

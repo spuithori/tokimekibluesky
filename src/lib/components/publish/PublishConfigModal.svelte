@@ -2,9 +2,11 @@
   import { _ } from 'svelte-i18n';
   import Modal from "$lib/components/ui/Modal.svelte";
   import {settings} from '$lib/stores';
+
+  let { onclose } = $props();
 </script>
 
-<Modal title={$_('publish_config_modal_title')} size="small" on:close>
+<Modal title={$_('publish_config_modal_title')} size="small" {onclose}>
   <dl class="settings-group">
     <dt class="settings-group__name">
       {$_('lossless_image_upload_mode')}

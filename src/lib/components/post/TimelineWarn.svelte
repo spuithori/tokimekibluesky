@@ -102,7 +102,7 @@
 {/if}
 
 {#if (isInfoOpen)}
-  <LabelDetailModal labels={labels} on:close={() => {isInfoOpen = false}}></LabelDetailModal>
+  <LabelDetailModal labels={labels} onclose={() => {isInfoOpen = false}}></LabelDetailModal>
 {/if}
 
 <style lang="postcss">

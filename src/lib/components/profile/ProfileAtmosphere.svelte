@@ -106,7 +106,7 @@
 </div>
 
 {#if isOpen}
-  <AtmosphereAboutModal on:close={handleClose}></AtmosphereAboutModal>
+  <AtmosphereAboutModal onclose={handleClose}></AtmosphereAboutModal>
 {/if}
 
 <style lang="postcss">

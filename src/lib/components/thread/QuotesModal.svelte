@@ -6,7 +6,7 @@
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
     import {AppBskyEmbedRecord} from "@atproto/api";
 
-    let { uri, _agent = $agent } = $props();
+    let { uri, _agent = $agent, onclose } = $props();
     let quotes = $state([]);
     let cursor;
 
@@ -33,7 +33,7 @@
     }
 </script>
 
-<Modal title={$_('quote')} on:close>
+<Modal title={$_('quote')} {onclose}>
   <div class="quotes">
     {#each quotes as quote}
       {#if !(AppBskyEmbedRecord.isViewDetached(quote?.post?.embed?.record) || AppBskyEmbedRecord.isViewDetached(quote?.post?.embed?.record?.record))}

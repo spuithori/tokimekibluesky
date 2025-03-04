@@ -136,7 +136,7 @@
     });
 </script>
 
-<Modal title={$_('list_add_management')} on:close={close}>
+<Modal title={$_('list_add_management')} onclose={close}>
   <p class="modal-description">{$_('list_add_description')}</p>
 
   <div class="list-modal-column">

@@ -28,7 +28,7 @@
 </button>
 
 {#if (isOpen)}
-  <QuotesModal {uri} {_agent} on:close={handleClose}></QuotesModal>
+  <QuotesModal {uri} {_agent} onclose={handleClose}></QuotesModal>
 {/if}
 
 <style lang="postcss">

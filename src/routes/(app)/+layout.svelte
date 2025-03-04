@@ -346,7 +346,7 @@
     </div>
 
     {#if $isColumnModalOpen}
-      <ColumnModal on:close={handleColumnModalClose}></ColumnModal>
+      <ColumnModal onclose={handleColumnModalClose}></ColumnModal>
     {/if}
 
     {#if $listAddModal.open}

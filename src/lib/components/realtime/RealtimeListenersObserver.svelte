@@ -70,7 +70,7 @@
 </script>
 
 {#if $isRealtimeListenersModalOpen}
-  <Modal title={$_('realtime_listeners_title')} on:close={() => {$isRealtimeListenersModalOpen = false}}>
+  <Modal title={$_('realtime_listeners_title')} onclose={() => {$isRealtimeListenersModalOpen = false}}>
     <div class="realtime-listeners-list">
       {#each clients as [host, socket]}
         {#if socket}

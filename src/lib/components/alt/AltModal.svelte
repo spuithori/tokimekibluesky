@@ -6,7 +6,7 @@
   let { images, close, altFocusPulse } = $props();
 </script>
 
-<Modal title={$_('alt_insert')} size="normal" on:close={() => {close(images)}}>
+<Modal title={$_('alt_insert')} size="normal" onclose={() => {close(images)}}>
   <div class="alt-modal-list">
     {#each images as image}
       <AltModalItem {image} {altFocusPulse}></AltModalItem>

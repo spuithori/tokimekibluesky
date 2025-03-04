@@ -23,7 +23,7 @@
 {/if}
 
 {#if isModalOpen}
-  <SocialProofModal {actor} {_agent} on:close={() => {isModalOpen = false}}></SocialProofModal>
+  <SocialProofModal {actor} {_agent} onclose={() => {isModalOpen = false}}></SocialProofModal>
 {/if}
 
 <style lang="postcss">

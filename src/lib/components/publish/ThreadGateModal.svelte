@@ -9,7 +9,7 @@
     import {List} from "lucide-svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
 
-    let { _agent = $agent } = $props();
+    let { _agent = $agent, onclose } = $props();
     let officialLists = $state([]);
     let _threadGate = $state($threadGate || 'everybody');
     let custom = $state([]);
@@ -52,7 +52,7 @@
     });
 </script>
 
-<Modal title={$_('thread_gate_modal_title')} on:close>
+<Modal title={$_('thread_gate_modal_title')} {onclose}>
     <p class="modal-description">{$_('thread_gate_modal_description')}</p>
 
     <div class="settings-group">

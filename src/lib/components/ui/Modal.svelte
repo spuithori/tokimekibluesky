@@ -1,74 +1,43 @@
 <script lang="ts">
-  import { run, stopPropagation, preventDefault, createBubbler } from 'svelte/legacy';
+  import { X } from 'lucide-svelte';
+  import { scale } from 'svelte/transition';
 
-  const bubble = createBubbler();
-    import { X } from 'lucide-svelte';
-    import {createEventDispatcher, onDestroy, onMount} from 'svelte';
-    import { pushState } from '$app/navigation';
-    import { page } from '$app/stores';
-    import { sineOut } from 'svelte/easing';
-    const dispatch = createEventDispatcher();
+  let { title, size = 'normal', onclose, children } = $props();
+  const duration = 150;
+  let el = $state();
 
-  interface Props {
-    title: any;
-    size?: string;
-    disableState?: boolean;
-    children?: import('svelte').Snippet;
+  function open() {
+    el.showModal();
   }
 
-  let {
-    title,
-    size = 'normal',
-    children
-  }: Props = $props();
-    const duration = 150;
-    let el = $state();
-
-    function close() {
-        dispatch('close');
+  $effect.pre(() => {
+    if (el) {
+      open();
     }
+  });
 
-    function open() {
-        el.showModal();
+  function handleClick (event) {
+    const rect = el.getBoundingClientRect();
+    const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height && rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+
+    if (!isInDialog) {
+      onclose();
     }
-
-    function back () {
-        dispatch('close');
-    }
-
-    function modalTransition(node: HTMLElement, params) {
-        const sd = 1 - 0.95;
-
-        return {
-            delay: params.delay || 0,
-            duration: params.duration || duration,
-            easing: params.easing || sineOut,
-            css: (t, u) => `
-              --modal-transition-scale: scale(${1 - sd * u});
-              --modal-transition-opacity: ${t};
-            `
-        };
-    }
-
-    $effect.pre(() => {
-        if (el) {
-            open();
-        }
-    });
+  }
 </script>
 
 <dialog
-        class="v2-modal v2-modal--{size}"
-        bind:this={el}
-        onclick={stopPropagation(back)}
-        oncancel={preventDefault(back)}
-        onoutroend={close}
+  class="v2-modal v2-modal--{size}"
+  bind:this={el}
+  in:scale={{duration: 250, opacity: 0, start: 0.98}}
+  onclick={handleClick}
+  {onclose}
 >
-  <div class="v2-modal__inner" onclick={stopPropagation(bubble('click'))}>
+  <div class="v2-modal__inner">
     <div class="modal-heading">
       <h2 class="modal-title modal-title--smaller">{title}</h2>
 
-      <button class="modal-close-button" onclick={back} aria-label="Close">
+      <button class="modal-close-button" onclick={onclose} aria-label="Close">
         <X color="var(--text-color-1)"></X>
       </button>
     </div>

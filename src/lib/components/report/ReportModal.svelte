@@ -1,16 +1,15 @@
 <script lang="ts">
     import { agent, reportModal } from '$lib/stores';
-    import {createEventDispatcher} from 'svelte';
     import { toast } from 'svelte-sonner';
     import { _ } from 'svelte-i18n';
     import Modal from "$lib/components/ui/Modal.svelte";
-    const dispatch = createEventDispatcher();
 
+    let { onclose } = $props();
     let reason = $state('com.atproto.moderation.defs#reasonSpam');
     let reasonText = $state('');
 
     if (!$reportModal.data) {
-        dispatch('close');
+        onclose();
     }
 
     const reasons = [
@@ -59,18 +58,14 @@
             })
 
             toast.success($_('report_send_success'));
-            dispatch('close');
+            onclose();
         } catch (e) {
             toast.error('Error: ' + e);
         }
     }
-
-    async function cancel () {
-        dispatch('close');
-    }
 </script>
 
-<Modal title="{$_('report_title')}" size="large" on:close>
+<Modal title="{$_('report_title')}" size="large" {onclose}>
     <div class="report-modal-group">
         <h3 class="report-modal-group__title">{$_('report_reason')}</h3>
         <p class="report-modal-group__name">{$_('report_reason_description')}</p>
