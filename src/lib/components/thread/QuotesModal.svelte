@@ -33,7 +33,7 @@
     }
 </script>
 
-<Modal title={$_('quote')} {onclose}>
+<Modal title={$_('quote')} size="small" {onclose}>
   <div class="quotes">
     {#each quotes as quote}
       {#if !(AppBskyEmbedRecord.isViewDetached(quote?.post?.embed?.record) || AppBskyEmbedRecord.isViewDetached(quote?.post?.embed?.record?.record))}

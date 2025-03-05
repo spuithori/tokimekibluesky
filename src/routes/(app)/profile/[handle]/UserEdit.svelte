@@ -1,7 +1,7 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import { scale } from 'svelte/transition';
     import imageCompression from 'browser-image-compression';
+    import Modal from "$lib/components/ui/Modal.svelte";
 
     let { profile, _agent, onclose, onupdate } = $props();
 
@@ -21,10 +21,6 @@
     let bannerInput = $state();
     let avatarBase64 = $state('');
     let bannerBase64 = $state('');
-
-    function editToggle() {
-        onclose();
-    }
 
     async function onAvatarSelected(e) {
         const file = e.target?.files[0] || undefined;
@@ -118,106 +114,82 @@
     }
 </script>
 
-<div class="modal modal--edit">
-  <div class="modal__content" in:scale={{duration: 250, opacity: 0, start: 0.98}}>
-    <div class="edit-avatar">
-      <dl class="input-group">
-        <dt class="input-group__name input-group__name--show">
-          {$_('edit_avatar')}
-        </dt>
+<Modal title={$_('edit_profile_button')} size="small" {onclose}>
+  <div class="edit-avatar">
+    <dl class="input-group">
+      <dt class="input-group__name input-group__name--show">
+        {$_('edit_avatar')}
+      </dt>
 
-        <dd class="input-group__content">
-          <button class="edit-avatar-input-wrap" onclick={() => {avatarInput.click()}}>
-            <span class="edit-avatar-previous" style="background-image: url({currentAvatar})"></span>
+      <dd class="input-group__content">
+        <button class="edit-avatar-input-wrap" onclick={() => {avatarInput.click()}}>
+          <span class="edit-avatar-previous" style="background-image: url({currentAvatar})"></span>
 
-            {#if (avatarBase64)}
-              <img src="{avatarBase64}" alt="" class="edit-avatar-preview">
-            {/if}
+          {#if (avatarBase64)}
+            <img src="{avatarBase64}" alt="" class="edit-avatar-preview">
+          {/if}
 
-            <input type="file" accept="image/jpeg, image/png" bind:this={avatarInput} onchange={onAvatarSelected} class="edit-input">
-          </button>
-        </dd>
-      </dl>
-    </div>
-
-    <div class="edit-banner">
-      <dl class="input-group">
-        <dt class="input-group__name input-group__name--show">
-          {$_('edit_banner')}
-        </dt>
-
-        <dd class="input-group__content">
-          <button class="edit-banner-input-wrap" onclick={() => {bannerInput.click()}}>
-            <span class="edit-banner-previous" style="background-image: url({currentBanner})"></span>
-
-            {#if (bannerBase64)}
-              <img src="{bannerBase64}" alt="" class="edit-banner-preview">
-            {/if}
-
-            <input type="file" accept="image/jpeg, image/png" bind:this={bannerInput} onchange={onBannerSelected} class="edit-input">
-          </button>
-        </dd>
-      </dl>
-    </div>
-
-    <div class="edit-wrap">
-      <dl class="input-group">
-        <dt class="input-group__name input-group__name--show">
-          <label for="display_name">{$_('edit_display_name')}</label>
-        </dt>
-
-        <dd class="input-group__content">
-          <input class="input-group__input" type="text" name="displayName" id="display_name" placeholder="" bind:value="{displayName}" required />
-        </dd>
-      </dl>
-
-      <dl class="input-group">
-        <dt class="input-group__name input-group__name--show">
-          <label for="description">{$_('edit_description')}</label>
-        </dt>
-
-        <dd class="input-group__content">
-          <textarea name="description" id="description" cols="30" rows="10" bind:value={description}  required></textarea>
-        </dd>
-      </dl>
-    </div>
-
-    <div class="edit-buttons">
-      <button class="button" onclick={submit} disabled={isSubmitDisabled}>{submitButtonText}</button>
-      <button class="button button--border" onclick={editToggle}>{$_('edit_cancel_button')}</button>
-    </div>
+          <input type="file" accept="image/jpeg, image/png" bind:this={avatarInput} onchange={onAvatarSelected} class="edit-input">
+        </button>
+      </dd>
+    </dl>
   </div>
-</div>
+
+  <div class="edit-banner">
+    <dl class="input-group">
+      <dt class="input-group__name input-group__name--show">
+        {$_('edit_banner')}
+      </dt>
+
+      <dd class="input-group__content">
+        <button class="edit-banner-input-wrap" onclick={() => {bannerInput.click()}}>
+          <span class="edit-banner-previous" style="background-image: url({currentBanner})"></span>
+
+          {#if (bannerBase64)}
+            <img src="{bannerBase64}" alt="" class="edit-banner-preview">
+          {/if}
+
+          <input type="file" accept="image/jpeg, image/png" bind:this={bannerInput} onchange={onBannerSelected} class="edit-input">
+        </button>
+      </dd>
+    </dl>
+  </div>
+
+  <div class="edit-wrap">
+    <dl class="input-group">
+      <dt class="input-group__name input-group__name--show">
+        <label for="display_name">{$_('edit_display_name')}</label>
+      </dt>
+
+      <dd class="input-group__content">
+        <input class="input-group__input" type="text" name="displayName" id="display_name" placeholder="" bind:value="{displayName}" required />
+      </dd>
+    </dl>
+
+    <dl class="input-group">
+      <dt class="input-group__name input-group__name--show">
+        <label for="description">{$_('edit_description')}</label>
+      </dt>
+
+      <dd class="input-group__content">
+        <textarea name="description" id="description" cols="30" rows="10" bind:value={description}  required></textarea>
+      </dd>
+    </dl>
+  </div>
+
+  <div class="edit-buttons">
+    <button class="button" onclick={submit} disabled={isSubmitDisabled}>{submitButtonText}</button>
+    <button class="button button--border" onclick={onclose}>{$_('edit_cancel_button')}</button>
+  </div>
+</Modal>
 
 <style lang="postcss">
-  .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, .6);
-      z-index: 1000;
-      display: grid;
-      place-items: center;
-
-      &__content {
-          width: calc(100% - 20px);
-          height: max-content;
-          max-height: 90vh;
-          max-width: max-content;
-          overflow: auto;
-          overscroll-behavior-y: none;
-          background-color: var(--bg-color-1);
-          border-radius: 6px;
-          padding: 30px;
-      }
-  }
-
   .edit-buttons {
       display: flex;
-      justify-content: center;
-      gap: 20px;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-top: 32px;
   }
 
   .input-group {
