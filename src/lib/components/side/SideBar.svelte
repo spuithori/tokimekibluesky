@@ -43,14 +43,6 @@
         const activeElement = document.activeElement?.tagName;
         const isInactive = (activeElement === 'BODY' || activeElement === 'BUTTON');
 
-        if (event.key === String('d') && isInactive) {
-            if ($settings.design.layout === 'decks') {
-                $settings.design.layout = 'default';
-            } else {
-                $settings.design.layout = 'decks';
-            }
-        }
-
         columnState.columns.forEach((column, index) => {
             const i = index + 1;
 
