@@ -43,6 +43,7 @@
     "@giphy/svelte-components": "^1.1.0",
     "@ipld/dag-cbor": "^9.2.2",
     "@neodrag/svelte": "2.0.6",
+    "@number-flow/svelte": "^0.3.3",
     "@supabase/supabase-js": "^2.20.0",
     "@sveltejs/adapter-vercel": "^5.5.0",
     "@tiptap/core": "^2.11.3",

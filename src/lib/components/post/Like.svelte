@@ -4,6 +4,7 @@
   import { _ } from 'svelte-i18n';
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {Heart, Star} from "lucide-svelte";
+  import NumberFlow from '@number-flow/svelte';
 
   interface Props {
     _agent?: any;
@@ -22,9 +23,11 @@
   const columnState = getColumnState(false);
   const junkColumnState = getColumnState(true);
   let isProcessed: boolean = $state(false);
+  let isNumberTransition: boolean = $state(false);
 
   export async function vote(cid: string, uri: string, viewer) {
       isProcessed = true;
+      isNumberTransition = true;
 
       try {
           const like = await _agent.setVote(cid, uri, viewer || '');
@@ -47,6 +50,7 @@
       } catch (e) {
           toast.error($_('failed_to_like'));
           console.error(e);
+          isNumberTransition = false;
       }
 
       isProcessed = false;
@@ -58,7 +62,7 @@
     class:timeline-reaction__item--is-tok={isTok}
     class:timeline-reaction__item--active={post.viewer?.like}
     class:timeline-reaction__item--transition={isProcessed}
-    disabled="{isProcessed}"
+    disabled={isProcessed}
     onclick={() => vote(post.cid, post.uri, post.viewer?.like)}
 >
   <span class="timeline-reaction__icon" aria-label="いいね">
@@ -70,7 +74,13 @@
   </span>
 
   {#if showCounts && post.likeCount}
-    <span class="timeline-reaction__count">{ post.likeCount || 0 }</span>
+    <span class="timeline-reaction__count">
+      {#if isNumberTransition}
+        <NumberFlow value={post.likeCount} onanimationsfinish={() => {isNumberTransition = false}}></NumberFlow>
+      {:else}
+        {post.likeCount}
+      {/if}
+    </span>
   {/if}
 </button>
 

@@ -5,6 +5,7 @@
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {Repeat} from "lucide-svelte";
+  import NumberFlow from '@number-flow/svelte';
 
   interface Props {
     _agent?: any;
@@ -23,7 +24,7 @@
   const junkColumnState = getColumnState(true);
   let isDialogRender = $state(false);
   let isProcessed: boolean = $state(false);
-  let isTransition: boolean = $state(false);
+  let isNumberTransition: boolean = $state(false);
 
   if ($settings.general?.repostConfirmSkip === undefined) {
       $settings.general.repostConfirmSkip = false;
@@ -31,7 +32,7 @@
 
   export async function repost(cid: string, uri: string, viewer) {
       isProcessed = true;
-      isTransition = true;
+      isNumberTransition = true;
 
       try {
           const repost = await _agent.setRepost(cid, uri, viewer || '');
@@ -56,9 +57,12 @@
       } catch (e) {
           toast.error($_('failed_to_repost'));
           console.error(e);
+          isNumberTransition = false;
       }
 
-      isProcessed = false;
+      setTimeout(() => {
+        isProcessed = false;
+      }, 500);
   }
 
   function repostStep() {
@@ -71,17 +75,24 @@
 </script>
 
 <button
-        class="timeline-reaction__item timeline-reaction__item--repost"
-        class:timeline-reaction__item--active={post.viewer?.repost}
-        class:timeline-reaction__item--transition={isTransition}
-        disabled="{isProcessed}"
-        onclick={repostStep}>
-  <span class="timeline-reaction__icon" onanimationend={() => {isTransition = false}} aria-label="Repost">
+    class="timeline-reaction__item timeline-reaction__item--repost"
+    class:timeline-reaction__item--active={post.viewer?.repost}
+    class:timeline-reaction__item--transition={isProcessed}
+    disabled={isProcessed}
+    onclick={repostStep}
+>
+  <span class="timeline-reaction__icon" aria-label="Repost">
     <Repeat size="16" color="var(--timeline-reaction-repost-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></Repeat>
   </span>
 
   {#if showCounts && post.repostCount}
-    <span class="timeline-reaction__count">{ post.repostCount || 0 }</span>
+    <span class="timeline-reaction__count">
+      {#if isNumberTransition}
+        <NumberFlow value={post.repostCount} onanimationsfinish={() => {isNumberTransition = false}}></NumberFlow>
+      {:else}
+        {post.repostCount}
+      {/if}
+    </span>
   {/if}
 </button>
 
