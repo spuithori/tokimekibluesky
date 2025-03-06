@@ -2,22 +2,20 @@
     import {agent} from '$lib/stores';
     import {onMount} from "svelte";
     import ListMember from "./ListMember.svelte";
-    import {createEventDispatcher} from 'svelte';
     import { toast } from "svelte-sonner";
     import {_} from "svelte-i18n";
     import spinner from "$lib/images/loading.svg";
     import OfficialListMenu from "$lib/components/list/OfficialListMenu.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
-    const dispatch = createEventDispatcher();
 
     let isDisabled = $state(false);
-  interface Props {
-    _agent?: any;
-    purpose?: string;
-    uri?: string;
-  }
+    interface Props {
+      _agent?: any;
+      purpose?: string;
+      uri?: string;
+    }
 
-  let { _agent = $agent, purpose = 'app.bsky.graph.defs#curatelist', uri = $bindable('') }: Props = $props();
+    let { _agent = $agent, purpose = 'app.bsky.graph.defs#curatelist', uri = $bindable(''), onclose }: Props = $props();
     let name = $state('new list');
     let members = $state([]);
     let existingMembers = $state([]);
@@ -188,16 +186,12 @@
             }
 
             isDisabled = false;
-            dispatch('close');
+            onclose();
         } catch(e) {
             isDisabled = false;
             console.error(e);
             toast.error(e.message());
         }
-    }
-
-    function remove() {
-        dispatch('close');
     }
 
     function exporting() {
@@ -224,7 +218,7 @@
     }
 </script>
 
-<Modal title={$_(purpose === 'app.bsky.graph.defs#curatelist' ? 'official_list_edit' : 'mod_list_edit')} onclose={remove}>
+<Modal title={$_(purpose === 'app.bsky.graph.defs#curatelist' ? 'official_list_edit' : 'mod_list_edit')} {onclose}>
   <p class="modal-description">{$_('official_list_add_description')}</p>
 
   {#if ready}
@@ -300,7 +294,7 @@
 
   <div class="list-modal-close">
     <button class="button button--sm" onclick={save} disabled={isDisabled}>{$_('save_button')}</button>
-    <button class="button button--sm button--border button--danger" onclick={remove}>{$_('cancel')}</button>
+    <button class="button button--sm button--border button--danger" onclick={onclose}>{$_('cancel')}</button>
   </div>
 </Modal>
 
