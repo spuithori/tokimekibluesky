@@ -3,6 +3,7 @@
   import {agent, settings} from '$lib/stores';
   import {page} from '$app/stores';
   import {format, parseISO} from 'date-fns';
+  import { fade } from 'svelte/transition';
   import {BskyAgent, RichText} from '@atproto/api';
   import {Eye, EyeOff, Handshake} from 'lucide-svelte';
   import SocialProof from "$lib/components/profile/SocialProof.svelte";
@@ -129,11 +130,11 @@
       <p class="profile-muted">{$_('muting_this_user')}</p>
     {/if}
 
-    {#if (profile.banner)}
-      <div class="profile-banner">
-        <img src="{profile.banner}" alt="" width="740" height="247">
-      </div>
-    {/if}
+    <div class="profile-banner">
+      {#if (profile.banner)}
+        <img in:fade={{ duration: 200 }} src="{profile.banner}" alt="" width="740" height="247">
+      {/if}
+    </div>
 
     <div class="profile-grid" class:profile-grid--disable-atmos={$settings?.general?.disableAtmosphere} bind:clientWidth={gridWidth}>
       <div class="embla" use:emblaCarouselSvelte={{ options: slideOptions, plugins: [] }}>
@@ -232,16 +233,19 @@
         border-radius: 10px;
         overflow: hidden;
         margin-bottom: 16px;
+        aspect-ratio: 740 / 247;
+        background-color: var(--bg-color-2);
 
         @media (max-width: 767px) {
             border-radius: 10px;
             margin-bottom: 20px;
         }
-    }
 
-    .profile-banner img {
-        width: 100%;
-        height: auto;
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     }
 
     .profile-column {
