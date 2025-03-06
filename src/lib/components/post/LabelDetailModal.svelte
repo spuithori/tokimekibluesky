@@ -5,7 +5,7 @@
   let { labels = [], onclose } = $props();
 </script>
 
-<Modal title="" {onclose}>
+<Modal title="" size="small" {onclose}>
   <div class="label-detail-group">
     {#each labels as label}
       <div class="label-detail">

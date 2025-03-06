@@ -44,7 +44,7 @@
     })
 </script>
 
-<Modal title="{$_('add_bluefeed')}" {onclose}>
+<Modal title="{$_('add_bluefeed')}" size="small" {onclose}>
   <p class="modal-description">{_agent.handle()}{$_('add_bluefeed_description_suffix')}</p>
 
   <div class="list-add-list">
