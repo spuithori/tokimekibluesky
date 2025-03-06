@@ -24,7 +24,7 @@
 
     <div class="user-item__content">
       <h3 class="user-item__title">{user.displayName || user.handle}</h3>
-      <p class="user-item__text">{user.handle}</p>
+      <p class="user-item__text">@{user.handle}</p>
 
       {#if (user.viewer?.followedBy && $settings?.design?.mutualDisplay)}
         <p class="profile-relationship-by">
@@ -47,7 +47,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
+      padding: 12px 0;
       border-bottom: 1px solid var(--border-color-1);
       gap: 15px;
 
@@ -70,15 +70,21 @@
       }
   }
 
+  .user-item__title {
+      font-size: 16px;
+  }
+
   .user-item__user {
       display: grid;
-      grid-template-columns: 60px 1fr;
+      grid-template-columns: 56px 1fr;
       align-items: center;
-      gap: 15px;
+      gap: 12px;
   }
 
   .user-item__text {
-      line-height: 1.3;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-color-3);
   }
 
   .user-item__buttons {
