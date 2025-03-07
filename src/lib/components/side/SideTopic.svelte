@@ -1,7 +1,6 @@
 <script>
-    import {_} from "svelte-i18n";
     import { agent, settings } from '$lib/stores';
-    import InfiniteLoading from "svelte-infinite-loading";
+    import Infinite from "$lib/components/utils/Infinite.svelte";
     let cursor = '';
     let topics = $state([]);
     let renderedTopics = $derived.by(() => {
@@ -21,7 +20,7 @@
     });
     let _agent = $agent;
 
-    async function handleLoadMore({ detail: { loaded, complete } }) {
+    async function handleLoadMore(loaded, complete) {
         try {
             let raw = await _agent.agent.api.app.bsky.unspecced.getTrendingTopics({ limit: 20 }, {
                 headers: {
@@ -49,14 +48,7 @@
     </div>
   {/each}
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    {#snippet noMore()}
-      <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    {/snippet}
-    {#snippet noResults()}
-      <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    {/snippet}
-  </InfiniteLoading>
+  <Infinite oninfinite={handleLoadMore}></Infinite>
 </div>
 
 <style lang="postcss">

@@ -1,10 +1,9 @@
 <script>
   import { page } from '$app/stores';
   import { agent } from '$lib/stores';
-  import InfiniteLoading from "svelte-infinite-loading";
   import UserItem from "../../profile/[handle]/UserItem.svelte";
-  import {_} from "svelte-i18n";
   import {tick} from "svelte";
+  import Infinite from "$lib/components/utils/Infinite.svelte";
 
   let feeds = [];
   let cursor = 0;
@@ -22,7 +21,7 @@
       }
   }
 
-  async function handleLoadMore({ detail: { loaded, complete } }) {
+  async function handleLoadMore(loaded, complete) {
       try {
           let raw = await $agent.agent.api.app.bsky.actor.searchActors({term: $page.url.searchParams.get('q') || '', limit: 20, cursor: cursor});
           cursor = raw.data.cursor;
@@ -50,18 +49,7 @@
         <UserItem user={user}></UserItem>
       {/each}
 
-      <InfiniteLoading on:infinite={handleLoadMore}>
-          {#snippet noMore()}
-              <p  class="infinite-nomore">
-                {$_('no_more')}
-            </p>
-            {/snippet}
-          {#snippet noResults()}
-              <p  class="infinite-nomore">
-                {$_('no_results_search')}
-            </p>
-            {/snippet}
-      </InfiniteLoading>
+      <Infinite oninfinite={handleLoadMore}></Infinite>
     </div>
   {:else}
     <div class="search-empty">

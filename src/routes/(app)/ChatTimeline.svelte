@@ -1,10 +1,10 @@
 <script lang="ts">
     import {agent, chatPulse, latestRevMap} from '$lib/stores';
-    import InfiniteLoading from 'svelte-infinite-loading';
     import ChatItem from "$lib/components/chat/ChatItem.svelte";
     import ChatPublish from "$lib/components/chat/ChatPublish.svelte";
     import {tick} from "svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
+    import Infinite from "$lib/components/utils/Infinite.svelte";
 
     let { column = $bindable(), index, _agent = $agent, onrefresh, unique } = $props();
     let firstLoad = true;
@@ -28,7 +28,7 @@
         }
     }
 
-    const handleLoadMore = async ({ detail: { loaded, complete } }) => {
+    const handleLoadMore = async (loaded, complete) => {
         try {
             const res = await _agent.agent.api.chat.bsky.convo.getMessages({cursor: column.data.cursor, limit: 50, convoId: column.algorithm.id}, {
                 headers: {
@@ -98,14 +98,7 @@
 
 <div class="chat">
   {#key unique}
-    <InfiniteLoading on:infinite={handleLoadMore} direction="top">
-      {#snippet noMore()}
-          <p  class="infinite-nomore"></p>
-        {/snippet}
-      {#snippet noResults()}
-          <p  class="infinite-nomore"></p>
-        {/snippet}
-    </InfiniteLoading>
+    <Infinite oninfinite={handleLoadMore}></Infinite>
   {/key}
 
   {#each column.data.feed as data, index (data)}

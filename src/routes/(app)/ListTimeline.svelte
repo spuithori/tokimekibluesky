@@ -1,14 +1,13 @@
 <script lang="ts">
     import { agent, userLists } from '$lib/stores';
     import TimelineItem from './TimelineItem.svelte';
-    import InfiniteLoading from 'svelte-infinite-loading';
     import { parseISO } from 'date-fns';
+    import Infinite from "$lib/components/utils/Infinite.svelte";
 
     let { _agent = $agent, column = $bindable(), index, unique } = $props();
 
     let actors = [];
     let cursors = [];
-    let il = $state();
 
     let feedPool = [];
     let feed = [];
@@ -24,7 +23,7 @@
         })
     })
 
-    const handleLoadMore = async ({ detail: { loaded, complete } }) => {
+    const handleLoadMore = async (loaded, complete) => {
         const ress = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm, actors: actors, count: count});
 
         ress.forEach((res, index) => {
@@ -94,11 +93,7 @@
       {/each}
     </div>
 
-    <InfiniteLoading on:infinite={handleLoadMore} bind:this={il}>
-      {#snippet noMore()}
-        <p  class="infinite-nomore">もうないよ</p>
-      {/snippet}
-    </InfiniteLoading>
+    <Infinite oninfinite={handleLoadMore}></Infinite>
   </div>
 {:else}
   <div class="timeline timeline--main">

@@ -1,8 +1,7 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
-  import InfiniteLoading from "svelte-infinite-loading";
   import { PUBLIC_TENOR_API_KEY } from '$env/static/public';
   import {createEventDispatcher} from "svelte";
+  import Infinite from "$lib/components/utils/Infinite.svelte";
   const dispatch = createEventDispatcher();
 
   interface Props {
@@ -26,7 +25,7 @@
       })
   }
 
-  async function handleLoadMore({ detail: { loaded, complete } }) {
+  async function handleLoadMore(loaded, complete) {
       try {
           let query = '';
 
@@ -65,14 +64,7 @@
     {/each}
   </div>
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    {#snippet noMore()}
-        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      {/snippet}
-    {#snippet noResults()}
-        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      {/snippet}
-  </InfiniteLoading>
+  <Infinite oninfinite={handleLoadMore}></Infinite>
 </div>
 
 <style lang="postcss">

@@ -2,7 +2,6 @@
   import {_} from "svelte-i18n";
   import {agent, realtime} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
-  import InfiniteLoading from 'svelte-infinite-loading';
   import {getPostRealtime} from "$lib/realtime";
   import {getDbFollows} from "$lib/getActorsList";
   import {playSound} from "$lib/sounds";
@@ -12,6 +11,7 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {isAfter} from "date-fns";
   import {tick} from "svelte";
+  import Infinite from "$lib/components/utils/Infinite.svelte";
 
   let {
     index,
@@ -144,7 +144,7 @@
           : oldFeed.post.uri === newFeed.post.uri;
   }
 
-  const handleLoadMore = async ({ detail: { loaded, complete } }) => {
+  const handleLoadMore = async (loaded, complete) => {
       try {
           const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm});
           column.data.cursor = res.data.cursor;
@@ -227,14 +227,7 @@
   </div>
 
   {#key unique}
-    <InfiniteLoading on:infinite={handleLoadMore}>
-      {#snippet noMore()}
-        <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      {/snippet}
-      {#snippet noResults()}
-        <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      {/snippet}
-    </InfiniteLoading>
+    <Infinite oninfinite={handleLoadMore}></Infinite>
   {/key}
 
   {#if (isDividerLoading)}

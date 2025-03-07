@@ -5,6 +5,7 @@
   import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import VirtualThreadList from "$lib/components/thread/VirtualThreadList.svelte";
+  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
   interface Props {
     column: any;
@@ -244,9 +245,7 @@
 {/if}
 
 {#if !column.data.feed.length}
-  <div class="thread-loading">
-    <img src={spinner} alt="">
-  </div>
+  <LoadingSpinner></LoadingSpinner>
 {:else if (column.data.feed === 'NotFound')}
   <p class="thread-error">{$_('error_thread_notfound')}</p>
 {:else}

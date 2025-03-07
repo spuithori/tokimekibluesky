@@ -1,18 +1,18 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
     import {agent, officialListModal} from "$lib/stores";
-    import InfiniteLoading from 'svelte-infinite-loading';
     import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
     import {onMount} from "svelte";
     import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+    import Infinite from "$lib/components/utils/Infinite.svelte";
 
     let lists = $state([]);
     let cursor: string | undefined = '';
     let modLists = $state([]);
     let unique = $state(Symbol());
 
-    async function handleLoadMore({ detail: { loaded, complete } }) {
+    async function handleLoadMore(loaded, complete) {
         try {
             let raw = await $agent.agent.api.app.bsky.graph.getLists({actor: $agent.did(), limit: 100, cursor: cursor});
             cursor = raw.data.cursor;
@@ -90,14 +90,7 @@
           <button class="button button--sm" onclick={() => {$officialListModal.open = true}}>{$_('new_create')}</button>
         </div>
 
-        <InfiniteLoading on:infinite={handleLoadMore}>
-          {#snippet noMore()}
-            <p class="infinite-nomore"></p>
-          {/snippet}
-          {#snippet noResults()}
-            <p class="infinite-nomore"></p>
-          {/snippet}
-        </InfiniteLoading>
+        <Infinite oninfinite={handleLoadMore}></Infinite>
       </div>
     {/key}
   </div>

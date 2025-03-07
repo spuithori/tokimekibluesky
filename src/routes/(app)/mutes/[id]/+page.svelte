@@ -4,14 +4,14 @@
   import {page} from "$app/stores";
   import {agents} from "$lib/stores";
   import BlockMutesItem from "$lib/components/profile/BlockMutesItem.svelte";
-  import InfiniteLoading from "svelte-infinite-loading";
   import {getAccountIdByDid} from "$lib/util";
+  import Infinite from "$lib/components/utils/Infinite.svelte";
 
   let mutes = $state([]);
   let cursor: string | undefined = '';
   const _agent = $agents.get(getAccountIdByDid($agents, $page.params.id));
 
-  async function handleLoadMore({ detail: { loaded, complete } }) {
+  async function handleLoadMore(loaded, complete) {
       try {
           let res = await _agent.agent.api.app.bsky.graph.getMutes({limit: 20, cursor: cursor});
           cursor = res.data.cursor;
@@ -58,14 +58,7 @@
         <BlockMutesItem category="mute" {user} {_agent}></BlockMutesItem>
       {/each}
 
-      <InfiniteLoading on:infinite={handleLoadMore}>
-        {#snippet noMore()}
-                <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-              {/snippet}
-        {#snippet noResults()}
-                <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-              {/snippet}
-      </InfiniteLoading>
+      <Infinite oninfinite={handleLoadMore}></Infinite>
     </div>
   {:else}
     <div class="timeline">
