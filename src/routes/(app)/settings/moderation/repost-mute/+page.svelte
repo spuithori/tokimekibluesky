@@ -2,9 +2,9 @@
   import {_} from 'svelte-i18n';
   import {agent, repostMutes} from "$lib/stores";
   import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
-  import InfiniteLoading from "svelte-infinite-loading";
   import Avatar from "../../../Avatar.svelte";
   import {Trash2} from "lucide-svelte";
+  import Infinite from "$lib/components/utils/Infinite.svelte";
 
   let slicedArray = $derived.by(() => {
     const result = [];
@@ -25,7 +25,7 @@
     localStorage.setItem('repostMutes', JSON.stringify($repostMutes));
   }
 
-  async function handleLoadMore({ detail: { loaded, complete } }) {
+  async function handleLoadMore(loaded, complete) {
     try {
       let res = await $agent.agent.api.app.bsky.actor.getProfiles({ actors: slicedArray[cursor] });
       cursor = cursor + 1;
@@ -74,14 +74,7 @@
       {/each}
     </div>
 
-    <InfiniteLoading on:infinite={handleLoadMore}>
-      {#snippet noMore()}
-        <p class="infinite-nomore"></p>
-      {/snippet}
-      {#snippet noResults()}
-        <p class="infinite-nomore"></p>
-      {/snippet}
-    </InfiniteLoading>
+    <Infinite oninfinite={handleLoadMore}></Infinite>
   </div>
 </div>
 

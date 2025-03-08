@@ -1,8 +1,8 @@
 <script lang="ts">
   import { agent } from '$lib/stores';
   import TimelineItem from './TimelineItem.svelte';
-  import InfiniteLoading from 'svelte-infinite-loading';
   import {getBookmarkFeed, getBookmarkName} from "$lib/bookmark";
+  import Infinite from "$lib/components/utils/Infinite.svelte";
 
   let { _agent = $agent, column = $bindable(), index, unique } = $props();
     let initialLoadFinished = false;
@@ -23,7 +23,7 @@
             })
     }
 
-    const handleLoadMore = async ({ detail: { loaded, complete } }) => {
+    const handleLoadMore = async (loaded, complete) => {
         feeds = await getBookmarkFeed(column.algorithm.list, column.data.cursor);
 
         if (feeds?.length) {
@@ -53,10 +53,6 @@
   </div>
 
   {#key unique}
-    <InfiniteLoading on:infinite={handleLoadMore}>
-      {#snippet noMore()}
-        <p  class="infinite-nomore">もうないよ</p>
-      {/snippet}
-    </InfiniteLoading>
+    <Infinite oninfinite={handleLoadMore}></Infinite>
   {/key}
 </div>

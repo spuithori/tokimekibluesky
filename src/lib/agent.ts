@@ -4,6 +4,7 @@ import type {currentAlgorithm} from "../app.d.ts";
 import {parseISO} from "date-fns";
 import {CHAT_PROXY} from "$lib/components/chat/chatConst";
 import {listRecordsWithBsky} from "$lib/util";
+import {chatState} from "$lib/classes/chatState.svelte";
 
 type timelineOpt = {
     limit: number,
@@ -17,6 +18,8 @@ type timelineOpt = {
 
 export class Agent {
     public agent: BskyAgent;
+    latestRev: string = '';
+    unreadChat: number = 0;
 
     constructor(agent: BskyAgent) {
         this.agent = agent;
@@ -260,11 +263,6 @@ export class Agent {
         return res.data.likes;
     }
 
-    async myVoteCheck(uri: string): Promise<boolean> {
-        const res = await this.getVotes(uri);
-        return res.some(vote => vote.actor.did === this.did());
-    }
-
     async getFeed(uri: string, depth: number = 0) {
         const res = await this.agent.api.app.bsky.feed.getPostThread({uri: uri, depth: depth});
         return res.data.thread;
@@ -348,18 +346,57 @@ export class Agent {
         }
     }
 
-    async getChatLogs(rev: string) {
+    async getChatLogs() {
         try {
-            const res = await this.agent.api.chat.bsky.convo.getLog({cursor: rev}, {
+            const res = await this.agent.api.chat.bsky.convo.getLog({cursor: this.latestRev}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
             });
+
+            if (this.latestRev !== res.data.cursor) {
+                this.updateChatCount();
+            }
+
+            this.latestRev = res.data.cursor || '';
             return res.data.logs;
         } catch (e) {
-            console.error(e);
-            return [];
+            if (e.message === 'XRPCNotSupported') {
+                setTimeout(() => {
+                    this.updateChatCount();
+                }, 1000);
+            } else {
+                console.error(e);
+                return [];
+            }
         }
+    }
+
+    async updateChatCount() {
+        try {
+            const res = await this.agent.chat.bsky.convo.listConvos({}, {
+                headers: {
+                    'atproto-proxy': CHAT_PROXY,
+                }
+            });
+            const convos = res?.data?.convos || [];
+            const count = convos.reduce((acc, val) => {
+                return acc + val.unreadCount;
+            }, 0)
+
+            this.updateChatUnread(count);
+            chatState.updateTotalChatCount();
+        } catch (e) {
+            if (e.message === 'XRPCNotSupported') {
+                setTimeout(() => {
+                    this.updateChatCount();
+                }, 1000);
+            }
+        }
+    }
+
+    updateChatUnread(count: number) {
+        this.unreadChat = count;
     }
 
     async getAvatar(did: string) {

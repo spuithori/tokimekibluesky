@@ -1,14 +1,14 @@
 <script>
     import {_} from "svelte-i18n";
-    import InfiniteLoading from 'svelte-infinite-loading';
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
+    import Infinite from "$lib/components/utils/Infinite.svelte";
 
     let { actor, _agent, onclose } = $props();
     let followers = $state([]);
     let cursor;
 
-    async function handleLoadMore({ detail: { loaded, complete } }) {
+    async function handleLoadMore(loaded, complete) {
         try {
             const res = await _agent.agent.api.app.bsky.graph.getKnownFollowers({actor: actor, cursor: cursor});
             console.log(res)
@@ -36,12 +36,5 @@
     {/each}
   </div>
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    {#snippet noMore()}
-        <p  class="infinite-nomore">もうないよ</p>
-      {/snippet}
-    {#snippet noResults()}
-        <p ></p>
-      {/snippet}
-  </InfiniteLoading>
+  <Infinite oninfinite={handleLoadMore}></Infinite>
 </Modal>

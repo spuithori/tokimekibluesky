@@ -32,7 +32,6 @@
 }
 
 .infinite-nomore {
-    margin-top: 16px;
     color: var(--text-color-3);
     letter-spacing: .05em;
 
@@ -349,4 +348,11 @@
             transition: transform .3s cubic-bezier(0, 0, 0, 1);
         }
     }
+}
+
+.chat-nav-menu-button {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-content: center;
 }

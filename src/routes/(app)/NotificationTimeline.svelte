@@ -3,12 +3,12 @@
     import {agent, realtime, settings} from '$lib/stores';
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {AtSign, Heart, Quote, Repeat2, Reply, Star, UserPlus2} from "lucide-svelte";
-    import InfiniteLoading from "svelte-infinite-loading";
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
     import TimelineItem from "./TimelineItem.svelte";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import {playSound} from "$lib/sounds";
+    import Infinite from "$lib/components/utils/Infinite.svelte";
 
     type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow';
 
@@ -146,7 +146,7 @@
         // column.lastRefresh = new Date().toISOString();
     }
 
-    const handleLoadMore = async ({ detail: { loaded, complete } }) => {
+    const handleLoadMore = async (loaded, complete) => {
         try {
             if (!filter.length) {
                 filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
@@ -275,20 +275,14 @@
   </div>
 
   {#key unique}
-    <InfiniteLoading on:infinite={handleLoadMore}>
-      <p slot="noMore" class="infinite-nomore">
+    <Infinite oninfinite={handleLoadMore}>
+      <p class="infinite-nomore">
         {$_('no_more')}
         {#if isOnlyShowUnread}
           <br>({$_('only_show_unread')})
         {/if}
       </p>
-      <p slot="noResults" class="infinite-nomore">
-        {$_('no_results')}
-        {#if isOnlyShowUnread}
-          <br>({$_('only_show_unread')})
-        {/if}
-      </p>
-    </InfiniteLoading>
+    </Infinite>
   {/key}
 </div>
 

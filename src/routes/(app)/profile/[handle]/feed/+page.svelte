@@ -2,9 +2,9 @@
     import { _ } from 'svelte-i18n';
     import type { LayoutData } from '../$types';
     import {agent} from "$lib/stores";
-    import InfiniteLoading from 'svelte-infinite-loading';
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
     import {onMount} from "svelte";
+    import Infinite from "$lib/components/utils/Infinite.svelte";
     let feeds = $state([]);
     let cursor: string | undefined = '';
     let savedFeeds = [];
@@ -26,7 +26,7 @@
         return savedFeeds.includes(uri);
     }
 
-    async function handleLoadMore({ detail: { loaded, complete } }) {
+    async function handleLoadMore(loaded, complete) {
         try {
             let raw = await $agent.agent.api.app.bsky.feed.getActorFeeds({actor: data.params.handle, limit: 20, cursor: cursor});
             cursor = raw.data.cursor;
@@ -59,14 +59,7 @@
     {/each}
   </div>
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    {#snippet noMore()}
-        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      {/snippet}
-    {#snippet noResults()}
-        <p  class="infinite-nomore"><span>{$_('no_more')}</span></p>
-      {/snippet}
-  </InfiniteLoading>
+  <Infinite oninfinite={handleLoadMore}></Infinite>
 </div>
 
 <style lang="postcss">

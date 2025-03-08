@@ -73,7 +73,6 @@
     "runed": "^0.23.4",
     "svelte-dnd-action": "0.9.49",
     "svelte-i18n": "^4.0.1",
-    "svelte-infinite-loading": "git+https://github.com/spuithori/svelte-infinite-loading.git#v1.3.8-f2",
     "svelte-interactions": "^0.2.0",
     "svelte-sonner": "^0.3.28",
     "sveltekit-embed": "0.0.18",

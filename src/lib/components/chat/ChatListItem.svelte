@@ -1,21 +1,18 @@
 <script lang="ts">
     import {format, formatDistanceToNow, parseISO} from "date-fns";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
-    import {agent} from "$lib/stores";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
     import {_} from "svelte-i18n";
     import Menu from "$lib/components/ui/Menu.svelte";
     import {ListPlus, LogOut, MessageCircleOff, PictureInPicture2} from "lucide-svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-    import {createEventDispatcher} from "svelte";
     import {goto} from "$app/navigation";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    const dispatch = createEventDispatcher();
     const columnState = getColumnState();
     const junkColumnState = getColumnState(true);
 
-    let { convo, _agent = $agent } = $props();
+    let { convo, _agent, onrefresh } = $props();
     let isMenuOpen = $state(false);
 
     function addColumn(id, name, isPopup = false) {
@@ -29,7 +26,6 @@
             style: 'default',
             settings: {
                 ...defaultDeckSettings,
-                playSound: 'notification1',
                 isPopup: isPopup,
             },
             did: _agent.did(),
@@ -51,9 +47,7 @@
             });
             const id = res.data.convoId;
             toast.success($_('success_leave_chat'));
-            dispatch('refresh', {
-                id: id,
-            });
+            onrefresh(id);
         } catch (e) {
             console.error(e);
         }
@@ -68,9 +62,7 @@
             });
             const id = res.data.convo.id;
             toast.success($_('success_mute_chat'));
-            dispatch('refresh', {
-                id: id,
-            });
+            onrefresh(id);
         } catch (e) {
             console.error(e);
         }
@@ -85,9 +77,7 @@
             });
             const id = res.data.convo.id;
             toast.success($_('success_unmute_chat'));
-            dispatch('refresh', {
-                id: id,
-            });
+            onrefresh(id);
         } catch (e) {
             console.error(e);
         }
@@ -105,7 +95,6 @@
                 style: 'default',
                 settings: {
                     ...defaultDeckSettings,
-                    playSound: 'notification1',
                 },
                 did: _agent.did(),
                 handle: _agent.handle(),
@@ -137,7 +126,7 @@
         </div>
       {/if}
 
-      <h3 class="convo-item__name">{convo.members.filter(member => member.did !== _agent.did())[0].displayName}</h3>
+      <h3 class="convo-item__name">{convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle}</h3>
 
       <time class="convo-item__date" datetime="{format(parseISO(convo.lastMessage.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(convo.lastMessage.sentAt))}</time>
     </div>

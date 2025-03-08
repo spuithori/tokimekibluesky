@@ -1,9 +1,9 @@
 <script>
     import { page } from '$app/stores';
     import { agent } from '$lib/stores';
-    import InfiniteLoading from "svelte-infinite-loading";
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
     import {onMount, tick} from "svelte";
+    import Infinite from "$lib/components/utils/Infinite.svelte";
     let cursor = '';
     let feeds = $state([]);
     let savedFeeds = [];
@@ -31,7 +31,7 @@
             cursor = undefined;
         }
     }
-    async function handleLoadMore({ detail: { loaded, complete } }) {
+    async function handleLoadMore(loaded, complete) {
         try {
             let raw = await _agent.agent.api.app.bsky.unspecced.getPopularFeedGenerators({query: $page.url.searchParams.get('q') || '' , limit: 20, cursor: cursor});
             cursor = raw.data.cursor;
@@ -64,13 +64,7 @@
     <FeedsItem feed={feed} subscribed={isSaved(feed)} on:close></FeedsItem>
   {/each}
 
-  {#if tempTimeout}
-    <InfiniteLoading on:infinite={handleLoadMore}>
-      {#snippet noMore()}
-        <p class="infinite-nomore">もうないよ</p>
-      {/snippet}
-    </InfiniteLoading>
-  {/if}
+  <Infinite oninfinite={handleLoadMore}></Infinite>
 </div>
 
 <style lang="postcss">

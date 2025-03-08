@@ -426,7 +426,7 @@
             ></ColumnRefreshButton>
 
             {#if (!isJunk)}
-                <button class="deck-row-settings-button" class:deck-row-settings-button--open={isSettingsOpen} aria-label="Settings" onclick={handleSettingsClick}>
+                <button class="deck-row-settings-button" class:deck-row-settings-button--open={isSettingsOpen} aria-label="Settings" onclick={() => {isSettingsOpen = !isSettingsOpen}}>
                     <Settings2 color="var(--deck-row-settings-button-color, var(--text-color-3))"></Settings2>
                 </button>
             {/if}

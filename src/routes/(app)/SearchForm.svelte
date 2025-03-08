@@ -13,7 +13,7 @@
 
 <div class="search">
   <form action={path} method="get" data-sveltekit-replacestate data-sveltekit-keepfocus>
-    <input type="text" name="q" required bind:value={search} bind:this={searchArea} placeholder="{$_(path + '_search')}">
+    <input type="text" name="q" required bind:value={search} bind:this={searchArea} placeholder="{$_(path + '_search')}" autocomplete="off">
     <button type="submit" class="search-submit" aria-label="Search">
       <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">
         <path id="search" d="M11.589,12.866A7.187,7.187,0,1,1,12.856,11.6l4.807,4.789-1.276,1.276-4.789-4.8Zm-4.4-.287A5.391,5.391,0,1,0,1.8,7.188a5.391,5.391,0,0,0,5.391,5.391Z" transform="translate(0.008 -0.002)" fill="var(--primary-color)"/>

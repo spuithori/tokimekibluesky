@@ -13,8 +13,6 @@ export const agents = writable(new Map<number, Agent>());
 
 export const junkAgentDid = writable<string | undefined>(undefined);
 
-export const notificationCount = writable(0);
-
 export const sharedText = writable<string>('');
 
 export const userLists = writable(localStorage.getItem('lists')
@@ -244,9 +242,5 @@ export const hashtagHistory = writable(localStorage.getItem('hashtagHistory')
     : []);
 
 export const postPulse = writable([]);
-
-export const latestRevMap = writable(new Map<string, string>());
-
-export const chatPulse = writable([]);
 
 export const isChatColumnFront = writable<boolean>(false);

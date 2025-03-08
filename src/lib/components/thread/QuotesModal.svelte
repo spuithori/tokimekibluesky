@@ -1,16 +1,16 @@
 <script>
     import {_} from "svelte-i18n";
     import { agent } from "$lib/stores";
-    import InfiniteLoading from 'svelte-infinite-loading';
     import Modal from "$lib/components/ui/Modal.svelte";
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
     import {AppBskyEmbedRecord} from "@atproto/api";
+    import Infinite from "$lib/components/utils/Infinite.svelte";
 
     let { uri, _agent = $agent, onclose } = $props();
     let quotes = $state([]);
     let cursor;
 
-    async function handleLoadMore({ detail: { loaded, complete } }) {
+    async function handleLoadMore(loaded, complete) {
         try {
             const res = await _agent.agent.api.app.bsky.feed.getQuotes({uri: uri, cursor: cursor});
             cursor = res.data.cursor;
@@ -42,12 +42,5 @@
     {/each}
   </div>
 
-  <InfiniteLoading on:infinite={handleLoadMore}>
-    {#snippet noMore()}
-      <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    {/snippet}
-    {#snippet noResults()}
-      <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    {/snippet}
-  </InfiniteLoading>
+  <Infinite oninfinite={handleLoadMore}></Infinite>
 </Modal>
