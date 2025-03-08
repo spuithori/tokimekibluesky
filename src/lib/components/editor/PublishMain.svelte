@@ -31,6 +31,7 @@
   import Menu from "$lib/components/ui/Menu.svelte";
   import {postState} from "$lib/classes/postState.svelte";
   import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
+  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   const dispatch = createEventDispatcher();
 
   interface Props {
@@ -601,10 +602,12 @@
                 class="link-card-registerer-button"
                 onclick={() => {addLinkCard(link)}}
               >
-                {#if (isLinkCardAdding)}
-                  <img class="loading-spinner" src={spinner} alt="">
-                {/if}
                 {$_('link_card_embed')}: {link}
+                {#if (isLinkCardAdding)}
+                  <div class="link-card-registerer-button__spinner">
+                    <LoadingSpinner padding={0} size={16}></LoadingSpinner>
+                  </div>
+                {/if}
               </button>
             {/each}
           </div>
@@ -786,14 +789,13 @@
           color: var(--text-color-3);
       }
 
-      .loading-spinner {
-          width: 16px;
-          height: 16px;
+      &__spinner {
           position: absolute;
-          right: 10px;
+          right: 4px;
           top: 0;
           bottom: 0;
-          margin: auto;
+          display: grid;
+          place-content: center;
       }
   }
 
