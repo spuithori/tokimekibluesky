@@ -684,5 +684,7 @@
   "topic": "トピック",
   "tokmek": "TokMek",
   "store_column_feed_data": "アプリ終了後も取得タイムラインを保持(β)",
-  "video": "動画"
+  "video": "動画",
+  "chat_update_all_read": "すべて既読にする",
+  "chat_new_receive": "新しいチャットメッセージが届いています"
 }

@@ -14,6 +14,7 @@
   import SideNotification from "$lib/components/side/SideNotification.svelte";
   import SideColumns from "$lib/components/side/SideColumns.svelte";
   import SideTopic from "$lib/components/side/SideTopic.svelte";
+  import {chatState} from "$lib/classes/chatState.svelte";
 
   let { footer = false } = $props();
   let isFeedsModalOpen = $state(false);
@@ -135,6 +136,9 @@
           <GanttChartSquare color="var(--nav-secondary-icon-color)"></GanttChartSquare>
         {:else if (item === 'chat')}
           <MessageCircleMore color="var(--nav-secondary-icon-color)"></MessageCircleMore>
+          {#if chatState.totalChatCount}
+            <span class="side-nav__count">{chatState.totalChatCount}</span>
+          {/if}
         {:else if (item === 'notifications')}
           <Bell color="var(--nav-secondary-icon-color)"></Bell>
         {:else if (item === 'search')}
@@ -336,6 +340,29 @@
               &::before {
                   transform: scaleX(1);
               }
+          }
+      }
+
+      &__count {
+          position: absolute;
+          width: 16px;
+          height: 16px;
+          font-size: 11px;
+          font-weight: bold;
+          border-radius: 50%;
+          background-color: var(--danger-color);
+          color: var(--bg-color-1);
+          display: grid;
+          place-content: center;
+          right: -2px;
+          top: -2px;
+
+          @media (max-width: 767px) {
+              top: 4px;
+              right: 2px;
+              width: 14px;
+              height: 14px;
+              font-size: 10px;
           }
       }
 

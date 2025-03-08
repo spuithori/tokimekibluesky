@@ -349,3 +349,10 @@
         }
     }
 }
+
+.chat-nav-menu-button {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-content: center;
+}

@@ -27,7 +27,6 @@
   let realtimeCounter = 0;
   let isDividerLoading = $state(false);
   let dividerFillerHeight = $state(0);
-  let retryCount = 0;
 
   $effect(() => {
       insertRealtimeData($realtime);
@@ -175,16 +174,6 @@
           isDividerLoading = false;
 
           if (column.data.cursor) {
-              if (retryCount > 5) {
-                  throw new Error('Retry limit exceeded');
-              }
-
-              if (!res.data.feed.length) {
-                  retryCount = retryCount + 1;
-              } else {
-                  retryCount = 0;
-              }
-
               loaded();
           } else {
               complete();

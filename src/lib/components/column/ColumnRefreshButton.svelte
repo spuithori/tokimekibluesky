@@ -201,11 +201,14 @@
                 behavior: 'smooth',
             });
 
-            const updateReadRes = await _agent.agent.api.chat.bsky.convo.updateRead({convoId: column.algorithm.id}, {
+            if (!isAutoRefresh) {
+              await _agent.agent.api.chat.bsky.convo.updateRead({convoId: column.algorithm.id}, {
                 headers: {
-                    'atproto-proxy': CHAT_PROXY,
+                  'atproto-proxy': CHAT_PROXY,
                 }
-            });
+              });
+              await _agent.getChatLogs();
+            }
         } else if (column.algorithm.type === 'thread') {
             if (isJunk) {
                 isRefreshing = false;

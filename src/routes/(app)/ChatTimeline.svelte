@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, chatPulse, latestRevMap} from '$lib/stores';
+    import {agent} from '$lib/stores';
     import ChatItem from "$lib/components/chat/ChatItem.svelte";
     import ChatPublish from "$lib/components/chat/ChatPublish.svelte";
     import {tick} from "svelte";
@@ -8,24 +8,9 @@
 
     let { column = $bindable(), index, _agent = $agent, onrefresh, unique } = $props();
     let firstLoad = true;
-    let retryCount = 0;
-
-    $effect(() => {
-        handleUpdate($chatPulse);
-    })
 
     function isDuplicateMessage(oldFeed, newFeed) {
         return oldFeed.id === newFeed.id;
-    }
-
-    async function handleUpdate(logs) {
-        if (!logs.length) {
-            return false;
-        }
-
-        if (logs.some(log => log.convoId === column.algorithm.id)) {
-            onrefresh();
-        }
     }
 
     const handleLoadMore = async (loaded, complete) => {
@@ -51,26 +36,12 @@
             column.data.feed = [...feed, ...column.data.feed];
 
             if (firstLoad) {
-                if (res.data.messages.length) {
-                    $latestRevMap.set(_agent.did(), res.data.messages[0].rev);
-                }
-
                 tick().then(() => {
                     column.scrollElement.scrollTo(0, column.scrollElement.scrollHeight);
                 });
             }
 
             if (column.data.cursor && res.data.messages.length) {
-                if (retryCount > 5) {
-                    throw new Error('Retry limit exceeded');
-                }
-
-                if (!res.data.messages.length) {
-                    retryCount = retryCount + 1;
-                } else {
-                    retryCount = 0;
-                }
-
                 firstLoad = false;
                 loaded();
             } else {
@@ -89,7 +60,7 @@
         }
     }
 
-    $effect.pre(() => {
+    $effect(() => {
         tick().then(() => {
             column.scrollElement.scrollTo(0, column.scrollElement.scrollHeight);
         })

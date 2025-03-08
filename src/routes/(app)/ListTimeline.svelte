@@ -7,8 +7,6 @@
     let { _agent = $agent, column = $bindable(), index, unique } = $props();
 
     let actors = [];
-    let cursors = [];
-
     let feedPool = [];
     let feed = [];
     let count = 0;
@@ -26,21 +24,24 @@
     const handleLoadMore = async (loaded, complete) => {
         const ress = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm, actors: actors, count: count});
 
+        if (!Array.isArray(column.data.cursor)) {
+          column.data.cursor = [];
+        }
+
         ress.forEach((res, index) => {
             feedPool.push(...res.data.feed);
-            cursors.push({
+            column.data.cursor.push({
                 actor: actors[index].actor,
                 cursor: res.data.cursor,
             })
         })
-        cursors = cursors;
         feedPool = feedPool.sort((a, b) => {
             return parseISO(b.reason ? b.reason.indexedAt : b.post.indexedAt).getTime() - parseISO(a.reason ? a.reason.indexedAt : a.post.indexedAt).getTime();
         });
         feed = feedPool.slice(0, 20);
         feedPool = feedPool.slice(20);
 
-        if (cursors.some(item => item.cursor !== undefined) || count === 0) {
+        if (column.data.cursor.some(item => item.cursor !== undefined) || count === 0) {
             count = count + 1;
             column.data.feed = [...column.data.feed, ...feed];
             await poolRecalc(feedPool);
@@ -71,14 +72,14 @@
                 actors.push({
                     actor: key,
                     limit: 20 - value.length,
-                    cursor: cursors.find(item => item.actor === key)?.cursor || undefined
+                    cursor: column.data.cursor.find(item => item.actor === key)?.cursor || undefined
                 })
 
                 if (count > 0) {
                     actors = actors.filter(item => item.cursor !== undefined);
                 }
 
-                cursors = cursors.filter(item => item.actor !== key);
+                column.data.cursor = column.data.cursor.filter(item => item.actor !== key);
             }
         })
         actors = actors;

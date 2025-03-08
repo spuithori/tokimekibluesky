@@ -22,3 +22,13 @@ export function playSound(indexedAt: string, lastRefresh: string, playSound: str
         console.error(e);
     }
 }
+
+export function instantPlaySound(playSound = 'notification1') {
+    try {
+        const sound = soundsMap.get(playSound);
+        sound.volume = 0.5;
+        sound.play();
+    } catch (e) {
+        console.error(e);
+    }
+}
