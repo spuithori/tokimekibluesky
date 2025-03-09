@@ -17,7 +17,6 @@
 
   const agentContext = getAgentContext();
   const columnState = getColumnState(true);
-  let tempActive = $state(false);
   let columnId = $derived(`media_${data.params.handle}_${agentContext.agent.did()}`);
 
   export const snapshot: Snapshot = {
@@ -57,16 +56,12 @@
           }
       });
   }
-
-  tick().then(() => {
-      tempActive = true;
-  })
 </script>
 
 <svelte:head>
   <title>{data.params.handle} {$_('page_title_media')} - TOKIMEKI</title>
 </svelte:head>
 
-{#if (columnState.hasColumn(columnId) && tempActive)}
+{#if (columnState.hasColumn(columnId))}
   <DeckRow index={columnState.getColumnIndex(columnId)} isJunk={true}></DeckRow>
 {/if}

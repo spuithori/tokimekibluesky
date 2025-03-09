@@ -14,7 +14,6 @@
 
   const agentContext = getAgentContext();
   const columnState = getColumnState(true);
-  let tempActive = $state(false);
   let scrollY = 0;
 
   if (!columnState.hasColumn('profile_' + data.params.handle)) {
@@ -63,16 +62,12 @@
         isAfterReload.set(false);
       }
   };
-
-  tick().then(() => {
-      tempActive = true;
-  })
 </script>
 
 <svelte:head>
   <title>{data.params.handle} - TOKIMEKI</title>
 </svelte:head>
 
-{#if (columnState.hasColumn('profile_' + data.params.handle) && tempActive)}
+{#if (columnState.hasColumn('profile_' + data.params.handle))}
   <DeckRow index={columnState.getColumnIndex('profile_' + data.params.handle)} isJunk={true}></DeckRow>
 {/if}

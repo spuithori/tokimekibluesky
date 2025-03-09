@@ -12,7 +12,6 @@
     let follows = $state([]);
     let cursor = '';
     let scrollY = 0;
-    let tempActive = $state(false);
 
     export const snapshot: Snapshot = {
         capture: () => [follows, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
@@ -55,24 +54,18 @@
             complete();
         }
     }
-
-    tick().then(() => {
-        tempActive = true;
-    })
 </script>
 
 <svelte:head>
   <title>{data.params.handle} {$_('page_title_follows')} - TOKIMEKI</title>
 </svelte:head>
 
-{#if (tempActive)}
-  <div class="user-items-list">
-    <div class="user-timeline">
-      {#each follows as user (user)}
-        <UserItem {user} _agent={agentContext.agent}></UserItem>
-      {/each}
+<div class="user-items-list">
+  <div class="user-timeline">
+    {#each follows as user (user)}
+      <UserItem {user} _agent={agentContext.agent}></UserItem>
+    {/each}
 
-      <Infinite oninfinite={handleLoadMore}></Infinite>
-    </div>
+    <Infinite oninfinite={handleLoadMore}></Infinite>
   </div>
-{/if}
+</div>
