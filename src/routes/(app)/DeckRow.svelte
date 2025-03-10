@@ -115,7 +115,7 @@
         isSettingsOpen = !isSettingsOpen;
 
         if (clear) {
-            unique = Symbol();
+            forceRefresh();
         }
     }
 

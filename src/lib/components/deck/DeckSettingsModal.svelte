@@ -267,10 +267,6 @@
         },
     ];
 
-    function handleClickClose() {
-        onclose();
-    }
-
     function toggleStyle(style: 'default' | 'media') {
         column.style = style;
     }
@@ -526,7 +522,7 @@
 
                         <dd class="settings-group__content">
                             <div class="input-toggle">
-                                <input class="input-toggle__input" type="checkbox" id={column.id + 'onlyShowUnread'} bind:checked={onlyShowUnread}><label class="input-toggle__label" for={column.id + 'onlyShowUnread'}></label>
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'onlyShowUnread'} bind:checked={onlyShowUnread} onchange={() => {onclose(true)}}><label class="input-toggle__label" for={column.id + 'onlyShowUnread'}></label>
                             </div>
                         </dd>
                     </dl>
