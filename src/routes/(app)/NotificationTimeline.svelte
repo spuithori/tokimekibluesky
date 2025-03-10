@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, realtime, settings} from '$lib/stores';
+    import {agent, settings} from '$lib/stores';
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {AtSign, Heart, Quote, Repeat2, Reply, Star, UserPlus2} from "lucide-svelte";
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
@@ -52,10 +52,6 @@
       }
     });
 
-    function onupdate(count: number) {
-        column.unreadCount = count;
-    }
-
     function onchange(filter: any) {
         column.filter = filter;
     }
@@ -66,58 +62,6 @@
         column.data.feed = [];
         column.data.feedPool = [];
         column.data.cursor = '';
-    }
-
-    $effect(() => {
-        realtimeNotificationCount($realtime.data);
-    })
-
-    async function realtimeNotificationCount(data) {
-        if (!data) {
-            return false;
-        }
-
-        const record = data.record;
-
-        if (!record) {
-            return false;
-        }
-
-        if (record.$type === 'app.bsky.feed.like' || record.$type === 'app.bsky.feed.repost') {
-            const subjectUri = record.subject.uri;
-            const subjectRepo = subjectUri.split('/')[2];
-
-            if (subjectRepo === _agent.did()) {
-                await observeRealtimeNotification();
-            }
-        }
-
-        if (record.$type === 'app.bsky.graph.follow') {
-            const subject = record.subject;
-
-            if (subject === _agent.did()) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                await observeRealtimeNotification();
-            }
-        }
-
-        if (record.$type === 'app.bsky.feed.post' && typeof record.text === 'string') {
-            const subjectUri = record.reply?.parent.uri ?? undefined;
-            if (!subjectUri) {
-                return false;
-            }
-            const subjectRepo = subjectUri.split('/')[2];
-
-            if (subjectRepo === _agent.did()) {
-                await observeRealtimeNotification();
-            }
-        }
-    }
-
-    async function observeRealtimeNotification() {
-        const res = await _agent.agent.api.app.bsky.notification.getUnreadCount();
-        onupdate(res.data.count)
-        await putNotifications();
     }
 
     async function putNotifications() {
