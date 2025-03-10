@@ -35,7 +35,7 @@
     })
 
     watch(() => column.unreadCount, () => {
-      if (column.unreadCount) {
+      if (column.unreadCount && column.data.cursor) {
         refresh(true);
       }
     })
@@ -72,6 +72,10 @@
         isRefreshing = isAutoRefresh ? 'auto' : true;
         const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
         const elInitialPosition = el.scrollTop;
+
+        if (column.algorithm.type !== 'notification') {
+            column.unreadCount = 0
+        }
 
         if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList' || column.algorithm.type === 'myPost' || column.algorithm.type === 'myMedia') {
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});

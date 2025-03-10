@@ -12,8 +12,9 @@
     import CloudBookmarkObserver from "$lib/components/bookmark/CloudBookmarkObserver.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
-    import {LayoutGrid, Pin} from "lucide-svelte";
+    import {ArrowUpDown, LayoutGrid, Pin} from "lucide-svelte";
     import ColumnChoicesPinned from "$lib/components/column/ColumnChoicesPinned.svelte";
+    import ColumnList from "$lib/components/column/ColumnList.svelte";
 
     let { onclose } = $props();
 
@@ -24,7 +25,7 @@
     let currentAccount = $state();
     let profile = $state();
     let unique = $state(Symbol());
-    let currentTab: 'all' | 'pinned' = $state('all');
+    let currentTab: 'all' | 'pinned' | 'list' = $state('all');
 
     accountsDb.profiles.get(profileId)
         .then(value => {
@@ -104,6 +105,11 @@
                 <Pin size="18"></Pin>
                 {$_('pinned_feed')}
             </button>
+
+            <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'list'} onclick={() => {currentTab = 'list'}}>
+                <ArrowUpDown size="18"></ArrowUpDown>
+                {$_('columns')}
+            </button>
         </div>
 
         <div class="column-group-wrap">
@@ -116,6 +122,10 @@
                     {:else if (currentTab === 'pinned')}
                         <div class="column-group column-group--single">
                             <ColumnChoicesPinned _agent={$agents.get(currentAccount)} on:add={handleColumnAdd}></ColumnChoicesPinned>
+                        </div>
+                    {:else if (currentTab === 'list')}
+                        <div class="column-group column-group--single">
+                            <ColumnList items={columns.columns}></ColumnList>
                         </div>
                     {/if}
                 {/key}
@@ -179,6 +189,7 @@
     .column-modal-tabs {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
         gap: 8px;
         margin-top: 16px;
     }

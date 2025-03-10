@@ -1,38 +1,27 @@
 <script lang="ts">
-    import { flip } from 'svelte/animate';
-    import { dragHandleZone, dragHandle } from 'svelte-dnd-action';
-    import { pauseColumn } from "$lib/stores";
     import { getColumnState } from "$lib/classes/columnState.svelte";
-    import {GripVertical, XCircle} from "lucide-svelte";
+    import {XCircle} from "lucide-svelte";
     import {iconMap} from "$lib/columnIcons";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
+    import Sortable from "$lib/components/utils/Sortable.svelte";
     const columnState = getColumnState();
 
     let { items, onviewcolumn = () => {} } = $props();
-    const flipDurationMs = 300;
-    function handleDndConsider(e) {
-        $pauseColumn = true;
-        items = e.detail.items;
-    }
-    function handleDndFinalize(e) {
-        $pauseColumn = false;
-        items = e.detail.items;
-        columnState.columns = items;
-    }
 
     function columnRemove(column) {
         columnState.columns = columnState.columns.filter(_column => _column !== column);
         items = columnState.columns;
     }
+
+    function handleSort(orderedItems) {
+        items = orderedItems;
+        columnState.columns = items;
+    }
 </script>
 
-<div class="column-list" use:dragHandleZone={{items: items, flipDurationMs}} onconsider={handleDndConsider} onfinalize={handleDndFinalize}>
-  {#each items as column, index (column.id)}
-    <div class="column-list__item" animate:flip="{{duration: flipDurationMs}}">
-      <div class="column-list__grab" use:dragHandle>
-        <GripVertical size="20" color="var(--border-color-1)"></GripVertical>
-      </div>
-
+<Sortable {items} onsort={handleSort}>
+  {#snippet content(column, index)}
+    <div class="column-list__item">
       <div class="column-list__icon">
         {#if column.settings?.icon}
           {@const SvelteComponent = iconMap.get(column.settings.icon)}
@@ -50,35 +39,21 @@
         {/if}
       </div>
 
-      <button class="column-list__remove" onclick={() => {columnRemove(column)}} ontouchend={() => {columnRemove(column)}} aria-label="Remove">
-        <XCircle color="var(--text-color-1)" size="20"></XCircle>
+      <button class="column-list__remove" onclick={() => {columnRemove(column)}} aria-label="Remove">
+        <XCircle color="var(--text-color-1)"></XCircle>
       </button>
     </div>
-  {/each}
-</div>
+  {/snippet}
+</Sortable>
 
 <style lang="postcss">
     .column-list {
-        display: grid;
-        gap: 8px;
-        grid-auto-rows: min-content;
-        height: 100%;
-
-        &__grab {
-            position: absolute;
-            left: 4px;
-            top: 0;
-            bottom: 0;
-            display: grid;
-            place-content: center;
-        }
-
         &__item {
             position: relative;
             display: flex;
             gap: 10px;
             align-items: center;
-            padding: 6px 12px 6px 28px;
+            padding: 6px 12px 6px 24px;
             border-radius: 6px;
             font-weight: bold;
             background-color: var(--bg-color-1);
