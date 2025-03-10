@@ -35,7 +35,7 @@
     })
 
     watch(() => column.unreadCount, () => {
-      if (column.unreadCount) {
+      if (column.unreadCount && column.data.cursor) {
         refresh(true);
       }
     })

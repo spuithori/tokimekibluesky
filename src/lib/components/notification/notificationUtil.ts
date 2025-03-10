@@ -45,6 +45,7 @@ export function bundleByProperties(array: any[], property1: string, property2: s
         reason: array[0].reason,
         notifications: array,
         latestIndexedAt: array[0].indexedAt,
+        key: array[0].indexedAt + new Date().toISOString(),
         subject: array[0].reasonSubject && array[0].reason !== 'reply' && array[0].reason !==   'quote'
             ? array[0].reasonSubject
             : (array[0].uri && !array[0].uri.includes('app.bsky.graph.follow')
