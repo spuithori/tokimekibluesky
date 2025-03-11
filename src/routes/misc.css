@@ -354,6 +354,10 @@
     &:has(.neodrag-dragging) {
         .sortable-list__item {
             transition: transform .3s cubic-bezier(0, 0, 0, 1);
+
+            &.neodrag-dragging {
+                transition: none;
+            }
         }
     }
 }
