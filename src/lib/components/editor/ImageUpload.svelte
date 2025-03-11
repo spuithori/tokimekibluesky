@@ -78,7 +78,7 @@
             const videoFile = filesList[0];
             const dimensions = await getVideoDimensions(videoFile);
 
-            if (videoFile.size / 1024 / 1024 > 50 || dimensions.duration > 60) {
+            if (videoFile.size / 1024 / 1024 > 100 || dimensions.duration > 180) {
                 toast.error($_('error_video_too_large'));
                 return false;
             }
