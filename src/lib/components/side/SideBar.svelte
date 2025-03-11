@@ -2,7 +2,7 @@
     import { currentTimeline, settings, isColumnModalOpen, intersectingIndex } from "$lib/stores";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import {page} from '$app/stores';
-    import {Home, Pen, PenOff, Settings, SquarePlus} from "lucide-svelte";
+    import {Home, Pen, PenOff, Plus, Settings, SquarePlus} from "lucide-svelte";
     import {iconMap} from "$lib/columnIcons";
     import SideNav from "$lib/components/side/SideNav.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -96,7 +96,7 @@
           class="side-bar-button side-column-add-button"
           onclick={() => {$isColumnModalOpen = true}}
       >
-        <SquarePlus color="var(--bar-primary-icon-color)"></SquarePlus>
+        <Plus color="var(--bar-primary-icon-color)"></Plus>
       </button>
 
       {#each columnState.columns as column, index (column.id)}
