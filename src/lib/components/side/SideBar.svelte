@@ -2,15 +2,13 @@
     import { currentTimeline, settings, isColumnModalOpen, intersectingIndex } from "$lib/stores";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import {page} from '$app/stores';
-    import {Home, Layers, Pen, PenOff, Settings, SquarePlus} from "lucide-svelte";
+    import {Home, Pen, PenOff, Settings, SquarePlus} from "lucide-svelte";
     import {iconMap} from "$lib/columnIcons";
     import SideNav from "$lib/components/side/SideNav.svelte";
-    import SideWorkspaceModal from "$lib/components/side/SideWorkspaceModal.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
     import {untrack} from "svelte";
-    import {modalState} from "$lib/classes/modalState.svelte";
 
     const columnState = getColumnState();
     let mobileV2Visible = $state(false);
@@ -81,18 +79,6 @@
  class:side-bar--mobileV2={$settings?.design?.mobileNewUi}
  class:side-bar--mobileV2-visible={mobileV2Visible && $settings?.design?.mobileNewUi}>
   <div class="side-bar__list side-bar__top">
-    <button class="side-workspace-button"
-        class:side-workspace-button--active={modalState.isWorkspaceModalOpen}
-        onclick={() => {modalState.isWorkspaceModalOpen = !modalState.isWorkspaceModalOpen}}
-        aria-label="Open workspaces"
-    >
-      <Layers size="20" color="var(--primary-color)"></Layers>
-    </button>
-
-    {#if (modalState.isWorkspaceModalOpen)}
-      <SideWorkspaceModal onclose={() => {modalState.isWorkspaceModalOpen = false}}></SideWorkspaceModal>
-    {/if}
-
     <button
           class="side-publish-button"
           onclick={() => {publishState.show = !publishState.show}}
@@ -243,10 +229,6 @@
                   visibility: visible;
               }
 
-              .side-workspace-button {
-                 display: none;
-              }
-
               .side-column-add-button {
                  display: none;
               }
@@ -334,17 +316,13 @@
       }
   }
 
-  .side-workspace-button {
+  .side-column-add-button {
       width: 40px;
       height: 40px;
-      display: grid;
-      place-content: center;
       border-radius: var(--border-radius-3);
       border: 1px solid var(--primary-color);
-      box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.06) 0 2px 4px -1px;
+      box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.04) 0 2px 4px -1px;
       background-color: var(--nav-content-bg-color);
-      margin-bottom: 4px;
-      transition: transform .1s ease-in-out;
 
       @media (max-width: 767px) {
           margin-bottom: 0;
@@ -352,21 +330,17 @@
           height: 36px;
           margin-right: 6px;
       }
-
-      &:hover,
-      &--active {
-          transform: translateY(2px);
-      }
   }
 
   .side-publish-button {
+      --bar-primary-icon-color: var(--bg-color-1);
       width: 40px;
       height: 40px;
       border-radius: 5px;
       display: grid;
       place-content: center;
-      background-color: var(--nav-content-bg-color);
-      margin-bottom: 6px;
+      background-color: var(--primary-color);
+      margin-bottom: 4px;
 
       @media (max-width: 767px) {
           display: none;

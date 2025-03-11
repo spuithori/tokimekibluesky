@@ -1,6 +1,6 @@
 <script lang="ts">
   import {agent, currentTimeline, settings} from '$lib/stores';
-  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic, Square, TrendingUp, Clapperboard } from 'lucide-svelte';
+  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic, Square, TrendingUp, Clapperboard, Layers } from 'lucide-svelte';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
@@ -15,8 +15,10 @@
   import SideColumns from "$lib/components/side/SideColumns.svelte";
   import SideTopic from "$lib/components/side/SideTopic.svelte";
   import {chatState} from "$lib/classes/chatState.svelte";
+  import SideWorkspace from "$lib/components/side/SideWorkspace.svelte";
 
   let { footer = false } = $props();
+  let isWorkspaceModalOpen = $state(false);
   let isFeedsModalOpen = $state(false);
   let isChatModalOpen = $state(false);
   let isNotificationModalOpen = $state(false);
@@ -31,6 +33,9 @@
       isMenuOpen = false;
 
       switch (item) {
+          case 'workspace':
+            isWorkspaceModalOpen = !isWorkspaceModalOpen;
+            break;
           case 'feeds':
             isFeedsModalOpen = !isFeedsModalOpen;
             break;
@@ -132,7 +137,9 @@
   {#each sideState.items as item}
     <li class="side-nav__item">
       <button class="side-nav__button side-nav__button--{item}" onclick={() => {handleMenuAction(item)}}>
-        {#if (item === 'feeds')}
+        {#if (item === 'workspace')}
+          <Layers color="var(--nav-secondary-icon-color)"></Layers>
+        {:else if (item === 'feeds')}
           <GanttChartSquare color="var(--nav-secondary-icon-color)"></GanttChartSquare>
         {:else if (item === 'chat')}
           <MessageCircleMore color="var(--nav-secondary-icon-color)"></MessageCircleMore>
@@ -172,6 +179,18 @@
     {/if}
   </li>
 </ul>
+
+{#if isWorkspaceModalOpen}
+  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--workspace'}} onoutclick={() => {isWorkspaceModalOpen = false}}>
+    <div class="side-modal__content">
+      <SideWorkspace on:close={() => {isWorkspaceModalOpen = false}}></SideWorkspace>
+    </div>
+
+    <button class="side-modal__close only-mobile" onclick={() => {isWorkspaceModalOpen = false}}>
+      <CircleX size="36" color="var(--text-color-1)"></CircleX>
+    </button>
+  </div>
+{/if}
 
 {#if isFeedsModalOpen}
   <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--feeds'}} onoutclick={() => {isFeedsModalOpen = false}}>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2 } from 'lucide-svelte';
+  import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply } from 'lucide-svelte';
   import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, postPulse, pulseDetach, junkAgentDid } from '$lib/stores';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
   import { toast } from "svelte-sonner";
@@ -54,6 +54,9 @@
     let hideQuote = column?.settings?.timeline?.hideQuote
       ? column.settings.timeline.hideQuote
       : $settings.timeline?.hideQuote || false;
+    let simpleReply = $derived(column?.settings?.timeline?.simpleReply
+      ? column.settings.timeline.simpleReply
+      : $settings.timeline?.simpleReply || false);
 
     if ($settings.general?.deleteConfirmSkip === undefined) {
         $settings.general.deleteConfirmSkip = false;
@@ -605,32 +608,41 @@
         </div>
       {/if}
 
-      {#if (data?.reply?.parent?.notFound || data?.reply?.parent?.blocked || data?.reply?.root?.notFound || data?.reply?.root?.blocked)}
+      {#if data?.reply?.parent?.notFound || data?.reply?.parent?.blocked || data?.reply?.root?.notFound || data?.reply?.root?.blocked}
         <article class="timeline-hidden-item">
-          <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
+          <p class="timeline-hidde-item__text">{$_('deleted_reply')}</p>
         </article>
-      {:else}
-        {#if (data.reply && !isSingle && !isReplyHide)}
-          {#if (isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
-            <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
-              <TimelineContent post={data.reply.root} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
-            </div>
+      {:else if simpleReply && data.reply && !isThread}
+        <div class="timeline-repost-messages">
+          <p class="timeline-repost-message">
+            <button style="pointer-events: none;">
+              <Reply size="18" color="var(--primary-color)"></Reply>
+              <span class="timeline-repost-message__text">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle}})}</span>
+            </button>
+          </p>
+        </div>
+      {:else if data.reply && !isSingle && !isReplyHide}
+        {#if isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri}
+          <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
+            <TimelineContent post={data.reply.root} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
+          </div>
 
-            {#if (data.reply.parent?.record?.reply?.parent?.uri !== data.reply.root.uri)}
-              <p class="timeline-read-thread-link">
-                <a href={'/profile/' + data.reply.root.author.handle + '/post/' + data.reply.root.uri.split('/').slice(-1)[0]}>{$_('read_this_thread')}</a>
-              </p>
-            {/if}
+          {#if data.reply.parent?.record?.reply?.parent?.uri !== data.reply.root.uri}
+            <p class="timeline-read-thread-link">
+              <a href={'/profile/' + data.reply.root.author.handle + '/post/' + data.reply.root.uri.split('/').slice(-1)[0]}>
+                {$_('read_this_thread')}
+              </a>
+            </p>
+          {/if}
+        {/if}
+
+        <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
+          {#if !isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri}
+            <span class="timeline-reply-bar"></span>
           {/if}
 
-          <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
-            {#if (!isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri)}
-              <span class="timeline-reply-bar"></span>
-            {/if}
-
-            <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
-          </div>
-        {/if}
+          <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
+        </div>
       {/if}
 
       <div class="timeline__column">

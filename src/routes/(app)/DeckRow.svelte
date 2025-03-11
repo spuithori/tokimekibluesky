@@ -24,8 +24,7 @@
     import ListTimeline from "./ListTimeline.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
-    import {Filter, GripVertical, Layers, PictureInPicture2, Settings2, SquarePlus, TextQuote} from "lucide-svelte";
-    import {modalState} from "$lib/classes/modalState.svelte";
+    import {Filter, GripVertical, PictureInPicture2, Settings2, SquarePlus, TextQuote} from "lucide-svelte";
     const { longPressAction } = createLongPress();
 
     interface Props {
@@ -351,15 +350,6 @@
                 </div>
             {/if}
 
-            {#if ($settings.design?.mobileNewUi && !isJunk)}
-                <button class="deck-heading-side-button"
-                    onclick={() => {modalState.isWorkspaceModalOpen = !modalState.isWorkspaceModalOpen}}
-                    aria-label="Open workspaces"
-                >
-                    <Layers size="20" color="var(--primary-color)"></Layers>
-                </button>
-            {/if}
-
             <div class="deck-heading__icon">
                 <button class="deck-heading__icon-picker-button" aria-label="Change icon" onclick={() => {isIconPickerOpen = !isIconPickerOpen}}>
                     {#if column.settings?.icon}
@@ -677,7 +667,7 @@
                         position: absolute;
                         top: 8px;
                         height: 44px;
-                        left: 54px;
+                        left: 8px;
                         right: 54px;
                         background-color: var(--bg-color-2);
                         border-radius: var(--border-radius-3);

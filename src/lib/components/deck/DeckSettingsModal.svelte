@@ -28,6 +28,7 @@
     let hideRepost = $state(column.settings?.timeline?.hideRepost || null);
     let hideReply = $state(column.settings?.timeline?.hideReply || null);
     let hideQuote = $state(column.settings?.timeline?.hideQuote || null);
+    let simpleReply = $state(column.settings?.timeline?.simpleReply || null);
     let langFilterEnabled = $state(column.settings?.langFilterEnabled || false);
     let langFilter = $state(column.settings?.langFilter || []);
     let autoRefresh = $state(column.settings?.autoRefresh || 0);
@@ -55,6 +56,7 @@
                 hideRepost: hideRepost,
                 hideReply: hideReply,
                 hideQuote: hideQuote,
+                simpleReply: simpleReply,
             },
             langFilterEnabled: langFilterEnabled,
             langFilter: $state.snapshot(langFilter),
@@ -80,6 +82,7 @@
                 hideRepost: null,
                 hideReply: null,
                 hideQuote: null,
+                simpleReply: null,
             },
             langFilterEnabled: false,
             langFilter: [],
@@ -585,6 +588,18 @@
                         <dd class="settings-group__content">
                             <div class="input-toggle">
                                 <input class="input-toggle__input" type="checkbox" id={column.id + 'hideQuote'} bind:checked={hideQuote}><label class="input-toggle__label" for={column.id + 'hideQuote'}></label>
+                            </div>
+                        </dd>
+                    </dl>
+
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('simple_reply')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'simpleReply'} bind:checked={simpleReply}><label class="input-toggle__label" for={column.id + 'simpleReply'}></label>
                             </div>
                         </dd>
                     </dl>

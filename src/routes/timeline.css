@@ -273,7 +273,8 @@
         overflow: hidden;
     }
 
-    a {
+    a,
+    button {
         color: inherit;
         font-weight: bold;
         display: flex;

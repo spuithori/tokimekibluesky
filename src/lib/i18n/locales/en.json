@@ -686,5 +686,7 @@
   "store_column_feed_data": "Keep the retrieval timeline when app closed (beta)",
   "video": "Video",
   "chat_update_all_read": "Mark all as read",
-  "chat_new_receive": "You have a new chat message!"
+  "chat_new_receive": "You have a new chat message!",
+  "simple_reply": "Hide reply source post",
+  "deleted_reply": "Reply to deleted post"
 }

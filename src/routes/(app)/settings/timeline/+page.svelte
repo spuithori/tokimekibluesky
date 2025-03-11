@@ -8,6 +8,7 @@
     let hideRepost = $state($settings.timeline.hideRepost || 'all');
     let hideReply = $state($settings.timeline.hideReply || 'all');
     let hideQuote = $state($settings.timeline.hideQuote || false);
+    let simpleReply = $state($settings.timeline.simpleReply || false);
 
     const replySettings = [
       {
@@ -51,6 +52,7 @@
         $settings.timeline.hideRepost = hideRepost;
         $settings.timeline.hideReply = hideReply;
         $settings.timeline.hideQuote = hideQuote;
+        $settings.timeline.simpleReply = simpleReply;
     });
 </script>
 
@@ -114,6 +116,18 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="hideQuote" bind:checked={hideQuote}><label class="input-toggle__label" for="hideQuote"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('simple_reply')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="simpleReply" bind:checked={simpleReply}><label class="input-toggle__label" for="simpleReply"></label>
         </div>
       </dd>
     </dl>

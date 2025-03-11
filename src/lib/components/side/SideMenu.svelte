@@ -4,7 +4,7 @@
     import { offset, shift, size } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';
     import { fly } from 'svelte/transition';
-    import { AppWindowMac, Bell, CircleArrowUp, Columns3, GanttChartSquare, Heart, MessageCircleMore, Mic, PanelBottomOpen, PanelLeftOpen, Pin, PinOff, RectangleVertical, RefreshCcw, Search, Settings, Square, TrendingUp, UserRound, Clapperboard } from "lucide-svelte";
+    import { AppWindowMac, Bell, CircleArrowUp, Columns3, GanttChartSquare, Heart, MessageCircleMore, Mic, PanelBottomOpen, PanelLeftOpen, Pin, PinOff, RectangleVertical, RefreshCcw, Search, Settings, Square, TrendingUp, UserRound, Clapperboard, Layers } from "lucide-svelte";
     import { publishState } from '$lib/classes/publishState.svelte';
     import {ALL_ITEMS, sideState} from "$lib/classes/sideState.svelte";
 
@@ -93,7 +93,9 @@
     <ul class="side-items-list">
       {#each ALL_ITEMS as item}
         <li class="side-items-list__item">
-          {#if (item === 'feeds')}
+          {#if (item === 'workspace')}
+            <Layers size="18" color="var(--nav-secondary-icon-color)"></Layers>
+          {:else if (item === 'feeds')}
             <GanttChartSquare size="18" color="var(--nav-secondary-icon-color)"></GanttChartSquare>
           {:else if (item === 'chat')}
             <MessageCircleMore size="18" color="var(--nav-secondary-icon-color)"></MessageCircleMore>

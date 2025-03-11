@@ -669,18 +669,14 @@
     </div>
 
     {#if (!postState.reply)}
-      <div class="publish-form-thread-gate">
-        <button class="publish-form-lang-selector-button" onclick={() => {isThreadGateOpen = !isThreadGateOpen}}>
-          <svg class:stroke-danger={$threadGate !== 'everybody'} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square-warning"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v2"/><path d="M12 13h.01"/></svg>
-        </button>
-      </div>
+      <button class="editor-menu-button" onclick={() => {isThreadGateOpen = !isThreadGateOpen}}>
+        <svg class:stroke-danger={$threadGate !== 'everybody'} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square-warning"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v2"/><path d="M12 13h.01"/></svg>
+      </button>
     {/if}
 
-    <div class="publish-form-thread-gate">
-      <button class="publish-form-lang-selector-button" onclick={() => {isConfigOpen = !isConfigOpen}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
-      </button>
-    </div>
+    <button class="editor-menu-button" onclick={() => {isConfigOpen = !isConfigOpen}}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+    </button>
   </div>
 </div>
 
@@ -858,7 +854,7 @@
       padding: 0 16px;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
   }
 
   .publish-form {
@@ -879,7 +875,7 @@
 
               .publish-bb-nav {
                   padding-left: 12px;
-                  gap: 8px;
+                  gap: 5px;
               }
           }
       }

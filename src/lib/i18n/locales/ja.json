@@ -686,5 +686,7 @@
   "store_column_feed_data": "アプリ終了後も取得タイムラインを保持(β)",
   "video": "動画",
   "chat_update_all_read": "すべて既読にする",
-  "chat_new_receive": "新しいチャットメッセージが届いています"
+  "chat_new_receive": "新しいチャットメッセージが届いています",
+  "simple_reply": "リプライ元投稿を非表示",
+  "deleted_reply": "削除された投稿に返信"
 }
