@@ -44,7 +44,8 @@
     isVideoUploadEnabled,
     top,
     avatar,
-    normal
+    normal,
+    onopen,
   }: Props = $props();
 
     const postState = getPostState();
@@ -74,11 +75,11 @@
         }
 
         untrack(() => {
+          onopen();
           setContent(text);
           tick().then(() => {
-            focus();
             postState.pulse = false;
-          })
+          });
         });
       }
     })

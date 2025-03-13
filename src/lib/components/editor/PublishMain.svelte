@@ -45,6 +45,7 @@
     editor = $bindable(),
     isEnabled = $bindable(),
     onadd,
+    onopen,
   }: Props = $props();
 
     const postState = getPostState();
@@ -354,6 +355,7 @@
           {_agent}
           {isEnabled}
           {isVideoUploadEnabled}
+          {onopen}
   >
     {#snippet top()}
       {#if (post.replyRef && typeof post.replyRef !== 'string')}

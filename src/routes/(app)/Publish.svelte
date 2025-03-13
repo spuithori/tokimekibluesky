@@ -717,6 +717,7 @@
                   bind:_agent={_agent}
                   on:focus={handleOpen}
                   onadd={applyAddThread}
+                  onopen={handleOpen}
                   on:publish={publishAll}
                   bind:editor={editor}
                   bind:isEnabled={isEnabled}
