@@ -96,14 +96,6 @@
       }
   }
 
-  function handleOutClick() {
-      if (publishState.pinned || publishState.layout !== 'bottom') {
-          return false;
-      }
-
-      onClose();
-  }
-
   async function saveDraft() {
       try {
           const id = await db.drafts.add($state.snapshot({

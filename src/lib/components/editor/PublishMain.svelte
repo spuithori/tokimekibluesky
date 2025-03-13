@@ -218,8 +218,8 @@
         }
 
         if (post.threadGate !== 'everybody') {
-            post.threadGate = 'everybody';
-            toast.success($_('thread_gate_reset_when_change_account'));
+            // post.threadGate = 'everybody';
+            // toast.success($_('thread_gate_reset_when_change_account'));
         }
     }
 
