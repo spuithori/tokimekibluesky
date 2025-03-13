@@ -36,6 +36,7 @@ const defaultSettings = {
         disableTenorAutoplay: false,
         disableAtmosphere: false,
         losslessImageUpload: false,
+        requireInputAltText: false,
     },
     design: {
         skin: 'default',
@@ -209,12 +210,6 @@ export const linkWarning = writable<LinkWarning>(undefined);
 
 export const intersectingIndex = writable(0);
 
-type ThreadGate = 'everybody' | 'nobody' | string[];
-
-export const threadGate = writable<ThreadGate>('everybody');
-
-export const postgate = writable<boolean>(true)
-
 export const pauseColumn = writable<boolean>(false);
 
 export const bluefeedAddModal = writable({
@@ -240,7 +235,5 @@ export const timelineHashtags = writable([]);
 export const hashtagHistory = writable(localStorage.getItem('hashtagHistory')
     ? JSON.parse(localStorage.getItem('hashtagHistory') as string)
     : []);
-
-export const postPulse = writable([]);
 
 export const isChatColumnFront = writable<boolean>(false);

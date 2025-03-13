@@ -36,6 +36,7 @@
   import {on} from "svelte/events";
   import {sideState} from "$lib/classes/sideState.svelte";
   import TokBackground from "$lib/components/utils/TokBackground.svelte";
+  import {setPostState} from "$lib/classes/postState.svelte";
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -278,6 +279,7 @@
 
   initProfile();
   viewPortSetting();
+  setPostState();
   initColumns();
 
   $effect(() => {

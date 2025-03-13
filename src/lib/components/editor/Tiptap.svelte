@@ -2,7 +2,7 @@
   import { preventDefault } from 'svelte/legacy';
 
   import {_} from 'svelte-i18n';
-  import {createEventDispatcher, onMount, onDestroy} from 'svelte'
+  import {createEventDispatcher, onMount, onDestroy, untrack, tick} from 'svelte'
   import {Editor} from '@tiptap/core'
   import Link from '@tiptap/extension-link';
   import Document from '@tiptap/extension-document';
@@ -13,7 +13,7 @@
   import Placeholder from '@tiptap/extension-placeholder';
   import History from  '@tiptap/extension-history';
   import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
-  import {agent, sharedText, timelineHashtags, hashtagHistory} from "$lib/stores";
+  import {sharedText, timelineHashtags, hashtagHistory} from "$lib/stores";
   import MentionList from "$lib/components/editor/MentionList.svelte";
   import EditorBar from "$lib/components/editor/EditorBar.svelte";
   import {jsonToText} from "$lib/components/editor/richtext";
@@ -22,14 +22,14 @@
   import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
-  import {postState} from "$lib/classes/postState.svelte";
+  import {getPostState} from "$lib/classes/postState.svelte";
   const dispatch = createEventDispatcher();
 
   interface Props {
     json: any;
     text?: string;
     _agent?: any;
-    isPublishEnabled: any;
+    isEnabled: boolean;
     isVideoUploadEnabled: any;
     top?: import('svelte').Snippet;
     avatar?: import('svelte').Snippet;
@@ -39,14 +39,16 @@
   let {
     json = $bindable(),
     text = $bindable(''),
-    _agent = $agent,
-    isPublishEnabled,
+    _agent,
+    isEnabled,
     isVideoUploadEnabled,
     top,
     avatar,
-    normal
+    normal,
+    onopen,
   }: Props = $props();
 
+    const postState = getPostState();
     let element = $state();
     let editor;
     let mentionList = $state();
@@ -64,10 +66,22 @@
 
     $effect(() => {
         addSharedText($sharedText);
-    })
+    });
 
     $effect(() => {
-        changePlaceholder(postState.reply);
+      if (postState.pulse) {
+        if (!editor) {
+          return false;
+        }
+
+        untrack(() => {
+          onopen();
+          setContent(text);
+          tick().then(() => {
+            postState.pulse = false;
+          });
+        });
+      }
     })
 
     onMount(() => {
@@ -239,23 +253,6 @@
         }
     })
 
-    function changePlaceholder(replyRef) {
-        const placeholder = replyRef && typeof replyRef !== 'string'
-            ? $_('send_placeholder_reply', {values: {name: replyRef.data.parent.author.displayName || replyRef.data.parent.author.handle }})
-            : $_('send_placeholder1');
-
-        if (!editor?.extensionManager) {
-            return false;
-        }
-
-        if (editor !== null && placeholder !== '') {
-            editor.extensionManager.extensions.filter(
-                (extension) => extension.name === 'placeholder'
-            )[0].options['placeholder'] = placeholder;
-            editor.view.dispatch(editor.state.tr);
-        }
-    }
-
     function addSharedText(text) {
         if (!$sharedText) {
             return false;
@@ -383,7 +380,7 @@
 
   {#snippet bottom()}
     <div class="publish-form-bottom-publish">
-      <button class="publish-form__submit" disabled={isPublishEnabled} onclick={() => {dispatch('publish')}}>{$_('publish_button_send')}</button>
+      <button class="publish-form__submit" disabled={isEnabled} onclick={() => {dispatch('publish')}}>{$_('publish_button_send')}</button>
     </div>
   {/snippet}
 </EditorBar>
@@ -484,11 +481,5 @@
         grid-template-columns: 40px 1fr;
         gap: 8px;
         padding: 12px;
-    }
-
-    .publish-form-hash {
-        @media (min-width: 768px) {
-            display: none;
-        }
     }
 </style>

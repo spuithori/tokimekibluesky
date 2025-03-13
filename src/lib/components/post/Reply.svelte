@@ -1,9 +1,9 @@
 <script lang="ts">
   import {agent} from '$lib/stores';
-  import {postState} from "$lib/classes/postState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
   import {MessageSquare} from "lucide-svelte";
+  import {getPostState} from "$lib/classes/postState.svelte";
 
   interface Props {
     _agent?: any;
@@ -20,17 +20,18 @@
     count,
     showCounts = true
   }: Props = $props();
+  const postState = getPostState();
 
   function handleClick() {
-      postState.reply = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } }
-      postState.replyPulse = Symbol();
+      postState.posts[postState.index].replyRef = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } };
+      postState.pulse = true;
       publishState.show = true;
       modalState.isVideoModalOpen = false;
       modalState.isMediaModalOpen = false;
   }
 </script>
 
-<button class="timeline-reaction__item timeline-reaction__item--reply" onclick={handleClick} disabled={post?.viewer?.replyDisabled} aria-label="Reply">
+<button class="timeline-reaction__item timeline-reaction__item--reply" onclick={handleClick} disabled={post?.viewer?.replyDisabled || postState.posts.length > 1} aria-label="Reply">
   <span class="timeline-reaction__icon">
     <MessageSquare size="16" color="var(--timeline-reaction-reply-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></MessageSquare>
   </span>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
   import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply } from 'lucide-svelte';
-  import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, postPulse, pulseDetach, junkAgentDid } from '$lib/stores';
+  import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
   import { toast } from "svelte-sonner";
   import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
@@ -18,6 +18,7 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import MediaTimelineItem from "./MediaTimelineItem.svelte";
   import VideoTimelineItem from "$lib/components/post/VideoTimelineItem.svelte";
+  import {getPostState} from "$lib/classes/postState.svelte";
 
     let {
         _agent = $agent,
@@ -36,6 +37,8 @@
     const columnState = getColumnState();
     const junkColumnState = getColumnState(true);
     setContext('timelineItem', data);
+
+    const postState = getPostState();
 
     let selectionText = '';
     let isDialogRender = $state(false);
@@ -199,10 +202,8 @@
     }
 
     function sendMention() {
-      let _post = { did: _agent.did() };
       const mention = `@${data.post.author.handle}`;
-      _post.text = `<span class="editor-mention" data-type="mention" data-id="${mention.slice(1)}">${mention}</span>`;
-      postPulse.set([_post]);
+      postState.replaceText(`<span class="editor-mention" data-type="mention" data-id="${mention.slice(1)}">${mention}</span>`)
 
       isMenuOpen = false;
     }
@@ -329,7 +330,7 @@
             })
             _post.text = text;
 
-            postPulse.set([_post]);
+            postState.replacePost(_post);
             toast.success($_('success_to_delete_and_edit'), {
                 id: toastId,
                 duration: 2000,

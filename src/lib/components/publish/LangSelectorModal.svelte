@@ -1,22 +1,23 @@
 <script lang="ts">
-  import { settings } from '$lib/stores';
   import { _ } from 'svelte-i18n';
   import {languageMap} from "$lib/langs/languageMap";
   import Modal from "$lib/components/ui/Modal.svelte";
+  import {getPostState} from "$lib/classes/postState.svelte";
+  import {watch} from "runed";
 
-  let { onclose } = $props();
-  let langSelector = $state($settings.langSelector || []);
-  let disabled = $derived(langSelector.length >= 3);
+  let { onclose, post } = $props();
+  const postState = getPostState();
+  let disabled = $derived(post.lang.length >= 3);
+
+  watch(() => post.lang, () => {
+    postState.langs.current = post.lang;
+  });
 
   $effect(() => {
-      if (Array.isArray(langSelector) && langSelector.includes('auto')) {
-          langSelector = langSelector.filter(lang => lang !== 'auto');
+      if (Array.isArray(post.lang) && post.lang.includes('auto')) {
+          post.lang = post.lang.filter(lang => lang !== 'auto');
       }
-  })
-
-  $effect(() => {
-      $settings.langSelector = langSelector;
-  })
+  });
 </script>
 
 <Modal title={$_('user_language_settings')} {onclose}>
@@ -26,7 +27,7 @@
 
       <div class="input-toggle">
         <input class="input-toggle__input" type="radio" id="auto"
-               value="auto" name="Languages" bind:group={langSelector}><label class="input-toggle__label" for="auto"></label>
+               value="auto" name="Languages" bind:group={post.lang}><label class="input-toggle__label" for="auto"></label>
       </div>
     </div>
 
@@ -36,7 +37,7 @@
 
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id={k}
-                 value={k} name="Languages" bind:group={langSelector} disabled={disabled && !langSelector.includes(k) && langSelector !== 'auto'}><label class="input-toggle__label" for={k}></label>
+                 value={k} name="Languages" bind:group={post.lang} disabled={disabled && !post.lang.includes(k) && post.lang !== 'auto'}><label class="input-toggle__label" for={k}></label>
         </div>
       </div>
     {/each}

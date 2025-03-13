@@ -1,14 +1,16 @@
 <script lang="ts">
-  import {agent, listAddModal, postPulse, repostMutes} from "$lib/stores";
+  import {agent, listAddModal, repostMutes} from "$lib/stores";
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
   import {createEventDispatcher} from "svelte";
   import {AtSign, ShieldBan, VolumeX} from "lucide-svelte";
+  import {getPostState} from "$lib/classes/postState.svelte";
   const dispatch = createEventDispatcher();
 
   let { profile, handle } = $props();
   let isMenuOpen = $state(false);
+  const postState = getPostState();
 
   async function mute() {
       try {
@@ -95,10 +97,8 @@
   }
 
   function sendMention() {
-    let _post = {};
     const mention = `@${profile.handle}`;
-    _post.text = `<span class="editor-mention" data-type="mention" data-id="${mention.slice(1)}">${mention}</span>`;
-    postPulse.set([_post]);
+    postState.replaceText(`<span class="editor-mention" data-type="mention" data-id="${mention.slice(1)}">${mention}</span>`);
 
     isMenuOpen = false;
   }

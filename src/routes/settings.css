@@ -326,17 +326,6 @@ input[type=checkbox] {
 
 }
 
-.notice {
-    padding: 5px 10px;
-    border-radius: 4px;
-    background-color: var(--bg-color-2);
-    border: 1px solid var(--border-color-2);
-    margin-bottom: 12px;
-    display: grid;
-    grid-template-columns: 20px 1fr;
-    gap: 8px;
-}
-
 .theme-store-wrap {
     padding: 16px;
 }
