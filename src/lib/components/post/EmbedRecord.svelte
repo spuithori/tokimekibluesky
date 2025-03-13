@@ -15,7 +15,12 @@
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
   import EmbedRecord from './EmbedRecord.svelte'
 
-  let { record, _agent = $agent, isChild = false } = $props();
+  let { record, _agent = $agent, isChild = false, isPublish = false } = $props();
+
+  if (isPublish) {
+    record.value = record.record;
+  }
+
   let moderateData = contentLabelling(record, _agent.did(), $settings, $labelDefs, $labelerSettings);
 
   let isWarn = detectWarn(moderateData, 'contentView');

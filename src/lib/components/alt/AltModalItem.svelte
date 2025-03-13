@@ -102,6 +102,10 @@
         @media (max-width: 767px) {
             font-size: 14px;
         }
+
+        &::placeholder {
+            color: var(--text-color-3);
+        }
     }
 
     .alt-modal-item {

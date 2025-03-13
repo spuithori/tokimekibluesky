@@ -1,12 +1,9 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import {postgate} from "$lib/stores";
     import { MessageSquareQuote } from 'lucide-svelte';
 </script>
 
-{#if (!$postgate)}
-  <p class="post-gate-label"><MessageSquareQuote size="16"></MessageSquareQuote>{$_('post_gate_quote_label')}</p>
-{/if}
+<p class="post-gate-label"><MessageSquareQuote size="16"></MessageSquareQuote>{$_('post_gate_quote_label')}</p>
 
 <style lang="postcss">
     .post-gate-label {

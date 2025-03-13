@@ -1,18 +1,19 @@
 <script lang="ts">
-  import {postState} from "$lib/classes/postState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
   import {Quote} from "lucide-svelte";
+  import {getPostState} from "$lib/classes/postState.svelte";
   interface Props {
     post: any;
     embeddingDisabled?: boolean;
   }
 
   let { post, embeddingDisabled = false }: Props = $props();
+  const postState = getPostState();
 
   function handleClick() {
-      postState.quote = post;
-      postState.quotePulse = Symbol();
+      postState.posts[postState.index].quotePost = post;
+      postState.pulse = true;
       publishState.show = true;
       modalState.isVideoModalOpen = false;
       modalState.isMediaModalOpen = false;

@@ -1,32 +1,40 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
-    import {agent, postgate, threadGate} from '$lib/stores';
     import {onMount} from 'svelte';
     import { _ } from 'svelte-i18n';
     import {getAccountIdByDidFromDb} from "$lib/util";
     import {accountsDb} from "$lib/db";
     import {List} from "lucide-svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
+    import {watch} from "runed";
+    import {getPostState} from "$lib/classes/postState.svelte";
 
-    let { _agent = $agent, onclose } = $props();
+    let { _agent, post, onclose } = $props();
+    const postState = getPostState();
     let officialLists = $state([]);
-    let _threadGate = $state($threadGate || 'everybody');
+    let _threadGate = $state(post.threadGate || 'everybody');
     let custom = $state([]);
 
-    run(() => {
-        $threadGate = _threadGate;
-    });
+    $effect(() => {
+        post.threadGate = _threadGate;
+    })
 
-    run(() => {
+    $effect(() => {
         if (custom.length !== 0) {
             _threadGate = custom;
         }
-    });
+    })
 
     if (Array.isArray(_threadGate)) {
         custom = _threadGate;
     }
+
+    watch(() => post.postGate, () => {
+        postState.postGate.current = post.postGate;
+    });
+
+    watch(() => post.threadGate, () => {
+        postState.threadGate.current = post.threadGate;
+    });
 
     async function updateLists() {
         const accountId = await getAccountIdByDidFromDb(_agent.did());
@@ -64,7 +72,7 @@
 
                 <dd class="settings-group__content">
                     <div class="input-toggle">
-                        <input class="input-toggle__input" type="checkbox" id="postgate" bind:checked={$postgate}><label class="input-toggle__label" for="postgate"></label>
+                        <input class="input-toggle__input" type="checkbox" id="postgate" bind:checked={post.postGate}><label class="input-toggle__label" for="postgate"></label>
                     </div>
                 </dd>
             </dl>

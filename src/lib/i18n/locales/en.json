@@ -688,5 +688,7 @@
   "chat_update_all_read": "Mark all as read",
   "chat_new_receive": "You have a new chat message!",
   "simple_reply": "Hide reply source post",
-  "deleted_reply": "Reply to deleted post"
+  "deleted_reply": "Reply to deleted post",
+  "require_input_alt_text": "Require ALT text input",
+  "alt_text_missing": "There is an image for which no ALT text has been entered (the “Require ALT text input” option is enabled)."
 }

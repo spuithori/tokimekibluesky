@@ -5,11 +5,12 @@
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import {toast} from "svelte-sonner";
   import {Copy, Pencil, UserRoundSearch, WholeWord} from "lucide-svelte";
-  import {postPulse} from "$lib/stores";
+  import {getPostState} from "$lib/classes/postState.svelte";
   const { longPressAction } = createLongPress();
 
   let { item, handle = undefined } = $props();
   let isTagMenuOpen = $state(false);
+  const postState = getPostState();
 
   function handleTagLongClick() {
       isTagMenuOpen = true;
@@ -40,11 +41,8 @@
   }
 
   function postTag() {
-    let _post = {};
-    _post.text = `<span class="editor-hashtag">${item.text}</span>`;
-    postPulse.set([_post]);
-
-    isTagMenuOpen = false;
+      postState.replaceText(`<span class="editor-hashtag">${item.text}</span>`);
+      isTagMenuOpen = false;
   }
 </script>
 

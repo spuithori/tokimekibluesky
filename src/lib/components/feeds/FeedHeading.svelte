@@ -3,13 +3,14 @@
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {EllipsisVertical, ExternalLink, Quote} from "lucide-svelte";
-  import {postState} from "$lib/classes/postState.svelte";
   import {goto} from "$app/navigation";
   import {onMount} from "svelte";
+  import {getPostState} from "$lib/classes/postState.svelte";
 
   let { _agent, feed } = $props();
   let isMenuOpen = $state(false);
   let savedFeeds = $state();
+  const postState = getPostState();
 
   async function getSavedFeeds () {
     const preferenceRes = await _agent.agent.api.app.bsky.actor.getPreferences()
@@ -23,8 +24,8 @@
   }
 
   function handleEmbedClick() {
-    postState.quote = feed;
-    postState.quotePulse = Symbol();
+    postState.posts[postState.index].quotePost = feed;
+    postState.pulse = true;
     goto('/');
   }
 

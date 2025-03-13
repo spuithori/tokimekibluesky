@@ -1,7 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
-  import { agent, agents, hashtagHistory, isChatColumnFront, postgate, postPulse, settings, threadGate } from '$lib/stores';
-  import {selfLabels} from "$lib/components/editor/publishStore";
+  import { agent, hashtagHistory, isChatColumnFront, settings } from '$lib/stores';
   import {clickOutside} from '$lib/clickOutSide';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
   import {toast} from 'svelte-sonner'
@@ -10,7 +9,7 @@
   import type {Draft} from '$lib/db';
   import {db} from '$lib/db';
   import DraftModal from "$lib/components/draft/DraftModal.svelte";
-  import {getAccountIdByDid, getServiceAuthToken} from "$lib/util";
+  import {getServiceAuthToken} from "$lib/util";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
   import imageCompression from 'browser-image-compression';
   import PublishPool from "$lib/components/editor/PublishPool.svelte";
@@ -19,10 +18,12 @@
   import {tick} from "svelte";
   import {TID} from "@atproto/common-web";
   import {computeCid} from "$lib/components/editor/postUtil";
-  import {postState} from "$lib/classes/postState.svelte";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
   import {Pin, PinOff, X} from "lucide-svelte";
+  import {getPostState} from "$lib/classes/postState.svelte";
+
+  const postState = getPostState();
 
   let _agent = $state($agent);
   let editor = $state();
@@ -31,10 +32,6 @@
   let isVirtualKeyboard = $state(false);
   let isEnabled = $state(true);
   let isPublishing = $state(false);
-  let unique = $state(Symbol());
-  let postsPool = $state([{}]);
-  let currentPost = $state(0);
-  let publishMainEl = $state();
   let writes = [];
   let tid: TID | undefined;
 
@@ -45,35 +42,7 @@
       isVirtualKeyboard = true;
   }
 
-  if (!$settings.langSelector) {
-      $settings.langSelector = 'auto';
-  }
-
   let isMobilePopState = $derived(isMobile ? $page.state.showPublish : false);
-
-  $effect(() => {
-      if (isMobile ? publishState.show && isMobilePopState : publishState.show) {
-          document.documentElement.classList.add('scroll-lock');
-      } else {
-          document.documentElement.classList.remove('scroll-lock');
-      }
-  })
-
-  $effect(() => {
-      handlePostPulse($postPulse);
-  })
-
-  $effect(() => {
-      if (postState.quotePulse) {
-          quoteObserve(postState.quote?.uri);
-      }
-  })
-
-  $effect(() => {
-      if (postState.replyPulse) {
-          replyObserve(postState.reply);
-      }
-  })
 
   $effect(() => {
       if (publishState.show) {
@@ -103,8 +72,6 @@
 
   function onClose(force: boolean = false) {
       if (publishState.show) {
-          postState.quotePulse = undefined;
-          postState.replyPulse = undefined;
           publishState.show = false;
           editor.blur();
 
@@ -130,34 +97,6 @@
       }
   }
 
-  function handlePostPulse(posts) {
-      if (!posts || !posts.length) {
-          return false;
-      }
-
-      postsPool = posts;
-      _agent = $agents.get(getAccountIdByDid($agents, posts[0].did));
-      unique = Symbol();
-      handleOpen();
-      postPulse.set([]);
-  }
-
-
-  function quoteObserve(uri) {
-      if (uri) {
-          handleOpen();
-      }
-  }
-
-  function replyObserve(reply) {
-      if (reply) {
-          handleOpen();
-          _agent = $agents.get(getAccountIdByDid($agents, reply.did));
-      } else {
-          _agent = $agent;
-      }
-  }
-
   function handleOutClick() {
       if (publishState.pinned || publishState.layout !== 'bottom') {
           return false;
@@ -168,22 +107,17 @@
 
   async function saveDraft() {
       try {
-          postsPool[currentPost] = publishMainEl.getThread();
-
           const id = await db.drafts.add($state.snapshot({
               createdAt: Date.now(),
               owner: _agent.did() as string,
-              ...postsPool[currentPost],
+              ...postState.posts[postState.index],
           }));
 
           if (!publishState.pinned) {
               publishState.show = false;
           }
-          editor.clear();
-          postState.quote = undefined;
-          postState.reply = undefined;
-          postsPool = [{}];
-          unique = Symbol();
+
+          postState.clearPosts();
 
           toast.success($_('draft_add_success'));
       } catch (e) {
@@ -193,14 +127,13 @@
 
   async function handleDraftUse(draft: Draft) {
       isDraftModalOpen = false;
-      editor.clear();
-      postState.quote = undefined;
-      postState.reply = undefined;
-
-      postsPool = [{
-          ...draft,
+      postState.posts = [{
+        ...draft,
+        selfLabels: draft.selfLabels || [],
+        lang: draft.lang || 'auto',
+        threadGate: draft.threadGate || 'everybody',
+        postGate: draft.postGate ?? true,
       }];
-      unique = Symbol();
 
       tick().then(() => {
           editor.focus();
@@ -279,7 +212,6 @@
       }
 
       isPublishing = true;
-      postsPool[currentPost] = publishMainEl.getThread();
       const toastId = toast.loading($_('process_to_post'));
 
       let i = 1;
@@ -288,14 +220,14 @@
       let _replyRef;
 
       try {
-          for (const post of postsPool) {
-              toast.loading($_('process_to_post') + '(' + i + '/' + postsPool.length +  ')', {
+          for (const post of postState.posts) {
+              toast.loading($_('process_to_post') + '(' + i + '/' + postState.posts.length +  ')', {
                   id: toastId,
                   duration: 100000,
               })
               parent = await publish(post, _replyRef);
 
-              if (postsPool.length > 1 && i === 1) {
+              if (postState.posts.length > 1 && i === 1) {
                   root = structuredClone(parent);
               }
 
@@ -374,16 +306,9 @@
       if (!publishState.pinned) {
           onClose();
       }
-      editor.clear();
-      postState.quote = undefined;
-      postState.reply = undefined;
-      selfLabels.set([]);
-      threadGate.set('everybody');
-      postsPool = [{}];
-      currentPost = 0;
+      postState.clearPosts();
       writes = [];
       tid = undefined;
-      unique = Symbol();
 
       if (publishState.pinned) {
           await tick();
@@ -393,12 +318,6 @@
 
   async function publish(post, treeReplyRef = undefined) {
       isEnabled = true;
-
-      type BeforeUploadImage = {
-          image: Blob | File,
-          alt: string,
-          id: string,
-      }
 
       let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
       let embedImages: AppBskyEmbedImages.Main = {
@@ -660,7 +579,7 @@
               })
           }
 
-          if (!$postgate) {
+          if (post.postGate === false) {
               writes.push({
                   $type: 'com.atproto.repo.applyWrites#create',
                   collection: 'app.bsky.feed.postgate',
@@ -704,28 +623,23 @@
       }
   }
 
-  function applyAddThread(e) {
-      postsPool[currentPost] = e.detail.data;
-      postsPool.splice(currentPost + 1, 0, {});
-      currentPost = currentPost + 1;
+  function applyAddThread() {
+      postState.posts.splice(postState.index + 1, 0, $state.snapshot(postState.initPost));
+      postState.index = postState.index + 1;
       tick().then(() => {
           editor.focus();
       })
   }
 
   function applyChangeThread(e) {
-      postsPool[currentPost] = publishMainEl.getThread();
-      currentPost = e.detail.index;
+      postState.index = e.detail.index;
   }
 
   function applyDeleteThread(index) {
-      postsPool[currentPost] = publishMainEl.getThread();
-      postsPool.splice(index, 1);
+      postState.posts.splice(index, 1);
 
-      if (currentPost !== 0) {
-          currentPost = currentPost - 1;
-      } else {
-          postsPool = postsPool;
+      if (postState.index !== 0) {
+          postState.index = postState.index - 1;
       }
 
       tick().then(() => {
@@ -764,9 +678,9 @@
   <div class="publish-wrap">
     <div class="publish-buttons">
       {#if (!isEnabled)}
-        <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postsPool.length > 1}>{$_('drafts_save')}</button>
+        <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postState.posts.length > 1}>{$_('drafts_save')}</button>
       {:else}
-        <button class="publish-draft-button publish-view-draft" onclick={() => {isDraftModalOpen = true}} disabled={postsPool.length > 1}>{$_('drafts')}</button>
+        <button class="publish-draft-button publish-view-draft" onclick={() => {isDraftModalOpen = true}} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
       {/if}
 
       <div class="publish-form-continue-mode">
@@ -789,33 +703,29 @@
       </button>
     </div>
 
-    {#key unique}
-      {#key currentPost}
-        {#each postsPool as post, index}
-          <div class="publish-item-wrap" data-index="{index}">
-            {#if (index > 0)}
-              <button class="publish-item-delete" onclick={() => {applyDeleteThread(index)}} aria-label="delete"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
-            {/if}
+    {#each postState.posts as post, index (post)}
+      <div class="publish-item-wrap" data-index={index}>
+        {#if (index > 0)}
+          <button class="publish-item-delete" onclick={() => {applyDeleteThread(index)}} aria-label="delete">
+            <X size="20"></X>
+          </button>
+        {/if}
 
-            {#if (index === currentPost)}
-              <PublishMain
-                  bind:post={postsPool[index]}
+        {#if (index === postState.index)}
+          <PublishMain
+                  {index}
                   bind:_agent={_agent}
                   on:focus={handleOpen}
-                  on:add={applyAddThread}
+                  onadd={applyAddThread}
                   on:publish={publishAll}
-                  bind:this={publishMainEl}
                   bind:editor={editor}
                   bind:isEnabled={isEnabled}
-                  length={postsPool.length}
-              ></PublishMain>
-            {:else}
-              <PublishPool {post} {index} bind:_agent={_agent} on:change={applyChangeThread} isEnabled={isPublishing}></PublishPool>
-            {/if}
-          </div>
-        {/each}
-      {/key}
-    {/key}
+          ></PublishMain>
+        {:else}
+          <PublishPool {post} {index} bind:_agent={_agent} on:change={applyChangeThread} isEnabled={isPublishing}></PublishPool>
+        {/if}
+      </div>
+    {/each}
   </div>
 
   {#if (isDraftModalOpen)}

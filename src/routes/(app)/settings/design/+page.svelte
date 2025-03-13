@@ -11,6 +11,7 @@
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {AppWindowMac, ChevronRight, GalleryVertical, Palette, PanelBottomOpen, PanelLeftOpen} from "lucide-svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
+    import Notice from "$lib/components/ui/Notice.svelte";
     let skin: string = $state($settings?.design.skin || 'default');
     let themePick: string = $state($settings?.design.theme || 'royalblue');
     let fontTheme = $state($settings?.design.fontTheme || 'default');
@@ -214,7 +215,7 @@
 
       <dd class="settings-group__content">
         {#if $theme ? $theme.options?.colorDisabled : false}
-          <p class="notice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>{$_('color_disabled_theme')}</p>
+          <Notice text={$_('color_disabled_theme')}></Notice>
         {/if}
 
         <ul class="theme-picker theme-picker--{themePick}">
@@ -243,7 +244,7 @@
 
       <dd class="settings-group__content">
         {#if (isSafariOrFirefox())}
-          <p class="notice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>{$_('font_theme_notice')}</p>
+          <Notice text={$_('font_theme_notice')}></Notice>
         {/if}
 
         <div class="radio-group">
@@ -272,7 +273,7 @@
 
       <dd class="settings-group__content">
         {#if $theme ? $theme.options?.darkmodeDisabled : false}
-          <p class="notice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>{$_('darkmode_disabled_theme')}</p>
+          <Notice text={$_('darkmode_disabled_theme')}></Notice>
         {/if}
 
         <div class="radio-group">

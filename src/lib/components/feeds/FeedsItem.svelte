@@ -10,9 +10,10 @@
   import Menu from "$lib/components/ui/Menu.svelte";
   import {goto} from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  import {postState} from "$lib/classes/postState.svelte";
+  import {getPostState} from "$lib/classes/postState.svelte";
   const dispatch = createEventDispatcher();
   const columnState = getColumnState();
+  const postState = getPostState();
 
   interface Props {
     _agent?: any;
@@ -69,8 +70,8 @@
   }
 
   function handleEmbedClick() {
-      postState.quote = feed;
-      postState.quotePulse = Symbol();
+      postState.posts[postState.index].quotePost = feed;
+      postState.pulse = true;
       goto('/');
   }
 </script>

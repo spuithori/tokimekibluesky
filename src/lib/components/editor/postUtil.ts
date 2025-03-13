@@ -1,8 +1,7 @@
 import * as dcbor from '@ipld/dag-cbor';
-import { sha256 } from 'js-sha256'
 import * as Hasher from 'multiformats/hashes/hasher';
 import { CID } from 'multiformats/cid';
-import {AppBskyFeedPost, BlobRef} from '@atproto/api';
+import { AppBskyFeedPost, BlobRef } from '@atproto/api';
 
 /**
  * These codes are inspired by bluesky-social/social-app.
@@ -12,25 +11,25 @@ import {AppBskyFeedPost, BlobRef} from '@atproto/api';
 const mf_sha256 = Hasher.from({
     name: 'sha2-256',
     code: 0x12,
-    encode: input => {
-        const digest = sha256.arrayBuffer(input)
-        return new Uint8Array(digest)
+    encode: async (input) => {
+        const hashBuffer = await crypto.subtle.digest('SHA-256', input);
+        return new Uint8Array(hashBuffer);
     },
-})
+});
 
 export async function computeCid(record: AppBskyFeedPost.Record): Promise<string> {
     // IMPORTANT: `prepareObject` prepares the record to be hashed by removing
     // fields with undefined value, and converting BlobRef instances to the
     // right IPLD representation.
-    const prepared = prepareForHashing(record)
+    const prepared = prepareForHashing(record);
     // 1. Encode the record into DAG-CBOR format
-    const encoded = dcbor.encode(prepared)
+    const encoded = dcbor.encode(prepared);
     // 2. Hash the record in SHA-256 (code 0x12)
-    const digest = await mf_sha256.digest(encoded)
+    const digest = await mf_sha256.digest(encoded);
     // 3. Create a CIDv1, specifying DAG-CBOR as content (code 0x71)
-    const cid = CID.createV1(0x71, digest)
+    const cid = CID.createV1(0x71, digest);
     // 4. Get the Base32 representation of the CID (`b` prefix)
-    return cid.toString()
+    return cid.toString();
 }
 
 function prepareForHashing(v: any): any {
