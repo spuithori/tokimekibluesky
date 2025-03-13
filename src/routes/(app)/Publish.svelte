@@ -1,7 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
   import { agent, hashtagHistory, isChatColumnFront, settings } from '$lib/stores';
-  import {clickOutside} from '$lib/clickOutSide';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
   import {toast} from 'svelte-sonner'
   import {goto, pushState} from '$app/navigation';
@@ -668,8 +667,6 @@
          class:publish-group--bottom={publishState.layout === 'bottom'}
          class:publish-group--popup={publishState.layout === 'popup'}
          class:vk-publish-group={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
-         use:clickOutside={{ignoreElement: '.publish-sp-open, .side-publish-button'}}
-         onoutclick={handleOutClick}
 >
   {#if (publishState.layout === 'popup')}
     <div class="publish-bg-close" onclick={onClose}></div>
