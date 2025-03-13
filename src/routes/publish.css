@@ -147,7 +147,7 @@
 
     &--fit {
         @media (max-width: 767px) {
-            height: calc(100dvh - 50px - 46px - env(keyboard-inset-height, 0px));
+            height: calc(100dvh - 50px - 85px - env(keyboard-inset-height, 0px));
             display: flex;
             flex-direction: column;
 
