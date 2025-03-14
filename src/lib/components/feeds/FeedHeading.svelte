@@ -3,7 +3,6 @@
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {EllipsisVertical, ExternalLink, Quote} from "lucide-svelte";
-  import {goto} from "$app/navigation";
   import {onMount} from "svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
 
@@ -26,7 +25,6 @@
   function handleEmbedClick() {
     postState.posts[postState.index].quotePost = feed;
     postState.pulse = true;
-    goto('/');
   }
 
   onMount(async () => {

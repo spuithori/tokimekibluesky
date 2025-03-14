@@ -45,7 +45,6 @@
     top,
     avatar,
     normal,
-    onopen,
   }: Props = $props();
 
     const postState = getPostState();
