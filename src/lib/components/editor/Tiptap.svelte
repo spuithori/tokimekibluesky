@@ -13,7 +13,7 @@
   import Placeholder from '@tiptap/extension-placeholder';
   import History from  '@tiptap/extension-history';
   import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
-  import {sharedText, timelineHashtags, hashtagHistory} from "$lib/stores";
+  import {timelineHashtags, hashtagHistory} from "$lib/stores";
   import MentionList from "$lib/components/editor/MentionList.svelte";
   import EditorBar from "$lib/components/editor/EditorBar.svelte";
   import {jsonToText} from "$lib/components/editor/richtext";
@@ -63,10 +63,6 @@
     let scrollable = $state();
     let isGiphyPickerOpen = $state(false);
     let isLinkActive = $state(false);
-
-    $effect(() => {
-        addSharedText($sharedText);
-    });
 
     $effect(() => {
       if (postState.pulse) {
@@ -252,18 +248,6 @@
             editor.destroy();
         }
     })
-
-    function addSharedText(text) {
-        if (!$sharedText) {
-            return false;
-        }
-
-        setTimeout(() => {
-            editor.chain().setContent(text, true).focus().run();
-            sharedText.set('');
-            dispatch('focus');
-        }, 200);
-    }
 
     function addLink() {
         linkDialog.showModal();

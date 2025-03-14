@@ -13,8 +13,6 @@ export const agents = writable(new Map<number, Agent>());
 
 export const junkAgentDid = writable<string | undefined>(undefined);
 
-export const sharedText = writable<string>('');
-
 export const userLists = writable(localStorage.getItem('lists')
     ? JSON.parse(localStorage.getItem('lists'))
     : []);
