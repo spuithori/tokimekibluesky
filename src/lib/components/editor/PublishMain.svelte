@@ -100,6 +100,18 @@
     );
     watch(() => post.text, linkDebounce);
 
+    watch(() => postState.pulse, () => {
+      if (postState.pulse) {
+        if (!editor) {
+          return false;
+        }
+
+        onopen();
+        editor.setContent(post.text);
+        postState.pulse = false;
+      }
+    });
+
     type BeforeUploadImage = {
         image: Blob | File,
         alt: string,

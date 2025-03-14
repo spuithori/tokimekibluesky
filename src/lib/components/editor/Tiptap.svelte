@@ -2,7 +2,7 @@
   import { preventDefault } from 'svelte/legacy';
 
   import {_} from 'svelte-i18n';
-  import {createEventDispatcher, onMount, onDestroy, untrack, tick} from 'svelte'
+  import {createEventDispatcher, onMount, onDestroy} from 'svelte'
   import {Editor} from '@tiptap/core'
   import Link from '@tiptap/extension-link';
   import Document from '@tiptap/extension-document';
@@ -63,22 +63,6 @@
     let scrollable = $state();
     let isGiphyPickerOpen = $state(false);
     let isLinkActive = $state(false);
-
-    $effect(() => {
-      if (postState.pulse) {
-        if (!editor) {
-          return false;
-        }
-
-        untrack(() => {
-          onopen();
-          setContent(text);
-          tick().then(() => {
-            postState.pulse = false;
-          });
-        });
-      }
-    })
 
     onMount(() => {
         editor = new Editor({
