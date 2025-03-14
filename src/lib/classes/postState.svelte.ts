@@ -62,7 +62,10 @@ export class PostState {
     }
 
     replacePost(post) {
-        this.posts[this.index] = post;
+        this.posts[this.index] = {
+            ...$state.snapshot(this.initPost),
+            ...post,
+        };
         this.pulse = true;
     }
 
