@@ -208,23 +208,7 @@
 
 .left-mode {
     @media (max-width: 767px) {
-        .footer {
-            &::before {
-                right: auto;
-                left: 20px;
-            }
-        }
-
-        .footer__wrap {
-            flex-direction: row-reverse;
-        }
-
-        .footer-round {
-            right: auto;
-            left: 11px;
-        }
-
-        .publish-sp-open {
+        .publish-toggle {
             right: auto;
             left: 20px;
 
@@ -233,27 +217,24 @@
             }
         }
 
-        .publish-bottom-buttons {
-            flex-direction: row-reverse;
+        .publish-toolbar {
+            &__top {
+                flex-direction: row-reverse;
 
-            .publish-form-bottom-publish {
-                margin-right: auto;
-                margin-left: 0 !important;
+                .publish-form-bottom-publish {
+                    margin-right: auto;
+                    margin-left: 0;
+                }
             }
-        }
 
-        .publish-bb-nav {
-            flex-direction: row;
+            &__bottom {
+                flex-direction: row !important;
 
-            .publish-length {
-                margin-left: 0 !important;
-                margin-right: auto !important;
+                .publish-length {
+                    margin-left: 0 !important;
+                    margin-right: auto !important;
+                }
             }
-        }
-
-        .side-nav--footer {
-            padding-right: 6px !important;
-            padding-left: 80px !important;
         }
     }
 }

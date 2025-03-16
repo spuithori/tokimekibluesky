@@ -146,7 +146,7 @@
     &--fit {
         @media (max-width: 767px) {
             height: calc(var(--visual-viewport-height, 100dvh) - 50px);
-            scroll-padding-bottom: 92px;
+            scroll-padding-bottom: calc(92px + var(--safe-area-bottom));
             display: flex;
             flex-direction: column;
             overflow-y: auto;

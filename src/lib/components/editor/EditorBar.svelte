@@ -23,6 +23,7 @@
         position: sticky;
         bottom: 0;
         z-index: 100;
+        padding-bottom: var(--safe-area-bottom);
 
         @media (max-width: 767px) {
             background: var(--publish-textarea-bg-color);
