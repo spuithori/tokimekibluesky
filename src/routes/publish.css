@@ -18,10 +18,7 @@
 
         @media (max-width: 767px) {
             top: 0;
-
-            .publish-wrap {
-                display: flex;
-            }
+            height: calc(var(--visual-viewport-height, 100dvh));
         }
     }
 
@@ -100,12 +97,10 @@
 
     @media (max-width: 767px) {
         display: none;
-        flex-direction: column;
         padding: 0;
         background-color: var(--bg-color-1);
         border: none;
         border-radius: 0;
-        min-height: 100%;
     }
 }
 
