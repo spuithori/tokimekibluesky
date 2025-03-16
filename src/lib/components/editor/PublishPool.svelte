@@ -1,20 +1,13 @@
 <script lang="ts">
   import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
-  import {createEventDispatcher} from "svelte";
-  const dispatch = createEventDispatcher();
 
   let {
     post,
     index,
     _agent = $bindable(),
-    isEnabled
+    isEnabled,
+    onchange
   } = $props();
-
-  function changeThread() {
-      dispatch('change', {
-          index: index,
-      });
-  }
 </script>
 
 <div class="publish-pool">
@@ -29,7 +22,7 @@
 
   <div class="publish-pool__content">
     <p class="publish-pool__text">{post.text}</p>
-    <button class="publish-pool__button" onclick={changeThread} disabled={isEnabled}></button>
+    <button class="publish-pool__button" onclick={() => {onchange(index)}} disabled={isEnabled}></button>
   </div>
 </div>
 

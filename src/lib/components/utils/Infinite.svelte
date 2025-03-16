@@ -35,10 +35,8 @@
       }
     },
     {
-      options: {
-        threshold: 1,
-      },
-      root: () => {getScrollElement(el)}
+      root: () => {getScrollElement(el)},
+      threshold: 0.25,
     }
   );
 

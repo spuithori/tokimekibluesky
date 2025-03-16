@@ -19,7 +19,7 @@
   import {computeCid} from "$lib/components/editor/postUtil";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
-  import {Pin, PinOff, X} from "lucide-svelte";
+  import {Pencil, Pin, PinOff, X} from "lucide-svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
 
   const postState = getPostState();
@@ -28,19 +28,12 @@
   let editor = $state();
   let isDraftModalOpen = $state(false);
   let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
-  let isVirtualKeyboard = $state(false);
   let isEnabled = $state(true);
   let isPublishing = $state(false);
   let writes = [];
   let tid: TID | undefined;
 
   const isMobile = navigator?.userAgentData?.mobile || false;
-
-  if ('virtualKeyboard' in navigator) {
-      navigator.virtualKeyboard.overlaysContent = true;
-      isVirtualKeyboard = true;
-  }
-
   let isMobilePopState = $derived(isMobile ? $page.state.showPublish : false);
 
   $effect(() => {
@@ -69,7 +62,7 @@
       scrollDirectionState.direction = 'up';
   }
 
-  function onClose(force: boolean = false) {
+  function onClose() {
       if (publishState.show) {
           publishState.show = false;
           editor.blur();
@@ -622,8 +615,8 @@
       })
   }
 
-  function applyChangeThread(e) {
-      postState.index = e.detail.index;
+  function applyChangeThread(index) {
+      postState.index = index;
   }
 
   function applyDeleteThread(index) {
@@ -642,14 +635,12 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if (isMobile ? publishState.show && isMobilePopState : publishState.show)}
-  <button class="publish-sp-open publish-sp-open--close" class:publish-sp-open--vk={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} class:publish-sp-open--mobileV2={$settings.design?.mobileNewUi} aria-label="投稿ウィンドウを閉じる" onclick={() => {onClose(true)}}>
-    <svg xmlns="http://www.w3.org/2000/svg" width="16.97" height="16.97" viewBox="0 0 16.97 16.97">
-      <path id="close" d="M10,8.586,2.929,1.515,1.515,2.929,8.586,10,1.515,17.071l1.414,1.414L10,11.414l7.071,7.071,1.414-1.414L11.414,10l7.071-7.071L17.071,1.515Z" transform="translate(-1.515 -1.515)" fill="var(--bg-color-1)"/>
-    </svg>
+  <button class="publish-toggle publish-toggle--close" aria-label="Close post composer." class:publish-toggle--vk={!$settings.design?.mobilePostLayoutTop} class:publish-toggle--mobileV2={$settings.design?.mobileNewUi} onclick={onClose}>
+    <X size="24" color="var(--bg-color-1)"></X>
   </button>
 {:else}
-  <button class="publish-sp-open" aria-label="投稿ウィンドウを開く" class:publish-sp-open--hidden={$isChatColumnFront} class:publish-sp-open--mobileV2={$settings.design?.mobileNewUi} onclick={handleOpen}>
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+  <button class="publish-toggle" aria-label="Open post composer." class:publish-toggle--hidden={$isChatColumnFront} class:publish-toggle--mobileV2={$settings.design?.mobileNewUi} onclick={handleOpen}>
+    <Pencil size="22" color="var(--bg-color-1)"></Pencil>
   </button>
 {/if}
 
@@ -658,36 +649,34 @@
          class:publish-group--left={publishState.layout === 'left'}
          class:publish-group--bottom={publishState.layout === 'bottom'}
          class:publish-group--popup={publishState.layout === 'popup'}
-         class:vk-publish-group={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
+         class:vk-publish-group={!$settings.design?.mobilePostLayoutTop}
 >
   {#if (publishState.layout === 'popup')}
-    <div class="publish-bg-close" onclick={onClose}></div>
+    <div class="publish-bg-close" onclick={onClose} aria-hidden="true"></div>
   {/if}
 
   <div class="publish-wrap">
-    <div class="publish-buttons">
+    <div class="publish-header">
       {#if (!isEnabled)}
         <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postState.posts.length > 1}>{$_('drafts_save')}</button>
       {:else}
         <button class="publish-draft-button publish-view-draft" onclick={() => {isDraftModalOpen = true}} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
       {/if}
 
-      <div class="publish-form-continue-mode">
-        <div class="publish-form-continue-mode-input" class:checked={publishState.pinned}>
-          <input id="continue_mode" type="checkbox" bind:checked={publishState.pinned} aria-label="{$_('continuous_mode')}">
-          <label for="continue_mode">
-            {#if (publishState.pinned)}
-              <Pin size="18"></Pin>
-            {:else}
-              <PinOff size="18"></PinOff>
-            {/if}
-          </label>
-        </div>
+      <div class="publish-form-continue-mode" class:checked={publishState.pinned}>
+        <input id="continue_mode" type="checkbox" bind:checked={publishState.pinned} aria-label="{$_('continuous_mode')}">
+        <label for="continue_mode">
+          {#if (publishState.pinned)}
+            <Pin size="18"></Pin>
+          {:else}
+            <PinOff size="18"></PinOff>
+          {/if}
+        </label>
       </div>
 
-      <button class="publish-form__submit" class:publish-form__submit--hide={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop} onclick={publishAll} disabled={isEnabled}>{$_('publish_button_send')}</button>
+      <button class="publish-submit-button" class:publish-submit-button--hide={!$settings.design?.mobilePostLayoutTop} onclick={publishAll} disabled={isEnabled}>{$_('publish_button_send')}</button>
 
-      <button class="publish-form-sp-close" onclick={onClose}>
+      <button class="publish-form-sp-close" onclick={onClose} aria-label="Close.">
         <X color="var(--primary-color)"></X>
       </button>
     </div>
@@ -704,15 +693,14 @@
           <PublishMain
                   {index}
                   bind:_agent={_agent}
-                  on:focus={handleOpen}
                   onadd={applyAddThread}
                   onopen={handleOpen}
-                  on:publish={publishAll}
+                  onpublish={publishAll}
                   bind:editor={editor}
                   bind:isEnabled={isEnabled}
           ></PublishMain>
         {:else}
-          <PublishPool {post} {index} bind:_agent={_agent} on:change={applyChangeThread} isEnabled={isPublishing}></PublishPool>
+          <PublishPool {post} {index} bind:_agent={_agent} onchange={applyChangeThread} isEnabled={isPublishing}></PublishPool>
         {/if}
       </div>
     {/each}
@@ -724,11 +712,11 @@
 </section>
 
 <style lang="postcss">
-    .publish-sp-open {
+    .publish-toggle {
         display: flex;
         position: fixed;
         right: 16px;
-        bottom: calc(16px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
+        bottom: calc(16px + var(--safe-area-bottom));
         width: 52px;
         height: 52px;
         border-radius: 16px;
@@ -740,7 +728,7 @@
 
         @media (max-width: 767px) {
             display: flex;
-            bottom: calc(64px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
+            bottom: calc(64px + var(--safe-area-bottom));
         }
 
         &--vk {
@@ -760,27 +748,26 @@
             @media (max-width: 767px) {
                 width: 48px;
                 height: 48px;
-                bottom: calc(112px + env(keyboard-inset-height, 0px) + var(--safe-area-bottom));
+                bottom: calc(112px + var(--visual-viewport-height, 0px) + var(--safe-area-bottom));
             }
         }
     }
 
-    .publish-buttons {
+    .publish-header {
         max-width: 740px;
         margin: 0 auto;
         display: flex;
-        justify-content: flex-end;
         align-items: center;
+        gap: 8px;
         width: 100%;
-        flex-wrap: wrap;
-        padding-bottom: 12px;
+        padding-bottom: 8px;
 
         @media (max-width: 767px) {
             padding: 12px 12px 8px;
         }
     }
 
-    .publish-form__submit {
+    .publish-submit-button {
         z-index: 12;
 
         @media (max-width: 767px) {
@@ -789,14 +776,6 @@
     }
 
     .publish-form-continue-mode {
-        margin-right: 16px;
-
-        @media (max-width: 767px) {
-            display: none;
-        }
-    }
-
-    .publish-form-continue-mode-input {
         border: 1px solid var(--primary-color);
         color: var(--primary-color);
         opacity: .6;
@@ -810,6 +789,10 @@
         gap: 4px;
         cursor: pointer;
         position: relative;
+
+        @media (max-width: 767px) {
+            display: none;
+        }
 
         input {
             position: absolute;
@@ -866,10 +849,6 @@
                 opacity: 1;
             }
         }
-
-        @media (max-width: 767px) {
-
-        }
     }
 
     .publish-form-sp-close {
@@ -897,24 +876,6 @@
             bottom: 0;
         }
 
-        &:not(:last-child) {
-            &::after {
-                content: '';
-                display: block;
-                position: absolute;
-                left: 32px;
-                margin: auto;
-                bottom: 40px;
-                top: 114px;
-                width: 2px;
-                background-color: var(--border-color-1);
-
-                @media (max-width: 767px) {
-                    left: 31px;
-                }
-            }
-        }
-
         &:last-child {
             &::before {
                 bottom: 12px;
@@ -933,14 +894,6 @@
         right: 4px;
         top: 4px;
         z-index: 1;
-    }
-
-    .vk-publish-group {
-        .publish-wrap {
-            @media (max-width: 767px) {
-                padding-bottom: 86px;
-            }
-        }
     }
 
     .publish-bg-close {

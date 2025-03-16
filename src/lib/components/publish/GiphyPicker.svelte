@@ -1,19 +1,14 @@
 <script lang="ts">
-    import {createEventDispatcher} from 'svelte';
     import { _ } from 'svelte-i18n';
     import { GiphyFetch } from '@giphy/js-fetch-api';
     import { PUBLIC_GIPHY_API_KEY } from '$env/static/public';
     import { Grid } from '@giphy/svelte-components';
-    const dispatch = createEventDispatcher();
 
+    let { onclick, onclose } = $props();
     const gf = new GiphyFetch(PUBLIC_GIPHY_API_KEY);
     let offset = 0;
     let term = $state('');
     let innerWidth = $state();
-
-    function close () {
-        dispatch('close');
-    }
 
     function fetchGifs(offset) {
         if (!gf) {
@@ -32,9 +27,7 @@
             return false;
         }
 
-        dispatch('click', {
-            gif: e.detail.gif,
-        });
+        onclick(e.detail.gif);
     }
 </script>
 
