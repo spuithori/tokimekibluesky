@@ -18,6 +18,7 @@
 
         @media (max-width: 767px) {
             top: 0;
+            bottom: auto;
             height: calc(var(--visual-viewport-height, 100dvh));
         }
     }
