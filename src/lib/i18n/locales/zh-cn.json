@@ -500,7 +500,7 @@
   "lang_filter_notice": "仅包含英文或仅包含汉字的帖子可能会被识别为英文、中文等，这会导致帖子被误过滤。除非有特殊原因，否则不建议启用此功能。",
   "settings_embed_description": "启用或禁用 YouTube、Twitter 等的嵌入",
   "reaction_button_settings_description": "启用或禁用点赞按钮等，及隐藏数字计数",
-  "mobile_post_layout": "移动端帖子界面布局 (Android/Chrome)",
+  "mobile_post_layout": "移动端帖子界面布局",
   "mobile_post_layout_bottom": "发送按钮在底部",
   "mobile_post_layout_top": "发送按钮在顶部（经典）",
   "theme_store_description": "安装更多个性化主题",

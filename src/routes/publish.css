@@ -23,6 +23,10 @@
         @media (max-width: 767px) {
             background-color: var(--bg-color-1);
             top: 0;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
         }
     }
 

@@ -500,7 +500,7 @@
   "lang_filter_notice": " ",
   "settings_embed_description": "Включване/изключване на вграждането на YouTube, Twitter, и т.н.",
   "reaction_button_settings_description": "Настройки за включване/изключване на бутона за харесване, и т.н. и скриване на числата",
-  "mobile_post_layout": "Мобилното оформление за публикуване (Android/Chrome)",
+  "mobile_post_layout": "Мобилното оформление за публикуване",
   "mobile_post_layout_bottom": "Бутонът за публикуване е отдолу",
   "mobile_post_layout_top": "Бутонът за публикуване е отгоре (традиционно)",
   "theme_store_description": "Инсталирайте допълнителни уникални теми",

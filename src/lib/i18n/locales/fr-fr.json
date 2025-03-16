@@ -499,7 +499,7 @@
   "lang_filter_notice": "Il a été signalé qu'il existe de nombreux cas où des messages contenant uniquement de l'anglais ou des kanji sont considérés comme étant de l'anglais, du chinois, etc., et sont interprétés à tort comme étant filtrés et non récupérés. Nous vous recommandons de ne pas définir cette option, sauf raison particulière.",
   "settings_embed_description": "Activer/désactiver l'intégration de YouTube, Twitter, etc.",
   "reaction_button_settings_description": "Paramètres pour activer/désactiver le bouton J'aime, etc. et masquer les compteurs",
-  "mobile_post_layout": "Disposition de l'écran de publication mobile (Android/Chrome)",
+  "mobile_post_layout": "Disposition de l'écran de publication mobile",
   "mobile_post_layout_bottom": "Bouton de publication dessous",
   "mobile_post_layout_top": "Bouton de publication en haut (original)",
   "theme_store_description": "Installez des thèmes uniques supplémentaires",
