@@ -663,7 +663,7 @@
         <button class="publish-draft-button publish-view-draft" onclick={() => {isDraftModalOpen = true}} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
       {/if}
 
-      <div class="publish-form-continue-mode" class:checked={publishState.pinned}>
+      <div class="publish-continue-mode" class:checked={publishState.pinned}>
         <input id="continue_mode" type="checkbox" bind:checked={publishState.pinned} aria-label="{$_('continuous_mode')}">
         <label for="continue_mode">
           {#if (publishState.pinned)}
@@ -676,7 +676,7 @@
 
       <button class="publish-submit-button" class:publish-submit-button--hide={!$settings.design?.mobilePostLayoutTop} onclick={publishAll} disabled={isEnabled}>{$_('publish_button_send')}</button>
 
-      <button class="publish-form-sp-close" onclick={onClose} aria-label="Close.">
+      <button class="publish-sp-close" onclick={onClose} aria-label="Close.">
         <X color="var(--primary-color)"></X>
       </button>
     </div>
@@ -775,7 +775,7 @@
         }
     }
 
-    .publish-form-continue-mode {
+    .publish-continue-mode {
         border: 1px solid var(--primary-color);
         color: var(--primary-color);
         opacity: .6;
@@ -851,7 +851,7 @@
         }
     }
 
-    .publish-form-sp-close {
+    .publish-sp-close {
         height: 30px;
         width: 30px;
         display: none;

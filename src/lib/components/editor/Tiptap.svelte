@@ -231,7 +231,9 @@
                 isFocus = true;
             },
             onBlur() {
-                isFocus = false;
+                setTimeout(() => {
+                  isFocus = false;
+                }, 500);
             },
         })
     })

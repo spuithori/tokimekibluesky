@@ -314,7 +314,7 @@
 }
 
 .vk-publish-group {
-    .publish-form-sp-close {
+    .publish-sp-close {
         @media (max-width: 767px) {
             display: grid !important;
         }
