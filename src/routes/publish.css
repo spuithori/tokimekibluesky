@@ -353,3 +353,9 @@
         aspect-ratio: auto;
     }
 }
+
+body {
+    &:has(.publish-group--expanded.vk-publish-group) {
+        overflow: hidden;
+    }
+}
