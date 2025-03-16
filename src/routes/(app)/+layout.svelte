@@ -309,6 +309,17 @@
           });
       }
   });
+
+  $effect(() => {
+    const visualViewport = window.visualViewport;
+
+    return on(visualViewport, 'resize', () => {
+      document.documentElement.style.setProperty(
+        "--visual-viewport-height",
+        `${visualViewport.height}px`,
+      );
+    });
+  });
 </script>
 
 <svelte:window onscroll={handleScroll}></svelte:window>

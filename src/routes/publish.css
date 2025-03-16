@@ -6,7 +6,7 @@
     z-index: 2000;
 
     @media (max-width: 767px) {
-        overflow: auto;
+        overflow-x: hidden;
         overscroll-behavior: none;
         pointer-events: auto;
     }
@@ -14,13 +14,18 @@
     &--expanded {
         .publish-wrap {
             display: block;
+
+            @media (max-width: 767px) {
+                height: calc(100% + 1px);
+            }
         }
 
         @media (max-width: 767px) {
+            background-color: var(--bg-color-1);
             top: 0;
 
-            .publish-wrap {
-                display: flex;
+            &::-webkit-scrollbar {
+                display: none;
             }
         }
     }
@@ -50,11 +55,6 @@
                     display: flex;
                     flex-direction: column;
                 }
-            }
-
-            .publish-alt-text-button {
-                position: static;
-                width: 100%;
             }
         }
     }
@@ -105,12 +105,10 @@
 
     @media (max-width: 767px) {
         display: none;
-        flex-direction: column;
         padding: 0;
         background-color: var(--bg-color-1);
         border: none;
         border-radius: 0;
-        min-height: 100%;
     }
 }
 
@@ -147,9 +145,11 @@
 
     &--fit {
         @media (max-width: 767px) {
-            height: calc(100dvh - 50px - 85px - env(keyboard-inset-height, 0px));
+            height: calc(var(--visual-viewport-height, 100dvh) - 50px);
+            scroll-padding-bottom: calc(92px + var(--safe-area-bottom));
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
 
             .editor-column {
                 flex: 1;
@@ -158,31 +158,11 @@
             .tiptap {
                 height: 100%;
             }
-
-            .publish-bb-nav {
-                flex-direction: row-reverse;
-            }
         }
     }
 }
 
-.publish-form__input {
-    background-color: var(--publish-textarea-bg-color);
-    color: var(--publish-textarea-color);
-    height: 120px;
-    font-size: 16px;
-    vertical-align: middle;
-    width: 100%;
-    padding: 15px 20px;
-    resize: none;
-    outline: none;
-
-    &::placeholder {
-        color: var(--text-color-3);
-    }
-}
-
-.publish-form__submit {
+.publish-submit-button {
     min-width: 82px;
     height: var(--publish-post-button-height);
     border-radius: 15px;
@@ -203,43 +183,14 @@
     gap: 5px;
     white-space: nowrap;
 
-    @media (max-width: 767px) {
-
-    }
-
     &:disabled {
         opacity: .6;
-    }
-
-    svg {
-        margin-top: 4px;
     }
 
     &--hide {
         @media (max-width: 767px) {
             display: none;
         }
-    }
-}
-
-.publish-form-scrollable {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-
-    @media (max-width: 767px) {
-        overflow-y: auto;
-    }
-}
-
-.publish-upload-close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 10;
-
-    @media (max-width: 767px) {
-        display: none;
     }
 }
 
@@ -255,12 +206,6 @@
     }
 }
 
-.publish-actor-list-input-group {
-    display: flex;
-    flex-direction: column-reverse;
-    position: relative;
-}
-
 .publish-form-moderation-button {
     display: flex;
     align-items: center;
@@ -271,14 +216,6 @@
     font-size: 14px;
     height: 30px;
     border-radius: 4px;
-}
-
-.publish-form-moderation {
-    &--active {
-        .publish-form-moderation-button {
-            color: var(--danger-color);
-        }
-    }
 }
 
 .emoji-picker-wrap {
@@ -377,7 +314,7 @@
 }
 
 .vk-publish-group {
-    .publish-form-sp-close {
+    .publish-sp-close {
         @media (max-width: 767px) {
             display: grid !important;
         }
@@ -393,21 +330,6 @@
     .publish-form-bottom-publish {
         @media (max-width: 767px) {
             display: block !important;
-        }
-    }
-
-    .publish-bottom-buttons {
-        @media (max-width: 767px) {
-            position: fixed !important;
-        }
-    }
-
-    .publish-bb-nav {
-        @media (max-width: 767px) {
-            position: fixed !important;
-            bottom: calc(env(keyboard-inset-height, 0px) + 46px);
-            z-index: 100;
-            background: var(--publish-textarea-bg-color);
         }
     }
 

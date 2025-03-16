@@ -198,15 +198,21 @@
   <div class:media-list={column.style === 'media'} class:video-list={column.style === 'video'}>
     {#each column.data.feed as data, index (data)}
       {#if (data?.post?.author?.did)}
-        <TimelineItem
-            {data}
-            {index}
-            {column}
-            {_agent}
-            isProfile={column.algorithm.type === 'author'}
-            isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
-            isPinned={isReasonPin(data?.reason)}
-        ></TimelineItem>
+        <svelte:boundary>
+          <TimelineItem
+                  {data}
+                  {index}
+                  {column}
+                  {_agent}
+                  isProfile={column.algorithm.type === 'author'}
+                  isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
+                  isPinned={isReasonPin(data?.reason)}
+          ></TimelineItem>
+
+          {#snippet failed(error, reset)}
+            <p style="padding: 16px;">post load error!!</p>
+          {/snippet}
+        </svelte:boundary>
       {/if}
 
       {#if data?.isDivider}

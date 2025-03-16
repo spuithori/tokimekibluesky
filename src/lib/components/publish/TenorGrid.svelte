@@ -1,15 +1,13 @@
 <script lang="ts">
   import { PUBLIC_TENOR_API_KEY } from '$env/static/public';
-  import {createEventDispatcher} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
-  const dispatch = createEventDispatcher();
 
   interface Props {
     category: 'search' | 'featured';
     term: string;
   }
 
-  let { category, term }: Props = $props();
+  let { category, term, onclick }: Props = $props();
   let cursor = '';
   let gifs = $state([]);
 
@@ -17,12 +15,10 @@
       const width = gif.media_formats.gif.dims[0];
       const height = gif.media_formats.gif.dims[1];
 
-      dispatch('click', {
-          gif: {
-              url: `${gif.media_formats.gif.url}?hh=${height}&ww=${width}`,
-              title: gif.content_description
-          },
-      })
+      onclick({
+        url: `${gif.media_formats.gif.url}?hh=${height}&ww=${width}`,
+        title: gif.content_description
+      });
   }
 
   async function handleLoadMore(loaded, complete) {

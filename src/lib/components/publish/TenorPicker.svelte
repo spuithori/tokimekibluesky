@@ -1,20 +1,17 @@
 <script lang="ts">
-    import {createEventDispatcher, onMount} from 'svelte';
     import { _ } from 'svelte-i18n';
     import TenorGrid from "$lib/components/publish/TenorGrid.svelte";
-    const dispatch = createEventDispatcher();
 
+    let { onclick } = $props();
     let dialog;
     let term = $state('');
 
-    function handleClick(e) {
-        if (!e.detail.gif) {
+    function handleClick(gif) {
+        if (!gif) {
             return false;
         }
 
-        dispatch('click', {
-            gif: e.detail.gif,
-        });
+        onclick(gif);
     }
 </script>
 
@@ -29,7 +26,7 @@
       <TenorGrid
               category={term ? 'search' : 'featured'}
               term={term}
-              on:click={handleClick}
+              onclick={handleClick}
       ></TenorGrid>
     {/key}
   </div>

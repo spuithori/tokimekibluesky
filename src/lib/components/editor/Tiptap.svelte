@@ -2,7 +2,7 @@
   import { preventDefault } from 'svelte/legacy';
 
   import {_} from 'svelte-i18n';
-  import {createEventDispatcher, onMount, onDestroy} from 'svelte'
+  import {onMount, onDestroy} from 'svelte'
   import {Editor} from '@tiptap/core'
   import Link from '@tiptap/extension-link';
   import Document from '@tiptap/extension-document';
@@ -23,7 +23,8 @@
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
   import {getPostState} from "$lib/classes/postState.svelte";
-  const dispatch = createEventDispatcher();
+  import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
+  import {Clapperboard, Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink} from "lucide-svelte";
 
   interface Props {
     json: any;
@@ -45,6 +46,11 @@
     top,
     avatar,
     normal,
+    toolbarBottom,
+    onupload,
+    onpicktenor,
+    onpickgiphy,
+    onpublish,
   }: Props = $props();
 
     const postState = getPostState();
@@ -59,9 +65,11 @@
     let linkDialog = $state();
     let linkValue = $state('');
     let linkButtonDisabled = $state(true);
-    let scrollable = $state();
     let isGiphyPickerOpen = $state(false);
     let isLinkActive = $state(false);
+    let isEmojiPickerOpen = $state(false);
+    let isFocus = $state(false);
+    let focusTimeout;
 
     onMount(() => {
         editor = new Editor({
@@ -113,7 +121,7 @@
                     addKeyboardShortcuts() {
                         return {
                             'Mod-Enter': () => {
-                                dispatch('publish');
+                                onpublish();
                             },
                         }
                     }
@@ -221,12 +229,19 @@
                 text = jsonToText(json);
             },
             onFocus() {
-                // dispatch('focus');
+                clearTimeout(focusTimeout);
+                isFocus = true;
+            },
+            onBlur() {
+                focusTimeout = setTimeout(() => {
+                  isFocus = false;
+                }, 500);
             },
         })
     })
 
     onDestroy(() => {
+        clearTimeout(focusTimeout);
         if (editor) {
             editor.destroy();
         }
@@ -238,18 +253,6 @@
 
     function removeLink() {
         editor.chain().focus().unsetLink().run()
-    }
-
-    function addImage() {
-        dispatch('upload', {
-            isVideo: false,
-        });
-    }
-
-    function addVideo() {
-        dispatch('upload', {
-            isVideo: true,
-        })
     }
 
     function submitLink(e) {
@@ -276,58 +279,55 @@
        editor.commands.setContent(content, true);
     }
 
-    function handlePickGiphy(e) {
+    function handlePickGiphy(gif) {
         isGiphyPickerOpen = false;
 
-        dispatch('pickgiphy', {
-            gif: e.detail.gif,
-        })
+        onpickgiphy(gif);
     }
 
-    function handlePickTenor(e) {
+    function handlePickTenor(gif) {
         isGiphyPickerOpen = false;
 
-        dispatch('picktenor', {
-            gif: e.detail.gif,
-        })
+        onpicktenor(gif);
     }
 
     function addHash() {
         editor.chain().focus().insertContent('#').run();
     }
+
+    function handleEmojiPick(emoji) {
+        editor.commands.insertContent(emoji.native);
+    }
 </script>
 
-<div class="publish-form-scrollable" bind:this={scrollable}>
-  {@render top?.()}
+{@render top?.()}
 
-  <div class="editor-column">
-    {@render avatar?.()}
+<div class="editor-column">
+  {@render avatar?.()}
 
-    <div class="editor" bind:this={element}></div>
-  </div>
-
-  {@render normal?.()}
+  <div class="editor" bind:this={element}></div>
 </div>
 
-<EditorBar on:emojiPicked={(e) => {editor.commands.insertContent(e.detail.emoji)}} {_agent}>
-  {#snippet top()}
+{@render normal?.()}
 
+<EditorBar bottom={toolbarBottom} {isFocus}>
+  {#snippet top()}
       {#if (isLinkActive)}
         <button class="editor-menu-button" onclick={removeLink}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-unlink"><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><line x1="8" x2="8" y1="2" y2="5"/><line x1="2" x2="5" y1="8" y2="8"/><line x1="16" x2="16" y1="19" y2="22"/><line x1="19" x2="22" y1="16" y2="16"/></svg>
+          <Unlink size="20" color="var(--publish-tool-button-color)"></Unlink>
         </button>
       {:else}
         <button class="editor-menu-button" onclick={addLink} disabled={linkButtonDisabled}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <LinkIcon size="20" color="var(--publish-tool-button-color)"></LinkIcon>
         </button>
       {/if}
 
-      <button class="editor-menu-button" onclick={addVideo} disabled={!isVideoUploadEnabled}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clapperboard"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+      <button class="editor-menu-button" onclick={() => {onupload(true)}} disabled={!isVideoUploadEnabled}>
+        <Clapperboard size="20" color="var(--publish-tool-button-color)"></Clapperboard>
       </button>
 
-      <button class="editor-menu-button" onclick={addImage}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-plus"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" x2="22" y1="5" y2="5"/><line x1="19" x2="19" y1="2" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+      <button class="editor-menu-button" onclick={() => {onupload(false)}}>
+        <ImagePlus size="20" color="var(--publish-tool-button-color)"></ImagePlus>
       </button>
 
       <button class="editor-menu-button" onclick={() => {isGiphyPickerOpen = true}}>
@@ -340,23 +340,28 @@
       </button>
 
       <button class="editor-menu-button only-mobile" onclick={addHash}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--publish-tool-button-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hash"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>
+        <Hash size="20" color="var(--publish-tool-button-color)"></Hash>
       </button>
-    
-  {/snippet}
 
-  {#snippet bottom()}
-    <div class="publish-form-bottom-publish">
-      <button class="publish-form__submit" disabled={isEnabled} onclick={() => {dispatch('publish')}}>{$_('publish_button_send')}</button>
-    </div>
+      <button class="editor-menu-button" onclick={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
+        <Laugh size="20" color="var(--publish-tool-button-color)"></Laugh>
+      </button>
+
+      <div class="publish-form-bottom-publish">
+        <button class="publish-submit-button" disabled={isEnabled} onclick={onpublish}>{$_('publish_button_send')}</button>
+      </div>
   {/snippet}
 </EditorBar>
 
+{#if (isEmojiPickerOpen)}
+  <EmojiPicker onpick={handleEmojiPick} onoutclick={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}></EmojiPicker>
+{/if}
+
 {#if (isGiphyPickerOpen)}
   <GifPickerModal
-    on:close={() => {isGiphyPickerOpen = false}}
-    on:pickgiphy={handlePickGiphy}
-    on:picktenor={handlePickTenor}
+    onclose={() => {isGiphyPickerOpen = false}}
+    onpickgiphy={handlePickGiphy}
+    onpicktenor={handlePickTenor}
   ></GifPickerModal>
 {/if}
 

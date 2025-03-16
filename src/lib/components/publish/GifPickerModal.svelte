@@ -1,34 +1,26 @@
 <script lang="ts">
-    import {createEventDispatcher, onMount} from 'svelte';
+    import {onMount} from 'svelte';
     import TenorPicker from "$lib/components/publish/TenorPicker.svelte";
     import GiphyPicker from "$lib/components/publish/GiphyPicker.svelte";
-    const dispatch = createEventDispatcher();
 
+    let { onclose, onpicktenor, onpickgiphy } = $props();
     let dialog = $state();
     let tab = $state('tenor');
 
-    function close () {
-        dispatch('close');
-    }
-
-    function handleTenorClick(e) {
-        if (!e.detail.gif) {
+    function handleTenorClick(gif) {
+        if (!gif) {
             return false;
         }
 
-        dispatch('picktenor', {
-            gif: e.detail.gif,
-        });
+        onpicktenor(gif);
     }
 
-    function handleGiphyClick(e) {
-        if (!e.detail.gif) {
+    function handleGiphyClick(gif) {
+        if (!gif) {
             return false;
         }
 
-        dispatch('pickgiphy', {
-            gif: e.detail.gif,
-        });
+        onpickgiphy(gif);
     }
 
     onMount(async () => {
@@ -40,7 +32,7 @@
   <div class="gif-modal-contents">
     <div class="gif-modal-heading">
       <div class="gif-modal-close">
-        <div role="button" class="gif-modal-close__button" onclick={close}>
+        <div role="button" class="gif-modal-close__button" onclick={onclose}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </div>
       </div>
@@ -52,13 +44,13 @@
     </div>
 
     {#if tab === 'tenor'}
-      <TenorPicker on:click={handleTenorClick}></TenorPicker>
+      <TenorPicker onclick={handleTenorClick}></TenorPicker>
     {:else}
-      <GiphyPicker on:click={handleGiphyClick}></GiphyPicker>
+      <GiphyPicker onclick={handleGiphyClick}></GiphyPicker>
     {/if}
   </div>
 
-  <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
+  <button class="modal-background-close" aria-hidden="true" onclick={onclose}></button>
 </dialog>
 
 <style lang="postcss">

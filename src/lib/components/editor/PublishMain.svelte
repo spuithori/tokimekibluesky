@@ -12,7 +12,7 @@
   import {AlertTriangle, CirclePlus, Globe, MessageSquareWarning, Settings2, X} from "lucide-svelte";
   import { toast } from "svelte-sonner";
   import imageCompression from "browser-image-compression";
-  import {createEventDispatcher, onMount} from "svelte";
+  import {onMount} from "svelte";
   import AltModal from "$lib/components/alt/AltModal.svelte";
   import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
   import {languageMap} from "$lib/langs/languageMap";
@@ -29,10 +29,9 @@
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {useDebounce, watch} from "runed";
   import Notice from "$lib/components/ui/Notice.svelte";
-  const dispatch = createEventDispatcher();
+  import SelfLabelLabel from "$lib/components/publish/SelfLabelLabel.svelte";
 
   interface Props {
-    post: any;
     index: number;
     _agent: any;
     editor: any;
@@ -46,6 +45,7 @@
     isEnabled = $bindable(),
     onadd,
     onopen,
+    onpublish,
   }: Props = $props();
 
     const postState = getPostState();
@@ -61,7 +61,6 @@
     let isLinkCardAdding = $state(false);
     let imageUploadEl = $state();
     let isDragover = $state(0);
-    let isVirtualKeyboard = $state(false);
     let isLangSelectorOpen = $state(false);
     let isVideoUploadEnabled = $state(false);
     let isThreadGateOpen = $state(false);
@@ -123,11 +122,6 @@
     $effect(() => {
         isEnabled = isEmpty || isPublishEnabled || isProcessed || isLinkCardAdding || isAltTextRequired;
     });
-
-    if ('virtualKeyboard' in navigator) {
-      navigator.virtualKeyboard.overlaysContent = true;
-      isVirtualKeyboard = true;
-    }
 
     if (!post.selfLabels) {
       post.selfLabels = [];
@@ -242,8 +236,8 @@
         return rt;
     }
 
-    function uploadContextOpen(e) {
-        imageUploadEl.open(e?.detail?.isVideo);
+    function uploadContextOpen(isVideo: boolean) {
+        imageUploadEl.open(isVideo);
     }
 
     async function handlePaste(e) {
@@ -349,7 +343,7 @@
 
 <div class="publish-form"
      class:publish-form--dragover={isDragover}
-     class:publish-form--fit={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
+     class:publish-form--fit={!$settings.design?.mobilePostLayoutTop}
      ondragover={(e) => {e.preventDefault()}}
      ondrop={handleDrop}
      ondragenter={handleDragover}
@@ -359,15 +353,15 @@
           bind:text={post.text}
           bind:json={post.json}
           bind:this={editor}
-          on:publish={() => {dispatch('publish')}}
-          on:focus={() => {dispatch('focus')}}
-          on:upload={uploadContextOpen}
-          on:picktenor={(e) => addTenorLinkCard(e.detail.gif)}
-          on:pickgiphy={(e) => addGiphyLinkCard(e.detail.gif)}
+          {onpublish}
+          onupload={uploadContextOpen}
+          onpicktenor={addTenorLinkCard}
+          onpickgiphy={addGiphyLinkCard}
           {_agent}
           {isEnabled}
           {isVideoUploadEnabled}
           {onopen}
+          {toolbarBottom}
   >
     {#snippet top()}
       {#if (post.replyRef && typeof post.replyRef !== 'string')}
@@ -496,69 +490,65 @@
           <PostGateLabel></PostGateLabel>
         {/if}
 
+        {#if (post.selfLabels.length)}
+          <SelfLabelLabel labels={post.selfLabels}></SelfLabelLabel>
+        {/if}
+
         {#if (isAltTextRequired)}
           <Notice text={$_('alt_text_missing')}></Notice>
         {/if}
       </div>
     {/snippet}
   </Tiptap>
+</div>
 
-  {#if (post.selfLabels.length)}
-    <div class="self-labeling-note">
-      <p class="self-labeling-note__text">{$_('self_labeling_note')}</p>
-    </div>
+{#snippet toolbarBottom()}
+  <button class="publish-form-lang-selector-button" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
+    <Globe size="20" color="var(--publish-tool-button-color)"></Globe>
+
+    {#if (post.lang !== 'auto' && Array.isArray(post.lang))}
+      {#each post.lang as lang}
+        <span>{$_(languageMap.get(lang)?.name)}</span>
+      {/each}
+    {/if}
+  </button>
+
+  <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
+
+  <div class="publish-form-moderation">
+    <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
+      {#snippet ref()}
+        <AlertTriangle size="20" color="var(--publish-tool-button-color)"></AlertTriangle>
+      {/snippet}
+
+      {#snippet content()}
+        <ul  class="timeline-menu-list">
+          {#each selfLabelsChoices as choice, index}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" class:timeline-menu-list__button--active={post.selfLabels.some(label => label.val === choice.val)} onclick={() => setSelfLabel(index)}>{choice.name}</button>
+            </li>
+          {/each}
+
+          {#if (post.selfLabels.length)}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button text-danger" onclick={clearSelfLabels}>{$_('selflabels_remove')}</button>
+            </li>
+          {/if}
+        </ul>
+      {/snippet}
+    </Menu>
+  </div>
+
+  {#if (!post.replyRef)}
+    <button class="editor-menu-button" onclick={() => {isThreadGateOpen = !isThreadGateOpen}}>
+      <MessageSquareWarning size="20" color="var(--publish-tool-button-color)"></MessageSquareWarning>
+    </button>
   {/if}
 
-  <div class="publish-bb-nav">
-    <button class="publish-form-lang-selector-button" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
-      <Globe size="20" color="var(--publish-tool-button-color)"></Globe>
-
-      {#if (post.lang !== 'auto' && Array.isArray(post.lang))}
-        {#each post.lang as lang}
-          <span>{$_(languageMap.get(lang)?.name)}</span>
-        {/each}
-      {/if}
-    </button>
-
-    <p class="publish-length">
-      <span class="publish-length__current" class:over={publishContentLength > 300}>{300 - publishContentLength}</span>
-    </p>
-
-    <div class="publish-form-moderation">
-      <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
-        {#snippet ref()}
-          <AlertTriangle size="20" color="var(--publish-tool-button-color)"></AlertTriangle>
-        {/snippet}
-
-        {#snippet content()}
-          <ul  class="timeline-menu-list">
-            {#each selfLabelsChoices as choice, index}
-              <li class="timeline-menu-list__item">
-                <button class="timeline-menu-list__button" class:timeline-menu-list__button--active={post.selfLabels.some(label => label.val === choice.val)} onclick={() => setSelfLabel(index)}>{choice.name}</button>
-              </li>
-            {/each}
-
-            {#if (post.selfLabels.length)}
-              <li class="timeline-menu-list__item">
-                <button class="timeline-menu-list__button text-danger" onclick={clearSelfLabels}>{$_('selflabels_remove')}</button>
-              </li>
-            {/if}
-          </ul>
-        {/snippet}
-      </Menu>
-    </div>
-
-    {#if (!post.replyRef)}
-      <button class="editor-menu-button" onclick={() => {isThreadGateOpen = !isThreadGateOpen}}>
-        <MessageSquareWarning size="20" color="var(--publish-tool-button-color)"></MessageSquareWarning>
-      </button>
-    {/if}
-
-    <button class="editor-menu-button" onclick={() => {isConfigOpen = !isConfigOpen}}>
-      <Settings2 size="20" color="var(--publish-tool-button-color)"></Settings2>
-    </button>
-  </div>
-</div>
+  <button class="editor-menu-button" onclick={() => {isConfigOpen = !isConfigOpen}}>
+    <Settings2 size="20" color="var(--publish-tool-button-color)"></Settings2>
+  </button>
+{/snippet}
 
 {#if (isLangSelectorOpen)}
   <LangSelectorModal onclose={() => {isLangSelectorOpen = false}} {post}></LangSelectorModal>
@@ -705,22 +695,10 @@
       margin-right: auto;
       white-space: nowrap;
 
-      &__current {
-          &.over {
-              font-weight: bold;
-              color: var(--danger-color);
-          }
+      &.over {
+          font-weight: bold;
+          color: var(--danger-color);
       }
-  }
-
-  .publish-bb-nav {
-      border-top: 1px solid var(--border-color-2);
-      height: 40px;
-      width: 100%;
-      padding: 0 16px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
   }
 
   .publish-form {
@@ -737,11 +715,6 @@
 
               .publish-form-lang-selector-button {
                  order: 2;
-              }
-
-              .publish-bb-nav {
-                  padding-left: 12px;
-                  gap: 5px;
               }
           }
       }
