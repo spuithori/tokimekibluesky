@@ -14,6 +14,10 @@
     &--expanded {
         .publish-wrap {
             display: block;
+
+            @media (max-width: 767px) {
+                height: calc(100% + 1px);
+            }
         }
 
         @media (max-width: 767px) {
@@ -351,11 +355,5 @@
         width: 25%;
         margin: auto;
         aspect-ratio: auto;
-    }
-}
-
-body {
-    &:has(.publish-group--expanded.vk-publish-group) {
-        overflow: hidden;
     }
 }
