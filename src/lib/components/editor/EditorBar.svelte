@@ -1,10 +1,10 @@
 <script lang="ts">
   import { settings } from '$lib/stores';
 
-  let { top, bottom } = $props();
+  let { top, bottom, isFocus } = $props();
 </script>
 
-<div class="publish-toolbar" class:publish-toolbar--vk={!$settings.design?.mobilePostLayoutTop}>
+<div class="publish-toolbar" class:publish-toolbar--vk={!$settings.design?.mobilePostLayoutTop} class:publish-toolbar--focus={isFocus}>
   <div class="publish-toolbar__top">
     {@render top?.()}
   </div>
@@ -64,6 +64,10 @@
                     flex-direction: row-reverse;
                 }
             }
+        }
+
+        &--focus {
+            padding-bottom: 0;
         }
     }
 </style>

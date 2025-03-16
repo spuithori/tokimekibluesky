@@ -68,6 +68,7 @@
     let isGiphyPickerOpen = $state(false);
     let isLinkActive = $state(false);
     let isEmojiPickerOpen = $state(false);
+    let isFocus = $state(false);
 
     onMount(() => {
         editor = new Editor({
@@ -227,7 +228,10 @@
                 text = jsonToText(json);
             },
             onFocus() {
-                // dispatch('focus');
+                isFocus = true;
+            },
+            onBlur() {
+                isFocus = false;
             },
         })
     })
@@ -301,7 +305,7 @@
 
 {@render normal?.()}
 
-<EditorBar on:emojiPicked={(e) => {}} {_agent} bottom={toolbarBottom}>
+<EditorBar bottom={toolbarBottom} {isFocus}>
   {#snippet top()}
       {#if (isLinkActive)}
         <button class="editor-menu-button" onclick={removeLink}>
