@@ -6,7 +6,7 @@
     z-index: 2000;
 
     @media (max-width: 767px) {
-        overflow: auto;
+        overflow-x: hidden;
         overscroll-behavior: none;
         pointer-events: auto;
     }
@@ -17,9 +17,8 @@
         }
 
         @media (max-width: 767px) {
+            background-color: var(--bg-color-1);
             top: 0;
-            bottom: auto;
-            height: calc(var(--visual-viewport-height, 100dvh));
         }
     }
 
