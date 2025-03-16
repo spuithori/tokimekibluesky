@@ -61,7 +61,6 @@
     let isLinkCardAdding = $state(false);
     let imageUploadEl = $state();
     let isDragover = $state(0);
-    let isVirtualKeyboard = $state(false);
     let isLangSelectorOpen = $state(false);
     let isVideoUploadEnabled = $state(false);
     let isThreadGateOpen = $state(false);
@@ -123,11 +122,6 @@
     $effect(() => {
         isEnabled = isEmpty || isPublishEnabled || isProcessed || isLinkCardAdding || isAltTextRequired;
     });
-
-    if ('virtualKeyboard' in navigator) {
-      navigator.virtualKeyboard.overlaysContent = true;
-      isVirtualKeyboard = true;
-    }
 
     if (!post.selfLabels) {
       post.selfLabels = [];
@@ -349,7 +343,7 @@
 
 <div class="publish-form"
      class:publish-form--dragover={isDragover}
-     class:publish-form--fit={isVirtualKeyboard && !$settings.design?.mobilePostLayoutTop}
+     class:publish-form--fit={!$settings.design?.mobilePostLayoutTop}
      ondragover={(e) => {e.preventDefault()}}
      ondrop={handleDrop}
      ondragenter={handleDragover}
