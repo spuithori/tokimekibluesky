@@ -143,7 +143,7 @@
       class:timeline-images--compact={$settings?.design.postsImageLayout === 'compact'}
       class:timeline-images--nocrop={$settings?.design.oneImageNoCrop}
   >
-    {#each images as image, index}
+    {#each images as image, index (image)}
       <div class="timeline-image">
         {#if (blobs[index]?.image.mimeType === 'image/gif')}
           <GifImage {did} blob={blobs[index]?.image} alt={image.alt}></GifImage>
@@ -154,6 +154,8 @@
                 alt="{image.alt}"
                 width={image?.aspectRatio?.width}
                 height={image?.aspectRatio?.height}
+                bind:naturalWidth={null, (v) => galleryImages[index].width = image?.aspectRatio?.width || v}
+                bind:naturalHeight={null, (v) => galleryImages[index].height = image?.aspectRatio?.height || v}
             >
           </button>
         {/if}

@@ -39,7 +39,7 @@
 
 <div class="timeline" class:end-filler={column.data.feed.length > 1} bind:this={parent}>
   {#if (parent)}
-    <Virtualizer data={column.data.feed} scrollRef={parent.closest('.modal-page-content')} bind:this={el} startMargin={102}>
+    <Virtualizer data={column.data.feed} getKey={(data, index) => index} scrollRef={parent.closest('.modal-page-content')} bind:this={el} startMargin={102}>
       {#snippet children(item, index)}
         {#if (!column.data.feed[index].blocked && !column.data.feed[index].notFound)}
           <div
