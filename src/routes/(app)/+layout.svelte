@@ -9,7 +9,7 @@
   import viewPortSetting from '$lib/viewport';
   import {scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
-  import {page} from '$app/stores';
+  import { page } from '$app/state';
   import {accountsDb, themesDb} from '$lib/db';
   import ReportObserver from "$lib/components/report/ReportObserver.svelte";
   import {resumeAccountsSession} from "$lib/resumeAccountsSession";
@@ -37,6 +37,8 @@
   import {sideState} from "$lib/classes/sideState.svelte";
   import TokBackground from "$lib/components/utils/TokBackground.svelte";
   import {setPostState} from "$lib/classes/postState.svelte";
+  import {imageState} from "$lib/classes/imageState.svelte";
+  import ImageModal from "$lib/components/utils/ImageModal.svelte";
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -325,7 +327,7 @@
 <svelte:window onscroll={handleScroll}></svelte:window>
 <svelte:head>
   <meta name="theme-color" content={baseColor}>
-  <link rel="canonical" href="https://tokimeki.blue{$page.url.pathname}">
+  <link rel="canonical" href="https://tokimeki.blue{page.url.pathname}">
 </svelte:head>
 
 <GoogleAnalytics></GoogleAnalytics>
@@ -393,6 +395,10 @@
 
   {#if sideState.isTokStart}
     <TokBackground></TokBackground>
+  {/if}
+
+  {#if imageState.images.length}
+    <ImageModal></ImageModal>
   {/if}
 </div>
 

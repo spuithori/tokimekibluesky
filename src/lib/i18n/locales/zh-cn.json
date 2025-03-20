@@ -627,7 +627,7 @@
   "process_to_video_upload": "正在上传视频",
   "process_to_video_upload_processing": "视频编码中",
   "success_to_video_upload": "视频上传成功。",
-  "error_video_too_large": "视频太大或太长！只能上传 50MB 以内或 60 秒以内的视频。",
+  "error_video_too_large": "视频太大或太长！只能上传 100MB 以内或 180 秒以内的视频。",
   "bookmark_local": "本地书签",
   "bookmark_cloud": "云书签(β)",
   "bookmark_cloud_add_description": "云书签保存到 TOKIMEKI 服务器，可以在其他设备上使用。",

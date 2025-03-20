@@ -627,7 +627,7 @@
   "process_to_video_upload": "ビデオをアップロード中",
   "process_to_video_upload_processing": "ビデオのエンコード中",
   "success_to_video_upload": "ビデオのアップロードに成功しました。",
-  "error_video_too_large": "動画がデカすぎるか、長すぎます！ 50MB以内かつ60秒以内の動画をアップロードできます。",
+  "error_video_too_large": "動画がデカすぎるか、長すぎます！ 100MB以内かつ180秒以内の動画をアップロードできます。",
   "bookmark_local": "ローカルブックマーク",
   "bookmark_cloud": "クラウドブックマーク(β)",
   "bookmark_cloud_add_description": "クラウドブックマークはTOKIMEKIサーバー上に保存され、他のデバイスでも利用できます。",
