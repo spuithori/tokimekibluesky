@@ -204,10 +204,6 @@
       &__avatar {
           position: relative;
           z-index: 2;
-
-          img {
-              width: 100%;
-          }
       }
 
       &__button {
@@ -227,11 +223,6 @@
           overflow: hidden;
           text-overflow: ellipsis;
           line-height: 1.3;
-      }
-
-      &__badges {
-          align-self: center;
-          padding-top: 8px;
       }
 
       &__date {

@@ -4,12 +4,12 @@
 
 .lang-en,
 .lang-pt-BR {
-    --font-body: 'Inter', sans-serif;
+    --font-body: 'Inter Variable', sans-serif;
 }
 
 .lang-bg,
 .lang-ru {
-    --font-body: 'Inter', sans-serif;
+    --font-body: 'Inter Variable', sans-serif;
 }
 
 .lang-zh-CN {
@@ -21,7 +21,7 @@
 }
 
 .font-theme-murecho {
-    --font-body: 'Murecho', sans-serif;
+    --font-body: 'Murecho Variable', sans-serif;
 }
 
 .nonoto {
@@ -35,6 +35,7 @@
 
 html {
     overflow-x: hidden;
+    text-rendering: optimizeLegibility;
 
     &:has(.single) {
         overflow-y: scroll;

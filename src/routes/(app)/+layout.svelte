@@ -30,7 +30,6 @@
   import GoogleAnalytics from "$lib/components/utils/GoogleAnalytics.svelte";
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
-  import {isSafariOrFirefox} from "$lib/util";
   import {initColumns} from "$lib/classes/columnState.svelte";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {on} from "svelte/events";
@@ -217,11 +216,6 @@
 
   if (!$settings?.general.userLanguage) {
       $settings.general.userLanguage = window.navigator.language;
-  }
-
-  if (isSafariOrFirefox()) {
-      console.log('Disable WebFont in Safari and Firefox.');
-      $settings.design.nonoto = true;
   }
 
   if (navigator.storage && navigator.storage.persist) {
