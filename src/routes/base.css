@@ -26,11 +26,11 @@
 
 .nonoto {
     --font-body: sans-serif;
-}
 
-.ios {
-    --font-body: -apple-system, 'Hiragino Sans', sans-serif;
-    --ui-font: ui-rounded, sans-serif;
+    &.ios {
+        --font-body: -apple-system, 'Hiragino Sans', sans-serif;
+        --ui-font: ui-rounded, sans-serif;
+    }
 }
 
 html {
