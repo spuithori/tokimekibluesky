@@ -1,15 +1,15 @@
 .lang-ko {
-    --font-body: 'Noto Sans KR', 'Noto Color Emoji', sans-serif;
+    --font-body: 'Noto Sans KR', sans-serif;
 }
 
 .lang-en,
 .lang-pt-BR {
-    --font-body: 'Roboto', 'Noto Color Emoji', sans-serif;
+    --font-body: 'Inter Variable', sans-serif;
 }
 
 .lang-bg,
 .lang-ru {
-    --font-body: 'Roboto', 'Noto Color Emoji', sans-serif;
+    --font-body: 'Inter Variable', sans-serif;
 }
 
 .lang-zh-CN {
@@ -17,24 +17,25 @@
 }
 
 .font-theme-zenmaru {
-    --font-body: 'Zen Maru Gothic', 'Noto Color Emoji', sans-serif;
+    --font-body: 'Zen Maru Gothic', sans-serif;
 }
 
 .font-theme-murecho {
-    --font-body: 'Murecho', 'Noto Color Emoji', sans-serif;
+    --font-body: 'Murecho Variable', sans-serif;
 }
 
 .nonoto {
     --font-body: sans-serif;
-}
 
-.ios {
-    --font-body: -apple-system, 'Hiragino Sans', sans-serif;
-    --ui-font: ui-rounded, sans-serif;
+    &.ios {
+        --font-body: -apple-system, 'Hiragino Sans', sans-serif;
+        --ui-font: ui-rounded, sans-serif;
+    }
 }
 
 html {
     overflow-x: hidden;
+    text-rendering: optimizeLegibility;
 
     &:has(.single) {
         overflow-y: scroll;

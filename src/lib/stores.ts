@@ -4,6 +4,7 @@ import type { AppBskyActorDefs } from '@atproto/api';
 import type {Theme} from "$lib/types/theme";
 import {defaultReactionButtons} from "$lib/defaultSettings";
 import timerWorkerUrl from '$lib/workers/timer.js?url'
+import {isSafariOrFirefox} from "$lib/util";
 
 export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
@@ -39,7 +40,7 @@ const defaultSettings = {
     design: {
         skin: 'default',
         theme: 'jade',
-        nonoto: false,
+        nonoto: isSafariOrFirefox() ? true : false,
         fontTheme: 'default',
         darkmode: false,
         absoluteTime: false,

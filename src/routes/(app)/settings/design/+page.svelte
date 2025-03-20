@@ -7,7 +7,6 @@
     import {themesDb} from "$lib/db";
     import {builtInThemes} from "$lib/builtInThemes";
     import {defaultColors} from "$lib/defaultColors";
-    import {isSafariOrFirefox} from "$lib/util";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {AppWindowMac, ChevronRight, GalleryVertical, Palette, PanelBottomOpen, PanelLeftOpen} from "lucide-svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
@@ -243,10 +242,6 @@
       </dt>
 
       <dd class="settings-group__content">
-        {#if (isSafariOrFirefox())}
-          <Notice text={$_('font_theme_notice')}></Notice>
-        {/if}
-
         <div class="radio-group">
           <div class="radio">
             <input type="radio" bind:group={fontTheme} id="fontThemeNoto" name="fontTheme" value={'default'}>
@@ -418,7 +413,7 @@
 
       <dd class="settings-group__content">
         <div class="input-toggle">
-          <input class="input-toggle__input" type="checkbox" id="nonoto" bind:checked={nonoto} disabled={isSafariOrFirefox()}><label class="input-toggle__label" for="nonoto"></label>
+          <input class="input-toggle__input" type="checkbox" id="nonoto" bind:checked={nonoto}><label class="input-toggle__label" for="nonoto"></label>
         </div>
       </dd>
     </dl>

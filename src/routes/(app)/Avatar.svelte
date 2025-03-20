@@ -64,7 +64,7 @@
 <div class="avatar">
   <a href={href} onmouseover={handleAvatarMouseOver} onmouseleave={handleAvatarMouseLeave} onclick={handleClick}>
     {#if (avatar && !$isDataSaving)}
-      <img loading="lazy" src="{avatar}" alt="">
+      <img loading="lazy" src="{avatar}" width="1000" height="1000" alt="">
     {/if}
   </a>
 

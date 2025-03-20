@@ -30,7 +30,6 @@
   import GoogleAnalytics from "$lib/components/utils/GoogleAnalytics.svelte";
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
-  import {isSafariOrFirefox} from "$lib/util";
   import {initColumns} from "$lib/classes/columnState.svelte";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {on} from "svelte/events";
@@ -39,6 +38,11 @@
   import {setPostState} from "$lib/classes/postState.svelte";
   import {imageState} from "$lib/classes/imageState.svelte";
   import ImageModal from "$lib/components/utils/ImageModal.svelte";
+  import "@fontsource-variable/inter";
+  import "@fontsource-variable/noto-sans-jp";
+  import "@fontsource-variable/noto-sans-kr";
+  import "@fontsource-variable/murecho";
+  import "@fontsource/zen-maru-gothic";
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -212,11 +216,6 @@
 
   if (!$settings?.general.userLanguage) {
       $settings.general.userLanguage = window.navigator.language;
-  }
-
-  if (isSafariOrFirefox()) {
-      console.log('Disable WebFont in Safari and Firefox.');
-      $settings.design.nonoto = true;
   }
 
   if (navigator.storage && navigator.storage.persist) {
