@@ -39,6 +39,12 @@
   import {setPostState} from "$lib/classes/postState.svelte";
   import {imageState} from "$lib/classes/imageState.svelte";
   import ImageModal from "$lib/components/utils/ImageModal.svelte";
+  import "@fontsource-variable/inter";
+  //import "@fontsource/noto-color-emoji"
+  import "@fontsource-variable/noto-sans-jp";
+  import "@fontsource-variable/noto-sans-kr";
+  import "@fontsource-variable/murecho";
+  import "@fontsource/zen-maru-gothic";
 
   interface Props {
     children?: import('svelte').Snippet;

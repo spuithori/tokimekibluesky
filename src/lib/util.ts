@@ -121,7 +121,8 @@ export function isSafariOrFirefox() {
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
     const isFirefox = /firefox/.test(userAgent);
-    return isSafari || isFirefox;
+    //return isSafari || isFirefox;
+    return false;
 }
 
 export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: string, exp?: number}, _agent: Agent) {

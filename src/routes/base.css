@@ -1,15 +1,15 @@
 .lang-ko {
-    --font-body: 'Noto Sans KR', 'Noto Color Emoji', sans-serif;
+    --font-body: 'Noto Sans KR', sans-serif;
 }
 
 .lang-en,
 .lang-pt-BR {
-    --font-body: 'Roboto', 'Noto Color Emoji', sans-serif;
+    --font-body: 'Inter', sans-serif;
 }
 
 .lang-bg,
 .lang-ru {
-    --font-body: 'Roboto', 'Noto Color Emoji', sans-serif;
+    --font-body: 'Inter', sans-serif;
 }
 
 .lang-zh-CN {
@@ -17,11 +17,11 @@
 }
 
 .font-theme-zenmaru {
-    --font-body: 'Zen Maru Gothic', 'Noto Color Emoji', sans-serif;
+    --font-body: 'Zen Maru Gothic', sans-serif;
 }
 
 .font-theme-murecho {
-    --font-body: 'Murecho', 'Noto Color Emoji', sans-serif;
+    --font-body: 'Murecho', sans-serif;
 }
 
 .nonoto {
