@@ -40,7 +40,6 @@
   import {imageState} from "$lib/classes/imageState.svelte";
   import ImageModal from "$lib/components/utils/ImageModal.svelte";
   import "@fontsource-variable/inter";
-  //import "@fontsource/noto-color-emoji"
   import "@fontsource-variable/noto-sans-jp";
   import "@fontsource-variable/noto-sans-kr";
   import "@fontsource-variable/murecho";

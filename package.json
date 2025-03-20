@@ -44,7 +44,6 @@
     "@fontsource-variable/murecho": "^5.2.5",
     "@fontsource-variable/noto-sans-jp": "^5.2.5",
     "@fontsource-variable/noto-sans-kr": "^5.2.5",
-    "@fontsource/noto-color-emoji": "^5.2.6",
     "@fontsource/zen-maru-gothic": "^5.2.5",
     "@giphy/js-fetch-api": "^5.6.0",
     "@giphy/svelte-components": "^1.1.0",
