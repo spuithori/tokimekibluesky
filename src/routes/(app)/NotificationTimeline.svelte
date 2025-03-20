@@ -128,7 +128,6 @@
 
     function changeFilter(filter: Filter[]) {
         getNotificationsFilter(filter);
-        unique = Symbol();
         onchange(filter);
     }
 </script>
