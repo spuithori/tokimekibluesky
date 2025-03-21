@@ -1,12 +1,11 @@
 <script lang="ts">
   import { _ } from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
-  import { createLongPress } from "svelte-interactions";
+  import { createLongPress } from "$lib/longpress";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import {toast} from "svelte-sonner";
   import {Copy, Pencil, UserRoundSearch, WholeWord} from "lucide-svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
-  const { longPressAction } = createLongPress();
 
   let { item, handle = undefined } = $props();
   let isTagMenuOpen = $state(false);
@@ -83,4 +82,4 @@
   {/snippet}
 </Menu>
 
-<a href="/search?q={encodeURIComponent('#' + item.tag?.tag)}" onclick={handleTagClick} use:longPressAction onlongpress={handleTagLongClick} style="outline: none">{item.text}</a>
+<a href="/search?q={encodeURIComponent('#' + item.tag?.tag)}" onclick={handleTagClick} use:createLongPress={{callback: handleTagLongClick, duration: 500}} style="outline: none">{item.text}</a>

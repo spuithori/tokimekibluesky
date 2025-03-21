@@ -17,7 +17,6 @@
     import ChatTimeline from "./ChatTimeline.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {draggable, type DragOptions} from "@neodrag/svelte";
-    import { createLongPress } from 'svelte-interactions';
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import Timeline from "./Timeline.svelte";
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
@@ -25,7 +24,7 @@
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
     import {Filter, GripVertical, PictureInPicture2, Settings2, SquarePlus, TextQuote} from "lucide-svelte";
-    const { longPressAction } = createLongPress();
+    import { createLongPress } from "$lib/longpress";
 
     interface Props {
         index?: number;
@@ -363,8 +362,7 @@
                     role="button"
                     class="deck-heading__scroll-area"
                     onclick={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root'), event)}}
-                    use:longPressAction
-                    onlongpress={forceRefresh}
+                    use:createLongPress={{callback: forceRefresh, duration: 500}}
                     aria-label="Back to top."
             >
                 <div class="deck-heading__title">

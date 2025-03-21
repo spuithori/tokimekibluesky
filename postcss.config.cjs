@@ -1,6 +1,4 @@
-const autoprefixer = require("autoprefixer");
 const postcssNested = require('postcss-nested');
-const postCssPresetEnv = require('postcss-preset-env');
 
 const config = {
   plugins: [
