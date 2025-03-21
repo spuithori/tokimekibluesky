@@ -1,15 +1,14 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
   import { fly } from 'svelte/transition';
-  import {getContext, onMount} from 'svelte';
+  import {onMount} from 'svelte';
   import {agent, agents} from "$lib/stores";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
   import {getAccountIdByDid} from "$lib/util";
   import { toast } from "svelte-sonner";
 
-  let { onclose } = $props();
-  let data = $state(getContext('timelineItem'));
+  let { data, onclose } = $props();
   let el = $state();
   let _agent = $state($agent);
   let currentAccount;

@@ -4,7 +4,7 @@
   import {format, formatDistanceToNow, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
-  import {contentLabelling, keywordFilter, detectHide} from "$lib/timelineFilter";
+  import {contentLabelling, detectHide} from "$lib/timelineFilter";
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, BskyAgent } from "@atproto/api";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
@@ -18,7 +18,6 @@
   import {getAllAgentDids, getDidFromUri} from "$lib/util";
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
-  import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import {onDestroy, untrack} from "svelte";
   import {Eye, Handshake} from "lucide-svelte";
 

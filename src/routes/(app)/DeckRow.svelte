@@ -218,8 +218,6 @@
     }
 
     function handleDragEnd(e) {
-        console.log(e.detail)
-
         dragOptions.position = {
             x: 0,
             y: 0,

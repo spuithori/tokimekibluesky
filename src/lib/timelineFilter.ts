@@ -121,9 +121,7 @@ export function keywordFilter(keywords, text, indexedAt) {
 }
 
 export function detectHide(moderateData, contentContext: 'contentView' | 'contentList', current, post) {
-    const text = post.record.text;
-
-    if (keywordFilter(keywordMuteState.formattedKeywords, text, post.indexedAt)) {
+    if (keywordFilter(keywordMuteState.formattedKeywords, post.record.text, post.indexedAt)) {
         return true;
     }
 

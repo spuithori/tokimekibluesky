@@ -5,7 +5,6 @@
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
   import { toast } from "svelte-sonner";
   import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
-  import {setContext} from "svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {goto} from "$app/navigation";
   import TimelineContent from "$lib/components/post/TimelineContent.svelte";
@@ -36,8 +35,6 @@
 
     const columnState = getColumnState();
     const junkColumnState = getColumnState(true);
-    setContext('timelineItem', data);
-
     const postState = getPostState();
 
     let selectionText = '';
@@ -830,7 +827,7 @@
       {/if}
 
       {#if (isReactionModalOpen)}
-        <ReactionModal {_agent} onclose={() => {isReactionModalOpen = false}}></ReactionModal>
+        <ReactionModal {data} {_agent} onclose={() => {isReactionModalOpen = false}}></ReactionModal>
       {/if}
     </article>
   {/if}
