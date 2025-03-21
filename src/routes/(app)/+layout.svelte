@@ -9,7 +9,6 @@
   import {onMount, tick, untrack} from 'svelte';
   import { Toaster } from 'svelte-sonner';
   import viewPortSetting from '$lib/viewport';
-  import {scrollDirection} from "$lib/scrollDirection";
   import Footer from "./Footer.svelte";
   import { page } from '$app/state';
   import {accountsDb, themesDb} from '$lib/db';
@@ -32,7 +31,6 @@
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
   import {initColumns} from "$lib/classes/columnState.svelte";
-  import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {on} from "svelte/events";
   import {sideState} from "$lib/classes/sideState.svelte";
   import TokBackground from "$lib/components/utils/TokBackground.svelte";
@@ -245,14 +243,6 @@
       isAfterReload.set(false);
   });
 
-  function handleScroll(event) {
-      if ($settings.design.layout !== 'decks') {
-          const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
-              scrollDirectionState.direction = scrollDir;
-          });
-      }
-  }
-
   function handleColumnModalClose() {
     isColumnModalOpen.set(false);
   }
@@ -325,7 +315,6 @@
   });
 </script>
 
-<svelte:window onscroll={handleScroll}></svelte:window>
 <svelte:head>
   <meta name="theme-color" content={baseColor}>
   <link rel="canonical" href="https://tokimeki.blue{page.url.pathname}">

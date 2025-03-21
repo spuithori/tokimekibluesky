@@ -43,7 +43,7 @@
 
     const columnState = getColumnState(isJunk);
     const fixedColumnState = getColumnState(false);
-    let column = columnState.getColumn(index);
+    const column = columnState.getColumn(index);
 
     if (!_agent) {
         _agent = $agents.get(getAccountIdByDid($agents, column.did)) || $agent;
@@ -446,10 +446,10 @@
                 <ChatTimeline {column} {index} {_agent} {unique} onrefresh={handleRefresh}></ChatTimeline>
             {:else if (column.algorithm.type === 'list')}
                 {#key unique}
-                    <ListTimeline bind:column {index} {_agent} {unique}></ListTimeline>
+                    <ListTimeline {index} {_agent} {isJunk} {unique}></ListTimeline>
                 {/key}
             {:else if (column.algorithm.type === 'bookmark')}
-                <BookmarkTimeline bind:column {index} {_agent} {unique}></BookmarkTimeline>
+                <BookmarkTimeline {index} {_agent} {isJunk} {unique}></BookmarkTimeline>
             {:else}
                 <Timeline {index} {_agent} {isJunk} {unique}></Timeline>
             {/if}

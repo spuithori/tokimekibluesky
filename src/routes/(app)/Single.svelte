@@ -5,6 +5,8 @@
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
+    import {scrollDirection} from "$lib/scrollDirection";
+    import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
 
     const columnState = getColumnState();
     let unique = Symbol();
@@ -32,10 +34,18 @@
         currentTimeline.set(0);
     }
 
+    function handleScroll(event) {
+      const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
+        scrollDirectionState.direction = scrollDir;
+      });
+    }
+
     $effect(() => {
         localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
     });
 </script>
+
+<svelte:window onscroll={handleScroll}></svelte:window>
 
 <div class="single-wrap" class:single-wrap--page={$page.url.pathname !== '/'} class:single-wrap--bottom={publishState.isBottom}>
   <div class="single-timeline-wrap">

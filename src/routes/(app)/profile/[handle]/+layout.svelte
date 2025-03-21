@@ -214,7 +214,7 @@
           <UserProfile {handle} {profile} {isLabeler} {_agent} onrefresh={handleRefresh}>
             {#if (profile.did !== _agent.did() && !isLabeler)}
               <div class="user-profile-buttons">
-                <UserFollowButton following="{profile.viewer?.following}" user={profile} {_agent}></UserFollowButton>
+                <UserFollowButton following={profile.viewer?.following} user={profile} {_agent}></UserFollowButton>
                 <UserNotification {_agent} {profile}></UserNotification>
               </div>
             {:else if (isLabeler && profile?.did)}
@@ -255,10 +255,6 @@
 <style lang="postcss">
     .user-profile-wrap {
         padding: 16px;
-    }
-
-    .profile-relationship__item span {
-        color: var(--text-color-2);
     }
 
     .user-profile-labeler-wrap {

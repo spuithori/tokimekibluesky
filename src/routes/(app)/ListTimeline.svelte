@@ -1,16 +1,18 @@
 <script lang="ts">
-    import { agent, userLists } from '$lib/stores';
+    import { userLists } from '$lib/stores';
     import TimelineItem from './TimelineItem.svelte';
     import { parseISO } from 'date-fns';
     import Infinite from "$lib/components/utils/Infinite.svelte";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    let { _agent = $agent, column = $bindable(), index, unique } = $props();
+    let { index, _agent, isJunk, unique } = $props();
 
+    const columnState = getColumnState(isJunk);
+    const column = columnState.getColumn(index);
     let actors = [];
     let feedPool = [];
     let feed = [];
     let count = 0;
-
     let list = $userLists.find(item => column.algorithm.list === item.id);
 
     list.members.forEach(member => {

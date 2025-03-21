@@ -1,48 +1,51 @@
 <script lang="ts">
-  import { agent } from '$lib/stores';
   import TimelineItem from './TimelineItem.svelte';
   import {getBookmarkFeed, getBookmarkName} from "$lib/bookmark";
   import Infinite from "$lib/components/utils/Infinite.svelte";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
-  let { _agent = $agent, column = $bindable(), index, unique } = $props();
-    let initialLoadFinished = false;
-    let feeds;
+  let { index, _agent, isJunk, unique } = $props();
 
-    if (typeof column.data.cursor !== 'number') {
-        column.data.cursor = 0;
-    }
+  const columnState = getColumnState(isJunk);
+  const column = columnState.getColumn(index);
+  let initialLoadFinished = false;
+  let feeds;
 
-    if(!column.data.feed) {
-        column.data.feed = [];
-    }
+  if (typeof column.data.cursor !== 'number') {
+      column.data.cursor = 0;
+  }
 
-    if (!column.algorithm.name) {
-        getBookmarkName(column.algorithm.list)
-            .then(value => {
-                column.algorithm.name = value;
-            })
-    }
+  if(!column.data.feed) {
+      column.data.feed = [];
+  }
 
-    const handleLoadMore = async (loaded, complete) => {
-        feeds = await getBookmarkFeed(column.algorithm.list, column.data.cursor);
+  if (!column.algorithm.name) {
+      getBookmarkName(column.algorithm.list)
+          .then(value => {
+              column.algorithm.name = value;
+          })
+  }
 
-        if (feeds?.length) {
-            const uris = feeds.map(feed => feed.uri);
-            const res = await _agent.getTimeline({algorithm: column.algorithm, uris: uris});
+  const handleLoadMore = async (loaded, complete) => {
+      feeds = await getBookmarkFeed(column.algorithm.list, column.data.cursor);
 
-            const posts = res.data.posts.map(post => {
-                const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
-                return { post: post, bookmarkId: id };
-            })
-            column.data.feed = [...column.data.feed, ...posts];
+      if (feeds?.length) {
+          const uris = feeds.map(feed => feed.uri);
+          const res = await _agent.getTimeline({algorithm: column.algorithm, uris: uris});
 
-            column.data.cursor = column.data.cursor + 1;
-            initialLoadFinished = true;
-            loaded();
-        } else {
-            complete();
-        }
-    }
+          const posts = res.data.posts.map(post => {
+              const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
+              return { post: post, bookmarkId: id };
+          })
+          column.data.feed = [...column.data.feed, ...posts];
+
+          column.data.cursor = column.data.cursor + 1;
+          initialLoadFinished = true;
+          loaded();
+      } else {
+          complete();
+      }
+  }
 </script>
 
 <div class="timeline timeline--{column.style}">
