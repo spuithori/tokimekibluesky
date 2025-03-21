@@ -3,6 +3,8 @@
   import '../styles.css';
   import { agent, agents, isAfterReload, isColumnModalOpen, isMobileDataConnection, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers } from '$lib/stores';
   import {goto} from '$app/navigation';
+  import { dev } from '$app/environment';
+  import { injectAnalytics } from '@vercel/analytics/sveltekit';
   import {pwaInfo} from 'virtual:pwa-info';
   import {onMount, tick, untrack} from 'svelte';
   import { Toaster } from 'svelte-sonner';
@@ -27,7 +29,6 @@
   import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
   import {isMobile} from "$lib/detectDevice";
   import WelcomeModal from "$lib/components/utils/WelcomeModal.svelte";
-  import GoogleAnalytics from "$lib/components/utils/GoogleAnalytics.svelte";
   import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
   import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
   import {initColumns} from "$lib/classes/columnState.svelte";
@@ -44,10 +45,11 @@
   import "@fontsource-variable/murecho";
   import "@fontsource/zen-maru-gothic";
 
+  injectAnalytics({ mode: dev ? 'development' : 'production' });
+
   interface Props {
     children?: import('svelte').Snippet;
   }
-
   let { children }: Props = $props();
 
   let loaded = $state(false);
@@ -328,8 +330,6 @@
   <meta name="theme-color" content={baseColor}>
   <link rel="canonical" href="https://tokimeki.blue{page.url.pathname}">
 </svelte:head>
-
-<GoogleAnalytics></GoogleAnalytics>
 
 <div
     class="app theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"

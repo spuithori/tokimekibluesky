@@ -62,6 +62,7 @@
     "@tiptap/extension-text": "^2.11.3",
     "@tiptap/pm": "^2.11.3",
     "@tiptap/suggestion": "^2.11.3",
+    "@vercel/analytics": "^1.5.0",
     "browser-image-compression": "^2.0.2",
     "date-fns": "^4.1.0",
     "dexie": "^4.0.4",

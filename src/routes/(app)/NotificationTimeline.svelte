@@ -196,7 +196,7 @@
 
 <div class="timeline timeline--notification">
   <div class="notifications-list">
-    {#each column.data.feed as item, index (item.latestIndexedAt)}
+    {#each column.data.feed as item, index (item.key)}
       <div class="notifications-list__item">
         {#if item?.notifications[0]?.isRead === false}
           <span class="notifications-list__new"></span>
