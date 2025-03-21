@@ -690,5 +690,6 @@
   "simple_reply": "Hide reply source post",
   "deleted_reply": "Reply to deleted post",
   "require_input_alt_text": "Require ALT text input",
-  "alt_text_missing": "There is an image for which no ALT text has been entered (the “Require ALT text input” option is enabled)."
+  "alt_text_missing": "There is an image for which no ALT text has been entered (the “Require ALT text input” option is enabled).",
+  "columns_reorder": "Reorder"
 }

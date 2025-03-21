@@ -690,5 +690,6 @@
   "simple_reply": "リプライ元投稿を非表示",
   "deleted_reply": "削除された投稿に返信",
   "require_input_alt_text": "ALTテキストの入力を必須にする",
-  "alt_text_missing": "ALTテキストが入力されていない画像があります（「ALTテキストの入力を必須にする」オプションが有効になっています）。"
+  "alt_text_missing": "ALTテキストが入力されていない画像があります（「ALTテキストの入力を必須にする」オプションが有効になっています）。",
+  "columns_reorder": "カラム並び替え"
 }

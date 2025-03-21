@@ -108,7 +108,7 @@
 
             <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'list'} onclick={() => {currentTab = 'list'}}>
                 <ArrowUpDown size="18"></ArrowUpDown>
-                {$_('columns')}
+                {$_('columns_reorder')}
             </button>
         </div>
 
@@ -152,33 +152,6 @@
 
         @media (max-width: 767px) {
             grid-template-columns: 1fr;
-        }
-
-        &__item {
-            display: flex;
-            flex-direction: column;
-
-            &--active {
-                padding: 16px;
-                border-radius: 6px;
-                border: 2px solid var(--primary-color);
-                background-color: var(--bg-color-2);
-
-                @media (max-width: 767px) {
-                    padding: 10px;
-                }
-            }
-        }
-
-        &__title {
-            font-size: 16px;
-        }
-
-        &__description {
-            color: var(--text-color-3);
-            font-size: 14px;
-            margin-top: 4px;
-            margin-bottom: 16px;
         }
     }
 
