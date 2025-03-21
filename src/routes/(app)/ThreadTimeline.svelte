@@ -1,14 +1,13 @@
 <script lang="ts">
   import {settings} from '$lib/stores';
-  import spinner from '$lib/images/loading.svg';
   import Thread from './profile/[handle]/post/[id]/Thread.svelte';
   import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import VirtualThreadList from "$lib/components/thread/VirtualThreadList.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
   interface Props {
-    column: any;
     index: any;
     _agent?: any;
     isRefreshing: any;
@@ -16,12 +15,14 @@
   }
 
   let {
-    column = $bindable(),
     index,
     _agent,
     isRefreshing = $bindable(),
-    isJunk = false
+    isJunk = false,
   }: Props = $props();
+
+  const columnState = getColumnState(isJunk);
+  const column = columnState.getColumn(index);
 
   let scrollTop: undefined | Number = $state(undefined);
   let rootClientHeight = $state(0);
@@ -227,6 +228,11 @@
     return recursiveSort(threadViewArray, 0);
   }
 
+  function handleChangeProfile(did, handle) {
+    column.did = did;
+    column.handle = handle;
+  }
+
   onMount(async () => {
       if (isJunk) {
           await getFlatThread();
@@ -250,10 +256,10 @@
   <p class="thread-error">{$_('error_thread_notfound')}</p>
 {:else}
   {#if (isJunk)}
-    <VirtualThreadList {_agent} {column} {rootIndex}></VirtualThreadList>
+    <VirtualThreadList {_agent} {column} {rootIndex} onchangeprofile={handleChangeProfile}></VirtualThreadList>
   {:else}
     <div class="timeline thread-wrap" style="--root-client-height: {rootClientHeight}px" >
-      <Thread feeds={column.data.feed} depth={0} column={column} {_agent} bind:rootClientHeight={rootClientHeight} scrollTop={scrollTop}></Thread>
+      <Thread feeds={column.data.feed} depth={0} {column} {_agent} bind:rootClientHeight={rootClientHeight} scrollTop={scrollTop}></Thread>
     </div>
   {/if}
 {/if}
@@ -264,15 +270,6 @@
 
         @media (max-width: 767px) {
             padding-bottom: calc(100vh - 120px - var(--root-client-height, 0px));
-        }
-    }
-
-    .thread-loading {
-        text-align: center;
-
-        img {
-            width: 50px;
-            height: 50px;
         }
     }
 </style>

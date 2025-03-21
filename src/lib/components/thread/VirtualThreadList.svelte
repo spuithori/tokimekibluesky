@@ -1,17 +1,15 @@
 <script lang="ts">
   import {settings} from '$lib/stores';
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
-  import { WindowVirtualizer, Virtualizer } from "virtua/svelte";
+  import { Virtualizer } from "virtua/svelte";
   import {_} from "svelte-i18n";
 
-  let { column, _agent, rootIndex } = $props();
+  let { column, _agent, rootIndex, onchangeprofile } = $props();
   let parent = $state();
   let el: VList = $state();
-  // let Virtual = $settings?.design?.layout === 'decks' ? Virtualizer : WindowVirtualizer;
   let isFirst = $state(true);
 
-  column.did = _agent.did();
-  column.handle = _agent.handle();
+  onchangeprofile(_agent.did(), _agent.handle());
 
   if ($settings.design?.threaded === undefined) {
     $settings.design.threaded = false;

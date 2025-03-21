@@ -54,7 +54,7 @@ export class ColumnState {
     }
 
     removeAll() {
-        this.columns = [];
+        this.columns.length = 0;
     }
 
     getColumn(index: number) {
