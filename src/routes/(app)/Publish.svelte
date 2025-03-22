@@ -542,6 +542,10 @@
                           return {
                               $type: 'app.bsky.feed.threadgate#followingRule',
                           }
+                      } else if(item === 'follower') {
+                          return {
+                              $type: 'app.bsky.feed.threadgate#followerRule',
+                          }
                       } else {
                           return {
                               $type: 'app.bsky.feed.threadgate#listRule',

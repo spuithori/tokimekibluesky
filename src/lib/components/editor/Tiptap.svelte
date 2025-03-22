@@ -55,7 +55,7 @@
 
     const postState = getPostState();
     let element = $state();
-    let editor;
+    let editor = $state();
     let mentionList = $state();
     let hashtagList = $state();
 
@@ -214,9 +214,6 @@
                 }),
                 History,
             ],
-            onTransaction: () => {
-                editor = editor;
-            },
             onSelectionUpdate: ({ editor }) => {
                 isLinkActive = editor.isActive('link');
                 const { view, state } = editor;

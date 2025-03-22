@@ -755,6 +755,7 @@
             overflow: hidden;
             white-space: nowrap;
             color: var(--deck-heading-title-color);
+            user-select: none;
 
             @media (max-width: 767px) {
                 font-size: 14px;

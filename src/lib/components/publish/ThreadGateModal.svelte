@@ -128,6 +128,14 @@
                         </label>
                     </div>
 
+                    <div class="checkbox checkbox--padding checkbox--fullwidth">
+                        <input type="checkbox" class="checkbox__input" bind:group={custom} value={'follower'} onchange={handleCustomChange} id="follower">
+                        <label class="checkbox__label" for="follower">
+                            <span class="checkbox__ui"></span>
+                            <span class="checkbox__text">{$_('thread_gate_follower_title')}</span>
+                        </label>
+                    </div>
+
                     {#if officialLists.length}
                         {#each officialLists as list}
                             <div class="checkbox checkbox--padding checkbox--fullwidth">
