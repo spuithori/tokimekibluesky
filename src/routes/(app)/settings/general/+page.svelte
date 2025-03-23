@@ -224,5 +224,17 @@ run(() => {
         </div>
       </dd>
     </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        ADVANCED (上級者向け): Use Virtual list
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="useVirtual" bind:checked={$settings.general.useVirtual}><label class="input-toggle__label" for="useVirtual"></label>
+        </div>
+      </dd>
+    </dl>
   </div>
 </div>

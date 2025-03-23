@@ -1,3 +1,5 @@
+import type { Virtualizer } from 'virtua/svelte'
+
 export type currentAlgorithm = {
     type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat',
     algorithm?: string,
@@ -49,4 +51,5 @@ export type Column = {
         cursor: string | number,
     },
     scrollElement?: HTMLDivElement,
+    virtualElement?: Virtualizer,
 }

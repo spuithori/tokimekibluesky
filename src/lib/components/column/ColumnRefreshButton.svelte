@@ -22,6 +22,7 @@
         _agent = $agent,
         unique = $bindable(Symbol()),
         isJunk = false,
+        isVirtual,
         isRefreshing = $bindable(false)
     }: Props = $props();
 
@@ -108,18 +109,23 @@
 
             column.data.feed.unshift(...newFeed);
 
-            if (elInitialPosition === 0 && column.settings?.refreshToTop !== true && topEl) {
-                if (column.style !== 'media') {
-                    const offset = column.scrollElement.querySelector('.timeline').getBoundingClientRect().top + 16;
+            if (isVirtual) {
+              if (elInitialPosition === 0 && column?.settings?.refreshToTop) {
+                await tick();
+                column.virtualElement.scrollTo(0);
+              }
+            } else if (elInitialPosition === 0 && column.settings?.refreshToTop !== true && topEl) {
+              if (column.style !== 'media') {
+                const offset = column.scrollElement.querySelector('.timeline').getBoundingClientRect().top + 16;
 
-                    if (isJunk && $settings.design?.layout === 'decks') {
-                        await tick();
-                        el.closest('.modal-page-content').scrollTo(0, topEl.getBoundingClientRect().top - offset)
-                    } else {
-                        await tick();
-                        el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
-                    }
+                if (isJunk && $settings.design?.layout === 'decks') {
+                  await tick();
+                  el.closest('.modal-page-content').scrollTo(0, topEl.getBoundingClientRect().top - offset)
+                } else {
+                  await tick();
+                  el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
                 }
+              }
             }
         } else if (column.algorithm.type === 'bookmark') {
             column.data.feed = [];

@@ -7,7 +7,7 @@ import {settingsState} from "$lib/classes/settingsState.svelte";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
-    syncColumns = $derived(this.columns.map(({ scrollElement, data, ...rest }) => ({
+    syncColumns = $derived(this.columns.map(({ scrollElement, virtualElement, data, ...rest }) => ({
         ...rest,
         data: {
             feed: !settingsState?.settings?.markedUnread ? [] : data?.notifications ? [] : data?.feed || [],

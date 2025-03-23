@@ -12,12 +12,14 @@
   import {isAfter} from "date-fns";
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
+  import { Virtualizer } from "virtua/svelte";
+  import {onDestroy} from "svelte";
 
   let {
     index,
     _agent = $agent,
     isJunk,
-    unique,
+    isVirtual,
   } = $props();
 
   const columnState = getColumnState(isJunk);
@@ -27,6 +29,7 @@
   let realtimeCounter = 0;
   let isDividerLoading = $state(false);
   let dividerFillerHeight = $state(0);
+  let isShift = $state(false);
 
   $effect(() => {
       insertRealtimeData($realtime);
@@ -155,6 +158,8 @@
               return item;
           });
 
+          isShift = false;
+
           if (column.algorithm.type === 'author') {
               column.data.feed =  [...column.data.feed, ...feed].filter((feed, index, _feeds) => {
                   if (isReasonRepost(feed.reason)) {
@@ -190,42 +195,61 @@
           }
 
           complete();
+      } finally {
+          await tick();
+          isShift = true;
       }
   }
+
+  onDestroy(() => {
+
+  })
 </script>
 
-<div class="timeline timeline--{column.style}">
-  <div class:media-list={column.style === 'media'} class:video-list={column.style === 'video'}>
-    {#each column.data.feed as data, index (data)}
-      {#if (data?.post?.author?.did)}
-        <svelte:boundary>
-          <TimelineItem
-                  {data}
-                  {index}
-                  {column}
-                  {_agent}
-                  isProfile={column.algorithm.type === 'author'}
-                  isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
-                  isPinned={isReasonPin(data?.reason)}
-          ></TimelineItem>
+{#snippet timelineItem(data, index)}
+  {#if (data?.post?.author?.did)}
+    <svelte:boundary>
+      <TimelineItem
+              {data}
+              {index}
+              {column}
+              {_agent}
+              isProfile={column.algorithm.type === 'author'}
+              isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
+              isPinned={isReasonPin(data?.reason)}
+      ></TimelineItem>
 
-          {#snippet failed(error, reset)}
-            <p style="padding: 16px;">post load error!!</p>
-          {/snippet}
-        </svelte:boundary>
-      {/if}
-
-      {#if data?.isDivider}
-        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={() => {handleDividerUp(index, data.memoryCursor)}} column={column}></MoreDivider>
-      {/if}
-    {/each}
-  </div>
-
-  {#key unique}
-    <Infinite oninfinite={handleLoadMore}></Infinite>
-  {/key}
-
-  {#if (isDividerLoading)}
-    <div class="more-divider-filler" style="--more-divider-filler-height: {dividerFillerHeight}px"></div>
+      {#snippet failed(error, reset)}
+        <p style="padding: 16px;">post load error!!</p>
+      {/snippet}
+    </svelte:boundary>
   {/if}
-</div>
+
+  {#if data?.isDivider}
+    <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={() => {handleDividerUp(index, data.memoryCursor)}} column={column}></MoreDivider>
+  {/if}
+{/snippet}
+
+{#if (column.scrollElement)}
+  <div class="timeline timeline--{column.style}">
+    <div class:media-list={column.style === 'media'} class:video-list={column.style === 'video'}>
+      {#if (isVirtual)}
+        <Virtualizer data={column.data.feed} getKey={(data, index) => data} scrollRef={isJunk ? document.querySelector('.modal-page-content') : column.scrollElement} bind:this={column.virtualElement} overscan={8} shift={isShift}>
+          {#snippet children(data, index)}
+            {@render timelineItem(data, index)}
+          {/snippet}
+        </Virtualizer>
+      {:else}
+        {#each column.data.feed as data, index (data)}
+          {@render timelineItem(data, index)}
+        {/each}
+      {/if}
+
+      <Infinite oninfinite={handleLoadMore}></Infinite>
+
+      {#if (isDividerLoading)}
+        <div class="more-divider-filler" style="--more-divider-filler-height: {dividerFillerHeight}px"></div>
+      {/if}
+    </div>
+  </div>
+{/if}

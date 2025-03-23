@@ -60,6 +60,7 @@
     let isDragging = $state(false);
     let reorderIndex = index;
     let isRefreshing = $state(false);
+    let isVirtual = $derived($settings?.general?.useVirtual && $settings?.design?.layout === 'decks' && column.style === 'default' && column?.algorithm?.type !== 'author');
 
     let dragOptions: DragOptions = $state({
         axis: 'x',
@@ -96,6 +97,10 @@
 
         if (el.scrollTop === 0) {
             handleRefresh();
+        } else if (isVirtual) {
+            column.virtualElement.scrollToIndex(0, {
+                smooth: true,
+            })
         } else {
             el.scroll({
                 top: 0,
@@ -384,7 +389,7 @@
         {/if}
 
         <div class="deck-heading__buttons">
-            {#if isJunk && column.algorithm?.type === 'thread'}
+            {#if column.algorithm?.type === 'thread'}
                 <button aria-label="Threaded Mode" class="deck-row-column-add-button" class:deck-row-column-add-button--active={$settings?.design?.threaded} onclick={() => {$settings.design.threaded = !$settings.design.threaded}}>
                     <TextQuote color="var(--deck-row-settings-button-color, var(--primary-color))"></TextQuote>
                 </button>
@@ -408,6 +413,7 @@
                 bind:unique={unique}
                 bind:this={refreshEl}
                 {isJunk}
+                {isVirtual}
                 {isRefreshing}
             ></ColumnRefreshButton>
 
@@ -453,7 +459,9 @@
             {:else if (column.algorithm.type === 'bookmark')}
                 <BookmarkTimeline {index} {_agent} {isJunk} {unique}></BookmarkTimeline>
             {:else}
-                <Timeline {index} {_agent} {isJunk} {unique}></Timeline>
+                {#key unique}
+                    <Timeline {index} {_agent} {isJunk} {isVirtual}></Timeline>
+                {/key}
             {/if}
         </div>
     {:else}
@@ -481,6 +489,7 @@
         backdrop-filter: var(--deck-content-backdrop-filter);
         border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
         touch-action: initial !important;
+        overflow-anchor: none;
 
         @supports (-moz-appearance: none) {
             scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
