@@ -2,30 +2,6 @@
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
-
-    if (!$settings?.embed) {
-        $settings.embed = {
-            x: true,
-            youtube: true,
-            spotify: false,
-            mastodon: true,
-            bluemotion: true,
-            giphy: true,
-            tenor: true,
-        };
-    }
-
-    if ($settings?.embed?.bluemotion === undefined) {
-        $settings.embed.bluemotion = true;
-    }
-
-    if ($settings?.embed?.giphy === undefined) {
-        $settings.embed.giphy = true;
-    }
-
-    if ($settings?.embed?.tenor === undefined) {
-        $settings.embed.tenor = true;
-    }
 </script>
 
 <svelte:head>
@@ -111,7 +87,3 @@
     </dl>
   </div>
 </div>
-
-<style lang="postcss">
-
-</style>

@@ -214,19 +214,8 @@
               await _agent.getChatLogs();
             }
         } else if (column.algorithm.type === 'thread') {
-            if (isJunk) {
-                isRefreshing = false;
-                return false;
-            }
-
-            const uri = column.algorithm.algorithm;
-
-            try {
-                const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-                column.data.feed = [ raw.data.thread ];
-            } catch (e) {
-                column.data.feed = 'NotFound';
-            }
+            column.data.feed = [];
+            unique = Symbol();
         } else {
             column.data.feed = [];
             column.data.cursor = undefined;

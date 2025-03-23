@@ -138,6 +138,24 @@ export class ColumnState {
             console.error(e);
         }
     }
+
+    deletePost(uri: string) {
+        if (!uri) {
+            return;
+        }
+
+        try {
+            this.columns.forEach(column => {
+                if (column?.algorithm?.type === 'notification') {
+                    column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri);
+                } else {
+                    column.data.feed = column.data.feed.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri);
+                }
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
 }
 
 const ColumnUnique = Symbol();

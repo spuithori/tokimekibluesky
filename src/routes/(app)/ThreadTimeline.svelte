@@ -1,6 +1,4 @@
 <script lang="ts">
-  import {settings} from '$lib/stores';
-  import Thread from './profile/[handle]/post/[id]/Thread.svelte';
   import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import VirtualThreadList from "$lib/components/thread/VirtualThreadList.svelte";
@@ -10,14 +8,12 @@
   interface Props {
     index: any;
     _agent?: any;
-    isRefreshing: any;
     isJunk?: boolean;
   }
 
   let {
     index,
     _agent,
-    isRefreshing = $bindable(),
     isJunk = false,
   }: Props = $props();
 
@@ -25,7 +21,6 @@
   const column = columnState.getColumn(index);
 
   let scrollTop: undefined | Number = $state(undefined);
-  let rootClientHeight = $state(0);
   let rootIndex = $state();
 
   let isMuted: boolean = $state(false);
@@ -41,30 +36,6 @@
       if (feed.replies?.length && !isMuted) {
           isMutedIncludes(feed.replies[0]);
       }
-  }
-
-  async function getPostThread() {
-      isRefreshing = true;
-      const uri = column.algorithm.algorithm;
-
-      try {
-          const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-          column.data.feed = [ raw.data.thread ];
-
-          column.data.feed.forEach(feed => {
-              if (!feed.blocked) {
-                  isMutedIncludes(feed);
-              }
-          });
-
-          if (isJunk) {
-              scrollTop = $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop;
-          }
-      } catch (e) {
-          column.data.feed = 'NotFound';
-      }
-
-      isRefreshing = false;
   }
 
   async function getFlatThread() {
@@ -234,11 +205,7 @@
   }
 
   onMount(async () => {
-      if (isJunk) {
-          await getFlatThread();
-      } else {
-          await getPostThread();
-      }
+      await getFlatThread();
   })
 </script>
 
@@ -255,21 +222,5 @@
 {:else if (column.data.feed === 'NotFound')}
   <p class="thread-error">{$_('error_thread_notfound')}</p>
 {:else}
-  {#if (isJunk)}
-    <VirtualThreadList {_agent} {column} {rootIndex} onchangeprofile={handleChangeProfile}></VirtualThreadList>
-  {:else}
-    <div class="timeline thread-wrap" style="--root-client-height: {rootClientHeight}px" >
-      <Thread feeds={column.data.feed} depth={0} {column} {_agent} bind:rootClientHeight={rootClientHeight} scrollTop={scrollTop}></Thread>
-    </div>
-  {/if}
+  <VirtualThreadList {_agent} {column} {rootIndex} onchangeprofile={handleChangeProfile} {isJunk}></VirtualThreadList>
 {/if}
-
-<style lang="postcss">
-    .thread-wrap {
-        padding-bottom: calc(94vh - 120px - var(--root-client-height, 0px));
-
-        @media (max-width: 767px) {
-            padding-bottom: calc(100vh - 120px - var(--root-client-height, 0px));
-        }
-    }
-</style>

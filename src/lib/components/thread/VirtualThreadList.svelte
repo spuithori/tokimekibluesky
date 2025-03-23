@@ -4,7 +4,7 @@
   import { Virtualizer } from "virtua/svelte";
   import {_} from "svelte-i18n";
 
-  let { column, _agent, rootIndex, onchangeprofile } = $props();
+  let { column, _agent, rootIndex, onchangeprofile, isJunk } = $props();
   let parent = $state();
   let el: VList = $state();
   let isFirst = $state(true);
@@ -37,7 +37,7 @@
 
 <div class="timeline" class:end-filler={column.data.feed.length > 1} bind:this={parent}>
   {#if (parent)}
-    <Virtualizer data={column.data.feed} getKey={(data, index) => index} scrollRef={parent.closest('.modal-page-content')} bind:this={el} startMargin={102}>
+    <Virtualizer data={column.data.feed} getKey={(data, index) => index} scrollRef={isJunk ? parent.closest('.modal-page-content') : column.scrollElement} bind:this={el} startMargin={102}>
       {#snippet children(item, index)}
         {#if (!column.data.feed[index].blocked && !column.data.feed[index].notFound)}
           <div

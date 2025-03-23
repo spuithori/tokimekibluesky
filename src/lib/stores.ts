@@ -36,6 +36,7 @@ const defaultSettings = {
         disableAtmosphere: false,
         losslessImageUpload: false,
         requireInputAltText: false,
+        useVirtual: false,
     },
     design: {
         skin: 'default',
@@ -83,10 +84,9 @@ const defaultSettings = {
         labelers: [],
     },
     embed: {
-        x: true,
+        x: false,
         youtube: true,
         spotify: false,
-        mastodon: true,
         bluemotion: true,
         giphy: true,
         tenor: true,
@@ -188,8 +188,6 @@ export const didHint = writable('');
 export const theme = writable<Theme | undefined>(undefined);
 
 export const missingAccounts = writable([]);
-
-export const pulseDelete = writable<string | undefined>(undefined);
 
 type pulseDetach = {
     uri: string,

@@ -1,18 +1,14 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import {accountsDb, db} from '$lib/db';
   import {_} from "svelte-i18n";
   import { liveQuery } from 'dexie';
-  import { agent } from '$lib/stores';
   import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {getAccountIdByDidFromDb} from "$lib/util";
   import CloudBookmarkModal from "$lib/components/bookmark/CloudBookmarkModal.svelte";
-  import {untrack} from "svelte";
   import {Bookmark} from "lucide-svelte";
 
-  let { _agent = $agent, post } = $props();
+  let { _agent, post } = $props();
   let cloudBookmarks = $state([]);
   let relatedBookmarks = $state([]);
   let isMenuOpen = $state(false);
@@ -26,15 +22,6 @@
           .toArray();
       return bookmarks;
   }))
-
-
-  $effect(() => {
-    if (isMenuOpen) {
-      untrack(() => {
-        initBookmarks();
-      });
-    }
-  });
 
   function initBookmarks() {
     getCloudBookmarks();
@@ -85,12 +72,6 @@
   async function deleteBookmark(_id) {
       try {
           const id = await db.feeds.delete(_id);
-
-          /* timelines.update(function (tls) {
-              return tls.map(tl => {
-                  return tl.filter(data => data.bookmarkId !== bookmarkId);
-              });
-          }); */
 
           toast.success($_('bookmark_delete_success'));
       } catch (e) {
@@ -211,14 +192,10 @@
           toast.error('Error: ' + e);
       }
   }
-
-  function toggleMenu() {
-      isMenuOpen = !isMenuOpen;
-  }
 </script>
 
 <div class="bookmark-wrap">
-  <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="timeline-reaction__item timeline-reaction__item--bookmark">
+  <Menu bind:isMenuOpen={isMenuOpen} onopen={initBookmarks} buttonClassName="timeline-reaction__item timeline-reaction__item--bookmark">
     {#snippet ref()}
       <span class="timeline-reaction__icon">
         <Bookmark size="16" color="var(--timeline-reaction-bookmark-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></Bookmark>
@@ -226,7 +203,7 @@
     {/snippet}
 
     {#snippet content()}
-        <ul  class="timeline-menu-list">
+      <ul  class="timeline-menu-list">
         {#if ($bookmarks)}
           {#each $bookmarks as bookmark}
             <li class="timeline-menu-list__item timeline-menu-list__item--mute">
@@ -280,7 +257,7 @@
           </button>
         </li>
       </ul>
-      {/snippet}
+    {/snippet}
   </Menu>
 </div>
 

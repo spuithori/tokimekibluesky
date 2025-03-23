@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
   import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply } from 'lucide-svelte';
-  import { agent, settings, isPreventEvent, reportModal, didHint, pulseDelete, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
+  import { agent, settings, isPreventEvent, reportModal, didHint, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
   import { toast } from "svelte-sonner";
   import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
@@ -74,10 +74,6 @@
     let isReplyHide: boolean = $state(false);
 
     $effect(() => {
-        handlePostDelete($pulseDelete);
-    })
-
-    $effect(() => {
         handleEmbedDetach($pulseDetach);
     })
 
@@ -86,12 +82,6 @@
 
     function probability(n) {
       return Math.random() < n / 100;
-    }
-
-    function handlePostDelete(uri) {
-        if (uri === data?.post?.uri) {
-            isHide = true;
-        }
     }
 
     function handleEmbedDetach(detach: pulseDetach) {
@@ -215,7 +205,8 @@
                 {repo: _agent.did(), rkey: rkey}
             );
 
-            pulseDelete.set(data.post.uri);
+            columnState.deletePost(uri);
+            junkColumnState.deletePost(uri);
 
             toast.success($_('post_delete_success'));
         } catch (e) {
@@ -455,12 +446,9 @@
     function mutePost() {
         $postMutes = [...$postMutes, data.post.uri];
         localStorage.setItem('postMutes', JSON.stringify($postMutes));
-        pulseDelete.set(data.post.uri);
+        columnState.deletePost(data.post.uri);
+        junkColumnState.deletePost(data.post.uri);
         toast.success($_('post_mute_success'));
-
-        setTimeout(() => {
-            pulseDelete.set(undefined);
-        }, 500)
     }
 
     async function registerPin() {

@@ -3,7 +3,7 @@
     import {Heart, Repeat2, Star} from "lucide-svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
-    import {getReasonText, removeNotificationsDuplication} from "$lib/components/notification/notificationUtil";
+    import {getReasonText} from "$lib/components/notification/notificationUtil";
     import {AppBskyEmbedImages} from "@atproto/api";
     import Images from "../../../routes/(app)/Images.svelte";
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
@@ -66,8 +66,6 @@
         didHint.set(post.author.did);
         goto(uri);
     }
-
-    // item.notifications = removeNotificationsDuplication(item.notifications);
 </script>
 
 <article class="notifications-item notifications-item--reaction notifications-item--{item.reason}" class:notifications-item--bubble={$settings?.design?.bubbleTimeline}>

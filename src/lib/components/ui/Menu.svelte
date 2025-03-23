@@ -23,6 +23,7 @@
     sub,
     content,
     isLongPress = false,
+    onopen = () => {},
   }: Props = $props();
   let toggle = $state();
 
@@ -41,7 +42,11 @@
   });
 
   function menuOpen() {
-      isMenuOpen = isMenuOpen !== true;
+      isMenuOpen = !isMenuOpen;
+
+      if (isMenuOpen) {
+        onopen();
+      }
   }
 
   function handleOutClick() {

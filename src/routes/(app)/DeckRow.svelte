@@ -441,7 +441,9 @@
             {#if (column.algorithm.type === 'notification')}
                 <NotificationTimeline {index} {isJunk} {_agent} {unique}></NotificationTimeline>
             {:else if (column.algorithm.type === 'thread')}
-                <ThreadTimeline {index} {_agent} bind:isRefreshing={isRefreshing} {isJunk}></ThreadTimeline>
+                {#key unique}
+                    <ThreadTimeline {index} {_agent} {isJunk}></ThreadTimeline>
+                {/key}
             {:else if (column.algorithm.type === 'chat')}
                 <ChatTimeline {column} {index} {_agent} {unique} onrefresh={handleRefresh}></ChatTimeline>
             {:else if (column.algorithm.type === 'list')}
