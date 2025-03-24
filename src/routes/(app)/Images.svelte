@@ -2,6 +2,7 @@
     import {settings, isDataSaving} from '$lib/stores';
     import GifImage from "$lib/components/post/GifImage.svelte";
     import {imageState} from "$lib/classes/imageState.svelte";
+    import ImageLoader from "$lib/components/utils/ImageLoader.svelte";
 
     interface Props {
       images: any[];
@@ -52,14 +53,7 @@
           <GifImage {did} blob={blobs[index]?.image} alt={image.alt}></GifImage>
         {:else}
           <button onclick={() => imageState.open(galleryImages, index)} aria-label="Open image.">
-            <img
-                src="{image.thumb}"
-                alt="{image.alt}"
-                width={image?.aspectRatio?.width}
-                height={image?.aspectRatio?.height}
-                bind:naturalWidth={null, (v) => galleryImages[index].width = image?.aspectRatio?.width || v}
-                bind:naturalHeight={null, (v) => galleryImages[index].height = image?.aspectRatio?.height || v}
-            >
+            <ImageLoader {image} naturalWidth={(v) => {galleryImages[index].width = v}} naturalHeight={(v) => {galleryImages[index].height = v}}></ImageLoader>
           </button>
         {/if}
       </div>
