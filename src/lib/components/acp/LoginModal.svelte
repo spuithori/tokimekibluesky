@@ -138,6 +138,7 @@ function cancel() {
         background-color: rgba(0, 0, 0, .5);
         overflow: auto;
         padding: 50px 0;
+        font-family: var(--font-family, sans-serif);
 
         @media (max-width: 767px) {
             display: block;
