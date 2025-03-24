@@ -21,8 +21,8 @@
 
   async function use(draft: Draft) {
       try {
-          const id = await db.drafts.delete(draft.id);
           onuse(draft);
+          const id = await db.drafts.delete(draft.id);
       } catch (e) {
           toast.error($_('error') + ': ' + e);
       }
@@ -31,7 +31,6 @@
   async function deleteDraft(draft: Draft) {
       try {
           const id = await db.drafts.delete(draft.id);
-
           toast.success($_('draft_delete_success'));
       } catch (e) {
           toast.error($_('error') + ': ' + e);
@@ -103,13 +102,6 @@
         }
 
         &__reply {
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-            font-size: 14px;
-        }
-
-        &__quote {
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;

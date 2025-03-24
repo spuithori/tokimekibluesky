@@ -69,7 +69,7 @@
   </a>
 
   {#if (isProfileShown)}
-    <ProfileCard {handle} on:mouseover={handleAvatarMouseOver} on:mouseleave={handleAvatarMouseLeave} {_agent}></ProfileCard>
+    <ProfileCard {handle} onmouseover={handleAvatarMouseOver} onmouseleave={handleAvatarMouseLeave} {_agent}></ProfileCard>
   {/if}
 </div>
 

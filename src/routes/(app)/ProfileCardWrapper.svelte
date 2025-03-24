@@ -40,7 +40,7 @@
   {@render children?.()}
 
   {#if (isProfileShown)}
-    <ProfileCard handle={handle} on:mouseover={handleMouseOver} on:mouseleave={handleMouseLeave} {_agent}></ProfileCard>
+    <ProfileCard {handle} onmouseover={handleMouseOver} onmouseleave={handleMouseLeave} {_agent}></ProfileCard>
   {/if}
 </div>
 

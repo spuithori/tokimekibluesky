@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { preventDefault } from 'svelte/legacy';
+   import { preventDefault } from 'svelte/legacy';
 
-    import {_} from 'svelte-i18n';
     import {createEventDispatcher, onMount, onDestroy} from 'svelte'
     import {Editor} from '@tiptap/core'
     import Link from '@tiptap/extension-link';
@@ -15,7 +14,6 @@
     import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
     import {agent, timelineHashtags, hashtagHistory} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
-    import EditorBar from "$lib/components/editor/EditorBar.svelte";
     import {jsonToText} from "$lib/components/editor/richtext";
     import HashtagList from "$lib/components/editor/HashtagList.svelte";
     import {Hashtag} from "$lib/components/editor/hashtag";
@@ -263,11 +261,7 @@
   <div class="chat-editor-column">
     {@render avatar?.()}
 
-    <div class="chat-editor" bind:this={element}>
-      <!-- <button class="chat-editor-stamp-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-stamp"><path d="M5 22h14"/><path d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77Z"/><path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-3-3c-1.66 0-3 1-3 3s1 2 1 3.5V13"/></svg>
-      </button> -->
-    </div>
+    <div class="chat-editor" bind:this={element}></div>
 
     <button class="chat-editor-submit" disabled={isPublishEnabled} onclick={() => {dispatch('publish')}}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal"><path d="m3 3 3 9-3 9 19-9Z"/><path d="M6 12h16"/></svg>
@@ -319,14 +313,5 @@
         border-radius: 50%;
         display: grid;
         place-content: center;
-    }
-
-    .chat-editor-stamp-button {
-        position: absolute;
-        right: 8px;
-        width: 28px;
-        top: 0;
-        bottom: 0;
-        margin: auto;
     }
 </style>

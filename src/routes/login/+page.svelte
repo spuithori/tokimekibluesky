@@ -77,7 +77,7 @@
 <style lang="postcss">
   .login {
       min-height: 100vh;
-      font-family: 'Noto Sans JP', 'Noto Color Emoji', sans-serif;
+      font-family: sans-serif;
       overflow-y: auto;
   }
 

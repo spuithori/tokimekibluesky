@@ -1,7 +1,4 @@
 <script lang="ts">
-  import { createBubbler } from 'svelte/legacy';
-
-  const bubble = createBubbler();
   import {onMount} from "svelte";
   import {agent, settings} from "$lib/stores";
   import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
@@ -16,9 +13,9 @@
       middleware: [offset(20), flip(), shift()],
   });
 
-  let { _agent = $agent, handle } = $props();
+  let { _agent = $agent, handle, onmouseover, onmouseleave } = $props();
   let profile = $state();
-  let el = $state();
+  let el: HTMLElement | undefined = $state();
 
   onMount(async () => {
       const res = await _agent.agent.api.app.bsky.actor.getProfile({actor: handle});
@@ -34,7 +31,7 @@
 
 <span class="profile-card-target" use:floatingRef></span>
 {#if profile}
-  <aside class="profile-card" onmouseover={bubble('mouseover')} onmouseleave={bubble('mouseleave')} transition:fade="{{ duration: 100 }}" use:floatingContent bind:this={el} popover="manual">
+  <aside class="profile-card" {onmouseover} {onmouseleave} transition:fade="{{ duration: 100 }}" use:floatingContent bind:this={el} popover="manual">
     <div class="profile-card-heading">
       <div class="profile-card-avatar">
         <img src="{profile.avatar}" alt="">
@@ -67,7 +64,7 @@
     <div class="profile-card-button">
       {#if (profile.did !== _agent.did())}
         <div class="user-item__buttons">
-          <UserFollowButton following="{profile.viewer?.following}" user={profile}></UserFollowButton>
+          <UserFollowButton following={profile.viewer?.following} user={profile}></UserFollowButton>
         </div>
       {/if}
     </div>

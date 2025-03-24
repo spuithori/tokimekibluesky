@@ -1,52 +1,19 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
-  import {
-      getBluemotionUrl,
-      getGiphyId,
-      getSpotifyUri,
-      getTwitterUrl,
-      getYouTubeUrl,
-      getTenorUrl
-  } from "$lib/components/post/embedUtil";
-  import {Spotify, Tweet, YouTube} from "sveltekit-embed";
+  import { getBluemotionUrl, getGiphyId, getSpotifyUri, getTwitterUrl, getYouTubeUrl, getTenorUrl } from "$lib/components/post/embedUtil";
   import { Gif } from '@giphy/svelte-components';
   import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
+  import EmbedX from "$lib/components/post/EmbedX.svelte";
   let { external } = $props();
-
-  if (!$settings?.embed) {
-      $settings.embed = {
-          x: true,
-          youtube: true,
-          spotify: false,
-          mastodon: true,
-          bluemotion: true,
-      };
-  }
-
-  if ($settings?.embed?.bluemotion === undefined) {
-      $settings.embed.bluemotion = true;
-  }
-
-  if ($settings?.embed?.giphy === undefined) {
-      $settings.embed.giphy = true;
-  }
-
-  if ($settings?.embed?.tenor === undefined) {
-      $settings.embed.tenor = true;
-  }
-
-  if (!$settings?.design?.externalLayout) {
-      $settings.design.externalLayout = 'normal';
-  }
 </script>
 
 {#if (getTwitterUrl(external.uri) && $settings?.embed?.x && $settings?.design.externalLayout !== 'compact')}
   <div class="timeline-twitter-external">
-    <Tweet tweetLink={getTwitterUrl(external.uri)}></Tweet>
+    <EmbedX uri={getTwitterUrl(external.uri)}></EmbedX>
   </div>
 {:else}
   <div
-    class="timeline-external timeline-external--{$settings?.design.postsLayout} timeline-external--{$settings?.design.externalLayout}"
+    class="timeline-external timeline-external--{$settings?.design?.postsLayout} timeline-external--{$settings?.design?.externalLayout}"
     class:timeline-external--youtube={getYouTubeUrl(external.uri)}
     class:timeline-external--spotify={getSpotifyUri(external.uri)}
     class:timeline-external--gif={getGiphyId(external.uri) && $settings?.embed?.giphy}
@@ -55,21 +22,16 @@
     {#if ($settings?.design.externalLayout !== 'compact')}
       {#if (getYouTubeUrl(external.uri) && $settings?.embed?.youtube)}
         <div class="timeline-external__image">
-          <YouTube youTubeId={getYouTubeUrl(external.uri)}></YouTube>
+          <iframe loading="lazy" class="youtube-iframe" width="560" height="315" src="https://www.youtube-nocookie.com/embed/{getYouTubeUrl(external.uri)}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
         </div>
       {:else if (getSpotifyUri(external.uri) && $settings?.embed?.spotify)}
         <div class="timeline-external__image">
-          <Spotify spotifyLink={getSpotifyUri(external.uri)} height="152px" width="100%"></Spotify>
+          <iframe loading="lazy" src="https://open.spotify.com/embed/{getSpotifyUri(external.uri)}" width="100%" height="152" frameBorder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
         </div>
       {:else if (getBluemotionUrl(external.uri) && $settings?.embed?.bluemotion)}
         <div class="timeline-external__image">
           <div class="timeline-bluemotion-external">
-            <iframe
-                    src="https://www.bluemotion.app/embed{getBluemotionUrl(external.uri)}"
-                    title="Bluemotion video player"
-                    loading="lazy"
-                    frameBorder="0"
-            ></iframe>
+            <iframe loading="lazy" src="https://www.bluemotion.app/embed{getBluemotionUrl(external.uri)}" title="Bluemotion video player" frameBorder="0"></iframe>
           </div>
         </div>
       {:else if (getTenorUrl(external.uri) && $settings?.embed?.tenor)}
@@ -117,10 +79,6 @@
 {/if}
 
 <style lang="postcss">
-  .timeline-twitter-external {
-
-  }
-
   .timeline-bluemotion-external {
       position: relative;
       height: 100%;
@@ -160,5 +118,10 @@
       .timeline-external__content {
           display: none;
       }
+  }
+
+  .youtube-iframe {
+    width: 100%;
+    height: 100%;
   }
 </style>
