@@ -24,7 +24,6 @@
   import {defaultColors} from "$lib/defaultColors";
   import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
   import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
-  import {detectDateFnsLocale} from "$lib/detectDateFnsLocale";
   import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
   import {isMobile} from "$lib/detectDevice";
   import WelcomeModal from "$lib/components/utils/WelcomeModal.svelte";
@@ -42,6 +41,7 @@
   import "@fontsource-variable/noto-sans-kr";
   import "@fontsource-variable/murecho";
   import "@fontsource/zen-maru-gothic";
+  import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 
   injectAnalytics({ mode: dev ? 'development' : 'production' });
 
@@ -281,8 +281,11 @@
 
   $effect(() => {
       locale.set($settings.general?.language);
-      detectDateFnsLocale($settings.general?.language);
   });
+
+  $effect(() => {
+      intlRelativeTimeFormatState.changeLocale($settings?.general?.language || 'en-US');
+  })
 
   $effect(() => {
       getCurrentTheme($settings.design?.skin);

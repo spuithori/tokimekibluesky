@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {format, formatDistanceToNow, parseISO} from "date-fns";
+    import {format, parseISO} from "date-fns";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
@@ -9,6 +9,7 @@
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {goto} from "$app/navigation";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
     const columnState = getColumnState();
     const junkColumnState = getColumnState(true);
 
@@ -128,7 +129,7 @@
 
       <h3 class="convo-item__name">{convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle}</h3>
 
-      <time class="convo-item__date" datetime="{format(parseISO(convo.lastMessage.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{formatDistanceToNow(parseISO(convo.lastMessage.sentAt))}</time>
+      <time class="convo-item__date" datetime="{format(parseISO(convo.lastMessage.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{intlRelativeTimeFormatState.format({ laterDate: parseISO(convo.lastMessage.sentAt) })}</time>
     </div>
 
     <p class="convo-item__text">{convo.lastMessage.text}</p>

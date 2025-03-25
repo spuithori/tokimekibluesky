@@ -53,7 +53,7 @@ const defaultSettings = {
         reactionButtons: defaultReactionButtons,
         advancedBreak: false,
         mobilePostLayoutTop: false,
-        displayHandle: false,
+        displayHandle: true,
         reactionMode: 'tokimeki',
         leftMode: false,
         disableProfilePopup: false,
@@ -84,7 +84,7 @@ const defaultSettings = {
         labelers: [],
     },
     embed: {
-        x: false,
+        x: true,
         youtube: true,
         spotify: false,
         bluemotion: true,

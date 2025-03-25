@@ -2,8 +2,9 @@
     import { _ } from 'svelte-i18n';
     import {onMount} from "svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
-    import { formatDistanceToNow, fromUnixTime } from "date-fns";
+    import {fromUnixTime} from "date-fns";
     import {Mic} from "lucide-svelte";
+    import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 
     let items = $state([]);
 
@@ -32,7 +33,7 @@
             <h3 class="bluecast-item__title"><a href="https://www.bluecast.app/user/@{item?.profileData?.handle}?t=listen" target="_blank" rel="noopener noreferrer">{item?.profileData?.displayName || item?.profileData?.handle}</a></h3>
 
             {#if (item?.createdAt?.seconds)}
-              <p class="bluecast-item__date">{formatDistanceToNow(fromUnixTime(item?.createdAt?.seconds))}{$_('bluecast_time_suffix')}</p>
+              <p class="bluecast-item__date">{intlRelativeTimeFormatState.format({ laterDate: fromUnixTime(item?.createdAt?.seconds)})}</p>
             {/if}
           </div>
 
@@ -99,18 +100,6 @@
         &__avatar {
             position: relative;
             z-index: 2;
-
-            img {
-                width: 100%;
-            }
-        }
-
-        &__button {
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            top: 0;
-            right: 0;
         }
 
         &__name {
@@ -126,11 +115,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             line-height: 1.3;
-        }
-
-        &__badges {
-            align-self: center;
-            padding-top: 8px;
         }
 
         &__date {

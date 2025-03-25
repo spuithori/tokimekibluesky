@@ -3,7 +3,8 @@
   import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import AtmosphereAboutModal from "$lib/components/profile/AtmosphereAboutModal.svelte";
-  import {format, formatDistanceToNow, parseISO} from "date-fns";
+  import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
+  import {parseISO} from "date-fns";
 
   let { did, handle, _agent } = $props();
 
@@ -118,7 +119,7 @@
     {#if (latestFlushes)}
       <div class="atmos-item atmos-item--flushes">
         <p class="atmos-item__title"><strong>Flushes</strong></p>
-        <a class="atmos-item__link" href="https://flushes.app/profile/{handle}" target="_blank" rel="noreferrer noopener nofollow">{latestFlushes?.emoji} {formatDistanceToNow(parseISO(latestFlushes?.createdAt))}</a>
+        <a class="atmos-item__link" href="https://flushes.app/profile/{handle}" target="_blank" rel="noreferrer noopener nofollow">{latestFlushes?.emoji} {intlRelativeTimeFormatState.format({ laterDate: parseISO(latestFlushes?.createdAt) })}</a>
 
         <span class="atmos-item__ext">
           <SquareArrowOutUpRight size="16" color="var(--text-color-3)"></SquareArrowOutUpRight>

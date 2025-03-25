@@ -1,6 +1,6 @@
 <script lang="ts">
   import { agent, didHint, labelDefs, labelerSettings, settings } from "$lib/stores";
-  import {format, formatDistanceToNow, parseISO} from "date-fns";
+  import {format, parseISO} from "date-fns";
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost } from "@atproto/api";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
@@ -14,6 +14,7 @@
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
   import EmbedRecord from './EmbedRecord.svelte'
+  import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 
   let { record, _agent = $agent, isChild = false, isPublish = false } = $props();
 
@@ -114,7 +115,7 @@
           {#if $settings?.design.absoluteTime}
             <span>{format(parseISO(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
           {:else}
-            <span>{formatDistanceToNow(parseISO(record.indexedAt))}</span>
+            <span>{intlRelativeTimeFormatState.format({ laterDate: parseISO(record.indexedAt) })}</span>
           {/if}
         </p>
       </div>

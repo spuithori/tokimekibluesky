@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
   import {agents, labelDefs, labelerSettings, settings, workerTimer} from "$lib/stores";
-  import {format, formatDistanceToNow, parseISO} from "date-fns";
+  import {format, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, detectHide} from "$lib/timelineFilter";
@@ -20,6 +20,7 @@
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {onDestroy, untrack} from "svelte";
   import {Eye, Handshake} from "lucide-svelte";
+  import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 
   interface Props {
       post: any;
@@ -52,7 +53,7 @@
   let translatedRecord: undefined | AppBskyFeedPost.Record = $state();
   let warnLabels = $state([]);
   let warnBehavior: 'cover' | 'inform' = $state('cover');
-  let timeDistanceToNow = $state(formatDistanceToNow(parseISO(post.indexedAt)));
+  let timeDistanceToNow = $state(intlRelativeTimeFormatState.format({ laterDate: parseISO(post.indexedAt) }));
   let skyblurText = $state('');
 
   const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
@@ -113,7 +114,7 @@
 
   function handleTimer(e) {
       if (e.data % 5 === 0) {
-          timeDistanceToNow = formatDistanceToNow(parseISO(post.indexedAt));
+          timeDistanceToNow = intlRelativeTimeFormatState.format({ laterDate: parseISO(post.indexedAt) });
       }
   }
 
