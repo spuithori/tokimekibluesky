@@ -225,14 +225,15 @@
       });
   }
 
-  if ($theme?.id === 'default' || $theme?.id === 'twilight') {
+  if ($settings?.design?.skin === 'default' || $settings?.design?.skin === 'twilight') {
     const convertedTheme = oldThemeConvert($settings?.design?.theme);
     if (convertedTheme) {
       $settings.design.theme = convertedTheme;
     }
   }
 
-  if ($theme?.id === 'twilight') {
+  if ($settings?.design?.skin === 'twilight') {
+    $settings.design.skin = 'default';
     $settings.design.darkmode = true;
   }
 
