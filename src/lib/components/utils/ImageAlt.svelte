@@ -1,8 +1,37 @@
 <script lang="ts">
+  import {_} from 'svelte-i18n';
   import Modal from "$lib/components/ui/Modal.svelte";
+  import {languageDetect} from '$lib/translate';
+  import {settings} from "$lib/stores";
+  import {Languages} from "lucide-svelte";
 
   let { pswp, images, index } = $props();
   let isModalOpen = $state(false);
+  let isTranslated = $state(false);
+  let translatedText = $state('');
+
+  async function translation(text, lang = window.navigator.language) {
+    try {
+      const res = await fetch(`/api/translator`, {
+        method: 'post',
+        body: JSON.stringify({
+          text: text,
+          to: lang,
+        })
+      });
+      const translation = await res.json();
+      translatedText = await translation[0].translations[0].text;
+      isTranslated = true;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function handleClose() {
+    isModalOpen = false;
+    translatedText = '';
+    isTranslated = false;
+  }
 </script>
 
 {#if (images[index]?.alt)}
@@ -12,7 +41,25 @@
 {/if}
 
 {#if (isModalOpen)}
-  <Modal title="ALT" onclose={() => {isModalOpen = false}}>
+  <Modal title="ALT" onclose={handleClose}>
+    {#await languageDetect(images[index].alt)}
+    {:then langs}
+      {#if (!langs.includes($settings?.general?.language))}
+        <button class="image-alt-translate-button" disabled={isTranslated} onclick={() => translation(images[index].alt, $settings?.general?.userLanguage)}>
+          <Languages size="16" color="var(--primary-color)"></Languages>
+          {$_(isTranslated ? 'already_translated' : 'translation')}
+        </button>
+      {/if}
+    {:catch error}
+        <p>Translate error (´；ω；`)</p>
+    {/await}
+
+    {#if (translatedText)}
+      <p class="image-alt-translated-text">
+        {translatedText}
+      </p>
+    {/if}
+
     <p class="image-alt-modal-text">
       {images[index].alt}
     </p>
@@ -44,5 +91,26 @@
   .image-alt-modal-text {
       white-space: pre-wrap;
       color: var(--text-color-1);
+  }
+
+  .image-alt-translated-text {
+    border: 1px solid var(--border-color-2);
+    border-radius: var(--border-color-2);
+    background-color: var(--bg-color-2);
+    padding: 8px;
+    margin: 16px 0;
+    white-space: pre-wrap;
+  }
+
+  .image-alt-translate-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary-color);
+    margin-bottom: 16px;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 </style>

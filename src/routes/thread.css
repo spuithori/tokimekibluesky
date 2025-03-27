@@ -173,3 +173,13 @@
         }
     }
 }
+
+.bubble {
+    .thread-item.has-child.is-root::before {
+        content: none;
+    }
+
+    .thread-item.has-child:not(.is-root)::before {
+        content: none;
+    }
+}

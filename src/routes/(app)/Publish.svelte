@@ -21,6 +21,7 @@
   import {publishState} from "$lib/classes/publishState.svelte";
   import {Pencil, Pin, PinOff, X} from "lucide-svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
+  import {languageDetect} from '$lib/translate';
 
   const postState = getPostState();
 
@@ -122,27 +123,6 @@
       tick().then(() => {
           editor.focus();
       });
-  }
-
-  async function languageDetect(text) {
-      try {
-          const res = await fetch(`/api/language-detect`, {
-              method: 'post',
-              body: JSON.stringify({
-                  text: text,
-              })
-          });
-          const langs = await res.json() as { lang: string; }[];
-
-          if (langs.length) {
-              return langs.map(lg => lg.lang);
-          } else {
-              return [];
-          }
-      } catch (e) {
-          console.error(e);
-          return [];
-      }
   }
 
   async function uploadBlobWithCompression(image) {
@@ -868,29 +848,6 @@
 
     .publish-item-wrap {
         position: relative;
-
-        &::before {
-            content: '';
-            display: block;
-            position: absolute;
-            width: 2px;
-            background-color: var(--border-color-1);
-            left: 32px;
-            top: 0;
-            bottom: 0;
-        }
-
-        &:last-child {
-            &::before {
-                bottom: 12px;
-            }
-        }
-
-        &[data-index='0'] {
-            &::before {
-                top: 12px;
-            }
-        }
     }
 
     .publish-item-delete {

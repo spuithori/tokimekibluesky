@@ -99,6 +99,7 @@
 .publish-wrap {
     background-color: var(--publish-bg-color);
     background-image: var(--publish-bg-image, none);
+    border-radius: var(--publish-border-radius, 0);
     border-top: 1px solid var(--border-color-1);
     padding: 16px 0 0;
     display: none;

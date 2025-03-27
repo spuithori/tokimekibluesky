@@ -253,6 +253,7 @@
       }
 
       let colorStyle = '';
+      let bubbleStyle = '';
       let darkmodeStyle = '';
 
       if (theme.options?.colors) {
@@ -263,11 +264,15 @@
           }
       }
 
+      if ($settings?.design?.bubbleTimeline) {
+          bubbleStyle = theme?.options?.bubbleStyle  || '';
+      }
+
       if (isDarkMode) {
           darkmodeStyle = theme.options?.darkmodeStyle ? theme.options.darkmodeStyle : '';
       }
 
-      return theme.style + colorStyle + darkmodeStyle;
+      return theme.style + colorStyle + bubbleStyle + darkmodeStyle;
   }
 
   initProfile();
@@ -350,6 +355,7 @@
     class:ios={isMobile.iOS()}
     class:left-mode={$settings?.design?.leftMode}
     class:superstar={$settings.design?.reactionMode === 'superstar'}
+    class:bubble={$settings?.design?.bubbleTimeline}
     style={outputInlineStyle($theme)}
     dir="{$_('dir', {default: 'ltr'})}"
     bind:this={app}

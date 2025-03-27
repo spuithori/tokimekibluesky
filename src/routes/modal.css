@@ -139,7 +139,7 @@
 
     .modal-page-content {
         min-height: 100dvh;
-        background-color: var(--bg-color-1);
+        background-color: var(--modal-page-bg-color, var(--bg-color-1));
         border-left: 1px solid var(--border-color-2);
         border-right: 1px solid var(--border-color-2);
         position: relative;
@@ -156,7 +156,7 @@
     .modal-page {
         position: fixed;
         top: var(--decks-margin);
-        bottom: var(--decks-margin);
+        bottom: var(--decks-margin-bottom, var(--decks-margin));
         left: 0;
         right: var(--decks-margin);
         z-index: 1001;
@@ -210,7 +210,7 @@
         border-radius: 10px 0 0 10px;
         margin: auto;
         height: 94vh;
-        background-color: var(--bg-color-1);
+        background-color: var(--modal-page-bg-color, var(--bg-color-1));
         overflow-y: scroll;
         z-index: 1;
         box-shadow: 0 10px 30px rgba(0, 0, 0, .3);

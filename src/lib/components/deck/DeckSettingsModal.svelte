@@ -669,7 +669,7 @@
         top: 60px;
         left: 8px;
         right: 8px;
-        height: calc(100dvh - 64px);
+        height: calc(100dvh - 70px);
         padding: 0;
         z-index: 100;
         background-color: var(--bg-color-1);

@@ -615,13 +615,6 @@
       }
   }
 
-  .self-labeling-note {
-      padding: 12px;
-      border-top: 1px solid var(--border-color-2);
-      font-size: 14px;
-      color: var(--text-color-3);
-  }
-
   .link-card-registerer {
       display: flex;
       flex-direction: column;

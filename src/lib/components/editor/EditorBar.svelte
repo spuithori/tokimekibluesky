@@ -19,7 +19,6 @@
         display: flex;
         flex-direction: column;
         border-radius: 0 0 var(--border-radius-3) var(--border-radius-3);
-        background: linear-gradient(to top, var(--publish-textarea-bg-color) 0%, var(--publish-textarea-bg-color) 80%, transparent);
         position: sticky;
         bottom: 0;
         z-index: 100;

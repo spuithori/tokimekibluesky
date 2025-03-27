@@ -40,7 +40,7 @@ const defaultSettings = {
     },
     design: {
         skin: 'default',
-        theme: 'jade',
+        theme: 'lightpink',
         nonoto: isSafariOrFirefox() ? true : false,
         fontTheme: 'default',
         darkmode: false,

@@ -65,7 +65,7 @@
         border-left: var(--single-border);
         border-right: var(--single-border);
         min-height: 100vh;
-        background-color: var(--bg-color-1);
+        background-color: var(--single-bg-color, var(--bg-color-1));
         width: var(--single-column-width, var(--single-m-width));
         max-width: 100%;
 

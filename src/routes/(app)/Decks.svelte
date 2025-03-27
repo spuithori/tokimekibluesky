@@ -57,13 +57,16 @@
       display: flex;
       gap: var(--decks-gap);
       overflow-y: hidden;
-      padding: var(--decks-padding) 0;
-      margin: var(--decks-margin) var(--decks-margin) var(--decks-margin) 0;
-      height: calc(100dvh - var(--decks-margin, 0px) * 2);
+      padding: var(--decks-padding-top, var(--decks-padding)) var(--decks-padding-right, var(--decks-padding)) var(--decks-padding-bottom, var(--decks-padding)) var(--decks-padding-left, var(--decks-padding));
+      margin: var(--decks-margin) var(--decks-margin) var(--decks-margin-bottom, var(--decks-margin)) 0;
+      height: var(--decks-height, calc(100dvh - var(--decks-margin, 0px) * 2));
       flex: var(--decks-flex, initial);
       background-color: var(--decks-bg-color, transparent);
       border-radius: var(--decks-border-radius, 0);
+      border: var(--decks-border, none);
       border-left: var(--decks-border-left, 0);
+      border-bottom: var(--decks-border-bottom, 0);
+      box-shadow: var(--decks-box-shadow, none);
 
       &::-webkit-scrollbar {
           height: 8px;
@@ -87,7 +90,8 @@
           padding: 0;
           height: 100dvh;
           margin: 0;
-          border-left: none;
+          border: none;
+          box-shadow: none;
       }
   }
 

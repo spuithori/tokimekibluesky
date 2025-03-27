@@ -29,3 +29,24 @@ export async function formatTranslateRecord(text, lang = window.navigator.langua
         facets: t.facets,
     }
 }
+
+export async function languageDetect(text) {
+    try {
+        const res = await fetch(`/api/language-detect`, {
+            method: 'post',
+            body: JSON.stringify({
+                text: text,
+            })
+        });
+        const langs = await res.json() as { lang: string; }[];
+
+        if (langs.length) {
+            return langs.map(lg => lg.lang);
+        } else {
+            return [];
+        }
+    } catch (e) {
+        console.error(e);
+        return [];
+    }
+}

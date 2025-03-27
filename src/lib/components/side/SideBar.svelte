@@ -289,7 +289,7 @@
       &--settings {
           position: sticky;
           bottom: 0;
-          background: var(--bar-bg-color);
+
       }
 
       &__count {

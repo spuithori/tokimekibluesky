@@ -11,6 +11,7 @@ type themeOptions = {
     colorDisabled: boolean,
     darkmodeDisabled: boolean,
     colors?: colorTheme[],
+    bubbleStyle?: string,
     darkmodeStyle?: string,
 }
 

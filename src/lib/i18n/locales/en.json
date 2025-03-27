@@ -629,7 +629,7 @@
   "success_to_video_upload": "Success to video upload.",
   "error_video_too_large": "Video is too big or too long! You can upload videos up to 100 MB and no longer than 180 seconds.",
   "bookmark_local": "Local Bookmark",
-  "bookmark_cloud": "Cloud Bookmark (β)",
+  "bookmark_cloud": "Cloud Bookmark",
   "bookmark_cloud_add_description": "Cloud bookmarks are stored on the TOKIMEKI server and can be used on other devices.",
   "delete_bookmark": "Delete bookmark",
   "privacy_policy": "Privacy Policy",

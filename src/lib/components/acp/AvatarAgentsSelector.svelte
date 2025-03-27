@@ -104,7 +104,7 @@
 
   .avatar-agents-selector-modal {
       position: absolute;
-      z-index: 100;
+      z-index: 101;
       background-color: var(--bg-color-1);
       border-radius: var(--border-radius-3);
       box-shadow: 0 0 8px var(--box-shadow-color-1);
