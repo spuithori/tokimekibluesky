@@ -102,7 +102,7 @@ export function oldThemeConvert(currentTheme: string) {
         const oldIds = ['lightpink', 'pastelyellow', 'lightblue', 'royalblue', 'superorange', 'violet', 'scarlet', 'lightgreen', 'paperwhite', 'jade', 'platinumsilver', 'pinkgold'];
 
         if (oldIds.includes(currentTheme)) {
-            return `default-${oldIds.indexOf(currentTheme) + 1}`;
+            return `defaut-${oldIds.indexOf(currentTheme) + 1}`;
         }
 
         return null;
