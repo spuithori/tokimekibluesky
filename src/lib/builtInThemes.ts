@@ -92,7 +92,21 @@ export const builtInThemes: Theme[] = [
         },
         author: 'TOKIMEKI',
         keyword: 'builtin',
-        version: '1.0',
+        version: '2.0',
         isBuiltIn: true,
     },
 ];
+
+export function oldThemeConvert(currentTheme: string) {
+    try {
+        const oldIds = ['lightpink', 'pastelyellow', 'lightblue', 'royalblue', 'superorange', 'violet', 'scarlet', 'lightgreen', 'paperwhite', 'jade', 'platinumsilver', 'pinkgold'];
+
+        if (oldIds.includes(currentTheme)) {
+            return `default-${oldIds.indexOf(currentTheme) + 1}`;
+        }
+
+        return null;
+    } catch (e) {
+        console.error(e);
+    }
+}

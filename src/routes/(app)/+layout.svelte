@@ -20,7 +20,7 @@
   import Single from "./Single.svelte";
   import Decks from "./Decks.svelte";
   import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
-  import {builtInThemes} from "$lib/builtInThemes";
+  import {builtInThemes, oldThemeConvert} from "$lib/builtInThemes";
   import {defaultColors} from "$lib/defaultColors";
   import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
   import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
@@ -223,6 +223,17 @@
       .then(res => {
         console.log(`Storage persisted: ${res}`);
       });
+  }
+
+  if ($theme?.id === 'default' || $theme?.id === 'twilight') {
+    const convertedTheme = oldThemeConvert($settings?.design?.theme);
+    if (convertedTheme) {
+      $settings.design.theme = convertedTheme;
+    }
+  }
+
+  if ($theme?.id === 'twilight') {
+    $settings.design.darkmode = true;
   }
 
   onMount(async() => {
