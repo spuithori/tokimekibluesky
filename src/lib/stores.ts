@@ -45,7 +45,7 @@ const defaultSettings = {
         fontTheme: 'default',
         darkmode: false,
         absoluteTime: false,
-        layout: 'default',
+        layout: 'decks',
         postsImageLayout: 'default',
         postsLayout: 'compact',
         publishPosition: 'left',

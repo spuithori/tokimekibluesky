@@ -8,7 +8,7 @@
     import {builtInThemes} from "$lib/builtInThemes";
     import {defaultColors} from "$lib/defaultColors";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
-    import {AppWindowMac, ChevronRight, GalleryVertical, Palette, PanelBottomOpen, PanelLeftOpen} from "lucide-svelte";
+    import { AppWindowMac, ChevronRight, Columns3, GalleryVertical, Palette, PanelBottomOpen, PanelLeftOpen, RectangleVertical } from "lucide-svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
     import Notice from "$lib/components/ui/Notice.svelte";
     let skin: string = $state($settings?.design.skin || 'default');
@@ -16,7 +16,7 @@
     let fontTheme = $state($settings?.design.fontTheme || 'default');
     let darkmode = $state($settings?.design.darkmode || false);
     let nonoto = $state($settings?.design.nonoto || false);
-    let layout = $state($settings?.design.layout || 'default');
+    let layout = $state($settings?.design.layout || 'decks');
     let datetimeFormat = $state($settings?.design.datetimeFormat || 'yyyy-MM-dd HH:mm');
     let absoluteTime = $state($settings?.design.absoluteTime || false);
     let postsLayout = $state($settings?.design.postsLayout || 'default');
@@ -157,15 +157,21 @@
       </dt>
 
       <dd class="settings-group__content">
-        <div class="icons-radio-group">
-          <div class="icons-radio">
-            <input type="radio" bind:group={layout} id="layoutDefault" name="layout" value={'default'}>
-            <label for="layoutDefault"><span class="icons-radio__ui"><svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><defs><linearGradient id="a" x1=".5" x2=".5" y2=".749" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="var(--bg-color-1)" stop-opacity="0"/><stop offset="1" stop-color="var(--bg-color-1)"/></linearGradient></defs><g data-name="グループ 123" transform="translate(-663 -677)"><g class="icons-radio__g" data-name="長方形 117" transform="translate(663 677)" fill="var(--bg-color-1)" stroke="var(--border-color-1)"><rect width="75" height="75" rx="4" stroke="none"/><rect x=".5" y=".5" width="74" height="74" rx="3.5" fill="none"/></g><rect data-name="長方形 155" width="34" height="55" rx="4" transform="translate(684 690)" fill="var(--border-color-2)"/><rect data-name="長方形 130" width="73" height="26" rx="4" transform="translate(664 725)" fill="url(#a)"/></g></svg></span>{$_('default')}</label>
+        <div class="layout-radio-group">
+          <div class="layout-radio" class:layout-radio--current={$settings.design?.layout === 'decks'}>
+            <input type="radio" bind:group={layout} id="layoutDecks" name="layout" value={'decks'}>
+            <label for="layoutDecks">
+              <Columns3 size="22" color="var(--radio-current-color)"></Columns3>
+              {$_('layout_decks')}
+            </label>
           </div>
 
-          <div class="icons-radio">
-            <input type="radio" bind:group={layout} id="layoutDecks" name="layout" value={'decks'}>
-            <label for="layoutDecks"><span class="icons-radio__ui icons-radio__ui--ignorefill"><svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><defs><clipPath id="a"><rect data-name="長方形 156" width="75" height="75" rx="4" transform="translate(847 679)" fill="var(--bg-color-1)" stroke="var(--border-color-1)"/></clipPath></defs><g  data-name="グループ 124"><g class="icons-radio__g" data-name="長方形 110" fill="var(--bg-color-1)" stroke="var(--border-color-1)"><rect width="75" height="75" rx="4" stroke="none"/><rect x=".5" y=".5" width="74" height="74" rx="3.5" fill="none"/></g><path data-name="パス 52" d="M25.507 12.825s12.346 13.294 0 25.753 0 23.6 0 23.6" fill="none" stroke="var(--border-color-2)" stroke-width="2"/><path data-name="パス 53" d="M37.481 12.825s12.346 13.294 0 25.753 0 23.6 0 23.6" fill="none" stroke="var(--border-color-2)" stroke-width="2"/><path data-name="パス 54" d="M49.494 12.825s12.346 13.294 0 25.753 0 23.6 0 23.6" fill="none" stroke="var(--border-color-2)" stroke-width="2"/></g></svg></span>{$_('decks')}</label>
+          <div class="layout-radio" class:layout-radio--current={$settings.design?.layout === 'default'}>
+            <input type="radio" bind:group={layout} id="layoutDefault" name="layout" value={'default'}>
+            <label for="layoutDefault">
+              <RectangleVertical size="22" color="var(--radio-current-color)"></RectangleVertical>
+              {$_('layout_single')}
+            </label>
           </div>
         </div>
       </dd>

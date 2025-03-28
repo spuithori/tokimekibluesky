@@ -185,19 +185,19 @@
 
     <div class="side-menu-item">
       <div class="layout-radio-group">
-        <div class="layout-radio" class:layout-radio--current={$settings.design?.layout === 'default'}>
-          <input type="radio" bind:group={$settings.design.layout} id="layoutDefault" name="layout" value={'default'}>
-          <label for="layoutDefault">
-            <RectangleVertical size="22" color="var(--radio-current-color)"></RectangleVertical>
-            {$_('default')}
-          </label>
-        </div>
-
         <div class="layout-radio" class:layout-radio--current={$settings.design?.layout === 'decks'}>
           <input type="radio" bind:group={$settings.design.layout} id="layoutDecks" name="layout" value={'decks'}>
           <label for="layoutDecks">
             <Columns3 size="22" color="var(--radio-current-color)"></Columns3>
-            {$_('decks')}
+            {$_('layout_decks')}
+          </label>
+        </div>
+
+        <div class="layout-radio" class:layout-radio--current={$settings.design?.layout === 'default'}>
+          <input type="radio" bind:group={$settings.design.layout} id="layoutDefault" name="layout" value={'default'}>
+          <label for="layoutDefault">
+            <RectangleVertical size="22" color="var(--radio-current-color)"></RectangleVertical>
+            {$_('layout_single')}
           </label>
         </div>
       </div>
@@ -253,46 +253,6 @@
 
       @media (max-width: 767px) {
           min-width: 0;
-      }
-  }
-
-  .layout-radio-group {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      text-align: center;
-  }
-
-  .layout-radio {
-      --radio-current-color: var(--border-color-1);
-      position: relative;
-      border: 2px solid var(--radio-current-color);
-      font-size: 13px;
-      border-radius: var(--border-radius-2);
-
-      &--current {
-          --radio-current-color: var(--primary-color);
-          font-weight: bold;
-      }
-
-      label {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 4px;
-          padding: 12px 4px 8px;
-          cursor: pointer;
-      }
-
-      input {
-          visibility: hidden;
-          opacity: 0;
-          position: absolute;
-          width: 0;
-          height: 0;
-          left: 0;
-          top: 0;
       }
   }
 

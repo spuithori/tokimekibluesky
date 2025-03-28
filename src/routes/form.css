@@ -759,3 +759,44 @@
         }
     }
 }
+
+
+.layout-radio-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    text-align: center;
+}
+
+.layout-radio {
+    --radio-current-color: var(--border-color-1);
+    position: relative;
+    border: 2px solid var(--radio-current-color);
+    font-size: 13px;
+    border-radius: var(--border-radius-2);
+
+    &--current {
+        --radio-current-color: var(--primary-color);
+        font-weight: bold;
+    }
+
+    label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 12px 4px 8px;
+        cursor: pointer;
+    }
+
+    input {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        width: 0;
+        height: 0;
+        left: 0;
+        top: 0;
+    }
+}
