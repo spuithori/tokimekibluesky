@@ -35,4 +35,16 @@
       </div>
     </dd>
   </dl>
+
+  <dl class="settings-group">
+    <dt class="settings-group__name">
+      {$_('continuous_tag')}
+    </dt>
+
+    <dd class="settings-group__content">
+      <div class="input-toggle mb10">
+        <input class="input-toggle__input" type="checkbox" id="continuousTag" bind:checked={$settings.general.continuousTag}><label class="input-toggle__label" for="continuousTag"></label>
+      </div>
+    </dd>
+  </dl>
 </Modal>

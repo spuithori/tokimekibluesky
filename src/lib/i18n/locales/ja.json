@@ -692,5 +692,6 @@
   "require_input_alt_text": "ALTテキストの入力を必須にする",
   "alt_text_missing": "ALTテキストが入力されていない画像があります（「ALTテキストの入力を必須にする」オプションが有効になっています）。",
   "columns_reorder": "カラム並び替え",
-  "thread_gate_follower_title": "あなたのフォロワー"
+  "thread_gate_follower_title": "あなたのフォロワー",
+  "continuous_tag": "ハッシュタグを継続利用（実況モード）"
 }

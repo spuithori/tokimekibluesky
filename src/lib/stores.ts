@@ -37,6 +37,7 @@ const defaultSettings = {
         losslessImageUpload: false,
         requireInputAltText: false,
         useVirtual: false,
+        continuousTag: false,
     },
     design: {
         skin: 'default',

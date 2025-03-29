@@ -264,8 +264,8 @@
         editor.commands.clearContent(true);
     }
 
-    export function focus() {
-        editor.commands.focus();
+    export function focus(position = null) {
+        editor.commands.focus(position);
     }
 
     export function blur() {

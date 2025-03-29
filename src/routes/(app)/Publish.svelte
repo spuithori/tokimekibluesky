@@ -32,6 +32,7 @@
   let isEnabled = $state(true);
   let isPublishing = $state(false);
   let writes = [];
+  let continuousTags = [];
   let tid: TID | undefined;
 
   const isMobile = navigator?.userAgentData?.mobile || false;
@@ -277,6 +278,13 @@
       if (publishState.pinned) {
           await tick();
           editor.focus();
+      }
+
+      if ($settings?.general?.continuousTag && continuousTags.length) {
+        const tagsText = continuousTags.map(tag => `<span class="editor-hashtag">#${tag}</span>`).join(' ');
+        postState.replaceText('<br>' + tagsText);
+        await tick();
+        editor.focus('start');
       }
   }
 
@@ -572,6 +580,10 @@
               let _hashtagHistory = [...tags, ...$hashtagHistory];
               _hashtagHistory = [...new Set(_hashtagHistory)];
               $hashtagHistory = _hashtagHistory.filter(v => v !== null);
+
+              if ($settings?.general?.continuousTag) {
+                  continuousTags = tags;
+              }
 
               if ($hashtagHistory.length > 4) {
                   $hashtagHistory = $hashtagHistory.slice(0, 4);
