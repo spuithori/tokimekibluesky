@@ -349,3 +349,9 @@
     display: grid;
     place-content: center;
 }
+
+.deck-popup-wrap {
+    .deck-settings-wrap {
+        height: 400px !important;
+    }
+}

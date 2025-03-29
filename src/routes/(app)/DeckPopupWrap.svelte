@@ -77,7 +77,7 @@
 
 <style lang="postcss">
   .deck-popup-wrap {
-      --popup-z-index: 1000;
+      --popup-z-index: 1002;
 
       @media (min-width: 768px) {
           position: fixed;
