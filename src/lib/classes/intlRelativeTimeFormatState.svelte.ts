@@ -1,5 +1,5 @@
-import { differenceInCalendarDays, differenceInCalendarMonths, differenceInCalendarWeeks, differenceInCalendarYears, differenceInHours, differenceInMinutes, differenceInSeconds } from "date-fns";
-import { secondsInDay, secondsInHour, secondsInMinute, secondsInMonth, secondsInWeek, secondsInYear } from "date-fns/constants";
+import { differenceInDays, differenceInHours, differenceInMinutes, differenceInMonths, differenceInSeconds, differenceInWeeks, differenceInYears } from "date-fns";
+import { secondsInDay, secondsInHour, secondsInMinute, secondsInWeek } from "date-fns/constants";
 
 type formatOptions = {
     laterDate: Date,
@@ -22,26 +22,20 @@ class IntlRelativeTimeFormatState {
         } else if (Math.abs(diffInSeconds) < secondsInHour) {
             value = differenceInMinutes(laterDate, earlierDate);
             unit = 'minute';
-        } else if (
-            Math.abs(diffInSeconds) < secondsInDay &&
-            Math.abs(differenceInCalendarDays(laterDate, earlierDate)) < 1
-        ) {
+        } else if (Math.abs(diffInSeconds) < secondsInDay) {
             value = differenceInHours(laterDate, earlierDate);
             unit = 'hour';
-        } else if (
-            Math.abs(diffInSeconds) < secondsInWeek &&
-            (value = differenceInCalendarDays(laterDate, earlierDate)) &&
-            Math.abs(value) < 7
-        ) {
+        } else if (Math.abs(diffInSeconds) < secondsInWeek) {
+            value = differenceInDays(laterDate, earlierDate)
             unit = 'day';
-        } else if (Math.abs(diffInSeconds) < secondsInMonth) {
-            value = differenceInCalendarWeeks(laterDate, earlierDate);
+        } else if (Math.abs(diffInSeconds) < secondsInDay * 30) {
+            value = differenceInWeeks(laterDate, earlierDate);
             unit = 'week';
-        } else if (Math.abs(diffInSeconds) < secondsInYear) {
-            value = differenceInCalendarMonths(laterDate, earlierDate);
+        } else if (Math.abs(diffInSeconds) < secondsInDay * 365) {
+            value = differenceInMonths(laterDate, earlierDate);
             unit = 'month';
         } else {
-            value = differenceInCalendarYears(laterDate, earlierDate);
+            value = differenceInYears(laterDate, earlierDate);
             unit = 'year';
         }
 
