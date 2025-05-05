@@ -693,5 +693,7 @@
   "alt_text_missing": "ALTテキストが入力されていない画像があります（「ALTテキストの入力を必須にする」オプションが有効になっています）。",
   "columns_reorder": "カラム並び替え",
   "thread_gate_follower_title": "あなたのフォロワー",
-  "continuous_tag": "ハッシュタグを継続利用（実況モード）"
+  "continuous_tag": "ハッシュタグを継続利用（実況モード）",
+  "verified_by": "検証したユーザー",
+  "verified_by_description": "このユーザーは、以下の信頼されたアカウントによって検証されています。"
 }

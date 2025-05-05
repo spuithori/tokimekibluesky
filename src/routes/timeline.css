@@ -319,6 +319,12 @@
     text-overflow: ellipsis;
 }
 
+.timeline__verified {
+    display: inline-flex;
+    align-self: center;
+    flex-shrink: 0;
+}
+
 .timeline__thread-link {
     letter-spacing: .05em;
 

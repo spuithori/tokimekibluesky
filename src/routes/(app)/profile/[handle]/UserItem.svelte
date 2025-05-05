@@ -3,7 +3,7 @@
   import UserFollowButton from "./UserFollowButton.svelte";
   import {agent, settings} from "$lib/stores";
   import Avatar from "../../Avatar.svelte";
-  import {Handshake} from "lucide-svelte";
+  import {BadgeCheck, CircleCheck, Handshake} from "lucide-svelte";
 
   interface Props {
     _agent?: any;
@@ -23,7 +23,21 @@
     <Avatar href="/profile/{ user.handle }" avatar={user.avatar} handle={user.handle}></Avatar>
 
     <div class="user-item__content">
-      <h3 class="user-item__title">{user.displayName || user.handle}</h3>
+      <h3 class="user-item__title">
+        {user.displayName || user.handle}
+
+        {#if user?.verification?.trustedVerifierStatus === 'valid'}
+          <span class="timeline__verified">
+              <BadgeCheck size="16" color="var(--primary-color)" strokeWidth="2.25"></BadgeCheck>
+          </span>
+        {/if}
+
+        {#if user?.verification?.verifiedStatus === 'valid'}
+          <span class="timeline__verified">
+             <CircleCheck size="16" color="var(--primary-color)" strokeWidth="2.25"></CircleCheck>
+          </span>
+        {/if}
+      </h3>
       <p class="user-item__text">@{user.handle}</p>
 
       {#if (user.viewer?.followedBy && $settings?.design?.mutualDisplay)}
@@ -57,6 +71,10 @@
         gap: 10px;
       }
 
+    &:last-child {
+      border-bottom: none;
+    }
+
       &--notification {
           border-bottom: none;
 
@@ -72,6 +90,9 @@
 
   .user-item__title {
       font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
   }
 
   .user-item__user {

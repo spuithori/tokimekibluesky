@@ -5,12 +5,13 @@
   import {format, parseISO} from 'date-fns';
   import { fade } from 'svelte/transition';
   import {BskyAgent, RichText} from '@atproto/api';
-  import {Eye, EyeOff, Handshake} from 'lucide-svelte';
+  import {BadgeCheck, CircleCheck, Eye, EyeOff, Handshake} from 'lucide-svelte';
   import SocialProof from "$lib/components/profile/SocialProof.svelte";
   import ProfileAtmosphere from "$lib/components/profile/ProfileAtmosphere.svelte";
   import emblaCarouselSvelte from 'embla-carousel-svelte';
   import TimelineText from "$lib/components/post/TimelineText.svelte";
   import {imageState} from "$lib/classes/imageState.svelte";
+  import VerifierModal from "$lib/components/profile/VerifierModal.svelte";
 
   interface Props {
     handle: any;
@@ -34,6 +35,7 @@
     watchDrag: gridWidth < 680,
   });
   const __agent = new BskyAgent({service: _agent.service()});
+  let isVerifierModalOpen = $state(false);
 
   getServiceHost()
       .then(value => {
@@ -152,7 +154,22 @@
                 </div>
 
                 <div class="profile-content">
-                  <h1 class="profile-display-name">{profile.displayName || profile.handle}</h1>
+                  <h1 class="profile-display-name">
+                    {profile.displayName || profile.handle}
+
+                    {#if profile?.verification?.trustedVerifierStatus === 'valid'}
+                        <span class="profile-verify-icon">
+                          <BadgeCheck size="20" color="var(--primary-color)" strokeWidth="2.5"></BadgeCheck>
+                        </span>
+                    {/if}
+
+                    {#if profile?.verification?.verifiedStatus === 'valid'}
+                      <button class="profile-verify-icon" onclick={() => isVerifierModalOpen = true}>
+                        <CircleCheck size="20" color="var(--primary-color)" strokeWidth="2.5"></CircleCheck>
+                      </button>
+                    {/if}
+                  </h1>
+
                   {#if (profile.displayName)}
                     <p class="profile-handle">@{profile.handle}</p>
                   {/if}
@@ -225,6 +242,10 @@
       </div>
     </div>
   </div>
+
+  {#if (isVerifierModalOpen)}
+    <VerifierModal did={profile?.verification?.verifications[0]?.issuer} {_agent} onclose={() => {isVerifierModalOpen = false}}></VerifierModal>
+  {/if}
 {/if}
 
 <style lang="postcss">
@@ -284,10 +305,10 @@
 
     .profile-display-name {
         font-size: 20px;
-        line-height: 1.5;
+        line-height: 1.25;
         letter-spacing: .025em;
         font-weight: 900;
-        margin-top: 2px;
+        margin-top: 4px;
 
         @media (max-width: 767px) {
             font-size: 18px;
@@ -455,6 +476,14 @@
 
     .profile-slot {
         margin-top: 16px;
+    }
+
+    .profile-verify-icon {
+      flex-shrink: 0;
+      display: inline-flex;
+      vertical-align: middle;
+      position: relative;
+      bottom: 2px;
     }
 
     :global {

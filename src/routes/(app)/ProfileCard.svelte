@@ -6,6 +6,7 @@
   import {_} from "svelte-i18n";
   import { offset, flip, shift } from '@floating-ui/dom';
   import { createFloatingActions } from 'svelte-floating-ui';
+  import {BadgeCheck, CircleCheck} from "lucide-svelte";
 
   const [floatingRef, floatingContent] = createFloatingActions({
       strategy: 'fixed',
@@ -39,7 +40,21 @@
 
       <div class="profile-card-name">
         {#if (profile.displayName)}
-          <h3 class="profile-card-displayname">{profile.displayName}</h3>
+          <h3 class="profile-card-displayname">
+            {profile.displayName}
+
+            {#if profile?.verification?.trustedVerifierStatus === 'valid'}
+              <span class="profile-card-verified">
+                  <BadgeCheck size="16" color="var(--primary-color)" strokeWidth="2.25"></BadgeCheck>
+              </span>
+            {/if}
+
+            {#if profile?.verification?.verifiedStatus === 'valid'}
+              <span class="profile-card-verified">
+                 <CircleCheck size="16" color="var(--primary-color)" strokeWidth="2.25"></CircleCheck>
+              </span>
+            {/if}
+          </h3>
         {/if}
 
         <p class="profile-card-handle">@{profile.handle}</p>
@@ -111,6 +126,11 @@
       font-size: 15px;
       white-space: wrap;
       overflow-wrap: break-word;
+  }
+
+  .profile-card-verified {
+      display: inline-flex;
+      vertical-align: middle;
   }
 
   .profile-card-handle {

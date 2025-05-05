@@ -693,5 +693,7 @@
   "alt_text_missing": "There is an image for which no ALT text has been entered (the “Require ALT text input” option is enabled).",
   "columns_reorder": "Reorder",
   "thread_gate_follower_title": "Your followers",
-  "continuous_tag": "Continuous insertion of hashtags"
+  "continuous_tag": "Continuous insertion of hashtags",
+  "verified_by": "Verified by",
+  "verified_by_description": "This user has been verified by the following trusted accounts."
 }

@@ -19,7 +19,7 @@
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {onDestroy, untrack} from "svelte";
-  import {Eye, Handshake} from "lucide-svelte";
+  import {BadgeCheck, CircleCheck, Eye, Handshake} from "lucide-svelte";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 
   interface Props {
@@ -159,7 +159,21 @@
 
 <div class="timeline__content">
   <div class="timeline__meta">
-    <p class="timeline__user">{ post.author.displayName || post.author.handle }</p>
+    <p class="timeline__user">
+      { post.author.displayName || post.author.handle }
+    </p>
+
+    {#if post?.author?.verification?.trustedVerifierStatus === 'valid'}
+        <span class="timeline__verified" aria-label="(Trusted verifier)">
+            <BadgeCheck size="16" color="var(--primary-color)" strokeWidth="2.25"></BadgeCheck>
+        </span>
+    {/if}
+
+    {#if post?.author?.verification?.verifiedStatus === 'valid'}
+        <span class="timeline__verified" aria-label="(Verified)">
+           <CircleCheck size="16" color="var(--primary-color)" strokeWidth="2.25"></CircleCheck>
+        </span>
+    {/if}
 
     <p class="timeline__date">
       {#if $settings?.design.absoluteTime}
