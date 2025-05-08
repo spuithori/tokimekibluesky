@@ -122,7 +122,7 @@
       </dt>
 
       <dd class="input-group__content">
-        <button class="edit-avatar-input-wrap" onclick={() => {avatarInput.click()}}>
+        <button class="edit-avatar-input-wrap" onclick={(e) => {e.stopPropagation(); avatarInput.click()}}>
           <span class="edit-avatar-previous" style="background-image: url({currentAvatar})"></span>
 
           {#if (avatarBase64)}
@@ -142,7 +142,7 @@
       </dt>
 
       <dd class="input-group__content">
-        <button class="edit-banner-input-wrap" onclick={() => {bannerInput.click()}}>
+        <button class="edit-banner-input-wrap" onclick={(e) => {e.stopPropagation(); bannerInput.click()}}>
           <span class="edit-banner-previous" style="background-image: url({currentBanner})"></span>
 
           {#if (bannerBase64)}

@@ -9,6 +9,8 @@
   import {modifyAgents} from "$lib/modifyAgents";
   import AcpProfileNameModal from "$lib/components/acp/AcpProfileNameModal.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import AcpAppViewProxyModal from "$lib/components/acp/AcpAppViewProxyModal.svelte";
+  import {Waypoints} from "lucide-svelte";
 
   const columnState = getColumnState();
 
@@ -21,6 +23,7 @@
 
   let isMenuOpen = $state(false);
   let isNameModalOpen = $state(false);
+  let isAppViewProxyModalOpen = $state(false);
 
   async function handleSuccess(event) {
       try {
@@ -99,6 +102,18 @@
           console.error(e);
       }
   }
+
+  async function handleProxyChange(proxy) {
+    try {
+      const id = await accountsDb.profiles.update(profile.id, {
+        appViewProxy: proxy,
+      });
+
+      location.reload();
+    } catch (e) {
+      console.error(e);
+    }
+  }
 </script>
 
 <div class="acp-card" class:acp-card--current={isCurrent}>
@@ -129,12 +144,23 @@
               <span>{$_('profile_change_name')}</span>
             </button>
           </li>
+
+          <li class="timeline-menu-list__item">
+            <button class="timeline-menu-list__button" onclick={() => {isAppViewProxyModalOpen = true}}>
+              <Waypoints color="var(--text-color-1)" size="20"></Waypoints>
+              <span>{$_('change_appview_proxy')}</span>
+            </button>
+          </li>
         </ul>
       {/snippet}
     </Menu>
   </div>
 
   {#if (profile)}
+    {#if (profile?.appViewProxy)}
+      <p class="acp-card__proxy"><span class="new-label">PROXY</span> {profile.appViewProxy}</p>
+    {/if}
+
     <div class="acp-accounts">
       {#each profile.accounts as account, index (account)}
         <AcpAccountCard
@@ -154,7 +180,11 @@
 </div>
 
 {#if isNameModalOpen}
-  <AcpProfileNameModal name="{profile.name}" on:nameChange={handleNameChange}></AcpProfileNameModal>
+  <AcpProfileNameModal name={profile.name} on:nameChange={handleNameChange}></AcpProfileNameModal>
+{/if}
+
+{#if isAppViewProxyModalOpen}
+  <AcpAppViewProxyModal onclose={() => {isAppViewProxyModalOpen = false}} onchange={handleProxyChange} {profile}></AcpAppViewProxyModal>
 {/if}
 
 <style lang="postcss">
@@ -184,6 +214,15 @@
           display: flex;
           align-items: center;
           gap: 10px;
+      }
+
+      &__proxy {
+          margin-top: 8px;
+          font-size: 12px;
+          color: var(--text-color-3);
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
       }
   }
 </style>

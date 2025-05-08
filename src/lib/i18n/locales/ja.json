@@ -695,5 +695,7 @@
   "thread_gate_follower_title": "あなたのフォロワー",
   "continuous_tag": "ハッシュタグを継続利用（実況モード）",
   "verified_by": "検証したユーザー",
-  "verified_by_description": "このユーザーは、以下の信頼されたアカウントによって検証されています。"
+  "verified_by_description": "このユーザーは、以下の信頼されたアカウントによって検証されています。",
+  "change_appview_proxy": "AppViewプロキシを変更",
+  "description_change_appview_proxy": "すごく開発者向け\n！！意味が分かる人以外設定しないでください！！"
 }

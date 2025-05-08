@@ -5,7 +5,7 @@ import {missingAccounts} from "$lib/stores";
 
 let _missingAccounts = [];
 
-async function resume(account) {
+async function resume(account, proxy: string | undefined) {
     const ag = new BskyAgent({
         service: account.service,
         persistSession: async (evt: AtpSessionEvent, sess?: AtpSessionData) => {
@@ -23,7 +23,12 @@ async function resume(account) {
                 cloudBookmarks: account.cloudBookmarks || [],
             })
         }
-    })
+    });
+
+    if (proxy) {
+        await ag.configureProxy(proxy);
+    }
+
 
     ag.resumeSession(account.session)
         .then(value => {
@@ -38,7 +43,7 @@ async function resume(account) {
             } else {
                 console.log('Connection failed. Try resumeSession 3 seconds.');
                 setTimeout(() => {
-                    resume(account);
+                    resume(account, proxy);
                 }, 3000);
 
                 return;
@@ -51,12 +56,12 @@ async function resume(account) {
     };
 }
 
-export async function resumeAccountsSession (accounts) {
+export async function resumeAccountsSession (accounts, proxy: string | undefined) {
     let agentsMap = new Map<number, Agent>();
     let promises = [];
 
     for (const account of accounts) {
-        promises = [...promises, resume(account)];
+        promises = [...promises, resume(account, proxy)];
     }
 
     const results = await Promise.all(promises);

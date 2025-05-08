@@ -63,6 +63,7 @@ export interface Profile {
     accounts: number[],
     primary: number | null,
     columns: any[],
+    appViewProxy?: string,
 }
 
 type notificationCategories = 'reply' | 'like' | 'repost' | 'follow' | 'quote'  | 'mention';
@@ -98,6 +99,11 @@ export class AccountSubClassDexie extends Dexie {
 
         this.version(2).stores({
             profiles: '++id, name, createdAt, *accounts, primary, *columns',
+            accounts: '++id, service, session, &did, avatar, name, following, notification, *feeds, *lists, *cloudBookmarks',
+        });
+
+        this.version(3).stores({
+            profiles: '++id, name, createdAt, *accounts, primary, *columns, appViewProxy',
             accounts: '++id, service, session, &did, avatar, name, following, notification, *feeds, *lists, *cloudBookmarks',
         });
     }

@@ -695,5 +695,7 @@
   "thread_gate_follower_title": "Your followers",
   "continuous_tag": "Continuous insertion of hashtags",
   "verified_by": "Verified by",
-  "verified_by_description": "This user has been verified by the following trusted accounts."
+  "verified_by_description": "This user has been verified by the following trusted accounts.",
+  "change_appview_proxy": "Change AppView proxy",
+  "description_change_appview_proxy": "!!! Please don't set it unless you know what it means. !!!"
 }

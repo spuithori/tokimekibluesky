@@ -172,7 +172,7 @@
       return false;
     }
 
-    let agentsMap = await resumeAccountsSession(accounts);
+    let agentsMap = await resumeAccountsSession(accounts, profile?.appViewProxy);
     agents.set(agentsMap);
     agent.set($agents.get(profile.primary));
 
