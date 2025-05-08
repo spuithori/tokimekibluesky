@@ -582,7 +582,7 @@
               $hashtagHistory = _hashtagHistory.filter(v => v !== null);
 
               if ($settings?.general?.continuousTag) {
-                  continuousTags = tags;
+                  continuousTags = tags.filter(v => v);
               }
 
               if ($hashtagHistory.length > 4) {
