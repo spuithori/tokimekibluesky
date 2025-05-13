@@ -9,13 +9,16 @@
   import {Ellipsis, MailCheck, MessageCirclePlus, Settings2} from "lucide-svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
+  import {settingsState} from "$lib/classes/settingsState.svelte";
 
+  let { path }: { path: string } = $props();
   let convos = $state([]);
   let cursor = '';
   let _agent = $state($agent);
   let isModalOpen = $state(false);
   let isMenuOpen = $state(false);
   let unique = $state(Symbol());
+  let id = $derived(path?.split('/').slice(-1)[0]);
 
   async function handleAgentSelect(event) {
       _agent = event.detail.agent;
@@ -111,14 +114,18 @@
 
   {#key unique}
     <div class="convo-list">
-      {#each convos as convo, index (convo)}
+      {#each convos as convo (convo)}
         {#if !convo.members.filter(member => member.did !== _agent.did())[0]?.viewer?.blocking}
-          <ChatListItem {convo} {_agent} onrefresh={handleRefresh}></ChatListItem>
+          <div class="convo-list__item" class:convo-list__item--current={id === convo.id}>
+            <ChatListItem {convo} {_agent} onrefresh={handleRefresh}></ChatListItem>
+          </div>
         {/if}
       {/each}
     </div>
 
-    <Infinite oninfinite={handleLoadMore}></Infinite>
+    {#if settingsState.pdsRequestReady}
+      <Infinite oninfinite={handleLoadMore}></Infinite>
+    {/if}
   {/key}
 </div>
 
@@ -134,7 +141,7 @@
   .side-chat-nav {
       display: flex;
       align-items: center;
-      padding: 0 16px;
+      padding: 0 8px 0 16px;
       margin-top: 16px;
   }
 
@@ -150,6 +157,13 @@
   }
 
   .convo-list {
-      padding: 16px 16px 0;
+    margin-top: 16px;
+    border-top: 1px solid var(--border-color-2);
+
+    &__item {
+      &--current {
+        background-color: var(--bg-color-2);
+      }
+    }
   }
 </style>

@@ -3,12 +3,12 @@
   import {getBookmarkFeed, getBookmarkName} from "$lib/bookmark";
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {settingsState} from "$lib/classes/settingsState.svelte";
 
   let { index, _agent, isJunk, unique } = $props();
 
   const columnState = getColumnState(isJunk);
   const column = columnState.getColumn(index);
-  let initialLoadFinished = false;
   let feeds;
 
   if (typeof column.data.cursor !== 'number') {
@@ -56,6 +56,8 @@
   </div>
 
   {#key unique}
-    <Infinite oninfinite={handleLoadMore}></Infinite>
+    {#if settingsState.pdsRequestReady}
+      <Infinite oninfinite={handleLoadMore}></Infinite>
+    {/if}
   {/key}
 </div>

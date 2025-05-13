@@ -147,7 +147,11 @@
       {/if}
 
       {#if (AppBskyEmbedRecord.isView(record?.embeds[0]))}
-        <EmbedRecord record={record.embeds[0].record} {_agent} isChild={true}></EmbedRecord>
+        {#if (AppBskyEmbedRecord.isViewDetached(record?.embeds[0]?.record) || AppBskyEmbedRecord.isViewNotFound(record?.embeds[0]?.record))}
+
+        {:else}
+          <EmbedRecord record={record.embeds[0].record} {_agent} isChild={true}></EmbedRecord>
+        {/if}
       {/if}
     {/if}
   </div>

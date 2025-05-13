@@ -445,7 +445,7 @@
                     <ThreadTimeline {index} {_agent} {isJunk}></ThreadTimeline>
                 {/key}
             {:else if (column.algorithm.type === 'chat')}
-                <ChatTimeline {column} {index} {_agent} {unique} onrefresh={handleRefresh}></ChatTimeline>
+                <ChatTimeline {index} {_agent} {unique} {isJunk} onrefresh={handleRefresh}></ChatTimeline>
             {:else if (column.algorithm.type === 'list')}
                 {#key unique}
                     <ListTimeline {index} {_agent} {isJunk} {unique}></ListTimeline>
@@ -600,12 +600,7 @@
             }
 
             .deck-heading {
-                position: relative;
-                z-index: 0;
-
-                @media (max-width: 767px) {
-                    top: 0;
-                }
+                top: 52px;
             }
         }
 

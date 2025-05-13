@@ -14,7 +14,7 @@
     "@neoconfetti/svelte": "^2.2.1",
     "@sveltejs/kit": "2.20.8",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "@vite-pwa/sveltekit": "^0.6.7",
+    "@vite-pwa/sveltekit": "^1.0.0",
     "kolorist": "^1.8.0",
     "postcss": "^8.4.14",
     "postcss-load-config": "^4.0.1",
@@ -29,11 +29,11 @@
     "typescript": "^5.7.2",
     "uuid": "^11.0.3",
     "vite": "^6.3.4",
-    "vite-plugin-pwa": "^0.21.1"
+    "vite-plugin-pwa": "^1.0.0"
   },
   "type": "module",
   "dependencies": {
-    "@atproto/api": "^0.15.5",
+    "@atproto/api": "^0.15.6",
     "@atproto/common-web": "^0.4.1",
     "@emoji-mart/data": "^1.2.1",
     "@fontsource-variable/inter": "^5.2.5",
@@ -76,6 +76,6 @@
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^0.3.28",
     "vidstack": "^1.12.13",
-    "virtua": "^0.40.3"
+    "virtua": "^0.41.0"
   }
 }

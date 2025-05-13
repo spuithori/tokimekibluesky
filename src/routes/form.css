@@ -328,15 +328,16 @@
     }
 
     &__select {
-        border: 1px solid var(--border-color-1);
-        background-color: var(--bg-color-2);
+        border: 1px solid var(--border-color-2);
+        border-bottom: 2px solid var(--border-color-1);
+        background-color: var(--bg-color-1);
         height: 40px;
         border-radius: 4px;
         width: 100%;
         padding: 0 10px;
         cursor: pointer;
         position: relative;
-        color: var(--text-color-1);
+        color: var(--text-color-2);
     }
 }
 
@@ -742,6 +743,18 @@
         color: var(--text-color-1);
         border-radius: var(--border-radius-3);
         width: 100%;
+    }
+
+    &__suffix {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        border-left: 1px solid var(--border-color-1);
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        pointer-events: none;
     }
 
     svg {

@@ -2,6 +2,7 @@ import {AtpSessionData, AtpSessionEvent, BskyAgent} from "@atproto/api";
 import {accountsDb} from "$lib/db";
 import {Agent} from "$lib/agent";
 import {missingAccounts} from "$lib/stores";
+import {settingsState} from "$lib/classes/settingsState.svelte";
 
 let _missingAccounts = [];
 
@@ -29,10 +30,11 @@ async function resume(account, proxy: string | undefined) {
         await ag.configureProxy(proxy);
     }
 
-
     ag.resumeSession(account.session)
         .then(value => {
-            //
+            setTimeout(() => {
+                settingsState.setPdsRequestReady();
+            }, 1000);
         })
         .catch(error => {
             console.log(error);

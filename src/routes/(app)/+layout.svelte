@@ -42,6 +42,7 @@
   import "@fontsource-variable/murecho";
   import "@fontsource/zen-maru-gothic";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
+  import {BskyAgent} from "@atproto/api";
 
   injectAnalytics({ mode: dev ? 'development' : 'production' });
 
@@ -177,9 +178,7 @@
     agent.set($agents.get(profile.primary));
 
     try {
-        $agents.forEach(_agent => {
-            _agent.agent.configureLabelersHeader($subscribedLabelers);
-        })
+        BskyAgent.configure({appLabelers: $subscribedLabelers});
 
         if (!Object.keys($labelDefs).length) {
             labelDefs.set(await $agent.agent.getLabelDefinitions($subscribedLabelers));

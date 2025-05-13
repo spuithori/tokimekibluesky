@@ -112,7 +112,7 @@ input[type=checkbox] {
     position: relative;
     width: 250px;
     max-width: 100%;
-    background-color: var(--bg-color-2);
+    background-color: var(--bg-color-1);
 
     &__icon {
         position: absolute;
@@ -125,8 +125,9 @@ input[type=checkbox] {
     }
 
     &__input {
-        background-color: var(--bg-color-2);
+        background-color: var(--bg-color-1);
         border: 1px solid var(--border-color-1);
+        border-bottom: 2px solid var(--border-color-1);
         height: 40px;
         border-radius: 4px;
         width: 100%;

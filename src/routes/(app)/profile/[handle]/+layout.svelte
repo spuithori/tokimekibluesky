@@ -21,6 +21,8 @@
     import {profileHintState} from "$lib/classes/profileHintState.svelte";
     import {untrack} from "svelte";
     import UserNotification from "./UserNotification.svelte";
+    import StatusEditModal from "$lib/components/profile/StatusEditModal.svelte";
+    import {Radio} from "lucide-svelte";
 
     const junkColumnState = getColumnState(true);
 
@@ -62,6 +64,7 @@
         }
     });
     let isEditOpen = $state(false);
+    let isStatusEditOpen = $state(false);
 
     $effect(() => {
         getProfile(handle, true);
@@ -194,6 +197,14 @@
                   <UserEdit {profile} {_agent} onupdate={onProfileUpdate} onclose={() => {isEditOpen = false}}></UserEdit>
                 {/if}
               </div>
+
+              <!-- <button class="profile-heading-button" onclick={() => {isStatusEditOpen = !isStatusEditOpen}}>
+                <Radio size="20" color="var(--text-color-1)"></Radio>
+              </button>
+
+              {#if isStatusEditOpen}
+                <StatusEditModal {_agent} onclose={() => {isStatusEditOpen = false; handleRefresh()}}></StatusEditModal>
+              {/if} -->
 
               <a class="profile-heading-button" href="/search?q=from:{handle}%20">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>

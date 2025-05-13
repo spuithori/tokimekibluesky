@@ -147,3 +147,50 @@ export async function listRecordsWithBsky(agent: Agent, collection: string, limi
         cursor: cursor,
         repo: repo});
 }
+
+export function getScrollableParent( node: Node | null, includeSelf: boolean = false): HTMLElement | null {
+    if (!node) {
+        return null;
+    }
+
+    if (includeSelf && node instanceof HTMLElement) {
+        const selfStyle = window.getComputedStyle(node);
+        const selfOverflowY = selfStyle.getPropertyValue('overflow-y');
+        const isSelfScrollableType = selfOverflowY === 'auto' || selfOverflowY === 'scroll';
+        if (isSelfScrollableType && node.scrollHeight > node.clientHeight) {
+            return node;
+        }
+    }
+
+    let parentNode = node.parentElement;
+
+    while (parentNode) {
+        if (!(parentNode instanceof HTMLElement)) {
+            parentNode = parentNode.parentElement;
+            continue;
+        }
+
+        const computedStyle = window.getComputedStyle(parentNode);
+        const overflowY = computedStyle.getPropertyValue('overflow-y');
+
+        if (overflowY === 'visible' || overflowY === 'hidden') {
+            if (parentNode === document.documentElement) {
+                return null;
+            }
+            parentNode = parentNode.parentElement;
+            continue;
+        }
+
+        if ((overflowY === 'auto' || overflowY === 'scroll') && parentNode.scrollHeight > parentNode.clientHeight) {
+            return parentNode;
+        }
+
+        if (parentNode === document.documentElement) {
+            return null;
+        }
+
+        parentNode = parentNode.parentElement;
+    }
+
+    return null;
+}

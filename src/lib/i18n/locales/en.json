@@ -697,5 +697,12 @@
   "verified_by": "Verified by",
   "verified_by_description": "This user has been verified by the following trusted accounts.",
   "change_appview_proxy": "Change AppView proxy",
-  "description_change_appview_proxy": "!!! Please don't set it unless you know what it means. !!!"
+  "description_change_appview_proxy": "!!! Please don't set it unless you know what it means. !!!",
+  "edit_status_live": "Live Status",
+  "edit_status_live_url": "Stream URL",
+  "edit_status_live_duration": "Duration",
+  "edit_status_live_suffix_minutes": "min.",
+  "edit_status_live_exit": "Terminate",
+  "apply": "Apply",
+  "status_live_elsewhere": "Live streaming elsewhere."
 }

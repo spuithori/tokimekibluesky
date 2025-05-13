@@ -5,13 +5,14 @@
   import {format, parseISO} from 'date-fns';
   import { fade } from 'svelte/transition';
   import {BskyAgent, RichText} from '@atproto/api';
-  import {BadgeCheck, CircleCheck, Eye, EyeOff, Handshake} from 'lucide-svelte';
+  import {BadgeCheck, CircleCheck, Eye, EyeOff, Handshake, Radio} from 'lucide-svelte';
   import SocialProof from "$lib/components/profile/SocialProof.svelte";
   import ProfileAtmosphere from "$lib/components/profile/ProfileAtmosphere.svelte";
   import emblaCarouselSvelte from 'embla-carousel-svelte';
   import TimelineText from "$lib/components/post/TimelineText.svelte";
   import {imageState} from "$lib/classes/imageState.svelte";
   import VerifierModal from "$lib/components/profile/VerifierModal.svelte";
+  import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
 
   interface Props {
     handle: any;
@@ -221,6 +222,23 @@
 
                   {#if profile?.viewer?.knownFollowers && !$settings.general?.hideProfileCounts && profile.did !== _agent.did()}
                     <SocialProof knownFollowers={profile?.viewer?.knownFollowers} actor={profile.did} {_agent}></SocialProof>
+                  {/if}
+
+                  {#if profile?.status?.isActive}
+                    <div class="profile-status-embed">
+                       <span class="profile-live-label">
+                        <Radio color="#fff" size="16"></Radio>
+                        LIVE
+                      </span>
+
+                      {#if profile?.status?.embed?.external}
+                        <EmbedExternal external={profile.status.embed.external}></EmbedExternal>
+                      {:else}
+                        <div class="profile-status-embed-filler">
+                          {$_('status_live_elsewhere')}
+                        </div>
+                      {/if}
+                    </div>
                   {/if}
                 {/if}
 
@@ -484,6 +502,38 @@
       vertical-align: middle;
       position: relative;
       bottom: 2px;
+    }
+
+    .profile-status-embed {
+      position: relative;
+    }
+
+    .profile-status-embed-filler {
+      background-color: var(--bg-color-1);
+      border-radius: var(--border-radius-3);
+      box-shadow: 0 0 8px var(--box-shadow-color-1);
+      padding: 40px 8px 16px;
+      margin-top: 16px;
+    }
+
+    .profile-live-label {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      gap: 4px;
+      font-size: 12px;
+      width: fit-content;
+      background-color: var(--danger-color);
+      color: #fff;
+      font-weight: bold;
+      padding: 3px 8px;
+      line-height: 1.2;
+      border-radius: var(--border-radius-2);
+      z-index: 10;
+      pointer-events: none;
     }
 
     :global {

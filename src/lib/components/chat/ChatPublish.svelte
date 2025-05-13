@@ -2,10 +2,10 @@
   import ChatTiptap from "$lib/components/chat/ChatTiptap.svelte";
   import {RichText} from "@atproto/api";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-  import {agent, settings} from "$lib/stores";
   import {CHAT_PROXY} from "$lib/components/chat/chatConst";
+  import type {Agent} from "$lib/agent";
 
-  let { id, column = $bindable(), _agent = $agent, onrefresh } = $props();
+  let { id, column, _agent, onrefresh }: { _agent: Agent } = $props();
   let text = $state('');
   let json = $state();
   let editor = $state();
@@ -25,8 +25,6 @@
               rt = await detectRichTextWithEditorJson(_agent, text, json);
           }
 
-          console.log(rt)
-
           const create = await _agent.agent.api.chat.bsky.convo.sendMessage({
               convoId: id,
               message: {
@@ -38,18 +36,6 @@
                   'atproto-proxy': CHAT_PROXY,
               }
           });
-
-          column.data.feed = [...column.data.feed, create.data];
-
-          setTimeout(() => {
-              const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
-              scrollEl.scrollTo({
-                  top: scrollEl.scrollHeight,
-                  behavior: 'smooth',
-              });
-          }, 1000)
-
-          console.log(column.data.feed);
 
           text = '';
           json = undefined;

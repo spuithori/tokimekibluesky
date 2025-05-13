@@ -2,7 +2,7 @@
   import ProfileCard from "./ProfileCard.svelte";
   import {agent, isDataSaving, settings} from '$lib/stores';
   import {goto} from "$app/navigation";
-  import {page} from "$app/stores";
+  import {page} from "$app/state";
   import {profileHintState} from "$lib/classes/profileHintState.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
 
@@ -14,7 +14,7 @@
     profile = undefined,
   } = $props();
 
-  let avatarMouseOverTimeId;
+  let avatarMouseOverTimeId: any;
   let isProfileShown = $state(false);
 
   async function handleAvatarMouseOver() {
@@ -45,7 +45,7 @@
       }, 350)
   }
 
-  function handleClick(e) {
+  function handleClick(e: Event) {
       e.preventDefault();
 
       if (profile) {
@@ -53,7 +53,7 @@
       }
 
       goto(href, {
-          replaceState: $page.state.showModal && $page.url.pathname !== '/',
+          replaceState: page.state.showModal && page.url.pathname !== '/',
       });
 
       modalState.isVideoModalOpen = false;
@@ -61,7 +61,7 @@
   }
 </script>
 
-<div class="avatar">
+<div class="avatar" class:avatar--live={profile?.status?.isActive}>
   <a href={href} onmouseover={handleAvatarMouseOver} onmouseleave={handleAvatarMouseLeave} onclick={handleClick}>
     {#if (avatar && !$isDataSaving)}
       <img loading="lazy" src="{avatar}" width="1000" height="1000" alt="">
@@ -70,6 +70,10 @@
 
   {#if (isProfileShown)}
     <ProfileCard {handle} onmouseover={handleAvatarMouseOver} onmouseleave={handleAvatarMouseLeave} {_agent}></ProfileCard>
+  {/if}
+
+  {#if (profile?.status?.isActive)}
+    <div class="profile-live-label">LIVE</div>
   {/if}
 </div>
 
@@ -106,9 +110,38 @@
 
       img {
           width: 100%;
+          aspect-ratio: 1 / 1;
+          border-radius: var(--avatar-border-radius);
           height: auto;
           vertical-align: middle;
           display: block;
       }
+
+      &--live {
+        a {
+          border: 2px solid var(--danger-color);
+        }
+
+        img {
+          border: 2px solid var(--bg-color-1);
+        }
+      }
+  }
+
+  .profile-live-label {
+    position: absolute;
+    pointer-events: none;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    font-size: 10px;
+    width: fit-content;
+    background-color: var(--danger-color);
+    color: #fff;
+    font-weight: bold;
+    padding: 2px;
+    line-height: 1.2;
+    border-radius: var(--border-radius-1);
   }
 </style>

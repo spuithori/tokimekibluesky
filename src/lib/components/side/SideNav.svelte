@@ -40,7 +40,7 @@
             isFeedsModalOpen = !isFeedsModalOpen;
             break;
           case 'chat':
-            isChatModalOpen = !isChatModalOpen;
+            goto('/chat');
             break;
           case 'notifications':
             isNotificationModalOpen = !isNotificationModalOpen

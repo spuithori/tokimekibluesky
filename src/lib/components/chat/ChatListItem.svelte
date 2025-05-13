@@ -189,7 +189,7 @@
       gap: 12px;
       align-items: flex-start;
       border-bottom: 1px solid var(--border-color-2);
-      padding: 12px 0;
+      padding: 12px 16px;
 
       &__name {
           font-weight: bold;
@@ -249,6 +249,8 @@
           display: flex;
           flex-wrap: wrap;
           padding-right: 30px;
+          line-height: 1.2;
+          margin-bottom: 4px;
       }
 
 

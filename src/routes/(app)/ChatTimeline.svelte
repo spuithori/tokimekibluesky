@@ -5,9 +5,14 @@
     import {tick} from "svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import Infinite from "$lib/components/utils/Infinite.svelte";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {settingsState} from "$lib/classes/settingsState.svelte";
 
-    let { column = $bindable(), index, _agent = $agent, onrefresh, unique } = $props();
+    let { index, _agent = $agent, onrefresh, unique, isJunk } = $props();
     let firstLoad = true;
+
+    const columnState = getColumnState(isJunk);
+    const column = columnState.getColumn(index);
 
     function isDuplicateMessage(oldFeed, newFeed) {
         return oldFeed.id === newFeed.id;
@@ -29,16 +34,13 @@
                 return !column.data.feed.some(item => isDuplicateMessage(item, feed));
             }).reverse();
 
-            if (column.data.feed.length !== 0) {
-                firstLoad = false;
-            }
-
             column.data.feed = [...feed, ...column.data.feed];
 
             if (firstLoad) {
-                tick().then(() => {
-                    column.scrollElement.scrollTo(0, column.scrollElement.scrollHeight);
-                });
+                await tick();
+                const scrollEl = isJunk ? document.querySelector('.settings-content') : column.scrollElement as HTMLElement;
+                const scrollY = scrollEl?.scrollHeight;
+                scrollEl?.scrollTo(0, scrollY || 0);
             }
 
             if (column.data.cursor && res.data.messages.length) {
@@ -60,23 +62,28 @@
         }
     }
 
-    $effect(() => {
-        tick().then(() => {
-            column.scrollElement.scrollTo(0, column.scrollElement.scrollHeight);
-        })
-    });
+    function handleUpdateReaction(message) {
+        column.data.feed = column.data.feed.map(item => {
+            if (item.id === message.id) {
+                return message;
+            }
+            return item;
+        });
+    }
 </script>
 
 <div class="chat">
   {#key unique}
-    <Infinite oninfinite={handleLoadMore}></Infinite>
+      {#if settingsState.pdsRequestReady}
+          <Infinite oninfinite={handleLoadMore}></Infinite>
+      {/if}
   {/key}
 
-  {#each column.data.feed as data, index (data)}
-    <div>
-      <ChatItem message={data} {_agent}></ChatItem>
-    </div>
+  {#each column.data.feed as data (data)}
+    <ChatItem message={data} {_agent} convoId={column.algorithm.id} updateReaction={handleUpdateReaction}></ChatItem>
   {/each}
+
+  <div class="chat-anchor"></div>
 
   <ChatPublish id={column.algorithm.id} {column} {_agent} {onrefresh}></ChatPublish>
 </div>
@@ -89,5 +96,10 @@
       flex-direction: column;
       justify-content: flex-end;
       cursor: initial;
+  }
+
+  .chat-anchor {
+      overflow-anchor: auto;
+      height: 1px;
   }
 </style>

@@ -8,6 +8,7 @@ const defaultSettings: Settings = {
 
 class SettingsState {
   settings: Settings = $state(defaultSettings);
+  pdsRequestReady: boolean = $state(false);
 
   constructor() {
     const storageSettings = localStorage.getItem('stateSettings') || JSON.stringify(defaultSettings);
@@ -19,6 +20,10 @@ class SettingsState {
       });
       return () => {};
     })
+  }
+
+  setPdsRequestReady() {
+    this.pdsRequestReady = true;
   }
 }
 

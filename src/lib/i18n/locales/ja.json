@@ -697,5 +697,12 @@
   "verified_by": "検証したユーザー",
   "verified_by_description": "このユーザーは、以下の信頼されたアカウントによって検証されています。",
   "change_appview_proxy": "AppViewプロキシを変更",
-  "description_change_appview_proxy": "すごく開発者向け\n！！意味が分かる人以外設定しないでください！！"
+  "description_change_appview_proxy": "すごく開発者向け\n！！意味が分かる人以外設定しないでください！！",
+  "edit_status_live": "配信ステータス",
+  "edit_status_live_url": "配信URL",
+  "edit_status_live_duration": "配信時間",
+  "edit_status_live_suffix_minutes": "分",
+  "edit_status_live_exit": "終了する",
+  "apply": "適用",
+  "status_live_elsewhere": "どこかでライブ配信中"
 }
