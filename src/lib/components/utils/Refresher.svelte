@@ -74,6 +74,11 @@
         if (disabled || state === 'refreshing' || state === 'completing' || event.touches.length > 1 || !canStartPull()) {
             return;
         }
+
+        if (event.target.closest('dialog')) {
+            return;
+        }
+
         isTouching = true;
         startY = event.touches[0].clientY;
         currentY = startY;
