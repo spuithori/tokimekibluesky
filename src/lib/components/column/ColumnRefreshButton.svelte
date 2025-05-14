@@ -352,6 +352,10 @@
       z-index: 30;
       cursor: default;
       pointer-events: none;
+
+      @media (max-width: 767px) {
+        display: none;
+      }
   }
 
   .refresh-button {

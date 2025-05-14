@@ -25,6 +25,7 @@
     import {publishState} from "$lib/classes/publishState.svelte";
     import {Filter, GripVertical, PictureInPicture2, Settings2, SquarePlus, TextQuote} from "lucide-svelte";
     import { createLongPress } from "$lib/longpress";
+    import Refresher from "$lib/components/utils/Refresher.svelte";
 
     interface Props {
         index?: number;
@@ -166,9 +167,13 @@
         }
     }
 
-    async function handleRefresh() {
+    async function handleRefresh(event) {
         try {
             await refreshEl.refresh();
+
+            if (event) {
+                event.complete();
+            }
         } catch (e) {
             console.error(e);
         }
@@ -436,31 +441,39 @@
         {/if}
     </div>
 
-    {#if _agent}
-        <div class="deck-row__content">
-            {#if (column.algorithm.type === 'notification')}
-                <NotificationTimeline {index} {isJunk} {_agent} {unique}></NotificationTimeline>
-            {:else if (column.algorithm.type === 'thread')}
-                {#key unique}
-                    <ThreadTimeline {index} {_agent} {isJunk}></ThreadTimeline>
-                {/key}
-            {:else if (column.algorithm.type === 'chat')}
-                <ChatTimeline {index} {_agent} {unique} {isJunk} onrefresh={handleRefresh}></ChatTimeline>
-            {:else if (column.algorithm.type === 'list')}
-                {#key unique}
-                    <ListTimeline {index} {_agent} {isJunk} {unique}></ListTimeline>
-                {/key}
-            {:else if (column.algorithm.type === 'bookmark')}
-                <BookmarkTimeline {index} {_agent} {isJunk} {unique}></BookmarkTimeline>
-            {:else}
-                <Timeline {index} {_agent} {isJunk} {unique}></Timeline>
-            {/if}
-        </div>
-    {:else}
-        <div class="deck-row__content">
-            <ColumnAgentMissing {column}></ColumnAgentMissing>
-        </div>
-    {/if}
+    <Refresher
+        onrefresh={handleRefresh}
+        refresherHeight={80}
+        pullMin={80}
+        pullMax={160}
+        disabled={column.algorithm.type === 'chat' || $settings.design?.layout === 'default'}
+    >
+        {#if _agent}
+            <div class="deck-row__content">
+                {#if (column.algorithm.type === 'notification')}
+                    <NotificationTimeline {index} {isJunk} {_agent} {unique}></NotificationTimeline>
+                {:else if (column.algorithm.type === 'thread')}
+                    {#key unique}
+                        <ThreadTimeline {index} {_agent} {isJunk}></ThreadTimeline>
+                    {/key}
+                {:else if (column.algorithm.type === 'chat')}
+                    <ChatTimeline {index} {_agent} {unique} {isJunk} onrefresh={handleRefresh}></ChatTimeline>
+                {:else if (column.algorithm.type === 'list')}
+                    {#key unique}
+                        <ListTimeline {index} {_agent} {isJunk} {unique}></ListTimeline>
+                    {/key}
+                {:else if (column.algorithm.type === 'bookmark')}
+                    <BookmarkTimeline {index} {_agent} {isJunk} {unique}></BookmarkTimeline>
+                {:else}
+                    <Timeline {index} {_agent} {isJunk} {unique}></Timeline>
+                {/if}
+            </div>
+        {:else}
+            <div class="deck-row__content">
+                <ColumnAgentMissing {column}></ColumnAgentMissing>
+            </div>
+        {/if}
+    </Refresher>
 </div>
 
 {#if column.scrollElement && column.scrollElement instanceof HTMLElement && column.settings?.autoScroll}
