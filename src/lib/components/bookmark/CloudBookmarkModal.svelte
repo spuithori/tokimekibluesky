@@ -8,7 +8,6 @@
   import Modal from "$lib/components/ui/Modal.svelte";
 
   let { _agent = $agent, id, close } = $props();
-  let bookmark = undefined;
   let name = $state('');
   let text = $state('');
   let loading = $state(false);
@@ -138,24 +137,6 @@
         &__name {
             font-size: 14px;
             margin-bottom: 6px;
-        }
-
-        &--name {
-            margin-bottom: 30px;
-
-            @media (max-width: 767px) {
-                margin-bottom: 20px;
-            }
-        }
-
-        &__input {
-            border: 1px solid var(--border-color-1);
-            border-radius: 4px;
-            height: 40px;
-            padding: 0 10px;
-            width: 100%;
-            background-color: var(--bg-color-2);
-            color: var(--text-color-1);
         }
     }
 

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import VideoPlayer from "$lib/components/video/VideoPlayer.svelte";
   interface Props {
     video: any;
     isLocal?: boolean;
@@ -10,11 +9,13 @@
 </script>
 
 <div class="timeline-video-wrap" class:timeline-video-wrap--tok={isTok} style="--video-width: {video?.aspectRatio?.width}; --video-height: {video?.aspectRatio?.height}">
-  <VideoPlayer
-    src={isLocal ? { src: video?.blob, type: 'video/object' } : video?.playlist}
-    poster={video?.thumbnail}
-    {isTok}
-  ></VideoPlayer>
+  {#await import('$lib/components/video/VideoPlayer.svelte') then { default: VideoPlayer }}
+    <VideoPlayer
+            src={isLocal ? { src: video?.blob, type: 'video/object' } : video?.playlist}
+            poster={video?.thumbnail}
+            {isTok}
+    ></VideoPlayer>
+  {/await}
 </div>
 
 <style lang="postcss">
