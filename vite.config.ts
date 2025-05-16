@@ -2,6 +2,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import { defineConfig } from 'vite';
 import { vite as vidstack } from 'vidstack/plugins';
+// import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
 	define: {
@@ -55,5 +56,6 @@ export default defineConfig({
 				navigateFallback: '/',
 			},
 		}),
+		// visualizer(),
 	]
 });

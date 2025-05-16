@@ -1,5 +1,4 @@
 <script lang="ts">
-  import data from '@emoji-mart/data';
   import { Picker } from 'emoji-mart'
   import {onMount} from 'svelte';
   import {locale} from 'svelte-i18n';
@@ -18,7 +17,12 @@
   onMount(async () => {
       const pickerOptions = {
           onEmojiSelect: handleEmojiPick,
-          data: data,
+          data: async () => {
+            const response = await fetch(
+                'https://cdn.jsdelivr.net/npm/@emoji-mart/data',
+            );
+            return response.json();
+          },
           locale: $locale,
           theme: theme,
           dynamicWidth: publishState.layout !== 'bottom',

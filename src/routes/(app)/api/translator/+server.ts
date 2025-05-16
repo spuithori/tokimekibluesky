@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { TRANSLATOR_API_KEY, TRANSLATOR_LOCATION } from '$env/static/private';
 
 async function translator(text = '', to = 'ja') {
@@ -8,7 +8,7 @@ async function translator(text = '', to = 'ja') {
             'Ocp-Apim-Subscription-Key': TRANSLATOR_API_KEY,
             'Ocp-Apim-Subscription-Region': TRANSLATOR_LOCATION,
             'Content-type': 'application/json',
-            'X-ClientTraceId': uuidv4().toString()
+            'X-ClientTraceId': crypto.randomUUID()
         },
         body: JSON.stringify([{
             'text': text
