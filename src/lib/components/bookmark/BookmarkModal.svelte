@@ -115,28 +115,6 @@
             font-size: 14px;
             margin-bottom: 6px;
         }
-
-        &__content {
-
-        }
-
-        &--name {
-            margin-bottom: 30px;
-
-            @media (max-width: 767px) {
-                margin-bottom: 20px;
-            }
-        }
-
-        &__input {
-            border: 1px solid var(--border-color-1);
-            border-radius: 4px;
-            height: 40px;
-            padding: 0 10px;
-            width: 100%;
-            background-color: var(--bg-color-2);
-            color: var(--text-color-1);
-        }
     }
 
     .bookmark-modal-name {

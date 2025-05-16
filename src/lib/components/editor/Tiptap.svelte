@@ -344,7 +344,9 @@
 </EditorBar>
 
 {#if (isEmojiPickerOpen)}
-  <EmojiPicker onpick={handleEmojiPick} onoutclick={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}></EmojiPicker>
+    {#await import('$lib/components/publish/EmojiPicker.svelte') then { default: EmojiPicker }}
+        <EmojiPicker onpick={handleEmojiPick} onoutclick={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}></EmojiPicker>
+    {/await}
 {/if}
 
 {#if (isGiphyPickerOpen)}
