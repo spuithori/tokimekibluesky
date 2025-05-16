@@ -5,7 +5,6 @@
   import {goto} from '$app/navigation';
   import { dev } from '$app/environment';
   import { injectAnalytics } from '@vercel/analytics/sveltekit';
-  import {pwaInfo} from 'virtual:pwa-info';
   import {onMount, tick, untrack} from 'svelte';
   import { Toaster } from 'svelte-sonner';
   import viewPortSetting from '$lib/viewport';
@@ -238,19 +237,6 @@
   }
 
   onMount(async() => {
-      if (pwaInfo) {
-          const { registerSW } = await import('virtual:pwa-register');
-          registerSW({
-              immediate: true,
-              onRegistered(r) {
-                  console.log('SW Registered');
-              },
-              onRegisterError(error) {
-                  console.log('SW registration error', error);
-              }
-          })
-      }
-
       sessionStorage.clear();
       isAfterReload.set(false);
   });

@@ -4,7 +4,6 @@
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
-  import SideChat from "$lib/components/side/SideChat.svelte";
   import { clickOutside } from '$lib/clickOutSide';
   import { publishState } from "$lib/classes/publishState.svelte";
   import {type SideItem, sideState} from "$lib/classes/sideState.svelte";
@@ -20,7 +19,6 @@
   let { footer = false } = $props();
   let isWorkspaceModalOpen = $state(false);
   let isFeedsModalOpen = $state(false);
-  let isChatModalOpen = $state(false);
   let isNotificationModalOpen = $state(false);
   let isBluecastModalOpen = $state(false);
   let isColumnsModalOpen = $state(false);
@@ -199,18 +197,6 @@
     </div>
 
     <button class="side-modal__close only-mobile" onclick={() => {isFeedsModalOpen = false}}>
-      <CircleX size="36" color="var(--text-color-1)"></CircleX>
-    </button>
-  </div>
-{/if}
-
-{#if isChatModalOpen}
-  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--chat'}} onoutclick={() => {isChatModalOpen = false}}>
-    <div class="side-modal__content">
-      <SideChat on:close={() => {isChatModalOpen = false}}></SideChat>
-    </div>
-
-    <button class="side-modal__close only-mobile" onclick={() => {isChatModalOpen = false}}>
       <CircleX size="36" color="var(--text-color-1)"></CircleX>
     </button>
   </div>

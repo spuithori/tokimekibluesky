@@ -1,7 +1,6 @@
 <script lang="ts">
     import '../styles.css';
     import { goto } from '$app/navigation';
-    import { pwaInfo } from 'virtual:pwa-info';
     import { onMount } from 'svelte';
     import LoginModal from "$lib/components/acp/LoginModal.svelte";
     import {_} from "svelte-i18n";
@@ -20,19 +19,6 @@
         if (accounts.length) {
             console.log('Accounts are already registered.');
             await goto('/');
-        }
-
-        if (pwaInfo) {
-            const { registerSW } = await import('virtual:pwa-register')
-            registerSW({
-                immediate: true,
-                onRegistered(r) {
-                    console.log(`SW Registered`)
-                },
-                onRegisterError(error) {
-                    console.log('SW registration error', error)
-                }
-            })
         }
     })
 </script>
