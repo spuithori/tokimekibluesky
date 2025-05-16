@@ -82,7 +82,7 @@
   }
 
   .login-bg-picture {
-      background-image: url($lib/images/login-bg.jpg);
+      background-image: url(/login-bg.jpg);
       background-size: cover;
       background-position: center;
       position: fixed;

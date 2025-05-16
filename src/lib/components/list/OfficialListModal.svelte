@@ -4,9 +4,9 @@
     import ListMember from "./ListMember.svelte";
     import { toast } from "svelte-sonner";
     import {_} from "svelte-i18n";
-    import spinner from "$lib/images/loading.svg";
     import OfficialListMenu from "$lib/components/list/OfficialListMenu.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
+    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
     let isDisabled = $state(false);
     interface Props {
@@ -287,9 +287,7 @@
 
     <OfficialListMenu {_agent} {uri} {existingMembers} on:close></OfficialListMenu>
   {:else}
-    <div class="thread-loading">
-      <img src={spinner} alt="">
-    </div>
+    <LoadingSpinner></LoadingSpinner>
   {/if}
 
   <div class="list-modal-close">

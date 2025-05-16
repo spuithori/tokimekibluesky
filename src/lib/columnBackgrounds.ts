@@ -4,13 +4,6 @@ type Background = {
     url: string,
 }
 
-import Blue from '$lib/images/blue.jpg';
-import Pink from '$lib/images/pink.jpg';
-import Summer1 from '$lib/images/summer1.jpg';
-import Summer2 from '$lib/images/summer2.jpg';
-import Summer3 from '$lib/images/summer3.jpg';
-
-
 export const backgroundsMap: Map<string, Background> = new Map();
 
 backgroundsMap.set('', {
@@ -21,25 +14,25 @@ backgroundsMap.set('', {
     .set('blue', {
         name: 'Blue',
         baseColor: 'dark',
-        url: Blue,
+        url: '/blue.jpg',
     })
     .set('pink', {
         name: 'Pink',
         baseColor: 'dark',
-        url: Pink,
+        url: '/pink.jpg',
     })
     .set('summer1', {
         name: 'Natsu',
         baseColor: 'dark',
-        url: Summer1,
+        url: '/summer1.jpg',
     })
     .set('summer2', {
         name: 'Sunflower',
         baseColor: 'dark',
-        url: Summer2,
+        url: '/summer2.jpg',
     })
     .set('summer3', {
         name: 'Railway',
         baseColor: 'dark',
-        url: Summer3,
+        url: '/summer3.jpg',
     });

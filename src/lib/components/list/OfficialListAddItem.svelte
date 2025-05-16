@@ -1,7 +1,5 @@
 <script lang="ts">
   import { preventDefault } from 'svelte/legacy';
-
-  import spinner from "$lib/images/loading.svg";
   import {agent} from "$lib/stores";
   import { toast } from "svelte-sonner";
 
@@ -61,11 +59,6 @@
   </div>
 
   <div class="list-add-item__buttons">
-    {#if isDisabled}
-      <div class="list-add-item__process">
-        <img src={spinner} alt="">
-      </div>
-    {/if}
     <div class="input-toggle">
       <input class="input-toggle__input" type="checkbox" id={list.uri} bind:checked={isChecked} disabled={isDisabled} onclick={preventDefault(handleChange)}><label class="input-toggle__label" for={list.uri}></label>
     </div>

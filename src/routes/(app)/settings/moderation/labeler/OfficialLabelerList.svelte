@@ -1,12 +1,9 @@
 <script lang="ts">
     import {agent, agents} from "$lib/stores";
     import {onMount} from "svelte";
-    import {createEventDispatcher} from "svelte";
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
     import LabelerItem from "$lib/components/labeler/LabelerItem.svelte";
-    import spinner from "$lib/images/loading.svg";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-    const dispatch = createEventDispatcher();
     let labelers = $state([]);
     let _agent = $agent;
     let ready = $state(false);
