@@ -4,7 +4,7 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "description": "An Unofficial Bluesky web app",
+  "description": "Bluesky web app",
   "theme_color": "#ffffff",
   "icons": [
     {

@@ -1,16 +1,80 @@
-import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
-import { NavigationRoute, registerRoute } from 'workbox-routing'
+import { build, files, version } from '$service-worker';
 import {accountsDb} from "./lib/db";
 
-declare let self: ServiceWorkerGlobalScope
+const CACHE = `cache-${version}`;
 
-cleanupOutdatedCaches();
+const ASSETS = [
+    ...build,
+    ...files,
+];
 
-precacheAndRoute(self.__WB_MANIFEST);
+self.addEventListener('install', (event) => {
+    async function addFilesToCache() {
+        const cache = await caches.open(CACHE);
+        await cache.addAll(ASSETS);
+    }
 
-type rawType = 'like' | 'follow' | 'reply' | 'repost' | 'quote' | 'mention' | 'post' | 'unknown';
+    event.waitUntil(addFilesToCache());
+});
 
-function chooseBadge(rawType: rawType) {
+self.addEventListener('activate', (event) => {
+    async function deleteOldCaches() {
+        for (const key of await caches.keys()) {
+            if (key !== CACHE) await caches.delete(key);
+        }
+    }
+
+    event.waitUntil(deleteOldCaches());
+});
+
+self.addEventListener('fetch', (event) => {
+    if (event.request.method !== 'GET') {
+        return;
+    }
+
+    if (!(event.request.url.indexOf('http') === 0)) {
+        return;
+    }
+
+    async function respond() {
+        const url = new URL(event.request.url);
+        const cache = await caches.open(CACHE);
+
+        if (ASSETS.includes(url.pathname)) {
+            const response = await cache.match(url.pathname);
+
+            if (response) {
+                return response;
+            }
+        }
+
+        try {
+            const response = await fetch(event.request);
+
+            if (!(response instanceof Response)) {
+                throw new Error('invalid response from fetch');
+            }
+
+            if (response.status === 200) {
+                cache.put(event.request, response.clone());
+            }
+
+            return response;
+        } catch (err) {
+            const response = await cache.match(event.request);
+
+            if (response) {
+                return response;
+            }
+
+            throw err;
+        }
+    }
+
+    event.respondWith(respond());
+});
+
+function chooseBadge(rawType) {
     const badgeImage = {
         default: '/badge-like.png',
         like: '/badge-like.png',
@@ -84,18 +148,18 @@ self.addEventListener('push', (event) => {
         const data = JSON.parse(event.data.text());
 
         event.waitUntil(
-          clients
-            .matchAll({type: 'window'})
-            .then(windowClients => {
-                if (windowClients.length > 0) {
-                    windowClients.forEach(client => {
-                        client.postMessage({
-                            type: 'notification_event',
-                            data: data,
+            clients
+                .matchAll({type: 'window'})
+                .then(windowClients => {
+                    if (windowClients.length > 0) {
+                        windowClients.forEach(client => {
+                            client.postMessage({
+                                type: 'notification_event',
+                                data: data,
+                            });
                         });
-                    });
-                }
-            })
+                    }
+                })
         );
 
         event.waitUntil(execNotification(data));
