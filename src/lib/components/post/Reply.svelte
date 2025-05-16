@@ -42,10 +42,6 @@
 </button>
 
 <style lang="postcss">
-    svg {
-        margin-bottom: 2px;
-    }
-
     .timeline-reaction__item {
         &:not(:disabled) {
             &:hover {

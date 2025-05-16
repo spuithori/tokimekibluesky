@@ -269,10 +269,6 @@
       }
 
       &--current {
-          svg {
-              stroke: var(--text-color-1);
-          }
-
           &::before {
               transform: scaleY(1);
           }

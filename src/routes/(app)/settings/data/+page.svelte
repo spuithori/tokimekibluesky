@@ -1,59 +1,7 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
     import {_} from 'svelte-i18n';
-    import { db } from '$lib/db';
-    import Dexie from "dexie";
-    import {importDB, exportDB, importInto} from "dexie-export-import";
-    import { format } from "date-fns";
-    import { toast } from "svelte-sonner";
     import {postMutes} from "$lib/stores";
-  import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
-
-    let bookmarkExportButtonDisabled = $state(false);
-    let bookmarkImportButtonDisabled = $state(true);
-    let files = $state();
-
-    run(() => {
-        if (files && files[0]) {
-            bookmarkImportButtonDisabled = false;
-        } else {
-            bookmarkImportButtonDisabled = true;
-        }
-    });
-
-    async function bookmarkExport() {
-        const blob = await exportDB(db);
-        console.log(blob);
-
-        let link = document.createElement('a');
-        link.download = 'export-' + format(Date.now(), 'yyyy-MM-dd')  + '.tokimekib';
-        link.href = URL.createObjectURL(blob);
-        link.click();
-
-        URL.revokeObjectURL(link.href);
-
-        bookmarkExportButtonDisabled = true;
-    }
-
-    async function bookmarkImport() {
-        try {
-            bookmarkImportButtonDisabled = true;
-            await importInto(db, files[0], {
-                overwriteValues: true,
-                acceptNameDiff: false,
-                acceptMissingTables: false,
-                clearTablesBeforeImport: true,
-            });
-            toast.success($_('bookmark_import_success'));
-        } catch (e) {
-            console.error(e);
-            toast.error($_('bookmark_import_error'));
-        }
-
-        files = undefined;
-        bookmarkImportButtonDisabled = false;
-    }
+    import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
 
     function deletePostMutes() {
         $postMutes = [];
@@ -72,26 +20,6 @@
 
   <div class="settings-wrap">
     <p class="settings-description">{$_('import_export_description')}</p>
-
-    <div class="bookmark-import-export bookmark-import-export--export">
-      <h2 class="bookmark-import-export__title">{$_('bookmark_export')}</h2>
-      <p class="bookmark-import-export__description">{$_('bookmark_export_description')}</p>
-
-      <div class="bookmark-import-export__buttons">
-        <button class="button" onclick={bookmarkExport} disabled={bookmarkExportButtonDisabled}>{$_('bookmark_export_button')}</button>
-      </div>
-    </div>
-
-    <div class="bookmark-import-export bookmark-import-export--export">
-      <h2 class="bookmark-import-export__title">{$_('bookmark_import')}</h2>
-      <p class="bookmark-import-export__description">{$_('bookmark_import_description')}</p>
-      <p class="bookmark-import-export__danger">{$_('bookmark_import_warning')}</p>
-
-      <div class="bookmark-import-export__buttons">
-        <input class="mb10" type="file" accept=".tokimekib" bind:files>
-        <button class="button button--danger button--border" onclick={bookmarkImport} disabled={bookmarkImportButtonDisabled}>{$_('bookmark_import_button')}</button>
-      </div>
-    </div>
 
     <div class="bookmark-import-export bookmark-import-export--export">
       <h2 class="bookmark-import-export__title">{$_('delete_post_mutes')}</h2>
