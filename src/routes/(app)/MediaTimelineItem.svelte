@@ -8,7 +8,7 @@
     import {modalState} from "$lib/classes/modalState.svelte";
     import {EyeOff, Repeat} from "lucide-svelte";
 
-    let { feed, index, data, _agent, isProfile = false } = $props();
+    let { feed, index, data, _agent } = $props();
     let isOpen = $state(false);
     let el = $state();
     let targetIndex = $state(index);
@@ -74,7 +74,7 @@
        bind:this={el}
        data-index={index}
   >
-    <button onclick={modalToggle} aria-label="画像を拡大する">
+    <button onclick={modalToggle} aria-label="Zoom image.">
       {#if (AppBskyEmbedImages.isView(data.post?.embed))}
         <MediaTimelineThumbnail images={data.post.embed.images}></MediaTimelineThumbnail>
       {:else if (AppBskyEmbedImages.isView(data.post?.embed?.media))}
@@ -125,30 +125,9 @@
           width: 30%;
           height: auto;
 
-          svg {
-              width: 100%;
-              height: auto;
-          }
-
           @media (max-width: 767px) {
               right: 10px;
               bottom: 10px;
-          }
-      }
-
-      &--warn {
-          &::before {
-              content: '';
-              display: block;
-              position: absolute;
-              left: 0;
-              top: 0;
-              bottom: 0;
-              right: 0;
-              background-color: rgba(0, 0, 0, .8);
-              backdrop-filter: blur(10px);
-              z-index: 10;
-              pointer-events: none;
           }
       }
   }
