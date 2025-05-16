@@ -23,7 +23,6 @@
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
   import {getPostState} from "$lib/classes/postState.svelte";
-  import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
   import {Clapperboard, Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink} from "lucide-svelte";
 
   interface Props {

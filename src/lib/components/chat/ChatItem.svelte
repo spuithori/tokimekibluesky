@@ -5,7 +5,6 @@
     import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
     import {AppBskyEmbedRecord} from "@atproto/api";
     import { Laugh } from "lucide-svelte";
-    import EmojiPicker from "$lib/components/publish/EmojiPicker.svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
 
     let { message, _agent, convoId, updateReaction } = $props();
