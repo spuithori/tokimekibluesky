@@ -43,6 +43,7 @@
   import "@fontsource/zen-maru-gothic";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
   import {BskyAgent} from "@atproto/api";
+  import AnimationFrameObserver from "$lib/components/utils/AnimationFrameObserver.svelte";
 
   injectAnalytics({ mode: dev ? 'development' : 'production' });
 
@@ -405,6 +406,7 @@
 
     <NotificationCountObserver></NotificationCountObserver>
     <RealtimeListenersObserver></RealtimeListenersObserver>
+    <AnimationFrameObserver></AnimationFrameObserver>
 
     {#if !$settings?.general?.disableChat}
       <ChatUpdateObserver></ChatUpdateObserver>

@@ -1,7 +1,6 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
   import { getBluemotionUrl, getGiphyId, getSpotifyUri, getTwitterUrl, getYouTubeUrl, getTenorUrl } from "$lib/components/post/embedUtil";
-  import { Gif } from '@giphy/svelte-components';
   import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
   import EmbedX from "$lib/components/post/EmbedX.svelte";
   let { external } = $props();
@@ -41,23 +40,19 @@
           </div>
         </div>
       {:else if (getGiphyId(external.uri) && $settings?.embed?.giphy)}
-        {#await getGiphyId(external.uri)}
-        {:then gif}
-          <div class="timeline-external__image">
-            <div class="timeline-giphy-external">
-              <a href="{external.uri}" target="_blank" rel="noopener nofollow noreferrer">
-                <Gif {gif} width={'100%'} borderRadius={0}></Gif>
-              </a>
+        <div class="timeline-external__image">
+          <div class="timeline-giphy-external">
+            <a href={external.uri} target="_blank" rel="noopener nofollow noreferrer">
+              <img loading="lazy" src="https://i.giphy.com/media/{getGiphyId(external.uri)}/200.webp" alt="">
+            </a>
 
-              <div class="timeline-giphy-external__logo">
-                <a href="https://giphy.com/" target="_blank" rel="nofollow">
-                  <img src="/giphy-logo.png" alt="Powered by GIPHY">
-                </a>
-              </div>
+            <div class="timeline-giphy-external__logo">
+              <a href="https://giphy.com/" target="_blank" rel="nofollow">
+                <img src="/giphy-logo.png" alt="Powered by GIPHY">
+              </a>
             </div>
           </div>
-        {:catch error}
-        {/await}
+        </div>
       {:else}
         {#if (external.thumb)}
           <div class="timeline-external__image">
@@ -96,7 +91,6 @@
       z-index: 1;
 
       &__logo {
-          background-color: var(--bg-color-1);
           position: absolute;
           top: 4px;
           left: 4px;

@@ -2,7 +2,8 @@
     import 'vidstack/bundle';
     import { LocalMediaStorage } from 'vidstack';
     import VideoLayout from '$lib/components/video/VideoLayout.svelte';
-    import Hls from 'hls.js';
+    import Hls from 'hls.js/dist/hls.light.min.js';
+    import {onDestroy} from "svelte";
     let player = $state();
 
     let { src, poster, isTok = false } = $props();
@@ -28,6 +29,10 @@
 
         async setTime() {}
     }
+
+    onDestroy(() => {
+        player.destroy();
+    });
 </script>
 
 <media-player

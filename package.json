@@ -41,8 +41,6 @@
     "@fontsource-variable/noto-sans-jp": "^5.2.5",
     "@fontsource-variable/noto-sans-kr": "^5.2.5",
     "@fontsource/zen-maru-gothic": "^5.2.5",
-    "@giphy/js-fetch-api": "^5.6.0",
-    "@giphy/svelte-components": "^1.1.0",
     "@ipld/dag-cbor": "^9.2.2",
     "@neodrag/svelte": "2.0.6",
     "@number-flow/svelte": "^0.3.7",

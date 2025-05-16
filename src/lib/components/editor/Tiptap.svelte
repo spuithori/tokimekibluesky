@@ -49,7 +49,6 @@
     toolbarBottom,
     onupload,
     onpicktenor,
-    onpickgiphy,
     onpublish,
   }: Props = $props();
 
@@ -276,12 +275,6 @@
        editor.commands.setContent(content, true);
     }
 
-    function handlePickGiphy(gif) {
-        isGiphyPickerOpen = false;
-
-        onpickgiphy(gif);
-    }
-
     function handlePickTenor(gif) {
         isGiphyPickerOpen = false;
 
@@ -357,7 +350,6 @@
 {#if (isGiphyPickerOpen)}
   <GifPickerModal
     onclose={() => {isGiphyPickerOpen = false}}
-    onpickgiphy={handlePickGiphy}
     onpicktenor={handlePickTenor}
   ></GifPickerModal>
 {/if}

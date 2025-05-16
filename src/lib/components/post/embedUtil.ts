@@ -1,6 +1,3 @@
-import { GiphyFetch } from '@giphy/js-fetch-api';
-import { PUBLIC_GIPHY_API_KEY } from '$env/static/public';
-
 export function getYouTubeUrl(uri: string) {
     try {
         const url = new URL(uri);
@@ -96,29 +93,18 @@ export function getGiphyId(uri: string) {
 
             if (gifs === 'gifs' && id) {
                 const rawId = id.split('-').slice(-1)[0];
-                return getGiphyGif(rawId);
+                return id.split('-').pop();
             }
         }
 
         if (domain === 'giphy.com' &&  /media(?:[0-4]\.giphy\.com|\.giphy\.com)/i.test(hostname)) {
             const id = url.pathname.split('/').slice(-2, -1)[0];
-            return getGiphyGif(id);
+            return id.split('-').pop();
         }
 
         return undefined;
     } catch (e) {
         console.log(e);
-        return undefined;
-    }
-}
-
-async function getGiphyGif(id: string) {
-    try {
-        const gf = new GiphyFetch(PUBLIC_GIPHY_API_KEY);
-        const {data: gif} = await gf.gif(id);
-        return gif;
-    } catch (e) {
-        console.error(e);
         return undefined;
     }
 }

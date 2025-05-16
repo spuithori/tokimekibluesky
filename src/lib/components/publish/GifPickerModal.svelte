@@ -1,11 +1,9 @@
 <script lang="ts">
     import {onMount} from 'svelte';
     import TenorPicker from "$lib/components/publish/TenorPicker.svelte";
-    import GiphyPicker from "$lib/components/publish/GiphyPicker.svelte";
 
-    let { onclose, onpicktenor, onpickgiphy } = $props();
+    let { onclose, onpicktenor } = $props();
     let dialog = $state();
-    let tab = $state('tenor');
 
     function handleTenorClick(gif) {
         if (!gif) {
@@ -13,14 +11,6 @@
         }
 
         onpicktenor(gif);
-    }
-
-    function handleGiphyClick(gif) {
-        if (!gif) {
-            return false;
-        }
-
-        onpickgiphy(gif);
     }
 
     onMount(async () => {
@@ -36,18 +26,9 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </div>
       </div>
-
-      <div class="gif-modal-tab">
-        <button class="gif-modal-tab__item" class:gif-modal-tab__item--current={tab === 'tenor'} onclick={() => {tab = 'tenor'}}>Tenor</button>
-        <button class="gif-modal-tab__item" class:gif-modal-tab__item--current={tab === 'giphy'} onclick={() => {tab = 'giphy'}}>GIPHY</button>
-      </div>
     </div>
 
-    {#if tab === 'tenor'}
-      <TenorPicker onclick={handleTenorClick}></TenorPicker>
-    {:else}
-      <GiphyPicker onclick={handleGiphyClick}></GiphyPicker>
-    {/if}
+    <TenorPicker onclick={handleTenorClick}></TenorPicker>
   </div>
 
   <button class="modal-background-close" aria-hidden="true" onclick={onclose}></button>
@@ -136,37 +117,5 @@
         background-color: var(--bg-color-1);
         z-index: 1;
         border-bottom: 1px solid var(--border-color-2);
-    }
-
-    .gif-modal-tab {
-        width: 100%;
-        height: 60px;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        padding-right: 60px;
-
-        &__item {
-            position: relative;
-
-            &--current {
-                font-weight: bold;
-                color: var(--primary-color);
-
-                &::before {
-                    content: '';
-                    display: block;
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    margin: auto;
-                    height: 4px;
-                    width: 20px;
-                    border-radius: 2px;
-                    background-color: var(--primary-color);
-                }
-            }
-        }
-
     }
 </style>

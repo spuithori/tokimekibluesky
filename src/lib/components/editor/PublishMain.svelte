@@ -157,34 +157,6 @@
         }
     }
 
-    async function addGiphyLinkCard(gif) {
-        if (!gif) {
-            return false;
-        }
-
-        try {
-            isLinkCardAdding = true;
-
-            const res = await fetch(gif.images.downsized.url);
-            const blob = await res.blob();
-            post.externalImageBlob = await imageCompression.getDataUrlFromFile(blob);
-            post.embedExternal = {
-                $type: 'app.bsky.embed.external',
-                external: {
-                    uri: gif.url,
-                    title: gif.title || '',
-                    description: 'Discover & share this Animated GIF with everyone you know. GIPHY is how you search, share, discover, and create GIFs.',
-                }
-            }
-
-            isLinkCardAdding = false;
-        } catch (e) {
-            console.error(e);
-            toast.error('Error!');
-            isLinkCardAdding = false;
-        }
-    }
-
     async function addTenorLinkCard(gif) {
         if (!gif) {
             return false;
@@ -356,7 +328,6 @@
           {onpublish}
           onupload={uploadContextOpen}
           onpicktenor={addTenorLinkCard}
-          onpickgiphy={addGiphyLinkCard}
           {_agent}
           {isEnabled}
           {isVideoUploadEnabled}
