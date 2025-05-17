@@ -30,8 +30,8 @@
   },
   "type": "module",
   "dependencies": {
-    "@atproto/api": "^0.15.6",
-    "@atproto/common-web": "^0.4.1",
+    "@atproto/api": "^0.15.7",
+    "@atproto/common-web": "^0.4.2",
     "@fontsource-variable/inter": "^5.2.5",
     "@fontsource-variable/murecho": "^5.2.5",
     "@fontsource-variable/noto-sans-jp": "^5.2.5",
@@ -67,7 +67,7 @@
     "runed": "^0.27.0",
     "svelte-dnd-action": "^0.9.60",
     "svelte-i18n": "^4.0.1",
-    "svelte-sonner": "^0.3.28",
+    "svelte-sonner": "^1.0.1",
     "vidstack": "^1.12.13",
     "virtua": "^0.41.2"
   }

@@ -392,7 +392,7 @@
 }
 
 .timeline__text {
-    white-space: pre-line;
+    white-space: pre-wrap;
     line-height: 1.75;
     font-size: var(--timeline-content-font-size);
 }
