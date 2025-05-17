@@ -284,7 +284,7 @@
 
       &--settings {
           position: sticky;
-          bottom: 0;
+          bottom: -8px;
 
       }
 
