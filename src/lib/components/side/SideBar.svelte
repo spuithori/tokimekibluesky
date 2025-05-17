@@ -240,7 +240,7 @@
       width: 48px;
       height: 48px;
       border-radius: 5px;
-      background-color: transparent;
+      background-color: var(--app-bg-color);
       display: grid;
       place-content: center;
       position: relative;
@@ -284,7 +284,7 @@
 
       &--settings {
           position: sticky;
-          bottom: 0;
+          bottom: -8px;
 
       }
 
