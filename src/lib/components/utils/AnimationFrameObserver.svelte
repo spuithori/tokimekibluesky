@@ -2,11 +2,18 @@
     import {workerTimer} from "$lib/stores";
     import {onDestroy} from "svelte";
 
+    let shouldCancel = true;
+
     function handleTimer(e) {
         if (e.data % 60 === 0) {
-            let id = window.requestAnimationFrame(() => {});
-            while(id--) {
-                window.cancelAnimationFrame(id);
+            if (shouldCancel) {
+                let id = window.requestAnimationFrame(() => {});
+
+                while(id--) {
+                    window.cancelAnimationFrame(id);
+                }
+
+                shouldCancel = false;
             }
         }
     }
