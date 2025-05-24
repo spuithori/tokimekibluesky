@@ -44,7 +44,15 @@
   import {BskyAgent} from "@atproto/api";
   import AnimationFrameObserver from "$lib/components/utils/AnimationFrameObserver.svelte";
 
-  injectAnalytics({ mode: dev ? 'development' : 'production' });
+  injectAnalytics({
+    mode: dev ? 'development' : 'production',
+    beforeSend(event) {
+      if (event.url === 'https://tokimeki.blue/' || event.url === 'https://tokimekibluesky.vercel.app/') {
+        return event;
+      }
+      return null;
+    }
+  });
 
   interface Props {
     children?: import('svelte').Snippet;
