@@ -704,5 +704,7 @@
   "edit_status_live_suffix_minutes": "min.",
   "edit_status_live_exit": "Terminate",
   "apply": "Apply",
-  "status_live_elsewhere": "Live streaming elsewhere."
+  "status_live_elsewhere": "Live streaming elsewhere.",
+  "support_text_1": "TOKIMEKI is open source software and anyone can freely use and develop it, but there are costs involved in server hosting, translation functions, etc. Also, please consider supporting us for sustainable development and implementation of ambitious new features in the future!\nPlease check each support platform for support benefits.",
+  "sponsor": "✨Sponsors✨"
 }

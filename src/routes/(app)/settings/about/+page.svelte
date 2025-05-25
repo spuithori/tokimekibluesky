@@ -64,7 +64,7 @@
 
     <div class="about-content">
       <p class="about-text">{$_('about_text1')}</p>
-      <p class="about-text">{$_('about_text2')}: <a href="https://github.com/spuithori/tokimekibluesky" target="_blank" rel="noopener">GitHub</a> | Bluesky</p>
+      <p class="about-text">{$_('about_text2')}: <a href="https://github.com/spuithori/tokimekibluesky" target="_blank" rel="noopener">GitHub</a></p>
 
       <div class="about-author">
         <h3 class="about-title">{$_('author')}</h3>
