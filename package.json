@@ -67,7 +67,7 @@
     "runed": "^0.27.0",
     "svelte-dnd-action": "^0.9.60",
     "svelte-i18n": "^4.0.1",
-    "svelte-sonner": "^1.0.1",
+    "svelte-sonner": "^1.0.3",
     "vidstack": "^1.12.13",
     "virtua": "^0.41.2"
   }
