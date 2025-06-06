@@ -4,7 +4,7 @@ import {accountsDb} from "./lib/db";
 const CACHE = `cache-${version}`;
 
 const ASSETS = [
-    ...build,
+    // ...build,
     ...files,
 ];
 
