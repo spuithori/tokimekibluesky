@@ -36,34 +36,21 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    async function respond() {
-        const url = new URL(event.request.url);
-        const cache = await caches.open(CACHE);
+    const url = new URL(event.request.url);
+    if (!ASSETS.includes(url.pathname)) {
+        return;
+    }
 
-        if (ASSETS.includes(url.pathname)) {
+    async function respond() {
+        try {
+            const cache = await caches.open(CACHE);
             const response = await cache.match(url.pathname);
 
             if (response) {
-                return response;
+                return response || fetch(event.request);
             }
-        }
-
-        try {
-            const response = await fetch(event.request);
-
-            if (!(response instanceof Response)) {
-                throw new Error('invalid response from fetch');
-            }
-
-            return response;
-        } catch (err) {
-            const response = await cache.match(event.request);
-
-            if (response) {
-                return response;
-            }
-
-            throw err;
+        } catch (e) {
+            return fetch(event.request);
         }
     }
 
