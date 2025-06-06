@@ -47,6 +47,24 @@ self.addEventListener('fetch', (event) => {
                 return response;
             }
         }
+
+        try {
+            const response = await fetch(event.request);
+
+            if (!(response instanceof Response)) {
+                throw new Error('invalid response from fetch');
+            }
+
+            return response;
+        } catch (err) {
+            const response = await cache.match(event.request);
+
+            if (response) {
+                return response;
+            }
+
+            throw err;
+        }
     }
 
     event.respondWith(respond());
