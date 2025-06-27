@@ -628,7 +628,6 @@
 
   .publish-lang {
       display: flex;
-      align-items: center;
       justify-content: center;
       gap: 4px;
       color: var(--text-color-1);
