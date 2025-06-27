@@ -22,7 +22,6 @@
   import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
-  import {getPostState} from "$lib/classes/postState.svelte";
   import {Clapperboard, Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink} from "lucide-svelte";
 
   interface Props {
@@ -40,18 +39,16 @@
     json = $bindable(),
     text = $bindable(''),
     _agent,
-    isEnabled,
     isVideoUploadEnabled,
     top,
     avatar,
     normal,
-    toolbarBottom,
+    submitArea,
     onupload,
     onpicktenor,
     onpublish,
   }: Props = $props();
 
-    const postState = getPostState();
     let element = $state();
     let editor = $state();
     let mentionList = $state();
@@ -299,7 +296,7 @@
 
 {@render normal?.()}
 
-<EditorBar bottom={toolbarBottom} {isFocus}>
+<EditorBar {isFocus} {submitArea}>
   {#snippet top()}
       {#if (isLinkActive)}
         <button class="editor-menu-button" onclick={removeLink}>
@@ -335,10 +332,6 @@
       <button class="editor-menu-button" onclick={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
         <Laugh size="20" color="var(--publish-tool-button-color)"></Laugh>
       </button>
-
-      <div class="publish-form-bottom-publish">
-        <button class="publish-submit-button" disabled={isEnabled} onclick={onpublish}>{$_('publish_button_send')}</button>
-      </div>
   {/snippet}
 </EditorBar>
 
@@ -379,8 +372,8 @@
         .editor-menu-button {
             display: grid;
             place-content: center;
-            height: 30px;
-            width: 30px;
+            height: 32px;
+            width: 32px;
 
             &:disabled {
                 opacity: .5;
@@ -433,15 +426,10 @@
         }
     }
 
-    .publish-form-bottom-publish {
-        margin-left: auto;
-        display: none;
-    }
-
     .editor-column {
         display: grid;
         grid-template-columns: 40px 1fr;
         gap: 8px;
-        padding: 12px;
+        padding: 16px;
     }
 </style>

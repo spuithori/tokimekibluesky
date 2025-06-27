@@ -1,67 +1,44 @@
 <script lang="ts">
   import { settings } from '$lib/stores';
 
-  let { top, bottom, isFocus } = $props();
+  let { top, submitArea, isFocus } = $props();
 </script>
 
 <div class="publish-toolbar" class:publish-toolbar--vk={!$settings.design?.mobilePostLayoutTop} class:publish-toolbar--focus={isFocus}>
-  <div class="publish-toolbar__top">
+  <div class="publish-toolbar__buttons">
     {@render top?.()}
   </div>
 
-  <div class="publish-toolbar__bottom">
-    {@render bottom?.()}
-  </div>
+  {@render submitArea?.()}
 </div>
 
 <style lang="postcss">
     .publish-toolbar {
         display: flex;
-        flex-direction: column;
-        border-radius: 0 0 var(--border-radius-3) var(--border-radius-3);
+        gap: 4px;
         position: sticky;
         bottom: 0;
         z-index: 100;
+        margin: 0 auto;
         padding-bottom: var(--safe-area-bottom);
+        padding-inline: 12px;
+        justify-content: space-between;
 
         @media (max-width: 767px) {
+            width: fit-content;
             background: var(--publish-textarea-bg-color);
         }
 
-        &__top,
-        &__bottom {
+        &__buttons {
             display: flex;
-            justify-content: flex-end;
             align-items: center;
             gap: 5px;
-            padding: 0 16px;
-            height: 40px;
+            height: 36px;
 
             @media (max-width: 767px) {
-                padding: 0 12px;
-            }
-        }
-
-        &__top {
-            border-bottom: 1px solid var(--border-color-2);
-        }
-
-        &__bottom {
-
-        }
-
-        &--vk {
-            @media (max-width: 767px) {
-                flex-direction: column-reverse;
-                border-top: 1px solid var(--border-color-2);
-
-                .publish-toolbar__top {
-                    border-bottom: none;
-                }
-
-                .publish-toolbar__bottom {
-                    flex-direction: row-reverse;
-                }
+              padding: 8px 12px;
+              background-color: var(--bg-color-2);
+              border-radius: var(--border-radius-4) var(--border-radius-1) var(--border-radius-1) var(--border-radius-4);
             }
         }
 

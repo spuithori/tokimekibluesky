@@ -9,7 +9,7 @@
   import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
-  import {AlertTriangle, CirclePlus, Globe, MessageSquareWarning, Settings2, X} from "lucide-svelte";
+  import {CirclePlus, Globe, X} from "lucide-svelte";
   import { toast } from "svelte-sonner";
   import imageCompression from "browser-image-compression";
   import {onMount} from "svelte";
@@ -24,7 +24,6 @@
   import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
-  import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {useDebounce, watch} from "runed";
@@ -46,6 +45,7 @@
     onadd,
     onopen,
     onpublish,
+    submitArea,
   }: Props = $props();
 
     const postState = getPostState();
@@ -65,7 +65,6 @@
     let isVideoUploadEnabled = $state(false);
     let isThreadGateOpen = $state(false);
     let isSelfLabelingMenuOpen = $state(false);
-    let isConfigOpen = $state(false);
     let altFocusPulse = $state();
 
     let isAltTextRequired = $derived.by(() => {
@@ -332,7 +331,7 @@
           {isEnabled}
           {isVideoUploadEnabled}
           {onopen}
-          {toolbarBottom}
+          {submitArea}
   >
     {#snippet top()}
       {#if (post.replyRef && typeof post.replyRef !== 'string')}
@@ -453,73 +452,61 @@
           </div>
         {/if}
 
-        {#if (post.threadGate !== 'everybody' && !post.replyRef)}
-          <ThreadGateLabel {post}></ThreadGateLabel>
-        {/if}
+        <div class="publish-tags">
+          <button class="publish-lang" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
+            {#if (post.lang !== 'auto' && Array.isArray(post.lang))}
+              {#each post.lang as lang}
+                <span class="lang-label"><Globe size="16" color="var(--publish-tool-button-color)"></Globe> {$_(languageMap.get(lang)?.name)}</span>
+              {/each}
+            {:else}
+              <span class="lang-label"><Globe size="16" color="var(--publish-tool-button-color)"></Globe> {$_('lang_selector_auto')}</span>
+            {/if}
+          </button>
 
-        {#if (post.postGate === false)}
-          <PostGateLabel></PostGateLabel>
-        {/if}
+          <div class="thread-gate-label-list" role="button" onclick={() => {isThreadGateOpen = !isThreadGateOpen}}>
+            {#if (!post.replyRef)}
+              <ThreadGateLabel {post}></ThreadGateLabel>
+            {/if}
 
-        {#if (post.selfLabels.length)}
-          <SelfLabelLabel labels={post.selfLabels}></SelfLabelLabel>
-        {/if}
+            {#if (post.postGate === false)}
+              <PostGateLabel></PostGateLabel>
+            {/if}
+          </div>
+
+          {#if (post.selfLabels.length)}
+            <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
+              {#snippet ref()}
+                <SelfLabelLabel labels={post.selfLabels}></SelfLabelLabel>
+              {/snippet}
+
+              {#snippet content()}
+                <ul  class="timeline-menu-list">
+                  {#each selfLabelsChoices as choice, index}
+                    <li class="timeline-menu-list__item">
+                      <button class="timeline-menu-list__button" class:timeline-menu-list__button--active={post.selfLabels.some(label => label.val === choice.val)} onclick={() => setSelfLabel(index)}>{choice.name}</button>
+                    </li>
+                  {/each}
+
+                  {#if (post.selfLabels.length)}
+                    <li class="timeline-menu-list__item">
+                      <button class="timeline-menu-list__button text-danger" onclick={clearSelfLabels}>{$_('selflabels_remove')}</button>
+                    </li>
+                  {/if}
+                </ul>
+              {/snippet}
+            </Menu>
+          {/if}
+        </div>
 
         {#if (isAltTextRequired)}
           <Notice text={$_('alt_text_missing')}></Notice>
         {/if}
       </div>
+
+      <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
     {/snippet}
   </Tiptap>
 </div>
-
-{#snippet toolbarBottom()}
-  <button class="publish-form-lang-selector-button" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
-    <Globe size="20" color="var(--publish-tool-button-color)"></Globe>
-
-    {#if (post.lang !== 'auto' && Array.isArray(post.lang))}
-      {#each post.lang as lang}
-        <span>{$_(languageMap.get(lang)?.name)}</span>
-      {/each}
-    {/if}
-  </button>
-
-  <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
-
-  <div class="publish-form-moderation">
-    <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
-      {#snippet ref()}
-        <AlertTriangle size="20" color="var(--publish-tool-button-color)"></AlertTriangle>
-      {/snippet}
-
-      {#snippet content()}
-        <ul  class="timeline-menu-list">
-          {#each selfLabelsChoices as choice, index}
-            <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button" class:timeline-menu-list__button--active={post.selfLabels.some(label => label.val === choice.val)} onclick={() => setSelfLabel(index)}>{choice.name}</button>
-            </li>
-          {/each}
-
-          {#if (post.selfLabels.length)}
-            <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button text-danger" onclick={clearSelfLabels}>{$_('selflabels_remove')}</button>
-            </li>
-          {/if}
-        </ul>
-      {/snippet}
-    </Menu>
-  </div>
-
-  {#if (!post.replyRef)}
-    <button class="editor-menu-button" onclick={() => {isThreadGateOpen = !isThreadGateOpen}}>
-      <MessageSquareWarning size="20" color="var(--publish-tool-button-color)"></MessageSquareWarning>
-    </button>
-  {/if}
-
-  <button class="editor-menu-button" onclick={() => {isConfigOpen = !isConfigOpen}}>
-    <Settings2 size="20" color="var(--publish-tool-button-color)"></Settings2>
-  </button>
-{/snippet}
 
 {#if (isLangSelectorOpen)}
   <LangSelectorModal onclose={() => {isLangSelectorOpen = false}} {post}></LangSelectorModal>
@@ -533,29 +520,7 @@
   <ThreadGateModal onclose={() => {isThreadGateOpen = false}} {_agent} {post}></ThreadGateModal>
 {/if}
 
-{#if (isConfigOpen)}
-  <PublishConfigModal onclose={() => {isConfigOpen = false}}></PublishConfigModal>
-{/if}
-
 <style lang="postcss">
-    .publish-form-lang-selector-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        color: var(--text-color-1);
-        padding: 0 5px;
-        font-size: 14px;
-        height: 30px;
-        max-width: 140px;
-        white-space: nowrap;
-
-        span {
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
-    }
-
   .add-thread-button {
       height: 40px;
       width: 40px;
@@ -622,7 +587,7 @@
   }
 
   .publish-upload {
-      padding: 0 8px;
+      padding: 0 12px;
       background-color: var(--publish-textarea-bg-color);
   }
 
@@ -658,6 +623,11 @@
       align-items: center;
       margin-right: auto;
       white-space: nowrap;
+      position: absolute;
+      bottom: 20px;
+      right: 12px;
+      pointer-events: none;
+      cursor: default;
 
       &.over {
           font-weight: bold;
@@ -676,26 +646,43 @@
               .add-thread-button {
                   order: 1;
               }
-
-              .publish-form-lang-selector-button {
-                 order: 2;
-              }
           }
       }
   }
 
-  .publish-form-lang-selector-button {
+  .publish-lang {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
       color: var(--text-color-1);
-      padding: 0 5px;
       font-size: 14px;
-      height: 30px;
   }
 
-  .publish-form-moderation {
-      position: relative;
+  .thread-gate-label-list {
+      cursor: pointer;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      width: fit-content;
+  }
+
+  .lang-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      padding: 4px 8px;
+      background-color: var(--bg-color-2);
+      color: var(--text-color-2);
+      font-weight: bold;
+      border-radius: var(--border-radius-2);
+  }
+
+  .publish-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0;
   }
 </style>

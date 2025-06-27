@@ -49,6 +49,10 @@
                 background-image: none;
             }
 
+            .publish-header {
+                padding: 0 0 8px !important;
+            }
+
             .publish-form {
                 &--expand {
                     flex: 1;
@@ -64,7 +68,6 @@
             top: 0;
             background-color: rgba(0, 0, 0, .5);
             place-content: center;
-            padding: 16px;
             display: none;
 
             &.publish-group--expanded {
@@ -74,7 +77,6 @@
             .publish-wrap {
                 display: block;
                 width: 600px;
-                padding: 16px;
                 border-radius: var(--border-radius-4);
                 overflow-x: hidden;
             }
@@ -89,6 +91,10 @@
                 margin: 0 auto;
             }
 
+            .publish-wrap {
+
+            }
+
             .tiptap {
                 height: 120px;
             }
@@ -101,7 +107,6 @@
     background-image: var(--publish-bg-image, none);
     border-radius: var(--publish-border-radius, 0);
     border-top: 1px solid var(--border-color-1);
-    padding: 16px 0 0;
     display: none;
 
     @media (max-width: 767px) {
@@ -120,7 +125,7 @@
     position: relative;
     background-color: var(--publish-textarea-bg-color);
     border-radius: var(--border-radius-3);
-    border: var(--publish-border, none);
+    padding-bottom: 12px;
 
     @media (max-width: 767px) {
         border: none;
@@ -159,38 +164,6 @@
             .tiptap {
                 height: 100%;
             }
-        }
-    }
-}
-
-.publish-submit-button {
-    min-width: 82px;
-    height: var(--publish-post-button-height);
-    border-radius: 15px;
-    top: 10px;
-    right: 20px;
-    z-index: 10;
-    background-color: var(--publish-post-button-bg-color);
-    color: var(--publish-post-button-color);
-    border: var(--publish-post-button-border);
-    box-shadow: var(--publish-post-button-box-shadow);
-    font-weight: bold;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    letter-spacing: .025em;
-    gap: 5px;
-    white-space: nowrap;
-
-    &:disabled {
-        opacity: .6;
-    }
-
-    &--hide {
-        @media (max-width: 767px) {
-            display: none;
         }
     }
 }

@@ -178,7 +178,7 @@
     --publish-filepond-box-shadow: 0 0 6px rgba(0, 0, 0, .12);
     --publish-post-button-bg-color: var(--primary-color);
     --publish-post-button-border: none;
-    --publish-post-button-height: 30px;
+    --publish-post-button-height: 48px;
     --publish-post-button-box-shadow: none;
     --publish-post-button-border-radius: calc(var(--publish-post-button-height) / 2);
     --publish-post-button-color: var(--bg-color-1);

@@ -3,7 +3,7 @@
   import { agent, changedFollowData } from "$lib/stores";
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
 
-  let { _agent = $agent, following = $bindable(), user, followChange = function () {} } = $props();
+  let { _agent = $agent, following = $bindable(), user, followChange = function () {}, style = 'default' } = $props();
   let rkey;
   let isDisabled = $state(false);
   let isUnfollowDialogRender = $state(false);
@@ -77,7 +77,7 @@
 
 <div>
   {#if !following}
-    <button class="button button--sm button--follow" onclick={follow} disabled={isDisabled}>{$_('follow_button')}</button>
+    <button class="button button--follow" class:button--border={style === 'tiny'} class:button--ss={style === 'tiny'} class:button--sm={style !== 'tiny'} onclick={follow} disabled={isDisabled}>{$_('follow_button')}</button>
   {:else}
     <button class="button button--sm button--following" onclick={unfollowSkip} disabled={isDisabled} data-unfollow-name="{$_('unfollow_button')}">{$_('now_following_button')}</button>
   {/if}
