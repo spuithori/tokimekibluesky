@@ -601,7 +601,7 @@
     border-radius: var(--menu-border-radius);
     width: max-content;
     background-color: var(--menu-bg-color);
-    z-index: 14;
+    z-index: 101;
     visibility: hidden;
     opacity: 0;
     transition: all .2s ease-in-out;

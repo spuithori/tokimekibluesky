@@ -7,6 +7,8 @@
 
 {#each labels as label}
   <p class="self-label-label"><AlertTriangle size="16"></AlertTriangle>{$_(`labeling_${label.val}`)}</p>
+{:else}
+  <p class="self-label-label"><AlertTriangle size="16"></AlertTriangle>{$_(`labeling_nothing`)}</p>
 {/each}
 
 <style lang="postcss">
@@ -21,6 +23,5 @@
         font-weight: bold;
         border-radius: var(--border-radius-3);
         cursor: default;
-        margin-top: 8px;
     }
 </style>

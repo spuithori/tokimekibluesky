@@ -473,7 +473,7 @@
             {/if}
           </div>
 
-          {#if (post.selfLabels.length)}
+          {#if (post.images.length)}
             <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
               {#snippet ref()}
                 <SelfLabelLabel labels={post.selfLabels}></SelfLabelLabel>
@@ -682,7 +682,7 @@
   .publish-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 4px 8px;
       margin: 8px 0;
   }
 </style>
