@@ -652,6 +652,7 @@
       color: var(--text-color-2);
       font-weight: bold;
       border-radius: var(--border-radius-2);
+      height: 30px;
   }
 
   .publish-tags {
