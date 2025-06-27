@@ -43,15 +43,7 @@ export async function POST({ request }) {
                 return new Response(JSON.stringify({ error: 'Missing text field in request body' }), { status: 400 });
             }
 
-            const data = await translator(textObj.text, textObj.to);
-            const text = data[0].translatedText;
-            const result = [{
-                translations: [
-                    {
-                        text: text,
-                    }
-                ]
-            }];
+            const result = await translator(textObj.text, textObj.to);
             return new Response(JSON.stringify(result), { status: 200 });
         } catch (error) {
             console.error(error);
