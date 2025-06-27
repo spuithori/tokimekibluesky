@@ -648,6 +648,7 @@
          class:publish-group--bottom={publishState.layout === 'bottom'}
          class:publish-group--popup={publishState.layout === 'popup'}
          class:vk-publish-group={!$settings.design?.mobilePostLayoutTop}
+         class:publish-mobile-top={$settings?.design?.mobilePostLayoutTop}
 >
   {#if (publishState.layout === 'popup')}
     <div class="publish-bg-close" onclick={onClose} aria-hidden="true"></div>
@@ -669,11 +670,9 @@
         <X color="var(--primary-color)"></X>
       </button>
 
-      {#if ($settings?.design?.mobilePostLayoutTop)}
-        <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled}>
-          {$_('publish_button_send')}
-        </button>
-      {/if}
+      <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled}>
+        {$_('publish_button_send')}
+      </button>
     </div>
 
     {#each postState.posts as post, index (post)}
@@ -713,11 +712,9 @@
 </section>
 
 {#snippet submitArea()}
-  {#if (!$settings?.design?.mobilePostLayoutTop)}
-    <button class="publish-submit-button publish-submit-button--bottom" onclick={publishAll} disabled={isEnabled}>
-      {$_('publish_button_send')}
-    </button>
-  {/if}
+  <button class="publish-submit-button publish-submit-button--bottom" onclick={publishAll} disabled={isEnabled}>
+    {$_('publish_button_send')}
+  </button>
 {/snippet}
 
 <style lang="postcss">
@@ -809,9 +806,33 @@
           }
         }
 
+      &--bottom {
+        @media (min-width: 768px) {
+          display: none;
+        }
+      }
+
+      &--top {
+        @media (max-width: 767px) {
+          display: none;
+        }
+      }
+
         @media (max-width: 767px) {
             order: 3;
         }
+    }
+
+    .publish-mobile-top {
+      @media (max-width: 767px) {
+        .publish-submit-button--bottom {
+          display: none;
+        }
+
+        .publish-submit-button--top {
+          display: block !important;
+        }
+      }
     }
 
     .publish-draft-button {
