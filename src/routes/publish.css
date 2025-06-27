@@ -125,7 +125,6 @@
     position: relative;
     background-color: var(--publish-textarea-bg-color);
     border-radius: var(--border-radius-3);
-    padding-bottom: 12px;
 
     @media (max-width: 767px) {
         border: none;

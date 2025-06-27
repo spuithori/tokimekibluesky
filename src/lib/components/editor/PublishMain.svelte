@@ -332,6 +332,7 @@
           {isVideoUploadEnabled}
           {onopen}
           {submitArea}
+          {publishContentLength}
   >
     {#snippet top()}
       {#if (post.replyRef && typeof post.replyRef !== 'string')}
@@ -496,8 +497,6 @@
               {/snippet}
             </Menu>
           {/if}
-
-          <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
         </div>
 
         {#if (isAltTextRequired)}
@@ -617,29 +616,9 @@
       }
   }
 
-  .publish-length {
-      color: var(--publish-length-color);
-      display: flex;
-      align-items: center;
-      margin-right: auto;
-      white-space: nowrap;
-      pointer-events: none;
-      cursor: default;
-
-      &.over {
-          font-weight: bold;
-          color: var(--danger-color);
-      }
-  }
-
   .publish-form {
       &--fit {
           @media (max-width: 767px) {
-              .publish-length {
-                  margin-left: auto;
-                  margin-right: 0;
-              }
-
               .add-thread-button {
                   order: 1;
               }

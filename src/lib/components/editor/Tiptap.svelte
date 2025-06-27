@@ -47,6 +47,7 @@
     onupload,
     onpicktenor,
     onpublish,
+    publishContentLength,
   }: Props = $props();
 
     let element = $state();
@@ -332,6 +333,8 @@
       <button class="editor-menu-button" onclick={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
         <Laugh size="20" color="var(--publish-tool-button-color)"></Laugh>
       </button>
+
+      <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
   {/snippet}
 </EditorBar>
 
@@ -431,5 +434,20 @@
         grid-template-columns: 40px 1fr;
         gap: 8px;
         padding: 16px;
+    }
+
+    .publish-length {
+        color: var(--publish-length-color);
+        display: flex;
+        align-items: center;
+        margin-right: auto;
+        white-space: nowrap;
+        pointer-events: none;
+        cursor: default;
+
+        &.over {
+            font-weight: bold;
+            color: var(--danger-color);
+        }
     }
 </style>
