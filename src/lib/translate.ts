@@ -10,8 +10,7 @@ export async function translate(text, lang = window.navigator.language, _agent) 
         })
     });
     const translation = await res.json();
-    console.log(translation);
-    const translatedText = await translation.data.translations[0].translatedText;
+    const translatedText = await translation[0].translations[0].text;
 
     const rt = new RichText({text: translatedText});
     await rt.detectFacets(_agent.agent);
