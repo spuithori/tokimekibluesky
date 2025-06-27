@@ -496,14 +496,14 @@
               {/snippet}
             </Menu>
           {/if}
+
+          <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
         </div>
 
         {#if (isAltTextRequired)}
           <Notice text={$_('alt_text_missing')}></Notice>
         {/if}
       </div>
-
-      <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
     {/snippet}
   </Tiptap>
 </div>
@@ -623,9 +623,6 @@
       align-items: center;
       margin-right: auto;
       white-space: nowrap;
-      position: absolute;
-      bottom: 20px;
-      right: 12px;
       pointer-events: none;
       cursor: default;
 

@@ -19,26 +19,15 @@
         position: sticky;
         bottom: 0;
         z-index: 100;
-        margin: 0 auto;
         padding-bottom: var(--safe-area-bottom);
         padding-inline: 12px;
         justify-content: space-between;
-
-        @media (max-width: 767px) {
-            width: fit-content;
-            background: var(--publish-textarea-bg-color);
-        }
 
         &__buttons {
             display: flex;
             align-items: center;
             gap: 5px;
             height: 36px;
-
-            @media (max-width: 767px) {
-              padding: 8px 12px;
-              border-radius: var(--border-radius-3);
-            }
         }
 
         &--focus {
