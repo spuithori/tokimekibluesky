@@ -19,9 +19,10 @@
   import {computeCid} from "$lib/components/editor/postUtil";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
-  import {Pencil, Pin, PinOff, X} from "lucide-svelte";
+  import {Pencil, X, Settings2} from "lucide-svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
   import {languageDetect} from '$lib/translate';
+  import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
 
   const postState = getPostState();
 
@@ -31,6 +32,7 @@
   let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
   let isEnabled = $state(true);
   let isPublishing = $state(false);
+  let isConfigOpen = $state(false);
   let writes = [];
   let continuousTags = [];
   let tid: TID | undefined;
@@ -653,28 +655,25 @@
 
   <div class="publish-wrap">
     <div class="publish-header">
+      <button class="editor-menu-button" onclick={() => {isConfigOpen = !isConfigOpen}}>
+        <Settings2 size="20" color="var(--text-color-1)"></Settings2>
+      </button>
+
       {#if (!isEnabled)}
         <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postState.posts.length > 1}>{$_('drafts_save')}</button>
       {:else}
         <button class="publish-draft-button publish-view-draft" onclick={() => {isDraftModalOpen = true}} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
       {/if}
 
-      <div class="publish-continue-mode" class:checked={publishState.pinned}>
-        <input id="continue_mode" type="checkbox" bind:checked={publishState.pinned} aria-label="{$_('continuous_mode')}">
-        <label for="continue_mode">
-          {#if (publishState.pinned)}
-            <Pin size="18"></Pin>
-          {:else}
-            <PinOff size="18"></PinOff>
-          {/if}
-        </label>
-      </div>
-
-      <button class="publish-submit-button" class:publish-submit-button--hide={!$settings.design?.mobilePostLayoutTop} onclick={publishAll} disabled={isEnabled}>{$_('publish_button_send')}</button>
-
       <button class="publish-sp-close" onclick={onClose} aria-label="Close.">
         <X color="var(--primary-color)"></X>
       </button>
+
+      {#if (!$settings?.design?.mobilePostLayoutTop)}
+        <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled}>
+          {$_('publish_button_send')}
+        </button>
+      {/if}
     </div>
 
     {#each postState.posts as post, index (post)}
@@ -694,7 +693,9 @@
                   onpublish={publishAll}
                   bind:editor={editor}
                   bind:isEnabled={isEnabled}
-          ></PublishMain>
+                  {submitArea}
+          >
+          </PublishMain>
         {:else}
           <PublishPool {post} {index} bind:_agent={_agent} onchange={applyChangeThread} isEnabled={isPublishing}></PublishPool>
         {/if}
@@ -705,7 +706,19 @@
   {#if (isDraftModalOpen)}
     <DraftModal {_agent} onuse={handleDraftUse} onclose={() => {isDraftModalOpen = false}}></DraftModal>
   {/if}
+
+  {#if (isConfigOpen)}
+    <PublishConfigModal onclose={() => {isConfigOpen = false}}></PublishConfigModal>
+  {/if}
 </section>
+
+{#snippet submitArea()}
+  {#if ($settings?.design?.mobilePostLayoutTop)}
+    <button class="publish-submit-button publish-submit-button--bottom" onclick={publishAll} disabled={isEnabled}>
+      {$_('publish_button_send')}
+    </button>
+  {/if}
+{/snippet}
 
 <style lang="postcss">
     .publish-toggle {
@@ -756,7 +769,7 @@
         align-items: center;
         gap: 8px;
         width: 100%;
-        padding-bottom: 8px;
+        padding: 16px 16px 0;
 
         @media (max-width: 767px) {
             padding: 12px 12px 8px;
@@ -765,55 +778,39 @@
 
     .publish-submit-button {
         z-index: 12;
-
-        @media (max-width: 767px) {
-            order: 3;
-        }
-    }
-
-    .publish-continue-mode {
-        border: 1px solid var(--primary-color);
-        color: var(--primary-color);
-        opacity: .6;
-        padding: 0 6px;
-        font-size: 14px;
-        height: 30px;
-        border-radius: 15px;
+        min-width: 72px;
+        border-radius: var(--border-radius-3);
+        background-color: var(--publish-post-button-bg-color);
+        color: var(--publish-post-button-color);
+        border: var(--publish-post-button-border);
+        box-shadow: var(--publish-post-button-box-shadow);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
-        cursor: pointer;
-        position: relative;
+        flex-direction: column;
+        font-size: 14px;
+        letter-spacing: .05em;
+        font-weight: bold;
+        gap: 0;
+        white-space: nowrap;
+        padding: 0 8px;
+
+        &--top {
+          height: 32px;
+        }
+
+        &:disabled {
+          opacity: .6;
+        }
+
+        &--hide {
+          @media (max-width: 767px) {
+            display: none;
+          }
+        }
 
         @media (max-width: 767px) {
-            display: none;
-        }
-
-        input {
-            position: absolute;
-        }
-
-        label {
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-
-            &::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                right: 0;
-            }
-        }
-
-        &.checked {
-            opacity: 1;
-            font-weight: bold;
+            order: 3;
         }
     }
 
@@ -832,7 +829,7 @@
         letter-spacing: .025em;
         gap: 5px;
         white-space: nowrap;
-        margin-right: auto;
+        margin-left: auto;
 
         &:hover {
             opacity: .7;

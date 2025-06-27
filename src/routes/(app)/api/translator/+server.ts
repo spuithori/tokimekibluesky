@@ -1,27 +1,63 @@
-import crypto from 'crypto';
-import { TRANSLATOR_API_KEY, TRANSLATOR_LOCATION } from '$env/static/private';
+import { GCP_PROJECT_NUMBER, GCP_SERVICE_ACCOUNT_EMAIL, GCP_WORKLOAD_IDENTITY_POOL_ID, GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID } from '$env/static/private';
+import {getVercelOidcToken} from '@vercel/functions/oidc';
+import {ExternalAccountClient} from 'google-auth-library';
+
+const authClient = ExternalAccountClient.fromJSON({
+    type: 'external_account',
+    audience: `//iam.googleapis.com/projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${GCP_WORKLOAD_IDENTITY_POOL_ID}/providers/${GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID}`,
+    subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
+    token_url: 'https://sts.googleapis.com/v1/token',
+    service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${GCP_SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
+    subject_token_supplier: {
+        getSubjectToken: getVercelOidcToken,
+    },
+});
 
 async function translator(text = '', to = 'ja') {
-    const response = await fetch("https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=" + to, {
+    const accessToken = await authClient.getAccessToken();
+
+    if (!accessToken?.token) {
+        throw new Error('Failed to get access token.');
+    }
+
+    const response = await fetch("https://translation.googleapis.com/language/translate/v2", {
         method: 'post',
         headers: {
-            'Ocp-Apim-Subscription-Key': TRANSLATOR_API_KEY,
-            'Ocp-Apim-Subscription-Region': TRANSLATOR_LOCATION,
             'Content-type': 'application/json',
-            'X-ClientTraceId': crypto.randomUUID()
+            'Authorization': `Bearer ${accessToken.token}`,
+            'x-goog-user-project': GCP_PROJECT_NUMBER,
         },
-        body: JSON.stringify([{
-            'text': text
-        }]),
-        responseType: 'json'
+        body: JSON.stringify({
+            target: to,
+            q: text,
+        }),
     })
-
-    return response.json();
+    return await response.json();
 }
 
 export async function POST({ request }) {
     if (request.method === 'POST') {
-        const textObj = await request.json();
-        return new Response(JSON.stringify(await translator(textObj.text, textObj.to)), { status: 200 });
+        try {
+            const textObj = await request.json();
+            if (!textObj.text) {
+                return new Response(JSON.stringify({ error: 'Missing text field in request body' }), { status: 400 });
+            }
+
+            const body = await translator(textObj.text, textObj.to);
+            const text = body.data.translations[0].translatedText;
+            const result = [
+                {
+                    translations: [
+                        {
+                            text: text,
+                        }
+                    ]
+                }
+            ]
+            return new Response(JSON.stringify(result), { status: 200 });
+        } catch (error) {
+            console.error(error);
+            return new Response(JSON.stringify({ error: 'An internal server error occurred.' }), { status: 500 });
+        }
     }
 }

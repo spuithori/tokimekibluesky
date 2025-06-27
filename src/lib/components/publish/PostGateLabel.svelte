@@ -7,16 +7,14 @@
 
 <style lang="postcss">
     .post-gate-label {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         gap: 4px;
         font-size: 13px;
         padding: 4px 8px;
         background-color: var(--bg-color-2);
-        color: var(--primary-color);
+        color: var(--text-color-2);
         font-weight: bold;
-        border-radius: var(--border-radius-3);
-        cursor: default;
-        margin-top: 8px;
+        border-radius: var(--border-radius-2);
     }
 </style>

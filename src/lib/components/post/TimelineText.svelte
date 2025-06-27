@@ -61,5 +61,6 @@
     .tag-wrap {
         display: inline-block;
         position: relative;
+        white-space: pre-line;
     }
 </style>

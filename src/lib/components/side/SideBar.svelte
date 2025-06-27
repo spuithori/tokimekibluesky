@@ -147,199 +147,223 @@
 </div>
 
 <style lang="postcss">
-  .side-bar {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 4px 0 8px;
-      overflow-y: auto;
-      scrollbar-width: none;
-      transition: transform .2s ease-in-out, opacity .2s ease-in-out, visibility .2s ease-in-out;
+    .side-bar {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 4px 0 8px;
+        overflow: hidden;
+        transition: transform .2s ease-in-out, opacity .2s ease-in-out, visibility .2s ease-in-out;
 
-      &::-webkit-scrollbar{
-          display:none;
-      }
+        &::-webkit-scrollbar {
+            display: none;
+        }
 
-      @media (max-width: 767px) {
-          display: flex;
-          flex-direction: row;
-          position: fixed;
-          gap: 0;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 999;
-          background: var(--bar-bg-color);
-          backdrop-filter: blur(8px);
-          height: min-content;
-          padding: 0 4px 0 8px;
-          width: 100vw;
-          overflow-y: hidden;
-      }
+        @media (max-width: 767px) {
+            display: flex;
+            flex-direction: row;
+            position: fixed;
+            gap: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            background: var(--bar-bg-color);
+            backdrop-filter: blur(8px);
+            height: min-content;
+            padding: 0 4px 0 8px;
+            width: 100vw;
+            overflow-x: auto;
+        }
 
-      &__list {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
+        &__list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
 
-          @media (max-width: 767px) {
-              flex-direction: row;
-              gap: 0;
-          }
-      }
+            @media (max-width: 767px) {
+                flex-direction: row;
+                gap: 0;
+            }
+        }
 
-      &--scroll-down {
-          @media (max-width: 767px) {
-              opacity: 0;
-              visibility: hidden;
-              transform: translateY(-48px);
-          }
-      }
 
-      &--immersive-mode {
-          &.side-bar--scroll-down {
-              @media (min-width: 768px) {
-                  opacity: 0;
-                  visibility: hidden;
-              }
-          }
-      }
+        &__bottom {
+            @media (min-width: 768px) {
+                position: sticky;
+                bottom: 0;
+            }
+        }
 
-      &--mobileV2 {
-          @media (max-width: 767px) {
-              backdrop-filter: none;
-              width: fit-content;
-              max-width: 80vw;
-              bottom: 128px;
-              top: auto;
-              left: 0;
-              right: 0;
-              margin: auto;
-              box-shadow: var(--timeline-embed-box-shadow);
-              border-radius: 24px;
+        &__top {
+            @media (min-width: 768px) {
+                overflow-x: hidden;
+                scrollbar-width: none;
+                position: relative;
+                padding-bottom: 16px;
 
-              transform: none !important;
-              opacity: 0;
-              visibility: hidden;
+                &::after {
+                    content: '';
+                    display: block;
+                    position: sticky;
+                    bottom: -16px;
+                    width: 100%;
+                    height: 16px;
+                    background-image: linear-gradient(to top, var(--base-bg-color), transparent);
+                    pointer-events: none;
+                    flex-shrink: 0;
+                }
+            }
+        }
 
-              &.side-bar--mobileV2-visible {
-                  opacity: 1;
-                  visibility: visible;
-              }
+        &--scroll-down {
+            @media (max-width: 767px) {
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-48px);
+            }
+        }
 
-              .side-column-add-button {
-                 display: none;
-              }
-          }
-      }
-  }
+        &--immersive-mode {
+            &.side-bar--scroll-down {
+                @media (min-width: 768px) {
+                    opacity: 0;
+                    visibility: hidden;
+                }
+            }
+        }
 
-  .side-bar-button {
-      width: 48px;
-      height: 48px;
-      border-radius: 5px;
-      background-color: transparent;
-      display: grid;
-      place-content: center;
-      position: relative;
+        &--mobileV2 {
+            @media (max-width: 767px) {
+                backdrop-filter: none;
+                width: fit-content;
+                max-width: 80vw;
+                bottom: 128px;
+                top: auto;
+                left: 0;
+                right: 0;
+                margin: auto;
+                box-shadow: var(--timeline-embed-box-shadow);
+                border-radius: 24px;
 
-      &::before {
-          content: '';
-          display: block;
-          position: absolute;
-          left: 0;
-          top: 0;
-          bottom: 0;
-          width: var(--bar-current-bar-width);
-          height: var(--bar-current-bar-height);
-          border-radius: var(--bar-current-bar-border-radius);
-          background-color: var(--bar-current-bar-color);
-          margin: auto;
-          transform: scaleY(0);
-          transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
+                transform: none !important;
+                opacity: 0;
+                visibility: hidden;
 
-          @media (max-width: 767px) {
-              width: 20px;
-              height: 4px;
-              bottom: auto;
-              right: 0;
-          }
-      }
+                &.side-bar--mobileV2-visible {
+                    opacity: 1;
+                    visibility: visible;
+                }
 
-      &--current {
-          &::before {
-              transform: scaleY(1);
-          }
-      }
+                .side-column-add-button {
+                    display: none;
+                }
+            }
+        }
+    }
 
-      &--intersecting {
-          @media (max-width: 767px) {
-              &::before {
-                  transform: scaleY(1);
-              }
-          }
-      }
+    .side-bar-button {
+        width: 48px;
+        height: 48px;
+        border-radius: 5px;
+        background-color: transparent;
+        display: grid;
+        place-content: center;
+        position: relative;
+        flex-shrink: 0;
 
-      &--settings {
-          position: sticky;
-          bottom: 0;
+        &::before {
+            content: '';
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--bar-current-bar-width);
+            height: var(--bar-current-bar-height);
+            border-radius: var(--bar-current-bar-border-radius);
+            background-color: var(--bar-current-bar-color);
+            margin: auto;
+            transform: scaleY(0);
+            transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
 
-      }
+            @media (max-width: 767px) {
+                width: 20px;
+                height: 4px;
+                bottom: auto;
+                right: 0;
+            }
+        }
 
-      &__count {
-          position: absolute;
-          width: 16px;
-          height: 16px;
-          font-size: 11px;
-          font-weight: bold;
-          border-radius: 50%;
-          background-color: var(--danger-color);
-          color: var(--bg-color-1);
-          display: grid;
-          place-content: center;
-          right: -2px;
-          top: -2px;
+        &--current {
+            &::before {
+                transform: scaleY(1);
+            }
+        }
 
-          @media (max-width: 767px) {
-              top: 4px;
-              right: 2px;
-              width: 14px;
-              height: 14px;
-              font-size: 10px;
-          }
-      }
-  }
+        &--intersecting {
+            @media (max-width: 767px) {
+                &::before {
+                    transform: scaleY(1);
+                }
+            }
+        }
 
-  .side-column-add-button {
-      width: 40px;
-      height: 40px;
-      border-radius: var(--border-radius-3);
-      border: 1px solid var(--primary-color);
-      box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.04) 0 2px 4px -1px;
-      background-color: var(--nav-content-bg-color);
+        &__count {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 50%;
+            background-color: var(--danger-color);
+            color: var(--bg-color-1);
+            display: grid;
+            place-content: center;
+            right: -2px;
+            top: -2px;
 
-      @media (max-width: 767px) {
-          margin-bottom: 0;
-          width: 36px;
-          height: 36px;
-          margin-right: 6px;
-      }
-  }
+            @media (max-width: 767px) {
+                top: 4px;
+                right: 2px;
+                width: 14px;
+                height: 14px;
+                font-size: 10px;
+            }
+        }
+    }
 
-  .side-publish-button {
-      --bar-primary-icon-color: var(--bg-color-1);
-      width: 40px;
-      height: 40px;
-      border-radius: 5px;
-      display: grid;
-      place-content: center;
-      background-color: var(--primary-color);
-      margin-bottom: 4px;
+    .side-column-add-button {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--border-radius-3);
+        border: 1px solid var(--primary-color);
+        box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.04) 0 2px 4px -1px;
+        background-color: var(--nav-content-bg-color);
 
-      @media (max-width: 767px) {
-          display: none;
-      }
-  }
+        @media (max-width: 767px) {
+            margin-bottom: 0;
+            width: 36px;
+            height: 36px;
+            margin-right: 6px;
+        }
+    }
+
+    .side-publish-button {
+        --bar-primary-icon-color: var(--bg-color-1);
+        width: 40px;
+        height: 40px;
+        border-radius: 5px;
+        display: grid;
+        place-content: center;
+        background-color: var(--primary-color);
+        margin-bottom: 4px;
+        flex-shrink: 0;
+
+        @media (max-width: 767px) {
+            display: none;
+        }
+    }
 </style>

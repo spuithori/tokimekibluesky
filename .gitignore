@@ -13,3 +13,4 @@ vite.config.ts.timestamp-*
 dexie-cloud.key
 dexie-cloud.json
 .idea
+.env*.local

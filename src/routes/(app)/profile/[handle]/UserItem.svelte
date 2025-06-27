@@ -51,7 +51,7 @@
 
   {#if (user.did !== _agent.did())}
     <div class="user-item__buttons">
-      <UserFollowButton following="{user.viewer?.following}" user={user} followChange={handleFollowChange} {_agent}></UserFollowButton>
+      <UserFollowButton following="{user.viewer?.following}" user={user} followChange={handleFollowChange} {_agent} style={layout === 'notification' ? 'tiny' : 'default'}></UserFollowButton>
     </div>
   {/if}
 </div>
