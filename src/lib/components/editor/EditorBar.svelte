@@ -30,9 +30,5 @@
             gap: 5px;
             height: 36px;
         }
-
-        &--focus {
-            padding-bottom: 0;
-        }
     }
 </style>
