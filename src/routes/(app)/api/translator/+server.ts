@@ -1,6 +1,6 @@
 import { GCP_PROJECT_NUMBER, GCP_SERVICE_ACCOUNT_EMAIL, GCP_WORKLOAD_IDENTITY_POOL_ID, GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID } from '$env/static/private';
-import { getVercelOidcToken } from '@vercel/functions/oidc';
-import { ExternalAccountClient  } from 'google-auth-library';
+import {getVercelOidcToken} from '@vercel/functions/oidc';
+import {ExternalAccountClient} from 'google-auth-library';
 
 const authClient = ExternalAccountClient.fromJSON({
     type: 'external_account',
@@ -32,8 +32,7 @@ async function translator(text = '', to = 'ja') {
             q: text,
         }),
     })
-    const json = await response.json();
-    return json;
+    return await response.json();
 }
 
 export async function POST({ request }) {
@@ -44,8 +43,16 @@ export async function POST({ request }) {
                 return new Response(JSON.stringify({ error: 'Missing text field in request body' }), { status: 400 });
             }
 
-            const translationResult = await translator(textObj.text, textObj.to);
-            return new Response(JSON.stringify(translationResult), { status: 200 });
+            const data = await translator(textObj.text, textObj.to);
+            const text = data.translations[0].translatedText;
+            const result = [{
+                translations: [
+                    {
+                        text: text,
+                    }
+                ]
+            }];
+            return new Response(JSON.stringify(result), { status: 200 });
         } catch (error) {
             console.error(error);
             return new Response(JSON.stringify({ error: 'An internal server error occurred.' }), { status: 500 });
