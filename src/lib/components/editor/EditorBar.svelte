@@ -37,8 +37,7 @@
 
             @media (max-width: 767px) {
               padding: 8px 12px;
-              background-color: var(--bg-color-2);
-              border-radius: var(--border-radius-4) var(--border-radius-1) var(--border-radius-1) var(--border-radius-4);
+              border-radius: var(--border-radius-3);
             }
         }
 

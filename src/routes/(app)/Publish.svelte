@@ -669,7 +669,7 @@
         <X color="var(--primary-color)"></X>
       </button>
 
-      {#if (!$settings?.design?.mobilePostLayoutTop)}
+      {#if ($settings?.design?.mobilePostLayoutTop)}
         <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled}>
           {$_('publish_button_send')}
         </button>
@@ -713,7 +713,7 @@
 </section>
 
 {#snippet submitArea()}
-  {#if ($settings?.design?.mobilePostLayoutTop)}
+  {#if (!$settings?.design?.mobilePostLayoutTop)}
     <button class="publish-submit-button publish-submit-button--bottom" onclick={publishAll} disabled={isEnabled}>
       {$_('publish_button_send')}
     </button>
