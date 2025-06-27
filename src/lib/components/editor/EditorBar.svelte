@@ -19,7 +19,7 @@
         position: sticky;
         bottom: 0;
         z-index: 100;
-        padding-bottom: calc(12px + var(--safe-area-bottom));
+        padding-bottom: 12px;
         background-color: var(--publish-textarea-bg-color);
         padding-inline: 12px;
         justify-content: space-between;
