@@ -21,7 +21,8 @@
         background-color: var(--bg-color-2);
         color: var(--primary-color);
         font-weight: bold;
-        border-radius: var(--border-radius-3);
+        border-radius: var(--border-radius-2);
+        height: 30px;
         cursor: default;
     }
 </style>
