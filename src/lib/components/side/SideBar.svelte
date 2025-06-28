@@ -191,10 +191,7 @@
 
 
         &__bottom {
-            @media (min-width: 768px) {
-                position: sticky;
-                bottom: 0;
-            }
+
         }
 
         &__top {
