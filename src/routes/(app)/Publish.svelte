@@ -830,7 +830,7 @@
         }
 
         .publish-submit-button--top {
-          display: block !important;
+          display: flex !important;
         }
       }
     }
