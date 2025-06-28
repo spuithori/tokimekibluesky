@@ -766,7 +766,7 @@
         align-items: center;
         gap: 8px;
         width: 100%;
-        padding: 16px 16px 0;
+        padding: 12px 16px;
 
         @media (max-width: 767px) {
             padding: 12px 12px 8px;
