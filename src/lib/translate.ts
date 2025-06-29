@@ -1,4 +1,5 @@
 import {RichText} from "@atproto/api";
+import {settingsState} from "$lib/classes/settingsState.svelte";
 
 export async function translate(text, lang = window.navigator.language, _agent) {
 
@@ -7,6 +8,7 @@ export async function translate(text, lang = window.navigator.language, _agent) 
         body: JSON.stringify({
             text: text,
             to: lang,
+            model: settingsState?.settings?.translationModel,
         })
     });
     const translation = await res.json();

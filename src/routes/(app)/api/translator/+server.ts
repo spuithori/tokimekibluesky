@@ -1,4 +1,4 @@
-import { GCP_PROJECT_NUMBER, GCP_SERVICE_ACCOUNT_EMAIL, GCP_WORKLOAD_IDENTITY_POOL_ID, GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID } from '$env/static/private';
+import { GCP_PROJECT_ID, GCP_PROJECT_NUMBER, GCP_SERVICE_ACCOUNT_EMAIL, GCP_WORKLOAD_IDENTITY_POOL_ID, GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID } from '$env/static/private';
 import {getVercelOidcToken} from '@vercel/functions/oidc';
 import {ExternalAccountClient} from 'google-auth-library';
 
@@ -13,7 +13,7 @@ const authClient = ExternalAccountClient.fromJSON({
     },
 });
 
-async function translator(text = '', to = 'ja') {
+async function translator(text = '', to = 'ja', model = undefined) {
     const accessToken = await authClient.getAccessToken();
 
     if (!accessToken?.token) {
@@ -30,6 +30,7 @@ async function translator(text = '', to = 'ja') {
         body: JSON.stringify({
             targetLanguageCode: to,
             contents: [text],
+            model: model === 'llm' ? `projects/${GCP_PROJECT_ID}/locations/us-central1/models/general/translation-llm` : undefined,
             mimeType: 'text/plain'
         }),
     })
@@ -44,7 +45,7 @@ export async function POST({ request }) {
                 return new Response(JSON.stringify({ error: 'Missing text field in request body' }), { status: 400 });
             }
 
-            const body = await translator(textObj.text, textObj.to);
+            const body = await translator(textObj.text, textObj.to, textObj.model);
             const text = body.translations[0].translatedText;
             const result = [
                 {

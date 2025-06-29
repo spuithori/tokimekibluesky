@@ -6,6 +6,8 @@
     import {languageMap} from "$lib/langs/languageMap";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {settingsState} from "$lib/classes/settingsState.svelte";
+    import { Sparkle } from 'lucide-svelte';
+
     let userLanguage = $state($settings?.general.userLanguage || window.navigator.language);
     let language = $state($settings?.general.language || window.navigator.language);
     let dataSaver = $state($settings?.general.dataSaver || false);
@@ -66,6 +68,10 @@ run(() => {
     $settings.general.disableChat = disableChat;
     $settings.general.disableAtmosphere = disableAtmosphere;
 });
+
+if (!settingsState?.settings?.translationModel) {
+  settingsState.settings.translationModel = 'nmt';
+}
 </script>
 
 <svelte:head>
@@ -110,6 +116,33 @@ run(() => {
               <option value="{option.value}">{option.text}</option>
             {/each}
           </select>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('translation_model')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="radio-group">
+          <div class="radio radio--boxed">
+            <input type="radio" bind:group={settingsState.settings.translationModel} id="translationModelNmt" name="translationModel" value={'nmt'}>
+            <label for="translationModelNmt">
+              <span class="radio__ui"></span>
+              {$_('translation_model_nmt')}
+            </label>
+          </div>
+
+          <div class="radio radio--boxed">
+            <input type="radio" bind:group={settingsState.settings.translationModel} id="translationModelLlm" name="translationModel" value={'llm'}>
+            <label for="translationModelLlm">
+              <span class="radio__ui"></span>
+              <Sparkle size="16"></Sparkle>
+              {$_('translation_model_llm')}
+            </label>
+          </div>
         </div>
       </dd>
     </dl>

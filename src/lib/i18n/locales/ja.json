@@ -707,5 +707,8 @@
   "status_live_elsewhere": "どこかでライブ配信中",
   "support_text_1": "TOKIMEKIはオープンソースソフトウェアでありだれでも自由に利用・開発できますが、サーバーホスティングや翻訳機能等にコストがかかっています。また、今後の持続的な開発、野心的な新機能の実装のためにも、ぜひサポートをご検討ください！\nサポート特典については各支援プラットフォームをご確認ください。",
   "sponsor": "✨スポンサー✨",
-  "labeling_nothing": "ラベルなし"
+  "labeling_nothing": "ラベルなし",
+  "translation_model": "翻訳モデル",
+  "translation_model_nmt": "ニューラル機械翻訳（デフォルト）",
+  "translation_model_llm": "LLM"
 }

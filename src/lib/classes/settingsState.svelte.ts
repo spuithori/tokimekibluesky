@@ -1,9 +1,11 @@
 type Settings = {
   markedUnread: boolean,
+  translationModel: 'nmt' | 'llm',
 };
 
 const defaultSettings: Settings = {
   markedUnread: false,
+  translationModel: 'nmt',
 }
 
 class SettingsState {
