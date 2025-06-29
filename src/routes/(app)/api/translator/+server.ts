@@ -20,7 +20,7 @@ async function translator(text = '', to = 'ja') {
         throw new Error('Failed to get access token.');
     }
 
-    const response = await fetch("https://translation.googleapis.com/language/translate/v2", {
+    const response = await fetch(`https://translation.googleapis.com/v3/projects/${GCP_PROJECT_NUMBER}:translateText`, {
         method: 'post',
         headers: {
             'Content-type': 'application/json',
@@ -28,8 +28,9 @@ async function translator(text = '', to = 'ja') {
             'x-goog-user-project': GCP_PROJECT_NUMBER,
         },
         body: JSON.stringify({
-            target: to,
-            q: text,
+            targetLanguageCode: to,
+            contents: [text],
+            mimeType: 'text/plain'
         }),
     })
     return await response.json();
@@ -44,7 +45,7 @@ export async function POST({ request }) {
             }
 
             const body = await translator(textObj.text, textObj.to);
-            const text = body.data.translations[0].translatedText;
+            const text = body.translations[0].translatedText;
             const result = [
                 {
                     translations: [
