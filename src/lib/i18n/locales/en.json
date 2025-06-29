@@ -707,5 +707,8 @@
   "status_live_elsewhere": "Live streaming elsewhere.",
   "support_text_1": "TOKIMEKI is open source software and anyone can freely use and develop it, but there are costs involved in server hosting, translation functions, etc. Also, please consider supporting us for sustainable development and implementation of ambitious new features in the future!\nPlease check each support platform for support benefits.",
   "sponsor": "✨Sponsors✨",
-  "labeling_nothing": "No labels"
+  "labeling_nothing": "No labels",
+  "translation_model": "Translation Model",
+  "translation_model_nmt": "Neural Machine Translation (default)",
+  "translation_model_llm": "LLM"
 }
