@@ -594,11 +594,11 @@
       position: relative;
 
       &--reply {
-          margin: 12px 12px 0;
+          padding: 16px 16px 0;
 
           .publish-quote__delete {
-              top: 0;
-              right: 0;
+              top: 8px;
+              right: 8px;
           }
       }
 
@@ -660,5 +660,11 @@
       flex-wrap: wrap;
       gap: 4px 8px;
       margin: 8px 0;
+  }
+
+  .publish-quote--reply {
+      .timeline-external__description {
+          -webkit-line-clamp: none;
+      }
   }
 </style>
