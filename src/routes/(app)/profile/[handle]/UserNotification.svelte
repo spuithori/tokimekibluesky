@@ -1,42 +1,44 @@
 <script lang="ts">
-  import {_, locale} from 'svelte-i18n';
+  import {_} from 'svelte-i18n';
   import {BellMinus, BellPlus} from "lucide-svelte";
-  import {onMount} from "svelte";
-  import {isSubscribe, sub} from "$lib/pushSubscription";
   import {toast} from "svelte-sonner";
+  import { agent } from "$lib/stores";
 
-  let { _agent, profile } = $props();
-  let isPushNotificationEnabled = $state(false);
-  let enableAccounts = $state(localStorage.getItem('pushNotificationAccounts') ? JSON.parse(localStorage.getItem('pushNotificationAccounts')) : []);
-  let notifications = $state(localStorage.getItem('pushNotificationNotifications') ? JSON.parse(localStorage.getItem('pushNotificationNotifications')) : []);
+  let { _agent = $agent, profile, onupdate } = $props();
+  let isPushNotificationEnabled = $state(true);
 
   async function handleClick() {
       isPushNotificationEnabled = false;
 
-      if (notifications.includes(profile.did)) {
-          notifications = notifications.filter(notification => notification !== profile.did);
-      } else {
-          notifications = [...notifications, profile.did];
-      }
-
       try {
-          await sub(enableAccounts, $locale, notifications);
+          const res = profile?.viewer?.activitySubscription
+              ? await _agent.agent.api.app.bsky.notification.putActivitySubscription({
+                  subject: profile.did,
+                  activitySubscription: {
+                      post: false,
+                      reply: false,
+                  }
+              })
+              : await _agent.agent.api.app.bsky.notification.putActivitySubscription({
+                  subject: profile.did,
+                  activitySubscription: {
+                      post: true,
+                      reply: false,
+                  }
+              });
+
+          onupdate(res.data?.activitySubscription);
           toast.success($_('push_subscription_success'));
       } catch (e) {
           toast.error($_('push_subscription_failed') + ' ' + e.message);
       }
 
       isPushNotificationEnabled = true;
-      localStorage.setItem('pushNotificationNotifications', JSON.stringify(notifications));
   }
-
-  onMount(async () => {
-      isPushNotificationEnabled = await isSubscribe();
-  });
 </script>
 
 <button class="user-notification-button" onclick={handleClick} disabled={!isPushNotificationEnabled}>
-  {#if notifications.includes(profile.did)}
+  {#if profile?.viewer?.activitySubscription}
     <BellMinus color="var(--primary-color)"></BellMinus>
   {:else}
     <BellPlus color="var(--primary-color)"></BellPlus>

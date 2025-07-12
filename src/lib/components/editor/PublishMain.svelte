@@ -628,7 +628,7 @@
 
   .publish-lang {
       display: flex;
-      justify-content: center;
+      flex-wrap: wrap;
       gap: 4px;
       color: var(--text-color-1);
       font-size: 14px;

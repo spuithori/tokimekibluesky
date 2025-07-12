@@ -5,16 +5,22 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {Heart, Star} from "lucide-svelte";
   import NumberFlow from '@number-flow/svelte';
+  import { isReasonRepost } from "@atproto/api/dist/client/types/app/bsky/feed/defs";
+  import {settingsState} from "$lib/classes/settingsState.svelte";
 
   interface Props {
     _agent?: any;
     post: any;
+    reason?: any;
     showCounts?: boolean;
+    isModal?: boolean;
+    isTok?: boolean;
   }
 
   let {
     _agent = $agent,
     post,
+    reason,
     showCounts = true,
     isModal = false,
     isTok = false,
@@ -30,7 +36,11 @@
       isNumberTransition = true;
 
       try {
-          const like = await _agent.setVote(cid, uri, viewer || '');
+          const via = isReasonRepost(reason) && !settingsState?.settings?.disableEmbedVia ? {
+              cid: reason.cid,
+              uri: reason.uri,
+          } : undefined;
+          const like = await _agent.setVote(cid, uri, viewer || '', via);
           const likeViewer = like?.uri || undefined;
           const pulse = {
               viewer: likeViewer,

@@ -16,6 +16,16 @@ export function getReasonText(reason: string) {
             return 'reposted_your_post';
         case 'repost_multiple':
             return 'reposted_your_post_multiple';
+        case 'like-via-repost':
+            return 'liked_your_post_via_repost';
+        case 'like-via-repost_multiple':
+            return 'liked_your_post_via_repost_multiple';
+        case 'repost-via-repost':
+            return 'reposted_your_post_via_repost';
+        case 'repost-via-repost_multiple':
+            return 'reposted_your_post_via_repost_multiple';
+        case 'subscribed-post':
+            return 'subscribed_your_post';
         default:
             return 'liked_your_post';
     }
@@ -47,7 +57,7 @@ export function bundleByProperties(array: any[], property1: string, property2: s
         latestIndexedAt: array[0].indexedAt,
         key: array[0].indexedAt + new Date().toISOString(),
         subject: array[0].reasonSubject && array[0].reason !== 'reply' && array[0].reason !==   'quote'
-            ? array[0].reasonSubject
+            ? array[0]?.record?.subject?.uri
             : (array[0].uri && !array[0].uri.includes('app.bsky.graph.follow')
                 ? array[0].uri
                 : undefined),

@@ -610,7 +610,7 @@
       {:else if data.reply && !isSingle && !isReplyHide}
         {#if isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri}
           <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
-            <TimelineContent post={data.reply.root} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
+            <TimelineContent post={data.reply.root} {_agent} {isMedia} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
           </div>
 
           {#if data.reply.parent?.record?.reply?.parent?.uri !== data.reply.root.uri}
@@ -627,12 +627,12 @@
             <span class="timeline-reply-bar"></span>
           {/if}
 
-          <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
+          <TimelineContent post={data.reply.parent} {_agent} {isMedia} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
         </div>
       {/if}
 
       <div class="timeline__column">
-        <TimelineContent post={data.post} {_agent} {isMedia} {isProfile} {isSingle} {isTranslated} bind:isHide {pulseTranslate}>
+        <TimelineContent post={data.post} reason={data?.reason} {_agent} {isMedia} {isSingle} {isTranslated} bind:isHide {pulseTranslate}>
           {@render children?.()}
         </TimelineContent>
       </div>

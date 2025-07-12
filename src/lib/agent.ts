@@ -227,11 +227,11 @@ export class Agent {
         return res;
     }
 
-    async setVote(cid: string, uri: string, likeUri = '') {
+    async setVote(cid: string, uri: string, likeUri = '', via = undefined) {
         if (!likeUri) {
             return await this.agent.api.app.bsky.feed.like.create(
                 {repo: this.did()},
-                {subject: {cid: cid, uri: uri}, createdAt: new Date().toISOString()},
+                {subject: {cid: cid, uri: uri}, via, createdAt: new Date().toISOString()},
             );
         } else {
             const rkey = likeUri.split('/').slice(-1)[0];
@@ -243,11 +243,11 @@ export class Agent {
         }
     }
 
-    async setRepost(cid: string, uri: string, repostUri: string = '') {
+    async setRepost(cid: string, uri: string, repostUri: string = '', via = undefined) {
         if (!repostUri) {
             return await this.agent.api.app.bsky.feed.repost.create(
                 { repo: this.did() },
-                { subject: { cid: cid, uri: uri } , createdAt: new Date().toISOString() },
+                { subject: { cid: cid, uri: uri }, via, createdAt: new Date().toISOString() },
             );
         } else {
             const rkey = repostUri.split('/').slice(-1)[0];

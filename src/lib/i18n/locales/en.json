@@ -710,5 +710,12 @@
   "labeling_nothing": "No labels",
   "translation_model": "Translation Model",
   "translation_model_nmt": "Neural Machine Translation (default)",
-  "translation_model_llm": "LLM"
+  "translation_model_llm": "LLM",
+  "subscribed_your_post": " is posted",
+  "liked_your_post_via_repost": " liked via repost.",
+  "liked_your_post_via_repost_multiple": " and others liked via repost",
+  "reposted_your_post_via_repost": " reposted via repost",
+  "reposted_your_post_via_repost_multiple": " and others reposted via repost",
+  "show_reaction_via_repost": "Show reactions to your reposts",
+  "disable_embed_via": "Do not notify those who repost reactions"
 }

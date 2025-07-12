@@ -24,11 +24,11 @@
 
   interface Props {
       post: any;
+      reason?: any;
       _agent: any;
       isMedia?: boolean;
       isTranslated?: boolean;
       isSingle?: boolean;
-      isProfile?: boolean;
       pulseTranslate?: boolean;
       isHide?: any;
       children?: import('svelte').Snippet;
@@ -36,11 +36,11 @@
 
   let {
       post,
+      reason,
       _agent,
       isMedia = false,
       isTranslated = $bindable(false),
       isSingle = false,
-      isProfile = false,
       pulseTranslate = $bindable(false),
       isHide = $bindable(),
       children
@@ -308,7 +308,7 @@
     {/if}
   </div>
 
-  <ReactionButtons {_agent} {post}></ReactionButtons>
+  <ReactionButtons {_agent} {post} {reason}></ReactionButtons>
 
   {@render children?.()}
 </div>

@@ -162,6 +162,19 @@ if (!settingsState?.settings?.translationModel) {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
+        {$_('disable_embed_via')}
+        <span class="new-label">NEW</span>
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="embedVia" bind:checked={settingsState.settings.disableEmbedVia}><label class="input-toggle__label" for="embedVia"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
         {$_('data_saver')}
       </dt>
 

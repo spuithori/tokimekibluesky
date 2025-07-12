@@ -50,6 +50,7 @@
     });
     let opacity = $state(column.settings?.opacity || 100);
     let background = $state(column.settings?.background || '');
+    let showReactionViaRepost = $state(column.settings?.showReactionViaRepost || false);
 
     $effect(() => {
         column.settings = {
@@ -74,6 +75,7 @@
             popupPosition: popupPosition,
             opacity: opacity,
             background: background,
+            showReactionViaRepost: showReactionViaRepost,
         }
     })
 
@@ -94,7 +96,8 @@
             onlyShowUnread: false,
             playSound: null,
             hideCounts: false,
-            opacity: 1.0
+            opacity: 1.0,
+            showReactionViaRepost: false,
         }
     }
 
@@ -305,6 +308,22 @@
         column.algorithm.name = `${$_('search')} "${column.algorithm.algorithm}"`;
         column.data.feed = [];
         column.data.cursor = '';
+    }
+
+    function handleViaRepostChange() {
+        if (column.filter.includes('like-via-repost')) {
+            column.filter = column.filter.filter(item => item !== 'like-via-repost');
+        } else {
+            column.filter.push('like-via-repost');
+        }
+
+        if (column.filter.includes('repost-via-repost')) {
+            column.filter = column.filter.filter(item => item !== 'repost-via-repost');
+        } else {
+            column.filter.push('repost-via-repost');
+        }
+
+        onclose(true);
     }
 </script>
 
@@ -519,6 +538,18 @@
                 {/if}
 
                 {#if (column.algorithm?.type === 'notification')}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('show_reaction_via_repost')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'showReactionViaRepost'} bind:checked={() => column.filter.includes('like-via-repost'), () => {}} onchange={handleViaRepostChange}><label class="input-toggle__label" for={column.id + 'showReactionViaRepost'}></label>
+                            </div>
+                        </dd>
+                    </dl>
+
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('only_show_unread')}

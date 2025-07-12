@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import {Heart, Repeat2, Star} from "lucide-svelte";
+    import {Heart, Repeat2, Star, Pencil} from "lucide-svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import {getReasonText} from "$lib/components/notification/notificationUtil";
@@ -71,20 +71,25 @@
 <article class="notifications-item notifications-item--reaction notifications-item--{item.reason}" class:notifications-item--bubble={$settings?.design?.bubbleTimeline}>
     <div class="notification-column">
         <div class="notification-column__icons">
-            {#if (item.reason === 'repost')}
+            {#if (item.reason === 'repost' || item.reason === 'repost-via-repost')}
                 <button class="notification-icon notification-icon--repost" onclick={handleClick}>
                     <Repeat2 color="var(--bg-color-1)" size="18"></Repeat2>
                 </button>
-
             {/if}
 
-            {#if (item.reason === 'like')}
+            {#if (item.reason === 'like' || item.reason === 'like-via-repost')}
                 <button class="notification-icon notification-icon--like" onclick={handleClick}>
                     {#if ($settings?.design?.reactionMode === 'superstar')}
                         <Star color="var(--bg-color-1)" size="18"></Star>
                     {:else}
                         <Heart color="var(--bg-color-1)" size="18"></Heart>
                     {/if}
+                </button>
+            {/if}
+
+            {#if (item.reason === 'subscribed-post')}
+                <button class="notification-icon notification-icon--post" onclick={handleClick}>
+                    <Pencil color="var(--bg-color-1)" size="16"></Pencil>
                 </button>
             {/if}
         </div>
@@ -162,6 +167,10 @@
         &--like {
             background-color: var(--timeline-reaction-liked-icon-color);
             padding-top: 1px;
+        }
+
+        &--post {
+            background-color: var(--primary-color);
         }
     }
 

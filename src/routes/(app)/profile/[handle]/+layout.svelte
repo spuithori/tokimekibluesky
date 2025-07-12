@@ -226,7 +226,7 @@
             {#if (profile.did !== _agent.did() && !isLabeler)}
               <div class="user-profile-buttons">
                 <UserFollowButton following={profile.viewer?.following} user={profile} {_agent}></UserFollowButton>
-                <UserNotification {_agent} {profile}></UserNotification>
+                <UserNotification {_agent} {profile} onupdate={(v) => {profile.viewer.activitySubscription = v}}></UserNotification>
               </div>
             {:else if (isLabeler && profile?.did)}
               <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>

@@ -6,16 +6,21 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {Repeat} from "lucide-svelte";
   import NumberFlow from '@number-flow/svelte';
+  import { isReasonRepost } from "@atproto/api/dist/client/types/app/bsky/feed/defs";
+  import {settingsState} from "$lib/classes/settingsState.svelte";
 
   interface Props {
     _agent?: any;
     post: any;
+    reason?: any;
     showCounts?: boolean;
+    isModal?: boolean;
   }
 
   let {
     _agent = $agent,
     post,
+    reason,
     showCounts = true,
     isModal = false,
   }: Props = $props();
@@ -35,7 +40,11 @@
       isNumberTransition = true;
 
       try {
-          const repost = await _agent.setRepost(cid, uri, viewer || '');
+          const via = isReasonRepost(reason) && !settingsState?.settings?.disableEmbedVia ? {
+              cid: reason.cid,
+              uri: reason.uri,
+          } : undefined;
+          const repost = await _agent.setRepost(cid, uri, viewer || '', via);
           const repostViewer = repost?.uri || undefined;
           const pulse = {
               viewer: repostViewer,

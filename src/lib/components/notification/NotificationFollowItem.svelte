@@ -4,10 +4,10 @@
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
-    let { filter, item, _agent } = $props();
+    let { item, _agent } = $props();
 </script>
 
-<article class="notifications-item notifications-item--follow notifications-item--filter-{filter}" class:notifications-item--bubble={$settings?.design?.bubbleTimeline}>
+<article class="notifications-item notifications-item--follow" class:notifications-item--bubble={$settings?.design?.bubbleTimeline}>
     <div class="notifications-item__avatar">
         {#if $settings?.design.postsLayout !== 'minimum'}
             <Avatar href="/profile/{ item.author.handle }" avatar={item.author.avatar}

@@ -2,7 +2,7 @@
     import { _ } from 'svelte-i18n';
     import {agent, settings} from '$lib/stores';
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import {AtSign, Heart, Quote, Repeat2, Reply, Star, UserPlus2} from "lucide-svelte";
+    import {AtSign, Heart, Quote, Repeat2, Reply, Star, UserPlus2, Pencil} from "lucide-svelte";
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
     import TimelineItem from "./TimelineItem.svelte";
@@ -10,17 +10,16 @@
     import {playSound} from "$lib/sounds";
     import Infinite from "$lib/components/utils/Infinite.svelte";
 
-    type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow';
+    type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow' | 'like-via-repost' | 'repost-via-repost' | 'subscribed-post';
 
     let { index, isJunk, _agent = $agent, unique } = $props();
     let columnState = getColumnState(isJunk);
     let column = columnState.getColumn(index);
     let sound = $derived(column.settings?.playSound);
     let isOnlyShowUnread = $derived(column.settings?.onlyShowUnread);
-    let filter = $state(column.filter || ['like', 'repost', 'reply', 'mention', 'quote', 'follow']);
     let id = $derived(column.id);
 
-    let filters: Filter[] = $state(['like', 'repost', 'reply', 'mention', 'quote', 'follow']);
+    let filters: Filter[] = $state(['like', 'repost', 'reply', 'mention', 'quote', 'follow', 'like-via-repost', 'repost-via-repost', 'subscribed-post']);
     let filterIcons = {
         like: $settings?.design?.reactionMode === 'superstar' ? Star : Heart,
         repost: Repeat2,
@@ -28,6 +27,7 @@
         mention: AtSign,
         quote: Quote,
         follow: UserPlus2,
+        'subscribed-post': Pencil,
     };
 
     if (!column.data.notifications) {
@@ -42,6 +42,10 @@
         column.data.feedPool = [];
     }
 
+    if (!column.filter) {
+        column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow', 'subscribed-post'];
+    }
+
     navigator.serviceWorker.addEventListener('message', event => {
       if (event.data.type === 'notification_event') {
         const eventDid = event.data.data?.did;
@@ -52,12 +56,8 @@
       }
     });
 
-    function onchange(filter: any) {
-        column.filter = filter;
-    }
-
     async function getNotificationsFilter(setFilter: Filter[]) {
-        filter = setFilter;
+        column.filter = setFilter;
         column.data.notifications = [];
         column.data.feed = [];
         column.data.feedPool = [];
@@ -70,7 +70,7 @@
             cursor: '',
         });
         const __notifications = res.data.notifications.filter(item => {
-            return filter.includes(item.reason);
+            return column.filter.includes(item.reason);
         });
         const resNotifications = isOnlyShowUnread
             ? __notifications.filter(notification => !notification.isRead)
@@ -92,19 +92,15 @@
 
     const handleLoadMore = async (loaded, complete) => {
         try {
-            if (!filter.length) {
-                filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
-            }
-
             const res = await _agent.agent.api.app.bsky.notification.listNotifications({
                 limit: 25,
                 cursor: column.data.cursor,
-                reasons: filter,
+                reasons: column.filter,
             });
             column.data.cursor = res.data.cursor;
 
             const _notifications = res.data.notifications.filter(item => {
-                return filter.includes(item.reason);
+                return column.filter.includes(item.reason);
             });
             const resNotifications = isOnlyShowUnread
                 ? _notifications.filter(notification => !notification.isRead)
@@ -128,85 +124,35 @@
 
     function changeFilter(filter: Filter[]) {
         getNotificationsFilter(filter);
-        onchange(filter);
     }
 </script>
 
-{#if (isJunk)}
-  <div class="notifications-menu">
-    <ul class="notifications-filter-list">
-      <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button"
-                onclick={() => {changeFilter(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}}
-                class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like', 'repost', 'reply', 'mention', 'quote', 'follow'])}>{$_('all')}</button>
-      </li>
-
-      <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button"
-                onclick={() => {changeFilter(['reply', 'mention', 'quote'])}}
-                class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['reply', 'mention', 'quote'])}
-                aria-label="Reply, Mention, and Quotes">
-          <AtSign size="18" color="var(--text-color-1)"></AtSign>
-        </button>
-      </li>
-
-      <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" onclick={() => {changeFilter(['like'])}}
-                class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['like'])}
-                aria-label="Like">
-          {#if ($settings?.design?.reactionMode === 'superstar')}
-            <Star color="var(--text-color-1)" size="18"></Star>
-          {:else}
-            <Heart size="18" color="var(--text-color-1)"></Heart>
-          {/if}
-        </button>
-      </li>
-
-      <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" onclick={() => {changeFilter(['repost'])}}
-                class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['repost'])}
-                aria-label="Repost">
-          <Repeat2 size="18" color="var(--text-color-1)"></Repeat2>
-        </button>
-      </li>
-
-      <li class="notifications-filter-list__item">
-        <button class="notifications-filter-button" onclick={() => {changeFilter(['follow'])}}
-                class:notifications-filter-button--active={JSON.stringify(filter) === JSON.stringify(['follow'])}
-                aria-label="Follow">
-          <UserPlus2 size="20" color="var(--text-color-1)"></UserPlus2>
-        </button>
-      </li>
-    </ul>
-  </div>
-{:else}
-  <div class="notifications-filter-display">
+<div class="notifications-filter-display">
     <ul class="notifications-filter">
-      {#each filters as item, index (item)}
-        <li class="notifications-filter__item" aria-label={$_(item)}>
-          <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={filter} value={item} onchange={() => {changeFilter(filter)}}>
-          <label class="notifications-filter__label" for={id + '_' + item}>
-            <svelte:component this={filterIcons[item]} size="20"></svelte:component>
-          </label>
-        </li>
-      {/each}
+        {#each filters as item (item)}
+            <li class="notifications-filter__item notifications-filter__item--{item}" aria-label={$_(item)}>
+                <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={column.filter} value={item} onchange={() => {changeFilter(column.filter)}}>
+                <label class="notifications-filter__label" for={id + '_' + item}>
+                    <svelte:component this={filterIcons[item]} size="20"></svelte:component>
+                </label>
+            </li>
+        {/each}
     </ul>
-  </div>
-{/if}
+</div>
 
 <div class="timeline timeline--notification">
   <div class="notifications-list">
-    {#each column.data.feed as item, index (item.key)}
+    {#each column.data.feed as item (item.key)}
       <div class="notifications-list__item">
         {#if item?.notifications[0]?.isRead === false}
           <span class="notifications-list__new"></span>
         {/if}
 
-        {#if (filter.includes(item.reason))}
+        {#if (column.filter.includes(item.reason))}
           {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
             <TimelineItem {_agent} data={column.data.feedPool[item.postIndex]} {column}></TimelineItem>
           {:else if (item.reason === 'follow')}
-            <NotificationFollowItem {_agent} item={item.notifications[0]} {filter}></NotificationFollowItem>
+            <NotificationFollowItem {_agent} item={item.notifications[0]}></NotificationFollowItem>
           {:else if (item.reason === 'starterpack-joined')}
 
           {:else}
@@ -320,6 +266,13 @@
         &__label {
             cursor: pointer;
             color: var(--border-color-2);
+        }
+
+        &__item {
+            &--like-via-repost,
+            &--repost-via-repost {
+                display: none;
+            }
         }
     }
 

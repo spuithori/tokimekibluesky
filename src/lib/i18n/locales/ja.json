@@ -710,5 +710,12 @@
   "labeling_nothing": "ラベルなし",
   "translation_model": "翻訳モデル",
   "translation_model_nmt": "ニューラル機械翻訳（デフォルト）",
-  "translation_model_llm": "LLM"
+  "translation_model_llm": "LLM",
+  "subscribed_your_post": "が投稿",
+  "liked_your_post_via_repost": "がリポストをいいね",
+  "liked_your_post_via_repost_multiple": "他がリポストをいいね",
+  "reposted_your_post_via_repost": "がリポストをリポスト",
+  "reposted_your_post_via_repost_multiple": "他がリポストをリポスト",
+  "show_reaction_via_repost": "リポストに対する反応を表示",
+  "disable_embed_via": "反応をリポスト元に通知しない"
 }
