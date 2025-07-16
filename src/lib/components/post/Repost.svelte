@@ -40,10 +40,12 @@
       isNumberTransition = true;
 
       try {
-          const via = isReasonRepost(reason) && !settingsState?.settings?.disableEmbedVia ? {
-              cid: reason.cid,
-              uri: reason.uri,
-          } : undefined;
+          const via = isReasonRepost(reason) && !settingsState?.settings?.disableEmbedVia && reason.cid && reason.uri
+              ? {
+                  cid: reason.cid,
+                  uri: reason.uri,
+              }
+              : undefined;
           const repost = await _agent.setRepost(cid, uri, viewer || '', via);
           const repostViewer = repost?.uri || undefined;
           const pulse = {

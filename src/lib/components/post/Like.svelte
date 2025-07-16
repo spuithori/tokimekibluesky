@@ -36,10 +36,12 @@
       isNumberTransition = true;
 
       try {
-          const via = isReasonRepost(reason) && !settingsState?.settings?.disableEmbedVia ? {
-              cid: reason.cid,
-              uri: reason.uri,
-          } : undefined;
+          const via = isReasonRepost(reason) && !settingsState?.settings?.disableEmbedVia && reason.cid && reason.uri
+              ? {
+                  cid: reason.cid,
+                  uri: reason.uri,
+              }
+              : undefined;
           const like = await _agent.setVote(cid, uri, viewer || '', via);
           const likeViewer = like?.uri || undefined;
           const pulse = {
