@@ -113,6 +113,11 @@
       }
   }
 
+  function openDraft(e) {
+      e.preventDefault();
+      isDraftModalOpen = true;
+  }
+
   async function handleDraftUse(draft: Draft) {
       isDraftModalOpen = false;
       postState.posts = [{
@@ -663,7 +668,7 @@
       {#if (!isEnabled)}
         <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postState.posts.length > 1}>{$_('drafts_save')}</button>
       {:else}
-        <button class="publish-draft-button publish-view-draft" onclick={() => {isDraftModalOpen = true}} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
+        <button class="publish-draft-button publish-view-draft" onclick={openDraft} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
       {/if}
 
       <button class="publish-sp-close" onclick={onClose} aria-label="Close.">
