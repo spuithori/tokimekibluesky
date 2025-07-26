@@ -9,8 +9,7 @@
     import Paragraph from '@tiptap/extension-paragraph';
     import HardBreak from '@tiptap/extension-hard-break';
     import Mention from '@tiptap/extension-mention';
-    import Placeholder from '@tiptap/extension-placeholder';
-    import History from  '@tiptap/extension-history';
+    import { Placeholder, UndoRedo } from '@tiptap/extensions';
     import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
     import {agent, timelineHashtags, hashtagHistory} from "$lib/stores";
     import MentionList from "$lib/components/editor/MentionList.svelte";
@@ -191,7 +190,7 @@
                 Placeholder.configure({
                     placeholder: '',
                 }),
-                History,
+                UndoRedo,
             ],
             onTransaction: () => {
                 editor = editor;
