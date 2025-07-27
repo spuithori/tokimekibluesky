@@ -14,5 +14,9 @@ export default defineConfig({
 		vidstack({ include: /src\/lib\/components\/video\// }),
 		sveltekit(),
 		// visualizer(),
-	]
+	],
+
+	experimental: {
+		enableNativePlugin: true,
+	},
 });
