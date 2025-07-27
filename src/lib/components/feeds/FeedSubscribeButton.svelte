@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import {agent, preferences} from "$lib/stores";
+    import { agent } from "$lib/stores";
 
   interface Props {
     _agent?: any;
@@ -17,8 +17,6 @@
         const getPreferences = res.data.preferences;
         const savedFeeds = getPreferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')[0]?.saved;
         subscribed = savedFeeds.includes(feed.uri);
-
-        preferences.set(getPreferences);
     }
 
     async function subscribe() {
@@ -39,8 +37,6 @@
                 saved: [feed.uri],
             });
         }
-
-        console.log(newPreferences)
 
         try {
             await _agent.agent.api.app.bsky.actor.putPreferences({preferences: newPreferences})

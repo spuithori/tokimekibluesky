@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
-  import { agent, hashtagHistory, isChatColumnFront, settings } from '$lib/stores';
+  import { agent, hashtagHistory, settings } from '$lib/stores';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
   import {toast} from 'svelte-sonner'
   import {goto, pushState} from '$app/navigation';
@@ -642,7 +642,7 @@
     <X size="24" color="var(--bg-color-1)"></X>
   </button>
 {:else}
-  <button class="publish-toggle" aria-label="Open post composer." class:publish-toggle--hidden={$isChatColumnFront} class:publish-toggle--mobileV2={$settings.design?.mobileNewUi} onclick={handleOpen}>
+  <button class="publish-toggle" aria-label="Open post composer." class:publish-toggle--mobileV2={$settings.design?.mobileNewUi} onclick={handleOpen}>
     <Pencil size="22" color="var(--bg-color-1)"></Pencil>
   </button>
 {/if}

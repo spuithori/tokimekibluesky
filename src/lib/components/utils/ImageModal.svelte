@@ -3,7 +3,6 @@
   import PhotoSwipeLightbox from "photoswipe/lightbox";
   import {mount, onMount, unmount, onDestroy} from "svelte";
   import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
-  import {isImageOpen} from "$lib/stores";
   import { pushState } from '$app/navigation';
   import { page } from '$app/state';
 
@@ -71,7 +70,6 @@
 
   function open(index: any) {
     lightbox.loadAndOpen(index);
-    isImageOpen.set(true);
     pushState('', {
       showImage: true,
     });
@@ -81,8 +79,6 @@
     if (page.state.showImage) {
       history.back();
     }
-
-    isImageOpen.set(false);
     imageState.close();
   })
 

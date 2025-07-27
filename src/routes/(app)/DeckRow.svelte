@@ -3,7 +3,7 @@
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
-    import {agent, agents, intersectingIndex, isChatColumnFront, isColumnModalOpen, settings} from "$lib/stores";
+    import {agent, agents, intersectingIndex, isColumnModalOpen, settings} from "$lib/stores";
     import {getAccountIdByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
@@ -131,7 +131,6 @@
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 intersectingIndex.set(index);
-                isChatColumnFront.set(column.algorithm?.type === 'chat');
                 scrollDirectionState.direction = 'up';
             }
         })

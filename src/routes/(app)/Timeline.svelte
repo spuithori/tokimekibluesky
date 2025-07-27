@@ -204,7 +204,6 @@
                   {index}
                   {column}
                   {_agent}
-                  isProfile={column.algorithm.type === 'author'}
                   isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
                   isPinned={isReasonPin(data?.reason)}
           ></TimelineItem>

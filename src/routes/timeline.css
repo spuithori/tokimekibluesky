@@ -709,26 +709,6 @@
     }
 }
 
-.hide-repost {
-    .timeline__item--repost {
-        display: none;
-    }
-}
-
-.hide-reply {
-    .timeline__item--reply {
-        display: none;
-    }
-}
-
-.media-content {
-    .timeline-repost-message {
-        &::before {
-            content: none;
-        }
-    }
-}
-
 .media-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -843,17 +823,6 @@
                 left: 22px;
             }
         }
-    }
-
-    .timeline-repost-message {
-        &::before {
-            top: 10px;
-            bottom: 10px;
-        }
-    }
-
-    .timeline-repost-messages:has(*) {
-        margin-bottom: 10px;
     }
 
     .timeline__meta {

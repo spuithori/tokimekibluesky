@@ -1,6 +1,7 @@
 <script lang="ts">
-  import {isImageOpen, settings} from "$lib/stores";
+  import {settings} from "$lib/stores";
   import {onDestroy} from "svelte";
+  import {imageState} from "$lib/classes/imageState.svelte";
 
   interface Props {
     column: any;
@@ -44,7 +45,7 @@
   })
 
   $effect(() => {
-      if ($isImageOpen) {
+      if (imageState.images.length) {
           clearInterval(scrollId);
       } else {
           scrolling(column.settings?.autoScroll);

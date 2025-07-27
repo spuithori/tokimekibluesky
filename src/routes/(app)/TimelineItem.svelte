@@ -26,7 +26,6 @@
         isSingle = false,
         isThread = false,
         isMedia = false,
-        isProfile = false,
         isPinned = false,
         column = undefined,
         index = 0,
@@ -565,8 +564,6 @@
     {/if}
   {:else}
     <article class="timeline__item"
-             class:timeline__item--repost={isReasonRepost(data.reason)}
-             class:timeline__item--reply={data.reply && data.reply?.parent?.author?.did !== _agent.did()}
              class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
              class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
              class:timeline__item--hide={isHide}
@@ -583,15 +580,13 @@
       {/if}
 
       {#if (!isThread)}
-        <div class="timeline-repost-messages">
-          {#if (isReasonRepost(data.reason))}
-            <p class="timeline-repost-message">
-              <ProfileCardWrapper handle="{data.reason.by.handle}" {_agent}>
-                <a href="/profile/{data.reason.by.handle}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
-              </ProfileCardWrapper>
-            </p>
-          {/if}
-        </div>
+        {#if (isReasonRepost(data.reason))}
+          <p class="timeline-repost-message">
+            <ProfileCardWrapper handle="{data.reason.by.handle}" {_agent}>
+              <a href="/profile/{data.reason.by.handle}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
+            </ProfileCardWrapper>
+          </p>
+        {/if}
       {/if}
 
       {#if data?.reply?.parent?.notFound || data?.reply?.parent?.blocked || data?.reply?.root?.notFound || data?.reply?.root?.blocked}
@@ -599,14 +594,12 @@
           <p class="timeline-hidde-item__text">{$_('deleted_reply')}</p>
         </article>
       {:else if simpleReply && data.reply && !isThread}
-        <div class="timeline-repost-messages">
-          <p class="timeline-repost-message">
-            <button style="pointer-events: none;">
-              <Reply size="18" color="var(--primary-color)"></Reply>
-              <span class="timeline-repost-message__text">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle}})}</span>
-            </button>
-          </p>
-        </div>
+        <p class="timeline-repost-message">
+          <button style="pointer-events: none;">
+            <Reply size="18" color="var(--primary-color)"></Reply>
+            <span class="timeline-repost-message__text">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle}})}</span>
+          </button>
+        </p>
       {:else if data.reply && !isSingle && !isReplyHide}
         {#if isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri}
           <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>

@@ -104,8 +104,6 @@ export const repostMutes = writable<string[]>(JSON.parse(storageRepostMutes));
 const storagePostMutes = localStorage.getItem('postMutes') || JSON.stringify([]);
 export const postMutes = writable<string[]>(JSON.parse(storagePostMutes));
 
-export const preferences = writable();
-
 export const bookmarkModal = writable({
     open: false,
     data: undefined,
@@ -180,8 +178,6 @@ export const changedFollowData = writable(undefined);
 
 export const profileStatus = writable<number>(0);
 
-export const isImageOpen = writable(false);
-
 export const isColumnModalOpen = writable(false);
 
 export const didHint = writable('');
@@ -233,5 +229,3 @@ export const timelineHashtags = writable([]);
 export const hashtagHistory = writable(localStorage.getItem('hashtagHistory')
     ? JSON.parse(localStorage.getItem('hashtagHistory') as string)
     : []);
-
-export const isChatColumnFront = writable<boolean>(false);

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { isChatColumnFront, settings } from "$lib/stores";
+  import { settings } from "$lib/stores";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import SideNav from "$lib/components/side/SideNav.svelte";
 </script>
 
-<footer class="footer" class:footer--hidden={$isChatColumnFront} class:footer--scroll-down={scrollDirectionState.direction === 'down'} class:footer--fixed={$settings.design?.fixedFooter}
+<footer class="footer" class:footer--scroll-down={scrollDirectionState.direction === 'down'} class:footer--fixed={$settings.design?.fixedFooter}
  class:footer--mobileV2={$settings.design?.mobileNewUi}>
   <div class="footer__wrap">
     <SideNav footer={true}></SideNav>
