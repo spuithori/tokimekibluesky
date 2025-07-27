@@ -248,16 +248,6 @@
     }
 }
 
-.grabber {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    right: 0;
-    bottom: 0;
-    margin-left: auto;
-    cursor: se-resize;
-}
-
 .timeline-video-player {
     aspect-ratio: var(--video-width, 16) / var(--video-height, 9);
     --plyr-color-main: var(--primary-color);
@@ -324,9 +314,9 @@
 }
 
 .deck {
-    &:has(.neodrag-dragging) {
+    &:has([data-neodrag-state='dragging']) {
         .deck-row {
-            transition: transform .3s cubic-bezier(0, 0, 0, 1);
+            transition: translate .3s cubic-bezier(0, 0, 0, 1);
         }
     }
 }
@@ -334,7 +324,7 @@
 .sortable-list {
     &:has(.neodrag-dragging) {
         .sortable-list__item {
-            transition: transform .3s cubic-bezier(0, 0, 0, 1);
+            transition: translate .3s cubic-bezier(0, 0, 0, 1);
 
             &.neodrag-dragging {
                 transition: none;

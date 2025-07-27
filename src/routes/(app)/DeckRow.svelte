@@ -16,7 +16,7 @@
     import {toast} from "svelte-sonner";
     import ChatTimeline from "./ChatTimeline.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
-    import {draggable, type DragOptions} from "@neodrag/svelte";
+    import { draggable, axis, ControlFrom, events, controls, Compartment, position } from '@neodrag/svelte';
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import Timeline from "./Timeline.svelte";
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
@@ -61,21 +61,11 @@
     let isDragging = $state(false);
     let reorderIndex = index;
     let isRefreshing = $state(false);
+    let dragPosition = $state({x: 0, y: 0});
 
-    let dragOptions: DragOptions = $state({
-        axis: 'x',
-        handle: '.deck-drag-area',
-        position: {
-            x: 0,
-            y: 0,
-        },
-        recomputeBounds: {
-            dragStart: true,
-            drag: true,
-            dragEnd: true,
-        },
-        cancel: '.grabber'
-    });
+    const eventsComp = Compartment.of(() =>
+        position({ current: dragPosition }),
+    );
 
     if (!column.data) {
         column.data = {
@@ -222,14 +212,11 @@
     }
 
     function handleDragEnd(e) {
-        dragOptions.position = {
-            x: 0,
-            y: 0,
-        }
+        dragPosition = {x: 0, y: 0};
 
         columnState.columns.forEach(_column => {
             if (_column.scrollElement) {
-                _column.scrollElement.style.transform = 'translate3d(0, 0, 0)';
+                _column.scrollElement.style.translate = '0 0 0';
             }
         })
 
@@ -240,10 +227,10 @@
         }, 350)
     }
 
-    async function handleDragging(e) {
-        const x = e.detail.rootNode.getBoundingClientRect().left;
+    async function handleDragging(data) {
+        const x = data.rootNode.getBoundingClientRect().left;
 
-        if (Math.sign(e.detail.offsetX) === 1) {
+        if (Math.sign(data.offset.x) === 1) {
             const prevColumn = columnState.columns[reorderIndex]?.scrollElement;
             const nextColumn = columnState.columns[reorderIndex + 1]?.scrollElement;
 
@@ -252,15 +239,15 @@
             }
 
             if (Math.abs(x) > nextColumn?.getBoundingClientRect().left) {
-                nextColumn.style.transform = `translate3d(${column.scrollElement.offsetWidth * -1}px, 0, 0)`;
+                nextColumn.style.translate = `${column.scrollElement.offsetWidth * -1}px 0 0`;
                 reorderIndex = reorderIndex + 1;
             }
 
             if (Math.abs(x) < prevColumn.getBoundingClientRect().left) {
-                prevColumn.style.transform = 'translate3d(0, 0, 0)';
+                prevColumn.style.translate = '0 0 0';
                 reorderIndex = reorderIndex - 1;
             }
-        } else if (Math.sign(e.detail.offsetX) === -1) {
+        } else if (Math.sign(data.offset.x) === -1) {
             const prevColumn = columnState.columns[reorderIndex - 1]?.scrollElement;
             const nextColumn = columnState.columns[reorderIndex]?.scrollElement;
 
@@ -269,12 +256,12 @@
             }
 
             if (Math.abs(x) < prevColumn?.getBoundingClientRect().left) {
-                prevColumn.style.transform = `translate3d(${column.scrollElement.offsetWidth}px, 0, 0)`;
+                prevColumn.style.translate = `${column.scrollElement.offsetWidth}px 0 0`;
                 reorderIndex = reorderIndex - 1;
             }
 
             if (Math.abs(x) > nextColumn.getBoundingClientRect().left) {
-                nextColumn.style.transform = 'translate3d(0, 0, 0)';
+                nextColumn.style.translate = '0 0 0';
                 reorderIndex = reorderIndex + 1;
             }
         } else {
@@ -339,10 +326,16 @@
     bind:this={column.scrollElement}
     style:background-image={column.settings?.background ? `url(${backgroundsMap.get(column.settings.background).url})` : 'none'}
     class:dragging={isDragging}
-    use:draggable={dragOptions}
-    onneodrag:start={handleDragStart}
-    onneodrag:end={handleDragEnd}
-    onneodrag={handleDragging}
+    {@attach draggable(() => [
+        axis('x'),
+        controls({ allow: ControlFrom.selector('.deck-drag-area') }),
+        events({
+            onDragStart: handleDragStart,
+            onDrag: handleDragging,
+            onDragEnd: handleDragEnd,
+        }),
+        eventsComp,
+    ])}
 >
     <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk}>
         {#if (!isJunk)}
