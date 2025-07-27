@@ -16,7 +16,7 @@
     import {toast} from "svelte-sonner";
     import ChatTimeline from "./ChatTimeline.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
-    import { draggable, axis, ControlFrom, events, controls, Compartment, position } from '@neodrag/svelte';
+    import { draggable, axis, ControlFrom, events, controls, Compartment, position, disabled } from '@neodrag/svelte';
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import Timeline from "./Timeline.svelte";
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
@@ -307,6 +307,8 @@
         column.data.cursor = undefined;
         unique = Symbol();
     }
+
+    const disabledCompartment = Compartment.of(() => disabled(column.settings?.disableDrag));
 </script>
 
 <div
@@ -326,15 +328,16 @@
     style:background-image={column.settings?.background ? `url(${backgroundsMap.get(column.settings.background).url})` : 'none'}
     class:dragging={isDragging}
     {@attach draggable(() => [
-        axis('x'),
-        controls({ allow: ControlFrom.selector('.deck-drag-area') }),
-        events({
-            onDragStart: handleDragStart,
-            onDrag: handleDragging,
-            onDragEnd: handleDragEnd,
-        }),
-        eventsComp,
-    ])}
+            axis('x'),
+            controls({ allow: ControlFrom.selector('.deck-drag-area') }),
+            events({
+                onDragStart: handleDragStart,
+                onDrag: handleDragging,
+                onDragEnd: handleDragEnd,
+            }),
+            eventsComp,
+            disabledCompartment
+        ])}
 >
     <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk}>
         {#if (!isJunk)}

@@ -32,6 +32,7 @@ type deckSettings = {
     },
     opacity?: number,
     collapse?: boolean,
+    disableDrag?: boolean,
 }
 
 export type Column = {

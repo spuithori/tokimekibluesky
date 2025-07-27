@@ -51,6 +51,7 @@
     let opacity = $state(column.settings?.opacity || 100);
     let background = $state(column.settings?.background || '');
     let showReactionViaRepost = $state(column.settings?.showReactionViaRepost || false);
+    let disableDrag = $state(column.settings?.disableDrag || false);
 
     $effect(() => {
         column.settings = {
@@ -76,6 +77,7 @@
             opacity: opacity,
             background: background,
             showReactionViaRepost: showReactionViaRepost,
+            disableDrag: disableDrag,
         }
     })
 
@@ -666,6 +668,20 @@
                             </div>
                         </div>
                     {/if}
+                {/if}
+
+                {#if ($settings.design?.layout === 'default' && !column.settings?.isPopup)}
+                    <dl class="settings-group only-pc">
+                        <dt class="settings-group__name">
+                            {$_('disable_dragging')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'disableDrag'} bind:checked={disableDrag}><label class="input-toggle__label" for={column.id + 'disableDrag'}></label>
+                            </div>
+                        </dd>
+                    </dl>
                 {/if}
 
                 {#if (column.algorithm?.type === 'custom')}

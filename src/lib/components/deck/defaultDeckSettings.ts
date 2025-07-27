@@ -21,6 +21,7 @@ export type defaultDeckSettings = {
         height: number,
     },
     opacity?: number,
+    disableDrag?: boolean,
 }
 
 export const defaultDeckSettings: defaultDeckSettings = {
@@ -39,4 +40,5 @@ export const defaultDeckSettings: defaultDeckSettings = {
     hideCounts: false,
     isPopup: false,
     opacity: 100,
+    disableDrag: false,
 }
