@@ -7,7 +7,6 @@
   let { id, did, title, _agent, contentMode } = $props();
 
   const columnState = getColumnState(true);
-  let feed = $state();
   let columnId = $derived(`feed_${id}_${_agent.did()}`);
 
   onMount(async () => {

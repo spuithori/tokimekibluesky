@@ -75,8 +75,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="side-bar side-bar--{publishState.layout}" class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--immersive-mode={$settings.design?.immersiveMode}
- class:side-bar--mobileV2={$settings?.design?.mobileNewUi}
+<div class="side-bar side-bar--{publishState.layout}" class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--mobileV2={$settings?.design?.mobileNewUi}
  class:side-bar--mobileV2-visible={mobileV2Visible && $settings?.design?.mobileNewUi}>
   <div class="side-bar__list side-bar__top">
     <button
@@ -220,15 +219,6 @@
                 opacity: 0;
                 visibility: hidden;
                 transform: translateY(-48px);
-            }
-        }
-
-        &--immersive-mode {
-            &.side-bar--scroll-down {
-                @media (min-width: 768px) {
-                    opacity: 0;
-                    visibility: hidden;
-                }
             }
         }
 

@@ -202,20 +202,6 @@
         </div>
       </div>
     </div>
-
-    <div class="side-menu-item">
-      <dl class="settings-group settings-group--column">
-        <dt class="settings-group__name">
-          {$_('immersive_mode')}
-        </dt>
-
-        <dd class="settings-group__content">
-          <div class="input-toggle">
-            <input class="input-toggle__input" type="checkbox" id="immersiveMode" bind:checked={$settings.design.immersiveMode}><label class="input-toggle__label" for="immersiveMode"></label>
-          </div>
-        </dd>
-      </dl>
-    </div>
   </div>
 </dialog>
 

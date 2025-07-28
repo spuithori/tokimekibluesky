@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
-  import {agent, realtime} from '$lib/stores';
+  import {agent, realtime, settings} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
   import {getPostRealtime} from "$lib/realtime";
   import {getDbFollows} from "$lib/getActorsList";
@@ -145,7 +145,7 @@
 
   const handleLoadMore = async (loaded, complete) => {
       try {
-          const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm});
+          const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage});
           column.data.cursor = res.data.cursor;
 
           const feed = res.data.feed.filter(feed => {

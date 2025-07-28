@@ -14,6 +14,7 @@ type timelineOpt = {
     uris?: [],
     actors?: [],
     count?: number,
+    lang?: string,
 }
 
 export class Agent {
@@ -59,7 +60,7 @@ export class Agent {
         }
     }
 
-    async getTimeline(timelineOpt: timelineOpt = {limit: 20, cursor: '', type: 'default'}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
+    async getTimeline(timelineOpt: timelineOpt = {limit: 20, cursor: '', type: 'default', lang: 'en'}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
         try {
             let res;
             res = await this.getTimelineByAlgo(timelineOpt);
@@ -89,7 +90,7 @@ export class Agent {
         switch (timelineOpt.algorithm.type) {
             case 'custom':
                 return await this.agent.api.app.bsky.feed.getFeed({
-                    limit: timelineOpt.limit, cursor: timelineOpt.cursor, feed: timelineOpt.algorithm.algorithm});
+                    limit: timelineOpt.limit, cursor: timelineOpt.cursor, feed: timelineOpt.algorithm.algorithm}, {headers: {'Accept-Language': timelineOpt.lang}});
             case 'list':
                 return await this.getAuthorsFeed(timelineOpt.actors, timelineOpt.count);
             case 'officialList':
