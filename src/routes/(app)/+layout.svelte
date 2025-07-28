@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
-  import { agent, agents, isAfterReload, isColumnModalOpen, isMobileDataConnection, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers } from '$lib/stores';
+  import { agent, agents, isColumnModalOpen, isMobileDataConnection, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers } from '$lib/stores';
   import {goto} from '$app/navigation';
   import { dev } from '$app/environment';
   import { injectAnalytics } from '@vercel/analytics/sveltekit';
@@ -245,7 +245,6 @@
 
   onMount(async() => {
       sessionStorage.clear();
-      isAfterReload.set(false);
   });
 
   function handleColumnModalClose() {

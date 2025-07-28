@@ -1,6 +1,6 @@
 <script lang="ts">
     import { page } from '$app/stores';
-    import {agent, isAfterReload, settings} from '$lib/stores';
+    import {agent, settings} from '$lib/stores';
     import {_} from "svelte-i18n";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import { PUBLIC_SUICIDE_WORDS } from '$env/static/public';
@@ -12,8 +12,6 @@
 
     const junkColumnState = getColumnState(true);
 
-    let feeds = [];
-    let cursor = 0;
     let isLoaded = false;
     let isColumnAdded = false;
     let isSafety = $state(false);
@@ -22,19 +20,15 @@
     export const snapshot: Snapshot = {
         capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
         restore: (value) => {
-            if(!$isAfterReload) {
-                [scrollY] = value;
+            [scrollY] = value;
 
-                tick().then(() => {
-                    if ($settings.design.layout === 'decks') {
-                        document.querySelector('.modal-page-content').scroll(0, scrollY);
-                    } else {
-                        document.querySelector(':root').scroll(0, scrollY);
-                    }
-                });
-            }
-
-            isAfterReload.set(false);
+            tick().then(() => {
+                if ($settings.design.layout === 'decks') {
+                    document.querySelector('.modal-page-content').scroll(0, scrollY);
+                } else {
+                    document.querySelector(':root').scroll(0, scrollY);
+                }
+            });
         }
     };
 

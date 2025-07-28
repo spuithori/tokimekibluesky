@@ -1,7 +1,7 @@
 <script lang="ts">
   import { _ } from 'svelte-i18n';
   import type { LayoutData } from '../$types';
-  import {isAfterReload, settings} from "$lib/stores";
+  import {settings} from "$lib/stores";
   import UserItem from "../UserItem.svelte";
   import type { Snapshot } from './$types';
   import {tick} from "svelte";
@@ -16,19 +16,15 @@
   export const snapshot: Snapshot = {
       capture: () => [followers, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
       restore: (value) => {
-        if(!$isAfterReload) {
-          [followers, cursor, scrollY] = value;
+        [followers, cursor, scrollY] = value;
 
-          tick().then(() => {
-              if ($settings.design.layout === 'decks') {
-                  document.querySelector('.modal-page-content').scroll(0, scrollY);
-              } else {
-                  document.querySelector(':root').scroll(0, scrollY);
-              }
-          });
-        }
-
-        isAfterReload.set(false);
+        tick().then(() => {
+          if ($settings.design.layout === 'decks') {
+            document.querySelector('.modal-page-content').scroll(0, scrollY);
+          } else {
+            document.querySelector(':root').scroll(0, scrollY);
+          }
+        });
       }
   };
 

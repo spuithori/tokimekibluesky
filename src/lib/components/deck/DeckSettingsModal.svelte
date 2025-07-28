@@ -9,22 +9,21 @@
     import { scale } from 'svelte/transition';
     import Notice from "$lib/components/ui/Notice.svelte";
 
-    const columnState = getColumnState();
-
     interface Props {
-        column: any;
         index: any;
         _agent: any;
         layout?: string;
     }
 
     let {
-        column,
         index,
         _agent,
         layout = 'default',
         onclose,
     }: Props = $props();
+
+    const columnState = getColumnState();
+    let column = columnState.getColumn(index);
 
     let hideRepost = $state(column.settings?.timeline?.hideRepost || null);
     let hideReply = $state(column.settings?.timeline?.hideReply || null);

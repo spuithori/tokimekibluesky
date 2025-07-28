@@ -4,7 +4,7 @@
     import ListView from "./ListView.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
     import type { Snapshot } from './$types';
-    import {isAfterReload, settings} from "$lib/stores";
+    import {settings} from "$lib/stores";
     import {tick} from "svelte";
 
     let title = $state('');
@@ -12,19 +12,15 @@
     export const snapshot: Snapshot = {
         capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
         restore: (value) => {
-            if(!$isAfterReload) {
-                [scrollY] = value;
+          [scrollY] = value;
 
-                tick().then(() => {
-                    if ($settings.design.layout === 'decks') {
-                        document.querySelector('.modal-page-content').scroll(0, scrollY);
-                    } else {
-                        document.querySelector(':root').scroll(0, scrollY);
-                    }
-                })
+          tick().then(() => {
+            if ($settings.design.layout === 'decks') {
+              document.querySelector('.modal-page-content').scroll(0, scrollY);
+            } else {
+              document.querySelector(':root').scroll(0, scrollY);
             }
-
-            isAfterReload.set(false);
+          })
         }
     };
 </script>

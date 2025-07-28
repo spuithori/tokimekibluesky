@@ -430,7 +430,7 @@
         {/if}
 
         {#if isSettingsOpen}
-            <DeckSettingsModal {column} {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick}></DeckSettingsModal>
+            <DeckSettingsModal {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick}></DeckSettingsModal>
         {/if}
     </div>
 

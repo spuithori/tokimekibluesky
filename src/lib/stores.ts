@@ -170,8 +170,6 @@ export const reportModal = writable<ReportModal>({
     data: {uri: '', cid: ''} || undefined,
 })
 
-export const isAfterReload = writable(true);
-
 export const changedFollowData = writable(undefined);
 
 export const profileStatus = writable<number>(0);

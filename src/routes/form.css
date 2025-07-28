@@ -63,44 +63,6 @@
     }
 }
 
-.edit-avatar {
-    .filepond--root {
-        width: 150px;
-        height: 150px !important;
-        max-height: 150px !important;
-    }
-
-    .filepond--drop-label {
-        background-color: rgba(0, 0, 0, .3);
-        color: #fff;
-        font-size: 12px;
-    }
-
-    .filepond--panel-root {
-        background-color: transparent;
-    }
-}
-
-.edit-banner {
-    .filepond--root {
-        width: 100%;
-        aspect-ratio: 3 / 1;
-        height: auto !important;
-        max-height: 100% !important;
-    }
-
-    .filepond--drop-label {
-        background-color: rgba(0, 0, 0, .3);
-        color: #fff;
-        font-size: 14px;
-        height: 100%;
-    }
-
-    .filepond--panel-root {
-        background-color: transparent;
-    }
-}
-
 .radio-group {
     .radio {
         margin-bottom: 8px;

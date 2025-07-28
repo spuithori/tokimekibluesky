@@ -3,12 +3,11 @@
     import FeedPreview from "./FeedPreview.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
     import type { Snapshot } from './$types';
-    import {isAfterReload, settings, agent} from "$lib/stores";
+    import {settings, agent} from "$lib/stores";
     import {onMount, tick} from "svelte";
     import FeedHeading from "$lib/components/feeds/FeedHeading.svelte";
     import {getDidByHandle, isDid} from "$lib/util";
 
-    let title = $state('');
     let _agent = $state($agent);
     let feed = $state();
     let did = $state('');
@@ -16,19 +15,15 @@
     export const snapshot: Snapshot = {
         capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop, feed],
         restore: (value) => {
-            if(!$isAfterReload) {
-                [scrollY, feed] = value;
+          [scrollY, feed] = value;
 
-                tick().then(() => {
-                    if ($settings.design.layout === 'decks') {
-                        document.querySelector('.modal-page-content').scroll(0, scrollY);
-                    } else {
-                        document.querySelector(':root').scroll(0, scrollY);
-                    }
-                });
+          tick().then(() => {
+            if ($settings.design.layout === 'decks') {
+              document.querySelector('.modal-page-content').scroll(0, scrollY);
+            } else {
+              document.querySelector(':root').scroll(0, scrollY);
             }
-
-            isAfterReload.set(false);
+          });
         }
     };
 
