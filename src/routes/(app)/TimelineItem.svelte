@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
   import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply } from 'lucide-svelte';
-  import { agent, settings, isPreventEvent, reportModal, didHint, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
+  import { agent, settings, reportModal, didHint, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
   import { toast } from "svelte-sonner";
   import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
@@ -334,16 +334,11 @@
     }
 
     function handleClick(event) {
-        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external') || event.target.closest('.likes-wrap') || event.target.closest('.dialog-modal') || event.target.closest('video') || event.target.closest('media-player') || event.target.closest('.v2-modal')) {
+        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external') || event.target.closest('.likes-wrap') || event.target.closest('.dialog-modal') || event.target.closest('video') || event.target.closest('media-player') || event.target.closest('.v2-modal') || event.target.closest('dialog')) {
             return false;
         }
 
         if (selectionText) {
-            return false;
-        }
-
-        if ($isPreventEvent) {
-            isPreventEvent.set(false);
             return false;
         }
 

@@ -16,7 +16,7 @@
     import {toast} from "svelte-sonner";
     import ChatTimeline from "./ChatTimeline.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
-    import { draggable, axis, ControlFrom, events, controls, Compartment, position } from '@neodrag/svelte';
+    import { draggable, axis, ControlFrom, events, controls, Compartment, position, disabled } from '@neodrag/svelte';
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import Timeline from "./Timeline.svelte";
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
@@ -333,6 +333,7 @@
             onDrag: handleDragging,
             onDragEnd: handleDragEnd,
         }),
+        disabled($settings.design?.layout === 'default' || isJunk),
         eventsComp,
     ])}
 >

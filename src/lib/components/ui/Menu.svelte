@@ -2,8 +2,6 @@
   import { offset, flip, shift } from 'svelte-floating-ui/dom';
   import { createFloatingActions } from 'svelte-floating-ui';
   import { fly } from 'svelte/transition';
-  import { clickOutside } from '$lib/clickOutSide';
-  import {isPreventEvent} from "$lib/stores";
   import type { Placement } from '@floating-ui/core';
 
   interface Props {
@@ -22,10 +20,11 @@
     ref,
     sub,
     content,
-    isLongPress = false,
     onopen = () => {},
   }: Props = $props();
+
   let toggle = $state();
+  let el = $state();
 
   const [ floatingRef, floatingContent ] = createFloatingActions({
       strategy: 'absolute',
@@ -49,19 +48,25 @@
       }
   }
 
-  function handleOutClick() {
-      if (isLongPress) {
-          isLongPress = false;
-          return false;
-      }
+  function handleClick(event) {
+    const rect = el.getBoundingClientRect();
+    const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height && rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
 
-      isPreventEvent.set(true);
+    if (!isInDialog) {
+      handleClose();
+    }
+  }
+
+  function handleClose() {
       isMenuOpen = false;
+    el.showModal();
   }
 
-  function handleOutroEnd() {
-      isPreventEvent.set(false);
-  }
+  $effect(() => {
+    if (el) {
+      el.showModal();
+    }
+  });
 </script>
 
 <button
@@ -83,16 +88,15 @@
 </button>
 
 {#if isMenuOpen}
-  <nav
+  <dialog
     class="timeline-menu"
-    class:timeline-menu--shown={isMenuOpen}
-    use:clickOutside={{ignoreElement: toggle}}
-    onoutclick={handleOutClick}
+    onclose={handleClose}
+    onclick={handleClick}
     transition:fly="{{ y: 30, duration: 250 }}"
     use:floatingContent
-    onoutroend={handleOutroEnd}
+    bind:this={el}
   >
     {@render sub?.()}
     {@render content?.()}
-  </nav>
+  </dialog>
 {/if}
