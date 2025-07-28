@@ -36,7 +36,6 @@
     const junkColumnState = getColumnState(true);
     const postState = getPostState();
 
-    let selectionText = '';
     let isDialogRender = $state(false);
     let isEditDialogRender = $state(false);
     let isMenuOpen = $state(false);
@@ -338,6 +337,7 @@
             return false;
         }
 
+        const selectionText = window.getSelection()?.toString();
         if (selectionText) {
             return false;
         }
@@ -371,10 +371,6 @@
         junkAgentDid.set(_agent.did());
         didHint.set(data.post.author.did);
         goto(uri);
-    }
-
-    function handleSelectStart(event) {
-        selectionText = document.getSelection().toString();
     }
 
     async function addThreadColumn() {
@@ -546,8 +542,6 @@
     }
 </script>
 
-<svelte:document onselectionchange={handleSelectStart} />
-
 {#if (!isHide)}
   {#if (column?.style === 'media')}
     {#if (AppBskyEmbedImages.isView(data?.post?.embed) || AppBskyEmbedImages.isView(data?.post?.embed?.media))}
@@ -577,7 +571,7 @@
       {#if (!isThread)}
         {#if (isReasonRepost(data.reason))}
           <p class="timeline-repost-message">
-            <ProfileCardWrapper handle="{data.reason.by.handle}" {_agent}>
+            <ProfileCardWrapper handle={data.reason.by.handle} {_agent}>
               <a href="/profile/{data.reason.by.handle}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
             </ProfileCardWrapper>
           </p>

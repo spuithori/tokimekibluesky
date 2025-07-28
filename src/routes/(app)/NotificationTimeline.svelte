@@ -176,12 +176,6 @@
 </div>
 
 <style lang="postcss">
-    .notifications-menu {
-        padding: 16px 8px 0;
-        margin: var(--notification-filter-margin, 0);
-        border-bottom: 1px solid var(--border-color-1);
-    }
-
     .notifications-list {
         &__item {
             position: relative;
@@ -196,56 +190,6 @@
             right: var(--notifications-new-right, -12px);
             top: var(--notifications-new-top, 4px);;
             z-index: 1;
-        }
-    }
-
-    .notifications-filter-list {
-        list-style: none;
-        display: flex;
-        overflow: auto;
-        white-space: nowrap;
-        align-items: center;
-        gap: 5px;
-        justify-content: space-between;
-
-        &__item {
-            font-size: 14px;
-        }
-    }
-
-    .notifications-filter-button {
-        min-width: 40px;
-        height: 30px;
-        padding: 0 8px 12px;
-        display: grid;
-        place-content: center;
-        color: var(--text-color-1);
-        position: relative;
-
-        @container timeline-item (max-width: 320px) {
-
-        }
-
-        &::before {
-            content: '';
-            display: block;
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 20px;
-            height: 4px;
-            border-radius: 2px;
-            background-color: var(--primary-color);
-            margin: auto;
-            transform: scaleX(0);
-            transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
-        }
-
-        &--active {
-            &::before {
-                transform: scaleX(1);
-            }
         }
     }
 

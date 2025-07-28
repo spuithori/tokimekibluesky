@@ -128,19 +128,6 @@
     border-bottom: 1px solid var(--border-color-1);
 }
 
-.close-button {
-    position: absolute;
-    top: 40px;
-    right: 10px;
-    width: 40px;
-    height: 40px;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 21;
-}
-
 .thread-notice {
     position: absolute;
     bottom: 0;

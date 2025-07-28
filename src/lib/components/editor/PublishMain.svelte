@@ -587,7 +587,6 @@
 
   .publish-upload {
       padding: 0 12px;
-      background-color: var(--publish-textarea-bg-color);
   }
 
   .publish-quote {

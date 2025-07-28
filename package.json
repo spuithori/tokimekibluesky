@@ -62,7 +62,7 @@
     "emoji-mart": "^5.6.0",
     "google-auth-library": "^10.1.0",
     "hls.js": "^1.6.7",
-    "lucide-svelte": "^0.525.0",
+    "lucide-svelte": "^0.530.0",
     "multiformats": "^13.3.7",
     "photoswipe": "^5.4.4",
     "runed": "^0.29.1",
