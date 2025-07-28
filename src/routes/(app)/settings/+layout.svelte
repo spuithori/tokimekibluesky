@@ -2,7 +2,7 @@
   import {_} from 'svelte-i18n';
   import type {LayoutData} from "./$types";
   import {page} from "$app/stores";
-  import { ArrowLeft, BellRing, Database, GanttChartSquare, Hand, Heart, Layers, Palette, Rocket, Settings, WholeWord, X } from "lucide-svelte";
+  import { ArrowLeft, BellRing, Database, GanttChartSquare, Hand, Heart, Layers, Palette, Settings, WholeWord, X } from "lucide-svelte";
   import { scale } from 'svelte/transition';
 
   interface Props {
@@ -90,15 +90,7 @@
             <p class="p-menu-nav__title"><a href="/settings/data">{$_('settings_data_management')}</a></p>
           </li>
 
-          <li class="p-menu-nav__item p-menu-nav__item--bottom" class:p-menu-nav__item--current={$page.url.pathname === '/settings/news'}>
-            <div class="p-menu-nav__icon">
-              <Rocket size="24" color="var(--text-color-1)"></Rocket>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/news">{$_('settings_news')}</a></p>
-            <span class="new-label">NEW</span>
-          </li>
-
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/about'}>
+          <li class="p-menu-nav__item p-menu-nav__item--bottom" class:p-menu-nav__item--current={$page.url.pathname === '/settings/about'}>
             <div class="p-menu-nav__icon">
               <Heart size="24" color="var(--text-color-1)"></Heart>
             </div>

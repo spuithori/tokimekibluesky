@@ -62,3 +62,19 @@ export async function isSubscribe() {
 
     return !!subscription;
 }
+
+export async function refreshPushListActivity(dids: string[], locale: string) {
+    const isPushEnabled = await isSubscribe();
+    if (!isPushEnabled) {
+        return false;
+    }
+
+    const enableAccounts = localStorage.getItem('pushNotificationAccounts') ? JSON.parse(localStorage.getItem('pushNotificationAccounts')) : [];
+
+    try {
+        await sub(enableAccounts, locale, dids);
+    } catch (e) {
+        console.error(e);
+        throw new Error(e);
+    }
+}

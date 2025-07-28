@@ -1,8 +1,9 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import {_, locale} from 'svelte-i18n';
   import {BellMinus, BellPlus} from "lucide-svelte";
   import {toast} from "svelte-sonner";
   import { agent } from "$lib/stores";
+  import { refreshPushListActivity } from "$lib/pushSubscription";
 
   let { _agent = $agent, profile, onupdate } = $props();
   let isPushNotificationEnabled = $state(true);
@@ -29,6 +30,9 @@
 
           onupdate(res.data?.activitySubscription);
           toast.success($_('push_subscription_success'));
+
+          const { data: { subscriptions } } = await _agent.agent.api.app.bsky.notification.listActivitySubscriptions({ limit: 100 });
+          await refreshPushListActivity(subscriptions.map(sub => sub.did), $locale);
       } catch (e) {
           toast.error($_('push_subscription_failed') + ' ' + e.message);
       }
