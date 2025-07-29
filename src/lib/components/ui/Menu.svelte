@@ -23,11 +23,10 @@
     onopen = () => {},
   }: Props = $props();
 
-  let toggle = $state();
   let el = $state();
 
   const [ floatingRef, floatingContent ] = createFloatingActions({
-      strategy: 'absolute',
+      strategy: 'fixed',
       placement: position,
       middleware: [
           offset(10),
@@ -58,8 +57,7 @@
   }
 
   function handleClose() {
-      isMenuOpen = false;
-    el.showModal();
+    isMenuOpen = false;
   }
 
   $effect(() => {
@@ -72,7 +70,6 @@
 <button
   class={buttonClassName}
   aria-label="Open menu."
-  bind:this={toggle}
   onclick={menuOpen}
   use:floatingRef
 >

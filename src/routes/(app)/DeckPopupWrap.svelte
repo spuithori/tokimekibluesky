@@ -5,11 +5,11 @@
   interface Props {
     column: any;
     index?: number;
-    unique?: any;
   }
 
-  let { column, index = 0, unique = Symbol() }: Props = $props();
+  let { column, index = 0 }: Props = $props();
   let el = $state();
+  let unique = $state(Symbol());
   let isPopupEnable = $derived(column?.settings?.isPopup);
 
   $effect(() => {
@@ -60,7 +60,7 @@
 >
   <div class="deck-popup-handle"></div>
 
-  <DeckRow {column} {index} {unique}></DeckRow>
+  <DeckRow {index}></DeckRow>
 </div>
 
 <style lang="postcss">

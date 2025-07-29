@@ -1,7 +1,7 @@
 <script lang="ts">
   import { agent, didHint, labelDefs, labelerSettings, settings } from "$lib/stores";
   import {format, parseISO} from "date-fns";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs } from "@atproto/api";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
@@ -15,6 +15,7 @@
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
   import EmbedRecord from './EmbedRecord.svelte'
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
+  import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
 
   let { record, _agent = $agent, isChild = false, isPublish = false } = $props();
 
@@ -149,6 +150,8 @@
       {#if (AppBskyEmbedRecord.isView(record?.embeds[0]))}
         {#if (AppBskyEmbedRecord.isViewDetached(record?.embeds[0]?.record) || AppBskyEmbedRecord.isViewNotFound(record?.embeds[0]?.record))}
 
+        {:else if ((AppBskyFeedDefs.isGeneratorView(record?.embeds[0]?.record)))}
+          <FeedsItem {_agent} feed={record?.embeds[0]?.record} layout="embed"></FeedsItem>
         {:else}
           <EmbedRecord record={record.embeds[0].record} {_agent} isChild={true}></EmbedRecord>
         {/if}

@@ -29,14 +29,12 @@
 
     interface Props {
         index?: number;
-        unique?: any;
         isJunk?: boolean;
         name?: any;
     }
 
     let {
         index = 0,
-        unique = $bindable(Symbol()),
         isJunk = false,
         name = undefined,
         _agent,
@@ -45,6 +43,7 @@
     const columnState = getColumnState(isJunk);
     const fixedColumnState = getColumnState(false);
     const column = columnState.getColumn(index);
+    let unique = $state(Symbol());
 
     if (!_agent) {
         _agent = $agents.get(getAccountIdByDid($agents, column.did)) || $agent;

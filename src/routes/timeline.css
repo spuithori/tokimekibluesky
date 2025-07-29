@@ -594,7 +594,6 @@
 }
 
 .timeline-menu {
-    position: absolute;
     padding: var(--menu-padding);
     box-shadow: var(--menu-box-shadow);
     border: var(--menu-border);

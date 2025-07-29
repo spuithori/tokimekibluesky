@@ -9,7 +9,6 @@
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
 
     const columnState = getColumnState();
-    let unique = Symbol();
 
     if (!columnState.columns.length) {
         columnState.add({
@@ -51,10 +50,7 @@
   <div class="single-timeline-wrap">
     {#key $currentTimeline}
       {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
-        <DeckRow
-                column={columnState.columns[$currentTimeline]}
-                index={$currentTimeline}
-        ></DeckRow>
+        <DeckRow index={$currentTimeline}></DeckRow>
       {/if}
     {/key}
   </div>

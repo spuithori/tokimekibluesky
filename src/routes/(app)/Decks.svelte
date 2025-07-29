@@ -5,7 +5,6 @@
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
-    let unique = Symbol();
     const columnState = getColumnState();
 </script>
 
@@ -16,9 +15,9 @@
     <div class="deck">
       {#each columnState.columns as column, index (column.id)}
         {#if !column?.settings?.isPopup}
-          <DeckRow {column} {index} {unique}></DeckRow>
+          <DeckRow {index}></DeckRow>
         {:else}
-          <DeckPopupWrap {column} {index} {unique}></DeckPopupWrap>
+          <DeckPopupWrap {column} {index}></DeckPopupWrap>
         {/if}
       {/each}
     </div>
