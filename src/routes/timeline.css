@@ -602,6 +602,7 @@
     background-color: var(--menu-bg-color);
     z-index: 101;
     min-width: 150px;
+    color: var(--text-color-1);
 
     &::backdrop {
         background-color: transparent;
