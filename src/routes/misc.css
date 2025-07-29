@@ -345,3 +345,9 @@
         height: 400px !important;
     }
 }
+
+.side-modal {
+    .deck-heading {
+        top: 0 !important;
+    }
+}
