@@ -89,7 +89,7 @@
   }
 
   .user-item__title {
-      font-size: 16px;
+      font-size: 15px;
       display: flex;
       align-items: center;
       gap: 4px;
@@ -103,7 +103,7 @@
   }
 
   .user-item__text {
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.5;
       color: var(--text-color-3);
   }

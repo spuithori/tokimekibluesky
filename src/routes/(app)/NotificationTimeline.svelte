@@ -133,7 +133,7 @@
             <li class="notifications-filter__item notifications-filter__item--{item}" aria-label={$_(item)}>
                 <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={column.filter} value={item} onchange={() => {changeFilter(column.filter)}}>
                 <label class="notifications-filter__label" for={id + '_' + item}>
-                    <svelte:component this={filterIcons[item]} size="20"></svelte:component>
+                    <svelte:component this={filterIcons[item]} size="20" strokeWidth="var(--icon-stroke-width, 2px)"></svelte:component>
                 </label>
             </li>
         {/each}

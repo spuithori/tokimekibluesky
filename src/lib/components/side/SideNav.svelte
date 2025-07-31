@@ -136,32 +136,32 @@
     <li class="side-nav__item">
       <button class="side-nav__button side-nav__button--{item}" onclick={() => {handleMenuAction(item)}}>
         {#if (item === 'workspace')}
-          <Layers color="var(--nav-secondary-icon-color)"></Layers>
+          <Layers color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Layers>
         {:else if (item === 'feeds')}
-          <GanttChartSquare color="var(--nav-secondary-icon-color)"></GanttChartSquare>
+          <GanttChartSquare color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></GanttChartSquare>
         {:else if (item === 'chat')}
-          <MessageCircleMore color="var(--nav-secondary-icon-color)"></MessageCircleMore>
+          <MessageCircleMore color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></MessageCircleMore>
           {#if chatState.totalChatCount}
             <span class="side-nav__count">{chatState.totalChatCount}</span>
           {/if}
         {:else if (item === 'notifications')}
-          <Bell color="var(--nav-secondary-icon-color)"></Bell>
+          <Bell color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Bell>
         {:else if (item === 'search')}
-          <Search color="var(--nav-secondary-icon-color)"></Search>
+          <Search color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Search>
         {:else if (item === 'topic')}
-          <TrendingUp color="var(--nav-secondary-icon-color)"></TrendingUp>
+          <TrendingUp color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></TrendingUp>
         {:else if (item === 'profile')}
-          <UserRound color="var(--nav-secondary-icon-color)"></UserRound>
+          <UserRound color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></UserRound>
         {:else if (item === 'refresher')}
-          <RefreshCcw color={refreshTimeout ? 'var(--border-color-1)' : 'var(--nav-secondary-icon-color)'}></RefreshCcw>
+          <RefreshCcw color={refreshTimeout ? 'var(--border-color-1)' : 'var(--nav-secondary-icon-color)'} strokeWidth="var(--icon-stroke-width, 2px)"></RefreshCcw>
         {:else if (item === 'scroll-top')}
-          <CircleArrowUp color="var(--nav-secondary-icon-color)"></CircleArrowUp>
+          <CircleArrowUp color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></CircleArrowUp>
         {:else if (item === 'bluecast')}
-          <Mic color="var(--nav-secondary-icon-color)"></Mic>
+          <Mic color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Mic>
         {:else if (item === 'columns')}
-          <Square color="var(--nav-secondary-icon-color)"></Square>
+          <Square color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Square>
         {:else if (item === 'tokmek')}
-          <Clapperboard color="var(--nav-secondary-icon-color)"></Clapperboard>
+          <Clapperboard color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Clapperboard>
         {/if}
       </button>
     </li>
@@ -169,7 +169,7 @@
 
   <li class="side-nav__item side-nav__item--right">
     <button class="side-nav__button" aria-label="Search" onclick={() => {isMenuOpen = !isMenuOpen}}>
-      <Ellipsis color="var(--nav-secondary-icon-color)"></Ellipsis>
+      <Ellipsis color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Ellipsis>
     </button>
 
     {#if (isMenuOpen)}

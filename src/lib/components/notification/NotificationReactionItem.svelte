@@ -73,7 +73,7 @@
         <div class="notification-column__icons">
             {#if (item.reason === 'repost' || item.reason === 'repost-via-repost')}
                 <button class="notification-icon notification-icon--repost" onclick={handleClick}>
-                    <Repeat2 color="var(--bg-color-1)" size="18"></Repeat2>
+                    <Repeat2 color="var(--timeline-reaction-reposted-icon-color)" size="18"></Repeat2>
                 </button>
             {/if}
 
@@ -82,14 +82,14 @@
                     {#if ($settings?.design?.reactionMode === 'superstar')}
                         <Star color="var(--bg-color-1)" size="18"></Star>
                     {:else}
-                        <Heart color="var(--bg-color-1)" size="18"></Heart>
+                        <Heart color="var(--timeline-reaction-liked-icon-color)" size="18"></Heart>
                     {/if}
                 </button>
             {/if}
 
             {#if (item.reason === 'subscribed-post')}
                 <button class="notification-icon notification-icon--post" onclick={handleClick}>
-                    <Pencil color="var(--bg-color-1)" size="16"></Pencil>
+                    <Pencil color="var(--primary-color)" size="16"></Pencil>
                 </button>
             {/if}
         </div>
@@ -155,22 +155,33 @@
         display: grid;
         place-content: center;
         transition: opacity .25s ease-in-out;
+        position: relative;
 
-        &:hover {
-            opacity: .8;
+        &::before {
+            content: '';
+            display: block;
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            opacity: .05;
+            z-index: 1;
         }
 
         &--repost {
-            background-color: var(--timeline-reaction-reposted-icon-color);
+            &::before {
+                background-color: var(--timeline-reaction-reposted-icon-color);
+            }
         }
 
         &--like {
-            background-color: var(--timeline-reaction-liked-icon-color);
-            padding-top: 1px;
+            &::before {
+                background-color: var(--timeline-reaction-liked-icon-color);
+            }
         }
 
-        &--post {
-            background-color: var(--primary-color);
+        &:hover {
+            opacity: .8;
         }
     }
 

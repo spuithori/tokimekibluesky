@@ -348,7 +348,7 @@
                 <button class="deck-heading__icon-picker-button" aria-label="Change icon" onclick={() => {isIconPickerOpen = !isIconPickerOpen}}>
                     {#if column.settings?.icon}
                         {@const SvelteComponent = iconMap.get(column.settings.icon)}
-                        <SvelteComponent color="var(--deck-heading-icon-color)"></SvelteComponent>
+                        <SvelteComponent color="var(--deck-heading-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></SvelteComponent>
                     {:else}
                         <ColumnIcon type={column.algorithm.type}></ColumnIcon>
                     {/if}
@@ -410,7 +410,7 @@
 
             {#if (!isJunk)}
                 <button class="deck-row-settings-button" class:deck-row-settings-button--open={isSettingsOpen} aria-label="Settings" onclick={() => {isSettingsOpen = !isSettingsOpen}}>
-                    <Settings2 color="var(--deck-row-settings-button-color, var(--text-color-3))"></Settings2>
+                    <Settings2 color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></Settings2>
                 </button>
             {/if}
         </div>
@@ -745,7 +745,7 @@
         }
 
         &__title {
-            font-weight: 900;
+            font-weight: bold;
             font-size: 14px;
             display: flex;
             flex-direction: column;
@@ -767,7 +767,6 @@
         &__subhead {
             font-size: 12px;
             color: var(--deck-heading-subhead-color);
-            font-weight: bold;
             letter-spacing: .025em;
             text-overflow: ellipsis;
             overflow: hidden;

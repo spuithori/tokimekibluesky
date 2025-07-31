@@ -264,6 +264,8 @@
 }
 
 .editor-link {
+    color: var(--editor-link-color, var(--link-color));
+
     &:hover {
         &::before {
             content: attr(href);

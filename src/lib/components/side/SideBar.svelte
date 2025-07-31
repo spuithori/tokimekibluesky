@@ -110,7 +110,7 @@
         >
           {#if column.settings?.icon}
             {@const SvelteComponent = iconMap.get(column.settings.icon)}
-            <SvelteComponent color="var(--bar-secondary-icon-color)"></SvelteComponent>
+            <SvelteComponent color="var(--bar-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></SvelteComponent>
           {:else}
             <ColumnIcon type={column.algorithm.type} color="var(--bar-secondary-icon-color)"></ColumnIcon>
           {/if}
@@ -140,7 +140,7 @@
     {/if}
 
     <a class="side-bar-button side-bar-button--settings only-pc" href="/settings/general">
-      <Settings color="var(--bar-bottom-icon-color)"></Settings>
+      <Settings color="var(--bar-bottom-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Settings>
     </a>
   </div>
 </div>

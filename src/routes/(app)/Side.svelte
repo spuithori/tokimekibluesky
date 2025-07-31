@@ -98,10 +98,6 @@
               border: none;
           }
       }
-
-      &--float {
-          z-index: 1002;
-      }
   }
 
   .side-main {

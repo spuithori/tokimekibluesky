@@ -395,6 +395,10 @@
     white-space: pre-wrap;
     line-height: 1.75;
     font-size: var(--timeline-content-font-size);
+
+    a {
+        text-decoration: var(--link-decoration, none);
+    }
 }
 
 .timeline__delete {
