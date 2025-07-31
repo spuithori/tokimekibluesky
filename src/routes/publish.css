@@ -264,7 +264,7 @@
 }
 
 .editor-link {
-    color: var(--editor-link-color, var(--link-color));
+    color: var(--editor-link-color);
 
     &:hover {
         &::before {
