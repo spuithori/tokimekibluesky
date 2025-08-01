@@ -18,7 +18,7 @@
       onDividerUp();
   }
 
-  $effect(() => {
+  /* $effect(() => {
     if (el) {
       untrack(() => {
         tick().then(() => {
@@ -31,7 +31,7 @@
         })
       })
     }
-  })
+  }) */
 </script>
 
 <div class="more-divider-wrap" bind:this={el}>
