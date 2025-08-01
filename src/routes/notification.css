@@ -97,7 +97,9 @@
     }
 
     &--like,
-    &--repost {
+    &--repost,
+    &--repost-via-repost,
+    &--like-via-repost {
         .notifications-item__content {
             color: var(--text-color-3);
             display: -webkit-box;

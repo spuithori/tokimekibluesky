@@ -398,6 +398,10 @@
 
     a {
         text-decoration: var(--link-decoration, none);
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
 }
 
