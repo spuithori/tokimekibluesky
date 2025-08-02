@@ -1,12 +1,13 @@
 <script lang="ts">
     import { run } from 'svelte/legacy';
 
-    import {_} from 'svelte-i18n';
+    import {_, locale} from 'svelte-i18n';
     import { settings } from '$lib/stores';
     import {languageMap} from "$lib/langs/languageMap";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {settingsState} from "$lib/classes/settingsState.svelte";
     import { Sparkle } from 'lucide-svelte';
+    import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 
     let userLanguage = $state($settings?.general.userLanguage || window.navigator.language);
     let language = $state($settings?.general.language || window.navigator.language);
@@ -72,6 +73,14 @@ run(() => {
 if (!settingsState?.settings?.translationModel) {
   settingsState.settings.translationModel = 'nmt';
 }
+
+$effect(() => {
+  intlRelativeTimeFormatState.changeLocale($settings?.general?.language || navigator.language);
+});
+
+$effect(() => {
+  locale.set($settings?.general?.language);
+});
 </script>
 
 <svelte:head>

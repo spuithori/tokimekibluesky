@@ -40,7 +40,6 @@
   import "@fontsource-variable/noto-sans-kr";
   import "@fontsource-variable/murecho";
   import "@fontsource/zen-maru-gothic";
-  import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
   import {BskyAgent} from "@atproto/api";
 
   injectAnalytics({
@@ -216,7 +215,7 @@
       })
   }
 
-  if ($settings?.general.language) {
+  if ($settings?.general?.language) {
       locale.set($settings.general.language);
   }
 
@@ -289,14 +288,6 @@
   });
 
   $effect(() => {
-      locale.set($settings.general?.language);
-  });
-
-  $effect(() => {
-      intlRelativeTimeFormatState.changeLocale($settings?.general?.language || 'en-US');
-  })
-
-  $effect(() => {
       getCurrentTheme($settings.design?.skin);
   });
 
@@ -361,7 +352,7 @@
     class:superstar={$settings.design?.reactionMode === 'superstar'}
     class:bubble={$settings?.design?.bubbleTimeline}
     style={outputInlineStyle($theme)}
-    dir="{$_('dir', {default: 'ltr'})}"
+    dir={$_('dir', {default: 'ltr'})}
     bind:this={app}
 >
   {#if (loaded)}

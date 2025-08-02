@@ -11,7 +11,7 @@ const SECONDS_IN_MONTH = SECONDS_IN_DAY * 30;
 const SECONDS_IN_YEAR = SECONDS_IN_DAY * 365;
 
 class IntlRelativeTimeFormatState {
-    locale = $state<string>('en-US');
+    locale = $state<string>(navigator.language);
     instance = new Intl.RelativeTimeFormat(this.locale, { numeric: 'always', style: 'narrow' });
 
     format({ laterDate, earlierDate = new Date() }: formatOptions) {
