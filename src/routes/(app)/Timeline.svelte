@@ -123,6 +123,10 @@
         return item;
       });
 
+      if (dividerEl) {
+        dividerEl.scrollIntoView();
+      }
+
       column.data.feed.splice(index + 1, 0, ...feed);
       column.data.feed[index].isDivider = false;
       column.data.feed[index + feed.length].isDivider = true;
@@ -131,10 +135,6 @@
         tick().then(() => {
           column.data.feed[index + feed.length].isDivider = false;
         })
-      }
-
-      if (dividerEl) {
-        dividerEl.scrollIntoView();
       }
     } catch (e) {
       console.error(e);

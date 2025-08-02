@@ -578,7 +578,7 @@
         {/if}
       {/if}
 
-      {#if data?.reply?.parent?.notFound || data?.reply?.parent?.blocked || data?.reply?.root?.notFound || data?.reply?.root?.blocked}
+      {#if data?.reply?.parent?.notFound || data?.reply?.parent?.blocked}
         <article class="timeline-hidden-item">
           <p class="timeline-hidde-item__text">{$_('deleted_reply')}</p>
         </article>
@@ -590,7 +590,7 @@
           </button>
         </p>
       {:else if data.reply && !isSingle && !isReplyHide}
-        {#if isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri}
+        {#if isReplyExpanded && data.reply.parent.uri !== data.reply.root.uri && !data?.reply?.root?.notFound && !data?.reply?.root?.blocked}
           <div class="timeline__column timeline__column--reply" class:timeline__item--hide={isReplyHide}>
             <TimelineContent post={data.reply.root} {_agent} {isMedia} {isSingle} {isTranslated} bind:isHide={isReplyHide} {pulseTranslate}></TimelineContent>
           </div>
