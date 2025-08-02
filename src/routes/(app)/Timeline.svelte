@@ -97,7 +97,7 @@
       column.data.feed.splice(index + 1);
   }
 
-  async function handleDividerUp(index, cursor) {
+  async function handleDividerUp(index, cursor, dividerEl: HTMLElement | undefined) {
     try {
       const res = await _agent.getTimeline({limit: 100, cursor: cursor, algorithm: column.algorithm});
       const last = column.data.feed[index + 1];
@@ -131,6 +131,10 @@
         tick().then(() => {
           column.data.feed[index + feed.length].isDivider = false;
         })
+      }
+
+      if (dividerEl) {
+        dividerEl.scrollIntoView();
       }
     } catch (e) {
       console.error(e);
@@ -215,7 +219,7 @@
       {/if}
 
       {#if data?.isDivider}
-        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={() => {handleDividerUp(index, data.memoryCursor)}} column={column}></MoreDivider>
+        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={(dividerEl) => {handleDividerUp(index, data.memoryCursor, dividerEl)}}></MoreDivider>
       {/if}
     {/each}
   </div>

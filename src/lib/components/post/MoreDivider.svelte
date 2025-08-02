@@ -1,10 +1,8 @@
 <script lang="ts">
-  import {settings} from "$lib/stores";
   import {ArrowUpFromDot, MoreHorizontal} from "lucide-svelte";
-  import {untrack, tick} from "svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
-  let { onDividerClick, onDividerUp, column } = $props();
+  let { onDividerClick, onDividerUp } = $props();
   let el = $state();
   let isLoading = $state(false);
 
@@ -15,23 +13,8 @@
 
   function handleUp() {
       isLoading = true;
-      onDividerUp();
+      onDividerUp(el);
   }
-
-  /* $effect(() => {
-    if (el) {
-      untrack(() => {
-        tick().then(() => {
-          const posFromTop = el.offsetTop;
-          const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
-
-          if (posFromTop) {
-            scrollEl.scrollTo(0, posFromTop);
-          }
-        })
-      })
-    }
-  }) */
 </script>
 
 <div class="more-divider-wrap" bind:this={el}>
