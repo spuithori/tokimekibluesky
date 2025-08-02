@@ -431,7 +431,7 @@
           inset: 12px 16px;
           box-shadow: 0 0 12px var(--box-shadow-color-1);
           border-radius: var(--border-radius-3);
-          overscroll-behavior-y: none;
+          overscroll-behavior-y: contain;
           background-color: var(--bg-color-1);
           overflow-x: hidden;
           max-width: 308px;

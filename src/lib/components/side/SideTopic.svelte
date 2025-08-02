@@ -60,15 +60,21 @@
         margin-bottom: 8px;
 
         &__title {
-            font-weight: bold;
-            color: var(--text-color-1);
+            position: relative;
+            font-size: 14px;
 
             a {
-                color: var(--text-color-1);
-                display: block;
-                border: 1px solid var(--border-color-2);
-                padding: 8px;
-                border-radius: var(--border-radius-3);
+              height: 44px;
+              display: flex;
+              align-items: center;
+              padding: 0 12px;
+              border: 2px solid var(--bg-color-2);
+              background-color: var(--bg-color-2);
+              border-radius: var(--border-radius-3);
+              color: var(--text-color-1);
+              font-weight: bold;
+              gap: 8px;
+              letter-spacing: .025em;
             }
         }
     }

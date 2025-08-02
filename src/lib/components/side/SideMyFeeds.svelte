@@ -113,7 +113,7 @@
                     {#each customFeeds as feed}
                         <li class="side-feeds-list__item">
                             <a class="side-feeds-list__link" href="{getFeedUrl(feed.uri, 'feed')}" onclick={handleSelect}>
-                                <Newspaper color="var(--text-color-3)" size="20"></Newspaper>
+                                <Newspaper color="var(--text-color-1)" size="20"></Newspaper>
                                 {feed.name}</a>
                         </li>
                     {/each}
@@ -127,7 +127,7 @@
                     {#each officialLists as list}
                         <li class="side-feeds-list__item">
                             <a class="side-feeds-list__link" href="{getFeedUrl(list.uri, 'lists')}" onclick={handleSelect}>
-                                <List color="var(--text-color-3)" size="20"></List>
+                                <List color="var(--text-color-1)" size="20"></List>
                                 {list.name}</a>
                         </li>
                     {/each}
@@ -142,7 +142,7 @@
                         {#if (bookmark.owner === $agent.did())}
                             <li class="side-feeds-list__item">
                                 <a class="side-feeds-list__link" href="/bookmark/{bookmark.id}" onclick={handleSelect}>
-                                    <Bookmark color="var(--text-color-3)" size="20"></Bookmark>
+                                    <Bookmark color="var(--text-color-1)" size="20"></Bookmark>
                                     {bookmark.name}</a>
                             </li>
                         {/if}
@@ -153,7 +153,7 @@
                   {#each cloudBookmarks as bookmark}
                     <li class="side-feeds-list__item">
                       <a class="side-feeds-list__link" href="/bookmark-cloud/{bookmark.id}" onclick={handleSelect}>
-                        <Bookmark color="var(--text-color-3)" size="20"></Bookmark>
+                        <Bookmark color="var(--text-color-1)" size="20"></Bookmark>
                         {bookmark.name}</a>
                     </li>
                   {/each}
@@ -191,22 +191,23 @@
   .side-feeds-list {
       list-style: none;
       display: grid;
-      gap: 12px;
+      gap: 8px;
       margin-bottom: 12px;
 
       &__item {
           position: relative;
+          font-size: 14px;
       }
 
       &__link {
-          height: 40px;
+          height: 44px;
           display: flex;
           align-items: center;
           padding: 0 12px;
-          border: 1px solid var(--border-color-2);
-          border-radius: var(--border-radius-2);
+          border: 2px solid var(--bg-color-2);
+          background-color: var(--bg-color-2);
+          border-radius: var(--border-radius-3);
           color: var(--text-color-1);
-          box-shadow: 0 0 6px var(--box-shadow-color-2);
           font-weight: bold;
           gap: 8px;
           letter-spacing: .025em;

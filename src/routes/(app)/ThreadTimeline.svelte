@@ -20,9 +20,7 @@
   const columnState = getColumnState(isJunk);
   const column = columnState.getColumn(index);
 
-  let scrollTop: undefined | Number = $state(undefined);
   let rootIndex = $state();
-
   let isMuted: boolean = $state(false);
   let isMuteDisplay: boolean = $state(false);
 

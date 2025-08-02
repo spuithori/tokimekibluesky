@@ -34,7 +34,7 @@
   .p-menu-profile {
       padding: 10px;
       border-radius: 4px;
-      border: 1px solid var(--border-color-1);
+      border: 2px solid var(--border-color-1);
       margin-bottom: 10px;
       width: 100%;
       display: flex;
@@ -61,7 +61,6 @@
 
       &--current {
           border-color: var(--primary-color);
-          border-width: 2px;
       }
   }
 </style>
