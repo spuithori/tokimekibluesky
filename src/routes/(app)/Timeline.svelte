@@ -99,6 +99,8 @@
 
   async function handleDividerUp(index, cursor, dividerEl: HTMLElement | undefined) {
     try {
+      const bottomEl: HTMLElement = dividerEl?.nextElementSibling;
+
       const res = await _agent.getTimeline({limit: 100, cursor: cursor, algorithm: column.algorithm});
       const last = column.data.feed[index + 1];
 
@@ -123,13 +125,17 @@
         return item;
       });
 
-      if (dividerEl) {
-        dividerEl.scrollIntoView();
-      }
-
       column.data.feed.splice(index + 1, 0, ...feed);
       column.data.feed[index].isDivider = false;
       column.data.feed[index + feed.length].isDivider = true;
+
+      if (bottomEl) {
+        tick().then(() => {
+          const scrollEl: HTMLElement = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+          const offsetTop = bottomEl.offsetTop - 52;
+          scrollEl.scrollTo(0, offsetTop);
+        })
+      }
 
       if (feed.length !== res.data.feed.length) {
         tick().then(() => {
