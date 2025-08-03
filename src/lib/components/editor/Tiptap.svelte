@@ -64,7 +64,6 @@
     let isLinkActive = $state(false);
     let isEmojiPickerOpen = $state(false);
     let isFocus = $state(false);
-    let focusTimeout;
 
     onMount(() => {
         editor = new Editor({
@@ -221,19 +220,15 @@
                 text = jsonToText(json);
             },
             onFocus() {
-                clearTimeout(focusTimeout);
                 isFocus = true;
             },
             onBlur() {
-                focusTimeout = setTimeout(() => {
-                  isFocus = false;
-                }, 500);
+                isFocus = false;
             },
         })
     })
 
     onDestroy(() => {
-        clearTimeout(focusTimeout);
         if (editor) {
             editor.destroy();
         }
