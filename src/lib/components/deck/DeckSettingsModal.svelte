@@ -6,7 +6,7 @@
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {Search} from "lucide-svelte";
-    import { scale } from 'svelte/transition';
+    import { fly } from 'svelte/transition';
     import Notice from "$lib/components/ui/Notice.svelte";
 
     interface Props {
@@ -326,7 +326,7 @@
     }
 </script>
 
-<div class="deck-settings-wrap deck-settings-wrap--{layout}" transition:scale={{duration: 250, opacity: 0, start: 0.98}}>
+<div class="deck-settings-wrap deck-settings-wrap--{layout}" in:fly={{duration: 250, opacity: 0, y: -8}}>
     <div class="deck-settings">
         <div class="deck-settings-content">
             <p class="deck-settings-description">{$_('deck_settings_description')}</p>
@@ -696,19 +696,17 @@
 <style lang="postcss">
     .deck-settings-wrap {
         position: absolute;
-        top: 60px;
-        left: 8px;
-        right: 8px;
-        height: calc(100dvh - 70px);
+        top: 52px;
+        left: 0;
+        right: -6px;
+        height: calc(100dvh - 52px - var(--decks-margin));
         padding: 0;
         z-index: 100;
         background-color: var(--bg-color-1);
-        border: 2px solid var(--primary-color);
-        border-radius: var(--border-radius-4);
         overflow: hidden;
 
         @media (max-width: 767px) {
-            height: calc(100dvh - 64px - 102px);
+            height: calc(100dvh - 64px - 90px - var(--safe-area-bottom));
         }
     }
 

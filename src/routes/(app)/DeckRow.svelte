@@ -318,6 +318,7 @@
     class:deck-row--mobileV2={$settings.design?.mobileNewUi && !isJunk}
     class:deck-row--mobileV2-fixed={$settings.design?.fixedFooter}
     class:deck-row--junk={isJunk}
+    class:deck-row--settings-open={isSettingsOpen}
     onmouseenter={handleMouseEnter}
     onmouseleave={handleMouseLeave}
     onscroll={handleScroll}
@@ -696,6 +697,14 @@
                         opacity: 1 !important;
                     }
                 }
+            }
+        }
+
+        &--settings-open {
+            padding-right: 6px;
+
+            &::-webkit-scrollbar {
+                width: 0;
             }
         }
     }
