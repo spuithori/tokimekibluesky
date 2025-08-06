@@ -134,6 +134,25 @@
   }
 
   async function uploadBlobWithCompression(image) {
+    const originalSizeMB = image.file.size / 1024 / 1024;
+
+    const calculateQuality = (sizeMB: number) => {
+      const targetSizeMB = 0.925;
+      if (sizeMB <= targetSizeMB) {
+        return 0.95;
+      }
+
+      const minQuality = 0.8;
+      const maxQuality = 0.9;
+      const maxSizeToConsider = 20.0;
+
+      const overshootRatio = Math.min(1.0, (sizeMB - targetSizeMB) / (maxSizeToConsider - targetSizeMB));
+      const quality = maxQuality - (overshootRatio * (maxQuality - minQuality));
+
+      return Math.max(minQuality, quality);
+    };
+    const dynamicInitialQuality = calculateQuality(originalSizeMB);
+
     const compressed = $settings?.general?.losslessImageUpload
       ? await imageCompression(image.file, {
             useWebWorker: true,
@@ -141,10 +160,10 @@
         })
       : await imageCompression(image.file, {
             maxSizeMB: 0.925,
-            maxWidthOrHeight: 3000,
-            fileType: 'image/jpeg',
+            maxWidthOrHeight: 2000,
+            fileType: image.file.type,
             useWebWorker: true,
-            initialQuality: 0.85,
+            initialQuality: dynamicInitialQuality,
         });
 
     return await _agent.agent.api.com.atproto.repo.uploadBlob(image.isGif ? image.file : compressed, {
