@@ -161,7 +161,7 @@
       : await imageCompression(image.file, {
             maxSizeMB: 0.925,
             maxWidthOrHeight: 2000,
-            fileType: image.file.type,
+            fileType: 'image/jpeg',
             useWebWorker: true,
             initialQuality: dynamicInitialQuality,
         });
