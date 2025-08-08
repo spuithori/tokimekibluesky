@@ -348,21 +348,6 @@
 
     <div class="column-adder-group">
         <div class="column-adder-group__heading">
-            <p class="column-adder-group__title">{$_('bookmark_local')}</p>
-            <a href="https://docs.tokimeki.blue/ja/usage/bookmark" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
-
-            <button class="column-adder-group__add" onclick={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
-        </div>
-
-        {#if (bookmarkColumns.length)}
-            <ColumnListAdder {_agent} items={bookmarkColumns} on:add></ColumnListAdder>
-        {:else}
-            <p class="column-adder-text">{$_('there_is_no_bookmark')}</p>
-        {/if}
-    </div>
-
-    <div class="column-adder-group">
-        <div class="column-adder-group__heading">
             <p class="column-adder-group__title">{$_('official_list_columns')}</p>
             <a href="https://docs.tokimeki.blue/ja/usage/list#%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%83%AA%E3%82%B9%E3%83%88%E3%81%A8%E3%81%AF" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
@@ -377,6 +362,21 @@
             <ColumnListAdder {_agent} items={officialListColumns} on:add></ColumnListAdder>
         {:else}
             <p class="column-adder-text">{$_('there_is_no_official_list')}</p>
+        {/if}
+    </div>
+
+    <div class="column-adder-group">
+        <div class="column-adder-group__heading">
+            <p class="column-adder-group__title">{$_('bookmark_local')}</p>
+            <a href="https://docs.tokimeki.blue/ja/usage/bookmark" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
+
+            <button class="column-adder-group__add" onclick={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
+        </div>
+
+        {#if (bookmarkColumns.length)}
+            <ColumnListAdder {_agent} items={bookmarkColumns} on:add></ColumnListAdder>
+        {:else}
+            <p class="column-adder-text">{$_('there_is_no_bookmark')}</p>
         {/if}
     </div>
 
