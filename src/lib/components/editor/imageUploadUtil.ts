@@ -1,3 +1,5 @@
+import imageCompression from 'browser-image-compression';
+
 export async function transformImageFilter(file: File) {
     return new Promise(resolve => {
         if (!/image\/gif/.test(file.type)) {
@@ -81,4 +83,47 @@ export function resizeAspectRatioSize (size: {width: number, height: number}) {
     }
 
     return size;
+}
+
+export async function compressWithIteration(imageFile: File, targetSizeMB: number) {
+    let quality = 1.0;
+    const qualityStep = 0.005;
+    const minQuality = 0.7;
+    const maxAttempts = 100;
+
+    console.log(`Starting iterative compression for target size: < ${targetSizeMB}MB`);
+
+    let compressedFile = imageFile;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const options = {
+            initialQuality: quality,
+            useWebWorker: true,
+            maxWidthOrHeight: 2000,
+            fileType: 'image/jpeg',
+        };
+
+        console.log(`Attempt #${attempt}: Compressing with quality = ${quality.toFixed(2)}...`);
+
+        const processedFile = await imageCompression(imageFile, options);
+        const currentSizeMB = processedFile.size / 1024 / 1024;
+
+        console.log(`  -> Result size: ${currentSizeMB.toFixed(3)}MB`);
+
+        if (currentSizeMB <= targetSizeMB) {
+            console.log('Success! File size is within the target.');
+            return processedFile;
+        }
+
+        quality -= qualityStep;
+        compressedFile = processedFile;
+
+        if (quality < minQuality) {
+            console.warn('Minimum quality reached, but file is still too large. Returning the last compressed file.');
+            break;
+        }
+    }
+
+    console.warn(`Could not compress to target size within ${maxAttempts} attempts. Returning best effort file.`);
+    return compressedFile;
 }

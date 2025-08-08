@@ -23,6 +23,7 @@
   import {getPostState} from "$lib/classes/postState.svelte";
   import {languageDetect} from '$lib/translate';
   import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
+  import {compressWithIteration} from "$lib/components/editor/imageUploadUtil";
 
   const postState = getPostState();
 
@@ -154,12 +155,9 @@
     const dynamicInitialQuality = calculateQuality(originalSizeMB);
 
     const compressed = $settings?.general?.losslessImageUpload
-      ? await imageCompression(image.file, {
-            useWebWorker: true,
-            maxWidthOrHeight: 3000,
-        })
+      ? await compressWithIteration(image.file, 0.95)
       : await imageCompression(image.file, {
-            maxSizeMB: 0.925,
+            maxSizeMB: 0.95,
             maxWidthOrHeight: 2000,
             fileType: 'image/jpeg',
             useWebWorker: true,
