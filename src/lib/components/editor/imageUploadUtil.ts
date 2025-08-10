@@ -88,8 +88,8 @@ export function resizeAspectRatioSize (size: {width: number, height: number}) {
 export async function compressWithIteration(imageFile: File, targetSizeMB: number) {
     let quality = 1.0;
     const qualityStep = 0.005;
-    const minQuality = 0.85;
-    const maxAttempts = 100;
+    const minQuality = 0.75;
+    const maxAttempts = 1000;
 
     console.log(`Starting iterative compression for target size: < ${targetSizeMB}MB`);
 
