@@ -326,4 +326,8 @@
       margin-bottom: 8px;
       padding-top: 4px;
   }
+
+  .side-bar-button {
+      outline: none !important;
+  }
 </style>
