@@ -260,6 +260,7 @@
         place-content: center;
         position: relative;
         flex-shrink: 0;
+        outline: none !important;
 
         &::before {
             content: '';
