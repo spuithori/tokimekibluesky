@@ -98,6 +98,11 @@
             .tiptap {
                 height: 120px;
             }
+
+            .publish-tenor-external {
+                width: 25%;
+                margin: auto;
+            }
         }
     }
 }
@@ -317,7 +322,6 @@
 }
 
 .publish-tenor-external {
-    aspect-ratio: 1 / 1;
     border-radius: var(--border-radius-2);
     overflow: hidden;
 
