@@ -3,21 +3,18 @@
   import { _ } from 'svelte-i18n';
   import { db } from '$lib/db';
   import { agent } from "$lib/stores";
-  import { liveQuery } from "dexie";
   import { format } from 'date-fns';
-
   import type { Draft } from '$lib/db';
   import Modal from "$lib/components/ui/Modal.svelte";
+  import { stateQuery } from "$lib/classes/dbState.svelte";
 
   let { _agent = $agent, onuse, onclose } = $props();
 
-  let drafts = $derived(liveQuery(async () => {
-      const drafts = await db.drafts
-          .where('owner')
-          .equals(_agent.did())
-          .toArray();
-      return drafts;
-  }))
+  let draftsQuery = stateQuery(
+      () => db.drafts.where('owner').equals(_agent.did() as string).toArray(),
+      () => [],
+  );
+  const drafts = $derived(draftsQuery.current);
 
   async function use(draft: Draft) {
       try {
@@ -40,8 +37,8 @@
 
 <Modal title={$_('drafts')} {onclose}>
   <div class="drafts">
-    {#if ($drafts)}
-      {#each $drafts as draft}
+    {#if (drafts)}
+      {#each drafts as draft}
         <div class="drafts__item">
           <p class="drafts__date">{format(draft.createdAt, 'yyyy-MM-dd HH:mm:ss')}</p>
 
