@@ -335,7 +335,7 @@
                 {#if (column.algorithm?.type === 'search')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {m.search_search()}
+                            {m['/search_search']()}
                         </dt>
 
                         <dd class="settings-group__content">
