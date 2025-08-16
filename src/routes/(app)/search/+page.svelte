@@ -1,7 +1,7 @@
 <script lang="ts">
     import { page } from '$app/stores';
     import {agent, settings} from '$lib/stores';
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import { PUBLIC_SUICIDE_WORDS } from '$env/static/public';
     import SuicideSafety from "$lib/components/safety/SuicideSafety.svelte";
@@ -38,7 +38,7 @@
             algorithm: {
                 algorithm: $page.url.searchParams.get('q') || '',
                 type: 'search',
-                name: $_('search') + ' "' + $page.url.searchParams.get('q') + '"',
+                name: m.search() + ' "' + $page.url.searchParams.get('q') + '"',
             },
             style: 'default',
             settings: defaultDeckSettings,
@@ -74,8 +74,8 @@
 </script>
 
 <div class="sort-toggle-nav">
-    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={sort === 'latest'} onclick={() => {toggleSort('latest')}}>{$_('search_sort_latest')}</button>
-    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={sort === 'top'} onclick={() => {toggleSort('top')}}>{$_('search_sort_top')}</button>
+    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={sort === 'latest'} onclick={() => {toggleSort('latest')}}>{m.search_sort_latest()}</button>
+    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={sort === 'top'} onclick={() => {toggleSort('top')}}>{m.search_sort_top()}</button>
 </div>
 
 {#if isSafety}
@@ -96,7 +96,7 @@
 
 {#if (isLoaded)}
     <div class="search-column-adder">
-        <button class="button button--shadow button--sm" disabled={isColumnAdded} onclick={addColumn}>{$_('feed_quick_add')}</button>
+        <button class="button button--shadow button--sm" disabled={isColumnAdded} onclick={addColumn}>{m.feed_quick_add()}</button>
     </div>
 {/if}
 

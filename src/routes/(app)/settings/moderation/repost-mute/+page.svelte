@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import {agent, repostMutes} from "$lib/stores";
   import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
   import Avatar from "../../../Avatar.svelte";
@@ -44,12 +44,12 @@
 </script>
 
 <svelte:head>
-  <title>{$_('settings_repost_mute')} - TOKIMEKI</title>
+  <title>{m.settings_repost_mute()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_repost_mute')}
+    {m.settings_repost_mute()}
   </SettingsHeader>
 
   <div class="settings-wrap">

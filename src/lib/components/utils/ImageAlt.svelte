@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import Modal from "$lib/components/ui/Modal.svelte";
   import {languageDetect} from '$lib/translate';
   import {settings} from "$lib/stores";
@@ -47,7 +47,7 @@
       {#if (!langs.includes($settings?.general?.language))}
         <button class="image-alt-translate-button" disabled={isTranslated} onclick={() => translation(images[index].alt, $settings?.general?.userLanguage)}>
           <Languages size="16" color="var(--primary-color)"></Languages>
-          {$_(isTranslated ? 'already_translated' : 'translation')}
+          {m[isTranslated ? 'already_translated' : 'translation']()}
         </button>
       {/if}
     {:catch error}

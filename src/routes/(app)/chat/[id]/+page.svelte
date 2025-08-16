@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import {page} from "$app/stores";
     import ChatView from "./ChatView.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
@@ -8,7 +8,7 @@
 
 <div>
   <SettingsHeader>
-    {$_('chat')} - {name}
+    {m.chat()} - {name}
   </SettingsHeader>
 
   {#key $page.params.id}

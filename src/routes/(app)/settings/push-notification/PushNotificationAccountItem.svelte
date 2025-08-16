@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {createEventDispatcher} from "svelte";
   import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";
@@ -42,7 +42,7 @@
 
   <dl class="settings-group settings-group--column">
     <dt class="settings-group__name">
-      {$_('push_toggle_switch_this_account')}
+      {m.push_toggle_switch_this_account()}
     </dt>
 
     <dd class="settings-group__content">
@@ -59,7 +59,7 @@
           <div class="push-notification-category">
             <dl class="settings-group">
               <dt class="settings-group__name">
-                {$_(term)}
+                {m[term]()}
               </dt>
 
               <dd class="settings-group__content">

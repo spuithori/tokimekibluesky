@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
   import {linkWarning} from "$lib/stores";
   let dialog = $state();
@@ -26,10 +26,10 @@
       on:ok={() => {handleOk($linkWarning)}}
       on:cancel={handleCancel}
       confirmationName="linkWarningConfirmSkip"
-      yesText="{$_('open')}"
-      cancelText="{$_('cancel')}"
+      yesText="{m.open()}"
+      cancelText="{m.cancel()}"
   >
-    <h3 class="modal-title modal-title--smaller modal-title--center">{$_('link_warning_confirm_title')}</h3>
+    <h3 class="modal-title modal-title--smaller modal-title--center">{m.link_warning_confirm_title()}</h3>
     <p class="modal-text modal-text--flex">{$linkWarning}</p>
   </ConfirmModal>
 {/if}

@@ -1,22 +1,21 @@
 {
-  "sourceLanguageTag": "ja",
-  "languageTags": [
+  "$schema": "https://inlang.com/schema/project-settings",
+  "baseLocale": "en",
+  "locales": [
     "ja",
     "bg",
     "en",
-    "fr-fr",
-    "ko-kr",
+    "fr",
+    "ko",
     "pt",
-    "zh-cn"
+    "zh-cn",
+    "ru"
   ],
   "modules": [
-    "https://cdn.jsdelivr.net/npm/@inlang/plugin-json@latest/dist/index.js"
+    "https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@4/dist/index.js",
+    "https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@2/dist/index.js"
   ],
-  "plugin.inlang.json": {
-    "pathPattern": "./src/lib/i18n/locales/{languageTag}.json",
-    "variableReferencePattern": [
-      "{",
-      "}"
-    ]
+  "plugin.inlang.messageFormat": {
+    "pathPattern": ["./messages/{locale}.json", "./messages/labeling/{locale}.json", "./messages/labelingInfo/{locale}.json", "./messages/languageMap/{locale}.json", "./messages/plyr/{locale}.json"]
   }
 }

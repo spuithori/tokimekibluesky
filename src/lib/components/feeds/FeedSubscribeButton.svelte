@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import { agent } from "$lib/stores";
 
   interface Props {
@@ -72,12 +72,12 @@
 
 <div>
   {#if subscribed}
-    <button class="button button--ss button--following" disabled={isProcessing} onclick={unsubscribe} data-unfollow-name="{$_('unsubscribe_button')}">
-      {$_('subscribed_button')}
+    <button class="button button--ss button--following" disabled={isProcessing} onclick={unsubscribe} data-unfollow-name="{m.unsubscribe_button()}">
+      {m.subscribed_button()}
     </button>
   {:else}
     <button class="button button--ss" disabled={isProcessing} onclick={subscribe}>
-      {$_('subscribe_button')}
+      {m.subscribe_button()}
     </button>
   {/if}
 </div>

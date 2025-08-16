@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n'
+  import { m } from "$lib/paraglide/messages.js"
   import {agents, labelDefs, labelerSettings, settings, workerTimer} from "$lib/stores";
   import {format, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
@@ -201,7 +201,7 @@
       <button
           class="timeline-translate-button"
           disabled={isTranslated}
-          onclick={translation}>{$_(isTranslated ? 'already_translated' : 'translation')}</button>
+          onclick={translation}>{m[isTranslated ? 'already_translated' : 'translation']()}</button>
     {/if}
   </div>
 
@@ -222,7 +222,7 @@
       {#if (post?.record?.['uk.skyblur.post.uri'])}
         <button class="skyblur-show" onclick={handleSkyblurShow}>
           <Eye size="18" color="var(--primary-color)"></Eye>
-          {$_('show_skyblur_text')}
+          {m.show_skyblur_text()}
         </button>
       {/if}
     {:else}

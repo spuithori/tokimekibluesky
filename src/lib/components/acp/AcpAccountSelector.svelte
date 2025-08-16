@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";
   import LoginModal from "$lib/components/acp/LoginModal.svelte";
@@ -39,7 +39,7 @@
 
   <div class="acp-selector">
     <button class="acp-selector__item acp-selector__item--front" onclick={() => {isOpen = !isOpen}}>
-      <span class="acp-selector__title"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus-2"><path d="M14 19a6 6 0 0 0-12 0"/><circle cx="8" cy="9" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>{$_('add_account')}</span>
+      <span class="acp-selector__title"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus-2"><path d="M14 19a6 6 0 0 0-12 0"/><circle cx="8" cy="9" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>{m.add_account()}</span>
     </button>
 
     <div class="acp-selector-choices">
@@ -54,7 +54,7 @@
       {/if}
 
       <button class="acp-selector__item acp-selector__item--add" onclick={() => {isLoginModalOpen = true}}>
-        <span class="acp-selector__title">{$_('new_login')}</span>
+        <span class="acp-selector__title">{m.new_login()}</span>
       </button>
     </div>
   </div>

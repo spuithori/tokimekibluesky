@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import KeywordMuteItem from "./KeywordMuteItem.svelte";
     import {defaultKeyword} from "$lib/timelineFilter";
     import OfficialMuteList from "./OfficialMuteList.svelte";
@@ -30,19 +30,19 @@
 </script>
 
 <svelte:head>
-  <title>{$_('settings_keyword_mutes')} - TOKIMEKI</title>
+  <title>{m.settings_keyword_mutes()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_keyword_mutes')}
+    {m.settings_keyword_mutes()}
   </SettingsHeader>
 
   <div class="settings-wrap">
-    <p class="settings-description">{$_('keyword_mute_description')}</p>
+    <p class="settings-description">{m.keyword_mute_description()}</p>
 
     <div class="keyword-mutes-add">
-      <button class="button" onclick={add}>{$_('add_keyword')}</button>
+      <button class="button" onclick={add}>{m.add_keyword()}</button>
     </div>
 
     {#each keywordMuteState.keywords as keyword, index}
@@ -52,12 +52,12 @@
       </div>
 
     {:else}
-      <p class="nothing">{$_('mute_keywords_nothing')}</p>
+      <p class="nothing">{m.mute_keywords_nothing()}</p>
     {/each}
 
     <div class="mute-words-import">
-      <h2>{$_('mute_keywords_import')}</h2>
-      <p class="settings-description">{$_('mute_keywords_import_description')}</p>
+      <h2>{m.mute_keywords_import()}</h2>
+      <p class="settings-description">{m.mute_keywords_import_description()}</p>
 
       <OfficialMuteList on:add={handleImport}></OfficialMuteList>
     </div>

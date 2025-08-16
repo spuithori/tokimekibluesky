@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import { isColumnModalOpen } from "$lib/stores";
   import ColumnList from "$lib/components/column/ColumnList.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -17,7 +17,7 @@
 
   <button class="column-add-button" onclick={() => {$isColumnModalOpen = true}}>
     <SquarePlus color="var(--bg-color-1)" size="20"></SquarePlus>
-    {$_('feed_quick_add')}
+    {m.feed_quick_add()}
   </button>
 </div>
 

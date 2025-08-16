@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import {languageMap} from "$lib/langs/languageMap";
   import Modal from "$lib/components/ui/Modal.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
@@ -20,10 +20,10 @@
   });
 </script>
 
-<Modal title={$_('user_language_settings')} {onclose}>
+<Modal title={m.user_language_settings()} {onclose}>
   <div class="lang-filter-list">
     <div class="lang-filter-list__item lang-filter-list__item--fullwidth">
-      <p class="lang-filter-list__name"><label for="auto">{$_('lang_selector_auto')}</label></p>
+      <p class="lang-filter-list__name"><label for="auto">{m.lang_selector_auto()}</label></p>
 
       <div class="input-toggle">
         <input class="input-toggle__input" type="radio" id="auto"
@@ -33,7 +33,7 @@
 
     {#each languageMap as [k, v]}
       <div class="lang-filter-list__item">
-        <p class="lang-filter-list__name"><label for={k}>{$_(v.name)}</label></p>
+        <p class="lang-filter-list__name"><label for={k}>{m[v.name]()}</label></p>
 
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id={k}

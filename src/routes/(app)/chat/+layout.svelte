@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import type {LayoutData} from "./$types";
     import { ArrowLeft, X } from "lucide-svelte";
     import { scale } from 'svelte/transition';
@@ -24,7 +24,7 @@
                         </button>
                     </div>
 
-                    <h1 class="column-heading__title">{$_('chat')}</h1>
+                    <h1 class="column-heading__title">{m.chat()}</h1>
 
                     <div class="column-heading__buttons column-heading__buttons--right">
                         <a class="settings-back" href="/">

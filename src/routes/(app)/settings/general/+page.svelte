@@ -1,13 +1,14 @@
 <script lang="ts">
     import { run } from 'svelte/legacy';
 
-    import {_, locale} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import { settings } from '$lib/stores';
     import {languageMap} from "$lib/langs/languageMap";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {settingsState} from "$lib/classes/settingsState.svelte";
     import { Sparkle } from 'lucide-svelte';
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
+    import {setLocale} from "$lib/paraglide/runtime";
 
     let userLanguage = $state($settings?.general.userLanguage || window.navigator.language);
     let language = $state($settings?.general.language || window.navigator.language);
@@ -35,7 +36,7 @@ const languages = [
         text: '한국어'
     },
     {
-        value: 'pt-BR',
+        value: 'pt',
         text: 'Português',
     },
     {
@@ -43,7 +44,7 @@ const languages = [
         text: 'български',
     },
     {
-        value: 'zh-CN',
+        value: 'zh-cn',
         text: '简体中文',
     },
     {
@@ -74,28 +75,25 @@ if (!settingsState?.settings?.translationModel) {
   settingsState.settings.translationModel = 'nmt';
 }
 
-$effect(() => {
-  intlRelativeTimeFormatState.changeLocale($settings?.general?.language || navigator.language);
-});
-
-$effect(() => {
-  locale.set($settings?.general?.language);
-});
+function handleLocaleChange() {
+    setLocale($settings?.general?.language);
+    intlRelativeTimeFormatState.changeLocale($settings?.general?.language || navigator.language);
+}
 </script>
 
 <svelte:head>
-  <title>{$_('settings_general')} - TOKIMEKI</title>
+  <title>{m.settings_general()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_general')}
+    {m.settings_general()}
   </SettingsHeader>
 
   <div class="settings-wrap">
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('user_language_settings')}
+        {m.user_language_settings()}
       </dt>
 
       <dd class="settings-group__content">
@@ -104,7 +102,7 @@ $effect(() => {
 
           <select class="select__input" bind:value={userLanguage}>
             {#each languageMap as [k, v]}
-              <option value="{k}">{$_(v.name)}</option>
+              <option value="{k}">{m[v.name]()}</option>
             {/each}
           </select>
         </div>
@@ -113,14 +111,14 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('language_settings')}
+        {m.language_settings()}
       </dt>
 
       <dd class="settings-group__content">
         <div class="select">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="select__icon lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
 
-          <select class="select__input" bind:value={language}>
+          <select class="select__input" bind:value={language} onchange={handleLocaleChange}>
             {#each languages as option}
               <option value="{option.value}">{option.text}</option>
             {/each}
@@ -131,7 +129,7 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('translation_model')}
+        {m.translation_model()}
       </dt>
 
       <dd class="settings-group__content">
@@ -140,7 +138,7 @@ $effect(() => {
             <input type="radio" bind:group={settingsState.settings.translationModel} id="translationModelNmt" name="translationModel" value={'nmt'}>
             <label for="translationModelNmt">
               <span class="radio__ui"></span>
-              {$_('translation_model_nmt')}
+              {m.translation_model_nmt()}
             </label>
           </div>
 
@@ -149,7 +147,7 @@ $effect(() => {
             <label for="translationModelLlm">
               <span class="radio__ui"></span>
               <Sparkle size="16"></Sparkle>
-              {$_('translation_model_llm')}
+              {m.translation_model_llm()}
             </label>
           </div>
         </div>
@@ -158,7 +156,7 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('store_column_feed_data')}
+        {m.store_column_feed_data()}
         <span class="new-label">NEW</span>
       </dt>
 
@@ -171,7 +169,7 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('disable_embed_via')}
+        {m.disable_embed_via()}
         <span class="new-label">NEW</span>
       </dt>
 
@@ -184,7 +182,7 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('data_saver')}
+        {m.data_saver()}
       </dt>
 
       <dd class="settings-group__content">
@@ -192,13 +190,13 @@ $effect(() => {
           <input class="input-toggle__input" type="checkbox" id="dataSaver" bind:checked={dataSaver}><label class="input-toggle__label" for="dataSaver"></label>
         </div>
 
-        <p class="settings-group__description">{$_('data_saver_description')}</p>
+        <p class="settings-group__description">{m.data_saver_description()}</p>
       </dd>
     </dl>
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('disable_tenor_autoplay')}
+        {m.disable_tenor_autoplay()}
       </dt>
 
       <dd class="settings-group__content">
@@ -210,7 +208,7 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('dev_mode')}
+        {m.dev_mode()}
       </dt>
 
       <dd class="settings-group__content">
@@ -222,7 +220,7 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('skip_repost_confirm')}
+        {m.skip_repost_confirm()}
       </dt>
 
       <dd class="settings-group__content">
@@ -234,7 +232,7 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('skip_delete_confirm')}
+        {m.skip_delete_confirm()}
       </dt>
 
       <dd class="settings-group__content">
@@ -246,7 +244,7 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('skip_link_warning_confirm')}
+        {m.skip_link_warning_confirm()}
       </dt>
 
       <dd class="settings-group__content">
@@ -258,7 +256,7 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('enable_bluefeed')}
+        {m.enable_bluefeed()}
       </dt>
 
       <dd class="settings-group__content">
@@ -270,7 +268,7 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('disable_atmosphere')}
+        {m.disable_atmosphere()}
       </dt>
 
       <dd class="settings-group__content">

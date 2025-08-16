@@ -1,5 +1,5 @@
 <script>
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
     import Infinite from "$lib/components/utils/Infinite.svelte";
@@ -27,7 +27,7 @@
     }
 </script>
 
-<Modal title={$_('social_proof_users')} size="small" {onclose}>
+<Modal title={m.social_proof_users()} size="small" {onclose}>
   <div class="likes">
     {#each followers as actor}
       {#if (!actor.viewer?.muted)}

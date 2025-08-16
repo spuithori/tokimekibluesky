@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import { fade, fly } from 'svelte/transition';
     import {accountsDb} from "$lib/db";
     import {createEventDispatcher} from "svelte";
@@ -34,7 +34,7 @@
 
 <div class="modal" transition:fly="{{ y: 30, duration: 250 }}">
   <div class="modal-contents">
-    <h2 class="modal-title">{$_('accounts_management_title')}</h2>
+    <h2 class="modal-title">{m.accounts_management_title()}</h2>
 
     {#if $accounts}
       <div class="accounts-management-list">

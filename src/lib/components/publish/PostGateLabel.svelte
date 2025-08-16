@@ -1,9 +1,9 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import { MessageSquareQuote } from 'lucide-svelte';
 </script>
 
-<p class="post-gate-label"><MessageSquareQuote size="16"></MessageSquareQuote>{$_('post_gate_quote_label')}</p>
+<p class="post-gate-label"><MessageSquareQuote size="16"></MessageSquareQuote>{m.post_gate_quote_label()}</p>
 
 <style lang="postcss">
     .post-gate-label {

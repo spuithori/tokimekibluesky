@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import {Heart, Repeat2, Star, Pencil} from "lucide-svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
@@ -108,7 +108,7 @@
                   <ProfileCardWrapper handle={item.notifications[0].author.handle} {_agent}>
                     <a class="notifications-item__link" href="/profile/{item.notifications[0].author.handle}">{item.notifications[0].author.displayName || item.notifications[0].author.handle}</a>
                   </ProfileCardWrapper>
-                </span> {$_(getReasonText(item.notifications.length === 1 ? item.reason : item.reason + '_multiple'))}
+                </span> {m[getReasonText(item.notifications.length === 1 ? item.reason : item.reason + '_multiple')]()}
             </h2>
 
             {#if (post)}

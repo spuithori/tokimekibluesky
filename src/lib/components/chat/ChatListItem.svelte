@@ -3,7 +3,7 @@
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import Menu from "$lib/components/ui/Menu.svelte";
     import {ListPlus, LogOut, MessageCircleOff, PictureInPicture2} from "lucide-svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
@@ -36,7 +36,7 @@
                 cursor: '',
             }
         })
-        toast.success($_('column_added'));
+        toast.success(m.column_added());
     }
 
     async function leaveChat() {
@@ -47,7 +47,7 @@
                 }
             });
             const id = res.data.convoId;
-            toast.success($_('success_leave_chat'));
+            toast.success(m.success_leave_chat());
             onrefresh(id);
         } catch (e) {
             console.error(e);
@@ -62,7 +62,7 @@
                 }
             });
             const id = res.data.convo.id;
-            toast.success($_('success_mute_chat'));
+            toast.success(m.success_mute_chat());
             onrefresh(id);
         } catch (e) {
             console.error(e);
@@ -77,7 +77,7 @@
                 }
             });
             const id = res.data.convo.id;
-            toast.success($_('success_unmute_chat'));
+            toast.success(m.success_unmute_chat());
             onrefresh(id);
         } catch (e) {
             console.error(e);
@@ -142,21 +142,21 @@
           <li class="timeline-menu-list__item only-pc">
             <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle, true)}>
               <PictureInPicture2 size="18" color="var(--text-color-1)"></PictureInPicture2>
-              {$_('chat_menu_add_popup')}
+              {m.chat_menu_add_popup()}
             </button>
           </li>
 
           <li class="timeline-menu-list__item">
             <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle, false)}>
               <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
-              {$_('chat_menu_add_column')}
+              {m.chat_menu_add_column()}
             </button>
           </li>
 
           <li class="timeline-menu-list__item">
             <button class="timeline-menu-list__button" onclick={leaveChat}>
               <LogOut size="18" color="var(--text-color-1)"></LogOut>
-              {$_('chat_menu_leave')}
+              {m.chat_menu_leave()}
             </button>
           </li>
 
@@ -164,14 +164,14 @@
             <li class="timeline-menu-list__item">
               <button class="timeline-menu-list__button" onclick={unMuteChat}>
                 <MessageCircleOff size="18" color="var(--text-color-1)"></MessageCircleOff>
-                {$_('chat_menu_unmute')}
+                {m.chat_menu_unmute()}
               </button>
             </li>
           {:else}
             <li class="timeline-menu-list__item">
               <button class="timeline-menu-list__button" onclick={muteChat}>
                 <MessageCircleOff size="18" color="var(--text-color-1)"></MessageCircleOff>
-                {$_('chat_menu_mute')}
+                {m.chat_menu_mute()}
               </button>
             </li>
           {/if}

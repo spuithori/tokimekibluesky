@@ -1,9 +1,10 @@
 <script lang="ts">
-  import {_, locale} from 'svelte-i18n';
   import {BellMinus, BellPlus} from "lucide-svelte";
   import {toast} from "svelte-sonner";
   import { agent } from "$lib/stores";
   import { refreshPushListActivity } from "$lib/pushSubscription";
+  import { m } from "$lib/paraglide/messages.js";
+  import {getLocale} from "$lib/paraglide/runtime";
 
   let { _agent = $agent, profile, onupdate } = $props();
   let isPushNotificationEnabled = $state(true);
@@ -29,12 +30,12 @@
               });
 
           onupdate(res.data?.activitySubscription);
-          toast.success($_('push_subscription_success'));
+          toast.success(m.push_subscription_success());
 
           const { data: { subscriptions } } = await _agent.agent.api.app.bsky.notification.listActivitySubscriptions({ limit: 100 });
-          await refreshPushListActivity(subscriptions.map(sub => sub.did), $locale);
+          await refreshPushListActivity(subscriptions.map(sub => sub.did), getLocale());
       } catch (e) {
-          toast.error($_('push_subscription_failed') + ' ' + e.message);
+          toast.error(m.push_subscription_failed() + ' ' + e.message);
       }
 
       isPushNotificationEnabled = true;

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import { page } from '$app/stores';
     import ListView from "./ListView.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
@@ -33,7 +33,7 @@
       </button>
     </div>
 
-    <h1 class="column-heading__title">{$_('lists')} - {title}</h1>
+    <h1 class="column-heading__title">{m.lists()} - {title}</h1>
 
     <div class="column-heading__buttons column-heading__buttons--right">
       <a class="settings-back" href="/">

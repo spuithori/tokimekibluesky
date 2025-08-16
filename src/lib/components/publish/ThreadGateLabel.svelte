@@ -1,20 +1,20 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import { MessageSquareWarning } from 'lucide-svelte';
 
     let { post } = $props();
 </script>
 
 {#if (post.threadGate === 'everybody')}
-  <p class="thread-gate-label"><MessageSquareWarning size="16"></MessageSquareWarning>{$_('thread_gate_everybody_title')}</p>
+  <p class="thread-gate-label"><MessageSquareWarning size="16"></MessageSquareWarning>{m.thread_gate_everybody_title()}</p>
 {/if}
 
 {#if (post.threadGate === 'nobody')}
-  <p class="thread-gate-label"><MessageSquareWarning size="16"></MessageSquareWarning>{$_('thread_gate_nobody_label')}</p>
+  <p class="thread-gate-label"><MessageSquareWarning size="16"></MessageSquareWarning>{m.thread_gate_nobody_label()}</p>
 {/if}
 
 {#if (Array.isArray(post.threadGate))}
-  <p class="thread-gate-label"><MessageSquareWarning size="16"></MessageSquareWarning>{$_('thread_gate_custom_label')}</p>
+  <p class="thread-gate-label"><MessageSquareWarning size="16"></MessageSquareWarning>{m.thread_gate_custom_label()}</p>
 {/if}
 
 <style lang="postcss">

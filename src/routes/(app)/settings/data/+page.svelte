@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import {postMutes} from "$lib/stores";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
 
@@ -10,23 +10,23 @@
 </script>
 
 <svelte:head>
-  <title>{$_('settings_data_management')} - TOKIMEKI</title>
+  <title>{m.settings_data_management()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_data_management')}
+    {m.settings_data_management()}
   </SettingsHeader>
 
   <div class="settings-wrap">
-    <p class="settings-description">{$_('import_export_description')}</p>
+    <p class="settings-description">{m.import_export_description()}</p>
 
     <div class="bookmark-import-export bookmark-import-export--export">
-      <h2 class="bookmark-import-export__title">{$_('delete_post_mutes')}</h2>
-      <p class="bookmark-import-export__description">{$_('delete_post_mutes_description_prefix')}: {$postMutes.length}</p>
+      <h2 class="bookmark-import-export__title">{m.delete_post_mutes()}</h2>
+      <p class="bookmark-import-export__description">{m.delete_post_mutes_description_prefix()}: {$postMutes.length}</p>
 
       <div class="bookmark-import-export__buttons">
-        <button class="button button--danger button--border" onclick={deletePostMutes}>{$_('delete')}</button>
+        <button class="button button--danger button--border" onclick={deletePostMutes}>{m.delete()}</button>
       </div>
     </div>
   </div>

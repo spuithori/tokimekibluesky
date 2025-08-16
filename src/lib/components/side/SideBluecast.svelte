@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import {onMount} from "svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import {fromUnixTime} from "date-fns";
@@ -19,7 +19,7 @@
 </script>
 
 <div class="side-bluecast">
-  <p class="bluecast-title"><Mic size="20" color="var(--danger-color)"></Mic>{$_('side_bluecast_title')}</p>
+  <p class="bluecast-title"><Mic size="20" color="var(--danger-color)"></Mic>{m.side_bluecast_title()}</p>
 
   <div class="bluecast-list">
     {#each items as item}
@@ -44,7 +44,7 @@
         </div>
       </div>
     {:else}
-      <p class="bluecast-nothing">{$_('bluecast_nothing')}</p>
+      <p class="bluecast-nothing">{m.bluecast_nothing()}</p>
     {/each}
   </div>
 </div>

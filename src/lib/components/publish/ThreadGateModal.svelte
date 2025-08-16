@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onMount} from 'svelte';
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import {getAccountIdByDidFromDb} from "$lib/util";
     import {accountsDb} from "$lib/db";
     import {List} from "lucide-svelte";
@@ -60,14 +60,14 @@
     });
 </script>
 
-<Modal title={$_('thread_gate_modal_title')} size="small" {onclose}>
-    <p class="modal-description">{$_('thread_gate_modal_description')}</p>
+<Modal title={m.thread_gate_modal_title()} size="small" {onclose}>
+    <p class="modal-description">{m.thread_gate_modal_description()}</p>
 
     <div class="settings-group">
         <div class="settings-group__content">
             <dl class="settings-group settings-group--column postgate-settings-group">
                 <dt class="settings-group__name">
-                    {$_('postgate_quote_permission')}
+                    {m.postgate_quote_permission()}
                 </dt>
 
                 <dd class="settings-group__content">
@@ -86,7 +86,7 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--check-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
                                     </span>
                                     <span class="big-radio__content">
-                                        <span class="big-radio__title">{$_('thread_gate_everybody_title')}</span>
+                                        <span class="big-radio__title">{m.thread_gate_everybody_title()}</span>
                                     </span>
                                 </span>
                     </label>
@@ -100,7 +100,7 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--check-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
                                     </span>
                                     <span class="big-radio__content">
-                                         <span class="big-radio__title">{$_('thread_gate_nobody_title')}</span>
+                                         <span class="big-radio__title">{m.thread_gate_nobody_title()}</span>
                                     </span>
                                 </span>
                     </label>
@@ -108,15 +108,15 @@
             </div>
 
             <section class="thread-gate-custom">
-                <h4 class="thread-gate-custom-title">{$_('thread_gate_custom_title')}</h4>
-                <p class="modal-description">{$_('thread_gate_custom_description')}</p>
+                <h4 class="thread-gate-custom-title">{m.thread_gate_custom_title()}</h4>
+                <p class="modal-description">{m.thread_gate_custom_description()}</p>
 
                 <div class="thread-gate-custom-list">
                     <div class="checkbox checkbox--padding checkbox--fullwidth">
                         <input type="checkbox" class="checkbox__input" bind:group={custom} value={'mention'} onchange={handleCustomChange} id="mention">
                         <label class="checkbox__label" for="mention">
                             <span class="checkbox__ui"></span>
-                            <span class="checkbox__text">{$_('thread_gate_mention_title')}</span>
+                            <span class="checkbox__text">{m.thread_gate_mention_title()}</span>
                         </label>
                     </div>
 
@@ -124,7 +124,7 @@
                         <input type="checkbox" class="checkbox__input" bind:group={custom} value={'following'} onchange={handleCustomChange} id="following">
                         <label class="checkbox__label" for="following">
                             <span class="checkbox__ui"></span>
-                            <span class="checkbox__text">{$_('thread_gate_following_title')}</span>
+                            <span class="checkbox__text">{m.thread_gate_following_title()}</span>
                         </label>
                     </div>
 
@@ -132,7 +132,7 @@
                         <input type="checkbox" class="checkbox__input" bind:group={custom} value={'follower'} onchange={handleCustomChange} id="follower">
                         <label class="checkbox__label" for="follower">
                             <span class="checkbox__ui"></span>
-                            <span class="checkbox__text">{$_('thread_gate_follower_title')}</span>
+                            <span class="checkbox__text">{m.thread_gate_follower_title()}</span>
                         </label>
                     </div>
 

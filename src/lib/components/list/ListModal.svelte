@@ -6,7 +6,7 @@
     import ListMember from "./ListMember.svelte";
     import {createEventDispatcher} from 'svelte';
     import { toast } from "svelte-sonner";
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
   import Modal from "$lib/components/ui/Modal.svelte";
     const dispatch = createEventDispatcher();
 
@@ -110,9 +110,9 @@
     function exporting() {
         navigator.clipboard.writeText(exportText)
             .then(() => {
-                toast.success($_('success_export_list'));
+                toast.success(m.success_export_list());
             }, () => {
-                toast.success($_('failed_copy'));
+                toast.success(m.failed_copy());
             });
     }
 
@@ -124,9 +124,9 @@
 
             handleListChange();
 
-            toast.success($_('success_import_list'));
+            toast.success(m.success_import_list());
         } catch(e) {
-            toast.error($_('error_invalid_text'));
+            toast.error(m.error_invalid_text());
         }
     }
     run(() => {
@@ -136,14 +136,14 @@
     });
 </script>
 
-<Modal title={$_('list_add_management')} onclose={close}>
-  <p class="modal-description">{$_('list_add_description')}</p>
+<Modal title={m.list_add_management()} onclose={close}>
+  <p class="modal-description">{m.list_add_description()}</p>
 
   <div class="list-modal-column">
     <div class="list-modal-row">
       <dl class="list-modal-group list-modal-group--name">
         <dt class="list-modal-group__name">
-          <label for="listName">{$_('list_name')}</label>
+          <label for="listName">{m.list_name()}</label>
         </dt>
 
         <dd class="list-modal-group__content">
@@ -159,7 +159,7 @@
 
       <dl class="list-modal-group">
         <dt class="list-modal-group__name">
-          {$_('list_member')}
+          {m.list_member()}
         </dt>
 
         <dd class="list-modal-group__content">
@@ -169,7 +169,7 @@
                 <ListMember member={member} action={'delete'} on:delete={handleDelete}></ListMember>
               {/if}
             {:else}
-              <p class="list-modal-members__none">{$_('there_is_no_list_member')}</p>
+              <p class="list-modal-members__none">{m.there_is_no_list_member()}</p>
             {/each}
           </div>
         </dd>
@@ -179,7 +179,7 @@
     <div class="list-modal-row">
       <dl class="list-modal-group">
         <dt class="list-modal-group__name">
-          {$_('user_search')}
+          {m.user_search()}
         </dt>
 
         <dd class="list-modal-group__content">
@@ -188,7 +188,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">
                 <path id="search" d="M11.589,12.866A7.187,7.187,0,1,1,12.856,11.6l4.807,4.789-1.276,1.276-4.789-4.8Zm-4.4-.287A5.391,5.391,0,1,0,1.8,7.188a5.391,5.391,0,0,0,5.391,5.391Z" transform="translate(0.008 -0.002)" fill="var(--primary-color)"/>
               </svg>
-              <input type="text" class="list-modal-search-input" bind:value={search} onkeydown={handleKeyDown} placeholder="{$_('handle_or_name')}">
+              <input type="text" class="list-modal-search-input" bind:value={search} onkeydown={handleKeyDown} placeholder="{m.handle_or_name()}">
             </div>
 
             {#each searchMembers as member}
@@ -203,12 +203,12 @@
   </div>
 
   <details class="list-modal-accordion list-modal-import-export">
-    <summary class="list-modal-accordion__title">{$_('import_export')}</summary>
+    <summary class="list-modal-accordion__title">{m.import_export()}</summary>
 
     <div class="list-modal-accordion__content">
       <dl class="list-modal-group list-modal-export">
         <dt class="list-modal-group__name">
-          {$_('export_clipboard_copy')}
+          {m.export_clipboard_copy()}
         </dt>
 
         <dd class="list-modal-group__content">
@@ -223,14 +223,14 @@
 
       <dl class="list-modal-group list-modal-import">
         <dt class="list-modal-group__name">
-          {$_('import')}<br>
-          <span class="text-danger">{$_('overwrite_current_member')}</span>
+          {m.import()}<br>
+          <span class="text-danger">{m.overwrite_current_member()}</span>
         </dt>
 
         <dd class="list-modal-group__content">
           <div class="list-modal-import-export-group">
             <input type="text" class="list-modal-group__input" bind:value={importText}>
-            <button class="button button--sm" onclick={importing}>{$_('import')}</button>
+            <button class="button button--sm" onclick={importing}>{m.import()}</button>
           </div>
         </dd>
       </dl>
@@ -238,8 +238,8 @@
   </details>
 
   <div class="list-modal-close">
-    <button class="button button--sm" onclick={close}>{$_('close_button')}</button>
-    <button class="button button--sm button--border button--danger" onclick={remove}>{$_('remove')}</button>
+    <button class="button button--sm" onclick={close}>{m.close_button()}</button>
+    <button class="button button--sm button--border button--danger" onclick={remove}>{m.remove()}</button>
   </div>
 </Modal>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import {agent, agents} from "$lib/stores";
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
   import ChatListItem from "$lib/components/chat/ChatListItem.svelte";
@@ -69,7 +69,7 @@
       complete();
 
       if (e.message === 'Bad token scope') {
-        toast.error($_('app_password_scope_error'));
+        toast.error(m.app_password_scope_error());
       }
     }
   }
@@ -85,11 +85,11 @@
   <div class="side-chat-nav">
     <button class="button button--ssl button--soft-rect button--with-icon" onclick={() => {isModalOpen = true}}>
       <MessageCirclePlus size="20"></MessageCirclePlus>
-      {$_('start_new_chat')}
+      {m.start_new_chat()}
     </button>
 
     <p class="chat-nav-button">
-      <a href="/settings/moderation/chat" aria-label="{$_('settings_chat')}">
+      <a href="/settings/moderation/chat" aria-label="{m.settings_chat()}">
         <Settings2 size="20" color="var(--text-color-2)"></Settings2>
       </a>
     </p>
@@ -104,7 +104,7 @@
           <li class="timeline-menu-list__item">
             <button class="timeline-menu-list__button" onclick={updateAllRead}>
               <MailCheck size="18" color="var(--text-color-1)"></MailCheck>
-              <span>{$_('chat_update_all_read')}</span>
+              <span>{m.chat_update_all_read()}</span>
             </button>
           </li>
         </ul>

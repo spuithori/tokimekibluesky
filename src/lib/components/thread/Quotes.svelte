@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import QuotesModal from "$lib/components/thread/QuotesModal.svelte";
 
   let { uri, _agent, children } = $props();
@@ -24,7 +24,7 @@
 
 <button class="likes-heading" onclick={() => {isOpen = true}}>
   {@render children?.()}
-  {$_('quote')}
+  {m.quote()}
 </button>
 
 {#if (isOpen)}

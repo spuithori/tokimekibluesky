@@ -1,5 +1,4 @@
 <script lang="ts">
-  import {_, locale} from 'svelte-i18n'
   import '../styles.css';
   import { agent, agents, isColumnModalOpen, isMobileDataConnection, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers } from '$lib/stores';
   import {goto} from '$app/navigation';
@@ -41,6 +40,9 @@
   import "@fontsource-variable/murecho";
   import "@fontsource/zen-maru-gothic";
   import {BskyAgent} from "@atproto/api";
+  import {setLocale, getLocale} from "$lib/paraglide/runtime";
+  import { m } from "$lib/paraglide/messages.js";
+  import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 
   injectAnalytics({
     mode: dev ? 'development' : 'production',
@@ -137,7 +139,7 @@
           accounts: acs as number[],
           columns: [],
           createdAt: '',
-          name: $_('workspace') + ' 1',
+          name: m.workspace() + ' 1',
           primary: acs[0] as number,
         })
         localStorage.setItem('currentProfile', id);
@@ -216,7 +218,8 @@
   }
 
   if ($settings?.general?.language) {
-      locale.set($settings.general.language);
+      intlRelativeTimeFormatState.changeLocale($settings.general.language);
+      setLocale($settings.general.language, {reload: false});
   }
 
   if (!$settings?.general.userLanguage) {
@@ -343,7 +346,7 @@
 </svelte:head>
 
 <div
-    class="app theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
+    class="app theme-{$settings?.design.theme} lang-{getLocale()} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={isDarkMode}
     class:single={$settings?.design.layout !== 'decks'}
@@ -352,7 +355,6 @@
     class:superstar={$settings.design?.reactionMode === 'superstar'}
     class:bubble={$settings?.design?.bubbleTimeline}
     style={outputInlineStyle($theme)}
-    dir={$_('dir', {default: 'ltr'})}
     bind:this={app}
 >
   {#if (loaded)}

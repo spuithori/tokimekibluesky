@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import imageCompression from 'browser-image-compression';
     import Modal from "$lib/components/ui/Modal.svelte";
 
@@ -15,7 +15,7 @@
     let errorMessage = '';
 
     let isSubmitDisabled = $state(false);
-    let submitButtonText = $state($_('submit_button_submit'));
+    let submitButtonText = $state(m.submit_button_submit());
 
     let avatarInput = $state();
     let bannerInput = $state();
@@ -69,7 +69,7 @@
             encoding: 'image/jpeg',
         });
         isSubmitDisabled = false;
-        submitButtonText = $_('submit_button_submit');
+        submitButtonText = m.submit_button_submit();
         return fileBlob.data.blob
     }
 
@@ -114,11 +114,11 @@
     }
 </script>
 
-<Modal title={$_('edit_profile_button')} size="small" {onclose}>
+<Modal title={m.edit_profile_button()} size="small" {onclose}>
   <div class="edit-avatar">
     <dl class="input-group">
       <dt class="input-group__name input-group__name--show">
-        {$_('edit_avatar')}
+        {m.edit_avatar()}
       </dt>
 
       <dd class="input-group__content">
@@ -138,7 +138,7 @@
   <div class="edit-banner">
     <dl class="input-group">
       <dt class="input-group__name input-group__name--show">
-        {$_('edit_banner')}
+        {m.edit_banner()}
       </dt>
 
       <dd class="input-group__content">
@@ -158,7 +158,7 @@
   <div class="edit-wrap">
     <dl class="input-group">
       <dt class="input-group__name input-group__name--show">
-        <label for="display_name">{$_('edit_display_name')}</label>
+        <label for="display_name">{m.edit_display_name()}</label>
       </dt>
 
       <dd class="input-group__content">
@@ -168,7 +168,7 @@
 
     <dl class="input-group">
       <dt class="input-group__name input-group__name--show">
-        <label for="description">{$_('edit_description')}</label>
+        <label for="description">{m.edit_description()}</label>
       </dt>
 
       <dd class="input-group__content">
@@ -179,7 +179,7 @@
 
   <div class="edit-buttons">
     <button class="button" onclick={submit} disabled={isSubmitDisabled}>{submitButtonText}</button>
-    <button class="button button--border" onclick={onclose}>{$_('edit_cancel_button')}</button>
+    <button class="button button--border" onclick={onclose}>{m.edit_cancel_button()}</button>
   </div>
 </Modal>
 

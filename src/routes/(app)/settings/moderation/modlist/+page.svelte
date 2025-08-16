@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import {agent, officialListModal} from "$lib/stores";
     import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
     import {onMount} from "svelte";
@@ -41,16 +41,16 @@
 </script>
 
 <svelte:head>
-  <title>{$_('settings_embed')} - TOKIMEKI</title>
+  <title>{m.settings_embed()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_mod_list')}
+    {m.settings_mod_list()}
   </SettingsHeader>
 
   <div class="settings-wrap">
-    <p class="settings-description">{$_('mod_list_notice_temp')}</p>
+    <p class="settings-description">{m.mod_list_notice_temp()}</p>
 
     {#key unique}
       <div class="user-lists-list-wrap">
@@ -58,14 +58,14 @@
           {#each lists as list (list)}
             <OfficialListItem {list} editable={true}>
               <ul class="list-tags">
-                <li class="list-tag">{$_('list_label_you')}</li>
+                <li class="list-tag">{m.list_label_you()}</li>
 
                 {#if list?.viewer?.muted}
-                  <li class="list-tag">{$_('list_label_muted')}</li>
+                  <li class="list-tag">{m.list_label_muted()}</li>
                 {/if}
 
                 {#if list?.viewer?.blocked}
-                  <li class="list-tag">{$_('list_label_blocked')}</li>
+                  <li class="list-tag">{m.list_label_blocked()}</li>
                 {/if}
               </ul>
             </OfficialListItem>
@@ -75,11 +75,11 @@
             <OfficialListItem {list}>
               <ul class="list-tags">
                 {#if list?.viewer?.muted}
-                  <li class="list-tag">{$_('list_label_muted')}</li>
+                  <li class="list-tag">{m.list_label_muted()}</li>
                 {/if}
 
                 {#if list?.viewer?.blocked}
-                  <li class="list-tag">{$_('list_label_blocked')}</li>
+                  <li class="list-tag">{m.list_label_blocked()}</li>
                 {/if}
               </ul>
             </OfficialListItem>
@@ -87,7 +87,7 @@
         </div>
 
         <div class="mod-list-new-buttons text-center">
-          <button class="button button--sm" onclick={() => {$officialListModal.open = true}}>{$_('new_create')}</button>
+          <button class="button button--sm" onclick={() => {$officialListModal.open = true}}>{m.new_create()}</button>
         </div>
 
         <Infinite oninfinite={handleLoadMore}></Infinite>

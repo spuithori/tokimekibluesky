@@ -4,7 +4,7 @@
     import {accountsDb, db} from "$lib/db";
     import {createEventDispatcher, onMount} from "svelte";
     import {Bookmark, List, Newspaper} from "lucide-svelte";
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import {getAccountIdByDidFromDb} from "$lib/util";
     const dispatch = createEventDispatcher();
@@ -96,13 +96,13 @@
 <div class="side-feeds">
   <div class="side-feeds-nav">
     <ul class="profile-tab profile-tab--small">
-      <li class="profile-tab__item" onclick={() => {selectCategory('all')}} class:profile-tab__item--active={currentTab === 'all'}><button>{$_('all')}</button></li>
+      <li class="profile-tab__item" onclick={() => {selectCategory('all')}} class:profile-tab__item--active={currentTab === 'all'}><button>{m.all()}</button></li>
 
-      <li class="profile-tab__item" onclick={() => {selectCategory('feeds')}} class:profile-tab__item--active={currentTab === 'feeds'}><button>{$_('feeds')}</button></li>
+      <li class="profile-tab__item" onclick={() => {selectCategory('feeds')}} class:profile-tab__item--active={currentTab === 'feeds'}><button>{m.feeds()}</button></li>
 
-      <li class="profile-tab__item" onclick={() => {selectCategory('lists')}} class:profile-tab__item--active={currentTab === 'lists'}><button>{$_('lists')}</button></li>
+      <li class="profile-tab__item" onclick={() => {selectCategory('lists')}} class:profile-tab__item--active={currentTab === 'lists'}><button>{m.lists()}</button></li>
 
-      <li class="profile-tab__item" onclick={() => {selectCategory('bookmarks')}} class:profile-tab__item--active={currentTab === 'bookmarks'}><button>{$_('bookmarks_short')}</button></li>
+      <li class="profile-tab__item" onclick={() => {selectCategory('bookmarks')}} class:profile-tab__item--active={currentTab === 'bookmarks'}><button>{m.bookmarks_short()}</button></li>
     </ul>
   </div>
 

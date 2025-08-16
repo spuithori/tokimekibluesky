@@ -2,7 +2,7 @@
   import { once } from 'svelte/legacy';
 
   import {tick} from "svelte";
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {settings} from "$lib/stores";
@@ -71,11 +71,11 @@
         {#snippet content()}
                 <ul  class="timeline-menu-list">
             <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button" onclick={once(() => {getAltTextFromAi('ocr')})} disabled={isProcessing}>{$_('ai_alt_ocr')}</button>
+              <button class="timeline-menu-list__button" onclick={once(() => {getAltTextFromAi('ocr')})} disabled={isProcessing}>{m.ai_alt_ocr()}</button>
             </li>
 
             <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button" onclick={once(() => {getAltTextFromAi('description')})} disabled={isProcessing}>{$_('ai_alt_description')}</button>
+              <button class="timeline-menu-list__button" onclick={once(() => {getAltTextFromAi('description')})} disabled={isProcessing}>{m.ai_alt_description()}</button>
             </li>
           </ul>
               {/snippet}

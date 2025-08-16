@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import {MessageSquareText, X} from "lucide-svelte";
   import { fly } from 'svelte/transition';
   import ThreadView from "../../../routes/(app)/profile/[handle]/post/[id]/ThreadView.svelte";
@@ -30,7 +30,7 @@
   {#if isOpen}
     <div class="video-thread__content" transition:fly="{{ y: 0, duration: 250 }}">
       <div class="video-thread__heading">
-        <p class="video-thread__title">{$_('title_thread')}</p>
+        <p class="video-thread__title">{m.title_thread()}</p>
         <button class="video-thread__close" onclick={handleToggle}>
           <X color="var(--text-color-1)"></X>
         </button>

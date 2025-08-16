@@ -3,7 +3,7 @@
   import { liveQuery } from 'dexie';
   import { agent } from '$lib/stores';
   import { toast } from 'svelte-sonner';
-  import { _ } from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import Modal from "$lib/components/ui/Modal.svelte";
 
   let { _agent = $agent, id, close } = $props();
@@ -33,7 +33,7 @@
               createdAt: Date.now(),
           })
 
-          toast.success($_('bookmark_save_success'));
+          toast.success(m.bookmark_save_success());
 
           close(false);
       } catch (e) {
@@ -53,7 +53,7 @@
                       console.log(deleteCount + ' bookmarks deleted.')
                   });
 
-              toast.success($_('bookmark_delete_success'));
+              toast.success(m.bookmark_delete_success());
               close(true, id);
           } catch (e) {
               toast.error('Error: ' + e);
@@ -64,12 +64,12 @@
   }
 </script>
 
-<Modal title={$_('bookmark_add_management')} class="bookmark-modal" onclose={save}>
-  <p class="modal-description">{$_('bookmark_add_description')}</p>
+<Modal title={m.bookmark_add_management()} class="bookmark-modal" onclose={save}>
+  <p class="modal-description">{m.bookmark_add_description()}</p>
 
   <dl class="bookmark-modal-group">
     <dt class="bookmark-modal-group__name">
-      <label for="bookmarkName">{$_('bookmark_name')}</label>
+      <label for="bookmarkName">{m.bookmark_name()}</label>
     </dt>
 
     <dd class="bookmark-modal-group__content">
@@ -85,7 +85,7 @@
 
   <dl class="bookmark-modal-group">
     <dt class="bookmark-modal-group__name">
-      <label for="bookmarkDescription">{$_('bookmark_description')}</label>
+      <label for="bookmarkDescription">{m.bookmark_description()}</label>
     </dt>
 
     <dd class="bookmark-modal-group__content">
@@ -100,8 +100,8 @@
   </dl>
 
   <div class="bookmark-modal-close">
-    <button class="button button--sm" onclick={save}>{$_('save_button')}</button>
-    <button class="button button--sm button--border button--danger" onclick={remove}>{$_('remove')}</button>
+    <button class="button button--sm" onclick={save}>{m.save_button()}</button>
+    <button class="button button--sm button--border button--danger" onclick={remove}>{m.remove()}</button>
   </div>
 </Modal>
 

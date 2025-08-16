@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {agent} from "$lib/stores";
   import {createEventDispatcher} from "svelte";
   import { toast } from "svelte-sonner";
@@ -30,18 +30,18 @@
           const json = await res.json();
 
           if (res.status === 409) {
-              toast.error($_('bluefeed_add_duplicate'));
+              toast.error(m.bluefeed_add_duplicate());
               status = 'duplicate';
               return false;
           }
 
           if (res.status === 404) {
-              toast.error($_('bluefeed_feed_notfound'));
+              toast.error(m.bluefeed_feed_notfound());
               throw new Error('notFound');
           }
 
           if (res.status === 404) {
-              toast.error($_('bluefeed_post_notfound'));
+              toast.error(m.bluefeed_post_notfound());
               throw new Error('notFound');
           }
 
@@ -50,7 +50,7 @@
           }
 
           status = 'success';
-          toast.success($_('bluefeed_add_success'));
+          toast.success(m.bluefeed_add_success());
           dispatch('success');
       } catch (e) {
           console.error(e);
@@ -70,15 +70,15 @@
 
     <button class="button button--ss" onclick={add} disabled={isDisabled}>
       {#if status === 'default'}
-        {$_('bluefeed_add')}
+        {m.bluefeed_add()}
       {:else if status === 'duplicate'}
-        {$_('bluefeed_already_add')}
+        {m.bluefeed_already_add()}
       {:else if status === 'processing'}
         <LoadingSpinner size="16" padding="0" color="var(--bg-color-1)"></LoadingSpinner>
       {:else if status === 'success'}
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>
       {:else}
-        {$_('bluefeed_add')}
+        {m.bluefeed_add()}
       {/if}
     </button>
   </div>

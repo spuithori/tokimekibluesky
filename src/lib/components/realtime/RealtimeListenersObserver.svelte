@@ -3,7 +3,7 @@
   import {getAccountIdByDid} from "$lib/util";
   import {RealtimeClient} from "$lib/realtime";
   import {onDestroy} from "svelte";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import Modal from "$lib/components/ui/Modal.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
 
@@ -70,17 +70,17 @@
 </script>
 
 {#if $isRealtimeListenersModalOpen}
-  <Modal title={$_('realtime_listeners_title')} onclose={() => {$isRealtimeListenersModalOpen = false}}>
+  <Modal title={m.realtime_listeners_title()} onclose={() => {$isRealtimeListenersModalOpen = false}}>
     <div class="realtime-listeners-list">
       {#each clients as [host, socket]}
         {#if socket}
           <div class="realtime-listeners-list__item">
             <h3 class="realtime-listeners-list__title">{host}</h3>
-            <p class="realtime-listeners-list__status">{$_('realtime_listeners_status_' + socket.status())}</p>
+            <p class="realtime-listeners-list__status">{m['realtime_listeners_status_' + socket.status()]()}</p>
 
             <div class="realtime-listeners-list__buttons">
-              <button class="button button--ss" onclick={() => {socket.reconnect(); $isRealtimeListenersModalOpen = false}}>{$_('realtime_listeners_reconnect')}</button>
-              <button class="button button--ss" onclick={() => {socket.disconnect(); $isRealtimeListenersModalOpen = false}}>{$_('realtime_listeners_disconnect')}</button>
+              <button class="button button--ss" onclick={() => {socket.reconnect(); $isRealtimeListenersModalOpen = false}}>{m.realtime_listeners_reconnect()}</button>
+              <button class="button button--ss" onclick={() => {socket.disconnect(); $isRealtimeListenersModalOpen = false}}>{m.realtime_listeners_disconnect()}</button>
             </div>
           </div>
         {/if}

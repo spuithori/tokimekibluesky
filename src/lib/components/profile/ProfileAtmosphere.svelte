@@ -1,7 +1,7 @@
 <script lang="ts">
   import {SquareArrowOutUpRight} from "lucide-svelte";
   import {onMount} from "svelte";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import AtmosphereAboutModal from "$lib/components/profile/AtmosphereAboutModal.svelte";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
   import {parseISO} from "date-fns";
@@ -85,7 +85,7 @@
   <div class="atmos-list">
     {#if (hasLinkat)}
       <div class="atmos-item atmos-item--linkat">
-        <p class="atmos-item__title"><strong>Linkat</strong> - {$_('atmosphere_short_desc_linkat')}</p>
+        <p class="atmos-item__title"><strong>Linkat</strong> - {m.atmosphere_short_desc_linkat()}</p>
         <a class="atmos-item__link" href="https://linkat.blue/{handle}" target="_blank" rel="noreferrer noopener nofollow">linkat.blue</a>
 
         <span class="atmos-item__ext">
@@ -96,7 +96,7 @@
 
     {#if (hasWhiteWind)}
       <div class="atmos-item atmos-item--whitewind">
-        <p class="atmos-item__title"><strong>WhiteWind</strong> - {$_('atmosphere_short_desc_whitewind')}</p>
+        <p class="atmos-item__title"><strong>WhiteWind</strong> - {m.atmosphere_short_desc_whitewind()}</p>
         <a class="atmos-item__link" href="https://whtwnd.com/{handle}" target="_blank" rel="noreferrer noopener nofollow">whtwnd.com</a>
 
         <span class="atmos-item__ext">
@@ -107,7 +107,7 @@
 
     {#if (hasPinkSea)}
       <div class="atmos-item atmos-item--pinksea">
-        <p class="atmos-item__title"><strong>PinkSea</strong> - {$_('atmosphere_short_desc_pinksea')}</p>
+        <p class="atmos-item__title"><strong>PinkSea</strong> - {m.atmosphere_short_desc_pinksea()}</p>
         <a class="atmos-item__link" href="https://pinksea.art/{did}" target="_blank" rel="noreferrer noopener nofollow">pinksea.art</a>
 
         <span class="atmos-item__ext">

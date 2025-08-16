@@ -1,7 +1,7 @@
 <script lang="ts">
   import { preventDefault } from 'svelte/legacy';
 
-import {_} from "svelte-i18n";
+import { m } from "$lib/paraglide/messages.js";
 import { AtpAgent, AtpSessionData } from "@atproto/api";
 import { accountsDb } from "$lib/db";
 import { createEventDispatcher } from "svelte";
@@ -44,9 +44,9 @@ async function login() {
         });
     } catch (e) {
         if (e.name === 'ConstraintError') {
-            toast.error($_('login_duplicate_account'));
+            toast.error(m.login_duplicate_account());
         } else if (e.error === 'AuthFactorTokenRequired') {
-            toast.info($_('login_2fa_code_send'));
+            toast.info(m.login_2fa_code_send());
             isTwoFactor = true;
         } else {
             toast.error(e.message);
@@ -68,7 +68,7 @@ function cancel() {
     <form action="#" onsubmit={preventDefault(login)}>
       <dl class="input-group">
         <dt class="input-group__name input-group__name--show">
-          <label for="service">{$_('login_service')}</label>
+          <label for="service">{m.login_service()}</label>
         </dt>
 
         <dd class="input-group__content">
@@ -78,7 +78,7 @@ function cancel() {
 
       <dl class="input-group">
         <dt class="input-group__name input-group__name--show">
-          <label for="email">{$_('login_handle_or_email')}</label>
+          <label for="email">{m.login_handle_or_email()}</label>
         </dt>
 
         <dd class="input-group__content">
@@ -89,7 +89,7 @@ function cancel() {
 
       <dl class="input-group">
         <dt class="input-group__name input-group__name--show">
-          <label for="password">{$_('login_password')}</label>
+          <label for="password">{m.login_password()}</label>
         </dt>
 
         <dd class="input-group__content">
@@ -101,7 +101,7 @@ function cancel() {
       {#if (isTwoFactor)}
         <dl class="input-group">
           <dt class="input-group__name input-group__name--show">
-            <label for="2fa">{$_('login_2fa_code')}</label>
+            <label for="2fa">{m.login_2fa_code()}</label>
           </dt>
 
           <dd class="input-group__content">
@@ -112,14 +112,14 @@ function cancel() {
       {/if}
 
       <div class="login-submit">
-        <button class="button button--login button--login-submit" type="submit">{$_('login')}</button>
+        <button class="button button--login button--login-submit" type="submit">{m.login()}</button>
 
-        <button class="text-button" onclick={preventDefault(cancel)}>{$_('cancel')}</button>
+        <button class="text-button" onclick={preventDefault(cancel)}>{m.cancel()}</button>
       </div>
     </form>
 
     <div class="app-password-recommend">
-      <p>{$_('recommend_use_app_password')}<br><a href="{$_('url_app_password')}" target="_blank" rel="noopener">{$_('details')}</a></p>
+      <p>{m.recommend_use_app_password()}<br><a href="{m.url_app_password()}" target="_blank" rel="noopener">{m.details()}</a></p>
     </div>
   </div>
 </div>

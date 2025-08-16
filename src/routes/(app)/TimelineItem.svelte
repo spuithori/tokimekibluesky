@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n'
+  import { m } from "$lib/paraglide/messages.js"
   import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply } from 'lucide-svelte';
   import { agent, settings, reportModal, didHint, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
@@ -165,9 +165,9 @@
 
         navigator.clipboard.writeText(url)
             .then(() => {
-                toast.success($_('success_copy_url'));
+                toast.success(m.success_copy_url());
             }, () => {
-                toast.error($_('failed_copy'));
+                toast.error(m.failed_copy());
             });
 
         isMenuOpen = false;
@@ -178,9 +178,9 @@
 
         navigator.clipboard.writeText(handle)
             .then(() => {
-                toast.success($_('success_copy_handle'));
+                toast.success(m.success_copy_handle());
             }, () => {
-                toast.success($_('failed_copy'));
+                toast.success(m.failed_copy());
             });
 
         isMenuOpen = false;
@@ -206,9 +206,9 @@
             columnState.deletePost(uri);
             junkColumnState.deletePost(uri);
 
-            toast.success($_('post_delete_success'));
+            toast.success(m.post_delete_success());
         } catch (e) {
-            toast.error($_('post_delete_failed') + ': ' + e);
+            toast.error(m.post_delete_failed() + ': ' + e);
         }
     }
 
@@ -229,7 +229,7 @@
     }
 
     async function editPost() {
-        const toastId = toast.loading($_('process_to_delete_and_edit'), {
+        const toastId = toast.loading(m.process_to_delete_and_edit(), {
             duration: 100000,
         });
 
@@ -317,7 +317,7 @@
             _post.text = text;
 
             postState.replacePost(_post);
-            toast.success($_('success_to_delete_and_edit'), {
+            toast.success(m.success_to_delete_and_edit(), {
                 id: toastId,
                 duration: 2000,
             });
@@ -438,7 +438,7 @@
         localStorage.setItem('postMutes', JSON.stringify($postMutes));
         columnState.deletePost(data.post.uri);
         junkColumnState.deletePost(data.post.uri);
-        toast.success($_('post_mute_success'));
+        toast.success(m.post_mute_success());
     }
 
     async function registerPin() {
@@ -455,7 +455,7 @@
                 return profile;
             });
 
-            toast.success($_('success_register_pin'));
+            toast.success(m.success_register_pin());
             const character = 'r';
             const keyboardEvent = new KeyboardEvent('keydown', {
                 key: character,
@@ -480,7 +480,7 @@
                 return profile;
             });
 
-            toast.success($_('success_unregister_pin'));
+            toast.success(m.success_unregister_pin());
             const character = 'r';
             const keyboardEvent = new KeyboardEvent('keydown', {
                 key: character,
@@ -534,7 +534,7 @@
                 embed: _post.post.embed,
             });
 
-            toast.success(unDetach ? $_('success_un_detach') : $_('success_detach'))
+            toast.success(unDetach ? m.success_un_detach() : m.success_detach())
         } catch (e) {
             console.error(e);
             toast.error(e);
@@ -564,7 +564,7 @@
       {/if}
 
       {#if isPinned}
-        <p class="sticky-text"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>{$_('pinned_post')}
+        <p class="sticky-text"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>{m.pinned_post()}
         </p>
       {/if}
 
@@ -572,7 +572,7 @@
         {#if (isReasonRepost(data.reason))}
           <p class="timeline-repost-message">
             <ProfileCardWrapper handle={data.reason.by.handle} {_agent}>
-              <a href="/profile/{data.reason.by.handle}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
+              <a href="/profile/{data.reason.by.handle}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{m.reposted_by({name: data.reason.by.displayName || data.reason.by.handle})}</span></a>
             </ProfileCardWrapper>
           </p>
         {/if}
@@ -580,13 +580,13 @@
 
       {#if data?.reply?.parent?.notFound || data?.reply?.parent?.blocked}
         <article class="timeline-hidden-item">
-          <p class="timeline-hidde-item__text">{$_('deleted_reply')}</p>
+          <p class="timeline-hidde-item__text">{m.deleted_reply()}</p>
         </article>
       {:else if simpleReply && data.reply && !isThread}
         <p class="timeline-repost-message">
           <button style="pointer-events: none;">
             <Reply size="18" color="var(--primary-color)"></Reply>
-            <span class="timeline-repost-message__text">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle}})}</span>
+            <span class="timeline-repost-message__text">{m.reply_to({name: data.reply.parent.author.displayName || data.reply.parent.author.handle})}</span>
           </button>
         </p>
       {:else if data.reply && !isSingle && !isReplyHide}
@@ -598,7 +598,7 @@
           {#if data.reply.parent?.record?.reply?.parent?.uri !== data.reply.root.uri}
             <p class="timeline-read-thread-link">
               <a href={'/profile/' + data.reply.root.author.handle + '/post/' + data.reply.root.uri.split('/').slice(-1)[0]}>
-                {$_('read_this_thread')}
+                {m.read_this_thread()}
               </a>
             </p>
           {/if}
@@ -635,14 +635,14 @@
               <li class="timeline-menu-list__item timeline-menu-list__item--delete">
                 <button class="timeline-menu-list__button" onclick={deletePostStep}>
                   <Trash2 size="18" color="var(--danger-color)"></Trash2>
-                  <span class="text-danger">{$_('delete_post')}</span>
+                  <span class="text-danger">{m.delete_post()}</span>
                 </button>
               </li>
 
               <li class="timeline-menu-list__item timeline-menu-list__item--delete">
                 <button class="timeline-menu-list__button" onclick={editPostStep}>
                   <Pencil size="18" color="var(--danger-color)"></Pencil>
-                  {$_('delete_and_edit')}
+                  {m.delete_and_edit()}
                 </button>
               </li>
 
@@ -650,14 +650,14 @@
                 <li class="timeline-menu-list__item timeline-menu-list__item--delete">
                   <button class="timeline-menu-list__button" onclick={unregisterPin}>
                     <Pin size="18" color="var(--text-color-1)"></Pin>
-                    {$_('unregister_pin')}
+                    {m.unregister_pin()}
                   </button>
                 </li>
               {:else}
                 <li class="timeline-menu-list__item timeline-menu-list__item--delete">
                   <button class="timeline-menu-list__button" onclick={registerPin}>
                     <Pin size="18" color="var(--text-color-1)"></Pin>
-                    {$_('register_pin')}
+                    {m.register_pin()}
                   </button>
                 </li>
               {/if}
@@ -666,28 +666,28 @@
             <li class="timeline-menu-list__item timeline-menu-list__item--translate">
               <button class="timeline-menu-list__button" onclick={translation}>
                 <Languages size="18" color="var(--text-color-1)"></Languages>
-                {$_('translation')}
+                {m.translation()}
               </button>
             </li>
 
             <li class="timeline-menu-list__item timeline-menu-list__item--copy-url">
               <button class="timeline-menu-list__button" onclick={copyThreadUrl}>
                 <Copy size="18" color="var(--text-color-1)"></Copy>
-                {$_('copy_url')}
+                {m.copy_url()}
               </button>
             </li>
 
             <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
               <button class="timeline-menu-list__button" onclick={copyHandle}>
                 <Copy size="18" color="var(--text-color-1)"></Copy>
-                {$_('copy_handle')}
+                {m.copy_handle()}
               </button>
             </li>
 
             <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
               <button class="timeline-menu-list__button" onclick={sendMention}>
                 <AtSign size="18" color="var(--text-color-1)"></AtSign>
-                {$_('send_mention')}
+                {m.send_mention()}
               </button>
             </li>
 
@@ -695,7 +695,7 @@
               <li class="timeline-menu-list__item timeline-menu-list__item--report">
                 <button class="timeline-menu-list__button" onclick={addThreadColumn}>
                   <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
-                  {$_('add_thread_column')}
+                  {m.add_thread_column()}
                 </button>
               </li>
             {/if}
@@ -703,7 +703,7 @@
             <li class="timeline-menu-list__item timeline-menu-list__item--report">
               <button class="timeline-menu-list__button" onclick={() => {$listAddModal = {open: true, author: data.post.author, did: _agent.did()}}}>
                 <List size="18" color="var(--text-color-1)"></List>
-                {$_('list_instant_manage')}
+                {m.list_instant_manage()}
               </button>
             </li>
 
@@ -711,7 +711,7 @@
               <li class="timeline-menu-list__item timeline-menu-list__item--bluefeed">
                 <button class="timeline-menu-list__button" onclick={() => {$bluefeedAddModal = {open: true, post: data.post, did: _agent.did()}}}>
                   <Rss size="18" color="var(--text-color-1)"></Rss>
-                  {$_('add_bluefeed')}
+                  {m.add_bluefeed()}
                 </button>
               </li>
             {/if}
@@ -720,7 +720,7 @@
               <li class="timeline-menu-list__item">
                 <button class="timeline-menu-list__button" onclick={() => {isReactionModalOpen = true}}>
                   <Users2 size="18" color="var(--text-color-1)"></Users2>
-                  {$_('reaction_other_account_menu')}
+                  {m.reaction_other_account_menu()}
                 </button>
               </li>
             {/if}
@@ -729,7 +729,7 @@
               <li class="timeline-menu-list__item timeline-menu-list__item--hide">
                 <button class="timeline-menu-list__button" onclick={mutePost}>
                   <EyeOff size="18" color="var(--text-color-1)"></EyeOff>
-                  {$_('post_mute_on')}
+                  {m.post_mute_on()}
                 </button>
               </li>
             {/if}
@@ -739,7 +739,7 @@
                 <li class="timeline-menu-list__item">
                   <button class="timeline-menu-list__button" onclick={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri)}}>
                     <Sticker size="18" color="var(--danger-color)"></Sticker>
-                    {$_('detach_quote')}
+                    {m.detach_quote()}
                   </button>
                 </li>
               {/if}
@@ -749,7 +749,7 @@
               <li class="timeline-menu-list__item">
                 <button class="timeline-menu-list__button" onclick={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri, true)}}>
                   <Sticker size="18" color="var(--danger-color)"></Sticker>
-                  {$_('un_detach_quote')}
+                  {m.un_detach_quote()}
                 </button>
               </li>
             {/if}
@@ -757,7 +757,7 @@
             <li class="timeline-menu-list__item timeline-menu-list__item--report">
               <button class="timeline-menu-list__button" onclick={report}>
                 <Flag size="18" color="var(--danger-color)"></Flag>
-                {$_('report')}
+                {m.report()}
               </button>
             </li>
           </ul>
@@ -776,10 +776,10 @@
                 on:ok={() => {deletePost(data.post.uri)}}
                 on:cancel={() => {isDialogRender = false}}
                 confirmationName="deleteConfirmSkip"
-                yesText="{$_('delete')}"
-                cancelText="{$_('cancel')}"
+                yesText={m.delete()}
+                cancelText={m.cancel()}
         >
-          <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
+          <h3 class="modal-title modal-title--smaller modal-title--center">{m.delete_confirm_title()}</h3>
         </ConfirmModal>
       {/if}
 
@@ -788,11 +788,11 @@
                 on:ok={editPost}
                 on:cancel={() => {isEditDialogRender = false}}
                 confirmationName="deleteConfirmSkip"
-                yesText="{$_('delete')}"
-                cancelText="{$_('cancel')}"
+                yesText={m.delete()}
+                cancelText={m.cancel()}
         >
-          <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
-          <p class="modal-description">{$_('delete_and_edit_confirm_description')}</p>
+          <h3 class="modal-title modal-title--smaller modal-title--center">{m.delete_confirm_title()}</h3>
+          <p class="modal-description">{m.delete_and_edit_confirm_description()}</p>
         </ConfirmModal>
       {/if}
 

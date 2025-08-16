@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import type { LayoutData } from '../$types';
     import {agent} from "$lib/stores";
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
@@ -49,7 +49,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.params.handle} {$_('page_title_feeds')} - TOKIMEKI</title>
+  <title>{data.params.handle} {m.page_title_feeds()} - TOKIMEKI</title>
 </svelte:head>
 
 <div class="user-lists-list-wrap">

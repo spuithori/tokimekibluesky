@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {agent} from "$lib/stores";
   import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
   import {isDid} from "$lib/util";
@@ -160,23 +160,23 @@
     {/if}
   {:else}
     <div class="mod-list-cover">
-      <h2 class="mod-list-cover__title">{$_('mod_list_cover_title')}</h2>
-      <p class="mod-list-cover__text">{$_('mod_list_cover_text')}</p>
+      <h2 class="mod-list-cover__title">{m.mod_list_cover_title()}</h2>
+      <p class="mod-list-cover__text">{m.mod_list_cover_text()}</p>
 
       <div class="mod-list-buttons">
         {#if isMute}
-          <button class="button button--sm button--border button--with-icon" onclick={unMuteList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-off"><path d="M20.5 14.9A9 9 0 0 0 9.1 3.5"/><path d="m2 2 20 20"/><path d="M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"/></svg>{$_('button_unmute')}
+          <button class="button button--sm button--border button--with-icon" onclick={unMuteList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-off"><path d="M20.5 14.9A9 9 0 0 0 9.1 3.5"/><path d="m2 2 20 20"/><path d="M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"/></svg>{m.button_unmute()}
           </button>
         {:else}
-          <button class="button button--sm button--with-icon" onclick={muteList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-off"><path d="M20.5 14.9A9 9 0 0 0 9.1 3.5"/><path d="m2 2 20 20"/><path d="M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"/></svg>{$_('button_mute')}
+          <button class="button button--sm button--with-icon" onclick={muteList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-off"><path d="M20.5 14.9A9 9 0 0 0 9.1 3.5"/><path d="m2 2 20 20"/><path d="M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"/></svg>{m.button_mute()}
           </button>
         {/if}
 
         {#if isBlock}
-          <button class="button button--sm button--border button--with-icon" onclick={unBlockList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-ban"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m4 5 14 12"/></svg>{$_('button_unblock')}
+          <button class="button button--sm button--border button--with-icon" onclick={unBlockList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-ban"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m4 5 14 12"/></svg>{m.button_unblock()}
           </button>
         {:else}
-          <button class="button button--sm button--with-icon" onclick={blockList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-ban"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m4 5 14 12"/></svg>{$_('button_block')}
+          <button class="button button--sm button--with-icon" onclick={blockList} disabled={isButtonsDisable}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-ban"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m4 5 14 12"/></svg>{m.button_block()}
           </button>
         {/if}
       </div>

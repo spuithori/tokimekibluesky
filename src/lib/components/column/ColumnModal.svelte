@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import {agents} from '$lib/stores';
     import { toast } from "svelte-sonner";
     import { liveQuery } from 'dexie';
@@ -79,7 +79,7 @@
                 id: self.crypto.randomUUID(),
             });
 
-            toast.success($_('column_add_success'));
+            toast.success(m.column_add_success());
             // save(false);
         } catch (e) {
             console.log(e);
@@ -88,7 +88,7 @@
 </script>
 
 {#if ($agents.size > 0)}
-    <Modal title={$_('column_settings')} onclose={save}>
+    <Modal title={m.column_settings()} onclose={save}>
         {#if (profile && currentAccount)}
             <div class="column-modal-account">
                 <AgentsSelector _agent={$agents.get(currentAccount)} on:select={handleSelect}></AgentsSelector>
@@ -98,17 +98,17 @@
         <div class="column-modal-tabs">
             <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'all'} onclick={() => {currentTab = 'all'}}>
                 <LayoutGrid size="18"></LayoutGrid>
-                {$_('all')}
+                {m.all()}
             </button>
 
             <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'pinned'} onclick={() => {currentTab = 'pinned'}}>
                 <Pin size="18"></Pin>
-                {$_('pinned_feed')}
+                {m.pinned_feed()}
             </button>
 
             <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'list'} onclick={() => {currentTab = 'list'}}>
                 <ArrowUpDown size="18"></ArrowUpDown>
-                {$_('columns_reorder')}
+                {m.columns_reorder()}
             </button>
         </div>
 

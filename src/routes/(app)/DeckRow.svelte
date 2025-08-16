@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
@@ -147,7 +147,7 @@
         try {
             fixedColumnState.add(_column);
 
-            toast.success($_('column_added'));
+            toast.success(m.column_added());
             isColumnAlreadyAdded = true;
         } catch (e) {
             console.error(e);
@@ -374,8 +374,8 @@
                         <Filter size="20" color="var(--text-color-3)"></Filter>
                     </dt>
                     <dd class="profile-posts-nav__content">
-                        <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(false)}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
-                        <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(true)}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
+                        <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(false)}} class:profile-posts-nav__button--active={!isFiltered}>{m.profile_posts_nav_all()}</button>
+                        <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(true)}} class:profile-posts-nav__button--active={isFiltered}>{m.profile_posts_nav_filtered()}</button>
                     </dd>
                 </dl>
             {/if}

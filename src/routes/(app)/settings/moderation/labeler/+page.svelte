@@ -1,7 +1,7 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import {agent, subscribedLabelers} from "$lib/stores";
     import OfficialLabelerList from "./OfficialLabelerList.svelte";
     import LabelerItem from "$lib/components/labeler/LabelerItem.svelte";
@@ -26,16 +26,16 @@
 </script>
 
 <svelte:head>
-  <title>{$_('settings_labeler')} - TOKIMEKI</title>
+  <title>{m.settings_labeler()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_labeler')}
+    {m.settings_labeler()}
   </SettingsHeader>
 
   <div class="settings-wrap">
-    <p class="settings-description">{$_('labeler_description')}</p>
+    <p class="settings-description">{m.labeler_description()}</p>
 
     {#if (ready)}
       {#each labelers as labeler}
@@ -48,7 +48,7 @@
     {/if}
 
     <div class="import-labeler-wrap">
-      <h3 class="import-labeler-wrap__title">{$_('import_labeler')}</h3>
+      <h3 class="import-labeler-wrap__title">{m.import_labeler()}</h3>
 
       <OfficialLabelerList></OfficialLabelerList>
     </div>

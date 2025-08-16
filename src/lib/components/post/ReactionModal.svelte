@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import { fly } from 'svelte/transition';
   import {onMount} from 'svelte';
   import {agent, agents} from "$lib/stores";
@@ -41,7 +41,7 @@
 <dialog class="dialog-modal" transition:fly="{{ y: 30, duration: 250 }}" bind:this={el} onclose={close}>
   <div class="dialog-modal-contents dialog-modal-contents--ml">
     <div class="reaction-modal-select">
-      <p class="selector-label">{$_('reaction_other_account')}</p>
+      <p class="selector-label">{m.reaction_other_account()}</p>
       <AgentsSelector _agent={$agents.get(getAccountIdByDid($agents, _agent.did()))} on:select={handleSelect}></AgentsSelector>
     </div>
 
@@ -56,7 +56,7 @@
     {/key}
 
     <div class="modal-close">
-      <button class="button button--sm" onclick={close}>{$_('close_button')}</button>
+      <button class="button button--sm" onclick={close}>{m.close_button()}</button>
     </div>
   </div>
 

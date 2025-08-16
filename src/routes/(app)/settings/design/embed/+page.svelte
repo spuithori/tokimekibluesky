@@ -1,22 +1,22 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import { settings } from '$lib/stores';
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
 </script>
 
 <svelte:head>
-  <title>{$_('settings_embed')} - TOKIMEKI</title>
+  <title>{m.settings_embed()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_embed')}
+    {m.settings_embed()}
   </SettingsHeader>
 
   <div class="settings-wrap">
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('embed_youtube')}
+        {m.embed_youtube()}
       </dt>
 
       <dd class="settings-group__content">
@@ -28,7 +28,7 @@
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('embed_x')}
+        {m.embed_x()}
       </dt>
 
       <dd class="settings-group__content">
@@ -40,7 +40,7 @@
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('embed_spotify')}
+        {m.embed_spotify()}
       </dt>
 
       <dd class="settings-group__content">
@@ -52,7 +52,7 @@
 
     <dl class="settings-group">
       <dt class="settings-group__name">
-        {$_('embed_bluemotion')}
+        {m.embed_bluemotion()}
       </dt>
 
       <dd class="settings-group__content">

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import Modal from "$lib/components/ui/Modal.svelte";
     import {agent} from "$lib/stores";
     import ListMember from "$lib/components/list/ListMember.svelte";
@@ -66,9 +66,9 @@
             await goto(`/chat/${convo.id}`);
         } catch (e) {
             if (e.message === 'recipient has disabled incoming messages') {
-                toast.error($_('error_chat_incoming_disabled'));
+                toast.error(m.error_chat_incoming_disabled());
             } else if (e.message === 'Bad token scope') {
-                toast.error($_('app_password_scope_error'));
+                toast.error(m.app_password_scope_error());
             } else {
                 console.error(e);
             }
@@ -76,10 +76,10 @@
     }
 </script>
 
-<Modal title={$_('start_new_chat')} size="fixed" disableState={true} {onclose}>
+<Modal title={m.start_new_chat()} size="fixed" disableState={true} {onclose}>
   <div class="new-chat">
     <div class="new-chat-search">
-      <input type="text" class="new-chat-search__input" placeholder={$_('handle_or_name')} bind:value={search} onkeydown={handleKeyDown} autofocus>
+      <input type="text" class="new-chat-search__input" placeholder={m.handle_or_name()} bind:value={search} onkeydown={handleKeyDown} autofocus>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
     </div>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import Modal from "$lib/components/ui/Modal.svelte";
 
   let { labels = [], onclose } = $props();
@@ -11,7 +11,7 @@
       <div class="label-detail">
         <h3 class="label-detail__title">
           {#if (label.source.type === 'user' || label.label.src === 'did:plc:ar7c4by46qjdydhdevvrndac' || !label?.labelDef?.locales[0]?.name)}
-            {$_('labeling_' + label?.label?.val)}
+            {m['labeling_' + label?.label?.val]()}
           {:else}
             {label?.labelDef?.locales[0]?.name}
           {/if}
@@ -21,32 +21,32 @@
           {#if (label?.source?.type === 'user')}
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
 
-            {$_('labeling_source_user')}
+            {m.labeling_source_user()}
           {:else}
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
 
             {#if (label?.label?.src === 'did:plc:ar7c4by46qjdydhdevvrndac')}
-              <a href="/profile/did:plc:ar7c4by46qjdydhdevvrndac" onclick={close}>{$_('labeling_source_labeler_official')}</a>
+              <a href="/profile/did:plc:ar7c4by46qjdydhdevvrndac" onclick={close}>{m.labeling_source_labeler_official()}</a>
             {:else}
-              <a href="/profile/{label?.label?.src}" onclick={close}>{$_('labeling_source_labeler')}</a>
+              <a href="/profile/{label?.label?.src}" onclick={close}>{m.labeling_source_labeler()}</a>
             {/if}
           {/if}
         </p>
 
         <dl class="label-detail-list">
           <div class="label-detail-list__item">
-            <dt class="label-detail-list__name">{$_('label_detail_adult')}:</dt>
+            <dt class="label-detail-list__name">{m.label_detail_adult()}:</dt>
             <dd class="label-detail-list__content"><strong>{label?.labelDef?.flags.includes('adult') ? 'Yes' : 'No'}</strong></dd>
           </div>
 
           <div class="label-detail-list__item">
-            <dt class="label-detail-list__name">{$_('label_detail_val')}:</dt>
+            <dt class="label-detail-list__name">{m.label_detail_val()}:</dt>
             <dd class="label-detail-list__content">{label?.label?.val}</dd>
           </div>
 
           <div class="label-detail-list__item">
-            <dt class="label-detail-list__name">{$_('label_detail_default_setting')}:</dt>
-            <dd class="label-detail-list__content">{$_(label?.labelDef?.defaultSetting)}</dd>
+            <dt class="label-detail-list__name">{m.label_detail_default_setting()}:</dt>
+            <dd class="label-detail-list__content">{m[label?.labelDef?.defaultSetting]()}</dd>
           </div>
         </dl>
       </div>

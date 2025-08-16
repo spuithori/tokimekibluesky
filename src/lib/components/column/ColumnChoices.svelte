@@ -3,7 +3,7 @@
 
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {agent, bookmarkModal, cloudBookmarkModal, listModal, officialListModal, userLists} from "$lib/stores";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {liveQuery} from "dexie";
   import {accountsDb, db} from "$lib/db";
   import {onMount} from "svelte";
@@ -36,7 +36,7 @@
           id: self.crypto.randomUUID(),
           algorithm: {
               type: 'notification',
-              name: $_('notifications'),
+              name: m.notifications(),
           },
           style: 'default',
           settings: defaultDeckSettings,
@@ -51,7 +51,7 @@
           id: self.crypto.randomUUID(),
           algorithm: {
               type: 'myPost',
-              name: $_('my_post'),
+              name: m.my_post(),
           },
           style: 'default',
           settings: defaultDeckSettings,
@@ -66,7 +66,7 @@
           id: self.crypto.randomUUID(),
           algorithm: {
               type: 'myMedia',
-              name: $_('my_media'),
+              name: m.my_media(),
           },
           style: 'default',
           settings: defaultDeckSettings,
@@ -81,7 +81,7 @@
           id: self.crypto.randomUUID(),
           algorithm: {
               type: 'like',
-              name: $_('likes'),
+              name: m.likes(),
           },
           style: 'default',
           settings: defaultDeckSettings,
@@ -321,7 +321,7 @@
 <div>
     <div class="column-adder-group">
         <div class="column-adder-group__heading">
-            <p class="column-adder-group__title">{$_('basic_columns')}</p>
+            <p class="column-adder-group__title">{m.basic_columns()}</p>
         </div>
 
         <ColumnListAdder {_agent} items={basicColumns} on:add></ColumnListAdder>
@@ -329,69 +329,69 @@
 
     <div class="column-adder-group">
         <div class="column-adder-group__heading">
-            <p class="column-adder-group__title">{$_('bookmark_cloud')}</p>
+            <p class="column-adder-group__title">{m.bookmark_cloud()}</p>
             <a href="https://docs.tokimeki.blue/ja/usage/bookmark-cloud" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
             {#if (cloudBookmarkColumnRefreshing)}
                 <LoadingSpinner padding="0" size="14"></LoadingSpinner>
             {/if}
 
-            <button class="column-adder-group__add" onclick={() => {cloudBookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
+            <button class="column-adder-group__add" onclick={() => {cloudBookmarkModal.set({open: true, data: undefined})}}>{m.new_create()}</button>
         </div>
 
         {#if (cloudBookmarkColumns.length)}
             <ColumnListAdder {_agent} items={cloudBookmarkColumns} on:add></ColumnListAdder>
         {:else}
-            <p class="column-adder-text">{$_('there_is_no_bookmark')}</p>
+            <p class="column-adder-text">{m.there_is_no_bookmark()}</p>
         {/if}
     </div>
 
     <div class="column-adder-group">
         <div class="column-adder-group__heading">
-            <p class="column-adder-group__title">{$_('official_list_columns')}</p>
+            <p class="column-adder-group__title">{m.official_list_columns()}</p>
             <a href="https://docs.tokimeki.blue/ja/usage/list#%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%83%AA%E3%82%B9%E3%83%88%E3%81%A8%E3%81%AF" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
             {#if (officialListColumnsRefreshing)}
                 <LoadingSpinner padding="0" size="14"></LoadingSpinner>
             {/if}
 
-            <button class="column-adder-group__add" onclick={() => {$officialListModal.open = true}}>{$_('new_create')}</button>
+            <button class="column-adder-group__add" onclick={() => {$officialListModal.open = true}}>{m.new_create()}</button>
         </div>
 
         {#if (officialListColumns.length)}
             <ColumnListAdder {_agent} items={officialListColumns} on:add></ColumnListAdder>
         {:else}
-            <p class="column-adder-text">{$_('there_is_no_official_list')}</p>
+            <p class="column-adder-text">{m.there_is_no_official_list()}</p>
         {/if}
     </div>
 
     <div class="column-adder-group">
         <div class="column-adder-group__heading">
-            <p class="column-adder-group__title">{$_('bookmark_local')}</p>
+            <p class="column-adder-group__title">{m.bookmark_local()}</p>
             <a href="https://docs.tokimeki.blue/ja/usage/bookmark" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
-            <button class="column-adder-group__add" onclick={() => {bookmarkModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
+            <button class="column-adder-group__add" onclick={() => {bookmarkModal.set({open: true, data: undefined})}}>{m.new_create()}</button>
         </div>
 
         {#if (bookmarkColumns.length)}
             <ColumnListAdder {_agent} items={bookmarkColumns} on:add></ColumnListAdder>
         {:else}
-            <p class="column-adder-text">{$_('there_is_no_bookmark')}</p>
+            <p class="column-adder-text">{m.there_is_no_bookmark()}</p>
         {/if}
     </div>
 
     <div class="column-adder-group">
         <div class="column-adder-group__heading">
-            <p class="column-adder-group__title">{$_('local_list_columns')}</p>
+            <p class="column-adder-group__title">{m.local_list_columns()}</p>
             <a href="https://docs.tokimeki.blue/ja/usage/list#%E3%83%AD%E3%83%BC%E3%82%AB%E3%83%AB%E3%83%AA%E3%82%B9%E3%83%88%E3%81%A8%E3%81%AF" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
 
-            <button class="column-adder-group__add" onclick={() => {listModal.set({open: true, data: undefined })}}>{$_('new_create')}</button>
+            <button class="column-adder-group__add" onclick={() => {listModal.set({open: true, data: undefined })}}>{m.new_create()}</button>
         </div>
 
         {#if (localListColumns.length)}
             <ColumnListAdder {_agent} items={localListColumns} on:add></ColumnListAdder>
         {:else}
-            <p class="column-adder-text">{$_('there_is_no_local_list')}</p>
+            <p class="column-adder-text">{m.there_is_no_local_list()}</p>
         {/if}
     </div>
 </div>
@@ -400,7 +400,7 @@
     {#if (feedColumns.length)}
         <div class="column-adder-group">
             <div class="column-adder-group__heading">
-                <p class="column-adder-group__title">{$_('feed_columns')}</p>
+                <p class="column-adder-group__title">{m.feed_columns()}</p>
 
                 {#if (feedColumnsRefreshing)}
                     <LoadingSpinner padding="0" size="14"></LoadingSpinner>

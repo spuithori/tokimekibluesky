@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import { settings } from '$lib/stores';
     import { offset, shift, size } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';
@@ -80,7 +80,7 @@
 
     <dl class="settings-group settings-group--column settings-group--pb0 only-mobile">
       <dt class="settings-group__name">
-        {$_('fixed_footer')}
+        {m.fixed_footer()}
       </dt>
 
       <dd class="settings-group__content">
@@ -120,7 +120,7 @@
           {/if}
 
           <button class="side-items-list__button" onclick={() => {onaction(item)}}>
-            {$_(item)}
+            {m[item]()}
           </button>
 
           {#if (sideState.items.includes(item))}
@@ -147,7 +147,7 @@
     <div class="side-menu-item">
       <dl class="settings-group">
         <dt class="settings-group__name">
-          {$_('publish_position')}
+          {m.publish_position()}
         </dt>
 
         <dd class="settings-group__content">
@@ -157,7 +157,7 @@
               <label for="publishPositionLeft">
                 <span class="radio__ui"></span>
                 <PanelLeftOpen size="16"></PanelLeftOpen>
-                {$_('publish_position_left')}
+                {m.publish_position_left()}
               </label>
             </div>
 
@@ -166,7 +166,7 @@
               <label for="publishPositionBottom">
                 <span class="radio__ui"></span>
                 <PanelBottomOpen size="16"></PanelBottomOpen>
-                {$_('publish_position_bottom')}
+                {m.publish_position_bottom()}
               </label>
             </div>
 
@@ -175,7 +175,7 @@
               <label for="publishPositionPopup">
                 <span class="radio__ui"></span>
                 <AppWindowMac size="16"></AppWindowMac>
-                {$_('publish_position_popup')}
+                {m.publish_position_popup()}
               </label>
             </div>
           </div>
@@ -189,7 +189,7 @@
           <input type="radio" bind:group={$settings.design.layout} id="layoutDecks" name="layout" value={'decks'}>
           <label for="layoutDecks">
             <Columns3 size="22" color="var(--radio-current-color)"></Columns3>
-            {$_('layout_decks')}
+            {m.layout_decks()}
           </label>
         </div>
 
@@ -197,7 +197,7 @@
           <input type="radio" bind:group={$settings.design.layout} id="layoutDefault" name="layout" value={'default'}>
           <label for="layoutDefault">
             <RectangleVertical size="22" color="var(--radio-current-color)"></RectangleVertical>
-            {$_('layout_single')}
+            {m.layout_single()}
           </label>
         </div>
       </div>

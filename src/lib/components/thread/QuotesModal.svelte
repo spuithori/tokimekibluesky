@@ -1,5 +1,5 @@
 <script>
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import { agent } from "$lib/stores";
     import Modal from "$lib/components/ui/Modal.svelte";
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
@@ -33,7 +33,7 @@
     }
 </script>
 
-<Modal title={$_('quote')} size="small" {onclose}>
+<Modal title={m.quote()} size="small" {onclose}>
   <div class="quotes">
     {#each quotes as quote}
       {#if !(AppBskyEmbedRecord.isViewDetached(quote?.post?.embed?.record) || AppBskyEmbedRecord.isViewDetached(quote?.post?.embed?.record?.record))}

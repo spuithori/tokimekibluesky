@@ -1,7 +1,7 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {agent, agents, settings} from "$lib/stores";
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -18,15 +18,15 @@
   let chatAllowSelections = [
       {
           value: 'all',
-          text: $_('chat_allow_all'),
+          text: m.chat_allow_all(),
       },
       {
           value: 'following',
-          text: $_('chat_allow_following'),
+          text: m.chat_allow_following(),
       },
       {
           value: 'none',
-          text: $_('chat_allow_none'),
+          text: m.chat_allow_none(),
       },
   ];
 
@@ -74,15 +74,15 @@
 
 <div>
   <SettingsHeader>
-    {$_('settings_chat')}
+    {m.settings_chat()}
   </SettingsHeader>
 
   <div class="settings-wrap">
-    <p class="settings-description">{$_('chat_settings_description')}</p>
+    <p class="settings-description">{m.chat_settings_description()}</p>
 
     <dl class="settings-group settings-group--boxed">
       <dt class="settings-group__name">
-        {$_('chat_settings_allow_incoming')}
+        {m.chat_settings_allow_incoming()}
       </dt>
 
       <dd class="settings-group__content">

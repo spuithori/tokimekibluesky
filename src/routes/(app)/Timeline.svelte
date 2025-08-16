@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {agent, realtime, settings} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
   import {getPostRealtime} from "$lib/realtime";
@@ -192,11 +192,11 @@
           console.error(e);
 
           if (e.message === 'BlockedActor') {
-              toast.error($_('error_get_posts_because_blocking'));
+              toast.error(m.error_get_posts_because_blocking());
           }
 
           if (e.message === 'BlockedByActor') {
-              toast.error($_('error_get_posts_because_blocked'));
+              toast.error(m.error_get_posts_because_blocked());
           }
 
           complete();

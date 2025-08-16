@@ -2,7 +2,7 @@
     import {agent} from '$lib/stores';
     import {onMount} from "svelte";
     import { toast } from "svelte-sonner";
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import BluefeedAddItem from "$lib/components/list/BluefeedAddItem.svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
@@ -44,15 +44,15 @@
     })
 </script>
 
-<Modal title="{$_('add_bluefeed')}" size="small" {onclose}>
-  <p class="modal-description">{_agent.handle()}{$_('add_bluefeed_description_suffix')}</p>
+<Modal title="{m.add_bluefeed()}" size="small" {onclose}>
+  <p class="modal-description">{_agent.handle()}{m.add_bluefeed_description_suffix()}</p>
 
   <div class="list-add-list">
     {#if ready}
       {#each feeds as feed (feed)}
         <BluefeedAddItem {feed} {_agent} uri={post.uri}></BluefeedAddItem>
       {:else}
-        {$_('bluefeed_feeds_not_found')}
+        {m.bluefeed_feeds_not_found()}
         <a href="https://www.bluefeed.app/" target="_blank" rel="noopener">Bluefeed</a>から新しいフィードを作成できます。
       {/each}
     {:else}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {accountsDb, db} from '$lib/db';
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import { liveQuery } from 'dexie';
   import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
@@ -57,12 +57,12 @@
               uri: post.uri,
           })
 
-          toast.success($_('bookmark_add_success'));
+          toast.success(m.bookmark_add_success());
       } catch (e) {
           if (e.name === 'ConstraintError') {
-              toast.error($_('error_may_duplicate_bookmark'));
+              toast.error(m.error_may_duplicate_bookmark());
           } else {
-              toast.error($_('error') + ': ' + e);
+              toast.error(m.error() + ': ' + e);
           }
       }
 
@@ -73,9 +73,9 @@
       try {
           const id = await db.feeds.delete(_id);
 
-          toast.success($_('bookmark_delete_success'));
+          toast.success(m.bookmark_delete_success());
       } catch (e) {
-          toast.error($_('error') + ': ' + e);
+          toast.error(m.error() + ': ' + e);
       }
 
       isMenuOpen = false;
@@ -156,7 +156,7 @@
               throw new Error('failed to add Cloud Bookmark');
           }
 
-          toast.success($_('bookmark_save_success'));
+          toast.success(m.bookmark_save_success());
       } catch (e) {
           toast.error('Error: ' + e);
       }
@@ -187,7 +187,7 @@
           }
 
           relatedBookmarks = relatedBookmarks.filter(_bookmark => _bookmark !== id);
-          toast.success($_('bookmark_delete_success'));
+          toast.success(m.bookmark_delete_success());
       } catch (e) {
           toast.error('Error: ' + e);
       }
@@ -223,7 +223,7 @@
           {:else}
             {#if (!cloudBookmarks.length)}
               <li class="timeline-menu-list__item timeline-menu-list__item--mute">
-                <button class="timeline-menu-list__button timeline-menu-list__button--bookmark">{$_('no_bookmark_folder')}</button>
+                <button class="timeline-menu-list__button timeline-menu-list__button--bookmark">{m.no_bookmark_folder()}</button>
               </li>
             {/if}
           {/each}
@@ -253,7 +253,7 @@
         <li class="timeline-menu-list__item">
           <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {isModalOpen = true}}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-            {$_('new_create')}
+            {m.new_create()}
           </button>
         </li>
       </ul>

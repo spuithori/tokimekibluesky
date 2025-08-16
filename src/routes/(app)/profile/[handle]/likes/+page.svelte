@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import type { LayoutData } from '../$types';
   import {tick} from "svelte";
   import {getAgentContext} from "../state.svelte";
@@ -55,7 +55,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.params.handle} {$_('page_title_likes')} - TOKIMEKI</title>
+  <title>{data.params.handle} {m.page_title_likes()} - TOKIMEKI</title>
 </svelte:head>
 
 {#if (columnState.hasColumn(columnId))}

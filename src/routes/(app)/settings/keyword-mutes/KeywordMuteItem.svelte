@@ -1,6 +1,6 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
 
   let { keyword = $bindable(), index } = $props();
 
@@ -39,7 +39,7 @@
             <path id="edit-pencil" d="M9.84,2.96l3.2,3.2L3.2,16H0V12.8Zm1.12-1.12L12.8,0,16,3.2,14.16,5.04Z" fill="var(--text-color-1)"/>
           </svg>
 
-          <input id="keyword" type="text" class="keyword-name__input" placeholder="{$_('input_keyword_placeholder')}" bind:value={keyword.word}>
+          <input id="keyword" type="text" class="keyword-name__input" placeholder="{m.input_keyword_placeholder()}" bind:value={keyword.word}>
         </div>
       </dd>
     </dl>
@@ -49,20 +49,20 @@
         <input type="checkbox" class="checkbox__input" bind:checked={keyword.ignoreCaseSensitive} id={'keyword_' + index + '_igs'}>
         <label class="checkbox__label" for={'keyword_' + index + '_igs'}>
           <span class="checkbox__ui"></span>
-          <span class="checkbox__text">{$_('keyword_ignore_case_sensitive')}</span>
+          <span class="checkbox__text">{m.keyword_ignore_case_sensitive()}</span>
         </label>
       </div>
     </div>
 
     <details class="accordion">
-      <summary class="accordion__heading">{$_('keyword_period_setting')}
+      <summary class="accordion__heading">{m.keyword_period_setting()}
         <svg xmlns="http://www.w3.org/2000/svg" width="14.814" height="8.821" viewBox="0 0 14.814 8.821">
           <path id="パス_27" data-name="パス 27" d="M4393.408,794.858l6.7,6.7,6.7-6.7" transform="translate(-4392.701 -794.151)" fill="none" stroke="var(--text-color-3)" stroke-width="2"/>
         </svg></summary>
 
       <dl class="settings-group">
         <dt class="settings-group__name">
-          {$_('keyword_period')}
+          {m.keyword_period()}
         </dt>
 
         <dd class="settings-group__content">

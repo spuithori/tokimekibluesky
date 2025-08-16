@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
 
   let { _agent, uri } = $props();
@@ -35,7 +35,7 @@
 
 {#if members.length}
   <div class="thread-members">
-    <p class="thread-members-title">+ {members.length}{$_('thread_members')}</p>
+    <p class="thread-members-title">+ {members.length}{m.thread_members()}</p>
 
     <div class="thread-members-list">
       {#each members as member}

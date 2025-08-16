@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
     const columnState = getColumnState();
@@ -27,7 +27,7 @@
 
 <button class="p-menu-profile" class:p-menu-profile--current={isCurrent} onclick={changeProfile} disabled={isDisabled}>
     <span class="p-menu-profile__title">{profile.name}</span>
-    <span class="p-menu-profile__columns">{profile.columns.length}{$_('workspace_columns_length')}</span>
+    <span class="p-menu-profile__columns">{profile.columns.length}{m.workspace_columns_length()}</span>
 </button>
 
 <style lang="postcss">

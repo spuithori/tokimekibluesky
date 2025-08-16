@@ -1,10 +1,10 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
 </script>
 
 <SettingsHeader>
-  {$_('chat')}
+  {m.chat()}
 </SettingsHeader>
 
 <div class="settings-wrap">

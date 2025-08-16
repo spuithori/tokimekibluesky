@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import {agent, agents} from "$lib/stores";
   import {onMount} from "svelte";
   import {createEventDispatcher} from "svelte";
@@ -43,7 +43,7 @@
 {#each words as word}
   <div class="import-word">
     <p class="import-word__text">{word.value}</p>
-    <button class="button button--ss" onclick={() => {importWord(word.value)}}>{$_('import_word')}</button>
+    <button class="button button--ss" onclick={() => {importWord(word.value)}}>{m.import_word()}</button>
   </div>
 {/each}
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {isFeedByUri} from "$lib/util";
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, RichText } from "@atproto/api";
   import Tiptap from "$lib/components/editor/Tiptap.svelte";
@@ -196,7 +196,7 @@
 
         if (post.threadGate !== 'everybody') {
             // post.threadGate = 'everybody';
-            // toast.success($_('thread_gate_reset_when_change_account'));
+            // toast.success(m.thread_gate_reset_when_change_account());
         }
     }
 
@@ -273,19 +273,19 @@
 
   const selfLabelsChoices = [
       {
-          name: $_('labeling_sexual'),
+          name: m.labeling_sexual(),
           val: 'sexual',
       },
       {
-          name: $_('labeling_nudity'),
+          name: m.labeling_nudity(),
           val: 'nudity',
       },
       {
-          name: $_('labeling_porn'),
+          name: m.labeling_porn(),
           val: 'porn',
       },
       {
-          name: $_('labeling_graphic-media'),
+          name: m.labeling_graphic_media(),
           val: 'graphic-media',
       },
   ];
@@ -374,7 +374,7 @@
         ></AvatarAgentsSelector>
 
         {#if (!post.replyRef)}
-          <button class="add-thread-button" disabled={isEnabled} onclick={addThread} aria-label="{$_('post_add_thread')}">
+          <button class="add-thread-button" disabled={isEnabled} onclick={addThread} aria-label="{m.post_add_thread()}">
             <CirclePlus size="20"></CirclePlus>
           </button>
         {/if}
@@ -442,7 +442,7 @@
                 class="link-card-registerer-button"
                 onclick={() => {addLinkCard(link)}}
               >
-                {$_('link_card_embed')}: {link}
+                {m.link_card_embed()}: {link}
                 {#if (isLinkCardAdding)}
                   <div class="link-card-registerer-button__spinner">
                     <LoadingSpinner padding={0} size={16}></LoadingSpinner>
@@ -457,10 +457,10 @@
           <button class="publish-lang" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
             {#if (post.lang !== 'auto' && Array.isArray(post.lang))}
               {#each post.lang as lang}
-                <span class="lang-label"><Globe size="16" color="var(--publish-tool-button-color)"></Globe> {$_(languageMap.get(lang)?.name)}</span>
+                <span class="lang-label"><Globe size="16" color="var(--publish-tool-button-color)"></Globe> {m[languageMap.get(lang)?.name]()}</span>
               {/each}
             {:else}
-              <span class="lang-label"><Globe size="16" color="var(--publish-tool-button-color)"></Globe> {$_('lang_selector_auto')}</span>
+              <span class="lang-label"><Globe size="16" color="var(--publish-tool-button-color)"></Globe> {m.lang_selector_auto()}</span>
             {/if}
           </button>
 
@@ -490,7 +490,7 @@
 
                   {#if (post.selfLabels.length)}
                     <li class="timeline-menu-list__item">
-                      <button class="timeline-menu-list__button text-danger" onclick={clearSelfLabels}>{$_('selflabels_remove')}</button>
+                      <button class="timeline-menu-list__button text-danger" onclick={clearSelfLabels}>{m.selflabels_remove()}</button>
                     </li>
                   {/if}
                 </ul>
@@ -500,7 +500,7 @@
         </div>
 
         {#if (isAltTextRequired)}
-          <Notice text={$_('alt_text_missing')}></Notice>
+          <Notice text={m.alt_text_missing()}></Notice>
         {/if}
       </div>
     {/snippet}

@@ -1,10 +1,10 @@
 <script lang="ts">
   import { Picker } from 'emoji-mart'
   import {onMount} from 'svelte';
-  import {locale} from 'svelte-i18n';
   import { clickOutside } from '$lib/clickOutSide';
   import {settings} from "$lib/stores";
   import {publishState} from "$lib/classes/publishState.svelte";
+  import {getLocale} from "$lib/paraglide/runtime";
 
   let { onoutclick, onpick } = $props();
   let theme = $settings?.design.darkmode === true ? 'dark' : 'light';
@@ -23,7 +23,7 @@
             );
             return response.json();
           },
-          locale: $locale,
+          locale: getLocale(),
           theme: theme,
           dynamicWidth: publishState.layout !== 'bottom',
       };

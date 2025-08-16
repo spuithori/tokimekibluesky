@@ -2,7 +2,7 @@
   import { agent, didHint, labelDefs, labelerSettings, settings } from "$lib/stores";
   import {format, parseISO} from "date-fns";
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs } from "@atproto/api";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
   import {contentLabelling, detectWarn, keywordFilter} from "$lib/timelineFilter";
@@ -93,8 +93,8 @@
 <div class="timeline-external timeline-external--record">
   {#if (isMuted && !isMuteDisplay)}
     <div class="thread-notice thread-notice--quote" class:thread-notice--shown={isMuteDisplay}>
-      <p class="thread-notice__text">{$_('muted_user_embed')}<br>
-        <button class="text-button" onclick={() => {isMuteDisplay = true}}>{$_('show_button')}</button></p>
+      <p class="thread-notice__text">{m.muted_user_embed()}<br>
+        <button class="text-button" onclick={() => {isMuteDisplay = true}}>{m.show_button()}</button></p>
     </div>
   {/if}
 
@@ -167,7 +167,7 @@
     </svg>
   </span>
 
-  <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" onclick={handlePostClick} aria-label="{$_('show_thread')}"></a>
+  <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" onclick={handlePostClick} aria-label="{m.show_thread()}"></a>
 </div>
 
 <style lang="postcss">

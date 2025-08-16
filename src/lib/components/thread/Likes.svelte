@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import LikesModal from "$lib/components/thread/LikesModal.svelte";
 
   let { uri, _agent } = $props();
@@ -22,7 +22,7 @@
   });
 </script>
 
-<button class="likes-heading" onclick={() => {isOpen = true}}>{$_('liked_users')}</button>
+<button class="likes-heading" onclick={() => {isOpen = true}}>{m.liked_users()}</button>
 
 {#if (isOpen)}
   <LikesModal {uri} {_agent} onclose={handleClose}></LikesModal>

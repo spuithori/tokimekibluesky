@@ -2,7 +2,7 @@
   import {settings} from '$lib/stores';
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
   import { Virtualizer } from "virtua/svelte";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
 
   let { column, _agent, rootIndex, onchangeprofile, isJunk } = $props();
   let parent = $state();
@@ -64,12 +64,12 @@
             {/if}
 
             {#if (column.data.feed[index]?.post?.replyCount > 0 && column.data.feed[index]?.depth === 6)}
-              <a href={'/profile/' + column.data.feed[index].post.author.handle + '/post/' + column.data.feed[index].post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
+              <a href={'/profile/' + column.data.feed[index].post.author.handle + '/post/' + column.data.feed[index].post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{m.read_more_thread()}</a>
             {/if}
           </div>
         {:else}
           <article class="timeline-hidden-item">
-            <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
+            <p class="timeline-hidde-item__text">{m.deleted_post()}</p>
           </article>
         {/if}
       {/snippet}

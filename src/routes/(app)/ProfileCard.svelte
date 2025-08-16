@@ -3,7 +3,7 @@
   import {agent, settings} from "$lib/stores";
   import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
   import { fade } from 'svelte/transition';
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import { offset, flip, shift } from '@floating-ui/dom';
   import { createFloatingActions } from 'svelte-floating-ui';
   import {BadgeCheck, CircleCheck} from "lucide-svelte";
@@ -68,11 +68,11 @@
     {/if}
 
     <div class="profile-relationship">
-      <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
-      <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
+      <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {m.follows()}</p>
+      <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {m.followers()}</p>
 
       {#if (profile.viewer?.followedBy)}
-        <p class="profile-relationship__by">{$_('follows_you')}</p>
+        <p class="profile-relationship__by">{m.follows_you()}</p>
       {/if}
     </div>
 

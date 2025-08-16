@@ -1,6 +1,6 @@
 <script lang="ts">
     import {settings} from "$lib/stores";
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
@@ -21,7 +21,7 @@
                   <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
                     <a class="notifications-item__link" href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
                 </ProfileCardWrapper>
-                </span> {$_('followed_you')}
+                </span> {m.followed_you()}
         </h2>
 
         {#if (item.author.description)}

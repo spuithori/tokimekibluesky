@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import {agent} from "$lib/stores";
   import { VolumeX, ShieldBan } from 'lucide-svelte';
@@ -81,11 +81,11 @@
 
       <div class="bm-users-labels">
         {#if user.viewer?.muted}
-          <p class="bm-users-label bm-users-label--mute">{$_('muting')}</p>
+          <p class="bm-users-label bm-users-label--mute">{m.muting()}</p>
         {/if}
 
         {#if user.viewer?.blocking}
-          <p class="bm-users-label">{$_('blocking')}</p>
+          <p class="bm-users-label">{m.blocking()}</p>
         {/if}
       </div>
     </div>
@@ -94,12 +94,12 @@
     <div class="bm-users-item__buttons">
       <button class="button button--sm button--with-icon" disabled={isDisabled} onclick={user.viewer?.muted ? unmute : mute}>
         <VolumeX size="20"></VolumeX>
-        {$_(user.viewer?.muted ? 'button_unmute' : 'button_mute')}
+        {m[user.viewer?.muted ? 'button_unmute' : 'button_mute']()}
       </button>
 
       <button class="button button--sm button--border button--danger button--with-icon"  disabled={isDisabled} onclick={user.viewer?.blocking ? unblock : block}>
         <ShieldBan size="20"></ShieldBan>
-        {$_(user.viewer?.blocking ? 'button_unblock' : 'button_block')}
+        {m[user.viewer?.blocking ? 'button_unblock' : 'button_block']()}
       </button>
     </div>
   </div>

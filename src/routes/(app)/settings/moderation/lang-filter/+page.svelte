@@ -1,7 +1,7 @@
 <script lang="ts">
     import { run } from 'svelte/legacy';
 
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import { settings } from '$lib/stores';
     import { languageMap } from "$lib/langs/languageMap";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
@@ -13,22 +13,22 @@
 </script>
 
 <svelte:head>
-  <title>{$_('settings_lang_filter')} - TOKIMEKI</title>
+  <title>{m.settings_lang_filter()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_lang_filter')} ({langFilter.length})
+    {m.settings_lang_filter()} ({langFilter.length})
   </SettingsHeader>
 
   <div class="settings-wrap">
-    <p class="settings-description">{$_('lang_filter_description')}<br><strong class="text-danger">{$_('lang_filter_notice')}</strong></p>
+    <p class="settings-description">{m.lang_filter_description()}<br><strong class="text-danger">{m.lang_filter_notice()}</strong></p>
 
     <div class="lang-filter-wrap">
       <div class="lang-filter-list">
         {#each languageMap as [k, v]}
           <div class="lang-filter-list__item">
-            <p class="lang-filter-list__name"><label for={k}>{$_(v.name)}</label></p>
+            <p class="lang-filter-list__name"><label for={k}>{m[v.name]()}</label></p>
 
             <div class="input-toggle">
               <input class="input-toggle__input" type="checkbox" id={k}

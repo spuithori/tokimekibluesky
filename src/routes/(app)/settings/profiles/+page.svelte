@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import { liveQuery } from 'dexie';
     import {accountsDb} from '$lib/db';
     import AcpProfileCard from "$lib/components/acp/AcpProfileCard.svelte";
@@ -24,7 +24,7 @@
             accounts: [],
             columns: [],
             createdAt: "",
-            name: $_('workspace') + ' ' + length,
+            name: m.workspace() + ' ' + length,
             primary: 0
         })
     }
@@ -35,16 +35,16 @@
 </script>
 
 <svelte:head>
-  <title>{$_('settings_profiles')} - TOKIMEKI</title>
+  <title>{m.settings_profiles()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_profiles')}
+    {m.settings_profiles()}
   </SettingsHeader>
 
   <div class="settings-wrap">
-    <p class="settings-description">{$_('profiles_description')}</p>
+    <p class="settings-description">{m.profiles_description()}</p>
 
     <div class="acp-list-wrap">
       <div class="acp-list">
@@ -56,11 +56,11 @@
       </div>
 
       <div class="acp-add-button">
-        <button class="button" onclick={() => {createProfile($profiles.length + 1)}}>{$_('create_new_profile')}</button>
+        <button class="button" onclick={() => {createProfile($profiles.length + 1)}}>{m.create_new_profile()}</button>
       </div>
 
       <div class="acp-management-button">
-        <button class="text-button" onclick={() => {isAccountManagementModalOpen = true}}>{$_('accounts_management')}</button>
+        <button class="text-button" onclick={() => {isAccountManagementModalOpen = true}}>{m.accounts_management()}</button>
       </div>
     </div>
   </div>

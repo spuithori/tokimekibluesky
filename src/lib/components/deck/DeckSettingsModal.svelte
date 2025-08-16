@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import { currentTimeline, settings } from "$lib/stores";
     import { languageMap } from "$lib/langs/languageMap";
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
@@ -102,7 +102,7 @@
 
     const playSoundSettings = [
         {
-            name: $_('play_sound_nothing'),
+            name: m.play_sound_nothing(),
             value: null,
         },
         {
@@ -141,134 +141,134 @@
 
     const replySettings = [
         {
-            name: $_('settings_inherit'),
+            name: m.settings_inherit(),
             value: null,
         },
         {
-            name: $_('reply_settings_all'),
+            name: m.reply_settings_all(),
             value: 'all',
         },
         {
-            name: $_('reply_settings_following'),
+            name: m.reply_settings_following(),
             value: 'following',
         },
         {
-            name: $_('reply_settings_me'),
+            name: m.reply_settings_me(),
             value: 'me',
         }
     ];
 
     const repostSettings = [
         {
-            name: $_('settings_inherit'),
+            name: m.settings_inherit(),
             value: null,
         },
         {
-            name: $_('repost_settings_all'),
+            name: m.repost_settings_all(),
             value: 'all',
         },
         {
-            name: $_('repost_settings_many'),
+            name: m.repost_settings_many(),
             value: 'many',
         },
         {
-            name: $_('repost_settings_soso'),
+            name: m.repost_settings_soso(),
             value: 'soso',
         },
         {
-            name: $_('repost_settings_less'),
+            name: m.repost_settings_less(),
             value: 'less',
         },
         {
-            name: $_('repost_settings_none'),
+            name: m.repost_settings_none(),
             value: 'none',
         }
     ];
 
     const autoRefreshSettings = [
         {
-            name: $_('auto_refresh_nothing'),
+            name: m.auto_refresh_nothing(),
             value: 0,
         },
         {
-            name: $_('auto_refresh_10s'),
+            name: m.auto_refresh_10s(),
             value: 10,
         },
         {
-            name: $_('auto_refresh_30s'),
+            name: m.auto_refresh_30s(),
             value: 30,
         },
         {
-            name: $_('auto_refresh_60s'),
+            name: m.auto_refresh_60s(),
             value: 60,
         },
         {
-            name: $_('auto_refresh_5m'),
+            name: m.auto_refresh_5m(),
             value: 300,
         },
         {
-            name: $_('auto_refresh_10m'),
+            name: m.auto_refresh_10m(),
             value: 600,
         },
         {
-            name: $_('auto_refresh_30m'),
+            name: m.auto_refresh_30m(),
             value: 1800,
         },
     ];
 
     if (column.algorithm?.type === 'default' || column.algorithm?.type === 'officialList') {
         autoRefreshSettings.push({
-            name: $_('auto_refresh_realtime'),
+            name: m.auto_refresh_realtime(),
             value: -1,
         })
     }
 
     const widthSettings = [
         {
-            name: $_('width_xxs'),
+            name: m.width_xxs(),
             value: 'xxs',
         },
         {
-            name: $_('width_xs'),
+            name: m.width_xs(),
             value: 'xs',
         },
         {
-            name: $_('width_small'),
+            name: m.width_small(),
             value: 'small',
         },
         {
-            name: $_('width_medium'),
+            name: m.width_medium(),
             value: 'medium',
         },
         {
-            name: $_('width_large'),
+            name: m.width_large(),
             value: 'large',
         },
         {
-            name: $_('width_xl'),
+            name: m.width_xl(),
             value: 'xl',
         },
         {
-            name: $_('width_xxl'),
+            name: m.width_xxl(),
             value: 'xxl',
         },
     ];
 
     const autoScrollSpeedSettings = [
         {
-            name: $_('auto_scroll_speed_slow'),
+            name: m.auto_scroll_speed_slow(),
             value: 'slow',
         },
         {
-            name: $_('auto_scroll_speed_normal'),
+            name: m.auto_scroll_speed_normal(),
             value: 'normal',
         },
         {
-            name: $_('auto_scroll_speed_fast'),
+            name: m.auto_scroll_speed_fast(),
             value: 'fast',
         },
         {
-            name: $_('auto_scroll_speed_faster'),
+            name: m.auto_scroll_speed_faster(),
             value: 'faster',
         },
     ];
@@ -304,7 +304,7 @@
     }
 
     function handleSearchChange() {
-        column.algorithm.name = `${$_('search')} "${column.algorithm.algorithm}"`;
+        column.algorithm.name = `${m.search()} "${column.algorithm.algorithm}"`;
         column.data.feed = [];
         column.data.cursor = '';
     }
@@ -329,13 +329,13 @@
 <div class="deck-settings-wrap deck-settings-wrap--{layout}" in:fly={{duration: 250, opacity: 0, y: -8}}>
     <div class="deck-settings">
         <div class="deck-settings-content">
-            <p class="deck-settings-description">{$_('deck_settings_description')}</p>
+            <p class="deck-settings-description">{m.deck_settings_description()}</p>
 
             <div class="deck-settings-groups">
                 {#if (column.algorithm?.type === 'search')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('/search_search')}
+                            {m.search_search()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -350,7 +350,7 @@
                 {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'chat')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('column_style')}
+                            {m.column_style()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -384,7 +384,7 @@
                 {#if (!column.settings?.isPopup)}
                     <dl class="settings-group only-pc">
                         <dt class="settings-group__name">
-                            {$_('column_width')}
+                            {m.column_width()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -408,7 +408,7 @@
                 {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('refresh_to_top')}
+                            {m.refresh_to_top()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -422,7 +422,7 @@
                 {#if column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'notification'}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('auto_refresh')}
+                            {m.auto_refresh()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -439,7 +439,7 @@
                     </dl>
 
                     {#if (autoRefresh === -1)}
-                        <Notice text={$_('auto_refresh_realtime_notice')}></Notice>
+                        <Notice text={m.auto_refresh_realtime_notice()}></Notice>
 
                         {#if (column.algorithm.type === 'default')}
                             <RealtimeFollows {_agent}></RealtimeFollows>
@@ -449,7 +449,7 @@
 
                 <dl class="settings-group">
                     <dt class="settings-group__name">
-                        {$_('play_se')}
+                        {m.play_se()}
                     </dt>
 
                     <dd class="settings-group__content">
@@ -468,7 +468,7 @@
                 {#if (column.settings?.isPopup)}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('column_opacity')}
+                            {m.column_opacity()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -482,7 +482,7 @@
                 {#if (column.algorithm?.type === 'chat')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('column_background')}
+                            {m.column_background()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -507,7 +507,7 @@
                 {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('auto_scroll')}
+                            {m.auto_scroll()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -521,7 +521,7 @@
                 {#if (autoScroll)}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('auto_scroll_speed')}
+                            {m.auto_scroll_speed()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -539,7 +539,7 @@
                 {#if (column.algorithm?.type === 'notification')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('show_reaction_via_repost')}
+                            {m.show_reaction_via_repost()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -551,7 +551,7 @@
 
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('only_show_unread')}
+                            {m.only_show_unread()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -563,7 +563,7 @@
 
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('hide_notification_counts')}
+                            {m.hide_notification_counts()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -577,7 +577,7 @@
                 {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('hide_repost_frequency')}
+                            {m.hide_repost_frequency()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -595,7 +595,7 @@
 
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('hide_reply_frequency')}
+                            {m.hide_reply_frequency()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -613,7 +613,7 @@
 
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('hide_quote')}
+                            {m.hide_quote()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -625,7 +625,7 @@
 
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('simple_reply')}
+                            {m.simple_reply()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -637,7 +637,7 @@
 
                     <dl class="settings-group">
                         <dt class="settings-group__name">
-                            {$_('lang_filter_overwritten')}
+                            {m.lang_filter_overwritten()}
                         </dt>
 
                         <dd class="settings-group__content">
@@ -649,12 +649,12 @@
 
                     {#if langFilterEnabled}
                         <div class="lang-filter-wrap">
-                            <Notice text={$_('lang_filter_notice')}></Notice>
+                            <Notice text={m.lang_filter_notice()}></Notice>
 
                             <div class="lang-filter-list">
                                 {#each languageMap as [k, v]}
                                     <div class="lang-filter-list__item">
-                                        <p class="lang-filter-list__name"><label for={k}>{$_(v.name)}</label></p>
+                                        <p class="lang-filter-list__name"><label for={k}>{m[v.name]()}</label></p>
 
                                         <div class="input-toggle">
                                             <input class="input-toggle__input" type="checkbox" id={k}
@@ -668,26 +668,26 @@
                 {/if}
 
                 {#if (column.algorithm?.type === 'custom')}
-                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/feed/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--link-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>{$_('column_feed_info')}
+                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/feed/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--link-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>{m.column_feed_info()}
                     </a>
                 {/if}
 
                 {#if (column.algorithm?.type === 'officialList')}
-                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/lists/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--link-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>{$_('column_list_info')}
+                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/lists/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--link-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>{m.column_list_info()}
                     </a>
                 {/if}
 
                 {#if ($settings.design?.layout === 'decks')}
                     <button class="deck-column-delete-button deck-column-delete-button--popup only-pc" onclick={popupColumn}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-picture-in-picture-2"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/></svg>{$_('popup_column')}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-picture-in-picture-2"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/></svg>{m.popup_column()}
                     </button>
                 {/if}
 
                 <button class="deck-column-delete-button deck-column-delete-button--clear" onclick={clearColumn}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                         stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eraser"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>{$_('clear_column_posts')}</button>
+                         stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eraser"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>{m.clear_column_posts()}</button>
 
-                <button class="deck-column-delete-button" onclick={deleteColumn}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>{$_('delete_column')}</button>
+                <button class="deck-column-delete-button" onclick={deleteColumn}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>{m.delete_column()}</button>
             </div>
         </div>
     </div>

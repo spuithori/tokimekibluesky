@@ -1,7 +1,7 @@
 <script lang="ts">
     import {liveQuery} from "dexie";
     import {accountsDb} from "$lib/db";
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import ProfileMenuItem from "$lib/components/acp/ProfileMenuItem.svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
     import {HelpCircle, MoreHorizontal, Settings} from "lucide-svelte";
@@ -22,7 +22,7 @@
 
 <div class="side-workspace">
     <div class="side-workspace-modal-heading">
-        <h3 class="side-workspace-modal-title">{$_('workspace_modal_title')}</h3>
+        <h3 class="side-workspace-modal-title">{m.workspace_modal_title()}</h3>
 
         <p class="side-workspace-modal-button">
             <a href="/settings/profiles" onclick={onclose}>
@@ -40,7 +40,7 @@
                     <li class="timeline-menu-list__item">
                         <a href="https://docs.tokimeki.blue/ja/usage/profiles" target="_blank" rel="noopener" class="timeline-menu-list__button">
                             <HelpCircle size="20" color="var(--text-color-1)"></HelpCircle>
-                            <span>{$_('workspace_help')}</span>
+                            <span>{m.workspace_help()}</span>
                         </a>
                     </li>
                 </ul>

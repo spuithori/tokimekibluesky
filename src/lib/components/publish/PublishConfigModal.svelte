@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import Modal from "$lib/components/ui/Modal.svelte";
   import {settings} from '$lib/stores';
   import Notice from "$lib/components/ui/Notice.svelte";
@@ -8,10 +8,10 @@
   let { onclose } = $props();
 </script>
 
-<Modal title={$_('publish_config_modal_title')} size="small" {onclose}>
+<Modal title={m.publish_config_modal_title()} size="small" {onclose}>
   <dl class="settings-group">
     <dt class="settings-group__name">
-      {$_('continuous_mode')}
+      {m.continuous_mode()}
     </dt>
 
     <dd class="settings-group__content">
@@ -23,7 +23,7 @@
 
   <dl class="settings-group">
     <dt class="settings-group__name">
-      {$_('lossless_image_upload_mode')}
+      {m.lossless_image_upload_mode()}
     </dt>
 
     <dd class="settings-group__content">
@@ -32,14 +32,14 @@
       </div>
 
       {#if ($settings?.general?.losslessImageUpload)}
-        <Notice text={$_('lossless_image_upload_mode_notice')}></Notice>
+        <Notice text={m.lossless_image_upload_mode_notice()}></Notice>
       {/if}
     </dd>
   </dl>
 
   <dl class="settings-group">
     <dt class="settings-group__name">
-      {$_('require_input_alt_text')}
+      {m.require_input_alt_text()}
     </dt>
 
     <dd class="settings-group__content">
@@ -51,7 +51,7 @@
 
   <dl class="settings-group">
     <dt class="settings-group__name">
-      {$_('continuous_tag')}
+      {m.continuous_tag()}
     </dt>
 
     <dd class="settings-group__content">

@@ -1,6 +1,6 @@
 <script lang="ts">
   import LoginModal from "$lib/components/acp/LoginModal.svelte";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {accountsDb} from "$lib/db";
 
   let { account } = $props();
@@ -43,8 +43,8 @@
   <h2 class="missing-account-item__title">{account.session?.handle}</h2>
 
   <div class="missing-account-item__buttons">
-    <button class="button button--sm" onclick={() => {isLoginModalOpen = true}}>{$_('login')}</button>
-    <button class="button button--border button--sm" onclick={handleDelete}>{$_('logout_button')}</button>
+    <button class="button button--sm" onclick={() => {isLoginModalOpen = true}}>{m.login()}</button>
+    <button class="button button--border button--sm" onclick={handleDelete}>{m.logout_button()}</button>
   </div>
 </div>
 

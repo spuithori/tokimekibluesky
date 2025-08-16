@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {EllipsisVertical, ExternalLink, Quote} from "lucide-svelte";
@@ -63,14 +63,14 @@
         <li class="timeline-menu-list__item">
           <a class="timeline-menu-list__button" href="https://bsky.app/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" target="_blank">
             <ExternalLink color="var(--text-color-1)" size="20"></ExternalLink>
-            <span>{$_('open_social_app')}</span>
+            <span>{m.open_social_app()}</span>
           </a>
         </li>
 
         <li class="timeline-menu-list__item">
           <button class="timeline-menu-list__button" onclick={handleEmbedClick}>
             <Quote color="var(--text-color-1)" size="20"></Quote>
-            <span>{$_('embed_feed_button')}</span>
+            <span>{m.embed_feed_button()}</span>
           </button>
         </li>
       </ul>

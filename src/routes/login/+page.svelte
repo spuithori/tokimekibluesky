@@ -3,7 +3,7 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import LoginModal from "$lib/components/acp/LoginModal.svelte";
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import { Toaster } from "svelte-sonner";
     import {accountsDb} from "$lib/db";
 
@@ -41,13 +41,13 @@
   </h1>
 
   <div class="login-box">
-    <h1 class="login-box__title">{$_('about_subhead')}</h1>
-    <p class="login-box__text">{$_('login_box_text_1_1')}<a href="https://blueskyweb.xyz/" target="_blank" rel="noopener">Bluesky</a>{$_('login_box_text_1_2')}</p>
-    <p class="login-box__text">{$_('login_box_text_2')}</p>
+    <h1 class="login-box__title">{m.about_subhead()}</h1>
+    <p class="login-box__text">{m.login_box_text_1_1()}<a href="https://blueskyweb.xyz/" target="_blank" rel="noopener">Bluesky</a>{m.login_box_text_1_2()}</p>
+    <p class="login-box__text">{m.login_box_text_2()}</p>
 
     <div class="login-box__buttons">
-      <button class="button button--fullwidth" onclick={() => {isLoginModalOpen = true}}>{$_('login')}</button>
-      <a class="button button--border button--fullwidth" href="https://docs.tokimeki.blue/ja#%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88" target="_blank" rel="noopener">{$_('show_screenshots')}</a>
+      <button class="button button--fullwidth" onclick={() => {isLoginModalOpen = true}}>{m.login()}</button>
+      <a class="button button--border button--fullwidth" href="https://docs.tokimeki.blue/ja#%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88" target="_blank" rel="noopener">{m.show_screenshots()}</a>
     </div>
   </div>
 

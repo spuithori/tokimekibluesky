@@ -1,22 +1,22 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
 </script>
 
 <svelte:head>
-    <title>{$_('settings_about')} - TOKIMEKI</title>
+    <title>{m.settings_about()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
     <SettingsHeader>
-        {$_('settings_about')}
+        {m.settings_about()}
     </SettingsHeader>
 
     <div class="settings-wrap">
         <div class="about-content">
-            <p class="about-text">{$_('support_text_1')}</p>
+            <p class="about-text">{m.support_text_1()}</p>
 
-            <h3 class="about-title text-center">{$_('donation')}</h3>
+            <h3 class="about-title text-center">{m.donation()}</h3>
 
             <ul class="support-banner-list">
                 <li class="support-banner-list__item">
@@ -32,7 +32,7 @@
                 </li>
             </ul>
 
-            <h3 class="about-title text-center">{$_('sponsor')}</h3>
+            <h3 class="about-title text-center">{m.sponsor()}</h3>
             <ul class="sponsor-list">
 
             </ul>

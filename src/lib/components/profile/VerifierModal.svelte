@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
 
@@ -17,9 +17,9 @@
     })
 </script>
 
-<Modal title={$_('verified_by')} size="small" {onclose}>
+<Modal title={m.verified_by()} size="small" {onclose}>
     <div class="likes">
-        <p class="text">{$_('verified_by_description')}</p>
+        <p class="text">{m.verified_by_description()}</p>
         {#if profile}
             <UserItem user={profile}></UserItem>
         {/if}

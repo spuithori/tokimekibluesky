@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import { agent, hashtagHistory, settings } from '$lib/stores';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
   import {toast} from 'svelte-sonner'
@@ -108,9 +108,9 @@
 
           postState.clearPosts();
 
-          toast.success($_('draft_add_success'));
+          toast.success(m.draft_add_success());
       } catch (e) {
-          toast.error($_('error') + ': ' + e);
+          toast.error(m.error() + ': ' + e);
       }
   }
 
@@ -201,7 +201,7 @@
       }
 
       isPublishing = true;
-      const toastId = toast.loading($_('process_to_post'));
+      const toastId = toast.loading(m.process_to_post());
 
       let i = 1;
       let root;
@@ -210,7 +210,7 @@
 
       try {
           for (const post of postState.posts) {
-              toast.loading($_('process_to_post') + '(' + i + '/' + postState.posts.length +  ')', {
+              toast.loading(m.process_to_post() + '(' + i + '/' + postState.posts.length +  ')', {
                   id: toastId,
                   duration: 100000,
               })
@@ -237,7 +237,7 @@
           await afterPublish();
 
           isPublishing = false;
-          toast.success($_('success_to_post'), {
+          toast.success(m.success_to_post(), {
               id: toastId,
               duration: 1500,
           });
@@ -369,7 +369,7 @@
       }
 
       if (post.video) {
-          const videoToastId = toast.loading($_('process_to_video_upload'));
+          const videoToastId = toast.loading(m.process_to_video_upload());
 
           try {
               const token = await getServiceAuthToken({lxm: 'com.atproto.repo.uploadBlob', exp: Date.now() / 1000 + 60 * 30}, _agent);
@@ -379,7 +379,7 @@
                   xhr.upload.addEventListener('progress', e => {
                       const progress = e.loaded / e.total;
 
-                      toast.loading($_('process_to_video_upload') + '(' + Math.round(progress * 100) + '%)', {
+                      toast.loading(m.process_to_video_upload() + '(' + Math.round(progress * 100) + '%)', {
                           id: videoToastId,
                           duration: 100000,
                       });
@@ -405,7 +405,7 @@
               })
 
               if (res.jobId) {
-                  toast.loading($_('process_to_video_upload_processing'), {
+                  toast.loading(m.process_to_video_upload_processing(), {
                       id: videoToastId,
                       duration: 1000000,
                   });
@@ -428,7 +428,7 @@
                       }
                   }
 
-                  toast.success($_('success_to_video_upload'), {
+                  toast.success(m.success_to_video_upload(), {
                       id: videoToastId,
                       duration: 1500,
                   });
@@ -621,7 +621,7 @@
           };
       } catch (error) {
           console.error((error as Error).message);
-          toast.error($_('failed_to_post') + ':' + (error as Error).message);
+          toast.error(m.failed_to_post() + ':' + (error as Error).message);
           isEnabled = false;
           throw error;
       }
@@ -683,9 +683,9 @@
       </button>
 
       {#if (!isEnabled)}
-        <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postState.posts.length > 1}>{$_('drafts_save')}</button>
+        <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postState.posts.length > 1}>{m.drafts_save()}</button>
       {:else}
-        <button class="publish-draft-button publish-view-draft" onclick={openDraft} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
+        <button class="publish-draft-button publish-view-draft" onclick={openDraft} disabled={postState.posts.length > 1}>{m.drafts()}</button>
       {/if}
 
       <button class="publish-sp-close" onclick={onClose} aria-label="Close.">
@@ -693,7 +693,7 @@
       </button>
 
       <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled}>
-        {$_('publish_button_send')}
+        {m.publish_button_send()}
       </button>
     </div>
 
@@ -735,7 +735,7 @@
 
 {#snippet submitArea()}
   <button class="publish-submit-button publish-submit-button--bottom" onclick={publishAll} disabled={isEnabled}>
-    {$_('publish_button_send')}
+    {m.publish_button_send()}
   </button>
 {/snippet}
 

@@ -1,14 +1,14 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import { AlertTriangle } from 'lucide-svelte';
 
   let { labels } = $props();
 </script>
 
 {#each labels as label}
-  <p class="self-label-label"><AlertTriangle size="16"></AlertTriangle>{$_(`labeling_${label.val}`)}</p>
+  <p class="self-label-label"><AlertTriangle size="16"></AlertTriangle>{m[`labeling_${label.val}`]()}</p>
 {:else}
-  <p class="self-label-label"><AlertTriangle size="16"></AlertTriangle>{$_(`labeling_nothing`)}</p>
+  <p class="self-label-label"><AlertTriangle size="16"></AlertTriangle>{m.labeling_nothing()}</p>
 {/each}
 
 <style lang="postcss">

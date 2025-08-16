@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n'
+    import { m } from "$lib/paraglide/messages.js"
     import imageCompression from 'browser-image-compression';
     import {flip} from "svelte/animate";
     import { dndzone } from 'svelte-dnd-action';
@@ -79,7 +79,7 @@
             const dimensions = await getVideoDimensions(videoFile);
 
             if (videoFile.size / 1024 / 1024 > 100 || dimensions.duration > 180) {
-                toast.error($_('error_video_too_large'));
+                toast.error(m.error_video_too_large());
                 return false;
             }
 

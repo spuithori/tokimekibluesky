@@ -1,7 +1,7 @@
 <script lang="ts">
   import { agent, settings } from '$lib/stores';
   import { toast } from 'svelte-sonner';
-  import { _ } from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {Heart, Star} from "lucide-svelte";
   import NumberFlow from '@number-flow/svelte';
@@ -60,7 +60,7 @@
               post.viewer.like = pulse.viewer;
           }
       } catch (e) {
-          toast.error($_('failed_to_like'));
+          toast.error(m.failed_to_like());
           console.error(e);
           isNumberTransition = false;
       }

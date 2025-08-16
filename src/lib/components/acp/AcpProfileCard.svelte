@@ -4,7 +4,7 @@
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
   import {agent, agents, currentTimeline} from "$lib/stores";
   import Menu from "$lib/components/ui/Menu.svelte";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import { toast } from "svelte-sonner";
   import {modifyAgents} from "$lib/modifyAgents";
   import AcpProfileNameModal from "$lib/components/acp/AcpProfileNameModal.svelte";
@@ -56,7 +56,7 @@
       try {
           const pid = await accountsDb.profiles.delete(id);
 
-          toast.success($_('profile_delete_success'));
+          toast.success(m.profile_delete_success());
       } catch (e) {
           console.error(e);
       }
@@ -121,9 +121,9 @@
     <p class="acp-card__name">{profile.name}</p>
 
     {#if (!isCurrent)}
-      <button class="button button--ss" onclick={changeProfile}>{$_('profile_switch')}</button>
+      <button class="button button--ss" onclick={changeProfile}>{m.profile_switch()}</button>
     {:else}
-      <button class="button button--ss button--border" disabled>{$_('profile_current')}</button>
+      <button class="button button--ss button--border" disabled>{m.profile_current()}</button>
     {/if}
 
     <Menu bind:isMenuOpen={isMenuOpen}>
@@ -133,7 +133,7 @@
             <li class="timeline-menu-list__item timeline-menu-list__item--delete">
               <button class="timeline-menu-list__button" onclick={() => {deleteProfile(profile.id)}}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-x"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="m14.5 7-5 5"/><path d="m9.5 7 5 5"/></svg>
-                <span class="text-danger">{$_('delete_profile')}</span>
+                <span class="text-danger">{m.delete_profile()}</span>
               </button>
             </li>
           {/if}
@@ -141,14 +141,14 @@
           <li class="timeline-menu-list__item">
             <button class="timeline-menu-list__button" onclick={() => {isNameModalOpen = true}}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-square"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
-              <span>{$_('profile_change_name')}</span>
+              <span>{m.profile_change_name()}</span>
             </button>
           </li>
 
           <li class="timeline-menu-list__item">
             <button class="timeline-menu-list__button" onclick={() => {isAppViewProxyModalOpen = true}}>
               <Waypoints color="var(--text-color-1)" size="20"></Waypoints>
-              <span>{$_('change_appview_proxy')}</span>
+              <span>{m.change_appview_proxy()}</span>
             </button>
           </li>
         </ul>

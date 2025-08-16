@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n'
+    import { m } from "$lib/paraglide/messages.js"
     import {ChevronLeft, ChevronRight, Gauge, Settings, SlidersHorizontal} from "lucide-svelte";
 </script>
 
@@ -38,14 +38,14 @@
         <Gauge size="18" type="settings-menu" class="video-submenu-icon"></Gauge>
         <ChevronLeft size="20" type="chevron-left" class="video-submenu-close-button"></ChevronLeft>
 
-        <span class="video-submenu-label">{$_('plyr_speed')}</span>
+        <span class="video-submenu-label">{m.plyr_speed()}</span>
         <span class="video-submenu-hint" data-part="hint"></span>
 
         <ChevronRight size="20" type="chevron-right" class="video-submenu-open-button"></ChevronRight>
       </media-menu-button>
 
       <media-menu-items class="video-submenu">
-        <media-speed-radio-group class="video-radio-group" normalLabel={$_('plyr_normal')}>
+        <media-speed-radio-group class="video-radio-group" normalLabel={m.plyr_normal()}>
           <template>
             <media-radio class="video-radio">
               <span class="video-radio-icon" type="check"></span>
@@ -61,14 +61,14 @@
         <SlidersHorizontal size="18" type="settings-menu" class="video-submenu-icon"></SlidersHorizontal>
         <ChevronLeft size="20" type="chevron-left" class="video-submenu-close-button"></ChevronLeft>
 
-        <span class="video-submenu-label">{$_('plyr_quality')}</span>
+        <span class="video-submenu-label">{m.plyr_quality()}</span>
         <span class="video-submenu-hint" data-part="hint"></span>
 
         <ChevronRight size="20" type="chevron-right" class="video-submenu-open-button"></ChevronRight>
       </media-menu-button>
 
       <media-menu-items class="video-submenu">
-        <media-quality-radio-group class="video-radio-group" autoLabel={$_('plyr_auto')}>
+        <media-quality-radio-group class="video-radio-group" autoLabel={m.plyr_auto()}>
           <template>
             <media-radio class="video-radio">
               <span class="video-radio-icon" type="check"></span>

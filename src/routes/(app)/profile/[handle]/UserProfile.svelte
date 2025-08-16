@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import {agent, settings} from '$lib/stores';
   import {page} from '$app/stores';
   import {format, parseISO} from 'date-fns';
@@ -110,11 +110,11 @@
       <dl class="profile-reported">
         <dt class="profile-reported__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="19.999" viewBox="0 0 20 19.999">
           <path id="exclamation-solid" d="M2.93,17.07a10,10,0,1,1,14.142,0,10,10,0,0,1-14.142,0ZM9,5v6h2V5Zm0,8v2h2V13Z" transform="translate(0)" fill="var(--danger-color)"/>
-        </svg>{$_('reporting_this_user')}: </dt>
+        </svg>{m.reporting_this_user()}: </dt>
 
         {#each profile.labels as label}
           {#if (label?.val !== '!no-unauthenticated')}
-            <dd class="profile-reported__content">{$_(label.val)}</dd>
+            <dd class="profile-reported__content">{m[label.val]()}</dd>
           {/if}
         {/each}
       </dl>
@@ -122,16 +122,16 @@
 
     {#if (profile.viewer?.blocking)}
       {#if (profile.viewer.blocking.split('/').slice(-3)[0] === _agent.did())}
-        <p class="profile-muted">{$_('blocking_this_user')}</p>
+        <p class="profile-muted">{m.blocking_this_user()}</p>
       {/if}
     {/if}
 
     {#if (profile.viewer?.blockedBy)}
-      <p class="profile-muted">{$_('blocked_by_this_user')}</p>
+      <p class="profile-muted">{m.blocked_by_this_user()}</p>
     {/if}
 
     {#if (profile.viewer?.muted)}
-      <p class="profile-muted">{$_('muting_this_user')}</p>
+      <p class="profile-muted">{m.muting_this_user()}</p>
     {/if}
 
     <div class="profile-banner">
@@ -194,9 +194,9 @@
 
                 {#if (!isLabeler)}
                   <div class="profile-relationship">
-                    <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
-                    <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
-                    <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.postsCount}</span> {$_('posts')}</p>
+                    <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {m.follows()}</p>
+                    <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {m.followers()}</p>
+                    <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.postsCount}</span> {m.posts()}</p>
 
                     <button class="profile-counts-toggle" onclick={toggleHideCounts} aria-label="Hide profile counts." title="Hide profile counts.">
                       {#if ($settings.general?.hideProfileCounts)}
@@ -209,15 +209,15 @@
                     {#if (profile.viewer?.followedBy)}
                       <p class="profile-relationship-by">
                         <Handshake size="18" color="var(--text-color-3)"></Handshake>
-                        {$_('follows_you')}
+                        {m.follows_you()}
                       </p>
                     {/if}
                   </div>
 
                   {#if (firstPostDate)}
-                    <p class="profile-first"><a href="{firstPostUri}">{$_('first_post_date', {values: {date: firstPostDate }})}</a></p>
+                    <p class="profile-first"><a href="{firstPostUri}">{m.first_post_date({date: firstPostDate})}</a></p>
                   {:else}
-                    <p class="profile-first">{$_('first_post_date', {values: {date: '----/--/--' }})}</p>
+                    <p class="profile-first">{m.first_post_date({date: '----/--/--'})}</p>
                   {/if}
 
                   {#if profile?.viewer?.knownFollowers && !$settings.general?.hideProfileCounts && profile.did !== _agent.did()}
@@ -235,7 +235,7 @@
                         <EmbedExternal external={profile.status.embed.external}></EmbedExternal>
                       {:else}
                         <div class="profile-status-embed-filler">
-                          {$_('status_live_elsewhere')}
+                          {m.status_live_elsewhere()}
                         </div>
                       {/if}
                     </div>

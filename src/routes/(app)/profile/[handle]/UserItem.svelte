@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import UserFollowButton from "./UserFollowButton.svelte";
   import {agent, settings} from "$lib/stores";
   import Avatar from "../../Avatar.svelte";
@@ -43,7 +43,7 @@
       {#if (user.viewer?.followedBy && $settings?.design?.mutualDisplay)}
         <p class="profile-relationship-by">
           <Handshake size="18" color="var(--text-color-3)"></Handshake>
-          {$_('follows_you')}
+          {m.follows_you()}
         </p>
       {/if}
     </div>

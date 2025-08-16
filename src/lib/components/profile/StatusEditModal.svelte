@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import Modal from "$lib/components/ui/Modal.svelte";
     import {Clock, Link} from "lucide-svelte";
     import {settings} from '$lib/stores';
@@ -121,7 +121,7 @@
     }
 </script>
 
-<Modal title={$_('edit_status_live')} size="small" {onclose}>
+<Modal title={m.edit_status_live()} size="small" {onclose}>
     <div class="edit-status">
         {#if embed}
             <EmbedExternal external={embed.external}></EmbedExternal>
@@ -129,7 +129,7 @@
 
         <dl class="settings-group">
             <dt class="settings-group__name">
-                {$_('edit_status_live_url')}
+                {m.edit_status_live_url()}
             </dt>
 
             <dd class="settings-group__content">
@@ -142,21 +142,21 @@
 
         <dl class="settings-group">
             <dt class="settings-group__name">
-                {$_('edit_status_live_duration')}
+                {m.edit_status_live_duration()}
             </dt>
 
             <dd class="settings-group__content">
                 <div class="input-text input-text--icon">
                     <Clock size="20" color="var(--text-color-1)"></Clock>
                     <input class="input-text__input" type="number" bind:value={duration} placeholder="30" min="0" max="600">
-                    <span class="input-text__suffix">{$_('edit_status_live_suffix_minutes')}</span>
+                    <span class="input-text__suffix">{m.edit_status_live_suffix_minutes()}</span>
                 </div>
             </dd>
         </dl>
 
         <div class="buttons-group">
-            <button class="button button--sm" onclick={applyStatus} disabled={isDisabled}>{$_('apply')}</button>
-            <button class="button button--danger button--border button--sm" onclick={deleteStatus} disabled={isDisabled}>{$_('edit_status_live_exit')}</button>
+            <button class="button button--sm" onclick={applyStatus} disabled={isDisabled}>{m.apply()}</button>
+            <button class="button button--danger button--border button--sm" onclick={deleteStatus} disabled={isDisabled}>{m.edit_status_live_exit()}</button>
         </div>
     </div>
 </Modal>

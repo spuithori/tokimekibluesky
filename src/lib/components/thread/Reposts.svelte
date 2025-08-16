@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
 
     let { uri, _agent } = $props();
@@ -22,7 +22,7 @@
     });
 </script>
 
-<button class="likes-heading" onclick={() => {isOpen = true}}>{$_('reposted_users')}</button>
+<button class="likes-heading" onclick={() => {isOpen = true}}>{m.reposted_users()}</button>
 
 {#if (isOpen)}
     <RepostsModal {uri} {_agent} onclose={handleClose}></RepostsModal>

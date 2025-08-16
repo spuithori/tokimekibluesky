@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {agent, officialListModal} from "$lib/stores";
   import { toast } from "svelte-sonner";
@@ -76,7 +76,7 @@
           columnState.add(_column);
 
           dispatch('add');
-          toast.success($_('column_added'));
+          toast.success(m.column_added());
           isColumnAdded = true;
       } catch (e) {
           console.error(e);
@@ -96,13 +96,13 @@
         <a href="/profile/{list.creator.handle}/lists/{list.uri.split('/').slice(-1)[0]}">{list.name}</a>
 
         {#if isModerationList}
-          <span class="list-item__label">{$_('mute_list')}</span>
+          <span class="list-item__label">{m.mute_list()}</span>
         {/if}
       </h3>
 
       <p class="list-item__description">
         {#if items.length}
-          <button class="list-item__members-button" onclick={() => {isMembersOpen = true}}>{items.length}{$_('list_members_length_suffix')}</button>
+          <button class="list-item__members-button" onclick={() => {isMembersOpen = true}}>{items.length}{m.list_members_length_suffix()}</button>
           {#if list.description}
             ・
           {/if}
@@ -122,7 +122,7 @@
     <div class="list-item__buttons">
       {#if isModerationList}
       {:else}
-        <button class="button button--ss" onclick={addColumn} disabled={isColumnAdded}>{$_('feed_quick_add')}</button>
+        <button class="button button--ss" onclick={addColumn} disabled={isColumnAdded}>{m.feed_quick_add()}</button>
       {/if}
 
       {#if editable}

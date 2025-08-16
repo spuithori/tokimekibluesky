@@ -1,6 +1,6 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {Bookmark, Heart, Quote, Repeat2, Reply} from "lucide-svelte";
 
   const reactions = ['reply', 'repost', 'like', 'quote', 'bookmark'];
@@ -12,7 +12,7 @@
     {@const SvelteComponent = icons[index]}
     <div class="reaction-button-settings-item reaction-button-settings-item--{item}">
       <div class="reaction-button-settings-item__heading">
-        <h3 class="reaction-button-settings-item__title">{$_(item)}</h3>
+        <h3 class="reaction-button-settings-item__title">{m[item]()}</h3>
 
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id={'rbs_' + item} bind:group={$settings.design.reactionButtons.shown} value={item}><label class="input-toggle__label" for={'rbs_' + item}></label>
@@ -25,7 +25,7 @@
 
       {#if (item === 'reply' || item === 'repost' || item === 'like')}
         <div class="reaction-button-settings-item__child">
-          <h4 class="reaction-button-settings-item__title2">{$_('show_counts')}</h4>
+          <h4 class="reaction-button-settings-item__title2">{m.show_counts()}</h4>
 
           <div class="input-toggle">
             <input class="input-toggle__input" type="checkbox" id={'rbsc_' + item} bind:checked={$settings.design.reactionButtons[item].showCounts}><label class="input-toggle__label" for={'rbsc_' + item}></label>

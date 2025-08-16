@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import Modal from "$lib/components/ui/Modal.svelte";
     import {Waypoints} from "lucide-svelte";
 
@@ -8,8 +8,8 @@
     let isDisabled = $derived(!proxy);
 </script>
 
-<Modal title={$_('change_appview_proxy')} size="small" {onclose}>
-    <p class="text text-danger">{$_('description_change_appview_proxy')}</p>
+<Modal title={m.change_appview_proxy()} size="small" {onclose}>
+    <p class="text text-danger">{m.description_change_appview_proxy()}</p>
 
     <div class="input-text input-text--icon">
         <Waypoints size="20" color="var(--text-color-1)"></Waypoints>

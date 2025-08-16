@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import type { LayoutData } from '../$types';
   import {settings} from "$lib/stores";
   import UserItem from "../UserItem.svelte";
@@ -57,7 +57,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.params.handle} {$_('page_title_followers')} - TOKIMEKI</title>
+  <title>{data.params.handle} {m.page_title_followers()} - TOKIMEKI</title>
 </svelte:head>
 
 <div class="user-items-list">

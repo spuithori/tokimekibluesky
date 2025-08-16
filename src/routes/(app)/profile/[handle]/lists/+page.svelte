@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import type { LayoutData } from '../$types';
     import {agent} from "$lib/stores";
     import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
@@ -34,7 +34,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.params.handle} {$_('page_title_lists')} - TOKIMEKI</title>
+  <title>{data.params.handle} {m.page_title_lists()} - TOKIMEKI</title>
 </svelte:head>
 
 <div class="user-lists-list-wrap">

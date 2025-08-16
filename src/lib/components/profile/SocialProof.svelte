@@ -1,6 +1,6 @@
 <script lang="ts">
   import SocialProofModal from "$lib/components/profile/SocialProofModal.svelte";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
 
   let { knownFollowers, actor, _agent } = $props();
   let isModalOpen = $state(false);
@@ -17,7 +17,7 @@
     </div>
 
     <p class="social-proof-text">
-      <button class="social-proof-button" onclick={() => {isModalOpen = true}}>{$_('social_proof_text', {values: {name: knownFollowers.followers[0].displayName || knownFollowers.followers[0].handle, count: knownFollowers.count}})}</button>
+      <button class="social-proof-button" onclick={() => {isModalOpen = true}}>{m.social_proof_text({name: knownFollowers.followers[0].displayName || knownFollowers.followers[0].handle, count: knownFollowers.count})}</button>
     </p>
   </div>
 {/if}

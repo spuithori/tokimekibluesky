@@ -1,5 +1,5 @@
 <script>
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import { agent } from "$lib/stores";
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
@@ -27,7 +27,7 @@
     }
 </script>
 
-<Modal title={$_('reposted_users')} size="small" {onclose}>
+<Modal title={m.reposted_users()} size="small" {onclose}>
     <div class="likes">
         {#each reposts as repost }
             {#if (!repost.viewer?.muted)}

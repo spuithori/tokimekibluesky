@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { settings } from '$lib/stores';
 	import type { Snapshot } from './$types';
-	import {_} from 'svelte-i18n';
+	import { m } from "$lib/paraglide/messages.js";
 
 	let scrolls;
 
@@ -20,6 +20,6 @@
 </script>
 
 <svelte:head>
-	<title>{$_('page_title_home')} - TOKIMEKI</title>
+	<title>{m.page_title_home()} - TOKIMEKI</title>
 	<meta name="description" content="Timeline" />
 </svelte:head>

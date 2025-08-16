@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useIntersectionObserver } from "runed";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {Annoyed} from "lucide-svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
@@ -111,7 +111,7 @@
     {#if children}
       {@render children?.()}
     {:else}
-      <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      <p class="infinite-nomore"><span>{m.no_more()}</span></p>
     {/if}
   {/if}
 

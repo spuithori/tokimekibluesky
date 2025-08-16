@@ -2,7 +2,7 @@
   import { run } from 'svelte/legacy';
 
     import {agent, agents, labelDefs, labelerSettings, subscribedLabelers} from "$lib/stores";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
 
   interface Props {
     did: any;
@@ -53,8 +53,8 @@
 
 {#if (did !== 'did:plc:ar7c4by46qjdydhdevvrndac')}
   {#if (subscribed)}
-    <button class="button button--{size} button--following" onclick={unsubscribe} data-unfollow-name="{$_('label_unsubscribe')}">{$_('label_unsubscribe')}</button>
+    <button class="button button--{size} button--following" onclick={unsubscribe} data-unfollow-name="{m.label_unsubscribe()}">{m.label_unsubscribe()}</button>
   {:else}
-    <button class="button button--{size} button--follow" onclick={subscribe}>{$_('label_subscribe')}</button>
+    <button class="button button--{size} button--follow" onclick={subscribe}>{m.label_subscribe()}</button>
   {/if}
 {/if}

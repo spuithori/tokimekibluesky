@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
 
   interface Props {
     value?: string;
@@ -10,15 +10,15 @@
   let { value = $bindable('warn'), name, contentLabelsSelections = [
       {
           value: 'hide',
-          text: $_('hide'),
+          text: m.hide(),
       },
       {
           value: 'warn',
-          text: $_('warn'),
+          text: m.warn(),
       },
       {
           value: 'ignore',
-          text: $_('show'),
+          text: m.show(),
       }
   ] }: Props = $props();
 </script>

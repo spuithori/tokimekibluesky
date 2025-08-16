@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {_, locale} from 'svelte-i18n';
     import { onMount } from 'svelte';
     import { sub, unsub, isSubscribe } from '$lib/pushSubscription';
     import { toast } from 'svelte-sonner'
@@ -7,6 +6,8 @@
     import {accountsDb} from "$lib/db";
     import PushNotificationAccountItem from "./PushNotificationAccountItem.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+    import { m } from "$lib/paraglide/messages.js";
+    import {getLocale} from "$lib/paraglide/runtime";
 
     let isChecked = $state(false);
     let isDisabled = $state(false);
@@ -26,16 +27,16 @@
 
         if (isChecked) {
             try {
-                await sub(enableAccounts, $locale, notifications);
-                toast.success($_('push_subscription_success'));
+                await sub(enableAccounts, getLocale(), notifications);
+                toast.success(m.push_subscription_success());
                 isChecked = true;
             } catch (e) {
-                toast.error($_('push_subscription_failed') + ' ' + e.message);
+                toast.error(m.push_subscription_failed() + ' ' + e.message);
                 isChecked = false;
             }
         } else {
             await unsub();
-            toast.success($_('push_subscription_unsubscribe'));
+            toast.success(m.push_subscription_unsubscribe());
         }
 
         isDisabled = false;
@@ -52,13 +53,13 @@
 
         try {
             if (isChecked) {
-                await sub(enableAccounts, $locale, notifications);
-                toast.success($_('push_subscription_success'));
+                await sub(enableAccounts, getLocale(), notifications);
+                toast.success(m.push_subscription_success());
             }
 
             localStorage.setItem('pushNotificationAccounts', JSON.stringify(enableAccounts));
         } catch (e) {
-            toast.error($_('push_subscription_failed') + ' ' + e.message);
+            toast.error(m.push_subscription_failed() + ' ' + e.message);
             isChecked = false;
         }
     }
@@ -69,29 +70,29 @@
 </script>
 
 <svelte:head>
-  <title>{$_('settings_push_notification')} - TOKIMEKI</title>
+  <title>{m.settings_push_notification()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_push_notification')}
+    {m.settings_push_notification()}
   </SettingsHeader>
 
   <div class="settings-wrap">
     <div class="push-settings-notice">
-      <h3>{$_('push_notes')}</h3>
-      <p>{$_('push_text_1')}: <strong>DID</strong></p>
-      <p>{$_('push_text_2')}</p>
-      <p><strong class="text-danger">{$_('push_text_3')}</strong></p>
-      <p>{$_('push_text_4')}</p>
-      <p>{$_('push_text_5')}</p>
-      <p>{$_('push_text_6')}</p>
+      <h3>{m.push_notes()}</h3>
+      <p>{m.push_text_1()}: <strong>DID</strong></p>
+      <p>{m.push_text_2()}</p>
+      <p><strong class="text-danger">{m.push_text_3()}</strong></p>
+      <p>{m.push_text_4()}</p>
+      <p>{m.push_text_5()}</p>
+      <p>{m.push_text_6()}</p>
     </div>
 
     <div class="push-settings-toggle-wrap">
       <dl class="settings-group">
         <dt class="settings-group__name">
-          {$_('push_toggle_switch')}
+          {m.push_toggle_switch()}
         </dt>
 
         <dd class="settings-group__content">

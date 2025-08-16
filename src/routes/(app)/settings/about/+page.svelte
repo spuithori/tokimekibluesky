@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import UserItem from "../../profile/[handle]/UserItem.svelte";
     import { onMount } from 'svelte';
     import { agent } from "$lib/stores";
@@ -14,16 +14,16 @@
 </script>
 
 <svelte:head>
-  <title>{$_('settings_about')} - TOKIMEKI</title>
+  <title>{m.settings_about()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
   <SettingsHeader>
-    {$_('settings_about')}
+    {m.settings_about()}
   </SettingsHeader>
 
   <div class="settings-wrap">
-    <p class="about-subhead">{$_('about_subhead')}</p>
+    <p class="about-subhead">{m.about_subhead()}</p>
 
     <h2 class="about-logo">
       <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="265.484" height="48.607" viewBox="0 0 265.484 48.607" aria-label="TOKIMEKI - Bluesky Client project">
@@ -63,17 +63,17 @@
     </h2>
 
     <div class="about-content">
-      <p class="about-text">{$_('about_text1')}</p>
-      <p class="about-text">{$_('about_text2')}: <a href="https://github.com/spuithori/tokimekibluesky" target="_blank" rel="noopener">GitHub</a></p>
+      <p class="about-text">{m.about_text1()}</p>
+      <p class="about-text">{m.about_text2()}: <a href="https://github.com/spuithori/tokimekibluesky" target="_blank" rel="noopener">GitHub</a></p>
 
       <div class="about-author">
-        <h3 class="about-title">{$_('author')}</h3>
+        <h3 class="about-title">{m.author()}</h3>
 
         {#if (me)}
           <UserItem user={me}></UserItem>
         {/if}
 
-        <h3 class="about-title">{$_('donation')}</h3>
+        <h3 class="about-title">{m.donation()}</h3>
 
         <div class="mb10">
           <a href="https://www.buymeacoffee.com/spuithori" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
@@ -83,11 +83,11 @@
           <a href="https://tokimeki.fanbox.cc/" target="_blank"><img src="/fanbox.png" alt="PIXIV FANBOX" style="height: 60px !important;width: 217px !important;" ></a>
         </div>
 
-        <p class="about-pp"><a href="https://docs.tokimeki.blue/" target="_blank" rel="noopener">{$_('document')}</a></p>
+        <p class="about-pp"><a href="https://docs.tokimeki.blue/" target="_blank" rel="noopener">{m.document()}</a></p>
 
-        <p class="about-pp"><a href="https://docs.tokimeki.blue/privacy" target="_blank" rel="noopener">{$_('privacy_policy')}</a></p>
+        <p class="about-pp"><a href="https://docs.tokimeki.blue/privacy" target="_blank" rel="noopener">{m.privacy_policy()}</a></p>
 
-        <p class="about-pp"><a href="https://forms.gle/U86Ndm2UUA5Tk4eu9" target="_blank" rel="noopener">{$_('feature_request_form')}</a></p>
+        <p class="about-pp"><a href="https://forms.gle/U86Ndm2UUA5Tk4eu9" target="_blank" rel="noopener">{m.feature_request_form()}</a></p>
       </div>
     </div>
   </div>

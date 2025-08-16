@@ -2,7 +2,7 @@
   import { agent } from '$lib/stores';
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
-  import { _ } from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import CloudBookmarkMenu from "$lib/components/bookmark/CloudBookmarkMenu.svelte";
   import Modal from "$lib/components/ui/Modal.svelte";
@@ -35,7 +35,7 @@
               throw new Error('failed to save Cloud Bookmark');
           }
 
-          toast.success($_('bookmark_save_success'));
+          toast.success(m.bookmark_save_success());
           close(false);
       } catch (e) {
           toast.error('Error: ' + e);
@@ -80,16 +80,16 @@
   })
 </script>
 
-<Modal title={$_('bookmark_add_management')} onclose={remove}>
+<Modal title={m.bookmark_add_management()} onclose={remove}>
   {#if (loading)}
     <LoadingSpinner></LoadingSpinner>
   {:else}
-    <p class="modal-description">{$_('bookmark_cloud_add_description')}<br>
-      <a href="https://docs.tokimeki.blue/privacy" target="_blank" rel="noopener">{$_('privacy_policy')}</a></p>
+    <p class="modal-description">{m.bookmark_cloud_add_description()}<br>
+      <a href="https://docs.tokimeki.blue/privacy" target="_blank" rel="noopener">{m.privacy_policy()}</a></p>
 
     <dl class="bookmark-modal-group">
       <dt class="bookmark-modal-group__name">
-        <label for="bookmarkName">{$_('bookmark_name')}</label>
+        <label for="bookmarkName">{m.bookmark_name()}</label>
       </dt>
 
       <dd class="bookmark-modal-group__content">
@@ -105,7 +105,7 @@
 
     <dl class="bookmark-modal-group">
       <dt class="bookmark-modal-group__name">
-        <label for="bookmarkDescription">{$_('bookmark_description')}</label>
+        <label for="bookmarkDescription">{m.bookmark_description()}</label>
       </dt>
 
       <dd class="bookmark-modal-group__content">
@@ -120,8 +120,8 @@
     </dl>
 
     <div class="bookmark-modal-close">
-      <button class="button button--sm" onclick={save}>{$_('save_button')}</button>
-      <button class="button button--sm button--border button--danger" onclick={remove}>{$_('cancel')}</button>
+      <button class="button button--sm" onclick={save}>{m.save_button()}</button>
+      <button class="button button--sm button--border button--danger" onclick={remove}>{m.cancel()}</button>
     </div>
 
     <CloudBookmarkMenu {id} {_agent} {close}></CloudBookmarkMenu>

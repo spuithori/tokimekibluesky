@@ -2,7 +2,7 @@
     import {agent} from '$lib/stores';
     import {onMount} from "svelte";
     import { toast } from "svelte-sonner";
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import OfficialListAddItem from "$lib/components/list/OfficialListAddItem.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -72,7 +72,7 @@
     })
 </script>
 
-<Modal title="{$_('list_instant_manage')}" size="small" {onclose}>
+<Modal title="{m.list_instant_manage()}" size="small" {onclose}>
   <p class="list-add-author">{author.displayName || author.handle}</p>
 
   <div class="list-add-list">
@@ -84,7 +84,7 @@
       <div class="list-add-list__new">
         <button class="button button--sm button--with-icon" onclick={() => {isModalOpen = true}}>
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-          {$_('new_create')}
+          {m.new_create()}
         </button>
       </div>
     {:else}

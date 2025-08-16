@@ -1,6 +1,6 @@
 <script lang="ts">
   import {agent} from "$lib/stores";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from 'svelte-sonner';
 
@@ -14,7 +14,7 @@
       }
 
       try {
-          toast.loading($_('bookmark_deleting_process'));
+          toast.loading(m.bookmark_deleting_process());
 
           const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.deleteBookmark`, {
               method: 'POST',
@@ -31,7 +31,7 @@
               }
           })
 
-          toast.success($_('bookmark_delete_success'));
+          toast.success(m.bookmark_delete_success());
           close(true, id);
       } catch (e) {
           toast.error('Error: ' + e);
@@ -53,7 +53,7 @@
           <li class="timeline-menu-list__item timeline-menu-list__item--mute">
             <button class="timeline-menu-list__button" onclick={deleteBookmark}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-              <span class="text-danger">{$_('delete_bookmark')}</span>
+              <span class="text-danger">{m.delete_bookmark()}</span>
             </button>
           </li>
         {/if}

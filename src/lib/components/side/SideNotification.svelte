@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import {onDestroy, onMount} from "svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -17,7 +17,7 @@
                 id: columnId,
                 algorithm: {
                     type: 'notification',
-                    name: $_('notifications'),
+                    name: m.notifications(),
                 },
                 style: 'default',
                 settings: defaultDeckSettings,

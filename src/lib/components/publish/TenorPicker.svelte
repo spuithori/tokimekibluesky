@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import TenorGrid from "$lib/components/publish/TenorGrid.svelte";
 
     let { onclick } = $props();
@@ -17,7 +17,7 @@
 
 <div class="gif-modal-content">
   <div class="gif-modal-search">
-    <input type="text" class="gif-modal-search__input" placeholder={$_('tenor_picker_placeholder')} bind:value={term}>
+    <input type="text" class="gif-modal-search__input" placeholder={m.tenor_picker_placeholder()} bind:value={term}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
   </div>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { toast } from 'svelte-sonner';
-  import { _ } from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import { db } from '$lib/db';
   import { agent } from "$lib/stores";
   import { format } from 'date-fns';
@@ -21,21 +21,21 @@
           onuse(draft);
           const id = await db.drafts.delete(draft.id);
       } catch (e) {
-          toast.error($_('error') + ': ' + e);
+          toast.error(m.error() + ': ' + e);
       }
   }
 
   async function deleteDraft(draft: Draft) {
       try {
           const id = await db.drafts.delete(draft.id);
-          toast.success($_('draft_delete_success'));
+          toast.success(m.draft_delete_success());
       } catch (e) {
-          toast.error($_('error') + ': ' + e);
+          toast.error(m.error() + ': ' + e);
       }
     }
 </script>
 
-<Modal title={$_('drafts')} {onclose}>
+<Modal title={m.drafts()} {onclose}>
   <div class="drafts">
     {#if (drafts)}
       {#each drafts as draft}
@@ -43,15 +43,15 @@
           <p class="drafts__date">{format(draft.createdAt, 'yyyy-MM-dd HH:mm:ss')}</p>
 
           {#if draft.replyRef?.data}
-            <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.data.parent.author.handle} {draft.replyRef?.data.parent.record.text}</p>
+            <p class="drafts__reply">{m.drafts_reply()}: @{draft.replyRef?.data.parent.author.handle} {draft.replyRef?.data.parent.record.text}</p>
           {/if}
 
           {#if draft.replyRef?.parent}
-            <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.parent.author.handle} {draft.replyRef?.parent.record.text}</p>
+            <p class="drafts__reply">{m.drafts_reply()}: @{draft.replyRef?.parent.author.handle} {draft.replyRef?.parent.record.text}</p>
           {/if}
 
           {#if draft.quotePost}
-            <p class="drafts__reply">{$_('drafts_quote')}: {draft.quotePost?.record?.text || ''}</p>
+            <p class="drafts__reply">{m.drafts_quote()}: {draft.quotePost?.record?.text || ''}</p>
           {/if}
 
           <p class="drafts__text">{draft.text}</p>
@@ -75,7 +75,7 @@
           </svg></button>
         </div>
       {:else}
-        <p class="drafts-nothing">{$_('drafts_nothing')}</p>
+        <p class="drafts-nothing">{m.drafts_nothing()}</p>
       {/each}
     {/if}
   </div>

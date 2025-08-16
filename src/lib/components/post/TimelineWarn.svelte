@@ -1,6 +1,6 @@
 <script lang="ts">
   import {settings} from '$lib/stores';
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import LabelDetailModal from "$lib/components/post/LabelDetailModal.svelte";
 
   interface Props {
@@ -31,20 +31,20 @@
     <ul class="timeline-warn-list">
       <li>
         {#if (labels[0]?.source?.type === 'user' || labels[0]?.label?.src === 'did:plc:ar7c4by46qjdydhdevvrndac' || !labels[0]?.labelDef?.locales[0]?.name)}
-          {$_('labeling_' + labels[0].label?.val)}
+          {m['labeling_' + labels[0].label?.val]()}
         {:else}
           {labels[0]?.labelDef?.locales[0]?.name}
         {/if}
       </li>
 
       {#if (labels.length > 1)}
-        <li>+ {labels.length - 1} {$_('labeling_more_labels')}</li>
+        <li>+ {labels.length - 1} {m.labeling_more_labels()}</li>
       {/if}
     </ul>
   </div>
 
   <div class="timeline-warn-button">
-    <button class="text-button" onclick={handleClick}>{$_('show_button')}</button>
+    <button class="text-button" onclick={handleClick}>{m.show_button()}</button>
   </div>
 
   <button class="timeline-warn-info-button" onclick={() => {isInfoOpen = true}}>
@@ -60,7 +60,7 @@
         <ul class="timeline-warn-list">
           <li>
             {#if (labels[0]?.source?.type === 'user' || labels[0]?.label?.src === 'did:plc:ar7c4by46qjdydhdevvrndac' || !labels[0]?.labelDef?.locales[0]?.name)}
-              {$_('labeling_' + labels[0].label?.val)}
+              {m['labeling_' + labels[0].label?.val]()}
             {:else}
               {labels[0]?.labelDef?.locales.find(locale => locale.lang === $settings.general.userLanguage)?.name ?? labels[0]?.labelDef?.locales[0]?.name}
             {/if}
@@ -73,7 +73,7 @@
       </div>
 
       <div class="timeline-warn-button">
-        <button class="text-button" onclick={handleHideClick}>{$_('hide_button')}</button>
+        <button class="text-button" onclick={handleHideClick}>{m.hide_button()}</button>
       </div>
     </div>
   {:else}
@@ -83,7 +83,7 @@
           {#each labels as label}
             <li class="timeline-small-warn-list__item">
               {#if (label?.source?.type === 'user' || label?.label?.src === 'did:plc:ar7c4by46qjdydhdevvrndac' || !label?.labelDef?.locales[0]?.name)}
-                {$_('labeling_' + label.label?.val)}
+                {m['labeling_' + label.label?.val]()}
               {:else}
                 {label?.labelDef?.locales.find(locale => locale.lang === $settings.general.userLanguage)?.name ?? label?.labelDef?.locales[0]?.name}
               {/if}

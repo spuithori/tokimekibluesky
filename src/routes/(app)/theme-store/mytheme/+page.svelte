@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import { m } from "$lib/paraglide/messages.js";
     import {onMount} from "svelte";
     import {liveQuery} from "dexie";
     import {themesDb} from "$lib/db";
@@ -13,7 +13,7 @@
 </script>
 
 <svelte:head>
-  <title>{$_('theme_store')} - TOKIMEKI</title>
+  <title>{m.theme_store()} - TOKIMEKI</title>
 </svelte:head>
 
 <div>
@@ -24,7 +24,7 @@
       </button>
     </div>
 
-    <h1 class="column-heading__title">{$_('theme_store_my_theme')}</h1>
+    <h1 class="column-heading__title">{m.theme_store_my_theme()}</h1>
 
     <div class="column-heading__buttons column-heading__buttons--right">
       <a class="settings-back" href="/">
@@ -35,7 +35,7 @@
 
   <div class="settings-wrap">
     <section class="theme-store-section">
-      <h2 class="theme-store-section__title">{$_('installed_theme')}</h2>
+      <h2 class="theme-store-section__title">{m.installed_theme()}</h2>
 
       {#if ($myThemes)}
         {#each $myThemes as theme}
@@ -45,7 +45,7 @@
     </section>
 
     <section class="theme-store-section">
-      <h2 class="theme-store-section__title">{$_('builtin_theme')}</h2>
+      <h2 class="theme-store-section__title">{m.builtin_theme()}</h2>
 
       {#each builtInThemes as theme}
         <ThemeItem {theme} isBuiltIn={true}></ThemeItem>

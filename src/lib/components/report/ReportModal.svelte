@@ -1,7 +1,7 @@
 <script lang="ts">
     import { agent, reportModal } from '$lib/stores';
     import { toast } from 'svelte-sonner';
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import Modal from "$lib/components/ui/Modal.svelte";
 
     let { onclose } = $props();
@@ -14,34 +14,34 @@
 
     const reasons = [
         {
-            name: $_('report_spam'),
+            name: m.report_spam(),
             value: 'com.atproto.moderation.defs#reasonSpam',
-            description: $_('report_spam_description'),
+            description: m.report_spam_description(),
         },
         {
-            name: $_('report_violation'),
+            name: m.report_violation(),
             value: 'com.atproto.moderation.defs#reasonViolation',
-            description: $_('report_violation_description'),
+            description: m.report_violation_description(),
         },
         {
-            name: $_('report_misleading'),
+            name: m.report_misleading(),
             value: 'com.atproto.moderation.defs#reasonMisleading',
-            description: $_('report_misleading_description'),
+            description: m.report_misleading_description(),
         },
         {
-            name: $_('report_sexual'),
+            name: m.report_sexual(),
             value: 'com.atproto.moderation.defs#reasonSexual',
-            description: $_('report_sexual_description'),
+            description: m.report_sexual_description(),
         },
         {
-            name: $_('report_rude'),
+            name: m.report_rude(),
             value: 'com.atproto.moderation.defs#reasonRude',
-            description: $_('report_rude_description'),
+            description: m.report_rude_description(),
         },
         {
-            name: $_('report_other'),
+            name: m.report_other(),
             value: 'com.atproto.moderation.defs#reasonOther',
-            description: $_('report_other_description'),
+            description: m.report_other_description(),
         },
     ]
 
@@ -57,7 +57,7 @@
                 },
             })
 
-            toast.success($_('report_send_success'));
+            toast.success(m.report_send_success());
             onclose();
         } catch (e) {
             toast.error('Error: ' + e);
@@ -65,10 +65,10 @@
     }
 </script>
 
-<Modal title="{$_('report_title')}" size="large" {onclose}>
+<Modal title="{m.report_title()}" size="large" {onclose}>
     <div class="report-modal-group">
-        <h3 class="report-modal-group__title">{$_('report_reason')}</h3>
-        <p class="report-modal-group__name">{$_('report_reason_description')}</p>
+        <h3 class="report-modal-group__title">{m.report_reason()}</h3>
+        <p class="report-modal-group__name">{m.report_reason_description()}</p>
 
         <div class="form-select">
             <svg xmlns="http://www.w3.org/2000/svg" width="21.814" height="12.321" viewBox="0 0 21.814 12.321">
@@ -85,7 +85,7 @@
 
     <dl class="report-modal-group">
         <dt class="report-modal-group__name">
-            <label for="reportName">{$_('report_reason_title')}</label>
+            <label for="reportName">{m.report_reason_title()}</label>
         </dt>
 
         <dd class="report-modal-group__content">
@@ -94,7 +94,7 @@
     </dl>
 
     <div class="report-modal-close">
-        <button class="button button--sm" onclick={send}>{$_('report_send')}</button>
+        <button class="button button--sm" onclick={send}>{m.report_send()}</button>
     </div>
 </Modal>
 

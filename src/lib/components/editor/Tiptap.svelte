@@ -1,7 +1,7 @@
 <script lang="ts">
   import { preventDefault } from 'svelte/legacy';
 
-  import {_} from 'svelte-i18n';
+  import { m } from "$lib/paraglide/messages.js";
   import {onMount, onDestroy} from 'svelte'
   import {Editor} from '@tiptap/core'
   import Link from '@tiptap/extension-link';
@@ -204,7 +204,7 @@
                     }
                 }),
                 Placeholder.configure({
-                    placeholder: $_('send_placeholder1'),
+                    placeholder: m.send_placeholder1(),
                 }),
                 UndoRedo,
             ],

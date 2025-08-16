@@ -2,7 +2,7 @@
   import {themesDb} from "$lib/db";
   import {liveQuery} from "dexie";
   import {settings} from "$lib/stores";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
 
@@ -44,7 +44,7 @@
       try {
           const id = await themesDb.themes.delete(theme.id);
 
-          toast.success($_('theme_uninstall_success'));
+          toast.success(m.theme_uninstall_success());
       } catch (e) {
           console.error(e);
       }
@@ -66,47 +66,47 @@
 
     <dl class="theme-item-meta">
       <div class="theme-item-meta__item">
-        <dl class="theme-item-meta__name">{$_('theme_author')}:</dl>
+        <dl class="theme-item-meta__name">{m.theme_author()}:</dl>
         <dd class="theme-item-meta__content">{theme.author}</dd>
       </div>
 
       <div class="theme-item-meta__item">
-        <dl class="theme-item-meta__name">{$_('theme_version')}:</dl>
+        <dl class="theme-item-meta__name">{m.theme_version()}:</dl>
         <dd class="theme-item-meta__content">{theme.version}</dd>
       </div>
 
       {#if theme.options.colors}
         <div class="theme-item-meta__item">
-          <dl class="theme-item-meta__name">{$_('theme_feature')}:</dl>
-          <dd class="theme-item-meta__content">{$_('theme_custom_color')}</dd>
+          <dl class="theme-item-meta__name">{m.theme_feature()}:</dl>
+          <dd class="theme-item-meta__content">{m.theme_custom_color()}</dd>
         </div>
       {/if}
 
       {#if theme?.keyword === 'bubble'}
-        <p class="theme-item-meta__bubble">{$_('theme_for_bubble')}</p>
+        <p class="theme-item-meta__bubble">{m.theme_for_bubble()}</p>
       {/if}
     </dl>
 
     <div class="theme-item__buttons">
       {#if (!isBuiltIn)}
         {#if (!$myTheme)}
-          <button class="button button--ss" onclick={download}>{$_('theme_install')}</button>
+          <button class="button button--ss" onclick={download}>{m.theme_install()}</button>
         {:else}
           <button class="text-button" onclick={download}>
             {#if ($myTheme ? $myTheme.version === theme.version : true)}
-              {$_('theme_reinstall')}
+              {m.theme_reinstall()}
             {:else}
-              {$_('theme_update')}
+              {m.theme_update()}
             {/if}
           </button>
         {/if}
       {/if}
 
       {#if $settings.design?.skin === theme.id}
-        <button class="button button--ss" disabled>{$_('theme_current')}</button>
+        <button class="button button--ss" disabled>{m.theme_current()}</button>
       {:else}
         {#if ($myTheme || isBuiltIn)}
-          <button class="button button--ss" onclick={activate}>{$_('theme_activate')}</button>
+          <button class="button button--ss" onclick={activate}>{m.theme_activate()}</button>
         {/if}
       {/if}
     </div>
@@ -120,7 +120,7 @@
             <li class="timeline-menu-list__item">
               <button class="timeline-menu-list__button" onclick={uninstall}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                <span>{$_('theme_uninstall')}</span>
+                <span>{m.theme_uninstall()}</span>
               </button>
             </li>
           {/if}

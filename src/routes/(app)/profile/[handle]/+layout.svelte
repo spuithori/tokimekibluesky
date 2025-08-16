@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import {agent, settings} from '$lib/stores';
     import { page } from '$app/stores';
     import type { LayoutData } from './$types';
@@ -148,9 +148,9 @@
             await goto(`/chat/${convo.id}`);
         } catch (e) {
             if (e.message === 'recipient has disabled incoming messages') {
-                toast.error($_('error_chat_incoming_disabled'));
+                toast.error(m.error_chat_incoming_disabled());
             } else if (e.message === 'Bad token scope') {
-                toast.error($_('app_password_scope_error'));
+                toast.error(m.app_password_scope_error());
             } else {
                 console.error(e);
             }
@@ -191,7 +191,7 @@
               
             {:else}
               <div class="profile-follow-button profile-follow-button--me">
-                <button class="button button--sm" onclick={() => {isEditOpen = !isEditOpen}}>{$_('edit_profile_button')}</button>
+                <button class="button button--sm" onclick={() => {isEditOpen = !isEditOpen}}>{m.edit_profile_button()}</button>
 
                 {#if isEditOpen}
                   <UserEdit {profile} {_agent} onupdate={onProfileUpdate} onclose={() => {isEditOpen = false}}></UserEdit>
@@ -243,16 +243,16 @@
 
       <ul class="profile-tab">
         {#if (!isLabeler)}
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{$_('media')}</a></li>
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'video'}><a href="/profile/{data.params.handle}/video" data-sveltekit-noscroll>{$_('video')}</a></li>
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'feed'}><a href="/profile/{data.params.handle}/feed" data-sveltekit-noscroll>{$_('feeds')}</a></li>
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'lists'}><a href="/profile/{data.params.handle}/lists" data-sveltekit-noscroll>{$_('lists')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{m.posts()}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{m.follows()}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{m.followers()}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{m.media()}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'video'}><a href="/profile/{data.params.handle}/video" data-sveltekit-noscroll>{m.video()}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{m.likes()}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'feed'}><a href="/profile/{data.params.handle}/feed" data-sveltekit-noscroll>{m.feeds()}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'lists'}><a href="/profile/{data.params.handle}/lists" data-sveltekit-noscroll>{m.lists()}</a></li>
         {:else}
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{m.posts()}</a></li>
         {/if}
       </ul>
 

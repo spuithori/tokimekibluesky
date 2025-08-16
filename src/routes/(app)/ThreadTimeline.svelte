@@ -1,6 +1,6 @@
 <script lang="ts">
   import {onMount} from "svelte";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import VirtualThreadList from "$lib/components/thread/VirtualThreadList.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -209,16 +209,16 @@
 
 {#if (isMuted && !isMuteDisplay)}
   <div class="thread-notice">
-    <p class="thread-notice__text">{$_('muted_user_thread')}</p>
+    <p class="thread-notice__text">{m.muted_user_thread()}</p>
 
-    <button class="button button--sm" onclick={() => {isMuteDisplay = true}}>{$_('show_button')}</button>
+    <button class="button button--sm" onclick={() => {isMuteDisplay = true}}>{m.show_button()}</button>
   </div>
 {/if}
 
 {#if !column.data.feed.length}
   <LoadingSpinner></LoadingSpinner>
 {:else if (column.data.feed === 'NotFound')}
-  <p class="thread-error">{$_('error_thread_notfound')}</p>
+  <p class="thread-error">{m.error_thread_notfound()}</p>
 {:else}
   <VirtualThreadList {_agent} {column} {rootIndex} onchangeprofile={handleChangeProfile} {isJunk}></VirtualThreadList>
 {/if}

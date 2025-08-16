@@ -1,6 +1,6 @@
 <script lang="ts">
     import {createEventDispatcher, onMount} from "svelte";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {settings} from "$lib/stores";
 
   const dispatch = createEventDispatcher();
@@ -51,7 +51,7 @@
           <input type="checkbox" class="checkbox__input" bind:checked={$settings.general[confirmationName]} id="skip_confirmation">
           <label class="checkbox__label" for="skip_confirmation">
             <span class="checkbox__ui"></span>
-            <span class="checkbox__text">{$_('skip_confirmation_text')}</span>
+            <span class="checkbox__text">{m.skip_confirmation_text()}</span>
           </label>
         </div>
       </div>

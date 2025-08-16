@@ -1,6 +1,6 @@
 <script lang="ts">
   import PageModal from "$lib/components/ui/PageModal.svelte";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import {page} from "$app/stores";
   import {agents} from "$lib/stores";
   import BlockMutesItem from "$lib/components/profile/BlockMutesItem.svelte";
@@ -30,7 +30,7 @@
 </script>
 
 <svelte:head>
-  <title>{$_('blocks_list')} ({_agent?.agent.session.handle || ''}) - TOKIMEKI</title>
+  <title>{m.blocks_list()} ({_agent?.agent.session.handle || ''}) - TOKIMEKI</title>
 </svelte:head>
 
 <PageModal>
@@ -42,7 +42,7 @@
         </button>
       </div>
 
-      <h1 class="column-heading__title">{$_('blocks_list')} ({_agent?.agent.session.handle || 'error'})</h1>
+      <h1 class="column-heading__title">{m.blocks_list()} ({_agent?.agent.session.handle || 'error'})</h1>
 
       <div class="column-heading__buttons column-heading__buttons--right">
         <a class="settings-back" href="/">
@@ -62,7 +62,7 @@
     </div>
   {:else}
     <div class="timeline">
-      <p>{$_('error_missing_parameter_account')}</p>
+      <p>{m.error_missing_parameter_account()}</p>
     </div>
   {/if}
 </PageModal>

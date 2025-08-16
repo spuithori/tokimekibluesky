@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { m } from "$lib/paraglide/messages.js";
     import {agent, settings} from '$lib/stores';
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {AtSign, Heart, Quote, Repeat2, Reply, Star, UserPlus2, Pencil} from "lucide-svelte";
@@ -130,7 +130,7 @@
 <div class="notifications-filter-display">
     <ul class="notifications-filter">
         {#each filters as item (item)}
-            <li class="notifications-filter__item notifications-filter__item--{item}" aria-label={$_(item)}>
+            <li class="notifications-filter__item notifications-filter__item--{item}">
                 <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={column.filter} value={item} onchange={() => {changeFilter(column.filter)}}>
                 <label class="notifications-filter__label" for={id + '_' + item}>
                     <svelte:component this={filterIcons[item]} size="20" strokeWidth="var(--icon-stroke-width, 2px)"></svelte:component>
@@ -166,9 +166,9 @@
   {#key unique}
     <Infinite oninfinite={handleLoadMore}>
       <p class="infinite-nomore">
-        {$_('no_more')}
+        {m.no_more()}
         {#if isOnlyShowUnread}
-          <br>({$_('only_show_unread')})
+          <br>({m.only_show_unread()})
         {/if}
       </p>
     </Infinite>

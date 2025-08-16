@@ -3,7 +3,7 @@
 
     import {labelerSettings, agent, subscribedLabelers, labelDefs, settings} from '$lib/stores';
   import {onMount} from "svelte";
-  import {_} from "svelte-i18n";
+  import { m } from "$lib/paraglide/messages.js";
   import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
 
   interface Props {
@@ -73,7 +73,7 @@
   <div class="moderation-settings-group">
     <h3 class="moderation-settings-group__title">
       {#if (isOfficial)}
-        {$_('labeling_' + label[0])}
+        {m['labeling_' + label[0]]()}
       {:else}
       {defs[index].locales.find(locale => locale.lang === $settings.general.userLanguage)?.name ?? defs[index].locales[0]?.name}
       {/if}
