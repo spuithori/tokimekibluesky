@@ -190,7 +190,7 @@
               <label for="skin_{_skin.id}">
                 <span class="icons-radio__ui">
                   <img src={_skin.options?.thumbnail} alt="">
-                </span>{m['skin_' + _skin.name]()}
+                </span>Default
               </label>
             </div>
           {/each}
