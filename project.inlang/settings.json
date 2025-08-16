@@ -27,6 +27,6 @@
     "https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@2/dist/index.js"
   ],
   "plugin.inlang.messageFormat": {
-    "pathPattern": ["./messages/{locale}.json", "./messages/labeling/{locale}.json", "./messages/labelingInfo/{locale}.json", "./messages/languageMap/{locale}.json", "./messages/plyr/{locale}.json"]
+    "pathPattern": "./messages/{locale}.json"
   }
 }
