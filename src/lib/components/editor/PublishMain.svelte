@@ -285,7 +285,7 @@
           val: 'porn',
       },
       {
-          name: m.labeling_graphic_media(),
+          name: m['labeling_graphic-media'](),
           val: 'graphic-media',
       },
   ];
