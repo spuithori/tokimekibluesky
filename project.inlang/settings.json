@@ -12,6 +12,16 @@
     "zh-cn",
     "ru"
   ],
+  "languageTags": [
+    "ja",
+    "bg",
+    "en",
+    "fr",
+    "ko",
+    "pt",
+    "zh-cn",
+    "ru"
+  ],
   "modules": [
     "https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@4/dist/index.js",
     "https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@2/dist/index.js"
