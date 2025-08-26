@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@neoconfetti/svelte": "^2.2.2",
-    "@sveltejs/kit": "2.29.1",
+    "@sveltejs/kit": "2.36.2",
     "@sveltejs/vite-plugin-svelte": "^6.1.2",
     "postcss": "^8.4.14",
     "postcss-load-config": "^4.0.1",
@@ -41,7 +41,7 @@
     "@neodrag/svelte": "^3.0.0-next.8",
     "@number-flow/svelte": "^0.3.9",
     "@supabase/supabase-js": "^2.49.10",
-    "@sveltejs/adapter-vercel": "^5.8.2",
+    "@sveltejs/adapter-vercel": "^5.10.2",
     "@tiptap/core": "^3.0.7",
     "@tiptap/extension-document": "^3.0.7",
     "@tiptap/extension-hard-break": "^3.0.7",
