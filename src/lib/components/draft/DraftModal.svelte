@@ -7,11 +7,12 @@
   import type { Draft } from '$lib/db';
   import Modal from "$lib/components/ui/Modal.svelte";
   import { stateQuery } from "$lib/classes/dbState.svelte";
+  import { Trash2 } from 'lucide-svelte';
 
   let { _agent = $agent, onuse, onclose } = $props();
 
   let draftsQuery = stateQuery(
-      () => db.drafts.where('owner').equals(_agent.did() as string).toArray(),
+      () => db.drafts.where('owner').equals(_agent.did() as string).reverse().toArray(),
       () => [],
   );
   const drafts = $derived(draftsQuery.current);
@@ -70,9 +71,9 @@
 
           <button class="drafts__button" onclick={() => {use(draft)}} aria-label="Use this."></button>
 
-          <button class="drafts__delete" onclick={() => {deleteDraft(draft)}} aria-label="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="18.75" viewBox="0 0 15 18.75">
-            <path id="trash" d="M67.75,1.875,69.625,0h3.75L75.25,1.875H79V3.75H64V1.875Zm-2.813,3.75H78.063L77.125,18.75H65.875ZM69.625,7.5v9.375h.938V7.5Zm2.813,0v9.375h.938V7.5Z" transform="translate(-64)" fill="#d81c2f"/>
-          </svg></button>
+          <button class="drafts__delete" onclick={() => {deleteDraft(draft)}} aria-label="Delete">
+              <Trash2 color="var(--danger-color)" size="20"></Trash2>
+          </button>
         </div>
       {:else}
         <p class="drafts-nothing">{$_('drafts_nothing')}</p>

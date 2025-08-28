@@ -173,19 +173,6 @@
         isMenuOpen = false;
     }
 
-    function copyHandle() {
-        const handle = '@' + data.post.author.handle;
-
-        navigator.clipboard.writeText(handle)
-            .then(() => {
-                toast.success($_('success_copy_handle'));
-            }, () => {
-                toast.success($_('failed_copy'));
-            });
-
-        isMenuOpen = false;
-    }
-
     function sendMention() {
       const mention = `@${data.post.author.handle}`;
       postState.replaceText(`<span class="editor-mention" data-type="mention" data-id="${mention.slice(1)}">${mention}</span>`)
@@ -517,7 +504,7 @@
             const res = await _agent.agent.com.atproto.repo.putRecord({
                 collection: 'app.bsky.feed.postgate',
                 rkey: rkey,
-                repo: _agent.did(),
+                repo: _agent.did() as string,
                 record: {
                     detachedEmbeddingUris: unDetach ? detachedEmbeddingUris.filter(_uri => _uri !== data.post.uri) : [...detachedEmbeddingUris, data.post.uri],
                     embeddingRules: embeddingRules,
@@ -674,13 +661,6 @@
               <button class="timeline-menu-list__button" onclick={copyThreadUrl}>
                 <Copy size="18" color="var(--text-color-1)"></Copy>
                 {$_('copy_url')}
-              </button>
-            </li>
-
-            <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">
-              <button class="timeline-menu-list__button" onclick={copyHandle}>
-                <Copy size="18" color="var(--text-color-1)"></Copy>
-                {$_('copy_handle')}
               </button>
             </li>
 
