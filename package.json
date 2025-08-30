@@ -29,7 +29,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@atproto/api": "^0.15.27",
+    "@atproto/api": "^0.16.4",
     "@atproto/common-web": "^0.4.2",
     "@fontsource-variable/inter": "^5.2.5",
     "@fontsource-variable/murecho": "^5.2.5",
