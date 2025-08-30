@@ -30,7 +30,7 @@ async function resume(account, proxy: string | undefined) {
         await ag.configureProxy(proxy);
     }
 
-    ag.resumeSession(account.session)
+    await ag.resumeSession(account.session)
         .then(value => {
             setTimeout(() => {
                 settingsState.setPdsRequestReady();
