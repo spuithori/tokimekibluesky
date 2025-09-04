@@ -1,6 +1,7 @@
 :root {
     --font-body: 'Noto Sans JP Variable', sans-serif;
     --ui-font: 'Inter Variable', sans-serif;
+    --code-font: 'Cascadia Code', monospace;
 
     --color-theme-1: #ED7D95;
     --color-theme-2: #E7D600;

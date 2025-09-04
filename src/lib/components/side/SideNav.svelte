@@ -91,6 +91,9 @@
             }, 250);
             sideState.isTokStart = true;
             break;
+          case 'viewer':
+              goto('/atproto-viewer/' + $agent.did());
+              break;
       }
   }
 

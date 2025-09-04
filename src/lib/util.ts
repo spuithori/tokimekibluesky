@@ -194,3 +194,18 @@ export function getScrollableParent( node: Node | null, includeSelf: boolean = f
 
     return null;
 }
+
+export async function getEndpoint(did: string) {
+    try {
+        const res = await fetch('https://plc.directory/' + did);
+        const json = await res.json();
+        return json?.service[0]?.serviceEndpoint;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+export function getRkeyFromSplit(uri: string): string {
+    const parts = uri.split('/');
+    return parts.pop() || '';
+}
