@@ -1,6 +1,6 @@
 <script lang="ts">
   import {agent, currentTimeline, settings} from '$lib/stores';
-  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic, Square, TrendingUp, Clapperboard, Layers } from 'lucide-svelte';
+  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic, Square, TrendingUp, Clapperboard, Layers, Database } from 'lucide-svelte';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
@@ -165,6 +165,8 @@
           <Square color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Square>
         {:else if (item === 'tokmek')}
           <Clapperboard color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Clapperboard>
+        {:else if (item === 'viewer')}
+          <Database color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Database>
         {/if}
       </button>
     </li>
