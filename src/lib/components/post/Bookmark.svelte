@@ -192,13 +192,29 @@
           toast.error('Error: ' + e);
       }
   }
+
+  async function toggleOfficialBookmark() {
+    isMenuOpen = false;
+
+    try {
+      if (post?.viewer?.bookmarked) {
+        await _agent.agent.app.bsky.bookmark.deleteBookmark({uri: post.uri});
+      } else {
+        await _agent.agent.app.bsky.bookmark.createBookmark({uri: post.uri, cid: post.cid});
+      }
+
+      toast.success($_('bookmark_save_success'));
+    } catch (e) {
+      console.error(e);
+    }
+  }
 </script>
 
 <div class="bookmark-wrap">
   <Menu bind:isMenuOpen={isMenuOpen} onopen={initBookmarks} buttonClassName="timeline-reaction__item timeline-reaction__item--bookmark">
     {#snippet ref()}
       <span class="timeline-reaction__icon">
-        <Bookmark size="16" color="var(--timeline-reaction-bookmark-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></Bookmark>
+        <Bookmark size="16" color={post?.viewer?.bookmarked ? 'var(--primary-color)' : 'var(--timeline-reaction-bookmark-icon-color)'} fill={post?.viewer?.bookmarked ? 'var(--primary-color)' : 'transparent'} absoluteStrokeWidth={true} strokeWidth="1.5"></Bookmark>
       </span>
     {/snippet}
 
@@ -249,6 +265,13 @@
             {/if}
           {/each}
         {/if}
+
+        <li class="timeline-menu-list__item">
+          <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={toggleOfficialBookmark}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bookmark-check-icon lucide-bookmark-check"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/><path d="m9 10 2 2 4-4"/></svg>
+            {$_('official_bookmark')}
+          </button>
+        </li>
 
         <li class="timeline-menu-list__item">
           <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {isModalOpen = true}}>

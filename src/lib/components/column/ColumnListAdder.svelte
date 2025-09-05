@@ -47,6 +47,8 @@
                     >
                         <IconColumnsEdit></IconColumnsEdit>
                     </button>
+                {:else if (column.algorithm.type === 'officialBookmark')}
+                    <Bookmark size="20" color="var(--text-color-1)"></Bookmark>
                 {:else if (column.algorithm.type === 'notification')}
                     <Bell size="20" color="var(--text-color-1)"></Bell>
                 {:else if (column.algorithm.type === 'officialList')}

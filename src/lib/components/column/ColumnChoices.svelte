@@ -92,6 +92,21 @@
               cursor: '',
           }
       },
+      {
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'officialBookmark',
+              name: $_('official_bookmark'),
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
+      },
   ];
 
   let bookmarkColumns = $state([]);

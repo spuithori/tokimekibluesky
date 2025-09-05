@@ -70,6 +70,6 @@
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.0.5",
     "vidstack": "^1.12.13",
-    "virtua": "^0.42.0"
+    "virtua": "^0.41.5"
   }
 }

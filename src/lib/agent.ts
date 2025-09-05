@@ -122,6 +122,21 @@ export class Agent {
                         feed: tempBookmarkFeeds
                     }
                 }
+            case 'officialBookmark':
+                const officialBookmarkRes = await this.agent.api.app.bsky.bookmark.getBookmarks({
+                    limit: timelineOpt.limit, cursor: timelineOpt.cursor});
+                const officialBookmarks = officialBookmarkRes.data.bookmarks.map(bookmark => {
+                    return {
+                        post: bookmark.item,
+                    }
+                });
+
+                return {
+                    data: {
+                        feed: officialBookmarks,
+                        cursor: officialBookmarks.length ? officialBookmarkRes.data.cursor : undefined,
+                    }
+                }
             case 'like':
                 return await this.agent.api.app.bsky.feed.getActorLikes({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string});
             case 'search':
