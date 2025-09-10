@@ -12,6 +12,7 @@
   let hasWhiteWind = $state(false);
   let hasPinkSea = $state(false);
   let latestFlushes = $state();
+  let hasSkyBeMoreBlue = $state(false);
   let isOpen = $state(false);
 
   function handleClose() {
@@ -74,8 +75,22 @@
     }
   }
 
+  async function getSkyBeMoreBlue() {
+    try {
+      const res = await _agent.api.com.atproto.repo.listRecords({
+        repo: did,
+        collection: 'com.skybemoreblue.intro.introduction',
+        limit: 1,
+      });
+      const records = res.data.records;
+      return records.length > 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
   onMount(async () => {
-      [hasLinkat, hasWhiteWind, hasPinkSea, latestFlushes] = await Promise.all([getLinkat(), getWhiteWind(), getPinkSea(), getFlushes()]);
+      [hasLinkat, hasWhiteWind, hasPinkSea, latestFlushes, hasSkyBeMoreBlue] = await Promise.all([getLinkat(), getWhiteWind(), getPinkSea(), getFlushes(), getSkyBeMoreBlue()]);
   })
 </script>
 
@@ -120,6 +135,17 @@
       <div class="atmos-item atmos-item--flushes">
         <p class="atmos-item__title"><strong>Flushes</strong></p>
         <a class="atmos-item__link" href="https://flushes.app/profile/{handle}" target="_blank" rel="noreferrer noopener nofollow">{latestFlushes?.emoji} {intlRelativeTimeFormatState.format({ laterDate: parseISO(latestFlushes?.createdAt) })}</a>
+
+        <span class="atmos-item__ext">
+          <SquareArrowOutUpRight size="16" color="var(--text-color-3)"></SquareArrowOutUpRight>
+        </span>
+      </div>
+    {/if}
+
+    {#if (hasSkyBeMoreBlue)}
+      <div class="atmos-item atmos-item--pinksea">
+        <p class="atmos-item__title"><strong>SkyBeMoreBlue</strong></p>
+        <a class="atmos-item__link" href="https://www.skybemoreblue.com/user/{did}" target="_blank" rel="noreferrer noopener nofollow">skybemoreblue.com</a>
 
         <span class="atmos-item__ext">
           <SquareArrowOutUpRight size="16" color="var(--text-color-3)"></SquareArrowOutUpRight>
