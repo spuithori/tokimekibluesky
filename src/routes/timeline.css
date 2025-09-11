@@ -17,6 +17,10 @@
         padding-top: 0;
     }
 
+    &--inline-p0 {
+        padding-inline: 0;
+    }
+
     &:has(.timeline__item--bubble),
     &:has(.notifications-item--bubble) {
         padding-top: 0;

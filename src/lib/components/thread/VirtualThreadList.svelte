@@ -35,7 +35,7 @@
   });
 </script>
 
-<div class="timeline" class:end-filler={column.data.feed.length > 1} bind:this={parent}>
+<div class="timeline timeline--inline-p0" class:end-filler={column.data.feed.length > 1} bind:this={parent}>
   {#if (parent)}
     <Virtualizer data={column.data.feed} getKey={(data, index) => index} scrollRef={isJunk ? parent.closest('.modal-page-content') : column.scrollElement} bind:this={el} startMargin={102}>
       {#snippet children(item, index)}
@@ -80,6 +80,7 @@
 <style lang="postcss">
   .thread-item {
       position: relative;
+      margin: 0 var(--timeline-padding);
 
       &[data-depth='0'] {
           position: relative;

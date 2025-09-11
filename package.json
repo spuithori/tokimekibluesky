@@ -12,13 +12,13 @@
   },
   "devDependencies": {
     "@neoconfetti/svelte": "^2.2.2",
-    "@sveltejs/kit": "2.37.0",
-    "@sveltejs/vite-plugin-svelte": "^6.1.4",
+    "@sveltejs/kit": "2.38.1",
+    "@sveltejs/vite-plugin-svelte": "^6.2.0",
     "postcss": "^8.4.14",
     "postcss-load-config": "^4.0.1",
     "postcss-nested": "6.0.1",
     "rollup-plugin-visualizer": "^5.14.0",
-    "svelte": "5.38.6",
+    "svelte": "5.38.9",
     "svelte-check": "^4.3.1",
     "svelte-floating-ui": "^1.5.9",
     "svelte-preprocess": "^6.0.3",
@@ -70,6 +70,6 @@
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.0.5",
     "vidstack": "^1.12.13",
-    "virtua": "^0.41.5"
+    "virtua": "^0.43.0"
   }
 }
