@@ -19,7 +19,7 @@
   import {computeCid} from "$lib/components/editor/postUtil";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
-  import {Pencil, X, Settings2} from "lucide-svelte";
+  import {Pencil, X, Settings2, Pin, PinOff} from "lucide-svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
   import {languageDetect} from '$lib/translate';
   import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
@@ -678,6 +678,14 @@
 
   <div class="publish-wrap">
     <div class="publish-header">
+      <button class="editor-menu-button" onclick={() => {publishState.pinned = !publishState.pinned}} aria-label="Pin">
+        {#if publishState.pinned}
+          <Pin size="20" color="var(--text-color-1)"></Pin>
+        {:else}
+          <PinOff size="20" color="var(--text-color-1)"></PinOff>
+        {/if}
+      </button>
+
       <button class="editor-menu-button" onclick={() => {isConfigOpen = !isConfigOpen}}>
         <Settings2 size="20" color="var(--text-color-1)"></Settings2>
       </button>

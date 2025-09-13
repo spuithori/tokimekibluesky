@@ -43,7 +43,7 @@
     playsInline
     bind:this={player}
     autoplay={isTok ? true : false}
-    loop={isTok ? true : false}
+    loop={true}
 >
   <media-provider class="video-player__provider">
     <media-poster class="video-player__poster" src={poster}></media-poster>

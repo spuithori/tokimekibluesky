@@ -9,7 +9,7 @@
 </script>
 
 <div class="video-player-layout">
-  <PlayButton></PlayButton>
+
   <TimeSlider></TimeSlider>
 
   <div class="video-player-controls">

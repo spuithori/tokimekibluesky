@@ -152,11 +152,12 @@
 
 .video-time-slider {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 48px;
+    left: 8px;
+    right: 8px;
+    bottom: 40px;
     height: 4px;
     background-color: rgba(211, 211, 211, .5);
+    border-radius: 2px;
 
     &:hover {
         &::after {
@@ -173,6 +174,7 @@
         left: 0;
         background-color: var(--primary-color);
         width: var(--slider-fill, 0%);
+        border-radius: 2px;
     }
 
     &::after {
@@ -202,7 +204,7 @@
 .video-player-controls {
     position: absolute;
     bottom: 0;
-    height: 48px;
+    height: 40px;
     left: 0;
     right: 0;
     display: flex;
@@ -283,7 +285,7 @@
     display: block;
     height: 3px;
     left: 46px;
-    bottom: 22px;
+    bottom: 18px;
     background-color: rgba(255, 255, 255, .3);
     border-radius: 1px;
 
@@ -521,14 +523,16 @@
 
 .video-time {
     color: #fff;
-    font-size: 14px;
+    font-size: 13px;
     white-space: nowrap;
-
-    @container timeline-item (max-width: 345px) {
-        position: absolute;
-        right: 5px;
-        bottom: 58px;
-    }
+    letter-spacing: .025em;
+    position: absolute;
+    left: 8px;
+    bottom: 48px;
+    padding: 0 4px;
+    font-weight: 500;
+    background-color: rgba(0, 0, 0, .5);
+    border-radius: var(--border-radius-2);
 }
 
 .video-gesture {

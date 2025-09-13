@@ -11,18 +11,6 @@
 <Modal title={$_('publish_config_modal_title')} size="small" {onclose}>
   <dl class="settings-group">
     <dt class="settings-group__name">
-      {$_('continuous_mode')}
-    </dt>
-
-    <dd class="settings-group__content">
-      <div class="input-toggle mb10">
-        <input class="input-toggle__input" type="checkbox" id="continuousMode" bind:checked={publishState.pinned}><label class="input-toggle__label" for="continuousMode"></label>
-      </div>
-    </dd>
-  </dl>
-
-  <dl class="settings-group">
-    <dt class="settings-group__name">
       {$_('lossless_image_upload_mode')}
     </dt>
 
