@@ -147,7 +147,7 @@
 
 <div class="timeline__image">
   {#if $settings?.design.postsLayout !== 'minimum'}
-    <Avatar href="/profile/{ post.author.handle !== 'handle.invalid' ? post.author.handle : post.author.did }" avatar={post.author.avatar} profile={post.author} handle={post.author.handle} {_agent}></Avatar>
+    <Avatar href="/profile/{ post.author.did }" avatar={post.author.avatar} profile={post.author} handle={post.author.handle} {_agent}></Avatar>
 
     {#if (post.author?.viewer?.followedBy && $settings?.design?.mutualDisplay)}
       <div class="avatar-mutual-badge">
