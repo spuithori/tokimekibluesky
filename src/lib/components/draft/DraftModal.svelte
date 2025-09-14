@@ -43,21 +43,21 @@
         <div class="drafts__item">
           <p class="drafts__date">{format(draft.createdAt, 'yyyy-MM-dd HH:mm:ss')}</p>
 
-          {#if draft.replyRef?.data}
+          {#if draft?.replyRef?.data}
             <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.data.parent.author.handle} {draft.replyRef?.data.parent.record.text}</p>
           {/if}
 
-          {#if draft.replyRef?.parent}
+          {#if draft?.replyRef?.parent}
             <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.parent.author.handle} {draft.replyRef?.parent.record.text}</p>
           {/if}
 
-          {#if draft.quotePost}
+          {#if draft?.quotePost}
             <p class="drafts__reply">{$_('drafts_quote')}: {draft.quotePost?.record?.text || ''}</p>
           {/if}
 
           <p class="drafts__text">{draft.text}</p>
 
-          {#if draft.images.length}
+          {#if draft?.images?.length}
             <div class="drafts-images">
               {#each draft.images as image}
                 <div class="drafts-images__item">
