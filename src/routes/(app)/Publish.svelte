@@ -96,10 +96,11 @@
 
   async function saveDraft() {
       try {
-          const id = await db.drafts.add($state.snapshot({
+          await db.drafts.add($state.snapshot({
+              ...postState.posts[postState.index],
+              id: self.crypto.randomUUID(),
               createdAt: Date.now(),
               owner: _agent.did() as string,
-              ...postState.posts[postState.index],
           }));
 
           if (!publishState.pinned) {
