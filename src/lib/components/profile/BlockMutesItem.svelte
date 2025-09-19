@@ -10,7 +10,7 @@
     user: any;
   }
 
-  let { _agent = $agent, category, user = $bindable() }: Props = $props();
+  let { _agent = $agent, user = $bindable() }: Props = $props();
   let isDisabled = $state(false);
 
   async function mute() {
@@ -75,10 +75,10 @@
   </div>
 
   <div class="bm-users-item__content">
-    <div class="bm-users-item__meta">
-      <h2 class="bm-users-item__title">{user.displayName || user.handle}</h2>
-      <p class="bm-users-item__text">@{user.handle}</p>
+    <h2 class="bm-users-item__title">{user.displayName || user.handle}</h2>
+    <p class="bm-users-item__text">@{user.handle}</p>
 
+    <div class="bm-users-item__meta">
       <div class="bm-users-labels">
         {#if user.viewer?.muted}
           <p class="bm-users-label bm-users-label--mute">{$_('muting')}</p>
@@ -90,14 +90,13 @@
       </div>
     </div>
 
-
     <div class="bm-users-item__buttons">
-      <button class="button button--sm button--with-icon" disabled={isDisabled} onclick={user.viewer?.muted ? unmute : mute}>
+      <button class="button button--ssl button--with-icon" disabled={isDisabled} onclick={user.viewer?.muted ? unmute : mute}>
         <VolumeX size="20"></VolumeX>
         {$_(user.viewer?.muted ? 'button_unmute' : 'button_mute')}
       </button>
 
-      <button class="button button--sm button--border button--danger button--with-icon"  disabled={isDisabled} onclick={user.viewer?.blocking ? unblock : block}>
+      <button class="button button--ssl button--border button--danger button--with-icon"  disabled={isDisabled} onclick={user.viewer?.blocking ? unblock : block}>
         <ShieldBan size="20"></ShieldBan>
         {$_(user.viewer?.blocking ? 'button_unblock' : 'button_block')}
       </button>
@@ -108,9 +107,9 @@
 <style lang="postcss">
   .bm-users-item {
       display: grid;
-      grid-template-columns: 50px 1fr;
-      gap: 16px;
-      padding-bottom: 16px;
+      grid-template-columns: 46px 1fr;
+      gap: 10px;
+      padding: 16px 0;
       border-bottom: 1px solid var(--border-color-2);
 
       &__meta {
@@ -121,14 +120,16 @@
       }
 
       &__title {
-          font-size: 18px;
+          font-size: 14px;
           color: var(--text-color-1);
           letter-spacing: .05em;
+          margin-bottom: 2px;
       }
 
       &__text {
-          font-size: 14px;
+          font-size: 12px;
           color: var(--text-color-3);
+          margin-bottom: 4px;
       }
 
       &__buttons {

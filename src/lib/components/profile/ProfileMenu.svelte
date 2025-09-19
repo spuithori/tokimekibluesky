@@ -3,12 +3,10 @@
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
-  import {createEventDispatcher} from "svelte";
   import {AtSign, ShieldBan, VolumeX} from "lucide-svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
-  const dispatch = createEventDispatcher();
 
-  let { profile, handle } = $props();
+  let { profile, handle, onrefresh } = $props();
   let isMenuOpen = $state(false);
   const postState = getPostState();
 
@@ -17,7 +15,7 @@
           isMenuOpen = false;
           const mute = await $agent.agent.api.app.bsky.graph.muteActor({actor: handle});
 
-          dispatch('refresh');
+          onrefresh();
       } catch (e) {
           console.error(e)
       }
@@ -28,7 +26,7 @@
           isMenuOpen = false;
           const mute = await $agent.agent.api.app.bsky.graph.unmuteActor({actor: handle});
 
-          dispatch('refresh');
+          onrefresh();
       } catch (e) {
           console.error(e)
       }
@@ -42,14 +40,13 @@
   async function block() {
       try {
           isMenuOpen = false;
-          const did = await getDidByHandle(handle);
           const block = await $agent.agent.api.app.bsky.graph.block.create(
-              { repo: $agent.did() },
+              { repo: $agent.did() as string },
               {
-                  subject: did,
+                  subject: handle.startsWith('did:plc:') ? handle : await getDidByHandle(handle),
                   createdAt: new Date().toISOString(),
               });
-          dispatch('refresh');
+          onrefresh();
       } catch (e) {
           console.error(e)
       }
@@ -58,15 +55,14 @@
   async function unblock(uri) {
       try {
           isMenuOpen = false;
-          const did = await getDidByHandle(handle);
           const rkey = uri.split('/').slice(-1)[0];
           const block = await $agent.agent.api.app.bsky.graph.block.delete(
-              {rkey: rkey, repo: $agent.did() },
+              {rkey: rkey, repo: $agent.did() as string },
               {
-                  subject: did,
+                  subject: handle.startsWith('did:plc:') ? handle : await getDidByHandle(handle),
                   createdAt: new Date().toISOString(),
               });
-          dispatch('refresh');
+          onrefresh();
       } catch (e) {
           console.error(e)
       }

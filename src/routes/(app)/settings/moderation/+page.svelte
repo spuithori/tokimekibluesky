@@ -5,7 +5,7 @@
     import {settings, subscribedLabelers} from '$lib/stores';
     import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
     import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
-    import {ChevronRight, Globe2, MessageCircleMore, MessageCircleOff, Repeat2, Shield} from "lucide-svelte";
+    import {ChevronRight, Globe2, MessageCircleMore, MessageCircleOff, Repeat2, Shield, VolumeX, ShieldBan} from "lucide-svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
 
     type contentLabelsSelect = 'hide' | 'warn' | 'ignore';
@@ -57,6 +57,18 @@
   </SettingsHeader>
 
   <div class="settings-wrap">
+    <div class="settings-child-nav">
+      <VolumeX size="24"></VolumeX>
+      <a href="/mutes">{$_('mutes_list')}</a>
+      <ChevronRight size="20"></ChevronRight>
+    </div>
+
+    <div class="settings-child-nav">
+      <ShieldBan size="24"></ShieldBan>
+      <a href="/blocks">{$_('blocks_list')}</a>
+      <ChevronRight size="20"></ChevronRight>
+    </div>
+
     <div class="settings-child-nav">
       <MessageCircleOff size="24"></MessageCircleOff>
       <a href="/settings/moderation/modlist">{$_('settings_mod_list')}<br><span>{$_('settings_mod_list_description')}</span></a>

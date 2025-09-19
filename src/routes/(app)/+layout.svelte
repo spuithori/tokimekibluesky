@@ -41,6 +41,7 @@
   import "@fontsource-variable/murecho";
   import "@fontsource/zen-maru-gothic";
   import {BskyAgent} from "@atproto/api";
+  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
   injectAnalytics({
     mode: dev ? 'development' : 'production',
@@ -396,7 +397,9 @@
 
     <Footer></Footer>
   {:else}
-    <div></div>
+    <div class="top-loading">
+      <LoadingSpinner></LoadingSpinner>
+    </div>
   {/if}
 
   <Toaster position="top-center" theme={isDarkMode ? 'dark' : 'light'} closeButton></Toaster>
@@ -470,5 +473,11 @@
       .wrap {
           margin: 0 auto;
       }
+  }
+
+  .top-loading {
+    height: 100vh;
+    display: grid;
+    place-content: center;
   }
 </style>

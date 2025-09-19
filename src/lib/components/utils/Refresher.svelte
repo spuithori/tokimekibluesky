@@ -106,7 +106,9 @@
         }
 
         if (state === 'pulling') {
-            event.preventDefault();
+            if (event.cancelable) {
+                event.preventDefault();
+            }
 
             pullProgress = Math.min(1, dy / pullMin);
 
@@ -290,10 +292,10 @@
     class="svelte-refresher-host"
     class:mode-ios={_isIos}
     class:mode-md={!_isIos}
-    on:touchstart={onTouchStart}
+    on:touchstart|passive={onTouchStart}
     on:touchmove={onTouchMove}
-    on:touchend={onTouchEnd}
-    on:touchcancel={onTouchEnd}
+    on:touchend|passive={onTouchEnd}
+    on:touchcancel|passive={onTouchEnd}
     style="--refresher-height-val: {refresherHeight}px;"
 >
     <div class="refresher-indicator-area">

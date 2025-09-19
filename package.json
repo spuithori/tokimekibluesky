@@ -63,13 +63,13 @@
     "google-auth-library": "^10.1.0",
     "hls.js": "^1.6.12",
     "lucide-svelte": "^0.542.0",
-    "multiformats": "^13.4.0",
+    "multiformats": "^13.4.1",
     "photoswipe": "^5.4.4",
     "runed": "^0.29.1",
     "svelte-dnd-action": "^0.9.64",
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.0.5",
     "vidstack": "^1.12.13",
-    "virtua": "^0.43.1"
+    "virtua": "^0.43.2"
   }
 }
