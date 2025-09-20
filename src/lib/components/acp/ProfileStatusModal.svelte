@@ -3,18 +3,18 @@
   import { fly } from 'svelte/transition';
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
   import {accountsDb} from "$lib/db";
-  import {agent, agents, profileStatus} from "$lib/stores";
+  import {agent, agents} from "$lib/stores";
   import {modifyAgents} from "$lib/modifyAgents";
+  import {appState} from "$lib/classes/appState.svelte";
 
   interface Props {
     status?: number;
-    profile: any;
   }
 
   let { status = 0 }: Props = $props();
   let profile = $state();
 
-  accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')))
+  accountsDb.profiles.get(appState.profile.current)
     .then(value => {
         profile = value;
     });
@@ -29,7 +29,8 @@
 
           $agents = await modifyAgents(_accounts);
           agent.set($agents.get(event.detail.id));
-          profileStatus.set(0);
+          appState.status = 0;
+          appState.init();
       } catch (e) {
           console.error(e);
       }

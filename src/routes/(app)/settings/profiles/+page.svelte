@@ -5,6 +5,7 @@
     import AcpProfileCard from "$lib/components/acp/AcpProfileCard.svelte";
     import AccountsManagementModal from "$lib/components/acp/AccountsManagementModal.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+    import {appState} from "$lib/classes/appState.svelte";
 
     let isAccountManagementModalOpen = $state(false);
 
@@ -16,8 +17,6 @@
         const profiles = await accountsDb.profiles.toArray();
         return profiles;
     }))
-
-    let currentProfile = $derived(Number(localStorage.getItem('currentProfile') || profiles[0].id ));
 
     async function createProfile(length) {
         const id = await accountsDb.profiles.put({
@@ -50,7 +49,7 @@
       <div class="acp-list">
         {#if ($profiles)}
           {#each $profiles as profile (profile.id)}
-            <AcpProfileCard {profile} isCurrent={currentProfile === profile.id}></AcpProfileCard>
+            <AcpProfileCard {profile} isCurrent={appState.profile.current === profile.id}></AcpProfileCard>
           {/each}
         {/if}
       </div>

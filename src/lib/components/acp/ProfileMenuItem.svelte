@@ -1,6 +1,7 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {appState} from "$lib/classes/appState.svelte";
 
     const columnState = getColumnState();
 
@@ -19,9 +20,8 @@
 
         isDisabled = true;
 
-        localStorage.setItem('currentProfile', profile.id);
+        appState.changeProfile(profile.id);
         columnState.columns = profile.columns;
-        location.reload();
     }
 </script>
 

@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
-    import {labelerSettings, agent, subscribedLabelers, labelDefs, settings} from '$lib/stores';
+  import {labelerSettings, agent, settings} from '$lib/stores';
   import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
+  import {appState} from "$lib/classes/appState.svelte";
 
   interface Props {
     did: any;
@@ -33,7 +32,7 @@
           return false;
       }
 
-      if (!$subscribedLabelers.includes(did)) {
+      if (!appState.subscribedLabelers.current.includes(did)) {
           return false;
       }
 
@@ -64,7 +63,8 @@
   function changeLabel(renderLabels) {
       applyLabelSettings();
   }
-  run(() => {
+
+  $effect(() => {
     changeLabel(renderLabels);
   });
 </script>
@@ -81,7 +81,7 @@
 
     <p class="moderation-settings-group__text">{defs[index].locales.find(locale => locale.lang === $settings.general.userLanguage)?.description ?? defs[index].locales[0]?.description}</p>
 
-    {#if ($subscribedLabelers.includes(did))}
+    {#if (appState.subscribedLabelers.current.includes(did))}
       <div class="moderation-settings-group__content">
         <LabelSelector
           name={did + '_' + label[0]}

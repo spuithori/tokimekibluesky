@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {agent, settings, labelDefs, labelerSettings} from '$lib/stores';
+  import {agent, settings, labelerSettings} from '$lib/stores';
   import Like from "$lib/components/post/Like.svelte";
   import VideoTimelineModal from "$lib/components/post/VideoTimelineModal.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
@@ -7,12 +7,13 @@
   import {sideState} from "$lib/classes/sideState.svelte";
   import {onMount} from "svelte";
   import {EyeOff} from "lucide-svelte";
+  import {appState} from "$lib/classes/appState.svelte";
 
   let { _agent = $agent, data, feed, index } = $props();
   let isOpen = $state(false);
   let el = $state();
 
-  const moderateData = contentLabelling(data.post, _agent.did(), $settings, $labelDefs, $labelerSettings);
+  const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
   let isHide: boolean = $state(false);
   let isWarn = detectWarn(moderateData, 'contentList');
   isHide = detectHide(moderateData, 'contentList', isHide, data.post);

@@ -287,6 +287,12 @@ input[type=checkbox] {
         &--bottom {
             margin-top: auto;
         }
+
+        &--icons {
+            &:hover {
+                background-color: transparent;
+            }
+        }
     }
 
     &__title {

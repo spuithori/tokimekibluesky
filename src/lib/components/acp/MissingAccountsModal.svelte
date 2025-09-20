@@ -1,13 +1,11 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
-  import { fade, fly } from 'svelte/transition';
-  import {missingAccounts, profileStatus} from "$lib/stores";
+  import { fly } from 'svelte/transition';
   import MissingAccountItem from "$lib/components/acp/MissingAccountItem.svelte";
-
-  let { status } = $props();
+  import {appState} from "$lib/classes/appState.svelte";
 
   function close() {
-      profileStatus.set(0);
+      appState.status = 0;
   }
 </script>
 
@@ -21,14 +19,14 @@
 
     <p class="modal-text modal-text--center">{$_('missing_accounts_description')}</p>
 
-    {#if $missingAccounts.length}
-      {#each $missingAccounts as account (account.id)}
+    {#if appState.missingAccounts.length}
+      {#each appState.missingAccounts as account (account.id)}
         <MissingAccountItem {account}></MissingAccountItem>
       {/each}
     {/if}
   </div>
 
-  {#if ($missingAccounts.length === 0)}
+  {#if (appState.missingAccounts.length === 0)}
     <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
   {/if}
 </div>

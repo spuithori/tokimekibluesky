@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {agents, labelDefs, labelerSettings, settings, workerTimer} from "$lib/stores";
+  import {agents, labelerSettings, settings, workerTimer} from "$lib/stores";
   import {format, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
@@ -21,6 +21,7 @@
   import {onDestroy, untrack} from "svelte";
   import {BadgeCheck, CircleCheck, Eye, Handshake} from "lucide-svelte";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
+  import {appState} from "$lib/classes/appState.svelte";
 
   interface Props {
       post: any;
@@ -56,7 +57,7 @@
   let timeDistanceToNow = $state(intlRelativeTimeFormatState.format({ laterDate: parseISO(post.indexedAt) }));
   let skyblurText = $state('');
 
-  const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
+  const moderateData = contentLabelling(post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
   const contentContext = isSingle
       ? 'contentView'
       : 'contentList';

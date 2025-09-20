@@ -5,6 +5,7 @@
     import ProfileMenuItem from "$lib/components/acp/ProfileMenuItem.svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
     import {HelpCircle, MoreHorizontal, Settings} from "lucide-svelte";
+    import {appState} from "$lib/classes/appState.svelte";
 
     let { onclose } = $props();
     let isMenuOpen = $state(false);
@@ -16,8 +17,6 @@
             .toArray();
         return profiles;
     }));
-
-    let currentProfile = $derived(Number(localStorage.getItem('currentProfile') || profiles[0].id ));
 </script>
 
 <div class="side-workspace">
@@ -51,7 +50,7 @@
     {#if $profiles}
         <div class="p-menu-profiles">
             {#each $profiles as profile}
-                <ProfileMenuItem {profile} isCurrent={currentProfile === profile.id}></ProfileMenuItem>
+                <ProfileMenuItem {profile} isCurrent={appState.profile.current === profile.id}></ProfileMenuItem>
             {/each}
         </div>
     {/if}

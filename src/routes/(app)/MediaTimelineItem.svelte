@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {settings, labelDefs, labelerSettings} from '$lib/stores';
+    import {settings, labelerSettings} from '$lib/stores';
     import {AppBskyEmbedImages, AppBskyFeedDefs} from '@atproto/api';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
@@ -7,6 +7,7 @@
     import MediaTimelineThumbnail from "$lib/components/post/MediaTimelineThumbnail.svelte";
     import {modalState} from "$lib/classes/modalState.svelte";
     import {EyeOff, Repeat} from "lucide-svelte";
+    import {appState} from "$lib/classes/appState.svelte";
 
     let { feed, index, data, _agent } = $props();
     let isOpen = $state(false);
@@ -14,7 +15,7 @@
     let targetIndex = $state(index);
     let targetEl = $state();
 
-    const moderateData = contentLabelling(data.post, _agent.did(), $settings, $labelDefs, $labelerSettings);
+    const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
     let isHide: boolean = $state(false);
     let isWarn = detectWarn(moderateData, 'contentList');
     isHide = detectHide(moderateData, 'contentList', isHide, data.post);

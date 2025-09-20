@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
-    import {agent, agents, labelDefs, labelerSettings, subscribedLabelers} from "$lib/stores";
+  import {agent, agents, labelerSettings} from "$lib/stores";
   import {_} from "svelte-i18n";
+  import {appState} from "$lib/classes/appState.svelte";
 
   interface Props {
     did: any;
@@ -13,7 +12,7 @@
 
 
   function subscribe() {
-      $subscribedLabelers = [...$subscribedLabelers, did];
+      appState.subscribedLabelers.current = [...appState.subscribedLabelers.current, did];
       applyLabeler();
 
       if (!$labelerSettings.find(labelers => labelers.did === did)) {
@@ -29,25 +28,24 @@
   }
 
   function unsubscribe() {
-      $subscribedLabelers = $subscribedLabelers.filter(labeler => labeler !== did);
+      appState.subscribedLabelers.current = appState.subscribedLabelers.current.filter(labeler => labeler !== did);
       applyLabeler();
   }
 
   function applyLabeler() {
-      localStorage.setItem('subscribedLabelers', JSON.stringify($subscribedLabelers));
-
       $agents.forEach(_agent => {
-          _agent.agent.configureLabelersHeader($subscribedLabelers);
+          _agent.agent.configureLabelersHeader(appState.subscribedLabelers.current);
       })
   }
 
-    async function applyLabelDefs(subscribedLabelers) {
-        labelDefs.set(await $agent.agent.getLabelDefinitions(subscribedLabelers));
-        localStorage.setItem('labelDefs', JSON.stringify($labelDefs));
-    }
-  let subscribed = $derived($subscribedLabelers.includes(did));
-  run(() => {
-    applyLabelDefs($subscribedLabelers);
+  async function applyLabelDefs(subscribedLabelers) {
+      appState.labelDefs.current = await $agent.agent.getLabelDefinitions(subscribedLabelers);
+  }
+
+  let subscribed = $derived(appState.subscribedLabelers.current.includes(did));
+
+  $effect(() => {
+    applyLabelDefs(appState.subscribedLabelers.current);
   });
 </script>
 

@@ -1,28 +1,25 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
-    import {_} from 'svelte-i18n';
-    import {agent, subscribedLabelers} from "$lib/stores";
-    import OfficialLabelerList from "./OfficialLabelerList.svelte";
-    import LabelerItem from "$lib/components/labeler/LabelerItem.svelte";
-    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+  import {_} from 'svelte-i18n';
+  import {agent} from "$lib/stores";
+  import OfficialLabelerList from "./OfficialLabelerList.svelte";
+  import LabelerItem from "$lib/components/labeler/LabelerItem.svelte";
+  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+  import {appState} from "$lib/classes/appState.svelte";
 
-    let labelers = $state([]);
-    let ready = $state(false);
+  let labelers = $state([]);
+  let ready = $state(false);
 
-
-    async function loadLabelers(subscribedLabelers) {
-        if (subscribedLabelers.length) {
-            const res = await $agent.agent.getLabelers({dids: subscribedLabelers, detailed: true});
-            labelers = res.data.views;
-        }
-
-        ready = true;
+  async function loadLabelers(subscribedLabelers) {
+    if (subscribedLabelers.length) {
+      const res = await $agent.agent.getLabelers({dids: subscribedLabelers, detailed: true});
+      labelers = res.data.views;
     }
-    run(() => {
-    loadLabelers($subscribedLabelers);
-  });
+
+    ready = true;
+  }
+
+  loadLabelers(appState.subscribedLabelers.current);
 </script>
 
 <svelte:head>

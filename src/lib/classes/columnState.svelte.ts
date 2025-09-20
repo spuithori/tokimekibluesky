@@ -4,6 +4,7 @@ import {accountsDb} from "$lib/db";
 import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 import {AppBskyFeedDefs} from "@atproto/api";
 import {settingsState} from "$lib/classes/settingsState.svelte";
+import {appState} from "$lib/classes/appState.svelte";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
@@ -17,7 +18,7 @@ export class ColumnState {
     isColumnsLoaded = $state(false);
 
     constructor(isJunk: boolean = false) {
-        if (isJunk) {
+       if (isJunk) {
             $effect(() => {
                 if (this.columns.length > 20) {
                     this.columns.shift();
@@ -27,9 +28,7 @@ export class ColumnState {
             return;
         }
 
-        const profileId = localStorage.getItem('currentProfile');
-
-        accountsDb.profiles.get(Number(profileId))
+        accountsDb.profiles.get(appState.profile.current)
           .then(res => {
               this.columns = res?.columns || [];
               this.isColumnsLoaded = true;
@@ -37,8 +36,7 @@ export class ColumnState {
 
         $effect(() => {
             if (this.isColumnsLoaded) {
-                const _id = localStorage.getItem('currentProfile');
-                accountsDb.profiles.update(Number(_id), {
+                accountsDb.profiles.update(appState.profile.current, {
                     columns: $state.snapshot(this.syncColumns),
                 });
             }

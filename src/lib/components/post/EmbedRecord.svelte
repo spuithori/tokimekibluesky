@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { agent, didHint, labelDefs, labelerSettings, settings } from "$lib/stores";
+  import { agent, didHint, labelerSettings, settings } from "$lib/stores";
   import {format, parseISO} from "date-fns";
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs } from "@atproto/api";
   import {_} from "svelte-i18n";
@@ -16,6 +16,7 @@
   import EmbedRecord from './EmbedRecord.svelte'
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
+  import {appState} from "$lib/classes/appState.svelte";
 
   let { record, _agent = $agent, isChild = false, isPublish = false } = $props();
 
@@ -23,7 +24,7 @@
     record.value = record.record;
   }
 
-  let moderateData = contentLabelling(record, _agent.did(), $settings, $labelDefs, $labelerSettings);
+  let moderateData = contentLabelling(record, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
 
   let isWarn = detectWarn(moderateData, 'contentView');
 

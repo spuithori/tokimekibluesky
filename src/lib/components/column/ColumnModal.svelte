@@ -15,11 +15,12 @@
     import {ArrowUpDown, LayoutGrid, Pin} from "lucide-svelte";
     import ColumnChoicesPinned from "$lib/components/column/ColumnChoicesPinned.svelte";
     import ColumnList from "$lib/components/column/ColumnList.svelte";
+    import {appState} from "$lib/classes/appState.svelte";
 
     let { onclose } = $props();
 
     const columns = getColumnState();
-    let profileId = Number(localStorage.getItem('currentProfile'));
+    let profileId = appState.profile.current;
 
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
     let currentAccount = $state();

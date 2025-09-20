@@ -172,15 +172,11 @@ export const reportModal = writable<ReportModal>({
 
 export const changedFollowData = writable(undefined);
 
-export const profileStatus = writable<number>(0);
-
 export const isColumnModalOpen = writable(false);
 
 export const didHint = writable('');
 
 export const theme = writable<Theme | undefined>(undefined);
-
-export const missingAccounts = writable([]);
 
 type pulseDetach = {
     uri: string,
@@ -206,19 +202,37 @@ export const bluefeedAddModal = writable({
     open: false,
     post: undefined,
     did: '',
-})
+});
 
-export const labelDefs = writable(localStorage.getItem('labelDefs')
-    ? JSON.parse(localStorage.getItem('labelDefs'))
-    : []);
-
-export const subscribedLabelers = writable(localStorage.getItem('subscribedLabelers')
-    ? JSON.parse(localStorage.getItem('subscribedLabelers'))
-    : ['did:plc:ar7c4by46qjdydhdevvrndac']);
+const DEFAULT_LABELER_SETTINGS = [
+    {
+        did: 'did:plc:ar7c4by46qjdydhdevvrndac',
+        labels: {
+            spam: 'hide',
+            impersonation: 'hide',
+            scam: 'hide',
+            intolerant: 'warn',
+            'self-harm': 'warn',
+            security: 'hide',
+            misleading: 'warn',
+            threat: 'hide',
+            'unsafe-link': 'hide',
+            illicit: 'hide',
+            misinformation: 'warn',
+            rumor: 'warn',
+            rude: 'hide',
+            extremist: 'hide',
+            sensitive: 'warn',
+            'engagement-farming': 'hide',
+            inauthentic: 'hide',
+            'sexual-figurative': 'warn'
+        }
+    }
+];
 
 export const labelerSettings = writable(localStorage.getItem('labelerSettings')
     ? JSON.parse(localStorage.getItem('labelerSettings'))
-    : []);
+    : DEFAULT_LABELER_SETTINGS);
 
 export const timelineHashtags = writable([]);
 

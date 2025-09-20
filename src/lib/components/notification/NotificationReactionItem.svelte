@@ -98,7 +98,7 @@
             <div class="notification-authors">
                 {#each item.notifications as notification (notification)}
                     <div class="notification-author">
-                        <Avatar href="/profile/{ notification.author.handle }" avatar={notification.author.avatar} handle={notification.author.handle} {_agent} profile={notification.author}></Avatar>
+                        <Avatar href="/profile/{ notification.author.did }" avatar={notification.author.avatar} handle={notification.author.handle} {_agent} profile={notification.author}></Avatar>
                     </div>
                 {/each}
             </div>
@@ -106,7 +106,7 @@
             <h2 class="notifications-item__title">
                 <span class="notifications-item__name">
                   <ProfileCardWrapper handle={item.notifications[0].author.handle} {_agent}>
-                    <a class="notifications-item__link" href="/profile/{item.notifications[0].author.handle}">{item.notifications[0].author.displayName || item.notifications[0].author.handle}</a>
+                    <a class="notifications-item__link" href="/profile/{item.notifications[0].author.did}">{item.notifications[0].author.displayName || item.notifications[0].author.handle}</a>
                   </ProfileCardWrapper>
                 </span> {$_(getReasonText(item.notifications.length === 1 ? item.reason : item.reason + '_multiple'))}
             </h2>

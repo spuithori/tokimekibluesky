@@ -1,8 +1,8 @@
 import {AtpSessionData, AtpSessionEvent, BskyAgent} from "@atproto/api";
 import {accountsDb} from "$lib/db";
 import {Agent} from "$lib/agent";
-import {missingAccounts} from "$lib/stores";
 import {settingsState} from "$lib/classes/settingsState.svelte";
+import {appState} from "$lib/classes/appState.svelte";
 
 let _missingAccounts = [];
 
@@ -41,7 +41,7 @@ async function resume(account, proxy: string | undefined) {
 
             if (error.message === 'Token has expired') {
                 _missingAccounts = [..._missingAccounts, account];
-                missingAccounts.set(_missingAccounts);
+                appState.missingAccounts = _missingAccounts;
             } else {
                 console.log('Connection failed. Try resumeSession 3 seconds.');
                 setTimeout(() => {

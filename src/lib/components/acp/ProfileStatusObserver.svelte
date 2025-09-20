@@ -1,29 +1,29 @@
 <script lang="ts">
-  import {missingAccounts, profileStatus} from '$lib/stores';
   import ProfileStatusModal from "$lib/components/acp/ProfileStatusModal.svelte";
   import MissingAccountsModal from "$lib/components/acp/MissingAccountsModal.svelte";
   import MissingProfileModal from "$lib/components/acp/MissingProfileModal.svelte";
   import MissingPrimaryModal from "$lib/components/acp/MissingPrimaryModal.svelte";
+  import {appState} from "$lib/classes/appState.svelte";
 
   $effect(() => {
-      if ($missingAccounts.length) {
-          profileStatus.set(3);
+      if (appState.missingAccounts.length) {
+        appState.status = 3;
       }
   })
 </script>
 
-{#if ($profileStatus === 1 || $profileStatus === 2)}
-  <ProfileStatusModal status={$profileStatus}></ProfileStatusModal>
+{#if (appState.status === 1 || appState.status === 2)}
+  <ProfileStatusModal status={appState.status}></ProfileStatusModal>
 {/if}
 
-{#if ($profileStatus === 3)}
-  <MissingAccountsModal status={$profileStatus}></MissingAccountsModal>
+{#if (appState.status === 3)}
+  <MissingAccountsModal></MissingAccountsModal>
 {/if}
 
-{#if ($profileStatus === 4)}
-  <MissingProfileModal status={$profileStatus}></MissingProfileModal>
+{#if (appState.status === 4)}
+  <MissingProfileModal></MissingProfileModal>
 {/if}
 
-{#if ($profileStatus === 5)}
-  <MissingPrimaryModal status={$profileStatus}></MissingPrimaryModal>
+{#if (appState.status === 5)}
+  <MissingPrimaryModal></MissingPrimaryModal>
 {/if}

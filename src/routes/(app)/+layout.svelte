@@ -1,18 +1,16 @@
 <script lang="ts">
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
-  import { agent, agents, isColumnModalOpen, isMobileDataConnection, listAddModal, profileStatus, settings, theme, bluefeedAddModal, labelDefs, subscribedLabelers } from '$lib/stores';
-  import {goto} from '$app/navigation';
+  import { isColumnModalOpen, isMobileDataConnection, listAddModal, settings, theme, bluefeedAddModal } from '$lib/stores';
   import { dev } from '$app/environment';
   import { injectAnalytics } from '@vercel/analytics/sveltekit';
-  import {onMount, tick, untrack} from 'svelte';
+  import {tick, untrack} from 'svelte';
   import { Toaster } from 'svelte-sonner';
   import viewPortSetting from '$lib/viewport';
   import Footer from "./Footer.svelte";
   import { page } from '$app/state';
-  import {accountsDb, themesDb} from '$lib/db';
+  import {themesDb} from '$lib/db';
   import ReportObserver from "$lib/components/report/ReportObserver.svelte";
-  import {resumeAccountsSession} from "$lib/resumeAccountsSession";
   import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
   import Side from "./Side.svelte";
   import ColumnModal from "$lib/components/column/ColumnModal.svelte";
@@ -40,8 +38,8 @@
   import "@fontsource-variable/noto-sans-kr";
   import "@fontsource-variable/murecho";
   import "@fontsource/zen-maru-gothic";
-  import {BskyAgent} from "@atproto/api";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+  import {appState} from "$lib/classes/appState.svelte";
 
   injectAnalytics({
     mode: dev ? 'development' : 'production',
@@ -58,7 +56,6 @@
   }
   let { children }: Props = $props();
 
-  let loaded = $state(false);
   let app = $state();
   let baseColor = $state('#fff');
   let isRepeater = $state(localStorage.getItem('isRepeater') === 'true');
@@ -116,90 +113,6 @@
       });
   }
 
-  async function initProfile() {
-    const profiles = await accountsDb.profiles.toArray();
-    const anyAccounts = await accountsDb.accounts
-            .toArray();
-
-    if (!anyAccounts.length) {
-      console.log('Accounts are nothing');
-      await goto('/login');
-      return false;
-    }
-
-    if (loaded) {
-        return false;
-    }
-
-    if (!profiles.length) {
-        console.log('Profiles are empty. create new profile.');
-        const acs = anyAccounts.map(account => account.id);
-        const id = await accountsDb.profiles.put({
-          accounts: acs as number[],
-          columns: [],
-          createdAt: '',
-          name: $_('workspace') + ' 1',
-          primary: acs[0] as number,
-        })
-        localStorage.setItem('currentProfile', id);
-
-        await initProfile();
-        return false;
-    }
-
-    const currentProfile = Number(localStorage.getItem('currentProfile'));
-
-    if (!currentProfile) {
-        console.log('Current profile is missing.');
-        profileStatus.set(4);
-        return false;
-    }
-
-    const profile = profiles.find(profile => profile.id === currentProfile);
-    const accounts = await accountsDb.accounts
-        .where('id')
-        .anyOf(profile.accounts)
-        .toArray();
-    const isPrimaryAvailable = accounts.find(account => account.id === profile.primary);
-
-    if (!profile.accounts.length) {
-        console.log('There is no account in this profile.');
-        profileStatus.set(1);
-        return false;
-    }
-
-    if (!accounts.length) {
-        console.log('Attached accounts are missing in this profile.');
-        profileStatus.set(2);
-        return false;
-    }
-
-    if (!profile.primary || !isPrimaryAvailable) {
-      console.log('Primary account is missing.');
-      profileStatus.set(5);
-      return false;
-    }
-
-    let agentsMap = await resumeAccountsSession(accounts, profile?.appViewProxy);
-    agents.set(agentsMap);
-    agent.set($agents.get(profile.primary));
-
-    try {
-        BskyAgent.configure({appLabelers: $subscribedLabelers});
-
-        if (!Object.keys($labelDefs).length) {
-            labelDefs.set(await $agent.agent.getLabelDefinitions($subscribedLabelers));
-        }
-
-        localStorage.setItem('labelDefs', JSON.stringify($labelDefs));
-    } catch (e) {
-        console.error(e);
-    }
-
-    profileStatus.set(0);
-    loaded = true;
-  }
-
   if (!$settings.version) {
       $settings.version = 1;
   }
@@ -243,10 +156,6 @@
     $settings.design.darkmode = true;
   }
 
-  onMount(async() => {
-      sessionStorage.clear();
-  });
-
   function handleColumnModalClose() {
     isColumnModalOpen.set(false);
   }
@@ -279,7 +188,7 @@
       return theme.style + colorStyle + bubbleStyle + darkmodeStyle;
   }
 
-  initProfile();
+  appState.init();
   viewPortSetting();
   setPostState();
   initColumns();
@@ -356,7 +265,7 @@
     dir={$_('dir', {default: 'ltr'})}
     bind:this={app}
 >
-  {#if (loaded)}
+  {#if (appState.ready)}
     <div class="wrap"
          class:layout-decks={$settings.design.layout === 'decks'}>
       <Side></Side>

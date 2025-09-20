@@ -2,11 +2,12 @@
     import { run } from 'svelte/legacy';
 
     import {_} from 'svelte-i18n';
-    import {settings, subscribedLabelers} from '$lib/stores';
+    import {settings} from '$lib/stores';
     import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
     import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
     import {ChevronRight, Globe2, MessageCircleMore, MessageCircleOff, Repeat2, Shield, VolumeX, ShieldBan} from "lucide-svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+    import {appState} from "$lib/classes/appState.svelte";
 
     type contentLabelsSelect = 'hide' | 'warn' | 'ignore';
     type contentLabels = {
@@ -139,7 +140,7 @@
         </div>
       </div>
 
-      {#if ($subscribedLabelers.includes(officialLabelerDid))}
+      {#if (appState.subscribedLabelers.current.includes(officialLabelerDid))}
         <h2 class="moderation-group-title">{$_('official_label_settings')}</h2>
         <p class="settings-description">{$_('official_label_settings_description')}</p>
 

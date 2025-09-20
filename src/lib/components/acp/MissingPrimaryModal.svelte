@@ -4,9 +4,10 @@
     import {liveQuery} from "dexie";
     import {accountsDb} from "$lib/db";
     import {_} from "svelte-i18n";
+    import {appState} from "$lib/classes/appState.svelte.js";
 
     let profile = $derived(liveQuery(async () => {
-        const profile = await accountsDb.profiles.get(Number(localStorage.getItem('currentProfile')));
+        const profile = await accountsDb.profiles.get(appState.profile.current);
         return profile;
     }))
 </script>

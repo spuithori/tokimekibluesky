@@ -1,13 +1,14 @@
 <script lang="ts">
-  import {settings, labelDefs, labelerSettings} from '$lib/stores';
+  import {settings, labelerSettings} from '$lib/stores';
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import VideoTimelineNav from "$lib/components/post/VideoTimelineNav.svelte";
   import {X} from "lucide-svelte";
   import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
+  import {appState} from "$lib/classes/appState.svelte";
 
   let { _agent, post, index, current, onclose } = $props();
 
-  const moderateData = contentLabelling(post, _agent.did(), $settings, $labelDefs, $labelerSettings);
+  const moderateData = contentLabelling(post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
   let isHide: boolean = $state(false);
   let isWarn = detectWarn(moderateData, 'contentList');
   isHide = detectHide(moderateData, 'contentList', isHide, post);

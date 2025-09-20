@@ -11,6 +11,7 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import AcpAppViewProxyModal from "$lib/components/acp/AcpAppViewProxyModal.svelte";
   import {Waypoints} from "lucide-svelte";
+  import {appState} from "$lib/classes/appState.svelte";
 
   const columnState = getColumnState();
 
@@ -46,10 +47,9 @@
   }
 
   async function changeProfile() {
-      localStorage.setItem('currentProfile', profile.id);
-      // columnState.columns = profile.columns;
       currentTimeline.set(0);
-      location.reload();
+      appState.changeProfile(profile.id);
+      columnState.columns = profile.columns;
   }
 
   async function deleteProfile(id) {
