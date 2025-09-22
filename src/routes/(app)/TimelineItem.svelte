@@ -557,7 +557,7 @@
 
       {#if (!isThread)}
         {#if (isReasonRepost(data.reason))}
-          <p class="timeline-repost-message">
+          <p class="timeline-repost-message" data-aturi={data.reason.uri}>
             <ProfileCardWrapper handle={data.reason.by.handle} {_agent}>
               <a href="/profile/{data.reason.by.did}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
             </ProfileCardWrapper>

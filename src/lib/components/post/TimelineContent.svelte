@@ -158,7 +158,7 @@
   {/if}
 </div>
 
-<div class="timeline__content">
+<div class="timeline__content" data-aturi={post.uri}>
   <div class="timeline__meta">
     <p class="timeline__user">
       { post.author.displayName || post.author.handle }
