@@ -91,7 +91,7 @@
   }
 </script>
 
-<div class="timeline-external timeline-external--record">
+<div class="timeline-external timeline-external--record" data-aturi={record?.uri}>
   {#if (isMuted && !isMuteDisplay)}
     <div class="thread-notice thread-notice--quote" class:thread-notice--shown={isMuteDisplay}>
       <p class="thread-notice__text">{$_('muted_user_embed')}<br>

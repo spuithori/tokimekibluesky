@@ -68,7 +68,7 @@
     }
 </script>
 
-<article class="notifications-item notifications-item--reaction notifications-item--{item.reason}" class:notifications-item--bubble={$settings?.design?.bubbleTimeline}>
+<article class="notifications-item notifications-item--reaction notifications-item--{item.reason}" class:notifications-item--bubble={$settings?.design?.bubbleTimeline} data-aturi={item.uri} data-aturi-subject={item.reasonSubject}>
     <div class="notification-column">
         <div class="notification-column__icons">
             {#if (item.reason === 'repost' || item.reason === 'repost-via-repost')}
