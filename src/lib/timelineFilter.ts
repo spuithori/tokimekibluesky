@@ -150,16 +150,6 @@ export function detectWarn(moderateData, contentContext: 'contentView' | 'conten
     let warnBehavior: 'cover' | 'inform' = 'cover';
 
     try {
-        if (moderateData.ui(contentContext).blur) {
-            warnLabels = [...moderateData.ui(contentContext).blurs, ...moderateData.ui('contentMedia').blurs];
-            blurs = 'content';
-        }
-
-        if (moderateData.ui('contentMedia').blur) {
-            warnLabels = moderateData.ui('contentMedia').blurs;
-            blurs = 'media';
-        }
-
         if (moderateData.ui(contentContext).inform) {
             warnLabels = moderateData.ui(contentContext).informs;
             warnBehavior = 'inform';
@@ -167,6 +157,18 @@ export function detectWarn(moderateData, contentContext: 'contentView' | 'conten
             if (!moderateData.muted && warnLabels.length) {
                 blurs = 'content';
             }
+        }
+
+        if (moderateData.ui(contentContext).blur) {
+            warnLabels = [...moderateData.ui(contentContext).blurs, ...moderateData.ui('contentMedia').blurs];
+            warnBehavior = 'cover';
+            blurs = 'content';
+        }
+
+        if (moderateData.ui('contentMedia').blur) {
+            warnLabels = moderateData.ui('contentMedia').blurs;
+            warnBehavior = 'cover';
+            blurs = 'media';
         }
 
         if (blurs) {
