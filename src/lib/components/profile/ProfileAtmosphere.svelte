@@ -5,60 +5,26 @@
   import AtmosphereAboutModal from "$lib/components/profile/AtmosphereAboutModal.svelte";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
   import {parseISO} from "date-fns";
+  import {BskyAgent} from "@atproto/api";
 
-  let { did, handle, _agent } = $props();
+  let { did, handle, endpoint } = $props();
 
-  let hasLinkat = $state(false);
-  let hasWhiteWind = $state(false);
-  let hasPinkSea = $state(false);
+  const _agent = new BskyAgent({service: endpoint});
   let latestFlushes = $state();
-  let hasSkyBeMoreBlue = $state(false);
+  let collections: string[] = $state([]);
   let isOpen = $state(false);
 
   function handleClose() {
       isOpen = false;
   }
 
-  async function getLinkat() {
-      try {
-          const res = await _agent.api.com.atproto.repo.listRecords({
-              repo: did,
-              collection: 'blue.linkat.board',
-              limit: 1,
-          });
-          const records = res.data.records;
-          return records.length > 0;
-      } catch (e) {
-          return false;
-      }
-  }
-
-  async function getWhiteWind() {
-      try {
-          const res = await _agent.api.com.atproto.repo.listRecords({
-              repo: did,
-              collection: 'com.whtwnd.blog.entry',
-              limit: 1,
-          });
-          const records = res.data.records;
-          return records.length > 0;
-      } catch (e) {
-          return false;
-      }
-  }
-
-  async function getPinkSea() {
-      try {
-          const res = await _agent.api.com.atproto.repo.listRecords({
-              repo: did,
-              collection: 'com.shinolabs.pinksea.oekaki',
-              limit: 1,
-          });
-          const records = res.data.records;
-          return records.length > 0;
-      } catch (e) {
-          return false;
-      }
+  async function getCollections() {
+    try {
+      const { data } = await _agent.com.atproto.repo.describeRepo({repo: did});
+      return data?.collections || [];
+    } catch (e) {
+      return false;
+    }
   }
 
   async function getFlushes() {
@@ -75,22 +41,8 @@
     }
   }
 
-  async function getSkyBeMoreBlue() {
-    try {
-      const res = await _agent.api.com.atproto.repo.listRecords({
-        repo: did,
-        collection: 'com.skybemoreblue.intro.introduction',
-        limit: 1,
-      });
-      const records = res.data.records;
-      return records.length > 0;
-    } catch (e) {
-      return false;
-    }
-  }
-
   onMount(async () => {
-      [hasLinkat, hasWhiteWind, hasPinkSea, latestFlushes, hasSkyBeMoreBlue] = await Promise.all([getLinkat(), getWhiteWind(), getPinkSea(), getFlushes(), getSkyBeMoreBlue()]);
+    [collections, latestFlushes] = await Promise.all([getCollections(), getFlushes()]);
   })
 </script>
 
@@ -98,7 +50,7 @@
 
 <div class="atmos-wrap">
   <div class="atmos-list">
-    {#if (hasLinkat)}
+    {#if (collections.includes('blue.linkat.board'))}
       <div class="atmos-item atmos-item--linkat">
         <p class="atmos-item__title"><strong>Linkat</strong> - {$_('atmosphere_short_desc_linkat')}</p>
         <a class="atmos-item__link" href="https://linkat.blue/{handle}" target="_blank" rel="noreferrer noopener nofollow">linkat.blue</a>
@@ -109,7 +61,7 @@
       </div>
     {/if}
 
-    {#if (hasWhiteWind)}
+    {#if (collections.includes('com.whtwnd.blog.entry'))}
       <div class="atmos-item atmos-item--whitewind">
         <p class="atmos-item__title"><strong>WhiteWind</strong> - {$_('atmosphere_short_desc_whitewind')}</p>
         <a class="atmos-item__link" href="https://whtwnd.com/{handle}" target="_blank" rel="noreferrer noopener nofollow">whtwnd.com</a>
@@ -120,7 +72,7 @@
       </div>
     {/if}
 
-    {#if (hasPinkSea)}
+    {#if (collections.includes('com.shinolabs.pinksea.oekaki'))}
       <div class="atmos-item atmos-item--pinksea">
         <p class="atmos-item__title"><strong>PinkSea</strong> - {$_('atmosphere_short_desc_pinksea')}</p>
         <a class="atmos-item__link" href="https://pinksea.art/{did}" target="_blank" rel="noreferrer noopener nofollow">pinksea.art</a>
@@ -142,10 +94,21 @@
       </div>
     {/if}
 
-    {#if (hasSkyBeMoreBlue)}
+    {#if (collections.includes('com.skybemoreblue.intro.introduction'))}
       <div class="atmos-item atmos-item--pinksea">
         <p class="atmos-item__title"><strong>SkyBeMoreBlue</strong></p>
         <a class="atmos-item__link" href="https://www.skybemoreblue.com/user/{did}" target="_blank" rel="noreferrer noopener nofollow">skybemoreblue.com</a>
+
+        <span class="atmos-item__ext">
+          <SquareArrowOutUpRight size="16" color="var(--text-color-3)"></SquareArrowOutUpRight>
+        </span>
+      </div>
+    {/if}
+
+    {#if (collections.includes('blue.rito.feed.bookmark'))}
+      <div class="atmos-item atmos-item--rito">
+        <p class="atmos-item__title"><strong>Rito</strong></p>
+        <a class="atmos-item__link" href="https://rito.blue/ja/profile/{handle}" target="_blank" rel="noreferrer noopener nofollow">rito.blue</a>
 
         <span class="atmos-item__ext">
           <SquareArrowOutUpRight size="16" color="var(--text-color-3)"></SquareArrowOutUpRight>

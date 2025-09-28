@@ -13,6 +13,7 @@
   import {imageState} from "$lib/classes/imageState.svelte";
   import VerifierModal from "$lib/components/profile/VerifierModal.svelte";
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
+  import {getEndpoint} from "$lib/util";
 
   interface Props {
     handle: any;
@@ -38,7 +39,7 @@
   const __agent = new BskyAgent({service: _agent.service()});
   let isVerifierModalOpen = $state(false);
 
-  getServiceHost()
+  getEndpoint(profile.did)
       .then(value => {
           serviceHost = value;
       })
@@ -87,12 +88,6 @@
       if (profile.labels && Array.isArray(profile.labels)) {
           profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');
       }
-  }
-
-  async function getServiceHost() {
-      const res = await fetch('https://plc.directory/' + profile.did);
-      const json = await res.json();
-      return json?.service[0]?.serviceEndpoint;
   }
 
   function toggleHideCounts() {
@@ -252,7 +247,9 @@
           {#if (!$settings?.general?.disableAtmosphere)}
             <div class="embla__slide">
               <div class="profile-grid__right">
-                <ProfileAtmosphere did={profile.did} handle={profile.handle} _agent={__agent}></ProfileAtmosphere>
+                {#if (serviceHost)}
+                  <ProfileAtmosphere did={profile.did} handle={profile.handle} endpoint={serviceHost}></ProfileAtmosphere>
+                {/if}
               </div>
             </div>
           {/if}
