@@ -39,13 +39,15 @@
   const __agent = new BskyAgent({service: _agent.service()});
   let isVerifierModalOpen = $state(false);
 
-  getEndpoint(profile.did)
-      .then(value => {
-          serviceHost = value;
-      })
-      .catch(e => {
-          serviceHost = '';
-      });
+  $effect(() => {
+    getEndpoint(profile.did)
+            .then(value => {
+              serviceHost = value;
+            })
+            .catch(e => {
+              serviceHost = '';
+            });
+  });
 
   getFirstPostData(handle);
 

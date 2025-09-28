@@ -23,7 +23,7 @@
       const { data } = await _agent.com.atproto.repo.describeRepo({repo: did});
       return data?.collections || [];
     } catch (e) {
-      return false;
+      return [];
     }
   }
 
