@@ -138,7 +138,6 @@
       inset: 0;
       background-color: rgba(0, 0, 0, .8);
       backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
       display: grid;
       place-content: center;
   }
