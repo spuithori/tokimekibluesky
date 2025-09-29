@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, didHint} from "$lib/stores";
+    import {agent} from "$lib/stores";
     import {onMount} from "svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import DeckRow from "../../../../DeckRow.svelte";
@@ -17,12 +17,6 @@
     const columnState = getColumnState(true);
 
     onMount(async () => {
-        if ($didHint) {
-            const _did = $didHint;
-            didHint.set('');
-            handle = _did;
-        }
-
         if (!isDid(handle)) {
             handle = await getDidByHandle(handle, _agent);
         }

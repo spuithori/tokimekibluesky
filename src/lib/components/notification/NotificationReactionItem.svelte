@@ -8,7 +8,7 @@
     import Images from "../../../routes/(app)/Images.svelte";
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
-    import {didHint, junkAgentDid, settings} from "$lib/stores";
+    import {junkAgentDid, settings} from "$lib/stores";
     import FeedEmbed from "$lib/components/feeds/FeedEmbed.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {goto} from "$app/navigation";
@@ -35,7 +35,7 @@
         e.preventDefault();
 
         const rkey = post.uri.split('/').slice(-1)[0];
-        const uri = '/profile/' + post.author.handle + '/post/' + rkey;
+        const uri = '/profile/' + post.author.did + '/post/' + rkey;
 
         if (uri === location.pathname) {
             return false;
@@ -63,7 +63,6 @@
         }
 
         junkAgentDid.set(_agent.did());
-        didHint.set(post.author.did);
         goto(uri);
     }
 </script>

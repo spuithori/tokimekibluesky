@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
   import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply } from 'lucide-svelte';
-  import { agent, settings, reportModal, didHint, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
+  import { agent, settings, reportModal, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, BskyAgent } from '@atproto/api'
   import { toast } from "svelte-sonner";
   import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
@@ -39,7 +39,6 @@
     let isDialogRender = $state(false);
     let isEditDialogRender = $state(false);
     let isMenuOpen = $state(false);
-    let isShortCutNumberShown = false;
     let isTranslated = false;
     let isReactionModalOpen = $state(false);
     let pulseTranslate = $state(false);
@@ -330,7 +329,7 @@
         }
 
         const rkey = data.post.uri.split('/').slice(-1)[0];
-        const uri = '/profile/' + data.post.author.handle + '/post/' + rkey;
+        const uri = '/profile/' + data.post.author.did + '/post/' + rkey;
 
         if (uri === location.pathname) {
             return false;
@@ -356,7 +355,6 @@
         }
 
         junkAgentDid.set(_agent.did());
-        didHint.set(data.post.author.did);
         goto(uri);
     }
 
@@ -546,10 +544,6 @@
              class:timeline__item--bubble={$settings?.design?.bubbleTimeline}
              onclick={handleClick}
     >
-      {#if (isShortCutNumberShown && index < 9)}
-        <p class="timeline-shortcut-number">{index + 1}</p>
-      {/if}
-
       {#if isPinned}
         <p class="sticky-text"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>{$_('pinned_post')}
         </p>
@@ -756,8 +750,8 @@
                 on:ok={() => {deletePost(data.post.uri)}}
                 on:cancel={() => {isDialogRender = false}}
                 confirmationName="deleteConfirmSkip"
-                yesText="{$_('delete')}"
-                cancelText="{$_('cancel')}"
+                yesText={$_('delete')}
+                cancelText={$_('cancel')}
         >
           <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
         </ConfirmModal>
@@ -768,8 +762,8 @@
                 on:ok={editPost}
                 on:cancel={() => {isEditDialogRender = false}}
                 confirmationName="deleteConfirmSkip"
-                yesText="{$_('delete')}"
-                cancelText="{$_('cancel')}"
+                yesText={$_('delete')}
+                cancelText={$_('cancel')}
         >
           <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
           <p class="modal-description">{$_('delete_and_edit_confirm_description')}</p>

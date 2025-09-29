@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { agent, didHint, labelerSettings, settings } from "$lib/stores";
+  import { agent, labelerSettings, settings } from "$lib/stores";
   import {format, parseISO} from "date-fns";
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs } from "@atproto/api";
   import {_} from "svelte-i18n";
@@ -45,7 +45,7 @@
       }
 
       const rkey = record.uri.split('/').slice(-1)[0];
-      const uri = '/profile/' + record.author.handle + '/post/' + rkey;
+      const uri = '/profile/' + record.author.did + '/post/' + rkey;
 
       if (uri === location.pathname) {
           return false;
@@ -86,7 +86,6 @@
           });
       }
 
-      didHint.set(record.author.did);
       goto(uri);
   }
 </script>

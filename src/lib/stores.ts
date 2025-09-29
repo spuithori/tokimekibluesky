@@ -174,8 +174,6 @@ export const changedFollowData = writable(undefined);
 
 export const isColumnModalOpen = writable(false);
 
-export const didHint = writable('');
-
 export const theme = writable<Theme | undefined>(undefined);
 
 type pulseDetach = {
