@@ -4,7 +4,7 @@
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
-    import MediaTimelineThumbnail from "$lib/components/post/MediaTimelineThumbnail.svelte";
+    import MediaTimelineThumbnail from "$lib/components/media/MediaTimelineThumbnail.svelte";
     import {modalState} from "$lib/classes/modalState.svelte";
     import {EyeOff, Repeat} from "lucide-svelte";
     import {appState} from "$lib/classes/appState.svelte";

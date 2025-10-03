@@ -503,7 +503,7 @@
     width: 24px;
     position: relative;
     border-radius: 14px;
-    font-size: 14px;
+    font-size: 12px;
     transition: background-color .2s ease-in-out;
     font-family: var(--ui-font);
     color: inherit;
@@ -722,8 +722,16 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 2px;
 
-    @media (max-width: 767px) {
+    &--3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    &--2 {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    &--1 {
+        grid-template-columns: repeat(1, 1fr);
     }
 }
 
@@ -850,11 +858,9 @@
         &__item {
             border: none;
             height: 20px;
-            font-size: 13px;
         }
 
         &__count {
-            font-size: 12px;
             position: static;
         }
     }

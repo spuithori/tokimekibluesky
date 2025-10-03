@@ -1,11 +1,11 @@
 <script lang="ts">
     import {settings, labelerSettings} from '$lib/stores';
     import { fly } from 'svelte/transition';
-    import TimelineItem from "./TimelineItem.svelte";
+    import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
     import { beforeNavigate } from "$app/navigation";
     import { afterNavigate } from "$app/navigation";
     import {AppBskyEmbedImages} from "@atproto/api";
-    import MediaTimelineSlider from "$lib/components/post/MediaTimelineSlider.svelte";
+    import MediaTimelineSlider from "$lib/components/media/MediaTimelineSlider.svelte";
     import {modalState} from "$lib/classes/modalState.svelte";
     import {ChevronLeft, ChevronRight, X} from "lucide-svelte";
     import {contentLabelling, detectWarn} from "$lib/timelineFilter";

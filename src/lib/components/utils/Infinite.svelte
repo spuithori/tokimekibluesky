@@ -60,7 +60,7 @@
 
     intervalId = setTimeout(() => {
       handleIntersect();
-    }, 1000);
+    }, 500);
   }
 
   function loaded() {
@@ -95,6 +95,12 @@
     return getScrollElement(element.parentElement);
   }
 
+  function handleResetLimit() {
+    isRetryLimit = false;
+    retryCount = 0;
+    handleIntersect();
+  }
+
   $effect(() => {
     return () => {
       clearTimeout(intervalId);
@@ -116,7 +122,9 @@
   {/if}
 
   {#if isRetryLimit}
-    <Annoyed color="var(--danger-color)"></Annoyed>
+    <button onclick={handleResetLimit}>
+      <Annoyed color="var(--danger-color)"></Annoyed>
+    </button>
   {/if}
 </div>
 

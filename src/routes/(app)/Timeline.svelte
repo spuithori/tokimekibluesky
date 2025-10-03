@@ -12,13 +12,9 @@
   import {isAfter} from "date-fns";
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
+  import { Virtualizer } from "virtua/svelte";
 
-  let {
-    index,
-    _agent = $agent,
-    isJunk,
-    unique,
-  } = $props();
+  let { index, _agent = $agent, isJunk, unique } = $props();
 
   const columnState = getColumnState(isJunk);
   const column = columnState.getColumn(index);
@@ -27,6 +23,7 @@
   let realtimeCounter = 0;
   let isDividerLoading = $state(false);
   let dividerFillerHeight = $state(0);
+  let isInfinite = $state(true);
 
   $effect(() => {
       insertRealtimeData($realtime);
@@ -155,7 +152,9 @@
 
   const handleLoadMore = async (loaded, complete) => {
       try {
-          const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage});
+        isInfinite = true;
+
+        const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage});
           column.data.cursor = res.data.cursor;
 
           const feed = res.data.feed.filter(feed => {
@@ -183,6 +182,9 @@
 
           isDividerLoading = false;
 
+          await tick();
+          // isInfinite = false;
+
           if (column.data.cursor) {
               loaded();
           } else {
@@ -204,30 +206,42 @@
   }
 </script>
 
+{#snippet timelineItem(data, index)}
+  {#if (data?.post?.author?.did)}
+    <svelte:boundary>
+      <TimelineItem
+              {data}
+              {index}
+              {column}
+              {_agent}
+              isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
+              isPinned={isReasonPin(data?.reason)}
+      ></TimelineItem>
+
+      {#snippet failed(error, reset)}
+        <p style="padding: 16px;">post load error!!</p>
+      {/snippet}
+    </svelte:boundary>
+  {/if}
+
+  {#if data?.isDivider}
+    <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={() => {handleDividerUp(index, data.memoryCursor)}}></MoreDivider>
+  {/if}
+{/snippet}
+
 <div class="timeline timeline--{column.style}">
-  <div class:media-list={column.style === 'media'} class:video-list={column.style === 'video'}>
-    {#each column.data.feed as data, index (data)}
-      {#if (data?.post?.author?.did)}
-        <svelte:boundary>
-          <TimelineItem
-                  {data}
-                  {index}
-                  {column}
-                  {_agent}
-                  isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
-                  isPinned={isReasonPin(data?.reason)}
-          ></TimelineItem>
-
-          {#snippet failed(error, reset)}
-            <p style="padding: 16px;">post load error!!</p>
-          {/snippet}
-        </svelte:boundary>
-      {/if}
-
-      {#if data?.isDivider}
-        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={(dividerEl) => {handleDividerUp(index, data.memoryCursor, dividerEl)}}></MoreDivider>
-      {/if}
-    {/each}
+  <div class:media-list={column.style === 'media'} class:media-list--1={column.style === 'media' && column?.settings?.mediaColumns === 1} class:media-list--2={column.style === 'media' && column?.settings?.mediaColumns === 2} class:video-list={column.style === 'video'}>
+    {#if (isJunk && column.algorithm.type === 'author') || column.style === 'media' || column.style === 'video' || !$settings?.general?.useVirtual}
+      {#each column.data.feed as data, index (data)}
+        {@render timelineItem(data, index)}
+      {/each}
+    {:else}
+      <Virtualizer data={column.data.feed} getKey={(data, index) => data} scrollRef={isJunk ? document.querySelector('.modal-page-content') : column.scrollElement} overscan={8} shift={!isInfinite}>
+        {#snippet children(data, index)}
+          {@render timelineItem(data, index)}
+        {/snippet}
+      </Virtualizer>
+    {/if}
   </div>
 
   {#key unique}

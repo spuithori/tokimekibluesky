@@ -50,6 +50,7 @@
     let opacity = $state(column.settings?.opacity || 100);
     let background = $state(column.settings?.background || '');
     let showReactionViaRepost = $state(column.settings?.showReactionViaRepost || false);
+    let mediaColumns = $state(column?.settings?.mediaColumns || 2);
 
     $effect(() => {
         column.settings = {
@@ -75,6 +76,7 @@
             opacity: opacity,
             background: background,
             showReactionViaRepost: showReactionViaRepost,
+            mediaColumns: mediaColumns,
         }
     })
 
@@ -97,6 +99,7 @@
             hideCounts: false,
             opacity: 1.0,
             showReactionViaRepost: false,
+            mediaColumns: 3,
         }
     }
 
@@ -358,23 +361,39 @@
                                 <div class="style-nav" data-current="{column.style}">
                                     <div class="style-nav__item style-nav__item--active style-nav__item--default">
                                         <button aria-label="Default Timeline" class="style-nav__button" onclick={() => {toggleStyle('default')}}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="25.694" height="14.988" viewBox="0 0 25.694 14.988">
-                                                <g id="menu-outline" transform="translate(-64 -144)">
-                                                    <path id="線_27" data-name="線 27" d="M8.623-13.859H-14.929A1.071,1.071,0,0,1-16-14.929,1.071,1.071,0,0,1-14.929-16H8.623a1.071,1.071,0,0,1,1.071,1.071A1.071,1.071,0,0,1,8.623-13.859Z" transform="translate(80 160)" fill="var(--text-color-1)"/>
-                                                    <path id="線_28" data-name="線 28" d="M8.623-13.859H-14.929A1.071,1.071,0,0,1-16-14.929,1.071,1.071,0,0,1-14.929-16H8.623a1.071,1.071,0,0,1,1.071,1.071A1.071,1.071,0,0,1,8.623-13.859Z" transform="translate(80 166.423)" fill="var(--text-color-1)"/>
-                                                    <path id="線_29" data-name="線 29" d="M8.623-13.859H-14.929A1.071,1.071,0,0,1-16-14.929,1.071,1.071,0,0,1-14.929-16H8.623a1.071,1.071,0,0,1,1.071,1.071A1.071,1.071,0,0,1,8.623-13.859Z" transform="translate(80 172.847)" fill="var(--text-color-1)"/>
-                                                </g>
-                                            </svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu-icon lucide-menu"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>
                                         </button>
                                     </div>
 
                                     <div class="style-nav__item style-nav__item--media">
                                         <button aria-label="Media Timeline" class="style-nav__button" onclick={() => {toggleStyle('media')}}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17.143" viewBox="0 0 20 17.143">
-                                                <path id="image" d="M49.143,64H34.857A2.86,2.86,0,0,0,32,66.857V78.286a2.86,2.86,0,0,0,2.857,2.857H49.143A2.86,2.86,0,0,0,52,78.286V66.857A2.86,2.86,0,0,0,49.143,64Zm-3.571,2.857A2.143,2.143,0,1,1,43.429,69a2.143,2.143,0,0,1,2.143-2.143ZM34.857,79.714a1.429,1.429,0,0,1-1.429-1.429V75.267L37.662,71.5a2.146,2.146,0,0,1,2.938.085l2.9,2.893-5.233,5.233Zm15.714-1.429a1.429,1.429,0,0,1-1.429,1.429H40.287l5.421-5.421a2.13,2.13,0,0,1,2.752-.007l2.112,1.76Z" transform="translate(-32 -64)" fill="var(--text-color-1)"/>
-                                            </svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-icon lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                                         </button>
                                     </div>
+                                </div>
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
+
+                {#if column.style === 'media'}
+                    <dl class="settings-group only-pc">
+                        <dt class="settings-group__name">
+                            {$_('media_column_columns')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="radio-v-group">
+                                <div class="radio-v-group__item">
+                                    <input type="radio" id={column.id + 'media_columns_1'} bind:group={mediaColumns} name="{column.id}_media_columns" value={1}><label for={column.id + 'media_columns_1'}>1</label>
+                                </div>
+
+                                <div class="radio-v-group__item">
+                                    <input type="radio" id={column.id + 'media_columns_2'} bind:group={mediaColumns} name="{column.id}_media_columns" value={2}><label for={column.id + 'media_columns_2'}>2</label>
+                                </div>
+
+                                <div class="radio-v-group__item">
+                                    <input type="radio" id={column.id + 'media_columns_3'} bind:group={mediaColumns} name="{column.id}_media_columns" value={3}><label for={column.id + 'media_columns_3'}>3</label>
                                 </div>
                             </div>
                         </dd>

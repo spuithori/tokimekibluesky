@@ -63,8 +63,6 @@
               post.repostCount = pulse.count;
               post.viewer.repost = pulse.viewer;
           }
-
-          toast.success($_('success_to_repost_or_delete_repost'));
       } catch (e) {
           toast.error($_('failed_to_repost'));
           console.error(e);
@@ -112,8 +110,8 @@
       on:ok={() => {repost(post.cid, post.uri, post.viewer?.repost)}}
       on:cancel={() => {isDialogRender = false}}
       confirmationName="repostConfirmSkip"
-      yesText="{$_('repost')}"
-      cancelText="{$_('cancel')}"
+      yesText={$_('repost')}
+      cancelText={$_('cancel')}
   >
     <h3 class="modal-title modal-title--smaller modal-title--center">{$_('repost_confirm_title')}</h3>
     <p class="modal-text modal-text--flex">

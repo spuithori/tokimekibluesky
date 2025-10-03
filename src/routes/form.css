@@ -312,12 +312,10 @@
 }
 
 .radio-v-group {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    border: 1px solid var(--border-color-1);
-    border-radius: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
     font-size: 13px;
-    overflow: hidden;
 
     &--4columns {
         grid-template-columns: repeat(4, 1fr);
@@ -331,18 +329,17 @@
         color: var(--text-color-1);
         position: relative;
 
-        &:not(:last-child) {
-            border-right: 1px solid var(--border-color-1);
-        }
 
         label {
             display: flex;
-            height: 40px;
+            height: 36px;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            background-color: var(--bg-color-1);
-            padding: 0 10px;
+            padding: 0 8px;
+            border-radius: var(--border-radius-3);
+            min-width: 48px;
+            background-color: var(--bg-color-2);
         }
 
         input {

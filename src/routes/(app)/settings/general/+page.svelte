@@ -279,5 +279,19 @@ $effect(() => {
         </div>
       </dd>
     </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('use_virtual')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="useVirtual" bind:checked={$settings.general.useVirtual}><label class="input-toggle__label" for="useVirtual"></label>
+        </div>
+
+        <p class="settings-group__description">CURRENTLY ONLY FOR DEV!!!!</p>
+      </dd>
+    </dl>
   </div>
 </div>

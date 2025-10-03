@@ -32,6 +32,7 @@ type deckSettings = {
     },
     opacity?: number,
     collapse?: boolean,
+    mediaColumns?: number,
 }
 
 export type Column = {

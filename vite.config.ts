@@ -19,4 +19,12 @@ export default defineConfig({
 	experimental: {
 		enableNativePlugin: true,
 	},
+
+	build: {
+		rollupOptions: {
+			optimization: {
+				inlineConst: true,
+			},
+		},
+	},
 });

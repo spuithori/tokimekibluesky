@@ -15,9 +15,10 @@
   import {getTextArray} from "$lib/richtext";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  import MediaTimelineItem from "./MediaTimelineItem.svelte";
+  import MediaTimelineItem from "$lib/components/media/MediaTimelineItem.svelte";
   import VideoTimelineItem from "$lib/components/post/VideoTimelineItem.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
+  import MediaTimelineSingleItem from "$lib/components/media/MediaTimelineSingleItem.svelte";
 
     let {
         _agent = $agent,
@@ -530,7 +531,11 @@
 {#if (!isHide)}
   {#if (column?.style === 'media')}
     {#if (AppBskyEmbedImages.isView(data?.post?.embed) || AppBskyEmbedImages.isView(data?.post?.embed?.media))}
-      <MediaTimelineItem feed={column.data.feed} {index} {data} {_agent}></MediaTimelineItem>
+      {#if (column?.settings?.mediaColumns === 1)}
+        <MediaTimelineSingleItem feed={column.data.feed} {index} {data} {_agent}></MediaTimelineSingleItem>
+      {:else}
+        <MediaTimelineItem feed={column.data.feed} {index} {data} {_agent}></MediaTimelineItem>
+      {/if}
     {/if}
   {:else if (column?.style === 'video')}
     {#if AppBskyEmbedVideo.isView(data?.post?.embed)}
