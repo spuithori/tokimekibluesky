@@ -377,7 +377,7 @@
                 {/if}
 
                 {#if column.style === 'media'}
-                    <dl class="settings-group only-pc">
+                    <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('media_column_columns')}
                         </dt>
