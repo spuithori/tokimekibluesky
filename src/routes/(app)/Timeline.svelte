@@ -182,9 +182,6 @@
 
           isDividerLoading = false;
 
-          await tick();
-          // isInfinite = false;
-
           if (column.data.cursor) {
               loaded();
           } else {
