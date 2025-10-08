@@ -20,11 +20,11 @@ export default defineConfig({
 		enableNativePlugin: true,
 	},
 
-	/* build: {
+	build: {
 		rollupOptions: {
 			optimization: {
 				inlineConst: true,
 			},
 		},
-	}, */
+	},
 });
