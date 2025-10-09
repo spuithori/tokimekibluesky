@@ -23,7 +23,7 @@ export default defineConfig({
 	build: {
 		rollupOptions: {
 			optimization: {
-				inlineConst: true,
+				inlineConst: process.env.NODE_ENV === 'production',
 			},
 		},
 	},
