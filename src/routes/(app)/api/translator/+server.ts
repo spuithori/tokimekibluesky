@@ -27,7 +27,7 @@ async function translator(text = '', to = 'ja', model = undefined) {
     };
 
     if (model === 'llm') {
-        payload.model = `projects/${GCP_PROJECT_ID}/locations/asia-northeast1/models/general/translation-llm`;
+        payload.model = `projects/${GCP_PROJECT_ID}/locations/asia-east1/models/general/translation-llm`;
     }
 
     const response = await fetch(`https://translation.googleapis.com/v3/projects/${GCP_PROJECT_NUMBER}:translateText`, {
