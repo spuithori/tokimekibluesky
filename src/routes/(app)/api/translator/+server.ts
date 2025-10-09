@@ -51,7 +51,6 @@ export async function POST({ request }) {
             }
 
             const body = await translator(textObj.text, textObj.to, textObj.model);
-            console.log(body);
             const text = body.translations[0].translatedText;
             const result = [
                 {
