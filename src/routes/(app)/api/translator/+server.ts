@@ -30,7 +30,7 @@ async function translator(text = '', to = 'ja', model = undefined) {
         body: JSON.stringify({
             targetLanguageCode: to,
             contents: [text],
-            model: model === 'llm' ? `projects/${GCP_PROJECT_ID}/locations/us-central1/models/general/translation-llm` : undefined,
+            model: model === 'llm' ? `projects/${GCP_PROJECT_ID}/locations/us-central1/models/general/translation-llm` : `projects/${GCP_PROJECT_ID}/locations/us-central1/models/general/nmt`,
             mimeType: 'text/plain'
         }),
     })
