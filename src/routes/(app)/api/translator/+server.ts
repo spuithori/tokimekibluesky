@@ -20,6 +20,16 @@ async function translator(text = '', to = 'ja', model = undefined) {
         throw new Error('Failed to get access token.');
     }
 
+    const payload = {
+        targetLanguageCode: to,
+        contents: [text],
+        mimeType: 'text/plain'
+    };
+
+    if (model === 'llm') {
+        payload.model = `projects/${GCP_PROJECT_ID}/locations/us-central1/models/general/translation-llm`;
+    }
+
     const response = await fetch(`https://translation.googleapis.com/v3/projects/${GCP_PROJECT_NUMBER}:translateText`, {
         method: 'post',
         headers: {
@@ -27,12 +37,7 @@ async function translator(text = '', to = 'ja', model = undefined) {
             'Authorization': `Bearer ${accessToken.token}`,
             'x-goog-user-project': GCP_PROJECT_NUMBER,
         },
-        body: JSON.stringify({
-            targetLanguageCode: to,
-            contents: [text],
-            model: model === 'llm' ? `projects/${GCP_PROJECT_ID}/locations/us-central1/models/general/translation-llm` : `projects/${GCP_PROJECT_ID}/locations/us-central1/models/general/nmt`,
-            mimeType: 'text/plain'
-        }),
+        body: JSON.stringify(payload),
     })
     return await response.json();
 }
