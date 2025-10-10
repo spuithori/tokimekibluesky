@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@neoconfetti/svelte": "^2.2.2",
-    "@sveltejs/kit": "2.46.3",
+    "@sveltejs/kit": "2.46.4",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "postcss": "^8.4.14",
     "postcss-load-config": "^4.0.1",
@@ -70,6 +70,6 @@
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.0.5",
     "vidstack": "^1.12.13",
-    "virtua": "^0.44.3"
+    "virtua": "^0.45.0"
   }
 }
