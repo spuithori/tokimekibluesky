@@ -8,7 +8,7 @@
   import Paragraph from '@tiptap/extension-paragraph';
   import HardBreak from '@tiptap/extension-hard-break';
   import Mention from '@tiptap/extension-mention';
-  import Emoji from '@tiptap/extension-emoji';
+  import Emoji, {emojis} from '@tiptap/extension-emoji';
   import { Placeholder, UndoRedo } from '@tiptap/extensions';
   import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
   import {timelineHashtags, hashtagHistory} from "$lib/stores";
@@ -211,7 +211,8 @@
                     placeholder: $_('send_placeholder1'),
                 }),
                 UndoRedo,
-                Emoji.configure({
+                /* Emoji.configure({
+                    emojis: emojis,
                     suggestion: {
                         items: ({editor, query}) => {
                             return editor.storage.emoji.emojis
@@ -253,7 +254,7 @@
                             }
                         }
                     }
-                })
+                }) */
             ],
             onSelectionUpdate: ({ editor }) => {
                 isLinkActive = editor.isActive('link');
