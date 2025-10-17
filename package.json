@@ -44,7 +44,6 @@
     "@sveltejs/adapter-vercel": "^5.10.3",
     "@tiptap/core": "^3.7.0",
     "@tiptap/extension-document": "^3.7.0",
-    "@tiptap/extension-emoji": "^3.7.0",
     "@tiptap/extension-hard-break": "^3.7.0",
     "@tiptap/extension-link": "^3.7.0",
     "@tiptap/extension-mention": "^3.7.0",

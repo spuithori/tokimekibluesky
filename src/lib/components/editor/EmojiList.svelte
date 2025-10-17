@@ -38,7 +38,7 @@
         const item = props.items[index];
 
         if (item) {
-            props.command({name: item.name});
+            props.command({emoji: item.emoji});
         }
     }
 
