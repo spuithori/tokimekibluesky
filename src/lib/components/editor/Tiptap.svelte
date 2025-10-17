@@ -222,7 +222,7 @@
                                         tags.find(tag => tag.startsWith(query.toLowerCase()))
                                     )
                                 })
-                                .slice(0, 5);
+                                .slice(0, 8);
                         },
                         render: () => {
                             return {
