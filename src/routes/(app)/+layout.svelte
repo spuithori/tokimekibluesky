@@ -35,9 +35,6 @@
   import ImageModal from "$lib/components/utils/ImageModal.svelte";
   import "@fontsource-variable/inter";
   import "@fontsource-variable/noto-sans-jp";
-  import "@fontsource-variable/noto-sans-kr";
-  import "@fontsource-variable/murecho";
-  import "@fontsource/zen-maru-gothic";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {appState} from "$lib/classes/appState.svelte";
 
@@ -226,6 +223,22 @@
       );
     });
   });
+
+  $effect(() => {
+    if ($locale === 'ko') {
+      import('@fontsource-variable/noto-sans-kr/wght.css');
+    }
+  });
+
+  $effect(() => {
+    if ($settings?.design?.fontTheme === 'murecho') {
+      import('@fontsource-variable/murecho/wght.css');
+    }
+
+    if ($settings?.design?.fontTheme === 'zenmaru') {
+      import('@fontsource/zen-maru-gothic/index.css');
+    }
+  })
 </script>
 
 <svelte:head>
@@ -253,7 +266,7 @@
 </svelte:head>
 
 <div
-    class="app theme-{$settings?.design.theme} {$_('dir', {default: 'ltr'})} lang-{$locale} skin-{$settings?.design.skin} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
+    class="app {$_('dir', {default: 'ltr'})} lang-{$locale} font-size-{$settings.design?.fontSize || 2} font-theme-{$settings?.design?.fontTheme || 'default'}"
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={isDarkMode}
     class:single={$settings?.design.layout !== 'decks'}

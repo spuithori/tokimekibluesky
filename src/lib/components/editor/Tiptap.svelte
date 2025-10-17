@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { preventDefault } from 'svelte/legacy';
-
   import {_} from 'svelte-i18n';
   import {onMount, onDestroy} from 'svelte'
   import {Editor} from '@tiptap/core'
@@ -10,6 +8,7 @@
   import Paragraph from '@tiptap/extension-paragraph';
   import HardBreak from '@tiptap/extension-hard-break';
   import Mention from '@tiptap/extension-mention';
+  import Emoji from '@tiptap/extension-emoji';
   import { Placeholder, UndoRedo } from '@tiptap/extensions';
   import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
   import {timelineHashtags, hashtagHistory} from "$lib/stores";
@@ -22,6 +21,7 @@
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
   import {Clapperboard, Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink} from "lucide-svelte";
+  import EmojiList from "$lib/components/editor/EmojiList.svelte";
 
   interface Props {
     json: any;
@@ -53,10 +53,12 @@
     let editor = $state();
     let mentionList = $state();
     let hashtagList = $state();
+    let emojiList = $state();
 
     let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
     let mentionProps = $state();
     let hashtagProps = $state();
+    let emojiProps = $state();
     let linkDialog = $state();
     let linkValue = $state('');
     let linkButtonDisabled = $state(true);
@@ -64,6 +66,8 @@
     let isLinkActive = $state(false);
     let isEmojiPickerOpen = $state(false);
     let isFocus = $state(false);
+
+    $inspect(emojiList);
 
     onMount(() => {
         editor = new Editor({
@@ -207,6 +211,49 @@
                     placeholder: $_('send_placeholder1'),
                 }),
                 UndoRedo,
+                Emoji.configure({
+                    suggestion: {
+                        items: ({editor, query}) => {
+                            return editor.storage.emoji.emojis
+                                .filter(({ shortcodes, tags }) => {
+                                    return (
+                                        shortcodes.find(shortcode => shortcode.startsWith(query.toLowerCase())) ||
+                                        tags.find(tag => tag.startsWith(query.toLowerCase()))
+                                    )
+                                })
+                                .slice(0, 5);
+                        },
+                        render: () => {
+                            return {
+                                onStart: props => {
+                                    if (!props.clientRect) {
+                                        return
+                                    }
+
+                                    emojiProps = props;
+                                },
+                                onUpdate: props => {
+                                    if (!props.clientRect) {
+                                        return
+                                    }
+
+                                    emojiProps = props;
+                                },
+                                onExit() {
+                                    emojiProps = null;
+                                },
+                                onKeyDown: props => {
+                                    if (props.event.key === 'Escape') {
+                                        emojiProps = null;
+                                        return true;
+                                    }
+
+                                    return emojiList.handleKeyDown(props)
+                                }
+                            }
+                        }
+                    }
+                })
             ],
             onSelectionUpdate: ({ editor }) => {
                 isLinkActive = editor.isActive('link');
@@ -353,10 +400,14 @@
   <HashtagList props={hashtagProps} bind:this={hashtagList}></HashtagList>
 {/if}
 
+{#if (emojiProps)}
+  <EmojiList props={emojiProps} bind:this={emojiList}></EmojiList>
+{/if}
+
 <dialog class="editor-link-dialog" bind:this={linkDialog} onclose={submitLink}>
   <form>
     <input type="text" class="editor-link-dialog__input" bind:value={linkValue} placeholder="https://tokimeki.blue">
-    <button class="editor-link-dialog__button" onclick={preventDefault(() => {linkDialog.close(linkValue)})}>
+    <button class="editor-link-dialog__button" onclick={() => {linkDialog.close(linkValue)}}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-corner-down-left"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
     </button>
   </form>
