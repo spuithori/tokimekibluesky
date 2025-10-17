@@ -34,8 +34,6 @@ export const Emoji = Node.create<EmojiOptions>({
                         range.to += 1
                     }
 
-                    console.log(props);
-
                     editor
                         .chain()
                         .focus()

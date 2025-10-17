@@ -67,8 +67,6 @@
     let isEmojiPickerOpen = $state(false);
     let isFocus = $state(false);
 
-    $inspect(emojiList);
-
     onMount(() => {
         editor = new Editor({
             element: element,
@@ -214,7 +212,6 @@
                 Emoji.configure({
                     suggestion: {
                         items: ({editor, query}) => {
-                            console.log(editor);
                             return editor.storage.emoji.emojis
                                 .filter(({ shortcodes, tags }) => {
                                     return (
