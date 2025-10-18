@@ -13,6 +13,7 @@
         index: any;
         _agent: any;
         layout?: string;
+        onclose: (refreshed?: boolean) => void;
     }
 
     let {
@@ -25,83 +26,38 @@
     const columnState = getColumnState();
     let column = columnState.getColumn(index);
 
-    let hideRepost = $state(column.settings?.timeline?.hideRepost || null);
-    let hideReply = $state(column.settings?.timeline?.hideReply || null);
-    let hideQuote = $state(column.settings?.timeline?.hideQuote || null);
-    let simpleReply = $state(column.settings?.timeline?.simpleReply || null);
-    let langFilterEnabled = $state(column.settings?.langFilterEnabled || false);
-    let langFilter = $state(column.settings?.langFilter || []);
-    let autoRefresh = $state(column.settings?.autoRefresh || 0);
-    let refreshToTop = $state(column.settings?.refreshToTop || false);
-    let autoScroll = $state(column.settings?.autoScroll || false);
-    let autoScrollSpeed = $state(column.settings?.autoScrollSpeed || 'normal');
-    let width = $state(column.settings?.width || 'medium');
-    let icon = $state(column.settings?.icon || null);
-    let onlyShowUnread = $state(column.settings?.onlyShowUnread || false);
-    let playSound = $state(column.settings?.playSound || null);
-    let hideCounts = $state(column.settings?.hideCounts || false);
-    let isPopup = $state(column.settings?.isPopup || false);
-    let popupPosition = $state(column.settings?.popupPosition || {
-        x: 0,
-        y: 0,
-        width: 280,
-        height: 400,
-    });
-    let opacity = $state(column.settings?.opacity || 100);
-    let background = $state(column.settings?.background || '');
-    let showReactionViaRepost = $state(column.settings?.showReactionViaRepost || false);
-    let mediaColumns = $state(column?.settings?.mediaColumns || 2);
-
-    $effect(() => {
-        column.settings = {
-            timeline: {
-                hideRepost: hideRepost,
-                hideReply: hideReply,
-                hideQuote: hideQuote,
-                simpleReply: simpleReply,
-            },
-            langFilterEnabled: langFilterEnabled,
-            langFilter: $state.snapshot(langFilter),
-            autoRefresh: autoRefresh,
-            refreshToTop: refreshToTop,
-            autoScroll: autoScroll,
-            autoScrollSpeed: autoScrollSpeed,
-            width: width,
-            icon: icon,
-            onlyShowUnread: onlyShowUnread,
-            playSound: playSound,
-            hideCounts: hideCounts,
-            isPopup: isPopup,
-            popupPosition: popupPosition,
-            opacity: opacity,
-            background: background,
-            showReactionViaRepost: showReactionViaRepost,
-            mediaColumns: mediaColumns,
-        }
-    })
-
-    if (!column.settings) {
-        column.settings = {
-            timeline: {
-                hideRepost: null,
-                hideReply: null,
-                hideQuote: null,
-                simpleReply: null,
-            },
-            langFilterEnabled: false,
-            langFilter: [],
-            autoRefresh: 0,
-            refreshToTop: false,
-            autoScroll: false,
-            autoScrollSpeed: 'auto',
-            onlyShowUnread: false,
-            playSound: null,
-            hideCounts: false,
-            opacity: 1.0,
-            showReactionViaRepost: false,
-            mediaColumns: 3,
-        }
-    }
+    const defaultSettings = {
+        timeline: {
+            hideRepost: null,
+            hideReply: null,
+            hideMention: null,
+            hideQuote: null,
+            simpleReply: null,
+        },
+        langFilterEnabled: false,
+        langFilter: [],
+        autoRefresh: 0,
+        refreshToTop: false,
+        autoScroll: false,
+        autoScrollSpeed: 'auto',
+        width: 'medium',
+        icon: null,
+        onlyShowUnread: false,
+        playSound: null,
+        hideCounts: false,
+        isPopup: false,
+        popupPosition: {
+            x: 0,
+            y: 0,
+            width: 280,
+            height: 400,
+        },
+        opacity: 100,
+        background: '',
+        showReactionViaRepost: false,
+        mediaColumns: 3,
+    };
+    column.settings = {...defaultSettings, ...column.settings};
 
     const playSoundSettings = [
         {
@@ -385,15 +341,15 @@
                         <dd class="settings-group__content">
                             <div class="radio-v-group">
                                 <div class="radio-v-group__item">
-                                    <input type="radio" id={column.id + 'media_columns_1'} bind:group={mediaColumns} name="{column.id}_media_columns" value={1}><label for={column.id + 'media_columns_1'}>1</label>
+                                    <input type="radio" id={column.id + 'media_columns_1'} bind:group={column.settings.mediaColumns} name="{column.id}_media_columns" value={1}><label for={column.id + 'media_columns_1'}>1</label>
                                 </div>
 
                                 <div class="radio-v-group__item">
-                                    <input type="radio" id={column.id + 'media_columns_2'} bind:group={mediaColumns} name="{column.id}_media_columns" value={2}><label for={column.id + 'media_columns_2'}>2</label>
+                                    <input type="radio" id={column.id + 'media_columns_2'} bind:group={column.settings.mediaColumns} name="{column.id}_media_columns" value={2}><label for={column.id + 'media_columns_2'}>2</label>
                                 </div>
 
                                 <div class="radio-v-group__item">
-                                    <input type="radio" id={column.id + 'media_columns_3'} bind:group={mediaColumns} name="{column.id}_media_columns" value={3}><label for={column.id + 'media_columns_3'}>3</label>
+                                    <input type="radio" id={column.id + 'media_columns_3'} bind:group={column.settings.mediaColumns} name="{column.id}_media_columns" value={3}><label for={column.id + 'media_columns_3'}>3</label>
                                 </div>
                             </div>
                         </dd>
@@ -411,7 +367,7 @@
                                 {#each widthSettings as option}
                                     {#if ($settings.design?.layout === 'decks')}
                                         <div class="radio-v-group__item">
-                                            <input type="radio" id={column.id + option.value} bind:group={width} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
+                                            <input type="radio" id={column.id + option.value} bind:group={column.settings.width} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
                                         </div>
                                     {:else}
                                         <div class="radio-v-group__item">
@@ -432,7 +388,7 @@
 
                         <dd class="settings-group__content">
                             <div class="input-toggle">
-                                <input class="input-toggle__input" type="checkbox" id={column.id + 'refreshToTop'} bind:checked={refreshToTop}><label class="input-toggle__label" for={column.id + 'refreshToTop'}></label>
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'refreshToTop'} bind:checked={column.settings.refreshToTop}><label class="input-toggle__label" for={column.id + 'refreshToTop'}></label>
                             </div>
                         </dd>
                     </dl>
@@ -448,7 +404,7 @@
                             <div class="form-select">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
 
-                                <select class="form-select__select" bind:value={autoRefresh}>
+                                <select class="form-select__select" bind:value={column.settings.autoRefresh}>
                                     {#each autoRefreshSettings as option}
                                         <option value="{option.value}">{option.name}</option>
                                     {/each}
@@ -457,7 +413,7 @@
                         </dd>
                     </dl>
 
-                    {#if (autoRefresh === -1)}
+                    {#if (column.settings.autoRefresh === -1)}
                         <Notice text={$_('auto_refresh_realtime_notice')}></Notice>
 
                         {#if (column.algorithm.type === 'default')}
@@ -475,7 +431,7 @@
                         <div class="form-select">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
 
-                            <select class="form-select__select" bind:value={playSound}>
+                            <select class="form-select__select" bind:value={column.settings.playSound}>
                                 {#each playSoundSettings as option}
                                     <option value="{option.value}">{option.name}</option>
                                 {/each}
@@ -492,7 +448,7 @@
 
                         <dd class="settings-group__content">
                             <div class="range">
-                                <input class="range__input" type="range" min="60" max="100" step="1" bind:value={opacity}>
+                                <input class="range__input" type="range" min="60" max="100" step="1" bind:value={column.settings.opacity}>
                             </div>
                         </dd>
                     </dl>
@@ -508,7 +464,7 @@
                             <div class="icons-radio-group icons-radio-group--grid icons-radio-group--bg">
                                 {#each backgroundsMap as [key, value]}
                                     <div class="icons-radio icons-radio--skin">
-                                        <input type="radio" bind:group={background} id="bg_{key}" name="skin" value={key}>
+                                        <input type="radio" bind:group={column.settings.background} id="bg_{key}" name="skin" value={key}>
                                         <label for="bg_{key}">
                                     <span class="icons-radio__ui">
                                         {#if value.url}
@@ -531,13 +487,13 @@
 
                         <dd class="settings-group__content">
                             <div class="input-toggle">
-                                <input class="input-toggle__input" type="checkbox" id={column.id + 'autoScroll'} bind:checked={autoScroll}><label class="input-toggle__label" for={column.id + 'autoScroll'}></label>
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'autoScroll'} bind:checked={column.settings.autoScroll}><label class="input-toggle__label" for={column.id + 'autoScroll'}></label>
                             </div>
                         </dd>
                     </dl>
                 {/if}
 
-                {#if (autoScroll)}
+                {#if (column.settings.autoScroll)}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('auto_scroll_speed')}
@@ -547,7 +503,7 @@
                             <div class="radio-v-group radio-v-group--4columns">
                                 {#each autoScrollSpeedSettings as option}
                                     <div class="radio-v-group__item">
-                                        <input type="radio" id={column.id + option.value} bind:group={autoScrollSpeed} name="{column.id}_autoscroll" value={option.value}><label for={column.id + option.value}>{option.name}</label>
+                                        <input type="radio" id={column.id + option.value} bind:group={column.settings.autoScrollSpeed} name="{column.id}_autoscroll" value={option.value}><label for={column.id + option.value}>{option.name}</label>
                                     </div>
                                 {/each}
                             </div>
@@ -575,7 +531,7 @@
 
                         <dd class="settings-group__content">
                             <div class="input-toggle">
-                                <input class="input-toggle__input" type="checkbox" id={column.id + 'onlyShowUnread'} bind:checked={onlyShowUnread} onchange={() => {onclose(true)}}><label class="input-toggle__label" for={column.id + 'onlyShowUnread'}></label>
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'onlyShowUnread'} bind:checked={column.settings.onlyShowUnread} onchange={() => {onclose(true)}}><label class="input-toggle__label" for={column.id + 'onlyShowUnread'}></label>
                             </div>
                         </dd>
                     </dl>
@@ -587,7 +543,7 @@
 
                         <dd class="settings-group__content">
                             <div class="input-toggle">
-                                <input class="input-toggle__input" type="checkbox" id={column.id + 'hideNotificationCounts'} bind:checked={hideCounts}><label class="input-toggle__label" for={column.id + 'hideNotificationCounts'}></label>
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'hideNotificationCounts'} bind:checked={column.settings.hideCounts}><label class="input-toggle__label" for={column.id + 'hideNotificationCounts'}></label>
                             </div>
                         </dd>
                     </dl>
@@ -603,7 +559,7 @@
                             <div class="form-select">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
 
-                                <select class="form-select__select" bind:value={hideRepost}>
+                                <select class="form-select__select" bind:value={column.settings.timeline.hideRepost}>
                                     {#each repostSettings as option}
                                         <option value="{option.value}">{option.name}</option>
                                     {/each}
@@ -621,7 +577,7 @@
                             <div class="form-select">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
 
-                                <select class="form-select__select" bind:value={hideReply}>
+                                <select class="form-select__select" bind:value={column.settings.timeline.hideReply}>
                                     {#each replySettings as option}
                                         <option value="{option.value}">{option.name}</option>
                                     {/each}
@@ -637,7 +593,7 @@
 
                         <dd class="settings-group__content">
                             <div class="input-toggle">
-                                <input class="input-toggle__input" type="checkbox" id={column.id + 'hideQuote'} bind:checked={hideQuote}><label class="input-toggle__label" for={column.id + 'hideQuote'}></label>
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'hideQuote'} bind:checked={column.settings.timeline.hideQuote}><label class="input-toggle__label" for={column.id + 'hideQuote'}></label>
                             </div>
                         </dd>
                     </dl>
@@ -649,7 +605,7 @@
 
                         <dd class="settings-group__content">
                             <div class="input-toggle">
-                                <input class="input-toggle__input" type="checkbox" id={column.id + 'simpleReply'} bind:checked={simpleReply}><label class="input-toggle__label" for={column.id + 'simpleReply'}></label>
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'simpleReply'} bind:checked={column.settings.timeline.simpleReply}><label class="input-toggle__label" for={column.id + 'simpleReply'}></label>
                             </div>
                         </dd>
                     </dl>
@@ -661,12 +617,12 @@
 
                         <dd class="settings-group__content">
                             <div class="input-toggle">
-                                <input class="input-toggle__input" type="checkbox" id={column.id + 'langFilterEnabled'} bind:checked={langFilterEnabled}><label class="input-toggle__label" for={column.id + 'langFilterEnabled'}></label>
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'langFilterEnabled'} bind:checked={column.settings.langFilterEnabled}><label class="input-toggle__label" for={column.id + 'langFilterEnabled'}></label>
                             </div>
                         </dd>
                     </dl>
 
-                    {#if langFilterEnabled}
+                    {#if column.settings.langFilterEnabled}
                         <div class="lang-filter-wrap">
                             <Notice text={$_('lang_filter_notice')}></Notice>
 
@@ -677,7 +633,7 @@
 
                                         <div class="input-toggle">
                                             <input class="input-toggle__input" type="checkbox" id={k}
-                                                   value={k} name="Languages" bind:group={langFilter}><label class="input-toggle__label" for={k}></label>
+                                                   value={k} name="Languages" bind:group={column.settings.langFilter}><label class="input-toggle__label" for={k}></label>
                                         </div>
                                     </div>
                                 {/each}

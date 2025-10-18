@@ -21,6 +21,8 @@ type deckSettings = {
     autoScrollSpeed?: 'auto' | 'slow' | 'normal' | 'fast',
     width?: 'large' | 'medium' | 'small',
     icon?: string | null,
+    onlyShowUnread?: boolean,
+    playSound?: null | string,
     hideCounts?: boolean,
     background?: string,
     isPopup?: boolean,
@@ -32,6 +34,7 @@ type deckSettings = {
     },
     opacity?: number,
     collapse?: boolean,
+    showReactionViaRepost?: boolean,
     mediaColumns?: number,
 }
 
