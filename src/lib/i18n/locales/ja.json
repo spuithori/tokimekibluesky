@@ -721,5 +721,6 @@
   "viewer": "レコード探索",
   "official_bookmark": "ブックマーク (App)",
   "use_virtual": "仮想リストを使用する（実験的）",
-  "media_column_columns": "画像の行数"
+  "media_column_columns": "画像の行数",
+  "open_skyblur_additional": "補足テキストがあります"
 }

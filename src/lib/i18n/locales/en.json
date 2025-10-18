@@ -721,5 +721,6 @@
   "viewer": "ATP Records",
   "official_bookmark": "Bookmark (App)",
   "use_virtual": "Use virtual list (Experimental)",
-  "media_column_columns": "Picture columns"
+  "media_column_columns": "Picture columns",
+  "open_skyblur_additional": "Additional text is available."
 }

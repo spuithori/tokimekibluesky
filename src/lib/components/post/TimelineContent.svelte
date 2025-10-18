@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {agents, labelerSettings, settings, workerTimer} from "$lib/stores";
+  import {agents, labelerSettings, settings} from "$lib/stores";
   import {format, parseISO} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
@@ -22,6 +22,7 @@
   import {BadgeCheck, CircleCheck, Eye, Handshake} from "lucide-svelte";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
   import {appState} from "$lib/classes/appState.svelte";
+  import {getNextUpdateDelay} from "$lib/components/post/timelineUtil";
 
   interface Props {
       post: any;
@@ -56,6 +57,8 @@
   let warnBehavior: 'cover' | 'inform' = $state('cover');
   let timeDistanceToNow = $state(intlRelativeTimeFormatState.format({ laterDate: parseISO(post.indexedAt) }));
   let skyblurText = $state('');
+  let isSkyblurAdditional = $state(false);
+  let timerId: ReturnType<typeof setTimeout>;
 
   const moderateData = contentLabelling(post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
   const contentContext = isSingle
@@ -113,12 +116,6 @@
       })
   }
 
-  function handleTimer(e) {
-      if (e.data % 5 === 0) {
-          timeDistanceToNow = intlRelativeTimeFormatState.format({ laterDate: parseISO(post.indexedAt) });
-      }
-  }
-
   async function handleSkyblurShow() {
       try {
           const __agent = new BskyAgent({service: _agent.service()});
@@ -131,6 +128,10 @@
 
           if (res?.data?.value?.text) {
               skyblurText = res.data.value.text.replace(/[\[\]]/g, '');
+
+              if (res?.data?.value?.additional) {
+                  isSkyblurAdditional = true;
+              }
           } else {
               throw new Error('Skyblur text not found.');
           }
@@ -139,10 +140,21 @@
       }
   }
 
-  $workerTimer.addEventListener('message', handleTimer);
+  function update() {
+      timeDistanceToNow = intlRelativeTimeFormatState.format({ laterDate: parseISO(post.indexedAt) });
+
+      const delay = getNextUpdateDelay(parseISO(post.indexedAt));
+
+      if (delay !== null) {
+          timerId = setTimeout(update, delay);
+      }
+  }
+  update();
 
   onDestroy(() => {
-      $workerTimer.removeEventListener('message', handleTimer);
+      if (timerId) {
+          clearTimeout(timerId);
+      }
   })
 </script>
 
@@ -199,10 +211,7 @@
     </p>
 
     {#if (post.record.langs && !post.record.langs.includes($settings.general.userLanguage))}
-      <button
-          class="timeline-translate-button"
-          disabled={isTranslated}
-          onclick={translation}>{$_(isTranslated ? 'already_translated' : 'translation')}</button>
+      <button class="timeline-translate-button" disabled={isTranslated} onclick={translation}>{$_(isTranslated ? 'already_translated' : 'translation')}</button>
     {/if}
   </div>
 
@@ -233,6 +242,13 @@
           text: skyblurText,
       }} {_agent} handle={post?.author?.handle}></TimelineText>
       </p>
+    {/if}
+
+    {#if (isSkyblurAdditional)}
+      <a class="skyblur-show" href="https://skyblur.uk/post/{post.author.did}/{post.uri.split('/').slice(-1)[0]}" target="_blank" rel="noopener nofollow noreferrer">
+        <Eye size="18" color="var(--primary-color)"></Eye>
+        {$_('open_skyblur_additional')}
+      </a>
     {/if}
 
     {#if (translatedRecord)}
