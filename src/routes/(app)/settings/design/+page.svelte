@@ -8,7 +8,11 @@
     import {builtInThemes} from "$lib/builtInThemes";
     import {defaultColors} from "$lib/defaultColors";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
-    import { AppWindowMac, ChevronRight, Columns3, GalleryVertical, Palette, PanelBottomOpen, PanelLeftOpen, RectangleVertical } from "lucide-svelte";
+    import {
+        AppWindowMac,
+        Bubbles, ChevronRight, Columns3, GalleryVertical, Palette, PanelBottomOpen, PanelLeftOpen, RectangleVertical,
+        Rows3
+    } from "lucide-svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
     import Notice from "$lib/components/ui/Notice.svelte";
     let skin: string = $state($settings?.design.skin || 'default');
@@ -183,8 +187,22 @@
       </dt>
 
       <dd class="settings-group__content">
-        <div class="input-toggle">
-          <input class="input-toggle__input" type="checkbox" id="bubbleTimeline" bind:checked={$settings.design.bubbleTimeline}><label class="input-toggle__label" for="bubbleTimeline"></label>
+        <div class="layout-radio-group">
+          <div class="layout-radio" class:layout-radio--current={$settings.design.bubbleTimeline === false}>
+            <input type="radio" bind:group={$settings.design.bubbleTimeline} id="bubbleTimelineFalse" name="bubbleTimeline" value={false}>
+            <label for="bubbleTimelineFalse">
+              <Rows3 size="22" color="var(--radio-current-color)"></Rows3>
+              {$_('bubble_false')}
+            </label>
+          </div>
+
+          <div class="layout-radio" class:layout-radio--current={$settings.design.bubbleTimeline === true}>
+            <input type="radio" bind:group={$settings.design.bubbleTimeline} id="bubbleTimelineTrue" name="bubbleTimeline" value={true}>
+            <label for="bubbleTimelineTrue">
+              <Bubbles size="22" color="var(--radio-current-color)"></Bubbles>
+              {$_('bubble_true')}
+            </label>
+          </div>
         </div>
       </dd>
     </dl>
