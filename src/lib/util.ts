@@ -84,6 +84,16 @@ export function getDidFromUri(uri: string | undefined) {
     return uri.split('/')[2];
 }
 
+export async function getDisplayNameByDid(did: string, _agent: Agent) {
+    try {
+        const { data } = await _agent.agent.api.app.bsky.actor.getProfile({ actor: did });
+        return data.displayName || `@${data.handle}`;
+    } catch (e) {
+        console.error(e);
+        return did;
+    }
+}
+
 export async function getImageObjectFromBlob(did: string, blob: { cid: string, mimeType: string, alt: string, width: string, height: string }, _agent: BskyAgent) {
     const res =  await _agent.api.com.atproto.sync.getBlob({did: did as string, cid: blob.cid});
     const _blob = new Blob([res.data], {type: blob.mimeType});

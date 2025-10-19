@@ -4,7 +4,7 @@
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
     import {agent, agents, intersectingIndex, isColumnModalOpen, settings} from "$lib/stores";
-    import {getAccountIdByDid} from "$lib/util";
+    import {getAccountIdByDid, getDisplayNameByDid} from "$lib/util";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
@@ -135,7 +135,7 @@
         })
     }
 
-    function columnAddFromJunk() {
+    async function columnAddFromJunk() {
         const _column = {
             ...column,
             id: self.crypto.randomUUID(),
@@ -145,6 +145,10 @@
         _column.algorithm.name = name || column.algorithm.name;
 
         try {
+            if (_column.algorithm.type === 'author') {
+                _column.algorithm.name = await getDisplayNameByDid(_column.algorithm.algorithm, _agent);
+            }
+
             fixedColumnState.add(_column);
 
             toast.success($_('column_added'));
