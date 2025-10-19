@@ -200,7 +200,7 @@
                       right: 0;
                       height: 1px;
                       width: 100%;
-                      background-color: var(--border-color-1);
+                      background-color: var(--border-color-2);
                   }
               }
           }

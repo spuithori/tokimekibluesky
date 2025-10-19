@@ -28,7 +28,7 @@
   .side {
       display: grid;
       grid-template-columns: 64px 340px;
-      padding-top: 8px;
+      padding-top:var(--side-padding-top, 8px);
       padding-bottom: 4px;
       padding-right: var(--side-padding-right, 8px);
       position: fixed;
@@ -37,6 +37,7 @@
       left: 0;
       z-index: 1002;
       background-color: var(--side-bg-color);
+      border-radius: var(--side-border-radius, 0);
 
       @media (max-width: 767px) {
           position: static;
@@ -45,11 +46,13 @@
           height: auto;
           backdrop-filter: none;
           padding: 0;
+          border-radius: 0;
       }
 
       &--single {
           position: sticky;
           height: 100dvh;
+          border-radius: var(--single-side-border-radius, 0);
 
           @media (max-width: 767px) {
               position: static;
@@ -58,6 +61,7 @@
               height: auto;
               backdrop-filter: none;
               padding: 0;
+              border-radius: 0;
           }
       }
 
@@ -123,13 +127,17 @@
       border-radius: var(--nav-content-border-radius);
       background-color: var(--nav-content-bg-color);
       background-image: var(--nav-content-bg-image, none);
-      border: var(--nav-content-border-width) solid var(--nav-content-border-color);
+      border-width: var(--nav-content-border-width);
+      border-color: var(--nav-content-border-color);
+      border-style: solid;
       flex: 1;
       max-height: calc(100svh - 60px);
       box-shadow: var(--side-box-shadow);
+      padding: var(--nav-content-padding, 0);
 
       @media (max-width: 767px) {
           border: none;
+          padding: 0;
       }
 
       @media (min-width: 768px) {

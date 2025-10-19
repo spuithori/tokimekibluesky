@@ -37,18 +37,22 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       border: 1px solid var(--border-color-2);
-      border-radius: var(--border-radius-2);
+      border-radius: var(--border-radius-4);
       background-color: var(--bg-color-3);
       overflow: hidden;
+      padding: 4px;
 
       &__item {
-          height: 40px;
+          height: 36px;
           position: relative;
           cursor: pointer;
           border-right: 1px solid var(--border-color-2);
           display: flex;
           align-items: center;
           justify-content: center;
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text-color-2);
 
           &:last-child {
               border-right: none;
@@ -57,6 +61,7 @@
           &:has(input:checked) {
               background-color: var(--primary-color);
               color: var(--bg-color-1);
+              border-radius: var(--border-radius-3);
           }
       }
 

@@ -129,6 +129,7 @@
     margin: 0 auto;
     position: relative;
     background-color: var(--publish-textarea-bg-color);
+    border: var(--publish-textarea-border, none);
     border-radius: var(--border-radius-3);
 
     @media (max-width: 767px) {

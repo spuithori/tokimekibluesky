@@ -579,7 +579,10 @@
 
         &--single {
             height: auto;
-            border: none;
+            border-top: 1px solid transparent;
+            border-bottom: 1px solid transparent;
+            border-left: none;
+            border-right: none;
             width: auto;
             border-radius: 0;
             overflow: visible;

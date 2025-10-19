@@ -48,7 +48,7 @@
       }
 
       &--compact {
-          width: 64px;
+          width: var(--deck-divider-compact-width, 64px);
       }
   }
 

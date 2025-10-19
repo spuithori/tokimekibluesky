@@ -207,7 +207,7 @@
                     bottom: -16px;
                     width: 100%;
                     height: 16px;
-                    background-image: linear-gradient(to top, var(--base-bg-color), transparent);
+                    background-image: linear-gradient(to top, var(--side-bg-color, var(--base-bg-color)), transparent);
                     pointer-events: none;
                     flex-shrink: 0;
                 }

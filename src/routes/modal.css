@@ -140,8 +140,8 @@
     .modal-page-content {
         min-height: 100dvh;
         background-color: var(--modal-page-bg-color, var(--bg-color-1));
-        border-left: 1px solid var(--border-color-2);
-        border-right: 1px solid var(--border-color-2);
+        border-left: var(--single-border, 1px solid var(--border-color-2));
+        border-right: var(--single-border, 1px solid var(--border-color-2));
         position: relative;
         z-index: 1001;
 

@@ -130,8 +130,8 @@
         margin: var(--bubble-marin, 16px 0);
         padding: var(--bubble-padding, 16px);
         background-color: var(--bubble-bg-color, var(--timeline-bg-color));
-        border: 1px solid var(--border-color-2);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+        border: var(--bubble-border, 1px solid var(--border-color-2));
+        box-shadow: var(--bubble-box-shadow, 0 2px 8px rgba(0, 0, 0, .04));
     }
 }
 

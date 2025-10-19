@@ -20,7 +20,6 @@
         bottom: 0;
         z-index: 100;
         padding-bottom: 12px;
-        background-color: var(--publish-textarea-bg-color);
         padding-inline: 12px;
         justify-content: space-between;
 
