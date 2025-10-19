@@ -179,6 +179,18 @@
 
     <dl class="settings-group">
       <dt class="settings-group__name">
+        {$_('bubble_timeline')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="bubbleTimeline" bind:checked={$settings.design.bubbleTimeline}><label class="input-toggle__label" for="bubbleTimeline"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
         {$_('skin_theme')}
       </dt>
 
@@ -315,7 +327,6 @@
       </dd>
     </dl>
 
-
     <dl class="settings-group">
       <dt class="settings-group__name">
         {$_('posts_layout')}
@@ -396,18 +407,6 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="oneImageNoCrop" bind:checked={oneImageNoCrop}><label class="input-toggle__label" for="oneImageNoCrop"></label>
-        </div>
-      </dd>
-    </dl>
-
-    <dl class="settings-group">
-      <dt class="settings-group__name">
-        {$_('bubble_timeline')}
-      </dt>
-
-      <dd class="settings-group__content">
-        <div class="input-toggle">
-          <input class="input-toggle__input" type="checkbox" id="bubbleTimeline" bind:checked={$settings.design.bubbleTimeline}><label class="input-toggle__label" for="bubbleTimeline"></label>
         </div>
       </dd>
     </dl>
