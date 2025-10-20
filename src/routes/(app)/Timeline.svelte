@@ -22,6 +22,7 @@
   let realtimeCounter = 0;
   let isDividerLoading = $state(false);
   let dividerFillerHeight = $state(0);
+  let controller: null | AbortController = null;
 
   $effect(() => {
       insertRealtimeData($realtime);
@@ -150,7 +151,8 @@
 
   const handleLoadMore = async (loaded, complete) => {
       try {
-        const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage});
+        controller = new AbortController();
+        const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, controller.signal);
           column.data.cursor = res.data.cursor;
 
           const feed = res.data.feed.filter(feed => {
@@ -161,19 +163,33 @@
           });
 
           if (column.algorithm.type === 'author') {
-              column.data.feed =  [...column.data.feed, ...feed].filter((feed, index, _feeds) => {
-                  if (isReasonRepost(feed.reason)) {
-                      return true;
-                  }
+            const existingParentUris = new Set(
+                    column.data.feed.map(f => f?.post?.uri)
+            );
+            const existingRootUris = new Set(
+                    column.data.feed.filter(f => f.reply).map(f => f.reply.root.uri)
+            );
+            const processedFeed = feed
+                    .filter(newFeed => {
+                      if (isReasonRepost(newFeed.reason)) {
+                        return true;
+                      }
+                      return !existingParentUris.has(newFeed?.reply?.parent?.uri);
+                    })
+                    .map(newFeed => {
+                      const isDuplicate = newFeed.reply && existingRootUris.has(newFeed.reply.root.uri);
+                      if (isDuplicate) {
+                        return { ...newFeed, isRootHide: true };
+                      }
+                      if (newFeed.reply) {
+                        existingRootUris.add(newFeed.reply.root.uri);
+                      }
+                      return newFeed;
+                    });
 
-                  return !_feeds.some(_feed => _feed?.reply?.parent?.uri === feed?.post?.uri);
-              }).map((feed, index, _feeds) => {
-                  const duplicate = feed.reply && _feeds.slice(0, index).some(_feed => _feed?.reply?.root?.uri === feed?.reply?.root?.uri);
-
-                  return duplicate ? { ...feed, isRootHide: true } : feed;
-              });
+            column.data.feed.push(...processedFeed);
           } else {
-              column.data.feed.push(...feed);
+            column.data.feed.push(...feed);
           }
 
           isDividerLoading = false;
@@ -197,6 +213,14 @@
           complete();
       }
   }
+
+  $effect(() => {
+    return () => {
+      if (controller) {
+        controller.abort();
+      }
+    }
+  })
 </script>
 
 <div class="timeline timeline--{column.style}">

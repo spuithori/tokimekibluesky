@@ -8,7 +8,7 @@
   let el = $state<HTMLElement | undefined>();
   let isIntersecting = $state(false);
   let retryCount = $state(0);
-  let intervalId;
+  let intervalId: ReturnType<typeof setTimeout>;
   let isComplete = $state(false);
   let isLoading = $state(false);
   let isRetryLimit = $derived(retryCount >= 5);
@@ -57,6 +57,8 @@
     if (!isIntersecting) {
       return false;
     }
+
+    clearTimeout(intervalId);
 
     intervalId = setTimeout(() => {
       handleIntersect();

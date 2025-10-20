@@ -121,9 +121,11 @@
     }
 
     function handleScroll(event) {
-        const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
-            scrollDirectionState.direction = scrollDir;
-        });
+        if (!isJunk) {
+            const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
+                scrollDirectionState.direction = scrollDir;
+            });
+        }
     }
 
     function intersect(entries) {

@@ -17,15 +17,23 @@
   let { _agent = $agent, handle, onmouseover, onmouseleave } = $props();
   let profile = $state();
   let el: HTMLElement | undefined = $state();
+  let controller: null | AbortController = null;
 
   onMount(async () => {
-      const res = await _agent.agent.api.app.bsky.actor.getProfile({actor: handle});
+      controller = new AbortController();
+      const res = await _agent.agent.api.app.bsky.actor.getProfile({actor: handle}, {signal: controller.signal});
       profile = res.data;
   })
 
   $effect(() => {
       if (el) {
           el.showPopover();
+      }
+
+      return () => {
+        if (controller) {
+          controller.abort();
+        }
       }
   })
 </script>

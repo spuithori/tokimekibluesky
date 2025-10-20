@@ -65,5 +65,5 @@
 </svelte:head>
 
 {#if (columnState.hasColumn('profile_' + data.params.handle))}
-  <DeckRow index={columnState.getColumnIndex('profile_' + data.params.handle)} isJunk={true}></DeckRow>
+  <DeckRow index={columnState.getColumnIndex('profile_' + data.params.handle)} isJunk={true} _agent={agentContext.agent}></DeckRow>
 {/if}

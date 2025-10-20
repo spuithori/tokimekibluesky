@@ -60,10 +60,10 @@ export class Agent {
         }
     }
 
-    async getTimeline(timelineOpt: timelineOpt = {limit: 20, cursor: '', type: 'default', lang: 'en'}): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
+    async getTimeline(timelineOpt: timelineOpt = {limit: 20, cursor: '', type: 'default', lang: 'en'}, signal?: AbortSignal): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
         try {
             let res;
-            res = await this.getTimelineByAlgo(timelineOpt);
+            res = await this.getTimelineByAlgo(timelineOpt, signal);
 
             if (timelineOpt.type === 'media') {
                 res.data.feed = res.data.feed.filter(item => {
@@ -86,16 +86,16 @@ export class Agent {
         }
     }
 
-    async getTimelineByAlgo(timelineOpt: timelineOpt) {
+    async getTimelineByAlgo(timelineOpt: timelineOpt, signal?: AbortSignal) {
         switch (timelineOpt.algorithm.type) {
             case 'custom':
                 return await this.agent.api.app.bsky.feed.getFeed({
-                    limit: timelineOpt.limit, cursor: timelineOpt.cursor, feed: timelineOpt.algorithm.algorithm}, {headers: {'Accept-Language': timelineOpt.lang}});
+                    limit: timelineOpt.limit, cursor: timelineOpt.cursor, feed: timelineOpt.algorithm.algorithm}, {headers: {'Accept-Language': timelineOpt.lang}, signal});
             case 'list':
                 return await this.getAuthorsFeed(timelineOpt.actors, timelineOpt.count);
             case 'officialList':
                 return await this.agent.api.app.bsky.feed.getListFeed({
-                    limit: timelineOpt.limit, cursor: timelineOpt.cursor, list: timelineOpt.algorithm.algorithm})
+                    limit: timelineOpt.limit, cursor: timelineOpt.cursor, list: timelineOpt.algorithm.algorithm}, {signal})
             case 'bookmark':
                 return await this.agent.api.app.bsky.feed.getPosts({uris: timelineOpt.uris || []});
             case 'cloudBookmark':
@@ -124,7 +124,7 @@ export class Agent {
                 }
             case 'officialBookmark':
                 const officialBookmarkRes = await this.agent.api.app.bsky.bookmark.getBookmarks({
-                    limit: timelineOpt.limit, cursor: timelineOpt.cursor});
+                    limit: timelineOpt.limit, cursor: timelineOpt.cursor}, {signal});
                 const officialBookmarks = officialBookmarkRes.data.bookmarks.map(bookmark => {
                     return {
                         post: bookmark.item,
@@ -138,9 +138,9 @@ export class Agent {
                     }
                 }
             case 'like':
-                return await this.agent.api.app.bsky.feed.getActorLikes({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string});
+                return await this.agent.api.app.bsky.feed.getActorLikes({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string}, {signal});
             case 'search':
-                const res =  await this.agent.api.app.bsky.feed.searchPosts({q: timelineOpt.algorithm.algorithm, limit: timelineOpt.limit, cursor: timelineOpt.cursor, sort: timelineOpt.algorithm.sort || 'latest'});
+                const res =  await this.agent.api.app.bsky.feed.searchPosts({q: timelineOpt.algorithm.algorithm, limit: timelineOpt.limit, cursor: timelineOpt.cursor, sort: timelineOpt.algorithm.sort || 'latest'}, {signal});
                 let tempFeeds: any[] = [];
                 res.data.posts.forEach(post => {
                     tempFeeds.push({
@@ -159,7 +159,7 @@ export class Agent {
                     }
                 }
             case 'author':
-                return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: timelineOpt.algorithm.algorithm as string, includePins: true});
+                return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: timelineOpt.algorithm.algorithm as string, includePins: true}, {signal});
             case 'authorLike':
                 const authorLikeRes = await listRecordsWithBsky(this, 'app.bsky.feed.like', timelineOpt.limit, timelineOpt.cursor, timelineOpt.algorithm.algorithm as string);
                 const likePosts = await this.getFeedsFromRecords(authorLikeRes.data.records);
@@ -176,7 +176,7 @@ export class Agent {
                     limit: timelineOpt.limit,
                     cursor: timelineOpt.cursor,
                     filter: 'posts_with_media'
-                });
+                }, {signal});
 
                 const mediaPosts = mediaRes.data.feed.filter(item =>
                     AppBskyEmbedImages.isView(item.post?.embed) ||
@@ -195,7 +195,7 @@ export class Agent {
                     limit: timelineOpt.limit,
                     cursor: timelineOpt.cursor,
                     filter: 'posts_with_video'
-                });
+                }, {signal});
 
                 const videoPosts = videoRes.data.feed.filter(item =>
                   AppBskyEmbedVideo.isView(item.post?.embed) ||
@@ -209,11 +209,11 @@ export class Agent {
                     }
                 }
             case 'myPost':
-                return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string});
+                return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string}, {signal});
             case 'myMedia':
-                return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string, filter: 'posts_with_media'});
+                return await this.agent.api.app.bsky.feed.getAuthorFeed({limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string, filter: 'posts_with_media'}, {signal});
             default:
-                return await this.agent.api.app.bsky.feed.getTimeline({ limit: timelineOpt.limit, cursor: timelineOpt.cursor });
+                return await this.agent.api.app.bsky.feed.getTimeline({ limit: timelineOpt.limit, cursor: timelineOpt.cursor }, {signal});
         }
     }
 

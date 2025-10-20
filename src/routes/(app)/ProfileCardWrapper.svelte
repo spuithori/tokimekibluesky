@@ -1,10 +1,11 @@
 <script lang="ts">
     import ProfileCard from "./ProfileCard.svelte";
     import { agent, settings } from '$lib/stores';
+    import {onDestroy} from "svelte";
 
     let { _agent = $agent, handle, children } = $props();
 
-    let avatarMouseOverTimeId;
+    let avatarMouseOverTimeId: ReturnType<typeof setTimeout>;
     let isProfileShown = $state(false);
 
     async function handleMouseOver() {
@@ -34,6 +35,12 @@
             isProfileShown = false;
         }, 350)
     }
+
+    onDestroy(() => {
+      if (avatarMouseOverTimeId) {
+        clearTimeout(avatarMouseOverTimeId);
+      }
+    });
 </script>
 
 <div class="profile-card-wrap" onmouseover={handleMouseOver} onmouseleave={handleMouseLeave}>

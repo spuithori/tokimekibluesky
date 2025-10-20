@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import { Trash2, Users2, Languages, Copy, AtSign, ListPlus, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply } from 'lucide-svelte';
+  import { Trash2, Users2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply } from 'lucide-svelte';
   import { agent, settings, reportModal, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
   import { AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '@atproto/api'
   import { toast } from "svelte-sonner";
@@ -276,34 +276,6 @@
 
         junkAgentDid.set(_agent.did());
         goto(uri);
-    }
-
-    async function addThreadColumn() {
-        const uri = data.post.uri;
-
-        if (uri === column.algorithm?.algorithm) {
-            isMenuOpen = false;
-            toast.success('Already');
-            return false;
-        }
-
-        columnState.add({
-            id: self.crypto.randomUUID(),
-            algorithm: {
-                type: 'thread',
-                algorithm: uri,
-                name: 'Thread',
-            },
-            style: 'default',
-            did: _agent.did(),
-            handle: _agent.handle(),
-        });
-
-        setTimeout(() => {
-            document.querySelector('.deck').scrollLeft = 9999;
-        }, 0);
-
-        isMenuOpen = false;
     }
 
     function report() {
@@ -589,15 +561,6 @@
               </button>
             </li>
 
-            {#if ($settings.design?.layout === 'decks')}
-              <li class="timeline-menu-list__item timeline-menu-list__item--report">
-                <button class="timeline-menu-list__button" onclick={addThreadColumn}>
-                  <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
-                  {$_('add_thread_column')}
-                </button>
-              </li>
-            {/if}
-
             <li class="timeline-menu-list__item timeline-menu-list__item--report">
               <button class="timeline-menu-list__button" onclick={() => {$listAddModal = {open: true, author: data.post.author, did: _agent.did()}}}>
                 <List size="18" color="var(--text-color-1)"></List>
@@ -695,7 +658,7 @@
       {/if}
 
       {#if (isReactionModalOpen)}
-        <ReactionModal {data} {_agent} onclose={() => {isReactionModalOpen = false}}></ReactionModal>
+        <ReactionModal {data} onclose={() => {isReactionModalOpen = false}}></ReactionModal>
       {/if}
     </article>
   {/if}

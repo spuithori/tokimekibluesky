@@ -29,7 +29,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@atproto/api": "^0.17.1",
+    "@atproto/api": "^0.17.3",
     "@atproto/common-web": "^0.4.3",
     "@fontsource-variable/inter": "^5.2.5",
     "@fontsource-variable/murecho": "^5.2.5",
@@ -70,6 +70,6 @@
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.0.5",
     "vidstack": "^1.12.13",
-    "virtua": "^0.45.3"
+    "virtua": "^0.46.1"
   }
 }

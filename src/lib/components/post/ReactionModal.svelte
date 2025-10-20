@@ -12,7 +12,6 @@
   let el = $state();
   let _agent = $state($agent);
   let currentAccount;
-  let isLoading = false;
 
   function close() {
       el.close();
@@ -20,13 +19,11 @@
   }
 
   async function handleSelect(event) {
-      isLoading = true;
       currentAccount = event.detail.id;
       _agent = $agents.get(currentAccount);
 
       try {
           data = await _agent.getFeed(data.post.uri);
-          isLoading = false;
       } catch (e) {
           toast.error(e);
           close();

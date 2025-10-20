@@ -5,6 +5,7 @@
   import {page} from "$app/state";
   import {profileHintState} from "$lib/classes/profileHintState.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
+  import {onDestroy} from "svelte";
 
   let {
     _agent = $agent,
@@ -14,7 +15,7 @@
     profile = undefined,
   } = $props();
 
-  let avatarMouseOverTimeId: any;
+  let avatarMouseOverTimeId: ReturnType<typeof setTimeout>;
   let isProfileShown = $state(false);
 
   async function handleAvatarMouseOver() {
@@ -59,12 +60,18 @@
       modalState.isVideoModalOpen = false;
       modalState.isMediaModalOpen = false;
   }
+
+  onDestroy(() => {
+    if (avatarMouseOverTimeId) {
+      clearTimeout(avatarMouseOverTimeId);
+    }
+  });
 </script>
 
 <div class="avatar" class:avatar--live={profile?.status?.isActive}>
   <a href={href} onmouseover={handleAvatarMouseOver} onmouseleave={handleAvatarMouseLeave} onclick={handleClick}>
     {#if (avatar && !$isDataSaving)}
-      <img loading="lazy" src="{avatar}" width="1000" height="1000" alt="">
+      <img loading="lazy" src={avatar} width="1000" height="1000" alt="">
     {/if}
   </a>
 
