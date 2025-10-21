@@ -89,7 +89,7 @@
     class="timeline-menu"
     onclose={handleClose}
     onclick={handleClick}
-    transition:fly="{{ y: 30, duration: 250 }}"
+    transition:fly={{ y: 30, duration: 250 }}
     use:floatingContent
     bind:this={el}
   >

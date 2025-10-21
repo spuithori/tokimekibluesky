@@ -613,7 +613,7 @@
     width: max-content;
     background-color: var(--menu-bg-color);
     z-index: 101;
-    min-width: 150px;
+    min-width: 180px;
     color: var(--text-color-1);
 
     &::backdrop {
@@ -627,6 +627,7 @@
 
 .timeline-menu-list {
     list-style: none;
+    padding: 0 4px;
 
     &__item {
         display: flex;
@@ -637,8 +638,8 @@
         align-items: center;
         gap: 8px;
         font-size: 14px;
-        padding: 8px 16px;
-        margin: 0 -8px;
+        padding: 8px 12px;
+        margin: 0;
         flex: 1;
         text-decoration: none;
         color: inherit;
@@ -653,6 +654,7 @@
 
         &:hover {
             background-color: var(--menu-hover-bg-color);
+            border-radius: var(--border-radius-3);
             text-decoration: none;
         }
 

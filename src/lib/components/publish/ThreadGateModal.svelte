@@ -155,9 +155,10 @@
 
 <style lang="postcss">
     .thread-gate-custom {
-        margin-top: 8px;
+        margin-top: 16px;
         background-color: var(--bg-color-3);
         padding: 16px 12px;
+        border-radius: var(--border-radius-3);
     }
 
     .thread-gate-custom-title {

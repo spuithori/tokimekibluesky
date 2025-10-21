@@ -11,7 +11,7 @@
         $settings.design.reactionButtons = defaultReactionButtons;
     }
 
-    let { post = $bindable(), _agent } = $props();
+    let { post, _agent } = $props();
 
     function share() {
         const url = 'https://bsky.app/profile/' + post.author.handle + '/post/' + post.uri.split('/').slice(-1)[0];
@@ -69,10 +69,9 @@
       display: flex;
       gap: 8px;
       align-items: center;
-      padding: 0 5px 8px;
+      padding: 0 12px 12px;
       border-bottom: 1px solid var(--border-color-2);
       margin-bottom: 4px;
-      margin-right: 4px;
   }
 
   .timeline-share-button {

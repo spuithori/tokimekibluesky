@@ -500,14 +500,14 @@
         {#snippet sub()}
           <div class="menu-sub-list">
             <ReactionButtonsInMenu
-                    {_agent}
-                    bind:post={data.post}
+              {_agent}
+              post={data.post}
             ></ReactionButtonsInMenu>
           </div>
         {/snippet}
 
         {#snippet content()}
-          <ul class="timeline-menu-list" >
+          <ul class="timeline-menu-list">
             {#if (getAllAgentDids($agents).includes(data.post.author.did))}
               <li class="timeline-menu-list__item timeline-menu-list__item--delete">
                 <button class="timeline-menu-list__button" onclick={deletePostStep}>

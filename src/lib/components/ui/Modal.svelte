@@ -58,7 +58,7 @@
       margin: auto;
       overflow: hidden;
       border: none;
-      border-radius: var(--border-radius-5);
+      border-radius: var(--border-radius-6);
       background-color: var(--bg-color-1);
       color: var(--text-color-1);
       transform: var(--modal-transition-scale);
@@ -131,7 +131,6 @@
   .modal-heading {
       background-color: var(--bg-color-1);
       z-index: 21;
-      border-bottom: 1px solid var(--border-color-1);
       position: sticky;
       top: 0;
       height: 64px;
