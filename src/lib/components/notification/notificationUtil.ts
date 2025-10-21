@@ -51,28 +51,40 @@ export function bundleByProperties(array: any[], property1: string, property2: s
     }
     const bundledArray = Object.values(groups);
 
-    return bundledArray.map(array => ({
-        reason: array[0].reason,
-        notifications: array,
-        latestIndexedAt: array[0].indexedAt,
-        key: array[0].indexedAt + new Date().toISOString(),
-        subject: array[0].reasonSubject && array[0].reason !== 'reply' && array[0].reason !==   'quote'
-            ? array[0]?.record?.subject?.uri
-            : (array[0].uri && !array[0].uri.includes('app.bsky.graph.follow')
-                ? array[0].uri
-                : undefined),
-        postIndex: undefined,
-    }));
+    return bundledArray.map(group => {
+        const sortedNotifications = group.sort((a, b) =>
+            parseISO(b.indexedAt).getTime() - parseISO(a.indexedAt).getTime()
+        );
+        const uniqueKey = sortedNotifications[0].uri;
+
+        const subject = sortedNotifications[0].reasonSubject && sortedNotifications[0].reason !== 'reply' && sortedNotifications[0].reason !== 'quote'
+            ? sortedNotifications[0]?.record?.subject?.uri
+            : (sortedNotifications[0].uri && !sortedNotifications[0].uri.includes('app.bsky.graph.follow')
+                ? sortedNotifications[0].uri
+                : undefined);
+
+        return {
+            reason: sortedNotifications[0].reason,
+            notifications: sortedNotifications,
+            latestIndexedAt: sortedNotifications[0].indexedAt,
+            key: uniqueKey,
+            subject: subject,
+            postIndex: undefined,
+        }
+    });
 }
 
 export async function getNotifications(ctx, putBefore = false, _agent, currentFeedPool) {
     const _orig = ctx.filter(item => !item?.author?.viewer.muted);
     let bundled = bundleByProperties(_orig, 'reasonSubject', 'reason');
 
-    let subjects = [...new Set(bundled
-      .map(array => array.subject)
-      .filter(subject => subject !== undefined))]
-      .filter(subject => !currentFeedPool.some(feed => feed.post.uri === subject));
+    const existingUris = new Set(currentFeedPool.map(feed => feed.post.uri));
+    let subjects = [...new Set(
+        bundled
+            .map(array => array.subject)
+            .filter(subject => subject !== undefined)
+    )]
+        .filter(subject => !existingUris.has(subject));
 
     let feedPool = currentFeedPool;
     if (subjects.length && subjects.length <= 25) {
@@ -93,17 +105,16 @@ export async function getNotifications(ctx, putBefore = false, _agent, currentFe
 }
 
 export function mergeNotifications(array: any[], isAllRead = false) {
-    return array.reduce((previousValue, currentValue) => {
-        if (!previousValue.some(item => currentValue?.uri === item.uri)) {
+    const uniqueNotifications = new Map();
+    for (const notification of array) {
+        if (!uniqueNotifications.has(notification.uri)) {
             if (isAllRead) {
-                currentValue.isRead = true;
+                notification.isRead = true;
             }
-
-            return [...previousValue, currentValue];
-        } else {
-            return [...previousValue];
+            uniqueNotifications.set(notification.uri, notification);
         }
-    }, []);
+    }
+    return Array.from(uniqueNotifications.values());
 }
 
 export function removeNotificationsDuplication(notification: any[]) {

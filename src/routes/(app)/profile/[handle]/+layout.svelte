@@ -171,8 +171,8 @@
 
           <div class="column-heading__selector">
             <AvatarAgentsSelector
-                bind:_agent
-                onselect={(agent) => {agentContext.agent = agent}}
+                {_agent}
+                onselect={(agent) => {agentContext.agent = agent; _agent = agent;}}
             ></AvatarAgentsSelector>
           </div>
 

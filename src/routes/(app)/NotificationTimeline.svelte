@@ -18,6 +18,7 @@
     let sound = $derived(column.settings?.playSound);
     let isOnlyShowUnread = $derived(column.settings?.onlyShowUnread);
     let id = $derived(column.id);
+    let notificationTimeoutId: ReturnType<typeof setTimeout>;
 
     let filters: Filter[] = $state(['like', 'repost', 'reply', 'mention', 'quote', 'follow', 'like-via-repost', 'repost-via-repost', 'subscribed-post']);
     let filterIcons = {
@@ -46,15 +47,25 @@
         column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow', 'subscribed-post'];
     }
 
-    navigator.serviceWorker.addEventListener('message', event => {
-      if (event.data.type === 'notification_event') {
-        const eventDid = event.data.data?.did;
+    const handleServiceWorkerMessage = (event) => {
+        if (event.data.type === 'notification_event') {
+            const eventDid = event.data.data?.did;
 
-        if (eventDid && eventDid === column.did) {
-          setTimeout(putNotifications, 2000);
+            if (eventDid && eventDid === column.did) {
+                clearTimeout(notificationTimeoutId);
+                notificationTimeoutId = setTimeout(putNotifications, 2000);
+            }
         }
-      }
-    });
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+
+    $effect(() => {
+        return () => {
+            navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+            clearTimeout(notificationTimeoutId);
+        }
+    })
 
     async function getNotificationsFilter(setFilter: Filter[]) {
         column.filter = setFilter;
@@ -86,8 +97,6 @@
         if (sound) {
             playSound(column.data.notifications[0]?.indexedAt, column.lastRefresh, sound)
         }
-
-        // column.lastRefresh = new Date().toISOString();
     }
 
     const handleLoadMore = async (loaded, complete) => {
@@ -142,7 +151,7 @@
 
 <div class="timeline timeline--notification">
   <div class="notifications-list">
-    {#each column.data.feed as item (item)}
+    {#each column.data.feed as item (item.key)}
       <div class="notifications-list__item">
         {#if item?.notifications[0]?.isRead === false}
           <span class="notifications-list__new"></span>

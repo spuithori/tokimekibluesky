@@ -1,22 +1,41 @@
 import {parseISO} from "date-fns";
 
-export const soundsMap = new Map();
+const soundUrls = new Map<string, string>([
+    ['sound1', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound1.mp3'],
+    ['sound2', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound2.mp3'],
+    ['sound3', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound3.mp3'],
+    ['sound4', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound4.mp3'],
+    ['sound5', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound5.mp3'],
+    ['notification1', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/notification-1.ogg'],
+    ['notification2', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/notification-2.ogg'],
+    ['notification3', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/notification-3.ogg']
+]);
+const soundCache = new Map<string, HTMLAudioElement>();
 
-soundsMap.set('sound1', new Audio('https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound1.mp3'))
-    .set('sound2', new Audio('https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound2.mp3'))
-    .set('sound3', new Audio('https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound3.mp3'))
-    .set('sound4', new Audio('https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound4.mp3'))
-    .set('sound5', new Audio('https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound5.mp3'))
-    .set('notification1', new Audio('https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/notification-1.ogg'))
-    .set('notification2', new Audio('https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/notification-2.ogg'))
-    .set('notification3', new Audio('https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/notification-3.ogg'));
+function getSound(soundName: string): HTMLAudioElement | undefined {
+    if (soundCache.has(soundName)) {
+        return soundCache.get(soundName);
+    }
+
+    const url = soundUrls.get(soundName);
+    if (url) {
+        const audio = new Audio(url);
+        soundCache.set(soundName, audio);
+        return audio;
+    }
+
+    console.warn(`Sound "${soundName}" not found.`);
+    return undefined;
+}
 
 export function playSound(indexedAt: string, lastRefresh: string, playSound: string) {
     try {
         if (indexedAt && parseISO(indexedAt).getTime() > parseISO(lastRefresh).getTime()) {
-            const sound = soundsMap.get(playSound);
-            sound.volume = 0.5;
-            sound.play();
+            const sound = getSound(playSound);
+            if (sound) {
+                sound.volume = 0.5;
+                sound.play();
+            }
         }
     } catch (e) {
         console.error(e);
@@ -25,9 +44,11 @@ export function playSound(indexedAt: string, lastRefresh: string, playSound: str
 
 export function instantPlaySound(playSound = 'notification1') {
     try {
-        const sound = soundsMap.get(playSound);
-        sound.volume = 0.5;
-        sound.play();
+        const sound = getSound(playSound);
+        if (sound) {
+            sound.volume = 0.5;
+            sound.play();
+        }
     } catch (e) {
         console.error(e);
     }

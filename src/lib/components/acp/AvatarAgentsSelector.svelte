@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { offset, flip, shift } from 'svelte-floating-ui/dom';
-  import { createFloatingActions } from 'svelte-floating-ui';
   import { fly } from 'svelte/transition';
-  import {agent, agents} from "$lib/stores";
+  import {agents} from "$lib/stores";
   import { clickOutside } from '$lib/clickOutSide';
   import {accountsDb} from '$lib/db';
   import {getAccountIdByDid} from "$lib/util";
@@ -15,27 +13,15 @@
     style?: string;
   }
 
-  let { _agent = $bindable($agent), isDisabled = false, style = 'default', onselect }: Props = $props();
+  let { _agent, isDisabled = false, onselect }: Props = $props();
   let isOpen = $state(false);
   let avatar = $state();
 
-  const [ floatingRef, floatingContent ] = createFloatingActions({
-      strategy: 'absolute',
-      placement: 'bottom-start',
-      middleware: [
-          offset(10),
-          flip(),
-          shift(),
-      ]
+  $effect(() => {
+      selectAgent(_agent);
   });
 
-  $effect.pre(() => {
-      selectAgent(_agent);
-  })
-
   function selectAgent(agent: Agent) {
-      onselect(agent);
-
       accountsDb.accounts.get(getAccountIdByDid($agents, agent.did()))
           .then(res => {
               avatar = res.avatar;
@@ -53,10 +39,10 @@
 
 {#if _agent}
   <div class="avatar-agents-selector-wrap" class:agents-selector-wrap--open={isOpen} aria-disabled={isDisabled}>
-    <div class="avatar-agents-selector-current" use:floatingRef>
+    <div class="avatar-agents-selector-current">
       <button class="avatar-agents-selector-avatar" onclick={() => {isOpen = !isOpen}}>
         {#if (avatar)}
-          <img src="{avatar}" alt="">
+          <img loading="lazy" src={avatar} alt="">
         {/if}
       </button>
     </div>
@@ -66,8 +52,7 @@
            tabindex="-1"
            use:clickOutside={{ignoreElement: '.avatar-agents-selector-avatar'}}
            onoutclick={() => (isOpen = false)}
-           transition:fly="{{ y: 30, duration: 250 }}"
-           use:floatingContent
+           transition:fly={{ y: 30, duration: 250 }}
       >
         {#each $agents as [key, agent]}
           {#if (agent.agent?.session)}
@@ -75,7 +60,7 @@
               {agent}
               {key}
               isCurrent={agent.agent.session.handle === _agent.agent.session.handle}
-              onselect={() => {_agent = agent}}
+              onselect={() => {onselect(agent)}}
             ></AvatarAgentsSelectorModalItem>
           {/if}
         {/each}
@@ -104,6 +89,8 @@
 
   .avatar-agents-selector-modal {
       position: absolute;
+      left: 0;
+      top: calc(100% + 10px);
       z-index: 101;
       background-color: var(--bg-color-1);
       border-radius: var(--border-radius-3);

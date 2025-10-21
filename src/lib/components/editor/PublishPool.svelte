@@ -16,7 +16,7 @@
           {_agent}
           isDisabled={'true'}
           style={'publish'}
-          onselect={() => {}}
+          onselect={(agent) => {_agent = agent}}
     ></AvatarAgentsSelector>
   </div>
 

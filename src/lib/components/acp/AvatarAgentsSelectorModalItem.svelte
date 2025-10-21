@@ -8,7 +8,7 @@
     isCurrent?: boolean;
   }
 
-  let { agent, key, isCurrent = false ,onselect }: Props = $props();
+  let { agent, key, isCurrent = false, onselect }: Props = $props();
 
   let avatar = $state();
   let displayName = $state();
@@ -44,7 +44,7 @@
 >
   <div class="avatar-agents-selector-item__avatar">
     {#if (avatar)}
-      <img src="{avatar}" alt="">
+      <img loading="lazy" src={avatar} alt="">
     {/if}
   </div>
 

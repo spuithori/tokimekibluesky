@@ -22,8 +22,8 @@
 
     <div class="column-heading__selector">
       <AvatarAgentsSelector
-          bind:_agent
-          onselect={() => {}}
+          {_agent}
+          onselect={(agent) => {_agent = agent}}
       ></AvatarAgentsSelector>
     </div>
 
