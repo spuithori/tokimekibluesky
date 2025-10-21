@@ -88,7 +88,7 @@
   {#if showCounts && post.likeCount}
     <span class="timeline-reaction__count">
       {#if isNumberTransition}
-        <NumberFlow value={post.likeCount} onanimationsfinish={() => {isNumberTransition = false}}></NumberFlow>
+        <NumberFlow value={post.likeCount} onanimationsfinish={() => {isNumberTransition = false}} format={{ useGrouping: false }}></NumberFlow>
       {:else}
         {post.likeCount}
       {/if}

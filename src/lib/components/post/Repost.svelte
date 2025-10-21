@@ -97,7 +97,7 @@
   {#if showCounts && post.repostCount}
     <span class="timeline-reaction__count">
       {#if isNumberTransition}
-        <NumberFlow value={post.repostCount} onanimationsfinish={() => {isNumberTransition = false}}></NumberFlow>
+        <NumberFlow value={post.repostCount} onanimationsfinish={() => {isNumberTransition = false}} format={{ useGrouping: false }}></NumberFlow>
       {:else}
         {post.repostCount}
       {/if}
