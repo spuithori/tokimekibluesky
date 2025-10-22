@@ -72,6 +72,22 @@
             element: element,
             editorProps: {
                 clipboardTextParser: clipboardTextParser,
+                handlePaste: (view, event) => {
+                    const clipboardData = event.clipboardData;
+                    let preventDefault = false;
+
+                    if (clipboardData) {
+                        if (clipboardData.types.includes('text/html')) {
+                            const text = clipboardData.getData('text/plain');
+                            view.pasteText(text);
+                            preventDefault = true;
+                        }
+
+                        if (preventDefault) {
+                            return true;
+                        }
+                    }
+                },
             },
             extensions: [
                 Document.extend({
