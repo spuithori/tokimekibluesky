@@ -76,8 +76,9 @@
     class:timeline-reaction__item--transition={isProcessed}
     disabled={isProcessed}
     onclick={() => vote(post.cid, post.uri, post.viewer?.like)}
+    aria-label="Like"
 >
-  <span class="timeline-reaction__icon" aria-label="いいね">
+  <span class="timeline-reaction__icon">
     {#if ($settings?.design?.reactionMode === 'superstar')}
       <Star size="16" color="var(--timeline-reaction-like-icon-color)" fill="var(--timeline-reaction-like-fill-color, transparent)" absoluteStrokeWidth={true} strokeWidth="1.5"></Star>
     {:else}

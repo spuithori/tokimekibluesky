@@ -1,5 +1,6 @@
 <script lang="ts">
   import { IsInViewport } from "runed";
+  import VideoPlayer from "$lib/components/video/VideoPlayer.svelte";
 
   interface Props {
     video: any;
@@ -16,13 +17,11 @@
 
 <div class="timeline-video-wrap" class:timeline-video-wrap--tok={isTok} style="--video-width: {video?.aspectRatio?.width}; --video-height: {video?.aspectRatio?.height}" bind:this={el}>
   {#if inView.current}
-    {#await import('$lib/components/video/VideoPlayer.svelte') then { default: VideoPlayer }}
-      <VideoPlayer
-        src={isLocal ? { src: video?.blob, type: 'video/object' } : video?.playlist}
-        poster={video?.thumbnail}
-        {isTok}
-      ></VideoPlayer>
-    {/await}
+    <VideoPlayer
+      src={isLocal ? { src: video?.blob, type: 'video/object' } : video?.playlist}
+      poster={video?.thumbnail}
+      {isTok}
+    ></VideoPlayer>
   {/if}
 </div>
 
