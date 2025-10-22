@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import {Heart, Repeat2, Star, Pencil} from "lucide-svelte";
+    import {Heart, Repeat2, Star, Pencil, ChevronUp, ChevronDown} from "lucide-svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import {getReasonText} from "$lib/components/notification/notificationUtil";
@@ -20,6 +20,8 @@
 
     let isLikesOpen = $state(false);
     let isRepostsOpen = $state(false);
+    let isAvatarExpended = $state(false);
+    let displayedNotifications = $derived(isAvatarExpended ? item.notifications : item.notifications.slice(0, 11));
 
     function handleClick() {
         if (item.reason === 'like') {
@@ -95,11 +97,21 @@
 
         <div class="notification-column__content">
             <div class="notification-authors">
-                {#each item.notifications as notification (notification)}
+                {#each displayedNotifications as notification (notification)}
                     <div class="notification-author">
                         <Avatar href="/profile/{ notification.author.did }" avatar={notification.author.avatar} handle={notification.author.handle} {_agent} profile={notification.author}></Avatar>
                     </div>
                 {/each}
+
+                {#if (item.notifications.length > 11)}
+                    <button class="notification-author-more" onclick={() => {isAvatarExpended = !isAvatarExpended}}>
+                        {#if (isAvatarExpended)}
+                            <ChevronUp size="18" color="var(--text-color-1)"></ChevronUp>
+                        {:else}
+                            <ChevronDown size="18" color="var(--text-color-1)"></ChevronDown>
+                        {/if}
+                    </button>
+                {/if}
             </div>
 
             <h2 class="notifications-item__title">
@@ -145,6 +157,15 @@
         grid-template-columns: repeat(auto-fill, 30px);
         gap: 4px;
         margin-bottom: 8px;
+    }
+
+    .notification-author-more {
+        width: 30px;
+        height: 30px;
+        background-color: var(--border-color-2);
+        border-radius: 50%;
+        display: grid;
+        place-content: center;
     }
 
     .notification-icon {
