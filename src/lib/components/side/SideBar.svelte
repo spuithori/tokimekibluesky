@@ -2,7 +2,7 @@
     import { currentTimeline, settings, isColumnModalOpen, intersectingIndex } from "$lib/stores";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import {page} from '$app/stores';
-    import {Home, Pen, PenOff, Plus, Settings, SquarePlus} from "lucide-svelte";
+    import {Home, Pen, PenOff, Plus, Settings} from "lucide-svelte";
     import {iconMap} from "$lib/columnIcons";
     import SideNav from "$lib/components/side/SideNav.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -22,7 +22,8 @@
     function handleColumnClick(column, index) {
         if ($settings.design.layout === 'decks') {
             if (column.scrollElement) {
-                column.scrollElement.scrollIntoView({inline: 'end', behavior: 'instant'});
+              column.scrollElement.focus();
+              column.scrollElement.scrollIntoView({inline: 'end', behavior: 'instant'});
             }
         } else {
             if ($currentTimeline === index) {
@@ -39,7 +40,7 @@
         }
 
         const activeElement = document.activeElement?.tagName;
-        const isInactive = (activeElement === 'BODY' || activeElement === 'BUTTON');
+        const isInactive = (activeElement === 'BODY' || activeElement === 'BUTTON' || document.activeElement?.classList.contains('deck-row'));
 
         columnState.columns.forEach((column, index) => {
             const i = index + 1;
