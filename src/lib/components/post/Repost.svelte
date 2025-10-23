@@ -89,9 +89,8 @@
     class:timeline-reaction__item--transition={isProcessed}
     disabled={isProcessed}
     onclick={repostStep}
-    aria-label="Repost"
 >
-  <span class="timeline-reaction__icon">
+  <span class="timeline-reaction__icon" aria-label={$_('repost')}>
     <Repeat size="16" color="var(--timeline-reaction-repost-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></Repeat>
   </span>
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from 'svelte-i18n';
   import {publishState} from "$lib/classes/publishState.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
   import {Quote} from "lucide-svelte";
@@ -20,8 +21,8 @@
   }
 </script>
 
-<button class="timeline-reaction__item timeline-reaction__item--quote" onclick={handleClick} aria-label="Quote" disabled={embeddingDisabled}>
-  <span class="timeline-reaction__icon">
+<button class="timeline-reaction__item timeline-reaction__item--quote" onclick={handleClick} disabled={embeddingDisabled}>
+  <span class="timeline-reaction__icon" aria-label={$_('quote')}>
     <Quote size="16" color="var(--timeline-reaction-like-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></Quote>
   </span>
 </button>

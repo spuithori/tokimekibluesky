@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { _ } from 'svelte-i18n';
   import {agent} from '$lib/stores';
   import {publishState} from "$lib/classes/publishState.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
@@ -31,8 +32,8 @@
   }
 </script>
 
-<button class="timeline-reaction__item timeline-reaction__item--reply" onclick={handleClick} disabled={post?.viewer?.replyDisabled || postState.posts.length > 1} aria-label="Reply">
-  <span class="timeline-reaction__icon">
+<button class="timeline-reaction__item timeline-reaction__item--reply" onclick={handleClick} disabled={post?.viewer?.replyDisabled || postState.posts.length > 1}>
+  <span class="timeline-reaction__icon" aria-label={$_('reply')}>
     <MessageSquare size="16" color="var(--timeline-reaction-reply-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></MessageSquare>
   </span>
 
