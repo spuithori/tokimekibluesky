@@ -23,7 +23,7 @@
     import ListTimeline from "./ListTimeline.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
-    import {Filter, GripVertical, PictureInPicture2, Settings2, SquarePlus, TextQuote} from "lucide-svelte";
+    import {Filter, GripVertical, PictureInPicture2, Settings2, SquarePlus, TextQuote, CheckCheck} from "lucide-svelte";
     import { createLongPress } from "$lib/longpress";
     import Refresher from "$lib/components/utils/Refresher.svelte";
 
@@ -403,6 +403,12 @@
             {#if column.algorithm?.type === 'chat' && $settings.design?.layout === 'decks' && !isJunk}
                 <button class="deck-popup-button only-pc" aria-label="Popup" onclick={handleChangePopup}>
                     <PictureInPicture2 color="var(--text-color-1)"></PictureInPicture2>
+                </button>
+            {/if}
+
+            {#if column.algorithm?.type === 'notification' && !isJunk}
+                <button class="deck-popup-button only-pc" onclick={handleRefresh}>
+                    <CheckCheck color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></CheckCheck>
                 </button>
             {/if}
 
