@@ -724,5 +724,7 @@
   "media_column_columns": "Picture columns",
   "open_skyblur_additional": "Additional text is available.",
   "bubble_false": "Default",
-  "bubble_true": "Bubbles"
+  "bubble_true": "Bubbles",
+  "edit_pronouns": "Pronouns",
+  "edit_website": "Website"
 }

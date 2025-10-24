@@ -10,6 +10,8 @@
     let description = $state(profile.description);
     let currentAvatar = $state(profile.avatar);
     let currentBanner = $state(profile.banner);
+    let pronouns = $state(profile.pronouns);
+    let website = $state(profile.website);
     let avatar;
     let banner;
     let errorMessage = '';
@@ -87,6 +89,8 @@
             description: description,
             avatar: currentProfile?.value.avatar,
             banner: currentProfile?.value.banner,
+            pronouns: pronouns,
+            website: website,
         }
         if (avatar) {
             profileObj.avatar = avatar;
@@ -162,7 +166,7 @@
       </dt>
 
       <dd class="input-group__content">
-        <input class="input-group__input" type="text" name="displayName" id="display_name" placeholder="" bind:value="{displayName}" required />
+        <input class="input-group__input" type="text" name="displayName" id="display_name" placeholder="" bind:value={displayName} required>
       </dd>
     </dl>
 
@@ -173,6 +177,26 @@
 
       <dd class="input-group__content">
         <textarea name="description" id="description" cols="30" rows="10" bind:value={description}  required></textarea>
+      </dd>
+    </dl>
+
+    <dl class="input-group">
+      <dt class="input-group__name input-group__name--show">
+        <label for="pronouns">{$_('edit_pronouns')}</label>
+      </dt>
+
+      <dd class="input-group__content">
+        <input class="input-group__input" type="text" name="pronouns" id="pronouns" placeholder="" bind:value={pronouns}>
+      </dd>
+    </dl>
+
+    <dl class="input-group">
+      <dt class="input-group__name input-group__name--show">
+        <label for="website">{$_('edit_website')}</label>
+      </dt>
+
+      <dd class="input-group__content">
+        <input class="input-group__input" type="text" name="website" id="website" placeholder="" bind:value={website}>
       </dd>
     </dl>
   </div>

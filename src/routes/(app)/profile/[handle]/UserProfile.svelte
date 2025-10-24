@@ -5,7 +5,7 @@
   import {format, parseISO} from 'date-fns';
   import { fade } from 'svelte/transition';
   import {BskyAgent, RichText} from '@atproto/api';
-  import {BadgeCheck, CircleCheck, Eye, EyeOff, Handshake, Radio} from 'lucide-svelte';
+  import {BadgeCheck, CircleCheck, Eye, EyeOff, Handshake, Radio, Globe, Calendar, Tag} from 'lucide-svelte';
   import SocialProof from "$lib/components/profile/SocialProof.svelte";
   import ProfileAtmosphere from "$lib/components/profile/ProfileAtmosphere.svelte";
   import emblaCarouselSvelte from 'embla-carousel-svelte';
@@ -211,11 +211,34 @@
                     {/if}
                   </div>
 
-                  {#if (firstPostDate)}
-                    <p class="profile-first"><a href="{firstPostUri}">{$_('first_post_date', {values: {date: firstPostDate }})}</a></p>
-                  {:else}
-                    <p class="profile-first">{$_('first_post_date', {values: {date: '----/--/--' }})}</p>
-                  {/if}
+                  <div class="profile-bottom-list">
+                    {#if profile?.website}
+                      <p class="profile-website">
+                        <Globe size="16"></Globe>
+                        <a href={profile.website} target="_blank" rel="noopener noreferrer">{new URL(profile.website).hostname}</a>
+                      </p>
+                    {/if}
+
+
+                    {#if profile?.pronouns}
+                      <p class="profile-pronouns">
+                        <Tag size="16"></Tag>
+                        {profile.pronouns}
+                      </p>
+                    {/if}
+
+                    {#if (firstPostDate)}
+                      <p class="profile-first">
+                        <Calendar size="16"></Calendar>
+                        <a href={firstPostUri}>{firstPostDate}</a>
+                      </p>
+                    {:else}
+                      <p class="profile-first">
+                        <Calendar size="16"></Calendar>
+                        ----/--/--
+                      </p>
+                    {/if}
+                  </div>
 
                   {#if profile?.viewer?.knownFollowers && !$settings.general?.hideProfileCounts && profile.did !== _agent.did()}
                     <SocialProof knownFollowers={profile?.viewer?.knownFollowers} actor={profile.did} {_agent}></SocialProof>
@@ -362,24 +385,25 @@
     }
 
     .profile-relationship {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: bold;
         line-height: 1.5;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 0 15px;
+        gap: 4px 15px;
         margin-top: 6px;
 
         @media (max-width: 767px) {
-            font-size: 16px;
+            font-size: 15px;
         }
     }
 
     .profile-first {
         color: var(--text-color-3);
-        font-size: 14px;
-        margin-top: 5px;
+        display: flex;
+        gap: 4px;
+        align-items: center;
 
         a {
             color: inherit;
@@ -533,6 +557,32 @@
       border-radius: var(--border-radius-2);
       z-index: 10;
       pointer-events: none;
+    }
+
+    .profile-bottom-list {
+        font-size: 14px;
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 8px;
+    }
+
+    .profile-website {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        color: var(--text-color-3);
+
+        a {
+            color: inherit;
+        }
+    }
+
+    .profile-pronouns {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        color: var(--text-color-3);
     }
 
     :global {
