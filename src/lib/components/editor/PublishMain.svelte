@@ -79,6 +79,8 @@
       return false;
     });
 
+    handleAgentSelect();
+
     const linkDebounce = useDebounce(
       () => {
         detectRichText(post.text)
@@ -184,19 +186,17 @@
         }
     }
 
-    async function handleAgentSelect(agent) {
-        _agent = agent;
+    async function handleAgentSelect(agent = _agent) {
+        if (agent) {
+            _agent = agent;
+        }
+
         post.owner = _agent.did();
         isVideoUploadEnabled = false;
 
         const limit = await getUploadLimit(_agent);
         if (limit?.canUpload) {
             isVideoUploadEnabled = true;
-        }
-
-        if (post.threadGate !== 'everybody') {
-            // post.threadGate = 'everybody';
-            // toast.success($_('thread_gate_reset_when_change_account'));
         }
     }
 
