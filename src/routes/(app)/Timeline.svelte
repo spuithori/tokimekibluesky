@@ -186,7 +186,7 @@
                       const isDuplicate = rootUri && existingRootUris.has(rootUri);
 
                       if (rootUri) {
-                          existingRootUris.add(rootUri); // 重複していても追加
+                          existingRootUris.add(rootUri);
                       }
 
                       return isDuplicate ? { ...newFeed, isRootHide: true } : newFeed;
