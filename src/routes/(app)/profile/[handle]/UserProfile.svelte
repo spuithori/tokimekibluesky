@@ -219,7 +219,6 @@
                       </p>
                     {/if}
 
-
                     {#if profile?.pronouns}
                       <p class="profile-pronouns">
                         <Tag size="16"></Tag>
