@@ -163,38 +163,36 @@
           });
 
           if (column.algorithm.type === 'author') {
-              column.data.feed = (() => {
-                  const parentUris = new Set();
-                  const rootUris = new Set();
-                  const result = [];
+              const existingParentUris = new Set();
+              const existingRootUris = new Set();
 
-                  [...column.data.feed, ...feed].forEach(f => {
-                      const parentUri = f?.reply?.parent?.uri;
-                      if (parentUri) parentUris.add(parentUri);
+              column.data.feed.forEach(f => {
+                  if (f?.post?.uri) existingParentUris.add(f.post.uri);
+                  if (f?.reply?.root?.uri) existingRootUris.add(f.reply.root.uri);
+              });
+
+              feed.forEach(f => {
+                  const parentUri = f?.reply?.parent?.uri;
+                  if (parentUri) existingParentUris.add(parentUri);
+              });
+
+              const processedFeed = feed
+                  .filter(newFeed => {
+                      if (isReasonRepost(newFeed.reason)) return true;
+                      return !existingParentUris.has(newFeed?.post?.uri);
+                  })
+                  .map(newFeed => {
+                      const rootUri = newFeed?.reply?.root?.uri;
+                      const isDuplicate = rootUri && existingRootUris.has(rootUri);
+
+                      if (rootUri) {
+                          existingRootUris.add(rootUri); // 重複していても追加
+                      }
+
+                      return isDuplicate ? { ...newFeed, isRootHide: true } : newFeed;
                   });
 
-                  [...column.data.feed, ...feed].forEach(feed => {
-                      if (isReasonRepost(feed.reason)) {
-                          result.push(feed);
-                          return;
-                      }
-
-                      if (parentUris.has(feed?.post?.uri)) {
-                          return;
-                      }
-
-                      const rootUri = feed?.reply?.root?.uri;
-                      const duplicate = rootUri && rootUris.has(rootUri);
-
-                      if (rootUri && !duplicate) {
-                          rootUris.add(rootUri);
-                      }
-
-                      result.push(duplicate ? { ...feed, isRootHide: true } : feed);
-                  });
-
-                  return result;
-              })();
+              column.data.feed.push(...processedFeed);
           } else {
             column.data.feed.push(...feed);
           }
