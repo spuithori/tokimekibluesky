@@ -155,44 +155,55 @@
         const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, controller.signal);
           column.data.cursor = res.data.cursor;
 
-          const feed = res.data.feed.filter(feed => {
-              return !column.data.feed.some(item => isDuplicatePost(item, feed));
-          }).map(item => {
-              item.memoryCursor = res.data.cursor;
-              return item;
-          });
+        const existingFeedMap = new Map(
+            column.data.feed.map(item => [
+                item.reason ? `${item.post.uri}|${item.reason.indexedAt}` : item.post.uri,
+                item
+            ])
+        );
 
-          if (column.algorithm.type === 'author') {
-              const existingParentUris = new Set();
-              const existingRootUris = new Set();
+        const feed = res.data.feed
+            .filter(feed => {
+                const key = feed.reason ? `${feed.post.uri}|${feed.reason.indexedAt}` : feed.post.uri;
+                const existing = existingFeedMap.get(key);
+                return !existing || !isDuplicatePost(existing, feed);
+            })
+            .map(item => {
+                item.memoryCursor = res.data.cursor;
+                return item;
+            });
 
-              column.data.feed.forEach(f => {
-                  if (f?.post?.uri) existingParentUris.add(f.post.uri);
-                  if (f?.reply?.root?.uri) existingRootUris.add(f.reply.root.uri);
-              });
+        if (column.algorithm.type === 'author') {
+            const existingParentUris = new Set();
+            const existingRootUris = new Set();
 
-              feed.forEach(f => {
-                  const parentUri = f?.reply?.parent?.uri;
-                  if (parentUri) existingParentUris.add(parentUri);
-              });
+            column.data.feed.forEach(f => {
+                if (f?.post?.uri) existingParentUris.add(f.post.uri);
+                if (f?.reply?.root?.uri) existingRootUris.add(f.reply.root.uri);
+            });
 
-              const processedFeed = feed
-                  .filter(newFeed => {
-                      if (isReasonRepost(newFeed.reason)) return true;
-                      return !existingParentUris.has(newFeed?.post?.uri);
-                  })
-                  .map(newFeed => {
-                      const rootUri = newFeed?.reply?.root?.uri;
-                      const isDuplicate = rootUri && existingRootUris.has(rootUri);
+            feed.forEach(f => {
+                const parentUri = f?.reply?.parent?.uri;
+                if (parentUri) existingParentUris.add(parentUri);
+            });
 
-                      if (rootUri) {
-                          existingRootUris.add(rootUri);
-                      }
+            const processedFeed = feed
+                .filter(newFeed => {
+                    if (isReasonRepost(newFeed.reason)) return true;
+                    return !existingParentUris.has(newFeed?.post?.uri);
+                })
+                .map(newFeed => {
+                    const rootUri = newFeed?.reply?.root?.uri;
+                    const isDuplicate = rootUri && existingRootUris.has(rootUri);
 
-                      return isDuplicate ? { ...newFeed, isRootHide: true } : newFeed;
-                  });
+                    if (rootUri) {
+                        existingRootUris.add(rootUri);
+                    }
 
-              column.data.feed.push(...processedFeed);
+                    return isDuplicate ? { ...newFeed, isRootHide: true } : newFeed;
+                });
+
+            column.data.feed.push(...processedFeed);
           } else {
             column.data.feed.push(...feed);
           }
