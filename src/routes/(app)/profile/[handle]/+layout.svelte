@@ -273,8 +273,8 @@
     }
 
     .profile-heading-button {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         display: grid;
         place-content: center;
         border-radius: 50%;

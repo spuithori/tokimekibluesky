@@ -78,8 +78,8 @@ button {
 }
 
 .button--sm {
-    height: 40px;
-    border-radius: 20px;
+    height: 36px;
+    border-radius: 18px;
     min-width: 120px;
     font-size: 14px;
     padding: 0 16px;
