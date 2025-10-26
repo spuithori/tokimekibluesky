@@ -1,0 +1,30 @@
+{
+  "name": "tokimeki-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for TOKIMEKI Bluesky client - provides documentation and help",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "tokimeki-mcp-server": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "bluesky",
+    "tokimeki",
+    "documentation"
+  ],
+  "author": "TOKIMEKI Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "typescript": "^5.9.3"
+  }
+}
