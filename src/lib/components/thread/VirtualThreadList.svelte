@@ -98,27 +98,27 @@
 
       &--threaded {
           &[data-depth='1'] {
-              margin-left: 0;
+
           }
 
           &[data-depth='2'] {
-              margin-left: 32px;
+              margin-left: 48px;
           }
 
           &[data-depth='3'] {
-              margin-left: 64px;
+              margin-left: 80px;
           }
 
           &[data-depth='4'] {
-              margin-left: 96px;
+              margin-left: 112px;
           }
 
           &[data-depth='5'] {
-              margin-left: 128px;
+              margin-left: 144px;
           }
 
           &[data-depth='6'] {
-              margin-left: 160px;
+              margin-left: 176px;
           }
 
           .thread-round-border {

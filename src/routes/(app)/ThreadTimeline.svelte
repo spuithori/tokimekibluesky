@@ -20,77 +20,78 @@
   const columnState = getColumnState(isJunk);
   const column = columnState.getColumn(index);
 
-  let rootIndex = $state();
-  let isMuted: boolean = $state(false);
-  let isMuteDisplay: boolean = $state(false);
+  let rootIndex = $state<number>();
+  let isMuted = $state(false);
+  let isMuteDisplay = $state(false);
 
-  function isMutedIncludes(feed) {
-      isMuted = feed.post?.author?.viewer?.muted;
+  let shouldShowMuteNotice = $derived(isMuted && !isMuteDisplay);
 
-      if (feed.parent && !isMuted) {
-          isMutedIncludes(feed.parent);
-      }
+  function checkMutedStatus(feed: any): boolean {
+    if (!feed) {
+      return false;
+    }
 
-      if (feed.replies?.length && !isMuted) {
-          isMutedIncludes(feed.replies[0]);
-      }
+    if (feed.post?.author?.viewer?.muted) {
+      return true;
+    }
+
+    if (feed.parent && checkMutedStatus(feed.parent)) {
+      return true;
+    }
+
+    if (feed.replies?.length && checkMutedStatus(feed.replies[0])) {
+      return true;
+    }
+
+    return false;
   }
 
   async function getFlatThread() {
-      const uri = column.algorithm.algorithm;
+    const uri = column.algorithm.algorithm;
 
-      try {
-          const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-          const authorDid = raw.data.thread?.post?.author?.did;
-          const transFormThread = transformThreadView(raw.data.thread);
-          const sortedThread = sortThreadView(transFormThread, authorDid);
+    try {
+      const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
+      const authorDid = raw.data.thread?.post?.author?.did;
+      const transFormThread = transformThreadView(raw.data.thread);
+      const sortedThread = sortThreadView(transFormThread, authorDid);
+      const flatThread = sortedThread.flat(Infinity);
 
-          column.data.feed = sortedThread.flat(Infinity);
-          column.data.feed.forEach(feed => {
-              if (!feed.blocked) {
-                  isMutedIncludes(feed);
-              }
-          });
-          rootIndex = sortedThread.flat(Infinity).findIndex(feed => feed.depth === 0);
-      } catch (e) {
-          console.error(e);
-          column.data.feed = 'NotFound';
-      }
+      column.data.feed = flatThread;
+      isMuted = flatThread.some(feed => !feed.blocked && checkMutedStatus(feed));
+      rootIndex = flatThread.findIndex(feed => feed.depth === 0);
+    } catch (e) {
+      console.error(e);
+      column.data.feed = 'NotFound';
+    }
   }
 
-  function transformThreadView(threadView) {
-    const result = [];
+  function transformThreadView(threadView: any) {
+    const result: any[] = [];
 
-    function processPost(postObject, depth = 0, isRoot = false) {
-      if (!postObject || !postObject.post) {
-        return;
-      }
-
-      const post = postObject.post;
+    function processPost(postObject: any, depth = 0, isRoot = false) {
+      if (!postObject?.post) return;
 
       if (postObject.parent && isRoot) {
         processPost(postObject.parent, depth - 1, true);
       }
 
-      result.push({ depth: depth, post: post });
+      result.push({depth, post: postObject.post});
 
-      if (postObject.replies && postObject.replies.length > 0) {
+      if (postObject.replies?.length > 0) {
         result.push(processReplies(postObject.replies, depth + 1));
       }
     }
 
-    function processReplies(repliesArray, depth) {
-      const nestedReplies = [];
+    function processReplies(repliesArray: any[], depth: number) {
+      const nestedReplies: any[] = [];
 
       for (const replyObject of repliesArray) {
-        if (!replyObject || !replyObject.post) {
-          continue;
-        }
+        if (!replyObject?.post) continue;
 
-        const currentReply = [{ depth: depth, post: replyObject.post }];
+        const currentReply = [{depth, post: replyObject.post}];
         nestedReplies.push(currentReply);
 
-        if (replyObject.replies && replyObject.replies.length > 0) {
+        if (replyObject.replies?.length > 0) {
           currentReply.push(processReplies(replyObject.replies, depth + 1));
         }
       }
@@ -102,13 +103,10 @@
     return result;
   }
 
-  function sortThreadView(threadViewArray, authorDid) {
-    function comparePosts(a, b, depth) {
-      function getPost(item) {
-        if (Array.isArray(item)) {
-          return item[0]?.post;
-        }
-        return item.post;
+  function createPostComparator(authorDid: string, depth: number) {
+    return (a: any, b: any) => {
+      function getPost(item: any) {
+        return Array.isArray(item) ? item[0]?.post : item.post;
       }
 
       const postA = getPost(a);
@@ -122,92 +120,51 @@
         const aIsRootAuthor = postA.author.did === authorDid;
         const bIsRootAuthor = postB.author.did === authorDid;
 
-        if (aIsRootAuthor && !bIsRootAuthor) {
-          return -1;
-        } else if (!aIsRootAuthor && bIsRootAuthor) {
-          return 1;
+        if (aIsRootAuthor !== bIsRootAuthor) {
+          return aIsRootAuthor ? -1 : 1;
         }
-      }
 
-      if (depth >= 1) {
-        const dateA = new Date(postA.record.createdAt);
-        const dateB = new Date(postB.record.createdAt);
-        return dateB.getTime() - dateA.getTime();
+        const dateA = new Date(postA.record.createdAt).getTime();
+        const dateB = new Date(postB.record.createdAt).getTime();
+        return dateB - dateA;
       }
 
       return 0;
-    }
+    };
+  }
 
-    function recursiveSort(array, depth) {
-      if (!Array.isArray(array)) {
-        return array;
-      }
+  function sortThreadView(threadViewArray: any[], authorDid: string) {
+    function recursiveSort(array: any, depth: number): any {
+      if (!Array.isArray(array)) return array;
 
       if (depth <= 0) {
-        const newArray = [];
-        for (const item of array) {
-          if (Array.isArray(item)) {
-            newArray.push(recursiveSort(item, depth + 1));
-          } else {
-            newArray.push(item);
-          }
-        }
-        return newArray;
-
-      } else {
-        const elementsToCompare = [];
-        const newArray = [];
-
-        for (const item of array) {
-          if (Array.isArray(item)) {
-            const sortedInnerArray = recursiveSort(item, depth + 1);
-            elementsToCompare.push(sortedInnerArray);
-            newArray.push(sortedInnerArray);
-          } else {
-            elementsToCompare.push(item);
-            newArray.push(item);
-          }
-        }
-
-        elementsToCompare.sort((a, b) => comparePosts(a, b, depth));
-
-        const finalSortedArray = [];
-
-        for(const sortedItem of elementsToCompare) {
-          const originalIndex = newArray.findIndex(originalItem => {
-
-            if(Array.isArray(sortedItem) && Array.isArray(originalItem)){
-              return sortedItem[0]?.post?.cid === originalItem[0]?.post?.cid;
-            } else if (!Array.isArray(sortedItem) && !Array.isArray(originalItem)) {
-              return sortedItem.post.cid === originalItem.post.cid
-            }
-            return false;
-          })
-
-          if(originalIndex !== -1) {
-            finalSortedArray.push(newArray[originalIndex]);
-            newArray.splice(originalIndex, 1);
-          }
-        }
-
-        return finalSortedArray;
+        return array.map(item =>
+          Array.isArray(item) ? recursiveSort(item, depth + 1) : item
+        );
       }
+
+      const sorted = array.map(item =>
+        Array.isArray(item) ? recursiveSort(item, depth + 1) : item
+      );
+
+      sorted.sort(createPostComparator(authorDid, depth));
+      return sorted;
     }
 
     return recursiveSort(threadViewArray, 0);
   }
 
-  function handleChangeProfile(did, handle) {
+  function handleChangeProfile(did: string, handle: string) {
     column.did = did;
     column.handle = handle;
   }
 
   onMount(async () => {
-      await getFlatThread();
-  })
+    await getFlatThread();
+  });
 </script>
 
-{#if (isMuted && !isMuteDisplay)}
+{#if shouldShowMuteNotice}
   <div class="thread-notice">
     <p class="thread-notice__text">{$_('muted_user_thread')}</p>
 
