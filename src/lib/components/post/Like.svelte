@@ -49,7 +49,6 @@
               did: _agent.did(),
               uri: uri,
               count: likeViewer ? post.likeCount + 1 : post.likeCount - 1,
-              unique: Symbol(),
           };
 
           columnState.updateLike(pulse);

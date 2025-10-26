@@ -3,7 +3,7 @@ export type pulseReaction = {
     did: string,
     uri: string,
     count: number,
-    unique: Symbol,
+    unique?: Symbol,
 } | undefined;
 
 class Pulse {

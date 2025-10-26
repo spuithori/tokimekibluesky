@@ -53,7 +53,6 @@
               did: _agent.did(),
               uri: uri,
               count: repostViewer ? post.repostCount + 1 : post.repostCount - 1,
-              unique: Symbol(),
           };
 
           columnState.updateRepost(pulse);
