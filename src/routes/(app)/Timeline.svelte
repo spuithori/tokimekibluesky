@@ -241,7 +241,7 @@
 
 <div class="timeline timeline--{column.style}">
   <div class:media-list={column.style === 'media'} class:media-list--1={column.style === 'media' && column?.settings?.mediaColumns === 1} class:media-list--2={column.style === 'media' && column?.settings?.mediaColumns === 2} class:video-list={column.style === 'video'}>
-    {#each column.data.feed as data, index (data.reason ? `${data.post.uri}|${data.reason.indexedAt}` : data.post.uri)}
+    {#each column.data.feed as data, index (data)}
       {#if (data?.post?.author?.did)}
         <svelte:boundary>
           <TimelineItem
