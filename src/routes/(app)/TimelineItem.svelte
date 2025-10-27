@@ -239,7 +239,7 @@
     }
 
     function handleClick(event) {
-        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external') || event.target.closest('.likes-wrap') || event.target.closest('.dialog-modal') || event.target.closest('video') || event.target.closest('media-player') || event.target.closest('.v2-modal') || event.target.closest('dialog')) {
+        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external') || event.target.closest('.likes-wrap') || event.target.closest('.dialog-modal') || event.target.closest('video') || event.target.closest('.video-player') || event.target.closest('.v2-modal') || event.target.closest('dialog')) {
             return false;
         }
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IsInViewport } from "runed";
-  import VideoPlayer from "$lib/components/video/VideoPlayer.svelte";
+  import { VideoPlayer } from "tokimeki-video-player";
 
   interface Props {
     video: any;
