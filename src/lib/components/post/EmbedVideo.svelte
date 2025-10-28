@@ -10,9 +10,7 @@
 
   let { video, isLocal = false, isTok = false }: Props = $props();
   let el: HTMLElement | undefined = $state();
-  const inView = new IsInViewport(() => el, {
-    rootMargin: '500px 500px 500px 500px',
-  });
+  const inView = new IsInViewport(() => el, {});
 </script>
 
 <div class="timeline-video-wrap" class:timeline-video-wrap--tok={isTok} style="--video-width: {video?.aspectRatio?.width}; --video-height: {video?.aspectRatio?.height}" bind:this={el}>

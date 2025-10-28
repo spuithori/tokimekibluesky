@@ -53,7 +53,6 @@
       --modal-transition-scale: scale(1);
       --modal-transition-opacity: 1;
 
-      will-change: transform, opacity;
       opacity: var(--modal-transition-opacity);
       margin: auto;
       overflow: hidden;

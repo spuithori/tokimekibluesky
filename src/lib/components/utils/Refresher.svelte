@@ -375,7 +375,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        will-change: transform, opacity;
     }
 
     .refresher-content {
@@ -383,7 +382,6 @@
         z-index: 1;
         background-color: inherit;
         min-height: 100%;
-        will-change: transform;
     }
 
     .refresher-icon-pull-ios {

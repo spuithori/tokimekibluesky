@@ -37,6 +37,7 @@
   import "@fontsource-variable/noto-sans-jp";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {appState} from "$lib/classes/appState.svelte";
+  import {RafLoop} from "$lib/raf-loop";
 
   injectAnalytics({
     mode: dev ? 'development' : 'production',
@@ -237,6 +238,17 @@
 
     if ($settings?.design?.fontTheme === 'zenmaru') {
       import('@fontsource/zen-maru-gothic/index.css');
+    }
+  });
+
+  const customLoop = new RafLoop({
+    skipFrames: 30,
+  });
+  customLoop.start();
+
+  $effect(() => {
+    return () => {
+      customLoop.stop();
     }
   })
 </script>

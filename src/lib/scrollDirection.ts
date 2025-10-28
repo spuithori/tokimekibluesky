@@ -12,7 +12,7 @@ export function scrollDirection(node, threshold, callback): 'up' | 'down' | unde
     }
 
     ticking = true;
-    window.requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
         let scrollDir;
 
         if (Math.abs(scrollY - lastScrollY) < threshold) {
