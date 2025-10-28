@@ -241,9 +241,7 @@
     }
   });
 
-  const customLoop = new RafLoop({
-    skipFrames: 30,
-  });
+  const customLoop = new RafLoop();
   customLoop.start();
 
   $effect(() => {
