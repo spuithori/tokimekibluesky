@@ -331,7 +331,7 @@
     bind:this={column.scrollElement}
     style:background-image={column.settings?.background ? `url(${backgroundsMap.get(column.settings.background).url})` : 'none'}
     class:dragging={isDragging}
-    {@attach draggable(() => [
+    {@attach !isJunk && draggable(() => [
         axis('x'),
         controls({ allow: ControlFrom.selector('.deck-drag-area') }),
         events({
@@ -339,7 +339,7 @@
             onDrag: handleDragging,
             onDragEnd: handleDragEnd,
         }),
-        disabled($settings.design?.layout === 'default' || isJunk),
+        disabled($settings.design?.layout === 'default'),
         eventsComp,
     ])}
 >
