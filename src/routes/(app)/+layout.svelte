@@ -38,6 +38,7 @@
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {appState} from "$lib/classes/appState.svelte";
   import {RafLoop} from "$lib/raf-loop";
+  import {isSafariOrFirefox} from "$lib/util";
 
   injectAnalytics({
     mode: dev ? 'development' : 'production',
@@ -242,7 +243,10 @@
   });
 
   const customLoop = new RafLoop();
-  customLoop.start();
+
+  if (!isSafariOrFirefox()) {
+    customLoop.start();
+  }
 
   $effect(() => {
     return () => {
