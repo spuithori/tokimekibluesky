@@ -76,7 +76,7 @@
   function detectHeadThemeColor(theme) {
       tick().then(() => {
           baseColor = app ? getComputedStyle(app).getPropertyValue('--base-bg-color') : '#fff';
-          document.body.style.backgroundColor = baseColor;
+          document.documentElement.style.backgroundColor = baseColor;
       })
   }
 
