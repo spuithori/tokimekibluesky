@@ -85,6 +85,10 @@
 
         if (filesList[0].type === 'video/mp4') {
             const videoFile = filesList[0];
+            video = {
+                blob: videoFile,
+            };
+
             const dimensions = await getVideoDimensions(videoFile);
 
             if (videoFile.size / 1024 / 1024 > 100 || dimensions.duration > 180) {
