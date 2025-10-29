@@ -76,6 +76,7 @@
   function detectHeadThemeColor(theme) {
       tick().then(() => {
           baseColor = app ? getComputedStyle(app).getPropertyValue('--base-bg-color') : '#fff';
+          document.body.style.backgroundColor = baseColor;
       })
   }
 
@@ -256,7 +257,7 @@
 </script>
 
 <svelte:head>
-  <meta name="theme-color" content="#FF0000">
+  <meta name="theme-color" content={baseColor}>
   <link rel="canonical" href="https://tokimeki.blue{page.url.pathname}">
 
   {#if ($settings?.embed?.x)}
