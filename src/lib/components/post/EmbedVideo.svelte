@@ -16,7 +16,7 @@
 <div class="timeline-video-wrap" class:timeline-video-wrap--tok={isTok} style="--video-width: {video?.aspectRatio?.width}; --video-height: {video?.aspectRatio?.height}" bind:this={el}>
   {#if inView.current}
     <VideoPlayer
-      src={isLocal ? { src: video?.blob, type: 'video/object' } : video?.playlist}
+      src={isLocal ? { src: video, type: 'video/object' } : video?.playlist}
       poster={video?.thumbnail}
       {isTok}
     ></VideoPlayer>

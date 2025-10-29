@@ -30,6 +30,15 @@
 
     let { images = $bindable([]), video = $bindable(), onpreparestart = () => {}, onprepareend = () => {}, onaltclick = () => {} }: Props = $props();
     let input = $state();
+    let videoUrl = $derived(video?.blob ? URL.createObjectURL(video.blob) : null);
+
+    $effect(() => {
+        return () => {
+            if (videoUrl) {
+                URL.revokeObjectURL(videoUrl);
+            }
+        };
+    });
 
     $effect(() => {
         if (images.length > 4) {
@@ -180,7 +189,7 @@
 
 {#if video}
     <div class="video-upload-item">
-        <EmbedVideo video={video} isLocal={true}></EmbedVideo>
+        <EmbedVideo video={videoUrl} isLocal={true}></EmbedVideo>
 
         <button class="video-upload-item__close" onclick={handleVideoDelete}>
             <X color="#fff" size="18"></X>
