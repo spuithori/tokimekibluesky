@@ -256,7 +256,7 @@
 </script>
 
 <svelte:head>
-  <meta name="theme-color" content={baseColor}>
+  <!-- <meta name="theme-color" content={baseColor}> -->
   <link rel="canonical" href="https://tokimeki.blue{page.url.pathname}">
 
   {#if ($settings?.embed?.x)}
