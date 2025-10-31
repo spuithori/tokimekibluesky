@@ -2,6 +2,7 @@
     import {_} from 'svelte-i18n';
     import {postMutes} from "$lib/stores";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+    import { ChevronRight, FolderInput } from "lucide-svelte";
 
     function deletePostMutes() {
         $postMutes = [];
@@ -19,7 +20,11 @@
   </SettingsHeader>
 
   <div class="settings-wrap">
-    <p class="settings-description">{$_('import_export_description')}</p>
+    <div class="settings-child-nav">
+      <FolderInput size="24"></FolderInput>
+      <a href="/settings/data/workspace-import-export">{$_('workspace_import_export')}</a>
+      <ChevronRight size="20"></ChevronRight>
+    </div>
 
     <div class="bookmark-import-export bookmark-import-export--export">
       <h2 class="bookmark-import-export__title">{$_('delete_post_mutes')}</h2>
@@ -34,29 +39,29 @@
 
 <style lang="postcss">
   .bookmark-import-export {
-      padding: 16px;
-      border-radius: var(--border-radius-3);
-      box-shadow: 0 0 10px var(--box-shadow-color-1);
-      margin-bottom: 20px;
+    padding: 16px;
+    border-radius: var(--border-radius-3);
+    box-shadow: 0 0 10px var(--box-shadow-color-1);
+    margin-top: 16px;
 
-      &__title {
-          font-size: 18px;
-          margin-bottom: 4px;
-      }
+    &__title {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
 
-      &__description {
-          font-size: 14px;
-          color: var(--text-color-3);
-      }
+    &__description {
+      font-size: 14px;
+      color: var(--text-color-3);
+    }
 
-      &__danger {
-          color: var(--danger-color);
-          font-weight: bold;
-          font-size: 14px;
-      }
+    &__danger {
+      color: var(--danger-color);
+      font-weight: bold;
+      font-size: 14px;
+    }
 
-      &__buttons {
-          margin-top: 16px;
-      }
+    &__buttons {
+      margin-top: 16px;
+    }
   }
 </style>

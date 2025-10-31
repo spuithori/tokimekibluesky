@@ -726,5 +726,7 @@
   "bubble_false": "Default",
   "bubble_true": "Bubbles",
   "edit_pronouns": "Pronouns",
-  "edit_website": "Website"
+  "edit_website": "Website",
+  "workspace_import_export": "Workspace Import/Export",
+  "check_all": "Check All"
 }

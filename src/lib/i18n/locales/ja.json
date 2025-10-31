@@ -726,5 +726,7 @@
   "bubble_false": "デフォルト",
   "bubble_true": "バブル型",
   "edit_pronouns": "呼びかた",
-  "edit_website": "ウェブサイト"
+  "edit_website": "ウェブサイト",
+  "workspace_import_export": "ワークスペースのインポート・エクスポート",
+  "check_all": "すべて選択"
 }

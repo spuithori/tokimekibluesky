@@ -8,11 +8,7 @@
     import {builtInThemes} from "$lib/builtInThemes";
     import {defaultColors} from "$lib/defaultColors";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
-    import {
-        AppWindowMac,
-        Bubbles, ChevronRight, Columns3, GalleryVertical, Palette, PanelBottomOpen, PanelLeftOpen, RectangleVertical,
-        Rows3
-    } from "lucide-svelte";
+    import { AppWindowMac, Bubbles, ChevronRight, Columns3, GalleryVertical, Palette, PanelBottomOpen, PanelLeftOpen, RectangleVertical, Rows3 } from "lucide-svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
     import Notice from "$lib/components/ui/Notice.svelte";
     let skin: string = $state($settings?.design.skin || 'default');
