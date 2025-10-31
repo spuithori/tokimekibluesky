@@ -728,5 +728,6 @@
   "edit_pronouns": "Pronouns",
   "edit_website": "Website",
   "workspace_import_export": "Workspace Import/Export",
-  "check_all": "Check All"
+  "check_all": "Check All",
+  "export": "Export"
 }
