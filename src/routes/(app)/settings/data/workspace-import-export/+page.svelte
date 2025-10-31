@@ -118,6 +118,7 @@
 <style lang="postcss">
     .settings-box {
         padding: 16px;
+        margin-bottom: 16px;
         border: 1px solid var(--border-color-2);
         border-radius: var(--border-radius-3);
 
