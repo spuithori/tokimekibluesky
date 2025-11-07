@@ -668,6 +668,7 @@
   "lossless_image_upload_mode": "尽可能在上传时保持图片质量",
   "lossless_image_upload_mode_notice": "图像尺寸大于 1MB 或图像格式不是 JPG/PNG 时可能会出现错误而导致无法发布帖子。",
   "display_mutual_following": "显示关注标签",
+  "show_skyblur_text": "显示来自 Skyblur 的隐藏标签",
   "back_to_exit_again": "再次返回将退出应用。",
   "tag_instant_user_search": "用此用户搜索标签",
   "hide_quote": "隐藏带引用的帖子",
