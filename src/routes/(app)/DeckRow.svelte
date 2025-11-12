@@ -737,7 +737,7 @@
         left: 0;
         right: 0;
         background-color: var(--deck-heading-bg-color);
-        z-index: 21;
+        z-index: 10;
         border-bottom: 1px solid var(--deck-border-color);
         border-radius: var(--deck-border-radius) var(--deck-border-radius) 0 0;
         min-width: 0;
@@ -806,7 +806,6 @@
 
         &--sticky {
             position: sticky !important;
-            z-index: 100 !important;
             top: 52px;
             border-radius: 0;
         }
