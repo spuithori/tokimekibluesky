@@ -54,6 +54,10 @@ const languages = [
       value: 'fr',
       text: 'Français',
     },
+    {
+      value: 'it',
+      text: 'Italiano',
+    },
 ]
 
 run(() => {

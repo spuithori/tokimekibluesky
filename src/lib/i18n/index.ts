@@ -14,6 +14,7 @@ register('bg', () => import('./locales/bg.json'));
 register('zh-CN', () => import('./locales/zh-cn.json'));
 register('ru', () => import('./locales/ru.json'));
 register('fr', () => import('./locales/fr-fr.json'));
+register('it', () => import('./locales/it.json'));
 
 register('ja', () => import('./locales/languageMap/ja.json'));
 register('en', () => import('./locales/languageMap/en.json'));
