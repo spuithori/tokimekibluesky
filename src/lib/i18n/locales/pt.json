@@ -240,7 +240,7 @@
   "deck_settings": "Configuração individual de colunas",
   "deck_settings_description": "Configurações globais foram sobrescritas.",
   "settings_inherit": "Herdar configurações globais",
-  "lang_filter_overwritten": "Sobrescrever filtros de linguagem",
+  "lang_filter_overwritten": "Sobrescrever filtros de idioma",
   "auto_refresh": "Atualização automática",
   "auto_refresh_nothing": "Nothing",
   "auto_refresh_10s": "10 segundos",
