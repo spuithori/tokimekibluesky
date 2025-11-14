@@ -23,6 +23,7 @@ register('bg', () => import('./locales/languageMap/bg.json'));
 register('zh-CN', () => import('./locales/languageMap/zh-cn.json'));
 register('ru', () => import('./locales/languageMap/ru.json'));
 register('fr', () => import('./locales/languageMap/fr-fr.json'));
+register('it', () => import('./locales/languageMap/it.json'));
 
 register('ja', () => import('./locales/labeling/ja.json'));
 register('en', () => import('./locales/labeling/en.json'));
