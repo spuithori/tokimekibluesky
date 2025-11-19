@@ -37,8 +37,6 @@
   import "@fontsource-variable/noto-sans-jp";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {appState} from "$lib/classes/appState.svelte";
-  import {RafLoop} from "$lib/raf-loop";
-  import {isSafariOrFirefox} from "$lib/util";
 
   injectAnalytics({
     mode: dev ? 'development' : 'production',
@@ -242,18 +240,6 @@
       import('@fontsource/zen-maru-gothic/index.css');
     }
   });
-
-  const customLoop = new RafLoop();
-
-  if (!isSafariOrFirefox()) {
-    customLoop.start();
-  }
-
-  $effect(() => {
-    return () => {
-      customLoop.stop();
-    }
-  })
 </script>
 
 <svelte:head>

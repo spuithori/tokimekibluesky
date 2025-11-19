@@ -61,7 +61,6 @@
       height: var(--decks-height, calc(100dvh - var(--decks-margin, 0px) * 2));
       flex: var(--decks-flex, initial);
       background-color: var(--decks-bg-color, transparent);
-      border-radius: var(--decks-border-radius, 0);
       border: var(--decks-border, none);
       border-left: var(--decks-border-left, 0);
       border-bottom: var(--decks-border-bottom, 0);

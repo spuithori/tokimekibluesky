@@ -1,5 +1,5 @@
 .timeline {
-    background-color: var(--timeline-bg-color);
+    /* background-color: var(--timeline-bg-color); */
     padding: var(--timeline-padding);
     color: var(--timeline-color);
     position: relative;
