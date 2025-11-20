@@ -493,6 +493,7 @@
 <style lang="postcss">
     .deck-row-wrap {
         position: relative;
+        touch-action: auto !important;
         padding: 1px .5px;
 
         &::before {
