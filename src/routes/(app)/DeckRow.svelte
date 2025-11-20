@@ -506,6 +506,7 @@
             border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
             box-shadow: var(--deck-box-shadow);
             background-color: var(--deck-content-bg-color);
+            pointer-events: none;
 
             @media (max-width: 767px) {
                 border-radius: 0;
@@ -514,14 +515,12 @@
         }
 
         &--single {
-            padding: .5px 0;
+            padding: 0;
+            position: static;
+            display: contents;
 
             &::before {
-                border-top: 1px solid transparent;
-                border-bottom: 1px solid transparent;
-                border-left: none;
-                border-right: none;
-                border-radius: 0;
+                content: none;
             }
         }
 
@@ -538,7 +537,6 @@
         position: relative;
         overflow-y: scroll;
         height: 100%;
-        touch-action: auto !important;
         outline: none;
 
         @supports (-moz-appearance: none) {
