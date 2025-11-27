@@ -10,6 +10,7 @@
   import {settingsState} from "$lib/classes/settingsState.svelte";
   import { createLongPress } from "$lib/longpress";
   import AvatarAgentsSelectorSkeleton from "$lib/components/acp/AvatarAgentsSelectorSkeleton.svelte";
+  import type {Agent} from "$lib/agent";
 
   interface Props {
     _agent?: any;
@@ -37,16 +38,26 @@
       $settings.general.repostConfirmSkip = false;
   }
 
+  async function getPostRepostViewer(_agent: Agent) {
+      try {
+          const { data } = await _agent.agent.api.app.bsky.feed.getPostThread({uri: post.uri});
+          return data?.thread?.post?.viewer?.repost;
+      } catch (e) {
+          throw new Error('Failed to get post repost viewer');
+      }
+  }
+
   async function repost(cid: string, uri: string, viewer) {
       if (isAgentSelectorOpen) {
           return false;
       }
 
-      const __agent = temporaryAgent || _agent;
-      isProcessed = true;
-      isNumberTransition = true;
-
       try {
+          const __agent = temporaryAgent || _agent;
+          const viewer = temporaryAgent ? await getPostRepostViewer(__agent) : post?.viewer?.like;
+          isProcessed = true;
+          isNumberTransition = true;
+
           const via = isReasonRepost(reason) && !settingsState?.settings?.disableEmbedVia && reason.cid && reason.uri
               ? {
                   cid: reason.cid,

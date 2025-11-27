@@ -9,6 +9,7 @@
   import {settingsState} from "$lib/classes/settingsState.svelte";
   import { createLongPress } from "$lib/longpress";
   import AvatarAgentsSelectorSkeleton from "$lib/components/acp/AvatarAgentsSelectorSkeleton.svelte";
+  import type {Agent} from "$lib/agent";
 
   interface Props {
     _agent?: any;
@@ -33,16 +34,26 @@
   let isAgentSelectorOpen = $state(false);
   let temporaryAgent;
 
-  async function vote(cid: string, uri: string, viewer) {
+  async function getPostLikeViewer(_agent: Agent) {
+      try {
+          const { data } = await _agent.agent.api.app.bsky.feed.getPostThread({uri: post.uri});
+          return data?.thread?.post?.viewer?.like;
+      } catch (e) {
+          throw new Error('Failed to get post like viewer');
+      }
+  }
+
+  async function vote(cid: string, uri: string) {
       if (isAgentSelectorOpen) {
           return false;
       }
 
-      const __agent = temporaryAgent || _agent;
-      isProcessed = true;
-      isNumberTransition = true;
-
       try {
+          const __agent = temporaryAgent || _agent;
+          const viewer = temporaryAgent ? await getPostLikeViewer(__agent) : post?.viewer?.like;
+          isProcessed = true;
+          isNumberTransition = true;
+
           const via = isReasonRepost(reason) && !settingsState?.settings?.disableEmbedVia && reason.cid && reason.uri
               ? {
                   cid: reason.cid,
@@ -77,7 +88,7 @@
   async function handleLongPressSelect(agent) {
       isAgentSelectorOpen = false;
       temporaryAgent = agent;
-      await vote(post.cid, post.uri, post.viewer?.like);
+      await vote(post.cid, post.uri);
   }
 </script>
 
@@ -88,7 +99,7 @@
         class:timeline-reaction__item--active={post.viewer?.like}
         class:timeline-reaction__item--transition={isProcessed}
         disabled={isProcessed}
-        onclick={() => vote(post.cid, post.uri, post.viewer?.like)}
+        onclick={() => vote(post.cid, post.uri)}
         use:createLongPress={{callback: handleLongPress, duration: 500}}
     >
   <span class="timeline-reaction__icon" aria-label={$_('like')}>
