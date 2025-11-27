@@ -8,13 +8,14 @@
   import NumberFlow from '@number-flow/svelte';
   import { isReasonRepost } from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import {settingsState} from "$lib/classes/settingsState.svelte";
+  import { createLongPress } from "$lib/longpress";
+  import AvatarAgentsSelectorSkeleton from "$lib/components/acp/AvatarAgentsSelectorSkeleton.svelte";
 
   interface Props {
     _agent?: any;
     post: any;
     reason?: any;
     showCounts?: boolean;
-    isModal?: boolean;
   }
 
   let {
@@ -22,7 +23,6 @@
     post,
     reason,
     showCounts = true,
-    isModal = false,
   }: Props = $props();
 
   const columnState = getColumnState(false);
@@ -30,12 +30,19 @@
   let isDialogRender = $state(false);
   let isProcessed: boolean = $state(false);
   let isNumberTransition: boolean = $state(false);
+  let isAgentSelectorOpen = $state(false);
+  let temporaryAgent;
 
   if ($settings.general?.repostConfirmSkip === undefined) {
       $settings.general.repostConfirmSkip = false;
   }
 
-  export async function repost(cid: string, uri: string, viewer) {
+  async function repost(cid: string, uri: string, viewer) {
+      if (isAgentSelectorOpen) {
+          return false;
+      }
+
+      const __agent = temporaryAgent || _agent;
       isProcessed = true;
       isNumberTransition = true;
 
@@ -46,22 +53,17 @@
                   uri: reason.uri,
               }
               : undefined;
-          const repost = await _agent.setRepost(cid, uri, viewer || '', via);
+          const repost = await __agent.setRepost(cid, uri, viewer || '', via);
           const repostViewer = repost?.uri || undefined;
           const pulse = {
               viewer: repostViewer,
-              did: _agent.did(),
+              did: __agent.did(),
               uri: uri,
               count: repostViewer ? post.repostCount + 1 : post.repostCount - 1,
           };
 
           columnState.updateRepost(pulse);
           junkColumnState.updateRepost(pulse);
-
-          if (isModal) {
-              post.repostCount = pulse.count;
-              post.viewer.repost = pulse.viewer;
-          }
       } catch (e) {
           toast.error($_('failed_to_repost'));
           console.error(e);
@@ -74,35 +76,59 @@
   }
 
   function repostStep() {
+      if (isAgentSelectorOpen) {
+          return false;
+      }
+
       if ($settings.general.repostConfirmSkip) {
           repost(post.cid, post.uri, post.viewer?.repost);
       } else {
           isDialogRender = true;
       }
   }
+
+  function handleLongPress() {
+      isAgentSelectorOpen = true;
+  }
+
+  async function handleLongPressSelect(agent) {
+      isAgentSelectorOpen = false;
+      temporaryAgent = agent;
+      repostStep();
+  }
 </script>
 
-<button
-    class="timeline-reaction__item timeline-reaction__item--repost"
-    class:timeline-reaction__item--active={post.viewer?.repost}
-    class:timeline-reaction__item--transition={isProcessed}
-    disabled={isProcessed}
-    onclick={repostStep}
->
-  <span class="timeline-reaction__icon" aria-label={$_('repost')}>
-    <Repeat size="16" color="var(--timeline-reaction-repost-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></Repeat>
-  </span>
+<div class="timeline-reaction__wrap">
+    <button
+        class="timeline-reaction__item timeline-reaction__item--repost"
+        class:timeline-reaction__item--active={post.viewer?.repost}
+        class:timeline-reaction__item--transition={isProcessed}
+        disabled={isProcessed}
+        onclick={repostStep}
+        use:createLongPress={{callback: handleLongPress, duration: 500}}
+    >
+        <span class="timeline-reaction__icon" aria-label={$_('repost')}>
+            <Repeat size="16" color="var(--timeline-reaction-repost-icon-color)" absoluteStrokeWidth={true} strokeWidth="1.5"></Repeat>
+        </span>
 
-  {#if showCounts && post.repostCount}
-    <span class="timeline-reaction__count">
-      {#if isNumberTransition}
-        <NumberFlow value={post.repostCount} onanimationsfinish={() => {isNumberTransition = false}} format={{ useGrouping: false }}></NumberFlow>
-      {:else}
-        {post.repostCount}
-      {/if}
-    </span>
-  {/if}
-</button>
+        {#if showCounts && post.repostCount}
+            <span class="timeline-reaction__count">
+                {#if isNumberTransition}
+                    <NumberFlow value={post.repostCount} onanimationsfinish={() => {isNumberTransition = false}} format={{ useGrouping: false }}></NumberFlow>
+                {:else}
+                    {post.repostCount}
+                {/if}
+            </span>
+        {/if}
+    </button>
+
+    {#if isAgentSelectorOpen}
+        <AvatarAgentsSelectorSkeleton
+            onselect={handleLongPressSelect}
+            onclose={() => {isAgentSelectorOpen = false}}
+        ></AvatarAgentsSelectorSkeleton>
+    {/if}
+</div>
 
 {#if (isDialogRender)}
   <ConfirmModal
@@ -122,6 +148,10 @@
 {/if}
 
 <style lang="postcss">
+    .timeline-reaction__wrap {
+        position: relative;
+    }
+
     .timeline-reaction__item {
         &:hover {
             @media (min-width: 768px) {

@@ -11,7 +11,6 @@
   import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
   import { getAccountIdByDid, getAllAgentDids, getDidFromUri } from "$lib/util.js";
-  import ReactionModal from "$lib/components/post/ReactionModal.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import MediaTimelineItem from "$lib/components/media/MediaTimelineItem.svelte";
@@ -41,7 +40,6 @@
     let isEditDialogRender = $state(false);
     let isMenuOpen = $state(false);
     let isTranslated = false;
-    let isReactionModalOpen = $state(false);
     let pulseTranslate = $state(false);
     let hideReply = column?.settings?.timeline?.hideReply
       ? column.settings.timeline.hideReply
@@ -577,15 +575,6 @@
               </li>
             {/if}
 
-            {#if ($agents.size > 1)}
-              <li class="timeline-menu-list__item">
-                <button class="timeline-menu-list__button" onclick={() => {isReactionModalOpen = true}}>
-                  <Users2 size="18" color="var(--text-color-1)"></Users2>
-                  {$_('reaction_other_account_menu')}
-                </button>
-              </li>
-            {/if}
-
             {#if (!getAllAgentDids($agents).includes(data.post.author.did))}
               <li class="timeline-menu-list__item timeline-menu-list__item--hide">
                 <button class="timeline-menu-list__button" onclick={mutePost}>
@@ -655,10 +644,6 @@
           <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
           <p class="modal-description">{$_('delete_and_edit_confirm_description')}</p>
         </ConfirmModal>
-      {/if}
-
-      {#if (isReactionModalOpen)}
-        <ReactionModal {data} onclose={() => {isReactionModalOpen = false}}></ReactionModal>
       {/if}
     </article>
   {/if}

@@ -40,7 +40,7 @@
     "@neodrag/svelte": "^3.0.0-next.8",
     "@number-flow/svelte": "^0.3.9",
     "@supabase/supabase-js": "^2.77.0",
-    "@sveltejs/adapter-vercel": "^6.1.1",
+    "@sveltejs/adapter-vercel": "^6.2.0",
     "@tiptap/core": "^3.10.5",
     "@tiptap/extension-document": "^3.10.5",
     "@tiptap/extension-hard-break": "^3.10.5",

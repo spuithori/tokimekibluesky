@@ -15,10 +15,9 @@
     post: any;
     reason?: any;
     _agent: any;
-    isModal?: boolean;
   }
 
-  let { post, reason, _agent, isModal = false }: Props = $props();
+  let { post, reason, _agent }: Props = $props();
 </script>
 
 <div class="timeline-reaction timeline-reaction--{$settings ? $settings.design.reactionButtons.shown.length : '5'}">
@@ -38,7 +37,6 @@
         {reason}
         {_agent}
         showCounts={$settings.design?.reactionButtons.repost.showCounts}
-        {isModal}
     ></Repost>
   {/if}
 
@@ -48,7 +46,6 @@
         {reason}
         {_agent}
         showCounts={$settings.design?.reactionButtons.like.showCounts}
-        {isModal}
     ></Like>
   {/if}
 

@@ -7,13 +7,14 @@
   import NumberFlow from '@number-flow/svelte';
   import { isReasonRepost } from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import {settingsState} from "$lib/classes/settingsState.svelte";
+  import { createLongPress } from "$lib/longpress";
+  import AvatarAgentsSelectorSkeleton from "$lib/components/acp/AvatarAgentsSelectorSkeleton.svelte";
 
   interface Props {
     _agent?: any;
     post: any;
     reason?: any;
     showCounts?: boolean;
-    isModal?: boolean;
     isTok?: boolean;
   }
 
@@ -22,7 +23,6 @@
     post,
     reason,
     showCounts = true,
-    isModal = false,
     isTok = false,
   }: Props = $props();
 
@@ -30,8 +30,15 @@
   const junkColumnState = getColumnState(true);
   let isProcessed: boolean = $state(false);
   let isNumberTransition: boolean = $state(false);
+  let isAgentSelectorOpen = $state(false);
+  let temporaryAgent;
 
-  export async function vote(cid: string, uri: string, viewer) {
+  async function vote(cid: string, uri: string, viewer) {
+      if (isAgentSelectorOpen) {
+          return false;
+      }
+
+      const __agent = temporaryAgent || _agent;
       isProcessed = true;
       isNumberTransition = true;
 
@@ -42,22 +49,17 @@
                   uri: reason.uri,
               }
               : undefined;
-          const like = await _agent.setVote(cid, uri, viewer || '', via);
+          const like = await __agent.setVote(cid, uri, viewer || '', via);
           const likeViewer = like?.uri || undefined;
           const pulse = {
               viewer: likeViewer,
-              did: _agent.did(),
+              did: __agent.did(),
               uri: uri,
               count: likeViewer ? post.likeCount + 1 : post.likeCount - 1,
           };
 
           columnState.updateLike(pulse);
           junkColumnState.updateLike(pulse);
-
-          if (isModal) {
-              post.likeCount = pulse.count;
-              post.viewer.like = pulse.viewer;
-          }
       } catch (e) {
           toast.error($_('failed_to_like'));
           console.error(e);
@@ -65,17 +67,30 @@
       }
 
       isProcessed = false;
+      temporaryAgent = undefined;
+  }
+
+  function handleLongPress() {
+      isAgentSelectorOpen = true;
+  }
+
+  async function handleLongPressSelect(agent) {
+      isAgentSelectorOpen = false;
+      temporaryAgent = agent;
+      await vote(post.cid, post.uri, post.viewer?.like);
   }
 </script>
 
-<button
-    class="timeline-reaction__item timeline-reaction__item--like"
-    class:timeline-reaction__item--is-tok={isTok}
-    class:timeline-reaction__item--active={post.viewer?.like}
-    class:timeline-reaction__item--transition={isProcessed}
-    disabled={isProcessed}
-    onclick={() => vote(post.cid, post.uri, post.viewer?.like)}
->
+<div class="timeline-reaction__wrap">
+    <button
+        class="timeline-reaction__item timeline-reaction__item--like"
+        class:timeline-reaction__item--is-tok={isTok}
+        class:timeline-reaction__item--active={post.viewer?.like}
+        class:timeline-reaction__item--transition={isProcessed}
+        disabled={isProcessed}
+        onclick={() => vote(post.cid, post.uri, post.viewer?.like)}
+        use:createLongPress={{callback: handleLongPress, duration: 500}}
+    >
   <span class="timeline-reaction__icon" aria-label={$_('like')}>
     {#if ($settings?.design?.reactionMode === 'superstar')}
       <Star size="16" color="var(--timeline-reaction-like-icon-color)" fill="var(--timeline-reaction-like-fill-color, transparent)" absoluteStrokeWidth={true} strokeWidth="1.5"></Star>
@@ -84,7 +99,7 @@
     {/if}
   </span>
 
-  {#if showCounts && post.likeCount}
+        {#if showCounts && post.likeCount}
     <span class="timeline-reaction__count">
       {#if isNumberTransition}
         <NumberFlow value={post.likeCount} onanimationsfinish={() => {isNumberTransition = false}} format={{ useGrouping: false }}></NumberFlow>
@@ -92,10 +107,22 @@
         {post.likeCount}
       {/if}
     </span>
-  {/if}
-</button>
+        {/if}
+    </button>
+
+    {#if isAgentSelectorOpen}
+        <AvatarAgentsSelectorSkeleton
+            onselect={handleLongPressSelect}
+            onclose={() => {isAgentSelectorOpen = false}}
+        ></AvatarAgentsSelectorSkeleton>
+    {/if}
+</div>
 
 <style lang="postcss">
+    .timeline-reaction__wrap {
+        position: relative;
+    }
+
     .timeline-reaction__item {
         &:hover {
             @media (min-width: 768px) {
