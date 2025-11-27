@@ -54,7 +54,7 @@
 
       try {
           const __agent = temporaryAgent || _agent;
-          const viewer = temporaryAgent ? await getPostRepostViewer(__agent) : post?.viewer?.like;
+          const viewer = temporaryAgent ? await getPostRepostViewer(__agent) : post?.viewer?.repost;
           isProcessed = true;
           isNumberTransition = true;
 
