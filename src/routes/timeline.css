@@ -507,6 +507,10 @@
     transition: background-color .2s ease-in-out;
     font-family: var(--ui-font);
     color: inherit;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
 
     &--quote {
         justify-content: center;

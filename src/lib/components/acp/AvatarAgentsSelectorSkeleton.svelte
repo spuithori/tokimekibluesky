@@ -69,5 +69,9 @@
         padding: 8px;
         min-width: 200px;
         border: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
     }
 </style>
