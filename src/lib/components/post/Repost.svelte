@@ -83,6 +83,7 @@
 
       setTimeout(() => {
         isProcessed = false;
+        temporaryAgent = undefined;
       }, 500);
   }
 
