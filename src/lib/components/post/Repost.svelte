@@ -47,7 +47,7 @@
       }
   }
 
-  async function repost(cid: string, uri: string, viewer) {
+  async function repost(cid: string, uri: string) {
       if (isAgentSelectorOpen) {
           return false;
       }
