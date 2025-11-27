@@ -93,7 +93,7 @@
       }
 
       if ($settings.general.repostConfirmSkip) {
-          repost(post.cid, post.uri, post.viewer?.repost);
+          repost(post.cid, post.uri);
       } else {
           isDialogRender = true;
       }
@@ -144,7 +144,7 @@
 
 {#if (isDialogRender)}
   <ConfirmModal
-      on:ok={() => {repost(post.cid, post.uri, post.viewer?.repost)}}
+      on:ok={() => {repost(post.cid, post.uri)}}
       on:cancel={() => {isDialogRender = false; temporaryAgent = undefined;}}
       confirmationName="repostConfirmSkip"
       yesText={$_('repost')}
