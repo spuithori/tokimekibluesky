@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import { Trash2, Users2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply } from 'lucide-svelte';
+  import { Trash2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply, VolumeX, ShieldBan } from 'lucide-svelte';
   import { agent, settings, reportModal, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
   import { AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '@atproto/api'
   import { toast } from "svelte-sonner";
@@ -415,6 +415,33 @@
             toast.error(e);
         }
     }
+
+    async function mute() {
+        try {
+            const mute = await _agent.agent.api.app.bsky.graph.muteActor({actor: data.post.author.did});
+            columnState.deletePostsFromDid(data.post.author.did);
+            junkColumnState.deletePostsFromDid(data.post.author.did);
+            toast.success($_('success_mute_on_menu'));
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
+    async function block() {
+        try {
+            const block = await _agent.agent.api.app.bsky.graph.block.create(
+              { repo: _agent.did() as string },
+              {
+                  subject: data.post.author.did,
+                  createdAt: new Date().toISOString(),
+              });
+            columnState.deletePostsFromDid(data.post.author.did);
+            junkColumnState.deletePostsFromDid(data.post.author.did);
+            toast.success($_('success_block_on_menu'));
+        } catch (e) {
+            console.error(e)
+        }
+    }
 </script>
 
 {#if (!isHide)}
@@ -603,6 +630,20 @@
                 </button>
               </li>
             {/if}
+
+            <li class="timeline-menu-list__item timeline-menu-list__item--report">
+              <button class="timeline-menu-list__button" onclick={mute}>
+                <VolumeX size="18" color="var(--danger-color)"></VolumeX>
+                {$_('button_mute')}
+              </button>
+            </li>
+
+            <li class="timeline-menu-list__item timeline-menu-list__item--report">
+              <button class="timeline-menu-list__button" onclick={block}>
+                <ShieldBan size="18" color="var(--danger-color)"></ShieldBan>
+                {$_('button_block')}
+              </button>
+            </li>
 
             <li class="timeline-menu-list__item timeline-menu-list__item--report">
               <button class="timeline-menu-list__button" onclick={report}>

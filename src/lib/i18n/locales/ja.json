@@ -729,5 +729,7 @@
   "edit_website": "ウェブサイト",
   "workspace_import_export": "ワークスペースのインポート・エクスポート",
   "check_all": "すべて選択",
-  "export": "エクスポート"
+  "export": "エクスポート",
+  "success_mute_on_menu": "このユーザーをミュートしました。解除はモデレーション設定から可能です。",
+  "success_block_on_menu": "このユーザーをブロックしました。解除はモデレーション設定から可能です。"
 }
