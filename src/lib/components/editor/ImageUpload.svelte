@@ -2,7 +2,7 @@
     import {_} from 'svelte-i18n'
     import imageCompression from 'browser-image-compression';
     import {flip} from "svelte/animate";
-    import { dndzone } from 'svelte-dnd-action';
+    import {dragHandleZone, dragHandle} from "svelte-dnd-action";
     import ImageUploadItem from "$lib/components/editor/ImageUploadItem.svelte";
     import {
         acceptedImageType,
@@ -177,13 +177,17 @@
     <div class="image-upload-drag-area"
          class:image-upload-drag-area--1item={images.length === 1}
          class:image-upload-drag-area--bottom={publishState.layout === 'bottom'}
-         use:dndzone="{{items: images, flipDurationMs: 300, type: 'images', dropTargetStyle: ''}}"
+         use:dragHandleZone="{{items: images, flipDurationMs: 300, type: 'images', dropTargetStyle: ''}}"
          onconsider={handleDndConsider}
          onfinalize={handleDndFinalize}
     >
         {#each images as image (image.id)}
             <div animate:flip="{{duration: 300}}">
-                <ImageUploadItem {image} ondelete={handleDelete} {onaltclick}></ImageUploadItem>
+                <div class="image-upload-item-wrap">
+                    <div class="image-upload-item-drag-area" use:dragHandle></div>
+
+                    <ImageUploadItem {image} ondelete={handleDelete} {onaltclick}></ImageUploadItem>
+                </div>
             </div>
         {/each}
     </div>
@@ -229,6 +233,20 @@
         display: none;
     }
 
+    .image-upload-item-wrap {
+        position: relative;
+    }
+
+    .image-upload-item-drag-area {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        cursor: grab;
+        z-index: 1;
+    }
+
     .video-upload-item {
         position: relative;
 
@@ -242,7 +260,19 @@
             position: absolute;
             right: 8px;
             top: 8px;
-            z-index: 10;
+        }
+
+        &__edit {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, .7);
+            display: grid;
+            place-content: center;
+            position: absolute;
+            left: 8px;
+            top: 24px;
+            z-index: 2;
         }
     }
 </style>
