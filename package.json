@@ -68,6 +68,6 @@
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.0.6",
     "tokimeki-video-player": "^1.0.20",
-    "virtua": "^0.47.0"
+    "virtua": "^0.48.2"
   }
 }
