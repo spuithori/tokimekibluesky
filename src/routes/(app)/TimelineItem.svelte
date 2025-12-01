@@ -688,7 +688,7 @@
         </ConfirmModal>
       {/if}
 
-      {#if (isThread && data?.post?.author?.viewer?.muted)}
+      {#if (isThread && data?.post?.author?.viewer?.muted && !isMuteOpen)}
         <div class="thread-notice">
           <p class="thread-notice__text">{$_('muted_user_thread')}</p>
 
