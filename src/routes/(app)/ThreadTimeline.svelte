@@ -21,30 +21,6 @@
   const column = columnState.getColumn(index);
 
   let rootIndex = $state<number>();
-  let isMuted = $state(false);
-  let isMuteDisplay = $state(false);
-
-  let shouldShowMuteNotice = $derived(isMuted && !isMuteDisplay);
-
-  function checkMutedStatus(feed: any): boolean {
-    if (!feed) {
-      return false;
-    }
-
-    if (feed.post?.author?.viewer?.muted) {
-      return true;
-    }
-
-    if (feed.parent && checkMutedStatus(feed.parent)) {
-      return true;
-    }
-
-    if (feed.replies?.length && checkMutedStatus(feed.replies[0])) {
-      return true;
-    }
-
-    return false;
-  }
 
   async function getFlatThread() {
     const uri = column.algorithm.algorithm;
@@ -57,7 +33,6 @@
       const flatThread = sortedThread.flat(Infinity);
 
       column.data.feed = flatThread;
-      isMuted = flatThread.some(feed => !feed.blocked && checkMutedStatus(feed));
       rootIndex = flatThread.findIndex(feed => feed.depth === 0);
     } catch (e) {
       console.error(e);
@@ -163,14 +138,6 @@
     await getFlatThread();
   });
 </script>
-
-{#if shouldShowMuteNotice}
-  <div class="thread-notice">
-    <p class="thread-notice__text">{$_('muted_user_thread')}</p>
-
-    <button class="button button--sm" onclick={() => {isMuteDisplay = true}}>{$_('show_button')}</button>
-  </div>
-{/if}
 
 {#if !column.data.feed.length}
   <LoadingSpinner></LoadingSpinner>

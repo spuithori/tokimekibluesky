@@ -68,6 +68,7 @@
 
     let isHide: boolean = $state(false);
     let isReplyHide: boolean = $state(false);
+    let isMuteOpen = $state(false);
 
     $effect(() => {
         handleEmbedDetach($pulseDetach);
@@ -685,6 +686,14 @@
           <h3 class="modal-title modal-title--smaller modal-title--center">{$_('delete_confirm_title')}</h3>
           <p class="modal-description">{$_('delete_and_edit_confirm_description')}</p>
         </ConfirmModal>
+      {/if}
+
+      {#if (isThread && data?.post?.author?.viewer?.muted)}
+        <div class="thread-notice">
+          <p class="thread-notice__text">{$_('muted_user_thread')}</p>
+
+          <button class="button button--sm" onclick={() => {isMuteOpen = true}}>{$_('show_button')}</button>
+        </div>
       {/if}
     </article>
   {/if}
