@@ -1,11 +1,35 @@
 <script lang="ts">
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-    import { X } from 'lucide-svelte';
+    import { X, Brush } from 'lucide-svelte';
+    import { ImageEditor } from 'tokimeki-image-editor';
+    import imageCompression from "browser-image-compression";
 
     let { image, ondelete, onaltclick } = $props();
+    let isEdit = $state(false);
 
     function handleDelete() {
         ondelete(image.id);
+    }
+
+    function handleEdit() {
+        isEdit = true;
+    }
+
+    async function handleComplete(dataUrl: string, blobObj: {blob: Blob, width: number, height: number}) {
+        image.file = blobObj.blob;
+        image.width = blobObj.width;
+        image.height = blobObj.height;
+        const compressed = await imageCompression(image.file, {
+            maxWidthOrHeight: 1024,
+            initialQuality: 0.8,
+            useWebWorker: true,
+        });
+        image.base64 = await imageCompression.getDataUrlFromFile(compressed);
+        isEdit = false;
+    }
+
+    function handleCancel() {
+        isEdit = false;
     }
 </script>
 
@@ -14,12 +38,16 @@
         <img src="{image.base64}" alt="">
     {:else}
         <div class="image-upload-item__loading">
-            <LoadingSpinner padding="0" size="24"></LoadingSpinner>
+            <LoadingSpinner padding={0} size={24}></LoadingSpinner>
         </div>
     {/if}
 
     <button class="image-upload-item__close" onclick={handleDelete}>
         <X color="#fff" size="20"></X>
+    </button>
+
+    <button class="image-upload-item__edit" onclick={handleEdit}>
+        <Brush color="#fff" size="18"></Brush>
     </button>
 
     <button class="image-upload-item__alt" onclick={() => {onaltclick(image.id)}}>ALT</button>
@@ -28,6 +56,20 @@
         <span class="gif-label">GIF</span>
     {/if}
 </div>
+
+{#if isEdit}
+    <div class="image-editor-overlay">
+        <ImageEditor
+            initialImage={image.file}
+            width={1200}
+            height={700}
+            isStandalone={false}
+            onComplete={handleComplete}
+            onCancel={handleCancel}
+        >
+        </ImageEditor>
+    </div>
+{/if}
 
 <style lang="postcss">
     .image-upload-item {
@@ -63,6 +105,20 @@
             position: absolute;
             right: 8px;
             top: 8px;
+            z-index: 2;
+        }
+
+        &__edit {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, .7);
+            display: grid;
+            place-content: center;
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            z-index: 2;
         }
 
         &__alt {
@@ -79,6 +135,17 @@
             font-weight: bold;
             letter-spacing: .05em;
             font-size: 14px;
+            z-index: 2;
         }
+    }
+
+    .image-editor-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+        background-color: #1a1a1af2;
+        backdrop-filter: blur(10px);
     }
 </style>
