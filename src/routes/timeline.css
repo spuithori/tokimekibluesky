@@ -541,6 +541,10 @@
     }
 }
 
+.timeline-external-wrap {
+    position: relative;
+}
+
 .timeline-images {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

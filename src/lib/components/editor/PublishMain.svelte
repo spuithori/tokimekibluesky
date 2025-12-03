@@ -474,7 +474,7 @@
             {/if}
           </div>
 
-          {#if (post.images.length)}
+          {#if (post.images.length || post?.embedExternal)}
             <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
               {#snippet ref()}
                 <SelfLabelLabel labels={post.selfLabels}></SelfLabelLabel>

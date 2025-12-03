@@ -271,7 +271,13 @@
     {/if}
 
     {#if (AppBskyEmbedExternal.isView(post.embed))}
-      <EmbedExternal external={post.embed.external}></EmbedExternal>
+      <div class="timeline-external-wrap">
+        {#if (isWarn === 'media')}
+          <TimelineWarn labels={warnLabels}></TimelineWarn>
+        {/if}
+
+        <EmbedExternal external={post.embed.external}></EmbedExternal>
+      </div>
     {/if}
 
     {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyEmbedRecord.isViewRecord(post.embed.record)) }

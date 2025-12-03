@@ -276,7 +276,7 @@
   "settings_profiles": "ワークスペースとアカウント",
   "delete_profile": "ワークスペースを削除",
   "switch_main_account": "メインアカウントにする",
-  "profiles_description": "TOPページ以外（プロフィールページや検索など）はメインアカウント経由でアクセスされます。メインアカウントと異なるサーバーのプロフィールページにはアクセスできません。今後、改善予定です。",
+  "profiles_description": "TOPページ以外（プロフィールページや検索など）はメインアカウント経由でアクセスされます。",
   "profile_change_name": "名前の変更",
   "profile_switch": "切り替え",
   "profile_current": "現在のワークスペース",
