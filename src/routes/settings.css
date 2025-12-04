@@ -125,16 +125,15 @@ input[type=checkbox] {
     }
 
     &__input {
-        background-color: var(--bg-color-1);
-        border: 1px solid var(--border-color-1);
-        border-bottom: 2px solid var(--border-color-1);
-        height: 40px;
-        border-radius: 4px;
+        border: 1px solid var(--border-color-2);
+        background-color: var(--bg-color-2);
+        height: 48px;
+        border-radius: var(--border-radius-4);
         width: 100%;
-        padding: 0 10px;
+        padding: 0 16px;
         cursor: pointer;
         position: relative;
-        color: var(--text-color-1);
+        color: var(--text-color-2);
     }
 }
 

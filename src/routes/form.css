@@ -291,12 +291,11 @@
 
     &__select {
         border: 1px solid var(--border-color-2);
-        border-bottom: 2px solid var(--border-color-1);
-        background-color: var(--bg-color-1);
-        height: 40px;
-        border-radius: 4px;
+        background-color: var(--bg-color-2);
+        height: 48px;
+        border-radius: var(--border-radius-4);
         width: 100%;
-        padding: 0 10px;
+        padding: 0 16px;
         cursor: pointer;
         position: relative;
         color: var(--text-color-2);
