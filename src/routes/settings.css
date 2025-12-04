@@ -148,10 +148,6 @@ input[type=checkbox] {
     }
 }
 
-.settings-back {
-
-}
-
 .settings-description {
     margin-bottom: 20px;
     color: var(--text-color-3);
