@@ -29,6 +29,7 @@
   import {useDebounce, watch} from "runed";
   import Notice from "$lib/components/ui/Notice.svelte";
   import SelfLabelLabel from "$lib/components/publish/SelfLabelLabel.svelte";
+  import {bskyUrlToAtUri, isBskyPostUrl} from "$lib/components/editor/postUtil";
 
   interface Props {
     index: number;
@@ -57,6 +58,10 @@
     let isProcessed = $state(false);
     let isAccountSelectDisabled = false;
     let links: string[] = $state([]);
+    let  filteredLinks = $derived(links.filter(link => {
+        const isBskyPost = isBskyPostUrl(link);
+        return isBskyPost ? !post.quotePost : !post.embedExternal;
+    }));
     let isAltModalOpen = $state(false);
     let isLinkCardAdding = $state(false);
     let imageUploadEl = $state();
@@ -156,6 +161,29 @@
             toast.error('Error!' + e);
             isLinkCardAdding = false;
         }
+    }
+
+    async function addQuoteFromLink(uri: string) {
+        isLinkCardAdding = true;
+
+        try {
+            const { data } = await _agent.agent.api.app.bsky.feed.getPostThread({uri: bskyUrlToAtUri(uri)});
+            const _post = data?.thread?.post;
+
+            if (data?.thread?.post?.viewer?.embeddingDisabled) {
+                toast.error('この投稿は引用禁止設定になっています。');
+                isLinkCardAdding = false;
+                return false;
+            }
+
+            if (_post) {
+                post.quotePost = data?.thread?.post;
+            }
+        } catch (e) {
+            toast.error('Error!' + e);
+        }
+
+        isLinkCardAdding = false;
     }
 
     async function addTenorLinkCard(gif) {
@@ -434,16 +462,20 @@
           </div>
         {/if}
 
-        {#if (!post.embedExternal && links.length && !post.images.length)}
+        {#if filteredLinks.length && !post.images.length}
           <div class="link-card-registerer">
-            {#each links as link}
+            {#each filteredLinks as link}
+              {@const isBskyPost = isBskyPostUrl(link)}
+              {@const label = isBskyPost ? $_('quote') : $_('link_card_embed')}
+              {@const handler = isBskyPost ? () => addQuoteFromLink(link) : () => addLinkCard(link)}
+
               <button
                 disabled={isLinkCardAdding}
                 class="link-card-registerer-button"
-                onclick={() => {addLinkCard(link)}}
+                onclick={handler}
               >
-                {$_('link_card_embed')}: {link}
-                {#if (isLinkCardAdding)}
+                {label}: {link}
+                {#if isLinkCardAdding}
                   <div class="link-card-registerer-button__spinner">
                     <LoadingSpinner padding={0} size={16}></LoadingSpinner>
                   </div>
@@ -553,6 +585,7 @@
   .link-card-registerer {
       display: flex;
       flex-direction: column;
+      gap: 8px;
   }
 
   .link-card-registerer-button {
@@ -560,7 +593,6 @@
       padding: 6px 26px 6px 10px;
       font-size: 14px;
       border-radius: 6px;
-      margin-bottom: 10px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;

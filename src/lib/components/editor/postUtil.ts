@@ -82,3 +82,34 @@ function isPlainObject(v: any): boolean {
     const proto = Object.getPrototypeOf(v)
     return proto === Object.prototype || proto === null
 }
+
+export function bskyUrlToAtUri(url: string): string | null {
+    try {
+        const urlObj = new URL(url);
+
+        if (urlObj.hostname !== 'bsky.app') {
+            return null;
+        }
+
+        const pathPattern = /^\/profile\/([^\/]+)\/post\/([^\/]+)$/;
+        const match = urlObj.pathname.match(pathPattern);
+
+        if (!match) {
+            return null;
+        }
+
+        const [, handleOrDid, rkey] = match;
+
+        if (!handleOrDid || !rkey) {
+            return null;
+        }
+
+        return `at://${handleOrDid}/app.bsky.feed.post/${rkey}`;
+    } catch (error) {
+        return null;
+    }
+}
+
+export function isBskyPostUrl(url: string): boolean {
+    return bskyUrlToAtUri(url) !== null;
+}
