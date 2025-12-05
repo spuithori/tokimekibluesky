@@ -731,5 +731,6 @@
   "check_all": "すべて選択",
   "export": "エクスポート",
   "success_mute_on_menu": "このユーザーをミュートしました。解除はモデレーション設定から可能です。",
-  "success_block_on_menu": "このユーザーをブロックしました。解除はモデレーション設定から可能です。"
+  "success_block_on_menu": "このユーザーをブロックしました。解除はモデレーション設定から可能です。",
+  "search_filter_language": "{lang}の投稿を検索"
 }

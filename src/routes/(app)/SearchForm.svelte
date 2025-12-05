@@ -1,8 +1,11 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import { PersistedState, onClickOutside } from "runed";
-    import {X} from "lucide-svelte";
+    import {X, Funnel, Languages, Search} from "lucide-svelte";
+    import Menu from "$lib/components/ui/Menu.svelte";
+    import {languageMap} from "$lib/langs/languageMap";
+    import {settings} from '$lib/stores';
 
     let { search = $bindable(), path = location.pathname } = $props();
 
@@ -11,6 +14,8 @@
     const searchHistory = new PersistedState('searchHistory', []);
     let allowHistoryOpen = $state(false);
     let isHistoryOpen = $derived(allowHistoryOpen && search === '' && path === '/search');
+    let isMenuOpen = $state(false);
+    let formEl = $state();
 
     const clickOutside = onClickOutside(
       () => el,
@@ -43,17 +48,53 @@
     function handleDeleteHistory(value) {
       searchHistory.current = searchHistory.current.filter(x => x !== value);
     }
+
+    async function handleLanguageFilter() {
+        const langFilter = `lang:${$settings.general.userLanguage}`;
+        const langPattern = /\blang:\S+/g;
+
+        if (langPattern.test(search)) {
+            search = search.replace(langPattern, langFilter);
+        } else {
+            search = `${search} ${langFilter}`.trim();
+        }
+
+        await tick();
+        formEl.requestSubmit();
+    }
 </script>
 
 <div class="search" bind:this={el}>
-  <form action={path} method="get" onsubmit={handleSubmit} data-sveltekit-replacestate>
+  <form bind:this={formEl} action={path} method="get" onsubmit={handleSubmit} data-sveltekit-replacestate>
     <input type="text" name="q" required bind:value={search} bind:this={searchArea} onclick={() => {allowHistoryOpen = true}} placeholder="{$_(path + '_search')}" autocomplete="off">
     <button type="submit" class="search-submit" aria-label="Search">
-      <svg xmlns="http://www.w3.org/2000/svg" width="17.67" height="17.661" viewBox="0 0 17.67 17.661">
-        <path id="search" d="M11.589,12.866A7.187,7.187,0,1,1,12.856,11.6l4.807,4.789-1.276,1.276-4.789-4.8Zm-4.4-.287A5.391,5.391,0,1,0,1.8,7.188a5.391,5.391,0,0,0,5.391,5.391Z" transform="translate(0.008 -0.002)" fill="var(--primary-color)"/>
-      </svg>
+      <Search color="var(--primary-color)" size="20"></Search>
     </button>
   </form>
+
+  <div class="search-filter-menu">
+    <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="search-filter-menu__item">
+      {#snippet ref()}
+          <span class="timeline-reaction__icon">
+            <Funnel size="20"></Funnel>
+          </span>
+      {/snippet}
+
+      {#snippet content()}
+        <ul  class="timeline-menu-list">
+          {#if $settings?.general?.userLanguage}
+            {@const formattedLang = $_(languageMap.get($settings.general.userLanguage).name)}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={handleLanguageFilter}>
+                <Languages></Languages>
+                {$_('search_filter_language', {values: {lang: formattedLang}})}
+              </button>
+            </li>
+          {/if}
+        </ul>
+      {/snippet}
+    </Menu>
+  </div>
 
   {#if (isHistoryOpen && searchHistory.current.length)}
     <div class="search-history">
@@ -155,5 +196,17 @@
                 text-overflow: ellipsis;
             }
         }
+    }
+
+    .search-filter-menu {
+        position: absolute;
+        right: 42px;
+        top: 0;
+        bottom: 0;
+        width: 30px;
+        height: 30px;
+        margin: auto;
+        display: grid;
+        place-content: center;
     }
 </style>

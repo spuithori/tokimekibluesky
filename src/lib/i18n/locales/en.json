@@ -731,5 +731,6 @@
   "check_all": "Check All",
   "export": "Export",
   "success_mute_on_menu": "This user has been muted. You can unmute them from the moderation settings.",
-  "success_block_on_menu": "This user has been blocked. You can unmute them from the moderation settings."
+  "success_block_on_menu": "This user has been blocked. You can unmute them from the moderation settings.",
+  "search_filter_language": "Search posts in {lang}"
 }
