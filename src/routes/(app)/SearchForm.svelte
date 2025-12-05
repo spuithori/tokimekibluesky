@@ -61,6 +61,7 @@
 
         await tick();
         formEl.requestSubmit();
+        isMenuOpen = false;
     }
 </script>
 
