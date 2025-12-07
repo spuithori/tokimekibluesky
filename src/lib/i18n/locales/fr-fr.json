@@ -544,7 +544,7 @@
 	"scroll-top": "Défiler vers le haut",
 	"search": "Recherche",
 	"search_button": "Recherche",
-	"search_filter_language": "Chercher les posts en {lang]",
+	"search_filter_language": "Chercher les posts en {lang}",
 	"search_sort_latest": "Dernier",
 	"search_sort_top": "Populaire",
 	"self_labeling_note": "L'auto-étiquetage ne fonctionne que pour les publications contenant des médias.",
