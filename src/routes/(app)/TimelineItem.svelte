@@ -632,26 +632,28 @@
               </li>
             {/if}
 
-            <li class="timeline-menu-list__item timeline-menu-list__item--report">
-              <button class="timeline-menu-list__button" onclick={mute}>
-                <VolumeX size="18" color="var(--danger-color)"></VolumeX>
-                {$_('button_mute')}
-              </button>
-            </li>
+            {#if (!getAllAgentDids($agents).includes(data.post.author.did))}
+              <li class="timeline-menu-list__item timeline-menu-list__item--report">
+                <button class="timeline-menu-list__button" onclick={mute}>
+                  <VolumeX size="18" color="var(--danger-color)"></VolumeX>
+                  {$_('button_mute')}
+                </button>
+              </li>
 
-            <li class="timeline-menu-list__item timeline-menu-list__item--report">
-              <button class="timeline-menu-list__button" onclick={block}>
-                <ShieldBan size="18" color="var(--danger-color)"></ShieldBan>
-                {$_('button_block')}
-              </button>
-            </li>
+              <li class="timeline-menu-list__item timeline-menu-list__item--report">
+                <button class="timeline-menu-list__button" onclick={block}>
+                  <ShieldBan size="18" color="var(--danger-color)"></ShieldBan>
+                  {$_('button_block')}
+                </button>
+              </li>
 
-            <li class="timeline-menu-list__item timeline-menu-list__item--report">
-              <button class="timeline-menu-list__button" onclick={report}>
-                <Flag size="18" color="var(--danger-color)"></Flag>
-                {$_('report')}
-              </button>
-            </li>
+              <li class="timeline-menu-list__item timeline-menu-list__item--report">
+                <button class="timeline-menu-list__button" onclick={report}>
+                  <Flag size="18" color="var(--danger-color)"></Flag>
+                  {$_('report')}
+                </button>
+              </li>
+            {/if}
           </ul>
         {/snippet}
       </Menu>

@@ -2,6 +2,7 @@
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
   import { isColumnModalOpen, isMobileDataConnection, listAddModal, settings, theme, bluefeedAddModal } from '$lib/stores';
+  import { goto } from '$app/navigation';
   import { dev } from '$app/environment';
   import { injectAnalytics } from '@vercel/analytics/sveltekit';
   import {tick, untrack} from 'svelte';
@@ -158,6 +159,31 @@
     isColumnModalOpen.set(false);
   }
 
+  function handleKeydown(event: KeyboardEvent) {
+    if (!event.shiftKey || event.key !== 'S') return;
+
+    const activeElement = document.activeElement;
+    if (activeElement?.tagName === 'INPUT' || activeElement?.tagName === 'TEXTAREA' || activeElement?.classList.contains('tiptap')
+    ) {
+      return;
+    }
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const selectedText = selection.toString().trim();
+    if (!selectedText) return;
+
+    const range = selection.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+    const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container as Element;
+
+    if (element?.closest('[data-timeline-text]')) {
+      event.preventDefault();
+      goto(`/search?q=${encodeURIComponent(selectedText)}`);
+    }
+  }
+
   function outputInlineStyle(theme) {
       if (!theme) {
           return false;
@@ -241,6 +267,8 @@
     }
   });
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
   <meta name="theme-color" content={baseColor}>

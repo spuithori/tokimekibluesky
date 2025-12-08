@@ -2,7 +2,7 @@
     import { _ } from 'svelte-i18n';
     import { onMount, tick } from "svelte";
     import { PersistedState, onClickOutside } from "runed";
-    import {X, Funnel, Languages, Search} from "lucide-svelte";
+    import {X, Funnel, Languages, Search, CircleUserRound} from "lucide-svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
     import {languageMap} from "$lib/langs/languageMap";
     import {settings} from '$lib/stores';
@@ -63,6 +63,19 @@
         formEl.requestSubmit();
         isMenuOpen = false;
     }
+
+    async function handleMeFilter() {
+        const meFilter = 'from:me';
+        const mePattern = /\bfrom:me\b/g;
+
+        if (!mePattern.test(search)) {
+            search = `${search} ${meFilter}`.trim();
+        }
+
+        await tick();
+        formEl.requestSubmit();
+        isMenuOpen = false;
+    }
 </script>
 
 <div class="search" bind:this={el}>
@@ -86,9 +99,16 @@
           {#if $settings?.general?.userLanguage}
             {@const formattedLang = $_(languageMap.get($settings.general.userLanguage).name)}
             <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={handleLanguageFilter}>
+              <button class="timeline-menu-list__button" onclick={handleLanguageFilter}>
                 <Languages></Languages>
                 {$_('search_filter_language', {values: {lang: formattedLang}})}
+              </button>
+            </li>
+
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={handleMeFilter}>
+                <CircleUserRound></CircleUserRound>
+                {$_('search_filter_own_posts')}
               </button>
             </li>
           {/if}

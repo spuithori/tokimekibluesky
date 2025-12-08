@@ -53,7 +53,7 @@
             <TimelineTagLink {item} {handle}></TimelineTagLink>
         </div>
     {:else}
-        <span>{item.text}</span>
+        <span data-timeline-text>{item.text}</span>
     {/if}
 {/each}
 
