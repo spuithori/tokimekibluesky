@@ -171,17 +171,16 @@
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 
-    const selectedText = selection.toString().trim();
-    if (!selectedText) return;
-
     const range = selection.getRangeAt(0);
     const container = range.commonAncestorContainer;
     const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container as Element;
+    if (!element?.closest('[data-timeline-text]')) return;
 
-    if (element?.closest('[data-timeline-text]')) {
-      event.preventDefault();
-      goto(`/search?q=${encodeURIComponent(selectedText)}`);
-    }
+    const selectedText = selection.toString().trim();
+    if (!selectedText) return;
+
+    event.preventDefault();
+    goto(`/search?q=${encodeURIComponent(selectedText)}`);
   }
 
   function outputInlineStyle(theme) {
