@@ -730,7 +730,7 @@
   "workspace_import_export": "Importa/esporta spazi di lavoro",
   "check_all": "Seleziona tutto",
   "export": "Esporta",
-  "success_mute_on_menu": "L'utente è stato mutato. Puoi riattivarlo dalle impostazioni di moderazione.",
+  "success_mute_on_menu": "L'utente è stato silenziato. Puoi riattivarlo dalle impostazioni di moderazione.",
   "success_block_on_menu": "L'utente è stato bloccato. Puoi sbloccarlo dalle impostazioni di moderazione.",
   "search_filter_language": "Cerca post in {lang}",
   "search_filter_own_posts": "Cerca solo i miei post"
