@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onMount} from "svelte";
+    import {onMount, onDestroy} from "svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import {BskyAgent} from "@atproto/api";
     import {getService} from "$lib/util";
@@ -30,6 +30,12 @@
 
     onMount(async () => {
         url = await getUrlByBlob(blob);
+    })
+
+    onDestroy(() => {
+        if (url) {
+            URL.revokeObjectURL(url);
+        }
     })
 </script>
 

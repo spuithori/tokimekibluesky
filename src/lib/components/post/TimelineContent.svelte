@@ -74,18 +74,21 @@
       }
 
       try {
-          if (moderateData.ui(contentContext).blur) {
-              warnLabels = [...moderateData.ui(contentContext).blurs, ...moderateData.ui('contentMedia').blurs];
+          const contentUi = moderateData.ui(contentContext);
+          const mediaUi = moderateData.ui('contentMedia');
+
+          if (contentUi.blur) {
+              warnLabels = [...contentUi.blurs, ...mediaUi.blurs];
               return 'content';
           }
 
-          if (moderateData.ui('contentMedia').blur) {
-              warnLabels = moderateData.ui('contentMedia').blurs;
+          if (mediaUi.blur) {
+              warnLabels = mediaUi.blurs;
               return 'media';
           }
 
-          if (moderateData.ui(contentContext).inform) {
-              warnLabels = moderateData.ui(contentContext).informs;
+          if (contentUi.inform) {
+              warnLabels = contentUi.informs;
               warnBehavior = 'inform';
 
               if (!moderateData.muted && warnLabels.length) {

@@ -23,18 +23,17 @@
         }
     }
 
-    textArray.forEach(item => {
+    const newTagSet = new Set<string>();
+    for (let i = textArray.length - 1; i >= 0; i--) {
+        const item = textArray[i];
         if (item.isTag() && item.tag?.tag) {
-            const index = $timelineHashtags.indexOf(item.tag.tag);
-            if (index > -1) {
-                $timelineHashtags.splice(index, 1);
-            }
-
-            $timelineHashtags.unshift(item.tag.tag);
-            $timelineHashtags.length = 5;
-            $timelineHashtags = $timelineHashtags.filter(v => v);
+            newTagSet.add(item.tag.tag);
         }
-    })
+    }
+
+    if (newTagSet.size) {
+        $timelineHashtags = [...newTagSet, ...$timelineHashtags.filter(t => !newTagSet.has(t))].slice(0, 5);
+    }
 </script>
 
 {#each textArray as item}
