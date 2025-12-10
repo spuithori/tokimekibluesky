@@ -118,11 +118,16 @@ export function mergeNotifications(array: any[], isAllRead = false) {
 }
 
 export function removeNotificationsDuplication(notification: any[]) {
-    return notification.reduce((previousValue, currentValue) => {
-        if (!previousValue.some(item => currentValue?.author.did === item.author?.did)) {
-            return [...previousValue, currentValue];
-        } else {
-            return [...previousValue];
+    const seenDids = new Set<string | undefined>();
+    const result: any[] = [];
+
+    for (const item of notification) {
+        const did = item?.author?.did;
+        if (!seenDids.has(did)) {
+            seenDids.add(did);
+            result.push(item);
         }
-    }, []);
+    }
+
+    return result;
 }

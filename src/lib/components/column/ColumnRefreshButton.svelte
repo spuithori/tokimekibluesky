@@ -40,14 +40,10 @@
       }
     })
 
-    function isDuplicatePost(oldFeed, newFeed) {
-        return newFeed.reason
-            ? oldFeed.post.uri === newFeed.post.uri && oldFeed.reason?.indexedAt === newFeed.reason.indexedAt
-            : oldFeed.post.uri === newFeed.post.uri;
-    }
-
-    function isDuplicateMessage(oldFeed, newFeed) {
-        return oldFeed.id === newFeed.id;
+    function getPostKey(feed) {
+        return feed.reason?.indexedAt
+            ? `${feed.post.uri}|${feed.reason.indexedAt}`
+            : feed.post.uri;
     }
 
     export async function refresh(isAutoRefresh: boolean = false) {
@@ -86,17 +82,19 @@
                 return false;
             }
 
-            const newFeed = res.data.feed.filter(feed => {
-                return !column.data.feed.some(item => isDuplicatePost(item, feed));
-            }).map(feed => ({...feed, memoryCursor: res.data.cursor}));
+            const existingKeys = new Set(column.data.feed.map(getPostKey));
+            const newFeed = res.data.feed
+                .filter(feed => !existingKeys.has(getPostKey(feed)))
+                .map(feed => ({...feed, memoryCursor: res.data.cursor}));
 
             if (newFeed.length === res.data.feed.length && column.data.feed.length !== 0) {
                 const dividerPost = newFeed.slice(-1)[0];
                 dividerPost.isDivider = true;
             }
 
+            const newKeys = new Set(res.data.feed.map(getPostKey));
             column.data.feed = column.data.feed.map(feed => {
-                if (res.data.feed.some(item => isDuplicatePost(feed, item))) {
+                if (newKeys.has(getPostKey(feed))) {
                     feed.memoryCursor = res.data.cursor;
                 }
                 return feed;
@@ -188,9 +186,10 @@
                 return false;
             }
 
-            const newFeed = res.data.messages.filter(feed => {
-                return !column.data.feed.some(item => isDuplicateMessage(item, feed));
-            }).reverse();
+            const existingMessageIds = new Set(column.data.feed.map(m => m.id));
+            const newFeed = res.data.messages
+                .filter(feed => !existingMessageIds.has(feed.id))
+                .reverse();
 
             if (column.data.feed.length === 0) {
                 column.data.cursor = res.data.cursor;
