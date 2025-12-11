@@ -103,13 +103,9 @@
       <p class="list-item__description">
         {#if items.length}
           <button class="list-item__members-button" onclick={() => {isMembersOpen = true}}>{items.length}{$_('list_members_length_suffix')}</button>
-          {#if list.description}
-            ・
+          {#if (isMembersOpen)}
+            <OfficialListMembersModal members={items} onclose={() => {isMembersOpen = false}}></OfficialListMembersModal>
           {/if}
-
-            {#if (isMembersOpen)}
-                <OfficialListMembersModal members={items} onclose={() => {isMembersOpen = false}}></OfficialListMembersModal>
-            {/if}
         {/if}
         {#if list.description}
           {list.description}
@@ -188,6 +184,15 @@
       &__description {
           font-size: 14px;
           color: var(--text-color-3);
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+
+          span {
+              display: flex;
+              gap: 4px;
+              align-items: center;
+          }
       }
 
       &__members-button {
