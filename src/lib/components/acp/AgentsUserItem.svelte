@@ -38,7 +38,7 @@
 
     <div class="agent-user-item__content">
         <p class="agent-user-item__name">{displayName || ' '}</p>
-        <p class="agent-user-item__handle">@{agent.agent.session.handle}</p>
+        <p class="agent-user-item__handle">@{agent.handle()}</p>
     </div>
 </div>
 

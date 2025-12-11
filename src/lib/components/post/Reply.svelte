@@ -24,7 +24,7 @@
   const postState = getPostState();
 
   function handleClick() {
-      postState.posts[postState.index].replyRef = { did: _agent.agent.session.did, data: { parent: post, root: (reply ? reply.root : post) } };
+      postState.posts[postState.index].replyRef = { did: _agent.did(), data: { parent: post, root: (reply ? reply.root : post) } };
       postState.pulse = true;
       publishState.show = true;
       modalState.isVideoModalOpen = false;

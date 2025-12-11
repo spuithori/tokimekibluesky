@@ -23,7 +23,7 @@
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    token: _agent.agent.session?.accessJwt,
+                    token: _agent.getToken(),
                 }),
             });
 

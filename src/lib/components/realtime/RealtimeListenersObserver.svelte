@@ -19,12 +19,26 @@
       updateRealtimeConnection(listeners);
   })
 
+  function getServiceHost(agent): string {
+      try {
+          const serviceUrl = agent.service();
+          if (serviceUrl) {
+              const url = new URL(serviceUrl);
+              return url.host;
+          }
+      } catch (e) {
+
+      }
+      return 'bsky.social';
+  }
+
   function updateRealtimeListeners(columns) {
       let _listeners = new Set();
       columns.forEach(column => {
           const _agent = $agents.get(getAccountIdByDid($agents, column.did));
           if (_agent) {
-            const host = _agent.agent.service.host === 'bsky.social' ? 'Jetstream (us-west2)' : _agent.agent.service.host;
+            const serviceHost = getServiceHost(_agent);
+            const host = serviceHost === 'bsky.social' ? 'Jetstream (us-west2)' : serviceHost;
 
             if (column.settings?.autoRefresh === -1) {
               _listeners.add(host);

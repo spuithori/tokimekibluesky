@@ -46,7 +46,7 @@
 {#if ($account)}
   <div class="acp-account">
     <p class="acp-account__handle">
-      <span>@{$account.session.handle}</span>
+      <span>@{$account.handle || $account.session?.handle || $account.did}</span>
 
       {#if (isPrimary)}
         <span class="acp-account__label">{$_('profile_main_account')}</span>

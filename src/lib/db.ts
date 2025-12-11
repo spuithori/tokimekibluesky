@@ -71,10 +71,11 @@ type notificationCategories = 'reply' | 'like' | 'repost' | 'follow' | 'quote'  
 export interface Account {
     id?: number,
     service: string,
-    session?: AtpSessionData,
+    session?: AtpSessionData | null,
     did: string,
     avatar?: string,
     name?: string,
+    handle?: string,
     following?: {
         indexedAt: string,
         data: string[],
@@ -83,6 +84,8 @@ export interface Account {
     feeds?: any[],
     lists?: any[],
     cloudBookmarks?: any[],
+    isOAuth?: boolean,
+    oauthDid?: string,
 }
 
 export class AccountSubClassDexie extends Dexie {
@@ -105,6 +108,11 @@ export class AccountSubClassDexie extends Dexie {
         this.version(3).stores({
             profiles: '++id, name, createdAt, *accounts, primary, *columns, appViewProxy',
             accounts: '++id, service, session, &did, avatar, name, following, notification, *feeds, *lists, *cloudBookmarks',
+        });
+
+        this.version(4).stores({
+            profiles: '++id, name, createdAt, *accounts, primary, *columns, appViewProxy',
+            accounts: '++id, service, session, &did, avatar, name, following, notification, *feeds, *lists, *cloudBookmarks, isOAuth, oauthDid',
         });
     }
 }

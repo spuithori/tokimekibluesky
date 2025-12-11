@@ -3,11 +3,13 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import LoginModal from "$lib/components/acp/LoginModal.svelte";
+    import OAuthLoginModal from "$lib/components/acp/OAuthLoginModal.svelte";
     import {_} from "svelte-i18n";
     import { Toaster } from "svelte-sonner";
     import {accountsDb} from "$lib/db";
 
     let isLoginModalOpen = $state(false);
+    let isOAuthLoginModalOpen = $state(false);
 
     function handleSuccess() {
         goto('/');
@@ -46,7 +48,8 @@
     <p class="login-box__text">{$_('login_box_text_2')}</p>
 
     <div class="login-box__buttons">
-      <button class="button button--fullwidth" onclick={() => {isLoginModalOpen = true}}>{$_('login')}</button>
+      <button class="button button--fullwidth button--oauth" onclick={() => {isOAuthLoginModalOpen = true}}>{$_('oauth_login')}</button>
+      <button class="button button--border button--fullwidth" onclick={() => {isLoginModalOpen = true}}>{$_('login_with_password')}</button>
       <a class="button button--border button--fullwidth" href="https://docs.tokimeki.blue/ja#%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88" target="_blank" rel="noopener">{$_('show_screenshots')}</a>
     </div>
   </div>
@@ -56,6 +59,10 @@
 
 {#if isLoginModalOpen}
   <LoginModal on:success={handleSuccess} on:cancel={() => {isLoginModalOpen = false}}></LoginModal>
+{/if}
+
+{#if isOAuthLoginModalOpen}
+  <OAuthLoginModal on:cancel={() => {isOAuthLoginModalOpen = false}}></OAuthLoginModal>
 {/if}
 
 <Toaster position="top-center"></Toaster>

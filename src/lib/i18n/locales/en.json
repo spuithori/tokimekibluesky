@@ -733,5 +733,11 @@
   "success_mute_on_menu": "This user has been muted. You can unmute them from the moderation settings.",
   "success_block_on_menu": "This user has been blocked. You can unmute them from the moderation settings.",
   "search_filter_language": "Search posts in {lang}",
-  "search_filter_own_posts": "Search only my posts"
+  "search_filter_own_posts": "Search only my posts",
+  "oauth_success": "Authentication successful",
+  "oauth_error": "An error has occurred",
+  "oauth_redirecting": "Redirecting...",
+  "oauth_login": "Log in with OAuth",
+  "login_with_password": "Log in with Password",
+  "back_to_login": "Back to Login"
 }

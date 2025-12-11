@@ -1,10 +1,11 @@
-import {AppBskyEmbedVideo, type AppBskyFeedGetTimeline, type BskyAgent} from '@atproto/api';
-import {AppBskyEmbedImages} from "@atproto/api";
-import type {currentAlgorithm} from "../app.d.ts";
-import {parseISO} from "date-fns";
-import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-import {listRecordsWithBsky} from "$lib/util";
-import {chatState} from "$lib/classes/chatState.svelte";
+import { AppBskyEmbedVideo, type AppBskyFeedGetTimeline, type BskyAgent, Agent as AtpAgent } from '@atproto/api';
+import { AppBskyEmbedImages } from "@atproto/api";
+import type { currentAlgorithm } from "../app.d.ts";
+import { parseISO } from "date-fns";
+import { CHAT_PROXY } from "$lib/components/chat/chatConst";
+import { listRecordsWithBsky } from "$lib/util";
+import { chatState } from "$lib/classes/chatState.svelte";
+import type { OAuthSession } from '@atproto/oauth-client-browser';
 
 type timelineOpt = {
     limit: number,
@@ -18,36 +19,53 @@ type timelineOpt = {
 }
 
 export class Agent {
-    public agent: BskyAgent;
+    public agent: BskyAgent | AtpAgent;
+    public isOAuth: boolean;
+    public oauthSession?: OAuthSession;
+    private _cachedHandle?: string;
     latestRev: string = '';
     unreadChat: number = 0;
 
-    constructor(agent: BskyAgent) {
+    constructor(agent: BskyAgent | AtpAgent, isOAuth: boolean = false, oauthSession?: OAuthSession) {
         this.agent = agent;
+        this.isOAuth = isOAuth;
+        this.oauthSession = oauthSession;
     }
 
     did(): string | undefined {
+        if (this.isOAuth && this.oauthSession) {
+            return this.oauthSession.did;
+        }
         if (this.agent.session) {
             return this.agent.session.did;
         }
     }
 
     handle(): string | undefined {
+        if (this.isOAuth) {
+            return this._cachedHandle || this.did();
+        }
         if (this.agent.session) {
             return this.agent.session.handle;
         }
     }
 
+    setHandle(handle: string): void {
+        this._cachedHandle = handle;
+    }
+
     service(): string | undefined {
         if (this.agent.session) {
-            return this.agent.service.toString();
+            return this.agent.service?.toString();
         }
+        return 'https://bsky.social';
     }
 
     getToken(): string | undefined {
         if (this.agent.session) {
             return this.agent.session.accessJwt;
         }
+        return undefined;
     }
 
     async getPdsUrl(): Promise<string | undefined> {

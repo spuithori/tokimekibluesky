@@ -55,11 +55,11 @@
            transition:fly={{ y: 30, duration: 250 }}
       >
         {#each $agents as [key, agent]}
-          {#if (agent.agent?.session)}
+          {#if (agent.did())}
             <AvatarAgentsSelectorModalItem
               {agent}
               {key}
-              isCurrent={agent.agent.session.handle === _agent.agent.session.handle}
+              isCurrent={agent.handle() === _agent.handle()}
               onselect={() => {onselect(agent)}}
             ></AvatarAgentsSelectorModalItem>
           {/if}

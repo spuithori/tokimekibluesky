@@ -28,7 +28,21 @@
     const columnState = getColumnState(isJunk);
     let column = columnState.getColumn(index);
 
-    const host = _agent.agent.service.host === 'bsky.social' ? 'Jetstream (us-west2)' : _agent.agent.service.host;
+    function getServiceHost(): string {
+        try {
+            const serviceUrl = _agent.service();
+            if (serviceUrl) {
+                const url = new URL(serviceUrl);
+                return url.host;
+            }
+        } catch (e) {
+
+        }
+        return 'bsky.social';
+    }
+
+    const serviceHost = getServiceHost();
+    const host = serviceHost === 'bsky.social' ? 'Jetstream (us-west2)' : serviceHost;
 
     $effect(() => {
         releasePosts(column.data.feed);
