@@ -1,5 +1,5 @@
 import { env } from '$env/dynamic/private';
-import { importJWK, SignJWT, calculateJwkThumbprint, decodeJwt, decodeProtectedHeader } from 'jose';
+import { importJWK, SignJWT, calculateJwkThumbprint, jwtVerify, decodeProtectedHeader } from 'jose';
 
 export async function POST({ request, url }) {
     const origin = request.headers.get('origin');
@@ -66,23 +66,61 @@ export async function POST({ request, url }) {
             });
         }
 
-        try {
-            const dpopPayload = decodeJwt(dpopProof);
-            if (dpopHeader.typ !== 'dpop+jwt') {
-                throw new Error('Invalid DPoP proof type');
-            }
-
-            if (!dpopPayload.jti || !dpopPayload.htm || !dpopPayload.htu || !dpopPayload.iat) {
-                throw new Error('DPoP proof missing required claims');
-            }
-            console.log('DPoP proof validated:', {
-                htm: dpopPayload.htm,
-                htu: dpopPayload.htu,
-                iat: dpopPayload.iat,
+        if (dpopHeader.typ !== 'dpop+jwt') {
+            return new Response(JSON.stringify({ error: 'Invalid DPoP proof type' }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': origin || '*',
+                }
             });
-        } catch (e) {
-            console.warn('DPoP validation warning:', e);
         }
+
+        let dpopPayload;
+        try {
+            const dpopPublicKey = await importJWK(dpopPublicJwk, dpopHeader.alg || 'ES256');
+            const { payload } = await jwtVerify(dpopProof, dpopPublicKey, {
+                typ: 'dpop+jwt',
+            });
+            dpopPayload = payload;
+        } catch (e) {
+            console.error('DPoP signature verification failed:', e);
+            return new Response(JSON.stringify({ error: 'DPoP signature verification failed' }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': origin || '*',
+                }
+            });
+        }
+
+        if (!dpopPayload.jti || !dpopPayload.htm || !dpopPayload.htu || !dpopPayload.iat) {
+            return new Response(JSON.stringify({ error: 'DPoP proof missing required claims' }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': origin || '*',
+                }
+            });
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        const iat = dpopPayload.iat as number;
+        if (Math.abs(now - iat) > 300) {
+            return new Response(JSON.stringify({ error: 'DPoP proof iat is too old or in the future' }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': origin || '*',
+                }
+            });
+        }
+
+        console.log('DPoP proof validated:', {
+            htm: dpopPayload.htm,
+            htu: dpopPayload.htu,
+            iat: dpopPayload.iat,
+        });
 
         // Calculate JWK Thumbprint (jkt) from the DPoP public key
         const jkt = await calculateJwkThumbprint(dpopPublicJwk, 'sha256');
@@ -104,7 +142,7 @@ export async function POST({ request, url }) {
         const privateKey = await importJWK(privateKeyJwk, 'ES256');
         const kid = privateKeyJwk.kid || 'tokimeki-oauth-key-1';
         const clientId = `${expectedOrigin}/oauth-client-metadata.json`;
-        const now = Math.floor(Date.now() / 1000);
+        const assertionNow = Math.floor(Date.now() / 1000);
         const jti = crypto.randomUUID();
 
         const jwt = await new SignJWT({
@@ -119,8 +157,8 @@ export async function POST({ request, url }) {
             .setSubject(clientId)
             .setAudience(aud)
             .setJti(jti)
-            .setIssuedAt(now)
-            .setExpirationTime(now + 60) // 1 minute expiry
+            .setIssuedAt(assertionNow)
+            .setExpirationTime(assertionNow + 60) // 1 minute expiry
             .sign(privateKey);
 
         console.log('Created client assertion with cnf.jkt:', jkt);
