@@ -149,7 +149,7 @@
                     {/each}
                 {/if}
 
-                {#if cloudBookmarks.length}
+                {#if cloudBookmarks?.length}
                   {#each cloudBookmarks as bookmark}
                     <li class="side-feeds-list__item">
                       <a class="side-feeds-list__link" href="/bookmark-cloud/{bookmark.id}" onclick={handleSelect}>
