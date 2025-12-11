@@ -88,22 +88,8 @@
           const bookmarks = account?.cloudBookmarks;
           cloudBookmarks = bookmarks || [];
 
-          const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getBookmarks?owner=${_agent.did() as string}`, {
-              method: 'GET',
-              headers: {
-                  'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                  Authorization: 'Bearer ' + _agent.getToken(),
-                  'Content-Type': 'application/json'
-              }
-          })
-
-          if (res.status !== 200) {
-              throw new Error('failed to get Cloud Bookmark');
-          }
-
-          const json = await res.json();
-
-          cloudBookmarks = json.bookmarks;
+          const result = await _agent.getCloudBookmarks();
+          cloudBookmarks = result.bookmarks;
       } catch (e) {
           cloudBookmarks = [];
       }
@@ -111,81 +97,29 @@
 
   async function getRelatedBookmarks() {
       try {
-          const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getRelatedBookmark?owner=${_agent.did() as string}&cid=${post.cid}`, {
-              method: 'GET',
-              headers: {
-                  'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                  Authorization: 'Bearer ' + _agent.getToken(),
-                  'Content-Type': 'application/json'
-              }
-          })
-          const json = await res.json();
-
-          if (res.status !== 200) {
-              throw new Error('failed to get Cloud Bookmark');
-          }
-
-          relatedBookmarks = json.bookmarks;
+          const result = await _agent.getRelatedCloudBookmark(post.cid);
+          relatedBookmarks = result.bookmarks;
       } catch (e) {
           console.error(e);
       }
   }
 
-  async function addCloud(id: string) {
+  async function addCloud(id: number) {
       isMenuOpen = false;
 
       try {
-          const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.addBookmarkItem`, {
-              method: 'POST',
-              body: JSON.stringify({
-                  bookmark: {
-                      bookmark: id,
-                      owner: _agent.did() as string,
-                      cid: post.cid,
-                      uri: post.uri,
-                  }
-              }),
-              headers: {
-                  'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                  Authorization: 'Bearer ' + _agent.getToken(),
-                  'Content-Type': 'application/json'
-              }
-          })
-
-          if (res.status !== 200) {
-              throw new Error('failed to add Cloud Bookmark');
-          }
-
+          await _agent.addCloudBookmarkItem(id, post.uri, post.cid);
           toast.success($_('bookmark_save_success'));
       } catch (e) {
           toast.error('Error: ' + e);
       }
   }
 
-  async function deleteCloud(id: string) {
+  async function deleteCloud(id: number) {
       isMenuOpen = false;
 
       try {
-          const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.deleteBookmarkItem`, {
-              method: 'POST',
-              body: JSON.stringify({
-                  bookmark: {
-                      bookmark: id,
-                      cid: post.cid,
-                      owner: _agent.did() as string,
-                  }
-              }),
-              headers: {
-                  'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                  Authorization: 'Bearer ' + _agent.getToken(),
-                  'Content-Type': 'application/json'
-              }
-          })
-
-          if (res.status !== 200) {
-              throw new Error('failed to add Cloud Bookmark');
-          }
-
+          await _agent.deleteCloudBookmarkItem(id, post.uri, post.cid);
           relatedBookmarks = relatedBookmarks.filter(_bookmark => _bookmark !== id);
           toast.success($_('bookmark_delete_success'));
       } catch (e) {

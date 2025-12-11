@@ -223,21 +223,8 @@
       const bookmarks = account?.cloudBookmarks;
       cloudBookmarks = bookmarks || [];
 
-      const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getBookmarks?owner=${_agent.did() as string}`, {
-          method: 'GET',
-          headers: {
-              'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-              Authorization: 'Bearer ' + _agent.getToken(),
-              'Content-Type': 'application/json'
-          }
-      })
-
-      if (res.status !== 200) {
-          throw new Error('failed to get Cloud Bookmark');
-      }
-
-      const json = await res.json();
-      cloudBookmarks = json.bookmarks;
+      const result = await _agent.getCloudBookmarks();
+      cloudBookmarks = result.bookmarks;
 
       await accountsDb.accounts.update(accountId, {
           cloudBookmarks: $state.snapshot(cloudBookmarks),
