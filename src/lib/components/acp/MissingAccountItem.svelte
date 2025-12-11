@@ -40,7 +40,10 @@
 </script>
 
 <div class="missing-account-item">
-  <h2 class="missing-account-item__title">{account.session?.handle}</h2>
+  <h2 class="missing-account-item__title">@{account.handle || account.session?.handle || account.did}</h2>
+  {#if account.isOAuth}
+    <span class="missing-account-item__badge">OAuth</span>
+  {/if}
 
   <div class="missing-account-item__buttons">
     <button class="button button--sm" onclick={() => {isLoginModalOpen = true}}>{$_('login')}</button>
@@ -51,7 +54,7 @@
 {#if (isLoginModalOpen)}
   <LoginModal
       existingId={account.id}
-      identifier={account.session?.handle || ''}
+      identifier={account.handle || account.session?.handle || ''}
       isMissing={true}
       on:success={handleSuccess}
       on:cancel={handleCancel}></LoginModal>
@@ -68,6 +71,16 @@
           font-size: 16px;
           margin-bottom: 8px;
           line-height: 1.5;
+      }
+
+      &__badge {
+          display: inline-block;
+          font-size: 11px;
+          padding: 2px 6px;
+          border-radius: 4px;
+          background-color: var(--primary-color);
+          color: #fff;
+          margin-bottom: 8px;
       }
 
       &__buttons {
