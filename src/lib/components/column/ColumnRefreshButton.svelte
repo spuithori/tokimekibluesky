@@ -186,7 +186,11 @@
                     ? column.unreadCount = 0
                     : await _agent.getNotificationCount();
 
-                await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
+                try {
+                    await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
+                } catch (e) {
+
+                }
             }
         } else if (column.algorithm.type === 'chat') {
             const res = await _agent.agent.api.chat.bsky.convo.getMessages({cursor: '', limit: 50, convoId: column.algorithm.id}, {
