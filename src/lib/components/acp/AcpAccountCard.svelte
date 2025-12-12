@@ -51,6 +51,12 @@
       {#if (isPrimary)}
         <span class="acp-account__label">{$_('profile_main_account')}</span>
       {/if}
+
+      {#if $account?.isOAuth}
+        <span class="acp-account__label acp-account__label--gray">OAuth</span>
+      {:else}
+        <span class="acp-account__label acp-account__label--gray">Password</span>
+      {/if}
     </p>
     <p class="acp-account__service">{$account.service}</p>
 
@@ -135,6 +141,11 @@
           border-radius: 10px;
           background-color: var(--acp-main-label-bg-color);
           color: #fff;
+
+          &--gray {
+              background-color: var(--bg-color-2);
+              color: var(--text-color-3);
+          }
       }
   }
 
