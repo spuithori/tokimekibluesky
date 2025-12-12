@@ -29,7 +29,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
 
     return json(metadata, {
         headers: {
-            'Cache-Control': 'public, max-age=3600',
+            'Cache-Control': 'public, max-age=86400, s-maxage=86400',
             'Content-Type': 'application/json'
         }
     });
