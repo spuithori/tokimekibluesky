@@ -733,5 +733,13 @@
   "success_mute_on_menu": "このユーザーをミュートしました。解除はモデレーション設定から可能です。",
   "success_block_on_menu": "このユーザーをブロックしました。解除はモデレーション設定から可能です。",
   "search_filter_language": "{lang}の投稿を検索",
-  "search_filter_own_posts": "自分の投稿のみ検索"
+  "search_filter_own_posts": "自分の投稿のみ検索",
+  "oauth_success": "認証に成功しました",
+  "oauth_error": "エラーが発生しました",
+  "oauth_redirecting": "リダイレクト中...",
+  "oauth_login": "OAuthでログイン",
+  "oauth_enter_handle": "ハンドルを入力してください",
+  "oauth_recommended": "OAuthによるログインは現在実験的です。",
+  "login_with_password": "パスワードでログイン",
+  "back_to_login": "ログイン画面にもどる"
 }

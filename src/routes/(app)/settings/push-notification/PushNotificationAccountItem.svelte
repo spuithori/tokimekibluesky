@@ -38,7 +38,7 @@
 </script>
 
 <div class="push-notification-account-item">
-  <h3 class="push-notification-account-item__title">@{account.session.handle}</h3>
+  <h3 class="push-notification-account-item__title">@{account.handle || account.session?.handle || account.did}</h3>
 
   <dl class="settings-group settings-group--column">
     <dt class="settings-group__name">

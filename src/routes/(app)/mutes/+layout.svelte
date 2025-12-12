@@ -39,11 +39,9 @@
 
                 <div class="timeline timeline--inline-p0">
                     {#each $agents as [key, agent]}
-                        {#if (agent.agent?.session)}
-                            <a href="/mutes/{agent.did()}" class="user-item-wrap" class:user-item-wrap--current={agent.did() === id}>
-                                <AgentsUserItem {agent} {key}></AgentsUserItem>
-                            </a>
-                        {/if}
+                        <a href="/mutes/{agent.did()}" class="user-item-wrap" class:user-item-wrap--current={agent.did() === id}>
+                            <AgentsUserItem {agent} {key}></AgentsUserItem>
+                        </a>
                     {/each}
                 </div>
             </div>

@@ -48,13 +48,11 @@
             transition:fly={{ y: 30, duration: 250 }}
     >
         {#each $agents as [key, agent]}
-            {#if (agent.agent?.session)}
-                <AvatarAgentsSelectorModalItem
-                    {agent}
-                    {key}
-                    onselect={() => {onselect(agent)}}
-                ></AvatarAgentsSelectorModalItem>
-            {/if}
+            <AvatarAgentsSelectorModalItem
+              {agent}
+              {key}
+              onselect={() => {onselect(agent)}}
+            ></AvatarAgentsSelectorModalItem>
         {/each}
     </dialog>
 </div>

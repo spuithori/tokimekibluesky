@@ -14,26 +14,11 @@
 
   async function save () {
       try {
-          const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.addBookmark`, {
-              method: 'POST',
-              body: JSON.stringify({
-                  bookmark: {
-                      id: id || undefined,
-                      owner: _agent.did() as string,
-                      name: name,
-                      text: text,
-                  }
-              }),
-              headers: {
-                  'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                  Authorization: 'Bearer ' + _agent.getToken(),
-                  'Content-Type': 'application/json'
-              }
-          })
-
-          if (res.status !== 200) {
-              throw new Error('failed to save Cloud Bookmark');
-          }
+          await _agent.addCloudBookmark({
+              id: id || undefined,
+              name: name,
+              text: text,
+          });
 
           toast.success($_('bookmark_save_success'));
           close(false);
@@ -51,24 +36,11 @@
           loading = true;
 
           try {
-              const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getBookmark?owner=${_agent.did() as string}&id=${id}`, {
-                  method: 'GET',
-                  headers: {
-                      'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                      Authorization: 'Bearer ' + _agent.getToken(),
-                      'Content-Type': 'application/json'
-                  }
-              })
+              const result = await _agent.getCloudBookmark(id);
 
-              if (res.status !== 200) {
-                  throw new Error('failed to get Cloud Bookmark');
-              }
-
-              const json = await res.json();
-
-              if (json?.bookmark) {
-                  name = json.bookmark.name;
-                  text = json.bookmark?.text;
+              if (result?.bookmark) {
+                  name = result.bookmark.name;
+                  text = result.bookmark?.text;
               }
 
               loading = false;

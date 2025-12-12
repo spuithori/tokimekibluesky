@@ -50,7 +50,7 @@
 
   <div class="avatar-agents-selector-item__content">
     <p class="avatar-agents-selector-item__name">{displayName || '読み込みちゅう…'}</p>
-    <p class="avatar-agents-selector-item__handle">@{agent.agent.session.handle}</p>
+    <p class="avatar-agents-selector-item__handle">@{agent.handle()}</p>
   </div>
 </div>
 

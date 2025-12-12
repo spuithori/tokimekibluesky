@@ -50,16 +50,8 @@
         cloudBookmarks = bookmarks || [];
 
         try {
-            const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getBookmarks?owner=${_agent.did() as string}`, {
-                method: 'GET',
-                headers: {
-                    'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                    Authorization: 'Bearer ' + _agent.getToken(),
-                    'Content-Type': 'application/json'
-                }
-            })
-            const json = await res.json();
-            cloudBookmarks = json.bookmarks;
+            const result = await _agent.getCloudBookmarks();
+            cloudBookmarks = result.bookmarks;
 
             await accountsDb.accounts.update(accountId, {
                 cloudBookmarks: $state.snapshot(cloudBookmarks),
@@ -149,7 +141,7 @@
                     {/each}
                 {/if}
 
-                {#if cloudBookmarks.length}
+                {#if cloudBookmarks?.length}
                   {#each cloudBookmarks as bookmark}
                     <li class="side-feeds-list__item">
                       <a class="side-feeds-list__link" href="/bookmark-cloud/{bookmark.id}" onclick={handleSelect}>

@@ -33,15 +33,15 @@
          use:clickOutside={{ignoreElement: '.agents-selector'}}
          onoutclick={() => (isOpen = false)}>
       <button class="agents-selector__item agents-selector__item--front" onclick={() => {isOpen = !isOpen}}>
-        <span class="agents-selector__title">@{_agent.agent.session.handle}</span>
+        <span class="agents-selector__title">@{_agent.handle()}</span>
       </button>
 
       <div class="agents-selector__choices">
         {#each $agents as [key, agent]}
-          {#if (agent.agent?.session)}
-            {#if (agent.agent.session.handle !== _agent.agent.session.handle)}
+          {#if (agent.did())}
+            {#if (agent.handle() !== _agent.handle())}
               <button class="agents-selector__item" onclick={() => {selectAgent(key, agent)}}>
-                <span class="agents-selector__title">@{agent.agent.session.handle}</span>
+                <span class="agents-selector__title">@{agent.handle()}</span>
               </button>
             {/if}
           {/if}

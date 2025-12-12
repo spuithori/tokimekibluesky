@@ -47,7 +47,7 @@
         {#each $accounts as account}
           {#if (!exclude.includes(account.id))}
             <button class="acp-selector__item" onclick={() => {handleSelect(account.id)}}>
-              <span class="acp-selector__title">@{account.session.handle}</span>
+              <span class="acp-selector__title">@{account.handle || account.session?.handle || account.did}</span>
             </button>
           {/if}
         {/each}

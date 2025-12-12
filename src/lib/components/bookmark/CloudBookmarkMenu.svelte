@@ -16,20 +16,7 @@
       try {
           toast.loading($_('bookmark_deleting_process'));
 
-          const res = await fetch(`${await _agent.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.deleteBookmark`, {
-              method: 'POST',
-              body: JSON.stringify({
-                  bookmark: {
-                      id: id,
-                      owner: _agent.did() as string,
-                  }
-              }),
-              headers: {
-                  'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                  Authorization: 'Bearer ' + _agent.getToken(),
-                  'Content-Type': 'application/json'
-              }
-          })
+          await _agent.deleteCloudBookmark(id);
 
           toast.success($_('bookmark_delete_success'));
           close(true, id);

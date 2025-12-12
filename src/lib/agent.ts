@@ -1,10 +1,11 @@
-import {AppBskyEmbedVideo, type AppBskyFeedGetTimeline, type BskyAgent} from '@atproto/api';
-import {AppBskyEmbedImages} from "@atproto/api";
-import type {currentAlgorithm} from "../app.d.ts";
-import {parseISO} from "date-fns";
-import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-import {listRecordsWithBsky} from "$lib/util";
-import {chatState} from "$lib/classes/chatState.svelte";
+import { AppBskyEmbedVideo, type AppBskyFeedGetTimeline, type BskyAgent, Agent as AtpAgent } from '@atproto/api';
+import { AppBskyEmbedImages } from "@atproto/api";
+import type { currentAlgorithm } from "../app.d.ts";
+import { parseISO } from "date-fns";
+import { CHAT_PROXY } from "$lib/components/chat/chatConst";
+import { listRecordsWithBsky } from "$lib/util";
+import { chatState } from "$lib/classes/chatState.svelte";
+import type { OAuthSession } from '@atproto/oauth-client-browser';
 
 type timelineOpt = {
     limit: number,
@@ -18,36 +19,53 @@ type timelineOpt = {
 }
 
 export class Agent {
-    public agent: BskyAgent;
+    public agent: BskyAgent | AtpAgent;
+    public isOAuth: boolean;
+    public oauthSession?: OAuthSession;
+    private _cachedHandle?: string;
     latestRev: string = '';
     unreadChat: number = 0;
 
-    constructor(agent: BskyAgent) {
+    constructor(agent: BskyAgent | AtpAgent, isOAuth: boolean = false, oauthSession?: OAuthSession) {
         this.agent = agent;
+        this.isOAuth = isOAuth;
+        this.oauthSession = oauthSession;
     }
 
     did(): string | undefined {
+        if (this.isOAuth && this.oauthSession) {
+            return this.oauthSession.did;
+        }
         if (this.agent.session) {
             return this.agent.session.did;
         }
     }
 
     handle(): string | undefined {
+        if (this.isOAuth) {
+            return this._cachedHandle || this.did();
+        }
         if (this.agent.session) {
             return this.agent.session.handle;
         }
     }
 
+    setHandle(handle: string): void {
+        this._cachedHandle = handle;
+    }
+
     service(): string | undefined {
         if (this.agent.session) {
-            return this.agent.service.toString();
+            return this.agent.service?.toString();
         }
+        return 'https://bsky.social';
     }
 
     getToken(): string | undefined {
         if (this.agent.session) {
             return this.agent.session.accessJwt;
         }
+        return undefined;
     }
 
     async getPdsUrl(): Promise<string | undefined> {
@@ -58,6 +76,177 @@ export class Agent {
             const json = await res.json();
             return json?.service[0]?.serviceEndpoint;
         }
+    }
+
+    async callWithProxy<T = unknown>(
+        nsid: string,
+        params?: Record<string, unknown>,
+        options?: {
+            method?: 'GET' | 'POST';
+            data?: unknown;
+            proxyDid?: string;
+            proxyServiceId?: string;
+        }
+    ): Promise<T> {
+        const proxyDid = options?.proxyDid || 'did:web:api.tokimeki.tech';
+        const proxyServiceId = options?.proxyServiceId || 'tokimeki_api';
+        const proxyHeader = `${proxyDid}#${proxyServiceId}`;
+
+        const method = options?.method || 'GET';
+        const pdsUrl = await this.getPdsUrl();
+
+        if (method === 'GET') {
+            const queryParams = params ? new URLSearchParams(
+                Object.entries(params).map(([k, v]) => [k, String(v)])
+            ).toString() : '';
+            const path = `/xrpc/${nsid}${queryParams ? `?${queryParams}` : ''}`;
+
+            if (this.isOAuth && this.oauthSession) {
+                const response = await this.oauthSession.fetchHandler(path, {
+                    method: 'GET',
+                    headers: {
+                        'atproto-proxy': proxyHeader,
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+                }
+                return await response.json() as T;
+            } else {
+                const response = await fetch(`${pdsUrl}${path}`, {
+                    method: 'GET',
+                    headers: {
+                        'atproto-proxy': proxyHeader,
+                        'Authorization': `Bearer ${this.getToken()}`,
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+                }
+                return await response.json() as T;
+            }
+        } else {
+            const path = `/xrpc/${nsid}`;
+
+            if (this.isOAuth && this.oauthSession) {
+                const response = await this.oauthSession.fetchHandler(path, {
+                    method: 'POST',
+                    headers: {
+                        'atproto-proxy': proxyHeader,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(options?.data),
+                });
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+                }
+                const contentType = response.headers.get('content-type');
+                if (contentType?.includes('application/json')) {
+                    return await response.json() as T;
+                }
+                return undefined as T;
+            } else {
+                const response = await fetch(`${pdsUrl}${path}`, {
+                    method: 'POST',
+                    headers: {
+                        'atproto-proxy': proxyHeader,
+                        'Authorization': `Bearer ${this.getToken()}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(options?.data),
+                });
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+                }
+                const contentType = response.headers.get('content-type');
+                if (contentType?.includes('application/json')) {
+                    return await response.json() as T;
+                }
+                return undefined as T;
+            }
+        }
+    }
+
+    async getCloudBookmarks(): Promise<{ bookmarks: Array<{ id: number; name: string; text?: string }> }> {
+        return this.callWithProxy('tech.tokimeki.bookmark.getBookmarks', {
+            owner: this.did() as string,
+        });
+    }
+
+    async getCloudBookmark(id: number): Promise<{ bookmark: { id: number; name: string; text?: string } }> {
+        return this.callWithProxy('tech.tokimeki.bookmark.getBookmark', {
+            owner: this.did() as string,
+            id: id,
+        });
+    }
+
+    async addCloudBookmark(bookmark: { id?: number; name: string; text?: string }): Promise<unknown> {
+        return this.callWithProxy('tech.tokimeki.bookmark.addBookmark', undefined, {
+            method: 'POST',
+            data: {
+                bookmark: {
+                    id: bookmark.id,
+                    owner: this.did() as string,
+                    name: bookmark.name,
+                    text: bookmark.text,
+                }
+            }
+        });
+    }
+
+    async deleteCloudBookmark(id: number): Promise<unknown> {
+        return this.callWithProxy('tech.tokimeki.bookmark.deleteBookmark', undefined, {
+            method: 'POST',
+            data: {
+                bookmark: {
+                    id: id,
+                    owner: this.did() as string,
+                }
+            }
+        });
+    }
+
+    async getCloudBookmarkFeed(id: string | number, cursor: string | number = 0, limit: number = 20): Promise<{ posts: string[]; cursor: string }> {
+        return this.callWithProxy('tech.tokimeki.bookmark.getFeed', {
+            owner: this.did() as string,
+            id: id,
+            cursor: cursor,
+            limit: limit,
+        });
+    }
+
+    async getRelatedCloudBookmark(cid: string): Promise<{ bookmarks: Array<{ id: number; name: string }> }> {
+        return this.callWithProxy('tech.tokimeki.bookmark.getRelatedBookmark', {
+            owner: this.did() as string,
+            cid: cid,
+        });
+    }
+
+    async addCloudBookmarkItem(bookmarkId: number, uri: string, cid: string): Promise<unknown> {
+        return this.callWithProxy('tech.tokimeki.bookmark.addBookmarkItem', undefined, {
+            method: 'POST',
+            data: {
+                bookmark: {
+                    bookmark: bookmarkId,
+                    owner: this.did() as string,
+                    cid: cid,
+                    uri: uri,
+                }
+            }
+        });
+    }
+
+    async deleteCloudBookmarkItem(bookmarkId: number, uri: string, cid: string): Promise<unknown> {
+        return this.callWithProxy('tech.tokimeki.bookmark.deleteBookmarkItem', undefined, {
+            method: 'POST',
+            data: {
+                bookmark: {
+                    bookmark: bookmarkId,
+                    cid: cid,
+                    owner: this.did() as string,
+                }
+            }
+        });
     }
 
     async getTimeline(timelineOpt: timelineOpt = {limit: 20, cursor: '', type: 'default', lang: 'en'}, signal?: AbortSignal): Promise<AppBskyFeedGetTimeline.Response["data"] | undefined> {
@@ -99,16 +288,12 @@ export class Agent {
             case 'bookmark':
                 return await this.agent.api.app.bsky.feed.getPosts({uris: timelineOpt.uris || []});
             case 'cloudBookmark':
-                const cbres = await fetch(`${await this.getPdsUrl()}/xrpc/tech.tokimeki.bookmark.getFeed?owner=${this.did() as string}&id=${timelineOpt.algorithm.algorithm}&cursor=${timelineOpt.cursor || 0}&limit=${timelineOpt.limit}`, {
-                    method: 'GET',
-                    headers: {
-                        'atproto-proxy': 'did:web:api.tokimeki.tech#tokimeki_api',
-                        Authorization: 'Bearer ' + this.getToken(),
-                        'Content-Type': 'application/json'
-                    }
-                })
-                const cbjson = await cbres.json();
-                const ress = await this.agent.api.app.bsky.feed.getPosts({uris: cbjson.posts});
+                const cbResult = await this.getCloudBookmarkFeed(
+                    timelineOpt.algorithm.algorithm,
+                    timelineOpt.cursor || 0,
+                    timelineOpt.limit
+                );
+                const ress = await this.agent.api.app.bsky.feed.getPosts({uris: cbResult.posts});
                 let tempBookmarkFeeds: any[] = [];
                 ress.data.posts.forEach(post => {
                     tempBookmarkFeeds.push({
@@ -118,7 +303,7 @@ export class Agent {
 
                 return {
                     data: {
-                        cursor: cbjson.cursor,
+                        cursor: cbResult.cursor,
                         feed: tempBookmarkFeeds
                     }
                 }
