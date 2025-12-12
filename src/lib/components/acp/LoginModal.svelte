@@ -18,7 +18,7 @@
 
   let { existingId = undefined, identifier = $bindable(''), isMissing = false }: Props = $props();
 
-  let authMode = $state<'password' | 'oauth'>('oauth');
+  let authMode = $state<'password' | 'oauth'>('password');
   let password = $state('');
   let errorMessage = '';
   let service = $state('https://bsky.social');
