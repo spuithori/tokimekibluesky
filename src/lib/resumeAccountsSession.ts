@@ -67,7 +67,7 @@ async function resumeOAuthAccount(account: Account): Promise<{
     agent: AtpAgent;
     isOAuth: true;
     oauthSession: OAuthSession;
-    handle?: string;
+    fetchHandlePromise?: Promise<string | undefined>;
 } | null> {
     try {
         const oauthSession = await restoreSession(account.oauthDid || account.did);
@@ -80,13 +80,13 @@ async function resumeOAuthAccount(account: Account): Promise<{
         }
 
         const ag = new AtpAgent(oauthSession);
-        let handle: string | undefined;
-        try {
-            const profile = await ag.getProfile({ actor: oauthSession.did });
-            handle = profile.data.handle;
-        } catch (e) {
-            console.warn('Failed to fetch handle for OAuth account:', e);
-        }
+
+        const fetchHandlePromise = ag.getProfile({ actor: oauthSession.did })
+            .then(profile => profile.data.handle)
+            .catch(e => {
+                console.warn('Failed to fetch handle for OAuth account:', e);
+                return undefined;
+            });
 
         setTimeout(() => {
             settingsState.setPdsRequestReady();
@@ -97,7 +97,7 @@ async function resumeOAuthAccount(account: Account): Promise<{
             agent: ag,
             isOAuth: true,
             oauthSession: oauthSession,
-            handle: handle,
+            fetchHandlePromise: fetchHandlePromise,
         };
     } catch (error) {
         console.error('OAuth session restore error:', error);
@@ -129,8 +129,12 @@ export async function resumeAccountsSession(accounts: Account[], proxy: string |
         if (result && result.agent) {
             const agent = new Agent(result.agent, result.isOAuth, result.oauthSession);
 
-            if (result.handle) {
-                agent.setHandle(result.handle);
+            if (result.fetchHandlePromise) {
+                result.fetchHandlePromise.then(handle => {
+                    if (handle) {
+                        agent.setHandle(handle);
+                    }
+                });
             }
             agentsMap.set(result.id, agent);
         }
