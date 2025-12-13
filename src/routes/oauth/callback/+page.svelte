@@ -41,6 +41,7 @@ onMount(async () => {
                 await accountsDb.accounts.update(existingAccount.id, {
                     isOAuth: true,
                     oauthDid: did,
+                    session: null,
                     handle: handle,
                     avatar: avatar || existingAccount.avatar,
                     name: displayName || existingAccount.name,

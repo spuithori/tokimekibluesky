@@ -41,6 +41,13 @@
           id: id,
       });
   }
+
+  async function switchAuthMethod(id, isOAuth) {
+      dispatch('switchAuth', {
+          id: id,
+          isOAuth: isOAuth,
+      });
+  }
 </script>
 
 {#if ($account)}
@@ -83,7 +90,12 @@
               {/snippet}
       </Menu>
     {:else}
-      <div class="acp-account-logout-button">
+      <div class="acp-account-management-buttons">
+        {#if $account?.isOAuth}
+          <button class="button button--border button--ss" onclick={() => {switchAuthMethod(id, true)}}>{$_('switch_to_password')}</button>
+        {:else}
+          <button class="button button--border button--ss" onclick={() => {switchAuthMethod(id, false)}}>{$_('switch_to_oauth')}</button>
+        {/if}
         <button class="button button--danger button--border button--ss" onclick={() => {deleteAccount(id)}}>{$_('logout_button')}</button>
       </div>
     {/if}
@@ -149,9 +161,16 @@
       }
   }
 
-  .acp-account-logout-button {
+  .acp-account-management-buttons {
       position: absolute;
       right: 10px;
       top: 10px;
+      display: flex;
+      gap: 8px;
+
+      @media (max-width: 767px) {
+          position: static;
+          margin-top: 8px;
+      }
   }
 </style>

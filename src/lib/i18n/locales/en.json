@@ -741,5 +741,7 @@
   "oauth_enter_handle": "Please enter your handle",
   "oauth_recommended": "OAuth login is currently experimental.",
   "login_with_password": "Log in with Password",
-  "back_to_login": "Back to Login"
+  "back_to_login": "Back to Login",
+  "switch_to_oauth": "Switch to OAuth",
+  "switch_to_password": "Switch to Password"
 }

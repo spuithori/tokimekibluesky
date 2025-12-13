@@ -14,11 +14,12 @@
     existingId?: any;
     identifier?: string;
     isMissing?: boolean;
+    initialAuthMode?: 'password' | 'oauth';
   }
 
-  let { existingId = undefined, identifier = $bindable(''), isMissing = false }: Props = $props();
+  let { existingId = undefined, identifier = $bindable(''), isMissing = false, initialAuthMode = undefined }: Props = $props();
 
-  let authMode = $state<'password' | 'oauth'>('password');
+  let authMode = $state<'password' | 'oauth'>(initialAuthMode || 'password');
   let password = $state('');
   let errorMessage = '';
   let service = $state('https://bsky.social');
@@ -34,17 +35,30 @@
     try {
       await agent.login({ identifier: identifier, password: password, authFactorToken: isTwoFactor ? twoFactorValue : undefined });
 
-      const id = await accountsDb.accounts.put({
-        id: existingId,
-        session: agent.session as AtpSessionData,
-        did: agent.session?.did || '',
-        service: service,
-        handle: agent.session?.handle,
-        avatar: '',
-        following: undefined,
-        notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
-        isOAuth: false,
-      });
+      let id: number;
+
+      if (existingId) {
+        await accountsDb.accounts.update(existingId, {
+          session: agent.session as AtpSessionData,
+          did: agent.session?.did || '',
+          service: service,
+          handle: agent.session?.handle,
+          isOAuth: false,
+          oauthDid: undefined,
+        });
+        id = existingId;
+      } else {
+        id = await accountsDb.accounts.put({
+          session: agent.session as AtpSessionData,
+          did: agent.session?.did || '',
+          service: service,
+          handle: agent.session?.handle,
+          avatar: '',
+          following: undefined,
+          notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
+          isOAuth: false,
+        });
+      }
 
       dispatch('success', {
         id: id,
@@ -95,6 +109,7 @@
         class:auth-mode-toggle__button--active={authMode === 'oauth'}
         onclick={() => authMode = 'oauth'}
         type="button"
+        disabled={initialAuthMode !== undefined}
       >
         OAuth
       </button>
@@ -103,6 +118,7 @@
         class:auth-mode-toggle__button--active={authMode === 'password'}
         onclick={() => authMode = 'password'}
         type="button"
+        disabled={initialAuthMode !== undefined}
       >
         {$_('login_password')}
       </button>
@@ -259,8 +275,13 @@
         background-color: transparent;
         transition: all 0.2s ease;
 
-        &:hover {
+        &:hover:not(:disabled) {
             color: var(--text-color-1);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
         }
 
         &--active {
@@ -269,6 +290,10 @@
 
             &:hover {
                 color: #fff;
+            }
+
+            &:disabled {
+                opacity: 1;
             }
         }
     }
