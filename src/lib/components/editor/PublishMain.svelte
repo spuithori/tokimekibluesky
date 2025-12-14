@@ -30,6 +30,7 @@
   import Notice from "$lib/components/ui/Notice.svelte";
   import SelfLabelLabel from "$lib/components/publish/SelfLabelLabel.svelte";
   import {bskyUrlToAtUri, isBskyPostUrl} from "$lib/components/editor/postUtil";
+  import { PUBLIC_THREAD_SPLIT_API_SERVER } from '$env/static/public';
 
   interface Props {
     index: number;
@@ -71,6 +72,7 @@
     let isThreadGateOpen = $state(false);
     let isSelfLabelingMenuOpen = $state(false);
     let altFocusPulse = $state();
+    let isThreadSplitting = $state(false);
 
     let isAltTextRequired = $derived.by(() => {
       if (!$settings?.general?.requireInputAltText) {
@@ -112,10 +114,22 @@
         }
 
         onopen();
-        editor.setContent(post.text);
+        const htmlContent = textToHtml(post.text);
+        editor.setContent(htmlContent);
         postState.pulse = false;
       }
     });
+
+    function textToHtml(text: string): string {
+      if (!text) return '';
+      const urlRegex = /https?:\/\/[^\s\u3000\n]+/g;
+      const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      const withLinks = escaped.replace(urlRegex, url => `<a href="${url}">${url}</a>`);
+      return withLinks.replace(/\n/g, '<br>');
+    }
 
     type BeforeUploadImage = {
         image: Blob | File,
@@ -336,6 +350,44 @@
     altFocusPulse = id;
     isAltModalOpen = true;
   }
+
+  async function handleThreadSplit() {
+    if (!post.text || isThreadSplitting) return;
+
+    isThreadSplitting = true;
+
+    try {
+      const lang = Array.isArray(post.lang) ? post.lang[0] : ($settings.general?.userLanguage || 'ja');
+      const res = await fetch(PUBLIC_THREAD_SPLIT_API_SERVER, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: post.text,
+          maxLength: 280,
+          language: lang,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('API request failed');
+      }
+
+      const data = await res.json();
+
+      if (data.posts && Array.isArray(data.posts) && data.posts.length > 1) {
+        postState.splitIntoThreads(data.posts);
+      } else {
+        toast.error($_('thread_split_error'));
+      }
+    } catch (e) {
+      console.error('Thread split error:', e);
+      toast.error($_('thread_split_error'));
+    } finally {
+      isThreadSplitting = false;
+    }
+  }
 </script>
 
 <svelte:document onpaste={handlePaste} />
@@ -355,9 +407,11 @@
           {onpublish}
           onupload={uploadContextOpen}
           onpicktenor={addTenorLinkCard}
+          onthreadsplit={handleThreadSplit}
           {_agent}
           {isEnabled}
           {isVideoUploadEnabled}
+          {isThreadSplitting}
           {onopen}
           {submitArea}
           {publishContentLength}

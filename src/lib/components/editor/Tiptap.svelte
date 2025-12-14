@@ -20,7 +20,8 @@
   import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
-  import {Clapperboard, Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink} from "lucide-svelte";
+  import {Clapperboard, Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink, SquareSplitVertical} from "lucide-svelte";
+  import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import EmojiList from "$lib/components/editor/EmojiList.svelte";
 
   interface Props {
@@ -46,7 +47,9 @@
     onupload,
     onpicktenor,
     onpublish,
+    onthreadsplit,
     publishContentLength,
+    isThreadSplitting = false,
   }: Props = $props();
 
     let element = $state();
@@ -389,7 +392,20 @@
         <Laugh size="20" color="var(--publish-tool-button-color)"></Laugh>
       </button>
 
-      <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
+      <div class="publish-length-wrap">
+        <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
+
+        {#if publishContentLength > 300 && onthreadsplit}
+          <button class="thread-split-button" onclick={onthreadsplit} disabled={isThreadSplitting} aria-label={$_('thread_split')}>
+            {$_('thread_split')}
+            {#if isThreadSplitting}
+              <LoadingSpinner size={16} padding={0} color="#fff"></LoadingSpinner>
+            {:else}
+              <SquareSplitVertical size="16"></SquareSplitVertical>
+            {/if}
+          </button>
+        {/if}
+      </div>
   {/snippet}
 </EditorBar>
 
@@ -495,18 +511,92 @@
         padding: 16px;
     }
 
+    .publish-length-wrap {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        position: relative;
+        margin-left: auto;
+    }
+
     .publish-length {
         color: var(--publish-length-color);
         display: flex;
         align-items: center;
-        margin-right: auto;
         white-space: nowrap;
         pointer-events: none;
         cursor: default;
+        border-left: 1px solid var(--border-color-2);
+        padding-left: 8px;
+
+        @media (max-width: 767px) {
+            margin-left: 0;
+            border-left: none;
+        }
 
         &.over {
             font-weight: bold;
             color: var(--danger-color);
+        }
+    }
+
+    .thread-split-button {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: var(--border-radius-2);
+        border: 2px solid var(--primary-color);
+        background-color: var(--bg-color-3);
+        color: var(--primary-color);
+        box-shadow: 0 0 10px var(--box-shadow-color-1);
+        font-size: 12px;
+        white-space: nowrap;
+        font-weight: bold;
+        transition: opacity .2s;
+        letter-spacing: .05em;
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+
+        &::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% - 5px);
+            width: 12px;
+            height: 12px;
+            background-color: var(--bg-color-3);
+            border: 2px solid var(--primary-color);
+            border-right: none;
+            border-bottom: none;
+            border-top-left-radius: 3px;
+            transform: translateX(-50%) rotate(45deg);
+        }
+
+        @media (max-width: 767px) {
+            top: auto;
+            bottom: calc(100% + 8px);
+
+            &::before {
+                bottom: auto;
+                top: calc(100% - 5px);
+                border: 2px solid var(--primary-color);
+                border-left: none;
+                border-top: none;
+                border-top-left-radius: 0;
+                border-bottom-right-radius: 3px;
+            }
+        }
+
+        &:hover:not(:disabled) {
+            opacity: .8;
+        }
+
+        &:disabled {
+            opacity: .6;
+            cursor: not-allowed;
         }
     }
 </style>

@@ -73,6 +73,41 @@ export class PostState {
         this.posts = [$state.snapshot(this.initPost)];
         this.index = 0;
     }
+
+    splitIntoThreads(texts: string[]) {
+        if (!texts.length || !this.posts) return;
+
+        const currentPost = this.posts[this.index];
+        if (!currentPost) return;
+
+        const newPosts: Post[] = [];
+
+        texts.forEach((text, i) => {
+            if (i === 0) {
+                newPosts.push({
+                    ...$state.snapshot(this.initPost),
+                    ...currentPost,
+                    text: text,
+                    json: '',
+                });
+            } else {
+                newPosts.push({
+                    ...$state.snapshot(this.initPost),
+                    text: text,
+                    json: '',
+                    replyRef: currentPost.replyRef,
+                    threadGate: currentPost.threadGate,
+                    postGate: currentPost.postGate,
+                    lang: currentPost.lang,
+                });
+            }
+        });
+
+        const beforePosts = this.posts.slice(0, this.index);
+        const afterPosts = this.posts.slice(this.index + 1);
+        this.posts = [...beforePosts, ...newPosts, ...afterPosts];
+        this.pulse = true;
+    }
 }
 
 const PostUnique = Symbol();

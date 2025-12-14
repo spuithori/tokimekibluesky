@@ -15,7 +15,7 @@
 <style lang="postcss">
     .publish-toolbar {
         display: flex;
-        gap: 4px;
+        gap: 8px;
         position: sticky;
         bottom: 0;
         z-index: 100;
@@ -26,6 +26,7 @@
         &__buttons {
             display: flex;
             align-items: center;
+            flex: 1;
             gap: 5px;
             height: 36px;
         }
