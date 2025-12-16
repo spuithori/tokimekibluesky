@@ -114,8 +114,9 @@
         }
 
         onopen();
-        const htmlContent = textToHtml(post.text);
-        editor.setContent(htmlContent);
+        // const htmlContent = textToHtml(post.text);
+        // editor.setContent(htmlContent);
+        editor.setContent(post.text);
         postState.pulse = false;
       }
     });
