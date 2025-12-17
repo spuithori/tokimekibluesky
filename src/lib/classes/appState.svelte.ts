@@ -14,6 +14,7 @@ class AppState {
     missingAccounts: string[] = $state([]);
     labelDefs = new PersistedState('labelDefs', []);
     subscribedLabelers = new PersistedState('subscribedLabelers', ['did:plc:ar7c4by46qjdydhdevvrndac']);
+    singleColumnScrollPositions: Map<number, number> = new Map();
 
     async init() {
         const profiles = await accountsDb.profiles.toArray();
