@@ -19,11 +19,13 @@
   import {computeCid} from "$lib/components/editor/postUtil";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
-  import {Pencil, X, Settings2, Pin, PinOff} from "lucide-svelte";
+  import {Pencil, X, Settings2, Pin, PinOff, CalendarClock} from "lucide-svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
   import {languageDetect} from '$lib/translate';
   import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
   import {compressWithIteration} from "$lib/components/editor/imageUploadUtil";
+  import ScheduleModal from "$lib/components/publish/ScheduleModal.svelte";
+  import { createScheduledPost, uploadScheduleImage, type PostData, type ScheduledImage, type ScheduledExternal } from '$lib/scheduleApi';
 
   const postState = getPostState();
 
@@ -34,6 +36,7 @@
   let isEnabled = $state(true);
   let isPublishing = $state(false);
   let isConfigOpen = $state(false);
+  let isScheduleModalOpen = $state(false);
   let writes = [];
   let continuousTags = [];
   let tid: TID | undefined;
@@ -651,6 +654,148 @@
           editor.focus();
       })
   }
+
+  async function handleSchedulePost(scheduledAt: Date) {
+      if (isEnabled || postState.posts.length > 1) {
+          toast.error($_('schedule_thread_not_supported'));
+          return;
+      }
+
+      if (postState.posts[0]?.video) {
+          toast.error($_('schedule_video_not_supported'));
+          return;
+      }
+
+      isScheduleModalOpen = false;
+      isPublishing = true;
+      const toastId = toast.loading($_('schedule_processing'));
+
+      try {
+          const post = postState.posts[0];
+          let rt: RichText | undefined;
+
+          if (post.text) {
+              rt = await detectRichTextWithEditorJson(_agent, post.text, post.json);
+          }
+
+          const lang = post.lang === 'auto' ? await languageDetect(post.text) : post.lang;
+          const tempPostId = crypto.randomUUID();
+          let scheduledImages: ScheduledImage[] | undefined;
+
+          if (post.images && post.images.length > 0) {
+              scheduledImages = [];
+              for (let i = 0; i < post.images.length; i++) {
+                  const img = post.images[i];
+
+                  let fileToUpload = img.file;
+                  if (!img.isGif && img.file.size > 900 * 1024) {
+                      fileToUpload = await imageCompression(img.file, {
+                          maxSizeMB: 0.9,
+                          maxWidthOrHeight: 2000,
+                          useWebWorker: true,
+                      });
+                  }
+
+                  const storagePath = await uploadScheduleImage(_agent.agent, {
+                      file: fileToUpload,
+                      postId: tempPostId,
+                      index: i,
+                  });
+                  if (!storagePath) {
+                      throw new Error($_('schedule_image_upload_error'));
+                  }
+                  scheduledImages.push({
+                      storagePath,
+                      alt: img.alt || '',
+                      mimeType: fileToUpload.type,
+                      width: img.width,
+                      height: img.height,
+                  });
+              }
+          }
+
+          let scheduledExternal: ScheduledExternal | undefined;
+          if (post.embedExternal?.external) {
+              const ext = post.embedExternal.external;
+              scheduledExternal = {
+                  uri: ext.uri,
+                  title: ext.title || '',
+                  description: ext.description || '',
+              };
+
+              if (post.externalImageBlob) {
+                  const base64Response = await fetch(post.externalImageBlob);
+                  const blob = await base64Response.blob();
+                  const thumbFile = new File([blob], 'thumb.jpg', { type: blob.type || 'image/jpeg' });
+
+                  const thumbPath = await uploadScheduleImage(_agent.agent, {
+                      file: thumbFile,
+                      postId: tempPostId,
+                      index: 99,
+                  });
+                  if (thumbPath) {
+                      scheduledExternal.thumbStoragePath = thumbPath;
+                      scheduledExternal.thumbMimeType = thumbFile.type;
+                  }
+              }
+          }
+
+          const postData: PostData = {
+              text: rt ? rt.text : '',
+              facets: rt?.facets,
+              langs: Array.isArray(lang) ? lang : lang ? [lang] : undefined,
+              labels: post.selfLabels?.length ? {
+                  $type: 'com.atproto.label.defs#selfLabels',
+                  values: post.selfLabels,
+              } : undefined,
+              images: scheduledImages,
+              imagePostId: (scheduledImages || scheduledExternal?.thumbStoragePath) ? tempPostId : undefined,
+              external: scheduledExternal,
+          };
+
+          if (post.replyRef) {
+              postData.reply = {
+                  root: {
+                      uri: post.replyRef.data.root.uri,
+                      cid: post.replyRef.data.root.cid,
+                  },
+                  parent: {
+                      uri: post.replyRef.data.parent.uri,
+                      cid: post.replyRef.data.parent.cid,
+                  },
+              };
+          }
+
+          const result = await createScheduledPost(_agent.agent, postData, scheduledAt);
+
+          if (result) {
+              isPublishing = false;
+              toast.success($_('schedule_success'), {
+                  id: toastId,
+                  duration: 3000,
+              });
+
+              if (!publishState.pinned) {
+                  onClose();
+              }
+              postState.clearPosts();
+
+              if (publishState.pinned) {
+                  await tick();
+                  editor.focus();
+              }
+          } else {
+              throw new Error('Failed to create scheduled post');
+          }
+      } catch (e) {
+          isPublishing = false;
+          console.error(e);
+          toast.error($_('schedule_error') + ': ' + e, {
+              id: toastId,
+              duration: 5000,
+          });
+      }
+  }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -701,6 +846,10 @@
         <X color="var(--primary-color)"></X>
       </button>
 
+      <button class="publish-schedule-button publish-schedule-button--top" onclick={() => {isScheduleModalOpen = true}} disabled={isEnabled || postState.posts.length > 1 || postState.posts[0]?.video} aria-label={$_('schedule_button')}>
+        <CalendarClock size="18" />
+      </button>
+
       <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled}>
         {$_('publish_button_send')}
       </button>
@@ -739,6 +888,10 @@
 
   {#if (isConfigOpen)}
     <PublishConfigModal onclose={() => {isConfigOpen = false}}></PublishConfigModal>
+  {/if}
+
+  {#if (isScheduleModalOpen)}
+    <ScheduleModal onclose={() => {isScheduleModalOpen = false}} onschedule={handleSchedulePost}></ScheduleModal>
   {/if}
 </section>
 
@@ -892,6 +1045,36 @@
 
             &:hover {
                 opacity: 1;
+            }
+        }
+    }
+
+    .publish-schedule-button {
+        z-index: 12;
+        height: 32px;
+        width: 32px;
+        border-radius: var(--border-radius-2);
+        background-color: transparent;
+        border: 1px solid var(--border-color-1);
+        color: var(--text-color-2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover:not(:disabled) {
+            background-color: var(--bg-color-2);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        &:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        &--top {
+            @media (max-width: 767px) {
+                display: none;
             }
         }
     }

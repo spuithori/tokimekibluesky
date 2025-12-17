@@ -6,6 +6,7 @@
     import AccountsManagementModal from "$lib/components/acp/AccountsManagementModal.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {appState} from "$lib/classes/appState.svelte";
+    import { ChevronRight,GalleryVertical } from "lucide-svelte";
 
     let isAccountManagementModalOpen = $state(false);
 
@@ -43,6 +44,12 @@
   </SettingsHeader>
 
   <div class="settings-wrap">
+    <div class="settings-child-nav">
+      <GalleryVertical size="24"></GalleryVertical>
+      <a href="/settings/schedule">{$_('schedule_post_title')}<br><span>{$_('schedule_auth_required')}</span></a>
+      <ChevronRight size="20"></ChevronRight>
+    </div>
+
     <p class="settings-description">{$_('profiles_description')}</p>
 
     <div class="acp-list-wrap">
