@@ -8,7 +8,6 @@
     import {scrollDirection} from "$lib/scrollDirection";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {appState} from "$lib/classes/appState.svelte";
-    import {tick} from "svelte";
 
     const columnState = getColumnState();
 
@@ -46,28 +45,31 @@
     });
 
     let previousTimelineIndex: number | null = null;
+    let shouldRestoreScroll = false;
+
+    $effect.pre(() => {
+        const currentIndex = $currentTimeline;
+
+        if (previousTimelineIndex !== null && previousTimelineIndex !== currentIndex) {
+            appState.singleColumnScrollPositions.set(previousTimelineIndex, window.scrollY);
+            shouldRestoreScroll = true;
+        }
+
+        previousTimelineIndex = currentIndex;
+    });
 
     $effect(() => {
         const currentIndex = $currentTimeline;
 
-        if (previousTimelineIndex === null) {
-            previousTimelineIndex = currentIndex;
-            return;
-        }
+        if (shouldRestoreScroll) {
+            shouldRestoreScroll = false;
 
-        if (previousTimelineIndex !== currentIndex) {
-            appState.singleColumnScrollPositions.set(previousTimelineIndex, window.scrollY);
-
-            tick().then(() => {
+            requestAnimationFrame(() => {
                 const savedPosition = appState.singleColumnScrollPositions.get(currentIndex);
                 if (savedPosition !== undefined) {
                     window.scrollTo(0, savedPosition);
-                } else {
-                    window.scrollTo(0, 0);
                 }
             });
-
-            previousTimelineIndex = currentIndex;
         }
     });
 </script>
