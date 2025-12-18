@@ -2,7 +2,7 @@
   import {_} from 'svelte-i18n';
   import type {LayoutData} from "./$types";
   import {page} from "$app/stores";
-  import { ArrowLeft, BellRing, Database, GanttChartSquare, Hand, Heart, Layers, Palette, Settings, WholeWord, X } from "lucide-svelte";
+  import { ArrowLeft, BellRing, Database, GanttChartSquare, Hand, Heart, Layers, Palette, Settings, WholeWord, X, CalendarClock } from "lucide-svelte";
   import { scale } from 'svelte/transition';
 
   interface Props {
@@ -81,6 +81,13 @@
               <BellRing size="24" color="var(--text-color-1)"></BellRing>
             </div>
             <p class="p-menu-nav__title"><a href="/settings/push-notification">{$_('settings_push_notification')}</a></p>
+          </li>
+
+          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/schedule'}>
+            <div class="p-menu-nav__icon">
+              <CalendarClock size="24" color="var(--text-color-1)"></CalendarClock>
+            </div>
+            <p class="p-menu-nav__title"><a href="/settings/schedule">{$_('schedule_post_title')}</a></p>
           </li>
 
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/data'}>
