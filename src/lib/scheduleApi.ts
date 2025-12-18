@@ -44,6 +44,11 @@ export interface ThreadPostData {
   quotePost?: { uri: string; cid: string };
 }
 
+// Internal type for processing scheduled post content
+export interface ProcessedPostContent extends ThreadPostData {
+  hasImages: boolean;
+}
+
 export interface ScheduledExternal {
   uri: string;
   title: string;

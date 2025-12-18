@@ -25,7 +25,7 @@
   import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
   import {compressWithIteration} from "$lib/components/editor/imageUploadUtil";
   import ScheduleModal from "$lib/components/publish/ScheduleModal.svelte";
-  import { createScheduledPost, uploadScheduleImage, type PostData, type ScheduledImage, type ScheduledExternal, type ThreadPostData } from '$lib/scheduleApi';
+  import { createScheduledPost, uploadScheduleImage, type PostData, type ScheduledImage, type ScheduledExternal, type ThreadPostData, type ProcessedPostContent } from '$lib/scheduleApi';
 
   const postState = getPostState();
 
@@ -139,39 +139,41 @@
       });
   }
 
-  async function uploadBlobWithCompression(image) {
-    const originalSizeMB = image.file.size / 1024 / 1024;
-
-    const calculateQuality = (sizeMB: number) => {
+  function calculateCompressionQuality(sizeMB: number): number {
       const targetSizeMB = 0.925;
       if (sizeMB <= targetSizeMB) {
-        return 0.95;
+          return 0.95;
       }
-
       const minQuality = 0.8;
       const maxQuality = 0.9;
       const maxSizeToConsider = 20.0;
-
       const overshootRatio = Math.min(1.0, (sizeMB - targetSizeMB) / (maxSizeToConsider - targetSizeMB));
-      const quality = maxQuality - (overshootRatio * (maxQuality - minQuality));
+      return Math.max(minQuality, maxQuality - (overshootRatio * (maxQuality - minQuality)));
+  }
 
-      return Math.max(minQuality, quality);
-    };
-    const dynamicInitialQuality = calculateQuality(originalSizeMB);
+  async function compressImage(file: File | Blob): Promise<File | Blob> {
+      const originalSizeMB = file.size / 1024 / 1024;
+      const dynamicInitialQuality = calculateCompressionQuality(originalSizeMB);
 
-    const compressed = $settings?.general?.losslessImageUpload
-      ? await compressWithIteration(image.file, 0.95)
-      : await imageCompression(image.file, {
-            maxSizeMB: 0.95,
-            maxWidthOrHeight: 2000,
-            fileType: 'image/jpeg',
-            useWebWorker: true,
-            initialQuality: dynamicInitialQuality,
-        });
+      if ($settings?.general?.losslessImageUpload) {
+          return await compressWithIteration(file, 0.95);
+      }
 
-    return await _agent.agent.api.com.atproto.repo.uploadBlob(image.isGif ? image.file : compressed, {
-      encoding: compressed.type,
-    });
+      return await imageCompression(file, {
+          maxSizeMB: 0.95,
+          maxWidthOrHeight: 2000,
+          fileType: 'image/jpeg',
+          useWebWorker: true,
+          initialQuality: dynamicInitialQuality,
+      });
+  }
+
+  async function uploadBlobWithCompression(image) {
+      const compressed = image.isGif ? image.file : await compressImage(image.file);
+
+      return await _agent.agent.api.com.atproto.repo.uploadBlob(compressed, {
+          encoding: compressed.type,
+      });
   }
 
   async function uploadExternalImage(_blob) {
@@ -664,14 +666,10 @@
       const scheduledImages: ScheduledImage[] = [];
       for (let i = 0; i < images.length; i++) {
           const img = images[i];
-          let fileToUpload = img.file;
-          if (!img.isGif && img.file.size > 900 * 1024) {
-              fileToUpload = await imageCompression(img.file, {
-                  maxSizeMB: 0.9,
-                  maxWidthOrHeight: 2000,
-                  useWebWorker: true,
-              });
-          }
+          const compressed = img.isGif ? img.file : await compressImage(img.file);
+          const fileToUpload = compressed instanceof File
+              ? compressed
+              : new File([compressed], 'image.jpg', { type: compressed.type });
           const storagePath = await uploadScheduleImage(_agent.agent, {
               file: fileToUpload,
               postId: tempPostId,
@@ -683,7 +681,7 @@
           scheduledImages.push({
               storagePath,
               alt: img.alt || '',
-              mimeType: fileToUpload.type,
+              mimeType: compressed.type,
               width: img.width,
               height: img.height,
           });
@@ -722,6 +720,85 @@
       return scheduledExternal;
   }
 
+  function buildThreadGateAllow(threadGate: any): any[] {
+      if (!Array.isArray(threadGate)) return [];
+      return threadGate.map((item: string) => {
+          if (item === 'mention') {
+              return { $type: 'app.bsky.feed.threadgate#mentionRule' };
+          } else if (item === 'following') {
+              return { $type: 'app.bsky.feed.threadgate#followingRule' };
+          } else if (item === 'follower') {
+              return { $type: 'app.bsky.feed.threadgate#followerRule' };
+          } else {
+              return { $type: 'app.bsky.feed.threadgate#listRule', list: item };
+          }
+      });
+  }
+
+  async function processSchedulePostContent(
+      post: any,
+      tempPostId: string,
+      imageIndexOffset: number,
+      externalThumbIndex: number
+  ): Promise<ProcessedPostContent> {
+      let rt: RichText | undefined;
+      if (post.text) {
+          rt = await detectRichTextWithEditorJson(_agent, post.text, post.json);
+      }
+
+      const lang = (!post.lang || post.lang === 'auto') ? await languageDetect(post.text) : post.lang;
+
+      let scheduledImages: ScheduledImage[] | undefined;
+      let hasImages = false;
+      if (post.images && post.images.length > 0) {
+          scheduledImages = await processScheduleImages(post.images, tempPostId, imageIndexOffset);
+          hasImages = true;
+      }
+
+      const scheduledExternal = await processScheduleExternal(post, tempPostId, externalThumbIndex);
+      if (scheduledExternal?.thumbStoragePath) {
+          hasImages = true;
+      }
+
+      return {
+          text: rt ? rt.text : '',
+          facets: rt?.facets,
+          langs: Array.isArray(lang) ? lang : lang ? [lang] : undefined,
+          labels: post.selfLabels?.length ? {
+              $type: 'com.atproto.label.defs#selfLabels',
+              values: post.selfLabels,
+          } : undefined,
+          images: scheduledImages,
+          external: scheduledExternal,
+          quotePost: post.quotePost ? { uri: post.quotePost.uri, cid: post.quotePost.cid } : undefined,
+          hasImages,
+      };
+  }
+
+  function applyReplyRef(postData: PostData, replyRef: any): void {
+      if (replyRef?.data) {
+          postData.reply = {
+              root: { uri: replyRef.data.root.uri, cid: replyRef.data.root.cid },
+              parent: { uri: replyRef.data.parent.uri, cid: replyRef.data.parent.cid },
+          };
+      }
+  }
+
+  function applyGates(postData: PostData, post: any): void {
+      if (post.threadGate !== 'everybody' && !post.replyRef) {
+          postData.threadgate = {
+              $type: 'app.bsky.feed.threadgate',
+              post: '',
+              allow: buildThreadGateAllow(post.threadGate),
+          };
+      }
+      if (post.postGate === false) {
+          postData.postgate = {
+              embeddingRules: [{ $type: 'app.bsky.feed.postgate#disableRule' }],
+          };
+      }
+  }
+
   async function handleSchedulePost(scheduledAt: Date) {
       if (isEnabled) {
           return;
@@ -739,6 +816,7 @@
           const tempPostId = crypto.randomUUID();
           const firstPost = postState.posts[0];
           let hasAnyImages = false;
+          let postData: PostData;
 
           if (postState.posts.length > 1) {
               const threadPosts: ThreadPostData[] = [];
@@ -746,185 +824,49 @@
 
               for (let postIndex = 0; postIndex < postState.posts.length; postIndex++) {
                   const post = postState.posts[postIndex];
-                  let rt: RichText | undefined;
+                  const content = await processSchedulePostContent(post, tempPostId, imageIndexCounter, 90 + postIndex);
 
-                  if (post.text) {
-                      rt = await detectRichTextWithEditorJson(_agent, post.text, post.json);
-                  }
+                  if (content.hasImages) hasAnyImages = true;
+                  if (post.images?.length) imageIndexCounter += post.images.length;
 
-                  const lang = (!post.lang || post.lang === 'auto') ? await languageDetect(post.text) : post.lang;
-
-                  let scheduledImages: ScheduledImage[] | undefined;
-                  if (post.images && post.images.length > 0) {
-                      scheduledImages = await processScheduleImages(post.images, tempPostId, imageIndexCounter);
-                      imageIndexCounter += post.images.length;
-                      hasAnyImages = true;
-                  }
-
-                  const scheduledExternal = await processScheduleExternal(post, tempPostId, 90 + postIndex);
-                  if (scheduledExternal?.thumbStoragePath) {
-                      hasAnyImages = true;
-                  }
-
-                  const threadPost: ThreadPostData = {
-                      text: rt ? rt.text : '',
-                      facets: rt?.facets,
-                      langs: Array.isArray(lang) ? lang : lang ? [lang] : undefined,
-                      labels: post.selfLabels?.length ? {
-                          $type: 'com.atproto.label.defs#selfLabels',
-                          values: post.selfLabels,
-                      } : undefined,
-                      images: scheduledImages,
-                      external: scheduledExternal,
-                  };
-
-                  if (post.quotePost) {
-                      threadPost.quotePost = {
-                          uri: post.quotePost.uri,
-                          cid: post.quotePost.cid,
-                      };
-                  }
-
-                  threadPosts.push(threadPost);
+                  threadPosts.push({
+                      text: content.text,
+                      facets: content.facets,
+                      langs: content.langs,
+                      labels: content.labels,
+                      images: content.images,
+                      external: content.external,
+                      quotePost: content.quotePost,
+                  });
               }
 
-              const postData: PostData = {
+              postData = {
                   text: '',
-                  threadPosts: threadPosts,
+                  threadPosts,
                   imagePostId: hasAnyImages ? tempPostId : undefined,
               };
-
-              if (firstPost.replyRef?.data) {
-                  postData.reply = {
-                      root: {
-                          uri: firstPost.replyRef.data.root.uri,
-                          cid: firstPost.replyRef.data.root.cid,
-                      },
-                      parent: {
-                          uri: firstPost.replyRef.data.parent.uri,
-                          cid: firstPost.replyRef.data.parent.cid,
-                      },
-                  };
-              }
-
-              if (firstPost.threadGate !== 'everybody' && !firstPost.replyRef) {
-                  let allow: any[] = [];
-                  if (Array.isArray(firstPost.threadGate)) {
-                      allow = firstPost.threadGate.map((item: string) => {
-                          if (item === 'mention') {
-                              return { $type: 'app.bsky.feed.threadgate#mentionRule' };
-                          } else if (item === 'following') {
-                              return { $type: 'app.bsky.feed.threadgate#followingRule' };
-                          } else if (item === 'follower') {
-                              return { $type: 'app.bsky.feed.threadgate#followerRule' };
-                          } else {
-                              return { $type: 'app.bsky.feed.threadgate#listRule', list: item };
-                          }
-                      });
-                  }
-                  postData.threadgate = {
-                      $type: 'app.bsky.feed.threadgate',
-                      post: '',
-                      allow: allow,
-                  };
-              }
-
-              if (firstPost.postGate === false) {
-                  postData.postgate = {
-                      embeddingRules: [{ $type: 'app.bsky.feed.postgate#disableRule' }],
-                  };
-              }
-
-              const result = await createScheduledPost(_agent.agent, postData, scheduledAt);
-              if (!result) {
-                  throw new Error('Failed to create scheduled thread');
-              }
           } else {
-              const post = firstPost;
-              let rt: RichText | undefined;
+              const content = await processSchedulePostContent(firstPost, tempPostId, 0, 99);
+              hasAnyImages = content.hasImages;
 
-              if (post.text) {
-                  rt = await detectRichTextWithEditorJson(_agent, post.text, post.json);
-              }
-
-              const lang = (!post.lang || post.lang === 'auto') ? await languageDetect(post.text) : post.lang;
-
-              let scheduledImages: ScheduledImage[] | undefined;
-              if (post.images && post.images.length > 0) {
-                  scheduledImages = await processScheduleImages(post.images, tempPostId, 0);
-                  hasAnyImages = true;
-              }
-
-              const scheduledExternal = await processScheduleExternal(post, tempPostId, 99);
-              if (scheduledExternal?.thumbStoragePath) {
-                  hasAnyImages = true;
-              }
-
-              const postData: PostData = {
-                  text: rt ? rt.text : '',
-                  facets: rt?.facets,
-                  langs: Array.isArray(lang) ? lang : lang ? [lang] : undefined,
-                  labels: post.selfLabels?.length ? {
-                      $type: 'com.atproto.label.defs#selfLabels',
-                      values: post.selfLabels,
-                  } : undefined,
-                  images: scheduledImages,
+              postData = {
+                  text: content.text,
+                  facets: content.facets,
+                  langs: content.langs,
+                  labels: content.labels,
+                  images: content.images,
                   imagePostId: hasAnyImages ? tempPostId : undefined,
-                  external: scheduledExternal,
+                  external: content.external,
+                  quotePost: content.quotePost,
               };
+          }
 
-              if (post.replyRef?.data) {
-                  postData.reply = {
-                      root: {
-                          uri: post.replyRef.data.root.uri,
-                          cid: post.replyRef.data.root.cid,
-                      },
-                      parent: {
-                          uri: post.replyRef.data.parent.uri,
-                          cid: post.replyRef.data.parent.cid,
-                      },
-                  };
-              }
+          applyReplyRef(postData, firstPost.replyRef);
+          applyGates(postData, firstPost);
 
-              if (post.quotePost) {
-                  postData.quotePost = {
-                      uri: post.quotePost.uri,
-                      cid: post.quotePost.cid,
-                  };
-              }
-
-              if (post.threadGate !== 'everybody' && !post.replyRef) {
-                  let allow: any[] = [];
-                  if (Array.isArray(post.threadGate)) {
-                      allow = post.threadGate.map((item: string) => {
-                          if (item === 'mention') {
-                              return { $type: 'app.bsky.feed.threadgate#mentionRule' };
-                          } else if (item === 'following') {
-                              return { $type: 'app.bsky.feed.threadgate#followingRule' };
-                          } else if (item === 'follower') {
-                              return { $type: 'app.bsky.feed.threadgate#followerRule' };
-                          } else {
-                              return { $type: 'app.bsky.feed.threadgate#listRule', list: item };
-                          }
-                      });
-                  }
-                  postData.threadgate = {
-                      $type: 'app.bsky.feed.threadgate',
-                      post: '',
-                      allow: allow,
-                  };
-              }
-
-              if (post.postGate === false) {
-                  postData.postgate = {
-                      embeddingRules: [{ $type: 'app.bsky.feed.postgate#disableRule' }],
-                  };
-              }
-
-              const result = await createScheduledPost(_agent.agent, postData, scheduledAt);
-              if (!result) {
-                  throw new Error('Failed to create scheduled post');
-              }
+          const result = await createScheduledPost(_agent.agent, postData, scheduledAt);
+          if (!result) {
+              throw new Error('Failed to create scheduled post');
           }
 
           isPublishing = false;
