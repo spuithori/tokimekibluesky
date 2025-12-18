@@ -25,9 +25,23 @@ export interface PostData {
     root: { uri: string; cid: string };
     parent: { uri: string; cid: string };
   };
+  threadgate?: unknown;
+  postgate?: unknown;
   images?: ScheduledImage[];
   imagePostId?: string;
   external?: ScheduledExternal;
+  quotePost?: { uri: string; cid: string };
+  threadPosts?: ThreadPostData[];
+}
+
+export interface ThreadPostData {
+  text: string;
+  facets?: unknown[];
+  langs?: string[];
+  labels?: unknown;
+  images?: ScheduledImage[];
+  external?: ScheduledExternal;
+  quotePost?: { uri: string; cid: string };
 }
 
 export interface ScheduledExternal {
