@@ -10,9 +10,15 @@
   interface Props {
     onclose: () => void;
     onschedule: (date: Date) => void;
+    isSubmitting?: boolean;
   }
 
-  let { onclose, onschedule }: Props = $props();
+  let { onclose, onschedule, isSubmitting = false }: Props = $props();
+
+  function handleClose() {
+    if (isSubmitting) return;
+    onclose();
+  }
 
   let isAuthenticated = $state(false);
   let isChecking = $state(true);
@@ -61,7 +67,7 @@
   });
 </script>
 
-<Modal title={$_('schedule_post_title')} size="small" {onclose}>
+<Modal title={$_('schedule_post_title')} size="small" onclose={handleClose}>
   <div class="schedule-modal">
     {#if isChecking}
       <div class="schedule-loading">
@@ -109,15 +115,19 @@
         <p class="schedule-note">{$_('schedule_note')}</p>
 
         <div class="schedule-actions">
-          <button class="schedule-cancel-button" onclick={onclose}>
+          <button class="schedule-cancel-button" onclick={handleClose} disabled={isSubmitting}>
             {$_('edit_cancel_button')}
           </button>
           <button
             class="schedule-submit-button"
             onclick={handleSchedule}
-            disabled={!isValid}
+            disabled={!isValid || isSubmitting}
           >
-            {$_('schedule_button')}
+            {#if isSubmitting}
+              <LoadingSpinner padding={0} color="#fff"></LoadingSpinner>
+            {:else}
+              {$_('schedule_button')}
+            {/if}
           </button>
         </div>
       </div>
@@ -243,6 +253,10 @@
     color: var(--bg-color-1);
     font-size: 14px;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 
     &:hover:not(:disabled) {
       opacity: 0.9;

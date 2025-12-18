@@ -37,6 +37,7 @@
   let isPublishing = $state(false);
   let isConfigOpen = $state(false);
   let isScheduleModalOpen = $state(false);
+  let isScheduleSubmitting = $state(false);
   let writes = [];
   let continuousTags = [];
   let tid: TID | undefined;
@@ -731,9 +732,8 @@
           return;
       }
 
-      isScheduleModalOpen = false;
+      isScheduleSubmitting = true;
       isPublishing = true;
-      const toastId = toast.loading($_('schedule_processing'));
 
       try {
           const tempPostId = crypto.randomUUID();
@@ -893,6 +893,34 @@
                   };
               }
 
+              if (post.threadGate !== 'everybody' && !post.replyRef) {
+                  let allow: any[] = [];
+                  if (Array.isArray(post.threadGate)) {
+                      allow = post.threadGate.map((item: string) => {
+                          if (item === 'mention') {
+                              return { $type: 'app.bsky.feed.threadgate#mentionRule' };
+                          } else if (item === 'following') {
+                              return { $type: 'app.bsky.feed.threadgate#followingRule' };
+                          } else if (item === 'follower') {
+                              return { $type: 'app.bsky.feed.threadgate#followerRule' };
+                          } else {
+                              return { $type: 'app.bsky.feed.threadgate#listRule', list: item };
+                          }
+                      });
+                  }
+                  postData.threadgate = {
+                      $type: 'app.bsky.feed.threadgate',
+                      post: '',
+                      allow: allow,
+                  };
+              }
+
+              if (post.postGate === false) {
+                  postData.postgate = {
+                      embeddingRules: [{ $type: 'app.bsky.feed.postgate#disableRule' }],
+                  };
+              }
+
               const result = await createScheduledPost(_agent.agent, postData, scheduledAt);
               if (!result) {
                   throw new Error('Failed to create scheduled post');
@@ -900,10 +928,9 @@
           }
 
           isPublishing = false;
-          toast.success($_('schedule_success'), {
-              id: toastId,
-              duration: 3000,
-          });
+          isScheduleSubmitting = false;
+          isScheduleModalOpen = false;
+          toast.success($_('schedule_success'), { duration: 3000 });
 
           if (!publishState.pinned) {
               onClose();
@@ -916,11 +943,9 @@
           }
       } catch (e) {
           isPublishing = false;
+          isScheduleSubmitting = false;
           console.error(e);
-          toast.error($_('schedule_error') + ': ' + e, {
-              id: toastId,
-              duration: 5000,
-          });
+          toast.error($_('schedule_error') + ': ' + e, { duration: 5000 });
       }
   }
 </script>
@@ -1018,7 +1043,11 @@
   {/if}
 
   {#if (isScheduleModalOpen)}
-    <ScheduleModal onclose={() => {isScheduleModalOpen = false}} onschedule={handleSchedulePost}></ScheduleModal>
+    <ScheduleModal
+      onclose={() => { if (!isScheduleSubmitting) isScheduleModalOpen = false; }}
+      onschedule={handleSchedulePost}
+      isSubmitting={isScheduleSubmitting}
+    ></ScheduleModal>
   {/if}
 </section>
 
