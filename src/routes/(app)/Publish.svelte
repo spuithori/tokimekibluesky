@@ -19,11 +19,13 @@
   import {computeCid} from "$lib/components/editor/postUtil";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
-  import {Pencil, X, Settings2, Pin, PinOff} from "lucide-svelte";
+  import {Pencil, X, Settings2, Pin, PinOff, CalendarClock} from "lucide-svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
   import {languageDetect} from '$lib/translate';
   import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
   import {compressWithIteration} from "$lib/components/editor/imageUploadUtil";
+  import ScheduleModal from "$lib/components/publish/ScheduleModal.svelte";
+  import { createScheduledPost, uploadScheduleImage, type PostData, type ScheduledImage, type ScheduledExternal, type ThreadPostData, type ProcessedPostContent } from '$lib/scheduleApi';
 
   const postState = getPostState();
 
@@ -34,6 +36,8 @@
   let isEnabled = $state(true);
   let isPublishing = $state(false);
   let isConfigOpen = $state(false);
+  let isScheduleModalOpen = $state(false);
+  let isScheduleSubmitting = $state(false);
   let writes = [];
   let continuousTags = [];
   let tid: TID | undefined;
@@ -135,39 +139,41 @@
       });
   }
 
-  async function uploadBlobWithCompression(image) {
-    const originalSizeMB = image.file.size / 1024 / 1024;
-
-    const calculateQuality = (sizeMB: number) => {
+  function calculateCompressionQuality(sizeMB: number): number {
       const targetSizeMB = 0.925;
       if (sizeMB <= targetSizeMB) {
-        return 0.95;
+          return 0.95;
       }
-
       const minQuality = 0.8;
       const maxQuality = 0.9;
       const maxSizeToConsider = 20.0;
-
       const overshootRatio = Math.min(1.0, (sizeMB - targetSizeMB) / (maxSizeToConsider - targetSizeMB));
-      const quality = maxQuality - (overshootRatio * (maxQuality - minQuality));
+      return Math.max(minQuality, maxQuality - (overshootRatio * (maxQuality - minQuality)));
+  }
 
-      return Math.max(minQuality, quality);
-    };
-    const dynamicInitialQuality = calculateQuality(originalSizeMB);
+  async function compressImage(file: File | Blob): Promise<File | Blob> {
+      const originalSizeMB = file.size / 1024 / 1024;
+      const dynamicInitialQuality = calculateCompressionQuality(originalSizeMB);
 
-    const compressed = $settings?.general?.losslessImageUpload
-      ? await compressWithIteration(image.file, 0.95)
-      : await imageCompression(image.file, {
-            maxSizeMB: 0.95,
-            maxWidthOrHeight: 2000,
-            fileType: 'image/jpeg',
-            useWebWorker: true,
-            initialQuality: dynamicInitialQuality,
-        });
+      if ($settings?.general?.losslessImageUpload) {
+          return await compressWithIteration(file, 0.95);
+      }
 
-    return await _agent.agent.api.com.atproto.repo.uploadBlob(image.isGif ? image.file : compressed, {
-      encoding: compressed.type,
-    });
+      return await imageCompression(file, {
+          maxSizeMB: 0.95,
+          maxWidthOrHeight: 2000,
+          fileType: 'image/jpeg',
+          useWebWorker: true,
+          initialQuality: dynamicInitialQuality,
+      });
+  }
+
+  async function uploadBlobWithCompression(image) {
+      const compressed = image.isGif ? image.file : await compressImage(image.file);
+
+      return await _agent.agent.api.com.atproto.repo.uploadBlob(compressed, {
+          encoding: compressed.type,
+      });
   }
 
   async function uploadExternalImage(_blob) {
@@ -651,6 +657,239 @@
           editor.focus();
       })
   }
+
+  async function processScheduleImages(
+      images: any[],
+      tempPostId: string,
+      indexOffset: number
+  ): Promise<ScheduledImage[]> {
+      const scheduledImages: ScheduledImage[] = [];
+      for (let i = 0; i < images.length; i++) {
+          const img = images[i];
+          const compressed = img.isGif ? img.file : await compressImage(img.file);
+          const fileToUpload = compressed instanceof File
+              ? compressed
+              : new File([compressed], 'image.jpg', { type: compressed.type });
+          const storagePath = await uploadScheduleImage(_agent.agent, {
+              file: fileToUpload,
+              postId: tempPostId,
+              index: indexOffset + i,
+          });
+          if (!storagePath) {
+              throw new Error($_('schedule_image_upload_error'));
+          }
+          scheduledImages.push({
+              storagePath,
+              alt: img.alt || '',
+              mimeType: compressed.type,
+              width: img.width,
+              height: img.height,
+          });
+      }
+      return scheduledImages;
+  }
+
+  async function processScheduleExternal(
+      post: any,
+      tempPostId: string,
+      thumbIndex: number
+  ): Promise<ScheduledExternal | undefined> {
+      if (!post.embedExternal?.external) return undefined;
+
+      const ext = post.embedExternal.external;
+      const scheduledExternal: ScheduledExternal = {
+          uri: ext.uri,
+          title: ext.title || '',
+          description: ext.description || '',
+      };
+
+      if (post.externalImageBlob) {
+          const base64Response = await fetch(post.externalImageBlob);
+          const blob = await base64Response.blob();
+          const thumbFile = new File([blob], 'thumb.jpg', { type: blob.type || 'image/jpeg' });
+          const thumbPath = await uploadScheduleImage(_agent.agent, {
+              file: thumbFile,
+              postId: tempPostId,
+              index: thumbIndex,
+          });
+          if (thumbPath) {
+              scheduledExternal.thumbStoragePath = thumbPath;
+              scheduledExternal.thumbMimeType = thumbFile.type;
+          }
+      }
+      return scheduledExternal;
+  }
+
+  function buildThreadGateAllow(threadGate: any): any[] {
+      if (!Array.isArray(threadGate)) return [];
+      return threadGate.map((item: string) => {
+          if (item === 'mention') {
+              return { $type: 'app.bsky.feed.threadgate#mentionRule' };
+          } else if (item === 'following') {
+              return { $type: 'app.bsky.feed.threadgate#followingRule' };
+          } else if (item === 'follower') {
+              return { $type: 'app.bsky.feed.threadgate#followerRule' };
+          } else {
+              return { $type: 'app.bsky.feed.threadgate#listRule', list: item };
+          }
+      });
+  }
+
+  async function processSchedulePostContent(
+      post: any,
+      tempPostId: string,
+      imageIndexOffset: number,
+      externalThumbIndex: number
+  ): Promise<ProcessedPostContent> {
+      let rt: RichText | undefined;
+      if (post.text) {
+          rt = await detectRichTextWithEditorJson(_agent, post.text, post.json);
+      }
+
+      const lang = (!post.lang || post.lang === 'auto') ? await languageDetect(post.text) : post.lang;
+
+      let scheduledImages: ScheduledImage[] | undefined;
+      let hasImages = false;
+      if (post.images && post.images.length > 0) {
+          scheduledImages = await processScheduleImages(post.images, tempPostId, imageIndexOffset);
+          hasImages = true;
+      }
+
+      const scheduledExternal = await processScheduleExternal(post, tempPostId, externalThumbIndex);
+      if (scheduledExternal?.thumbStoragePath) {
+          hasImages = true;
+      }
+
+      return {
+          text: rt ? rt.text : '',
+          facets: rt?.facets,
+          langs: Array.isArray(lang) ? lang : lang ? [lang] : undefined,
+          labels: post.selfLabels?.length ? {
+              $type: 'com.atproto.label.defs#selfLabels',
+              values: post.selfLabels,
+          } : undefined,
+          images: scheduledImages,
+          external: scheduledExternal,
+          quotePost: post.quotePost ? { uri: post.quotePost.uri, cid: post.quotePost.cid } : undefined,
+          hasImages,
+      };
+  }
+
+  function applyReplyRef(postData: PostData, replyRef: any): void {
+      if (replyRef?.data) {
+          postData.reply = {
+              root: { uri: replyRef.data.root.uri, cid: replyRef.data.root.cid },
+              parent: { uri: replyRef.data.parent.uri, cid: replyRef.data.parent.cid },
+          };
+      }
+  }
+
+  function applyGates(postData: PostData, post: any): void {
+      if (post.threadGate !== 'everybody' && !post.replyRef) {
+          postData.threadgate = {
+              $type: 'app.bsky.feed.threadgate',
+              post: '',
+              allow: buildThreadGateAllow(post.threadGate),
+          };
+      }
+      if (post.postGate === false) {
+          postData.postgate = {
+              embeddingRules: [{ $type: 'app.bsky.feed.postgate#disableRule' }],
+          };
+      }
+  }
+
+  async function handleSchedulePost(scheduledAt: Date) {
+      if (isEnabled) {
+          return;
+      }
+
+      if (postState.posts.some(p => p.video)) {
+          toast.error($_('schedule_video_not_supported'));
+          return;
+      }
+
+      isScheduleSubmitting = true;
+      isPublishing = true;
+
+      try {
+          const tempPostId = crypto.randomUUID();
+          const firstPost = postState.posts[0];
+          let hasAnyImages = false;
+          let postData: PostData;
+
+          if (postState.posts.length > 1) {
+              const threadPosts: ThreadPostData[] = [];
+              let imageIndexCounter = 0;
+
+              for (let postIndex = 0; postIndex < postState.posts.length; postIndex++) {
+                  const post = postState.posts[postIndex];
+                  const content = await processSchedulePostContent(post, tempPostId, imageIndexCounter, 90 + postIndex);
+
+                  if (content.hasImages) hasAnyImages = true;
+                  if (post.images?.length) imageIndexCounter += post.images.length;
+
+                  threadPosts.push({
+                      text: content.text,
+                      facets: content.facets,
+                      langs: content.langs,
+                      labels: content.labels,
+                      images: content.images,
+                      external: content.external,
+                      quotePost: content.quotePost,
+                  });
+              }
+
+              postData = {
+                  text: '',
+                  threadPosts,
+                  imagePostId: hasAnyImages ? tempPostId : undefined,
+              };
+          } else {
+              const content = await processSchedulePostContent(firstPost, tempPostId, 0, 99);
+              hasAnyImages = content.hasImages;
+
+              postData = {
+                  text: content.text,
+                  facets: content.facets,
+                  langs: content.langs,
+                  labels: content.labels,
+                  images: content.images,
+                  imagePostId: hasAnyImages ? tempPostId : undefined,
+                  external: content.external,
+                  quotePost: content.quotePost,
+              };
+          }
+
+          applyReplyRef(postData, firstPost.replyRef);
+          applyGates(postData, firstPost);
+
+          const result = await createScheduledPost(_agent.agent, postData, scheduledAt);
+          if (!result) {
+              throw new Error('Failed to create scheduled post');
+          }
+
+          isPublishing = false;
+          isScheduleSubmitting = false;
+          isScheduleModalOpen = false;
+          toast.success($_('schedule_success'), { duration: 3000 });
+
+          if (!publishState.pinned) {
+              onClose();
+          }
+          postState.clearPosts();
+
+          if (publishState.pinned) {
+              await tick();
+              editor.focus();
+          }
+      } catch (e) {
+          isPublishing = false;
+          isScheduleSubmitting = false;
+          console.error(e);
+          toast.error($_('schedule_error') + ': ' + e, { duration: 5000 });
+      }
+  }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -697,6 +936,10 @@
         <button class="publish-draft-button publish-view-draft" onclick={openDraft} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
       {/if}
 
+      <button class="publish-schedule-button publish-schedule-button--top" onclick={() => {isScheduleModalOpen = true}} disabled={isEnabled || postState.posts.some(p => p.video)} aria-label={$_('schedule_button')}>
+        <CalendarClock size="20"></CalendarClock>
+      </button>
+
       <button class="publish-sp-close" onclick={onClose} aria-label="Close.">
         <X color="var(--primary-color)"></X>
       </button>
@@ -739,6 +982,15 @@
 
   {#if (isConfigOpen)}
     <PublishConfigModal onclose={() => {isConfigOpen = false}}></PublishConfigModal>
+  {/if}
+
+  {#if (isScheduleModalOpen)}
+    <ScheduleModal
+      {_agent}
+      onclose={() => { if (!isScheduleSubmitting) isScheduleModalOpen = false; }}
+      onschedule={handleSchedulePost}
+      isSubmitting={isScheduleSubmitting}
+    ></ScheduleModal>
   {/if}
 </section>
 
@@ -893,6 +1145,27 @@
             &:hover {
                 opacity: 1;
             }
+        }
+    }
+
+    .publish-schedule-button {
+        z-index: 12;
+        height: 30px;
+        width: 30px;
+        border-radius: var(--border-radius-2);
+        background-color: var(--bg-color-1);
+        color: var(--publish-tool-button-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover:not(:disabled) {
+            opacity: .8;
+        }
+
+        &:disabled {
+            opacity: .5;
+            cursor: not-allowed;
         }
     }
 
