@@ -2,18 +2,19 @@
   import { _ } from 'svelte-i18n';
   import Modal from "$lib/components/ui/Modal.svelte";
   import { checkScheduleAuth } from '$lib/scheduleApi';
-  import { agent } from '$lib/stores';
   import { onMount } from 'svelte';
   import { Calendar, Clock, AlertCircle } from 'lucide-svelte';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+  import type { Agent } from '$lib/agent';
 
   interface Props {
     onclose: () => void;
     onschedule: (date: Date) => void;
     isSubmitting?: boolean;
+    _agent: Agent;
   }
 
-  let { onclose, onschedule, isSubmitting = false }: Props = $props();
+  let { onclose, onschedule, isSubmitting = false, _agent }: Props = $props();
 
   function handleClose() {
     if (isSubmitting) return;
@@ -60,8 +61,8 @@
 
   onMount(async () => {
     updateMinDateTime();
-    if ($agent.agent) {
-      isAuthenticated = await checkScheduleAuth($agent.agent);
+    if (_agent.agent) {
+      isAuthenticated = await checkScheduleAuth(_agent.agent);
     }
     isChecking = false;
   });
@@ -75,9 +76,9 @@
       </div>
     {:else if !isAuthenticated}
       <div class="schedule-auth-required">
-        <AlertCircle size="48" color="var(--warning-color)" />
+        <AlertCircle size="36" color="var(--primary-color)" />
         <p>{$_('schedule_auth_required')}</p>
-        <a href="/settings/schedule" class="schedule-settings-link">
+        <a onclick={handleClose} href="/settings/schedule" class="schedule-settings-link">
           {$_('schedule_go_to_settings')}
         </a>
       </div>

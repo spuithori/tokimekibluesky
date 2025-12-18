@@ -986,6 +986,7 @@
 
   {#if (isScheduleModalOpen)}
     <ScheduleModal
+      {_agent}
       onclose={() => { if (!isScheduleSubmitting) isScheduleModalOpen = false; }}
       onschedule={handleSchedulePost}
       isSubmitting={isScheduleSubmitting}

@@ -11,6 +11,7 @@ export interface ScheduledPost {
   scheduled_at: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   error_message?: string;
+  posted_uri?: string;
   created_at: string;
   updated_at: string;
 }

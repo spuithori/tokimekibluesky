@@ -6,14 +6,7 @@
     import { page } from '$app/stores';
     import { accountsDb } from '$lib/db';
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
-    import {
-        checkScheduleAuth,
-        startScheduleAuth,
-        revokeScheduleAuth,
-        getScheduledPosts,
-        deleteScheduledPost,
-        type ScheduledPost
-    } from '$lib/scheduleApi';
+    import { checkScheduleAuth, startScheduleAuth, revokeScheduleAuth, getScheduledPosts, deleteScheduledPost, type ScheduledPost } from '$lib/scheduleApi';
     import type { Agent } from '$lib/agent';
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { Trash } from 'lucide-svelte';
@@ -145,6 +138,26 @@
         return accountStates.find(s => s.agent.did() === selectedAccountDid);
     }
 
+    function isThread(post: ScheduledPost): boolean {
+        return !!post.post_data.threadPosts && post.post_data.threadPosts.length > 0;
+    }
+
+    function getPostDisplayText(post: ScheduledPost): string {
+        if (isThread(post)) {
+            return post.post_data.threadPosts![0]?.text || '';
+        }
+        return post.post_data.text || '';
+    }
+
+    function getPostLink(post: ScheduledPost): string | null {
+        if (!post.posted_uri) return null;
+        const match = post.posted_uri.match(/^at:\/\/([^/]+)\/app\.bsky\.feed\.post\/(.+)$/);
+        if (match) {
+            return `/profile/${match[1]}/post/${match[2]}`;
+        }
+        return null;
+    }
+
     onMount(async () => {
         const authResult = $page.url.searchParams.get('auth');
         if (authResult === 'success') {
@@ -231,7 +244,12 @@
                             {#each selectedState.scheduledPosts as post}
                                 <li class="schedule-post-item">
                                     <div class="schedule-post-content">
-                                        <p class="schedule-post-text">{post.post_data.text}</p>
+                                        <div class="schedule-post-header">
+                                            {#if isThread(post)}
+                                                <span class="schedule-post-thread-label">{$_('title_thread')} ({post?.post_data?.threadPosts?.length})</span>
+                                            {/if}
+                                        </div>
+                                        <p class="schedule-post-text">{getPostDisplayText(post)}</p>
                                         <div class="schedule-post-meta">
                                             <span class="schedule-post-time">
                                                 {$_('schedule_settings_scheduled_at')}: {formatDate(post.scheduled_at)}
@@ -239,6 +257,9 @@
                                             <span class="schedule-post-status schedule-post-status--{post.status}">
                                                 {getStatusLabel(post.status)}
                                             </span>
+                                            {#if post.status === 'completed' && getPostLink(post)}
+                                                <a href={getPostLink(post)}></a>
+                                            {/if}
                                         </div>
                                         {#if post.error_message}
                                             <p class="schedule-post-error">{post.error_message}</p>
@@ -293,10 +314,10 @@
     }
 
     .schedule-accounts-section {
-        margin: 20px 0;
+        margin: 24px 0;
 
         h3 {
-            margin: 0 0 15px;
+            margin-bottom: 16px;
             font-size: 16px;
         }
     }
@@ -408,7 +429,7 @@
         margin-top: 30px;
 
         h3 {
-            margin: 0 0 15px;
+            margin-bottom: 16px;
             font-size: 16px;
         }
     }
@@ -429,10 +450,24 @@
         display: flex;
         align-items: flex-start;
         gap: 10px;
-        padding: 15px;
+        padding: 8px 16px;
         border: 1px solid var(--border-color-1);
         border-radius: 8px;
         margin-bottom: 10px;
+        position: relative;
+
+        &:hover {
+            opacity: .8;
+        }
+
+        a {
+            &::before {
+                content: '';
+                display: block;
+                position: absolute;
+                inset: 0;
+            }
+        }
     }
 
     .schedule-post-content {
@@ -440,8 +475,22 @@
         min-width: 0;
     }
 
+    .schedule-post-header {
+        margin-bottom: 4px;
+    }
+
+    .schedule-post-thread-label {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        background-color: var(--primary-color);
+        color: var(--bg-color-1);
+    }
+
     .schedule-post-text {
-        margin: 0 0 10px;
+        margin-bottom: 4px;
         white-space: pre-wrap;
         word-break: break-word;
     }
@@ -481,7 +530,7 @@
     }
 
     .schedule-post-error {
-        margin: 10px 0 0;
+        margin-top: 4px;
         color: var(--danger-color);
         font-size: 13px;
     }
