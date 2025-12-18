@@ -969,12 +969,12 @@
         <button class="publish-draft-button publish-view-draft" onclick={openDraft} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
       {/if}
 
-      <button class="publish-sp-close" onclick={onClose} aria-label="Close.">
-        <X color="var(--primary-color)"></X>
+      <button class="publish-schedule-button publish-schedule-button--top" onclick={() => {isScheduleModalOpen = true}} disabled={isEnabled || postState.posts.some(p => p.video)} aria-label={$_('schedule_button')}>
+        <CalendarClock size="20"></CalendarClock>
       </button>
 
-      <button class="publish-schedule-button publish-schedule-button--top" onclick={() => {isScheduleModalOpen = true}} disabled={isEnabled || postState.posts.some(p => p.video)} aria-label={$_('schedule_button')}>
-        <CalendarClock size="18" />
+      <button class="publish-sp-close" onclick={onClose} aria-label="Close.">
+        <X color="var(--primary-color)"></X>
       </button>
 
       <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled}>
@@ -1178,31 +1178,22 @@
 
     .publish-schedule-button {
         z-index: 12;
-        height: 32px;
-        width: 32px;
+        height: 30px;
+        width: 30px;
         border-radius: var(--border-radius-2);
-        background-color: transparent;
-        border: 1px solid var(--border-color-1);
-        color: var(--text-color-2);
+        background-color: var(--bg-color-1);
+        color: var(--publish-tool-button-color);
         display: flex;
         align-items: center;
         justify-content: center;
 
         &:hover:not(:disabled) {
-            background-color: var(--bg-color-2);
-            color: var(--primary-color);
-            border-color: var(--primary-color);
+            opacity: .8;
         }
 
         &:disabled {
             opacity: .5;
             cursor: not-allowed;
-        }
-
-        &--top {
-            @media (max-width: 767px) {
-                display: none;
-            }
         }
     }
 
