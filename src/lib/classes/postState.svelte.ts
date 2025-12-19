@@ -9,6 +9,8 @@ type replyRef = {
 
 type ThreadGate = 'everybody' | 'nobody' | string[];
 
+export type WhisperDuration = '10m' | '30m' | '1h' | '6h' | '12h' | '24h' | undefined;
+
 type Post = {
     text: string,
     json: string,
@@ -22,6 +24,7 @@ type Post = {
     selfLabels: any[],
     threadGate: ThreadGate,
     postGate: boolean,
+    whisper: WhisperDuration,
 }
 
 export class PostState {
@@ -46,6 +49,7 @@ export class PostState {
         selfLabels: [],
         threadGate: this.threadGate.current,
         postGate: this.postGate.current,
+        whisper: undefined,
     });
 
     constructor() {
@@ -99,6 +103,7 @@ export class PostState {
                     threadGate: currentPost.threadGate,
                     postGate: currentPost.postGate,
                     lang: currentPost.lang,
+                    whisper: currentPost.whisper,
                 });
             }
         });

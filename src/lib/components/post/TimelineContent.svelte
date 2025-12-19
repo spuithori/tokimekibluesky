@@ -19,7 +19,7 @@
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {onDestroy, untrack} from "svelte";
-  import {BadgeCheck, CircleCheck, Eye, Handshake} from "lucide-svelte";
+  import {BadgeCheck, CircleCheck, CircleDashed, Eye, Handshake} from "lucide-svelte";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
   import {appState} from "$lib/classes/appState.svelte";
   import {getNextUpdateDelay} from "$lib/components/post/timelineUtil";
@@ -59,6 +59,28 @@
   let skyblurText = $state('');
   let isSkyblurAdditional = $state(false);
   let timerId: ReturnType<typeof setTimeout>;
+
+  const whisperExpiredAt = (() => {
+      const raw = post?.record?.['tech.tokimeki.whisper.expiredAt'];
+      if (typeof raw !== 'string') return null;
+      const date = new Date(raw);
+      if (isNaN(date.getTime())) return null;
+      const postCreated = new Date(post?.record?.createdAt || 0).getTime();
+      const maxExpiry = postCreated + 25 * 60 * 60 * 1000;
+      if (date.getTime() > maxExpiry) return null;
+      return raw;
+  })();
+
+  const whisperRemainingTime = (() => {
+      if (!whisperExpiredAt) return '-';
+      const remaining = new Date(whisperExpiredAt).getTime() - Date.now();
+      if (remaining <= 0) return '-';
+      const totalMinutes = Math.floor(remaining / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const formatter = new Intl.DurationFormat($settings?.general?.userLanguage || navigator.language, { style: 'short' });
+      return formatter.format(hours > 0 ? { hours, minutes } : { minutes });
+  })();
 
   const moderateData = contentLabelling(post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
   const contentContext = isSingle
@@ -283,7 +305,7 @@
       </div>
     {/if}
 
-    {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyEmbedRecord.isViewRecord(post.embed.record)) }
+    {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyEmbedRecord.isViewRecord(post.embed.record) && !whisperExpiredAt) }
       <EmbedRecord record={post.embed.record} {_agent}></EmbedRecord>
     {/if}
 
@@ -310,7 +332,7 @@
         <EmbedExternal external={post.embed.media.external}></EmbedExternal>
       {/if}
 
-      {#if AppBskyEmbedRecord.isViewRecord(post.embed.record.record)}
+      {#if AppBskyEmbedRecord.isViewRecord(post.embed.record.record) && !whisperExpiredAt}
         <EmbedRecord record={post.embed.record.record} {_agent}></EmbedRecord>
       {/if}
 
@@ -333,6 +355,13 @@
       </div>
     {/if}
   </div>
+
+  {#if whisperExpiredAt}
+    <div class="whisper-indicator">
+      <CircleDashed size="14"></CircleDashed>
+      <span>{$_('whisper_remaining')}: {whisperRemainingTime}</span>
+    </div>
+  {/if}
 
   <ReactionButtons {_agent} {post} {reason}></ReactionButtons>
 

@@ -1094,3 +1094,17 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
 }
+
+.whisper-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    margin-top: 8px;
+    background-color: var(--bg-color-2);
+    border: 1px solid var(--border-color-2);
+    border-radius: var(--border-radius-2);
+    font-size: 13px;
+    color: var(--primary-color);
+    width: fit-content;
+}

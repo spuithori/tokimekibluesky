@@ -254,3 +254,90 @@ export async function deleteScheduleImage(agent: Agent, storagePath: string): Pr
     return false;
   }
 }
+
+export type WhisperExpiresIn = '10m' | '30m' | '1h' | '6h' | '12h' | '24h';
+
+export interface WhisperPost {
+  id: string;
+  did: string;
+  post_uri: string;
+  post_cid: string;
+  expires_at: string;
+  status: 'active' | 'deleted' | 'failed';
+  error_message?: string;
+  created_at: string;
+  deleted_at?: string;
+}
+
+export interface RegisterWhisperRequest {
+  post_uri: string;
+  post_cid: string;
+  expires_in: WhisperExpiresIn;
+}
+
+export async function registerWhisperPost(
+  agent: Agent,
+  postUri: string,
+  postCid: string,
+  expiresIn: WhisperExpiresIn
+): Promise<WhisperPost | null> {
+  try {
+    const token = await getServiceAuthToken(agent);
+    const response = await fetch(`${SCHEDULE_API_URL}/whisper`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        post_uri: postUri,
+        post_cid: postCid,
+        expires_in: expiresIn,
+      } as RegisterWhisperRequest),
+    });
+    const result: ApiResponse<WhisperPost> = await response.json();
+    if (result.success && result.data) {
+      return result.data;
+    }
+    if (result.error) {
+      throw new Error(result.error);
+    }
+    return null;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getWhisperPosts(agent: Agent): Promise<WhisperPost[]> {
+  try {
+    const token = await getServiceAuthToken(agent);
+    const response = await fetch(`${SCHEDULE_API_URL}/whisper`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    const result: ApiResponse<WhisperPost[]> = await response.json();
+    if (result.success && result.data) {
+      return result.data;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+export async function cancelWhisperPost(agent: Agent, id: string): Promise<boolean> {
+  try {
+    const token = await getServiceAuthToken(agent);
+    const response = await fetch(`${SCHEDULE_API_URL}/whisper/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    const result: ApiResponse = await response.json();
+    return result.success;
+  } catch {
+    return false;
+  }
+}

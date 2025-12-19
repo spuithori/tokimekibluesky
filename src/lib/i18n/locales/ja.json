@@ -786,5 +786,16 @@
   "schedule_settings_status_completed": "完了",
   "schedule_settings_status_failed": "失敗",
   "schedule_settings_no_handle": "ハンドルが取得できません",
-  "schedule_settings_auth_start_error": "認証の開始に失敗しました"
+  "schedule_settings_auth_start_error": "認証の開始に失敗しました",
+  "whisper_title": "ウィスパー",
+  "whisper_description": "選択した時間が経過すると自動的に削除されます。",
+  "whisper_none": "なし",
+  "whisper_duration": "削除までの時間",
+  "whisper_note": "※ 削除に失敗する可能性があります。",
+  "whisper_no_reply": "ウィスパーは返信として投稿できません",
+  "whisper_no_quote": "ウィスパーは引用として投稿できません",
+  "whisper_registering": "ウィスパーを登録中...",
+  "whisper_register_failed": "ウィスパーの登録に失敗しました",
+  "whisper_success": "ウィスパーを投稿しました",
+  "whisper_remaining": "あと"
 }
