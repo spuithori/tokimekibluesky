@@ -1032,7 +1032,7 @@
         <button class="publish-draft-button publish-view-draft" onclick={openDraft} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
       {/if}
 
-      <button class="publish-schedule-button publish-schedule-button--top" onclick={() => {isScheduleModalOpen = true}} disabled={isEnabled || postState.posts.some(p => p.video)} aria-label={$_('schedule_button')}>
+      <button class="publish-schedule-button publish-schedule-button--top" onclick={() => {isScheduleModalOpen = true}} disabled={isEnabled || postState.posts.some(p => p.video || p.whisper)} aria-label={$_('schedule_button')}>
         <CalendarClock size="20"></CalendarClock>
       </button>
 
