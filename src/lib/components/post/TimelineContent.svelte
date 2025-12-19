@@ -72,9 +72,9 @@
   })();
 
   const whisperRemainingTime = (() => {
-      if (!whisperExpiredAt) return '-';
+      if (!whisperExpiredAt) return '';
       const remaining = new Date(whisperExpiredAt).getTime() - Date.now();
-      if (remaining <= 0) return '-';
+      if (remaining <= 0) return '';
       const totalMinutes = Math.floor(remaining / 60000);
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;
@@ -359,7 +359,7 @@
   {#if whisperExpiredAt}
     <div class="whisper-indicator">
       <CircleDashed size="14"></CircleDashed>
-      <span>{$_('whisper_remaining')}: {whisperRemainingTime}</span>
+      <span>{$_('whisper_remaining')}: {whisperRemainingTime || 'soon...'}</span>
     </div>
   {/if}
 
