@@ -22,6 +22,8 @@
   import {getTenorUrl} from "$lib/components/post/embedUtil";
   import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
   import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
+  import WhisperModal from "$lib/components/publish/WhisperModal.svelte";
+  import WhisperLabel from "$lib/components/publish/WhisperLabel.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -71,8 +73,16 @@
     let isVideoUploadEnabled = $state(false);
     let isThreadGateOpen = $state(false);
     let isSelfLabelingMenuOpen = $state(false);
+    let isWhisperModalOpen = $state(false);
     let altFocusPulse = $state();
     let isThreadSplitting = $state(false);
+
+    let canWhisper = $derived(
+      postState.posts.length === 1 &&
+      !post.replyRef &&
+      !post.quotePost?.uri &&
+      !post.video
+    );
 
     let isAltTextRequired = $derived.by(() => {
       if (!$settings?.general?.requireInputAltText) {
@@ -561,6 +571,12 @@
             {/if}
           </div>
 
+          {#if canWhisper}
+            <button class="whisper-toggle" onclick={() => {isWhisperModalOpen = true}}>
+              <WhisperLabel duration={post.whisper}></WhisperLabel>
+            </button>
+          {/if}
+
           {#if (post.images.length || post?.embedExternal)}
             <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
               {#snippet ref()}
@@ -604,6 +620,17 @@
 
 {#if (isThreadGateOpen)}
   <ThreadGateModal onclose={() => {isThreadGateOpen = false}} {_agent} {post}></ThreadGateModal>
+{/if}
+
+{#if (isWhisperModalOpen)}
+  <WhisperModal
+    {_agent}
+    onclose={() => {isWhisperModalOpen = false}}
+    onsubmit={(duration) => {
+      post.whisper = duration;
+    }}
+    currentDuration={post.whisper}
+  ></WhisperModal>
 {/if}
 
 <style lang="postcss">
@@ -746,6 +773,16 @@
       flex-wrap: wrap;
       gap: 4px 8px;
       margin: 8px 0;
+  }
+
+  .whisper-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+
+      &:hover {
+          opacity: 0.8;
+      }
   }
 
   .publish-quote--reply {

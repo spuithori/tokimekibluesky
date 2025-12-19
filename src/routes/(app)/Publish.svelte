@@ -25,7 +25,7 @@
   import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
   import {compressWithIteration} from "$lib/components/editor/imageUploadUtil";
   import ScheduleModal from "$lib/components/publish/ScheduleModal.svelte";
-  import { createScheduledPost, uploadScheduleImage, type PostData, type ScheduledImage, type ScheduledExternal, type ThreadPostData, type ProcessedPostContent } from '$lib/scheduleApi';
+  import { createScheduledPost, uploadScheduleImage, registerWhisperPost, type PostData, type ScheduledImage, type ScheduledExternal, type ThreadPostData, type ProcessedPostContent, type WhisperExpiresIn } from '$lib/scheduleApi';
 
   const postState = getPostState();
 
@@ -235,16 +235,87 @@
               i = i + 1;
           }
 
+          const whisperDuration = postState.posts[0]?.whisper;
+          const isWhisperPost = whisperDuration && postState.posts.length === 1 && parent;
+
+          if (isWhisperPost) {
+              const whisperPost = postState.posts[0];
+
+              if (whisperPost.replyRef) {
+                  throw new Error($_('whisper_no_reply'));
+              }
+              if (whisperPost.quotePost?.uri) {
+                  throw new Error($_('whisper_no_quote'));
+              }
+              
+              const postWrite = writes.find(w => w.collection === 'app.bsky.feed.post');
+              if (postWrite) {
+                  const rkey = postWrite.rkey;
+                  const uri = `at://${_agent.did()}/app.bsky.feed.post/${rkey}`;
+                  const createdAt = new Date().toISOString();
+
+                  const threadGateIndex = writes.findIndex(w => w.collection === 'app.bsky.feed.threadgate');
+                  const threadGateWrite = {
+                      $type: 'com.atproto.repo.applyWrites#create',
+                      collection: 'app.bsky.feed.threadgate',
+                      rkey: rkey,
+                      value: {
+                          createdAt: createdAt,
+                          post: uri,
+                          allow: [],
+                      },
+                  };
+                  if (threadGateIndex >= 0) {
+                      writes[threadGateIndex] = threadGateWrite;
+                  } else {
+                      writes.push(threadGateWrite);
+                  }
+
+                  const postGateIndex = writes.findIndex(w => w.collection === 'app.bsky.feed.postgate');
+                  const postGateWrite = {
+                      $type: 'com.atproto.repo.applyWrites#create',
+                      collection: 'app.bsky.feed.postgate',
+                      rkey: rkey,
+                      value: {
+                          createdAt: createdAt,
+                          post: uri,
+                          detachedEmbeddingUris: [],
+                          embeddingRules: [{
+                              $type: 'app.bsky.feed.postgate#disableRule',
+                          }],
+                      },
+                  };
+                  if (postGateIndex >= 0) {
+                      writes[postGateIndex] = postGateWrite;
+                  } else {
+                      writes.push(postGateWrite);
+                  }
+              }
+
+              toast.loading($_('whisper_registering'), { id: toastId });
+
+              const whisperResult = await registerWhisperPost(
+                  _agent.agent,
+                  parent.uri,
+                  parent.cid,
+                  whisperDuration as WhisperExpiresIn
+              );
+
+              if (!whisperResult) {
+                  throw new Error($_('whisper_register_failed'));
+              }
+          }
+
           await _agent.agent.api.com.atproto.repo.applyWrites({
               repo: _agent.did(),
               writes: writes,
               validate: true,
-          })
+          });
 
           await afterPublish();
 
           isPublishing = false;
-          toast.success($_('success_to_post'), {
+          toast.success(isWhisperPost ? $_('whisper_success') : $_('success_to_post'), {
               id: toastId,
               duration: 1500,
           });
@@ -504,6 +575,19 @@
           }
       }
 
+      if (post.whisper) {
+          embed = {
+              $type: 'app.bsky.embed.record',
+              record: lang.includes('ja') ? {
+                  cid: 'bafyreia3u6rl6sybumugib4avuraqsw7c7g5vw2g5hcyo4dymneowpv6ly',
+                  uri: 'at://did:plc:kusw4jmi6pvatlr73xtxkey4/app.bsky.feed.post/3madjyz3o2c2g',
+              } : {
+                  cid: 'bafyreic7ypi6fxg5t3v6fivpuc4b2pwsxw2qdmw5l4fhdft5sl63hscykm',
+                  uri: 'at://did:plc:kusw4jmi6pvatlr73xtxkey4/app.bsky.feed.post/3madk2374sk2g',
+              },
+          }
+      }
+
       let rt: RichText | undefined;
 
       if (post.text) {
@@ -526,7 +610,7 @@
       const uri = `at://${_agent.did()}/app.bsky.feed.post/${rkey}`
 
       try {
-          const record = {
+          const record: Record<string, unknown> = {
               $type: 'app.bsky.feed.post',
               embed: embed,
               facets: rt ? rt.facets : undefined,
@@ -540,6 +624,18 @@
               } : undefined,
               via: 'TOKIMEKI',
           };
+
+          if (post.whisper) {
+              const durationMs: Record<string, number> = {
+                  '10m': 10 * 60 * 1000,
+                  '30m': 30 * 60 * 1000,
+                  '1h': 60 * 60 * 1000,
+                  '6h': 6 * 60 * 60 * 1000,
+                  '12h': 12 * 60 * 60 * 1000,
+                  '24h': 24 * 60 * 60 * 1000,
+              };
+              record['tech.tokimeki.whisper.expiredAt'] = new Date(Date.now() + (durationMs[post.whisper] || durationMs['1h'])).toISOString();
+          }
 
           writes.push({
               $type: 'com.atproto.repo.applyWrites#create',

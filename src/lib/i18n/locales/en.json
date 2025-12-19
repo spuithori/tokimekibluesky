@@ -786,5 +786,16 @@
   "schedule_settings_status_completed": "Completed",
   "schedule_settings_status_failed": "Failed",
   "schedule_settings_no_handle": "No handle available",
-  "schedule_settings_auth_start_error": "Failed to start authentication"
+  "schedule_settings_auth_start_error": "Failed to start authentication",
+  "whisper_title": "Whisper",
+  "whisper_description": "This post will be automatically deleted after the selected time.",
+  "whisper_none": "None",
+  "whisper_duration": "Delete after",
+  "whisper_note": "Note: Deletion may fail.",
+  "whisper_no_reply": "Whisper posts cannot be replies",
+  "whisper_no_quote": "Whisper posts cannot quote other posts",
+  "whisper_registering": "Registering whisper...",
+  "whisper_register_failed": "Failed to register whisper",
+  "whisper_success": "Whisper posted",
+  "whisper_remaining": "Disappears in"
 }
