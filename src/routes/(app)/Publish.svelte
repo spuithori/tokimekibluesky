@@ -576,7 +576,7 @@
       }
 
       if (post.whisper) {
-          embed = {
+          const whisperRecord = {
               $type: 'app.bsky.embed.record',
               record: lang.includes('ja') ? {
                   cid: 'bafyreia3u6rl6sybumugib4avuraqsw7c7g5vw2g5hcyo4dymneowpv6ly',
@@ -585,6 +585,16 @@
                   cid: 'bafyreic7ypi6fxg5t3v6fivpuc4b2pwsxw2qdmw5l4fhdft5sl63hscykm',
                   uri: 'at://did:plc:kusw4jmi6pvatlr73xtxkey4/app.bsky.feed.post/3madk2374sk2g',
               },
+          };
+
+          if (embedImages.images.length) {
+              embed = {
+                  $type: 'app.bsky.embed.recordWithMedia',
+                  media: embedImages,
+                  record: whisperRecord,
+              };
+          } else {
+              embed = whisperRecord;
           }
       }
 
