@@ -12,6 +12,7 @@
   import { Placeholder, UndoRedo } from '@tiptap/extensions';
   import {TagDecorator} from "$lib/components/editor/hashtagDecorator";
   import {timelineHashtags, hashtagHistory} from "$lib/stores";
+  import {fetchTrendingHashtags} from "$lib/hashtagApi";
   import MentionList from "$lib/components/editor/MentionList.svelte";
   import EditorBar from "$lib/components/editor/EditorBar.svelte";
   import {jsonToText} from "$lib/components/editor/richtext";
@@ -189,8 +190,28 @@
                 Hashtag.configure({
                     suggestion: {
                         items: async ({query}) => {
+                            const localTags = [...new Set([...$hashtagHistory, ...$timelineHashtags])];
+
                             if (!query) {
-                                return [...new Set([...$hashtagHistory, ...$timelineHashtags])];
+                                return localTags;
+                            }
+
+                            const normalizedQuery = query.toLowerCase();
+                            const localMatches = localTags.filter(tag =>
+                                tag.toLowerCase().startsWith(normalizedQuery)
+                            );
+
+                            try {
+                                const apiMatches = await fetchTrendingHashtags(query, 6);
+                                const merged = [...localMatches];
+                                for (const tag of apiMatches) {
+                                    if (!merged.some(t => t.toLowerCase() === tag.toLowerCase())) {
+                                        merged.push(tag);
+                                    }
+                                }
+                                return merged.slice(0, 8);
+                            } catch {
+                                return localMatches.slice(0, 8);
                             }
                         },
                         render: () => {
