@@ -235,5 +235,5 @@ export const labelerSettings = writable(localStorage.getItem('labelerSettings')
 export const timelineHashtags = writable([]);
 
 export const hashtagHistory = writable(localStorage.getItem('hashtagHistory')
-    ? JSON.parse(localStorage.getItem('hashtagHistory') as string)
+    ? JSON.parse(localStorage.getItem('hashtagHistory') as string).filter(Boolean)
     : []);

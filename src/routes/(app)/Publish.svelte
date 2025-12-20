@@ -716,7 +716,7 @@
               });
               let _hashtagHistory = [...tags, ...$hashtagHistory];
               _hashtagHistory = [...new Set(_hashtagHistory)];
-              $hashtagHistory = _hashtagHistory.filter(v => v !== null);
+              $hashtagHistory = _hashtagHistory.filter(Boolean);
 
               if ($settings?.general?.continuousTag) {
                   continuousTags = tags.filter(v => v);
