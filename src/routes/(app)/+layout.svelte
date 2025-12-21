@@ -33,7 +33,9 @@
   import TokBackground from "$lib/components/utils/TokBackground.svelte";
   import {setPostState} from "$lib/classes/postState.svelte";
   import {imageState} from "$lib/classes/imageState.svelte";
+  import {comicReaderState} from "$lib/classes/comicReaderState.svelte";
   import ImageModal from "$lib/components/utils/ImageModal.svelte";
+  import ComicReaderModal from "$lib/components/utils/ComicReaderModal.svelte";
   import "@fontsource-variable/inter";
   import "@fontsource-variable/noto-sans-jp";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -363,6 +365,10 @@
 
   {#if imageState.images.length}
     <ImageModal></ImageModal>
+  {/if}
+
+  {#if comicReaderState.pages.length}
+    <ComicReaderModal></ComicReaderModal>
   {/if}
 </div>
 

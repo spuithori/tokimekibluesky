@@ -53,6 +53,19 @@
     let simpleReply = $derived(column?.settings?.timeline?.simpleReply
       ? column.settings.timeline.simpleReply
       : $settings.timeline?.simpleReply || false);
+    let threadContext = $derived.by(() => {
+      if (!isThread || column?.algorithm?.type !== 'thread') {
+        return undefined;
+      }
+
+      const feed = Array.isArray(column?.data?.feed) ? column.data.feed : [];
+
+      return {
+        feed: feed,
+        postUri: data?.post?.uri,
+        authorDid: data?.post?.author?.did,
+      };
+    });
 
     if ($settings.general?.deleteConfirmSkip === undefined) {
         $settings.general.deleteConfirmSkip = false;
@@ -517,7 +530,7 @@
       {/if}
 
       <div class="timeline__column">
-        <TimelineContent post={data.post} reason={data?.reason} {_agent} {isMedia} {isSingle} {isTranslated} bind:isHide {pulseTranslate}>
+        <TimelineContent post={data.post} reason={data?.reason} {_agent} {isMedia} {isSingle} {isTranslated} bind:isHide {pulseTranslate} {threadContext}>
           {@render children?.()}
         </TimelineContent>
       </div>
