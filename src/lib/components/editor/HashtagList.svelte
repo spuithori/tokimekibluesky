@@ -78,7 +78,7 @@
     }
 </script>
 
-{#if props?.items}
+{#if props?.items?.length > 0}
   <div class="hashtag-list" use:floatingContent>
       {#each props.items as item, index}
         <button class="hashtag-list__item" class:hashtag-list__item--selected={index === selectedIndex} onclick={() => {selectItem(index)}}>
