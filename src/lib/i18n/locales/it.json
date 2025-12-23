@@ -733,7 +733,7 @@
   "success_mute_on_menu": "L'utente è stato silenziato. Puoi riattivarlo dalle impostazioni di moderazione.",
   "success_block_on_menu": "L'utente è stato bloccato. Puoi sbloccarlo dalle impostazioni di moderazione.",
   "search_filter_language": "Cerca post in {lang}",
-  "search_filter_own_posts": "Cerca solo i miei post"
+  "search_filter_own_posts": "Cerca solo i miei post",
   "oauth_success": "Autenticazione avvenuta con successo",
   "oauth_error": "Si è verificato un errore",
   "oauth_redirecting": "Reindirizzamento...",
