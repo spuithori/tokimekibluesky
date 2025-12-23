@@ -33,6 +33,11 @@
       isSingle?: boolean;
       pulseTranslate?: boolean;
       isHide?: any;
+      threadContext?: {
+        feed?: any[];
+        postUri?: string;
+        authorDid?: string;
+      };
       children?: import('svelte').Snippet;
   }
 
@@ -45,6 +50,7 @@
       isSingle = false,
       pulseTranslate = $bindable(false),
       isHide = $bindable(),
+      threadContext,
       children
   }: Props = $props();
 
@@ -291,7 +297,7 @@
           <TimelineWarn labels={warnLabels}></TimelineWarn>
         {/if}
 
-        <Images images={post.embed.images} blobs={post.record.embed.images} did={post.author.did}></Images>
+        <Images images={post.embed.images} blobs={post.record.embed.images} did={post.author.did} {threadContext}></Images>
       </div>
     {/if}
 
@@ -320,7 +326,7 @@
             <TimelineWarn labels={warnLabels}></TimelineWarn>
           {/if}
 
-          <Images images={post.embed.media.images} blobs={post.record.embed.media.images} did={post.author.did}></Images>
+          <Images images={post.embed.media.images} blobs={post.record.embed.media.images} did={post.author.did} {threadContext}></Images>
         </div>
       {/if}
 

@@ -1,32 +1,122 @@
 <script lang="ts">
+    import {AppBskyEmbedImages} from "@atproto/api";
     import {settings, isDataSaving} from '$lib/stores';
     import GifImage from "$lib/components/post/GifImage.svelte";
-    import {imageState} from "$lib/classes/imageState.svelte";
+    import {imageState, type GalleryImage} from "$lib/classes/imageState.svelte";
     import ImageLoader from "$lib/components/utils/ImageLoader.svelte";
+
+    interface ThreadContext {
+      feed?: any[];
+      postUri?: string;
+      authorDid?: string;
+    }
 
     interface Props {
       images: any[];
       blobs?: any[];
       did?: string;
       folding?: boolean;
+      threadContext?: ThreadContext;
     }
 
     let {
       images,
       blobs = [],
       did = '',
-      folding = false
+      folding = false,
+      threadContext
     }: Props = $props();
 
-    const galleryImages = images.map(image => ({
-      src: image.fullsize,
-      msrc: image.thumb,
-      width: image?.aspectRatio?.width,
-      height: image?.aspectRatio?.height,
-      alt: image.alt || '',
-    }));
+    const galleryImages = toGalleryImages(images);
+    const threadComicReader = $derived.by(() => buildThreadComicReader(threadContext));
 
     let isFold = $state($settings?.design.postsImageLayout === 'folding' || $isDataSaving || folding);
+
+    function toGalleryImages(source: any[]): GalleryImage[] {
+      return source.map(image => ({
+        src: image.fullsize,
+        msrc: image.thumb,
+        width: image?.aspectRatio?.width,
+        height: image?.aspectRatio?.height,
+        alt: image.alt || '',
+      }));
+    }
+
+    function extractPostImages(post: any) {
+      if (AppBskyEmbedImages.isView(post?.embed)) {
+        return post.embed.images;
+      }
+
+      if (AppBskyEmbedImages.isView(post?.embed?.media)) {
+        return post.embed.media.images;
+      }
+
+      return [];
+    }
+
+    function buildThreadComicReader(context?: ThreadContext) {
+      if (!context?.authorDid || !Array.isArray(context.feed) || !context.feed.length) {
+        return null;
+      }
+
+      const posts = context.feed
+        .map(item => item?.post)
+        .filter(Boolean)
+        .filter(post => post?.author?.did === context.authorDid);
+
+      if (!posts.length) {
+        return null;
+      }
+
+      const sortedPosts = posts
+        .map((post, order) => ({post, order}))
+        .sort((a, b) => {
+          const timeA = new Date(a.post?.record?.createdAt || 0).getTime();
+          const timeB = new Date(b.post?.record?.createdAt || 0).getTime();
+
+          if (timeA === timeB) {
+            return a.order - b.order;
+          }
+
+          return timeA - timeB;
+        })
+        .map(({post}) => post);
+
+      const offsets = new Map<string, number>();
+      const comicReaderImages: GalleryImage[] = [];
+
+      for (const post of sortedPosts) {
+        const postImages = extractPostImages(post);
+        if (!postImages.length) {
+          continue;
+        }
+
+        offsets.set(post.uri, comicReaderImages.length);
+        comicReaderImages.push(...toGalleryImages(postImages));
+      }
+
+      if (!comicReaderImages.length) {
+        return null;
+      }
+
+      return {images: comicReaderImages, offsets};
+    }
+
+    function handleOpen(index: number) {
+      let comicReaderImages = galleryImages;
+      let comicReaderStartIndex = index;
+
+      if (threadComicReader && threadContext?.postUri) {
+        const offset = threadComicReader.offsets.get(threadContext.postUri);
+
+        if (offset !== undefined) {
+          comicReaderImages = threadComicReader.images;
+          comicReaderStartIndex = offset + index;
+        }
+      }
+
+      imageState.open(galleryImages, index, {comicReaderImages, comicReaderStartIndex});
+    }
 
     function unfold() {
         isFold = false;
@@ -52,7 +142,7 @@
         {#if (blobs[index]?.image.mimeType === 'image/gif')}
           <GifImage {did} blob={blobs[index]?.image} alt={image.alt}></GifImage>
         {:else}
-          <button onclick={() => imageState.open(galleryImages, index)} aria-label="Open image.">
+          <button onclick={() => handleOpen(index)} aria-label="Open image.">
             <ImageLoader {image} naturalWidth={(v) => {galleryImages[index].width = v}} naturalHeight={(v) => {galleryImages[index].height = v}}></ImageLoader>
           </button>
         {/if}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import {imageState} from "$lib/classes/imageState.svelte";
+  import {comicReaderState} from "$lib/classes/comicReaderState.svelte";
   import PhotoSwipeLightbox from "photoswipe/lightbox";
   import {mount, onMount, unmount, onDestroy} from "svelte";
   import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
@@ -34,6 +35,26 @@
       onClick: (event, el) => {
         const url = lightbox.pswp.currSlide.data.src;
         window.open(url, '_blank');
+      }
+    });
+
+    lightbox.pswp.ui.registerElement({
+      name: 'comic-reader-button',
+      order: 7,
+      isButton: true,
+      tagName: 'button',
+      html: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+      onInit: (el) => {
+        el.setAttribute('aria-label', 'Open comic reader');
+        el.setAttribute('title', 'Open comic reader');
+      },
+      onClick: () => {
+        const pages = imageState.comicReaderImages.length ? imageState.comicReaderImages : imageState.images;
+        const localIndex = lightbox.pswp?.currIndex ?? imageState.startIndex;
+        const baseOffset = imageState.comicReaderStartIndex - imageState.startIndex;
+        const comicReaderIndex = baseOffset + localIndex;
+        comicReaderState.open(pages, comicReaderIndex);
+        lightbox.pswp.close();
       }
     });
 
