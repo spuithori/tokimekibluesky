@@ -28,9 +28,11 @@
       insertRealtimeData($realtime);
   })
 
-  if (column.settings?.autoRefresh === -1) {
-      getActors();
-  }
+  $effect(() => {
+      if (column.settings?.autoRefresh === -1 && !isActorsListFinished) {
+          getActors();
+      }
+  })
 
   function insertRealtimeData(realtime) {
       if (!isActorsListFinished) {

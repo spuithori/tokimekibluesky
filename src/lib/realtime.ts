@@ -6,15 +6,27 @@ const COLLECTIONS = ['app.bsky.feed.post', 'app.bsky.feed.repost'];
 export class RealtimeClient {
     private host: string;
     private socket: null | WebSocket;
+    private shouldReconnect: boolean;
+    private reconnectTimer: ReturnType<typeof setTimeout> | null;
+    private reconnectAttempts: number;
+    private readonly maxReconnectDelay: number = 30000;
+    private readonly baseReconnectDelay: number = 1000;
+
     constructor(host) {
         this.host = host;
         this.socket = null;
+        this.shouldReconnect = false;
+        this.reconnectTimer = null;
+        this.reconnectAttempts = 0;
     }
 
     connect() {
-        if (!this.socket) {
-            this.socket = new WebSocket(`${PUBLIC_TOKIMEKI_STREAM_API}/subscribe?${COLLECTIONS.map(item => `wantedCollections=${item}`).join('&')}`);
+        if (this.socket && (this.socket.readyState === WebSocket.CONNECTING || this.socket.readyState === WebSocket.OPEN)) {
+            return;
         }
+
+        this.shouldReconnect = true;
+        this.socket = new WebSocket(`${PUBLIC_TOKIMEKI_STREAM_API}/subscribe?${COLLECTIONS.map(item => `wantedCollections=${item}`).join('&')}`);
 
         this.socket.onmessage = async function (event) {
             if (!event.data) {
@@ -45,13 +57,19 @@ export class RealtimeClient {
 
         this.socket.onclose = async (event) => {
             console.log('socket closed.');
+            this.socket = null;
             realtimeStatuses.update((r: any[] | undefined) => {
                 r = r.filter(item => item !== this.host)
                 return r;
             })
+
+            if (this.shouldReconnect) {
+                this.scheduleReconnect();
+            }
         }
 
         this.socket.onopen = async (event) => {
+            this.reconnectAttempts = 0;
             realtimeStatuses.update((r: any[] | undefined) => {
                 return  [...r,  this.host];
             })
@@ -62,11 +80,41 @@ export class RealtimeClient {
         }
     }
 
+    private scheduleReconnect() {
+        if (this.reconnectTimer) {
+            return;
+        }
+
+        const delay = Math.min(
+            this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts),
+            this.maxReconnectDelay
+        );
+        this.reconnectAttempts++;
+
+        console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+
+        this.reconnectTimer = setTimeout(() => {
+            this.reconnectTimer = null;
+            if (this.shouldReconnect) {
+                this.connect();
+            }
+        }, delay);
+    }
+
     disconnect() {
+        this.shouldReconnect = false;
+
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+        }
+
         if (this.socket) {
             this.socket.close();
             this.socket = null;
         }
+
+        this.reconnectAttempts = 0;
     }
 
     reconnect() {
@@ -76,6 +124,13 @@ export class RealtimeClient {
 
     status() {
         return this.socket?.readyState;
+    }
+
+    simulateDisconnect() {
+        if (this.socket) {
+            console.log('Simulating disconnect...');
+            this.socket.close();
+        }
     }
 }
 

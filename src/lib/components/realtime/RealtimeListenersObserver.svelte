@@ -95,6 +95,7 @@
             <div class="realtime-listeners-list__buttons">
               <button class="button button--ss" onclick={() => {socket.reconnect(); $isRealtimeListenersModalOpen = false}}>{$_('realtime_listeners_reconnect')}</button>
               <button class="button button--ss" onclick={() => {socket.disconnect(); $isRealtimeListenersModalOpen = false}}>{$_('realtime_listeners_disconnect')}</button>
+              <button class="button button--ss" onclick={() => {socket.simulateDisconnect()}}>Test Reconnect</button>
             </div>
           </div>
         {/if}
