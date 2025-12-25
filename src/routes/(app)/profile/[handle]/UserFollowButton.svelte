@@ -2,6 +2,7 @@
   import { _ } from 'svelte-i18n';
   import { agent, changedFollowData } from "$lib/stores";
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
+  import { updateFollowInDb } from "$lib/getActorsList";
 
   let { _agent = $agent, following = $bindable(), user, followChange = function () {}, style = 'default' } = $props();
   let rkey;
@@ -52,7 +53,10 @@
       changedFollowData.set({
           did: user.did,
           following: res.uri,
+          actor: _agent.did(),
       });
+
+      updateFollowInDb(_agent, user.did, true).catch(console.error);
   }
 
   async function unfollow() {
@@ -67,7 +71,10 @@
       changedFollowData.set({
           did: user.did,
           following: undefined,
+          actor: _agent.did(),
       });
+
+      updateFollowInDb(_agent, user.did, false).catch(console.error);
   }
 
   function unfollowSkip() {

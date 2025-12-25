@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
-  import {agent, realtime, settings} from '$lib/stores';
+  import {agent, realtime, settings, changedFollowData} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
   import {getPostRealtime} from "$lib/realtime";
   import {getDbFollows} from "$lib/getActorsList";
@@ -31,6 +31,25 @@
   $effect(() => {
       if (column.settings?.autoRefresh === -1 && !isActorsListFinished) {
           getActors();
+      }
+  })
+
+  $effect(() => {
+      if (!$changedFollowData || !isActorsListFinished || column.algorithm?.type !== 'default') {
+          return;
+      }
+
+      if ($changedFollowData.actor !== column.did) {
+          return;
+      }
+
+      const { did, following } = $changedFollowData;
+      if (following) {
+          if (!actors.includes(did)) {
+              actors = [...actors, did];
+          }
+      } else {
+          actors = actors.filter(actor => actor !== did);
       }
   })
 

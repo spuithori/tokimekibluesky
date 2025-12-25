@@ -1,5 +1,7 @@
 import {accountsDb} from "$lib/db";
 
+const CACHE_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+
 export async function getDbFollows(_agent) {
     const account = await accountsDb.accounts
         .where('did')
@@ -7,9 +9,45 @@ export async function getDbFollows(_agent) {
         .first();
 
     if (account.following) {
+        const indexedAt = Number(account.following.indexedAt);
+        if (Date.now() - indexedAt > CACHE_MAX_AGE_MS) {
+            getFollowsWithUpdateDb(_agent, account.id as string).catch(console.error);
+        }
         return account.following.data;
     } else {
         return await getFollowsWithUpdateDb(_agent, account.id as string);
+    }
+}
+
+export async function updateFollowInDb(_agent, targetDid: string, isFollow: boolean) {
+    try {
+        const account = await accountsDb.accounts
+            .where('did')
+            .equals(_agent.did() as string)
+            .first();
+
+        if (!account?.following?.data) {
+            return;
+        }
+
+        let follows = [...account.following.data];
+
+        if (isFollow) {
+            if (!follows.includes(targetDid)) {
+                follows.push(targetDid);
+            }
+        } else {
+            follows = follows.filter(did => did !== targetDid);
+        }
+
+        await accountsDb.accounts.update(account.id, {
+            following: {
+                data: follows,
+                indexedAt: account.following.indexedAt
+            }
+        });
+    } catch (e) {
+        console.error('Failed to update follow in DB:', e);
     }
 }
 
