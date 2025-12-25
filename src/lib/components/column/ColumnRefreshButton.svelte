@@ -44,10 +44,6 @@
     const serviceHost = getServiceHost();
     const host = serviceHost === 'bsky.social' ? 'Jetstream (us-west2)' : serviceHost;
 
-    $effect(() => {
-        releasePosts(column.data.feed);
-    })
-
     watch(() => column.unreadCount, () => {
       if (column.unreadCount && column.data.cursor) {
         refresh(true);
@@ -253,6 +249,7 @@
             console.error(e);
         }
 
+        releasePosts(column.data.feed);
         column.lastRefresh = new Date().toISOString();
         isRefreshing = false;
     }
