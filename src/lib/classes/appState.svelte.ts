@@ -88,18 +88,9 @@ class AppState {
         const _agent = get(agent);
 
         try {
-            if (typeof window !== 'undefined') {
-                const stored = localStorage.getItem('subscribedLabelers');
-                if (stored) {
-                    try {
-                        this.subscribedLabelers.current = JSON.parse(stored);
-                    } catch (e) {
-                        console.error('Failed to parse subscribedLabelers from localStorage:', e);
-                    }
-                }
-            }
-
-            BskyAgent.configure({appLabelers: this.subscribedLabelers.current});
+            _agents.forEach((ag) => {
+                ag.agent.configureLabelers(this.subscribedLabelers.current);
+            });
 
             if (!Object.keys(this.labelDefs.current).length) {
                 this.labelDefs.current = await _agent.agent.getLabelDefinitions(this.subscribedLabelers.current);
