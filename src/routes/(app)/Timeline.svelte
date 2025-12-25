@@ -85,6 +85,8 @@
 
                               i++;
                           }
+
+                          releaseOldPosts();
                       });
               }
 
@@ -92,6 +94,24 @@
                   playSound(value?.post.indexedAt, column.lastRefresh, column.settings.playSound)
               }
           });
+  }
+
+  function releaseOldPosts() {
+      const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+      const scrollTop = scrollEl?.scrollTop ?? 0;
+
+      if (scrollTop !== 0 || column.data.feed.length <= 40) {
+          return;
+      }
+
+      const borderItem = column.data.feed[39];
+      if (borderItem?.memoryCursor) {
+          const lastCursorIndex = column.data.feed.findLastIndex(item => item.memoryCursor === borderItem.memoryCursor);
+          if (lastCursorIndex !== -1) {
+              column.data.feed.splice(lastCursorIndex + 1);
+              column.data.cursor = borderItem.memoryCursor;
+          }
+      }
   }
 
   async function getActors() {
