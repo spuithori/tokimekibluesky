@@ -17,10 +17,9 @@
   });
 
   function handleClick (event) {
-    const rect = el.getBoundingClientRect();
-    const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height && rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
-
-    if (!isInDialog) {
+    // Only close if clicking directly on the dialog element (backdrop area)
+    // This avoids issues with Firefox where select dropdowns render outside the dialog bounds
+    if (event.target === el) {
       onclose();
     }
   }
