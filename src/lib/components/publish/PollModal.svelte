@@ -13,7 +13,7 @@
 
     let { poll, onclose, onsave }: Props = $props();
 
-    let options = $state<string[]>(poll?.options ?? ['', '']);
+    let options = $state<string[]>(poll?.options ? [...poll.options] : ['', '']);
     let duration = $state<PollDuration>(poll?.duration ?? '1d');
 
     function formatDuration(value: PollDuration): string {

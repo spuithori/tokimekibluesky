@@ -46,8 +46,8 @@
         gap: 4px;
         font-size: 13px;
         padding: 4px 8px;
-        background-color: var(--bg-color-2);
-        color: var(--text-color-2);
+        background-color: var(--primary-color);
+        color: var(--bg-color-1);
         font-weight: bold;
         border-radius: var(--border-radius-2);
     }
