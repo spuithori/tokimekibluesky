@@ -1,12 +1,23 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
-  import { getBluemotionUrl, getGiphyId, getSpotifyUri, getTwitterUrl, getYouTubeUrl, getTenorUrl } from "$lib/components/post/embedUtil";
+  import { getBluemotionUrl, getGiphyId, getSpotifyUri, getTwitterUrl, getYouTubeUrl, getTenorUrl, getPollUrl } from "$lib/components/post/embedUtil";
   import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
   import EmbedX from "$lib/components/post/EmbedX.svelte";
-  let { external } = $props();
+  import EmbedPoll from "$lib/components/post/EmbedPoll.svelte";
+
+  interface Props {
+    external: any;
+    _agent?: any;
+  }
+
+  let { external, _agent }: Props = $props();
+
+  const pollInfo = getPollUrl(external.uri);
 </script>
 
-{#if (getTwitterUrl(external.uri) && $settings?.embed?.x && $settings?.design.externalLayout !== 'compact')}
+{#if pollInfo && _agent}
+  <EmbedPoll {pollInfo} {_agent}></EmbedPoll>
+{:else if (getTwitterUrl(external.uri) && $settings?.embed?.x && $settings?.design.externalLayout !== 'compact')}
   <div class="timeline-twitter-external">
     <EmbedX uri={getTwitterUrl(external.uri)}></EmbedX>
   </div>

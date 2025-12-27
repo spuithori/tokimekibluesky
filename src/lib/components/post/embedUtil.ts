@@ -133,3 +133,37 @@ export function getTenorUrl(uri: string) {
         return undefined;
     }
 }
+
+export interface PollUrlInfo {
+    did: string;
+    rkey: string;
+    uri: string;
+    options?: number;
+}
+
+export function getPollUrl(uri: string): PollUrlInfo | undefined {
+    try {
+        const url = new URL(uri);
+        const hostname = url.hostname;
+
+        if (hostname === 'poll.tokimeki.tech' || hostname === 'poll.tokimeki.blue') {
+            const match = url.pathname.match(/^\/p\/([^/]+)\/([^/]+)$/);
+            if (match) {
+                const [, did, rkey] = match;
+                const optionsParam = url.searchParams.get('options');
+                const options = optionsParam ? parseInt(optionsParam, 10) : undefined;
+                return {
+                    did,
+                    rkey,
+                    uri: `at://${did}/tech.tokimeki.poll.poll/${rkey}`,
+                    options: options && options >= 2 && options <= 4 ? options : undefined
+                };
+            }
+        }
+
+        return undefined;
+    } catch (e) {
+        console.log(e);
+        return undefined;
+    }
+}

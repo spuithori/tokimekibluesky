@@ -24,6 +24,8 @@
   import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
   import WhisperModal from "$lib/components/publish/WhisperModal.svelte";
   import WhisperLabel from "$lib/components/publish/WhisperLabel.svelte";
+  import PollModal from "$lib/components/publish/PollModal.svelte";
+  import PollLabel from "$lib/components/publish/PollLabel.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -74,6 +76,7 @@
     let isThreadGateOpen = $state(false);
     let isSelfLabelingMenuOpen = $state(false);
     let isWhisperModalOpen = $state(false);
+    let isPollModalOpen = $state(false);
     let altFocusPulse = $state();
     let isThreadSplitting = $state(false);
 
@@ -82,6 +85,12 @@
       !post.replyRef &&
       !post.quotePost?.uri &&
       !post.video
+    );
+
+    let canPoll = $derived(
+      postState.posts.length === 1 &&
+      !post.video &&
+      !post.images.length
     );
 
     let isAltTextRequired = $derived.by(() => {
@@ -426,6 +435,9 @@
           {onopen}
           {submitArea}
           {publishContentLength}
+          {canPoll}
+          hasPoll={!!post.poll}
+          onpollclick={() => {isPollModalOpen = true}}
   >
     {#snippet top()}
       {#if (post.replyRef && typeof post.replyRef !== 'string')}
@@ -577,6 +589,10 @@
             </button>
           {/if}
 
+          {#if canPoll && post.poll}
+            <PollLabel poll={post.poll} onclick={() => {isPollModalOpen = true}}></PollLabel>
+          {/if}
+
           {#if (post.images.length || post?.embedExternal)}
             <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
               {#snippet ref()}
@@ -631,6 +647,17 @@
     }}
     currentDuration={post.whisper}
   ></WhisperModal>
+{/if}
+
+{#if (isPollModalOpen)}
+  <PollModal
+    poll={post.poll}
+    onclose={() => {isPollModalOpen = false}}
+    onsave={(poll) => {
+      post.poll = poll;
+      isPollModalOpen = false;
+    }}
+  ></PollModal>
 {/if}
 
 <style lang="postcss">
