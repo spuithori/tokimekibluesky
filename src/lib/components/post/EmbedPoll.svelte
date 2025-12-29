@@ -48,7 +48,10 @@
     let selectedOption = $state<number | null>(null);
     let isSubmitting = $state(false);
 
-    const showResults = $derived(pollData?.myVote !== undefined || pollData?.isEnded);
+    const isAuthor = $derived(_agent?.did?.() === pollInfo.did);
+    const hasVoted = $derived(pollData?.myVote !== undefined);
+    const showResults = $derived(hasVoted || pollData?.isEnded || isAuthor);
+    const canVote = $derived(!hasVoted && !pollData?.isEnded);
 
     fetchPoll();
 
@@ -216,10 +219,21 @@
                 {@const isMyVote = pollData.myVote === index}
 
                 {#if showResults}
-                    <div class="poll-option-result" class:is-my-vote={isMyVote}>
+                    <button
+                        type="button"
+                        class="poll-option-result"
+                        class:is-my-vote={isMyVote}
+                        class:is-selected={isSelected && canVote}
+                        class:is-clickable={canVote}
+                        onclick={() => canVote && (selectedOption = index)}
+                        disabled={!canVote || isSubmitting}
+                    >
                         <div class="poll-option-bar" style="width: {percentage}%"></div>
                         <div class="poll-option-content">
                             <span class="poll-option-text">
+                                {#if canVote}
+                                    <span class="poll-radio" class:checked={isSelected}></span>
+                                {/if}
                                 {option.text}
                                 {#if isMyVote}
                                     <span class="poll-my-vote-badge">{$_('poll_voted')}</span>
@@ -229,7 +243,7 @@
                                 <span class="poll-option-percentage">{percentage}%</span>
                             </span>
                         </div>
-                    </div>
+                    </button>
                 {:else}
                     <button
                         type="button"
@@ -253,7 +267,7 @@
             </div>
 
             <div class="poll-actions">
-                {#if !showResults && !pollData.isEnded}
+                {#if canVote}
                     <button
                         type="button"
                         class="poll-vote-button"
@@ -262,7 +276,7 @@
                     >
                         {isSubmitting ? $_('poll_submitting') : $_('poll_vote')}
                     </button>
-                {:else if pollData.myVote !== undefined && !pollData.isEnded}
+                {:else if hasVoted && !pollData.isEnded}
                     <button
                         type="button"
                         class="poll-delete-button"
@@ -368,7 +382,29 @@
         background-color: var(--bg-color-3);
         border: 2px solid var(--border-color-1);
         border-radius: 6px;
+        width: 100%;
+        text-align: left;
         overflow: hidden;
+
+        &.is-clickable {
+            cursor: pointer;
+
+            &:hover:not(:disabled) {
+                border-color: var(--primary-color);
+            }
+        }
+
+        &:not(.is-clickable) {
+            cursor: default;
+        }
+
+        &:disabled {
+            opacity: 1;
+        }
+
+        &.is-selected {
+            border-color: var(--primary-color);
+        }
 
         &.is-my-vote {
             border-color: var(--primary-color);
