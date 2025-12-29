@@ -1,7 +1,5 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { formatDistanceToNow, isPast } from 'date-fns';
-    import { ja, enUS } from 'date-fns/locale';
     import { settings } from '$lib/stores';
     import { toast } from 'svelte-sonner';
     import type { PollUrlInfo } from './embedUtil';
@@ -87,12 +85,27 @@
 
     function formatTimeRemaining(endsAt: string): string {
         const endDate = new Date(endsAt);
-        const locale = $settings?.general?.userLanguage?.startsWith('ja') ? ja : enUS;
+        const now = new Date();
 
-        if (isPast(endDate)) {
+        if (endDate <= now) {
             return $_('poll_ended');
         }
-        return formatDistanceToNow(endDate, { addSuffix: true, locale });
+
+        const diffMs = endDate.getTime() - now.getTime();
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMinutes / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        const locale = $settings?.general?.userLanguage || 'en';
+        const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'narrow' });
+
+        if (diffDays > 0) {
+            return rtf.format(diffDays, 'day');
+        } else if (diffHours > 0) {
+            return rtf.format(diffHours, 'hour');
+        } else {
+            return rtf.format(Math.max(1, diffMinutes), 'minute');
+        }
     }
 
     async function submitVote() {
