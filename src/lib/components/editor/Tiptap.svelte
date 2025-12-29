@@ -21,7 +21,7 @@
   import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
-  import {Clapperboard, Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink, SquareSplitVertical, BarChart3} from "lucide-svelte";
+  import {Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink, SquareSplitVertical, BarChart3} from "lucide-svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import EmojiList from "$lib/components/editor/EmojiList.svelte";
 
@@ -391,11 +391,7 @@
         </button>
       {/if}
 
-      <button class="editor-menu-button" onclick={() => {onupload(true)}} disabled={!isVideoUploadEnabled}>
-        <Clapperboard size="20" color="var(--publish-tool-button-color)"></Clapperboard>
-      </button>
-
-      <button class="editor-menu-button" onclick={() => {onupload(false)}}>
+      <button class="editor-menu-button" onclick={() => {onupload()}}>
         <ImagePlus size="20" color="var(--publish-tool-button-color)"></ImagePlus>
       </button>
 

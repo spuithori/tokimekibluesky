@@ -273,8 +273,8 @@
         return rt;
     }
 
-    function uploadContextOpen(isVideo: boolean) {
-        imageUploadEl.open(isVideo);
+    function uploadContextOpen() {
+        imageUploadEl.open();
     }
 
     async function handlePaste(e) {
