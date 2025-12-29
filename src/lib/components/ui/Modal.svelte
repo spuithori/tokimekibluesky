@@ -17,8 +17,6 @@
   });
 
   function handleClick (event) {
-    // Only close if clicking directly on the dialog element (backdrop area)
-    // This avoids issues with Firefox where select dropdowns render outside the dialog bounds
     if (event.target === el) {
       onclose();
     }

@@ -269,8 +269,11 @@
         background-color: var(--bg-color-2);
         border: 1px solid var(--border-color-1);
         border-radius: 8px;
-        padding: 12px;
+        padding: 12px 12px 10px;
         margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
 
         @container timeline-item (max-width: 345px) {
             margin-left: calc((var(--avatar-size) + var(--avatar-gap)) * -1);

@@ -93,6 +93,10 @@
       !post.images.length
     );
 
+    let hasPollWithMedia = $derived(
+      !!post.poll && (post.images.length > 0 || !!post.video)
+    );
+
     let isAltTextRequired = $derived.by(() => {
       if (!$settings?.general?.requireInputAltText) {
         return false;
@@ -160,7 +164,7 @@
     let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
 
     $effect(() => {
-        isEnabled = isEmpty || isPublishEnabled || isProcessed || isLinkCardAdding || isAltTextRequired;
+        isEnabled = isEmpty || isPublishEnabled || isProcessed || isLinkCardAdding || isAltTextRequired || hasPollWithMedia;
     });
 
     if (!post.selfLabels) {
@@ -589,7 +593,7 @@
             </button>
           {/if}
 
-          {#if canPoll && post.poll}
+          {#if post.poll}
             <PollLabel poll={post.poll} onclick={() => {isPollModalOpen = true}}></PollLabel>
           {/if}
 
@@ -620,6 +624,10 @@
 
         {#if (isAltTextRequired)}
           <Notice text={$_('alt_text_missing')}></Notice>
+        {/if}
+
+        {#if hasPollWithMedia}
+          <Notice text={$_('poll_media_conflict')}></Notice>
         {/if}
       </div>
     {/snippet}

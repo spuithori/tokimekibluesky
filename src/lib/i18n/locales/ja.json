@@ -816,5 +816,6 @@
   "poll_add_option": "選択肢を追加",
   "poll_duration": "投票期間",
   "poll_creating": "投票を作成中...",
-  "poll_message_for_external": "投票しよう"
+  "poll_message_for_external": "投票しよう",
+  "poll_media_conflict": "投票と画像/動画は同時に投稿できません"
 }

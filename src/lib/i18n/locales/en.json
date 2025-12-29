@@ -816,5 +816,6 @@
   "poll_add_option": "Add option",
   "poll_duration": "Duration",
   "poll_creating": "Creating poll...",
-  "poll_message_for_external": "Let's poll"
+  "poll_message_for_external": "Let's poll",
+  "poll_media_conflict": "Polls cannot be posted with images/videos"
 }
