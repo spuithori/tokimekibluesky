@@ -24,6 +24,8 @@
   import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
   import WhisperModal from "$lib/components/publish/WhisperModal.svelte";
   import WhisperLabel from "$lib/components/publish/WhisperLabel.svelte";
+  import PollModal from "$lib/components/publish/PollModal.svelte";
+  import PollLabel from "$lib/components/publish/PollLabel.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -74,6 +76,7 @@
     let isThreadGateOpen = $state(false);
     let isSelfLabelingMenuOpen = $state(false);
     let isWhisperModalOpen = $state(false);
+    let isPollModalOpen = $state(false);
     let altFocusPulse = $state();
     let isThreadSplitting = $state(false);
 
@@ -82,6 +85,16 @@
       !post.replyRef &&
       !post.quotePost?.uri &&
       !post.video
+    );
+
+    let canPoll = $derived(
+      postState.posts.length === 1 &&
+      !post.video &&
+      !post.images.length
+    );
+
+    let hasPollWithMedia = $derived(
+      !!post.poll && (post.images.length > 0 || !!post.video)
     );
 
     let isAltTextRequired = $derived.by(() => {
@@ -151,7 +164,7 @@
     let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
 
     $effect(() => {
-        isEnabled = isEmpty || isPublishEnabled || isProcessed || isLinkCardAdding || isAltTextRequired;
+        isEnabled = isEmpty || isPublishEnabled || isProcessed || isLinkCardAdding || isAltTextRequired || hasPollWithMedia;
     });
 
     if (!post.selfLabels) {
@@ -260,8 +273,8 @@
         return rt;
     }
 
-    function uploadContextOpen(isVideo: boolean) {
-        imageUploadEl.open(isVideo);
+    function uploadContextOpen() {
+        imageUploadEl.open();
     }
 
     async function handlePaste(e) {
@@ -426,6 +439,9 @@
           {onopen}
           {submitArea}
           {publishContentLength}
+          {canPoll}
+          hasPoll={!!post.poll}
+          onpollclick={() => {isPollModalOpen = true}}
   >
     {#snippet top()}
       {#if (post.replyRef && typeof post.replyRef !== 'string')}
@@ -577,6 +593,10 @@
             </button>
           {/if}
 
+          {#if post.poll}
+            <PollLabel poll={post.poll} onclick={() => {isPollModalOpen = true}}></PollLabel>
+          {/if}
+
           {#if (post.images.length || post?.embedExternal)}
             <Menu bind:isMenuOpen={isSelfLabelingMenuOpen} buttonClassName="publish-form-moderation-button">
               {#snippet ref()}
@@ -605,6 +625,10 @@
         {#if (isAltTextRequired)}
           <Notice text={$_('alt_text_missing')}></Notice>
         {/if}
+
+        {#if hasPollWithMedia}
+          <Notice text={$_('poll_media_conflict')}></Notice>
+        {/if}
       </div>
     {/snippet}
   </Tiptap>
@@ -631,6 +655,17 @@
     }}
     currentDuration={post.whisper}
   ></WhisperModal>
+{/if}
+
+{#if (isPollModalOpen)}
+  <PollModal
+    poll={post.poll}
+    onclose={() => {isPollModalOpen = false}}
+    onsave={(poll) => {
+      post.poll = poll;
+      isPollModalOpen = false;
+    }}
+  ></PollModal>
 {/if}
 
 <style lang="postcss">

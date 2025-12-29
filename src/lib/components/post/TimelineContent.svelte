@@ -307,7 +307,7 @@
           <TimelineWarn labels={warnLabels}></TimelineWarn>
         {/if}
 
-        <EmbedExternal external={post.embed.external}></EmbedExternal>
+        <EmbedExternal external={post.embed.external} {_agent}></EmbedExternal>
       </div>
     {/if}
 
@@ -335,7 +335,7 @@
       {/if}
 
       {#if AppBskyEmbedExternal.isView(post.embed.media)}
-        <EmbedExternal external={post.embed.media.external}></EmbedExternal>
+        <EmbedExternal external={post.embed.media.external} {_agent}></EmbedExternal>
       {/if}
 
       {#if AppBskyEmbedRecord.isViewRecord(post.embed.record.record) && !whisperExpiredAt}

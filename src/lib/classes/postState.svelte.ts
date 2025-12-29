@@ -11,6 +11,13 @@ type ThreadGate = 'everybody' | 'nobody' | string[];
 
 export type WhisperDuration = '10m' | '30m' | '1h' | '6h' | '12h' | '24h' | undefined;
 
+export type PollDuration = '5m' | '1h' | '6h' | '12h' | '1d' | '3d' | '7d';
+
+export type Poll = {
+    options: string[];
+    duration: PollDuration;
+} | undefined;
+
 type Post = {
     text: string,
     json: string,
@@ -25,6 +32,7 @@ type Post = {
     threadGate: ThreadGate,
     postGate: boolean,
     whisper: WhisperDuration,
+    poll: Poll,
 }
 
 export class PostState {
@@ -50,6 +58,7 @@ export class PostState {
         threadGate: this.threadGate.current,
         postGate: this.postGate.current,
         whisper: undefined,
+        poll: undefined,
     });
 
     constructor() {

@@ -75,16 +75,38 @@
         });
     }
 
+    const acceptedVideoTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
+
     async function handleInputChange(e) {
         onpreparestart();
         const filesList = e.target.files || [];
 
         if (!filesList.length) {
+            onprepareend();
             return false;
         }
 
-        if (filesList[0].type === 'video/mp4') {
-            const videoFile = filesList[0];
+        const allFiles = Array.from(filesList);
+        const imageFiles = allFiles.filter(file => acceptedImageType.includes(file.type));
+        const videoFiles = allFiles.filter(file => acceptedVideoTypes.includes(file.type));
+
+        if (imageFiles.length > 0) {
+            video = undefined;
+            const files = imageFiles.slice(0, 4);
+            let promises = [];
+            for (const file of files) {
+                promises = [...promises, applyImageFromFile(file)];
+            }
+
+            images = [...images, ...await Promise.all(promises)];
+            input.value = '';
+            onprepareend();
+            return false;
+        }
+
+        if (videoFiles.length > 0) {
+            images = [];
+            const videoFile = videoFiles[0];
             video = {
                 blob: videoFile,
             };
@@ -93,6 +115,9 @@
 
             if (videoFile.size / 1024 / 1024 > 100 || dimensions.duration > 180) {
                 toast.error($_('error_video_too_large'));
+                video = undefined;
+                input.value = '';
+                onprepareend();
                 return false;
             }
 
@@ -115,15 +140,6 @@
             return false;
         }
 
-        const files = Array.from(filesList).slice(0, 4);
-        let promises = [];
-        for (const file of files) {
-            if (acceptedImageType.includes(file.type)) {
-                promises = [...promises, applyImageFromFile(file)];
-            }
-        }
-
-        images = [...images, ...await Promise.all(promises)];
         input.value = '';
         onprepareend();
     }
@@ -150,17 +166,9 @@
         }
     }
 
-    export function open(isVideo: boolean) {
-        if (isVideo) {
-            images = [];
-            input.setAttribute('accept', 'video/mp4, video/quicktime, video/webm');
-            input.removeAttribute('multiple');
-        } else {
-            video = undefined;
-            input.setAttribute('accept', 'image/png, image/jpeg, image/gif, image/webp');
-            input.setAttribute('multiple', '')
-        }
-
+    export function open() {
+        input.setAttribute('accept', 'image/png, image/jpeg, image/gif, image/webp, video/mp4, video/quicktime, video/webm');
+        input.setAttribute('multiple', '');
         input.click();
     }
 

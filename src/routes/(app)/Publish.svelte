@@ -26,6 +26,7 @@
   import {compressWithIteration} from "$lib/components/editor/imageUploadUtil";
   import ScheduleModal from "$lib/components/publish/ScheduleModal.svelte";
   import { createScheduledPost, uploadScheduleImage, registerWhisperPost, type PostData, type ScheduledImage, type ScheduledExternal, type ThreadPostData, type ProcessedPostContent, type WhisperExpiresIn } from '$lib/scheduleApi';
+  import { generatePollOgImage } from '$lib/pollApi';
 
   const postState = getPostState();
 
@@ -309,7 +310,7 @@
           await _agent.agent.api.com.atproto.repo.applyWrites({
               repo: _agent.did(),
               writes: writes,
-              validate: true,
+              validate: false,
           });
 
           await afterPublish();
@@ -575,6 +576,44 @@
           }
       }
 
+      let pollRkey: string | undefined;
+      if (post.poll && post.poll.options.length >= 2) {
+          pollRkey = TID.next(tid).toString();
+
+          const pollUrl = `https://poll.tokimeki.tech/p/${_agent.did()}/${pollRkey}?options=${post.poll.options.length}`;
+
+          let pollThumb;
+          try {
+              const ogBlob = await generatePollOgImage(post.poll.options);
+              const uploadRes = await _agent.agent.api.com.atproto.repo.uploadBlob(ogBlob, {
+                  encoding: 'image/png',
+              });
+              pollThumb = uploadRes.data.blob;
+          } catch (e) {
+              console.error('Failed to generate poll OG image:', e);
+          }
+
+          const pollEmbed: AppBskyEmbedExternal.Main = {
+              $type: 'app.bsky.embed.external',
+              external: {
+                  uri: pollUrl,
+                  title: $_('poll_message_for_external') + ': ' + post.poll.options.slice(0, 2).join(' / '),
+                  description: post.poll.options.join(' / ') + '\nPowered by TOKIMEKI',
+                  thumb: pollThumb,
+              }
+          };
+
+          if (post?.quotePost?.uri) {
+              embed = {
+                  $type: 'app.bsky.embed.recordWithMedia',
+                  media: pollEmbed,
+                  record: embedRecord,
+              };
+          } else {
+              embed = pollEmbed;
+          }
+      }
+
       if (post.whisper) {
           const whisperRecord = {
               $type: 'app.bsky.embed.record',
@@ -704,6 +743,35 @@
                           $type: 'app.bsky.feed.postgate#disableRule',
                       }],
                       post: uri,
+                  }
+              })
+          }
+
+          if (pollRkey && post.poll) {
+              const durationMs: Record<string, number> = {
+                  '5m': 5 * 60 * 1000,
+                  '1h': 60 * 60 * 1000,
+                  '6h': 6 * 60 * 60 * 1000,
+                  '12h': 12 * 60 * 60 * 1000,
+                  '1d': 24 * 60 * 60 * 1000,
+                  '3d': 3 * 24 * 60 * 60 * 1000,
+                  '7d': 7 * 24 * 60 * 60 * 1000,
+              };
+              const endsAt = new Date(Date.now() + (durationMs[post.poll.duration] || durationMs['1d'])).toISOString();
+
+              writes.push({
+                  $type: 'com.atproto.repo.applyWrites#create',
+                  collection: 'tech.tokimeki.poll.poll',
+                  rkey: pollRkey,
+                  value: {
+                      $type: 'tech.tokimeki.poll.poll',
+                      subject: {
+                          uri: uri,
+                          cid: '',
+                      },
+                      options: post.poll.options,
+                      createdAt: new Date().toISOString(),
+                      endsAt: endsAt,
                   }
               })
           }

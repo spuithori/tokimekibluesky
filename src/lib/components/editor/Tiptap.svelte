@@ -21,7 +21,7 @@
   import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
-  import {Clapperboard, Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink, SquareSplitVertical} from "lucide-svelte";
+  import {Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink, SquareSplitVertical, BarChart3} from "lucide-svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import EmojiList from "$lib/components/editor/EmojiList.svelte";
 
@@ -49,8 +49,11 @@
     onpicktenor,
     onpublish,
     onthreadsplit,
+    onpollclick,
     publishContentLength,
     isThreadSplitting = false,
+    canPoll = false,
+    hasPoll = false,
   }: Props = $props();
 
     let element = $state();
@@ -388,11 +391,7 @@
         </button>
       {/if}
 
-      <button class="editor-menu-button" onclick={() => {onupload(true)}} disabled={!isVideoUploadEnabled}>
-        <Clapperboard size="20" color="var(--publish-tool-button-color)"></Clapperboard>
-      </button>
-
-      <button class="editor-menu-button" onclick={() => {onupload(false)}}>
+      <button class="editor-menu-button" onclick={() => {onupload()}}>
         <ImagePlus size="20" color="var(--publish-tool-button-color)"></ImagePlus>
       </button>
 
@@ -412,6 +411,12 @@
       <button class="editor-menu-button" onclick={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
         <Laugh size="20" color="var(--publish-tool-button-color)"></Laugh>
       </button>
+
+      {#if canPoll}
+        <button class="editor-menu-button" class:editor-menu-button--active={hasPoll} onclick={onpollclick} title={$_('poll_add')}>
+          <BarChart3 size="20" color={hasPoll ? 'var(--primary-color)' : 'var(--publish-tool-button-color)'}></BarChart3>
+        </button>
+      {/if}
 
       <div class="publish-length-wrap">
         <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>

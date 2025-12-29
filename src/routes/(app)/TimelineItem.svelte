@@ -18,6 +18,7 @@
   import {getPostState} from "$lib/classes/postState.svelte";
   import MediaTimelineSingleItem from "$lib/components/media/MediaTimelineSingleItem.svelte";
   import {getEditPost} from "$lib/components/post/timelineUtil";
+  import {getPollUrl} from "$lib/components/post/embedUtil";
 
     let {
         _agent = $agent,
@@ -198,6 +199,23 @@
         isMenuOpen = false;
 
         try {
+            const embedUri = data.post?.embed?.external?.uri
+                || data.post?.embed?.media?.external?.uri;
+            if (embedUri) {
+                const pollInfo = getPollUrl(embedUri);
+                if (pollInfo && pollInfo.did === _agent.did()) {
+                    try {
+                        await _agent.agent.api.com.atproto.repo.deleteRecord({
+                            repo: _agent.did(),
+                            collection: 'tech.tokimeki.poll.poll',
+                            rkey: pollInfo.rkey
+                        });
+                    } catch (pollError) {
+                        console.error('Failed to delete poll from embed:', pollError);
+                    }
+                }
+            }
+
             await _agent.agent.api.app.bsky.feed.post.delete(
                 {repo: _agent.did(), rkey: rkey}
             );
