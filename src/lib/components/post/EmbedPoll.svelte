@@ -434,6 +434,7 @@
         align-items: center;
         gap: 3px 6px;
         font-size: 14px;
+        color: var(--text-color-1);
     }
 
     .poll-my-vote-badge {
