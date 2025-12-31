@@ -716,7 +716,7 @@
 {#if isKakizomeOpen}
   <div class="kakizome-overlay">
     <ImageEditor
-      initialImage="/kakizome.png"
+      initialImage={$settings?.general?.userLanguage === 'ko' ? '/kakizome-ko.png' : '/kakizome.png'}
       initialMode="annotate"
       initialTool="brush"
       initialStrokeWidth={90}
