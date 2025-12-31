@@ -817,5 +817,6 @@
   "poll_duration": "Duration",
   "poll_creating": "Creating poll...",
   "poll_message_for_external": "Let's poll",
-  "poll_media_conflict": "Polls cannot be posted with images/videos"
+  "poll_media_conflict": "Polls cannot be posted with images/videos",
+  "kakizome": "New Year's Calligraphy"
 }

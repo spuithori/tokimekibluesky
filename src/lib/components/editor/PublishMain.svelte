@@ -35,6 +35,7 @@
   import SelfLabelLabel from "$lib/components/publish/SelfLabelLabel.svelte";
   import {bskyUrlToAtUri, isBskyPostUrl} from "$lib/components/editor/postUtil";
   import { PUBLIC_THREAD_SPLIT_API_SERVER } from '$env/static/public';
+  import { ImageEditor } from 'tokimeki-image-editor';
 
   interface Props {
     index: number;
@@ -77,6 +78,7 @@
     let isSelfLabelingMenuOpen = $state(false);
     let isWhisperModalOpen = $state(false);
     let isPollModalOpen = $state(false);
+    let isKakizomeOpen = $state(false);
     let altFocusPulse = $state();
     let isThreadSplitting = $state(false);
 
@@ -275,6 +277,45 @@
 
     function uploadContextOpen() {
         imageUploadEl.open();
+    }
+
+    function openKakizome() {
+        isKakizomeOpen = true;
+    }
+
+    async function handleKakizomeComplete(dataUrl: string, blobObj: {blob: Blob, width: number, height: number}) {
+        const compressed = await imageCompression(blobObj.blob, {
+            maxWidthOrHeight: 1024,
+            initialQuality: 0.8,
+            useWebWorker: true,
+        });
+        const base64 = await imageCompression.getDataUrlFromFile(compressed);
+
+        const newImage = {
+            id: crypto.randomUUID(),
+            alt: '',
+            file: compressed,
+            base64: base64,
+            isGif: false,
+            width: blobObj.width,
+            height: blobObj.height,
+        };
+        post.images = [...post.images, newImage];
+
+        const hashtag = '#TOKIMEKI書き初め';
+        if (!post.text.includes(hashtag)) {
+            const separator = post.text.length > 0 ? '\n' : '';
+            post.text = post.text + separator + hashtag;
+            editor.setContent(post.text);
+        }
+
+        isKakizomeOpen = false;
+        editor.focus();
+    }
+
+    function handleKakizomeCancel() {
+        isKakizomeOpen = false;
+        editor.focus();
     }
 
     async function handlePaste(e) {
@@ -567,6 +608,10 @@
         {/if}
 
         <div class="publish-tags">
+          <button class="kakizome-button" onclick={openKakizome} aria-hidden="true">
+            🎍 {$_('kakizome')}
+          </button>
+
           <button class="publish-lang" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
             {#if (post.lang !== 'auto' && Array.isArray(post.lang))}
               {#each post.lang as lang}
@@ -668,7 +713,33 @@
   ></PollModal>
 {/if}
 
+{#if isKakizomeOpen}
+  <div class="kakizome-overlay">
+    <ImageEditor
+      initialImage="/kakizome.png"
+      initialMode="annotate"
+      initialTool="brush"
+      initialStrokeWidth={90}
+      initialColor="#000000"
+      width={1200}
+      height={700}
+      isStandalone={false}
+      onComplete={handleKakizomeComplete}
+      onCancel={handleKakizomeCancel}
+    ></ImageEditor>
+  </div>
+{/if}
+
 <style lang="postcss">
+  .kakizome-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    background-color: #1a1a1af2;
+    backdrop-filter: blur(10px);
+  }
   .add-thread-button {
       height: 40px;
       width: 40px;
@@ -808,6 +879,18 @@
       flex-wrap: wrap;
       gap: 4px 8px;
       margin: 8px 0;
+  }
+
+  .kakizome-button {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: var(--border-radius-2);
+      font-size: 13px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 4px;
   }
 
   .whisper-toggle {
