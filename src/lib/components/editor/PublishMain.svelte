@@ -608,9 +608,9 @@
         {/if}
 
         <div class="publish-tags">
-          <button class="kakizome-button" onclick={openKakizome} aria-hidden="true">
+          <!-- <button class="kakizome-button" onclick={openKakizome} aria-hidden="true">
             🎍 {$_('kakizome')}
-          </button>
+          </button> -->
 
           <button class="publish-lang" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
             {#if (post.lang !== 'auto' && Array.isArray(post.lang))}
