@@ -147,7 +147,9 @@
               <div class="profile-column">
                 <div class="profile-avatar">
                   {#if (profile.avatar)}
-                    <img src="{profile.avatar}" alt="">
+                    <button onclick={() => imageState.open([{ src: profile.avatar, msrc: profile.avatar, alt: '', width: 1000, height: 1000 }], 0)}>
+                      <img src="{profile.avatar}" alt="">
+                    </button>
                   {/if}
                 </div>
 
