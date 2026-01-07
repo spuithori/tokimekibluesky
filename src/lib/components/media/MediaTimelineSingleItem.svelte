@@ -7,13 +7,13 @@
     import MediaTimelineSlider from "$lib/components/media/MediaTimelineSlider.svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import Tooltip from "$lib/components/ui/Tooltip.svelte";
-    import {format, parseISO} from "date-fns";
+    import {lightFormat} from "date-fns";
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
     import TimelineText from "$lib/components/post/TimelineText.svelte";
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
 
     let { feed, index, data, _agent } = $props();
-    let timeDistanceToNow = $state(intlRelativeTimeFormatState.format({ laterDate: parseISO(data.post.indexedAt) }));
+    let timeDistanceToNow = $state(intlRelativeTimeFormatState.format({ laterDate: new Date(data.post.indexedAt) }));
 
     const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
     let isHide: boolean = $state(false);
@@ -78,10 +78,10 @@
                 {#if $settings?.design.absoluteTime}
                     <Tooltip>
                         {#snippet ref()}
-                            <span>{format(parseISO(data.post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
+                            <span>{lightFormat(new Date(data.post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
                         {/snippet}
                         {#snippet content()}
-                            <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+                            <span aria-hidden="true" class="timeline-tooltip">{lightFormat(new Date(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
                         {/snippet}
                     </Tooltip>
                 {:else}
@@ -90,7 +90,7 @@
                             <span>{timeDistanceToNow}</span>
                         {/snippet}
                         {#snippet content()}
-                            <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+                            <span aria-hidden="true" class="timeline-tooltip">{lightFormat(new Date(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
                         {/snippet}
                     </Tooltip>
                 {/if}

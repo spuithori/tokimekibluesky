@@ -1,6 +1,6 @@
 <script lang="ts">
     import TimelineText from "$lib/components/post/TimelineText.svelte";
-    import {format, parseISO} from "date-fns";
+    import {lightFormat} from "date-fns";
     import {isEmojiSequenceOrCombination} from "$lib/util";
     import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
     import {AppBskyEmbedRecord} from "@atproto/api";
@@ -54,7 +54,7 @@
                     <TimelineText record={message} _agent={_agent}></TimelineText>
                 {/if}
 
-                <time class="chat-item__time" datetime="{format(parseISO(message.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{format(parseISO(message.sentAt), 'MM/dd HH:mm')}</time>
+                <time class="chat-item__time" datetime={lightFormat(new Date(message.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{lightFormat(new Date(message.sentAt), 'MM/dd HH:mm')}</time>
             </p>
         {/if}
 

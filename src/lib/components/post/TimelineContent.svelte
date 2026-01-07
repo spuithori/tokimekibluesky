@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
   import {agents, labelerSettings, settings} from "$lib/stores";
-  import {format, parseISO} from "date-fns";
+  import {lightFormat} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, detectHide} from "$lib/timelineFilter";
@@ -61,7 +61,7 @@
   let translatedRecord: undefined | AppBskyFeedPost.Record = $state();
   let warnLabels = $state([]);
   let warnBehavior: 'cover' | 'inform' = $state('cover');
-  let timeDistanceToNow = $state(intlRelativeTimeFormatState.format({ laterDate: parseISO(post.indexedAt) }));
+  let timeDistanceToNow = $state(intlRelativeTimeFormatState.format({ laterDate: new Date(post.indexedAt) }));
   let skyblurText = $state('');
   let isSkyblurAdditional = $state(false);
   let timerId: ReturnType<typeof setTimeout>;
@@ -172,9 +172,9 @@
   }
 
   function update() {
-      timeDistanceToNow = intlRelativeTimeFormatState.format({ laterDate: parseISO(post.indexedAt) });
+      timeDistanceToNow = intlRelativeTimeFormatState.format({ laterDate: new Date(post.indexedAt) });
 
-      const delay = getNextUpdateDelay(parseISO(post.indexedAt));
+      const delay = getNextUpdateDelay(new Date(post.indexedAt));
 
       if (delay !== null) {
           timerId = setTimeout(update, delay);
@@ -223,10 +223,10 @@
       {#if $settings?.design.absoluteTime}
         <Tooltip>
           {#snippet ref()}
-            <span>{format(parseISO(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
+            <span>{lightFormat(new Date(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
           {/snippet}
           {#snippet content()}
-            <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+            <span aria-hidden="true" class="timeline-tooltip">{lightFormat(new Date(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
           {/snippet}
         </Tooltip>
       {:else}
@@ -235,7 +235,7 @@
             <span>{timeDistanceToNow}</span>
           {/snippet}
           {#snippet content()}
-            <span aria-hidden="true" class="timeline-tooltip">{format(parseISO(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+            <span aria-hidden="true" class="timeline-tooltip">{lightFormat(new Date(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
           {/snippet}
         </Tooltip>
       {/if}

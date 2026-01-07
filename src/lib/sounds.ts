@@ -1,5 +1,3 @@
-import {parseISO} from "date-fns";
-
 const soundUrls = new Map<string, string>([
     ['sound1', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound1.mp3'],
     ['sound2', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound2.mp3'],
@@ -30,7 +28,7 @@ function getSound(soundName: string): HTMLAudioElement | undefined {
 
 export function playSound(indexedAt: string, lastRefresh: string, playSound: string) {
     try {
-        if (indexedAt && parseISO(indexedAt).getTime() > parseISO(lastRefresh).getTime()) {
+        if (indexedAt && new Date(indexedAt).getTime() > new Date(lastRefresh).getTime()) {
             const sound = getSound(playSound);
             if (sound) {
                 sound.volume = 0.5;

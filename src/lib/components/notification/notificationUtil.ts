@@ -1,5 +1,3 @@
-import {parseISO} from "date-fns";
-
 export function getReasonText(reason: string) {
     switch (reason) {
         case 'quote':
@@ -53,7 +51,7 @@ export function bundleByProperties(array: any[], property1: string, property2: s
 
     return bundledArray.map(group => {
         const sortedNotifications = group.sort((a, b) =>
-            parseISO(b.indexedAt).getTime() - parseISO(a.indexedAt).getTime()
+            new Date(b.indexedAt).getTime() - new Date(a.indexedAt).getTime()
         );
         const uniqueKey = sortedNotifications[0].uri;
 
@@ -96,7 +94,7 @@ export async function getNotifications(ctx, putBefore = false, _agent, currentFe
     bundled.forEach(array => {
         array.postIndex = feedPool.findIndex(feed => feed.post.uri === array.subject);
     });
-    bundled = bundled.sort((a, b) => parseISO(b.latestIndexedAt).getTime() - parseISO(a.latestIndexedAt).getTime());
+    bundled = bundled.sort((a, b) => new Date(b.latestIndexedAt).getTime() - new Date(a.latestIndexedAt).getTime());
 
     return {
         notifications: bundled,

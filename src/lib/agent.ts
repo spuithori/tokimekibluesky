@@ -1,7 +1,6 @@
 import { AppBskyEmbedVideo, type AppBskyFeedGetTimeline, type BskyAgent, Agent as AtpAgent } from '@atproto/api';
 import { AppBskyEmbedImages } from "@atproto/api";
 import type { currentAlgorithm } from "../app.d.ts";
-import { parseISO } from "date-fns";
 import { CHAT_PROXY } from "$lib/components/chat/chatConst";
 import { listRecordsWithBsky } from "$lib/util";
 import { chatState } from "$lib/classes/chatState.svelte";
@@ -334,7 +333,7 @@ export class Agent {
                 });
                 tempFeeds = tempFeeds.filter(feed => feed.post?.indexedAt);
                 tempFeeds.sort((a, b) => {
-                    return parseISO(b.post.indexedAt).getTime() - parseISO(a.post.indexedAt).getTime();
+                    return new Date(b.post.indexedAt).getTime() - new Date(a.post.indexedAt).getTime();
                 });
 
                 return {

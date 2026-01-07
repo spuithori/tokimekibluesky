@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {format, parseISO} from "date-fns";
+    import {lightFormat} from "date-fns";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
@@ -129,7 +129,7 @@
 
       <h3 class="convo-item__name">{convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle}</h3>
 
-      <time class="convo-item__date" datetime="{format(parseISO(convo.lastMessage.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}">{intlRelativeTimeFormatState.format({ laterDate: parseISO(convo.lastMessage.sentAt) })}</time>
+      <time class="convo-item__date" datetime={lightFormat(new Date(convo.lastMessage.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{intlRelativeTimeFormatState.format({ laterDate: new Date(convo.lastMessage.sentAt) })}</time>
     </div>
 
     <p class="convo-item__text">{convo.lastMessage.text}</p>

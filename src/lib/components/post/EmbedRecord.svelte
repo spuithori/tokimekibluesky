@@ -1,6 +1,6 @@
 <script lang="ts">
   import { agent, labelerSettings, settings } from "$lib/stores";
-  import {format, parseISO} from "date-fns";
+  import {lightFormat} from "date-fns";
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs } from "@atproto/api";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
@@ -114,9 +114,9 @@
         <p class="timeline__user">{ record.author.displayName || record.author.handle }</p>
         <p class="timeline__date">
           {#if $settings?.design.absoluteTime}
-            <span>{format(parseISO(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
+            <span>{lightFormat(new Date(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
           {:else}
-            <span>{intlRelativeTimeFormatState.format({ laterDate: parseISO(record.indexedAt) })}</span>
+            <span>{intlRelativeTimeFormatState.format({ laterDate: new Date(record.indexedAt) })}</span>
           {/if}
         </p>
       </div>

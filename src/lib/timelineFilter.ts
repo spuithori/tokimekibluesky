@@ -1,8 +1,32 @@
 import {moderatePost} from '@atproto/api';
 import type {ModerationOpts} from '@atproto/api';
-import {isMatch, parse, parseISO, set} from "date-fns";
-import isWithinInterval from "date-fns/isWithinInterval";
 import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
+
+function isValidTimeFormat(time: string): boolean {
+    if (typeof time !== 'string') return false;
+    const match = time.match(/^(\d{2}):(\d{2})$/);
+    if (!match) return false;
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+}
+
+function timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+}
+
+function getMinutesFromDate(date: Date): number {
+    return date.getHours() * 60 + date.getMinutes();
+}
+
+function isTimeWithinRange(minutes: number, startMinutes: number, endMinutes: number): boolean {
+    if (startMinutes <= endMinutes) {
+        return minutes >= startMinutes && minutes <= endMinutes;
+    } else {
+        return minutes >= startMinutes || minutes <= endMinutes;
+    }
+}
 
 export interface keyword {
     enabled?: boolean,
@@ -68,56 +92,38 @@ export function keywordStringToArray(word: any) {
 }
 
 export function keywordFilter(keywords, text, indexedAt) {
-    let isHide = false;
-
     if (!Array.isArray(keywords)) {
         return false;
     }
 
-    keywords.forEach((keyword: formattedKeyword) => {
-        const timeIsValid = isMatch(keyword.period.start, 'HH:mm') && isMatch(keyword.period.end, 'HH:mm');
+    for (const keyword of keywords as formattedKeyword[]) {
+        const timeIsValid = isValidTimeFormat(keyword.period.start)
+                         && isValidTimeFormat(keyword.period.end);
 
         if (!timeIsValid || keyword.word.length === 0) {
-            return false;
+            continue;
         }
 
         if (keyword.enabled === false) {
-            return false;
+            continue;
         }
 
-        const start = keyword.period.start;
-        const end = keyword.period.end;
+        const postMinutes = getMinutesFromDate(new Date(indexedAt));
+        const startMinutes = timeToMinutes(keyword.period.start);
+        const endMinutes = timeToMinutes(keyword.period.end);
 
-        const postDate = set(parseISO(indexedAt), {
-            year: new Date().getFullYear(),
-            month: new Date().getMonth(),
-            date: new Date().getDate(),
-        })
-
-        const isIntervalWithin = start < end
-            ? isWithinInterval(postDate, {
-                start: parse(start, 'HH:mm', new Date),
-                end: parse(end + ':59', 'HH:mm:ss', new Date),
-            })
-            : isWithinInterval(postDate, {
-                start: parse('00:00', 'HH:mm', new Date),
-                end: parse(end + ':59', 'HH:mm:ss', new Date),
-            }) ||
-            isWithinInterval(postDate, {
-                start: parse(start, 'HH:mm', new Date),
-                end: parse('23:59:59', 'HH:mm:ss', new Date),
-            });
+        const isIntervalWithin = isTimeWithinRange(postMinutes, startMinutes, endMinutes);
 
         const isInclude = keyword.ignoreCaseSensitive
             ? keyword.word.some(w => text.toLowerCase().includes(w.toLowerCase()))
             : keyword.word.some(w => text.includes(w));
 
         if (isIntervalWithin && isInclude) {
-            isHide = true;
+            return true;
         }
-    });
+    }
 
-    return isHide;
+    return false;
 }
 
 export function detectHide(moderateData, contentContext: 'contentView' | 'contentList', current, post) {

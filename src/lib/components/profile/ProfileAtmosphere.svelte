@@ -4,7 +4,6 @@
   import {_} from "svelte-i18n";
   import AtmosphereAboutModal from "$lib/components/profile/AtmosphereAboutModal.svelte";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
-  import {parseISO} from "date-fns";
   import {BskyAgent} from "@atproto/api";
 
   let { did, handle, endpoint } = $props();
@@ -86,7 +85,7 @@
     {#if (latestFlushes)}
       <div class="atmos-item atmos-item--flushes">
         <p class="atmos-item__title"><strong>Flushes</strong></p>
-        <a class="atmos-item__link" href="https://flushes.app/profile/{handle}" target="_blank" rel="noreferrer noopener nofollow">{latestFlushes?.emoji} {intlRelativeTimeFormatState.format({ laterDate: parseISO(latestFlushes?.createdAt) })}</a>
+        <a class="atmos-item__link" href="https://flushes.app/profile/{handle}" target="_blank" rel="noreferrer noopener nofollow">{latestFlushes?.emoji} {intlRelativeTimeFormatState.format({ laterDate: new Date(latestFlushes?.createdAt) })}</a>
 
         <span class="atmos-item__ext">
           <SquareArrowOutUpRight size="16" color="var(--text-color-3)"></SquareArrowOutUpRight>

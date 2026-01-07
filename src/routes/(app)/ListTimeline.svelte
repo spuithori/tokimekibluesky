@@ -1,7 +1,6 @@
 <script lang="ts">
     import { userLists } from '$lib/stores';
     import TimelineItem from './TimelineItem.svelte';
-    import { parseISO } from 'date-fns';
     import Infinite from "$lib/components/utils/Infinite.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
@@ -38,7 +37,7 @@
             })
         })
         feedPool = feedPool.sort((a, b) => {
-            return parseISO(b.reason ? b.reason.indexedAt : b.post.indexedAt).getTime() - parseISO(a.reason ? a.reason.indexedAt : a.post.indexedAt).getTime();
+            return new Date(b.reason ? b.reason.indexedAt : b.post.indexedAt).getTime() - new Date(a.reason ? a.reason.indexedAt : a.post.indexedAt).getTime();
         });
         feed = feedPool.slice(0, 20);
         feedPool = feedPool.slice(20);
