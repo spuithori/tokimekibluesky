@@ -739,6 +739,7 @@
   "oauth_error": "发生错误",
   "oauth_redirecting": "重定向...",
   "oauth_login": "使用 OAuth 登录",
+  "oauth_handle": "用户识别符",
   "oauth_enter_handle": "请输入你的用户识别符",
   "oauth_recommended": "OAuth 登录目前仍处于实验阶段。",
   "login_with_password": "使用密码登录",
