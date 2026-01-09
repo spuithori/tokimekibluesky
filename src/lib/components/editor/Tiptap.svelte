@@ -418,7 +418,7 @@
         </button>
       {/if}
 
-      <a href="https://kaku.tokimeki.tech/" target="_blank">
+      <a class="editor-menu-button" href="https://kaku.tokimeki.tech/" target="_blank">
         <Brush size="20" color={hasPoll ? 'var(--primary-color)' : 'var(--publish-tool-button-color)'}></Brush>
       </a>
 
