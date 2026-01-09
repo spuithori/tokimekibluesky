@@ -21,7 +21,7 @@
   import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
-  import {Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink, SquareSplitVertical, BarChart3} from "lucide-svelte";
+  import {Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink, SquareSplitVertical, BarChart3, Brush} from "lucide-svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import EmojiList from "$lib/components/editor/EmojiList.svelte";
 
@@ -417,6 +417,10 @@
           <BarChart3 size="20" color={hasPoll ? 'var(--primary-color)' : 'var(--publish-tool-button-color)'}></BarChart3>
         </button>
       {/if}
+
+      <a href="https://kaku.tokimeki.tech/" target="_blank">
+        <Brush size="20" color={hasPoll ? 'var(--primary-color)' : 'var(--publish-tool-button-color)'}></Brush>
+      </a>
 
       <div class="publish-length-wrap">
         <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
