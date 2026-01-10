@@ -15,7 +15,7 @@
   import { toast } from "svelte-sonner";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
-  import {getAllAgentDids, getDidFromUri} from "$lib/util";
+  import {getAllAgentDids, getDidFromUri, getService} from "$lib/util";
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {onDestroy, untrack} from "svelte";
@@ -149,7 +149,19 @@
 
   async function handleSkyblurShow() {
       try {
-          const __agent = new BskyAgent({service: _agent.service()});
+          let pdsEndpoint: string;
+
+          if (post.author.handle.endsWith(".bsky.social")) {
+            pdsEndpoint = _agent.service();
+          } else {
+            const endpoint = await getService(post.author.did);
+            if (!endpoint) {
+              throw new Error("Could not resolve PDS endpoint.");
+            }
+            pdsEndpoint = endpoint;
+          }
+
+          const __agent = new BskyAgent({ service: pdsEndpoint });
           const rkey = post?.record?.['uk.skyblur.post.uri'].split('/').slice(-1)[0];
           const res = await __agent.api.com.atproto.repo.getRecord({
               collection: "uk.skyblur.post",
