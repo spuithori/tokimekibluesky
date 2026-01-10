@@ -739,6 +739,7 @@
   "oauth_error": "エラーが発生しました",
   "oauth_redirecting": "リダイレクト中...",
   "oauth_login": "OAuthでログイン",
+  "oauth_handle": "ハンドル",
   "oauth_enter_handle": "ハンドルを入力してください",
   "oauth_recommended": "OAuthによるログインは現在実験的です。",
   "login_with_password": "パスワードでログイン",

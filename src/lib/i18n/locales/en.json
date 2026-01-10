@@ -739,6 +739,7 @@
   "oauth_error": "An error has occurred",
   "oauth_redirecting": "Redirecting...",
   "oauth_login": "Log in with OAuth",
+  "oauth_handle": "Handle",
   "oauth_enter_handle": "Please enter your handle",
   "oauth_recommended": "OAuth login is currently experimental.",
   "login_with_password": "Log in with Password",

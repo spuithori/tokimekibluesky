@@ -128,7 +128,7 @@
       <form action="#" onsubmit={preventDefault(loginWithOAuth)}>
         <dl class="input-group">
           <dt class="input-group__name input-group__name--show">
-            <label for="handle">Handle</label>
+            <label for="handle">{$_('oauth_handle')}</label>
           </dt>
 
           <dd class="input-group__content">
