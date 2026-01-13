@@ -818,5 +818,8 @@
   "poll_creating": "Creating poll...",
   "poll_message_for_external": "Let's poll",
   "poll_media_conflict": "Polls cannot be posted with images/videos",
-  "kakizome": "New Year's Calligraphy"
+  "kakizome": "New Year's Calligraphy",
+  "drawings": "Drawings",
+  "drawings_empty": "No drawings yet",
+  "drawings_error": "Failed to load drawings"
 }

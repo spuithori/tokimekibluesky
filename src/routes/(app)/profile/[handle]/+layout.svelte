@@ -56,6 +56,8 @@
                     return 'feed';
                 case 'lists':
                     return 'lists';
+                case 'drawings':
+                    return 'drawings';
                 default:
                     return 'posts';
             }
@@ -253,6 +255,7 @@
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'feed'}><a href="/profile/{data.params.handle}/feed" data-sveltekit-noscroll>{$_('feeds')}</a></li>
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'lists'}><a href="/profile/{data.params.handle}/lists" data-sveltekit-noscroll>{$_('lists')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'drawings'}><a href="/profile/{data.params.handle}/drawings" data-sveltekit-noscroll>{$_('drawings')}</a></li>
         {:else}
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
         {/if}
