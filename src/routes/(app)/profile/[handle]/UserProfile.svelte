@@ -193,8 +193,8 @@
 
                 {#if (!isLabeler)}
                   <div class="profile-relationship">
-                    <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</p>
-                    <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</p>
+                    <a href="/profile/{profile.handle}/follow" data-sveltekit-noscroll class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</a>
+                    <a href="/profile/{profile.handle}/follower" data-sveltekit-noscroll class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</a>
                     <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.postsCount}</span> {$_('posts')}</p>
 
                     <button class="profile-counts-toggle" onclick={toggleHideCounts} aria-label="Hide profile counts." title="Hide profile counts.">
@@ -394,6 +394,10 @@
         align-items: center;
         gap: 4px 15px;
         margin-top: 6px;
+
+        a {
+            color: inherit;
+        }
 
         @media (max-width: 767px) {
             font-size: 15px;

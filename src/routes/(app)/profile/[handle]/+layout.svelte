@@ -244,8 +244,10 @@
       <ul class="profile-tab">
         {#if (!isLabeler)}
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
-          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
+          {#if currentPage === 'follow' || currentPage === 'follower'}
+            <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'follow'}><a href="/profile/{data.params.handle}/follow" data-sveltekit-noscroll>{$_('follows')}</a></li>
+            <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'follower'}><a href="/profile/{data.params.handle}/follower" data-sveltekit-noscroll>{$_('followers')}</a></li>
+          {/if}
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'media'}><a href="/profile/{data.params.handle}/media" data-sveltekit-noscroll>{$_('media')}</a></li>
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'video'}><a href="/profile/{data.params.handle}/video" data-sveltekit-noscroll>{$_('video')}</a></li>
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
