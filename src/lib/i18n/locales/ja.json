@@ -821,5 +821,17 @@
   "kakizome": "書き初め",
   "drawings": "お絵かき",
   "drawings_empty": "お絵かきがまだありません",
-  "drawings_error": "お絵かきの読み込みに失敗しました"
+  "drawings_error": "お絵かきの読み込みに失敗しました",
+  "kaku_draw_title": "お絵かき投稿",
+  "kaku_notice": "この機能は「カクトキメキ」のサービスを利用しています。投稿ボタンを押すと、カクトキメキにお絵かきが投稿されます。",
+  "kaku_description_label": "キャプション",
+  "kaku_text_placeholder": "キャプションを入力（任意）",
+  "kaku_tags_label": "タグ",
+  "kaku_tags_placeholder": "タグを入力",
+  "kaku_share_to_bluesky": "Blueskyにも投稿する",
+  "kaku_post_success": "お絵かきを投稿しました",
+  "kaku_post_error": "投稿に失敗しました",
+  "kaku_view_on_kaku": "✒️カクトキメキで見る",
+  "kaku_change_background": "背景を変更",
+  "kaku_select_background": "背景を選択"
 }

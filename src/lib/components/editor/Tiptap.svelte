@@ -24,6 +24,7 @@
   import {Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink, SquareSplitVertical, BarChart3, Brush} from "lucide-svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import EmojiList from "$lib/components/editor/EmojiList.svelte";
+  import KakuDrawModal from "$lib/components/editor/KakuDrawModal.svelte";
 
   interface Props {
     json: any;
@@ -72,6 +73,7 @@
     let isGiphyPickerOpen = $state(false);
     let isLinkActive = $state(false);
     let isEmojiPickerOpen = $state(false);
+    let isKakuDrawOpen = $state(false);
     let isFocus = $state(false);
 
     onMount(() => {
@@ -418,9 +420,9 @@
         </button>
       {/if}
 
-      <a class="editor-menu-button" href="https://kaku.tokimeki.tech/" target="_blank">
-        <Brush size="20" color={hasPoll ? 'var(--primary-color)' : 'var(--publish-tool-button-color)'}></Brush>
-      </a>
+      <button class="editor-menu-button" onclick={() => {isKakuDrawOpen = true}}>
+        <Brush size="20" color="var(--publish-tool-button-color)"></Brush>
+      </button>
 
       <div class="publish-length-wrap">
         <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
@@ -450,6 +452,13 @@
     onclose={() => {isGiphyPickerOpen = false}}
     onpicktenor={handlePickTenor}
   ></GifPickerModal>
+{/if}
+
+{#if (isKakuDrawOpen)}
+  <KakuDrawModal
+    {_agent}
+    onclose={() => {isKakuDrawOpen = false}}
+  ></KakuDrawModal>
 {/if}
 
 {#if (mentionProps)}

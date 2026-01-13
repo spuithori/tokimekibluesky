@@ -821,5 +821,17 @@
   "kakizome": "New Year's Calligraphy",
   "drawings": "Drawings",
   "drawings_empty": "No drawings yet",
-  "drawings_error": "Failed to load drawings"
+  "drawings_error": "Failed to load drawings",
+  "kaku_draw_title": "Post Drawing",
+  "kaku_notice": "This feature uses the KAKU TOKIMEKI service. By pressing the post button, your drawing will be posted to KAKU TOKIMEKI.",
+  "kaku_description_label": "Caption",
+  "kaku_text_placeholder": "Add a caption (optional)",
+  "kaku_tags_label": "Tags",
+  "kaku_tags_placeholder": "Enter tags",
+  "kaku_share_to_bluesky": "Also post to Bluesky",
+  "kaku_post_success": "Drawing posted successfully",
+  "kaku_post_error": "Failed to post drawing",
+  "kaku_view_on_kaku": " ✒️View on KAKU TOKIMEKI",
+  "kaku_change_background": "Change background",
+  "kaku_select_background": "Select background"
 }

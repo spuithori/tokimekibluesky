@@ -35,7 +35,6 @@
   import SelfLabelLabel from "$lib/components/publish/SelfLabelLabel.svelte";
   import {bskyUrlToAtUri, isBskyPostUrl} from "$lib/components/editor/postUtil";
   import { PUBLIC_THREAD_SPLIT_API_SERVER } from '$env/static/public';
-  import { ImageEditor } from 'tokimeki-image-editor';
 
   interface Props {
     index: number;
@@ -608,10 +607,6 @@
         {/if}
 
         <div class="publish-tags">
-          <!-- <button class="kakizome-button" onclick={openKakizome} aria-hidden="true">
-            🎍 {$_('kakizome')}
-          </button> -->
-
           <button class="publish-lang" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
             {#if (post.lang !== 'auto' && Array.isArray(post.lang))}
               {#each post.lang as lang}
@@ -711,23 +706,6 @@
       isPollModalOpen = false;
     }}
   ></PollModal>
-{/if}
-
-{#if isKakizomeOpen}
-  <div class="kakizome-overlay">
-    <ImageEditor
-      initialImage={$settings?.general?.userLanguage === 'ko' ? '/kakizome-ko.png' : '/kakizome.png'}
-      initialMode="annotate"
-      initialTool="brush"
-      initialStrokeWidth={90}
-      initialColor="#000000"
-      width={1200}
-      height={700}
-      isStandalone={false}
-      onComplete={handleKakizomeComplete}
-      onCancel={handleKakizomeCancel}
-    ></ImageEditor>
-  </div>
 {/if}
 
 <style lang="postcss">
