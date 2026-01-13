@@ -143,7 +143,8 @@
                             ]
                         },
                         createdAt: now.toISOString(),
-                        via: 'TOKIMEKI'
+                        via: 'TOKIMEKI',
+                        tags: ['カクトキメキ']
                     };
 
                     const textEncoder = new TextEncoder();
