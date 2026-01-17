@@ -107,6 +107,21 @@
               cursor: '',
           }
       },
+      {
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'chatList',
+              name: $_('chat_list'),
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
+      },
   ];
 
   let bookmarkColumns = $state([]);

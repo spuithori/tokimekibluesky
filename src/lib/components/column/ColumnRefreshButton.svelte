@@ -226,6 +226,48 @@
               });
               await _agent.getChatLogs();
             }
+        } else if (column.algorithm.type === 'chatList') {
+            if (column.algorithm.id) {
+                const res = await _agent.agent.api.chat.bsky.convo.getMessages({cursor: '', limit: 50, convoId: column.algorithm.id}, {
+                    headers: {
+                        'atproto-proxy': CHAT_PROXY,
+                    }
+                });
+
+                if (!res?.data) {
+                    isRefreshing = false;
+                    return false;
+                }
+
+                const existingMessageIds = new Set(column.data.feed.map(m => m.id));
+                const newFeed = res.data.messages
+                    .filter(feed => !existingMessageIds.has(feed.id))
+                    .reverse();
+
+                if (column.data.feed.length === 0) {
+                    column.data.cursor = res.data.cursor;
+                }
+
+                column.data.feed = [...column.data.feed, ...newFeed];
+
+                const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+                await tick();
+                scrollEl.scrollTo({
+                    top: scrollEl.scrollHeight,
+                    behavior: 'smooth',
+                });
+
+                if (!isAutoRefresh) {
+                    await _agent.agent.api.chat.bsky.convo.updateRead({convoId: column.algorithm.id}, {
+                        headers: {
+                            'atproto-proxy': CHAT_PROXY,
+                        }
+                    });
+                    await _agent.getChatLogs();
+                }
+            } else {
+                unique = Symbol();
+            }
         } else if (column.algorithm.type === 'thread') {
             column.data.feed = [];
             unique = Symbol();
@@ -341,7 +383,7 @@
       </svg>
     </button>
   {:else}
-    {#if (isRefreshing === true && column.algorithm?.type !== 'chat')}
+    {#if (isRefreshing === true && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList')}
       <div class="refresher" transition:fly={{ duration: 300, y: -100}}>
         <LoadingSpinner padding={0} size={24}></LoadingSpinner>
       </div>

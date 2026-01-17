@@ -15,6 +15,7 @@
     import {onDestroy, onMount} from "svelte";
     import {toast} from "svelte-sonner";
     import ChatTimeline from "./ChatTimeline.svelte";
+    import ChatListTimeline from "./ChatListTimeline.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import { draggable, axis, ControlFrom, events, controls, Compartment, position, disabled } from '@neodrag/svelte';
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -78,7 +79,7 @@
             return false;
         }
 
-        if (column.algorithm?.type === 'chat') {
+        if (column.algorithm?.type === 'chat' || column.algorithm?.type === 'chatList') {
             return false;
         }
 
@@ -455,7 +456,7 @@
                 refresherHeight={80}
                 pullMin={80}
                 pullMax={160}
-                disabled={column.algorithm.type === 'chat' || $settings.design?.layout === 'default'}
+                disabled={column.algorithm.type === 'chat' || column.algorithm.type === 'chatList' || $settings.design?.layout === 'default'}
         >
             {#if _agent}
                 <div class="deck-row__content">
@@ -467,6 +468,8 @@
                         {/key}
                     {:else if (column.algorithm.type === 'chat')}
                         <ChatTimeline {index} {_agent} {unique} {isJunk} onrefresh={handleRefresh}></ChatTimeline>
+                    {:else if (column.algorithm.type === 'chatList')}
+                        <ChatListTimeline {index} {_agent} {unique} {isJunk} onrefresh={handleRefresh}></ChatListTimeline>
                     {:else if (column.algorithm.type === 'list')}
                         {#key unique}
                             <ListTimeline {index} {_agent} {isJunk} {unique}></ListTimeline>

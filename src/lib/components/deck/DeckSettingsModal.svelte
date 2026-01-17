@@ -306,7 +306,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'chat')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('column_style')}
@@ -380,7 +380,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('refresh_to_top')}
@@ -394,7 +394,7 @@
                     </dl>
                 {/if}
 
-                {#if column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'notification'}
+                {#if column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'notification'}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('auto_refresh')}
@@ -479,7 +479,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('auto_scroll')}
@@ -549,7 +549,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('hide_repost_frequency')}

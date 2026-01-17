@@ -96,6 +96,7 @@
       flex-direction: column;
       justify-content: flex-end;
       cursor: initial;
+      overflow-x: hidden;
   }
 
   .chat-anchor {

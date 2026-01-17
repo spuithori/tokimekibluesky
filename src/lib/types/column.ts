@@ -1,5 +1,5 @@
 export type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia',
+    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia',
     algorithm?: string,
     name?: string,
     list?: object,
