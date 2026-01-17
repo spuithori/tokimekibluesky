@@ -81,7 +81,7 @@
             {#if (item.reason === 'like' || item.reason === 'like-via-repost')}
                 <button class="notification-icon notification-icon--like" onclick={handleClick}>
                     {#if ($settings?.design?.reactionMode === 'superstar')}
-                        <Star color="var(--bg-color-1)" size="18"></Star>
+                        <Star color="var(--timeline-reaction-liked-icon-color)" size="18"></Star>
                     {:else}
                         <Heart color="var(--timeline-reaction-liked-icon-color)" size="18"></Heart>
                     {/if}
