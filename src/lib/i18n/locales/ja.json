@@ -833,5 +833,7 @@
   "kaku_post_error": "投稿に失敗しました",
   "kaku_view_on_kaku": "✒️カクトキメキで見る",
   "kaku_change_background": "背景を変更",
-  "kaku_select_background": "背景を選択"
+  "kaku_select_background": "背景を選択",
+  "follow_prompt_title": "公式アカウントをフォロー",
+  "follow_prompt_description": "TOKIMEKIの最新情報をお届けします"
 }

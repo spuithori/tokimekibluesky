@@ -833,5 +833,7 @@
   "kaku_post_error": "Failed to post drawing",
   "kaku_view_on_kaku": " ✒️View on KAKU TOKIMEKI",
   "kaku_change_background": "Change background",
-  "kaku_select_background": "Select background"
+  "kaku_select_background": "Select background",
+  "follow_prompt_title": "Follow official account",
+  "follow_prompt_description": "Get the latest updates from TOKIMEKI"
 }

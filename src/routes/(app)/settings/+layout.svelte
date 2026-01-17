@@ -4,6 +4,10 @@
   import {page} from "$app/stores";
   import { ArrowLeft, BellRing, Database, GanttChartSquare, Hand, Heart, Layers, Palette, Settings, WholeWord, X, CalendarClock } from "lucide-svelte";
   import { scale } from 'svelte/transition';
+  import { agent } from "$lib/stores";
+
+  const OFFICIAL_HANDLE = 'tokimeki.blue';
+  const STORAGE_KEY = 'hideFollowPrompt';
 
   interface Props {
     data: LayoutData;
@@ -11,6 +15,57 @@
   }
 
   let { data, children }: Props = $props();
+
+  let showFollowPrompt = $state(false);
+  let isFollowing = $state(false);
+  let officialProfile = $state<any>(null);
+
+  $effect(() => {
+    checkFollowStatus();
+  });
+
+  async function checkFollowStatus() {
+    if (!$agent) return;
+
+    const dismissed = localStorage.getItem(STORAGE_KEY);
+    if (dismissed === 'true') {
+      showFollowPrompt = false;
+      return;
+    }
+
+    try {
+      const res = await $agent.agent.api.app.bsky.actor.getProfile({ actor: OFFICIAL_HANDLE });
+      officialProfile = res.data;
+      isFollowing = !!res.data.viewer?.following;
+      showFollowPrompt = !isFollowing;
+    } catch (e) {
+      console.error('Failed to check follow status:', e);
+      showFollowPrompt = false;
+    }
+  }
+
+  function dismissPrompt() {
+    localStorage.setItem(STORAGE_KEY, 'true');
+    showFollowPrompt = false;
+  }
+
+  async function followOfficial() {
+    if (!$agent || !officialProfile) return;
+
+    try {
+      await $agent.agent.api.app.bsky.graph.follow.create(
+        { repo: $agent.did() },
+        {
+          subject: officialProfile.did,
+          createdAt: new Date().toISOString(),
+        }
+      );
+      isFollowing = true;
+      showFollowPrompt = false;
+    } catch (e) {
+      console.error('Failed to follow:', e);
+    }
+  }
 </script>
 
 <div class="settings-modal" class:settings-modal--transparent-bg={$page.url.pathname === '/settings/design'}>
@@ -96,6 +151,29 @@
             </div>
             <p class="p-menu-nav__title"><a href="/settings/data">{$_('settings_data_management')}</a></p>
           </li>
+
+          {#if showFollowPrompt}
+            <li class="p-menu-nav__item p-menu-nav__item--prompt">
+              <div class="follow-prompt">
+                <button class="follow-prompt__close" onclick={dismissPrompt} aria-label="Close">
+                  <X size="16" color="var(--text-color-3)"></X>
+                </button>
+                <div class="follow-prompt__content">
+                  <p class="follow-prompt__title">{$_('follow_prompt_title')}</p>
+                  <p class="follow-prompt__description">{$_('follow_prompt_description')}</p>
+                  <a class="follow-prompt__account" href="/profile/{OFFICIAL_HANDLE}">
+                    {#if officialProfile?.avatar}
+                      <img class="follow-prompt__avatar" src="{officialProfile.avatar}" alt="" />
+                    {/if}
+                    <span class="follow-prompt__handle">@{OFFICIAL_HANDLE}</span>
+                  </a>
+                </div>
+                <button class="button button--sm button--follow follow-prompt__button" onclick={followOfficial}>
+                  {$_('follow_button')}
+                </button>
+              </div>
+            </li>
+          {/if}
 
           <li class="p-menu-nav__item p-menu-nav__item--bottom" class:p-menu-nav__item--current={$page.url.pathname === '/settings/about'}>
             <div class="p-menu-nav__icon">
@@ -212,6 +290,20 @@
               }
           }
       }
+
+      &__item {
+          &--prompt {
+              margin-top: 8px;
+
+              @media (max-width: 767px) {
+                  display: none;
+              }
+
+              &:hover {
+                  background-color: var(--bg-color-1);
+              }
+          }
+      }
   }
 
   .settings-social-list {
@@ -234,6 +326,82 @@
       width: 24px;
       height: 24px;
       fill: var(--text-color-2);
+    }
+  }
+
+  .follow-prompt {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background-color: var(--bg-color-2);
+    border-radius: var(--border-radius-4);
+    border: 1px solid var(--primary-color);
+
+    &__close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    &__title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-color-1);
+      margin: 0;
+      padding-right: 24px;
+      text-align: left;
+    }
+
+    &__description {
+      font-size: 12px;
+      color: var(--text-color-3);
+      margin: 0;
+    }
+
+    &__account {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      text-decoration: none;
+      color: var(--text-color-2);
+
+      &:hover {
+        color: var(--primary-color);
+      }
+    }
+
+    &__avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    &__handle {
+      font-size: 13px;
+    }
+
+    &__button {
+      width: 100%;
     }
   }
 </style>
