@@ -9,10 +9,12 @@
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
+    import {agent} from "$lib/stores";
     const columnState = getColumnState();
 
     let { convo, _agent, onrefresh, onselect } = $props();
     let isMenuOpen = $state(false);
+    const currentAgent = $derived(_agent || $agent);
 
     function addColumn(id, name, isPopup = false) {
         columnState.add({
@@ -27,8 +29,8 @@
                 ...defaultDeckSettings,
                 isPopup: isPopup,
             },
-            did: _agent.did(),
-            handle: _agent.handle(),
+            did: currentAgent?.did?.(),
+            handle: currentAgent?.handle?.(),
             data: {
                 feed: [],
                 cursor: '',
@@ -39,7 +41,7 @@
 
     async function leaveChat() {
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.leaveConvo({convoId: convo.id}, {
+            const res = await currentAgent?.agent?.api.chat.bsky.convo.leaveConvo({convoId: convo.id}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
@@ -54,7 +56,7 @@
 
     async function muteChat() {
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.muteConvo({convoId: convo.id}, {
+            const res = await currentAgent?.agent?.api.chat.bsky.convo.muteConvo({convoId: convo.id}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
@@ -69,7 +71,7 @@
 
     async function unMuteChat() {
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.unmuteConvo({convoId: convo.id}, {
+            const res = await currentAgent?.agent?.api.chat.bsky.convo.unmuteConvo({convoId: convo.id}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
@@ -89,7 +91,7 @@
 
 <article class="convo-item">
   <div class="convo-item__avatar">
-    <Avatar href="/profile/{convo.members.filter(member => member.did !== _agent.did())[0].handle}" avatar={convo.members.filter(member => member.did !== _agent.did())[0].avatar} handle={convo.members.filter(member => member.did !== _agent.did())[0].handle}></Avatar>
+    <Avatar href="/profile/{convo.members.filter(member => member.did !== currentAgent?.did?.())[0].handle}" avatar={convo.members.filter(member => member.did !== currentAgent?.did?.())[0].avatar} handle={convo.members.filter(member => member.did !== currentAgent?.did?.())[0].handle}></Avatar>
 
     {#if convo.unreadCount && !convo.muted}
       <div class="convo-badge">{convo.unreadCount}</div>
@@ -104,7 +106,7 @@
         </div>
       {/if}
 
-      <h3 class="convo-item__name">{convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle}</h3>
+      <h3 class="convo-item__name">{convo.members.filter(member => member.did !== currentAgent?.did?.())[0].displayName || convo.members.filter(member => member.did !== currentAgent?.did?.())[0].handle}</h3>
 
       <time class="convo-item__date" datetime={lightFormat(new Date(convo.lastMessage.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{intlRelativeTimeFormatState.format({ laterDate: new Date(convo.lastMessage.sentAt) })}</time>
     </div>
@@ -117,14 +119,14 @@
       {#snippet content()}
         <ul class="timeline-menu-list" >
           <li class="timeline-menu-list__item only-pc">
-            <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle, true)}>
+            <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convo.members.filter(member => member.did !== currentAgent?.did?.())[0].displayName || convo.members.filter(member => member.did !== currentAgent?.did?.())[0].handle, true)}>
               <PictureInPicture2 size="18" color="var(--text-color-1)"></PictureInPicture2>
               {$_('chat_menu_add_popup')}
             </button>
           </li>
 
           <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle, false)}>
+            <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convo.members.filter(member => member.did !== currentAgent?.did?.())[0].displayName || convo.members.filter(member => member.did !== currentAgent?.did?.())[0].handle, false)}>
               <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
               {$_('chat_menu_add_column')}
             </button>

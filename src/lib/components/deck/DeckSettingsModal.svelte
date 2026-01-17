@@ -5,15 +5,19 @@
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import {Search} from "lucide-svelte";
+    import {Search, SplitSquareVertical, ArrowUpDown, Unlink} from "lucide-svelte";
     import { fly } from 'svelte/transition';
     import Notice from "$lib/components/ui/Notice.svelte";
+    import ColumnChoices from "$lib/components/column/ColumnChoices.svelte";
+    import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
 
     interface Props {
         index: any;
         _agent: any;
         layout?: string;
         onclose: (refreshed?: boolean) => void;
+        isSplit?: boolean;
+        column?: any;
     }
 
     let {
@@ -21,10 +25,12 @@
         _agent,
         layout = 'default',
         onclose,
+        isSplit = false,
+        column: columnProp = undefined,
     }: Props = $props();
 
     const columnState = getColumnState();
-    let column = columnState.getColumn(index);
+    let column = columnProp ?? columnState.getColumn(index);
 
     const defaultSettings = {
         timeline: {
@@ -237,6 +243,11 @@
     }
 
     function deleteColumn() {
+        if (isSplit) {
+            columnState.unsplitColumnAt(index, false);
+            onclose(true);
+            return;
+        }
         if ($currentTimeline === index) {
             currentTimeline.set(0);
         }
@@ -283,9 +294,69 @@
 
         onclose(true);
     }
+
+    let isSplitModalOpen = $state(false);
+    let isUnsplitConfirmOpen = $state(false);
+    let splitModalTab = $state<'new' | 'existing'>('new');
+
+    let existingColumnsForSplit = $derived(
+        columnState.columns.filter((col, i) =>
+            i !== index &&
+            !col.splitColumn &&
+            col.id !== column.id
+        )
+    );
+
+    function openSplitModal() {
+        splitModalTab = 'new';
+        isSplitModalOpen = true;
+    }
+
+    function closeSplitModal() {
+        isSplitModalOpen = false;
+    }
+
+    function handleSplitColumnAdd(event: CustomEvent) {
+        const newColumn = event.detail.column;
+        newColumn.id = self.crypto.randomUUID();
+        columnState.splitColumnAt(index, newColumn);
+        isSplitModalOpen = false;
+        onclose(true);
+    }
+
+    function handleSplitExistingColumn(existingColumnId: string) {
+        const existingColumnIndex = columnState.columns.findIndex(c => c.id === existingColumnId);
+        const existingColumn = columnState.columns[existingColumnIndex];
+        if (!existingColumn) return;
+
+        const splitColumn = {
+            ...existingColumn,
+            id: existingColumn.id,
+            scrollElement: undefined,
+        };
+
+        columnState.remove(existingColumn.id);
+
+        const adjustedIndex = existingColumnIndex < index ? index - 1 : index;
+
+        columnState.splitColumnAt(adjustedIndex, splitColumn);
+        isSplitModalOpen = false;
+        onclose(true);
+    }
+
+    function handleSwapSplit() {
+        columnState.swapSplitColumn(index);
+        onclose(true);
+    }
+
+    function handleUnsplit(keepAsSeparate: boolean) {
+        columnState.unsplitColumnAt(index, keepAsSeparate);
+        isUnsplitConfirmOpen = false;
+        onclose(true);
+    }
 </script>
 
-<div class="deck-settings-wrap deck-settings-wrap--{layout}" in:fly={{duration: 250, opacity: 0, y: -8}}>
+<div class="deck-settings-wrap deck-settings-wrap--{layout}" class:deck-settings-wrap--split={isSplit} in:fly={{duration: 250, opacity: 0, y: -8}}>
     <div class="deck-settings">
         <div class="deck-settings-content">
             <p class="deck-settings-description">{$_('deck_settings_description')}</p>
@@ -356,7 +427,7 @@
                     </dl>
                 {/if}
 
-                {#if (!column.settings?.isPopup)}
+                {#if (!column.settings?.isPopup && !isSplit)}
                     <dl class="settings-group only-pc">
                         <dt class="settings-group__name">
                             {$_('column_width')}
@@ -454,7 +525,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type === 'chat')}
+                {#if (column.algorithm?.type === 'chat' && !isSplit)}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('column_background')}
@@ -658,6 +729,21 @@
                     </button>
                 {/if}
 
+                {#if ($settings.design?.layout === 'decks' && !column.settings?.isPopup)}
+                    {#if column.splitColumn}
+                        <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={handleSwapSplit}>
+                            <ArrowUpDown size="20" color="var(--primary-color)"></ArrowUpDown>{$_('swap_split')}
+                        </button>
+                        <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={() => {isUnsplitConfirmOpen = true}}>
+                            <Unlink size="20" color="var(--primary-color)"></Unlink>{$_('unsplit_column')}
+                        </button>
+                    {:else if !isSplit}
+                        <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={openSplitModal}>
+                            <SplitSquareVertical size="20" color="var(--primary-color)"></SplitSquareVertical>{$_('split_column')}
+                        </button>
+                    {/if}
+                {/if}
+
                 <button class="deck-column-delete-button deck-column-delete-button--clear" onclick={clearColumn}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                          stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eraser"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>{$_('clear_column_posts')}</button>
@@ -666,7 +752,84 @@
             </div>
         </div>
     </div>
+
 </div>
+
+{#if isSplitModalOpen}
+    <div class="split-modal-overlay" onclick={closeSplitModal}>
+        <div class="split-modal" onclick={(e) => e.stopPropagation()} transition:fly={{duration: 200, y: 20}}>
+            <div class="split-modal__header">
+                <h3 class="split-modal__title">{$_('split_select_column')}</h3>
+                <button class="split-modal__close" onclick={closeSplitModal}>×</button>
+            </div>
+
+            <div class="split-modal__tabs">
+                <button
+                    class="split-modal__tab"
+                    class:split-modal__tab--active={splitModalTab === 'new'}
+                    onclick={() => {splitModalTab = 'new'}}
+                >
+                    {$_('new_create')}
+                </button>
+                <button
+                    class="split-modal__tab"
+                    class:split-modal__tab--active={splitModalTab === 'existing'}
+                    onclick={() => {splitModalTab = 'existing'}}
+                >
+                    {$_('split_use_existing')}
+                </button>
+            </div>
+
+            <div class="split-modal__content">
+                {#if splitModalTab === 'new'}
+                    <ColumnChoices {_agent} on:add={handleSplitColumnAdd}></ColumnChoices>
+                {:else}
+                    {#if existingColumnsForSplit.length > 0}
+                        <div class="split-existing-list">
+                            {#each existingColumnsForSplit as existingCol, i}
+                                <button
+                                    class="split-existing-item"
+                                    onclick={() => handleSplitExistingColumn(existingCol.id)}
+                                >
+                                    <div class="split-existing-item__icon">
+                                        <ColumnIcon type={existingCol.algorithm.type}></ColumnIcon>
+                                    </div>
+                                    <div class="split-existing-item__content">
+                                        <div class="split-existing-item__name">{existingCol.algorithm.name}</div>
+                                        {#if existingCol.handle}
+                                            <div class="split-existing-item__handle">{existingCol.handle}</div>
+                                        {/if}
+                                    </div>
+                                </button>
+                            {/each}
+                        </div>
+                    {:else}
+                        <p class="split-existing-empty">{$_('split_no_existing_columns')}</p>
+                    {/if}
+                {/if}
+            </div>
+        </div>
+    </div>
+{/if}
+
+{#if isUnsplitConfirmOpen}
+    <div class="split-modal-overlay" onclick={() => {isUnsplitConfirmOpen = false}}>
+        <div class="split-modal split-modal--confirm" onclick={(e) => e.stopPropagation()} transition:fly={{duration: 200, y: 20}}>
+            <div class="split-modal__header">
+                <h3 class="split-modal__title">{$_('unsplit_column')}</h3>
+                <button class="split-modal__close" onclick={() => {isUnsplitConfirmOpen = false}}>×</button>
+            </div>
+            <div class="split-modal__content split-modal__content--confirm">
+                <button class="split-modal__option" onclick={() => handleUnsplit(true)}>
+                    <span class="split-modal__option-text">{$_('split_keep_as_column')}</span>
+                </button>
+                <button class="split-modal__option split-modal__option--danger" onclick={() => handleUnsplit(false)}>
+                    <span class="split-modal__option-text">{$_('split_delete')}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
 
 <style lang="postcss">
     .deck-settings-wrap {
@@ -682,6 +845,12 @@
 
         @media (max-width: 767px) {
             height: calc(100dvh - 64px - 90px - var(--safe-area-bottom));
+        }
+
+        &--split {
+            top: 48px;
+            bottom: 0;
+            height: auto;
         }
     }
 
@@ -823,5 +992,183 @@
         &--info {
             color: var(--link-color);
         }
+
+        &--split {
+            color: var(--primary-color);
+        }
+    }
+
+    .split-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        height: 100vh;
+    }
+
+    .split-modal {
+        background-color: var(--bg-color-1);
+        border-radius: var(--border-radius-5);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        max-width: 500px;
+        width: 100%;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        &--confirm {
+            max-width: 320px;
+        }
+
+        &__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+        }
+
+        &__title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        &__close {
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-content: center;
+            font-size: 24px;
+            color: var(--text-color-3);
+            border-radius: var(--border-radius-2);
+
+            &:hover {
+                background-color: var(--bg-color-2);
+            }
+        }
+
+        &__content {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+
+            &--confirm {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+
+        &__option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 16px;
+            border-radius: var(--border-radius-2);
+            background-color: var(--bg-color-2);
+            text-align: center;
+            font-size: 14px;
+            transition: background-color 0.15s ease;
+            color: var(--text-color-1);
+
+            &:hover {
+                background-color: var(--bg-color-3);
+            }
+
+            &--danger {
+                color: var(--danger-color);
+            }
+        }
+
+        &__option-text {
+            font-weight: 500;
+        }
+
+        &__tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color-1);
+        }
+
+        &__tab {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color-3);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: color 0.15s ease, border-color 0.15s ease;
+
+            &:hover {
+                color: var(--text-color-1);
+            }
+
+            &--active {
+                color: var(--primary-color);
+                border-bottom-color: var(--primary-color);
+            }
+        }
+    }
+
+    .split-existing-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .split-existing-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: var(--border-radius-2);
+        background-color: var(--bg-color-2);
+        text-align: left;
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background-color: var(--bg-color-3);
+        }
+
+        &__icon {
+            width: 24px;
+            height: 24px;
+            display: grid;
+            place-content: center;
+            flex-shrink: 0;
+        }
+
+        &__content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        &__name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color-1);
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        &__handle {
+            font-size: 12px;
+            color: var(--text-color-3);
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+    }
+
+    .split-existing-empty {
+        text-align: center;
+        color: var(--text-color-3);
+        font-size: 14px;
+        padding: 24px;
     }
 </style>

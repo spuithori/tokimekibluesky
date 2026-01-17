@@ -15,6 +15,8 @@
         unique?: any;
         isJunk?: boolean;
         isRefreshing?: boolean | string;
+        isSplit?: boolean;
+        column?: any;
     }
 
     let {
@@ -22,11 +24,13 @@
         _agent = $agent,
         unique = $bindable(Symbol()),
         isJunk = false,
-        isRefreshing = $bindable(false)
+        isRefreshing = $bindable(false),
+        isSplit = false,
+        column: columnProp = undefined
     }: Props = $props();
 
     const columnState = getColumnState(isJunk);
-    let column = columnState.getColumn(index);
+    let column = columnProp ?? columnState.getColumn(index);
 
     function getServiceHost(): string {
         try {

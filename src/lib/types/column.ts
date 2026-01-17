@@ -53,4 +53,6 @@ export type Column = {
         cursor: string | number,
     },
     scrollElement?: HTMLDivElement,
+    splitColumn?: Column,
+    splitRatio?: number,
 }

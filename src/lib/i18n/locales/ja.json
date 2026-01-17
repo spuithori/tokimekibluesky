@@ -836,5 +836,13 @@
   "kaku_select_background": "背景を選択",
   "follow_prompt_title": "公式アカウントをフォロー",
   "follow_prompt_description": "TOKIMEKIの最新情報をお届けします",
-  "chat_list": "チャット一覧"
+  "chat_list": "チャット一覧",
+  "split_column": "カラムを分割(β)",
+  "unsplit_column": "分割を解除",
+  "swap_split": "上下を入れ替え",
+  "split_keep_as_column": "独立したカラムにする",
+  "split_delete": "削除する",
+  "split_select_column": "追加するカラムを選択",
+  "split_use_existing": "既存のカラム",
+  "split_no_existing_columns": "移動できるカラムがありません"
 }

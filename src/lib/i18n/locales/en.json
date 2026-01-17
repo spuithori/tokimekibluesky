@@ -836,5 +836,13 @@
   "kaku_select_background": "Select background",
   "follow_prompt_title": "Follow official account",
   "follow_prompt_description": "Get the latest updates from TOKIMEKI",
-  "chat_list": "Chat List"
+  "chat_list": "Chat List",
+  "split_column": "Split column(β)",
+  "unsplit_column": "Unsplit column",
+  "swap_split": "Swap top/bottom",
+  "split_keep_as_column": "Keep as separate column",
+  "split_delete": "Delete",
+  "split_select_column": "Select column to add",
+  "split_use_existing": "Existing columns",
+  "split_no_existing_columns": "No columns available to move"
 }

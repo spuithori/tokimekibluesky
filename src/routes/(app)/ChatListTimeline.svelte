@@ -11,10 +11,10 @@
     import {onDestroy} from "svelte";
     import {instantPlaySound} from "$lib/sounds";
 
-    let { index, _agent = $agent, onrefresh, unique, isJunk } = $props();
+    let { index, _agent = $agent, onrefresh, unique, isJunk, isSplit = false, column: columnProp = undefined } = $props();
 
     const columnState = getColumnState(isJunk);
-    const column = columnState.getColumn(index);
+    const column = columnProp ?? columnState.getColumn(index);
 
     let currentView: 'list' | 'detail' = $state('list');
     let selectedConvoId: string | null = $state(null);
@@ -36,8 +36,11 @@
     });
 
     async function refreshListData() {
+        const currentAgent = _agent || $agent;
+        if (!currentAgent) return;
+
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.listConvos({cursor: ''}, {
+            const res = await currentAgent.agent.api.chat.bsky.convo.listConvos({cursor: ''}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
@@ -48,7 +51,7 @@
                     const existingConvo = convos.find(c => c.id === newConvo.id);
                     if (!newConvo.lastMessage) return false;
 
-                    const isFromOther = newConvo.lastMessage.sender?.did !== _agent.did();
+                    const isFromOther = newConvo.lastMessage.sender?.did !== currentAgent.did();
                     const messageTime = new Date(newConvo.lastMessage.sentAt).getTime();
 
                     if (existingConvo) {
@@ -86,7 +89,9 @@
     }
 
     function handleConvoSelect(convo) {
-        const otherMember = convo.members.filter(member => member.did !== _agent.did())[0];
+        const currentAgent = _agent || $agent;
+        const agentDid = currentAgent?.did?.();
+        const otherMember = convo.members.filter(member => member.did !== agentDid)[0];
         selectedConvoId = convo.id;
         selectedConvoName = otherMember?.displayName || otherMember?.handle || '';
         column.algorithm.id = convo.id;
@@ -103,8 +108,14 @@
     }
 
     async function handleLoadMore(loaded, complete) {
+        const currentAgent = _agent || $agent;
+        if (!currentAgent) {
+            complete();
+            return;
+        }
+
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.listConvos({cursor: cursor}, {
+            const res = await currentAgent.agent.api.chat.bsky.convo.listConvos({cursor: cursor}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
@@ -165,10 +176,12 @@
         {#key listUnique}
             <div class="convo-list">
                 {#each convos as convo (convo.id)}
-                    {#if !convo.members.filter(member => member.did !== _agent.did())[0]?.viewer?.blocking}
+                    {@const currentAgent = _agent || $agent}
+                    {@const agentDid = currentAgent?.did?.()}
+                    {#if !convo.members.filter(member => member.did !== agentDid)[0]?.viewer?.blocking}
                         <ChatListItemColumn
                             {convo}
-                            {_agent}
+                            _agent={currentAgent}
                             onrefresh={handleListRefresh}
                             onselect={handleConvoSelect}
                         ></ChatListItemColumn>
@@ -190,7 +203,7 @@
             <span class="chat-detail__name">{selectedConvoName}</span>
         </div>
 
-        <ChatTimeline {index} {_agent} {unique} {isJunk} {onrefresh}></ChatTimeline>
+        <ChatTimeline {index} _agent={_agent || $agent} {unique} {isJunk} {onrefresh} {isSplit} {column}></ChatTimeline>
     </div>
 {/if}
 

@@ -8,19 +8,25 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {settingsState} from "$lib/classes/settingsState.svelte";
 
-    let { index, _agent = $agent, onrefresh, unique, isJunk } = $props();
+    let { index, _agent = $agent, onrefresh, unique, isJunk, isSplit = false, column: columnProp = undefined } = $props();
     let firstLoad = true;
 
     const columnState = getColumnState(isJunk);
-    const column = columnState.getColumn(index);
+    const column = columnProp ?? columnState.getColumn(index);
 
     function isDuplicateMessage(oldFeed, newFeed) {
         return oldFeed.id === newFeed.id;
     }
 
     const handleLoadMore = async (loaded, complete) => {
+        const currentAgent = _agent || $agent;
+        if (!currentAgent) {
+            complete();
+            return;
+        }
+
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.getMessages({cursor: column.data.cursor, limit: 50, convoId: column.algorithm.id}, {
+            const res = await currentAgent.agent.api.chat.bsky.convo.getMessages({cursor: column.data.cursor, limit: 50, convoId: column.algorithm.id}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
@@ -80,12 +86,12 @@
   {/key}
 
   {#each column.data.feed as data (data)}
-    <ChatItem message={data} {_agent} convoId={column.algorithm.id} updateReaction={handleUpdateReaction}></ChatItem>
+    <ChatItem message={data} _agent={_agent || $agent} convoId={column.algorithm.id} updateReaction={handleUpdateReaction}></ChatItem>
   {/each}
 
   <div class="chat-anchor"></div>
 
-  <ChatPublish id={column.algorithm.id} {column} {_agent} {onrefresh}></ChatPublish>
+  <ChatPublish id={column.algorithm.id} {column} _agent={_agent || $agent} {onrefresh}></ChatPublish>
 </div>
 
 <style lang="postcss">
