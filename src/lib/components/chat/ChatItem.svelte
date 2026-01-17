@@ -6,8 +6,10 @@
     import {AppBskyEmbedRecord} from "@atproto/api";
     import { Laugh } from "lucide-svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
+    import {agent} from "$lib/stores";
 
     let { message, _agent, convoId, updateReaction } = $props();
+    const currentAgent = $derived(_agent || $agent);
     let isEmojiPickerOpen = $state(false);
 
     async function handleEmojiPick(emoji: string) {
@@ -29,13 +31,13 @@
         };
 
         if (message?.reactions.find(r => r.value === emoji)) {
-            return await _agent.agent.api.chat.bsky.convo.removeReaction(record, {
+            return await currentAgent?.agent?.api.chat.bsky.convo.removeReaction(record, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
             });
         } else {
-            return await _agent.agent.api.chat.bsky.convo.addReaction(record, {
+            return await currentAgent?.agent?.api.chat.bsky.convo.addReaction(record, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
@@ -45,13 +47,13 @@
 </script>
 
 <div class="chat-item-wrap">
-    <div class="chat-item" class:chat-item--me={message.sender.did === _agent.did()}>
+    <div class="chat-item" class:chat-item--me={message.sender.did === currentAgent?.did?.()}>
         {#if message.text}
             <p class="chat-item__text">
                 {#if isEmojiSequenceOrCombination(message.text)}
                     <span class="chat-text-emoji">{message.text}</span>
                 {:else}
-                    <TimelineText record={message} _agent={_agent}></TimelineText>
+                    <TimelineText record={message} _agent={currentAgent}></TimelineText>
                 {/if}
 
                 <time class="chat-item__time" datetime={lightFormat(new Date(message.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{lightFormat(new Date(message.sentAt), 'MM/dd HH:mm')}</time>
@@ -60,7 +62,7 @@
 
         {#if message.embed}
             {#if (AppBskyEmbedRecord.isView(message.embed) && AppBskyEmbedRecord.isViewRecord(message.embed?.record)) }
-                <EmbedRecord record={message.embed.record} {_agent}></EmbedRecord>
+                <EmbedRecord record={message.embed.record} _agent={currentAgent}></EmbedRecord>
             {/if}
         {/if}
 

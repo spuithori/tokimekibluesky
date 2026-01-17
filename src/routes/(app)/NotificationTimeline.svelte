@@ -12,9 +12,9 @@
 
     type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow' | 'like-via-repost' | 'repost-via-repost' | 'subscribed-post';
 
-    let { index, isJunk, _agent = $agent, unique } = $props();
+    let { index, isJunk, _agent = $agent, unique, isSplit = false, column: columnProp = undefined } = $props();
     let columnState = getColumnState(isJunk);
-    let column = columnState.getColumn(index);
+    let column = columnProp ?? columnState.getColumn(index);
     let sound = $derived(column.settings?.playSound);
     let isOnlyShowUnread = $derived(column.settings?.onlyShowUnread);
     let id = $derived(column.id);

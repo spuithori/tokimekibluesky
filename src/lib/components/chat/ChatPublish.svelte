@@ -4,8 +4,10 @@
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
   import {CHAT_PROXY} from "$lib/components/chat/chatConst";
   import type {Agent} from "$lib/agent";
+  import {agent} from "$lib/stores";
 
   let { id, column, _agent, onrefresh }: { _agent: Agent } = $props();
+  const currentAgent = $derived(_agent || $agent);
   let text = $state('');
   let json = $state();
   let editor = $state();
@@ -21,11 +23,11 @@
 
           let rt: RichText | undefined;
 
-          if (text) {
-              rt = await detectRichTextWithEditorJson(_agent, text, json);
+          if (text && currentAgent) {
+              rt = await detectRichTextWithEditorJson(currentAgent, text, json);
           }
 
-          const create = await _agent.agent.api.chat.bsky.convo.sendMessage({
+          const create = await currentAgent?.agent?.api.chat.bsky.convo.sendMessage({
               convoId: id,
               message: {
                   facets: rt ? rt.facets : undefined,
@@ -58,7 +60,7 @@
       bind:this={editor}
       on:publish={publish}
       on:focus={focus}
-      {_agent}
+      _agent={currentAgent}
       {isPublishEnabled}
   ></ChatTiptap>
 </div>

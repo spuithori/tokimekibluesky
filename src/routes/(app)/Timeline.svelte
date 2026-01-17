@@ -13,10 +13,10 @@
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
 
-  let { index, _agent = $agent, isJunk, unique } = $props();
+  let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined } = $props();
 
   const columnState = getColumnState(isJunk);
-  const column = columnState.getColumn(index);
+  const column = columnProp ?? columnState.getColumn(index);
   let isActorsListFinished = false;
   let actors = [];
   let realtimeCounter = 0;

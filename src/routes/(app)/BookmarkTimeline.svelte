@@ -5,10 +5,10 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {settingsState} from "$lib/classes/settingsState.svelte";
 
-  let { index, _agent, isJunk, unique } = $props();
+  let { index, _agent, isJunk, unique, isSplit = false, column: columnProp = undefined } = $props();
 
   const columnState = getColumnState(isJunk);
-  const column = columnState.getColumn(index);
+  const column = columnProp ?? columnState.getColumn(index);
   let feeds;
 
   if (typeof column.data.cursor !== 'number') {

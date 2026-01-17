@@ -1,32 +1,33 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import NotificationTimeline from "./NotificationTimeline.svelte";
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
-    import ThreadTimeline from "./ThreadTimeline.svelte";
     import {agent, agents, intersectingIndex, isColumnModalOpen, settings} from "$lib/stores";
     import {getAccountIdByDid, getDisplayNameByDid} from "$lib/util";
-    import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
-    import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
-    import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
-    import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
     import {iconMap} from "$lib/columnIcons";
     import {scrollDirection} from "$lib/scrollDirection";
     import {onDestroy, onMount} from "svelte";
     import {toast} from "svelte-sonner";
-    import ChatTimeline from "./ChatTimeline.svelte";
-    import ChatListTimeline from "./ChatListTimeline.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import { draggable, axis, ControlFrom, events, controls, Compartment, position, disabled } from '@neodrag/svelte';
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import Timeline from "./Timeline.svelte";
-    import BookmarkTimeline from "./BookmarkTimeline.svelte";
-    import ListTimeline from "./ListTimeline.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
-    import {Filter, GripVertical, PictureInPicture2, Settings2, SquarePlus, TextQuote, CheckCheck} from "lucide-svelte";
+    import {Filter, GripVertical, PictureInPicture2, Settings2, SquarePlus, TextQuote, CheckCheck, GripHorizontal} from "lucide-svelte";
     import { createLongPress } from "$lib/longpress";
     import Refresher from "$lib/components/utils/Refresher.svelte";
+    import DeckColumn from "./DeckColumn.svelte";
+    import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
+    import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
+    import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
+    import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
+    import NotificationTimeline from "./NotificationTimeline.svelte";
+    import ThreadTimeline from "./ThreadTimeline.svelte";
+    import ChatTimeline from "./ChatTimeline.svelte";
+    import ChatListTimeline from "./ChatListTimeline.svelte";
+    import ListTimeline from "./ListTimeline.svelte";
+    import BookmarkTimeline from "./BookmarkTimeline.svelte";
+    import Timeline from "./Timeline.svelte";
 
     interface Props {
         index?: number;
@@ -44,14 +45,18 @@
     const columnState = getColumnState(isJunk);
     const fixedColumnState = getColumnState(false);
     const column = columnState.getColumn(index);
+
+    let mainColumnEl = $state<DeckColumn>();
+    let splitColumnEls = $state<DeckColumn[]>([]);
     let unique = $state(Symbol());
+    let splitUniques = $state<symbol[]>([Symbol()]);
 
     if (!_agent) {
         _agent = $agents.get(getAccountIdByDid($agents, column.did)) || $agent;
     }
 
     let isSettingsOpen = $state(false);
-    let isTopScrolling = $state();
+    let isTopScrolling = $state(false);
     let isScrollPaused = $state(false);
     let isIconPickerOpen = $state(false);
     let observer;
@@ -62,10 +67,76 @@
     let reorderIndex = index;
     let isRefreshing = $state(false);
     let dragPosition = $state({x: 0, y: 0});
+    let isSplitResizing = $state(false);
+    let isMobile = $state(false);
+    let splitTopScrolling = $state<boolean[]>([false]);
 
     const eventsComp = Compartment.of(() =>
         position({ current: dragPosition }),
     );
+
+    let splitAgents = $derived(
+        column.splitColumn
+            ? [($agents.get(getAccountIdByDid($agents, column.splitColumn.did)) || $agent)]
+            : []
+    );
+
+    $effect(() => {
+        if (column.splitColumn && !column.splitColumn.data) {
+            column.splitColumn.data = {
+                feed: [],
+                cursor: '',
+            }
+        }
+    });
+
+    $effect(() => {
+        if (typeof window !== 'undefined') {
+            const checkMobile = () => {
+                isMobile = window.innerWidth <= 767;
+            };
+            checkMobile();
+            window.addEventListener('resize', checkMobile);
+            return () => window.removeEventListener('resize', checkMobile);
+        }
+    });
+
+    function startSplitResize(event: MouseEvent, splitIndex: number = 0) {
+        if (isMobile) return;
+        event.preventDefault();
+        isSplitResizing = true;
+
+        const container = (event.target as HTMLElement).closest('.deck-row-split-container') as HTMLElement;
+        const containerRect = container?.getBoundingClientRect();
+        const startY = event.clientY;
+        const startRatio = column.splitRatio ?? 0.5;
+
+        function onMouseMove(e: MouseEvent) {
+            if (!containerRect) return;
+            const deltaY = e.clientY - startY;
+            const deltaRatio = deltaY / containerRect.height;
+            let newRatio = startRatio + deltaRatio;
+            newRatio = Math.max(0.3, Math.min(0.7, newRatio));
+            column.splitRatio = newRatio;
+        }
+
+        function onMouseUp() {
+            isSplitResizing = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    }
+
+    function handleMouseEnter() {
+        isScrollPaused = true;
+    }
+
+    function handleMouseLeave() {
+        isScrollPaused = false;
+    }
 
     if (!column.data) {
         column.data = {
@@ -106,14 +177,6 @@
         if (clear) {
             forceRefresh();
         }
-    }
-
-    function handleMouseEnter() {
-        isScrollPaused = true;
-    }
-
-    function handleMouseLeave() {
-        isScrollPaused = false;
     }
 
     function handleIconChange(icon) {
@@ -331,166 +394,228 @@
          eventsComp,
      ])}
 >
-    <div
-        class="deck-row deck-row--{column.settings?.width || 'medium'}"
-        class:deck-row--popup={column.settings?.isPopup === true}
-        class:deck-row--bg={column.settings?.background}
-        class:deck-row--decks={$settings.design?.layout === 'decks'}
-        class:deck-row--single={$settings.design?.layout === 'default'}
-        class:deck-row--compact={publishState.layout === 'bottom'}
-        class:deck-row--mobileV2={$settings.design?.mobileNewUi && !isJunk}
-        class:deck-row--mobileV2-fixed={$settings.design?.fixedFooter}
-        class:deck-row--junk={isJunk}
-        class:deck-row--settings-open={isSettingsOpen}
-        onmouseenter={handleMouseEnter}
-        onmouseleave={handleMouseLeave}
-        onscroll={handleScroll}
-        bind:this={column.scrollElement}
-        style:background-image={column.settings?.background ? `url(${backgroundsMap.get(column.settings.background).url})` : 'none'}
-    >
-        <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk}>
-            {#if (!isJunk)}
-                {#if !column?.settings?.isPopup && $settings.design?.layout === 'decks'}
-                    <div class="deck-drag-area">
-                        <GripVertical size="20" color="var(--border-color-1)"></GripVertical>
-                    </div>
-                {/if}
-
-                <div class="deck-heading__icon">
-                    <button class="deck-heading__icon-picker-button" aria-label="Change icon" onclick={() => {isIconPickerOpen = !isIconPickerOpen}}>
-                        {#if column.settings?.icon}
-                            {@const SvelteComponent = iconMap.get(column.settings.icon)}
-                            <SvelteComponent color="var(--deck-heading-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></SvelteComponent>
-                        {:else}
-                            <ColumnIcon type={column.algorithm.type}></ColumnIcon>
-                        {/if}
-                    </button>
+    {#if column.splitColumn && !isMobile && !isJunk && $settings.design?.layout !== 'default'}
+        <div
+            class="deck-row deck-row--{column.settings?.width || 'medium'} deck-row--split"
+            class:deck-row--popup={column.settings?.isPopup === true}
+            class:deck-row--decks={$settings.design?.layout === 'decks'}
+            class:deck-row--compact={publishState.layout === 'bottom'}
+            onmouseenter={handleMouseEnter}
+            onmouseleave={handleMouseLeave}
+        >
+            <div class="deck-row-split-container">
+                <div
+                    class="deck-row-split deck-row-split--top"
+                    style="flex: {column.splitRatio ?? 0.5}"
+                >
+                    <DeckColumn
+                        bind:this={mainColumnEl}
+                        {column}
+                        {_agent}
+                        {index}
+                        isJunk={false}
+                        isSplit={true}
+                        bind:unique={unique}
+                        bind:isTopScrolling={isTopScrolling}
+                        {isScrollPaused}
+                        onScrollDirectionChange={(dir) => { scrollDirectionState.direction = dir; }}
+                        showDragHandle={!column?.settings?.isPopup && $settings.design?.layout === 'decks'}
+                    />
                 </div>
 
                 <div
-                        role="button"
-                        class="deck-heading__scroll-area"
-                        onclick={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root'), event)}}
-                        use:createLongPress={{callback: forceRefresh, duration: 500}}
-                        aria-label="Back to top."
+                    class="deck-row-split-divider"
+                    class:deck-row-split-divider--resizing={isSplitResizing}
+                    onmousedown={(e) => startSplitResize(e, 0)}
+                    role="separator"
+                    aria-orientation="horizontal"
                 >
-                    <div class="deck-heading__title">
-                        {column.algorithm.name} <span class="deck-heading__subhead">{column.handle}</span>
+                    <div class="deck-row-split-divider__handle">
+                        <GripHorizontal size="16" color="var(--text-color-3)"></GripHorizontal>
                     </div>
                 </div>
-            {:else}
-                {#if (column.algorithm.type === 'author')}
-                    <dl class="profile-posts-nav">
-                        <dt class="profile-posts-nav__name">
-                            <Filter size="20" color="var(--text-color-3)"></Filter>
-                        </dt>
-                        <dd class="profile-posts-nav__content">
-                            <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(false)}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
-                            <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(true)}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
-                        </dd>
-                    </dl>
-                {/if}
-            {/if}
 
-            <div class="deck-heading__buttons">
-                {#if isJunk && column.algorithm?.type === 'thread'}
-                    <button aria-label="Threaded Mode" class="deck-row-column-add-button" class:deck-row-column-add-button--active={$settings?.design?.threaded} onclick={() => {$settings.design.threaded = !$settings.design.threaded}}>
-                        <TextQuote color="var(--deck-row-settings-button-color, var(--primary-color))"></TextQuote>
-                    </button>
-                {/if}
-
-                {#if (isJunk && column.algorithm?.type !== 'authorLike')}
-                    <button class="deck-row-column-add-button" disabled={isColumnAlreadyAdded} onclick={columnAddFromJunk} aria-label="Add column">
-                        <SquarePlus color={isColumnAlreadyAdded ? 'var(--border-color-1)' : 'var(--primary-color)'}></SquarePlus>
-                    </button>
-                {/if}
-
-                {#if column.algorithm?.type === 'chat' && $settings.design?.layout === 'decks' && !isJunk}
-                    <button class="deck-popup-button only-pc" aria-label="Popup" onclick={handleChangePopup}>
-                        <PictureInPicture2 color="var(--text-color-1)"></PictureInPicture2>
-                    </button>
-                {/if}
-
-                {#if column.algorithm?.type === 'notification' && !isJunk}
-                    <button class="deck-popup-button only-pc" onclick={handleRefresh}>
-                        <CheckCheck color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></CheckCheck>
-                    </button>
-                {/if}
-
-                <ColumnRefreshButton
+                <div class="deck-row-split deck-row-split--bottom" style="flex: {1 - (column.splitRatio ?? 0.5)}">
+                    <DeckColumn
+                        bind:this={splitColumnEls[0]}
+                        column={column.splitColumn}
+                        _agent={splitAgents[0]}
                         {index}
-                        {_agent}
-                        bind:unique={unique}
-                        bind:this={refreshEl}
-                        {isJunk}
-                        {isRefreshing}
-                ></ColumnRefreshButton>
-
+                        isJunk={false}
+                        isSplit={true}
+                        bind:unique={splitUniques[0]}
+                        bind:isTopScrolling={splitTopScrolling[0]}
+                        {isScrollPaused}
+                    />
+                </div>
+            </div>
+        </div>
+    {:else}
+        <div
+            class="deck-row deck-row--{column.settings?.width || 'medium'}"
+            class:deck-row--popup={column.settings?.isPopup === true}
+            class:deck-row--bg={column.settings?.background}
+            class:deck-row--decks={$settings.design?.layout === 'decks'}
+            class:deck-row--single={$settings.design?.layout === 'default'}
+            class:deck-row--compact={publishState.layout === 'bottom'}
+            class:deck-row--mobileV2={$settings.design?.mobileNewUi && !isJunk}
+            class:deck-row--mobileV2-fixed={$settings.design?.fixedFooter}
+            class:deck-row--junk={isJunk}
+            class:deck-row--settings-open={isSettingsOpen}
+            onmouseenter={handleMouseEnter}
+            onmouseleave={handleMouseLeave}
+            onscroll={handleScroll}
+            bind:this={column.scrollElement}
+            style:background-image={column.settings?.background ? `url(${backgroundsMap.get(column.settings.background).url})` : 'none'}
+        >
+            <div class="deck-heading" class:deck-heading--sticky={isJunk && column.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk}>
                 {#if (!isJunk)}
-                    <button class="deck-row-settings-button" class:deck-row-settings-button--open={isSettingsOpen} aria-label="Settings" onclick={() => {isSettingsOpen = !isSettingsOpen}}>
-                        <Settings2 color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></Settings2>
+                    {#if !column?.settings?.isPopup && $settings.design?.layout === 'decks'}
+                        <div class="deck-drag-area">
+                            <GripVertical size="20" color="var(--border-color-1)"></GripVertical>
+                        </div>
+                    {/if}
+
+                    <div class="deck-heading__icon">
+                        <button class="deck-heading__icon-picker-button" aria-label="Change icon" onclick={() => {isIconPickerOpen = !isIconPickerOpen}}>
+                            {#if column.settings?.icon}
+                                {@const SvelteComponent = iconMap.get(column.settings.icon)}
+                                <SvelteComponent color="var(--deck-heading-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></SvelteComponent>
+                            {:else}
+                                <ColumnIcon type={column.algorithm.type}></ColumnIcon>
+                            {/if}
+                        </button>
+                    </div>
+
+                    <div
+                            role="button"
+                            class="deck-heading__scroll-area"
+                            onclick={(event) => {handleHeaderClick($settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root'), event)}}
+                            use:createLongPress={{callback: forceRefresh, duration: 500}}
+                            aria-label="Back to top."
+                    >
+                        <div class="deck-heading__title">
+                            {column.algorithm.name} <span class="deck-heading__subhead">{column.handle}</span>
+                        </div>
+                    </div>
+                {:else}
+                    {#if (column.algorithm.type === 'author')}
+                        <dl class="profile-posts-nav">
+                            <dt class="profile-posts-nav__name">
+                                <Filter size="20" color="var(--text-color-3)"></Filter>
+                            </dt>
+                            <dd class="profile-posts-nav__content">
+                                <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(false)}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
+                                <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(true)}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
+                            </dd>
+                        </dl>
+                    {/if}
+                {/if}
+
+                <div class="deck-heading__buttons">
+                    {#if isJunk && column.algorithm?.type === 'thread'}
+                        <button aria-label="Threaded Mode" class="deck-row-column-add-button" class:deck-row-column-add-button--active={$settings?.design?.threaded} onclick={() => {$settings.design.threaded = !$settings.design.threaded}}>
+                            <TextQuote color="var(--deck-row-settings-button-color, var(--primary-color))"></TextQuote>
+                        </button>
+                    {/if}
+
+                    {#if (isJunk && column.algorithm?.type !== 'authorLike')}
+                        <button class="deck-row-column-add-button" disabled={isColumnAlreadyAdded} onclick={columnAddFromJunk} aria-label="Add column">
+                            <SquarePlus color={isColumnAlreadyAdded ? 'var(--border-color-1)' : 'var(--primary-color)'}></SquarePlus>
+                        </button>
+                    {/if}
+
+                    {#if column.algorithm?.type === 'chat' && $settings.design?.layout === 'decks' && !isJunk}
+                        <button class="deck-popup-button only-pc" aria-label="Popup" onclick={handleChangePopup}>
+                            <PictureInPicture2 color="var(--text-color-1)"></PictureInPicture2>
+                        </button>
+                    {/if}
+
+                    {#if column.algorithm?.type === 'notification' && !isJunk}
+                        <button class="deck-popup-button only-pc" onclick={handleRefresh}>
+                            <CheckCheck color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></CheckCheck>
+                        </button>
+                    {/if}
+
+                    <ColumnRefreshButton
+                            {index}
+                            {_agent}
+                            bind:unique={unique}
+                            bind:this={refreshEl}
+                            {isJunk}
+                            {isRefreshing}
+                    ></ColumnRefreshButton>
+
+                    {#if (!isJunk)}
+                        <button class="deck-row-settings-button" class:deck-row-settings-button--open={isSettingsOpen} aria-label="Settings" onclick={() => {isSettingsOpen = !isSettingsOpen}}>
+                            <Settings2 color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></Settings2>
+                        </button>
+                    {/if}
+                </div>
+
+                {#if ($settings.design?.mobileNewUi && !isJunk)}
+                    <button
+                            class="deck-heading-side-button"
+                            onclick={() => {$isColumnModalOpen = true}}
+                    >
+                        <SquarePlus color="var(--bar-primary-icon-color)" size="22"></SquarePlus>
                     </button>
+                {/if}
+
+                {#if isIconPickerOpen}
+                    <ColumnIconPicker onchange={handleIconChange} onclose={() => {isIconPickerOpen = false}} current={column.settings?.icon}></ColumnIconPicker>
+                {/if}
+
+                {#if isSettingsOpen}
+                    <DeckSettingsModal {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick}></DeckSettingsModal>
                 {/if}
             </div>
 
-            {#if ($settings.design?.mobileNewUi && !isJunk)}
-                <button
-                        class="deck-heading-side-button"
-                        onclick={() => {$isColumnModalOpen = true}}
-                >
-                    <SquarePlus color="var(--bar-primary-icon-color)" size="22"></SquarePlus>
-                </button>
-            {/if}
-
-            {#if isIconPickerOpen}
-                <ColumnIconPicker onchange={handleIconChange} onclose={() => {isIconPickerOpen = false}} current={column.settings?.icon}></ColumnIconPicker>
-            {/if}
-
-            {#if isSettingsOpen}
-                <DeckSettingsModal {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick}></DeckSettingsModal>
-            {/if}
+            <Refresher
+                    onrefresh={handleRefresh}
+                    refresherHeight={80}
+                    pullMin={80}
+                    pullMax={160}
+                    disabled={column.algorithm.type === 'chat' || column.algorithm.type === 'chatList' || $settings.design?.layout === 'default'}
+            >
+                {#if _agent}
+                    <div class="deck-row__content">
+                        {#if (column.algorithm.type === 'notification')}
+                            <NotificationTimeline {index} {isJunk} {_agent} {unique}></NotificationTimeline>
+                        {:else if (column.algorithm.type === 'thread')}
+                            {#key unique}
+                                <ThreadTimeline {index} {_agent} {isJunk}></ThreadTimeline>
+                            {/key}
+                        {:else if (column.algorithm.type === 'chat')}
+                            <ChatTimeline {index} {_agent} {unique} {isJunk} onrefresh={handleRefresh}></ChatTimeline>
+                        {:else if (column.algorithm.type === 'chatList')}
+                            <ChatListTimeline {index} {_agent} {unique} {isJunk} onrefresh={handleRefresh}></ChatListTimeline>
+                        {:else if (column.algorithm.type === 'list')}
+                            {#key unique}
+                                <ListTimeline {index} {_agent} {isJunk} {unique}></ListTimeline>
+                            {/key}
+                        {:else if (column.algorithm.type === 'bookmark')}
+                            <BookmarkTimeline {index} {_agent} {isJunk} {unique}></BookmarkTimeline>
+                        {:else}
+                            <Timeline {index} {_agent} {isJunk} {unique}></Timeline>
+                        {/if}
+                    </div>
+                {:else}
+                    <div class="deck-row__content">
+                        <ColumnAgentMissing {column}></ColumnAgentMissing>
+                    </div>
+                {/if}
+            </Refresher>
         </div>
-
-        <Refresher
-                onrefresh={handleRefresh}
-                refresherHeight={80}
-                pullMin={80}
-                pullMax={160}
-                disabled={column.algorithm.type === 'chat' || column.algorithm.type === 'chatList' || $settings.design?.layout === 'default'}
-        >
-            {#if _agent}
-                <div class="deck-row__content">
-                    {#if (column.algorithm.type === 'notification')}
-                        <NotificationTimeline {index} {isJunk} {_agent} {unique}></NotificationTimeline>
-                    {:else if (column.algorithm.type === 'thread')}
-                        {#key unique}
-                            <ThreadTimeline {index} {_agent} {isJunk}></ThreadTimeline>
-                        {/key}
-                    {:else if (column.algorithm.type === 'chat')}
-                        <ChatTimeline {index} {_agent} {unique} {isJunk} onrefresh={handleRefresh}></ChatTimeline>
-                    {:else if (column.algorithm.type === 'chatList')}
-                        <ChatListTimeline {index} {_agent} {unique} {isJunk} onrefresh={handleRefresh}></ChatListTimeline>
-                    {:else if (column.algorithm.type === 'list')}
-                        {#key unique}
-                            <ListTimeline {index} {_agent} {isJunk} {unique}></ListTimeline>
-                        {/key}
-                    {:else if (column.algorithm.type === 'bookmark')}
-                        <BookmarkTimeline {index} {_agent} {isJunk} {unique}></BookmarkTimeline>
-                    {:else}
-                        <Timeline {index} {_agent} {isJunk} {unique}></Timeline>
-                    {/if}
-                </div>
-            {:else}
-                <div class="deck-row__content">
-                    <ColumnAgentMissing {column}></ColumnAgentMissing>
-                </div>
-            {/if}
-        </Refresher>
-    </div>
+    {/if}
 </div>
 
 {#if column.scrollElement && column.scrollElement instanceof HTMLElement && column.settings?.autoScroll}
     <ColumnAutoScrolling {column} {index} {isTopScrolling} {isScrollPaused} {unique}></ColumnAutoScrolling>
+{/if}
+
+{#if column.splitColumn?.scrollElement && column.splitColumn.scrollElement instanceof HTMLElement && column.splitColumn.settings?.autoScroll}
+    <ColumnAutoScrolling column={column.splitColumn} {index} isTopScrolling={splitTopScrolling[0]} {isScrollPaused} unique={splitUniques[0]}></ColumnAutoScrolling>
 {/if}
 
 <style lang="postcss">
@@ -942,11 +1067,85 @@
         @media (max-width: 767px) {
             display: none;
         }
+
     }
 
     .dragging {
         position: relative;
         z-index: 100000;
         transition: none;
+    }
+
+    .deck-row--split {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .deck-row-split-container {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .deck-row-split {
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        min-height: 0;
+
+        @supports (-moz-appearance: none) {
+            scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+            scrollbar-width: thin;
+        }
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--scroll-bar-color);
+            border-radius: var(--scroll-bar-border-radius, 0);
+        }
+
+        &::-webkit-scrollbar-track {
+            background: var(--scroll-bar-bg-color);
+        }
+
+        &--top {
+            border-bottom: none;
+        }
+
+        &--bottom {
+            border-top: none;
+        }
+    }
+
+    .deck-row-split-divider {
+        flex-shrink: 0;
+        height: 8px;
+        background-color: var(--bg-color-2);
+        border-top: 1px solid var(--deck-border-color);
+        border-bottom: 1px solid var(--deck-border-color);
+        cursor: ns-resize;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.15s ease;
+        user-select: none;
+
+        &:hover,
+        &--resizing {
+            background-color: var(--bg-color-3);
+        }
+
+        &__handle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+        }
     }
 </style>

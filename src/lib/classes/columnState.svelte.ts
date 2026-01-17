@@ -8,12 +8,26 @@ import {appState} from "$lib/classes/appState.svelte";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
-    syncColumns = $derived(this.columns.map(({ scrollElement, data, ...rest }) => ({
+    syncColumns = $derived(this.columns.map(({ scrollElement, data, splitColumn, ...rest }) => ({
         ...rest,
         data: {
             feed: !settingsState?.settings?.markedUnread ? [] : data?.notifications ? [] : data?.feed || [],
             cursor: !settingsState?.settings?.markedUnread ? '' : data?.notifications ? '' : data?.cursor || '',
-        }
+        },
+        ...(splitColumn ? {
+            splitColumn: {
+                ...(() => {
+                    const { scrollElement: splitScrollElement, data: splitData, ...splitRest } = splitColumn;
+                    return {
+                        ...splitRest,
+                        data: {
+                            feed: !settingsState?.settings?.markedUnread ? [] : splitData?.notifications ? [] : splitData?.feed || [],
+                            cursor: !settingsState?.settings?.markedUnread ? '' : splitData?.notifications ? '' : splitData?.cursor || '',
+                        }
+                    };
+                })()
+            }
+        } : {})
     })));
     isColumnsLoaded = $state(false);
 
@@ -65,6 +79,70 @@ export class ColumnState {
 
     getColumnIndex(id: string) {
         return this.columns.findIndex(column => column.id === id);
+    }
+
+    splitColumnAt(index: number, newColumn: Column) {
+        const column = this.columns[index];
+        if (column) {
+            column.splitColumn = newColumn;
+            column.splitRatio = column.splitRatio ?? 0.5;
+        }
+    }
+
+    unsplitColumnAt(index: number, keepAsSeparate: boolean) {
+        const column = this.columns[index];
+        if (column && column.splitColumn) {
+            if (keepAsSeparate) {
+                const splitColumn = { ...column.splitColumn };
+                splitColumn.id = self.crypto.randomUUID();
+                this.columns.splice(index + 1, 0, splitColumn);
+            }
+            column.splitColumn = undefined;
+            column.splitRatio = undefined;
+        }
+    }
+
+    swapSplitColumn(index: number) {
+        const column = this.columns[index];
+        if (column && column.splitColumn) {
+            const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
+
+            const tempAlgorithm = deepClone(column.algorithm);
+            const tempStyle = column.style;
+            const tempDid = column.did;
+            const tempHandle = column.handle;
+            const tempUnreadCount = column.unreadCount;
+            const tempFilter = column.filter ? deepClone(column.filter) : undefined;
+            const tempLastRefresh = column.lastRefresh;
+            const tempSettings = column.settings ? deepClone(column.settings) : {};
+
+            column.algorithm = deepClone(column.splitColumn.algorithm);
+            column.style = column.splitColumn.style;
+            column.did = column.splitColumn.did;
+            column.handle = column.splitColumn.handle;
+            column.unreadCount = column.splitColumn.unreadCount;
+            column.filter = column.splitColumn.filter ? deepClone(column.splitColumn.filter) : undefined;
+            column.lastRefresh = column.splitColumn.lastRefresh;
+            column.data = {
+                feed: [],
+                cursor: '',
+                ...(column.splitColumn.algorithm?.type === 'notification' ? { feedPool: [], notifications: [] } : {})
+            };
+
+            column.splitColumn.algorithm = tempAlgorithm;
+            column.splitColumn.style = tempStyle;
+            column.splitColumn.did = tempDid;
+            column.splitColumn.handle = tempHandle;
+            column.splitColumn.unreadCount = tempUnreadCount;
+            column.splitColumn.filter = tempFilter;
+            column.splitColumn.lastRefresh = tempLastRefresh;
+            column.splitColumn.settings = tempSettings;
+            column.splitColumn.data = {
+                feed: [],
+                cursor: '',
+                ...(tempAlgorithm?.type === 'notification' ? { feedPool: [], notifications: [] } : {})
+            };
+        }
     }
 
     updateLike(pulse: pulseReaction) {
