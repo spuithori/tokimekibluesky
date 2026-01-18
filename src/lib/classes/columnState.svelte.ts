@@ -145,6 +145,38 @@ export class ColumnState {
         }
     }
 
+    private updateLikeForColumn(column: Column, pulse: pulseReaction, targetUri: string) {
+        const feed = column?.algorithm?.type === 'notification' ? column?.data?.feedPool : column?.data?.feed;
+        if (!feed) return;
+
+        const did = column.did;
+        const isOwner = did === pulse.did;
+
+        for (const item of feed as AppBskyFeedDefs.FeedViewPost[]) {
+            if (item?.post?.uri === targetUri) {
+                item.post.likeCount = pulse.count;
+                item.post.viewer = {
+                    ...item.post.viewer,
+                    like: isOwner ? pulse.viewer : item.post.viewer?.like
+                };
+            }
+            if (item?.reply?.parent?.uri === targetUri) {
+                item.reply.parent.likeCount = pulse.count;
+                item.reply.parent.viewer = {
+                    ...item.reply.parent.viewer,
+                    like: isOwner ? pulse.viewer : item.reply.parent.viewer?.like
+                };
+            }
+            if (item?.reply?.root?.uri === targetUri) {
+                item.reply.root.likeCount = pulse.count;
+                item.reply.root.viewer = {
+                    ...item.reply.root.viewer,
+                    like: isOwner ? pulse.viewer : item.reply.root.viewer?.like
+                };
+            }
+        }
+    }
+
     updateLike(pulse: pulseReaction) {
         if (!pulse) {
             return;
@@ -154,38 +186,46 @@ export class ColumnState {
 
         try {
             for (const column of this.columns) {
-                const feed = column?.algorithm?.type === 'notification' ? column?.data?.feedPool : column?.data?.feed;
-                if (!feed) continue;
+                this.updateLikeForColumn(column, pulse, targetUri);
 
-                const did = column.did;
-                const isOwner = did === pulse.did;
-
-                for (const item of feed as AppBskyFeedDefs.FeedViewPost[]) {
-                    if (item?.post?.uri === targetUri) {
-                        item.post.likeCount = pulse.count;
-                        item.post.viewer = {
-                            ...item.post.viewer,
-                            like: isOwner ? pulse.viewer : item.post.viewer?.like
-                        };
-                    }
-                    if (item?.reply?.parent?.uri === targetUri) {
-                        item.reply.parent.likeCount = pulse.count;
-                        item.reply.parent.viewer = {
-                            ...item.reply.parent.viewer,
-                            like: isOwner ? pulse.viewer : item.reply.parent.viewer?.like
-                        };
-                    }
-                    if (item?.reply?.root?.uri === targetUri) {
-                        item.reply.root.likeCount = pulse.count;
-                        item.reply.root.viewer = {
-                            ...item.reply.root.viewer,
-                            like: isOwner ? pulse.viewer : item.reply.root.viewer?.like
-                        };
-                    }
+                if (column.splitColumn) {
+                    this.updateLikeForColumn(column.splitColumn as Column, pulse, targetUri);
                 }
             }
         } catch (e) {
             console.error(e);
+        }
+    }
+
+    private updateRepostForColumn(column: Column, pulse: pulseReaction, targetUri: string) {
+        const feed = column?.algorithm?.type === 'notification' ? column?.data?.feedPool : column?.data?.feed;
+        if (!feed) return;
+
+        const did = column.did;
+        const isOwner = did === pulse.did;
+
+        for (const item of feed as AppBskyFeedDefs.FeedViewPost[]) {
+            if (item?.post?.uri === targetUri) {
+                item.post.repostCount = pulse.count;
+                item.post.viewer = {
+                    ...item.post.viewer,
+                    repost: isOwner ? pulse.viewer : item.post.viewer?.repost
+                };
+            }
+            if (item?.reply?.parent?.uri === targetUri) {
+                item.reply.parent.repostCount = pulse.count;
+                item.reply.parent.viewer = {
+                    ...item.reply.parent.viewer,
+                    repost: isOwner ? pulse.viewer : item.reply.parent.viewer?.repost
+                };
+            }
+            if (item?.reply?.root?.uri === targetUri) {
+                item.reply.root.repostCount = pulse.count;
+                item.reply.root.viewer = {
+                    ...item.reply.root.viewer,
+                    repost: isOwner ? pulse.viewer : item.reply.root.viewer?.repost
+                };
+            }
         }
     }
 
@@ -198,38 +238,26 @@ export class ColumnState {
 
         try {
             for (const column of this.columns) {
-                const feed = column?.algorithm?.type === 'notification' ? column?.data?.feedPool : column?.data?.feed;
-                if (!feed) continue;
+                this.updateRepostForColumn(column, pulse, targetUri);
 
-                const did = column.did;
-                const isOwner = did === pulse.did;
-
-                for (const item of feed as AppBskyFeedDefs.FeedViewPost[]) {
-                    if (item?.post?.uri === targetUri) {
-                        item.post.repostCount = pulse.count;
-                        item.post.viewer = {
-                            ...item.post.viewer,
-                            repost: isOwner ? pulse.viewer : item.post.viewer?.repost
-                        };
-                    }
-                    if (item?.reply?.parent?.uri === targetUri) {
-                        item.reply.parent.repostCount = pulse.count;
-                        item.reply.parent.viewer = {
-                            ...item.reply.parent.viewer,
-                            repost: isOwner ? pulse.viewer : item.reply.parent.viewer?.repost
-                        };
-                    }
-                    if (item?.reply?.root?.uri === targetUri) {
-                        item.reply.root.repostCount = pulse.count;
-                        item.reply.root.viewer = {
-                            ...item.reply.root.viewer,
-                            repost: isOwner ? pulse.viewer : item.reply.root.viewer?.repost
-                        };
-                    }
+                if (column.splitColumn) {
+                    this.updateRepostForColumn(column.splitColumn as Column, pulse, targetUri);
                 }
             }
         } catch (e) {
             console.error(e);
+        }
+    }
+
+    private deletePostForColumn(column: Column, uri: string) {
+        if (column?.algorithm?.type === 'notification') {
+            if (column.data?.feedPool) {
+                column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri);
+            }
+        } else {
+            if (column.data?.feed) {
+                column.data.feed = column.data.feed.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri);
+            }
         }
     }
 
@@ -240,14 +268,26 @@ export class ColumnState {
 
         try {
             this.columns.forEach(column => {
-                if (column?.algorithm?.type === 'notification') {
-                    column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri);
-                } else {
-                    column.data.feed = column.data.feed.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri);
+                this.deletePostForColumn(column, uri);
+
+                if (column.splitColumn) {
+                    this.deletePostForColumn(column.splitColumn as Column, uri);
                 }
             });
         } catch (e) {
             console.error(e);
+        }
+    }
+
+    private deletePostsFromDidForColumn(column: Column, did: string) {
+        if (column?.algorithm?.type === 'notification') {
+            if (column.data?.feedPool) {
+                column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did);
+            }
+        } else {
+            if (column.data?.feed) {
+                column.data.feed = column.data.feed.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did);
+            }
         }
     }
 
@@ -258,10 +298,10 @@ export class ColumnState {
 
         try {
             this.columns.forEach(column => {
-                if (column?.algorithm?.type === 'notification') {
-                    column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did);
-                } else {
-                    column.data.feed = column.data.feed.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did);
+                this.deletePostsFromDidForColumn(column, did);
+
+                if (column.splitColumn) {
+                    this.deletePostsFromDidForColumn(column.splitColumn as Column, did);
                 }
             });
         } catch (e) {
