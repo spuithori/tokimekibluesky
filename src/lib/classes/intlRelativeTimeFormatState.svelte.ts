@@ -50,7 +50,7 @@ class IntlRelativeTimeFormatState {
         }
 
         const formattedString = this.instance.format(value, unit);
-        return formattedString.replace(/(in | ago|-)/g, '').trim();
+        return formattedString.replace(/^in /, '').replace(/ ago$/, '').replace(/^-/, '').trim();
     }
 
     changeLocale(locale: string) {
