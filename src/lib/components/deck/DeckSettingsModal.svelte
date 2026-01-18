@@ -427,7 +427,7 @@
                     </dl>
                 {/if}
 
-                {#if (!column.settings?.isPopup && !isSplit)}
+                {#if (!column.settings?.isPopup && (!isSplit || column.splitColumn))}
                     <dl class="settings-group only-pc">
                         <dt class="settings-group__name">
                             {$_('column_width')}
