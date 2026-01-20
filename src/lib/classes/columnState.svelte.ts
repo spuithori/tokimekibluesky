@@ -153,12 +153,15 @@ export class ColumnState {
         const isOwner = did === pulse.did;
 
         for (const item of feed as AppBskyFeedDefs.FeedViewPost[]) {
+            let found = false;
+
             if (item?.post?.uri === targetUri) {
                 item.post.likeCount = pulse.count;
                 item.post.viewer = {
                     ...item.post.viewer,
                     like: isOwner ? pulse.viewer : item.post.viewer?.like
                 };
+                found = true;
             }
             if (item?.reply?.parent?.uri === targetUri) {
                 item.reply.parent.likeCount = pulse.count;
@@ -166,6 +169,7 @@ export class ColumnState {
                     ...item.reply.parent.viewer,
                     like: isOwner ? pulse.viewer : item.reply.parent.viewer?.like
                 };
+                found = true;
             }
             if (item?.reply?.root?.uri === targetUri) {
                 item.reply.root.likeCount = pulse.count;
@@ -173,7 +177,10 @@ export class ColumnState {
                     ...item.reply.root.viewer,
                     like: isOwner ? pulse.viewer : item.reply.root.viewer?.like
                 };
+                found = true;
             }
+
+            if (found) break;
         }
     }
 
@@ -205,12 +212,15 @@ export class ColumnState {
         const isOwner = did === pulse.did;
 
         for (const item of feed as AppBskyFeedDefs.FeedViewPost[]) {
+            let found = false;
+
             if (item?.post?.uri === targetUri) {
                 item.post.repostCount = pulse.count;
                 item.post.viewer = {
                     ...item.post.viewer,
                     repost: isOwner ? pulse.viewer : item.post.viewer?.repost
                 };
+                found = true;
             }
             if (item?.reply?.parent?.uri === targetUri) {
                 item.reply.parent.repostCount = pulse.count;
@@ -218,6 +228,7 @@ export class ColumnState {
                     ...item.reply.parent.viewer,
                     repost: isOwner ? pulse.viewer : item.reply.parent.viewer?.repost
                 };
+                found = true;
             }
             if (item?.reply?.root?.uri === targetUri) {
                 item.reply.root.repostCount = pulse.count;
@@ -225,7 +236,10 @@ export class ColumnState {
                     ...item.reply.root.viewer,
                     repost: isOwner ? pulse.viewer : item.reply.root.viewer?.repost
                 };
+                found = true;
             }
+
+            if (found) break;
         }
     }
 
