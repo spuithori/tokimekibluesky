@@ -138,9 +138,13 @@
       class:timeline-images--nocrop={$settings?.design.oneImageNoCrop}
   >
     {#each images as image, index (image)}
-      <div class="timeline-image">
+      {@const ar = image.aspectRatio}
+      <div
+        class="timeline-image"
+        style={ar?.width && ar?.height ? `--img-width: ${ar.width}; --img-height: ${ar.height}` : ''}
+      >
         {#if (blobs[index]?.image.mimeType === 'image/gif')}
-          <GifImage {did} blob={blobs[index]?.image} alt={image.alt}></GifImage>
+          <GifImage {did} blob={blobs[index]?.image} alt={image.alt} aspectRatio={image.aspectRatio}></GifImage>
         {:else}
           <button onclick={() => handleOpen(index)} aria-label="Open image.">
             <ImageLoader {image} naturalWidth={(v) => {galleryImages[index].width = v}} naturalHeight={(v) => {galleryImages[index].height = v}}></ImageLoader>

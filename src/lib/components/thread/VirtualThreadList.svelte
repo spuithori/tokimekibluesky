@@ -1,13 +1,16 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import {settings} from '$lib/stores';
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
-  import { Virtualizer } from "virtua/svelte";
+  import VirtualList from "$lib/components/virtual/VirtualList.svelte";
   import {_} from "svelte-i18n";
 
   let { column, _agent, rootIndex, onchangeprofile, isJunk } = $props();
-  let parent = $state();
-  let el: VList = $state();
-  let isFirst = $state(true);
+  let parent = $state<HTMLElement | undefined>();
+  let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
+  let hasScrolledToRoot = false;
+  let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
+  let topMargin = $derived(isSingleColumnMode ? 52 : 121);
 
   onchangeprofile(_agent.did(), _agent.handle());
 
@@ -15,66 +18,138 @@
     $settings.design.threaded = false;
   }
 
-  $effect(() => {
-    if (el) {
-      if (!rootIndex) {
-        rootIndex = column.data.feed.findIndex(_feed => _feed.depth === 0);
-      }
-
-      const offset = el.getScrollOffset();
-
-      if (!isFirst && !offset) {
-        el.scrollToIndex(rootIndex, {
-          align: 'start',
-          offset: -102 + offset,
-        });
-      }
-
-      isFirst = false;
+  let scrollContainer = $derived.by(() => {
+    if (!parent) return null;
+    if (isJunk) {
+      return parent.closest('.modal-page-content') as HTMLElement | null;
     }
+    if (isSingleColumnMode) {
+      return document.documentElement;
+    }
+    return column.scrollElement ?? null;
+  });
+
+  function getKey(data: any, index: number): string {
+    return `thread-${index}-${data?.post?.uri || ''}`;
+  }
+
+  let isWindowScroll = $derived(
+    scrollContainer === document.documentElement ||
+    scrollContainer === document.body
+  );
+
+  function getScrollTop(): number {
+    if (isWindowScroll) return window.scrollY;
+    return scrollContainer?.scrollTop ?? 0;
+  }
+
+  function setScrollTop(value: number): void {
+    if (isWindowScroll) {
+      window.scrollTo(0, value);
+    } else if (scrollContainer) {
+      scrollContainer.scrollTop = value;
+    }
+  }
+
+  $effect(() => {
+    if (!virtualList || !scrollContainer || column.data.feed.length === 0 || hasScrolledToRoot) return;
+
+    let targetIdx = rootIndex;
+    if (targetIdx === undefined || targetIdx === null) {
+      targetIdx = column.data.feed.findIndex((_feed: any) => _feed.depth === 0);
+    }
+
+    if (targetIdx <= 0) return;
+
+    hasScrolledToRoot = true;
+
+    const initialPosition = virtualList.getPositionForIndex(targetIdx);
+    setScrollTop(initialPosition + topMargin);
+
+    const maxAttempts = 8;
+
+    async function performScrollAdjustment() {
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        if (!virtualList || !scrollContainer) break;
+
+        virtualList.prepareForIndex(targetIdx);
+        await tick();
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+        const element = virtualList?.getItemElement(targetIdx);
+        if (!element) continue;
+
+        const elementRect = element.getBoundingClientRect();
+        let targetTop: number;
+
+        if (isWindowScroll) {
+          targetTop = elementRect.top - topMargin;
+        } else {
+          const containerRect = scrollContainer.getBoundingClientRect();
+          targetTop = elementRect.top - containerRect.top - topMargin;
+        }
+
+        if (Math.abs(targetTop) <= 3) break;
+
+        setScrollTop(getScrollTop() + targetTop);
+      }
+    }
+
+    performScrollAdjustment();
   });
 </script>
 
-<div class="timeline timeline--inline-p0" class:end-filler={column.data.feed.length > 1} bind:this={parent}>
-  {#if (parent)}
-    <Virtualizer data={column.data.feed} getKey={(data, index) => index} scrollRef={isJunk ? parent.closest('.modal-page-content') : column.scrollElement} bind:this={el} startMargin={102}>
-      {#snippet children(item, index)}
-        {#if (!column.data.feed[index].blocked && !column.data.feed[index].notFound)}
-          <div
-              data-depth={column.data.feed[index]?.depth}
-              class="thread-item"
-              class:thread-item--compact={$settings?.design.postsLayout === 'compact'}
-              class:thread-item--minimum={$settings?.design.postsLayout === 'minimum'}
-              class:thread-item--threaded={$settings?.design?.threaded}
-              class:thread-item--bubble={$settings?.design?.bubbleTimeline}
-              class:is-root={!column.data.feed[0]?.post?.record?.reply}
-              class:is-final={column.data.feed[index].post.replyCount === 0}
-              class:has-child={column.data.feed[index].post.replyCount > 0}
-          >
-            <VirtualThreadItem {column} {index} {_agent}></VirtualThreadItem>
+<div
+  class="timeline timeline--inline-p0"
+  class:end-filler={column.data.feed.length > 1}
+  bind:this={parent}
+>
+  <VirtualList
+    items={column.data.feed}
+    {getKey}
+    {scrollContainer}
+    {topMargin}
+    buffer={7}
+    estimatedItemHeight={200}
+    maintainScrollPosition={false}
+    bind:this={virtualList}
+  >
+    {#snippet children(item, index)}
+      {#if (!item.blocked && !item.notFound)}
+        <div
+            data-depth={item?.depth}
+            class="thread-item"
+            class:thread-item--compact={$settings?.design.postsLayout === 'compact'}
+            class:thread-item--minimum={$settings?.design.postsLayout === 'minimum'}
+            class:thread-item--threaded={$settings?.design?.threaded}
+            class:thread-item--bubble={$settings?.design?.bubbleTimeline}
+            class:is-root={!column.data.feed[0]?.post?.record?.reply}
+            class:is-final={item.post.replyCount === 0}
+            class:has-child={item.post.replyCount > 0}
+        >
+          <VirtualThreadItem {column} {index} {_agent}></VirtualThreadItem>
 
-            {#if (column.data.feed[index]?.depth > 1)}
-              <span class="thread-round-border"></span>
-            {/if}
+          {#if (item?.depth > 1)}
+            <span class="thread-round-border"></span>
+          {/if}
 
-            {#if $settings?.design?.threaded}
-              {#each {length: column.data.feed[index].depth}, i}
-                <span class="thread-depth-bar thread-depth-bar--{i}"></span>
-              {/each}
-            {/if}
+          {#if $settings?.design?.threaded}
+            {#each {length: item.depth}, i}
+              <span class="thread-depth-bar thread-depth-bar--{i}"></span>
+            {/each}
+          {/if}
 
-            {#if (column.data.feed[index]?.post?.replyCount > 0 && column.data.feed[index]?.depth === 6)}
-              <a href={'/profile/' + column.data.feed[index].post.author.handle + '/post/' + column.data.feed[index].post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
-            {/if}
-          </div>
-        {:else}
-          <article class="timeline-hidden-item">
-            <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
-          </article>
-        {/if}
-      {/snippet}
-    </Virtualizer>
-  {/if}
+          {#if (item?.post?.replyCount > 0 && item?.depth === 6)}
+            <a href={'/profile/' + item.post.author.handle + '/post/' + item.post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
+          {/if}
+        </div>
+      {:else}
+        <article class="timeline-hidden-item">
+          <p class="timeline-hidde-item__text">{$_('deleted_post')}</p>
+        </article>
+      {/if}
+    {/snippet}
+  </VirtualList>
 </div>
 
 <style lang="postcss">
@@ -149,7 +224,7 @@
           }
       }
   }
-  
+
   .end-filler {
       &::after {
           content: '';

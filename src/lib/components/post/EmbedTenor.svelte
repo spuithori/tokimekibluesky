@@ -9,7 +9,7 @@
   }
 </script>
 
-<div class="gif-video-wrap">
+<div class="gif-video-wrap" style="--tenor-width: {tenor.width || 16}; --tenor-height: {tenor.height || 9}">
   {#if tenor.mp4Url}
     {#if paused}
       <div class="gif-pause-icon">
@@ -21,6 +21,8 @@
 
     <video class="gif-video"
            src={tenor.mp4Url}
+           width={tenor.width}
+           height={tenor.height}
            bind:paused
            autoplay={!$settings?.general?.disableTenorAutoplay}
            muted
@@ -37,12 +39,22 @@
 <style lang="postcss">
   .gif-video-wrap {
       position: relative;
+      aspect-ratio: var(--tenor-width, 16) / var(--tenor-height, 9);
+      max-width: 100%;
   }
 
   .gif-video {
       display: block;
       width: 100%;
-      aspect-ratio: auto;
+      height: 100%;
+      object-fit: contain;
+  }
+
+  .gif-video-wrap img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
   }
 
   .gif-toggle {

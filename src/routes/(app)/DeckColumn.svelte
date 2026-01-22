@@ -66,17 +66,27 @@
 
         if (el.scrollTop === 0) {
             handleRefresh();
+            isTopScrolling = false;
         } else {
             el.scroll({
                 top: 0,
                 left: 0,
                 behavior: 'smooth',
             });
-        }
 
-        setTimeout(() => {
-            isTopScrolling = false;
-        }, 1000);
+            const onScrollEnd = () => {
+                if (el.scrollTop <= 5) {
+                    isTopScrolling = false;
+                    el.removeEventListener('scroll', onScrollEnd);
+                }
+            };
+            el.addEventListener('scroll', onScrollEnd, { passive: true });
+
+            setTimeout(() => {
+                isTopScrolling = false;
+                el.removeEventListener('scroll', onScrollEnd);
+            }, 3000);
+        }
     }
 
     async function handleRefresh(event?: any) {
@@ -246,7 +256,7 @@
         {:else if column.algorithm?.type === 'bookmark'}
             <BookmarkTimeline {index} {_agent} {isJunk} {unique} {isSplit} {column}></BookmarkTimeline>
         {:else}
-            <Timeline {index} {_agent} {isJunk} {unique} {isSplit} {column}></Timeline>
+            <Timeline {index} {_agent} {isJunk} {unique} {isSplit} {column} {isTopScrolling}></Timeline>
         {/if}
     {:else}
         <ColumnAgentMissing {column}></ColumnAgentMissing>

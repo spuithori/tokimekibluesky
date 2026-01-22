@@ -12,8 +12,9 @@
   import {isAfter} from "date-fns";
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
+  import VirtualTimeline from "$lib/components/timeline/VirtualTimeline.svelte";
 
-  let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined } = $props();
+  let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
 
   const columnState = getColumnState(isJunk);
   const column = columnProp ?? columnState.getColumn(index);
@@ -280,37 +281,54 @@
   })
 </script>
 
-<div class="timeline timeline--{column.style}">
-  <div class:media-list={column.style === 'media'} class:media-list--1={column.style === 'media' && column?.settings?.mediaColumns === 1} class:media-list--2={column.style === 'media' && column?.settings?.mediaColumns === 2} class:video-list={column.style === 'video'}>
-    {#each column.data.feed as data, index (data)}
-      {#if (data?.post?.author?.did)}
-        <svelte:boundary>
-          <TimelineItem
-                  {data}
-                  {index}
-                  {column}
-                  {_agent}
-                  isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
-                  isPinned={isReasonPin(data?.reason)}
-          ></TimelineItem>
-
-          {#snippet failed(error, reset)}
-            <p style="padding: 16px;">post load error!!</p>
-          {/snippet}
-        </svelte:boundary>
-      {/if}
-
-      {#if data?.isDivider}
-        <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={(el) => {handleDividerUp(index, data.memoryCursor, el)}}></MoreDivider>
-      {/if}
-    {/each}
-  </div>
-
-  {#key unique}
-    <Infinite oninfinite={handleLoadMore}></Infinite>
-  {/key}
+{#if column.style === 'default' || !column.style}
+  <VirtualTimeline
+    {column}
+    {_agent}
+    {isJunk}
+    {unique}
+    {isTopScrolling}
+    {handleLoadMore}
+    {handleDividerClick}
+    {handleDividerUp}
+  />
 
   {#if (isDividerLoading)}
     <div class="more-divider-filler" style="--more-divider-filler-height: {dividerFillerHeight}px"></div>
   {/if}
-</div>
+{:else}
+  <div class="timeline timeline--{column.style}">
+    <div class:media-list={column.style === 'media'} class:media-list--1={column.style === 'media' && column?.settings?.mediaColumns === 1} class:media-list--2={column.style === 'media' && column?.settings?.mediaColumns === 2} class:video-list={column.style === 'video'}>
+      {#each column.data.feed as data, index (data)}
+        {#if (data?.post?.author?.did)}
+          <svelte:boundary>
+            <TimelineItem
+                    {data}
+                    {index}
+                    {column}
+                    {_agent}
+                    isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
+                    isPinned={isReasonPin(data?.reason)}
+            ></TimelineItem>
+
+            {#snippet failed(error, reset)}
+              <p style="padding: 16px;">post load error!!</p>
+            {/snippet}
+          </svelte:boundary>
+        {/if}
+
+        {#if data?.isDivider}
+          <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={(el) => {handleDividerUp(index, data.memoryCursor, el)}}></MoreDivider>
+        {/if}
+      {/each}
+    </div>
+
+    {#key unique}
+      <Infinite oninfinite={handleLoadMore}></Infinite>
+    {/key}
+
+    {#if (isDividerLoading)}
+      <div class="more-divider-filler" style="--more-divider-filler-height: {dividerFillerHeight}px"></div>
+    {/if}
+  </div>
+{/if}

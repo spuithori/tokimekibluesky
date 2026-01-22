@@ -146,7 +146,7 @@
     }
 
     function handleHeaderClick(el) {
-        if (!el.scroll) {
+        if (!el?.scroll) {
             return false;
         }
 
@@ -158,17 +158,27 @@
 
         if (el.scrollTop === 0) {
             handleRefresh();
+            isTopScrolling = false;
         } else {
             el.scroll({
                 top: 0,
                 left: 0,
                 behavior: 'smooth',
             });
-        }
 
-        setTimeout(() => {
-            isTopScrolling = false;
-        }, 1000);
+            const onScrollEnd = () => {
+                if (el.scrollTop <= 5) {
+                    isTopScrolling = false;
+                    el.removeEventListener('scroll', onScrollEnd);
+                }
+            };
+            el.addEventListener('scroll', onScrollEnd, { passive: true });
+
+            setTimeout(() => {
+                isTopScrolling = false;
+                el.removeEventListener('scroll', onScrollEnd);
+            }, 3000);
+        }
     }
 
     function handleSettingsClick(clear = false) {
@@ -597,7 +607,7 @@
                         {:else if (column.algorithm.type === 'bookmark')}
                             <BookmarkTimeline {index} {_agent} {isJunk} {unique}></BookmarkTimeline>
                         {:else}
-                            <Timeline {index} {_agent} {isJunk} {unique}></Timeline>
+                            <Timeline {index} {_agent} {isJunk} {unique} {isTopScrolling}></Timeline>
                         {/if}
                     </div>
                 {:else}

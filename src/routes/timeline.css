@@ -575,7 +575,7 @@
         }
 
         .timeline-image:only-child {
-            aspect-ratio: auto !important;
+            aspect-ratio: var(--img-width, 1) / var(--img-height, 1);
         }
     }
 

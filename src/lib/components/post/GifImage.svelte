@@ -9,9 +9,10 @@
         did: any;
         blob: any;
         alt?: string;
+        aspectRatio?: { width?: number; height?: number };
     }
 
-    let { did, blob, alt = '' }: Props = $props();
+    let { did, blob, alt = '', aspectRatio }: Props = $props();
 
     async function getUrlByBlob(blob) {
         try {
@@ -39,9 +40,9 @@
     })
 </script>
 
-<div class="gif-image">
+<div class="gif-image" style={aspectRatio?.width && aspectRatio?.height ? `--gif-width: ${aspectRatio.width}; --gif-height: ${aspectRatio.height}` : ''}>
     {#if (url)}
-        <img src={url} alt={alt}>
+        <img src={url} alt={alt} width={aspectRatio?.width} height={aspectRatio?.height}>
     {:else}
         <div class="gif-image-loading">
             <LoadingSpinner color="var(--text-color-1)" size="32" padding="0"></LoadingSpinner>
