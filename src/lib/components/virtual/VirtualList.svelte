@@ -49,6 +49,10 @@
   let previousItemsLength = 0;
   let previousFirstKey: string | null = null;
 
+  let capturedAnchorKey: string | null = null;
+  let capturedAnchorTop: number | null = null;
+  let capturedScrollTop: number = 0;
+
   let resizeObserver: ResizeObserver | null = null;
 
   let isWindowScroll = $derived(
@@ -221,7 +225,7 @@
     heightUpdateScheduled = false;
     if (!hasChanges) return;
     recalculatePositions();
-    if (scrollAdjustment !== 0 && currentScrollTop > 10 && !isTopScrolling && maintainScrollPosition) {
+    if (scrollAdjustment !== 0 && !isTopScrolling && maintainScrollPosition) {
       isAdjustingScroll = true;
       setScrollTop(currentScrollTop + scrollAdjustment);
       requestAnimationFrame(() => {
@@ -336,6 +340,40 @@
     return () => observer.disconnect();
   }
 
+  $effect.pre(() => {
+    void items.length;
+
+    if (!maintainScrollPosition || isTopScrolling || !scrollContainer || itemRefs.size === 0) {
+      capturedAnchorKey = null;
+      capturedAnchorTop = null;
+      return;
+    }
+
+    const containerRect = isWindowScroll ? null : scrollContainer?.getBoundingClientRect();
+    const containerTop = (containerRect?.top ?? 0) + topMargin;
+
+    let bestKey: string | null = null;
+    let bestTop: number | null = null;
+    let bestScore = Infinity;
+
+    for (const [key, element] of itemRefs) {
+      const rect = element.getBoundingClientRect();
+      if (rect.height === 0) continue;
+      if (rect.bottom < containerTop - 100 || rect.top > containerTop + viewportHeight + 100) continue;
+
+      const distanceFromTop = Math.abs(rect.top - containerTop);
+      if (distanceFromTop < bestScore) {
+        bestScore = distanceFromTop;
+        bestKey = key;
+        bestTop = rect.top;
+      }
+    }
+
+    capturedAnchorKey = bestKey;
+    capturedAnchorTop = bestTop;
+    capturedScrollTop = getScrollTop();
+  });
+
   $effect(() => {
     const len = items.length;
     const firstKey = len > 0 ? getKey(items[0], 0) : null;
@@ -346,59 +384,35 @@
       previousItemsLength = 0;
       visibleStart = 0;
       visibleEnd = 0;
+      capturedAnchorKey = null;
+      capturedAnchorTop = null;
       queueMicrotask(() => renderVersion++);
       return;
     }
 
-    const scrollTop = getScrollTop();
-    const shouldMaintainPosition = maintainScrollPosition && !isTopScrolling && scrollContainer && scrollTop > 5;
+    const shouldMaintainPosition = maintainScrollPosition && !isTopScrolling && scrollContainer;
 
-    if (shouldMaintainPosition && itemRefs.size > 0) {
-      const containerRect = isWindowScroll ? null : scrollContainer?.getBoundingClientRect();
-      const containerTop = containerRect?.top ?? 0;
-      const viewportTop = containerTop + topMargin;
+    if (shouldMaintainPosition && capturedAnchorKey !== null && capturedAnchorTop !== null) {
+      const anchorKey = capturedAnchorKey;
+      const anchorTop = capturedAnchorTop;
+      const scrollTopBefore = capturedScrollTop;
 
-      let anchorKey: string | null = null;
-      let anchorTop: number | null = null;
-      let bestScore = Infinity;
+      capturedAnchorKey = null;
+      capturedAnchorTop = null;
 
-      for (const [key, element] of itemRefs) {
-        const rect = element.getBoundingClientRect();
-        if (rect.height === 0) continue;
+      recalculatePositions();
+      previousFirstKey = firstKey;
+      previousItemsLength = len;
 
-        const isInViewport = rect.bottom > containerTop && rect.top < containerTop + viewportHeight;
-        if (!isInViewport) continue;
-
-        const distanceFromTop = Math.abs(rect.top - viewportTop);
-        if (distanceFromTop < bestScore) {
-          bestScore = distanceFromTop;
-          anchorKey = key;
-          anchorTop = rect.top;
-        }
-      }
-
-      if (anchorKey !== null && anchorTop !== null) {
-        const capturedKey = anchorKey;
-        const capturedTop = anchorTop;
-        const capturedScrollTop = scrollTop;
-
-        recalculatePositions();
-        previousFirstKey = firstKey;
-        previousItemsLength = len;
-
-        tick().then(() => {
-          const element = itemRefs.get(capturedKey);
-          if (!element) {
-            updateVisibleRange();
-            return;
-          }
-
+      tick().then(() => {
+        const element = itemRefs.get(anchorKey);
+        if (element) {
           const newTop = element.getBoundingClientRect().top;
-          const diff = newTop - capturedTop;
+          const diff = newTop - anchorTop;
 
           if (Math.abs(diff) > 0.5) {
             isAdjustingScroll = true;
-            setScrollTop(capturedScrollTop + diff);
+            setScrollTop(scrollTopBefore + diff);
             queueMicrotask(() => {
               isAdjustingScroll = false;
               updateVisibleRange();
@@ -406,10 +420,15 @@
           } else {
             updateVisibleRange();
           }
-        });
-        return;
-      }
+        } else {
+          updateVisibleRange();
+        }
+      });
+      return;
     }
+
+    capturedAnchorKey = null;
+    capturedAnchorTop = null;
 
     recalculatePositions();
     previousFirstKey = firstKey;

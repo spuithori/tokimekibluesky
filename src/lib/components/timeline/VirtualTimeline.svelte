@@ -183,6 +183,7 @@
     {topMargin}
     {isTopScrolling}
     {initialScrollState}
+    maintainScrollPosition={!column.settings?.refreshToTop}
     buffer={10}
     estimatedItemHeight={200}
     bind:this={virtualList}

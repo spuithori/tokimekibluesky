@@ -89,7 +89,6 @@
 
         if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList' || column.algorithm.type === 'myPost' || column.algorithm.type === 'myMedia') {
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
-            const topEl = column.scrollElement.querySelector('.timeline__item');
 
             if (!res?.data) {
                 isRefreshing = false;
@@ -119,20 +118,6 @@
             }
 
             column.data.feed.unshift(...newFeed);
-
-            if (elInitialPosition === 0 && column.settings?.refreshToTop !== true && topEl) {
-                if (column.style !== 'media') {
-                    const offset = column.scrollElement.querySelector('.timeline').getBoundingClientRect().top + 16;
-
-                    if (isJunk && $settings.design?.layout === 'decks') {
-                        await tick();
-                        el.closest('.modal-page-content').scrollTo(0, topEl.getBoundingClientRect().top - offset)
-                    } else {
-                        await tick();
-                        el.scrollTo(0, topEl.getBoundingClientRect().top - offset);
-                    }
-                }
-            }
         } else if (column.algorithm.type === 'bookmark') {
             column.data.feed = [];
             column.data.cursor = 0;
