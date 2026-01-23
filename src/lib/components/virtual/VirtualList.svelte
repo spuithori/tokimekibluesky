@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { tick } from 'svelte';
   import type { Snippet } from 'svelte';
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
 
@@ -31,31 +31,25 @@
     children
   }: Props<any> = $props();
 
-  let listEl: HTMLElement | undefined = $state();
-  let topSentinelEl: HTMLElement | undefined = $state();
-  let bottomSentinelEl: HTMLElement | undefined = $state();
-
-  let hasRestoredScroll = false;
   let heights = new Map<string, number>();
   let positionsCache: number[] = [];
   let totalHeightCache = 0;
+  let itemRefs = new Map<string, HTMLElement>();
 
   let visibleStart = 0;
   let visibleEnd = 0;
   let viewportHeight = $state(0);
   let renderVersion = $state(0);
 
-  let resizeObserver: ResizeObserver | null = null;
-  let topSentinelObserver: IntersectionObserver | null = null;
-  let bottomSentinelObserver: IntersectionObserver | null = null;
-  let containerResizeObserver: ResizeObserver | null = null;
-  let itemRefs = new Map<string, HTMLElement>();
-
-  let anchorIndex = -1;
-  let anchorOffset = 0;
   let isAdjustingScroll = false;
   let pendingHeightUpdates = new Map<string, number>();
   let heightUpdateScheduled = false;
+  let hasRestoredScroll = false;
+
+  let previousItemsLength = 0;
+  let previousFirstKey: string | null = null;
+
+  let resizeObserver: ResizeObserver | null = null;
 
   let averageMeasuredHeight = $derived.by(() => {
     if (heights.size === 0) return estimatedItemHeight;
@@ -191,18 +185,6 @@
       visibleEnd = newEnd;
       renderVersion++;
     }
-    if (maintainScrollPosition && !isAdjustingScroll && !isTopScrolling) {
-      const adjustedScrollTop = Math.max(0, scrollTop - topMargin);
-      for (let i = 0; i < items.length; i++) {
-        const pos = positionsCache[i] ?? 0;
-        const height = getItemHeight(i);
-        if (pos + height > adjustedScrollTop) {
-          anchorIndex = i;
-          anchorOffset = adjustedScrollTop - pos;
-          break;
-        }
-      }
-    }
   }
 
   function handleScroll(): void {
@@ -264,11 +246,24 @@
     requestAnimationFrame(flushHeightUpdates);
   }
 
-  function setupResizeObserver(): void {
+  function itemAttach(key: string) {
+    return (element: HTMLElement) => {
+      element.dataset.virtualKey = key;
+      resizeObserver?.observe(element);
+      itemRefs.set(key, element);
+
+      return () => {
+        resizeObserver?.unobserve(element);
+        itemRefs.delete(key);
+      };
+    };
+  }
+
+  function scrollContainerAttach(element: HTMLElement) {
     resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const element = entry.target as HTMLElement;
-        const key = element.dataset.virtualKey;
+        const el = entry.target as HTMLElement;
+        const key = el.dataset.virtualKey;
         if (!key) continue;
         const newHeight = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
         if (newHeight > 0) {
@@ -277,62 +272,78 @@
       }
       scheduleHeightUpdate();
     });
-  }
 
-  function setupSentinelObservers(): void {
-    const root = isWindowScroll ? null : scrollContainer;
-    const rootMargin = `${viewportHeight}px 0px`;
-    topSentinelObserver = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry && entry.isIntersecting && visibleStart > 0) {
-          updateVisibleRange();
+    const scrollTarget = isWindowScroll ? window : scrollContainer!;
+    scrollTarget.addEventListener('scroll', handleScroll, { passive: true });
+
+    if (isWindowScroll) {
+      viewportHeight = window.innerHeight;
+      const handleResize = () => {
+        const newHeight = window.innerHeight;
+        if (newHeight !== viewportHeight && newHeight > 0) {
+          viewportHeight = newHeight;
         }
-      },
-      { root, rootMargin, threshold: 0 }
-    );
-    bottomSentinelObserver = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry && entry.isIntersecting && visibleEnd < items.length) {
-          updateVisibleRange();
+      };
+      window.addEventListener('resize', handleResize, { passive: true });
+      queueMicrotask(() => updateVisibleRange());
+
+      return () => {
+        resizeObserver?.disconnect();
+        scrollTarget.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('resize', handleResize);
+        itemRefs.clear();
+        heights.clear();
+      };
+    } else {
+      viewportHeight = scrollContainer!.clientHeight;
+      const containerResizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const newHeight = entry.contentRect.height;
+          if (newHeight !== viewportHeight && newHeight > 0) {
+            viewportHeight = newHeight;
+          }
         }
-      },
-      { root, rootMargin, threshold: 0 }
-    );
-  }
+      });
+      containerResizeObserver.observe(scrollContainer!);
+      queueMicrotask(() => updateVisibleRange());
 
-  function observeItem(element: HTMLElement, key: string) {
-    element.dataset.virtualKey = key;
-    resizeObserver?.observe(element);
-    itemRefs.set(key, element);
-  }
-
-  function unobserveItem(element: HTMLElement) {
-    const key = element.dataset.virtualKey;
-    if (key) {
-      resizeObserver?.unobserve(element);
-      itemRefs.delete(key);
+      return () => {
+        resizeObserver?.disconnect();
+        containerResizeObserver.disconnect();
+        scrollTarget.removeEventListener('scroll', handleScroll);
+        itemRefs.clear();
+        heights.clear();
+      };
     }
   }
 
-  function itemAction(element: HTMLElement, key: string) {
-    observeItem(element, key);
-    return {
-      update(newKey: string) {
-        if (element.dataset.virtualKey !== newKey) {
-          unobserveItem(element);
-          observeItem(element, newKey);
+  function topSentinelAttach(element: HTMLElement) {
+    const root = isWindowScroll ? null : scrollContainer;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && visibleStart > 0) {
+          updateVisibleRange();
         }
       },
-      destroy() {
-        unobserveItem(element);
-      }
-    };
+      { root, rootMargin: `${viewportHeight}px 0px`, threshold: 0 }
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
   }
 
-  let previousItemsLength = 0;
-  let previousFirstKey: string | null = null;
+  function bottomSentinelAttach(element: HTMLElement) {
+    const root = isWindowScroll ? null : scrollContainer;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && visibleEnd < items.length) {
+          updateVisibleRange();
+        }
+      },
+      { root, rootMargin: `${viewportHeight}px 0px`, threshold: 0 }
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }
 
   $effect(() => {
     const len = items.length;
@@ -409,57 +420,6 @@
   });
 
   $effect(() => {
-    if (!scrollContainer) return;
-    const scrollTarget = isWindowScroll ? window : scrollContainer;
-    scrollTarget.addEventListener('scroll', handleScroll, { passive: true });
-    if (isWindowScroll) {
-      viewportHeight = window.innerHeight;
-      const handleResize = () => {
-        const newHeight = window.innerHeight;
-        if (newHeight !== viewportHeight && newHeight > 0) {
-          viewportHeight = newHeight;
-        }
-      };
-      window.addEventListener('resize', handleResize, { passive: true });
-      queueMicrotask(() => updateVisibleRange());
-      return () => {
-        scrollTarget.removeEventListener('scroll', handleScroll);
-        window.removeEventListener('resize', handleResize);
-      };
-    } else {
-      viewportHeight = scrollContainer.clientHeight;
-      containerResizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const newHeight = entry.contentRect.height;
-          if (newHeight !== viewportHeight && newHeight > 0) {
-            viewportHeight = newHeight;
-          }
-        }
-      });
-      containerResizeObserver.observe(scrollContainer);
-      queueMicrotask(() => updateVisibleRange());
-      return () => {
-        scrollTarget.removeEventListener('scroll', handleScroll);
-        containerResizeObserver?.disconnect();
-        containerResizeObserver = null;
-      };
-    }
-  });
-
-  $effect(() => {
-    if (topSentinelEl && topSentinelObserver) {
-      topSentinelObserver.observe(topSentinelEl);
-    }
-    if (bottomSentinelEl && bottomSentinelObserver) {
-      bottomSentinelObserver.observe(bottomSentinelEl);
-    }
-    return () => {
-      topSentinelObserver?.disconnect();
-      bottomSentinelObserver?.disconnect();
-    };
-  });
-
-  $effect(() => {
     if (scrollContainer && initialScrollState && !hasRestoredScroll && items.length > 0) {
       hasRestoredScroll = true;
       if (initialScrollState.heights && initialScrollState.heights.length > 0) {
@@ -472,7 +432,6 @@
         const position = positionsCache[initialScrollState.index] ?? 0;
         const targetScrollTop = position + (initialScrollState.offset ?? 0) + topMargin;
         const targetIndex = initialScrollState.index;
-        const targetOffset = initialScrollState.offset ?? 0;
         isAdjustingScroll = true;
         setScrollTop(Math.max(0, targetScrollTop));
         visibleStart = Math.max(0, targetIndex - buffer);
@@ -482,29 +441,12 @@
           tick().then(() => {
             requestAnimationFrame(() => {
               isAdjustingScroll = false;
-              anchorIndex = targetIndex;
-              anchorOffset = targetOffset;
               updateVisibleRange();
             });
           });
         });
       }
     }
-  });
-
-  onMount(() => {
-    setupResizeObserver();
-    setupSentinelObservers();
-    recalculatePositions();
-    return () => {
-      resizeObserver?.disconnect();
-      topSentinelObserver?.disconnect();
-      bottomSentinelObserver?.disconnect();
-      containerResizeObserver?.disconnect();
-      pendingHeightUpdates.clear();
-      heights.clear();
-      itemRefs.clear();
-    };
   });
 
   export function scrollToIndex(index: number, options: ScrollToIndexOptions = {}): void {
@@ -613,8 +555,6 @@
       tick().then(() => {
         requestAnimationFrame(() => {
           isAdjustingScroll = false;
-          anchorIndex = state.index;
-          anchorOffset = state.offset ?? 0;
           updateVisibleRange();
         });
       });
@@ -622,33 +562,35 @@
   }
 </script>
 
-<div class="virtual-list" bind:this={listEl}>
-  {#if isVirtualizationEnabled}
-    <div
-      bind:this={topSentinelEl}
-      class="virtual-sentinel"
-      style:height="{topSpacerHeight}px"
-      aria-hidden="true"
-    ></div>
-  {/if}
+{#if scrollContainer}
+  <div class="virtual-list" {@attach scrollContainerAttach}>
+    {#if isVirtualizationEnabled}
+      <div
+        class="virtual-sentinel"
+        style:height="{topSpacerHeight}px"
+        aria-hidden="true"
+        {@attach topSentinelAttach}
+      ></div>
+    {/if}
 
-  {#each visibleItems as item, i (getKey(item, visibleRange.start + i))}
-    {@const index = visibleRange.start + i}
-    {@const key = getKey(item, index)}
-    <div class="virtual-item" use:itemAction={key}>
-      {@render children(item, index)}
-    </div>
-  {/each}
+    {#each visibleItems as item, i (getKey(item, visibleRange.start + i))}
+      {@const index = visibleRange.start + i}
+      {@const key = getKey(item, index)}
+      <div class="virtual-item" {@attach itemAttach(key)}>
+        {@render children(item, index)}
+      </div>
+    {/each}
 
-  {#if isVirtualizationEnabled}
-    <div
-      bind:this={bottomSentinelEl}
-      class="virtual-sentinel"
-      style:height="{bottomSpacerHeight}px"
-      aria-hidden="true"
-    ></div>
-  {/if}
-</div>
+    {#if isVirtualizationEnabled}
+      <div
+        class="virtual-sentinel"
+        style:height="{bottomSpacerHeight}px"
+        aria-hidden="true"
+        {@attach bottomSentinelAttach}
+      ></div>
+    {/if}
+  </div>
+{/if}
 
 <style>
   .virtual-list {
