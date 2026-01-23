@@ -51,15 +51,6 @@
 
   let resizeObserver: ResizeObserver | null = null;
 
-  let averageMeasuredHeight = $derived.by(() => {
-    if (heights.size === 0) return estimatedItemHeight;
-    let total = 0;
-    for (const h of heights.values()) {
-      total += h;
-    }
-    return total / heights.size;
-  });
-
   let isWindowScroll = $derived(
     scrollContainer === document.documentElement ||
     scrollContainer === document.body
@@ -104,20 +95,19 @@
     }
     const newPositions = new Array(len);
     let cumulative = 0;
-    const defaultHeight = averageMeasuredHeight;
     for (let i = 0; i < len; i++) {
       newPositions[i] = cumulative;
       const key = getKey(items[i], i);
-      cumulative += heights.get(key) ?? defaultHeight;
+      cumulative += heights.get(key) ?? estimatedItemHeight;
     }
     positionsCache = newPositions;
     totalHeightCache = cumulative;
   }
 
   function getItemHeight(index: number): number {
-    if (index < 0 || index >= items.length) return averageMeasuredHeight;
+    if (index < 0 || index >= items.length) return estimatedItemHeight;
     const key = getKey(items[index], index);
-    return heights.get(key) ?? averageMeasuredHeight;
+    return heights.get(key) ?? estimatedItemHeight;
   }
 
   function getScrollTop(): number {
@@ -203,7 +193,8 @@
     let cumulative = 0;
     for (let i = 0; i < items.length; i++) {
       const key = getKey(items[i], i);
-      const height = heights.get(key) ?? averageMeasuredHeight;
+      const height = heights.get(key);
+      if (height === undefined) continue;
       if (cumulative + height > adjustedScrollTop) {
         viewportStartIndex = i;
         break;
@@ -217,10 +208,10 @@
       keyToIndex.set(getKey(items[i], i), i);
     }
     for (const [key, newHeight] of pendingHeightUpdates) {
-      const oldHeight = heights.get(key) ?? averageMeasuredHeight;
-      if (Math.abs(oldHeight - newHeight) < 1) continue;
+      const oldHeight = heights.get(key);
+      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < 1) continue;
       const itemIndex = keyToIndex.get(key) ?? -1;
-      if (maintainScrollPosition && itemIndex !== -1 && itemIndex < viewportStartIndex) {
+      if (maintainScrollPosition && oldHeight !== undefined && itemIndex !== -1 && itemIndex < viewportStartIndex) {
         scrollAdjustment += newHeight - oldHeight;
       }
       heights.set(key, newHeight);
@@ -349,10 +340,6 @@
     const len = items.length;
     const firstKey = len > 0 ? getKey(items[0], 0) : null;
 
-    const isPrepend = previousFirstKey !== null &&
-                      firstKey !== previousFirstKey &&
-                      len > previousItemsLength;
-
     if (len === 0) {
       recalculatePositions();
       previousFirstKey = null;
@@ -363,49 +350,64 @@
       return;
     }
 
-    if (isPrepend && maintainScrollPosition && !isTopScrolling && scrollContainer) {
-      const scrollTop = getScrollTop();
-      if (scrollTop > 10) {
-        let anchorKey: string | null = null;
-        let anchorTop: number | null = null;
+    const scrollTop = getScrollTop();
+    const shouldMaintainPosition = maintainScrollPosition && !isTopScrolling && scrollContainer && scrollTop > 5;
 
-        for (const [key, element] of itemRefs) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top >= -100 && rect.top < viewportHeight) {
-            anchorKey = key;
-            anchorTop = rect.top;
-            break;
+    if (shouldMaintainPosition && itemRefs.size > 0) {
+      const containerRect = isWindowScroll ? null : scrollContainer?.getBoundingClientRect();
+      const containerTop = containerRect?.top ?? 0;
+      const viewportTop = containerTop + topMargin;
+
+      let anchorKey: string | null = null;
+      let anchorTop: number | null = null;
+      let bestScore = Infinity;
+
+      for (const [key, element] of itemRefs) {
+        const rect = element.getBoundingClientRect();
+        if (rect.height === 0) continue;
+
+        const isInViewport = rect.bottom > containerTop && rect.top < containerTop + viewportHeight;
+        if (!isInViewport) continue;
+
+        const distanceFromTop = Math.abs(rect.top - viewportTop);
+        if (distanceFromTop < bestScore) {
+          bestScore = distanceFromTop;
+          anchorKey = key;
+          anchorTop = rect.top;
+        }
+      }
+
+      if (anchorKey !== null && anchorTop !== null) {
+        const capturedKey = anchorKey;
+        const capturedTop = anchorTop;
+        const capturedScrollTop = scrollTop;
+
+        recalculatePositions();
+        previousFirstKey = firstKey;
+        previousItemsLength = len;
+
+        tick().then(() => {
+          const element = itemRefs.get(capturedKey);
+          if (!element) {
+            updateVisibleRange();
+            return;
           }
-        }
 
-        if (anchorKey !== null && anchorTop !== null) {
-          const capturedKey = anchorKey;
-          const capturedTop = anchorTop;
+          const newTop = element.getBoundingClientRect().top;
+          const diff = newTop - capturedTop;
 
-          recalculatePositions();
-          previousFirstKey = firstKey;
-          previousItemsLength = len;
-
-          tick().then(() => {
-            const element = itemRefs.get(capturedKey);
-            if (!element) return;
-
-            const newTop = element.getBoundingClientRect().top;
-            const diff = newTop - capturedTop;
-
-            if (Math.abs(diff) > 1) {
-              isAdjustingScroll = true;
-              setScrollTop(getScrollTop() + diff);
-              requestAnimationFrame(() => {
-                isAdjustingScroll = false;
-                updateVisibleRange();
-              });
-            } else {
+          if (Math.abs(diff) > 0.5) {
+            isAdjustingScroll = true;
+            setScrollTop(capturedScrollTop + diff);
+            queueMicrotask(() => {
+              isAdjustingScroll = false;
               updateVisibleRange();
-            }
-          });
-          return;
-        }
+            });
+          } else {
+            updateVisibleRange();
+          }
+        });
+        return;
       }
     }
 
@@ -500,7 +502,7 @@
 
   export function getPositionForIndex(index: number): number {
     if (index < 0 || index >= items.length) return 0;
-    return positionsCache[index] ?? (index * averageMeasuredHeight);
+    return positionsCache[index] ?? (index * estimatedItemHeight);
   }
 
   export function getTotalHeight(): number {
