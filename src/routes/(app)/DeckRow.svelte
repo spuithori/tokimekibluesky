@@ -358,6 +358,7 @@
         isRefreshing = true;
         column.data.feed = [];
         column.data.cursor = undefined;
+        column.data.scrollState = undefined;
 
         if (column.algorithm.type === 'notification') {
             column.data.feedPool = [];

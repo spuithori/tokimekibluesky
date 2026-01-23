@@ -109,8 +109,8 @@
     {getKey}
     {scrollContainer}
     {topMargin}
-    buffer={7}
-    estimatedItemHeight={200}
+    buffer={10}
+    estimatedItemHeight={180}
     maintainScrollPosition={false}
     bind:this={virtualList}
   >

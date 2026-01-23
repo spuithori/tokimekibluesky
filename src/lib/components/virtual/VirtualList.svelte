@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import type { Snippet } from 'svelte';
-  import type { VisibleRange, ScrollToIndexOptions } from './types';
+  import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
+
   interface Props<T> {
     items: T[];
     getKey: (item: T, index: number) => string;
@@ -11,40 +12,52 @@
     topMargin?: number;
     maintainScrollPosition?: boolean;
     isTopScrolling?: boolean;
+    initialScrollState?: ScrollState | null;
     onRangeChange?: (range: VisibleRange) => void;
     children: Snippet<[T, number]>;
   }
+
   let {
     items,
     getKey,
     scrollContainer,
-    buffer = 5,
+    buffer = 8,
     estimatedItemHeight = 150,
     topMargin = 0,
     maintainScrollPosition = true,
     isTopScrolling = false,
+    initialScrollState = null,
     onRangeChange,
     children
   }: Props<any> = $props();
+
+  let listEl: HTMLElement | undefined = $state();
+  let topSentinelEl: HTMLElement | undefined = $state();
+  let bottomSentinelEl: HTMLElement | undefined = $state();
+
+  let hasRestoredScroll = false;
   let heights = new Map<string, number>();
-  let scrollOffset = $state(0);
-  let viewportHeight = $state(0);
   let positionsCache: number[] = [];
   let totalHeightCache = 0;
+
+  let visibleStart = 0;
+  let visibleEnd = 0;
+  let viewportHeight = $state(0);
   let renderVersion = $state(0);
-  let isAdjustingScroll = false;
-  let lastScrollOffset = 0;
-  let scrollDirection: 'up' | 'down' | 'none' = 'none';
+
+  let resizeObserver: ResizeObserver | null = null;
+  let topSentinelObserver: IntersectionObserver | null = null;
+  let bottomSentinelObserver: IntersectionObserver | null = null;
+  let containerResizeObserver: ResizeObserver | null = null;
+  let itemRefs = new Map<string, HTMLElement>();
+
   let anchorIndex = -1;
   let anchorOffset = 0;
-  let itemRefs = new Map<string, HTMLElement>();
-  let resizeObserver: ResizeObserver | null = null;
-  let containerResizeObserver: ResizeObserver | null = null;
-  let scrollRafId: number | null = null;
+  let isAdjustingScroll = false;
   let pendingHeightUpdates = new Map<string, number>();
-  let heightUpdateRafId: number | null = null;
+  let heightUpdateScheduled = false;
+
   let averageMeasuredHeight = $derived.by(() => {
-    void renderVersion;
     if (heights.size === 0) return estimatedItemHeight;
     let total = 0;
     for (const h of heights.values()) {
@@ -52,15 +65,42 @@
     }
     return total / heights.size;
   });
-  let isVirtualizationEnabled = $derived(
-    scrollContainer !== null &&
-    scrollContainer !== undefined &&
-    viewportHeight > 0
-  );
+
   let isWindowScroll = $derived(
     scrollContainer === document.documentElement ||
     scrollContainer === document.body
   );
+
+  let isVirtualizationEnabled = $derived(
+    scrollContainer !== null &&
+    scrollContainer !== undefined &&
+    viewportHeight > 0 &&
+    items.length > 0
+  );
+
+  let visibleRange = $derived.by((): VisibleRange => {
+    void renderVersion;
+    if (items.length === 0) return { start: 0, end: 0 };
+    if (!isVirtualizationEnabled) return { start: 0, end: items.length };
+    return {
+      start: Math.max(0, visibleStart - buffer),
+      end: Math.min(items.length, visibleEnd + buffer)
+    };
+  });
+
+  let visibleItems = $derived(items.slice(visibleRange.start, visibleRange.end));
+
+  let topSpacerHeight = $derived.by(() => {
+    if (!isVirtualizationEnabled) return 0;
+    return positionsCache[visibleRange.start] ?? 0;
+  });
+
+  let bottomSpacerHeight = $derived.by(() => {
+    if (!isVirtualizationEnabled || items.length === 0) return 0;
+    const endPosition = positionsCache[visibleRange.end] ?? totalHeightCache;
+    return Math.max(0, totalHeightCache - endPosition);
+  });
+
   function recalculatePositions(): void {
     const len = items.length;
     if (len === 0) {
@@ -79,73 +119,18 @@
     positionsCache = newPositions;
     totalHeightCache = cumulative;
   }
+
   function getItemHeight(index: number): number {
     if (index < 0 || index >= items.length) return averageMeasuredHeight;
     const key = getKey(items[index], index);
     return heights.get(key) ?? averageMeasuredHeight;
   }
-  function findStartIndex(scrollTop: number): number {
-    if (positionsCache.length === 0) return 0;
-    let left = 0;
-    let right = positionsCache.length - 1;
-    while (left < right) {
-      const mid = Math.floor((left + right) / 2);
-      if (positionsCache[mid] < scrollTop) {
-        left = mid + 1;
-      } else {
-        right = mid;
-      }
-    }
-    return Math.max(0, left - 1);
-  }
-  function findEndIndex(scrollBottom: number): number {
-    if (positionsCache.length === 0) return 0;
-    let left = 0;
-    let right = positionsCache.length - 1;
-    while (left < right) {
-      const mid = Math.floor((left + right) / 2);
-      const itemBottom = positionsCache[mid] + getItemHeight(mid);
-      if (itemBottom <= scrollBottom) {
-        left = mid + 1;
-      } else {
-        right = mid;
-      }
-    }
-    return Math.min(items.length, left + 1);
-  }
-  let visibleRange = $derived.by((): VisibleRange => {
-    void renderVersion;
-    if (items.length === 0) {
-      return { start: 0, end: 0 };
-    }
-    if (!isVirtualizationEnabled) {
-      return { start: 0, end: items.length };
-    }
-    const adjustedScrollOffset = Math.max(0, scrollOffset - topMargin);
-    const start = findStartIndex(adjustedScrollOffset);
-    const end = findEndIndex(adjustedScrollOffset + viewportHeight);
-    const upBuffer = scrollDirection === 'up' ? buffer + 2 : buffer;
-    const downBuffer = scrollDirection === 'down' ? buffer + 2 : buffer;
-    return {
-      start: Math.max(0, start - upBuffer),
-      end: Math.min(items.length, end + downBuffer)
-    };
-  });
-  let visibleItems = $derived(items.slice(visibleRange.start, visibleRange.end));
-  let topSpacerHeight = $derived.by(() => {
-    void renderVersion;
-    return isVirtualizationEnabled ? (positionsCache[visibleRange.start] ?? 0) : 0;
-  });
-  let bottomSpacerHeight = $derived.by(() => {
-    void renderVersion;
-    if (!isVirtualizationEnabled || items.length === 0) return 0;
-    const endPosition = positionsCache[visibleRange.end] ?? totalHeightCache;
-    return Math.max(0, totalHeightCache - endPosition);
-  });
+
   function getScrollTop(): number {
     if (isWindowScroll) return window.scrollY;
     return scrollContainer?.scrollTop ?? 0;
   }
+
   function setScrollTop(value: number): void {
     if (isWindowScroll) {
       window.scrollTo(0, value);
@@ -153,55 +138,83 @@
       scrollContainer.scrollTop = value;
     }
   }
+
   function getViewportHeight(): number {
     if (isWindowScroll) return window.innerHeight;
     return scrollContainer?.clientHeight ?? 0;
   }
-  function handleScroll(event: Event) {
-    if (isAdjustingScroll) return;
-    if (scrollRafId !== null) return;
-    scrollRafId = requestAnimationFrame(() => {
-      scrollRafId = null;
-      const newScrollOffset = getScrollTop();
-      const newViewportHeight = getViewportHeight();
-      const scrollDelta = newScrollOffset - lastScrollOffset;
-      if (Math.abs(scrollDelta) > 5) {
-        scrollDirection = scrollDelta > 0 ? 'down' : 'up';
+
+  function findIndexAtPosition(scrollTop: number): number {
+    if (positionsCache.length === 0) return 0;
+    const adjustedTop = Math.max(0, scrollTop - topMargin);
+    let left = 0;
+    let right = positionsCache.length - 1;
+    while (left < right) {
+      const mid = Math.floor((left + right) / 2);
+      if (positionsCache[mid] < adjustedTop) {
+        left = mid + 1;
+      } else {
+        right = mid;
       }
-      if (newViewportHeight !== viewportHeight) {
-        viewportHeight = newViewportHeight;
-      }
-      lastScrollOffset = newScrollOffset;
-      if (isTopScrolling) {
-        if (newScrollOffset <= 50) {
-          scrollOffset = newScrollOffset;
-        }
-        return;
-      }
-      const scrollDeltaFromLast = Math.abs(newScrollOffset - scrollOffset);
-      if (scrollDeltaFromLast > 20) {
-        scrollOffset = newScrollOffset;
-      }
-      if (maintainScrollPosition) {
-        updateAnchor(newScrollOffset);
-      }
-    });
+    }
+    return Math.max(0, left - 1);
   }
-  function updateAnchor(currentScrollTop: number): void {
-    if (isAdjustingScroll || isTopScrolling || items.length === 0) return;
-    const adjustedScrollTop = Math.max(0, currentScrollTop - topMargin);
-    for (let i = 0; i < items.length; i++) {
-      const pos = positionsCache[i] ?? 0;
-      const height = getItemHeight(i);
-      if (pos + height > adjustedScrollTop) {
-        anchorIndex = i;
-        anchorOffset = adjustedScrollTop - pos;
-        return;
+
+  function findEndIndex(scrollBottom: number): number {
+    if (positionsCache.length === 0) return 0;
+    const adjustedBottom = Math.max(0, scrollBottom - topMargin);
+    let left = 0;
+    let right = positionsCache.length - 1;
+    while (left < right) {
+      const mid = Math.floor((left + right) / 2);
+      const itemBottom = positionsCache[mid] + getItemHeight(mid);
+      if (itemBottom <= adjustedBottom) {
+        left = mid + 1;
+      } else {
+        right = mid;
+      }
+    }
+    return Math.min(items.length, left + 1);
+  }
+
+  function updateVisibleRange(): void {
+    if (!scrollContainer || items.length === 0) return;
+    const scrollTop = getScrollTop();
+    const height = getViewportHeight();
+    if (height !== viewportHeight) {
+      viewportHeight = height;
+    }
+    const newStart = findIndexAtPosition(scrollTop);
+    const newEnd = findEndIndex(scrollTop + height);
+    if (newStart !== visibleStart || newEnd !== visibleEnd) {
+      visibleStart = newStart;
+      visibleEnd = newEnd;
+      renderVersion++;
+    }
+    if (maintainScrollPosition && !isAdjustingScroll && !isTopScrolling) {
+      const adjustedScrollTop = Math.max(0, scrollTop - topMargin);
+      for (let i = 0; i < items.length; i++) {
+        const pos = positionsCache[i] ?? 0;
+        const height = getItemHeight(i);
+        if (pos + height > adjustedScrollTop) {
+          anchorIndex = i;
+          anchorOffset = adjustedScrollTop - pos;
+          break;
+        }
       }
     }
   }
-  function flushHeightUpdates() {
-    if (pendingHeightUpdates.size === 0) return;
+
+  function handleScroll(): void {
+    if (isAdjustingScroll) return;
+    updateVisibleRange();
+  }
+
+  function flushHeightUpdates(): void {
+    if (pendingHeightUpdates.size === 0) {
+      heightUpdateScheduled = false;
+      return;
+    }
     const currentScrollTop = getScrollTop();
     const adjustedScrollTop = Math.max(0, currentScrollTop - topMargin);
     let viewportStartIndex = 0;
@@ -232,6 +245,7 @@
       hasChanges = true;
     }
     pendingHeightUpdates.clear();
+    heightUpdateScheduled = false;
     if (!hasChanges) return;
     recalculatePositions();
     if (scrollAdjustment !== 0 && currentScrollTop > 10 && !isTopScrolling && maintainScrollPosition) {
@@ -239,19 +253,18 @@
       setScrollTop(currentScrollTop + scrollAdjustment);
       requestAnimationFrame(() => {
         isAdjustingScroll = false;
-        scrollOffset = getScrollTop();
+        updateVisibleRange();
       });
     }
-    renderVersion++;
   }
-  function scheduleHeightUpdate() {
-    if (heightUpdateRafId !== null) return;
-    heightUpdateRafId = requestAnimationFrame(() => {
-      heightUpdateRafId = null;
-      flushHeightUpdates();
-    });
+
+  function scheduleHeightUpdate(): void {
+    if (heightUpdateScheduled) return;
+    heightUpdateScheduled = true;
+    requestAnimationFrame(flushHeightUpdates);
   }
-  function setupResizeObserver() {
+
+  function setupResizeObserver(): void {
     resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const element = entry.target as HTMLElement;
@@ -265,92 +278,142 @@
       scheduleHeightUpdate();
     });
   }
-  function observeItemAction(element: HTMLElement, key: string) {
-    if (resizeObserver) {
-      element.dataset.virtualKey = key;
-      resizeObserver.observe(element);
-      itemRefs.set(key, element);
+
+  function setupSentinelObservers(): void {
+    const root = isWindowScroll ? null : scrollContainer;
+    const rootMargin = `${viewportHeight}px 0px`;
+    topSentinelObserver = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting && visibleStart > 0) {
+          updateVisibleRange();
+        }
+      },
+      { root, rootMargin, threshold: 0 }
+    );
+    bottomSentinelObserver = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting && visibleEnd < items.length) {
+          updateVisibleRange();
+        }
+      },
+      { root, rootMargin, threshold: 0 }
+    );
+  }
+
+  function observeItem(element: HTMLElement, key: string) {
+    element.dataset.virtualKey = key;
+    resizeObserver?.observe(element);
+    itemRefs.set(key, element);
+  }
+
+  function unobserveItem(element: HTMLElement) {
+    const key = element.dataset.virtualKey;
+    if (key) {
+      resizeObserver?.unobserve(element);
+      itemRefs.delete(key);
     }
+  }
+
+  function itemAction(element: HTMLElement, key: string) {
+    observeItem(element, key);
     return {
       update(newKey: string) {
         if (element.dataset.virtualKey !== newKey) {
-          const oldKey = element.dataset.virtualKey!;
-          if (resizeObserver) {
-            resizeObserver.unobserve(element);
-          }
-          itemRefs.delete(oldKey);
-          element.dataset.virtualKey = newKey;
-          if (resizeObserver) {
-            resizeObserver.observe(element);
-            itemRefs.set(newKey, element);
-          }
+          unobserveItem(element);
+          observeItem(element, newKey);
         }
       },
       destroy() {
-        const k = element.dataset.virtualKey;
-        if (k) {
-          if (resizeObserver) {
-            resizeObserver.unobserve(element);
-          }
-          itemRefs.delete(k);
-        }
+        unobserveItem(element);
       }
     };
   }
+
   let previousItemsLength = 0;
   let previousFirstKey: string | null = null;
+
   $effect(() => {
     const len = items.length;
     const firstKey = len > 0 ? getKey(items[0], 0) : null;
-    recalculatePositions();
-    if (len === 0) {
-      previousFirstKey = null;
-      previousItemsLength = 0;
-      anchorIndex = -1;
-      return;
-    }
-    if (!maintainScrollPosition || !scrollContainer) {
-      previousFirstKey = firstKey;
-      previousItemsLength = len;
-      return;
-    }
+
     const isPrepend = previousFirstKey !== null &&
                       firstKey !== previousFirstKey &&
                       len > previousItemsLength;
-    if (isPrepend && anchorIndex >= 0 && !isTopScrolling) {
-      const currentScrollTop = getScrollTop();
-      if (currentScrollTop > 10) {
-        const prependCount = len - previousItemsLength;
-        const newAnchorIndex = anchorIndex + prependCount;
-        if (newAnchorIndex < len) {
-          const newAnchorPosition = positionsCache[newAnchorIndex] ?? 0;
-          const newScrollTop = newAnchorPosition + anchorOffset + topMargin;
-          isAdjustingScroll = true;
-          setScrollTop(newScrollTop);
+
+    if (len === 0) {
+      recalculatePositions();
+      previousFirstKey = null;
+      previousItemsLength = 0;
+      visibleStart = 0;
+      visibleEnd = 0;
+      queueMicrotask(() => renderVersion++);
+      return;
+    }
+
+    if (isPrepend && maintainScrollPosition && !isTopScrolling && scrollContainer) {
+      const scrollTop = getScrollTop();
+      if (scrollTop > 10) {
+        let anchorKey: string | null = null;
+        let anchorTop: number | null = null;
+
+        for (const [key, element] of itemRefs) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top >= -100 && rect.top < viewportHeight) {
+            anchorKey = key;
+            anchorTop = rect.top;
+            break;
+          }
+        }
+
+        if (anchorKey !== null && anchorTop !== null) {
+          const capturedKey = anchorKey;
+          const capturedTop = anchorTop;
+
+          recalculatePositions();
+          previousFirstKey = firstKey;
+          previousItemsLength = len;
+
           tick().then(() => {
-            requestAnimationFrame(() => {
-              isAdjustingScroll = false;
-              scrollOffset = getScrollTop();
-              anchorIndex = newAnchorIndex;
-            });
+            const element = itemRefs.get(capturedKey);
+            if (!element) return;
+
+            const newTop = element.getBoundingClientRect().top;
+            const diff = newTop - capturedTop;
+
+            if (Math.abs(diff) > 1) {
+              isAdjustingScroll = true;
+              setScrollTop(getScrollTop() + diff);
+              requestAnimationFrame(() => {
+                isAdjustingScroll = false;
+                updateVisibleRange();
+              });
+            } else {
+              updateVisibleRange();
+            }
           });
+          return;
         }
       }
     }
+
+    recalculatePositions();
     previousFirstKey = firstKey;
     previousItemsLength = len;
+    queueMicrotask(() => updateVisibleRange());
   });
+
   $effect(() => {
     onRangeChange?.(visibleRange);
   });
+
   $effect(() => {
     if (!scrollContainer) return;
     const scrollTarget = isWindowScroll ? window : scrollContainer;
     scrollTarget.addEventListener('scroll', handleScroll, { passive: true });
     if (isWindowScroll) {
       viewportHeight = window.innerHeight;
-      scrollOffset = window.scrollY;
-      lastScrollOffset = window.scrollY;
       const handleResize = () => {
         const newHeight = window.innerHeight;
         if (newHeight !== viewportHeight && newHeight > 0) {
@@ -358,14 +421,13 @@
         }
       };
       window.addEventListener('resize', handleResize, { passive: true });
+      queueMicrotask(() => updateVisibleRange());
       return () => {
-        window.removeEventListener('scroll', handleScroll);
+        scrollTarget.removeEventListener('scroll', handleScroll);
         window.removeEventListener('resize', handleResize);
       };
     } else {
       viewportHeight = scrollContainer.clientHeight;
-      scrollOffset = scrollContainer.scrollTop;
-      lastScrollOffset = scrollContainer.scrollTop;
       containerResizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
           const newHeight = entry.contentRect.height;
@@ -375,34 +437,77 @@
         }
       });
       containerResizeObserver.observe(scrollContainer);
+      queueMicrotask(() => updateVisibleRange());
       return () => {
-        scrollContainer.removeEventListener('scroll', handleScroll);
-        if (containerResizeObserver) {
-          containerResizeObserver.disconnect();
-          containerResizeObserver = null;
-        }
+        scrollTarget.removeEventListener('scroll', handleScroll);
+        containerResizeObserver?.disconnect();
+        containerResizeObserver = null;
       };
     }
   });
+
+  $effect(() => {
+    if (topSentinelEl && topSentinelObserver) {
+      topSentinelObserver.observe(topSentinelEl);
+    }
+    if (bottomSentinelEl && bottomSentinelObserver) {
+      bottomSentinelObserver.observe(bottomSentinelEl);
+    }
+    return () => {
+      topSentinelObserver?.disconnect();
+      bottomSentinelObserver?.disconnect();
+    };
+  });
+
+  $effect(() => {
+    if (scrollContainer && initialScrollState && !hasRestoredScroll && items.length > 0) {
+      hasRestoredScroll = true;
+      if (initialScrollState.heights && initialScrollState.heights.length > 0) {
+        for (const [key, value] of initialScrollState.heights) {
+          heights.set(key, value);
+        }
+      }
+      recalculatePositions();
+      if (initialScrollState.index >= 0 && initialScrollState.index < items.length) {
+        const position = positionsCache[initialScrollState.index] ?? 0;
+        const targetScrollTop = position + (initialScrollState.offset ?? 0) + topMargin;
+        const targetIndex = initialScrollState.index;
+        const targetOffset = initialScrollState.offset ?? 0;
+        isAdjustingScroll = true;
+        setScrollTop(Math.max(0, targetScrollTop));
+        visibleStart = Math.max(0, targetIndex - buffer);
+        visibleEnd = Math.min(items.length, targetIndex + buffer + 10);
+        queueMicrotask(() => {
+          renderVersion++;
+          tick().then(() => {
+            requestAnimationFrame(() => {
+              isAdjustingScroll = false;
+              anchorIndex = targetIndex;
+              anchorOffset = targetOffset;
+              updateVisibleRange();
+            });
+          });
+        });
+      }
+    }
+  });
+
   onMount(() => {
     setupResizeObserver();
+    setupSentinelObservers();
     recalculatePositions();
     return () => {
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-      if (scrollRafId !== null) {
-        cancelAnimationFrame(scrollRafId);
-      }
-      if (heightUpdateRafId !== null) {
-        cancelAnimationFrame(heightUpdateRafId);
-      }
+      resizeObserver?.disconnect();
+      topSentinelObserver?.disconnect();
+      bottomSentinelObserver?.disconnect();
+      containerResizeObserver?.disconnect();
       pendingHeightUpdates.clear();
       heights.clear();
       itemRefs.clear();
     };
   });
-  export function scrollToIndex(index: number, options: ScrollToIndexOptions = {}) {
+
+  export function scrollToIndex(index: number, options: ScrollToIndexOptions = {}): void {
     if (!scrollContainer || index < 0 || index >= items.length) return;
     const { align = 'start', offset = 0 } = options;
     const itemPosition = positionsCache[index] ?? 0;
@@ -421,73 +526,139 @@
         break;
     }
     isAdjustingScroll = true;
+    visibleStart = Math.max(0, index - buffer);
+    visibleEnd = Math.min(items.length, index + buffer + 10);
+    renderVersion++;
     setScrollTop(Math.max(0, targetScrollTop));
     tick().then(() => {
       requestAnimationFrame(() => {
         isAdjustingScroll = false;
-        scrollOffset = getScrollTop();
-        updateAnchor(scrollOffset);
+        updateVisibleRange();
       });
     });
   }
+
   export function getScrollOffset(): number {
-    return scrollOffset;
+    return getScrollTop();
   }
+
   export function getItemElement(index: number): HTMLElement | null {
     if (index < 0 || index >= items.length) return null;
     const key = getKey(items[index], index);
     return itemRefs.get(key) ?? null;
   }
+
   export function prepareForIndex(index: number): void {
     if (index < 0 || index >= items.length || !scrollContainer) return;
-    const targetPosition = positionsCache[index] ?? (index * averageMeasuredHeight);
-    scrollOffset = targetPosition;
+    visibleStart = Math.max(0, index - buffer);
+    visibleEnd = Math.min(items.length, index + buffer + 10);
     viewportHeight = getViewportHeight();
     renderVersion++;
   }
+
   export function getPositionForIndex(index: number): number {
     if (index < 0 || index >= items.length) return 0;
     return positionsCache[index] ?? (index * averageMeasuredHeight);
   }
+
   export function getTotalHeight(): number {
     return totalHeightCache;
   }
+
+  export function getScrollState(): ScrollState | null {
+    if (items.length === 0) return null;
+    const currentScrollTop = getScrollTop();
+    const adjustedScrollTop = Math.max(0, currentScrollTop - topMargin);
+    let index = 0;
+    let offset = adjustedScrollTop;
+    for (let i = 0; i < items.length; i++) {
+      const pos = positionsCache[i] ?? 0;
+      const height = getItemHeight(i);
+      if (pos + height > adjustedScrollTop) {
+        index = i;
+        offset = adjustedScrollTop - pos;
+        break;
+      }
+    }
+    const heightsArray: [string, number][] = [];
+    const rangeStart = Math.max(0, index - 30);
+    const rangeEnd = Math.min(items.length, index + 50);
+    for (let i = rangeStart; i < rangeEnd; i++) {
+      const key = getKey(items[i], i);
+      const h = heights.get(key);
+      if (h !== undefined) {
+        heightsArray.push([key, h]);
+      }
+    }
+    return { index, offset, heights: heightsArray };
+  }
+
+  export function restoreScrollState(state: ScrollState): void {
+    if (!state || !scrollContainer) return;
+    hasRestoredScroll = true;
+    if (state.heights && state.heights.length > 0) {
+      for (const [key, value] of state.heights) {
+        heights.set(key, value);
+      }
+    }
+    recalculatePositions();
+    if (state.index >= 0 && state.index < items.length) {
+      const position = positionsCache[state.index] ?? 0;
+      const targetScrollTop = position + (state.offset ?? 0) + topMargin;
+      isAdjustingScroll = true;
+      visibleStart = Math.max(0, state.index - buffer);
+      visibleEnd = Math.min(items.length, state.index + buffer + 10);
+      renderVersion++;
+      setScrollTop(Math.max(0, targetScrollTop));
+      tick().then(() => {
+        requestAnimationFrame(() => {
+          isAdjustingScroll = false;
+          anchorIndex = state.index;
+          anchorOffset = state.offset ?? 0;
+          updateVisibleRange();
+        });
+      });
+    }
+  }
 </script>
-<div class="virtual-list">
-  {#if isVirtualizationEnabled && topSpacerHeight > 0}
+
+<div class="virtual-list" bind:this={listEl}>
+  {#if isVirtualizationEnabled}
     <div
-      class="virtual-spacer virtual-spacer--top"
+      bind:this={topSentinelEl}
+      class="virtual-sentinel"
       style:height="{topSpacerHeight}px"
       aria-hidden="true"
     ></div>
   {/if}
+
   {#each visibleItems as item, i (getKey(item, visibleRange.start + i))}
     {@const index = visibleRange.start + i}
     {@const key = getKey(item, index)}
-    <div
-      class="virtual-item"
-      use:observeItemAction={key}
-    >
+    <div class="virtual-item" use:itemAction={key}>
       {@render children(item, index)}
     </div>
   {/each}
-  {#if isVirtualizationEnabled && bottomSpacerHeight > 0}
+
+  {#if isVirtualizationEnabled}
     <div
-      class="virtual-spacer"
+      bind:this={bottomSentinelEl}
+      class="virtual-sentinel"
       style:height="{bottomSpacerHeight}px"
       aria-hidden="true"
     ></div>
   {/if}
 </div>
+
 <style>
   .virtual-list {
     position: relative;
-    contain: layout;
+    contain: layout style;
   }
-  .virtual-spacer {
+  .virtual-sentinel {
     pointer-events: none;
-    flex-shrink: 0;
     contain: strict;
+    will-change: height;
   }
   .virtual-item {
     contain: layout style;

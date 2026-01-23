@@ -8,6 +8,12 @@ export interface ScrollToIndexOptions {
   offset?: number;
 }
 
+export interface ScrollState {
+  index: number;
+  offset: number;
+  heights: [string, number][];
+}
+
 export interface VirtualListProps<T> {
   items: T[];
   getKey: (item: T, index: number) => string;

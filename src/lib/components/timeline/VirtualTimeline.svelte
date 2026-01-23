@@ -1,9 +1,11 @@
 <script lang="ts">
+  import {onDestroy} from "svelte";
   import {_} from "svelte-i18n";
   import {settings} from '$lib/stores';
   import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
+  import type {ScrollState} from "$lib/components/virtual/types";
   import {isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {Annoyed} from "lucide-svelte";
@@ -18,10 +20,21 @@
     handleLoadMore,
     handleDividerClick,
     handleDividerUp
+  }: {
+    column: any;
+    _agent: any;
+    isJunk?: boolean;
+    unique: any;
+    isTopScrolling?: boolean;
+    handleLoadMore: any;
+    handleDividerClick: any;
+    handleDividerUp: any;
   } = $props();
 
   let parent = $state<HTMLElement | undefined>();
   let loadingEl = $state<HTMLElement | undefined>();
+  let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
+  let initialScrollState = $state<ScrollState | null>(column.data?.scrollState ?? null);
 
   let isLoading = $state(false);
   let isComplete = $state(false);
@@ -36,6 +49,7 @@
       isComplete = false;
       retryCount = 0;
       isLoading = false;
+      initialScrollState = null;
       clearTimeout(intervalId);
 
       if (uniqueRafId !== null) {
@@ -142,6 +156,23 @@
       }
     };
   });
+
+  onDestroy(() => {
+    if (virtualList && column.data) {
+      const state = virtualList.getScrollState();
+      if (state) {
+        column.data.scrollState = state;
+      }
+    }
+  });
+
+  export function getScrollState(): ScrollState | null {
+    return virtualList?.getScrollState() ?? null;
+  }
+
+  export function restoreScrollState(state: ScrollState): void {
+    virtualList?.restoreScrollState(state);
+  }
 </script>
 
 <div class="timeline timeline--default virtual-timeline" bind:this={parent}>
@@ -151,8 +182,10 @@
     {scrollContainer}
     {topMargin}
     {isTopScrolling}
-    buffer={7}
-    estimatedItemHeight={250}
+    {initialScrollState}
+    buffer={10}
+    estimatedItemHeight={200}
+    bind:this={virtualList}
   >
     {#snippet children(item, index)}
       {#if item?.post?.author?.did}

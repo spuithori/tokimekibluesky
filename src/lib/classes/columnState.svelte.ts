@@ -13,6 +13,7 @@ export class ColumnState {
         data: {
             feed: !settingsState?.settings?.markedUnread ? [] : data?.notifications ? [] : data?.feed || [],
             cursor: !settingsState?.settings?.markedUnread ? '' : data?.notifications ? '' : data?.cursor || '',
+            scrollState: data?.scrollState,
         },
         ...(splitColumn ? {
             splitColumn: {
@@ -23,6 +24,7 @@ export class ColumnState {
                         data: {
                             feed: !settingsState?.settings?.markedUnread ? [] : splitData?.notifications ? [] : splitData?.feed || [],
                             cursor: !settingsState?.settings?.markedUnread ? '' : splitData?.notifications ? '' : splitData?.cursor || '',
+                            scrollState: splitData?.scrollState,
                         }
                     };
                 })()

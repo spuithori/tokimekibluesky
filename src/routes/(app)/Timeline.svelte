@@ -13,8 +13,11 @@
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import VirtualTimeline from "$lib/components/timeline/VirtualTimeline.svelte";
+  import type {ScrollState} from "$lib/components/virtual/types";
 
   let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
+
+  let virtualTimelineRef: ReturnType<typeof VirtualTimeline> | undefined = $state();
 
   const columnState = getColumnState(isJunk);
   const column = columnProp ?? columnState.getColumn(index);
@@ -279,6 +282,14 @@
       }
     }
   })
+
+  export function getScrollState(): ScrollState | null {
+    return virtualTimelineRef?.getScrollState() ?? null;
+  }
+
+  export function restoreScrollState(state: ScrollState): void {
+    virtualTimelineRef?.restoreScrollState(state);
+  }
 </script>
 
 {#if column.style === 'default' || !column.style}
@@ -291,6 +302,7 @@
     {handleLoadMore}
     {handleDividerClick}
     {handleDividerUp}
+    bind:this={virtualTimelineRef}
   />
 
   {#if (isDividerLoading)}
