@@ -10,7 +10,12 @@
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
   let hasScrolledToRoot = false;
   let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
-  let topMargin = $derived(isSingleColumnMode ? 52 : 121);
+  let topMargin = $derived.by(() => {
+    if (isJunk) {
+      return isSingleColumnMode ? 108 : 121;
+    }
+    return isSingleColumnMode ? 52 : 121;
+  });
 
   onchangeprofile(_agent.did(), _agent.handle());
 
@@ -64,7 +69,11 @@
     hasScrolledToRoot = true;
 
     const initialPosition = virtualList.getPositionForIndex(targetIdx);
-    setScrollTop(initialPosition + topMargin);
+    if (isJunk) {
+      setScrollTop(Math.max(0, initialPosition));
+    } else {
+      setScrollTop(Math.max(0, initialPosition - topMargin));
+    }
 
     const maxAttempts = 8;
 

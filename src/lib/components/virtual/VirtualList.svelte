@@ -134,12 +134,11 @@
 
   function findIndexAtPosition(scrollTop: number): number {
     if (positionsCache.length === 0) return 0;
-    const adjustedTop = Math.max(0, scrollTop - topMargin);
     let left = 0;
     let right = positionsCache.length - 1;
     while (left < right) {
       const mid = Math.floor((left + right) / 2);
-      if (positionsCache[mid] < adjustedTop) {
+      if (positionsCache[mid] < scrollTop) {
         left = mid + 1;
       } else {
         right = mid;
@@ -150,13 +149,12 @@
 
   function findEndIndex(scrollBottom: number): number {
     if (positionsCache.length === 0) return 0;
-    const adjustedBottom = Math.max(0, scrollBottom - topMargin);
     let left = 0;
     let right = positionsCache.length - 1;
     while (left < right) {
       const mid = Math.floor((left + right) / 2);
       const itemBottom = positionsCache[mid] + getItemHeight(mid);
-      if (itemBottom <= adjustedBottom) {
+      if (itemBottom <= scrollBottom) {
         left = mid + 1;
       } else {
         right = mid;
@@ -172,8 +170,9 @@
     if (height !== viewportHeight) {
       viewportHeight = height;
     }
+    const usableHeight = height - topMargin;
     const newStart = findIndexAtPosition(scrollTop);
-    const newEnd = findEndIndex(scrollTop + height);
+    const newEnd = findEndIndex(scrollTop + usableHeight);
     if (newStart !== visibleStart || newEnd !== visibleEnd) {
       visibleStart = newStart;
       visibleEnd = newEnd;
@@ -192,14 +191,13 @@
       return;
     }
     const currentScrollTop = getScrollTop();
-    const adjustedScrollTop = Math.max(0, currentScrollTop - topMargin);
     let viewportStartIndex = 0;
     let cumulative = 0;
     for (let i = 0; i < items.length; i++) {
       const key = getKey(items[i], i);
       const height = heights.get(key);
       if (height === undefined) continue;
-      if (cumulative + height > adjustedScrollTop) {
+      if (cumulative + height > currentScrollTop) {
         viewportStartIndex = i;
         break;
       }
@@ -349,8 +347,8 @@
       return;
     }
 
-    const containerRect = isWindowScroll ? null : scrollContainer?.getBoundingClientRect();
-    const containerTop = (containerRect?.top ?? 0) + topMargin;
+    const visibleTop = isWindowScroll ? topMargin : (scrollContainer?.getBoundingClientRect().top ?? 0) + topMargin;
+    const visibleBottom = visibleTop + viewportHeight - topMargin;
 
     let bestKey: string | null = null;
     let bestTop: number | null = null;
@@ -359,9 +357,9 @@
     for (const [key, element] of itemRefs) {
       const rect = element.getBoundingClientRect();
       if (rect.height === 0) continue;
-      if (rect.bottom < containerTop - 100 || rect.top > containerTop + viewportHeight + 100) continue;
+      if (rect.bottom < visibleTop - 100 || rect.top > visibleBottom + 100) continue;
 
-      const distanceFromTop = Math.abs(rect.top - containerTop);
+      const distanceFromTop = Math.abs(rect.top - visibleTop);
       if (distanceFromTop < bestScore) {
         bestScore = distanceFromTop;
         bestKey = key;
@@ -451,7 +449,7 @@
       recalculatePositions();
       if (initialScrollState.index >= 0 && initialScrollState.index < items.length) {
         const position = positionsCache[initialScrollState.index] ?? 0;
-        const targetScrollTop = position + (initialScrollState.offset ?? 0) + topMargin;
+        const targetScrollTop = position + (initialScrollState.offset ?? 0);
         const targetIndex = initialScrollState.index;
         isAdjustingScroll = true;
         setScrollTop(Math.max(0, targetScrollTop));
@@ -475,17 +473,18 @@
     const { align = 'start', offset = 0 } = options;
     const itemPosition = positionsCache[index] ?? 0;
     const itemHeight = getItemHeight(index);
+    const usableHeight = viewportHeight - topMargin;
     let targetScrollTop: number;
     switch (align) {
       case 'center':
-        targetScrollTop = itemPosition - (viewportHeight / 2) + (itemHeight / 2) + topMargin + offset;
+        targetScrollTop = itemPosition - (usableHeight / 2) + (itemHeight / 2) + offset;
         break;
       case 'end':
-        targetScrollTop = itemPosition - viewportHeight + itemHeight + topMargin + offset;
+        targetScrollTop = itemPosition - usableHeight + itemHeight + offset;
         break;
       case 'start':
       default:
-        targetScrollTop = itemPosition + topMargin + offset;
+        targetScrollTop = itemPosition + offset;
         break;
     }
     isAdjustingScroll = true;
@@ -531,15 +530,14 @@
   export function getScrollState(): ScrollState | null {
     if (items.length === 0) return null;
     const currentScrollTop = getScrollTop();
-    const adjustedScrollTop = Math.max(0, currentScrollTop - topMargin);
     let index = 0;
-    let offset = adjustedScrollTop;
+    let offset = currentScrollTop;
     for (let i = 0; i < items.length; i++) {
       const pos = positionsCache[i] ?? 0;
       const height = getItemHeight(i);
-      if (pos + height > adjustedScrollTop) {
+      if (pos + height > currentScrollTop) {
         index = i;
-        offset = adjustedScrollTop - pos;
+        offset = currentScrollTop - pos;
         break;
       }
     }
@@ -567,7 +565,7 @@
     recalculatePositions();
     if (state.index >= 0 && state.index < items.length) {
       const position = positionsCache[state.index] ?? 0;
-      const targetScrollTop = position + (state.offset ?? 0) + topMargin;
+      const targetScrollTop = position + (state.offset ?? 0);
       isAdjustingScroll = true;
       visibleStart = Math.max(0, state.index - buffer);
       visibleEnd = Math.min(items.length, state.index + buffer + 10);
@@ -610,6 +608,15 @@
         {@attach bottomSentinelAttach}
       ></div>
     {/if}
+  </div>
+{:else}
+  <div class="virtual-list virtual-list--no-virtualization">
+    {#each items as item, index (getKey(item, index))}
+      {@const key = getKey(item, index)}
+      <div class="virtual-item">
+        {@render children(item, index)}
+      </div>
+    {/each}
   </div>
 {/if}
 

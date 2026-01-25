@@ -1,6 +1,7 @@
 <script lang="ts">
   import {onDestroy} from "svelte";
   import {_} from "svelte-i18n";
+  import {beforeNavigate, afterNavigate} from '$app/navigation';
   import {settings} from '$lib/stores';
   import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
@@ -9,7 +10,6 @@
   import {isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {Annoyed} from "lucide-svelte";
-  import {useIntersectionObserver} from "runed";
 
   let {
     column,
@@ -40,9 +40,32 @@
   let isComplete = $state(false);
   let retryCount = $state(0);
   let isRetryLimit = $derived(retryCount >= 5);
-  let intervalId: ReturnType<typeof setTimeout> | undefined;
   let lastUnique = $state(unique);
-  let uniqueRafId: number | null = null;
+
+  let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
+  let topMargin = $derived(isSingleColumnMode ? 52 : 0);
+  let isPaused = $state(false);
+
+  function shouldPauseLoading(): boolean {
+    return isPaused && isSingleColumnMode && !isJunk;
+  }
+
+  beforeNavigate(({ from, to }) => {
+    if (!isSingleColumnMode || isJunk) return;
+    if (from?.url.pathname === '/' && to?.url.pathname !== '/') {
+      isPaused = true;
+    }
+  });
+
+  afterNavigate(({ to }) => {
+    if (!isSingleColumnMode || isJunk) return;
+    if (to?.url.pathname === '/') {
+      isPaused = false;
+      if (isRetryLimit) {
+        retryCount = 0;
+      }
+    }
+  });
 
   $effect(() => {
     if (unique !== lastUnique) {
@@ -50,25 +73,14 @@
       retryCount = 0;
       isLoading = false;
       initialScrollState = null;
-      clearTimeout(intervalId);
-
-      if (uniqueRafId !== null) {
-        cancelAnimationFrame(uniqueRafId);
-      }
-
       lastUnique = unique;
-
-      uniqueRafId = requestAnimationFrame(() => {
-        uniqueRafId = null;
-        if (loadingEl && !isLoading && !isComplete) {
+      queueMicrotask(() => {
+        if (column.data.feed.length === 0 && !isLoading && !isComplete) {
           triggerLoad();
         }
       });
     }
   });
-
-  let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
-  let topMargin = $derived(isSingleColumnMode ? 52 : 0);
 
   let scrollContainer = $derived.by(() => {
     if (!parent) return null;
@@ -78,37 +90,13 @@
     if (isSingleColumnMode) {
       return document.documentElement;
     }
-    return column.scrollElement ?? null;
+
+    if (column.scrollElement) {
+      return column.scrollElement;
+    }
+
+    return parent.closest('.deck-column-content') as HTMLElement | null;
   });
-
-  let intersectionRoot = $derived.by(() => {
-    if (!parent) return null;
-    if (isJunk) {
-      return parent.closest('.modal-page-content') as HTMLElement | null;
-    }
-    if (isSingleColumnMode) {
-      return null;
-    }
-    return column.scrollElement ?? null;
-  });
-
-  useIntersectionObserver(
-    () => loadingEl,
-    (entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-
-      if (entry.isIntersecting && !isComplete && !isRetryLimit) {
-        triggerLoad();
-      } else {
-        clearTimeout(intervalId);
-      }
-    },
-    {
-      root: () => intersectionRoot,
-      threshold: 0.25,
-    }
-  );
 
   function getKey(data: any, index: number): string {
     const uri = data?.post?.uri || `index-${index}`;
@@ -117,19 +105,18 @@
   }
 
   async function triggerLoad() {
-    if (isLoading || isComplete || isRetryLimit) {
+    if (isLoading || isComplete || isRetryLimit || shouldPauseLoading()) {
       return;
     }
 
     isLoading = true;
-    await handleLoadMore(loaded, complete);
-    isLoading = false;
 
-    if (!isComplete && !isRetryLimit && loadingEl) {
-      clearTimeout(intervalId);
-      intervalId = setTimeout(() => {
-        triggerLoad();
-      }, 500);
+    try {
+      await handleLoadMore(loaded, complete);
+    } catch (e) {
+      console.error('Load error:', e);
+    } finally {
+      isLoading = false;
     }
   }
 
@@ -138,23 +125,56 @@
   }
 
   function complete() {
-    clearTimeout(intervalId);
     isComplete = true;
   }
 
   function handleResetLimit() {
     retryCount = 0;
     isLoading = false;
-    triggerLoad();
+  }
+
+  function handleScroll() {
+    if (isLoading || isComplete || isRetryLimit || shouldPauseLoading()) {
+      return;
+    }
+
+    if (!loadingEl || !scrollContainer) return;
+
+    const scrollTop = isSingleColumnMode
+      ? window.scrollY
+      : (scrollContainer as HTMLElement).scrollTop;
+    const viewportHeight = isSingleColumnMode
+      ? window.innerHeight
+      : (scrollContainer as HTMLElement).clientHeight;
+    const scrollHeight = isSingleColumnMode
+      ? document.documentElement.scrollHeight
+      : (scrollContainer as HTMLElement).scrollHeight;
+
+    const distanceFromBottom = scrollHeight - scrollTop - viewportHeight;
+
+    if (distanceFromBottom < 500) {
+      triggerLoad();
+    }
   }
 
   $effect(() => {
+    if (!scrollContainer || shouldPauseLoading()) return;
+
+    const target = isSingleColumnMode ? window : scrollContainer;
+    target.addEventListener('scroll', handleScroll, { passive: true });
+
+    handleScroll();
+
     return () => {
-      clearTimeout(intervalId);
-      if (uniqueRafId !== null) {
-        cancelAnimationFrame(uniqueRafId);
-      }
+      target.removeEventListener('scroll', handleScroll);
     };
+  });
+
+  $effect(() => {
+    const feedLength = column.data.feed.length;
+    if (feedLength === 0 && scrollContainer && !isLoading && !isComplete && !shouldPauseLoading()) {
+      triggerLoad();
+    }
   });
 
   onDestroy(() => {

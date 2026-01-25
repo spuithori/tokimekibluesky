@@ -18,6 +18,7 @@
   let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
 
   let virtualTimelineRef: ReturnType<typeof VirtualTimeline> | undefined = $state();
+  let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
 
   const columnState = getColumnState(isJunk);
   const column = columnProp ?? columnState.getColumn(index);
@@ -292,7 +293,7 @@
   }
 </script>
 
-{#if column.style === 'default' || !column.style}
+{#if (column.style === 'default' || !column.style) && !isSingleColumnMode}
   <VirtualTimeline
     {column}
     {_agent}
@@ -309,7 +310,7 @@
     <div class="more-divider-filler" style="--more-divider-filler-height: {dividerFillerHeight}px"></div>
   {/if}
 {:else}
-  <div class="timeline timeline--{column.style}">
+  <div class="timeline timeline--{column.style || 'default'}">
     <div class:media-list={column.style === 'media'} class:media-list--1={column.style === 'media' && column?.settings?.mediaColumns === 1} class:media-list--2={column.style === 'media' && column?.settings?.mediaColumns === 2} class:video-list={column.style === 'video'}>
       {#each column.data.feed as data, index (data)}
         {#if (data?.post?.author?.did)}
