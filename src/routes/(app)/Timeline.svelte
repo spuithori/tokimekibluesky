@@ -141,8 +141,6 @@
 
   async function handleDividerUp(index, cursor, dividerEl: HTMLElement | undefined) {
     try {
-      const bottomEl: HTMLElement = dividerEl?.nextElementSibling;
-
       const res = await _agent.getTimeline({limit: 100, cursor: cursor, algorithm: column.algorithm});
       const last = column.data.feed[index + 1];
 
@@ -169,19 +167,29 @@
 
       column.data.feed.splice(index + 1, 0, ...feed);
       column.data.feed[index].isDivider = false;
-      column.data.feed[index + feed.length].isDivider = true;
 
-      if (bottomEl) {
+      const newDividerIndex = index + feed.length;
+      column.data.feed[newDividerIndex].isDivider = true;
+
+      const useVirtualList = (column.style === 'default' || !column.style) && !isSingleColumnMode;
+      if (useVirtualList && virtualTimelineRef) {
         tick().then(() => {
-          const scrollEl: HTMLElement = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
-          const offsetTop = bottomEl.offsetTop - 52;
-          scrollEl.scrollTo(0, offsetTop);
-        })
+          virtualTimelineRef?.scrollToIndex(newDividerIndex, { align: 'start', offset: 0 });
+        });
+      } else if (dividerEl) {
+        const bottomEl = dividerEl.nextElementSibling as HTMLElement;
+        if (bottomEl) {
+          tick().then(() => {
+            const scrollEl: HTMLElement = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+            const offsetTop = bottomEl.offsetTop - 52;
+            scrollEl.scrollTo(0, offsetTop);
+          });
+        }
       }
 
       if (feed.length !== res.data.feed.length) {
         tick().then(() => {
-          column.data.feed[index + feed.length].isDivider = false;
+          column.data.feed[newDividerIndex].isDivider = false;
         })
       }
     } catch (e) {
@@ -299,7 +307,6 @@
     {_agent}
     {isJunk}
     {unique}
-    {isTopScrolling}
     {handleLoadMore}
     {handleDividerClick}
     {handleDividerUp}

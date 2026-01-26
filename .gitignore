@@ -14,3 +14,4 @@ dexie-cloud.key
 dexie-cloud.json
 .idea
 .env*.local
+/e2e

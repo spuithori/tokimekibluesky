@@ -16,7 +16,6 @@
     _agent,
     isJunk = false,
     unique,
-    isTopScrolling = false,
     handleLoadMore,
     handleDividerClick,
     handleDividerUp
@@ -25,7 +24,6 @@
     _agent: any;
     isJunk?: boolean;
     unique: any;
-    isTopScrolling?: boolean;
     handleLoadMore: any;
     handleDividerClick: any;
     handleDividerUp: any;
@@ -45,6 +43,7 @@
   let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
   let topMargin = $derived(isSingleColumnMode ? 52 : 0);
   let isPaused = $state(false);
+
 
   function shouldPauseLoading(): boolean {
     return isPaused && isSingleColumnMode && !isJunk;
@@ -193,6 +192,10 @@
   export function restoreScrollState(state: ScrollState): void {
     virtualList?.restoreScrollState(state);
   }
+
+  export function scrollToIndex(index: number, options?: { align?: 'start' | 'center' | 'end'; offset?: number }): void {
+    virtualList?.scrollToIndex(index, options);
+  }
 </script>
 
 <div class="timeline timeline--default virtual-timeline" bind:this={parent}>
@@ -201,11 +204,8 @@
     {getKey}
     {scrollContainer}
     {topMargin}
-    {isTopScrolling}
     {initialScrollState}
-    maintainScrollPosition={!column.settings?.refreshToTop}
     buffer={10}
-    estimatedItemHeight={200}
     bind:this={virtualList}
   >
     {#snippet children(item, index)}

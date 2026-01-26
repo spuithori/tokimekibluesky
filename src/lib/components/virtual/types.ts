@@ -13,14 +13,3 @@ export interface ScrollState {
   offset: number;
   heights: [string, number][];
 }
-
-export interface VirtualListProps<T> {
-  items: T[];
-  getKey: (item: T, index: number) => string;
-  scrollContainer: HTMLElement | null | undefined;
-  buffer?: number;
-  estimatedItemHeight?: number;
-  topMargin?: number;
-  maintainScrollPosition?: boolean;
-  onRangeChange?: (range: VisibleRange) => void;
-}

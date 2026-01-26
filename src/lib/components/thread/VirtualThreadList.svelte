@@ -119,8 +119,6 @@
     {scrollContainer}
     {topMargin}
     buffer={10}
-    estimatedItemHeight={180}
-    maintainScrollPosition={false}
     bind:this={virtualList}
   >
     {#snippet children(item, index)}

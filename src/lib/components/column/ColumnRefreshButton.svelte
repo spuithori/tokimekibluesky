@@ -88,6 +88,11 @@
         }
 
         if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList' || column.algorithm.type === 'myPost' || column.algorithm.type === 'myMedia') {
+            const shouldMaintainPosition = !column.settings?.refreshToTop;
+            const scrollEl: HTMLElement | null = $settings.design?.layout === 'decks'
+                ? column.scrollElement
+                : document.documentElement;
+
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
 
             if (!res?.data) {
@@ -117,7 +122,22 @@
                 column.data.cursor = res.data.cursor;
             }
 
+            let distanceFromBottom = 0;
+            if (shouldMaintainPosition && scrollEl && newFeed.length > 0 && column.data.feed.length > 0) {
+                const scrollTop = scrollEl.scrollTop;
+                const scrollHeight = scrollEl.scrollHeight;
+                const clientHeight = scrollEl.clientHeight;
+                distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+            }
+
             column.data.feed.unshift(...newFeed);
+
+            if (distanceFromBottom > 0) {
+                await tick();
+                const newScrollHeight = scrollEl!.scrollHeight;
+                const clientHeight = scrollEl!.clientHeight;
+                scrollEl!.scrollTop = newScrollHeight - distanceFromBottom - clientHeight;
+            }
         } else if (column.algorithm.type === 'bookmark') {
             column.data.feed = [];
             column.data.cursor = 0;
