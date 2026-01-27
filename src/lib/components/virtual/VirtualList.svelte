@@ -4,7 +4,6 @@
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
 
   const HEIGHT_CHANGE_THRESHOLD = 2;
-  const MAX_HEIGHTS_CACHE = 500;
   const DEFAULT_ITEM_HEIGHT = 100;
 
   interface Props<T> {
@@ -37,7 +36,6 @@
   let totalHeight = $state(0);
 
   let heights = new Map<string, number>();
-  let heightsOrder: string[] = [];
   let totalMeasuredHeight = 0;
   let measuredCount = 0;
 
@@ -49,6 +47,7 @@
   let scrollRafId: number | null = null;
   let resizeObserver: ResizeObserver | null = null;
   let prevItemCount = 0;
+  let prevFirstKey = '';
 
   let isWindowScroll = $derived(
     typeof document !== 'undefined' &&
@@ -89,28 +88,13 @@
   function setHeight(key: string, height: number): void {
     const existing = heights.get(key);
     if (existing !== undefined) {
-      const idx = heightsOrder.indexOf(key);
-      if (idx > -1) heightsOrder.splice(idx, 1);
       totalMeasuredHeight -= existing;
     } else {
       measuredCount++;
     }
 
-    heightsOrder.push(key);
     heights.set(key, height);
     totalMeasuredHeight += height;
-
-    while (heightsOrder.length > MAX_HEIGHTS_CACHE) {
-      const oldKey = heightsOrder.shift();
-      if (oldKey) {
-        const oldHeight = heights.get(oldKey);
-        if (oldHeight !== undefined) {
-          totalMeasuredHeight -= oldHeight;
-          measuredCount--;
-        }
-        heights.delete(oldKey);
-      }
-    }
   }
 
   function getItemHeight(index: number): number {
@@ -244,10 +228,28 @@
       return;
     }
 
+    const currentScrollTop = getScrollTop();
+    let scrollAdjust = 0;
     let hasChanges = false;
+
     for (const [key, newHeight] of pendingHeightUpdates) {
       const oldHeight = heights.get(key);
       if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < 1) continue;
+
+      if (oldHeight !== undefined) {
+        const rStart = visibleRange.start;
+        const rEnd = Math.min(visibleRange.end, items.length);
+        for (let i = rStart; i < rEnd; i++) {
+          if (getKey(items[i], i) === key) {
+            const itemBottom = (positions[i] ?? 0) + oldHeight;
+            if (itemBottom <= currentScrollTop) {
+              scrollAdjust += newHeight - oldHeight;
+            }
+            break;
+          }
+        }
+      }
+
       setHeight(key, newHeight);
       hasChanges = true;
     }
@@ -257,6 +259,13 @@
 
     if (hasChanges) {
       recalculatePositions();
+
+      if (scrollAdjust !== 0) {
+        isAdjustingScroll = true;
+        setScrollTop(currentScrollTop + scrollAdjust);
+        requestAnimationFrame(() => { isAdjustingScroll = false; });
+      }
+
       updateVisibleRange();
     }
   }
@@ -365,17 +374,61 @@
       visibleStart = 0;
       visibleEnd = 0;
       prevItemCount = 0;
+      prevFirstKey = '';
       queueMicrotask(() => renderVersion++);
       return;
     }
 
-    const wasAppend = len > prevItemCount && prevItemCount > 0;
+    const firstKey = getKey(items[0], 0);
     const oldCount = prevItemCount;
-    prevItemCount = len;
+    const oldFirstKey = prevFirstKey;
 
-    if (wasAppend) {
+    prevItemCount = len;
+    prevFirstKey = firstKey;
+
+    if (oldCount === 0) {
+      recalculatePositions();
+      queueMicrotask(() => {
+        renderVersion++;
+        updateVisibleRange();
+      });
+      return;
+    }
+
+    if (len > oldCount && firstKey === oldFirstKey) {
       appendPositions(oldCount);
       renderVersion++;
+      return;
+    }
+
+    if (len > oldCount && oldFirstKey && firstKey !== oldFirstKey) {
+      let shiftCount = 0;
+      const limit = Math.min(len, len - oldCount + 10);
+      for (let i = 1; i < limit; i++) {
+        if (getKey(items[i], i) === oldFirstKey) {
+          shiftCount = i;
+          break;
+        }
+      }
+
+      recalculatePositions();
+
+      if (shiftCount > 0 && scrollContainer) {
+        const currentScrollTop = getScrollTop();
+        if (currentScrollTop > 0) {
+          const scrollAdjust = positions[shiftCount] ?? 0;
+          if (scrollAdjust > 0) {
+            isAdjustingScroll = true;
+            setScrollTop(currentScrollTop + scrollAdjust);
+            requestAnimationFrame(() => { isAdjustingScroll = false; });
+          }
+        }
+      }
+
+      queueMicrotask(() => {
+        renderVersion++;
+        updateVisibleRange();
+      });
       return;
     }
 
@@ -400,12 +453,13 @@
       }
       recalculatePositions();
 
-      if (initialScrollState.index >= 0 && initialScrollState.index < items.length) {
-        const position = positions[initialScrollState.index] ?? 0;
+      const targetIdx = findTargetIndex(initialScrollState);
+      if (targetIdx >= 0 && targetIdx < items.length) {
+        const position = positions[targetIdx] ?? 0;
         const targetScrollTop = position + (initialScrollState.offset ?? 0);
         isAdjustingScroll = true;
-        visibleStart = Math.max(0, initialScrollState.index - buffer);
-        visibleEnd = Math.min(items.length, initialScrollState.index + buffer + 10);
+        visibleStart = Math.max(0, targetIdx - buffer);
+        visibleEnd = Math.min(items.length, targetIdx + buffer + 10);
         renderVersion++;
         setScrollTop(Math.max(0, targetScrollTop));
 
@@ -458,18 +512,30 @@
     if (items.length === 0) return null;
     const currentScrollTop = getScrollTop();
     const index = findIndexAtPosition(currentScrollTop);
+    const key = getKey(items[index], index);
     const offset = currentScrollTop - (positions[index] ?? 0);
 
-    const heightsArray: [string, number][] = [];
-    const rangeStart = Math.max(0, index - 30);
-    const rangeEnd = Math.min(items.length, index + 50);
-    for (let i = rangeStart; i < rangeEnd; i++) {
-      const key = getKey(items[i], i);
-      const h = heights.get(key);
-      if (h !== undefined) heightsArray.push([key, h]);
-    }
+    const heightsArray: [string, number][] = Array.from(heights.entries());
 
-    return { index, offset, heights: heightsArray };
+    return { index, key, offset, heights: heightsArray };
+  }
+
+  function findTargetIndex(state: ScrollState): number {
+    let targetIdx = state.index;
+    if (state.key && items.length > 0) {
+      const currentKey = targetIdx >= 0 && targetIdx < items.length
+        ? getKey(items[targetIdx], targetIdx)
+        : '';
+      if (currentKey !== state.key) {
+        for (let i = 0; i < items.length; i++) {
+          if (getKey(items[i], i) === state.key) {
+            targetIdx = i;
+            break;
+          }
+        }
+      }
+    }
+    return targetIdx;
   }
 
   export function restoreScrollState(state: ScrollState): void {
@@ -483,12 +549,13 @@
     }
     recalculatePositions();
 
-    if (state.index >= 0 && state.index < items.length) {
-      const position = positions[state.index] ?? 0;
+    const targetIdx = findTargetIndex(state);
+    if (targetIdx >= 0 && targetIdx < items.length) {
+      const position = positions[targetIdx] ?? 0;
       const targetScrollTop = position + (state.offset ?? 0);
       isAdjustingScroll = true;
-      visibleStart = Math.max(0, state.index - buffer);
-      visibleEnd = Math.min(items.length, state.index + buffer + 10);
+      visibleStart = Math.max(0, targetIdx - buffer);
+      visibleEnd = Math.min(items.length, targetIdx + buffer + 10);
       renderVersion++;
       setScrollTop(Math.max(0, targetScrollTop));
 

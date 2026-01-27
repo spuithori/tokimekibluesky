@@ -10,6 +10,7 @@ export interface ScrollToIndexOptions {
 
 export interface ScrollState {
   index: number;
+  key?: string;
   offset: number;
   heights: [string, number][];
 }
