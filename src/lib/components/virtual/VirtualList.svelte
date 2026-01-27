@@ -4,7 +4,7 @@
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
 
   const HEIGHT_CHANGE_THRESHOLD = 2;
-  const MAX_HEIGHTS_CACHE = 200;
+  const MAX_HEIGHTS_CACHE = 500;
   const DEFAULT_ITEM_HEIGHT = 100;
 
   interface Props<T> {
@@ -132,6 +132,27 @@
     const fallbackHeight = getAverageHeight();
 
     for (let i = 0; i < len; i++) {
+      newPositions[i] = cumulative;
+      const key = getKey(items[i], i);
+      cumulative += heights.get(key) ?? fallbackHeight;
+    }
+
+    positions = newPositions;
+    totalHeight = cumulative;
+  }
+
+  function appendPositions(startIndex: number): void {
+    const len = items.length;
+    if (len === 0 || startIndex >= len) return;
+
+    const fallbackHeight = getAverageHeight();
+    const newPositions = [...positions];
+
+    let cumulative = startIndex > 0
+      ? (positions[startIndex - 1] ?? 0) + getItemHeight(startIndex - 1)
+      : 0;
+
+    for (let i = startIndex; i < len; i++) {
       newPositions[i] = cumulative;
       const key = getKey(items[i], i);
       cumulative += heights.get(key) ?? fallbackHeight;
@@ -349,14 +370,16 @@
     }
 
     const wasAppend = len > prevItemCount && prevItemCount > 0;
+    const oldCount = prevItemCount;
     prevItemCount = len;
-    recalculatePositions();
 
     if (wasAppend) {
+      appendPositions(oldCount);
       renderVersion++;
       return;
     }
 
+    recalculatePositions();
     queueMicrotask(() => {
       renderVersion++;
       updateVisibleRange();
