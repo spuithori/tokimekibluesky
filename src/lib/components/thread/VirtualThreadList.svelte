@@ -68,16 +68,14 @@
 
     hasScrolledToRoot = true;
 
-    const initialPosition = virtualList.getPositionForIndex(targetIdx);
-    if (isJunk) {
-      setScrollTop(Math.max(0, initialPosition));
-    } else {
-      setScrollTop(Math.max(0, initialPosition - topMargin));
-    }
+    virtualList.scrollToIndex(targetIdx);
 
     const maxAttempts = 8;
 
     async function performScrollAdjustment() {
+      await tick();
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         if (!virtualList || !scrollContainer) break;
 

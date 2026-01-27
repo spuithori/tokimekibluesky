@@ -15,3 +15,5 @@ dexie-cloud.json
 .idea
 .env*.local
 /e2e
+test-results/
+playwright-report/

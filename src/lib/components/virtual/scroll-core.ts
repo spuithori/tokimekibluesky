@@ -42,6 +42,7 @@ export class VirtualScrollCore {
   viewportHeight = 0;
   private prevItemCount = 0;
   private prevFirstKey = '';
+  private prevLastKey = '';
 
   constructor(config: ScrollCoreConfig) {
     this.getKey = config.getKey;
@@ -166,14 +167,15 @@ export class VirtualScrollCore {
   }
 
   handleItemsChange(newItems: any[], currentScrollTop: number): ItemsChangeResult {
-    const oldItems = this.items;
     const oldCount = this.prevItemCount;
     const oldFirstKey = this.prevFirstKey;
+    const oldLastKey = this.prevLastKey;
 
     this.items = newItems;
     const len = newItems.length;
     this.prevItemCount = len;
     this.prevFirstKey = len > 0 ? this.getKey(newItems[0], 0) : '';
+    this.prevLastKey = len > 0 ? this.getKey(newItems[len - 1], len - 1) : '';
 
     if (len === 0) {
       this.positions = [];
@@ -189,8 +191,17 @@ export class VirtualScrollCore {
     }
 
     if (len > oldCount && firstKey === oldFirstKey) {
-      this.appendPositions(oldCount);
-      return { type: 'append', shiftCount: 0, scrollAdjust: 0 };
+      const isRealAppend = oldLastKey &&
+        oldCount > 0 &&
+        this.getKey(newItems[oldCount - 1], oldCount - 1) === oldLastKey;
+
+      if (isRealAppend) {
+        this.appendPositions(oldCount);
+        return { type: 'append', shiftCount: 0, scrollAdjust: 0 };
+      }
+
+      this.recalculatePositions();
+      return { type: 'replace', shiftCount: 0, scrollAdjust: 0 };
     }
 
     if (len > oldCount && oldFirstKey && firstKey !== oldFirstKey) {
@@ -206,7 +217,7 @@ export class VirtualScrollCore {
       this.recalculatePositions();
 
       let scrollAdjust = 0;
-      if (shiftCount > 0 && currentScrollTop > 0) {
+      if (shiftCount > 0) {
         scrollAdjust = this.positions[shiftCount] ?? 0;
       }
 
@@ -219,36 +230,26 @@ export class VirtualScrollCore {
 
   processHeightUpdates(
     updates: Map<string, number>,
-    currentScrollTop: number,
-    visibleRangeStart: number,
-    visibleRangeEnd: number
+    currentScrollTop: number
   ): HeightUpdateResult {
-    let scrollAdjust = 0;
     let changed = false;
 
     for (const [key, newHeight] of updates) {
       const oldHeight = this.heights.get(key);
       if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < 1) continue;
-
-      if (oldHeight !== undefined) {
-        const rEnd = Math.min(visibleRangeEnd, this.items.length);
-        for (let i = visibleRangeStart; i < rEnd; i++) {
-          if (this.getKey(this.items[i], i) === key) {
-            const itemBottom = (this.positions[i] ?? 0) + oldHeight;
-            if (itemBottom <= currentScrollTop) {
-              scrollAdjust += newHeight - oldHeight;
-            }
-            break;
-          }
-        }
-      }
-
       this.setHeight(key, newHeight);
       changed = true;
     }
 
+    let scrollAdjust = 0;
     if (changed) {
+      const anchorIndex = this.findIndexAtPosition(currentScrollTop);
+      const oldAnchorPos = this.positions[anchorIndex] ?? 0;
+
       this.recalculatePositions();
+
+      const newAnchorPos = this.positions[anchorIndex] ?? 0;
+      scrollAdjust = newAnchorPos - oldAnchorPos;
     }
 
     return { scrollAdjust, changed };

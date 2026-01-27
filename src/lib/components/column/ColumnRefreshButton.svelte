@@ -32,6 +32,16 @@
     const columnState = getColumnState(isJunk);
     let column = columnProp ?? columnState.getColumn(index);
 
+    function getScrollElement(): HTMLElement {
+        if ($settings.design?.layout !== 'decks') {
+            return document.documentElement;
+        }
+        if (isJunk && column.scrollElement) {
+            return (column.scrollElement.closest('.modal-page-content') as HTMLElement) ?? column.scrollElement;
+        }
+        return column.scrollElement || document.documentElement;
+    }
+
     function getServiceHost(): string {
         try {
             const serviceUrl = _agent.service();
@@ -80,7 +90,7 @@
         }
 
         isRefreshing = isAutoRefresh ? 'auto' : true;
-        const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+        const el = getScrollElement();
         const elInitialPosition = el.scrollTop;
 
         if (column.algorithm.type !== 'notification') {
@@ -89,9 +99,7 @@
 
         if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList' || column.algorithm.type === 'myPost' || column.algorithm.type === 'myMedia') {
             const shouldMaintainPosition = !column.settings?.refreshToTop;
-            const scrollEl: HTMLElement | null = $settings.design?.layout === 'decks'
-                ? column.scrollElement
-                : document.documentElement;
+            const scrollEl: HTMLElement = getScrollElement();
 
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
 
@@ -122,8 +130,10 @@
                 column.data.cursor = res.data.cursor;
             }
 
+            const useVirtualTimeline = (column.style === 'default' || !column.style) && $settings.design?.layout === 'decks';
+
             let distanceFromBottom = 0;
-            if (shouldMaintainPosition && scrollEl && newFeed.length > 0 && column.data.feed.length > 0) {
+            if (!useVirtualTimeline && shouldMaintainPosition && newFeed.length > 0 && column.data.feed.length > 0) {
                 const scrollTop = scrollEl.scrollTop;
                 const scrollHeight = scrollEl.scrollHeight;
                 const clientHeight = scrollEl.clientHeight;
@@ -134,9 +144,9 @@
 
             if (distanceFromBottom > 0) {
                 await tick();
-                const newScrollHeight = scrollEl!.scrollHeight;
-                const clientHeight = scrollEl!.clientHeight;
-                scrollEl!.scrollTop = newScrollHeight - distanceFromBottom - clientHeight;
+                const newScrollHeight = scrollEl.scrollHeight;
+                const clientHeight = scrollEl.clientHeight;
+                scrollEl.scrollTop = newScrollHeight - distanceFromBottom - clientHeight;
             }
         } else if (column.algorithm.type === 'bookmark') {
             column.data.feed = [];
@@ -220,10 +230,10 @@
 
             column.data.feed = [...column.data.feed, ...newFeed];
 
-            const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+            const chatScrollEl = getScrollElement();
             await tick();
-            scrollEl.scrollTo({
-                top: scrollEl.scrollHeight,
+            chatScrollEl.scrollTo({
+                top: chatScrollEl.scrollHeight,
                 behavior: 'smooth',
             });
 
@@ -259,10 +269,10 @@
 
                 column.data.feed = [...column.data.feed, ...newFeed];
 
-                const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+                const chatListScrollEl = getScrollElement();
                 await tick();
-                scrollEl.scrollTo({
-                    top: scrollEl.scrollHeight,
+                chatListScrollEl.scrollTo({
+                    top: chatListScrollEl.scrollHeight,
                     behavior: 'smooth',
                 });
 
@@ -331,8 +341,7 @@
     }
 
     function getScrollTop() {
-        const el = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
-        return el.scrollTop;
+        return getScrollElement().scrollTop;
     }
 
     function handleKeydown(event: { key: string; }) {
