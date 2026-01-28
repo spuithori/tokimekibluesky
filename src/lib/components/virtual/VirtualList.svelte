@@ -49,6 +49,14 @@
   let prevItemCount = 0;
   let prevFirstKey = '';
   let prevLastKey = '';
+  let pendingPrependAnchor: {
+    scrollTop: number;
+    anchorKey: string;
+    anchorVisualY: number;
+    containerTop: number;
+    shiftCount: number;
+    oldVisibleEnd: number;
+  } | null = null;
 
   let isWindowScroll = $derived(
     typeof document !== 'undefined' &&
@@ -224,6 +232,14 @@
   }
 
   function flushHeightUpdates(): void {
+    if (isNavigating) {
+      heightUpdateScheduled = false;
+      if (pendingHeightUpdates.size > 0) {
+        scheduleHeightUpdate();
+      }
+      return;
+    }
+
     if (pendingHeightUpdates.size === 0) {
       heightUpdateScheduled = false;
       return;
@@ -337,6 +353,72 @@
     };
   }
 
+  $effect.pre(() => {
+    const len = items.length;
+    void items;
+
+    if (len === 0 || prevItemCount === 0 || !scrollContainer) return;
+
+    const firstKey = getKey(items[0], 0);
+    if (firstKey === prevFirstKey || len <= prevItemCount || !prevFirstKey) return;
+
+    let shiftCount = 0;
+    const limit = Math.min(len, len - prevItemCount + 10);
+    for (let i = 1; i < limit; i++) {
+      if (getKey(items[i], i) === prevFirstKey) {
+        shiftCount = i;
+        break;
+      }
+    }
+
+    if (shiftCount > 0) {
+      const currentScrollTop = getScrollTop();
+      const containerRect = scrollContainer.getBoundingClientRect();
+
+      let anchorKey = '';
+      let anchorVisualY = 0;
+
+      for (let oldIdx = visibleStart; oldIdx < visibleEnd; oldIdx++) {
+        const newIdx = oldIdx + shiftCount;
+        if (newIdx >= len) break;
+        const key = getKey(items[newIdx], newIdx);
+        const el = itemRefs.get(key);
+        if (!el) continue;
+        const visualY = el.getBoundingClientRect().top - containerRect.top;
+        if (visualY >= topMargin - 2) {
+          anchorKey = key;
+          anchorVisualY = visualY;
+          break;
+        }
+      }
+
+      if (!anchorKey) {
+        const newIdx = visibleStart + shiftCount;
+        if (newIdx < len) {
+          anchorKey = getKey(items[newIdx], newIdx);
+          const el = itemRefs.get(anchorKey);
+          anchorVisualY = el
+            ? el.getBoundingClientRect().top - containerRect.top
+            : 0;
+        }
+      }
+
+      if (anchorKey) {
+        scrollContainer.style.overflowAnchor = 'none';
+        isNavigating = true;
+
+        pendingPrependAnchor = {
+          scrollTop: currentScrollTop,
+          anchorKey,
+          anchorVisualY,
+          containerTop: containerRect.top,
+          shiftCount,
+          oldVisibleEnd: visibleEnd,
+        };
+      }
+    }
+  });
+
   $effect(() => {
     const len = items.length;
     void items;
@@ -396,43 +478,41 @@
         }
       }
 
-      const needsManualAdjust = scrollContainer && getScrollTop() === 0;
+      if (shiftCount > 0 && scrollContainer && pendingPrependAnchor) {
+        const pp = pendingPrependAnchor;
+        pendingPrependAnchor = null;
 
-      recalculatePositions();
+        recalculatePositions();
 
-      if (shiftCount > 0) {
-        if (needsManualAdjust) {
-          visibleStart = 0;
-          visibleEnd = Math.min(items.length, shiftCount + buffer + 10);
-          renderVersion++;
-          isNavigating = true;
+        visibleStart = 0;
+        visibleEnd = Math.min(items.length, pp.oldVisibleEnd + shiftCount + buffer);
+        renderVersion++;
 
-          tick().then(() => {
-            let measuredHeight = 0;
-            for (let i = 0; i < shiftCount; i++) {
-              const key = getKey(items[i], i);
-              const el = itemRefs.get(key);
-              if (el) {
-                const h = el.getBoundingClientRect().height;
-                setHeight(key, h);
-                measuredHeight += h;
-              } else {
-                measuredHeight += getItemHeight(i);
-              }
-            }
-            recalculatePositions();
-            setScrollTop(measuredHeight);
-            requestAnimationFrame(() => {
-              isNavigating = false;
-              updateVisibleRange();
-            });
-          });
-        } else {
-          visibleStart = Math.max(0, visibleStart + shiftCount);
-          visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
-          renderVersion++;
-        }
+        tick().then(() => {
+          for (let i = 0; i < shiftCount; i++) {
+            const key = getKey(items[i], i);
+            const el = itemRefs.get(key);
+            if (el) setHeight(key, el.getBoundingClientRect().height);
+          }
+          recalculatePositions();
+
+          const newAnchorEl = itemRefs.get(pp.anchorKey);
+          if (newAnchorEl && scrollContainer) {
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const newAnchorVisualY = newAnchorEl.getBoundingClientRect().top - containerRect.top;
+            const target = Math.max(0, pp.scrollTop + newAnchorVisualY - pp.anchorVisualY);
+            setScrollTop(target);
+          }
+
+          tick().then(() => correctPrependScroll(pp.anchorKey, pp.anchorVisualY, 0));
+        });
+      } else if (shiftCount > 0) {
+        recalculatePositions();
+        visibleStart = Math.max(0, visibleStart + shiftCount);
+        visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
+        renderVersion++;
       } else {
+        recalculatePositions();
         queueMicrotask(() => {
           renderVersion++;
           updateVisibleRange();
@@ -499,6 +579,59 @@
       case 'end': return pos - usable + itemH + offset;
       default: return pos + offset;
     }
+  }
+
+  function correctPrependScroll(anchorKey: string, targetVisualY: number, pass: number): void {
+    if (!scrollContainer || pass >= 3) {
+      if (scrollContainer) scrollContainer.style.overflowAnchor = '';
+      isNavigating = false;
+      updateVisibleRange();
+      return;
+    }
+
+    measureRenderedItems();
+    recalculatePositions();
+
+    tick().then(() => {
+      if (!scrollContainer) {
+        isNavigating = false;
+        return;
+      }
+
+      const anchorEl = itemRefs.get(anchorKey);
+      if (anchorEl) {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const currentVisualY = anchorEl.getBoundingClientRect().top - containerRect.top;
+        const drift = currentVisualY - targetVisualY;
+        if (Math.abs(drift) > 0.5) {
+          setScrollTop(getScrollTop() + drift);
+          correctPrependScroll(anchorKey, targetVisualY, pass + 1);
+          return;
+        }
+      }
+
+      scrollContainer.style.overflowAnchor = '';
+      isNavigating = false;
+      updateVisibleRange();
+
+      const finalCorrect = (remaining: number) => {
+        requestAnimationFrame(() => {
+          if (!scrollContainer || remaining <= 0) return;
+          const el = itemRefs.get(anchorKey);
+          if (el) {
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const visualY = el.getBoundingClientRect().top - containerRect.top;
+            const drift = visualY - targetVisualY;
+            if (Math.abs(drift) > 0.1) {
+              setScrollTop(getScrollTop() + drift);
+              finalCorrect(remaining - 1);
+              return;
+            }
+          }
+        });
+      };
+      finalCorrect(3);
+    });
   }
 
   function correctScrollPosition(index: number, align: string, offset: number, pass: number): void {
