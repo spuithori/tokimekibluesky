@@ -721,7 +721,7 @@
   "disable_embed_via": "Do not notify the repost source of the reaction",
   "viewer": "ATP Records",
   "official_bookmark": "Bookmark (App)",
-  "use_virtual": "Use virtual list (Experimental)",
+  "use_virtual": "Disable virtual list",
   "media_column_columns": "Picture columns",
   "open_skyblur_additional": "Additional text is available.",
   "bubble_false": "Default",

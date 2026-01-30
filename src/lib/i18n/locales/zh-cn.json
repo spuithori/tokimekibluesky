@@ -721,7 +721,7 @@
   "disable_embed_via": "不通知转发源的反应",
   "viewer": "记录浏览器",
   "official_bookmark": "书签（App）",
-  "use_virtual": "使用虚拟列表（实验性）",
+  "use_virtual": "禁用虚拟列表",
   "media_column_columns": "图片行数",
   "open_skyblur_additional": "有补充文本",
   "bubble_false": "默认",

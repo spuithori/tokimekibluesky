@@ -171,7 +171,7 @@
       const newDividerIndex = index + feed.length;
       column.data.feed[newDividerIndex].isDivider = true;
 
-      const useVirtualList = (column.style === 'default' || !column.style) && !isSingleColumnMode;
+      const useVirtualList = (column.style === 'default' || !column.style) && !isSingleColumnMode && !$settings.general?.useVirtual;
       if (useVirtualList && virtualTimelineRef) {
         tick().then(() => {
           virtualTimelineRef?.scrollToIndex(newDividerIndex, { align: 'start', offset: 0 });
@@ -301,7 +301,7 @@
   }
 </script>
 
-{#if (column.style === 'default' || !column.style) && !isSingleColumnMode}
+{#if (column.style === 'default' || !column.style) && !isSingleColumnMode && !$settings.general?.useVirtual}
   <VirtualTimeline
     {column}
     {_agent}

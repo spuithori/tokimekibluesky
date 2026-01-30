@@ -18,16 +18,26 @@
 
     const searchColumnId = $page.url.searchParams.get('q') ? 'search_' + $page.url.searchParams.get('q') : '';
 
-    export const snapshot: Snapshot<{ index: number; key?: string; offset: number; scrollTop?: number; visualY?: number } | null> = {
+    export const snapshot: Snapshot<{ index: number; key?: string; offset: number; scrollTop?: number; visualY?: number; legacyScrollTop?: number } | null> = {
         capture: () => {
             if (!searchColumnId || !junkColumnState.hasColumn(searchColumnId)) return null;
             const colData = junkColumnState.getColumn(junkColumnState.getColumnIndex(searchColumnId))?.data as any;
             const s = colData?.scrollState;
-            if (!s) return null;
-            return { index: s.index, key: s.key, offset: s.offset, scrollTop: s.scrollTop, visualY: s.visualY };
+            if (s) {
+                return { index: s.index, key: s.key, offset: s.offset, scrollTop: s.scrollTop, visualY: s.visualY };
+            }
+            const el = document.querySelector('.modal-page-content') as HTMLElement | null;
+            if (!el) return null;
+            return { index: 0, offset: 0, legacyScrollTop: el.scrollTop };
         },
         restore: (value) => {
             if (!value || !searchColumnId) return;
+            if (value.legacyScrollTop != null) {
+                requestAnimationFrame(() => {
+                    (document.querySelector('.modal-page-content') as HTMLElement)?.scroll(0, value.legacyScrollTop!);
+                });
+                return;
+            }
             if (!junkColumnState.hasColumn(searchColumnId)) return;
             const colData = junkColumnState.getColumn(junkColumnState.getColumnIndex(searchColumnId))?.data as any;
             if (!colData) return;

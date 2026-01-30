@@ -130,7 +130,7 @@
                 column.data.cursor = res.data.cursor;
             }
 
-            const useVirtualTimeline = (column.style === 'default' || !column.style) && $settings.design?.layout === 'decks';
+            const useVirtualTimeline = (column.style === 'default' || !column.style) && $settings.design?.layout === 'decks' && !$settings.general?.useVirtual;
 
             let distanceFromBottom = 0;
             if (!useVirtualTimeline && shouldMaintainPosition && newFeed.length > 0 && column.data.feed.length > 0) {

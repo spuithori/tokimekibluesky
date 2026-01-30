@@ -721,7 +721,7 @@
   "disable_embed_via": "反応をリポスト元に通知しない",
   "viewer": "レコード探索",
   "official_bookmark": "ブックマーク (App)",
-  "use_virtual": "仮想リストを使用する（実験的）",
+  "use_virtual": "バーチャルリストを使用しない",
   "media_column_columns": "画像の行数",
   "open_skyblur_additional": "補足テキストがあります",
   "bubble_false": "デフォルト",

@@ -640,7 +640,7 @@
   "disable_embed_via": "Não notifique o autor da repostagem sobre a reação",
   "viewer": "Registros do ATP",
   "official_bookmark": "Salvos (Bluesky)",
-  "use_virtual": "Usar lista virtual (Experimental)",
+  "use_virtual": "Desativar lista virtual",
   "media_column_columns": "Colunas de imagens",
   "open_skyblur_additional": "Há texto adicional.",
   "bubble_false": "Padrão",

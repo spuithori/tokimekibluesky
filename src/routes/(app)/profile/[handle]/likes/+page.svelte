@@ -18,16 +18,26 @@
   const columnState = getColumnState(true);
   let columnId = $derived(`like_${data.params.handle}_${agentContext.agent.did()}`);
 
-  export const snapshot: Snapshot<{ index: number; key?: string; offset: number; scrollTop?: number; visualY?: number } | null> = {
+  export const snapshot: Snapshot<{ index: number; key?: string; offset: number; scrollTop?: number; visualY?: number; legacyScrollTop?: number } | null> = {
     capture: () => {
       if (!columnState.hasColumn(columnId)) return null;
       const colData = columnState.getColumn(columnState.getColumnIndex(columnId))?.data as any;
       const s = colData?.scrollState;
-      if (!s) return null;
-      return { index: s.index, key: s.key, offset: s.offset, scrollTop: s.scrollTop, visualY: s.visualY };
+      if (s) {
+          return { index: s.index, key: s.key, offset: s.offset, scrollTop: s.scrollTop, visualY: s.visualY };
+      }
+      const el = document.querySelector('.modal-page-content') as HTMLElement | null;
+      if (!el) return null;
+      return { index: 0, offset: 0, legacyScrollTop: el.scrollTop };
     },
     restore: (value) => {
       if (!value) return;
+      if (value.legacyScrollTop != null) {
+          requestAnimationFrame(() => {
+              (document.querySelector('.modal-page-content') as HTMLElement)?.scroll(0, value.legacyScrollTop!);
+          });
+          return;
+      }
       if (!columnState.hasColumn(columnId)) return;
       const colData = columnState.getColumn(columnState.getColumnIndex(columnId))?.data as any;
       if (!colData) return;
