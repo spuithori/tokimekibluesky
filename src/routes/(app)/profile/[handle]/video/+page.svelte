@@ -3,11 +3,9 @@
   import type { LayoutData } from '../$types';
   import {getAgentContext} from "../state.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  import {tick} from "svelte";
   import DeckRow from "../../../DeckRow.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import type { Snapshot } from './$types';
-  import {settings} from "$lib/stores";
 
   interface Props {
     data: LayoutData;
@@ -19,17 +17,16 @@
   const columnState = getColumnState(true);
   let columnId = $derived(`video_${data.params.handle}_${agentContext.agent.did()}`);
 
-  export const snapshot: Snapshot = {
-    capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
+  export const snapshot: Snapshot<{ scrollTop: number } | null> = {
+    capture: () => {
+      const scrollEl = document.querySelector('.modal-page-content') as HTMLElement;
+      return { scrollTop: scrollEl?.scrollTop ?? 0 };
+    },
     restore: (value) => {
-      [scrollY] = value;
-
-      tick().then(() => {
-        if ($settings.design.layout === 'decks') {
-          document.querySelector('.modal-page-content').scroll(0, scrollY);
-        } else {
-          document.querySelector(':root').scroll(0, scrollY);
-        }
+      if (!value || value.scrollTop <= 0) return;
+      requestAnimationFrame(() => {
+        const scrollEl = document.querySelector('.modal-page-content') as HTMLElement;
+        scrollEl?.scroll(0, value.scrollTop);
       });
     }
   };

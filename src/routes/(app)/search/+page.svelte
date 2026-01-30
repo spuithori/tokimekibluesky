@@ -8,7 +8,6 @@
     import type { Snapshot } from './$types';
     import DeckRow from "../DeckRow.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import {tick} from "svelte";
 
     const junkColumnState = getColumnState(true);
 
@@ -17,18 +16,22 @@
     let isSafety = $state(false);
     let sort: 'top' | 'latest' = $state('latest');
 
-    export const snapshot: Snapshot = {
-        capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
-        restore: (value) => {
-            [scrollY] = value;
+    const searchColumnId = $page.url.searchParams.get('q') ? 'search_' + $page.url.searchParams.get('q') : '';
 
-            tick().then(() => {
-                if ($settings.design.layout === 'decks') {
-                    document.querySelector('.modal-page-content').scroll(0, scrollY);
-                } else {
-                    document.querySelector(':root').scroll(0, scrollY);
-                }
-            });
+    export const snapshot: Snapshot<{ index: number; key?: string; offset: number; scrollTop?: number; visualY?: number } | null> = {
+        capture: () => {
+            if (!searchColumnId || !junkColumnState.hasColumn(searchColumnId)) return null;
+            const colData = junkColumnState.getColumn(junkColumnState.getColumnIndex(searchColumnId))?.data as any;
+            const s = colData?.scrollState;
+            if (!s) return null;
+            return { index: s.index, key: s.key, offset: s.offset, scrollTop: s.scrollTop, visualY: s.visualY };
+        },
+        restore: (value) => {
+            if (!value || !searchColumnId) return;
+            if (!junkColumnState.hasColumn(searchColumnId)) return;
+            const colData = junkColumnState.getColumn(junkColumnState.getColumnIndex(searchColumnId))?.data as any;
+            if (!colData) return;
+            colData._pendingScrollRestore = { ...value, heights: [] };
         }
     };
 

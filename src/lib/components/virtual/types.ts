@@ -13,4 +13,6 @@ export interface ScrollState {
   key?: string;
   offset: number;
   heights: [string, number][];
+  scrollTop?: number;
+  visualY?: number;
 }

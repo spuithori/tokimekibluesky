@@ -1,7 +1,6 @@
 <script lang="ts">
   import {onDestroy} from "svelte";
   import {_} from "svelte-i18n";
-  import {beforeNavigate, afterNavigate} from '$app/navigation';
   import {settings} from '$lib/stores';
   import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
@@ -30,9 +29,22 @@
   } = $props();
 
   let parent = $state<HTMLElement | undefined>();
-  let loadingEl = $state<HTMLElement | undefined>();
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
-  let initialScrollState = $state<ScrollState | null>(column.data?.scrollState ?? null);
+
+  let initialScrollState = $state<ScrollState | null>(
+    column.data?.scrollState ?? null
+  );
+  if (column.data?.scrollState) {
+    column.data.scrollState = null;
+  }
+
+  $effect(() => {
+    const pending = column.data?._pendingScrollRestore;
+    if (pending && !initialScrollState) {
+      initialScrollState = pending;
+      column.data._pendingScrollRestore = null;
+    }
+  });
 
   let isLoading = $state(false);
   let isComplete = $state(false);
@@ -41,30 +53,22 @@
   let lastUnique = $state(unique);
 
   let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
-  let topMargin = $derived(isSingleColumnMode ? 52 : 0);
-  let isPaused = $state(false);
+  let topMargin = $derived((isSingleColumnMode || isJunk) ? 52 : 0);
 
+  let scrollSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function shouldPauseLoading(): boolean {
-    return isPaused && isSingleColumnMode && !isJunk;
-  }
-
-  beforeNavigate(({ from, to }) => {
-    if (!isSingleColumnMode || isJunk) return;
-    if (from?.url.pathname === '/' && to?.url.pathname !== '/') {
-      isPaused = true;
-    }
-  });
-
-  afterNavigate(({ to }) => {
-    if (!isSingleColumnMode || isJunk) return;
-    if (to?.url.pathname === '/') {
-      isPaused = false;
-      if (isRetryLimit) {
-        retryCount = 0;
+  function saveScrollStateThrottled() {
+    if (scrollSaveTimer) return;
+    scrollSaveTimer = setTimeout(() => {
+      scrollSaveTimer = null;
+      if (virtualList && column.data) {
+        const state = virtualList.getScrollStateLightweight();
+        if (state) {
+          column.data.scrollState = state;
+        }
       }
-    }
-  });
+    }, 300);
+  }
 
   $effect(() => {
     if (unique !== lastUnique) {
@@ -73,6 +77,9 @@
       isLoading = false;
       initialScrollState = null;
       lastUnique = unique;
+      if (column.data) {
+        column.data.scrollState = null;
+      }
       queueMicrotask(() => {
         if (column.data.feed.length === 0 && !isLoading && !isComplete) {
           triggerLoad();
@@ -104,7 +111,7 @@
   }
 
   async function triggerLoad() {
-    if (isLoading || isComplete || isRetryLimit || shouldPauseLoading()) {
+    if (isLoading || isComplete || isRetryLimit) {
       return;
     }
 
@@ -132,53 +139,35 @@
     isLoading = false;
   }
 
-  function handleScroll() {
-    if (isLoading || isComplete || isRetryLimit || shouldPauseLoading()) {
-      return;
-    }
+  function handleVirtualScroll() {
+    saveScrollStateThrottled();
+    checkLoadMore();
+  }
 
-    if (!loadingEl || !scrollContainer) return;
-
-    const scrollTop = isSingleColumnMode
-      ? window.scrollY
-      : (scrollContainer as HTMLElement).scrollTop;
-    const viewportHeight = isSingleColumnMode
-      ? window.innerHeight
-      : (scrollContainer as HTMLElement).clientHeight;
-    const scrollHeight = isSingleColumnMode
-      ? document.documentElement.scrollHeight
-      : (scrollContainer as HTMLElement).scrollHeight;
-
-    const distanceFromBottom = scrollHeight - scrollTop - viewportHeight;
-
+  function checkLoadMore() {
+    if (isLoading || isComplete || isRetryLimit || !virtualList) return;
+    const info = virtualList.getScrollInfo();
+    const distanceFromBottom = info.totalHeight - info.scrollTop - info.viewportHeight;
     if (distanceFromBottom < 500) {
       triggerLoad();
     }
   }
 
   $effect(() => {
-    if (!scrollContainer || shouldPauseLoading()) return;
-
-    const target = isSingleColumnMode ? window : scrollContainer;
-    target.addEventListener('scroll', handleScroll, { passive: true });
-
-    handleScroll();
-
-    return () => {
-      target.removeEventListener('scroll', handleScroll);
-    };
-  });
-
-  $effect(() => {
     const feedLength = column.data.feed.length;
-    if (feedLength === 0 && scrollContainer && !isLoading && !isComplete && !shouldPauseLoading()) {
+    if (feedLength === 0 && scrollContainer && !isLoading && !isComplete) {
       triggerLoad();
     }
   });
 
   onDestroy(() => {
-    if (virtualList && column.data) {
-      const state = virtualList.getScrollState();
+    if (scrollSaveTimer) {
+      clearTimeout(scrollSaveTimer);
+      scrollSaveTimer = null;
+    }
+
+    if (virtualList && column.data && !column.data.scrollState) {
+      const state = virtualList.getScrollStateLightweight();
       if (state) {
         column.data.scrollState = state;
       }
@@ -206,6 +195,8 @@
     {topMargin}
     {initialScrollState}
     buffer={10}
+    onScroll={handleVirtualScroll}
+    onRangeChange={checkLoadMore}
     bind:this={virtualList}
   >
     {#snippet children(item, index)}
@@ -235,7 +226,7 @@
     {/snippet}
   </VirtualList>
 
-  <div class="infinite-loading" bind:this={loadingEl}>
+  <div class="infinite-loading">
     {#if isLoading}
       <LoadingSpinner padding={0}></LoadingSpinner>
     {/if}

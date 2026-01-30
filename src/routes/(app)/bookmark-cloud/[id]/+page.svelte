@@ -4,22 +4,10 @@
     import BookmarkView from "./BookmarkView.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
     import type { Snapshot } from './$types';
-    import {settings} from "$lib/stores";
-    import {tick} from "svelte";
 
     export const snapshot: Snapshot = {
-        capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
-        restore: (value) => {
-          [scrollY] = value;
-
-          tick().then(() => {
-            if ($settings.design.layout === 'decks') {
-              document.querySelector('.modal-page-content').scroll(0, scrollY);
-            } else {
-              document.querySelector(':root').scroll(0, scrollY);
-            }
-          });
-        }
+        capture: () => null,
+        restore: () => {}
     };
 </script>
 

@@ -11,20 +11,11 @@
   const agentContext = getAgentContext();
   let followers = $state([]);
   let cursor = '';
-  let scrollY = 0;
 
   export const snapshot: Snapshot = {
-      capture: () => [followers, cursor, $settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
+      capture: () => [followers, cursor],
       restore: (value) => {
-        [followers, cursor, scrollY] = value;
-
-        tick().then(() => {
-          if ($settings.design.layout === 'decks') {
-            document.querySelector('.modal-page-content').scroll(0, scrollY);
-          } else {
-            document.querySelector(':root').scroll(0, scrollY);
-          }
-        });
+        [followers, cursor] = value;
       }
   };
 

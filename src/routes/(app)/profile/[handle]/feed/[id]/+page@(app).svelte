@@ -3,8 +3,8 @@
     import FeedPreview from "./FeedPreview.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
     import type { Snapshot } from './$types';
-    import {settings, agent} from "$lib/stores";
-    import {onMount, tick} from "svelte";
+    import {agent} from "$lib/stores";
+    import {onMount} from "svelte";
     import FeedHeading from "$lib/components/feeds/FeedHeading.svelte";
     import {getDidByHandle, isDid} from "$lib/util";
 
@@ -13,17 +13,9 @@
     let did = $state('');
 
     export const snapshot: Snapshot = {
-        capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop, feed],
+        capture: () => [feed],
         restore: (value) => {
-          [scrollY, feed] = value;
-
-          tick().then(() => {
-            if ($settings.design.layout === 'decks') {
-              document.querySelector('.modal-page-content').scroll(0, scrollY);
-            } else {
-              document.querySelector(':root').scroll(0, scrollY);
-            }
-          });
+          [feed] = value;
         }
     };
 
@@ -38,7 +30,6 @@
         const res = await _agent.agent.api.app.bsky.feed.getFeedGenerator({feed: 'at://' + did + '/app.bsky.feed.generator/' + $page.params.id});
         feed = res.data.view;
       } catch (e) {
-        //
       }
     });
 </script>

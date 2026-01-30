@@ -4,7 +4,6 @@
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import DeckRow from "../../DeckRow.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  import {tick} from "svelte";
   import {getAgentContext} from "./state.svelte";
 
   interface Props {
@@ -14,7 +13,6 @@
 
   const agentContext = getAgentContext();
   const columnState = getColumnState(true);
-  let scrollY = 0;
 
   if (!columnState.hasColumn('profile_' + data.params.handle)) {
       columnState.add({
@@ -44,18 +42,22 @@
       });
   }
 
-  export const snapshot: Snapshot = {
-      capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
-      restore: (value) => {
-        [scrollY] = value;
+  const columnId = 'profile_' + data.params.handle;
 
-        tick().then(() => {
-          if ($settings.design.layout === 'decks') {
-            document.querySelector('.modal-page-content').scroll(0, scrollY);
-          } else {
-            document.querySelector(':root').scroll(0, scrollY);
-          }
-        });
+  export const snapshot: Snapshot<{ index: number; key?: string; offset: number; scrollTop?: number; visualY?: number } | null> = {
+      capture: () => {
+          if (!columnState.hasColumn(columnId)) return null;
+          const colData = columnState.getColumn(columnState.getColumnIndex(columnId))?.data as any;
+          const s = colData?.scrollState;
+          if (!s) return null;
+          return { index: s.index, key: s.key, offset: s.offset, scrollTop: s.scrollTop, visualY: s.visualY };
+      },
+      restore: (value) => {
+          if (!value) return;
+          if (!columnState.hasColumn(columnId)) return;
+          const colData = columnState.getColumn(columnState.getColumnIndex(columnId))?.data as any;
+          if (!colData) return;
+          colData._pendingScrollRestore = { ...value, heights: [] };
       }
   };
 </script>

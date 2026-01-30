@@ -13,7 +13,6 @@ export class ColumnState {
         data: {
             feed: !settingsState?.settings?.markedUnread ? [] : data?.notifications ? [] : data?.feed || [],
             cursor: !settingsState?.settings?.markedUnread ? '' : data?.notifications ? '' : data?.cursor || '',
-            scrollState: data?.scrollState,
         },
         ...(splitColumn ? {
             splitColumn: {
@@ -24,7 +23,6 @@ export class ColumnState {
                         data: {
                             feed: !settingsState?.settings?.markedUnread ? [] : splitData?.notifications ? [] : splitData?.feed || [],
                             cursor: !settingsState?.settings?.markedUnread ? '' : splitData?.notifications ? '' : splitData?.cursor || '',
-                            scrollState: splitData?.scrollState,
                         }
                     };
                 })()
@@ -46,7 +44,12 @@ export class ColumnState {
 
         accountsDb.profiles.get(appState.profile.current)
           .then(res => {
-              this.columns = res?.columns || [];
+              const cols = res?.columns || [];
+              for (const col of cols) {
+                  if (col.data) col.data.scrollState = undefined;
+                  if ((col as any).splitColumn?.data) (col as any).splitColumn.data.scrollState = undefined;
+              }
+              this.columns = cols;
               this.isColumnsLoaded = true;
         });
 

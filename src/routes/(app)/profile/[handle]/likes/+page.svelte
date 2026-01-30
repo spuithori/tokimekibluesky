@@ -1,7 +1,6 @@
 <script lang="ts">
   import { _ } from 'svelte-i18n';
   import type { LayoutData } from '../$types';
-  import {tick} from "svelte";
   import {getAgentContext} from "../state.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import DeckRow from "../../../DeckRow.svelte";
@@ -19,18 +18,20 @@
   const columnState = getColumnState(true);
   let columnId = $derived(`like_${data.params.handle}_${agentContext.agent.did()}`);
 
-  export const snapshot: Snapshot = {
-    capture: () => [$settings.design.layout === 'decks' ? document.querySelector('.modal-page-content').scrollTop : document.querySelector(':root').scrollTop],
+  export const snapshot: Snapshot<{ index: number; key?: string; offset: number; scrollTop?: number; visualY?: number } | null> = {
+    capture: () => {
+      if (!columnState.hasColumn(columnId)) return null;
+      const colData = columnState.getColumn(columnState.getColumnIndex(columnId))?.data as any;
+      const s = colData?.scrollState;
+      if (!s) return null;
+      return { index: s.index, key: s.key, offset: s.offset, scrollTop: s.scrollTop, visualY: s.visualY };
+    },
     restore: (value) => {
-      [scrollY] = value;
-
-      tick().then(() => {
-        if ($settings.design.layout === 'decks') {
-          document.querySelector('.modal-page-content').scroll(0, scrollY);
-        } else {
-          document.querySelector(':root').scroll(0, scrollY);
-        }
-      });
+      if (!value) return;
+      if (!columnState.hasColumn(columnId)) return;
+      const colData = columnState.getColumn(columnState.getColumnIndex(columnId))?.data as any;
+      if (!colData) return;
+      colData._pendingScrollRestore = { ...value, heights: [] };
     }
   };
 
