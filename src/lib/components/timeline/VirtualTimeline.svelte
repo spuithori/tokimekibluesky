@@ -145,12 +145,17 @@
   }
 
   function checkLoadMore() {
-    if (isLoading || isComplete || isRetryLimit || !virtualList) return;
+    if (!virtualList) return;
     const info = virtualList.getScrollInfo();
     const distanceFromBottom = info.totalHeight - info.scrollTop - info.viewportHeight;
-    if (distanceFromBottom < 500) {
-      triggerLoad();
+    if (distanceFromBottom >= 500) {
+      if (isRetryLimit) {
+        retryCount = 0;
+      }
+      return;
     }
+    if (isLoading || isComplete || isRetryLimit) return;
+    triggerLoad();
   }
 
   $effect(() => {

@@ -742,7 +742,7 @@
           const targetVisualY = initialScrollState!.visualY ?? (topMargin - (initialScrollState!.offset ?? 0));
           tick().then(() => {
             setScrollTop(Math.max(0, targetScrollTop));
-            scheduleCorrectionRaf(() => correctLightweightScroll(targetIdx, targetVisualY, 0));
+            scheduleCorrectionRaf(() => correctLightweightScroll(targetIdx, targetVisualY));
           });
         } else {
           tick().then(() => {
@@ -842,32 +842,45 @@
     });
   }
 
-  function correctLightweightScroll(index: number, targetVisualY: number, pass: number): void {
-    if (pass >= 8) {
-      finishNavigation();
-      return;
-    }
-
+  function correctLightweightScroll(index: number, targetVisualY: number): void {
     const key = getKey(items[index], index);
+
+    measureAndRecalculate();
+
     const el = itemRefs.get(key);
     if (el && scrollContainer) {
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const itemRect = el.getBoundingClientRect();
-      const currentVisualY = itemRect.top - containerRect.top;
-      const drift = currentVisualY - targetVisualY;
-      if (Math.abs(drift) > 2) {
+      const containerTop = scrollContainer.getBoundingClientRect().top;
+      const drift = el.getBoundingClientRect().top - containerTop - targetVisualY;
+      if (Math.abs(drift) > 1) {
         setScrollTop(Math.max(0, getScrollTop() + drift));
-        scheduleCorrectionRaf(() => correctLightweightScroll(index, targetVisualY, pass + 1));
-      } else if (pass < 3) {
-        measureAndRecalculate();
-        scheduleCorrectionRaf(() => correctLightweightScroll(index, targetVisualY, 3));
-      } else {
-        finishNavigation();
       }
+
+      scheduleCorrectionRaf(() => {
+        measureAndRecalculate();
+        const el2 = itemRefs.get(key);
+        if (el2 && scrollContainer) {
+          const drift2 = el2.getBoundingClientRect().top - scrollContainer.getBoundingClientRect().top - targetVisualY;
+          if (Math.abs(drift2) > 1) {
+            setScrollTop(Math.max(0, getScrollTop() + drift2));
+          }
+        }
+        finishNavigation();
+      });
     } else {
-      measureAndRecalculate();
       const fallbackOffset = targetVisualY - topMargin;
-      correctScrollPosition(index, 'start', -fallbackOffset, pass);
+      const corrected = Math.max(0, computeScrollTop(index, 'start', -fallbackOffset));
+      setScrollTop(corrected);
+      scheduleCorrectionRaf(() => {
+        measureAndRecalculate();
+        const el2 = itemRefs.get(key);
+        if (el2 && scrollContainer) {
+          const drift2 = el2.getBoundingClientRect().top - scrollContainer.getBoundingClientRect().top - targetVisualY;
+          if (Math.abs(drift2) > 1) {
+            setScrollTop(Math.max(0, getScrollTop() + drift2));
+          }
+        }
+        finishNavigation();
+      });
     }
   }
 
