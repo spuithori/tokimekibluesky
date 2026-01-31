@@ -495,6 +495,7 @@
              class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
              class:timeline__item--hide={isHide}
              class:timeline__item--bubble={$settings?.design?.bubbleTimeline}
+             data-uri={data?.post?.uri}
              onclick={handleClick}
     >
       {#if isPinned}

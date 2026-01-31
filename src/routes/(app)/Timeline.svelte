@@ -10,8 +10,10 @@
   import {toast} from "svelte-sonner";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {isAfter} from "date-fns";
-  import {tick} from "svelte";
+  import {tick, onMount} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
+  import { getLastReadUri } from '$lib/lastReadClient';
+  import LastReadTracker from '$lib/components/utils/LastReadTracker.svelte';
 
   let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined } = $props();
 
@@ -23,6 +25,30 @@
   let isDividerLoading = $state(false);
   let dividerFillerHeight = $state(0);
   let controller: null | AbortController = null;
+  let hasRestoredPosition = false;
+
+  // Restore scroll position to last-read item after initial feed load
+  $effect(() => {
+    if (column.data.feed.length > 0 && column.scrollElement && !hasRestoredPosition) {
+      restoreScrollPosition();
+    }
+  });
+
+  async function restoreScrollPosition() {
+    hasRestoredPosition = true;
+    const did = _agent.did();
+    if (!did) return;
+
+    const lastReadUri = await getLastReadUri(did, column.id);
+    if (!lastReadUri) return;
+
+    await tick(); // Wait for DOM update
+
+    const item = column.scrollElement?.querySelector(`[data-uri="${CSS.escape(lastReadUri)}"]`);
+    if (item) {
+      item.scrollIntoView({ block: 'start', behavior: 'instant' });
+    }
+  }
 
   $effect(() => {
       insertRealtimeData($realtime);
@@ -312,5 +338,13 @@
 
   {#if (isDividerLoading)}
     <div class="more-divider-filler" style="--more-divider-filler-height: {dividerFillerHeight}px"></div>
+  {/if}
+
+  {#if column.scrollElement && _agent}
+    <LastReadTracker
+      did={_agent.did()}
+      columnId={column.id}
+      scrollContainer={column.scrollElement}
+    />
   {/if}
 </div>
