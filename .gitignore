@@ -14,3 +14,6 @@ dexie-cloud.key
 dexie-cloud.json
 .idea
 .env*.local
+
+# SQLite data directory
+data/

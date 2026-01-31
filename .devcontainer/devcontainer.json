@@ -1,0 +1,40 @@
+{
+  "name": "Tokimeki Bluesky Dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+  "forwardPorts": [5173, 3000],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite Dev Server",
+      "onAutoForward": "notify"
+    },
+    "3000": {
+      "label": "Production Preview",
+      "onAutoForward": "notify"
+    }
+  },
+
+  "postCreateCommand": "bun install",
+  "postStartCommand": "mkdir -p data",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "svelte.svelte-vscode",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "svelte.enable-ts-plugin": true
+      }
+    }
+  },
+
+  "remoteUser": "vscode"
+}

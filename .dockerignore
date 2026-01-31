@@ -1,0 +1,11 @@
+node_modules
+.git
+.gitignore
+*.md
+.env*
+.devcontainer
+data/
+build/
+.svelte-kit/
+.vscode/
+*.log
