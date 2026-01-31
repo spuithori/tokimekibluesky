@@ -41,6 +41,7 @@
     "@neodrag/svelte": "^3.0.0-next.8",
     "@number-flow/svelte": "^0.3.9",
     "@supabase/supabase-js": "^2.77.0",
+    "@sveltejs/adapter-node": "^5.2.0",
     "@sveltejs/adapter-vercel": "^6.3.0",
     "@tiptap/core": "3.11.0",
     "@tiptap/extension-document": "3.11.0",
