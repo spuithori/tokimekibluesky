@@ -2,11 +2,13 @@ export class FenwickTree {
   private _tree: Float64Array;
   private _data: Float64Array;
   private _size: number;
+  private _capacity: number;
 
   constructor() {
     this._tree = new Float64Array(0);
     this._data = new Float64Array(0);
     this._size = 0;
+    this._capacity = 0;
   }
 
   get length(): number {
@@ -24,11 +26,20 @@ export class FenwickTree {
     if (n === 0) {
       this._tree = new Float64Array(0);
       this._data = new Float64Array(0);
+      this._capacity = 0;
       return;
     }
 
-    this._data = new Float64Array(n + 1);
-    this._tree = new Float64Array(n + 1);
+    if (n > this._capacity) {
+      const newCap = Math.max(n, 64);
+      this._data = new Float64Array(newCap + 1);
+      this._tree = new Float64Array(newCap + 1);
+      this._capacity = newCap;
+    } else {
+      // Zero out the full allocated region so extend's incremental path
+      // never encounters stale values from a previous larger build.
+      this._tree.fill(0, 0, this._capacity + 1);
+    }
 
     for (let i = 0; i < n; i++) {
       const i1 = i + 1;
@@ -105,32 +116,28 @@ export class FenwickTree {
   extend(newHeights: number[]): void {
     if (newHeights.length === 0) return;
 
-    const oldSize = this._size;
-    const n = oldSize + newHeights.length;
-    this._size = n;
+    const newSize = this._size + newHeights.length;
 
-    const newData = new Float64Array(n + 1);
-    const newTree = new Float64Array(n + 1);
-
-    for (let i = 1; i <= oldSize; i++) {
-      newData[i] = this._data[i];
-      newTree[i] = this._data[i];
+    if (newSize > this._capacity) {
+      const newCap = Math.max(this._capacity * 2, newSize, 64);
+      const newData = new Float64Array(newCap + 1);
+      for (let i = 1; i <= this._size; i++) newData[i] = this._data[i];
+      this._data = newData;
+      this._tree = new Float64Array(newCap + 1);
+      this._capacity = newCap;
     }
 
+    // Append new data values
     for (let i = 0; i < newHeights.length; i++) {
-      const idx = oldSize + i + 1;
-      newData[idx] = newHeights[i];
-      newTree[idx] = newHeights[i];
+      this._data[this._size + i + 1] = newHeights[i];
     }
+    this._size = newSize;
 
-    this._data = newData;
-    this._tree = newTree;
-
-    for (let i = 1; i <= n; i++) {
-      const parent = i + (i & -i);
-      if (parent <= n) {
-        this._tree[parent] += this._tree[i];
-      }
+    // Rebuild tree from data — O(n) linear build
+    for (let i = 1; i <= newSize; i++) this._tree[i] = this._data[i];
+    for (let i = 1; i <= newSize; i++) {
+      const p = i + (i & -i);
+      if (p <= newSize) this._tree[p] += this._tree[i];
     }
   }
 
@@ -138,5 +145,6 @@ export class FenwickTree {
     this._tree = new Float64Array(0);
     this._data = new Float64Array(0);
     this._size = 0;
+    this._capacity = 0;
   }
 }
