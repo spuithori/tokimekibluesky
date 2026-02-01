@@ -3,7 +3,7 @@
   import {settings} from '$lib/stores';
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
-  import { getScrollTopFor, setScrollTopFor } from "$lib/components/virtual/scroll-helpers";
+  import { getScrollTopFor, setScrollTopFor, resolveScrollContainer } from "$lib/components/virtual/scroll-helpers";
   import {_} from "svelte-i18n";
 
   let { column, _agent, rootIndex, onchangeprofile, isJunk } = $props();
@@ -24,16 +24,9 @@
     $settings.design.threaded = false;
   }
 
-  let scrollContainer = $derived.by(() => {
-    if (!parent) return null;
-    if (isJunk) {
-      return parent.closest('.modal-page-content') as HTMLElement | null;
-    }
-    if (isSingleColumnMode) {
-      return document.documentElement;
-    }
-    return column.scrollElement ?? null;
-  });
+  let scrollContainer = $derived(
+    resolveScrollContainer(parent, isSingleColumnMode, isJunk, column.scrollElement)
+  );
 
   function getKey(data: any, index: number): string {
     return `thread-${index}-${data?.post?.uri || ''}`;

@@ -144,11 +144,6 @@
         border-right: var(--single-border, 1px solid var(--border-color-2));
         position: relative;
         z-index: 1001;
-
-        &--virtual {
-            overflow-x: hidden;
-            height: 100dvh;
-        }
     }
 }
 

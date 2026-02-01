@@ -194,6 +194,11 @@
     return scrollContainer?.clientHeight ?? 0;
   }
 
+  function getContainerTop(): number {
+    if (isWindowScroll) return 0;
+    return scrollContainer?.getBoundingClientRect().top ?? 0;
+  }
+
   function findEndIndex(scrollBottom: number): number {
     return Math.min(items.length, tree.findIndex(scrollBottom) + 1);
   }
@@ -294,6 +299,7 @@
     }
 
     let hasChanges = false;
+    let aboveDelta = 0;
 
     const rangeStart = Math.max(0, visibleStart - buffer);
     const keyToIndex = getKeyToIndex();
@@ -306,6 +312,9 @@
       const idx = keyToIndex.get(key);
       if (idx === undefined) continue;
       if (idx >= rangeStart && idx < tree.length) {
+        if (idx < visibleStart) {
+          aboveDelta += newHeight - tree.get(idx);
+        }
         tree.set(idx, newHeight);
         hasChanges = true;
       }
@@ -318,6 +327,9 @@
     }
 
     if (hasChanges) {
+      if (aboveDelta !== 0 && !isNavigating && isWindowScroll && getScrollTop() > 0) {
+        setScrollTop(getScrollTop() + aboveDelta);
+      }
       recalculatePositionsFrom(rangeStart);
       renderVersion++;
       updateVisibleRange();
@@ -433,7 +445,7 @@
     shiftCount: number
   ): { key: string; visualY: number } | null {
     if (!scrollContainer) return null;
-    const containerRect = scrollContainer.getBoundingClientRect();
+    const cTop = getContainerTop();
 
     for (let oldIdx = visibleStart; oldIdx < visibleEnd; oldIdx++) {
       const newIdx = oldIdx + shiftCount;
@@ -441,7 +453,7 @@
       const key = getKey(items[newIdx], newIdx);
       const el = itemRefs.get(key);
       if (!el) continue;
-      const vy = el.getBoundingClientRect().top - containerRect.top;
+      const vy = el.getBoundingClientRect().top - cTop;
       if (vy >= topMargin - ANCHOR_TOLERANCE) {
         return { key, visualY: vy };
       }
@@ -452,7 +464,7 @@
       const key = getKey(items[newIdx], newIdx);
       const el = itemRefs.get(key);
       const vy = el
-        ? el.getBoundingClientRect().top - containerRect.top
+        ? el.getBoundingClientRect().top - cTop
         : 0;
       return { key, visualY: vy };
     }
@@ -503,8 +515,8 @@
               }
               const el = itemRefs.get(anchorKey);
               if (el) {
-                const rect = scrollContainer.getBoundingClientRect();
-                const currentY = el.getBoundingClientRect().top - rect.top;
+                const cTop = getContainerTop();
+                const currentY = el.getBoundingClientRect().top - cTop;
                 const drift = currentY - anchorVisualY;
                 if (Math.abs(drift) > DRIFT_THRESHOLD_COARSE) {
                   setScrollTop(getScrollTop() + drift);
@@ -535,7 +547,7 @@
             scrollTop: currentScrollTop,
             anchorKey,
             anchorVisualY,
-            containerTop: scrollContainer.getBoundingClientRect().top,
+            containerTop: getContainerTop(),
             shiftCount,
             oldVisibleEnd: visibleEnd,
           };
@@ -600,8 +612,8 @@
 
       const newAnchorEl = itemRefs.get(pp.anchorKey);
       if (newAnchorEl && scrollContainer) {
-        const containerRect = scrollContainer.getBoundingClientRect();
-        const newAnchorVisualY = newAnchorEl.getBoundingClientRect().top - containerRect.top;
+        const cTop = getContainerTop();
+        const newAnchorVisualY = newAnchorEl.getBoundingClientRect().top - cTop;
         const target = Math.max(0, pp.scrollTop + newAnchorVisualY - pp.anchorVisualY);
         setScrollTop(target);
       }
@@ -754,8 +766,8 @@
 
       const anchorEl = itemRefs.get(anchorKey);
       if (anchorEl) {
-        const containerRect = scrollContainer.getBoundingClientRect();
-        const currentVisualY = anchorEl.getBoundingClientRect().top - containerRect.top;
+        const cTop = getContainerTop();
+        const currentVisualY = anchorEl.getBoundingClientRect().top - cTop;
         const drift = currentVisualY - targetVisualY;
         if (Math.abs(drift) > DRIFT_THRESHOLD_COARSE) {
           setScrollTop(getScrollTop() + drift);
@@ -772,8 +784,8 @@
           if (!scrollContainer || remaining <= 0) return;
           const el = itemRefs.get(anchorKey);
           if (el) {
-            const containerRect = scrollContainer.getBoundingClientRect();
-            const visualY = el.getBoundingClientRect().top - containerRect.top;
+            const cTop = getContainerTop();
+            const visualY = el.getBoundingClientRect().top - cTop;
             const drift = visualY - targetVisualY;
             if (Math.abs(drift) > DRIFT_THRESHOLD_FINE) {
               setScrollTop(getScrollTop() + drift);
@@ -791,7 +803,7 @@
     measureAndRecalculate();
     const el = itemRefs.get(key);
     if (el && scrollContainer) {
-      const containerTop = scrollContainer.getBoundingClientRect().top;
+      const containerTop = getContainerTop();
       const drift = el.getBoundingClientRect().top - containerTop - targetVisualY;
       if (Math.abs(drift) > DRIFT_THRESHOLD_POSITION) {
         setScrollTop(Math.max(0, getScrollTop() + drift));
@@ -807,7 +819,7 @@
 
     const el = itemRefs.get(key);
     if (el && scrollContainer) {
-      const containerTop = scrollContainer.getBoundingClientRect().top;
+      const containerTop = getContainerTop();
       const drift = el.getBoundingClientRect().top - containerTop - targetVisualY;
       if (Math.abs(drift) > DRIFT_THRESHOLD_POSITION) {
         setScrollTop(Math.max(0, getScrollTop() + drift));
@@ -891,8 +903,8 @@
     if (container) {
       const el = itemRefs.get(key);
       if (el) {
-        const containerRect = container.getBoundingClientRect();
-        visualY = el.getBoundingClientRect().top - containerRect.top;
+        const containerTop = getContainerTop();
+        visualY = el.getBoundingClientRect().top - containerTop;
       }
     }
 
@@ -914,9 +926,8 @@
     if (container) {
       const el = itemRefs.get(key);
       if (el) {
-        const containerRect = container.getBoundingClientRect();
-        const itemRect = el.getBoundingClientRect();
-        visualY = itemRect.top - containerRect.top;
+        const containerTop = getContainerTop();
+        visualY = el.getBoundingClientRect().top - containerTop;
       }
     }
 

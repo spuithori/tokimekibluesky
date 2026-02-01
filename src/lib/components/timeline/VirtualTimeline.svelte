@@ -6,6 +6,7 @@
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
   import type {ScrollState} from "$lib/components/virtual/types";
+  import {resolveScrollContainer} from "$lib/components/virtual/scroll-helpers";
   import {isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {Annoyed} from "lucide-svelte";
@@ -89,19 +90,8 @@
   });
 
   let scrollContainer = $derived.by(() => {
-    if (!parent) return null;
-    if (isJunk) {
-      return parent.closest('.modal-page-content') as HTMLElement | null;
-    }
-    if (isSingleColumnMode) {
-      return document.documentElement;
-    }
-
-    if (column.scrollElement) {
-      return column.scrollElement;
-    }
-
-    return parent.closest('.deck-column-content') as HTMLElement | null;
+    return resolveScrollContainer(parent, isSingleColumnMode, isJunk, column.scrollElement)
+      ?? parent?.closest('.deck-column-content') as HTMLElement | null;
   });
 
   function getKey(data: any, index: number): string {
