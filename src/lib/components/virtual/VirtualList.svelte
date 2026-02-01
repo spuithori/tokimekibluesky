@@ -30,6 +30,7 @@
     buffer?: number;
     topMargin?: number;
     initialScrollState?: ScrollState | null;
+    refreshToTop?: boolean;
     onRangeChange?: (range: VisibleRange) => void;
     onScroll?: () => void;
     children: Snippet<[T, number]>;
@@ -42,6 +43,7 @@
     buffer = 8,
     topMargin = 0,
     initialScrollState = null,
+    refreshToTop = false,
     onRangeChange,
     onScroll,
     children
@@ -498,9 +500,10 @@
     const shiftCount = detectPrependShift(firstKey, prevFirstKey);
 
     if (shiftCount > 0) {
-      const isScrolling = Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS;
-
-      if (isScrolling) {
+      if (refreshToTop && getScrollTop() <= topMargin) {
+        recalculatePositions();
+        renderVersion++;
+      } else if (Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS) {
         const anchor = captureAnchorItem(shiftCount);
         const anchorKey = anchor?.key ?? '';
         const anchorVisualY = anchor?.visualY ?? 0;

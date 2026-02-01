@@ -46,6 +46,7 @@
 
   let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
   let topMargin = $derived((isSingleColumnMode || isJunk) ? 52 : 0);
+  let refreshToTop = $derived(!!column.settings?.refreshToTop);
 
   let scrollSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -180,6 +181,7 @@
     {scrollContainer}
     {topMargin}
     {initialScrollState}
+    {refreshToTop}
     buffer={10}
     onScroll={handleVirtualScroll}
     onRangeChange={checkLoadMore}
