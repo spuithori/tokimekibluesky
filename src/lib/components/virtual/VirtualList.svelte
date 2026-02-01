@@ -2,6 +2,7 @@
   import { tick } from 'svelte';
   import type { Snippet } from 'svelte';
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
+  import { FenwickTree } from './fenwick';
 
   const HEIGHT_CHANGE_THRESHOLD = 2;
   const DEFAULT_ITEM_HEIGHT = 100;
@@ -35,8 +36,7 @@
   let visibleEnd = $state(0);
   let viewportHeight = $state(0);
   let renderVersion = $state(0);
-  let positions = $state<number[]>([]);
-  let totalHeight = $state(0);
+  let tree = new FenwickTree();
 
   let heights = new Map<string, number>();
   let totalMeasuredHeight = 0;
@@ -49,7 +49,6 @@
   let isNavigating = false;
   let hasRestoredScroll = false;
   let minTotalHeight = 0;
-  let scrollRafId: number | null = null;
   let correctionRafId: number | null = null;
   let heightUpdateRafId: number | null = null;
   let resizeObserver: ResizeObserver | null = null;
@@ -92,19 +91,23 @@
 
   let visibleItems = $derived(items.slice(visibleRange.start, visibleRange.end));
 
+  let effectiveTotalHeight = $derived.by(() => {
+    void renderVersion;
+    return Math.max(tree.total, minTotalHeight);
+  });
+
   let topSpacerHeight = $derived.by(() => {
+    void renderVersion;
     if (!isVirtualizationEnabled) return 0;
-    return positions[visibleRange.start] ?? 0;
+    return Math.max(0, tree.prefixSum(visibleRange.start));
   });
 
   let bottomSpacerHeight = $derived.by(() => {
     if (!isVirtualizationEnabled || items.length === 0) return 0;
-    const endPosition = visibleRange.end < positions.length
-      ? positions[visibleRange.end]
-      : (positions.length > 0
-          ? (positions[positions.length - 1] ?? 0) + getItemHeight(positions.length - 1)
-          : 0);
-    return Math.max(0, totalHeight - endPosition);
+    const endPosition = visibleRange.end < tree.length
+      ? tree.prefixSum(visibleRange.end)
+      : tree.total;
+    return Math.max(0, effectiveTotalHeight - endPosition);
   });
 
   function pruneStaleHeights(): void {
@@ -145,79 +148,77 @@
     return heights.get(key) ?? getAverageHeight();
   }
 
+  function applyPendingHeights(): void {
+    if (pendingHeightUpdates.size === 0) return;
+    for (const [key, newHeight] of pendingHeightUpdates) {
+      const oldHeight = heights.get(key);
+      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < 1) continue;
+      setHeight(key, newHeight);
+    }
+    pendingHeightUpdates.clear();
+    pendingMinStart = Infinity;
+    if (heightUpdateRafId !== null) {
+      cancelAnimationFrame(heightUpdateRafId);
+      heightUpdateRafId = null;
+    }
+    heightUpdateScheduled = false;
+  }
+
+  function guardMinTotalHeight(): void {
+    if (!scrollContainer) return;
+    const scrollExtent = getScrollTop() + viewportHeight;
+    if (scrollExtent > minTotalHeight) {
+      minTotalHeight = scrollExtent;
+    }
+  }
+
   function recalculatePositions(): void {
     const len = items.length;
     if (len === 0) {
-      positions = [];
-      totalHeight = 0;
+      tree.clear();
       return;
     }
 
-    const newPositions = new Array(len);
-    let cumulative = 0;
-    const fallbackHeight = getAverageHeight();
-
+    applyPendingHeights();
+    const avg = getAverageHeight();
+    const heightsArray = new Array(len);
     for (let i = 0; i < len; i++) {
-      newPositions[i] = cumulative;
       const key = getKey(items[i], i);
-      cumulative += heights.get(key) ?? fallbackHeight;
+      heightsArray[i] = heights.get(key) ?? avg;
     }
 
-    positions = newPositions;
-    if (minTotalHeight > 0 && cumulative >= minTotalHeight) {
-      minTotalHeight = 0;
-    }
-    totalHeight = Math.max(cumulative, minTotalHeight);
+    tree.buildFrom(heightsArray);
   }
 
   function recalculatePositionsFrom(startIndex: number): void {
     const len = items.length;
     if (len === 0 || startIndex >= len) return;
 
-    const fallbackHeight = getAverageHeight();
-    const newPositions = new Array(len);
-    const copyEnd = Math.min(startIndex, positions.length);
-    for (let i = 0; i < copyEnd; i++) {
-      newPositions[i] = positions[i];
+    if (tree.length !== len) {
+      recalculatePositions();
+      return;
     }
 
-    let cumulative = startIndex > 0
-      ? (newPositions[startIndex - 1] ?? 0) + getItemHeight(startIndex - 1)
-      : 0;
-
+    const avg = getAverageHeight();
     for (let i = startIndex; i < len; i++) {
-      newPositions[i] = cumulative;
       const key = getKey(items[i], i);
-      cumulative += heights.get(key) ?? fallbackHeight;
+      const h = heights.get(key) ?? avg;
+      tree.set(i, h);
     }
-
-    positions = newPositions;
-    if (minTotalHeight > 0 && cumulative >= minTotalHeight) minTotalHeight = 0;
-    totalHeight = Math.max(cumulative, minTotalHeight);
   }
 
   function appendPositions(startIndex: number): void {
     const len = items.length;
     if (len === 0 || startIndex >= len) return;
 
-    const fallbackHeight = getAverageHeight();
-    const newPositions = new Array(len);
-    for (let i = 0; i < startIndex && i < positions.length; i++) {
-      newPositions[i] = positions[i];
-    }
-
-    let cumulative = startIndex > 0
-      ? (newPositions[startIndex - 1] ?? 0) + getItemHeight(startIndex - 1)
-      : 0;
-
+    guardMinTotalHeight();
+    const avg = getAverageHeight();
+    const newHeights = new Array(len - startIndex);
     for (let i = startIndex; i < len; i++) {
-      newPositions[i] = cumulative;
       const key = getKey(items[i], i);
-      cumulative += heights.get(key) ?? fallbackHeight;
+      newHeights[i - startIndex] = heights.get(key) ?? avg;
     }
-
-    positions = newPositions;
-    totalHeight = Math.max(cumulative, minTotalHeight);
+    tree.extend(newHeights);
   }
 
   function getScrollTop(): number {
@@ -239,19 +240,7 @@
   }
 
   function bsearchPosition(target: number): number {
-    if (positions.length === 0) return 0;
-    let left = 0;
-    let right = positions.length - 1;
-
-    while (left < right) {
-      const mid = (left + right + 1) >> 1;
-      if (positions[mid] <= target) {
-        left = mid;
-      } else {
-        right = mid - 1;
-      }
-    }
-    return left;
+    return tree.findIndex(target);
   }
 
   function findIndexAtPosition(scrollTop: number): number {
@@ -263,10 +252,10 @@
   }
 
   function updateVisibleRange(): void {
-    if (isNavigating) return;
-    if (!scrollContainer || items.length === 0) return;
+    if (isNavigating || !scrollContainer || items.length === 0) return;
 
     const scrollTop = getScrollTop();
+
     const height = getViewportHeight();
     if (height !== viewportHeight) viewportHeight = height;
 
@@ -275,11 +264,22 @@
     const newEnd = findEndIndex(scrollTop + usableHeight);
 
     if (newStart !== visibleStart || newEnd !== visibleEnd) {
+      const oldRangeStart = Math.max(0, visibleStart - buffer);
+      const newRangeStart = Math.max(0, newStart - buffer);
+
+      if (newStart > visibleStart) {
+        if (newRangeStart > oldRangeStart) {
+          measureTransitioningItems(oldRangeStart, newRangeStart);
+        }
+      }
+
       visibleStart = newStart;
       visibleEnd = newEnd;
       renderVersion++;
     }
   }
+
+  let scrollRafId: number | null = null;
 
   function handleScroll(): void {
     if (isNavigating || scrollRafId !== null) return;
@@ -303,6 +303,32 @@
     });
   }
 
+  function findItemIndex(key: string): number {
+    for (let i = 0; i < items.length; i++) {
+      if (getKey(items[i], i) === key) return i;
+    }
+    return -1;
+  }
+
+  function measureTransitioningItems(fromIdx: number, toIdx: number): void {
+    const oldRangeEnd = visibleEnd + buffer;
+    for (let i = fromIdx; i < Math.min(toIdx, oldRangeEnd); i++) {
+      if (i >= items.length) break;
+      const key = getKey(items[i], i);
+      const el = itemRefs.get(key);
+      if (!el) continue;
+      const h = el.getBoundingClientRect().height;
+      if (h <= 0) continue;
+      if (i < tree.length && Math.abs(tree.get(i) - h) >= 1) {
+        setHeight(key, h);
+        tree.set(i, h);
+      } else if (!heights.has(key)) {
+        setHeight(key, h);
+        if (i < tree.length) tree.set(i, h);
+      }
+    }
+  }
+
   function flushHeightUpdates(): void {
     if (isNavigating) {
       heightUpdateScheduled = false;
@@ -317,23 +343,44 @@
       return;
     }
 
+    guardMinTotalHeight();
+
     let hasChanges = false;
+
+    const rangeStart = Math.max(0, visibleStart - buffer);
+    const rangeEnd = Math.min(items.length, visibleEnd + buffer);
+    const keyToIndex = new Map<string, number>();
+    for (let i = rangeStart; i < rangeEnd; i++) {
+      keyToIndex.set(getKey(items[i], i), i);
+    }
 
     for (const [key, newHeight] of pendingHeightUpdates) {
       const oldHeight = heights.get(key);
       if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < 1) continue;
       setHeight(key, newHeight);
-      hasChanges = true;
+
+      let idx = keyToIndex.get(key);
+      if (idx === undefined) {
+        idx = findItemIndex(key);
+        if (idx < 0) continue;
+      }
+      if (idx >= rangeStart && idx < tree.length) {
+        tree.set(idx, newHeight);
+        hasChanges = true;
+      }
     }
 
-    const startFrom = pendingMinStart;
     pendingHeightUpdates.clear();
     pendingMinStart = Infinity;
+    if (heightUpdateRafId !== null) {
+      cancelAnimationFrame(heightUpdateRafId);
+      heightUpdateRafId = null;
+    }
     heightUpdateScheduled = false;
 
     if (hasChanges) {
-      recalculatePositionsFrom(Math.min(startFrom, Math.max(0, visibleStart - buffer)));
-      updateVisibleRange();
+      recalculatePositionsFrom(rangeStart);
+      renderVersion++;
     }
   }
 
@@ -360,6 +407,7 @@
         if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_CHANGE_THRESHOLD) {
           continue;
         }
+
         pendingHeightUpdates.set(key, newHeight);
       }
 
@@ -435,6 +483,7 @@
       element.dataset.virtualKey = key;
       resizeObserver?.observe(element);
       itemRefs.set(key, element);
+
       return () => {
         resizeObserver?.unobserve(element);
         itemRefs.delete(key);
@@ -501,7 +550,7 @@
 
         scrollContainer.style.overflowAnchor = 'none';
         recalculatePositions();
-        const scrollDelta = positions[shiftCount] ?? (shiftCount * getAverageHeight());
+        const scrollDelta = tree.length > 0 ? tree.prefixSum(shiftCount) : (shiftCount * getAverageHeight());
         setScrollTop(getScrollTop() + scrollDelta);
         visibleStart = Math.max(0, visibleStart + shiftCount);
         visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
@@ -562,8 +611,7 @@
     void items;
 
     if (len === 0) {
-      positions = [];
-      totalHeight = 0;
+      tree.clear();
       visibleStart = 0;
       visibleEnd = 0;
       prevItemCount = 0;
@@ -611,6 +659,8 @@
         appendPositions(oldCount);
         renderVersion++;
         queueMicrotask(() => pruneStaleHeights());
+      } else if (len === oldCount && lastKey === oldLastKey) {
+        return;
       } else {
         recalculatePositions();
         queueMicrotask(() => {
@@ -691,15 +741,15 @@
 
   $effect(() => {
     if (scrollContainer && initialScrollState && !hasRestoredScroll && items.length > 0 && viewportHeight > 0) {
+      const targetIdx = findTargetIndex(initialScrollState);
+      if (targetIdx < 0 || targetIdx >= items.length) return;
+
+      hasRestoredScroll = true;
       const hasHeights = (initialScrollState.heights?.length ?? 0) > 0;
       const savedScrollTop = initialScrollState.scrollTop;
 
       if (!hasHeights && savedScrollTop != null && savedScrollTop > 0 && initialScrollState.index > 0) {
         minTotalHeight = savedScrollTop + viewportHeight;
-        fallbackItemHeight = Math.max(
-          DEFAULT_ITEM_HEIGHT,
-          (savedScrollTop + viewportHeight) / (initialScrollState.index + 1)
-        );
       }
 
       if (initialScrollState.heights?.length > 0) {
@@ -709,11 +759,7 @@
       }
       recalculatePositions();
 
-      const targetIdx = findTargetIndex(initialScrollState);
-      if (targetIdx >= 0 && targetIdx < items.length) {
-        hasRestoredScroll = true;
-        applyScrollRestore(initialScrollState, !hasHeights && savedScrollTop != null);
-      }
+      applyScrollRestore(initialScrollState, !hasHeights && savedScrollTop != null);
     }
   });
 
@@ -736,6 +782,7 @@
   function measureAndRecalculate(): void {
     measureRenderedItems();
     recalculatePositions();
+    renderVersion++;
   }
 
   function finishNavigation(): void {
@@ -750,7 +797,7 @@
   }
 
   function computeScrollTop(index: number, align: string, offset: number): number {
-    const pos = positions[index] ?? 0;
+    const pos = tree.prefixSum(index);
     const itemH = getItemHeight(index);
     const usable = viewportHeight - topMargin;
     switch (align) {
@@ -890,7 +937,7 @@
   }
 
   export function getScrollInfo(): { scrollTop: number; viewportHeight: number; totalHeight: number } {
-    return { scrollTop: getScrollTop(), viewportHeight, totalHeight };
+    return { scrollTop: getScrollTop(), viewportHeight, totalHeight: effectiveTotalHeight };
   }
 
   export function getScrollStateLightweight(): ScrollState | null {
@@ -902,7 +949,7 @@
     const index = (currentScrollTop !== rawScrollTop) ? lastKnownVisibleStart
       : (scrollContainer ? findIndexAtPosition(currentScrollTop) : lastKnownVisibleStart);
     const key = getKey(items[index], index);
-    const offset = currentScrollTop - (positions[index] ?? 0);
+    const offset = currentScrollTop - tree.prefixSum(index);
 
     let visualY: number | undefined;
     if (container) {
@@ -923,7 +970,7 @@
     const currentScrollTop = scrollContainer ? getScrollTop() : lastKnownScrollTop;
     const index = scrollContainer ? findIndexAtPosition(currentScrollTop) : lastKnownVisibleStart;
     const key = getKey(items[index], index);
-    const offset = currentScrollTop - (positions[index] ?? 0);
+    const offset = currentScrollTop - tree.prefixSum(index);
 
     const heightsArray: [string, number][] = Array.from(heights.entries());
 
@@ -977,7 +1024,7 @@
         scheduleCorrectionRaf(() => correctLightweightScroll(targetIdx, targetVisualY));
       });
     } else {
-      const position = positions[targetIdx] ?? 0;
+      const position = tree.prefixSum(targetIdx);
       const targetScrollTop = position + offset;
       tick().then(() => {
         setScrollTop(Math.max(0, targetScrollTop));
@@ -1006,7 +1053,23 @@
 
   export function getPositionForIndex(index: number): number {
     if (index < 0 || index >= items.length) return 0;
-    return positions[index] ?? 0;
+    return tree.prefixSum(index);
+  }
+
+
+
+  export function getTreeDiagnostics(): {
+    total: number;
+    length: number;
+    measuredCount: number;
+    averageHeight: number;
+  } {
+    return {
+      total: tree.total,
+      length: tree.length,
+      measuredCount,
+      averageHeight: getAverageHeight(),
+    };
   }
 
   export function prepareForIndex(index: number): void {
