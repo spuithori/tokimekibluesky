@@ -1,4 +1,4 @@
-import { HEIGHT_PRUNE_FACTOR } from './constants';
+import { HEIGHT_PRUNE_FACTOR, HEIGHT_APPLY_THRESHOLD } from './constants';
 
 export class HeightManager {
   private heights = new Map<string, number>();
@@ -42,7 +42,7 @@ export class HeightManager {
     let applied = false;
     for (const [key, newHeight] of this.pending) {
       const oldHeight = this.heights.get(key);
-      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < 1) continue;
+      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
       this.set(key, newHeight);
       applied = true;
     }
@@ -50,7 +50,7 @@ export class HeightManager {
     return applied;
   }
 
-  prune(activeKeys: Set<string>): void {
+  prune(activeKeys: { has(key: string): boolean }): void {
     for (const key of this.heights.keys()) {
       if (!activeKeys.has(key)) {
         const h = this.heights.get(key)!;

@@ -3,6 +3,7 @@
   import {settings} from '$lib/stores';
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
+  import { getScrollTopFor, setScrollTopFor } from "$lib/components/virtual/scroll-helpers";
   import {_} from "svelte-i18n";
 
   let { column, _agent, rootIndex, onchangeprofile, isJunk } = $props();
@@ -44,16 +45,11 @@
   );
 
   function getScrollTop(): number {
-    if (isWindowScroll) return window.scrollY;
-    return scrollContainer?.scrollTop ?? 0;
+    return getScrollTopFor(scrollContainer, isWindowScroll);
   }
 
   function setScrollTop(value: number): void {
-    if (isWindowScroll) {
-      window.scrollTo(0, value);
-    } else if (scrollContainer) {
-      scrollContainer.scrollTop = value;
-    }
+    setScrollTopFor(scrollContainer, isWindowScroll, value);
   }
 
   $effect(() => {

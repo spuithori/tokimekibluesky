@@ -4,7 +4,7 @@
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
   import { FenwickTree } from './fenwick';
   import { HeightManager } from './height-manager';
-  import { computeScrollTopPosition, findTargetIndex } from './scroll-helpers';
+  import { computeScrollTopPosition, findTargetIndex, getScrollTopFor, setScrollTopFor } from './scroll-helpers';
   import {
     PREPEND_SEARCH_LIMIT,
     SCROLL_VELOCITY_THRESHOLD_MS,
@@ -16,6 +16,8 @@
     FALLBACK_RENDER_COUNT,
     SCROLLTO_EXTRA_BUFFER,
     HEIGHT_CHANGE_THRESHOLD,
+    HEIGHT_APPLY_THRESHOLD,
+    ANCHOR_TOLERANCE,
     DEFAULT_ITEM_HEIGHT,
   } from './constants';
 
@@ -62,7 +64,6 @@
   let prevItemCount = 0;
   let prevFirstKey = '';
   let prevLastKey = '';
-
   let lastValidScrollContainer: HTMLElement | null = null;
   let lastKnownScrollTop = 0;
   let lastKnownVisibleStart = 0;
@@ -87,7 +88,6 @@
   );
 
   let visibleRange = $derived.by((): VisibleRange => {
-    void renderVersion;
     if (items.length === 0) return { start: 0, end: 0 };
     if (!isVirtualizationEnabled) return { start: 0, end: Math.min(items.length, FALLBACK_RENDER_COUNT) };
     return {
@@ -119,11 +119,8 @@
 
   function pruneStaleHeights(): void {
     if (!hm.shouldPrune(items.length)) return;
-    const activeKeys = new Set<string>();
-    for (let i = 0; i < items.length; i++) {
-      activeKeys.add(getKey(items[i], i));
-    }
-    hm.prune(activeKeys);
+    const keyToIndex = getKeyToIndex();
+    hm.prune(keyToIndex);
   }
 
   function getAverageHeight(): number {
@@ -154,13 +151,7 @@
 
     applyPendingHeights();
     const avg = getAverageHeight();
-    const heightsArray = new Array(len);
-    for (let i = 0; i < len; i++) {
-      const key = getKey(items[i], i);
-      heightsArray[i] = hm.get(key) ?? avg;
-    }
-
-    tree.buildFrom(heightsArray);
+    tree.buildWithCallback(len, (i) => hm.get(getKey(items[i], i)) ?? avg);
   }
 
   function recalculatePositionsFrom(startIndex: number): void {
@@ -184,25 +175,18 @@
     const len = items.length;
     if (len === 0 || startIndex >= len) return;
     const avg = getAverageHeight();
-    const newHeights = new Array(len - startIndex);
-    for (let i = startIndex; i < len; i++) {
-      const key = getKey(items[i], i);
-      newHeights[i - startIndex] = hm.get(key) ?? avg;
-    }
-    tree.extend(newHeights);
+    tree.extendWithCallback(len - startIndex, (i) => {
+      const idx = startIndex + i;
+      return hm.get(getKey(items[idx], idx)) ?? avg;
+    });
   }
 
   function getScrollTop(): number {
-    if (isWindowScroll) return window.scrollY;
-    return scrollContainer?.scrollTop ?? 0;
+    return getScrollTopFor(scrollContainer, isWindowScroll);
   }
 
   function setScrollTop(value: number): void {
-    if (isWindowScroll) {
-      window.scrollTo(0, value);
-    } else if (scrollContainer) {
-      scrollContainer.scrollTop = value;
-    }
+    setScrollTopFor(scrollContainer, isWindowScroll, value);
   }
 
   function getViewportHeight(): number {
@@ -287,7 +271,7 @@
       if (!el) continue;
       const h = el.getBoundingClientRect().height;
       if (h <= 0) continue;
-      if (i < tree.length && Math.abs(tree.get(i) - h) >= 1) {
+      if (i < tree.length && Math.abs(tree.get(i) - h) >= HEIGHT_APPLY_THRESHOLD) {
         hm.set(key, h);
         tree.set(i, h);
       } else if (!hm.has(key)) {
@@ -316,7 +300,7 @@
 
     for (const [key, newHeight] of hm.pending) {
       const oldHeight = hm.get(key);
-      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < 1) continue;
+      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
       hm.set(key, newHeight);
 
       const idx = keyToIndex.get(key);
@@ -458,7 +442,7 @@
       const el = itemRefs.get(key);
       if (!el) continue;
       const vy = el.getBoundingClientRect().top - containerRect.top;
-      if (vy >= topMargin - 2) {
+      if (vy >= topMargin - ANCHOR_TOLERANCE) {
         return { key, visualY: vy };
       }
     }
@@ -560,22 +544,90 @@
     }
   });
 
+  function handleItemsClear(): void {
+    tree.clear();
+    visibleStart = 0;
+    visibleEnd = 0;
+    prevItemCount = 0;
+    prevFirstKey = '';
+    prevLastKey = '';
+    minTotalHeight = 0;
+    hm.clear();
+    queueMicrotask(() => renderVersion++);
+  }
+
+  function handleItemsInitial(): void {
+    hm.clear();
+    recalculatePositions();
+    if (!initialScrollState || hasRestoredScroll) {
+      queueMicrotask(() => {
+        renderVersion++;
+        updateVisibleRange();
+      });
+    }
+  }
+
+  function handleItemsAppend(oldCount: number): void {
+    appendPositions(oldCount);
+    renderVersion++;
+    queueMicrotask(() => pruneStaleHeights());
+  }
+
+  function handleItemsGenericChange(): void {
+    recalculatePositions();
+    queueMicrotask(() => {
+      renderVersion++;
+      updateVisibleRange();
+    });
+  }
+
+  function handlePrependWithAnchor(shiftCount: number): void {
+    const pp = pendingPrependAnchor!;
+    pendingPrependAnchor = null;
+
+    recalculatePositions();
+    visibleStart = 0;
+    visibleEnd = Math.min(items.length, pp.oldVisibleEnd + shiftCount + buffer);
+    renderVersion++;
+
+    tick().then(() => {
+      for (let i = 0; i < shiftCount; i++) {
+        const key = getKey(items[i], i);
+        const el = itemRefs.get(key);
+        if (el) hm.set(key, el.getBoundingClientRect().height);
+      }
+      recalculatePositions();
+
+      const newAnchorEl = itemRefs.get(pp.anchorKey);
+      if (newAnchorEl && scrollContainer) {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const newAnchorVisualY = newAnchorEl.getBoundingClientRect().top - containerRect.top;
+        const target = Math.max(0, pp.scrollTop + newAnchorVisualY - pp.anchorVisualY);
+        setScrollTop(target);
+      }
+
+      tick().then(() => correctPrependScroll(pp.anchorKey, pp.anchorVisualY, 0));
+      queueMicrotask(() => pruneStaleHeights());
+    });
+  }
+
+  function handlePrependSimple(shiftCount: number): void {
+    recalculatePositions();
+    visibleStart = Math.max(0, visibleStart + shiftCount);
+    visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
+    renderVersion++;
+  }
+
+  function handlePrependFullReset(): void {
+    hm.clear();
+    handleItemsGenericChange();
+  }
+
   $effect(() => {
     const len = items.length;
     void items;
 
-    if (len === 0) {
-      tree.clear();
-      visibleStart = 0;
-      visibleEnd = 0;
-      prevItemCount = 0;
-      prevFirstKey = '';
-      prevLastKey = '';
-      minTotalHeight = 0;
-      hm.clear();
-      queueMicrotask(() => renderVersion++);
-      return;
-    }
+    if (len === 0) { handleItemsClear(); return; }
 
     const firstKey = getKey(items[0], 0);
     const lastKey = getKey(items[len - 1], len - 1);
@@ -587,94 +639,34 @@
     prevFirstKey = firstKey;
     prevLastKey = lastKey;
 
-    if (quickPrependHandled) {
-      quickPrependHandled = false;
-      renderVersion++;
-      return;
-    }
+    if (quickPrependHandled) { quickPrependHandled = false; renderVersion++; return; }
 
-    if (oldCount === 0) {
-      hm.clear();
-      recalculatePositions();
-      if (!initialScrollState || hasRestoredScroll) {
-        queueMicrotask(() => {
-          renderVersion++;
-          updateVisibleRange();
-        });
-      }
-      return;
-    }
+    if (oldCount === 0) { handleItemsInitial(); return; }
 
     if (firstKey === oldFirstKey) {
       if (len > oldCount && oldLastKey && getKey(items[oldCount - 1], oldCount - 1) === oldLastKey) {
-        appendPositions(oldCount);
-        renderVersion++;
-        queueMicrotask(() => pruneStaleHeights());
+        handleItemsAppend(oldCount);
       } else if (len === oldCount && lastKey === oldLastKey) {
         return;
       } else {
-        recalculatePositions();
-        queueMicrotask(() => {
-          renderVersion++;
-          updateVisibleRange();
-        });
+        handleItemsGenericChange();
       }
       return;
     }
 
     if (oldFirstKey && firstKey !== oldFirstKey) {
       const shiftCount = detectPrependShift(firstKey, oldFirstKey);
-
       if (shiftCount > 0 && scrollContainer && pendingPrependAnchor) {
-        const pp = pendingPrependAnchor;
-        pendingPrependAnchor = null;
-
-        recalculatePositions();
-
-        visibleStart = 0;
-        visibleEnd = Math.min(items.length, pp.oldVisibleEnd + shiftCount + buffer);
-        renderVersion++;
-
-        tick().then(() => {
-          for (let i = 0; i < shiftCount; i++) {
-            const key = getKey(items[i], i);
-            const el = itemRefs.get(key);
-            if (el) hm.set(key, el.getBoundingClientRect().height);
-          }
-          recalculatePositions();
-
-          const newAnchorEl = itemRefs.get(pp.anchorKey);
-          if (newAnchorEl && scrollContainer) {
-            const containerRect = scrollContainer.getBoundingClientRect();
-            const newAnchorVisualY = newAnchorEl.getBoundingClientRect().top - containerRect.top;
-            const target = Math.max(0, pp.scrollTop + newAnchorVisualY - pp.anchorVisualY);
-            setScrollTop(target);
-          }
-
-          tick().then(() => correctPrependScroll(pp.anchorKey, pp.anchorVisualY, 0));
-          queueMicrotask(() => pruneStaleHeights());
-        });
+        handlePrependWithAnchor(shiftCount);
       } else if (shiftCount > 0) {
-        recalculatePositions();
-        visibleStart = Math.max(0, visibleStart + shiftCount);
-        visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
-        renderVersion++;
+        handlePrependSimple(shiftCount);
       } else {
-        hm.clear();
-        recalculatePositions();
-        queueMicrotask(() => {
-          renderVersion++;
-          updateVisibleRange();
-        });
+        handlePrependFullReset();
       }
       return;
     }
 
-    recalculatePositions();
-    queueMicrotask(() => {
-      renderVersion++;
-      updateVisibleRange();
-    });
+    handleItemsGenericChange();
   });
 
   $effect(() => {
@@ -715,7 +707,7 @@
       const h = el.getBoundingClientRect().height;
       if (h <= 0) continue;
       const existing = hm.get(key);
-      if (existing === undefined || Math.abs(existing - h) >= 1) {
+      if (existing === undefined || Math.abs(existing - h) >= HEIGHT_APPLY_THRESHOLD) {
         hm.set(key, h);
       }
     }
@@ -795,6 +787,19 @@
     });
   }
 
+  function correctAndFinish(key: string, targetVisualY: number): void {
+    measureAndRecalculate();
+    const el = itemRefs.get(key);
+    if (el && scrollContainer) {
+      const containerTop = scrollContainer.getBoundingClientRect().top;
+      const drift = el.getBoundingClientRect().top - containerTop - targetVisualY;
+      if (Math.abs(drift) > DRIFT_THRESHOLD_POSITION) {
+        setScrollTop(Math.max(0, getScrollTop() + drift));
+      }
+    }
+    finishNavigation();
+  }
+
   function correctLightweightScroll(index: number, targetVisualY: number): void {
     const key = getKey(items[index], index);
 
@@ -808,32 +813,12 @@
         setScrollTop(Math.max(0, getScrollTop() + drift));
       }
 
-      scheduleCorrectionRaf(() => {
-        measureAndRecalculate();
-        const el2 = itemRefs.get(key);
-        if (el2 && scrollContainer) {
-          const drift2 = el2.getBoundingClientRect().top - scrollContainer.getBoundingClientRect().top - targetVisualY;
-          if (Math.abs(drift2) > DRIFT_THRESHOLD_POSITION) {
-            setScrollTop(Math.max(0, getScrollTop() + drift2));
-          }
-        }
-        finishNavigation();
-      });
+      scheduleCorrectionRaf(() => correctAndFinish(key, targetVisualY));
     } else {
       const fallbackOffset = targetVisualY - topMargin;
       const corrected = Math.max(0, computeScrollTop(index, 'start', -fallbackOffset));
       setScrollTop(corrected);
-      scheduleCorrectionRaf(() => {
-        measureAndRecalculate();
-        const el2 = itemRefs.get(key);
-        if (el2 && scrollContainer) {
-          const drift2 = el2.getBoundingClientRect().top - scrollContainer.getBoundingClientRect().top - targetVisualY;
-          if (Math.abs(drift2) > DRIFT_THRESHOLD_POSITION) {
-            setScrollTop(Math.max(0, getScrollTop() + drift2));
-          }
-        }
-        finishNavigation();
-      });
+      scheduleCorrectionRaf(() => correctAndFinish(key, targetVisualY));
     }
   }
 
@@ -874,8 +859,21 @@
     });
   }
 
-  export function getScrollInfo(): { scrollTop: number; viewportHeight: number; totalHeight: number } {
-    return { scrollTop: getScrollTop(), viewportHeight, totalHeight: effectiveTotalHeight };
+  export function getScrollInfo(): { scrollTop: number; viewportHeight: number; totalHeight: number; distanceFromBottom: number } {
+    const st = getScrollTop();
+    const treeDistance = effectiveTotalHeight - st - viewportHeight;
+    let physicalDistance = treeDistance;
+    if (scrollContainer) {
+      const sh = isWindowScroll ? document.documentElement.scrollHeight : scrollContainer.scrollHeight;
+      const ch = isWindowScroll ? window.innerHeight : scrollContainer.clientHeight;
+      physicalDistance = sh - st - ch;
+    }
+    return {
+      scrollTop: st,
+      viewportHeight,
+      totalHeight: effectiveTotalHeight,
+      distanceFromBottom: Math.min(treeDistance, physicalDistance),
+    };
   }
 
   export function getScrollStateLightweight(): ScrollState | null {
@@ -1026,7 +1024,8 @@
 {:else}
   <div class="virtual-list virtual-list--no-virtualization">
     {#each items.slice(0, FALLBACK_RENDER_COUNT) as item, index (getKey(item, index))}
-      <div class="virtual-item" {@attach itemAttach(getKey(item, index))}>
+      {@const key = getKey(item, index)}
+      <div class="virtual-item" {@attach itemAttach(key)}>
         {@render children(item, index)}
       </div>
     {/each}

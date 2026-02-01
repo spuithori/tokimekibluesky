@@ -20,7 +20,10 @@ export class FenwickTree {
   }
 
   buildFrom(heights: number[]): void {
-    const n = heights.length;
+    this.buildWithCallback(heights.length, (i) => heights[i]);
+  }
+
+  buildWithCallback(n: number, getHeight: (index: number) => number): void {
     this._size = n;
 
     if (n === 0) {
@@ -36,15 +39,14 @@ export class FenwickTree {
       this._tree = new Float64Array(newCap + 1);
       this._capacity = newCap;
     } else {
-      // Zero out the full allocated region so extend's incremental path
-      // never encounters stale values from a previous larger build.
       this._tree.fill(0, 0, this._capacity + 1);
     }
 
     for (let i = 0; i < n; i++) {
       const i1 = i + 1;
-      this._data[i1] = heights[i];
-      this._tree[i1] = heights[i];
+      const h = getHeight(i);
+      this._data[i1] = h;
+      this._tree[i1] = h;
     }
 
     for (let i = 1; i <= n; i++) {
@@ -114,9 +116,13 @@ export class FenwickTree {
   }
 
   extend(newHeights: number[]): void {
-    if (newHeights.length === 0) return;
+    this.extendWithCallback(newHeights.length, (i) => newHeights[i]);
+  }
 
-    const newSize = this._size + newHeights.length;
+  extendWithCallback(count: number, getHeight: (index: number) => number): void {
+    if (count === 0) return;
+
+    const newSize = this._size + count;
 
     if (newSize > this._capacity) {
       const newCap = Math.max(this._capacity * 2, newSize, 64);
@@ -127,13 +133,11 @@ export class FenwickTree {
       this._capacity = newCap;
     }
 
-    // Append new data values
-    for (let i = 0; i < newHeights.length; i++) {
-      this._data[this._size + i + 1] = newHeights[i];
+    for (let i = 0; i < count; i++) {
+      this._data[this._size + i + 1] = getHeight(i);
     }
     this._size = newSize;
 
-    // Rebuild tree from data — O(n) linear build
     for (let i = 1; i <= newSize; i++) this._tree[i] = this._data[i];
     for (let i = 1; i <= newSize; i++) {
       const p = i + (i & -i);

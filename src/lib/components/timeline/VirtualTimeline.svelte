@@ -147,24 +147,8 @@
   function checkLoadMore() {
     if (!virtualList) return;
     const info = virtualList.getScrollInfo();
-    const distanceFromBottom = info.totalHeight - info.scrollTop - info.viewportHeight;
 
-    let physicalDistance = distanceFromBottom;
-    if (scrollContainer) {
-      const sh = scrollContainer === document.documentElement
-        ? document.documentElement.scrollHeight
-        : scrollContainer.scrollHeight;
-      const st = scrollContainer === document.documentElement
-        ? window.scrollY
-        : scrollContainer.scrollTop;
-      const ch = scrollContainer === document.documentElement
-        ? window.innerHeight
-        : scrollContainer.clientHeight;
-      physicalDistance = sh - st - ch;
-    }
-    const effectiveDistance = Math.min(distanceFromBottom, physicalDistance);
-
-    if (effectiveDistance >= 500) {
+    if (info.distanceFromBottom >= 500) {
       if (isRetryLimit) {
         retryCount = 0;
       }

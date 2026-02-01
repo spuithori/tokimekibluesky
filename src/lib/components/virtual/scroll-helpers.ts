@@ -40,3 +40,23 @@ export function findTargetIndex<T>(
   }
   return targetIdx;
 }
+
+export function getScrollTopFor(
+  container: HTMLElement | null | undefined,
+  isWindow: boolean,
+): number {
+  if (isWindow) return window.scrollY;
+  return container?.scrollTop ?? 0;
+}
+
+export function setScrollTopFor(
+  container: HTMLElement | null | undefined,
+  isWindow: boolean,
+  value: number,
+): void {
+  if (isWindow) {
+    window.scrollTo(0, value);
+  } else if (container) {
+    container.scrollTop = value;
+  }
+}
