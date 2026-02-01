@@ -81,7 +81,7 @@
 
     function getProfile(handle, clear = true) {
         untrack(() => {
-            if (clear) {
+            if (clear && !profile) {
                 profile = undefined;
             }
 
