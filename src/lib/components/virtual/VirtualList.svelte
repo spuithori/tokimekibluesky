@@ -47,8 +47,11 @@
     children
   }: Props<any> = $props();
 
-  let visibleStart = $state(0);
-  let visibleEnd = $state(0);
+  let visibleStart = $state(initialScrollState ? Math.max(0, (initialScrollState.index ?? 0) - buffer) : 0);
+  let visibleEnd = $state(initialScrollState ? Math.min(
+    initialScrollState.index != null ? initialScrollState.index + buffer + SCROLLTO_EXTRA_BUFFER : 0,
+    999999
+  ) : 0);
   let viewportHeight = $state(0);
   let renderVersion = $state(0);
   let tree = new FenwickTree();
@@ -56,8 +59,10 @@
 
   let itemRefs = new Map<string, HTMLElement>();
   let isNavigating = false;
-  let hasRestoredScroll = false;
-  let minTotalHeight = 0;
+  let hasRestoredScroll = $state(false);
+  let minTotalHeight = initialScrollState?.scrollTop != null
+    ? initialScrollState.scrollTop + 1000
+    : 0;
   let correctionRafId: number | null = null;
   let heightUpdateRafId: number | null = null;
   let resizeObserver: ResizeObserver | null = null;
@@ -414,6 +419,8 @@
 
     if (!initialScrollState || hasRestoredScroll) {
       queueMicrotask(() => updateVisibleRange());
+    } else if (initialScrollState.scrollTop != null) {
+      setScrollTop(Math.max(0, initialScrollState.scrollTop));
     }
 
     return () => {
@@ -682,7 +689,10 @@
   });
 
   $effect(() => {
-    onRangeChange?.(visibleRange);
+    const range = visibleRange;
+    if (!isNavigating) {
+      onRangeChange?.(range);
+    }
   });
 
   $effect(() => {
@@ -948,15 +958,15 @@
     if (lightweight && state.scrollTop != null) {
       const targetScrollTop = state.scrollTop;
       const targetVisualY = state.visualY ?? (topMargin - offset);
+      setScrollTop(Math.max(0, targetScrollTop));
       tick().then(() => {
-        setScrollTop(Math.max(0, targetScrollTop));
         scheduleCorrectionRaf(() => correctLightweightScroll(targetIdx, targetVisualY));
       });
     } else {
       const position = tree.prefixSum(targetIdx);
       const targetScrollTop = position + offset;
+      setScrollTop(Math.max(0, targetScrollTop));
       tick().then(() => {
-        setScrollTop(Math.max(0, targetScrollTop));
         scheduleCorrectionRaf(() => correctScrollPosition(targetIdx, 'start', offset, 0));
       });
     }
@@ -1015,7 +1025,7 @@
 </script>
 
 {#if scrollContainer}
-  <div class="virtual-list" {@attach scrollContainerAttach}>
+  <div class="virtual-list" class:virtual-list--restoring={initialScrollState && !hasRestoredScroll} {@attach scrollContainerAttach}>
     {#if isVirtualizationEnabled}
       <div class="virtual-spacer" style:height="{topSpacerHeight}px" aria-hidden="true"></div>
     {/if}
@@ -1046,6 +1056,10 @@
 <style>
   .virtual-list {
     position: relative;
+  }
+
+  .virtual-list--restoring {
+    opacity: 0;
   }
 
   .virtual-spacer {

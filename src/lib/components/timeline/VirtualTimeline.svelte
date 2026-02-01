@@ -33,19 +33,10 @@
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
 
   let initialScrollState = $state<ScrollState | null>(
-    column.data?.scrollState ?? null
+    column.data?.scrollState ?? column.data?._pendingScrollRestore ?? null
   );
-  if (column.data?.scrollState) {
-    column.data.scrollState = null;
-  }
-
-  $effect(() => {
-    const pending = column.data?._pendingScrollRestore;
-    if (pending && !initialScrollState) {
-      initialScrollState = pending;
-      column.data._pendingScrollRestore = null;
-    }
-  });
+  if (column.data?.scrollState) column.data.scrollState = null;
+  if (column.data?._pendingScrollRestore) column.data._pendingScrollRestore = null;
 
   let isLoading = $state(false);
   let isComplete = $state(false);
