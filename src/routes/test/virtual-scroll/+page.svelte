@@ -145,12 +145,106 @@
         refreshToTop = value;
       },
 
+      clear() {
+        items = [];
+      },
+
+      setItems(count: number) {
+        items = generateItems(count, 0);
+        nextId = count;
+      },
+
+      replaceAll(count: number) {
+        const base = nextId + 10000;
+        items = generateItems(count, base);
+        nextId = base + count;
+      },
+
+      removeRange(startIndex: number, count: number) {
+        items = [...items.slice(0, startIndex), ...items.slice(startIndex + count)];
+      },
+
+      removeById(id: string) {
+        items = items.filter(item => item.id !== id);
+      },
+
+      insertAt(index: number, count: number) {
+        const newItems = generateItems(count, nextId);
+        nextId += count;
+        items = [...items.slice(0, index), ...newItems, ...items.slice(index)];
+      },
+
+      prependAndAppend(prependCount: number, appendCount: number) {
+        const pre = generateItems(prependCount, nextId);
+        nextId += prependCount;
+        const app = generateItems(appendCount, nextId);
+        nextId += appendCount;
+        items = [...pre.reverse(), ...items, ...app];
+      },
+
+      changeHeightsBelow(aboveIndex: number, delta: number) {
+        items = items.map((item, i) =>
+          i > aboveIndex ? { ...item, height: Math.max(1, item.height + delta) } : item
+        );
+      },
+
+      changeMultipleHeights(indices: number[], delta: number) {
+        const indexSet = new Set(indices);
+        items = items.map((item, i) =>
+          indexSet.has(i) ? { ...item, height: Math.max(1, item.height + delta) } : item
+        );
+      },
+
+      resizeContainer(width: number, height: number) {
+        if (scrollContainer) {
+          scrollContainer.style.width = `${width}px`;
+          scrollContainer.style.height = `${height}px`;
+        }
+      },
+
+      getVisibleItemIds() {
+        if (!scrollContainer) return [];
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const ids: string[] = [];
+        const els = scrollContainer.querySelectorAll('[data-testid^="item-"]');
+        for (const el of els) {
+          const rect = el.getBoundingClientRect();
+          if (rect.bottom > containerRect.top && rect.top < containerRect.bottom) {
+            ids.push(el.getAttribute('data-testid')!);
+          }
+        }
+        return ids;
+      },
+
+      getItemPosition(testId: string) {
+        if (!scrollContainer) return null;
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const el = scrollContainer.querySelector(`[data-testid="${testId}"]`);
+        if (!el) return null;
+        const rect = el.getBoundingClientRect();
+        return { relativeY: rect.top - containerRect.top, height: rect.height };
+      },
+
+      getRenderedItemCount() {
+        return document.querySelectorAll('[data-testid^="item-"]').length;
+      },
+
+      getBottomSpacerHeight() {
+        const spacers = document.querySelectorAll('.virtual-spacer');
+        if (spacers.length >= 2) {
+          return (spacers[spacers.length - 1] as HTMLElement).offsetHeight;
+        }
+        return -1;
+      },
+
       reset() {
         items = generateItems(200, 0);
         nextId = 200;
         savedState = null;
         refreshToTop = false;
         if (scrollContainer) {
+          scrollContainer.style.width = '400px';
+          scrollContainer.style.height = '600px';
           scrollContainer.scrollTop = 0;
         }
       },

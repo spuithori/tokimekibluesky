@@ -283,7 +283,6 @@
     for (let i = fromIdx; i < Math.min(toIdx, oldRangeEnd); i++) {
       if (i >= items.length) break;
       const key = getKey(items[i], i);
-      if (hm.has(key) && !hm.pending.has(key)) continue;
       const el = itemRefs.get(key);
       if (!el) continue;
       const h = el.getBoundingClientRect().height;
