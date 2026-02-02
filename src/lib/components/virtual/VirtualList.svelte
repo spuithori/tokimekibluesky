@@ -896,28 +896,21 @@
 
   export function getScrollInfo(): { scrollTop: number; viewportHeight: number; totalHeight: number; distanceFromBottom: number } {
     const st = getScrollTop();
-    const treeDistance = effectiveTotalHeight - st - viewportHeight;
-
-    if (minTotalHeight <= tree.total && treeDistance > 1000) {
-      return {
-        scrollTop: st,
-        viewportHeight,
-        totalHeight: effectiveTotalHeight,
-        distanceFromBottom: treeDistance,
-      };
-    }
-
-    let physicalDistance = treeDistance;
     if (scrollContainer) {
       const sh = isWindowScroll ? document.documentElement.scrollHeight : scrollContainer.scrollHeight;
       const ch = isWindowScroll ? window.innerHeight : scrollContainer.clientHeight;
-      physicalDistance = sh - st - ch;
+      return {
+        scrollTop: st,
+        viewportHeight: ch,
+        totalHeight: sh,
+        distanceFromBottom: sh - st - ch,
+      };
     }
     return {
       scrollTop: st,
       viewportHeight,
       totalHeight: effectiveTotalHeight,
-      distanceFromBottom: Math.min(treeDistance, physicalDistance),
+      distanceFromBottom: effectiveTotalHeight - st - viewportHeight,
     };
   }
 
