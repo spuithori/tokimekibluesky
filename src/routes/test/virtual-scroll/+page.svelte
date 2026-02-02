@@ -237,6 +237,25 @@
         return -1;
       },
 
+      getTreeHeight(index: number): number {
+        if (!virtualList || index < 0) return -1;
+        const posStart = virtualList.getPositionForIndex(index);
+        const posEnd = virtualList.getPositionForIndex(index + 1);
+        return posEnd - posStart;
+      },
+
+      changeItemHeightDOM(id: string, extraHeight: number): void {
+        const el = scrollContainer?.querySelector(`[data-testid="${id}"]`) as HTMLElement | null;
+        if (el) {
+          el.style.setProperty('height', 'auto', 'important');
+          el.style.minHeight = '0';
+          const spacer = document.createElement('div');
+          spacer.style.height = `${extraHeight}px`;
+          spacer.className = 'dom-injected-spacer';
+          el.appendChild(spacer);
+        }
+      },
+
       reset() {
         items = generateItems(200, 0);
         nextId = 200;
