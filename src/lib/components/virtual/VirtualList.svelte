@@ -65,6 +65,7 @@
   let minTotalHeight = initialScrollState?.scrollTop != null
     ? initialScrollState.scrollTop + 1000
     : 0;
+  let _cachedScrollTop = -1;
   let correctionRafId: number | null = null;
   let heightUpdateRafId: number | null = null;
   let resizeObserver: ResizeObserver | null = null;
@@ -189,6 +190,7 @@
   }
 
   function getScrollTop(): number {
+    if (_cachedScrollTop >= 0) return _cachedScrollTop;
     return getScrollTopFor(scrollContainer, isWindowScroll);
   }
 
@@ -244,13 +246,15 @@
     if (isNavigating || scrollRafId !== null) return;
     scrollRafId = requestAnimationFrame(() => {
       scrollRafId = null;
+      _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
       updateVisibleRange();
       onScroll?.();
       if (scrollContainer) {
         lastValidScrollContainer = scrollContainer;
-        lastKnownScrollTop = getScrollTop();
+        lastKnownScrollTop = _cachedScrollTop;
         lastKnownVisibleStart = visibleStart;
       }
+      _cachedScrollTop = -1;
     });
   }
 
@@ -279,6 +283,7 @@
     for (let i = fromIdx; i < Math.min(toIdx, oldRangeEnd); i++) {
       if (i >= items.length) break;
       const key = getKey(items[i], i);
+      if (hm.has(key) && !hm.pending.has(key)) continue;
       const el = itemRefs.get(key);
       if (!el) continue;
       const h = el.getBoundingClientRect().height;
@@ -334,8 +339,11 @@
     }
 
     if (hasChanges) {
-      if (aboveDelta !== 0 && !isNavigating && isWindowScroll && getScrollTop() > 0) {
-        setScrollTop(getScrollTop() + aboveDelta);
+      if (aboveDelta !== 0 && !isNavigating && isWindowScroll) {
+        const currentSt = getScrollTop();
+        if (currentSt > 0) {
+          setScrollTop(currentSt + aboveDelta);
+        }
       }
       recalculatePositionsFrom(rangeStart);
       renderVersion++;
@@ -502,7 +510,9 @@
     if (shiftCount > 0) {
       if (refreshToTop && getScrollTop() <= topMargin) {
         recalculatePositions();
+        visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
         renderVersion++;
+        quickPrependHandled = true;
       } else if (Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS) {
         const anchor = captureAnchorItem(shiftCount);
         const anchorKey = anchor?.key ?? '';
@@ -887,6 +897,16 @@
   export function getScrollInfo(): { scrollTop: number; viewportHeight: number; totalHeight: number; distanceFromBottom: number } {
     const st = getScrollTop();
     const treeDistance = effectiveTotalHeight - st - viewportHeight;
+
+    if (minTotalHeight <= tree.total && treeDistance > 1000) {
+      return {
+        scrollTop: st,
+        viewportHeight,
+        totalHeight: effectiveTotalHeight,
+        distanceFromBottom: treeDistance,
+      };
+    }
+
     let physicalDistance = treeDistance;
     if (scrollContainer) {
       const sh = isWindowScroll ? document.documentElement.scrollHeight : scrollContainer.scrollHeight;

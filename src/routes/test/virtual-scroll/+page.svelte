@@ -16,6 +16,7 @@
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
   let nextId = $state(0);
   let savedState: ScrollState | null = null;
+  let refreshToTop = $state(false);
 
   function seededRandom(seed: number): number {
     const x = Math.sin(seed * 9301 + 49297) * 49297;
@@ -74,6 +75,18 @@
         items = [...newItems.reverse(), ...items];
       },
 
+      prependOne() {
+        const item = makeItem(nextId);
+        nextId += 1;
+        items = [item, ...items];
+      },
+
+      prependOneMutate() {
+        const item = makeItem(nextId);
+        nextId += 1;
+        items.unshift(item);
+      },
+
       append(count: number) {
         const newItems = generateItems(count, nextId);
         nextId += count;
@@ -115,10 +128,28 @@
         return items.length;
       },
 
+      getDiagnostics() {
+        return {
+          itemCount: items.length,
+          topSpacerHeight: document.querySelector('.virtual-spacer')
+            ? (document.querySelector('.virtual-spacer') as HTMLElement).offsetHeight
+            : -1,
+          renderedItemCount: document.querySelectorAll('.virtual-item').length,
+          firstRenderedId: document.querySelector('.virtual-item [data-testid]')
+            ?.getAttribute('data-testid') ?? null,
+          containerScrollTop: scrollContainer?.scrollTop ?? -1,
+        };
+      },
+
+      setRefreshToTop(value: boolean) {
+        refreshToTop = value;
+      },
+
       reset() {
         items = generateItems(200, 0);
         nextId = 200;
         savedState = null;
+        refreshToTop = false;
         if (scrollContainer) {
           scrollContainer.scrollTop = 0;
         }
@@ -140,6 +171,7 @@
     {items}
     {getKey}
     {scrollContainer}
+    {refreshToTop}
     bind:this={virtualList}
   >
     {#snippet children(item: TestItem, index: number)}
