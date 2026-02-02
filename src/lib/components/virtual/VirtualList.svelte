@@ -725,7 +725,10 @@
           hm.set(key, value);
         }
       }
-      recalculatePositions();
+
+      if (hasHeights || tree.length !== items.length) {
+        recalculatePositions();
+      }
 
       applyScrollRestore(initialScrollState, !hasHeights && savedScrollTop != null);
     }
@@ -750,6 +753,48 @@
   function measureAndRecalculate(): void {
     measureRenderedItems();
     recalculatePositions();
+    if (minTotalHeight > tree.total) {
+      minTotalHeight = tree.total;
+    }
+    renderVersion++;
+  }
+
+  function measureAndRecalculateIncremental(): void {
+    if (hm.pending.size > 0) {
+      const keyToIndex = getKeyToIndex();
+      for (const [key, newHeight] of hm.pending) {
+        const oldHeight = hm.get(key);
+        if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
+        hm.set(key, newHeight);
+        const idx = keyToIndex.get(key);
+        if (idx !== undefined && idx < tree.length) {
+          tree.set(idx, newHeight);
+        }
+      }
+      hm.pending.clear();
+      if (heightUpdateRafId !== null) {
+        cancelAnimationFrame(heightUpdateRafId);
+        heightUpdateRafId = null;
+      }
+    }
+
+    const start = Math.max(0, visibleStart - buffer);
+    const end = Math.min(items.length, visibleEnd + buffer);
+    for (let i = start; i < end; i++) {
+      const key = getKey(items[i], i);
+      const el = itemRefs.get(key);
+      if (!el) continue;
+      const h = el.getBoundingClientRect().height;
+      if (h <= 0) continue;
+      const existing = hm.get(key);
+      if (existing === undefined || Math.abs(existing - h) >= HEIGHT_APPLY_THRESHOLD) {
+        hm.set(key, h);
+        if (i < tree.length) {
+          tree.set(i, h);
+        }
+      }
+    }
+
     if (minTotalHeight > tree.total) {
       minTotalHeight = tree.total;
     }
@@ -822,7 +867,7 @@
   }
 
   function correctAndFinish(key: string, targetVisualY: number): void {
-    measureAndRecalculate();
+    measureAndRecalculateIncremental();
     const el = itemRefs.get(key);
     if (el && scrollContainer) {
       const containerTop = getContainerTop();
@@ -837,7 +882,7 @@
   function correctLightweightScroll(index: number, targetVisualY: number): void {
     const key = getKey(items[index], index);
 
-    measureAndRecalculate();
+    measureAndRecalculateIncremental();
 
     const el = itemRefs.get(key);
     if (el && scrollContainer) {
