@@ -55,7 +55,6 @@
     999999
   ) : 0);
   let viewportHeight = $state(0);
-  let renderVersion = $state(0);
   let tree = new FenwickTree();
   let hm = new HeightManager();
 
@@ -106,24 +105,22 @@
 
   let visibleItems = $derived(items.slice(visibleRange.start, visibleRange.end));
 
-  let effectiveTotalHeight = $derived.by(() => {
-    void renderVersion;
-    return Math.max(tree.total, minTotalHeight);
-  });
+  let effectiveTotalHeight = $state(0);
+  let topSpacerHeight = $state(0);
+  let bottomSpacerHeight = $state(0);
 
-  let topSpacerHeight = $derived.by(() => {
-    void renderVersion;
-    if (!isVirtualizationEnabled) return 0;
-    return Math.max(0, tree.prefixSum(visibleRange.start));
-  });
-
-  let bottomSpacerHeight = $derived.by(() => {
-    if (!isVirtualizationEnabled || items.length === 0) return 0;
-    const endPosition = visibleRange.end < tree.length
-      ? tree.prefixSum(visibleRange.end)
-      : tree.total;
-    return Math.max(0, effectiveTotalHeight - endPosition);
-  });
+  function invalidateLayout(): void {
+    effectiveTotalHeight = Math.max(tree.total, minTotalHeight);
+    topSpacerHeight = isVirtualizationEnabled
+      ? Math.max(0, tree.prefixSum(visibleRange.start))
+      : 0;
+    const endPos = (isVirtualizationEnabled && items.length > 0)
+      ? (visibleRange.end < tree.length ? tree.prefixSum(visibleRange.end) : tree.total)
+      : 0;
+    bottomSpacerHeight = (isVirtualizationEnabled && items.length > 0)
+      ? Math.max(0, effectiveTotalHeight - endPos)
+      : 0;
+  }
 
   function pruneStaleHeights(): void {
     if (!hm.shouldPrune(items.length)) return;
@@ -236,7 +233,7 @@
 
       visibleStart = newStart;
       visibleEnd = newEnd;
-      renderVersion++;
+      invalidateLayout();
     }
   }
 
@@ -283,17 +280,18 @@
     for (let i = fromIdx; i < Math.min(toIdx, oldRangeEnd); i++) {
       if (i >= items.length) break;
       const key = getKey(items[i], i);
+      if (hm.has(key) && i < tree.length) {
+        const cached = hm.get(key)!;
+        if (Math.abs(tree.get(i) - cached) < HEIGHT_APPLY_THRESHOLD) continue;
+        tree.set(i, cached);
+        continue;
+      }
       const el = itemRefs.get(key);
       if (!el) continue;
       const h = el.getBoundingClientRect().height;
       if (h <= 0) continue;
-      if (i < tree.length && Math.abs(tree.get(i) - h) >= HEIGHT_APPLY_THRESHOLD) {
-        hm.set(key, h);
-        tree.set(i, h);
-      } else if (!hm.has(key)) {
-        hm.set(key, h);
-        if (i < tree.length) tree.set(i, h);
-      }
+      hm.set(key, h);
+      if (i < tree.length) tree.set(i, h);
     }
   }
 
@@ -345,7 +343,7 @@
         }
       }
       recalculatePositionsFrom(rangeStart);
-      renderVersion++;
+      invalidateLayout();
       updateVisibleRange();
       onScroll?.();
     }
@@ -510,7 +508,7 @@
       if (refreshToTop && getScrollTop() <= topMargin) {
         recalculatePositions();
         visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
-        renderVersion++;
+        invalidateLayout();
         quickPrependHandled = true;
       } else if (Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS) {
         const anchor = captureAnchorItem(shiftCount);
@@ -584,7 +582,7 @@
     prevLastKey = '';
     minTotalHeight = 0;
     hm.clear();
-    queueMicrotask(() => renderVersion++);
+    queueMicrotask(() => invalidateLayout());
   }
 
   function handleItemsInitial(): void {
@@ -592,7 +590,7 @@
     recalculatePositions();
     if (!initialScrollState || hasRestoredScroll) {
       queueMicrotask(() => {
-        renderVersion++;
+        invalidateLayout();
         updateVisibleRange();
       });
     }
@@ -600,14 +598,14 @@
 
   function handleItemsAppend(oldCount: number): void {
     appendPositions(oldCount);
-    renderVersion++;
+    invalidateLayout();
     queueMicrotask(() => pruneStaleHeights());
   }
 
   function handleItemsGenericChange(): void {
     recalculatePositions();
     queueMicrotask(() => {
-      renderVersion++;
+      invalidateLayout();
       updateVisibleRange();
     });
   }
@@ -619,7 +617,7 @@
     recalculatePositions();
     visibleStart = 0;
     visibleEnd = Math.min(items.length, pp.oldVisibleEnd + shiftCount + buffer);
-    renderVersion++;
+    invalidateLayout();
 
     tick().then(() => {
       for (let i = 0; i < shiftCount; i++) {
@@ -646,7 +644,7 @@
     recalculatePositions();
     visibleStart = Math.max(0, visibleStart + shiftCount);
     visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
-    renderVersion++;
+    invalidateLayout();
   }
 
   function handlePrependFullReset(): void {
@@ -670,7 +668,7 @@
     prevFirstKey = firstKey;
     prevLastKey = lastKey;
 
-    if (quickPrependHandled) { quickPrependHandled = false; renderVersion++; return; }
+    if (quickPrependHandled) { quickPrependHandled = false; invalidateLayout(); return; }
 
     if (oldCount === 0) { handleItemsInitial(); return; }
 
@@ -739,11 +737,15 @@
     const end = Math.min(items.length, visibleEnd + buffer);
     for (let i = start; i < end; i++) {
       const key = getKey(items[i], i);
+      const existing = hm.get(key);
+      if (existing !== undefined && i < tree.length
+          && Math.abs(tree.get(i) - existing) < HEIGHT_APPLY_THRESHOLD) {
+        continue;
+      }
       const el = itemRefs.get(key);
       if (!el) continue;
       const h = el.getBoundingClientRect().height;
       if (h <= 0) continue;
-      const existing = hm.get(key);
       if (existing === undefined || Math.abs(existing - h) >= HEIGHT_APPLY_THRESHOLD) {
         hm.set(key, h);
       }
@@ -756,7 +758,7 @@
     if (minTotalHeight > tree.total) {
       minTotalHeight = tree.total;
     }
-    renderVersion++;
+    invalidateLayout();
   }
 
   function measureAndRecalculateIncremental(): void {
@@ -782,11 +784,15 @@
     const end = Math.min(items.length, visibleEnd + buffer);
     for (let i = start; i < end; i++) {
       const key = getKey(items[i], i);
+      const existing = hm.get(key);
+      if (existing !== undefined && i < tree.length
+          && Math.abs(tree.get(i) - existing) < HEIGHT_APPLY_THRESHOLD) {
+        continue;
+      }
       const el = itemRefs.get(key);
       if (!el) continue;
       const h = el.getBoundingClientRect().height;
       if (h <= 0) continue;
-      const existing = hm.get(key);
       if (existing === undefined || Math.abs(existing - h) >= HEIGHT_APPLY_THRESHOLD) {
         hm.set(key, h);
         if (i < tree.length) {
@@ -798,7 +804,7 @@
     if (minTotalHeight > tree.total) {
       minTotalHeight = tree.total;
     }
-    renderVersion++;
+    invalidateLayout();
   }
 
   function finishNavigation(): void {
@@ -930,7 +936,7 @@
     isNavigating = true;
     visibleStart = Math.max(0, index - buffer);
     visibleEnd = Math.min(items.length, index + buffer + SCROLLTO_EXTRA_BUFFER);
-    renderVersion++;
+    invalidateLayout();
 
     tick().then(() => {
       setScrollTop(Math.max(0, targetScrollTop));
@@ -1013,7 +1019,7 @@
     isNavigating = true;
     visibleStart = Math.max(0, targetIdx - buffer);
     visibleEnd = Math.min(items.length, targetIdx + buffer + SCROLLTO_EXTRA_BUFFER);
-    renderVersion++;
+    invalidateLayout();
 
     if (lightweight && state.scrollTop != null) {
       const targetScrollTop = state.scrollTop;
@@ -1074,7 +1080,7 @@
     visibleStart = Math.max(0, index - buffer);
     visibleEnd = Math.min(items.length, index + buffer + SCROLLTO_EXTRA_BUFFER);
     viewportHeight = getViewportHeight();
-    renderVersion++;
+    invalidateLayout();
   }
 
   export function getItemElement(index: number): HTMLElement | null {
