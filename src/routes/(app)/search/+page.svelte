@@ -64,7 +64,7 @@
             const index = junkColumnState.getColumnIndex('search_' + $page.url.searchParams.get('q'));
 
             junkColumnState.columns[index].algorithm.sort = _sort;
-            junkColumnState.columns[index].data.feed = [];
+            junkColumnState.clearFeed(junkColumnState.columns[index].id);
             junkColumnState.columns[index].data.cursor = 0;
         }
     }

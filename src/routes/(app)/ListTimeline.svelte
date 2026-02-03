@@ -44,7 +44,7 @@
 
         if (column.data.cursor.some(item => item.cursor !== undefined) || count === 0) {
             count = count + 1;
-            column.data.feed = [...column.data.feed, ...feed];
+            columnState.replaceFeed(column.id, f => [...f, ...feed]);
             await poolRecalc(feedPool);
 
             loaded();
@@ -90,8 +90,8 @@
 {#if (list.members.length)}
   <div class="timeline timeline--{column.style}">
     <div class:media-list={column.style === 'media'} class:video-list={column.style === 'video'}>
-      {#each column.data.feed as data, index (data)}
-        <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
+      {#each columnState.getFeed(column.id) as data, index (data)}
+        <TimelineItem data={ data } index={index} column={column} {_agent} feed={columnState.getFeed(column.id)}></TimelineItem>
       {/each}
     </div>
 

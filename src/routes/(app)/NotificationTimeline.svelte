@@ -35,10 +35,6 @@
         column.data.notifications = [];
     }
 
-    if (!column.data.feed) {
-        column.data.feed = [];
-    }
-
     if (!column.data.feedPool) {
         column.data.feedPool = [];
     }
@@ -70,7 +66,7 @@
     async function getNotificationsFilter(setFilter: Filter[]) {
         column.filter = setFilter;
         column.data.notifications = [];
-        column.data.feed = [];
+        columnState.clearFeed(column.id);
         column.data.feedPool = [];
         column.data.cursor = '';
     }
@@ -91,7 +87,7 @@
         const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(_notifications, true, _agent, column.data.feedPool || []);
 
         column.data.notifications = _notifications;
-        column.data.feed = newNotificationGroup;
+        columnState.setFeed(column.id, newNotificationGroup);
         column.data.feedPool = newFeedPool;
 
         if (sound) {
@@ -117,7 +113,7 @@
 
             const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, column.data.feedPool);
             column.data.notifications = [...column.data.notifications, ...resNotifications];
-            column.data.feed = [...column.data.feed, ...newNotificationGroup];
+            columnState.replaceFeed(column.id, f => [...f, ...newNotificationGroup]);
             column.data.feedPool = newFeedPool;
 
             if (column.data.cursor && isOnlyShowUnread ? resNotifications.length : res.data.notifications.length) {
@@ -151,7 +147,7 @@
 
 <div class="timeline timeline--notification">
   <div class="notifications-list">
-    {#each column.data.feed as item (item.key)}
+    {#each columnState.getFeed(column.id) as item (item.key)}
       <div class="notifications-list__item">
         {#if item?.notifications[0]?.isRead === false}
           <span class="notifications-list__new"></span>

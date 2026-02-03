@@ -23,6 +23,7 @@
     let {
         _agent = $agent,
         data,
+        feed = undefined,
         isReplyExpanded = false,
         isSingle = false,
         isThread = false,
@@ -59,10 +60,10 @@
         return undefined;
       }
 
-      const feed = Array.isArray(column?.data?.feed) ? column.data.feed : [];
+      const _feed = Array.isArray(feed) ? feed : [];
 
       return {
-        feed: feed,
+        feed: _feed,
         postUri: data?.post?.uri,
         authorDid: data?.post?.author?.did,
       };
@@ -480,14 +481,14 @@
   {#if (column?.style === 'media')}
     {#if (AppBskyEmbedImages.isView(data?.post?.embed) || AppBskyEmbedImages.isView(data?.post?.embed?.media))}
       {#if (column?.settings?.mediaColumns === 1)}
-        <MediaTimelineSingleItem feed={column.data.feed} {index} {data} {_agent}></MediaTimelineSingleItem>
+        <MediaTimelineSingleItem feed={feed ?? []} {index} {data} {_agent}></MediaTimelineSingleItem>
       {:else}
-        <MediaTimelineItem feed={column.data.feed} {index} {data} {_agent}></MediaTimelineItem>
+        <MediaTimelineItem feed={feed ?? []} {index} {data} {_agent}></MediaTimelineItem>
       {/if}
     {/if}
   {:else if (column?.style === 'video')}
     {#if AppBskyEmbedVideo.isView(data?.post?.embed)}
-      <VideoTimelineItem feed={column.data.feed} {index} {data} {_agent}></VideoTimelineItem>
+      <VideoTimelineItem feed={feed ?? []} {index} {data} {_agent}></VideoTimelineItem>
     {/if}
   {:else}
     <article class="timeline__item"

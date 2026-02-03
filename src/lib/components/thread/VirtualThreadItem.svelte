@@ -3,32 +3,36 @@
     import Likes from "$lib/components/thread/Likes.svelte";
     import Quotes from "$lib/components/thread/Quotes.svelte";
     import Reposts from "$lib/components/thread/Reposts.svelte";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    let { column, index, _agent } = $props();
+    let { column, index, _agent, isJunk = false } = $props();
+    const columnState = getColumnState(isJunk);
+    let feedItem = $derived(columnState.getFeed(column.id)[index]);
 </script>
 
-{#key column.data.feed[index]}
+{#key feedItem}
   <TimelineItem
-          data={column.data.feed[index]}
+          data={feedItem}
           {index}
           {column}
           {_agent}
+          feed={columnState.getFeed(column.id)}
           isSingle={true}
           isThread={true}
   >
     <div class="timeline-analytics-list">
-      {#if (column.data.feed[index]?.post?.quoteCount > 0)}
-        <Quotes uri={column.data.feed[index].post.uri} {_agent}>
-          {column.data.feed[index].post.quoteCount}
+      {#if (feedItem?.post?.quoteCount > 0)}
+        <Quotes uri={feedItem.post.uri} {_agent}>
+          {feedItem.post.quoteCount}
         </Quotes>
       {/if}
 
-      {#if (column.data.feed[index]?.post?.repostCount > 0)}
-        <Reposts uri={column.data.feed[index].post.uri} {_agent}></Reposts>
+      {#if (feedItem?.post?.repostCount > 0)}
+        <Reposts uri={feedItem.post.uri} {_agent}></Reposts>
       {/if}
 
-      {#if (column.data.feed[index]?.post?.likeCount > 0)}
-        <Likes uri={column.data.feed[index].post.uri} {_agent}></Likes>
+      {#if (feedItem?.post?.likeCount > 0)}
+        <Likes uri={feedItem.post.uri} {_agent}></Likes>
       {/if}
     </div>
   </TimelineItem>

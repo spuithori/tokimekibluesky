@@ -84,7 +84,7 @@
         }
 
         if (column.style === 'video') {
-            column.data.feed = [];
+            columnState.clearFeed(column.id);
             column.data.cursor = undefined;
             unique = Symbol();
         }
@@ -108,39 +108,40 @@
                 return false;
             }
 
-            const existingKeys = new Set(column.data.feed.map(getPostKey));
+            const currentFeed = columnState.getFeed(column.id);
+            const existingKeys = new Set(currentFeed.map(getPostKey));
             const newFeed = res.data.feed
                 .filter(feed => !existingKeys.has(getPostKey(feed)))
                 .map(feed => ({...feed, memoryCursor: res.data.cursor}));
 
-            if (newFeed.length === res.data.feed.length && column.data.feed.length !== 0) {
+            if (newFeed.length === res.data.feed.length && currentFeed.length !== 0) {
                 const dividerPost = newFeed.slice(-1)[0];
                 dividerPost.isDivider = true;
             }
 
             const newKeys = new Set(res.data.feed.map(getPostKey));
-            column.data.feed = column.data.feed.map(feed => {
+            columnState.replaceFeed(column.id, f => f.map(feed => {
                 if (newKeys.has(getPostKey(feed))) {
                     feed.memoryCursor = res.data.cursor;
                 }
                 return feed;
-            });
+            }));
 
-            if (column.data.feed.length === 0) {
+            if (columnState.getFeed(column.id).length === 0) {
                 column.data.cursor = res.data.cursor;
             }
 
             const useVirtualTimeline = (column.style === 'default' || !column.style) && $settings.design?.layout === 'decks' && !$settings.general?.useVirtual;
 
             let distanceFromBottom = 0;
-            if (!useVirtualTimeline && shouldMaintainPosition && newFeed.length > 0 && column.data.feed.length > 0) {
+            if (!useVirtualTimeline && shouldMaintainPosition && newFeed.length > 0 && columnState.getFeed(column.id).length > 0) {
                 const scrollTop = scrollEl.scrollTop;
                 const scrollHeight = scrollEl.scrollHeight;
                 const clientHeight = scrollEl.clientHeight;
                 distanceFromBottom = scrollHeight - scrollTop - clientHeight;
             }
 
-            column.data.feed.unshift(...newFeed);
+            columnState.updateFeed(column.id, f => { f.unshift(...newFeed); });
 
             if (distanceFromBottom > 0) {
                 await tick();
@@ -149,7 +150,7 @@
                 scrollEl.scrollTop = newScrollHeight - distanceFromBottom - clientHeight;
             }
         } else if (column.algorithm.type === 'bookmark') {
-            column.data.feed = [];
+            columnState.clearFeed(column.id);
             column.data.cursor = 0;
             unique = Symbol();
         } else if (column.algorithm.type === 'realtime') {
@@ -177,7 +178,8 @@
                 : _notifications;
 
             if (!isAutoRefresh && column.settings?.onlyShowUnread) {
-                resNotifications = resNotifications.filter(notification => !column.data.feed.some(_notification => notification.uri === _notification.uri));
+                const currentNotifFeed = columnState.getFeed(column.id);
+                resNotifications = resNotifications.filter(notification => !currentNotifFeed.some(_notification => notification.uri === _notification.uri));
             }
 
             const notifications = mergeNotifications(column.settings?.onlyShowUnread ? [...resNotifications] : [...resNotifications, ...column.data.notifications], !isAutoRefresh);
@@ -185,7 +187,7 @@
             const { notifications: notificationGroup, feedPool: newFeedPool } = await getNotifications(notifications, true, _agent, column.data.feedPool || []);
 
             column.data.notifications = notifications;
-            column.data.feed = notificationGroup;
+            columnState.setFeed(column.id, notificationGroup);
             column.data.feedPool = newFeedPool;
 
             if (column.settings?.onlyShowUnread) {
@@ -219,16 +221,17 @@
                 return false;
             }
 
-            const existingMessageIds = new Set(column.data.feed.map(m => m.id));
+            const chatFeed = columnState.getFeed(column.id);
+            const existingMessageIds = new Set(chatFeed.map(m => m.id));
             const newFeed = res.data.messages
                 .filter(feed => !existingMessageIds.has(feed.id))
                 .reverse();
 
-            if (column.data.feed.length === 0) {
+            if (chatFeed.length === 0) {
                 column.data.cursor = res.data.cursor;
             }
 
-            column.data.feed = [...column.data.feed, ...newFeed];
+            columnState.replaceFeed(column.id, f => [...f, ...newFeed]);
 
             const chatScrollEl = getScrollElement();
             await tick();
@@ -258,16 +261,17 @@
                     return false;
                 }
 
-                const existingMessageIds = new Set(column.data.feed.map(m => m.id));
+                const chatListFeed = columnState.getFeed(column.id);
+                const existingMessageIds = new Set(chatListFeed.map(m => m.id));
                 const newFeed = res.data.messages
                     .filter(feed => !existingMessageIds.has(feed.id))
                     .reverse();
 
-                if (column.data.feed.length === 0) {
+                if (chatListFeed.length === 0) {
                     column.data.cursor = res.data.cursor;
                 }
 
-                column.data.feed = [...column.data.feed, ...newFeed];
+                columnState.replaceFeed(column.id, f => [...f, ...newFeed]);
 
                 const chatListScrollEl = getScrollElement();
                 await tick();
@@ -288,29 +292,30 @@
                 unique = Symbol();
             }
         } else if (column.algorithm.type === 'thread') {
-            column.data.feed = [];
+            columnState.clearFeed(column.id);
             unique = Symbol();
         } else {
-            column.data.feed = [];
+            columnState.clearFeed(column.id);
             column.data.cursor = undefined;
             unique = Symbol();
         }
 
         try {
             if (column.settings?.playSound) {
+                const soundFeed = columnState.getFeed(column.id);
                 if (column.algorithm.type === 'chat') {
-                    if (column.data?.feed.slice(-1)[0].sender.did !== _agent.did()) {
-                        playSound(column.data?.feed.slice(-1)[0].sentAt, column.lastRefresh, column.settings.playSound)
+                    if (soundFeed.slice(-1)[0]?.sender?.did !== _agent.did()) {
+                        playSound(soundFeed.slice(-1)[0]?.sentAt, column.lastRefresh, column.settings.playSound)
                     }
                 } else {
-                    playSound(column.algorithm.type === 'notification' ? column.data?.notifications[0]?.indexedAt : column.data?.feed[0]?.post.indexedAt, column.lastRefresh, column.settings.playSound)
+                    playSound(column.algorithm.type === 'notification' ? column.data?.notifications[0]?.indexedAt : soundFeed[0]?.post?.indexedAt, column.lastRefresh, column.settings.playSound)
                 }
             }
         } catch (e) {
             console.error(e);
         }
 
-        releasePosts(column.data.feed);
+        releasePosts(columnState.getFeed(column.id));
         column.lastRefresh = new Date().toISOString();
         isRefreshing = false;
     }
@@ -333,7 +338,7 @@
                 const lastCursorIndex = feed.findLastIndex(item => item.memoryCursor === borderItem.memoryCursor);
 
                 if (lastCursorIndex !== -1) {
-                    column.data.feed.splice(lastCursorIndex + 1);
+                    columnState.updateFeed(column.id, f => { f.splice(lastCursorIndex + 1); });
                     column.data.cursor = borderItem.memoryCursor;
                 }
             }

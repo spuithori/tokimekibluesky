@@ -32,11 +32,11 @@
       const sortedThread = sortThreadView(transFormThread, authorDid);
       const flatThread = sortedThread.flat(Infinity);
 
-      column.data.feed = flatThread;
+      columnState.setFeed(column.id, flatThread);
       rootIndex = flatThread.findIndex(feed => feed.depth === 0);
     } catch (e) {
       console.error(e);
-      column.data.feed = 'NotFound';
+      columnState.setFeedStatus(column.id, 'NotFound');
     }
   }
 
@@ -139,10 +139,10 @@
   });
 </script>
 
-{#if !column.data.feed.length}
-  <LoadingSpinner></LoadingSpinner>
-{:else if (column.data.feed === 'NotFound')}
+{#if columnState.getFeedStatus(column.id) === 'NotFound'}
   <p class="thread-error">{$_('error_thread_notfound')}</p>
+{:else if !columnState.getFeed(column.id).length}
+  <LoadingSpinner></LoadingSpinner>
 {:else}
   <VirtualThreadList {_agent} {column} {rootIndex} onchangeprofile={handleChangeProfile} {isJunk}></VirtualThreadList>
 {/if}

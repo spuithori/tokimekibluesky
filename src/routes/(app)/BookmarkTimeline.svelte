@@ -15,10 +15,6 @@
       column.data.cursor = 0;
   }
 
-  if(!column.data.feed) {
-      column.data.feed = [];
-  }
-
   if (!column.algorithm.name) {
       getBookmarkName(column.algorithm.list)
           .then(value => {
@@ -37,7 +33,7 @@
               const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
               return { post: post, bookmarkId: id };
           })
-          column.data.feed = [...column.data.feed, ...posts];
+          columnState.replaceFeed(column.id, f => [...f, ...posts]);
 
           column.data.cursor = column.data.cursor + 1;
           initialLoadFinished = true;
@@ -50,8 +46,8 @@
 
 <div class="timeline timeline--{column.style}">
   <div class:media-list={column.style === 'media'} class:video-list={column.style === 'video'}>
-    {#each column.data.feed as data, index (data)}
-      <TimelineItem data={ data } index={index} column={column} {_agent}></TimelineItem>
+    {#each columnState.getFeed(column.id) as data, index (data)}
+      <TimelineItem data={ data } index={index} column={column} {_agent} feed={columnState.getFeed(column.id)}></TimelineItem>
     {/each}
   </div>
 

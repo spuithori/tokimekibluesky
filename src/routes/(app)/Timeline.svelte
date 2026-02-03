@@ -69,7 +69,7 @@
                   return false;
               }
 
-              column.data.feed.unshift(value);
+              columnState.updateFeed(column.id, f => { f.unshift(value); });
               realtimeCounter = realtimeCounter + 1;
 
               if (realtimeCounter === 20) {
@@ -81,15 +81,17 @@
                           const cursor = res.data.cursor;
                           let i = 0;
 
-                          while (i < 20) {
-                              column.data.feed[i].memoryCursor = cursor;
+                          columnState.updateFeed(column.id, f => {
+                              while (i < 20 && i < f.length) {
+                                  f[i].memoryCursor = cursor;
 
-                              if (isDuplicatePost(column.data.feed[i], refPost)) {
-                                  break;
+                                  if (isDuplicatePost(f[i], refPost)) {
+                                      break;
+                                  }
+
+                                  i++;
                               }
-
-                              i++;
-                          }
+                          });
 
                           releaseOldPosts();
                       });
@@ -104,16 +106,17 @@
   function releaseOldPosts() {
       const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
       const scrollTop = scrollEl?.scrollTop ?? 0;
+      const feed = columnState.getFeed(column.id);
 
-      if (scrollTop !== 0 || column.data.feed.length <= 40) {
+      if (scrollTop !== 0 || feed.length <= 40) {
           return;
       }
 
-      const borderItem = column.data.feed[39];
+      const borderItem = feed[39];
       if (borderItem?.memoryCursor) {
-          const lastCursorIndex = column.data.feed.findLastIndex(item => item.memoryCursor === borderItem.memoryCursor);
+          const lastCursorIndex = feed.findLastIndex(item => item.memoryCursor === borderItem.memoryCursor);
           if (lastCursorIndex !== -1) {
-              column.data.feed.splice(lastCursorIndex + 1);
+              columnState.updateFeed(column.id, f => { f.splice(lastCursorIndex + 1); });
               column.data.cursor = borderItem.memoryCursor;
           }
       }
@@ -133,16 +136,19 @@
 
   function handleDividerClick(index, cursor, pos) {
       column.data.cursor = cursor;
-      column.data.feed[index].isDivider = false;
+      columnState.updateFeed(column.id, f => {
+          f[index] = { ...f[index], isDivider: false };
+          f.splice(index + 1);
+      });
       isDividerLoading = true;
       dividerFillerHeight = pos;
-      column.data.feed.splice(index + 1);
   }
 
   async function handleDividerUp(index, cursor, dividerEl: HTMLElement | undefined) {
     try {
       const res = await _agent.getTimeline({limit: 100, cursor: cursor, algorithm: column.algorithm});
-      const last = column.data.feed[index + 1];
+      const currentFeed = columnState.getFeed(column.id);
+      const last = currentFeed[index + 1];
 
       if (!last) {
         return false;
@@ -165,11 +171,12 @@
         return item;
       });
 
-      column.data.feed.splice(index + 1, 0, ...feed);
-      column.data.feed[index].isDivider = false;
-
       const newDividerIndex = index + feed.length;
-      column.data.feed[newDividerIndex].isDivider = true;
+      columnState.updateFeed(column.id, f => {
+          f.splice(index + 1, 0, ...feed);
+          f[index] = { ...f[index], isDivider: false };
+          f[newDividerIndex] = { ...f[newDividerIndex], isDivider: true };
+      });
 
       const useVirtualList = (column.style === 'default' || !column.style) && !isSingleColumnMode && !$settings.general?.useVirtual;
       if (useVirtualList && virtualTimelineRef) {
@@ -189,7 +196,7 @@
 
       if (feed.length !== res.data.feed.length) {
         tick().then(() => {
-          column.data.feed[newDividerIndex].isDivider = false;
+          columnState.updateFeed(column.id, f => { f[newDividerIndex] = { ...f[newDividerIndex], isDivider: false }; });
         })
       }
     } catch (e) {
@@ -210,7 +217,7 @@
           column.data.cursor = res.data.cursor;
 
         const existingFeedMap = new Map(
-            column.data.feed.map(item => [
+            columnState.getFeed(column.id).map(item => [
                 item.reason ? `${item.post.uri}|${item.reason.indexedAt}` : item.post.uri,
                 item
             ])
@@ -231,7 +238,7 @@
             const existingParentUris = new Set();
             const existingRootUris = new Set();
 
-            column.data.feed.forEach(f => {
+            columnState.getFeed(column.id).forEach(f => {
                 if (f?.post?.uri) existingParentUris.add(f.post.uri);
                 if (f?.reply?.root?.uri) existingRootUris.add(f.reply.root.uri);
             });
@@ -257,9 +264,9 @@
                     return isDuplicate ? { ...newFeed, isRootHide: true } : newFeed;
                 });
 
-            column.data.feed.push(...processedFeed);
+            columnState.updateFeed(column.id, f => { f.push(...processedFeed); });
           } else {
-            column.data.feed.push(...feed);
+            columnState.updateFeed(column.id, f => { f.push(...feed); });
           }
 
           isDividerLoading = false;
@@ -319,7 +326,7 @@
 {:else}
   <div class="timeline timeline--{column.style || 'default'}">
     <div class:media-list={column.style === 'media'} class:media-list--1={column.style === 'media' && column?.settings?.mediaColumns === 1} class:media-list--2={column.style === 'media' && column?.settings?.mediaColumns === 2} class:video-list={column.style === 'video'}>
-      {#each column.data.feed as data, index (data)}
+      {#each columnState.getFeed(column.id) as data, index (data)}
         {#if (data?.post?.author?.did)}
           <svelte:boundary>
             <TimelineItem
@@ -327,6 +334,7 @@
                     {index}
                     {column}
                     {_agent}
+                    feed={columnState.getFeed(column.id)}
                     isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
                     isPinned={isReasonPin(data?.reason)}
             ></TimelineItem>

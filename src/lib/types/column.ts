@@ -49,7 +49,7 @@ export type Column = {
     lastRefresh?: string,
     settings: deckSettings,
     data: {
-        feed: [],
+        feed?: any[],
         cursor: string | number,
     },
     scrollElement?: HTMLDivElement,

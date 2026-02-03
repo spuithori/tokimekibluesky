@@ -103,7 +103,7 @@
 
     function handleForceRefresh() {
         isRefreshing = true;
-        column.data.feed = [];
+        columnState.clearFeed(column.id);
         column.data.cursor = undefined;
         column.data.scrollState = undefined;
 
@@ -124,7 +124,7 @@
         isSettingsOpen = !isSettingsOpen;
 
         if (clear) {
-            column.data.feed = [];
+            columnState.clearFeed(column.id);
             column.data.cursor = undefined;
             column.data.scrollState = undefined;
 

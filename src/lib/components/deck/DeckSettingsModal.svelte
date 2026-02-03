@@ -255,7 +255,7 @@
     }
 
     function clearColumn() {
-        column.data.feed = [];
+        columnState.clearFeed(column.id);
         column.data.cursor = '';
 
         if (column.algorithm.type === 'notification') {
@@ -275,7 +275,7 @@
 
     function handleSearchChange() {
         column.algorithm.name = `${$_('search')} "${column.algorithm.algorithm}"`;
-        column.data.feed = [];
+        columnState.clearFeed(column.id);
         column.data.cursor = '';
     }
 

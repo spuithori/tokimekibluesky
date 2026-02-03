@@ -36,11 +36,12 @@
                 column.data.cursor = res.data.cursor;
             }
 
+            const currentFeed = columnState.getFeed(column.id);
             const feed = res.data.messages.filter(feed => {
-                return !column.data.feed.some(item => isDuplicateMessage(item, feed));
+                return !currentFeed.some(item => isDuplicateMessage(item, feed));
             }).reverse();
 
-            column.data.feed = [...feed, ...column.data.feed];
+            columnState.replaceFeed(column.id, f => [...feed, ...f]);
 
             if (firstLoad) {
                 await tick();
@@ -69,12 +70,12 @@
     }
 
     function handleUpdateReaction(message) {
-        column.data.feed = column.data.feed.map(item => {
+        columnState.replaceFeed(column.id, f => f.map(item => {
             if (item.id === message.id) {
                 return message;
             }
             return item;
-        });
+        }));
     }
 </script>
 
@@ -85,7 +86,7 @@
       {/if}
   {/key}
 
-  {#each column.data.feed as data (data)}
+  {#each columnState.getFeed(column.id) as data (data)}
     <ChatItem message={data} _agent={_agent || $agent} convoId={column.algorithm.id} updateReaction={handleUpdateReaction}></ChatItem>
   {/each}
 

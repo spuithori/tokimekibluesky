@@ -5,8 +5,10 @@
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
   import { getScrollTopFor, setScrollTopFor, resolveScrollContainer } from "$lib/components/virtual/scroll-helpers";
   import {_} from "svelte-i18n";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
   let { column, _agent, rootIndex, onchangeprofile, isJunk } = $props();
+  const columnState = getColumnState(isJunk);
   let parent = $state<HTMLElement | undefined>();
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
   let hasScrolledToRoot = false;
@@ -46,11 +48,12 @@
   }
 
   $effect(() => {
-    if (!virtualList || !scrollContainer || column.data.feed.length === 0 || hasScrolledToRoot) return;
+    const feed = columnState.getFeed(column.id);
+    if (!virtualList || !scrollContainer || feed.length === 0 || hasScrolledToRoot) return;
 
     let targetIdx = rootIndex;
     if (targetIdx === undefined || targetIdx === null) {
-      targetIdx = column.data.feed.findIndex((_feed: any) => _feed.depth === 0);
+      targetIdx = feed.findIndex((_feed: any) => _feed.depth === 0);
     }
 
     if (targetIdx <= 0) return;
@@ -97,11 +100,11 @@
 
 <div
   class="timeline timeline--inline-p0"
-  class:end-filler={column.data.feed.length > 1}
+  class:end-filler={columnState.getFeed(column.id).length > 1}
   bind:this={parent}
 >
   <VirtualList
-    items={column.data.feed}
+    items={columnState.getFeed(column.id)}
     {getKey}
     {scrollContainer}
     {topMargin}
@@ -117,11 +120,11 @@
             class:thread-item--minimum={$settings?.design.postsLayout === 'minimum'}
             class:thread-item--threaded={$settings?.design?.threaded}
             class:thread-item--bubble={$settings?.design?.bubbleTimeline}
-            class:is-root={!column.data.feed[0]?.post?.record?.reply}
+            class:is-root={!columnState.getFeed(column.id)[0]?.post?.record?.reply}
             class:is-final={item.post.replyCount === 0}
             class:has-child={item.post.replyCount > 0}
         >
-          <VirtualThreadItem {column} {index} {_agent}></VirtualThreadItem>
+          <VirtualThreadItem {column} {index} {_agent} {isJunk}></VirtualThreadItem>
 
           {#if (item?.depth > 1)}
             <span class="thread-round-border"></span>

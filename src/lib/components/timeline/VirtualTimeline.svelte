@@ -10,6 +10,7 @@
   import {isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {Annoyed} from "lucide-svelte";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
 
   let {
     column,
@@ -29,6 +30,7 @@
     handleDividerUp: any;
   } = $props();
 
+  const columnState = getColumnState(isJunk);
   let parent = $state<HTMLElement | undefined>();
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
 
@@ -74,7 +76,7 @@
         column.data.scrollState = null;
       }
       queueMicrotask(() => {
-        if (column.data.feed.length === 0 && !isLoading && !isComplete) {
+        if (columnState.getFeed(column.id).length === 0 && !isLoading && !isComplete) {
           triggerLoad();
         }
       });
@@ -141,7 +143,7 @@
   }
 
   $effect(() => {
-    const feedLength = column.data.feed.length;
+    const feedLength = columnState.getFeed(column.id).length;
     if (feedLength === 0 && scrollContainer && !isLoading && !isComplete) {
       triggerLoad();
     }
@@ -176,7 +178,7 @@
 
 <div class="timeline timeline--default virtual-timeline" bind:this={parent}>
   <VirtualList
-    items={column.data.feed}
+    items={columnState.getFeed(column.id)}
     {getKey}
     {scrollContainer}
     {topMargin}
@@ -195,6 +197,7 @@
             {index}
             {column}
             {_agent}
+            feed={columnState.getFeed(column.id)}
             isReplyExpanded={column.algorithm.type === 'author' && !item.isRootHide}
             isPinned={isReasonPin(item?.reason)}
           ></TimelineItem>

@@ -356,7 +356,7 @@
 
     function forceRefresh() {
         isRefreshing = true;
-        column.data.feed = [];
+        columnState.clearFeed(column.id);
         column.data.cursor = undefined;
         column.data.scrollState = undefined;
 
@@ -383,7 +383,7 @@
             isFiltered = false;
         }
 
-        column.data.feed = [];
+        columnState.clearFeed(column.id);
         column.data.cursor = undefined;
         unique = Symbol();
     }
