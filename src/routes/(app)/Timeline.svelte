@@ -317,6 +317,8 @@
     {handleLoadMore}
     {handleDividerClick}
     {handleDividerUp}
+    onScrollStateSave={(state) => { if (column.data) column.data.scrollState = state; }}
+    onScrollStateClear={() => { if (column.data) column.data.scrollState = null; if (column.data?._pendingScrollRestore) column.data._pendingScrollRestore = null; }}
     bind:this={virtualTimelineRef}
   />
 

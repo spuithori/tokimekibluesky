@@ -19,7 +19,9 @@
     unique,
     handleLoadMore,
     handleDividerClick,
-    handleDividerUp
+    handleDividerUp,
+    onScrollStateSave,
+    onScrollStateClear,
   }: {
     column: any;
     _agent: any;
@@ -28,6 +30,8 @@
     handleLoadMore: any;
     handleDividerClick: any;
     handleDividerUp: any;
+    onScrollStateSave?: (state: ScrollState) => void;
+    onScrollStateClear?: () => void;
   } = $props();
 
   const columnState = getColumnState(isJunk);
@@ -37,8 +41,7 @@
   let initialScrollState = $state<ScrollState | null>(
     column.data?.scrollState ?? column.data?._pendingScrollRestore ?? null
   );
-  if (column.data?.scrollState) column.data.scrollState = null;
-  if (column.data?._pendingScrollRestore) column.data._pendingScrollRestore = null;
+  if (column.data?.scrollState || column.data?._pendingScrollRestore) onScrollStateClear?.();
 
   let isLoading = $state(false);
   let isComplete = $state(false);
@@ -56,10 +59,10 @@
     if (scrollSaveTimer) return;
     scrollSaveTimer = setTimeout(() => {
       scrollSaveTimer = null;
-      if (virtualList && column.data) {
+      if (virtualList) {
         const state = virtualList.getScrollStateLightweight();
         if (state) {
-          column.data.scrollState = state;
+          onScrollStateSave?.(state);
         }
       }
     }, 300);
@@ -72,9 +75,7 @@
       isLoading = false;
       initialScrollState = null;
       lastUnique = unique;
-      if (column.data) {
-        column.data.scrollState = null;
-      }
+      onScrollStateClear?.();
       queueMicrotask(() => {
         if (columnState.getFeed(column.id).length === 0 && !isLoading && !isComplete) {
           triggerLoad();
@@ -155,10 +156,10 @@
       scrollSaveTimer = null;
     }
 
-    if (virtualList && column.data && !column.data.scrollState) {
+    if (virtualList && !column.data?.scrollState) {
       const state = virtualList.getScrollStateLightweight();
       if (state) {
-        column.data.scrollState = state;
+        onScrollStateSave?.(state);
       }
     }
   });
