@@ -31,6 +31,7 @@
     topMargin?: number;
     initialScrollState?: ScrollState | null;
     refreshToTop?: boolean;
+    estimateHeight?: (item: T) => number;
     onRangeChange?: (range: VisibleRange) => void;
     onScroll?: () => void;
     children: Snippet<[T, number]>;
@@ -44,6 +45,7 @@
     topMargin = 0,
     initialScrollState = null,
     refreshToTop = false,
+    estimateHeight,
     onRangeChange,
     onScroll,
     children
@@ -135,7 +137,7 @@
   function getItemHeight(index: number): number {
     if (index < 0 || index >= items.length) return getAverageHeight();
     const key = getKey(items[index], index);
-    return hm.get(key) ?? getAverageHeight();
+    return hm.get(key) ?? estimateHeight?.(items[index]) ?? getAverageHeight();
   }
 
   function applyPendingHeights(): void {
@@ -156,7 +158,10 @@
 
     applyPendingHeights();
     const avg = getAverageHeight();
-    tree.buildWithCallback(len, (i) => hm.get(getKey(items[i], i)) ?? avg);
+    tree.buildWithCallback(len, (i) => {
+      const key = getKey(items[i], i);
+      return hm.get(key) ?? estimateHeight?.(items[i]) ?? avg;
+    });
   }
 
   function recalculatePositionsFrom(startIndex: number): void {
@@ -171,7 +176,7 @@
     const avg = getAverageHeight();
     for (let i = startIndex; i < len; i++) {
       const key = getKey(items[i], i);
-      const h = hm.get(key) ?? avg;
+      const h = hm.get(key) ?? estimateHeight?.(items[i]) ?? avg;
       tree.set(i, h);
     }
   }
@@ -182,7 +187,8 @@
     const avg = getAverageHeight();
     tree.extendWithCallback(len - startIndex, (i) => {
       const idx = startIndex + i;
-      return hm.get(getKey(items[idx], idx)) ?? avg;
+      const key = getKey(items[idx], idx);
+      return hm.get(key) ?? estimateHeight?.(items[idx]) ?? avg;
     });
   }
 
@@ -320,21 +326,41 @@
     let aboveDelta = 0;
 
     const rangeStart = Math.max(0, visibleStart - buffer);
-    const keyToIndex = getKeyToIndex();
 
-    for (const [key, newHeight] of hm.pending) {
-      const oldHeight = hm.get(key);
-      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
-      hm.set(key, newHeight);
+    if (hm.pending.size < 20) {
+      const rangeEnd = Math.min(items.length, visibleEnd + buffer);
+      for (const [key, newHeight] of hm.pending) {
+        const oldHeight = hm.get(key);
+        if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
+        hm.set(key, newHeight);
 
-      const idx = keyToIndex.get(key);
-      if (idx === undefined) continue;
-      if (idx >= rangeStart && idx < tree.length) {
+        let idx = -1;
+        for (let i = rangeStart; i < rangeEnd; i++) {
+          if (getKey(items[i], i) === key) { idx = i; break; }
+        }
+        if (idx < 0 || idx >= tree.length) continue;
         if (idx < visibleStart) {
           aboveDelta += newHeight - tree.get(idx);
         }
         tree.set(idx, newHeight);
         hasChanges = true;
+      }
+    } else {
+      const keyToIndex = getKeyToIndex();
+      for (const [key, newHeight] of hm.pending) {
+        const oldHeight = hm.get(key);
+        if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
+        hm.set(key, newHeight);
+
+        const idx = keyToIndex.get(key);
+        if (idx === undefined) continue;
+        if (idx >= rangeStart && idx < tree.length) {
+          if (idx < visibleStart) {
+            aboveDelta += newHeight - tree.get(idx);
+          }
+          tree.set(idx, newHeight);
+          hasChanges = true;
+        }
       }
     }
 
@@ -972,6 +998,11 @@
       totalHeight: effectiveTotalHeight,
       distanceFromBottom: effectiveTotalHeight - st - viewportHeight,
     };
+  }
+
+  export function getScrollInfoFast(): { distanceFromBottom: number } {
+    const st = getScrollTop();
+    return { distanceFromBottom: effectiveTotalHeight - st - viewportHeight };
   }
 
   export function getScrollStateLightweight(): ScrollState | null {

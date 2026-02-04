@@ -6,6 +6,7 @@
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
   import type {ScrollState} from "$lib/components/virtual/types";
+  import {estimateFeedItemHeight} from "$lib/components/virtual/height-estimator";
   import {resolveScrollContainer} from "$lib/components/virtual/scroll-helpers";
   import {isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -131,7 +132,7 @@
 
   function checkLoadMore() {
     if (!virtualList) return;
-    const info = virtualList.getScrollInfo();
+    const info = virtualList.getScrollInfoFast();
 
     if (info.distanceFromBottom >= 500) {
       if (isRetryLimit) {
@@ -185,6 +186,7 @@
     {topMargin}
     {initialScrollState}
     {refreshToTop}
+    estimateHeight={estimateFeedItemHeight}
     buffer={10}
     onScroll={handleVirtualScroll}
     onRangeChange={checkLoadMore}
