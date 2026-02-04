@@ -264,14 +264,23 @@
   }
 
   let _keyToIndexCache: Map<string, number> | null = null;
-  let _keyToIndexRef: any[] | null = null;
+  let _keyToIndexLen = -1;
+  let _keyToIndexFirstKey = '';
+  let _keyToIndexLastKey = '';
 
   function getKeyToIndex(): Map<string, number> {
-    if (_keyToIndexRef === items && _keyToIndexCache) return _keyToIndexCache;
+    const len = items.length;
+    if (len === 0) return _keyToIndexCache ?? new Map();
+    if (_keyToIndexCache && _keyToIndexLen === len
+        && _keyToIndexFirstKey === prevFirstKey && _keyToIndexLastKey === prevLastKey) {
+      return _keyToIndexCache;
+    }
     const map = new Map<string, number>();
-    for (let i = 0; i < items.length; i++) map.set(getKey(items[i], i), i);
+    for (let i = 0; i < len; i++) map.set(getKey(items[i], i), i);
     _keyToIndexCache = map;
-    _keyToIndexRef = items;
+    _keyToIndexLen = len;
+    _keyToIndexFirstKey = prevFirstKey;
+    _keyToIndexLastKey = prevLastKey;
     return map;
   }
 
@@ -388,7 +397,7 @@
   function scrollContainerAttach(element: HTMLElement) {
     resizeObserver = createResizeObserver();
 
-    lastValidScrollContainer = scrollContainer;
+    lastValidScrollContainer = scrollContainer ?? null;
     lastKnownScrollTop = getScrollTop();
 
     const scrollTarget = isWindowScroll ? window : scrollContainer!;
@@ -587,7 +596,8 @@
 
   function handleItemsInitial(): void {
     hm.clear();
-    recalculatePositions();
+    const avg = getAverageHeight();
+    tree.buildWithCallback(items.length, () => avg);
     if (!initialScrollState || hasRestoredScroll) {
       queueMicrotask(() => {
         invalidateLayout();
@@ -1107,15 +1117,6 @@
     {#if isVirtualizationEnabled}
       <div class="virtual-spacer" style:height="{bottomSpacerHeight}px" aria-hidden="true"></div>
     {/if}
-  </div>
-{:else}
-  <div class="virtual-list virtual-list--no-virtualization">
-    {#each items.slice(0, FALLBACK_RENDER_COUNT) as item, index (getKey(item, index))}
-      {@const key = getKey(item, index)}
-      <div class="virtual-item" {@attach itemAttach(key)}>
-        {@render children(item, index)}
-      </div>
-    {/each}
   </div>
 {/if}
 
