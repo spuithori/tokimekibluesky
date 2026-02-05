@@ -19,14 +19,16 @@ export class HeightManager {
   }
 
   set(key: string, height: number): void {
+    const roundedHeight = Math.round(height);
+    if (roundedHeight <= 0) return;
     const existing = this.heights.get(key);
     if (existing !== undefined) {
       this.totalMeasured -= existing;
     } else {
       this._measuredCount++;
     }
-    this.heights.set(key, height);
-    this.totalMeasured += height;
+    this.heights.set(key, roundedHeight);
+    this.totalMeasured += roundedHeight;
   }
 
   get(key: string): number | undefined {

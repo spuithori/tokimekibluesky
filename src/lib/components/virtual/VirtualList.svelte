@@ -20,6 +20,7 @@
     HEIGHT_APPLY_THRESHOLD,
     ANCHOR_TOLERANCE,
     DEFAULT_ITEM_HEIGHT,
+    MIN_ITEM_HEIGHT,
   } from './constants';
 
   let fallbackItemHeight = DEFAULT_ITEM_HEIGHT;
@@ -87,9 +88,12 @@
   let scrollVelocity = 0;
   let bufferBefore = buffer;
   let bufferAfter = buffer;
+  let isScrolling = $state(false);
+  let scrollEndTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   const MIN_DIRECTIONAL_BUFFER = 3;
   const SCROLL_STABLE_THRESHOLD = 100;
+  const SCROLL_END_DELAY = 150;
 
   function updateScrollVelocity(currentScrollTop: number): void {
     const now = performance.now();
@@ -213,13 +217,24 @@
   }
 
   function getAverageHeight(): number {
-    return hm.measuredCount > 0 ? hm.average : fallbackItemHeight;
+    if (hm.measuredCount > 0) {
+      return Math.max(MIN_ITEM_HEIGHT, hm.average);
+    }
+    return fallbackItemHeight;
+  }
+
+  function getHeightForItem(index: number): number {
+    const measured = hm.get(keys[index]);
+    if (measured !== undefined && measured >= MIN_ITEM_HEIGHT) return measured;
+    const estimated = estimateHeight?.(items[index]);
+    if (estimated !== undefined && estimated >= MIN_ITEM_HEIGHT) return estimated;
+    return getAverageHeight();
   }
 
   function getItemHeight(index: number): number {
     if (index < 0 || index >= items.length) return getAverageHeight();
     ensureKeys();
-    return hm.get(keys[index]) ?? estimateHeight?.(items[index]) ?? getAverageHeight();
+    return getHeightForItem(index);
   }
 
   function applyPendingHeights(): void {
@@ -240,10 +255,7 @@
 
     applyPendingHeights();
     ensureKeys();
-    const avg = getAverageHeight();
-    tree.buildWithCallback(len, (i) => {
-      return hm.get(keys[i]) ?? estimateHeight?.(items[i]) ?? avg;
-    });
+    tree.buildWithCallback(len, (i) => getHeightForItem(i));
   }
 
   function recalculatePositionsFrom(startIndex: number): void {
@@ -256,10 +268,8 @@
     }
 
     ensureKeys();
-    const avg = getAverageHeight();
     for (let i = startIndex; i < len; i++) {
-      const h = hm.get(keys[i]) ?? estimateHeight?.(items[i]) ?? avg;
-      tree.set(i, h);
+      tree.set(i, getHeightForItem(i));
     }
   }
 
@@ -267,10 +277,9 @@
     const len = items.length;
     if (len === 0 || startIndex >= len) return;
     ensureKeys();
-    const avg = getAverageHeight();
     tree.extendWithCallback(len - startIndex, (i) => {
       const idx = startIndex + i;
-      return hm.get(keys[idx]) ?? estimateHeight?.(items[idx]) ?? avg;
+      return getHeightForItem(idx);
     });
   }
 
@@ -339,6 +348,15 @@
       return;
     }
 
+    if (!isScrolling) isScrolling = true;
+    if (scrollEndTimeoutId !== null) {
+      clearTimeout(scrollEndTimeoutId);
+    }
+    scrollEndTimeoutId = setTimeout(() => {
+      scrollEndTimeoutId = null;
+      isScrolling = false;
+    }, SCROLL_END_DELAY);
+
     scrollRafId = requestAnimationFrame(() => {
       scrollRafId = null;
       _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
@@ -394,13 +412,13 @@
       const key = keys[i];
       if (hm.has(key) && i < tree.length) {
         const cached = hm.get(key)!;
-        if (Math.abs(tree.get(i) - cached) < HEIGHT_APPLY_THRESHOLD) continue;
+        if (tree.get(i) === cached) continue;
         tree.set(i, cached);
         continue;
       }
       const el = itemRefs.get(key);
       if (!el) continue;
-      const h = el.getBoundingClientRect().height;
+      const h = Math.round(el.getBoundingClientRect().height);
       if (h <= 0) continue;
       hm.set(key, h);
       if (i < tree.length) tree.set(i, h);
@@ -427,7 +445,7 @@
     const keyToIndex = getKeyToIndex();
     for (const [key, newHeight] of hm.pending) {
       const oldHeight = hm.get(key);
-      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
+      if (oldHeight === newHeight) continue;
       hm.set(key, newHeight);
 
       const idx = keyToIndex.get(key);
@@ -475,11 +493,12 @@
       const key = el.dataset.virtualKey;
       if (!key) continue;
 
-      const newHeight = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
-      if (newHeight <= 0) continue;
+      const rawHeight = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+      if (rawHeight <= 0) continue;
 
+      const newHeight = Math.round(rawHeight);
       const oldHeight = hm.get(key);
-      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_CHANGE_THRESHOLD) {
+      if (oldHeight !== undefined && oldHeight === newHeight) {
         continue;
       }
 
@@ -552,6 +571,7 @@
       if (scrollRafId !== null) cancelAnimationFrame(scrollRafId);
       if (correctionRafId !== null) cancelAnimationFrame(correctionRafId);
       if (heightUpdateRafId !== null) cancelAnimationFrame(heightUpdateRafId);
+      if (scrollEndTimeoutId !== null) clearTimeout(scrollEndTimeoutId);
       unregisterColumn(columnId);
       scrollTarget.removeEventListener('scroll', handleScroll);
       scrollTarget.removeEventListener('wheel', handleUserScroll);
@@ -877,15 +897,14 @@
     for (let i = start; i < end; i++) {
       const key = keys[i];
       const existing = hm.get(key);
-      if (existing !== undefined && i < tree.length
-          && Math.abs(tree.get(i) - existing) < HEIGHT_APPLY_THRESHOLD) {
+      if (existing !== undefined && i < tree.length && tree.get(i) === existing) {
         continue;
       }
       const el = itemRefs.get(key);
       if (!el) continue;
-      const h = el.getBoundingClientRect().height;
+      const h = Math.round(el.getBoundingClientRect().height);
       if (h <= 0) continue;
-      if (existing === undefined || Math.abs(existing - h) >= HEIGHT_APPLY_THRESHOLD) {
+      if (existing !== h) {
         hm.set(key, h);
       }
     }
@@ -905,7 +924,7 @@
       const keyToIndex = getKeyToIndex();
       for (const [key, newHeight] of hm.pending) {
         const oldHeight = hm.get(key);
-        if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
+        if (oldHeight === newHeight) continue;
         hm.set(key, newHeight);
         const idx = keyToIndex.get(key);
         if (idx !== undefined && idx < tree.length) {
@@ -925,15 +944,14 @@
     for (let i = start; i < end; i++) {
       const key = keys[i];
       const existing = hm.get(key);
-      if (existing !== undefined && i < tree.length
-          && Math.abs(tree.get(i) - existing) < HEIGHT_APPLY_THRESHOLD) {
+      if (existing !== undefined && i < tree.length && tree.get(i) === existing) {
         continue;
       }
       const el = itemRefs.get(key);
       if (!el) continue;
-      const h = el.getBoundingClientRect().height;
+      const h = Math.round(el.getBoundingClientRect().height);
       if (h <= 0) continue;
-      if (existing === undefined || Math.abs(existing - h) >= HEIGHT_APPLY_THRESHOLD) {
+      if (existing !== h) {
         hm.set(key, h);
         if (i < tree.length) {
           tree.set(i, h);
@@ -1241,6 +1259,7 @@
 {#if scrollContainer}
   <div class="virtual-list"
     class:virtual-list--restoring={initialScrollState && !hasRestoredScroll}
+    class:virtual-list--scrolling={isScrolling}
     style:height={isVirtualizationEnabled ? `${effectiveTotalHeight}px` : 'auto'}
     {@attach scrollContainerAttach}>
 
@@ -1248,7 +1267,7 @@
       {@const index = visibleRange.start + i}
       {@const key = keys[index] ?? getKey(item, index)}
       <div class="virtual-item"
-        style:transform={isVirtualizationEnabled ? `translate3d(0,${itemPositions[i] ?? 0}px,0)` : undefined}
+        style:transform={isVirtualizationEnabled ? `translateY(${itemPositions[i] ?? 0}px)` : undefined}
         {@attach itemAttach(key)}>
         {@render children(item, index)}
       </div>
@@ -1260,11 +1279,14 @@
   .virtual-list {
     position: relative;
     overflow-anchor: none;
-    isolation: isolate;
   }
 
   .virtual-list--restoring {
     opacity: 0;
+  }
+
+  .virtual-list--scrolling .virtual-item {
+    will-change: transform;
   }
 
   .virtual-item {
@@ -1272,11 +1294,6 @@
     top: 0;
     left: 0;
     width: 100%;
-    will-change: transform;
     contain: layout style paint;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
   }
 </style>

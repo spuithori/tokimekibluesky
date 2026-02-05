@@ -178,7 +178,7 @@ export function estimateFeedItemHeight(item: any): number {
   const stats = categoryStats.get(category);
 
   if (stats && stats.count >= LEARNING_THRESHOLD) {
-    return stats.total / stats.count;
+    return Math.round(stats.total / stats.count);
   }
 
   return staticEstimate(item);

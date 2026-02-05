@@ -12,3 +12,4 @@ export const HEIGHT_CHANGE_THRESHOLD = 2;
 export const HEIGHT_APPLY_THRESHOLD = 1;
 export const ANCHOR_TOLERANCE = 2;
 export const DEFAULT_ITEM_HEIGHT = 100;
+export const MIN_ITEM_HEIGHT = 20;
