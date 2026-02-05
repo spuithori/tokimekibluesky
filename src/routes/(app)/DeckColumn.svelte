@@ -411,6 +411,7 @@
             min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
+            overflow-anchor: none;
 
             @supports (-moz-appearance: none) {
                 scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
