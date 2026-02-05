@@ -183,6 +183,7 @@
   let visibleItems = $derived(items.slice(visibleRange.start, visibleRange.end));
 
   let effectiveTotalHeight = $state(0);
+  let virtualOffset = $state(0);
   let itemPositions: number[] = $state([]);
 
   function invalidateLayout(): void {
@@ -197,14 +198,9 @@
     }
 
     const pos = new Array<number>(count);
-    let p = tree.prefixSum(start);
-    pos[0] = Math.round(p);
-
-    for (let i = 1; i < count; i++) {
-      p += tree.get(start + i - 1);
-      pos[i] = Math.round(p);
+    for (let i = 0; i < count; i++) {
+      pos[i] = Math.round(tree.prefixSum(start + i) - virtualOffset);
     }
-
     itemPositions = pos;
   }
 
@@ -432,41 +428,56 @@
       return;
     }
 
-    let hasChanges = false;
-    let aboveDelta = 0;
-
     const rangeStart = Math.max(0, visibleStart - buffer);
+    const scrollTop = getScrollTop();
 
+    const pendingEntries: Array<{ key: string; idx: number; newHeight: number; itemBottom: number }> = [];
     const keyToIndex = getKeyToIndex();
+
     for (const [key, newHeight] of hm.pending) {
       const oldHeight = hm.get(key);
       if (oldHeight === newHeight) continue;
-      hm.set(key, newHeight);
 
       const idx = keyToIndex.get(key);
       if (idx === undefined || idx >= tree.length) continue;
-      if (idx < visibleStart) {
-        aboveDelta += newHeight - tree.get(idx);
-      }
-      tree.set(idx, newHeight);
-      hasChanges = true;
+
+      const itemBottom = tree.prefixSum(idx + 1);
+      pendingEntries.push({ key, idx, newHeight, itemBottom });
     }
 
     hm.pending.clear();
     cancelHeightUpdateRaf();
 
-    if (hasChanges) {
-      if (aboveDelta !== 0 && !isNavigating) {
-        const currentSt = getScrollTop();
-        if (currentSt > 0) {
-          setScrollTop(currentSt + aboveDelta);
-        }
+    if (pendingEntries.length === 0) return;
+
+    let aboveDelta = 0;
+    let hasChanges = false;
+
+    for (const { key, idx, newHeight, itemBottom } of pendingEntries) {
+      hm.set(key, newHeight);
+      const oldTreeHeight = tree.get(idx);
+      const delta = newHeight - oldTreeHeight;
+
+      if (itemBottom <= scrollTop + 1) {
+        aboveDelta += delta;
       }
-      recalculatePositionsFrom(rangeStart);
-      invalidateLayout();
-      updateVisibleRange();
-      onScroll?.();
+
+      tree.set(idx, newHeight);
+      hasChanges = true;
     }
+
+    if (!hasChanges) return;
+
+    if (aboveDelta !== 0 && !isNavigating) {
+      const currentSt = getScrollTop();
+      if (currentSt > 0) {
+        setScrollTop(currentSt + aboveDelta);
+      }
+    }
+    recalculatePositionsFrom(rangeStart);
+    invalidateLayout();
+    updateVisibleRange();
+    onScroll?.();
   }
 
   function scheduleHeightUpdate(): void {
@@ -721,6 +732,7 @@
     prevFirstKey = '';
     prevLastKey = '';
     minTotalHeight = 0;
+    virtualOffset = 0;
     hm.clear();
     keys = [];
     _keysItemsRef = null;
@@ -791,9 +803,11 @@
 
   function handlePrependSimple(shiftCount: number): void {
     recalculatePositions();
+    const scrollDelta = tree.prefixSum(shiftCount);
     visibleStart = Math.max(0, visibleStart + shiftCount);
     visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
     invalidateLayout();
+    setScrollTop(getScrollTop() + scrollDelta);
   }
 
   function handlePrependFullReset(): void {
