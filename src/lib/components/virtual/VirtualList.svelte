@@ -182,9 +182,6 @@
 
   let effectiveTotalHeight = $state(0);
   let itemPositions: number[] = $state([]);
-  let _positionsBuffer: number[] = [];
-  let _lastPosStart = -1;
-  let _lastPosEnd = -1;
 
   function invalidateLayout(): void {
     effectiveTotalHeight = Math.max(tree.total, minTotalHeight);
@@ -197,28 +194,15 @@
       return;
     }
 
-    if (_positionsBuffer.length < count) {
-      _positionsBuffer = new Array(Math.max(count, 32));
+    const pos = new Array<number>(count);
+    let p = tree.prefixSum(start);
+    pos[0] = Math.round(p);
+
+    for (let i = 1; i < count; i++) {
+      p += tree.get(start + i - 1);
+      pos[i] = Math.round(p);
     }
 
-    const canReuse = _lastPosStart >= 0 && _lastPosEnd > _lastPosStart;
-    const overlapStart = Math.max(start, _lastPosStart);
-    const overlapEnd = Math.min(end, _lastPosEnd);
-
-    if (canReuse && overlapStart < overlapEnd && start === _lastPosStart && end === _lastPosEnd) {
-      for (let i = 0; i < count; i++) {
-        _positionsBuffer[i] = Math.round(tree.prefixSum(start + i));
-      }
-    } else {
-      for (let i = 0; i < count; i++) {
-        _positionsBuffer[i] = Math.round(tree.prefixSum(start + i));
-      }
-    }
-
-    _lastPosStart = start;
-    _lastPosEnd = end;
-
-    const pos = _positionsBuffer.slice(0, count);
     itemPositions = pos;
   }
 
@@ -313,8 +297,8 @@
     return Math.min(items.length, tree.findIndex(scrollBottom) + 1);
   }
 
-  function updateVisibleRange(): void {
-    if (isNavigating || !scrollContainer || items.length === 0) return;
+  function updateVisibleRange(): boolean {
+    if (isNavigating || !scrollContainer || items.length === 0) return false;
 
     const scrollTop = getScrollTop();
 
@@ -338,7 +322,9 @@
       visibleStart = newStart;
       visibleEnd = newEnd;
       invalidateLayout();
+      return true;
     }
+    return false;
   }
 
   let scrollRafId: number | null = null;
@@ -358,8 +344,8 @@
       _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
       updateScrollVelocity(_cachedScrollTop);
       const buffersChanged = updateDirectionalBuffers();
-      updateVisibleRange();
-      if (buffersChanged) {
+      const rangeInvalidated = updateVisibleRange();
+      if (buffersChanged && !rangeInvalidated) {
         invalidateLayout();
       }
       onScroll?.();
@@ -482,6 +468,8 @@
   }
 
   function handleResizeEntries(entries: ResizeObserverEntry[]): void {
+    let keyToIndexMap: Map<string, number> | null = null;
+
     for (const entry of entries) {
       const el = entry.target as HTMLElement;
       const key = el.dataset.virtualKey;
@@ -498,8 +486,8 @@
       hm.pending.set(key, newHeight);
 
       if (recordHeight) {
-        const keyToIndex = getKeyToIndex();
-        const idx = keyToIndex.get(key);
+        if (!keyToIndexMap) keyToIndexMap = getKeyToIndex();
+        const idx = keyToIndexMap.get(key);
         if (idx !== undefined) {
           recordHeight(items[idx], newHeight);
         }
@@ -1260,7 +1248,7 @@
       {@const index = visibleRange.start + i}
       {@const key = keys[index] ?? getKey(item, index)}
       <div class="virtual-item"
-        style:transform={isVirtualizationEnabled ? `translateY(${itemPositions[i] ?? 0}px)` : undefined}
+        style:transform={isVirtualizationEnabled ? `translate3d(0,${itemPositions[i] ?? 0}px,0)` : undefined}
         {@attach itemAttach(key)}>
         {@render children(item, index)}
       </div>
@@ -1272,6 +1260,7 @@
   .virtual-list {
     position: relative;
     overflow-anchor: none;
+    isolation: isolate;
   }
 
   .virtual-list--restoring {

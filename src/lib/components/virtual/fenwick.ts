@@ -3,12 +3,14 @@ export class FenwickTree {
   private _data: Float64Array;
   private _size: number;
   private _capacity: number;
+  private _totalCache: number;
 
   constructor() {
     this._tree = new Float64Array(0);
     this._data = new Float64Array(0);
     this._size = 0;
     this._capacity = 0;
+    this._totalCache = 0;
   }
 
   get length(): number {
@@ -16,7 +18,7 @@ export class FenwickTree {
   }
 
   get total(): number {
-    return this.prefixSum(this._size);
+    return this._totalCache;
   }
 
   buildFrom(heights: number[]): void {
@@ -30,6 +32,7 @@ export class FenwickTree {
       this._tree = new Float64Array(0);
       this._data = new Float64Array(0);
       this._capacity = 0;
+      this._totalCache = 0;
       return;
     }
 
@@ -42,11 +45,13 @@ export class FenwickTree {
       this._tree.fill(0, 0, this._capacity + 1);
     }
 
+    let totalSum = 0;
     for (let i = 0; i < n; i++) {
       const i1 = i + 1;
       const h = getHeight(i);
       this._data[i1] = h;
       this._tree[i1] = h;
+      totalSum += h;
     }
 
     for (let i = 1; i <= n; i++) {
@@ -55,6 +60,8 @@ export class FenwickTree {
         this._tree[parent] += this._tree[i];
       }
     }
+
+    this._totalCache = totalSum;
   }
 
   prefixSum(count: number): number {
@@ -77,6 +84,7 @@ export class FenwickTree {
     const delta = height - this._data[i1];
     if (delta === 0) return;
     this._data[i1] = height;
+    this._totalCache += delta;
 
     let k = i1;
     while (k <= this._size) {
@@ -122,6 +130,7 @@ export class FenwickTree {
 
     const oldSize = this._size;
     const newSize = oldSize + count;
+    let addedSum = 0;
 
     if (newSize > this._capacity) {
       const newCap = Math.max(this._capacity * 2, newSize, 64);
@@ -132,7 +141,9 @@ export class FenwickTree {
       this._capacity = newCap;
 
       for (let i = 0; i < count; i++) {
-        this._data[oldSize + i + 1] = getHeight(i);
+        const h = getHeight(i);
+        this._data[oldSize + i + 1] = h;
+        addedSum += h;
       }
       this._size = newSize;
 
@@ -143,7 +154,9 @@ export class FenwickTree {
       }
     } else {
       for (let i = 0; i < count; i++) {
-        this._data[oldSize + i + 1] = getHeight(i);
+        const h = getHeight(i);
+        this._data[oldSize + i + 1] = h;
+        addedSum += h;
       }
       this._size = newSize;
 
@@ -158,6 +171,8 @@ export class FenwickTree {
         }
       }
     }
+
+    this._totalCache += addedSum;
   }
 
   clear(): void {
@@ -167,5 +182,20 @@ export class FenwickTree {
       this._capacity = 0;
     }
     this._size = 0;
+    this._totalCache = 0;
+  }
+
+  prefixSumRange(start: number, count: number, output: number[]): void {
+    if (count <= 0) return;
+    if (start < 0) start = 0;
+
+    let pos = this.prefixSum(start);
+    output[0] = pos;
+
+    const end = Math.min(start + count, this._size);
+    for (let i = start + 1; i < end; i++) {
+      pos += this._data[i];
+      output[i - start] = pos;
+    }
   }
 }
