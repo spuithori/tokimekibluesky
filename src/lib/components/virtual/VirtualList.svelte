@@ -16,8 +16,6 @@
     DRIFT_THRESHOLD_SCROLL,
     FALLBACK_RENDER_COUNT,
     SCROLLTO_EXTRA_BUFFER,
-    HEIGHT_CHANGE_THRESHOLD,
-    HEIGHT_APPLY_THRESHOLD,
     ANCHOR_TOLERANCE,
     DEFAULT_ITEM_HEIGHT,
     MIN_ITEM_HEIGHT,
@@ -240,10 +238,7 @@
   function applyPendingHeights(): void {
     if (hm.pending.size === 0) return;
     hm.applyPending();
-    if (heightUpdateRafId !== null) {
-      cancelAnimationFrame(heightUpdateRafId);
-      heightUpdateRafId = null;
-    }
+    cancelHeightUpdateRaf();
   }
 
   function recalculatePositions(): void {
@@ -458,10 +453,7 @@
     }
 
     hm.pending.clear();
-    if (heightUpdateRafId !== null) {
-      cancelAnimationFrame(heightUpdateRafId);
-      heightUpdateRafId = null;
-    }
+    cancelHeightUpdateRaf();
 
     if (hasChanges) {
       if (aboveDelta !== 0 && !isNavigating) {
@@ -890,10 +882,11 @@
     }
   });
 
-  function measureRenderedItems(): void {
+  function measureItemsInRange(updateTree: boolean): void {
     ensureKeys();
     const start = Math.max(0, visibleStart - buffer);
     const end = Math.min(items.length, visibleEnd + buffer);
+
     for (let i = start; i < end; i++) {
       const key = keys[i];
       const existing = hm.get(key);
@@ -903,65 +896,54 @@
       const el = itemRefs.get(key);
       if (!el) continue;
       const h = Math.round(el.getBoundingClientRect().height);
-      if (h <= 0) continue;
-      if (existing !== h) {
-        hm.set(key, h);
+      if (h <= 0 || existing === h) continue;
+      hm.set(key, h);
+      if (updateTree && i < tree.length) {
+        tree.set(i, h);
       }
+    }
+  }
+
+  function applyPendingToTree(): void {
+    if (hm.pending.size === 0) return;
+    const map = getKeyToIndex();
+    for (const [key, newHeight] of hm.pending) {
+      const oldHeight = hm.get(key);
+      if (oldHeight === newHeight) continue;
+      hm.set(key, newHeight);
+      const idx = map.get(key);
+      if (idx !== undefined && idx < tree.length) {
+        tree.set(idx, newHeight);
+      }
+    }
+    hm.pending.clear();
+    cancelHeightUpdateRaf();
+  }
+
+  function cancelHeightUpdateRaf(): void {
+    if (heightUpdateRafId !== null) {
+      cancelAnimationFrame(heightUpdateRafId);
+      heightUpdateRafId = null;
+    }
+  }
+
+  function clampMinTotalHeight(): void {
+    if (minTotalHeight > tree.total) {
+      minTotalHeight = tree.total;
     }
   }
 
   function measureAndRecalculate(): void {
-    measureRenderedItems();
+    measureItemsInRange(false);
     recalculatePositions();
-    if (minTotalHeight > tree.total) {
-      minTotalHeight = tree.total;
-    }
+    clampMinTotalHeight();
     invalidateLayout();
   }
 
   function measureAndRecalculateIncremental(): void {
-    if (hm.pending.size > 0) {
-      const keyToIndex = getKeyToIndex();
-      for (const [key, newHeight] of hm.pending) {
-        const oldHeight = hm.get(key);
-        if (oldHeight === newHeight) continue;
-        hm.set(key, newHeight);
-        const idx = keyToIndex.get(key);
-        if (idx !== undefined && idx < tree.length) {
-          tree.set(idx, newHeight);
-        }
-      }
-      hm.pending.clear();
-      if (heightUpdateRafId !== null) {
-        cancelAnimationFrame(heightUpdateRafId);
-        heightUpdateRafId = null;
-      }
-    }
-
-    ensureKeys();
-    const start = Math.max(0, visibleStart - buffer);
-    const end = Math.min(items.length, visibleEnd + buffer);
-    for (let i = start; i < end; i++) {
-      const key = keys[i];
-      const existing = hm.get(key);
-      if (existing !== undefined && i < tree.length && tree.get(i) === existing) {
-        continue;
-      }
-      const el = itemRefs.get(key);
-      if (!el) continue;
-      const h = Math.round(el.getBoundingClientRect().height);
-      if (h <= 0) continue;
-      if (existing !== h) {
-        hm.set(key, h);
-        if (i < tree.length) {
-          tree.set(i, h);
-        }
-      }
-    }
-
-    if (minTotalHeight > tree.total) {
-      minTotalHeight = tree.total;
-    }
+    applyPendingToTree();
+    measureItemsInRange(true);
+    clampMinTotalHeight();
     invalidateLayout();
   }
 
@@ -1224,8 +1206,6 @@
     if (index < 0 || index >= items.length) return 0;
     return tree.prefixSum(index);
   }
-
-
 
   export function getTreeDiagnostics(): {
     total: number;
