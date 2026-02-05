@@ -675,6 +675,7 @@
         flex-shrink: 0;
         position: relative;
         overflow-y: scroll;
+        overflow-anchor: none;
         height: 100%;
         outline: none;
 
@@ -1105,6 +1106,7 @@
         position: relative;
         overflow-y: auto;
         overflow-x: hidden;
+        overflow-anchor: none;
         min-height: 0;
 
         @supports (-moz-appearance: none) {

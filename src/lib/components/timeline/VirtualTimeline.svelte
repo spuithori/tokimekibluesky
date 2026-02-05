@@ -6,7 +6,7 @@
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
   import type {ScrollState} from "$lib/components/virtual/types";
-  import {estimateFeedItemHeight} from "$lib/components/virtual/height-estimator";
+  import {estimateFeedItemHeight, recordMeasuredHeight} from "$lib/components/virtual/height-estimator";
   import {resolveScrollContainer} from "$lib/components/virtual/scroll-helpers";
   import {isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -53,6 +53,19 @@
   let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
   let topMargin = $derived((isSingleColumnMode || isJunk) ? 52 : 0);
   let refreshToTop = $derived(!!column.settings?.refreshToTop);
+  let isColumnOffscreen = $state(false);
+  let intersectionObserver: IntersectionObserver | null = null;
+
+  function setupIntersectionObserver(el: HTMLElement) {
+    if (isSingleColumnMode || isJunk) return;
+    intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        isColumnOffscreen = !entry.isIntersecting;
+      },
+      { threshold: 0 }
+    );
+    intersectionObserver.observe(el);
+  }
 
   let scrollSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -151,6 +164,16 @@
     }
   });
 
+  $effect(() => {
+    if (parent && !isSingleColumnMode && !isJunk) {
+      setupIntersectionObserver(parent);
+    }
+    return () => {
+      intersectionObserver?.disconnect();
+      intersectionObserver = null;
+    };
+  });
+
   onDestroy(() => {
     if (scrollSaveTimer) {
       clearTimeout(scrollSaveTimer);
@@ -186,7 +209,9 @@
     {topMargin}
     {initialScrollState}
     {refreshToTop}
+    isOffscreen={isColumnOffscreen}
     estimateHeight={estimateFeedItemHeight}
+    recordHeight={recordMeasuredHeight}
     buffer={10}
     onScroll={handleVirtualScroll}
     onRangeChange={checkLoadMore}

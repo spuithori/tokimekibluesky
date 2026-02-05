@@ -129,11 +129,13 @@
       },
 
       getDiagnostics() {
+        const firstItem = document.querySelector('.virtual-item') as HTMLElement | null;
+        const firstItemTransform = firstItem
+          ? parseFloat(firstItem.style.transform?.match(/translateY\((-?\d+(?:\.\d+)?)px\)/)?.[1] ?? '0')
+          : 0;
         return {
           itemCount: items.length,
-          topSpacerHeight: document.querySelector('.virtual-spacer')
-            ? (document.querySelector('.virtual-spacer') as HTMLElement).offsetHeight
-            : -1,
+          topSpacerHeight: firstItemTransform,
           renderedItemCount: document.querySelectorAll('.virtual-item').length,
           firstRenderedId: document.querySelector('.virtual-item [data-testid]')
             ?.getAttribute('data-testid') ?? null,

@@ -136,5 +136,6 @@
         justify-content: center;
         align-items: center;
         height: 56px;
+        overflow-anchor: none;
     }
 </style>

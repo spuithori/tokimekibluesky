@@ -97,9 +97,7 @@ export class FenwickTree {
     let idx = 0;
     let remaining = target;
 
-    let bit = 1;
-    while (bit <= this._size) bit <<= 1;
-    bit >>= 1;
+    let bit = 1 << (31 - Math.clz32(this._size));
 
     while (bit > 0) {
       const next = idx + bit;
@@ -163,9 +161,11 @@ export class FenwickTree {
   }
 
   clear(): void {
-    this._tree = new Float64Array(0);
-    this._data = new Float64Array(0);
+    if (this._capacity > 1024) {
+      this._tree = new Float64Array(0);
+      this._data = new Float64Array(0);
+      this._capacity = 0;
+    }
     this._size = 0;
-    this._capacity = 0;
   }
 }
