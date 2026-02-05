@@ -84,11 +84,12 @@
   let lastUserScrollTime = 0;
   let _lastScrollTop = 0;
   let _lastScrollTime = 0;
-  let scrollVelocity = 0; // px/ms, positive = scrolling down
+  let scrollVelocity = 0;
   let bufferBefore = buffer;
   let bufferAfter = buffer;
 
   const MIN_DIRECTIONAL_BUFFER = 3;
+  const SCROLL_STABLE_THRESHOLD = 100;
 
   function updateScrollVelocity(currentScrollTop: number): void {
     const now = performance.now();
@@ -112,11 +113,9 @@
       newBefore = buffer;
       newAfter = buffer;
     } else if (scrollVelocity > 0) {
-      // Scrolling down - more buffer after
       newAfter = Math.min(totalBuffer - MIN_DIRECTIONAL_BUFFER, Math.round(totalBuffer * 0.7));
       newBefore = Math.max(MIN_DIRECTIONAL_BUFFER, totalBuffer - newAfter);
     } else {
-      // Scrolling up - more buffer before
       newBefore = Math.min(totalBuffer - MIN_DIRECTIONAL_BUFFER, Math.round(totalBuffer * 0.7));
       newAfter = Math.max(MIN_DIRECTIONAL_BUFFER, totalBuffer - newBefore);
     }
@@ -129,14 +128,19 @@
 
   let keys: string[] = [];
   let _keysItemsRef: any[] | null = null;
+  let keyToIndex: Map<string, number> = new Map();
 
   function rebuildKeys(): void {
     const len = items.length;
     if (keys.length < len) keys = new Array(len);
+    const newMap = new Map<string, number>();
     for (let i = 0; i < len; i++) {
-      keys[i] = getKey(items[i], i);
+      const k = getKey(items[i], i);
+      keys[i] = k;
+      newMap.set(k, i);
     }
     if (keys.length > len) keys.length = len;
+    keyToIndex = newMap;
     _keysItemsRef = items;
   }
 
@@ -178,16 +182,43 @@
 
   let effectiveTotalHeight = $state(0);
   let itemPositions: number[] = $state([]);
+  let _positionsBuffer: number[] = [];
+  let _lastPosStart = -1;
+  let _lastPosEnd = -1;
 
   function invalidateLayout(): void {
     effectiveTotalHeight = Math.max(tree.total, minTotalHeight);
     const start = visibleRange.start;
     const end = visibleRange.end;
     const count = end - start;
-    const pos = new Array(count);
-    for (let i = 0; i < count; i++) {
-      pos[i] = Math.round(tree.prefixSum(start + i));
+
+    if (count === 0) {
+      if (itemPositions.length !== 0) itemPositions = [];
+      return;
     }
+
+    if (_positionsBuffer.length < count) {
+      _positionsBuffer = new Array(Math.max(count, 32));
+    }
+
+    const canReuse = _lastPosStart >= 0 && _lastPosEnd > _lastPosStart;
+    const overlapStart = Math.max(start, _lastPosStart);
+    const overlapEnd = Math.min(end, _lastPosEnd);
+
+    if (canReuse && overlapStart < overlapEnd && start === _lastPosStart && end === _lastPosEnd) {
+      for (let i = 0; i < count; i++) {
+        _positionsBuffer[i] = Math.round(tree.prefixSum(start + i));
+      }
+    } else {
+      for (let i = 0; i < count; i++) {
+        _positionsBuffer[i] = Math.round(tree.prefixSum(start + i));
+      }
+    }
+
+    _lastPosStart = start;
+    _lastPosEnd = end;
+
+    const pos = _positionsBuffer.slice(0, count);
     itemPositions = pos;
   }
 
@@ -364,26 +395,9 @@
     });
   }
 
-  let _keyToIndexCache: Map<string, number> | null = null;
-  let _keyToIndexLen = -1;
-  let _keyToIndexFirstKey = '';
-  let _keyToIndexLastKey = '';
-
   function getKeyToIndex(): Map<string, number> {
-    const len = items.length;
-    if (len === 0) return _keyToIndexCache ?? new Map();
-    if (_keyToIndexCache && _keyToIndexLen === len
-        && _keyToIndexFirstKey === prevFirstKey && _keyToIndexLastKey === prevLastKey) {
-      return _keyToIndexCache;
-    }
     ensureKeys();
-    const map = new Map<string, number>();
-    for (let i = 0; i < len; i++) map.set(keys[i], i);
-    _keyToIndexCache = map;
-    _keyToIndexLen = len;
-    _keyToIndexFirstKey = prevFirstKey;
-    _keyToIndexLastKey = prevLastKey;
-    return map;
+    return keyToIndex;
   }
 
   function measureTransitioningItems(fromIdx: number, toIdx: number): void {
@@ -710,7 +724,7 @@
     hm.clear();
     keys = [];
     _keysItemsRef = null;
-    _keyToIndexCache = null;
+    keyToIndex.clear();
     invalidateLayout();
   }
 
@@ -1119,7 +1133,8 @@
     const offset = currentScrollTop - tree.prefixSum(index);
 
     let visualY: number | undefined;
-    if (container) {
+    const isScrollStable = Date.now() - lastUserScrollTime > SCROLL_STABLE_THRESHOLD;
+    if (container && isScrollStable) {
       const el = itemRefs.get(key);
       if (el) {
         const containerTop = getContainerTop();
@@ -1143,7 +1158,8 @@
     const heightsArray: [string, number][] = Array.from(hm.entries());
 
     let visualY: number | undefined;
-    if (container) {
+    const isScrollStable = Date.now() - lastUserScrollTime > SCROLL_STABLE_THRESHOLD;
+    if (container && isScrollStable) {
       const el = itemRefs.get(key);
       if (el) {
         const containerTop = getContainerTop();
@@ -1269,5 +1285,9 @@
     width: 100%;
     will-change: transform;
     contain: layout style paint;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 </style>
