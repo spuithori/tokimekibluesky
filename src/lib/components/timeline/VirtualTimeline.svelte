@@ -184,6 +184,10 @@
   export function scrollToIndex(index: number, options?: { align?: 'start' | 'center' | 'end'; offset?: number }): void {
     virtualList?.scrollToIndex(index, options);
   }
+
+  export function setScrollAnchor(key: string): void {
+    virtualList?.setScrollAnchor(key);
+  }
 </script>
 
 <div class="timeline timeline--default virtual-timeline" bind:this={parent}>

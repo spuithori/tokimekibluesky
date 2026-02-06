@@ -88,6 +88,8 @@
     oldVisibleEnd: number;
   } | null = null;
 
+  let pendingScrollAnchor: { key: string; visualY: number } | null = null;
+
   let isWindowScroll = $derived(
     typeof document !== 'undefined' &&
     (scrollContainer === document.documentElement || scrollContainer === document.body)
@@ -411,7 +413,6 @@
     }
 
     let hasChanges = false;
-    let aboveDelta = 0;
 
     const rangeStart = Math.max(0, visibleStart - buffer);
     const useLinear = hm.pending.size <= KEY_TO_INDEX_LINEAR_THRESHOLD;
@@ -424,9 +425,6 @@
       const idx = useLinear ? findIndexForKey(key) : getKeyToIndex().get(key);
       if (idx === undefined) continue;
       if (idx >= rangeStart && idx < tree.length) {
-        if (idx < visibleStart) {
-          aboveDelta += newHeight - tree.get(idx);
-        }
         tree.set(idx, newHeight);
         hasChanges = true;
       }
@@ -435,12 +433,6 @@
     hm.pending.clear();
 
     if (hasChanges) {
-      if (aboveDelta !== 0 && !isNavigating && isWindowScroll) {
-        const currentSt = getScrollTop();
-        if (currentSt > 0) {
-          setScrollTop(currentSt + aboveDelta);
-        }
-      }
       recalculatePositionsFrom(rangeStart);
       invalidateLayout();
       frameDirty |= DIRTY_SCROLL;
@@ -448,6 +440,32 @@
   }
 
   let resizeOwner: object | null = null;
+
+  function correctScrollForPending(): void {
+    if (isNavigating || hm.pending.size === 0 || !scrollContainer) return;
+
+    let aboveDelta = 0;
+    const useLinear = hm.pending.size <= KEY_TO_INDEX_LINEAR_THRESHOLD;
+
+    for (const [key, newHeight] of hm.pending) {
+      const oldHeight = hm.get(key);
+      if (oldHeight === undefined) continue;
+      if (Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
+
+      const idx = useLinear ? findIndexForKey(key) : getKeyToIndex().get(key);
+      if (idx === undefined) continue;
+      if (idx < visibleStart) {
+        aboveDelta += newHeight - (idx < tree.length ? tree.get(idx) : oldHeight);
+      }
+    }
+
+    if (aboveDelta !== 0) {
+      const currentSt = getScrollTop();
+      if (currentSt > 0) {
+        setScrollTop(currentSt + aboveDelta);
+      }
+    }
+  }
 
   function handleItemResizeBatch(entries: ResizeObserverEntry[]): void {
     for (const entry of entries) {
@@ -469,6 +487,7 @@
     }
 
     if (hm.pending.size > 0) {
+      correctScrollForPending();
       scheduleFrame(DIRTY_HEIGHTS);
     }
   }
@@ -707,7 +726,44 @@
   }
 
   function handleItemsGenericChange(): void {
+    const anchor = pendingScrollAnchor;
+    pendingScrollAnchor = null;
+
     recalculatePositions();
+
+    if (anchor) {
+      const anchorIdx = getKeyToIndex().get(anchor.key);
+      if (anchorIdx !== undefined) {
+        visibleStart = Math.max(0, Math.min(visibleStart, anchorIdx - buffer));
+        visibleEnd = Math.min(items.length, Math.max(visibleEnd, anchorIdx + buffer));
+        invalidateLayout();
+
+        tick().then(() => {
+          const el = itemRefs.get(anchor.key);
+          if (!el) return;
+          const currentVisualY = el.getBoundingClientRect().top - getContainerTop();
+          const drift = currentVisualY - anchor.visualY;
+          if (Math.abs(drift) > DRIFT_THRESHOLD_POSITION) {
+            setScrollTop(getScrollTop() + drift);
+          }
+          startCorrection(
+            () => {
+              const e = itemRefs.get(anchor.key);
+              if (!e) return null;
+              return e.getBoundingClientRect().top - getContainerTop() - anchor.visualY;
+            },
+            {
+              threshold: DRIFT_THRESHOLD_POSITION,
+              maxPasses: CORRECTION_MAX_PASSES,
+              measure: 'full',
+              navigating: false,
+            },
+          );
+        });
+        return;
+      }
+    }
+
     queueMicrotask(() => {
       invalidateLayout();
       updateVisibleRange();
@@ -1129,6 +1185,15 @@
     invalidateLayout();
   }
 
+  export function setScrollAnchor(key: string): void {
+    const el = itemRefs.get(key);
+    if (!el || !scrollContainer) return;
+    pendingScrollAnchor = {
+      key,
+      visualY: el.getBoundingClientRect().top - getContainerTop(),
+    };
+  }
+
   export function getItemElement(index: number): HTMLElement | null {
     if (index < 0 || index >= items.length) return null;
     const key = getKey(items[index], index);
@@ -1164,6 +1229,7 @@
 <style>
   .virtual-list {
     position: relative;
+    overflow-anchor: none;
   }
 
   .virtual-list--restoring {

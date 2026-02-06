@@ -171,6 +171,15 @@
         return item;
       });
 
+      const useVirtualList = (column.style === 'default' || !column.style) && !isSingleColumnMode && !$settings.general?.useVirtual;
+      if (useVirtualList && virtualTimelineRef) {
+        const anchorItem = currentFeed[index + 1];
+        const anchorUri = anchorItem?.post?.uri || `index-${index + 1}`;
+        const anchorReasonIndexedAt = anchorItem?.reason?.indexedAt || '';
+        const anchorKey = `${anchorUri}|${anchorReasonIndexedAt}`;
+        virtualTimelineRef.setScrollAnchor(anchorKey);
+      }
+
       const newDividerIndex = index + feed.length;
       columnState.updateFeed(column.id, f => {
           f.splice(index + 1, 0, ...feed);
@@ -178,12 +187,7 @@
           f[newDividerIndex] = { ...f[newDividerIndex], isDivider: true };
       });
 
-      const useVirtualList = (column.style === 'default' || !column.style) && !isSingleColumnMode && !$settings.general?.useVirtual;
-      if (useVirtualList && virtualTimelineRef) {
-        tick().then(() => {
-          virtualTimelineRef?.scrollToIndex(newDividerIndex, { align: 'start', offset: 0 });
-        });
-      } else if (dividerEl) {
+      if (!useVirtualList && dividerEl) {
         const bottomEl = dividerEl.nextElementSibling as HTMLElement;
         if (bottomEl) {
           tick().then(() => {
