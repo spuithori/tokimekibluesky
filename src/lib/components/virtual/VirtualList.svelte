@@ -5,6 +5,7 @@
   import { FenwickTree } from './fenwick';
   import { HeightManager } from './height-manager';
   import { computeScrollTopPosition, findTargetIndex, getScrollTopFor, setScrollTopFor } from './scroll-helpers';
+  import { createResizeOwner, destroyResizeOwner, observeResize, unobserveResize } from './shared-resize-observer';
   import {
     PREPEND_SEARCH_LIMIT,
     SCROLL_VELOCITY_THRESHOLD_MS,
@@ -67,7 +68,7 @@
   let _cachedScrollTop = -1;
   let correctionRafId: number | null = null;
   let heightUpdateRafId: number | null = null;
-  let resizeObserver: ResizeObserver | null = null;
+  let observedElements = new Set<Element>();
   let prevItemCount = 0;
   let prevFirstKey = '';
   let prevLastKey = '';
@@ -76,6 +77,7 @@
   let lastKnownVisibleStart = 0;
   let lastUserScrollTime = 0;
   let quickPrependHandled = false;
+  let cachedPrependShift = 0;
   let pendingPrependAnchor: {
     scrollTop: number;
     anchorKey: string;
@@ -284,6 +286,21 @@
     return map;
   }
 
+  const KEY_TO_INDEX_LINEAR_THRESHOLD = 8;
+
+  function findIndexForKey(key: string): number | undefined {
+    if (_keyToIndexCache && _keyToIndexLen === items.length
+        && _keyToIndexFirstKey === prevFirstKey && _keyToIndexLastKey === prevLastKey) {
+      return _keyToIndexCache.get(key);
+    }
+    const rangeStart = Math.max(0, visibleStart - buffer);
+    const rangeEnd = Math.min(items.length, visibleEnd + buffer);
+    for (let i = rangeStart; i < rangeEnd; i++) {
+      if (getKey(items[i], i) === key) return i;
+    }
+    return undefined;
+  }
+
   function measureTransitioningItems(fromIdx: number, toIdx: number): void {
     const oldRangeEnd = visibleEnd + buffer;
     for (let i = fromIdx; i < Math.min(toIdx, oldRangeEnd); i++) {
@@ -320,14 +337,14 @@
     let aboveDelta = 0;
 
     const rangeStart = Math.max(0, visibleStart - buffer);
-    const keyToIndex = getKeyToIndex();
+    const useLinear = hm.pending.size <= KEY_TO_INDEX_LINEAR_THRESHOLD;
 
     for (const [key, newHeight] of hm.pending) {
       const oldHeight = hm.get(key);
       if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
       hm.set(key, newHeight);
 
-      const idx = keyToIndex.get(key);
+      const idx = useLinear ? findIndexForKey(key) : getKeyToIndex().get(key);
       if (idx === undefined) continue;
       if (idx >= rangeStart && idx < tree.length) {
         if (idx < visibleStart) {
@@ -366,28 +383,28 @@
     });
   }
 
-  function createResizeObserver(): ResizeObserver {
-    return new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const el = entry.target as HTMLElement;
-        const key = el.dataset.virtualKey;
-        if (!key) continue;
+  let resizeOwner: object | null = null;
 
-        const newHeight = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
-        if (newHeight <= 0) continue;
+  function handleItemResizeBatch(entries: ResizeObserverEntry[]): void {
+    for (const entry of entries) {
+      const el = entry.target as HTMLElement;
+      const key = el.dataset.virtualKey;
+      if (!key) continue;
 
-        const oldHeight = hm.get(key);
-        if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_CHANGE_THRESHOLD) {
-          continue;
-        }
+      const newHeight = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+      if (newHeight <= 0) continue;
 
-        hm.pending.set(key, newHeight);
+      const oldHeight = hm.get(key);
+      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_CHANGE_THRESHOLD) {
+        continue;
       }
 
-      if (hm.pending.size > 0) {
-        scheduleHeightUpdate();
-      }
-    });
+      hm.pending.set(key, newHeight);
+    }
+
+    if (hm.pending.size > 0) {
+      scheduleHeightUpdate();
+    }
   }
 
   function handleUserScroll() {
@@ -395,8 +412,7 @@
   }
 
   function scrollContainerAttach(element: HTMLElement) {
-    resizeObserver = createResizeObserver();
-
+    resizeOwner = createResizeOwner(handleItemResizeBatch);
     lastValidScrollContainer = scrollContainer ?? null;
     lastKnownScrollTop = getScrollTop();
 
@@ -443,7 +459,14 @@
       if (scrollRafId !== null) cancelAnimationFrame(scrollRafId);
       if (correctionRafId !== null) cancelAnimationFrame(correctionRafId);
       if (heightUpdateRafId !== null) cancelAnimationFrame(heightUpdateRafId);
-      resizeObserver?.disconnect();
+      for (const el of observedElements) {
+        unobserveResize(el);
+      }
+      observedElements.clear();
+      if (resizeOwner) {
+        destroyResizeOwner(resizeOwner);
+        resizeOwner = null;
+      }
       scrollTarget.removeEventListener('scroll', handleScroll);
       scrollTarget.removeEventListener('wheel', handleUserScroll);
       scrollTarget.removeEventListener('touchmove', handleUserScroll);
@@ -454,11 +477,15 @@
   function itemAttach(key: string) {
     return (element: HTMLElement) => {
       element.dataset.virtualKey = key;
-      resizeObserver?.observe(element);
+      if (resizeOwner) {
+        observeResize(element, resizeOwner);
+        observedElements.add(element);
+      }
       itemRefs.set(key, element);
 
       return () => {
-        resizeObserver?.unobserve(element);
+        unobserveResize(element);
+        observedElements.delete(element);
         itemRefs.delete(key);
       };
     };
@@ -508,10 +535,12 @@
     const len = items.length;
     void items;
 
+    cachedPrependShift = 0;
     if (len === 0 || prevItemCount === 0 || !scrollContainer) return;
 
     const firstKey = getKey(items[0], 0);
     const shiftCount = detectPrependShift(firstKey, prevFirstKey);
+    cachedPrependShift = shiftCount;
 
     if (shiftCount > 0) {
       if (refreshToTop && getScrollTop() <= topMargin) {
@@ -694,7 +723,7 @@
     }
 
     if (oldFirstKey && firstKey !== oldFirstKey) {
-      const shiftCount = detectPrependShift(firstKey, oldFirstKey);
+      const shiftCount = cachedPrependShift > 0 ? cachedPrependShift : detectPrependShift(firstKey, oldFirstKey);
       if (shiftCount > 0 && scrollContainer && pendingPrependAnchor) {
         handlePrependWithAnchor(shiftCount);
       } else if (shiftCount > 0) {
@@ -773,12 +802,12 @@
 
   function measureAndRecalculateIncremental(): void {
     if (hm.pending.size > 0) {
-      const keyToIndex = getKeyToIndex();
+      const useLinear = hm.pending.size <= KEY_TO_INDEX_LINEAR_THRESHOLD;
       for (const [key, newHeight] of hm.pending) {
         const oldHeight = hm.get(key);
         if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
         hm.set(key, newHeight);
-        const idx = keyToIndex.get(key);
+        const idx = useLinear ? findIndexForKey(key) : getKeyToIndex().get(key);
         if (idx !== undefined && idx < tree.length) {
           tree.set(idx, newHeight);
         }

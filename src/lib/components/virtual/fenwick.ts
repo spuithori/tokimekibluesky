@@ -3,12 +3,14 @@ export class FenwickTree {
   private _data: Float64Array;
   private _size: number;
   private _capacity: number;
+  private _total: number;
 
   constructor() {
     this._tree = new Float64Array(0);
     this._data = new Float64Array(0);
     this._size = 0;
     this._capacity = 0;
+    this._total = 0;
   }
 
   get length(): number {
@@ -16,7 +18,7 @@ export class FenwickTree {
   }
 
   get total(): number {
-    return this.prefixSum(this._size);
+    return this._total;
   }
 
   buildFrom(heights: number[]): void {
@@ -27,9 +29,7 @@ export class FenwickTree {
     this._size = n;
 
     if (n === 0) {
-      this._tree = new Float64Array(0);
-      this._data = new Float64Array(0);
-      this._capacity = 0;
+      this._total = 0;
       return;
     }
 
@@ -39,14 +39,16 @@ export class FenwickTree {
       this._tree = new Float64Array(newCap + 1);
       this._capacity = newCap;
     } else {
-      this._tree.fill(0, 0, this._capacity + 1);
+      this._tree.fill(0, 0, n + 1);
     }
 
+    let total = 0;
     for (let i = 0; i < n; i++) {
       const i1 = i + 1;
       const h = getHeight(i);
       this._data[i1] = h;
       this._tree[i1] = h;
+      total += h;
     }
 
     for (let i = 1; i <= n; i++) {
@@ -55,11 +57,13 @@ export class FenwickTree {
         this._tree[parent] += this._tree[i];
       }
     }
+
+    this._total = total;
   }
 
   prefixSum(count: number): number {
     if (count <= 0) return 0;
-    if (count > this._size) count = this._size;
+    if (count >= this._size) return this._total;
 
     let sum = 0;
     let i = count;
@@ -77,6 +81,7 @@ export class FenwickTree {
     const delta = height - this._data[i1];
     if (delta === 0) return;
     this._data[i1] = height;
+    this._total += delta;
 
     let k = i1;
     while (k <= this._size) {
@@ -128,44 +133,39 @@ export class FenwickTree {
     if (newSize > this._capacity) {
       const newCap = Math.max(this._capacity * 2, newSize, 64);
       const newData = new Float64Array(newCap + 1);
-      for (let i = 1; i <= oldSize; i++) newData[i] = this._data[i];
+      newData.set(this._data.subarray(0, oldSize + 1));
       this._data = newData;
-      this._tree = new Float64Array(newCap + 1);
+
+      const newTree = new Float64Array(newCap + 1);
+      newTree.set(this._tree.subarray(0, oldSize + 1));
+      this._tree = newTree;
       this._capacity = newCap;
+    }
 
-      for (let i = 0; i < count; i++) {
-        this._data[oldSize + i + 1] = getHeight(i);
-      }
-      this._size = newSize;
+    let addedTotal = 0;
+    for (let i = 0; i < count; i++) {
+      const h = getHeight(i);
+      this._data[oldSize + i + 1] = h;
+      addedTotal += h;
+    }
+    this._size = newSize;
 
-      for (let i = 1; i <= newSize; i++) this._tree[i] = this._data[i];
-      for (let i = 1; i <= newSize; i++) {
-        const p = i + (i & -i);
-        if (p <= newSize) this._tree[p] += this._tree[i];
-      }
-    } else {
-      for (let i = 0; i < count; i++) {
-        this._data[oldSize + i + 1] = getHeight(i);
-      }
-      this._size = newSize;
+    for (let j = oldSize + 1; j <= newSize; j++) {
+      this._tree[j] = this._data[j];
+    }
 
-      for (let j = oldSize + 1; j <= newSize; j++) {
-        this._tree[j] = this._data[j];
-      }
-
-      for (let i = 1; i <= newSize; i++) {
-        const parent = i + (i & -i);
-        if (parent > oldSize && parent <= newSize) {
-          this._tree[parent] += this._tree[i];
-        }
+    for (let i = 1; i <= newSize; i++) {
+      const parent = i + (i & -i);
+      if (parent > oldSize && parent <= newSize) {
+        this._tree[parent] += this._tree[i];
       }
     }
+
+    this._total += addedTotal;
   }
 
   clear(): void {
-    this._tree = new Float64Array(0);
-    this._data = new Float64Array(0);
     this._size = 0;
-    this._capacity = 0;
+    this._total = 0;
   }
 }
