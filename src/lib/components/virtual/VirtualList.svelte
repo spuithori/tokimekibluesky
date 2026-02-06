@@ -64,8 +64,11 @@
     ? initialScrollState.scrollTop + 1000
     : 0;
   let _cachedScrollTop = -1;
-  let correctionRafId: number | null = null;
-  let heightUpdateRafId: number | null = null;
+  let frameId: number | null = null;
+  let frameDirty = 0;
+  const DIRTY_SCROLL = 1;
+  const DIRTY_HEIGHTS = 2;
+  const DIRTY_CORRECTION = 4;
   let observedElements = new Set<Element>();
   let prevItemCount = 0;
   let prevFirstKey = '';
@@ -141,10 +144,7 @@
   function applyPendingHeights(): void {
     if (hm.pending.size === 0) return;
     hm.applyPending();
-    if (heightUpdateRafId !== null) {
-      cancelAnimationFrame(heightUpdateRafId);
-      heightUpdateRafId = null;
-    }
+    frameDirty &= ~DIRTY_HEIGHTS;
   }
 
   function recalculatePositions(): void {
@@ -192,6 +192,7 @@
   }
 
   function setScrollTop(value: number): void {
+    _cachedScrollTop = -1;
     setScrollTopFor(scrollContainer, isWindowScroll, value);
   }
 
@@ -214,10 +215,7 @@
 
     const scrollTop = getScrollTop();
 
-    const height = getViewportHeight();
-    if (height !== viewportHeight) viewportHeight = height;
-
-    const usableHeight = height - topMargin;
+    const usableHeight = viewportHeight - topMargin;
     const newStart = tree.findIndex(scrollTop);
     const newEnd = findEndIndex(scrollTop + usableHeight);
 
@@ -237,12 +235,93 @@
     }
   }
 
-  let scrollRafId: number | null = null;
+  function scheduleFrame(flag: number): void {
+    frameDirty |= flag;
+    if (frameId !== null) return;
+    frameId = requestAnimationFrame(processFrame);
+  }
 
-  function handleScroll(): void {
-    if (isNavigating || scrollRafId !== null) return;
-    scrollRafId = requestAnimationFrame(() => {
-      scrollRafId = null;
+  function cancelFrame(): void {
+    if (frameId !== null) {
+      cancelAnimationFrame(frameId);
+      frameId = null;
+    }
+    frameDirty = 0;
+  }
+
+  interface CorrectionState {
+    computeDrift: () => number | null;
+    threshold: number;
+    maxPasses: number;
+    measure: 'full' | 'incremental' | 'none';
+    navigating: boolean;
+    onStart?: () => void;
+    onFinish?: () => void;
+    pass: number;
+  }
+
+  let correctionState: CorrectionState | null = null;
+
+  function startCorrection(
+    computeDrift: () => number | null,
+    opts: { threshold: number; maxPasses: number; measure: 'full' | 'incremental' | 'none'; navigating: boolean; onStart?: () => void; onFinish?: () => void }
+  ): void {
+    correctionState = { computeDrift, ...opts, pass: 0 };
+    scheduleFrame(DIRTY_CORRECTION);
+  }
+
+  function processCorrectionPass(): void {
+    if (!correctionState) return;
+    if (!scrollContainer || correctionState.pass >= correctionState.maxPasses) {
+      const cs = correctionState;
+      correctionState = null;
+      cs.onFinish?.();
+      if (cs.navigating) finishNavigation();
+      return;
+    }
+
+    if (correctionState.pass === 0 && correctionState.onStart) {
+      correctionState.onStart();
+      correctionState.onStart = undefined;
+    }
+
+    if (correctionState.measure === 'full') measureAndRecalculate();
+    else if (correctionState.measure === 'incremental') measureAndRecalculateIncremental();
+
+    const drift = correctionState.computeDrift();
+    const currentScrollTop = getScrollTop();
+
+    if (drift === null || Math.abs(drift) <= correctionState.threshold) {
+      const cs = correctionState;
+      correctionState = null;
+      cs.onFinish?.();
+      if (cs.navigating) finishNavigation();
+      return;
+    }
+
+    setScrollTop(currentScrollTop + drift);
+    correctionState.pass++;
+    scheduleFrame(DIRTY_CORRECTION);
+  }
+
+  function processFrame(): void {
+    _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
+
+    // Phase 1: Height updates
+    if (frameDirty & DIRTY_HEIGHTS) {
+      frameDirty &= ~DIRTY_HEIGHTS;
+      flushHeightUpdates();
+    }
+
+    // Phase 2: Correction
+    if (frameDirty & DIRTY_CORRECTION) {
+      frameDirty &= ~DIRTY_CORRECTION;
+      processCorrectionPass();
+    }
+
+    // Phase 3: Scroll update
+    if ((frameDirty & DIRTY_SCROLL) && !isNavigating) {
+      frameDirty &= ~DIRTY_SCROLL;
       _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
       updateVisibleRange();
       onScroll?.();
@@ -251,16 +330,19 @@
         lastKnownScrollTop = _cachedScrollTop;
         lastKnownVisibleStart = visibleStart;
       }
-      _cachedScrollTop = -1;
-    });
+    }
+
+    _cachedScrollTop = -1;
+
+    frameId = null;
+    if (frameDirty !== 0) {
+      frameId = requestAnimationFrame(processFrame);
+    }
   }
 
-  function scheduleCorrectionRaf(callback: () => void): void {
-    if (correctionRafId !== null) cancelAnimationFrame(correctionRafId);
-    correctionRafId = requestAnimationFrame(() => {
-      correctionRafId = null;
-      callback();
-    });
+  function handleScroll(): void {
+    if (isNavigating) return;
+    scheduleFrame(DIRTY_SCROLL);
   }
 
   let _keyToIndexCache: Map<string, number> | null = null;
@@ -322,7 +404,7 @@
   function flushHeightUpdates(): void {
     if (isNavigating) {
       if (hm.pending.size > 0) {
-        scheduleHeightUpdate();
+        scheduleFrame(DIRTY_HEIGHTS);
       }
       return;
     }
@@ -354,10 +436,6 @@
     }
 
     hm.pending.clear();
-    if (heightUpdateRafId !== null) {
-      cancelAnimationFrame(heightUpdateRafId);
-      heightUpdateRafId = null;
-    }
 
     if (hasChanges) {
       if (aboveDelta !== 0 && !isNavigating && isWindowScroll) {
@@ -368,17 +446,8 @@
       }
       recalculatePositionsFrom(rangeStart);
       invalidateLayout();
-      updateVisibleRange();
-      onScroll?.();
+      frameDirty |= DIRTY_SCROLL;
     }
-  }
-
-  function scheduleHeightUpdate(): void {
-    if (heightUpdateRafId !== null) return;
-    heightUpdateRafId = requestAnimationFrame(() => {
-      heightUpdateRafId = null;
-      flushHeightUpdates();
-    });
   }
 
   let resizeOwner: object | null = null;
@@ -403,7 +472,7 @@
     }
 
     if (hm.pending.size > 0) {
-      scheduleHeightUpdate();
+      scheduleFrame(DIRTY_HEIGHTS);
     }
   }
 
@@ -456,9 +525,8 @@
     }
 
     return () => {
-      if (scrollRafId !== null) cancelAnimationFrame(scrollRafId);
-      if (correctionRafId !== null) cancelAnimationFrame(correctionRafId);
-      if (heightUpdateRafId !== null) cancelAnimationFrame(heightUpdateRafId);
+      cancelFrame();
+      correctionState = null;
       for (const el of observedElements) {
         unobserveResize(el);
       }
@@ -562,31 +630,31 @@
         quickPrependHandled = true;
 
         if (anchorKey) {
-          const correctQuickPrepend = (remaining: number) => {
-            scheduleCorrectionRaf(() => {
-              if (!scrollContainer || remaining <= 0) {
-                if (scrollContainer) scrollContainer.style.overflowAnchor = '';
-                return;
-              }
+          startCorrection(
+            () => {
               const el = itemRefs.get(anchorKey);
-              if (el) {
-                const cTop = getContainerTop();
-                const currentY = el.getBoundingClientRect().top - cTop;
-                const drift = currentY - anchorVisualY;
-                if (Math.abs(drift) > DRIFT_THRESHOLD_POSITION) {
-                  setScrollTop(getScrollTop() + drift);
-                  correctQuickPrepend(remaining - 1);
-                  return;
-                }
-              }
-              scrollContainer.style.overflowAnchor = '';
-            });
-          };
-          correctQuickPrepend(CORRECTION_MAX_PASSES);
+              if (!el) return null;
+              return el.getBoundingClientRect().top - getContainerTop() - anchorVisualY;
+            },
+            {
+              threshold: DRIFT_THRESHOLD_POSITION,
+              maxPasses: CORRECTION_MAX_PASSES,
+              measure: 'none',
+              navigating: false,
+              onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
+            },
+          );
         } else {
-          scheduleCorrectionRaf(() => {
-            if (scrollContainer) scrollContainer.style.overflowAnchor = '';
-          });
+          startCorrection(
+            () => null,
+            {
+              threshold: 0,
+              maxPasses: 1,
+              measure: 'none',
+              navigating: false,
+              onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
+            },
+          );
         }
       } else {
         const currentScrollTop = getScrollTop();
@@ -674,7 +742,7 @@
         setScrollTop(target);
       }
 
-      scheduleCorrectionRaf(() => runCorrectionLoop(
+      startCorrection(
         () => {
           const el = itemRefs.get(pp.anchorKey);
           if (!el) return null;
@@ -685,9 +753,10 @@
           threshold: DRIFT_THRESHOLD_POSITION,
           maxPasses: CORRECTION_MAX_PASSES,
           measure: 'full',
+          navigating: true,
           onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
-        }
-      ));
+        },
+      );
       queueMicrotask(() => pruneStaleHeights());
     });
   }
@@ -826,10 +895,7 @@
         }
       }
       hm.pending.clear();
-      if (heightUpdateRafId !== null) {
-        cancelAnimationFrame(heightUpdateRafId);
-        heightUpdateRafId = null;
-      }
+      frameDirty &= ~DIRTY_HEIGHTS;
     }
 
     const start = Math.max(0, visibleStart - buffer);
@@ -861,40 +927,11 @@
 
   function finishNavigation(): void {
     isNavigating = false;
-    updateVisibleRange();
-    if (scrollContainer) {
-      lastValidScrollContainer = scrollContainer;
-      lastKnownScrollTop = getScrollTop();
-      lastKnownVisibleStart = visibleStart;
-    }
-    onScroll?.();
+    frameDirty |= DIRTY_SCROLL;
   }
 
   function computeScrollTop(index: number, align: string, offset: number): number {
     return computeScrollTopPosition(tree, index, getItemHeight(index), viewportHeight, topMargin, align, offset);
-  }
-
-  function runCorrectionLoop(
-    computeDrift: () => number | null,
-    opts: { threshold: number; maxPasses: number; measure: 'full' | 'incremental'; onFinish?: () => void },
-    pass: number = 0
-  ): void {
-    if (!scrollContainer || pass >= opts.maxPasses) {
-      opts.onFinish?.();
-      finishNavigation();
-      return;
-    }
-    if (opts.measure === 'full') measureAndRecalculate();
-    else measureAndRecalculateIncremental();
-
-    const drift = computeDrift();
-    if (drift === null || Math.abs(drift) <= opts.threshold) {
-      opts.onFinish?.();
-      finishNavigation();
-      return;
-    }
-    setScrollTop(getScrollTop() + drift);
-    scheduleCorrectionRaf(() => runCorrectionLoop(computeDrift, opts, pass + 1));
   }
 
   export function scrollToIndex(index: number, options: ScrollToIndexOptions = {}): void {
@@ -911,13 +948,18 @@
 
     tick().then(() => {
       setScrollTop(Math.max(0, targetScrollTop));
-      scheduleCorrectionRaf(() => runCorrectionLoop(
+      startCorrection(
         () => {
           const corrected = Math.max(0, computeScrollTop(index, align, offset));
           return corrected - getScrollTop();
         },
-        { threshold: DRIFT_THRESHOLD_SCROLL, maxPasses: CORRECTION_MAX_PASSES, measure: 'full' }
-      ));
+        {
+          threshold: DRIFT_THRESHOLD_SCROLL,
+          maxPasses: CORRECTION_MAX_PASSES,
+          measure: 'full',
+          navigating: true,
+        },
+      );
     });
   }
 
@@ -1003,36 +1045,44 @@
       const targetVisualY = state.visualY ?? (topMargin - offset);
       setScrollTop(Math.max(0, targetScrollTop));
       tick().then(() => {
-        scheduleCorrectionRaf(() => {
-          const key = getKey(items[targetIdx], targetIdx);
-          let el = itemRefs.get(key);
-          if (!el) {
-            const fallbackOffset = targetVisualY - topMargin;
-            const corrected = Math.max(0, computeScrollTop(targetIdx, 'start', -fallbackOffset));
-            setScrollTop(corrected);
-          }
-          runCorrectionLoop(
-            () => {
-              const e = itemRefs.get(key);
-              if (!e) return null;
-              return e.getBoundingClientRect().top - getContainerTop() - targetVisualY;
+        const key = getKey(items[targetIdx], targetIdx);
+        startCorrection(
+          () => {
+            const e = itemRefs.get(key);
+            if (!e) return null;
+            return e.getBoundingClientRect().top - getContainerTop() - targetVisualY;
+          },
+          {
+            threshold: DRIFT_THRESHOLD_POSITION,
+            maxPasses: CORRECTION_MAX_PASSES,
+            measure: 'incremental',
+            navigating: true,
+            onStart: () => {
+              if (!itemRefs.get(key)) {
+                const fallbackOffset = targetVisualY - topMargin;
+                setScrollTop(Math.max(0, computeScrollTop(targetIdx, 'start', -fallbackOffset)));
+              }
             },
-            { threshold: DRIFT_THRESHOLD_POSITION, maxPasses: CORRECTION_MAX_PASSES, measure: 'incremental' }
-          );
-        });
+          },
+        );
       });
     } else {
       const position = tree.prefixSum(targetIdx);
       const targetScrollTop = position + offset;
       setScrollTop(Math.max(0, targetScrollTop));
       tick().then(() => {
-        scheduleCorrectionRaf(() => runCorrectionLoop(
+        startCorrection(
           () => {
             const corrected = Math.max(0, computeScrollTop(targetIdx, 'start', offset));
             return corrected - getScrollTop();
           },
-          { threshold: DRIFT_THRESHOLD_SCROLL, maxPasses: CORRECTION_MAX_PASSES, measure: 'full' }
-        ));
+          {
+            threshold: DRIFT_THRESHOLD_SCROLL,
+            maxPasses: CORRECTION_MAX_PASSES,
+            measure: 'full',
+            navigating: true,
+          },
+        );
       });
     }
   }
