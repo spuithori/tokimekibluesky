@@ -550,7 +550,7 @@
         visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
         invalidateLayout();
         quickPrependHandled = true;
-      } else if (Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS) {
+      } else if (Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS || isNavigating) {
         const anchor = captureAnchorItem(shiftCount);
         const anchorKey = anchor?.key ?? '';
         const anchorVisualY = anchor?.visualY ?? 0;
@@ -1129,6 +1129,10 @@
     const key = getKey(items[index], index);
     return itemRefs.get(key) ?? null;
   }
+
+  export function getHeightEntries(): [string, number][] {
+    return Array.from(hm.entries());
+  }
 </script>
 
 {#if scrollContainer}
@@ -1140,7 +1144,7 @@
     {#each visibleItems as item, i (getKey(item, visibleRange.start + i))}
       {@const index = visibleRange.start + i}
       {@const key = getKey(item, index)}
-      {@const useAutoCV = index < visibleStart || index >= visibleEnd ? !isNavigating : false}
+      {@const useAutoCV = index >= visibleEnd ? !isNavigating : false}
       <div class="virtual-item" style:content-visibility={useAutoCV ? "auto" : "visible"} style:contain-intrinsic-block-size={useAutoCV ? `auto ${getItemHeight(index)}px` : undefined} {@attach itemAttach(key)}>
         {@render children(item, index)}
       </div>

@@ -41,6 +41,9 @@
   let initialScrollState = $state<ScrollState | null>(
     column.data?.scrollState ?? column.data?._pendingScrollRestore ?? null
   );
+  if (initialScrollState && (!initialScrollState.heights || initialScrollState.heights.length === 0) && column.data?._heightCache?.length > 0) {
+    initialScrollState = { ...initialScrollState, heights: column.data._heightCache };
+  }
   if (column.data?.scrollState || column.data?._pendingScrollRestore) onScrollStateClear?.();
 
   let isLoading = $state(false);
@@ -156,10 +159,16 @@
       scrollSaveTimer = null;
     }
 
-    if (virtualList && !column.data?.scrollState) {
-      const state = virtualList.getScrollStateLightweight();
-      if (state) {
-        onScrollStateSave?.(state);
+    if (virtualList) {
+      if (column.data) {
+        column.data._heightCache = virtualList.getHeightEntries();
+      }
+
+      if (!column.data?.scrollState) {
+        const state = virtualList.getScrollStateLightweight();
+        if (state) {
+          onScrollStateSave?.(state);
+        }
       }
     }
   });
