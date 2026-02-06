@@ -307,19 +307,16 @@
   function processFrame(): void {
     _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
 
-    // Phase 1: Height updates
     if (frameDirty & DIRTY_HEIGHTS) {
       frameDirty &= ~DIRTY_HEIGHTS;
       flushHeightUpdates();
     }
 
-    // Phase 2: Correction
     if (frameDirty & DIRTY_CORRECTION) {
       frameDirty &= ~DIRTY_CORRECTION;
       processCorrectionPass();
     }
 
-    // Phase 3: Scroll update
     if ((frameDirty & DIRTY_SCROLL) && !isNavigating) {
       frameDirty &= ~DIRTY_SCROLL;
       _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
