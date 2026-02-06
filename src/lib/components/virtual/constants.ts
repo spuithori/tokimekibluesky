@@ -1,8 +1,6 @@
 export const PREPEND_SEARCH_LIMIT = 50;
 export const SCROLL_VELOCITY_THRESHOLD_MS = 150;
 export const CORRECTION_MAX_PASSES = 3;
-export const DRIFT_THRESHOLD_COARSE = 0.5;
-export const DRIFT_THRESHOLD_FINE = 0.1;
 export const DRIFT_THRESHOLD_POSITION = 1;
 export const DRIFT_THRESHOLD_SCROLL = 2;
 export const FALLBACK_RENDER_COUNT = 20;

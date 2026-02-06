@@ -10,8 +10,6 @@
     PREPEND_SEARCH_LIMIT,
     SCROLL_VELOCITY_THRESHOLD_MS,
     CORRECTION_MAX_PASSES,
-    DRIFT_THRESHOLD_COARSE,
-    DRIFT_THRESHOLD_FINE,
     DRIFT_THRESHOLD_POSITION,
     DRIFT_THRESHOLD_SCROLL,
     FALLBACK_RENDER_COUNT,
@@ -575,7 +573,7 @@
                 const cTop = getContainerTop();
                 const currentY = el.getBoundingClientRect().top - cTop;
                 const drift = currentY - anchorVisualY;
-                if (Math.abs(drift) > DRIFT_THRESHOLD_COARSE) {
+                if (Math.abs(drift) > DRIFT_THRESHOLD_POSITION) {
                   setScrollTop(getScrollTop() + drift);
                   correctQuickPrepend(remaining - 1);
                   return;
@@ -676,7 +674,20 @@
         setScrollTop(target);
       }
 
-      tick().then(() => correctPrependScroll(pp.anchorKey, pp.anchorVisualY, 0));
+      scheduleCorrectionRaf(() => runCorrectionLoop(
+        () => {
+          const el = itemRefs.get(pp.anchorKey);
+          if (!el) return null;
+          const cTop = getContainerTop();
+          return el.getBoundingClientRect().top - cTop - pp.anchorVisualY;
+        },
+        {
+          threshold: DRIFT_THRESHOLD_POSITION,
+          maxPasses: CORRECTION_MAX_PASSES,
+          measure: 'full',
+          onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
+        }
+      ));
       queueMicrotask(() => pruneStaleHeights());
     });
   }
@@ -863,108 +874,27 @@
     return computeScrollTopPosition(tree, index, getItemHeight(index), viewportHeight, topMargin, align, offset);
   }
 
-  function correctPrependScroll(anchorKey: string, targetVisualY: number, pass: number): void {
-    if (!scrollContainer || pass >= CORRECTION_MAX_PASSES) {
-      if (scrollContainer) scrollContainer.style.overflowAnchor = '';
+  function runCorrectionLoop(
+    computeDrift: () => number | null,
+    opts: { threshold: number; maxPasses: number; measure: 'full' | 'incremental'; onFinish?: () => void },
+    pass: number = 0
+  ): void {
+    if (!scrollContainer || pass >= opts.maxPasses) {
+      opts.onFinish?.();
       finishNavigation();
       return;
     }
+    if (opts.measure === 'full') measureAndRecalculate();
+    else measureAndRecalculateIncremental();
 
-    measureAndRecalculate();
-
-    tick().then(() => {
-      if (!scrollContainer) {
-        isNavigating = false;
-        return;
-      }
-
-      const anchorEl = itemRefs.get(anchorKey);
-      if (anchorEl) {
-        const cTop = getContainerTop();
-        const currentVisualY = anchorEl.getBoundingClientRect().top - cTop;
-        const drift = currentVisualY - targetVisualY;
-        if (Math.abs(drift) > DRIFT_THRESHOLD_COARSE) {
-          setScrollTop(getScrollTop() + drift);
-          correctPrependScroll(anchorKey, targetVisualY, pass + 1);
-          return;
-        }
-      }
-
-      scrollContainer.style.overflowAnchor = '';
-      finishNavigation();
-
-      const finalCorrect = (remaining: number) => {
-        scheduleCorrectionRaf(() => {
-          if (!scrollContainer || remaining <= 0) return;
-          const el = itemRefs.get(anchorKey);
-          if (el) {
-            const cTop = getContainerTop();
-            const visualY = el.getBoundingClientRect().top - cTop;
-            const drift = visualY - targetVisualY;
-            if (Math.abs(drift) > DRIFT_THRESHOLD_FINE) {
-              setScrollTop(getScrollTop() + drift);
-              finalCorrect(remaining - 1);
-              return;
-            }
-          }
-        });
-      };
-      finalCorrect(CORRECTION_MAX_PASSES);
-    });
-  }
-
-  function correctAndFinish(key: string, targetVisualY: number): void {
-    measureAndRecalculateIncremental();
-    const el = itemRefs.get(key);
-    if (el && scrollContainer) {
-      const containerTop = getContainerTop();
-      const drift = el.getBoundingClientRect().top - containerTop - targetVisualY;
-      if (Math.abs(drift) > DRIFT_THRESHOLD_POSITION) {
-        setScrollTop(Math.max(0, getScrollTop() + drift));
-      }
-    }
-    finishNavigation();
-  }
-
-  function correctLightweightScroll(index: number, targetVisualY: number): void {
-    const key = getKey(items[index], index);
-
-    measureAndRecalculateIncremental();
-
-    const el = itemRefs.get(key);
-    if (el && scrollContainer) {
-      const containerTop = getContainerTop();
-      const drift = el.getBoundingClientRect().top - containerTop - targetVisualY;
-      if (Math.abs(drift) > DRIFT_THRESHOLD_POSITION) {
-        setScrollTop(Math.max(0, getScrollTop() + drift));
-      }
-
-      scheduleCorrectionRaf(() => correctAndFinish(key, targetVisualY));
-    } else {
-      const fallbackOffset = targetVisualY - topMargin;
-      const corrected = Math.max(0, computeScrollTop(index, 'start', -fallbackOffset));
-      setScrollTop(corrected);
-      scheduleCorrectionRaf(() => correctAndFinish(key, targetVisualY));
-    }
-  }
-
-  function correctScrollPosition(index: number, align: string, offset: number, pass: number): void {
-    if (pass >= CORRECTION_MAX_PASSES) {
+    const drift = computeDrift();
+    if (drift === null || Math.abs(drift) <= opts.threshold) {
+      opts.onFinish?.();
       finishNavigation();
       return;
     }
-
-    measureAndRecalculate();
-
-    const corrected = Math.max(0, computeScrollTop(index, align, offset));
-    const current = getScrollTop();
-
-    if (Math.abs(current - corrected) > DRIFT_THRESHOLD_SCROLL) {
-      setScrollTop(corrected);
-      scheduleCorrectionRaf(() => correctScrollPosition(index, align, offset, pass + 1));
-    } else {
-      finishNavigation();
-    }
+    setScrollTop(getScrollTop() + drift);
+    scheduleCorrectionRaf(() => runCorrectionLoop(computeDrift, opts, pass + 1));
   }
 
   export function scrollToIndex(index: number, options: ScrollToIndexOptions = {}): void {
@@ -981,7 +911,13 @@
 
     tick().then(() => {
       setScrollTop(Math.max(0, targetScrollTop));
-      scheduleCorrectionRaf(() => correctScrollPosition(index, align, offset, 0));
+      scheduleCorrectionRaf(() => runCorrectionLoop(
+        () => {
+          const corrected = Math.max(0, computeScrollTop(index, align, offset));
+          return corrected - getScrollTop();
+        },
+        { threshold: DRIFT_THRESHOLD_SCROLL, maxPasses: CORRECTION_MAX_PASSES, measure: 'full' }
+      ));
     });
   }
 
@@ -1067,14 +1003,36 @@
       const targetVisualY = state.visualY ?? (topMargin - offset);
       setScrollTop(Math.max(0, targetScrollTop));
       tick().then(() => {
-        scheduleCorrectionRaf(() => correctLightweightScroll(targetIdx, targetVisualY));
+        scheduleCorrectionRaf(() => {
+          const key = getKey(items[targetIdx], targetIdx);
+          let el = itemRefs.get(key);
+          if (!el) {
+            const fallbackOffset = targetVisualY - topMargin;
+            const corrected = Math.max(0, computeScrollTop(targetIdx, 'start', -fallbackOffset));
+            setScrollTop(corrected);
+          }
+          runCorrectionLoop(
+            () => {
+              const e = itemRefs.get(key);
+              if (!e) return null;
+              return e.getBoundingClientRect().top - getContainerTop() - targetVisualY;
+            },
+            { threshold: DRIFT_THRESHOLD_POSITION, maxPasses: CORRECTION_MAX_PASSES, measure: 'incremental' }
+          );
+        });
       });
     } else {
       const position = tree.prefixSum(targetIdx);
       const targetScrollTop = position + offset;
       setScrollTop(Math.max(0, targetScrollTop));
       tick().then(() => {
-        scheduleCorrectionRaf(() => correctScrollPosition(targetIdx, 'start', offset, 0));
+        scheduleCorrectionRaf(() => runCorrectionLoop(
+          () => {
+            const corrected = Math.max(0, computeScrollTop(targetIdx, 'start', offset));
+            return corrected - getScrollTop();
+          },
+          { threshold: DRIFT_THRESHOLD_SCROLL, maxPasses: CORRECTION_MAX_PASSES, measure: 'full' }
+        ));
       });
     }
   }
