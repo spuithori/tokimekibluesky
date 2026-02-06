@@ -60,7 +60,7 @@
   let hm = new HeightManager();
 
   let itemRefs = new Map<string, HTMLElement>();
-  let isNavigating = false;
+  let isNavigating = $state(false);
   let hasRestoredScroll = $state(false);
   let minTotalHeight = initialScrollState?.scrollTop != null
     ? initialScrollState.scrollTop + 1000
@@ -390,6 +390,8 @@
       const el = entry.target as HTMLElement;
       const key = el.dataset.virtualKey;
       if (!key) continue;
+
+      if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true })) continue;
 
       const newHeight = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
       if (newHeight <= 0) continue;
@@ -1138,7 +1140,8 @@
     {#each visibleItems as item, i (getKey(item, visibleRange.start + i))}
       {@const index = visibleRange.start + i}
       {@const key = getKey(item, index)}
-      <div class="virtual-item" {@attach itemAttach(key)}>
+      {@const useAutoCV = index < visibleStart || index >= visibleEnd ? !isNavigating : false}
+      <div class="virtual-item" style:content-visibility={useAutoCV ? "auto" : "visible"} style:contain-intrinsic-block-size={useAutoCV ? `auto ${getItemHeight(index)}px` : undefined} {@attach itemAttach(key)}>
         {@render children(item, index)}
       </div>
     {/each}
