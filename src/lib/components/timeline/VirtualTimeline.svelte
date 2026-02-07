@@ -1,6 +1,7 @@
 <script lang="ts">
   import {onDestroy} from "svelte";
   import {_} from "svelte-i18n";
+  import {page} from '$app/stores';
   import {settings} from '$lib/stores';
   import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
@@ -53,6 +54,7 @@
   let lastUnique = $state(unique);
 
   let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
+  let isPaused = $derived(isSingleColumnMode && !isJunk && $page.url.pathname !== '/');
   let topMargin = $derived((isSingleColumnMode || isJunk) ? 52 : 0);
   let refreshToTop = $derived(!!column.settings?.refreshToTop);
 
@@ -194,6 +196,7 @@
     {topMargin}
     {initialScrollState}
     {refreshToTop}
+    paused={isPaused}
     buffer={10}
     onScroll={handleVirtualScroll}
     onRangeChange={checkLoadMore}

@@ -30,6 +30,7 @@
     topMargin?: number;
     initialScrollState?: ScrollState | null;
     refreshToTop?: boolean;
+    paused?: boolean;
     onRangeChange?: (range: VisibleRange) => void;
     onScroll?: () => void;
     children: Snippet<[T, number]>;
@@ -43,6 +44,7 @@
     topMargin = 0,
     initialScrollState = null,
     refreshToTop = false,
+    paused = false,
     onRangeChange,
     onScroll,
     children
@@ -338,7 +340,7 @@
   }
 
   function handleScroll(): void {
-    if (isNavigating) return;
+    if (isNavigating || paused) return;
     scheduleFrame(DIRTY_SCROLL);
   }
 
@@ -468,7 +470,7 @@
       hm.pending.set(key, newHeight);
     }
 
-    if (hm.pending.size > 0) {
+    if (hm.pending.size > 0 && !paused) {
       scheduleFrame(DIRTY_HEIGHTS);
     }
   }
@@ -820,6 +822,15 @@
     const range = visibleRange;
     if (!isNavigating) {
       onRangeChange?.(range);
+    }
+  });
+
+  $effect(() => {
+    if (!paused && scrollContainer) {
+      if (hm.pending.size > 0) {
+        scheduleFrame(DIRTY_HEIGHTS);
+      }
+      scheduleFrame(DIRTY_SCROLL);
     }
   });
 
