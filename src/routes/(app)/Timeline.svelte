@@ -18,7 +18,6 @@
   let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
 
   let virtualTimelineRef: ReturnType<typeof VirtualTimeline> | undefined = $state();
-  let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
 
   const columnState = getColumnState(isJunk);
   const column = columnProp ?? columnState.getColumn(index);
@@ -178,7 +177,7 @@
           f[newDividerIndex] = { ...f[newDividerIndex], isDivider: true };
       });
 
-      const useVirtualList = (column.style === 'default' || !column.style) && !isSingleColumnMode && !$settings.general?.useVirtual;
+      const useVirtualList = (column.style === 'default' || !column.style) && !$settings.general?.useVirtual;
       if (useVirtualList && virtualTimelineRef) {
         tick().then(() => {
           virtualTimelineRef?.scrollToIndex(newDividerIndex, { align: 'start', offset: 0 });
@@ -308,7 +307,7 @@
   }
 </script>
 
-{#if (column.style === 'default' || !column.style) && !isSingleColumnMode && !$settings.general?.useVirtual}
+{#if (column.style === 'default' || !column.style) && !$settings.general?.useVirtual}
   <VirtualTimeline
     {column}
     {_agent}
