@@ -157,6 +157,13 @@
         items = [...items, ...newItems];
       },
 
+      prepend(count: number) {
+        const startId = nextId;
+        nextId += count;
+        const newItems = generateItems(count, startId);
+        items = [...newItems, ...items];
+      },
+
       cacheScrollState() {
         if (virtualList) {
           const state = virtualList.getScrollStateLightweight();

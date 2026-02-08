@@ -231,9 +231,37 @@
         }
       }
 
+      const scrollingUp = newStart < visibleStart;
+
       visibleStart = newStart;
       visibleEnd = newEnd;
       invalidateLayout();
+
+      const isRecentUserInput = Date.now() - lastUserScrollTime < 500;
+      if (scrollingUp && !correctionState && isRecentUserInput) {
+        tick().then(() => {
+          if (isNavigating || correctionState) return;
+          let delta = 0;
+          const bufferStart = Math.max(0, visibleStart - buffer);
+          for (let i = bufferStart; i < visibleStart; i++) {
+            if (i >= items.length) break;
+            const key = getKey(items[i], i);
+            if (hm.has(key)) continue;
+            const el = itemRefs.get(key);
+            if (!el) continue;
+            const actual = el.getBoundingClientRect().height;
+            if (actual <= 0) continue;
+            const estimated = tree.get(i);
+            if (Math.abs(actual - estimated) < 1) continue;
+            delta += actual - estimated;
+            tree.set(i, actual);
+            hm.set(key, actual);
+          }
+          if (Math.abs(delta) > 0.5) {
+            setScrollTop(getScrollTop() + delta);
+          }
+        });
+      }
     }
   }
 
@@ -486,8 +514,25 @@
     }
   }
 
+  let overflowAnchorResetTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function resetOverflowAnchorLater(): void {
+    if (overflowAnchorResetTimer) clearTimeout(overflowAnchorResetTimer);
+    overflowAnchorResetTimer = setTimeout(() => {
+      overflowAnchorResetTimer = null;
+      if (scrollContainer) scrollContainer.style.overflowAnchor = '';
+    }, 200);
+  }
+
   function handleUserScroll() {
     lastUserScrollTime = Date.now();
+    if (overflowAnchorResetTimer) {
+      clearTimeout(overflowAnchorResetTimer);
+      overflowAnchorResetTimer = null;
+    }
+    if (scrollContainer && scrollContainer.style.overflowAnchor === 'none') {
+      scrollContainer.style.overflowAnchor = '';
+    }
   }
 
   function scrollContainerAttach(element: HTMLElement) {
@@ -540,8 +585,8 @@
         correctionState.onFinish?.();
         correctionState = null;
       }
-      isNavigating = false;
       pendingPrependAnchor = null;
+      if (overflowAnchorResetTimer) { clearTimeout(overflowAnchorResetTimer); overflowAnchorResetTimer = null; }
       for (const el of observedElements) {
         unobserveResize(el);
       }
@@ -656,7 +701,7 @@
               maxPasses: CORRECTION_MAX_PASSES,
               measure: 'none',
               navigating: false,
-              onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
+              onFinish: () => { resetOverflowAnchorLater(); },
             },
           );
         } else {
@@ -667,7 +712,7 @@
               maxPasses: 1,
               measure: 'none',
               navigating: false,
-              onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
+              onFinish: () => { resetOverflowAnchorLater(); },
             },
           );
         }
@@ -737,25 +782,30 @@
     pendingPrependAnchor = null;
 
     recalculatePositions();
-    visibleStart = 0;
-    visibleEnd = Math.min(items.length, pp.oldVisibleEnd + shiftCount + buffer);
+    const scrollDelta = tree.prefixSum(shiftCount);
+    setScrollTop(getScrollTop() + scrollDelta);
+
+    const actualScrollTop = getScrollTop();
+    visibleStart = tree.findIndex(actualScrollTop);
+    const usableHeight = viewportHeight - topMargin;
+    visibleEnd = Math.max(
+      findEndIndex(actualScrollTop + usableHeight),
+      Math.min(items.length, pp.oldVisibleEnd + shiftCount),
+    );
     invalidateLayout();
 
     tick().then(() => {
-      for (let i = 0; i < shiftCount; i++) {
-        const key = getKey(items[i], i);
-        const el = itemRefs.get(key);
-        if (el) hm.set(key, el.getBoundingClientRect().height);
-      }
-      recalculatePositions();
+      measureVisibleItems(true);
 
-      const newAnchorEl = itemRefs.get(pp.anchorKey);
-      if (newAnchorEl && scrollContainer) {
-        const cTop = getContainerTop();
-        const newAnchorVisualY = newAnchorEl.getBoundingClientRect().top - cTop;
-        const target = Math.max(0, pp.scrollTop + newAnchorVisualY - pp.anchorVisualY);
-        setScrollTop(target);
+      const el = itemRefs.get(pp.anchorKey);
+      if (el) {
+        const drift = el.getBoundingClientRect().top - getContainerTop() - pp.anchorVisualY;
+        if (Math.abs(drift) > 0.5) {
+          setScrollTop(getScrollTop() + drift);
+        }
       }
+
+      invalidateLayout();
 
       startCorrection(
         () => {
@@ -767,9 +817,9 @@
         {
           threshold: DRIFT_THRESHOLD_POSITION,
           maxPasses: CORRECTION_MAX_PASSES,
-          measure: 'full',
+          measure: 'incremental',
           navigating: true,
-          onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
+          onFinish: () => { resetOverflowAnchorLater(); },
         },
       );
       queueMicrotask(() => pruneStaleHeights());
