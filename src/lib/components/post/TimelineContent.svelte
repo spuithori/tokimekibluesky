@@ -149,30 +149,32 @@
 
   async function handleSkyblurShow() {
       try {
-          let pdsEndpoint: string;
+          const uri = post?.record?.['uk.skyblur.post.uri'];
+          const host = 'skyblur.uk';
+          type SkyblurResponse = {
+              text?: string;
+              additional?: string;
+              message?: string;
+              errorCode?: string;
+              errorDescription?: string;
+              createdAt?: string;
+              visibility?: string;
+              encryptCid?: string;
+          };
 
-          if (post.author.handle.endsWith(".bsky.social")) {
-            pdsEndpoint = _agent.service();
-          } else {
-            const endpoint = await getService(post.author.did);
-            if (!endpoint) {
-              throw new Error("Could not resolve PDS endpoint.");
-            }
-            pdsEndpoint = endpoint;
-          }
-
-          const __agent = new BskyAgent({ service: pdsEndpoint });
-          const rkey = post?.record?.['uk.skyblur.post.uri'].split('/').slice(-1)[0];
-          const res = await __agent.api.com.atproto.repo.getRecord({
-              collection: "uk.skyblur.post",
-              repo: post.author.did,
-              rkey: rkey,
+          const res = await _agent.callWithProxy<SkyblurResponse>('uk.skyblur.post.getPost', undefined, {
+              method: 'POST',
+              proxyDid: `did:web:${host}`,
+              proxyServiceId: 'skyblur_api',
+              data: {
+                  uri: uri
+              }
           });
 
-          if (res?.data?.value?.text) {
-              skyblurText = res.data.value.text.replace(/[\[\]]/g, '');
+          if (res?.text) {
+              skyblurText = res.text.replace(/[\[\]]/g, '');
 
-              if (res?.data?.value?.additional) {
+              if (res?.additional) {
                   isSkyblurAdditional = true;
               }
           } else {
