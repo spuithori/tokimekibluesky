@@ -151,6 +151,12 @@
         virtualList?.scrollToIndex(index, { align });
       },
 
+      prepend(count: number) {
+        const newItems = generateItems(count, nextId);
+        nextId += count;
+        items = [...newItems.reverse(), ...items];
+      },
+
       append(count: number) {
         const newItems = generateItems(count, nextId);
         nextId += count;

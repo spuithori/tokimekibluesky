@@ -268,6 +268,15 @@
     computeDrift: () => number | null,
     opts: { threshold: number; maxPasses: number; measure: 'full' | 'incremental' | 'none'; navigating: boolean; onStart?: () => void; onFinish?: () => void }
   ): void {
+    if (correctionState) {
+      const old = correctionState;
+      if (old.navigating && !opts.navigating) {
+        finishNavigation();
+      }
+      if (old.onFinish && !opts.onFinish) {
+        opts = { ...opts, onFinish: old.onFinish };
+      }
+    }
     correctionState = { computeDrift, ...opts, pass: 0 };
     scheduleFrame(DIRTY_CORRECTION);
   }
@@ -527,7 +536,11 @@
 
     return () => {
       cancelFrame();
-      correctionState = null;
+      if (correctionState) {
+        correctionState.onFinish?.();
+        correctionState = null;
+      }
+      pendingPrependAnchor = null;
       for (const el of observedElements) {
         unobserveResize(el);
       }
@@ -728,11 +741,7 @@
     invalidateLayout();
 
     tick().then(() => {
-      for (let i = 0; i < shiftCount; i++) {
-        const key = getKey(items[i], i);
-        const el = itemRefs.get(key);
-        if (el) hm.set(key, el.getBoundingClientRect().height);
-      }
+      measureVisibleItems(false);
       recalculatePositions();
 
       const newAnchorEl = itemRefs.get(pp.anchorKey);
@@ -742,6 +751,14 @@
         const target = Math.max(0, pp.scrollTop + newAnchorVisualY - pp.anchorVisualY);
         setScrollTop(target);
       }
+
+      const currentScrollTop = getScrollTop();
+      const usableHeight = viewportHeight - topMargin;
+      const newStart = tree.findIndex(currentScrollTop);
+      const newEnd = findEndIndex(currentScrollTop + usableHeight);
+      visibleStart = newStart;
+      visibleEnd = Math.max(newEnd, newStart + FALLBACK_RENDER_COUNT);
+      invalidateLayout();
 
       startCorrection(
         () => {
