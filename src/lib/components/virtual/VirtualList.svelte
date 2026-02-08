@@ -268,6 +268,15 @@
     computeDrift: () => number | null,
     opts: { threshold: number; maxPasses: number; measure: 'full' | 'incremental' | 'none'; navigating: boolean; onStart?: () => void; onFinish?: () => void }
   ): void {
+    if (correctionState) {
+      const old = correctionState;
+      if (old.navigating && !opts.navigating) {
+        finishNavigation();
+      }
+      if (old.onFinish && !opts.onFinish) {
+        opts.onFinish = old.onFinish;
+      }
+    }
     correctionState = { computeDrift, ...opts, pass: 0 };
     scheduleFrame(DIRTY_CORRECTION);
   }
@@ -527,7 +536,12 @@
 
     return () => {
       cancelFrame();
-      correctionState = null;
+      if (correctionState) {
+        correctionState.onFinish?.();
+        correctionState = null;
+      }
+      isNavigating = false;
+      pendingPrependAnchor = null;
       for (const el of observedElements) {
         unobserveResize(el);
       }
