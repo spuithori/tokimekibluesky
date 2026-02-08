@@ -437,13 +437,15 @@
     hm.pending.clear();
 
     if (hasChanges) {
-      if (aboveDelta !== 0 && !isNavigating && isWindowScroll) {
+      if (aboveDelta !== 0 && !isNavigating) {
         const currentSt = getScrollTop();
         if (currentSt > 0) {
           setScrollTop(currentSt + aboveDelta);
         }
       }
-      recalculatePositionsFrom(rangeStart);
+      if (tree.length !== items.length) {
+        recalculatePositions();
+      }
       invalidateLayout();
       frameDirty |= DIRTY_SCROLL;
     }
@@ -861,7 +863,7 @@
     }
   });
 
-  function measureRenderedItems(): void {
+  function measureVisibleItems(updateTree: boolean): void {
     const start = Math.max(0, visibleStart - buffer);
     const end = Math.min(items.length, visibleEnd + buffer);
     for (let i = start; i < end; i++) {
@@ -877,12 +879,15 @@
       if (h <= 0) continue;
       if (existing === undefined || Math.abs(existing - h) >= HEIGHT_APPLY_THRESHOLD) {
         hm.set(key, h);
+        if (updateTree && i < tree.length) {
+          tree.set(i, h);
+        }
       }
     }
   }
 
   function measureAndRecalculate(): void {
-    measureRenderedItems();
+    measureVisibleItems(false);
     recalculatePositions();
     if (minTotalHeight > tree.total) {
       minTotalHeight = tree.total;
@@ -906,26 +911,7 @@
       frameDirty &= ~DIRTY_HEIGHTS;
     }
 
-    const start = Math.max(0, visibleStart - buffer);
-    const end = Math.min(items.length, visibleEnd + buffer);
-    for (let i = start; i < end; i++) {
-      const key = getKey(items[i], i);
-      const existing = hm.get(key);
-      if (existing !== undefined && i < tree.length
-          && Math.abs(tree.get(i) - existing) < HEIGHT_APPLY_THRESHOLD) {
-        continue;
-      }
-      const el = itemRefs.get(key);
-      if (!el) continue;
-      const h = el.getBoundingClientRect().height;
-      if (h <= 0) continue;
-      if (existing === undefined || Math.abs(existing - h) >= HEIGHT_APPLY_THRESHOLD) {
-        hm.set(key, h);
-        if (i < tree.length) {
-          tree.set(i, h);
-        }
-      }
-    }
+    measureVisibleItems(true);
 
     if (minTotalHeight > tree.total) {
       minTotalHeight = tree.total;
@@ -1115,8 +1101,6 @@
     if (index < 0 || index >= items.length) return 0;
     return tree.prefixSum(index);
   }
-
-
 
   export function getTreeDiagnostics(): {
     total: number;

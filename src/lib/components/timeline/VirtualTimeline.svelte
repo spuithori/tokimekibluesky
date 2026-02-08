@@ -187,9 +187,6 @@
     virtualList?.scrollToIndex(index, options);
   }
 
-  export function setScrollAnchor(key: string): void {
-    virtualList?.setScrollAnchor(key);
-  }
 </script>
 
 <div class="timeline timeline--default virtual-timeline" bind:this={parent}>

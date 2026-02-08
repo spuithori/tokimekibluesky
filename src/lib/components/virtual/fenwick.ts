@@ -38,8 +38,6 @@ export class FenwickTree {
       this._data = new Float64Array(newCap + 1);
       this._tree = new Float64Array(newCap + 1);
       this._capacity = newCap;
-    } else {
-      this._tree.fill(0, 0, n + 1);
     }
 
     let total = 0;
@@ -154,10 +152,19 @@ export class FenwickTree {
       this._tree[j] = this._data[j];
     }
 
-    for (let i = 1; i <= newSize; i++) {
-      const parent = i + (i & -i);
-      if (parent > oldSize && parent <= newSize) {
-        this._tree[parent] += this._tree[i];
+    let b = oldSize;
+    while (b >= 1) {
+      const parent = b + (b & -b);
+      if (parent <= newSize) {
+        this._tree[parent] += this._tree[b];
+      }
+      b -= (b & -b);
+    }
+
+    for (let j = oldSize + 1; j <= newSize; j++) {
+      const parent = j + (j & -j);
+      if (parent <= newSize) {
+        this._tree[parent] += this._tree[j];
       }
     }
 
