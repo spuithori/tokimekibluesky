@@ -482,7 +482,10 @@
     }
 
     if (hm.pending.size > 0 && !paused) {
-      scheduleFrame(DIRTY_HEIGHTS);
+      flushHeightUpdates();
+      if (frameDirty !== 0) {
+        scheduleFrame(0);
+      }
     }
   }
 
@@ -627,7 +630,6 @@
     if (shiftCount > 0) {
       if (refreshToTop && getScrollTop() <= topMargin) {
         recalculatePositions();
-        visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
         invalidateLayout();
         quickPrependHandled = true;
       } else if (Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS || isNavigating) {
