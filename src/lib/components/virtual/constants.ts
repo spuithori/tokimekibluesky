@@ -1,4 +1,4 @@
-export const PREPEND_SEARCH_LIMIT = 50;
+export const PREPEND_SEARCH_LIMIT = 500;
 export const SCROLL_VELOCITY_THRESHOLD_MS = 150;
 export const CORRECTION_MAX_PASSES = 3;
 export const DRIFT_THRESHOLD_POSITION = 1;

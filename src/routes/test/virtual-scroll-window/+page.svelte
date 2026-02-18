@@ -21,6 +21,8 @@
   let showVirtualList = $state(true);
   let initialScrollState = $state<ScrollState | null>(null);
   let cachedScrollState: ScrollState | null = null;
+  let loadMoreCleanup: (() => void) | null = null;
+  let heightOverrideRange: [number, number] | null = null;
 
   const TOP_MARGIN = 108;
 
@@ -33,6 +35,10 @@
   }
 
   function getItemHeight(id: number): number {
+    if (heightOverrideRange) {
+      const [min, max] = heightOverrideRange;
+      return min + Math.floor(seededRandom(id) * (max - min));
+    }
     const r = seededRandom(id);
     if (r < 0.3) return 72 + Math.floor(seededRandom(id + 1000) * 40);
     if (r < 0.6) return 120 + Math.floor(seededRandom(id + 2000) * 60);
@@ -231,7 +237,80 @@
         return virtualList?.getScrollStateLightweight() ?? null;
       },
 
+      getVisibleItemIds() {
+        const results: string[] = [];
+        const allItems = document.querySelectorAll('[data-testid^="item-"]');
+        for (const el of allItems) {
+          const rect = el.getBoundingClientRect();
+          if (rect.bottom > 0 && rect.top < window.innerHeight) {
+            results.push(el.getAttribute('data-testid') ?? '');
+          }
+        }
+        return results;
+      },
+
+      getItemPosition(id: string) {
+        const el = document.querySelector(`[data-testid="${id}"]`) as HTMLElement;
+        if (!el) return null;
+        return {
+          relativeY: el.getBoundingClientRect().top,
+        };
+      },
+
+      enableLoadMore(opts: { delay?: number; batchSize?: number } = {}) {
+        const delay = opts.delay ?? 100;
+        const batchSize = opts.batchSize ?? 30;
+        const threshold = 500;
+
+        if (loadMoreCleanup) {
+          loadMoreCleanup();
+          loadMoreCleanup = null;
+        }
+
+        let loading = false;
+        const check = () => {
+          if (loading || !virtualList) return;
+          const info = virtualList.getScrollInfo();
+          if (info.distanceFromBottom < threshold) {
+            loading = true;
+            setTimeout(() => {
+              const newItems = generateItems(batchSize, nextId);
+              nextId += batchSize;
+              items = [...items, ...newItems];
+              loading = false;
+            }, delay);
+          }
+        };
+
+        window.addEventListener('scroll', check, { passive: true });
+        loadMoreCleanup = () => {
+          window.removeEventListener('scroll', check);
+        };
+      },
+
+      resetWithOptions(opts: { count?: number; heightRange?: [number, number] } = {}) {
+        if (loadMoreCleanup) {
+          loadMoreCleanup();
+          loadMoreCleanup = null;
+        }
+        heightOverrideRange = opts.heightRange ?? null;
+        const count = opts.count ?? 200;
+        items = generateItems(count, 0);
+        nextId = count;
+        savedState = null;
+        savedScrollTop = 0;
+        showVirtualList = true;
+        initialScrollState = null;
+        cachedScrollState = null;
+        window.scrollTo(0, 0);
+      },
+
       reset() {
+        if (loadMoreCleanup) {
+          loadMoreCleanup();
+          loadMoreCleanup = null;
+        }
+        heightOverrideRange = null;
         items = generateItems(200, 0);
         nextId = 200;
         savedState = null;

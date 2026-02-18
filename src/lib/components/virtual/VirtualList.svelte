@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { tick, flushSync } from 'svelte';
   import type { Snippet } from 'svelte';
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
   import { FenwickTree } from './fenwick';
@@ -66,12 +66,17 @@
     ? initialScrollState.scrollTop + 1000
     : 0;
   let _cachedScrollTop = -1;
+  let spacerHeightAdjustment = 0;
+  let _visibleItemScrollOffset = 0;
+  let topSpacerEl: HTMLDivElement | undefined = $state();
   let frameId: number | null = null;
   let frameDirty = 0;
   const DIRTY_SCROLL = 1;
   const DIRTY_HEIGHTS = 2;
   const DIRTY_CORRECTION = 4;
   let observedElements = new Set<Element>();
+  let earlyCheckId: number | null = null;
+  let earlyCheckCountdown = 0;
   let prevItemCount = 0;
   let prevFirstKey = '';
   let prevLastKey = '';
@@ -116,9 +121,16 @@
 
   function invalidateLayout(): void {
     effectiveTotalHeight = Math.max(tree.total, minTotalHeight);
+    const rawTopSpacer = isVirtualizationEnabled
+      ? (tree.prefixSum(visibleRange.start)) + spacerHeightAdjustment : 0;
+    if (rawTopSpacer < 0 && spacerHeightAdjustment < 0) {
+      const excess = -rawTopSpacer;
+      spacerHeightAdjustment += excess;
+      const currentSt = getScrollTop();
+      if (currentSt > 0) { setScrollTop(Math.max(0, currentSt - excess)); }
+    }
     topSpacerHeight = isVirtualizationEnabled
-      ? Math.max(0, tree.prefixSum(visibleRange.start))
-      : 0;
+      ? Math.max(0, tree.prefixSum(visibleRange.start) + spacerHeightAdjustment) : 0;
     const endPos = (isVirtualizationEnabled && items.length > 0)
       ? (visibleRange.end < tree.length ? tree.prefixSum(visibleRange.end) : tree.total)
       : 0;
@@ -216,10 +228,11 @@
     if (isNavigating || !scrollContainer || items.length === 0) return;
 
     const scrollTop = getScrollTop();
+    const effectiveScrollTop = scrollTop - spacerHeightAdjustment - _visibleItemScrollOffset;
 
     const usableHeight = viewportHeight - topMargin;
-    const newStart = tree.findIndex(scrollTop);
-    const newEnd = findEndIndex(scrollTop + usableHeight);
+    const newStart = tree.findIndex(effectiveScrollTop);
+    const newEnd = findEndIndex(effectiveScrollTop + usableHeight);
 
     if (newStart !== visibleStart || newEnd !== visibleEnd) {
       const oldRangeStart = Math.max(0, visibleStart - buffer);
@@ -229,6 +242,26 @@
         if (newRangeStart > oldRangeStart) {
           measureTransitioningItems(oldRangeStart, newRangeStart);
         }
+      }
+
+      if (newRangeStart < oldRangeStart) {
+        for (let i = newRangeStart; i < oldRangeStart && i < items.length; i++) {
+          const key = getKey(items[i], i);
+          const cachedH = hm.get(key);
+          if (cachedH !== undefined && i < tree.length) {
+            const treeVal = tree.get(i);
+            const delta = cachedH - treeVal;
+            if (delta !== 0) {
+              tree.set(i, cachedH);
+              spacerHeightAdjustment -= delta;
+            }
+          }
+        }
+      }
+
+      if (newRangeStart === 0) {
+        if (spacerHeightAdjustment < 0) spacerHeightAdjustment = 0;
+        _visibleItemScrollOffset = 0;
       }
 
       visibleStart = newStart;
@@ -268,6 +301,10 @@
     computeDrift: () => number | null,
     opts: { threshold: number; maxPasses: number; measure: 'full' | 'incremental' | 'none'; navigating: boolean; onStart?: () => void; onFinish?: () => void }
   ): void {
+    if (correctionState) {
+      correctionState.onFinish?.();
+      if (correctionState.navigating) finishNavigation();
+    }
     correctionState = { computeDrift, ...opts, pass: 0 };
     scheduleFrame(DIRTY_CORRECTION);
   }
@@ -319,6 +356,8 @@
       processCorrectionPass();
     }
 
+    const oldRangeStart = Math.max(0, visibleStart - buffer);
+
     if ((frameDirty & DIRTY_SCROLL) && !isNavigating) {
       frameDirty &= ~DIRTY_SCROLL;
       _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
@@ -328,6 +367,33 @@
         lastValidScrollContainer = scrollContainer;
         lastKnownScrollTop = _cachedScrollTop;
         lastKnownVisibleStart = visibleStart;
+      }
+    }
+
+    flushSync();
+
+    const newRangeStart = Math.max(0, visibleStart - buffer);
+    if (newRangeStart < oldRangeStart && topSpacerEl) {
+      let heightDelta = 0;
+      for (let i = newRangeStart; i < oldRangeStart && i < items.length; i++) {
+        const key = getKey(items[i], i);
+        const el = itemRefs.get(key);
+        const domH = el ? el.getBoundingClientRect().height : 0;
+        const cachedH = hm.pending.get(key) ?? hm.get(key);
+        const bestH = domH > 0 ? domH : cachedH;
+        if (bestH === undefined || bestH <= 0) continue;
+        const treeVal = tree.get(i);
+        const delta = bestH - treeVal;
+        if (delta === 0) continue;
+        heightDelta += delta;
+        tree.set(i, bestH);
+        if (domH > 0) { hm.set(key, domH); hm.pending.delete(key); }
+      }
+      if (heightDelta !== 0) {
+        spacerHeightAdjustment -= heightDelta;
+        const correctedSpacer = Math.max(0, tree.prefixSum(newRangeStart) + spacerHeightAdjustment);
+        topSpacerEl.style.height = correctedSpacer + 'px';
+        topSpacerHeight = correctedSpacer;
       }
     }
 
@@ -342,6 +408,43 @@
   function handleScroll(): void {
     if (isNavigating || paused) return;
     scheduleFrame(DIRTY_SCROLL);
+  }
+
+  function earlyBufferCheck(): void {
+    if (frameDirty !== 0) {
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId);
+        frameId = null;
+      }
+      processFrame();
+    }
+
+    if (earlyCheckCountdown > 0 && topSpacerEl && !isNavigating) {
+      earlyCheckCountdown--;
+      const rangeStart = Math.max(0, visibleStart - buffer);
+      let heightDelta = 0;
+      for (let i = rangeStart; i < visibleStart && i < items.length && i < tree.length; i++) {
+        const key = getKey(items[i], i);
+        if (hm.pending.has(key)) continue;
+        const el = itemRefs.get(key);
+        if (!el) continue;
+        const domH = el.getBoundingClientRect().height;
+        if (domH <= 0) continue;
+        const treeVal = tree.get(i);
+        const bufDelta = domH - treeVal;
+        if (bufDelta === 0) continue;
+        heightDelta += bufDelta;
+        tree.set(i, domH);
+        hm.set(key, domH);
+      }
+      if (heightDelta !== 0) {
+        spacerHeightAdjustment -= heightDelta;
+        const newSpacer = Math.max(0, tree.prefixSum(rangeStart) + spacerHeightAdjustment);
+        topSpacerEl.style.height = newSpacer + 'px';
+        topSpacerHeight = newSpacer;
+      }
+    }
+    earlyCheckId = requestAnimationFrame(earlyBufferCheck);
   }
 
   let _keyToIndexCache: Map<string, number> | null = null;
@@ -413,7 +516,6 @@
     }
 
     let hasChanges = false;
-    let aboveDelta = 0;
 
     const rangeStart = Math.max(0, visibleStart - buffer);
     const useLinear = hm.pending.size <= KEY_TO_INDEX_LINEAR_THRESHOLD;
@@ -426,9 +528,6 @@
       const idx = useLinear ? findIndexForKey(key) : getKeyToIndex().get(key);
       if (idx === undefined) continue;
       if (idx >= rangeStart && idx < tree.length) {
-        if (idx < visibleStart) {
-          aboveDelta += newHeight - tree.get(idx);
-        }
         tree.set(idx, newHeight);
         hasChanges = true;
       }
@@ -437,15 +536,11 @@
     hm.pending.clear();
 
     if (hasChanges) {
-      if (aboveDelta !== 0 && !isNavigating) {
-        const currentSt = getScrollTop();
-        if (currentSt > 0) {
-          setScrollTop(currentSt + aboveDelta);
-        }
-      }
       if (tree.length !== items.length) {
         recalculatePositions();
       }
+      const rs = Math.max(0, visibleStart - buffer);
+      spacerHeightAdjustment = topSpacerHeight - tree.prefixSum(rs);
       invalidateLayout();
       frameDirty |= DIRTY_SCROLL;
     }
@@ -454,6 +549,9 @@
   let resizeOwner: object | null = null;
 
   function handleItemResizeBatch(entries: ResizeObserverEntry[]): void {
+    let immediateAboveDelta = 0;
+    let visibleAboveDelta = 0;
+
     for (const entry of entries) {
       const el = entry.target as HTMLElement;
       const key = el.dataset.virtualKey;
@@ -470,9 +568,61 @@
       }
 
       hm.pending.set(key, newHeight);
+
+      if (!isNavigating) {
+        const idx = findIndexForKey(key);
+        if (idx !== undefined) {
+          if (oldHeight === undefined && idx < tree.length && idx < visibleEnd) {
+            const treeValue = tree.get(idx);
+            const estimateDelta = newHeight - treeValue;
+            if (Math.abs(estimateDelta) >= HEIGHT_APPLY_THRESHOLD) {
+              immediateAboveDelta += estimateDelta;
+            }
+          } else if (oldHeight !== undefined && idx < visibleStart) {
+            const actualDelta = newHeight - oldHeight;
+            if (Math.abs(actualDelta) >= HEIGHT_APPLY_THRESHOLD) {
+              immediateAboveDelta += actualDelta;
+            }
+          } else if (oldHeight !== undefined && idx >= visibleStart) {
+            const rect = el.getBoundingClientRect();
+            const containerTop = getContainerTop();
+            const relTop = rect.top - containerTop;
+            if (relTop < viewportHeight * 0.6) {
+              const delta = newHeight - oldHeight;
+              if (Math.abs(delta) >= HEIGHT_APPLY_THRESHOLD) {
+                visibleAboveDelta += delta;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (immediateAboveDelta !== 0 && topSpacerEl) {
+      spacerHeightAdjustment -= immediateAboveDelta;
+      const rangeStart = Math.max(0, visibleStart - buffer);
+      const rawSpacerHeight = tree.prefixSum(rangeStart) + spacerHeightAdjustment;
+      if (rawSpacerHeight < 0 && spacerHeightAdjustment < 0 && scrollContainer) {
+        const excess = -rawSpacerHeight;
+        spacerHeightAdjustment += excess;
+        const currentSt = getScrollTop();
+        if (currentSt > 0) {
+          setScrollTop(currentSt + excess);
+        }
+      }
+      const newSpacerHeight = Math.max(0, tree.prefixSum(rangeStart) + spacerHeightAdjustment);
+      topSpacerEl.style.height = newSpacerHeight + 'px';
+      topSpacerHeight = newSpacerHeight;
+    }
+
+    if (visibleAboveDelta !== 0 && scrollContainer) {
+      _visibleItemScrollOffset += visibleAboveDelta;
+      const st = getScrollTop();
+      setScrollTop(st + visibleAboveDelta);
     }
 
     if (hm.pending.size > 0 && !paused) {
+      earlyCheckCountdown = 10;
       scheduleFrame(DIRTY_HEIGHTS);
     }
   }
@@ -482,6 +632,7 @@
   }
 
   function scrollContainerAttach(element: HTMLElement) {
+    earlyCheckId = requestAnimationFrame(earlyBufferCheck);
     resizeOwner = createResizeOwner(handleItemResizeBatch);
     lastValidScrollContainer = scrollContainer ?? null;
     lastKnownScrollTop = getScrollTop();
@@ -526,6 +677,10 @@
     }
 
     return () => {
+      if (earlyCheckId !== null) {
+        cancelAnimationFrame(earlyCheckId);
+        earlyCheckId = null;
+      }
       cancelFrame();
       correctionState = null;
       for (const el of observedElements) {
@@ -688,12 +843,16 @@
     prevFirstKey = '';
     prevLastKey = '';
     minTotalHeight = 0;
+    spacerHeightAdjustment = 0;
+    _visibleItemScrollOffset = 0;
     hm.clear();
     queueMicrotask(() => invalidateLayout());
   }
 
   function handleItemsInitial(): void {
     hm.clear();
+    spacerHeightAdjustment = 0;
+    _visibleItemScrollOffset = 0;
     const avg = getAverageHeight();
     tree.buildWithCallback(items.length, () => avg);
     if (!initialScrollState || hasRestoredScroll) {
@@ -711,6 +870,8 @@
   }
 
   function handleItemsGenericChange(): void {
+    spacerHeightAdjustment = 0;
+    _visibleItemScrollOffset = 0;
     recalculatePositions();
     queueMicrotask(() => {
       invalidateLayout();
@@ -1138,7 +1299,7 @@
 {#if scrollContainer}
   <div class="virtual-list" class:virtual-list--restoring={initialScrollState && !hasRestoredScroll} {@attach scrollContainerAttach}>
     {#if isVirtualizationEnabled}
-      <div class="virtual-spacer" style:height="{topSpacerHeight}px" aria-hidden="true"></div>
+      <div class="virtual-spacer" style:height="{topSpacerHeight}px" aria-hidden="true" bind:this={topSpacerEl}></div>
     {/if}
 
     {#each visibleItems as item, i (getKey(item, visibleRange.start + i))}
@@ -1163,6 +1324,10 @@
 
   .virtual-list--restoring {
     opacity: 0;
+  }
+
+  .virtual-item {
+    overflow-anchor: none;
   }
 
   .virtual-spacer {
