@@ -121,20 +121,24 @@
 
   function invalidateLayout(): void {
     effectiveTotalHeight = Math.max(tree.total, minTotalHeight);
-    const rawTopSpacer = isVirtualizationEnabled
-      ? (tree.prefixSum(visibleRange.start)) + spacerHeightAdjustment : 0;
+    if (!isVirtualizationEnabled) {
+      topSpacerHeight = 0;
+      bottomSpacerHeight = 0;
+      return;
+    }
+    const prefix = tree.prefixSum(visibleRange.start);
+    const rawTopSpacer = prefix + spacerHeightAdjustment;
     if (rawTopSpacer < 0 && spacerHeightAdjustment < 0) {
       const excess = -rawTopSpacer;
       spacerHeightAdjustment += excess;
       const currentSt = getScrollTop();
       if (currentSt > 0) { setScrollTop(Math.max(0, currentSt - excess)); }
     }
-    topSpacerHeight = isVirtualizationEnabled
-      ? Math.max(0, tree.prefixSum(visibleRange.start) + spacerHeightAdjustment) : 0;
-    const endPos = (isVirtualizationEnabled && items.length > 0)
+    topSpacerHeight = Math.max(0, prefix + spacerHeightAdjustment);
+    const endPos = items.length > 0
       ? (visibleRange.end < tree.length ? tree.prefixSum(visibleRange.end) : tree.total)
       : 0;
-    bottomSpacerHeight = (isVirtualizationEnabled && items.length > 0)
+    bottomSpacerHeight = items.length > 0
       ? Math.max(0, effectiveTotalHeight - endPos)
       : 0;
   }
@@ -171,23 +175,6 @@
     applyPendingHeights();
     const avg = getAverageHeight();
     tree.buildWithCallback(len, (i) => hm.get(getKey(items[i], i)) ?? avg);
-  }
-
-  function recalculatePositionsFrom(startIndex: number): void {
-    const len = items.length;
-    if (len === 0 || startIndex >= len) return;
-
-    if (tree.length !== len) {
-      recalculatePositions();
-      return;
-    }
-
-    const avg = getAverageHeight();
-    for (let i = startIndex; i < len; i++) {
-      const key = getKey(items[i], i);
-      const h = hm.get(key) ?? avg;
-      tree.set(i, h);
-    }
   }
 
   function appendPositions(startIndex: number): void {
@@ -444,7 +431,12 @@
         topSpacerHeight = newSpacer;
       }
     }
-    earlyCheckId = requestAnimationFrame(earlyBufferCheck);
+
+    if (earlyCheckCountdown > 0 || frameDirty !== 0) {
+      earlyCheckId = requestAnimationFrame(earlyBufferCheck);
+    } else {
+      earlyCheckId = null;
+    }
   }
 
   let _keyToIndexCache: Map<string, number> | null = null;
@@ -601,7 +593,8 @@
     if (immediateAboveDelta !== 0 && topSpacerEl) {
       spacerHeightAdjustment -= immediateAboveDelta;
       const rangeStart = Math.max(0, visibleStart - buffer);
-      const rawSpacerHeight = tree.prefixSum(rangeStart) + spacerHeightAdjustment;
+      const prefix = tree.prefixSum(rangeStart);
+      const rawSpacerHeight = prefix + spacerHeightAdjustment;
       if (rawSpacerHeight < 0 && spacerHeightAdjustment < 0 && scrollContainer) {
         const excess = -rawSpacerHeight;
         spacerHeightAdjustment += excess;
@@ -610,7 +603,7 @@
           setScrollTop(currentSt + excess);
         }
       }
-      const newSpacerHeight = Math.max(0, tree.prefixSum(rangeStart) + spacerHeightAdjustment);
+      const newSpacerHeight = Math.max(0, prefix + spacerHeightAdjustment);
       topSpacerEl.style.height = newSpacerHeight + 'px';
       topSpacerHeight = newSpacerHeight;
     }
@@ -624,6 +617,7 @@
     if (hm.pending.size > 0 && !paused) {
       earlyCheckCountdown = 10;
       scheduleFrame(DIRTY_HEIGHTS);
+      if (earlyCheckId === null) earlyCheckId = requestAnimationFrame(earlyBufferCheck);
     }
   }
 
@@ -632,7 +626,6 @@
   }
 
   function scrollContainerAttach(element: HTMLElement) {
-    earlyCheckId = requestAnimationFrame(earlyBufferCheck);
     resizeOwner = createResizeOwner(handleItemResizeBatch);
     lastValidScrollContainer = scrollContainer ?? null;
     lastKnownScrollTop = getScrollTop();
