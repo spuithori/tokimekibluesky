@@ -118,6 +118,54 @@ export class FenwickTree {
     return Math.min(idx, this._size - 1);
   }
 
+  prependWithCallback(count: number, getHeight: (index: number) => number): void {
+    if (count === 0) return;
+
+    const oldSize = this._size;
+    const newSize = oldSize + count;
+
+    if (newSize > this._capacity) {
+      const newCap = Math.max(this._capacity + Math.ceil(this._capacity * 0.5), newSize, 64);
+      const newData = new Float64Array(newCap + 1);
+      const newTree = new Float64Array(newCap + 1);
+      // Copy old data to shifted positions
+      for (let i = 1; i <= oldSize; i++) {
+        newData[count + i] = this._data[i];
+      }
+      this._data = newData;
+      this._tree = newTree;
+      this._capacity = newCap;
+    } else {
+      // Shift existing data in-place (backwards to avoid overwriting)
+      for (let i = oldSize; i >= 1; i--) {
+        this._data[count + i] = this._data[i];
+      }
+    }
+
+    // Fill prepended positions
+    let prependTotal = 0;
+    for (let i = 0; i < count; i++) {
+      const h = getHeight(i);
+      this._data[i + 1] = h;
+      prependTotal += h;
+    }
+
+    this._size = newSize;
+
+    // Rebuild tree structure from _data
+    for (let i = 1; i <= newSize; i++) {
+      this._tree[i] = this._data[i];
+    }
+    for (let i = 1; i <= newSize; i++) {
+      const parent = i + (i & -i);
+      if (parent <= newSize) {
+        this._tree[parent] += this._tree[i];
+      }
+    }
+
+    this._total += prependTotal;
+  }
+
   extend(newHeights: number[]): void {
     this.extendWithCallback(newHeights.length, (i) => newHeights[i]);
   }

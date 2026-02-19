@@ -218,6 +218,13 @@
     tree.buildWithCallback(len, (i) => hm.get(getKey(items[i], i)) ?? avg);
   }
 
+  function prependPositions(shiftCount: number): void {
+    if (shiftCount <= 0) return;
+    applyPendingHeights();
+    const avg = getAverageHeight();
+    tree.prependWithCallback(shiftCount, (i) => hm.get(getKey(items[i], i)) ?? avg);
+  }
+
   function appendPositions(startIndex: number): void {
     const len = items.length;
     if (len === 0 || startIndex >= len) return;
@@ -843,7 +850,7 @@
   }
 
   function handlePrePrependRefreshToTop(shiftCount: number): void {
-    recalculatePositions();
+    prependPositions(shiftCount);
     visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
     invalidateLayout();
     quickPrependHandled = true;
@@ -853,7 +860,7 @@
     const { key: anchorKey, visualY: anchorVisualY } = captureAnchorWithDefaults(shiftCount);
 
     scrollContainer!.style.overflowAnchor = 'none';
-    recalculatePositions();
+    prependPositions(shiftCount);
     const scrollDelta = tree.length > 0 ? tree.prefixSum(shiftCount) : (shiftCount * getAverageHeight());
     setScrollTop(getScrollTop() + scrollDelta);
     visibleStart = Math.max(0, visibleStart + shiftCount);
@@ -983,7 +990,7 @@
     const pp = pendingPrependAnchor!;
     pendingPrependAnchor = null;
 
-    recalculatePositions();
+    prependPositions(shiftCount);
     visibleStart = 0;
     visibleEnd = Math.min(items.length, pp.oldVisibleEnd + shiftCount + getEffectiveBuffer());
     invalidateLayout();
@@ -1027,7 +1034,7 @@
   }
 
   function handlePrependSimple(shiftCount: number): void {
-    recalculatePositions();
+    prependPositions(shiftCount);
     visibleStart = Math.max(0, visibleStart + shiftCount);
     visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
     invalidateLayout();
