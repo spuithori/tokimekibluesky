@@ -64,7 +64,7 @@
   function getEffectiveBuffer(): number {
     if (buffer !== undefined) return buffer;
     const avgH = getAverageHeight();
-    _cachedEffectiveBuffer = Math.max(1, Math.ceil(bufferPx / avgH));
+    _cachedEffectiveBuffer = Math.max(0, Math.ceil(bufferPx / avgH));
     return _cachedEffectiveBuffer;
   }
 
@@ -187,9 +187,11 @@
 
   function pruneStaleHeights(): void {
     if (!hm.shouldPrune(items.length)) return;
-    const keyToIndex = getKeyToIndex();
-    hm.prune(keyToIndex);
-    releaseKeyToIndexCache();
+    const activeKeys = new Set<string>();
+    for (let i = 0; i < items.length; i++) {
+      activeKeys.add(getKey(items[i], i));
+    }
+    hm.prune(activeKeys);
   }
 
   function getAverageHeight(): number {
@@ -505,7 +507,7 @@
 
   function scheduleKeyToIndexRelease(): void {
     if (_keyToIndexReleaseTimer !== null) clearTimeout(_keyToIndexReleaseTimer);
-    _keyToIndexReleaseTimer = setTimeout(releaseKeyToIndexCache, 2000);
+    _keyToIndexReleaseTimer = setTimeout(releaseKeyToIndexCache, 300);
   }
 
   function getKeyToIndex(): Map<string, number> {
