@@ -22,6 +22,8 @@
     ANCHOR_TOLERANCE,
     DEFAULT_ITEM_HEIGHT,
     EARLY_CHECK_FRAMES,
+    DEFAULT_BUFFER_PX,
+    SCROLLTO_CORRECTION_MAX_PASSES,
   } from './constants';
 
   let fallbackItemHeight = DEFAULT_ITEM_HEIGHT;
@@ -31,6 +33,7 @@
     getKey: (item: T, index: number) => string;
     scrollContainer: HTMLElement | null | undefined;
     buffer?: number;
+    bufferPx?: number;
     topMargin?: number;
     initialScrollState?: ScrollState | null;
     refreshToTop?: boolean;
@@ -44,7 +47,8 @@
     items,
     getKey,
     scrollContainer,
-    buffer = 8,
+    buffer,
+    bufferPx = DEFAULT_BUFFER_PX,
     topMargin = 0,
     initialScrollState = null,
     refreshToTop = false,
@@ -54,9 +58,18 @@
     children
   }: Props<any> = $props();
 
-  let visibleStart = $state(initialScrollState ? Math.max(0, (initialScrollState.index ?? 0) - buffer) : 0);
+  let _cachedEffectiveBuffer = 2;
+
+  function getEffectiveBuffer(): number {
+    if (buffer !== undefined) return buffer;
+    const avgH = getAverageHeight();
+    _cachedEffectiveBuffer = Math.max(1, Math.ceil(bufferPx / avgH));
+    return _cachedEffectiveBuffer;
+  }
+
+  let visibleStart = $state(initialScrollState ? Math.max(0, (initialScrollState.index ?? 0) - _cachedEffectiveBuffer) : 0);
   let visibleEnd = $state(initialScrollState ? Math.min(
-    initialScrollState.index != null ? initialScrollState.index + buffer + SCROLLTO_EXTRA_BUFFER : 0,
+    initialScrollState.index != null ? initialScrollState.index + _cachedEffectiveBuffer + SCROLLTO_EXTRA_BUFFER : 0,
     999999
   ) : 0);
   let viewportHeight = $state(0);
@@ -113,9 +126,10 @@
   let visibleRange = $derived.by((): VisibleRange => {
     if (items.length === 0) return { start: 0, end: 0 };
     if (!isVirtualizationEnabled) return { start: 0, end: Math.min(items.length, FALLBACK_RENDER_COUNT) };
+    const buf = getEffectiveBuffer();
     return {
-      start: Math.max(0, visibleStart - buffer),
-      end: Math.min(items.length, visibleEnd + buffer)
+      start: Math.max(0, visibleStart - buf),
+      end: Math.min(items.length, visibleEnd + buf)
     };
   });
 
@@ -259,8 +273,9 @@
     const newEnd = findEndIndex(effectiveScrollTop + usableHeight);
 
     if (newStart !== visibleStart || newEnd !== visibleEnd) {
-      const oldRangeStart = Math.max(0, visibleStart - buffer);
-      const newRangeStart = Math.max(0, newStart - buffer);
+      const buf = getEffectiveBuffer();
+      const oldRangeStart = Math.max(0, visibleStart - buf);
+      const newRangeStart = Math.max(0, newStart - buf);
 
       if (newStart > visibleStart) {
         if (newRangeStart > oldRangeStart) {
@@ -339,7 +354,8 @@
       correctionLoop.processPass(scrollContainer);
     }
 
-    const oldRangeStart = Math.max(0, visibleStart - buffer);
+    const buf = getEffectiveBuffer();
+    const oldRangeStart = Math.max(0, visibleStart - buf);
 
     if ((frameDirty & DIRTY_SCROLL) && !isNavigating) {
       frameDirty &= ~DIRTY_SCROLL;
@@ -353,7 +369,7 @@
       }
     }
 
-    const newRangeStart = Math.max(0, visibleStart - buffer);
+    const newRangeStart = Math.max(0, visibleStart - buf);
     let driftRefEl: HTMLElement | null = null;
     let driftRefY = 0;
     if (newRangeStart > oldRangeStart && newRangeStart < items.length) {
@@ -367,9 +383,9 @@
     if (driftRefEl) {
       const newY = driftRefEl.getBoundingClientRect().top;
       const drift = newY - driftRefY;
-      if (Math.abs(drift) > 1) {
+      if (Math.abs(drift) > 0.5) {
         _cachedScrollTop = -1;
-        setScrollTop(getScrollTop() + drift);
+        setScrollTop(getScrollTop() + Math.round(drift));
       }
     }
 
@@ -421,7 +437,7 @@
 
     if (earlyCheckCountdown > 0 && topSpacerEl && !isNavigating) {
       earlyCheckCountdown--;
-      const rangeStart = Math.max(0, visibleStart - buffer);
+      const rangeStart = Math.max(0, visibleStart - getEffectiveBuffer());
       let heightDelta = 0;
       for (let i = rangeStart; i < visibleStart && i < items.length && i < tree.length; i++) {
         const key = getKey(items[i], i);
@@ -485,15 +501,16 @@
     return _keyToIndexCache;
   }
 
-  const KEY_TO_INDEX_LINEAR_THRESHOLD = 8;
+  const KEY_TO_INDEX_LINEAR_THRESHOLD = 20;
 
   function findIndexForKey(key: string): number | undefined {
     if (_keyToIndexCache && _keyToIndexLen === items.length
         && _keyToIndexFirstKey === prevFirstKey && _keyToIndexLastKey === prevLastKey) {
       return _keyToIndexCache.get(key);
     }
-    const rangeStart = Math.max(0, visibleStart - buffer);
-    const rangeEnd = Math.min(items.length, visibleEnd + buffer);
+    const buf = getEffectiveBuffer();
+    const rangeStart = Math.max(0, visibleStart - buf);
+    const rangeEnd = Math.min(items.length, visibleEnd + buf);
     for (let i = rangeStart; i < rangeEnd; i++) {
       if (getKey(items[i], i) === key) return i;
     }
@@ -501,7 +518,7 @@
   }
 
   function measureTransitioningItems(fromIdx: number, toIdx: number): void {
-    const oldRangeEnd = visibleEnd + buffer;
+    const oldRangeEnd = visibleEnd + getEffectiveBuffer();
     for (let i = fromIdx; i < Math.min(toIdx, oldRangeEnd); i++) {
       if (i >= items.length) break;
       const key = getKey(items[i], i);
@@ -561,14 +578,15 @@
       return;
     }
 
-    const rangeStart = Math.max(0, visibleStart - buffer);
+    const buf = getEffectiveBuffer();
+    const rangeStart = Math.max(0, visibleStart - buf);
     const hasChanges = flushPendingToTree(rangeStart);
 
     if (hasChanges) {
       if (tree.length !== items.length) {
         recalculatePositions();
       }
-      const rs = Math.max(0, visibleStart - buffer);
+      const rs = Math.max(0, visibleStart - buf);
       if (rs === 0) {
         spacerHeightAdjustment = 0;
       } else {
@@ -635,7 +653,7 @@
 
     if (immediateAboveDelta !== 0 && topSpacerEl) {
       spacerHeightAdjustment -= immediateAboveDelta;
-      const rangeStart = Math.max(0, visibleStart - buffer);
+      const rangeStart = Math.max(0, visibleStart - getEffectiveBuffer());
       const prefix = tree.prefixSum(rangeStart);
       const rawSpacerHeight = prefix + spacerHeightAdjustment;
       if (rawSpacerHeight < 0 && spacerHeightAdjustment < 0 && scrollContainer) {
@@ -941,7 +959,7 @@
 
     recalculatePositions();
     visibleStart = 0;
-    visibleEnd = Math.min(items.length, pp.oldVisibleEnd + shiftCount + buffer);
+    visibleEnd = Math.min(items.length, pp.oldVisibleEnd + shiftCount + getEffectiveBuffer());
     invalidateLayout();
 
     tick().then(() => {
@@ -1089,8 +1107,9 @@
   });
 
   function measureVisibleItems(updateTree: boolean): void {
-    const start = Math.max(0, visibleStart - buffer);
-    const end = Math.min(items.length, visibleEnd + buffer);
+    const buf = getEffectiveBuffer();
+    const start = Math.max(0, visibleStart - buf);
+    const end = Math.min(items.length, visibleEnd + buf);
 
     for (let i = start; i < end; i++) {
       const key = getKey(items[i], i);
@@ -1143,14 +1162,19 @@
 
   export function scrollToIndex(index: number, options: ScrollToIndexOptions = {}): void {
     if (!scrollContainer || index < 0 || index >= items.length) return;
+
+    spacerHeightAdjustment = 0;
+    _visibleItemScrollOffset = 0;
+
     recalculatePositions();
 
     const { align = 'start', offset = 0 } = options;
     const targetScrollTop = computeScrollTop(index, align, offset);
+    const buf = getEffectiveBuffer();
 
     isNavigating = true;
-    visibleStart = Math.max(0, index - buffer);
-    visibleEnd = Math.min(items.length, index + buffer + SCROLLTO_EXTRA_BUFFER);
+    visibleStart = Math.max(0, index - buf);
+    visibleEnd = Math.min(items.length, index + buf + SCROLLTO_EXTRA_BUFFER);
     invalidateLayout();
 
     tick().then(() => {
@@ -1162,7 +1186,7 @@
         },
         {
           threshold: DRIFT_THRESHOLD_SCROLL,
-          maxPasses: CORRECTION_MAX_PASSES,
+          maxPasses: SCROLLTO_CORRECTION_MAX_PASSES,
           measure: 'full',
           navigating: true,
         },
@@ -1242,9 +1266,10 @@
 
     const offset = state.offset ?? 0;
 
+    const buf = getEffectiveBuffer();
     isNavigating = true;
-    visibleStart = Math.max(0, targetIdx - buffer);
-    visibleEnd = Math.min(items.length, targetIdx + buffer + SCROLLTO_EXTRA_BUFFER);
+    visibleStart = Math.max(0, targetIdx - buf);
+    visibleEnd = Math.min(items.length, targetIdx + buf + SCROLLTO_EXTRA_BUFFER);
     invalidateLayout();
 
     if (lightweight && state.scrollTop != null) {
@@ -1331,8 +1356,9 @@
 
   export function prepareForIndex(index: number): void {
     if (index < 0 || index >= items.length || !scrollContainer) return;
-    visibleStart = Math.max(0, index - buffer);
-    visibleEnd = Math.min(items.length, index + buffer + SCROLLTO_EXTRA_BUFFER);
+    const buf = getEffectiveBuffer();
+    visibleStart = Math.max(0, index - buf);
+    visibleEnd = Math.min(items.length, index + buf + SCROLLTO_EXTRA_BUFFER);
     viewportHeight = getViewportHeight();
     invalidateLayout();
   }

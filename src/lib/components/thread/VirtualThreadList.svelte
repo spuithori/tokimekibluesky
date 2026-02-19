@@ -108,7 +108,7 @@
     {getKey}
     {scrollContainer}
     {topMargin}
-    buffer={10}
+    bufferPx={200}
     bind:this={virtualList}
   >
     {#snippet children(item, index)}

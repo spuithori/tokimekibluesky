@@ -198,7 +198,7 @@
     {initialScrollState}
     {refreshToTop}
     paused={isPaused}
-    buffer={10}
+    bufferPx={200}
     onScroll={handleVirtualScroll}
     onRangeChange={checkLoadMore}
     bind:this={virtualList}
