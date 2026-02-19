@@ -13,3 +13,4 @@ export const DEFAULT_ITEM_HEIGHT = 100;
 export const EARLY_CHECK_FRAMES = 3;
 export const DEFAULT_BUFFER_PX = 150;
 export const SCROLLTO_CORRECTION_MAX_PASSES = 5;
+export const DRIFT_THRESHOLD_PREPEND = 0.2;

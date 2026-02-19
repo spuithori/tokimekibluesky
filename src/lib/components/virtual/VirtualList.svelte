@@ -24,6 +24,7 @@
     EARLY_CHECK_FRAMES,
     DEFAULT_BUFFER_PX,
     SCROLLTO_CORRECTION_MAX_PASSES,
+    DRIFT_THRESHOLD_PREPEND,
   } from './constants';
 
   let fallbackItemHeight = DEFAULT_ITEM_HEIGHT;
@@ -1019,8 +1020,8 @@
           return el.getBoundingClientRect().top - cTop - pp.anchorVisualY;
         },
         {
-          threshold: DRIFT_THRESHOLD_POSITION,
-          maxPasses: CORRECTION_MAX_PASSES,
+          threshold: DRIFT_THRESHOLD_PREPEND,
+          maxPasses: SCROLLTO_CORRECTION_MAX_PASSES,
           measure: 'full',
           navigating: true,
           onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
