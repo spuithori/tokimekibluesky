@@ -137,7 +137,7 @@
 
   let visibleItems = $derived(items.slice(visibleRange.start, visibleRange.end));
 
-  let effectiveTotalHeight = $state(0);
+  let effectiveTotalHeight = 0;
   let topSpacerHeight = $state(0);
   let bottomSpacerHeight = $state(0);
 

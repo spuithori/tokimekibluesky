@@ -51,14 +51,17 @@ export class HeightManager {
   }
 
   prune(activeKeys: { has(key: string): boolean }): void {
-    for (const key of this.heights.keys()) {
-      if (!activeKeys.has(key)) {
-        const h = this.heights.get(key)!;
+    const oldSize = this.heights.size;
+    const newHeights = new Map<string, number>();
+    for (const [key, h] of this.heights) {
+      if (activeKeys.has(key)) {
+        newHeights.set(key, h);
+      } else {
         this.totalMeasured -= h;
         this._measuredCount--;
-        this.heights.delete(key);
       }
     }
+    this.heights = newHeights;
   }
 
 
