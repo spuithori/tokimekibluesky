@@ -148,6 +148,12 @@
       const currentSt = getScrollTop();
       if (currentSt > 0) { setScrollTop(Math.max(0, currentSt - excess)); }
     }
+    if (visibleRange.start === 0 && spacerHeightAdjustment > 0) {
+      const excess = spacerHeightAdjustment;
+      spacerHeightAdjustment = 0;
+      const currentSt = getScrollTop();
+      if (currentSt > 0) { setScrollTop(Math.max(0, currentSt - excess)); }
+    }
     topSpacerHeight = computeTopSpacerHeight(visibleRange.start);
     const endPos = items.length > 0
       ? (visibleRange.end < tree.length ? tree.prefixSum(visibleRange.end) : tree.total)
@@ -272,7 +278,7 @@
       }
 
       if (newRangeStart === 0) {
-        if (spacerHeightAdjustment < 0) spacerHeightAdjustment = 0;
+        spacerHeightAdjustment = 0;
         _visibleItemScrollOffset = 0;
       }
 
@@ -573,7 +579,11 @@
         recalculatePositions();
       }
       const rs = Math.max(0, visibleStart - buffer);
-      spacerHeightAdjustment = topSpacerHeight - tree.prefixSum(rs);
+      if (rs === 0) {
+        spacerHeightAdjustment = 0;
+      } else {
+        spacerHeightAdjustment = topSpacerHeight - tree.prefixSum(rs);
+      }
       invalidateLayout();
       frameDirty |= DIRTY_SCROLL;
     }
@@ -606,7 +616,7 @@
       if (!isNavigating) {
         const idx = findIndexForKey(key);
         if (idx !== undefined) {
-          if (oldHeight === undefined && idx < tree.length && idx < visibleEnd) {
+          if (oldHeight === undefined && idx < tree.length && idx < visibleStart) {
             const treeValue = tree.get(idx);
             const estimateDelta = newHeight - treeValue;
             if (isHeightChanged(estimateDelta, 0)) {
@@ -644,6 +654,12 @@
         if (currentSt > 0) {
           setScrollTop(currentSt + excess);
         }
+      }
+      if (rangeStart === 0 && spacerHeightAdjustment > 0 && scrollContainer) {
+        const excess = spacerHeightAdjustment;
+        spacerHeightAdjustment = 0;
+        const currentSt = getScrollTop();
+        if (currentSt > 0) setScrollTop(Math.max(0, currentSt - excess));
       }
       applyTopSpacerHeight(rangeStart);
     }
