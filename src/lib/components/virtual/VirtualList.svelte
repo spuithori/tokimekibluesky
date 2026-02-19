@@ -105,6 +105,7 @@
   let lastKnownVisibleStart = 0;
   let lastUserScrollTime = 0;
   let quickPrependHandled = false;
+  let _postCorrectionAnchor: { key: string; visualY: number } | null = null;
   let cachedPrependShift = 0;
   let pendingPrependAnchor: {
     scrollTop: number;
@@ -392,6 +393,19 @@
       if (Math.abs(drift) > 0.5) {
         _cachedScrollTop = -1;
         setScrollTop(getScrollTop() + Math.round(drift));
+      }
+    }
+
+    if (_postCorrectionAnchor) {
+      const anchor = _postCorrectionAnchor;
+      _postCorrectionAnchor = null;
+      const el = itemRefs.get(anchor.key);
+      if (el && topSpacerEl) {
+        const cTop = getContainerTop();
+        const residual = el.getBoundingClientRect().top - cTop - anchor.visualY;
+        if (Math.abs(residual) > 0.01) {
+          topSpacerEl.style.height = (topSpacerHeight - residual) + 'px';
+        }
       }
     }
 
@@ -877,7 +891,10 @@
           maxPasses: CORRECTION_MAX_PASSES,
           measure: 'none',
           navigating: false,
-          onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
+          onFinish: () => {
+            _postCorrectionAnchor = { key: anchorKey, visualY: anchorVisualY };
+            if (scrollContainer) scrollContainer.style.overflowAnchor = '';
+          },
         },
       );
     } else {
@@ -1010,6 +1027,13 @@
         const newAnchorVisualY = newAnchorEl.getBoundingClientRect().top - cTop;
         const target = Math.max(0, pp.scrollTop + newAnchorVisualY - pp.anchorVisualY);
         setScrollTop(target);
+        // Immediate sub-pixel correction after initial scroll set
+        _cachedScrollTop = -1;
+        const residual = newAnchorEl.getBoundingClientRect().top - cTop - pp.anchorVisualY;
+        if (Math.abs(residual) > 0.01) {
+          setScrollTop(getScrollTop() + residual);
+          _cachedScrollTop = -1;
+        }
       }
 
       startCorrection(
@@ -1024,7 +1048,10 @@
           maxPasses: SCROLLTO_CORRECTION_MAX_PASSES,
           measure: 'full',
           navigating: true,
-          onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
+          onFinish: () => {
+            _postCorrectionAnchor = { key: pp.anchorKey, visualY: pp.anchorVisualY };
+            if (scrollContainer) scrollContainer.style.overflowAnchor = '';
+          },
         },
       );
       queueMicrotask(() => pruneStaleHeights());
