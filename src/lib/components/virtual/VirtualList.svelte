@@ -66,6 +66,8 @@
     ? initialScrollState.scrollTop + 1000
     : 0;
   let _cachedScrollTop = -1;
+  let isDocumentHidden = $state(typeof document !== 'undefined' && document.hidden);
+  let effectivePaused = $derived(paused || isDocumentHidden);
   let spacerHeightAdjustment = 0;
   let _visibleItemScrollOffset = 0;
   let topSpacerEl: HTMLDivElement | undefined = $state();
@@ -424,7 +426,7 @@
   }
 
   function handleScroll(): void {
-    if (isNavigating || paused) return;
+    if (isNavigating || effectivePaused) return;
     scheduleFrame(DIRTY_SCROLL);
   }
 
@@ -592,6 +594,7 @@
   let resizeOwner: object | null = null;
 
   function handleItemResizeBatch(entries: ResizeObserverEntry[]): void {
+    if (isDocumentHidden) return;
     cacheContainerTop();
     let immediateAboveDelta = 0;
     let visibleAboveDelta = 0;
@@ -672,7 +675,7 @@
 
     clearContainerTopCache();
 
-    if (hm.pending.size > 0 && !paused) {
+    if (hm.pending.size > 0 && !effectivePaused) {
       earlyCheckCountdown = 10;
       scheduleFrame(DIRTY_HEIGHTS);
       if (earlyCheckId === null) earlyCheckId = requestAnimationFrame(earlyBufferCheck);
@@ -1077,12 +1080,25 @@
   });
 
   $effect(() => {
-    if (!paused && scrollContainer) {
+    if (!effectivePaused && scrollContainer) {
       if (hm.pending.size > 0) {
         scheduleFrame(DIRTY_HEIGHTS);
       }
       scheduleFrame(DIRTY_SCROLL);
     }
+  });
+
+  $effect(() => {
+    if (typeof document === 'undefined') return;
+    const handler = () => {
+      const wasHidden = isDocumentHidden;
+      isDocumentHidden = document.hidden;
+      if (wasHidden && !document.hidden && scrollContainer) {
+        scheduleFrame(DIRTY_HEIGHTS | DIRTY_SCROLL);
+      }
+    };
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
   });
 
   $effect(() => {
