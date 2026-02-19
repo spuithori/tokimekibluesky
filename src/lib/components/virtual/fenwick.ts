@@ -34,7 +34,7 @@ export class FenwickTree {
     }
 
     if (n > this._capacity) {
-      const newCap = Math.max(n, 64);
+      const newCap = Math.max(this._capacity + Math.ceil(this._capacity * 0.5), n, 64);
       this._data = new Float64Array(newCap + 1);
       this._tree = new Float64Array(newCap + 1);
       this._capacity = newCap;

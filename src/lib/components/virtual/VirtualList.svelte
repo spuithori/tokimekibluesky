@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tick, flushSync } from 'svelte';
+  import { tick, flushSync, untrack } from 'svelte';
   import type { Snippet } from 'svelte';
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
   import { FenwickTree } from './fenwick';
@@ -912,22 +912,24 @@
     const len = items.length;
     void items;
 
-    cachedPrependShift = 0;
-    if (len === 0 || prevItemCount === 0 || !scrollContainer) return;
+    untrack(() => {
+      cachedPrependShift = 0;
+      if (len === 0 || prevItemCount === 0 || !scrollContainer) return;
 
-    const firstKey = getKey(items[0], 0);
-    const shiftCount = detectPrependShift(firstKey, prevFirstKey);
-    cachedPrependShift = shiftCount;
+      const firstKey = getKey(items[0], 0);
+      const shiftCount = detectPrependShift(firstKey, prevFirstKey);
+      cachedPrependShift = shiftCount;
 
-    if (shiftCount > 0) {
-      if (refreshToTop && getScrollTop() <= topMargin) {
-        handlePrePrependRefreshToTop(shiftCount);
-      } else if (Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS || isNavigating) {
-        handlePrePrependActiveScroll(shiftCount);
-      } else {
-        handlePrePrependIdle(shiftCount);
+      if (shiftCount > 0) {
+        if (refreshToTop && getScrollTop() <= topMargin) {
+          handlePrePrependRefreshToTop(shiftCount);
+        } else if (Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS || isNavigating) {
+          handlePrePrependActiveScroll(shiftCount);
+        } else {
+          handlePrePrependIdle(shiftCount);
+        }
       }
-    }
+    });
   });
 
   function handleItemsClear(): void {
@@ -1041,36 +1043,38 @@
     const len = items.length;
     void items;
 
-    const firstKey = len > 0 ? getKey(items[0], 0) : '';
-    const lastKey = len > 0 ? getKey(items[len - 1], len - 1) : '';
-    const oldCount = prevItemCount;
-    const oldFirstKey = prevFirstKey;
-    const oldLastKey = prevLastKey;
+    untrack(() => {
+      const firstKey = len > 0 ? getKey(items[0], 0) : '';
+      const lastKey = len > 0 ? getKey(items[len - 1], len - 1) : '';
+      const oldCount = prevItemCount;
+      const oldFirstKey = prevFirstKey;
+      const oldLastKey = prevLastKey;
 
-    const change = classifyItemChange(len, firstKey, lastKey, oldCount, oldFirstKey, oldLastKey, {
-      quickPrependHandled,
-      cachedPrependShift,
-      hasScrollContainer: !!scrollContainer,
-      hasPendingPrependAnchor: !!pendingPrependAnchor,
-      detectPrependShift,
-      getKeyAt: (i: number) => getKey(items[i], i),
+      const change = classifyItemChange(len, firstKey, lastKey, oldCount, oldFirstKey, oldLastKey, {
+        quickPrependHandled,
+        cachedPrependShift,
+        hasScrollContainer: !!scrollContainer,
+        hasPendingPrependAnchor: !!pendingPrependAnchor,
+        detectPrependShift,
+        getKeyAt: (i: number) => getKey(items[i], i),
+      });
+
+      prevItemCount = len;
+      prevFirstKey = firstKey;
+      prevLastKey = lastKey;
+
+      switch (change.type) {
+        case 'clear': handleItemsClear(); break;
+        case 'quickPrepend': quickPrependHandled = false; invalidateLayout(); break;
+        case 'initial': handleItemsInitial(); break;
+        case 'append': handleItemsAppend(change.oldCount); break;
+        case 'unchanged': break;
+        case 'prependWithAnchor': handlePrependWithAnchor(change.shiftCount); break;
+        case 'prependSimple': handlePrependSimple(change.shiftCount); break;
+        case 'prependFullReset': handlePrependFullReset(); break;
+        case 'generic': handleItemsGenericChange(); break;
+      }
     });
-
-    prevItemCount = len;
-    prevFirstKey = firstKey;
-    prevLastKey = lastKey;
-
-    switch (change.type) {
-      case 'clear': handleItemsClear(); break;
-      case 'quickPrepend': quickPrependHandled = false; invalidateLayout(); break;
-      case 'initial': handleItemsInitial(); break;
-      case 'append': handleItemsAppend(change.oldCount); break;
-      case 'unchanged': break;
-      case 'prependWithAnchor': handlePrependWithAnchor(change.shiftCount); break;
-      case 'prependSimple': handlePrependSimple(change.shiftCount); break;
-      case 'prependFullReset': handlePrependFullReset(); break;
-      case 'generic': handleItemsGenericChange(); break;
-    }
   });
 
   $effect(() => {
@@ -1105,28 +1109,30 @@
 
   $effect(() => {
     if (scrollContainer && initialScrollState && !hasRestoredScroll && items.length > 0 && viewportHeight > 0) {
-      const targetIdx = findTargetIndex(initialScrollState, items, getKey);
-      if (targetIdx < 0 || targetIdx >= items.length) return;
+      untrack(() => {
+        const targetIdx = findTargetIndex(initialScrollState, items, getKey);
+        if (targetIdx < 0 || targetIdx >= items.length) return;
 
-      hasRestoredScroll = true;
-      const hasHeights = (initialScrollState.heights?.length ?? 0) > 0;
-      const savedScrollTop = initialScrollState.scrollTop;
+        hasRestoredScroll = true;
+        const hasHeights = (initialScrollState.heights?.length ?? 0) > 0;
+        const savedScrollTop = initialScrollState.scrollTop;
 
-      if (!hasHeights && savedScrollTop != null && savedScrollTop > 0 && initialScrollState.index > 0) {
-        minTotalHeight = savedScrollTop + viewportHeight;
-      }
-
-      if (initialScrollState.heights?.length > 0) {
-        for (const [key, value] of initialScrollState.heights) {
-          hm.set(key, value);
+        if (!hasHeights && savedScrollTop != null && savedScrollTop > 0 && initialScrollState.index > 0) {
+          minTotalHeight = savedScrollTop + viewportHeight;
         }
-      }
 
-      if (hasHeights || tree.length !== items.length) {
-        recalculatePositions();
-      }
+        if (initialScrollState.heights?.length > 0) {
+          for (const [key, value] of initialScrollState.heights) {
+            hm.set(key, value);
+          }
+        }
 
-      applyScrollRestore(initialScrollState, !hasHeights && savedScrollTop != null);
+        if (hasHeights || tree.length !== items.length) {
+          recalculatePositions();
+        }
+
+        applyScrollRestore(initialScrollState, !hasHeights && savedScrollTop != null);
+      });
     }
   });
 
