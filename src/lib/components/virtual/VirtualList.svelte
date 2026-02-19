@@ -187,6 +187,7 @@
     if (!hm.shouldPrune(items.length)) return;
     const keyToIndex = getKeyToIndex();
     hm.prune(keyToIndex);
+    releaseKeyToIndexCache();
   }
 
   function getAverageHeight(): number {
@@ -470,12 +471,30 @@
   let _keyToIndexLen = -1;
   let _keyToIndexFirstKey = '';
   let _keyToIndexLastKey = '';
+  let _keyToIndexReleaseTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function releaseKeyToIndexCache(): void {
+    _keyToIndexCache = null;
+    _keyToIndexLen = -1;
+    _keyToIndexFirstKey = '';
+    _keyToIndexLastKey = '';
+    if (_keyToIndexReleaseTimer !== null) {
+      clearTimeout(_keyToIndexReleaseTimer);
+      _keyToIndexReleaseTimer = null;
+    }
+  }
+
+  function scheduleKeyToIndexRelease(): void {
+    if (_keyToIndexReleaseTimer !== null) clearTimeout(_keyToIndexReleaseTimer);
+    _keyToIndexReleaseTimer = setTimeout(releaseKeyToIndexCache, 2000);
+  }
 
   function getKeyToIndex(): Map<string, number> {
     const len = items.length;
     if (len === 0) return _keyToIndexCache ?? new Map();
     if (_keyToIndexCache && _keyToIndexLen === len
         && _keyToIndexFirstKey === prevFirstKey && _keyToIndexLastKey === prevLastKey) {
+      scheduleKeyToIndexRelease();
       return _keyToIndexCache;
     }
 
@@ -486,6 +505,7 @@
       }
       _keyToIndexLen = len;
       _keyToIndexLastKey = prevLastKey;
+      scheduleKeyToIndexRelease();
       return _keyToIndexCache;
     }
 
@@ -498,6 +518,7 @@
     _keyToIndexLen = len;
     _keyToIndexFirstKey = prevFirstKey;
     _keyToIndexLastKey = prevLastKey;
+    scheduleKeyToIndexRelease();
     return _keyToIndexCache;
   }
 
@@ -743,6 +764,7 @@
       }
       cancelFrame();
       correctionLoop.cancel();
+      releaseKeyToIndexCache();
       for (const el of observedElements) {
         unobserveResize(el);
       }
@@ -919,6 +941,7 @@
     spacerHeightAdjustment = 0;
     _visibleItemScrollOffset = 0;
     hm.clear();
+    releaseKeyToIndexCache();
     queueMicrotask(() => invalidateLayout());
   }
 
@@ -945,6 +968,7 @@
   function handleItemsGenericChange(): void {
     spacerHeightAdjustment = 0;
     _visibleItemScrollOffset = 0;
+    releaseKeyToIndexCache();
     recalculatePositions();
     queueMicrotask(() => {
       invalidateLayout();
