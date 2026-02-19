@@ -222,17 +222,14 @@
     if (shiftCount <= 0) return;
     applyPendingHeights();
     const avg = getAverageHeight();
-    tree.prependWithCallback(shiftCount, (i) => hm.get(getKey(items[i], i)) ?? avg);
+    tree.prependWithCallback(shiftCount, () => avg);
   }
 
   function appendPositions(startIndex: number): void {
     const len = items.length;
     if (len === 0 || startIndex >= len) return;
     const avg = getAverageHeight();
-    tree.extendWithCallback(len - startIndex, (i) => {
-      const idx = startIndex + i;
-      return hm.get(getKey(items[idx], idx)) ?? avg;
-    });
+    tree.extendWithCallback(len - startIndex, () => avg);
   }
 
   function getScrollTop(): number {

@@ -61,6 +61,7 @@ export class HeightManager {
     }
   }
 
+
   shouldPrune(itemCount: number): boolean {
     return this.heights.size > itemCount * HEIGHT_PRUNE_FACTOR;
   }
