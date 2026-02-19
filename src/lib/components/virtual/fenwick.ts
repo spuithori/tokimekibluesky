@@ -174,5 +174,10 @@ export class FenwickTree {
   clear(): void {
     this._size = 0;
     this._total = 0;
+    if (this._capacity > 2048) {
+      this._tree = new Float64Array(0);
+      this._data = new Float64Array(0);
+      this._capacity = 0;
+    }
   }
 }

@@ -6,6 +6,9 @@
   import { HeightManager } from './height-manager';
   import { computeScrollTopPosition, findTargetIndex, getScrollTopFor, setScrollTopFor } from './scroll-helpers';
   import { createResizeOwner, destroyResizeOwner, observeResize, unobserveResize } from './shared-resize-observer';
+  import { CorrectionLoop } from './correction-loop';
+  import type { CorrectionOpts } from './correction-loop';
+  import { classifyItemChange } from './item-change-classifier';
   import {
     PREPEND_SEARCH_LIMIT,
     SCROLL_VELOCITY_THRESHOLD_MS,
@@ -18,6 +21,7 @@
     HEIGHT_APPLY_THRESHOLD,
     ANCHOR_TOLERANCE,
     DEFAULT_ITEM_HEIGHT,
+    EARLY_CHECK_FRAMES,
   } from './constants';
 
   let fallbackItemHeight = DEFAULT_ITEM_HEIGHT;
@@ -304,63 +308,21 @@
     frameDirty = 0;
   }
 
-  interface CorrectionState {
-    computeDrift: () => number | null;
-    threshold: number;
-    maxPasses: number;
-    measure: 'full' | 'incremental' | 'none';
-    navigating: boolean;
-    onStart?: () => void;
-    onFinish?: () => void;
-    pass: number;
-  }
-
-  let correctionState: CorrectionState | null = null;
+  const correctionLoop = new CorrectionLoop({
+    scheduleFrame: (flag: number) => scheduleFrame(flag),
+    measureFull: () => measureAndRecalculate(),
+    measureIncremental: () => measureAndRecalculateIncremental(),
+    getScrollTop: () => getScrollTop(),
+    setScrollTop: (v: number) => setScrollTop(v),
+    finishNavigation: () => finishNavigation(),
+    DIRTY_CORRECTION,
+  });
 
   function startCorrection(
     computeDrift: () => number | null,
-    opts: { threshold: number; maxPasses: number; measure: 'full' | 'incremental' | 'none'; navigating: boolean; onStart?: () => void; onFinish?: () => void }
+    opts: CorrectionOpts,
   ): void {
-    if (correctionState) {
-      correctionState.onFinish?.();
-      if (correctionState.navigating) finishNavigation();
-    }
-    correctionState = { computeDrift, ...opts, pass: 0 };
-    scheduleFrame(DIRTY_CORRECTION);
-  }
-
-  function processCorrectionPass(): void {
-    if (!correctionState) return;
-    if (!scrollContainer || correctionState.pass >= correctionState.maxPasses) {
-      const cs = correctionState;
-      correctionState = null;
-      cs.onFinish?.();
-      if (cs.navigating) finishNavigation();
-      return;
-    }
-
-    if (correctionState.pass === 0 && correctionState.onStart) {
-      correctionState.onStart();
-      correctionState.onStart = undefined;
-    }
-
-    if (correctionState.measure === 'full') measureAndRecalculate();
-    else if (correctionState.measure === 'incremental') measureAndRecalculateIncremental();
-
-    const drift = correctionState.computeDrift();
-    const currentScrollTop = getScrollTop();
-
-    if (drift === null || Math.abs(drift) <= correctionState.threshold) {
-      const cs = correctionState;
-      correctionState = null;
-      cs.onFinish?.();
-      if (cs.navigating) finishNavigation();
-      return;
-    }
-
-    setScrollTop(currentScrollTop + drift);
-    correctionState.pass++;
-    scheduleFrame(DIRTY_CORRECTION);
+    correctionLoop.start(computeDrift, opts);
   }
 
   function processFrame(): void {
@@ -374,7 +336,7 @@
 
     if (frameDirty & DIRTY_CORRECTION) {
       frameDirty &= ~DIRTY_CORRECTION;
-      processCorrectionPass();
+      correctionLoop.processPass(scrollContainer);
     }
 
     const oldRangeStart = Math.max(0, visibleStart - buffer);
@@ -391,19 +353,37 @@
       }
     }
 
+    const newRangeStart = Math.max(0, visibleStart - buffer);
+    let driftRefEl: HTMLElement | null = null;
+    let driftRefY = 0;
+    if (newRangeStart > oldRangeStart && newRangeStart < items.length) {
+      const refKey = getKey(items[newRangeStart], newRangeStart);
+      driftRefEl = itemRefs.get(refKey) ?? null;
+      if (driftRefEl) driftRefY = driftRefEl.getBoundingClientRect().top;
+    }
+
     flushSync();
 
-    const newRangeStart = Math.max(0, visibleStart - buffer);
+    if (driftRefEl) {
+      const newY = driftRefEl.getBoundingClientRect().top;
+      const drift = newY - driftRefY;
+      if (Math.abs(drift) > 1) {
+        _cachedScrollTop = -1;
+        setScrollTop(getScrollTop() + drift);
+      }
+    }
+
     if (newRangeStart < oldRangeStart && topSpacerEl) {
       let heightDelta = 0;
       for (let i = newRangeStart; i < oldRangeStart && i < items.length; i++) {
         const key = getKey(items[i], i);
+        const cachedH = hm.pending.get(key) ?? hm.get(key);
+        const treeVal = tree.get(i);
+        if (cachedH !== undefined && !isHeightChanged(treeVal, cachedH)) continue;
         const el = itemRefs.get(key);
         const domH = el ? el.getBoundingClientRect().height : 0;
-        const cachedH = hm.pending.get(key) ?? hm.get(key);
         const bestH = domH > 0 ? domH : cachedH;
         if (bestH === undefined || bestH <= 0) continue;
-        const treeVal = tree.get(i);
         const delta = bestH - treeVal;
         if (delta === 0) continue;
         heightDelta += delta;
@@ -493,13 +473,16 @@
       return _keyToIndexCache;
     }
 
-    const map = new Map<string, number>();
-    for (let i = 0; i < len; i++) map.set(getKey(items[i], i), i);
-    _keyToIndexCache = map;
+    if (_keyToIndexCache) {
+      _keyToIndexCache.clear();
+    } else {
+      _keyToIndexCache = new Map<string, number>();
+    }
+    for (let i = 0; i < len; i++) _keyToIndexCache.set(getKey(items[i], i), i);
     _keyToIndexLen = len;
     _keyToIndexFirstKey = prevFirstKey;
     _keyToIndexLastKey = prevLastKey;
-    return map;
+    return _keyToIndexCache;
   }
 
   const KEY_TO_INDEX_LINEAR_THRESHOLD = 8;
@@ -522,9 +505,14 @@
     for (let i = fromIdx; i < Math.min(toIdx, oldRangeEnd); i++) {
       if (i >= items.length) break;
       const key = getKey(items[i], i);
-      if (hm.has(key) && i < tree.length) {
-        const cached = hm.get(key)!;
+      const cached = hm.get(key);
+      if (cached !== undefined && i < tree.length) {
         if (!isHeightChanged(tree.get(i), cached)) continue;
+        const el = itemRefs.get(key);
+        if (el) {
+          const h = el.getBoundingClientRect().height;
+          if (h > 0) { hm.set(key, h); tree.set(i, h); continue; }
+        }
         tree.set(i, cached);
         continue;
       }
@@ -676,7 +664,7 @@
     clearContainerTopCache();
 
     if (hm.pending.size > 0 && !effectivePaused) {
-      earlyCheckCountdown = 10;
+      earlyCheckCountdown = EARLY_CHECK_FRAMES;
       scheduleFrame(DIRTY_HEIGHTS);
       if (earlyCheckId === null) earlyCheckId = requestAnimationFrame(earlyBufferCheck);
     }
@@ -736,7 +724,7 @@
         earlyCheckId = null;
       }
       cancelFrame();
-      correctionState = null;
+      correctionLoop.cancel();
       for (const el of observedElements) {
         unobserveResize(el);
       }
@@ -960,9 +948,12 @@
       for (let i = 0; i < shiftCount; i++) {
         const key = getKey(items[i], i);
         const el = itemRefs.get(key);
-        if (el) hm.set(key, el.getBoundingClientRect().height);
+        if (el) {
+          const h = el.getBoundingClientRect().height;
+          hm.set(key, h);
+          if (i < tree.length) tree.set(i, h);
+        }
       }
-      recalculatePositions();
 
       const newAnchorEl = itemRefs.get(pp.anchorKey);
       if (newAnchorEl && scrollContainer) {
@@ -1004,45 +995,6 @@
     handleItemsGenericChange();
   }
 
-  type ItemChangeType =
-    | { type: 'clear' }
-    | { type: 'quickPrepend' }
-    | { type: 'initial' }
-    | { type: 'append'; oldCount: number }
-    | { type: 'unchanged' }
-    | { type: 'prependWithAnchor'; shiftCount: number }
-    | { type: 'prependSimple'; shiftCount: number }
-    | { type: 'prependFullReset' }
-    | { type: 'generic' };
-
-  function classifyItemChange(
-    len: number, firstKey: string, lastKey: string,
-    oldCount: number, oldFirstKey: string, oldLastKey: string
-  ): ItemChangeType {
-    if (len === 0) return { type: 'clear' };
-    if (quickPrependHandled) return { type: 'quickPrepend' };
-    if (oldCount === 0) return { type: 'initial' };
-
-    if (firstKey === oldFirstKey) {
-      if (len > oldCount && oldLastKey && getKey(items[oldCount - 1], oldCount - 1) === oldLastKey) {
-        return { type: 'append', oldCount };
-      }
-      if (len === oldCount && lastKey === oldLastKey) return { type: 'unchanged' };
-      return { type: 'generic' };
-    }
-
-    if (oldFirstKey && firstKey !== oldFirstKey) {
-      const shiftCount = cachedPrependShift > 0 ? cachedPrependShift : detectPrependShift(firstKey, oldFirstKey);
-      if (shiftCount > 0 && scrollContainer && pendingPrependAnchor) {
-        return { type: 'prependWithAnchor', shiftCount };
-      }
-      if (shiftCount > 0) return { type: 'prependSimple', shiftCount };
-      return { type: 'prependFullReset' };
-    }
-
-    return { type: 'generic' };
-  }
-
   $effect(() => {
     const len = items.length;
     void items;
@@ -1053,7 +1005,14 @@
     const oldFirstKey = prevFirstKey;
     const oldLastKey = prevLastKey;
 
-    const change = classifyItemChange(len, firstKey, lastKey, oldCount, oldFirstKey, oldLastKey);
+    const change = classifyItemChange(len, firstKey, lastKey, oldCount, oldFirstKey, oldLastKey, {
+      quickPrependHandled,
+      cachedPrependShift,
+      hasScrollContainer: !!scrollContainer,
+      hasPendingPrependAnchor: !!pendingPrependAnchor,
+      detectPrependShift,
+      getKeyAt: (i: number) => getKey(items[i], i),
+    });
 
     prevItemCount = len;
     prevFirstKey = firstKey;
@@ -1094,6 +1053,7 @@
       const wasHidden = isDocumentHidden;
       isDocumentHidden = document.hidden;
       if (wasHidden && !document.hidden && scrollContainer) {
+        pruneStaleHeights();
         scheduleFrame(DIRTY_HEIGHTS | DIRTY_SCROLL);
       }
     };
@@ -1132,7 +1092,6 @@
     const start = Math.max(0, visibleStart - buffer);
     const end = Math.min(items.length, visibleEnd + buffer);
 
-    const measurements: { key: string; index: number; height: number }[] = [];
     for (let i = start; i < end; i++) {
       const key = getKey(items[i], i);
       const existing = hm.get(key);
@@ -1145,14 +1104,10 @@
       const h = el.getBoundingClientRect().height;
       if (h <= 0) continue;
       if (existing === undefined || isHeightChanged(existing, h)) {
-        measurements.push({ key, index: i, height: h });
-      }
-    }
-
-    for (const { key, index, height } of measurements) {
-      hm.set(key, height);
-      if (updateTree && index < tree.length) {
-        tree.set(index, height);
+        hm.set(key, h);
+        if (updateTree && i < tree.length) {
+          tree.set(i, h);
+        }
       }
     }
   }

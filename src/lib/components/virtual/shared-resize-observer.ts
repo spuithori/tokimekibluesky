@@ -3,25 +3,37 @@ export type ResizeBatchCallback = (entries: ResizeObserverEntry[]) => void;
 let sharedObserver: ResizeObserver | null = null;
 const elementToOwner = new Map<Element, object>();
 const ownerCallbacks = new Map<object, ResizeBatchCallback>();
+const _byOwner = new Map<object, ResizeObserverEntry[]>();
+const _entryPool: ResizeObserverEntry[][] = [];
 
 function getSharedObserver(): ResizeObserver {
   if (!sharedObserver) {
     sharedObserver = new ResizeObserver((entries) => {
-      const byOwner = new Map<object, ResizeObserverEntry[]>();
+      if (ownerCallbacks.size === 0) return;
+
+      if (ownerCallbacks.size === 1) {
+        const cb = ownerCallbacks.values().next().value!;
+        cb(entries);
+        return;
+      }
+
       for (const entry of entries) {
         const owner = elementToOwner.get(entry.target);
         if (!owner) continue;
-        let group = byOwner.get(owner);
+        let group = _byOwner.get(owner);
         if (!group) {
-          group = [];
-          byOwner.set(owner, group);
+          group = _entryPool.pop() ?? [];
+          _byOwner.set(owner, group);
         }
         group.push(entry);
       }
-      for (const [owner, ownerEntries] of byOwner) {
+      for (const [owner, ownerEntries] of _byOwner) {
         const cb = ownerCallbacks.get(owner);
         if (cb) cb(ownerEntries);
+        ownerEntries.length = 0;
+        _entryPool.push(ownerEntries);
       }
+      _byOwner.clear();
     });
   }
   return sharedObserver;

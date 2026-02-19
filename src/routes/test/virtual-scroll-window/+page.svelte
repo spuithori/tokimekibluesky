@@ -288,6 +288,10 @@
         };
       },
 
+      setHeightOverride(range: [number, number] | null) {
+        heightOverrideRange = range;
+      },
+
       resetWithOptions(opts: { count?: number; heightRange?: [number, number] } = {}) {
         if (loadMoreCleanup) {
           loadMoreCleanup();
