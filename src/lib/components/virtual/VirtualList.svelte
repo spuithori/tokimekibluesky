@@ -119,6 +119,20 @@
   let topSpacerHeight = $state(0);
   let bottomSpacerHeight = $state(0);
 
+  function isHeightChanged(a: number, b: number, threshold = HEIGHT_APPLY_THRESHOLD): boolean {
+    return Math.abs(a - b) >= threshold;
+  }
+
+  function computeTopSpacerHeight(rangeStart: number): number {
+    return Math.max(0, tree.prefixSum(rangeStart) + spacerHeightAdjustment);
+  }
+
+  function applyTopSpacerHeight(rangeStart: number): void {
+    const h = computeTopSpacerHeight(rangeStart);
+    if (topSpacerEl) topSpacerEl.style.height = h + 'px';
+    topSpacerHeight = h;
+  }
+
   function invalidateLayout(): void {
     effectiveTotalHeight = Math.max(tree.total, minTotalHeight);
     if (!isVirtualizationEnabled) {
@@ -134,7 +148,7 @@
       const currentSt = getScrollTop();
       if (currentSt > 0) { setScrollTop(Math.max(0, currentSt - excess)); }
     }
-    topSpacerHeight = Math.max(0, prefix + spacerHeightAdjustment);
+    topSpacerHeight = computeTopSpacerHeight(visibleRange.start);
     const endPos = items.length > 0
       ? (visibleRange.end < tree.length ? tree.prefixSum(visibleRange.end) : tree.total)
       : 0;
@@ -202,9 +216,20 @@
     return scrollContainer?.clientHeight ?? 0;
   }
 
+  let _cachedContainerTop: number | null = null;
+
   function getContainerTop(): number {
     if (isWindowScroll) return 0;
+    if (_cachedContainerTop !== null) return _cachedContainerTop;
     return scrollContainer?.getBoundingClientRect().top ?? 0;
+  }
+
+  function cacheContainerTop(): void {
+    _cachedContainerTop = getContainerTop();
+  }
+
+  function clearContainerTopCache(): void {
+    _cachedContainerTop = null;
   }
 
   function findEndIndex(scrollBottom: number): number {
@@ -332,6 +357,7 @@
 
   function processFrame(): void {
     _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
+    cacheContainerTop();
 
     if (frameDirty & DIRTY_HEIGHTS) {
       frameDirty &= ~DIRTY_HEIGHTS;
@@ -378,13 +404,12 @@
       }
       if (heightDelta !== 0) {
         spacerHeightAdjustment -= heightDelta;
-        const correctedSpacer = Math.max(0, tree.prefixSum(newRangeStart) + spacerHeightAdjustment);
-        topSpacerEl.style.height = correctedSpacer + 'px';
-        topSpacerHeight = correctedSpacer;
+        applyTopSpacerHeight(newRangeStart);
       }
     }
 
     _cachedScrollTop = -1;
+    clearContainerTopCache();
 
     frameId = null;
     if (frameDirty !== 0) {
@@ -426,9 +451,7 @@
       }
       if (heightDelta !== 0) {
         spacerHeightAdjustment -= heightDelta;
-        const newSpacer = Math.max(0, tree.prefixSum(rangeStart) + spacerHeightAdjustment);
-        topSpacerEl.style.height = newSpacer + 'px';
-        topSpacerHeight = newSpacer;
+        applyTopSpacerHeight(rangeStart);
       }
     }
 
@@ -451,6 +474,17 @@
         && _keyToIndexFirstKey === prevFirstKey && _keyToIndexLastKey === prevLastKey) {
       return _keyToIndexCache;
     }
+
+    if (_keyToIndexCache && _keyToIndexFirstKey === prevFirstKey
+        && len > _keyToIndexLen && _keyToIndexLen > 0) {
+      for (let i = _keyToIndexLen; i < len; i++) {
+        _keyToIndexCache.set(getKey(items[i], i), i);
+      }
+      _keyToIndexLen = len;
+      _keyToIndexLastKey = prevLastKey;
+      return _keyToIndexCache;
+    }
+
     const map = new Map<string, number>();
     for (let i = 0; i < len; i++) map.set(getKey(items[i], i), i);
     _keyToIndexCache = map;
@@ -482,7 +516,7 @@
       const key = getKey(items[i], i);
       if (hm.has(key) && i < tree.length) {
         const cached = hm.get(key)!;
-        if (Math.abs(tree.get(i) - cached) < HEIGHT_APPLY_THRESHOLD) continue;
+        if (!isHeightChanged(tree.get(i), cached)) continue;
         tree.set(i, cached);
         continue;
       }
@@ -493,6 +527,30 @@
       hm.set(key, h);
       if (i < tree.length) tree.set(i, h);
     }
+  }
+
+  function flushPendingToTree(minIndex = 0): boolean {
+    if (hm.pending.size === 0) return false;
+
+    const useLinear = hm.pending.size <= KEY_TO_INDEX_LINEAR_THRESHOLD;
+    let hasChanges = false;
+
+    for (const [key, newHeight] of hm.pending) {
+      const oldHeight = hm.get(key);
+      if (oldHeight !== undefined && !isHeightChanged(oldHeight, newHeight)) continue;
+      hm.set(key, newHeight);
+
+      const idx = useLinear ? findIndexForKey(key) : getKeyToIndex().get(key);
+      if (idx === undefined) continue;
+      if (idx >= minIndex && idx < tree.length) {
+        tree.set(idx, newHeight);
+        hasChanges = true;
+      }
+    }
+
+    hm.pending.clear();
+    frameDirty &= ~DIRTY_HEIGHTS;
+    return hasChanges;
   }
 
   function flushHeightUpdates(): void {
@@ -507,25 +565,8 @@
       return;
     }
 
-    let hasChanges = false;
-
     const rangeStart = Math.max(0, visibleStart - buffer);
-    const useLinear = hm.pending.size <= KEY_TO_INDEX_LINEAR_THRESHOLD;
-
-    for (const [key, newHeight] of hm.pending) {
-      const oldHeight = hm.get(key);
-      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
-      hm.set(key, newHeight);
-
-      const idx = useLinear ? findIndexForKey(key) : getKeyToIndex().get(key);
-      if (idx === undefined) continue;
-      if (idx >= rangeStart && idx < tree.length) {
-        tree.set(idx, newHeight);
-        hasChanges = true;
-      }
-    }
-
-    hm.pending.clear();
+    const hasChanges = flushPendingToTree(rangeStart);
 
     if (hasChanges) {
       if (tree.length !== items.length) {
@@ -541,6 +582,7 @@
   let resizeOwner: object | null = null;
 
   function handleItemResizeBatch(entries: ResizeObserverEntry[]): void {
+    cacheContainerTop();
     let immediateAboveDelta = 0;
     let visibleAboveDelta = 0;
 
@@ -555,7 +597,7 @@
       if (newHeight <= 0) continue;
 
       const oldHeight = hm.get(key);
-      if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_CHANGE_THRESHOLD) {
+      if (oldHeight !== undefined && !isHeightChanged(oldHeight, newHeight, HEIGHT_CHANGE_THRESHOLD)) {
         continue;
       }
 
@@ -567,12 +609,12 @@
           if (oldHeight === undefined && idx < tree.length && idx < visibleEnd) {
             const treeValue = tree.get(idx);
             const estimateDelta = newHeight - treeValue;
-            if (Math.abs(estimateDelta) >= HEIGHT_APPLY_THRESHOLD) {
+            if (isHeightChanged(estimateDelta, 0)) {
               immediateAboveDelta += estimateDelta;
             }
           } else if (oldHeight !== undefined && idx < visibleStart) {
             const actualDelta = newHeight - oldHeight;
-            if (Math.abs(actualDelta) >= HEIGHT_APPLY_THRESHOLD) {
+            if (isHeightChanged(actualDelta, 0)) {
               immediateAboveDelta += actualDelta;
             }
           } else if (oldHeight !== undefined && idx >= visibleStart) {
@@ -581,7 +623,7 @@
             const relTop = rect.top - containerTop;
             if (relTop < viewportHeight * 0.6) {
               const delta = newHeight - oldHeight;
-              if (Math.abs(delta) >= HEIGHT_APPLY_THRESHOLD) {
+              if (isHeightChanged(delta, 0)) {
                 visibleAboveDelta += delta;
               }
             }
@@ -603,9 +645,7 @@
           setScrollTop(currentSt + excess);
         }
       }
-      const newSpacerHeight = Math.max(0, prefix + spacerHeightAdjustment);
-      topSpacerEl.style.height = newSpacerHeight + 'px';
-      topSpacerHeight = newSpacerHeight;
+      applyTopSpacerHeight(rangeStart);
     }
 
     if (visibleAboveDelta !== 0 && scrollContainer) {
@@ -613,6 +653,8 @@
       const st = getScrollTop();
       setScrollTop(st + visibleAboveDelta);
     }
+
+    clearContainerTopCache();
 
     if (hm.pending.size > 0 && !paused) {
       earlyCheckCountdown = 10;
@@ -739,6 +781,11 @@
     return null;
   }
 
+  function captureAnchorWithDefaults(shiftCount: number): { key: string; visualY: number } {
+    const anchor = captureAnchorItem(shiftCount);
+    return { key: anchor?.key ?? '', visualY: anchor?.visualY ?? 0 };
+  }
+
   function detectPrependShift(firstKey: string, prevKey: string): number {
     if (!prevKey || firstKey === prevKey) return 0;
     const limit = Math.min(items.length, PREPEND_SEARCH_LIMIT);
@@ -746,6 +793,72 @@
       if (getKey(items[i], i) === prevKey) return i;
     }
     return 0;
+  }
+
+  function handlePrePrependRefreshToTop(shiftCount: number): void {
+    recalculatePositions();
+    visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
+    invalidateLayout();
+    quickPrependHandled = true;
+  }
+
+  function handlePrePrependActiveScroll(shiftCount: number): void {
+    const { key: anchorKey, visualY: anchorVisualY } = captureAnchorWithDefaults(shiftCount);
+
+    scrollContainer!.style.overflowAnchor = 'none';
+    recalculatePositions();
+    const scrollDelta = tree.length > 0 ? tree.prefixSum(shiftCount) : (shiftCount * getAverageHeight());
+    setScrollTop(getScrollTop() + scrollDelta);
+    visibleStart = Math.max(0, visibleStart + shiftCount);
+    visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
+    quickPrependHandled = true;
+
+    if (anchorKey) {
+      startCorrection(
+        () => {
+          const el = itemRefs.get(anchorKey);
+          if (!el) return null;
+          return el.getBoundingClientRect().top - getContainerTop() - anchorVisualY;
+        },
+        {
+          threshold: DRIFT_THRESHOLD_POSITION,
+          maxPasses: CORRECTION_MAX_PASSES,
+          measure: 'none',
+          navigating: false,
+          onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
+        },
+      );
+    } else {
+      startCorrection(
+        () => null,
+        {
+          threshold: 0,
+          maxPasses: 1,
+          measure: 'none',
+          navigating: false,
+          onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
+        },
+      );
+    }
+  }
+
+  function handlePrePrependIdle(shiftCount: number): void {
+    const currentScrollTop = getScrollTop();
+    const { key: anchorKey, visualY: anchorVisualY } = captureAnchorWithDefaults(shiftCount);
+
+    if (anchorKey) {
+      scrollContainer!.style.overflowAnchor = 'none';
+      isNavigating = true;
+
+      pendingPrependAnchor = {
+        scrollTop: currentScrollTop,
+        anchorKey,
+        anchorVisualY,
+        containerTop: getContainerTop(),
+        shiftCount,
+        oldVisibleEnd: visibleEnd,
+      };
+    }
   }
 
   $effect.pre(() => {
@@ -761,69 +874,11 @@
 
     if (shiftCount > 0) {
       if (refreshToTop && getScrollTop() <= topMargin) {
-        recalculatePositions();
-        visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
-        invalidateLayout();
-        quickPrependHandled = true;
+        handlePrePrependRefreshToTop(shiftCount);
       } else if (Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS || isNavigating) {
-        const anchor = captureAnchorItem(shiftCount);
-        const anchorKey = anchor?.key ?? '';
-        const anchorVisualY = anchor?.visualY ?? 0;
-
-        scrollContainer.style.overflowAnchor = 'none';
-        recalculatePositions();
-        const scrollDelta = tree.length > 0 ? tree.prefixSum(shiftCount) : (shiftCount * getAverageHeight());
-        setScrollTop(getScrollTop() + scrollDelta);
-        visibleStart = Math.max(0, visibleStart + shiftCount);
-        visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
-        quickPrependHandled = true;
-
-        if (anchorKey) {
-          startCorrection(
-            () => {
-              const el = itemRefs.get(anchorKey);
-              if (!el) return null;
-              return el.getBoundingClientRect().top - getContainerTop() - anchorVisualY;
-            },
-            {
-              threshold: DRIFT_THRESHOLD_POSITION,
-              maxPasses: CORRECTION_MAX_PASSES,
-              measure: 'none',
-              navigating: false,
-              onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
-            },
-          );
-        } else {
-          startCorrection(
-            () => null,
-            {
-              threshold: 0,
-              maxPasses: 1,
-              measure: 'none',
-              navigating: false,
-              onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
-            },
-          );
-        }
+        handlePrePrependActiveScroll(shiftCount);
       } else {
-        const currentScrollTop = getScrollTop();
-        const anchor = captureAnchorItem(shiftCount);
-        const anchorKey = anchor?.key ?? '';
-        const anchorVisualY = anchor?.visualY ?? 0;
-
-        if (anchorKey) {
-          scrollContainer.style.overflowAnchor = 'none';
-          isNavigating = true;
-
-          pendingPrependAnchor = {
-            scrollTop: currentScrollTop,
-            anchorKey,
-            anchorVisualY,
-            containerTop: getContainerTop(),
-            shiftCount,
-            oldVisibleEnd: visibleEnd,
-          };
-        }
+        handlePrePrependIdle(shiftCount);
       }
     }
   });
@@ -869,6 +924,7 @@
     queueMicrotask(() => {
       invalidateLayout();
       updateVisibleRange();
+      pruneStaleHeights();
     });
   }
 
@@ -921,6 +977,7 @@
     visibleStart = Math.max(0, visibleStart + shiftCount);
     visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
     invalidateLayout();
+    queueMicrotask(() => pruneStaleHeights());
   }
 
   function handlePrependFullReset(): void {
@@ -928,50 +985,72 @@
     handleItemsGenericChange();
   }
 
-  $effect(() => {
-    const len = items.length;
-    void items;
+  type ItemChangeType =
+    | { type: 'clear' }
+    | { type: 'quickPrepend' }
+    | { type: 'initial' }
+    | { type: 'append'; oldCount: number }
+    | { type: 'unchanged' }
+    | { type: 'prependWithAnchor'; shiftCount: number }
+    | { type: 'prependSimple'; shiftCount: number }
+    | { type: 'prependFullReset' }
+    | { type: 'generic' };
 
-    if (len === 0) { handleItemsClear(); return; }
-
-    const firstKey = getKey(items[0], 0);
-    const lastKey = getKey(items[len - 1], len - 1);
-    const oldCount = prevItemCount;
-    const oldFirstKey = prevFirstKey;
-    const oldLastKey = prevLastKey;
-
-    prevItemCount = len;
-    prevFirstKey = firstKey;
-    prevLastKey = lastKey;
-
-    if (quickPrependHandled) { quickPrependHandled = false; invalidateLayout(); return; }
-
-    if (oldCount === 0) { handleItemsInitial(); return; }
+  function classifyItemChange(
+    len: number, firstKey: string, lastKey: string,
+    oldCount: number, oldFirstKey: string, oldLastKey: string
+  ): ItemChangeType {
+    if (len === 0) return { type: 'clear' };
+    if (quickPrependHandled) return { type: 'quickPrepend' };
+    if (oldCount === 0) return { type: 'initial' };
 
     if (firstKey === oldFirstKey) {
       if (len > oldCount && oldLastKey && getKey(items[oldCount - 1], oldCount - 1) === oldLastKey) {
-        handleItemsAppend(oldCount);
-      } else if (len === oldCount && lastKey === oldLastKey) {
-        return;
-      } else {
-        handleItemsGenericChange();
+        return { type: 'append', oldCount };
       }
-      return;
+      if (len === oldCount && lastKey === oldLastKey) return { type: 'unchanged' };
+      return { type: 'generic' };
     }
 
     if (oldFirstKey && firstKey !== oldFirstKey) {
       const shiftCount = cachedPrependShift > 0 ? cachedPrependShift : detectPrependShift(firstKey, oldFirstKey);
       if (shiftCount > 0 && scrollContainer && pendingPrependAnchor) {
-        handlePrependWithAnchor(shiftCount);
-      } else if (shiftCount > 0) {
-        handlePrependSimple(shiftCount);
-      } else {
-        handlePrependFullReset();
+        return { type: 'prependWithAnchor', shiftCount };
       }
-      return;
+      if (shiftCount > 0) return { type: 'prependSimple', shiftCount };
+      return { type: 'prependFullReset' };
     }
 
-    handleItemsGenericChange();
+    return { type: 'generic' };
+  }
+
+  $effect(() => {
+    const len = items.length;
+    void items;
+
+    const firstKey = len > 0 ? getKey(items[0], 0) : '';
+    const lastKey = len > 0 ? getKey(items[len - 1], len - 1) : '';
+    const oldCount = prevItemCount;
+    const oldFirstKey = prevFirstKey;
+    const oldLastKey = prevLastKey;
+
+    const change = classifyItemChange(len, firstKey, lastKey, oldCount, oldFirstKey, oldLastKey);
+
+    prevItemCount = len;
+    prevFirstKey = firstKey;
+    prevLastKey = lastKey;
+
+    switch (change.type) {
+      case 'clear': handleItemsClear(); break;
+      case 'quickPrepend': quickPrependHandled = false; invalidateLayout(); break;
+      case 'initial': handleItemsInitial(); break;
+      case 'append': handleItemsAppend(change.oldCount); break;
+      case 'unchanged': break;
+      case 'prependWithAnchor': handlePrependWithAnchor(change.shiftCount); break;
+      case 'prependSimple': handlePrependSimple(change.shiftCount); break;
+      case 'prependFullReset': handlePrependFullReset(); break;
+      case 'generic': handleItemsGenericChange(); break;
+    }
   });
 
   $effect(() => {
@@ -1020,22 +1099,28 @@
   function measureVisibleItems(updateTree: boolean): void {
     const start = Math.max(0, visibleStart - buffer);
     const end = Math.min(items.length, visibleEnd + buffer);
+
+    const measurements: { key: string; index: number; height: number }[] = [];
     for (let i = start; i < end; i++) {
       const key = getKey(items[i], i);
       const existing = hm.get(key);
       if (existing !== undefined && i < tree.length
-          && Math.abs(tree.get(i) - existing) < HEIGHT_APPLY_THRESHOLD) {
+          && !isHeightChanged(tree.get(i), existing)) {
         continue;
       }
       const el = itemRefs.get(key);
       if (!el) continue;
       const h = el.getBoundingClientRect().height;
       if (h <= 0) continue;
-      if (existing === undefined || Math.abs(existing - h) >= HEIGHT_APPLY_THRESHOLD) {
-        hm.set(key, h);
-        if (updateTree && i < tree.length) {
-          tree.set(i, h);
-        }
+      if (existing === undefined || isHeightChanged(existing, h)) {
+        measurements.push({ key, index: i, height: h });
+      }
+    }
+
+    for (const { key, index, height } of measurements) {
+      hm.set(key, height);
+      if (updateTree && index < tree.length) {
+        tree.set(index, height);
       }
     }
   }
@@ -1050,20 +1135,7 @@
   }
 
   function measureAndRecalculateIncremental(): void {
-    if (hm.pending.size > 0) {
-      const useLinear = hm.pending.size <= KEY_TO_INDEX_LINEAR_THRESHOLD;
-      for (const [key, newHeight] of hm.pending) {
-        const oldHeight = hm.get(key);
-        if (oldHeight !== undefined && Math.abs(oldHeight - newHeight) < HEIGHT_APPLY_THRESHOLD) continue;
-        hm.set(key, newHeight);
-        const idx = useLinear ? findIndexForKey(key) : getKeyToIndex().get(key);
-        if (idx !== undefined && idx < tree.length) {
-          tree.set(idx, newHeight);
-        }
-      }
-      hm.pending.clear();
-      frameDirty &= ~DIRTY_HEIGHTS;
-    }
+    flushPendingToTree();
 
     measureVisibleItems(true);
 
@@ -1298,7 +1370,7 @@
     {#each visibleItems as item, i (getKey(item, visibleRange.start + i))}
       {@const index = visibleRange.start + i}
       {@const key = getKey(item, index)}
-      {@const useAutoCV = index >= visibleEnd ? !isNavigating : false}
+      {@const useAutoCV = (index >= visibleEnd || index < visibleStart) ? !isNavigating : false}
       <div class="virtual-item" style:content-visibility={useAutoCV ? "auto" : "visible"} style:contain-intrinsic-block-size={useAutoCV ? `auto ${getItemHeight(index)}px` : undefined} {@attach itemAttach(key)}>
         {@render children(item, index)}
       </div>
