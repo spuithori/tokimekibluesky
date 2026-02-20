@@ -2,8 +2,7 @@
   import { createWindowVirtualizer } from '@tanstack/svelte-virtual';
   import { generateMockFeed } from '$lib/test/mockFeedGenerator';
   import type { MockFeedViewPost } from '$lib/test/mockFeedGenerator';
-  import FeedItem from '../FeedItem.svelte';
-  import { onMount, tick } from 'svelte';
+  import { onMount, tick, flushSync } from 'svelte';
 
   const TOP_MARGIN = 52;
 
@@ -20,14 +19,42 @@
     },
   });
 
+  $effect(() => {
+    const len = items.length;
+    $virtualizer.setOptions({ count: len });
+  });
+
+  function getEmbedType(item: MockFeedViewPost): string | null {
+    const embed = item.post.embed;
+    if (!embed) return null;
+    if (embed.$type === 'app.bsky.embed.images#view') return 'images';
+    if (embed.$type === 'app.bsky.embed.external#view') return 'external';
+    if (embed.$type === 'app.bsky.embed.video#view') return 'video';
+    if (embed.$type === 'app.bsky.embed.record#view') return 'quote';
+    if (embed.$type === 'app.bsky.embed.recordWithMedia#view') return 'record-with-media';
+    return null;
+  }
+
+  function formatNumber(n: number): string {
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+  }
+
   onMount(() => {
     (window as any).__realisticBench = {
       loadFeed(count: number, seed = 42) {
-        items = generateMockFeed({ count, seed });
+        flushSync(() => {
+          items = generateMockFeed({ count, seed });
+        });
+        // Force virtualizer to compute visible items after count change
+        $virtualizer.measure();
+        window.dispatchEvent(new Event('scroll'));
       },
 
       clearFeed() {
-        items = [];
+        flushSync(() => {
+          items = [];
+        });
       },
 
       getFeedCount() {
@@ -71,9 +98,81 @@
         <div
           style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({virtualItem.start - $virtualizer.options.scrollMargin}px);"
         >
-          <FeedItem {item} index={virtualItem.index} />
+          <article class="timeline-item" data-testid="timeline-item" data-index={virtualItem.index} data-uri={item.post.uri}>
+            {#if item.reason}
+              <div class="repost-indicator">
+                <span>{item.reason.by.displayName} reposted</span>
+              </div>
+            {/if}
+
+            {#if item.reply}
+              <div class="reply-context">
+                <span>{item.reply.parent.author.displayName}</span>
+                <span>{item.reply.parent.record.text.slice(0, 80)}</span>
+              </div>
+            {/if}
+
+            <div class="post-layout">
+              <div class="avatar-column">
+                <div class="avatar" style="width:42px;height:42px;border-radius:50%;background:#ddd;"></div>
+              </div>
+
+              <div class="content-column">
+                <div class="post-header">
+                  <span class="display-name">{item.post.author.displayName}</span>
+                  <span class="handle">@{item.post.author.handle}</span>
+                </div>
+
+                <div class="post-text">{item.post.record.text}</div>
+
+                {#if item.post.embed}
+                  {@const embedType = getEmbedType(item)}
+                  {#if embedType === 'images' || embedType === 'record-with-media'}
+                    <div class="embed" style="background:#e8e8e8;min-height:120px;border-radius:8px;margin-bottom:8px;">
+                      {#if item.post.embed.images}
+                        {#each item.post.embed.images as img, i (img.fullsize)}
+                          <div style="height:80px;background:#ddd;">{img.alt || `Image ${i + 1}`}</div>
+                        {/each}
+                      {/if}
+                    </div>
+                  {:else if embedType === 'external'}
+                    <div class="embed" style="background:#e8e8e8;height:80px;border-radius:8px;margin-bottom:8px;">
+                      <span>{item.post.embed.external.title}</span>
+                    </div>
+                  {:else if embedType === 'video'}
+                    <div class="embed" style="background:#1a1a1a;aspect-ratio:16/9;border-radius:8px;margin-bottom:8px;"></div>
+                  {:else if embedType === 'quote'}
+                    <div class="embed" style="padding:10px;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:8px;">
+                      <span>{item.post.embed.record.author.displayName}</span>
+                      <div>{item.post.embed.record.value.text.slice(0, 120)}</div>
+                    </div>
+                  {/if}
+                {/if}
+
+                <div class="post-actions">
+                  <span>{formatNumber(item.post.replyCount)}</span>
+                  <span>{formatNumber(item.post.repostCount)}</span>
+                  <span>{formatNumber(item.post.likeCount)}</span>
+                </div>
+              </div>
+            </div>
+          </article>
         </div>
       {/if}
     {/each}
   </div>
 </div>
+
+<style>
+  .timeline-item { border-bottom: 1px solid #e0e0e0; font-family: sans-serif; font-size: 14px; }
+  .repost-indicator { padding: 4px 12px 0 56px; color: #666; font-size: 12px; }
+  .reply-context { padding: 8px 12px 0 56px; font-size: 12px; color: #666; }
+  .post-layout { display: flex; padding: 10px 12px; gap: 10px; }
+  .avatar-column { flex-shrink: 0; }
+  .content-column { flex: 1; min-width: 0; }
+  .post-header { display: flex; gap: 4px; margin-bottom: 2px; }
+  .display-name { font-weight: 700; }
+  .handle { color: #666; font-size: 13px; }
+  .post-text { line-height: 1.5; margin-bottom: 8px; }
+  .post-actions { display: flex; gap: 16px; color: #666; font-size: 12px; }
+</style>
