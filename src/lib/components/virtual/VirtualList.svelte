@@ -3,7 +3,6 @@
   import type { Snippet } from 'svelte';
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
   import { FenwickTree } from './fenwick';
-  import { computeScrollTopPosition, findTargetIndex, getScrollTopFor, setScrollTopFor } from './scroll-helpers';
   import {
     PREPEND_SEARCH_LIMIT,
     SCROLL_VELOCITY_THRESHOLD_MS,
@@ -183,6 +182,20 @@
     return tree.measuredCount > 0 ? tree.measuredAverage : fallbackItemHeight;
   }
 
+  function findTargetIndex(state: ScrollState): number {
+    let targetIdx = state.index;
+    if (state.key && items.length > 0) {
+      const currentKey = targetIdx >= 0 && targetIdx < items.length
+        ? getKey(items[targetIdx], targetIdx) : '';
+      if (currentKey !== state.key) {
+        for (let i = 0; i < items.length; i++) {
+          if (getKey(items[i], i) === state.key) { targetIdx = i; break; }
+        }
+      }
+    }
+    return targetIdx;
+  }
+
   function getItemHeight(index: number): number {
     if (index < 0 || index >= items.length) return getAverageHeight();
     return tree.isMeasured(index) ? tree.get(index) : getAverageHeight();
@@ -227,12 +240,14 @@
 
   function getScrollTop(): number {
     if (_cachedScrollTop >= 0) return _cachedScrollTop;
-    return getScrollTopFor(scrollContainer, isWindowScroll);
+    if (isWindowScroll) return window.scrollY;
+    return scrollContainer?.scrollTop ?? 0;
   }
 
   function setScrollTop(value: number): void {
     _cachedScrollTop = -1;
-    setScrollTopFor(scrollContainer, isWindowScroll, value);
+    if (isWindowScroll) { window.scrollTo(0, value); }
+    else if (scrollContainer) { scrollContainer.scrollTop = value; }
   }
 
   let _cachedContainerTop: number | null = null;
@@ -359,7 +374,7 @@
   }
 
   function processFrame(): void {
-    _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
+    _cachedScrollTop = (isWindowScroll ? window.scrollY : scrollContainer?.scrollTop ?? 0);
     cacheContainerTop();
 
     if (frameDirty & DIRTY_HEIGHTS) {
@@ -377,7 +392,7 @@
 
     if ((frameDirty & DIRTY_SCROLL) && !isNavigating) {
       frameDirty &= ~DIRTY_SCROLL;
-      _cachedScrollTop = getScrollTopFor(scrollContainer, isWindowScroll);
+      _cachedScrollTop = (isWindowScroll ? window.scrollY : scrollContainer?.scrollTop ?? 0);
       updateVisibleRange();
       onScroll?.();
       if (scrollContainer) {
@@ -1079,7 +1094,7 @@
   $effect(() => {
     if (scrollContainer && initialScrollState && !hasRestoredScroll && items.length > 0 && viewportHeight > 0) {
       untrack(() => {
-        const targetIdx = findTargetIndex(initialScrollState, items, getKey);
+        const targetIdx = findTargetIndex(initialScrollState);
         if (targetIdx < 0 || targetIdx >= items.length) return;
 
         hasRestoredScroll = true;
@@ -1160,7 +1175,11 @@
   }
 
   function computeScrollTop(index: number, align: string, offset: number): number {
-    return computeScrollTopPosition(tree, index, getItemHeight(index), viewportHeight, topMargin, align, offset);
+    const pos = tree.prefixSum(index);
+    const usable = viewportHeight - topMargin;
+    if (align === 'center') return pos - usable / 2 + getItemHeight(index) / 2 + offset;
+    if (align === 'end') return pos - usable + getItemHeight(index) + offset;
+    return pos + offset;
   }
 
   export function scrollToIndex(index: number, options: ScrollToIndexOptions = {}): void {
@@ -1270,7 +1289,7 @@
   }
 
   function applyScrollRestore(state: ScrollState, lightweight: boolean): void {
-    const targetIdx = findTargetIndex(state, items, getKey);
+    const targetIdx = findTargetIndex(state);
     if (targetIdx < 0 || targetIdx >= items.length) return;
 
     const offset = state.offset ?? 0;
