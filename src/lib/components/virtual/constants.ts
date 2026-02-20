@@ -5,7 +5,6 @@ export const DRIFT_THRESHOLD_POSITION = 1;
 export const DRIFT_THRESHOLD_SCROLL = 1;
 export const FALLBACK_RENDER_COUNT = 20;
 export const SCROLLTO_EXTRA_BUFFER = 3;
-export const HEIGHT_PRUNE_FACTOR = 1.1;
 export const HEIGHT_CHANGE_THRESHOLD = 2;
 export const HEIGHT_APPLY_THRESHOLD = 1;
 export const ANCHOR_TOLERANCE = 2;

@@ -4,10 +4,6 @@
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
   import { FenwickTree } from './fenwick';
   import { computeScrollTopPosition, findTargetIndex, getScrollTopFor, setScrollTopFor } from './scroll-helpers';
-  import { createResizeOwner, destroyResizeOwner, observeResize, unobserveResize } from './shared-resize-observer';
-  import { CorrectionLoop } from './correction-loop';
-  import type { CorrectionOpts } from './correction-loop';
-  import { classifyItemChange } from './item-change-classifier';
   import {
     PREPEND_SEARCH_LIMIT,
     SCROLL_VELOCITY_THRESHOLD_MS,
@@ -93,7 +89,6 @@
   const DIRTY_SCROLL = 1;
   const DIRTY_HEIGHTS = 2;
   const DIRTY_CORRECTION = 4;
-  let observedElements = new Set<Element>();
   let earlyCheckId: number | null = null;
   let earlyCheckCountdown = 0;
   let prevItemCount = 0;
@@ -240,11 +235,6 @@
     setScrollTopFor(scrollContainer, isWindowScroll, value);
   }
 
-  function getViewportHeight(): number {
-    if (isWindowScroll) return window.innerHeight;
-    return scrollContainer?.clientHeight ?? 0;
-  }
-
   let _cachedContainerTop: number | null = null;
 
   function getContainerTop(): number {
@@ -313,21 +303,59 @@
     frameDirty = 0;
   }
 
-  const correctionLoop = new CorrectionLoop({
-    scheduleFrame: (flag: number) => scheduleFrame(flag),
-    measureFull: () => measureAndRecalculate(),
-    measureIncremental: () => measureAndRecalculateIncremental(),
-    getScrollTop: () => getScrollTop(),
-    setScrollTop: (v: number) => setScrollTop(v),
-    finishNavigation: () => finishNavigation(),
-    DIRTY_CORRECTION,
-  });
+  let _corrState: {
+    computeDrift: () => number | null;
+    threshold: number;
+    maxPasses: number;
+    measure: 'full' | 'incremental' | 'none';
+    navigating: boolean;
+    onStart?: () => void;
+    onFinish?: () => void;
+    pass: number;
+  } | null = null;
+
+  function finishCorrectionState(s: NonNullable<typeof _corrState>): void {
+    s.onFinish?.();
+    if (s.navigating) finishNavigation();
+  }
 
   function startCorrection(
     computeDrift: () => number | null,
-    opts: CorrectionOpts,
+    opts: { threshold: number; maxPasses: number; measure: 'full' | 'incremental' | 'none'; navigating: boolean; onStart?: () => void; onFinish?: () => void },
   ): void {
-    correctionLoop.start(computeDrift, opts);
+    if (_corrState) finishCorrectionState(_corrState);
+    _corrState = { computeDrift, ...opts, pass: 0 };
+    scheduleFrame(DIRTY_CORRECTION);
+  }
+
+  function processCorrection(): void {
+    if (!_corrState) return;
+    if (!scrollContainer || _corrState.pass >= _corrState.maxPasses) {
+      const s = _corrState; _corrState = null;
+      finishCorrectionState(s);
+      return;
+    }
+    if (_corrState.pass === 0 && _corrState.onStart) {
+      _corrState.onStart();
+      _corrState.onStart = undefined;
+    }
+    if (_corrState.measure === 'full') measureAndRecalculate();
+    else if (_corrState.measure === 'incremental') measureAndRecalculateIncremental();
+    const drift = _corrState.computeDrift();
+    const st = getScrollTop();
+    if (drift === null || Math.abs(drift) <= _corrState.threshold) {
+      const s = _corrState; _corrState = null;
+      finishCorrectionState(s);
+      return;
+    }
+    setScrollTop(st + drift);
+    _corrState.pass++;
+    scheduleFrame(DIRTY_CORRECTION);
+  }
+
+  function cancelCorrection(): void {
+    if (_corrState) finishCorrectionState(_corrState);
+    _corrState = null;
   }
 
   function processFrame(): void {
@@ -341,7 +369,7 @@
 
     if (frameDirty & DIRTY_CORRECTION) {
       frameDirty &= ~DIRTY_CORRECTION;
-      correctionLoop.processPass(scrollContainer);
+      processCorrection();
     }
 
     const buf = getEffectiveBuffer();
@@ -552,7 +580,7 @@
     }
   }
 
-  let resizeOwner: object | null = null;
+  let resizeObserver: ResizeObserver | null = null;
 
   function handleItemResizeBatch(entries: ResizeObserverEntry[]): void {
     if (isDocumentHidden) return;
@@ -646,7 +674,7 @@
   }
 
   function scrollContainerAttach(element: HTMLElement) {
-    resizeOwner = createResizeOwner(handleItemResizeBatch);
+    resizeObserver = new ResizeObserver(handleItemResizeBatch);
     lastValidScrollContainer = scrollContainer ?? null;
     lastKnownScrollTop = getScrollTop();
 
@@ -695,15 +723,11 @@
         earlyCheckId = null;
       }
       cancelFrame();
-      correctionLoop.cancel();
+      cancelCorrection();
 
-      for (const el of observedElements) {
-        unobserveResize(el);
-      }
-      observedElements.clear();
-      if (resizeOwner) {
-        destroyResizeOwner(resizeOwner);
-        resizeOwner = null;
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+        resizeObserver = null;
       }
       scrollTarget.removeEventListener('scroll', handleScroll);
       scrollTarget.removeEventListener('wheel', handleUserScroll);
@@ -715,15 +739,11 @@
   function itemAttach(key: string) {
     return (element: HTMLElement) => {
       element.dataset.virtualKey = key;
-      if (resizeOwner) {
-        observeResize(element, resizeOwner);
-        observedElements.add(element);
-      }
+      resizeObserver?.observe(element);
       itemRefs.set(key, element);
 
       return () => {
-        unobserveResize(element);
-        observedElements.delete(element);
+        resizeObserver?.unobserve(element);
         itemRefs.delete(key);
       };
     };
@@ -994,29 +1014,35 @@
       const oldFirstKey = prevFirstKey;
       const oldLastKey = prevLastKey;
 
-      const change = classifyItemChange(len, firstKey, lastKey, oldCount, oldFirstKey, oldLastKey, {
-        quickPrependHandled,
-        cachedPrependShift,
-        hasScrollContainer: !!scrollContainer,
-        hasPendingPrependAnchor: !!pendingPrependAnchor,
-        detectPrependShift,
-        getKeyAt: (i: number) => getKey(items[i], i),
-      });
-
       prevItemCount = len;
       prevFirstKey = firstKey;
       prevLastKey = lastKey;
 
-      switch (change.type) {
-        case 'clear': handleItemsClear(); break;
-        case 'quickPrepend': quickPrependHandled = false; invalidateLayout(); break;
-        case 'initial': handleItemsInitial(); break;
-        case 'append': handleItemsAppend(change.oldCount); break;
-        case 'unchanged': break;
-        case 'prependWithAnchor': handlePrependWithAnchor(change.shiftCount); break;
-        case 'prependSimple': handlePrependSimple(change.shiftCount); break;
-        case 'prependFullReset': handlePrependFullReset(); break;
-        case 'generic': handleItemsGenericChange(); break;
+      // Inline item-change classification
+      if (len === 0) { handleItemsClear(); }
+      else if (quickPrependHandled) { quickPrependHandled = false; invalidateLayout(); }
+      else if (oldCount === 0) { handleItemsInitial(); }
+      else if (firstKey === oldFirstKey) {
+        if (len > oldCount && oldLastKey && getKey(items[oldCount - 1], oldCount - 1) === oldLastKey) {
+          handleItemsAppend(oldCount);
+        } else if (len === oldCount && lastKey === oldLastKey) {
+          // unchanged
+        } else {
+          handleItemsGenericChange();
+        }
+      } else if (oldFirstKey) {
+        const shiftCount = cachedPrependShift > 0
+          ? cachedPrependShift
+          : detectPrependShift(firstKey, oldFirstKey);
+        if (shiftCount > 0 && scrollContainer && pendingPrependAnchor) {
+          handlePrependWithAnchor(shiftCount);
+        } else if (shiftCount > 0) {
+          handlePrependSimple(shiftCount);
+        } else {
+          handlePrependFullReset();
+        }
+      } else {
+        handleItemsGenericChange();
       }
     });
   });
@@ -1343,21 +1369,6 @@
       measuredCount: tree.measuredCount,
       averageHeight: getAverageHeight(),
     };
-  }
-
-  export function prepareForIndex(index: number): void {
-    if (index < 0 || index >= items.length || !scrollContainer) return;
-    const buf = getEffectiveBuffer();
-    visibleStart = Math.max(0, index - buf);
-    visibleEnd = Math.min(items.length, index + buf + SCROLLTO_EXTRA_BUFFER);
-    viewportHeight = getViewportHeight();
-    invalidateLayout();
-  }
-
-  export function getItemElement(index: number): HTMLElement | null {
-    if (index < 0 || index >= items.length) return null;
-    const key = getKey(items[index], index);
-    return itemRefs.get(key) ?? null;
   }
 
   export function getHeightEntries(): [string, number][] {
