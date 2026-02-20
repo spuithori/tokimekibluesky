@@ -128,7 +128,13 @@
     };
   });
 
-  let visibleItems = $derived(items.slice(visibleRange.start, visibleRange.end));
+  let visibleIndices = $derived.by(() => {
+    const { start, end } = visibleRange;
+    const len = end - start;
+    const arr = new Array(len);
+    for (let i = 0; i < len; i++) arr[i] = start + i;
+    return arr;
+  });
 
   let effectiveTotalHeight = 0;
   let topSpacerHeight = $state(0);
@@ -169,10 +175,20 @@
       const currentSt = getScrollTop();
       if (currentSt > 0) { setScrollTop(Math.max(0, currentSt - excess)); }
     }
-    topSpacerHeight = computeTopSpacerHeight(visibleRange.start);
-    const endPos = items.length > 0
-      ? (visibleRange.end < tree.length ? tree.prefixSum(visibleRange.end) : tree.total)
-      : 0;
+    topSpacerHeight = Math.max(0, prefix + spacerHeightAdjustment);
+    let endPos = 0;
+    if (items.length > 0) {
+      if (visibleRange.end >= tree.length) {
+        endPos = tree.total;
+      } else {
+        let visibleSum = 0;
+        const limit = Math.min(visibleRange.end, tree.length);
+        for (let i = visibleRange.start; i < limit; i++) {
+          visibleSum += tree.get(i);
+        }
+        endPos = prefix + visibleSum;
+      }
+    }
     bottomSpacerHeight = items.length > 0
       ? Math.max(0, effectiveTotalHeight - endPos)
       : 0;
@@ -217,16 +233,12 @@
       tree.extendWithCallback(len - tree.length, () => avg);
       tree.rebuildWithAverage(avg);
     } else {
-      // Same size: update unmeasured items to current average
       tree.rebuildWithAverage(avg);
     }
   }
 
   function prependPositions(shiftCount: number): void {
     if (shiftCount <= 0) return;
-    // Don't flush pending before prepend: items array has shifted but tree hasn't yet,
-    // so key→index resolution would produce wrong indices.
-    // Pending heights will be flushed after prepend when indices are aligned.
     const avg = getAverageHeight();
     tree.prependWithCallback(shiftCount, () => avg);
   }
@@ -290,8 +302,6 @@
           measureTransitioningItems(oldRangeStart, newRangeStart);
         }
       }
-
-      // With heights stored directly in the tree, no cache sync needed on scroll-back
 
       if (newRangeStart === 0) {
         spacerHeightAdjustment = 0;
@@ -939,7 +949,6 @@
     spacerHeightAdjustment = 0;
     _visibleItemScrollOffset = 0;
     pendingHeights.clear();
-    // Heights at old indices may not match new items; clear measured flags
     tree.clearMeasured();
     recalculatePositions();
     queueMicrotask(() => {
@@ -975,7 +984,6 @@
         const newAnchorVisualY = newAnchorEl.getBoundingClientRect().top - cTop;
         const target = Math.max(0, pp.scrollTop + newAnchorVisualY - pp.anchorVisualY);
         setScrollTop(target);
-        // Immediate sub-pixel correction after initial scroll set
         _cachedScrollTop = -1;
         const residual = newAnchorEl.getBoundingClientRect().top - cTop - pp.anchorVisualY;
         if (Math.abs(residual) > 0.01) {
@@ -1033,7 +1041,6 @@
       prevFirstKey = firstKey;
       prevLastKey = lastKey;
 
-      // Inline item-change classification
       if (len === 0) { handleItemsClear(); }
       else if (quickPrependHandled) { quickPrependHandled = false; invalidateLayout(); }
       else if (oldCount === 0) { handleItemsInitial(); }
@@ -1041,7 +1048,6 @@
         if (len > oldCount && oldLastKey && getKey(items[oldCount - 1], oldCount - 1) === oldLastKey) {
           handleItemsAppend(oldCount);
         } else if (len === oldCount && lastKey === oldLastKey) {
-          // unchanged
         } else {
           handleItemsGenericChange();
         }
@@ -1143,7 +1149,6 @@
       if (updateTree) {
         tree.setMeasured(i, h);
       } else {
-        // Will be applied during recalculatePositions via buildWithMeasured
         pendingHeights.set(key, h);
       }
     }
@@ -1408,8 +1413,8 @@
       <div class="virtual-spacer" style:height="{topSpacerHeight}px" aria-hidden="true" bind:this={topSpacerEl}></div>
     {/if}
 
-    {#each visibleItems as item, i (getKey(item, visibleRange.start + i))}
-      {@const index = visibleRange.start + i}
+    {#each visibleIndices as index (getKey(items[index], index))}
+      {@const item = items[index]}
       {@const key = getKey(item, index)}
       {@const useAutoCV = (index >= visibleEnd || index < visibleStart) ? !isNavigating : false}
       <div class="virtual-item" style:content-visibility={useAutoCV ? "auto" : "visible"} style:contain-intrinsic-block-size={useAutoCV ? `auto ${getItemHeight(index)}px` : undefined} {@attach itemAttach(key)}>
@@ -1434,6 +1439,7 @@
 
   .virtual-item {
     overflow-anchor: none;
+    contain: layout;
   }
 
   .virtual-spacer {
