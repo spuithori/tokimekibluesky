@@ -46,7 +46,6 @@
         flushSync(() => {
           items = generateMockFeed({ count, seed });
         });
-        // Force virtualizer to compute visible items after count change
         $virtualizer.measure();
         window.dispatchEvent(new Event('scroll'));
       },

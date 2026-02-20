@@ -1,15 +1,5 @@
 import { test, expect, type Page, type CDPSession } from '@playwright/test';
 
-/**
- * 実メモリ使用量ベンチマーク
- *
- * JSHeapUsedSize だけでなく、DOM ノード数・イベントリスナー数・
- * Layout/Recalculate コストを含めた包括的なメモリ比較を行う。
- *
- * 各ライブラリで 1000 件のリアルな Bluesky タイムラインデータを
- * 読み込み、全件スクロール後の状態を計測する。
- */
-
 const BASE = process.env.BENCH_BASE_URL ?? '';
 const LIBRARIES = [
   { name: 'ours',     url: `${BASE}/test/realistic-bench/ours`,     label: 'VirtualList (ours)' },
@@ -19,8 +9,6 @@ const LIBRARIES = [
 
 const ITEM_COUNT = 1000;
 const SEED = 42;
-
-// --- Types ---
 
 interface MemoryMetrics {
   jsHeapUsed: number;
@@ -47,8 +35,6 @@ interface BenchmarkResult {
   };
   estimatedTotalKB: number;
 }
-
-// --- CDP Helpers ---
 
 async function collectGarbage(cdp: CDPSession): Promise<void> {
   await cdp.send('HeapProfiler.collectGarbage');
@@ -81,15 +67,11 @@ async function getStableMetrics(cdp: CDPSession): Promise<MemoryMetrics> {
   };
 }
 
-// DOM ノード 1 個あたりの推定メモリコスト (bytes)
-// Chromium では約 0.3-0.5 KB/node (Blink 側のメモリ、V8 heap 外)
 const ESTIMATED_DOM_NODE_COST = 400;
 
 function estimateTotalMemory(delta: { jsHeapUsed: number; domNodes: number }): number {
   return (delta.jsHeapUsed + delta.domNodes * ESTIMATED_DOM_NODE_COST) / 1024;
 }
-
-// --- Page Helpers ---
 
 async function api(page: Page, method: string, ...args: any[]): Promise<any> {
   return page.evaluate(
@@ -110,8 +92,6 @@ function formatKB(bytes: number): string {
   return (bytes / 1024).toFixed(1);
 }
 
-// --- Tests ---
-
 test.describe('Realistic Memory Benchmark (1000 items with rich content)', () => {
   test.describe.configure({ mode: 'serial' });
 
@@ -128,7 +108,6 @@ test.describe('Realistic Memory Benchmark (1000 items with rich content)', () =>
       try {
         console.log(`\n--- ${lib.label} ---`);
 
-        // 1. Navigate and measure baseline
         await page.goto(lib.url, { waitUntil: 'networkidle' });
         await page.waitForTimeout(1000);
         await waitForRender(page);
@@ -137,7 +116,6 @@ test.describe('Realistic Memory Benchmark (1000 items with rich content)', () =>
         baseline.renderedItems = await api(page, 'getRenderedItemCount');
         console.log(`  Baseline: heap=${formatMB(baseline.jsHeapUsed)}MB, DOM=${baseline.domNodes}, listeners=${baseline.eventListeners}`);
 
-        // 2. Load 1000 items
         await api(page, 'loadFeed', ITEM_COUNT, SEED);
         await page.waitForTimeout(500);
         await waitForRender(page);
@@ -146,7 +124,6 @@ test.describe('Realistic Memory Benchmark (1000 items with rich content)', () =>
         loaded.renderedItems = await api(page, 'getRenderedItemCount');
         console.log(`  After load: heap=${formatMB(loaded.jsHeapUsed)}MB, DOM=${loaded.domNodes}, rendered=${loaded.renderedItems}, listeners=${loaded.eventListeners}`);
 
-        // 3. Scroll through all items (trigger height measurements)
         const totalItems = await api(page, 'getFeedCount');
         const steps = Math.ceil(totalItems / 100);
         for (let i = 0; i < steps; i++) {
@@ -155,7 +132,6 @@ test.describe('Realistic Memory Benchmark (1000 items with rich content)', () =>
           await page.waitForTimeout(100);
         }
 
-        // Scroll back to middle
         await api(page, 'scrollToIndex', 500);
         await page.waitForTimeout(500);
         await waitForRender(page);
@@ -164,7 +140,6 @@ test.describe('Realistic Memory Benchmark (1000 items with rich content)', () =>
         afterScroll.renderedItems = await api(page, 'getRenderedItemCount');
         console.log(`  After scroll: heap=${formatMB(afterScroll.jsHeapUsed)}MB, DOM=${afterScroll.domNodes}, rendered=${afterScroll.renderedItems}, listeners=${afterScroll.eventListeners}`);
 
-        // 4. Calculate deltas (after scroll vs baseline)
         const delta = {
           jsHeapUsed: afterScroll.jsHeapUsed - baseline.jsHeapUsed,
           jsHeapTotal: afterScroll.jsHeapTotal - baseline.jsHeapTotal,
@@ -197,7 +172,7 @@ test.describe('Realistic Memory Benchmark (1000 items with rich content)', () =>
           await cdp.send('HeapProfiler.disable');
           await cdp.send('Performance.disable');
           await cdp.detach();
-        } catch { /* ignore */ }
+        } catch {}
       }
     });
   }
@@ -214,7 +189,6 @@ test.describe('Realistic Memory Benchmark (1000 items with rich content)', () =>
     console.log('  REALISTIC MEMORY BENCHMARK — 1000 Bluesky Timeline Items');
     console.log('='.repeat(120));
 
-    // Table 1: Raw metrics
     console.log('\n  [1] Raw Metrics (after loading 1000 items + scroll-through)');
     const h1 = [
       'Library'.padEnd(28),
@@ -243,7 +217,6 @@ test.describe('Realistic Memory Benchmark (1000 items with rich content)', () =>
       console.log('  ' + row);
     }
 
-    // Table 2: Per-item overhead
     console.log('\n  [2] Per-Item Overhead');
     const h2 = [
       'Library'.padEnd(28),
@@ -264,7 +237,6 @@ test.describe('Realistic Memory Benchmark (1000 items with rich content)', () =>
       console.log('  ' + row);
     }
 
-    // Table 3: Comparison (vs ours)
     if (results.length > 1) {
       const ours = results[0];
       console.log('\n  [3] Comparison vs VirtualList (ours)');
@@ -304,13 +276,10 @@ test.describe('Realistic Memory Benchmark (1000 items with rich content)', () =>
 
     console.log('\n' + '='.repeat(120));
 
-    // Assertions: our library should work
     const ours = results.find(r => r.library.includes('ours'));
     if (ours) {
-      // Rendered items should be bounded (virtual scroll working)
       expect(ours.afterScroll.renderedItems).toBeLessThan(100);
-      // Heap should be reasonable for 1000 items
-      expect(ours.delta.jsHeapUsed).toBeLessThan(20 * 1024 * 1024); // < 20MB
+      expect(ours.delta.jsHeapUsed).toBeLessThan(20 * 1024 * 1024);
     }
   });
 });
