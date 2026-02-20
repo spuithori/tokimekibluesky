@@ -467,68 +467,7 @@
     }
   }
 
-  let _keyToIndexCache: Map<string, number> | null = null;
-  let _keyToIndexLen = -1;
-  let _keyToIndexFirstKey = '';
-  let _keyToIndexLastKey = '';
-  let _keyToIndexReleaseTimer: ReturnType<typeof setTimeout> | null = null;
-
-  function releaseKeyToIndexCache(): void {
-    _keyToIndexCache = null;
-    _keyToIndexLen = -1;
-    _keyToIndexFirstKey = '';
-    _keyToIndexLastKey = '';
-    if (_keyToIndexReleaseTimer !== null) {
-      clearTimeout(_keyToIndexReleaseTimer);
-      _keyToIndexReleaseTimer = null;
-    }
-  }
-
-  function scheduleKeyToIndexRelease(): void {
-    if (_keyToIndexReleaseTimer !== null) clearTimeout(_keyToIndexReleaseTimer);
-    _keyToIndexReleaseTimer = setTimeout(releaseKeyToIndexCache, 300);
-  }
-
-  function getKeyToIndex(): Map<string, number> {
-    const len = items.length;
-    if (len === 0) return _keyToIndexCache ?? new Map();
-    if (_keyToIndexCache && _keyToIndexLen === len
-        && _keyToIndexFirstKey === prevFirstKey && _keyToIndexLastKey === prevLastKey) {
-      scheduleKeyToIndexRelease();
-      return _keyToIndexCache;
-    }
-
-    if (_keyToIndexCache && _keyToIndexFirstKey === prevFirstKey
-        && len > _keyToIndexLen && _keyToIndexLen > 0) {
-      for (let i = _keyToIndexLen; i < len; i++) {
-        _keyToIndexCache.set(getKey(items[i], i), i);
-      }
-      _keyToIndexLen = len;
-      _keyToIndexLastKey = prevLastKey;
-      scheduleKeyToIndexRelease();
-      return _keyToIndexCache;
-    }
-
-    if (_keyToIndexCache) {
-      _keyToIndexCache.clear();
-    } else {
-      _keyToIndexCache = new Map<string, number>();
-    }
-    for (let i = 0; i < len; i++) _keyToIndexCache.set(getKey(items[i], i), i);
-    _keyToIndexLen = len;
-    _keyToIndexFirstKey = prevFirstKey;
-    _keyToIndexLastKey = prevLastKey;
-    scheduleKeyToIndexRelease();
-    return _keyToIndexCache;
-  }
-
-  const KEY_TO_INDEX_LINEAR_THRESHOLD = 20;
-
   function findIndexForKey(key: string): number | undefined {
-    if (_keyToIndexCache && _keyToIndexLen === items.length
-        && _keyToIndexFirstKey === prevFirstKey && _keyToIndexLastKey === prevLastKey) {
-      return _keyToIndexCache.get(key);
-    }
     const buf = getEffectiveBuffer();
     const rangeStart = Math.max(0, visibleStart - buf);
     const rangeEnd = Math.min(items.length, visibleEnd + buf);
@@ -562,12 +501,11 @@
   function flushPendingToTree(minIndex = 0): boolean {
     if (pendingHeights.size === 0) return false;
 
-    const useLinear = pendingHeights.size <= KEY_TO_INDEX_LINEAR_THRESHOLD;
     let hasChanges = false;
     const resolved: string[] = [];
 
     for (const [key, newHeight] of pendingHeights) {
-      const idx = useLinear ? findIndexForKey(key) : getKeyToIndex().get(key);
+      const idx = findIndexForKey(key);
       if (idx === undefined) continue;
       resolved.push(key);
       const oldHeight = tree.isMeasured(idx) ? tree.get(idx) : undefined;
@@ -758,7 +696,7 @@
       }
       cancelFrame();
       correctionLoop.cancel();
-      releaseKeyToIndexCache();
+
       for (const el of observedElements) {
         unobserveResize(el);
       }
@@ -940,7 +878,6 @@
     minTotalHeight = 0;
     spacerHeightAdjustment = 0;
     _visibleItemScrollOffset = 0;
-    releaseKeyToIndexCache();
     queueMicrotask(() => invalidateLayout());
   }
 
@@ -966,7 +903,6 @@
   function handleItemsGenericChange(): void {
     spacerHeightAdjustment = 0;
     _visibleItemScrollOffset = 0;
-    releaseKeyToIndexCache();
     pendingHeights.clear();
     // Heights at old indices may not match new items; clear measured flags
     tree.clearMeasured();
