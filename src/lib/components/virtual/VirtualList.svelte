@@ -1113,10 +1113,12 @@
 
         if (initialScrollState.heights?.length > 0) {
           const keyToHeight = new Map<string, number>();
+          let heightSum = 0;
           for (const [key, value] of initialScrollState.heights) {
             keyToHeight.set(key, value);
+            heightSum += value;
           }
-          const avg = getAverageHeight();
+          const avg = keyToHeight.size > 0 ? heightSum / keyToHeight.size : getAverageHeight();
           tree.buildWithMeasured(
             items.length,
             (i) => keyToHeight.get(getKey(items[i], i)) ?? avg,
@@ -1241,14 +1243,23 @@
     };
   }
 
+  function adjustIndexForStickyHeader(idx: number, scrollTop: number): number {
+    if (topMargin > 0 && idx + 1 < items.length && idx < tree.length) {
+      const off = scrollTop - tree.prefixSum(idx);
+      if (off + topMargin >= tree.get(idx)) return idx + 1;
+    }
+    return idx;
+  }
+
   export function getScrollStateLightweight(): ScrollState | null {
     if (items.length === 0) return null;
 
     const container = scrollContainer ?? lastValidScrollContainer;
     const rawScrollTop = scrollContainer ? getScrollTop() : lastKnownScrollTop;
     const currentScrollTop = (rawScrollTop === 0 && lastKnownScrollTop > 0) ? lastKnownScrollTop : rawScrollTop;
-    const index = (currentScrollTop !== rawScrollTop) ? lastKnownVisibleStart
+    let index = (currentScrollTop !== rawScrollTop) ? lastKnownVisibleStart
       : (scrollContainer ? tree.findIndex(currentScrollTop) : lastKnownVisibleStart);
+    index = adjustIndexForStickyHeader(index, currentScrollTop);
     const key = getKey(items[index], index);
     const offset = currentScrollTop - tree.prefixSum(index);
 
@@ -1269,7 +1280,8 @@
 
     const container = scrollContainer ?? lastValidScrollContainer;
     const currentScrollTop = scrollContainer ? getScrollTop() : lastKnownScrollTop;
-    const index = scrollContainer ? tree.findIndex(currentScrollTop) : lastKnownVisibleStart;
+    let index = scrollContainer ? tree.findIndex(currentScrollTop) : lastKnownVisibleStart;
+    index = adjustIndexForStickyHeader(index, currentScrollTop);
     const key = getKey(items[index], index);
     const offset = currentScrollTop - tree.prefixSum(index);
 
@@ -1360,10 +1372,12 @@
 
     if (state.heights?.length > 0) {
       const keyToHeight = new Map<string, number>();
+      let heightSum = 0;
       for (const [key, value] of state.heights) {
         keyToHeight.set(key, value);
+        heightSum += value;
       }
-      const avg = getAverageHeight();
+      const avg = keyToHeight.size > 0 ? heightSum / keyToHeight.size : getAverageHeight();
       tree.buildWithMeasured(
         items.length,
         (i) => keyToHeight.get(getKey(items[i], i)) ?? avg,
@@ -1439,7 +1453,6 @@
 
   .virtual-item {
     overflow-anchor: none;
-    contain: layout;
   }
 
   .virtual-spacer {
