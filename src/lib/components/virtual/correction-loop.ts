@@ -77,8 +77,4 @@ export class CorrectionLoop {
     }
     this.state = null;
   }
-
-  get isActive(): boolean {
-    return this.state !== null;
-  }
 }
