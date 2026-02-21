@@ -11,7 +11,7 @@
                     observer.disconnect();
                 }
             },
-            { rootMargin: '200px' },
+            { rootMargin: '1000px' },
         );
         observer.observe(node);
         return {
