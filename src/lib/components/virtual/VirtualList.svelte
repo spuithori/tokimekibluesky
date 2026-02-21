@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tick, flushSync, untrack } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import type { Snippet } from 'svelte';
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
   import { FenwickTree } from './fenwick';
@@ -413,36 +413,35 @@
     }
 
     const newRangeStart = Math.max(0, visibleStart - buf);
-    let driftRefEl: HTMLElement | null = null;
-    let driftRefY = 0;
+
     if (newRangeStart > oldRangeStart && newRangeStart < items.length) {
       const refKey = getKey(items[newRangeStart], newRangeStart);
-      driftRefEl = itemRefs.get(refKey) ?? null;
-      if (driftRefEl) driftRefY = driftRefEl.getBoundingClientRect().top;
-    }
-
-    flushSync();
-
-    if (driftRefEl) {
-      const newY = driftRefEl.getBoundingClientRect().top;
-      const drift = newY - driftRefY;
-      if (Math.abs(drift) > 0.5) {
-        _cachedScrollTop = -1;
-        setScrollTop(getScrollTop() + Math.round(drift));
+      const driftRefEl = itemRefs.get(refKey) ?? null;
+      if (driftRefEl) {
+        const driftRefY = driftRefEl.getBoundingClientRect().top;
+        tick().then(() => {
+          const newY = driftRefEl.getBoundingClientRect().top;
+          const drift = newY - driftRefY;
+          if (Math.abs(drift) > 0.5) {
+            setScrollTop(getScrollTop() + Math.round(drift));
+          }
+        });
       }
     }
 
     if (_postCorrectionAnchor) {
       const anchor = _postCorrectionAnchor;
       _postCorrectionAnchor = null;
-      const el = itemRefs.get(anchor.key);
-      if (el && topSpacerEl) {
-        const cTop = getContainerTop();
-        const residual = el.getBoundingClientRect().top - cTop - anchor.visualY;
-        if (Math.abs(residual) > 0.01) {
-          topSpacerEl.style.height = (topSpacerHeight - residual) + 'px';
+      tick().then(() => {
+        const el = itemRefs.get(anchor.key);
+        if (el && topSpacerEl) {
+          const cTop = isWindowScroll ? 0 : scrollContainer?.getBoundingClientRect().top ?? 0;
+          const residual = el.getBoundingClientRect().top - cTop - anchor.visualY;
+          if (Math.abs(residual) > 0.01) {
+            topSpacerEl.style.height = (topSpacerHeight - residual) + 'px';
+          }
         }
-      }
+      });
     }
 
     if (newRangeStart < oldRangeStart && topSpacerEl) {
@@ -451,15 +450,20 @@
         const key = getKey(items[i], i);
         const pendingH = pendingHeights.get(key);
         const treeVal = tree.get(i);
-        const el = itemRefs.get(key);
-        const domH = el ? el.getBoundingClientRect().height : 0;
-        const bestH = domH > 0 ? domH : pendingH;
-        if (bestH === undefined || bestH <= 0) continue;
-        if (!isHeightChanged(treeVal, bestH)) continue;
-        const delta = bestH - treeVal;
-        heightDelta += delta;
-        tree.setMeasured(i, bestH);
-        if (domH > 0) { pendingHeights.delete(key); }
+        if (pendingH !== undefined && isHeightChanged(treeVal, pendingH)) {
+          heightDelta += pendingH - treeVal;
+          tree.setMeasured(i, pendingH);
+          pendingHeights.delete(key);
+        } else if (pendingH === undefined) {
+          const el = itemRefs.get(key);
+          if (el) {
+            const domH = el.getBoundingClientRect().height;
+            if (domH > 0 && isHeightChanged(treeVal, domH)) {
+              heightDelta += domH - treeVal;
+              tree.setMeasured(i, domH);
+            }
+          }
+        }
       }
       if (heightDelta !== 0) {
         spacerHeightAdjustment -= heightDelta;
@@ -481,13 +485,26 @@
     scheduleFrame(DIRTY_SCROLL);
   }
 
-  function earlyBufferCheck(): void {
-    if (frameDirty !== 0) {
-      if (frameId !== null) {
-        cancelAnimationFrame(frameId);
-        frameId = null;
-      }
-      processFrame();
+  function cancelEarlyCheck(): void {
+    if (earlyCheckId !== null) {
+      if (typeof cancelIdleCallback !== 'undefined') cancelIdleCallback(earlyCheckId);
+      else clearTimeout(earlyCheckId);
+      earlyCheckId = null;
+    }
+  }
+
+  function scheduleEarlyCheck(): void {
+    if (earlyCheckId !== null) return;
+    earlyCheckId = (typeof requestIdleCallback !== 'undefined')
+      ? requestIdleCallback(idleBufferCheck, { timeout: 100 })
+      : setTimeout(idleBufferCheck, 0) as unknown as number;
+  }
+
+  function idleBufferCheck(): void {
+    earlyCheckId = null;
+
+    if (frameDirty !== 0 && frameId === null) {
+      frameId = requestAnimationFrame(processFrame);
     }
 
     if (earlyCheckCountdown > 0 && topSpacerEl && !isNavigating) {
@@ -513,10 +530,8 @@
       }
     }
 
-    if (earlyCheckCountdown > 0 || frameDirty !== 0) {
-      earlyCheckId = requestAnimationFrame(earlyBufferCheck);
-    } else {
-      earlyCheckId = null;
+    if (earlyCheckCountdown > 0) {
+      scheduleEarlyCheck();
     }
   }
 
@@ -536,10 +551,10 @@
       if (i >= items.length) break;
       const key = getKey(items[i], i);
       if (tree.isMeasured(i) && i < tree.length) {
-        const el = itemRefs.get(key);
-        if (el) {
-          const h = el.getBoundingClientRect().height;
-          if (h > 0) { tree.setMeasured(i, h); continue; }
+        const pendingH = pendingHeights.get(key);
+        if (pendingH !== undefined) {
+          tree.setMeasured(i, pendingH);
+          pendingHeights.delete(key);
         }
         continue;
       }
@@ -690,7 +705,7 @@
     if (pendingHeights.size > 0 && !effectivePaused) {
       earlyCheckCountdown = EARLY_CHECK_FRAMES;
       scheduleFrame(DIRTY_HEIGHTS);
-      if (earlyCheckId === null) earlyCheckId = requestAnimationFrame(earlyBufferCheck);
+      scheduleEarlyCheck();
     }
   }
 
@@ -743,10 +758,7 @@
     }
 
     return () => {
-      if (earlyCheckId !== null) {
-        cancelAnimationFrame(earlyCheckId);
-        earlyCheckId = null;
-      }
+      cancelEarlyCheck();
       cancelFrame();
       cancelCorrection();
 
