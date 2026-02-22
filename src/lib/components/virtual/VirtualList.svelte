@@ -18,7 +18,6 @@
     EARLY_CHECK_FRAMES,
     DEFAULT_BUFFER_PX,
     SCROLLTO_CORRECTION_MAX_PASSES,
-    DRIFT_THRESHOLD_PREPEND,
   } from './constants';
 
   let fallbackItemHeight = DEFAULT_ITEM_HEIGHT;
@@ -97,17 +96,12 @@
   let lastKnownScrollTop = 0;
   let lastKnownVisibleStart = 0;
   let lastUserScrollTime = 0;
+  let _lastScrollEventTime = 0;
+  let _lastSelfScrollTime = 0;
+  let _deferredScrollDelta = 0;
   let quickPrependHandled = false;
   let _postCorrectionAnchor: { key: string; visualY: number } | null = null;
   let cachedPrependShift = 0;
-  let pendingPrependAnchor: {
-    scrollTop: number;
-    anchorKey: string;
-    anchorVisualY: number;
-    containerTop: number;
-    shiftCount: number;
-    oldVisibleEnd: number;
-  } | null = null;
 
   let isWindowScroll = $derived(
     typeof document !== 'undefined' &&
@@ -257,6 +251,7 @@
   }
 
   function setScrollTop(value: number): void {
+    _lastSelfScrollTime = Date.now();
     _cachedScrollTop = -1;
     if (isWindowScroll) { window.scrollTo(0, value); }
     else if (scrollContainer) { scrollContainer.scrollTop = value; }
@@ -482,6 +477,10 @@
 
   function handleScroll(): void {
     if (isNavigating || effectivePaused) return;
+    const now = Date.now();
+    if (now - _lastSelfScrollTime > 50) {
+      _lastScrollEventTime = now;
+    }
     scheduleFrame(DIRTY_SCROLL);
   }
 
@@ -627,6 +626,9 @@
     cacheContainerTop();
     let immediateAboveDelta = 0;
     let visibleAboveDelta = 0;
+    const now = Date.now();
+    const isProgrammaticScroll = now - _lastScrollEventTime < SCROLL_VELOCITY_THRESHOLD_MS
+                              && now - lastUserScrollTime >= SCROLL_VELOCITY_THRESHOLD_MS;
 
     for (const entry of entries) {
       const el = entry.target as HTMLElement;
@@ -646,7 +648,7 @@
 
       pendingHeights.set(key, newHeight);
 
-      if (!isNavigating && idx !== undefined) {
+      if (!isNavigating && idx !== undefined && !isProgrammaticScroll) {
         if (oldHeight === undefined && idx < tree.length && idx < visibleStart) {
           const treeValue = tree.get(idx);
           const estimateDelta = newHeight - treeValue;
@@ -666,6 +668,21 @@
             const delta = newHeight - oldHeight;
             if (isHeightChanged(delta, 0)) {
               visibleAboveDelta += delta;
+            }
+          }
+        } else if (oldHeight === undefined && idx >= visibleStart && idx < tree.length) {
+          const treeValue = tree.get(idx);
+          const estimateDelta = newHeight - treeValue;
+          if (isHeightChanged(estimateDelta, 0)) {
+            tree.setMeasured(idx, newHeight);
+            pendingHeights.delete(key);
+            if (getScrollTop() > topMargin) {
+              const rect = el.getBoundingClientRect();
+              const containerTop = getContainerTop();
+              const relTop = rect.top - containerTop;
+              if (relTop < viewportHeight * 0.6) {
+                visibleAboveDelta += estimateDelta;
+              }
             }
           }
         }
@@ -882,22 +899,23 @@
   }
 
   function handlePrePrependIdle(shiftCount: number): void {
-    const currentScrollTop = getScrollTop();
-    const { key: anchorKey, visualY: anchorVisualY } = captureAnchorWithDefaults(shiftCount);
+    prependPositions(shiftCount);
 
-    if (anchorKey) {
-      scrollContainer!.style.overflowAnchor = 'none';
-      isNavigating = true;
+    const newVisibleStart = Math.max(0, visibleStart + shiftCount);
+    const newSpacerHeight = computeTopSpacerHeight(newVisibleStart);
+    if (topSpacerEl) topSpacerEl.style.height = newSpacerHeight + 'px';
+    topSpacerHeight = newSpacerHeight;
 
-      pendingPrependAnchor = {
-        scrollTop: currentScrollTop,
-        anchorKey,
-        anchorVisualY,
-        containerTop: getContainerTop(),
-        shiftCount,
-        oldVisibleEnd: visibleEnd,
-      };
+    const scrollDelta = tree.prefixSum(shiftCount);
+    if (isDocumentHidden) {
+      _deferredScrollDelta += scrollDelta;
+    } else {
+      setScrollTop(getScrollTop() + scrollDelta);
     }
+
+    visibleStart = newVisibleStart;
+    visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
+    quickPrependHandled = true;
   }
 
   $effect.pre(() => {
@@ -969,62 +987,6 @@
     });
   }
 
-  function handlePrependWithAnchor(shiftCount: number): void {
-    const pp = pendingPrependAnchor!;
-    pendingPrependAnchor = null;
-
-    prependPositions(shiftCount);
-    visibleStart = 0;
-    visibleEnd = Math.min(items.length, pp.oldVisibleEnd + shiftCount + getEffectiveBuffer());
-    invalidateLayout();
-
-    tick().then(() => {
-      for (let i = 0; i < shiftCount; i++) {
-        const key = getKey(items[i], i);
-        const el = itemRefs.get(key);
-        if (el) {
-          const h = el.getBoundingClientRect().height;
-          if (h > 0) {
-            tree.setMeasured(i, h);
-          }
-        }
-      }
-
-      const newAnchorEl = itemRefs.get(pp.anchorKey);
-      if (newAnchorEl && scrollContainer) {
-        const cTop = getContainerTop();
-        const newAnchorVisualY = newAnchorEl.getBoundingClientRect().top - cTop;
-        const target = Math.max(0, pp.scrollTop + newAnchorVisualY - pp.anchorVisualY);
-        setScrollTop(target);
-        _cachedScrollTop = -1;
-        const residual = newAnchorEl.getBoundingClientRect().top - cTop - pp.anchorVisualY;
-        if (Math.abs(residual) > 0.01) {
-          setScrollTop(getScrollTop() + residual);
-          _cachedScrollTop = -1;
-        }
-      }
-
-      startCorrection(
-        () => {
-          const el = itemRefs.get(pp.anchorKey);
-          if (!el) return null;
-          const cTop = getContainerTop();
-          return el.getBoundingClientRect().top - cTop - pp.anchorVisualY;
-        },
-        {
-          threshold: DRIFT_THRESHOLD_PREPEND,
-          maxPasses: SCROLLTO_CORRECTION_MAX_PASSES,
-          measure: 'full',
-          navigating: true,
-          onFinish: () => {
-            _postCorrectionAnchor = { key: pp.anchorKey, visualY: pp.anchorVisualY };
-            if (scrollContainer) scrollContainer.style.overflowAnchor = '';
-          },
-        },
-      );
-    });
-  }
-
   function handlePrependSimple(shiftCount: number): void {
     prependPositions(shiftCount);
     visibleStart = Math.max(0, visibleStart + shiftCount);
@@ -1067,9 +1029,7 @@
         const shiftCount = cachedPrependShift > 0
           ? cachedPrependShift
           : detectPrependShift(firstKey, oldFirstKey);
-        if (shiftCount > 0 && scrollContainer && pendingPrependAnchor) {
-          handlePrependWithAnchor(shiftCount);
-        } else if (shiftCount > 0) {
+        if (shiftCount > 0) {
           handlePrependSimple(shiftCount);
         } else {
           handlePrependFullReset();
@@ -1102,6 +1062,10 @@
       const wasHidden = isDocumentHidden;
       isDocumentHidden = document.hidden;
       if (wasHidden && !document.hidden && scrollContainer) {
+        if (_deferredScrollDelta !== 0) {
+          setScrollTop(getScrollTop() + _deferredScrollDelta);
+          _deferredScrollDelta = 0;
+        }
         scheduleFrame(DIRTY_HEIGHTS | DIRTY_SCROLL);
       }
     };
