@@ -68,6 +68,7 @@
             handleRefresh();
             isTopScrolling = false;
         } else {
+            el.dataset.smoothScrolling = '';
             el.scroll({
                 top: 0,
                 left: 0,
@@ -77,6 +78,7 @@
             const onScrollEnd = () => {
                 if (el.scrollTop <= 5) {
                     isTopScrolling = false;
+                    delete el.dataset.smoothScrolling;
                     el.removeEventListener('scroll', onScrollEnd);
                 }
             };
@@ -84,6 +86,7 @@
 
             setTimeout(() => {
                 isTopScrolling = false;
+                delete el.dataset.smoothScrolling;
                 el.removeEventListener('scroll', onScrollEnd);
             }, 3000);
         }

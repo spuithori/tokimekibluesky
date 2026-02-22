@@ -96,8 +96,6 @@
   let lastKnownScrollTop = 0;
   let lastKnownVisibleStart = 0;
   let lastUserScrollTime = 0;
-  let _lastScrollEventTime = 0;
-  let _lastSelfScrollTime = 0;
   let _deferredScrollDelta = 0;
   let quickPrependHandled = false;
   let _postCorrectionAnchor: { key: string; visualY: number } | null = null;
@@ -251,7 +249,6 @@
   }
 
   function setScrollTop(value: number): void {
-    _lastSelfScrollTime = Date.now();
     _cachedScrollTop = -1;
     if (isWindowScroll) { window.scrollTo(0, value); }
     else if (scrollContainer) { scrollContainer.scrollTop = value; }
@@ -477,10 +474,6 @@
 
   function handleScroll(): void {
     if (isNavigating || effectivePaused) return;
-    const now = Date.now();
-    if (now - _lastSelfScrollTime > 50) {
-      _lastScrollEventTime = now;
-    }
     scheduleFrame(DIRTY_SCROLL);
   }
 
@@ -626,9 +619,6 @@
     cacheContainerTop();
     let immediateAboveDelta = 0;
     let visibleAboveDelta = 0;
-    const now = Date.now();
-    const isProgrammaticScroll = now - _lastScrollEventTime < SCROLL_VELOCITY_THRESHOLD_MS
-                              && now - lastUserScrollTime >= SCROLL_VELOCITY_THRESHOLD_MS;
 
     for (const entry of entries) {
       const el = entry.target as HTMLElement;
@@ -648,7 +638,7 @@
 
       pendingHeights.set(key, newHeight);
 
-      if (!isNavigating && idx !== undefined && !isProgrammaticScroll) {
+      if (!isNavigating && idx !== undefined) {
         if (oldHeight === undefined && idx < tree.length && idx < visibleStart) {
           const treeValue = tree.get(idx);
           const estimateDelta = newHeight - treeValue;
@@ -711,7 +701,7 @@
       applyTopSpacerHeight(rangeStart);
     }
 
-    if (visibleAboveDelta !== 0 && scrollContainer) {
+    if (visibleAboveDelta !== 0 && scrollContainer && !('smoothScrolling' in scrollContainer.dataset)) {
       _visibleItemScrollOffset += visibleAboveDelta;
       const st = getScrollTop();
       setScrollTop(st + visibleAboveDelta);
@@ -979,7 +969,6 @@
     spacerHeightAdjustment = 0;
     _visibleItemScrollOffset = 0;
     pendingHeights.clear();
-    tree.clearMeasured();
     recalculatePositions();
     queueMicrotask(() => {
       invalidateLayout();
