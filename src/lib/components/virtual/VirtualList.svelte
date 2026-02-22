@@ -248,6 +248,7 @@
   }
 
   function setScrollTop(value: number): void {
+    if (scrollContainer && 'smoothScrolling' in scrollContainer.dataset) return;
     _cachedScrollTop = -1;
     if (isWindowScroll) { window.scrollTo(0, value); }
     else if (scrollContainer) { scrollContainer.scrollTop = value; }
