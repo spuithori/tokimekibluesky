@@ -4,6 +4,7 @@
     let inView = $state(false);
 
     function lazyLoad(node: HTMLImageElement) {
+        const target = node.closest('.virtual-item') ?? node;
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
@@ -13,7 +14,7 @@
             },
             { rootMargin: '1000px' },
         );
-        observer.observe(node);
+        observer.observe(target);
         return {
             destroy() {
                 observer.disconnect();
@@ -24,7 +25,6 @@
 
 <img
     use:lazyLoad
-    loading="lazy"
     decoding="async"
     src={inView ? image.thumb : undefined}
     alt={image.alt}
