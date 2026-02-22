@@ -96,6 +96,7 @@
   let lastKnownScrollTop = 0;
   let lastKnownVisibleStart = 0;
   let lastUserScrollTime = 0;
+  let _programmaticScroll = false;
   let _deferredScrollDelta = 0;
   let quickPrependHandled = false;
   let _postCorrectionAnchor: { key: string; visualY: number } | null = null;
@@ -237,6 +238,7 @@
 
   function setScrollTop(value: number): void {
     if (scrollContainer && 'smoothScrolling' in scrollContainer.dataset) return;
+    _programmaticScroll = true;
     _cachedScrollTop = -1;
     if (isWindowScroll) { window.scrollTo(0, value); }
     else if (scrollContainer) { scrollContainer.scrollTop = value; }
@@ -462,6 +464,11 @@
 
   function handleScroll(): void {
     if (isNavigating || effectivePaused) return;
+    if (_programmaticScroll) {
+      _programmaticScroll = false;
+    } else {
+      lastUserScrollTime = Date.now();
+    }
     scheduleFrame(DIRTY_SCROLL);
   }
 
@@ -607,6 +614,7 @@
     cacheContainerTop();
     let immediateAboveDelta = 0;
     let visibleAboveDelta = 0;
+    let hasDirectTreeUpdate = false;
 
     for (const entry of entries) {
       const el = entry.target as HTMLElement;
@@ -651,6 +659,7 @@
           if (isHeightChanged(estimateDelta, 0)) {
             tree.setMeasured(idx, newHeight);
             pendingHeights.delete(key);
+            hasDirectTreeUpdate = true;
             if (getScrollTop() > topMargin) {
               const rect = el.getBoundingClientRect();
               const containerTop = getContainerTop();
@@ -698,6 +707,8 @@
       earlyCheckCountdown = EARLY_CHECK_FRAMES;
       scheduleFrame(DIRTY_HEIGHTS);
       scheduleEarlyCheck();
+    } else if (hasDirectTreeUpdate && !effectivePaused) {
+      scheduleFrame(DIRTY_SCROLL);
     }
   }
 
@@ -827,6 +838,7 @@
     prependPositions(shiftCount);
     visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
     invalidateLayout();
+    scheduleFrame(DIRTY_SCROLL);
     quickPrependHandled = true;
   }
 
@@ -877,7 +889,9 @@
     prependPositions(shiftCount);
 
     const newVisibleStart = Math.max(0, visibleStart + shiftCount);
-    const newSpacerHeight = computeTopSpacerHeight(newVisibleStart);
+    const buf = getEffectiveBuffer();
+    const rangeStart = Math.max(0, newVisibleStart - buf);
+    const newSpacerHeight = computeTopSpacerHeight(rangeStart);
     if (topSpacerEl) topSpacerEl.style.height = newSpacerHeight + 'px';
     topSpacerHeight = newSpacerHeight;
 
