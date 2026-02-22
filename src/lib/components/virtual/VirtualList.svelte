@@ -167,19 +167,7 @@
       if (currentSt > 0) { setScrollTop(Math.max(0, currentSt - excess)); }
     }
     topSpacerHeight = Math.max(0, prefix + spacerHeightAdjustment);
-    let endPos = 0;
-    if (items.length > 0) {
-      if (visibleRange.end >= tree.length) {
-        endPos = tree.total;
-      } else {
-        let visibleSum = 0;
-        const limit = Math.min(visibleRange.end, tree.length);
-        for (let i = visibleRange.start; i < limit; i++) {
-          visibleSum += tree.get(i);
-        }
-        endPos = prefix + visibleSum;
-      }
-    }
+    const endPos = items.length > 0 ? tree.prefixSum(visibleRange.end) : 0;
     bottomSpacerHeight = items.length > 0
       ? Math.max(0, effectiveTotalHeight - endPos)
       : 0;
@@ -639,25 +627,22 @@
       pendingHeights.set(key, newHeight);
 
       if (!isNavigating && idx !== undefined) {
-        if (oldHeight === undefined && idx < tree.length && idx < visibleStart) {
-          const treeValue = tree.get(idx);
-          const estimateDelta = newHeight - treeValue;
-          if (isHeightChanged(estimateDelta, 0)) {
-            immediateAboveDelta += estimateDelta;
-          }
-        } else if (oldHeight !== undefined && idx < visibleStart) {
-          const actualDelta = newHeight - oldHeight;
-          if (isHeightChanged(actualDelta, 0)) {
-            immediateAboveDelta += actualDelta;
+        if (idx < visibleStart && idx < tree.length) {
+          const prevHeight = oldHeight ?? tree.get(idx);
+          const delta = newHeight - prevHeight;
+          if (isHeightChanged(delta, 0)) {
+            immediateAboveDelta += delta;
           }
         } else if (oldHeight !== undefined && idx >= visibleStart) {
-          const rect = el.getBoundingClientRect();
-          const containerTop = getContainerTop();
-          const relTop = rect.top - containerTop;
-          if (relTop < viewportHeight * 0.6) {
-            const delta = newHeight - oldHeight;
-            if (isHeightChanged(delta, 0)) {
-              visibleAboveDelta += delta;
+          if (getScrollTop() > topMargin) {
+            const rect = el.getBoundingClientRect();
+            const containerTop = getContainerTop();
+            const relTop = rect.top - containerTop;
+            if (relTop < topMargin) {
+              const delta = newHeight - oldHeight;
+              if (isHeightChanged(delta, 0)) {
+                visibleAboveDelta += delta;
+              }
             }
           }
         } else if (oldHeight === undefined && idx >= visibleStart && idx < tree.length) {
@@ -670,7 +655,7 @@
               const rect = el.getBoundingClientRect();
               const containerTop = getContainerTop();
               const relTop = rect.top - containerTop;
-              if (relTop < viewportHeight * 0.6) {
+              if (relTop < topMargin) {
                 visibleAboveDelta += estimateDelta;
               }
             }
@@ -1012,8 +997,7 @@
       else if (firstKey === oldFirstKey) {
         if (len > oldCount && oldLastKey && getKey(items[oldCount - 1], oldCount - 1) === oldLastKey) {
           handleItemsAppend(oldCount);
-        } else if (len === oldCount && lastKey === oldLastKey) {
-        } else {
+        } else if (len !== oldCount || lastKey !== oldLastKey) {
           handleItemsGenericChange();
         }
       } else if (oldFirstKey) {
