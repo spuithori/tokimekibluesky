@@ -114,10 +114,9 @@
     if (items.length === 0) return { start: 0, end: 0 };
     if (!isVirtualizationEnabled) return { start: 0, end: Math.min(items.length, FALLBACK_RENDER_COUNT) };
     const buf = getEffectiveBuffer();
-    return {
-      start: Math.max(0, visibleStart - buf),
-      end: Math.min(items.length, visibleEnd + buf)
-    };
+    const start = Math.max(0, visibleStart - buf);
+    const end = Math.min(items.length, visibleEnd + buf);
+    return { start, end: Math.max(start, end) };
   });
 
   let visibleIndices = $derived.by(() => {
@@ -969,6 +968,8 @@
     spacerHeightAdjustment = 0;
     _visibleItemScrollOffset = 0;
     pendingHeights.clear();
+    if (visibleEnd > items.length) visibleEnd = items.length;
+    if (visibleStart > visibleEnd) visibleStart = Math.max(0, visibleEnd - 1);
     recalculatePositions();
     queueMicrotask(() => {
       invalidateLayout();
