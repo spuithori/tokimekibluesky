@@ -139,6 +139,29 @@ export class FenwickTree {
     this._buildBit();
   }
 
+  prependAndTruncate(count: number, targetLen: number, getHeight: (i: number) => number, avg: number): void {
+    if (count === 0 && targetLen >= this._h.length) return;
+    const oldLen = this._h.length;
+    if (targetLen >= oldLen + count) {
+      this.prependWithCallback(count, getHeight);
+      return;
+    }
+    const newH = new Float64Array(targetLen);
+    const newM = new Uint8Array(targetLen);
+    const prependEnd = Math.min(count, targetLen);
+    for (let i = 0; i < prependEnd; i++) {
+      newH[i] = getHeight(i);
+    }
+    const copyLen = Math.max(0, targetLen - count);
+    if (copyLen > 0) {
+      newH.set(this._h.subarray(0, copyLen), count);
+      newM.set(this._m.subarray(0, copyLen), count);
+    }
+    this._h = newH;
+    this._m = newM;
+    this.rebuildWithAverage(avg);
+  }
+
   extend(newHeights: number[]): void {
     this.extendWithCallback(newHeights.length, (i) => newHeights[i]);
   }

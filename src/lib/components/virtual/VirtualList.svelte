@@ -220,7 +220,7 @@
   function prependPositions(shiftCount: number): void {
     if (shiftCount <= 0) return;
     const avg = getAverageHeight();
-    tree.prependWithCallback(shiftCount, () => avg);
+    tree.prependAndTruncate(shiftCount, items.length, () => avg, avg);
   }
 
   function appendPositions(startIndex: number): void {
@@ -557,12 +557,15 @@
     if (pendingHeights.size === 0) return false;
 
     let hasChanges = false;
-    const resolved: string[] = [];
+    const toDelete: string[] = [];
 
     for (const [key, newHeight] of pendingHeights) {
       const idx = findIndexForKey(key);
-      if (idx === undefined) continue;
-      resolved.push(key);
+      if (idx === undefined) {
+        if (!itemRefs.has(key)) toDelete.push(key);
+        continue;
+      }
+      toDelete.push(key);
       const oldHeight = tree.isMeasured(idx) ? tree.get(idx) : undefined;
       if (oldHeight !== undefined && !isHeightChanged(oldHeight, newHeight)) continue;
       if (idx >= minIndex && idx < tree.length) {
@@ -571,7 +574,7 @@
       }
     }
 
-    for (const key of resolved) pendingHeights.delete(key);
+    for (const key of toDelete) pendingHeights.delete(key);
     if (pendingHeights.size === 0) frameDirty &= ~DIRTY_HEIGHTS;
     return hasChanges;
   }
@@ -1006,7 +1009,15 @@
       prevLastKey = lastKey;
 
       if (len === 0) { handleItemsClear(); }
-      else if (quickPrependHandled) { quickPrependHandled = false; invalidateLayout(); }
+      else if (quickPrependHandled) {
+        quickPrependHandled = false;
+        if (tree.length > len) {
+          tree.truncate(len, getAverageHeight());
+        } else if (tree.length < len) {
+          tree.extendWithCallback(len - tree.length, () => getAverageHeight());
+        }
+        invalidateLayout();
+      }
       else if (oldCount === 0) { handleItemsInitial(); }
       else if (firstKey === oldFirstKey) {
         if (len > oldCount && oldLastKey && getKey(items[oldCount - 1], oldCount - 1) === oldLastKey) {
