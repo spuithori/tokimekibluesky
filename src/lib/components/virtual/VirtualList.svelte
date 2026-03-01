@@ -451,6 +451,59 @@
         spacerHeightAdjustment -= heightDelta;
         applyTopSpacerHeight(newRangeStart);
       }
+
+      const isUserScrolling = Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS;
+      if (scrollContainer && !isNavigating && isUserScrolling) {
+        let anchorEl: HTMLElement | null = null;
+        let anchorYBefore = 0;
+        const containerTop = isWindowScroll ? 0 : scrollContainer.getBoundingClientRect().top;
+        const headerBottom = containerTop + topMargin;
+        for (let i = visibleStart; i < Math.min(visibleEnd + 1, items.length); i++) {
+          const k = getKey(items[i], i);
+          const el = itemRefs.get(k);
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            if (rect.top >= headerBottom) {
+              anchorEl = el;
+              anchorYBefore = rect.top;
+              break;
+            }
+          }
+        }
+        if (anchorEl) {
+          const capturedEl = anchorEl;
+          const targetY = anchorYBefore;
+          const capturedNewStart = newRangeStart;
+          const capturedOldStart = oldRangeStart;
+          tick().then(() => {
+            let postDelta = 0;
+            for (let i = capturedNewStart; i < capturedOldStart && i < items.length; i++) {
+              const key = getKey(items[i], i);
+              const el = itemRefs.get(key);
+              if (el) {
+                const domH = el.getBoundingClientRect().height;
+                if (domH > 0) {
+                  const treeVal = tree.get(i);
+                  if (!tree.isMeasured(i) || isHeightChanged(treeVal, domH)) {
+                    postDelta += domH - treeVal;
+                    tree.setMeasured(i, domH);
+                    pendingHeights.delete(key);
+                  }
+                }
+              }
+            }
+            if (postDelta !== 0) {
+              spacerHeightAdjustment -= postDelta;
+              applyTopSpacerHeight(capturedNewStart);
+            }
+            const newY = capturedEl.getBoundingClientRect().top;
+            const drift = newY - targetY;
+            if (Math.abs(drift) > 0.5) {
+              setScrollTop(getScrollTop() + Math.round(drift));
+            }
+          });
+        }
+      }
     }
 
     _cachedScrollTop = -1;
@@ -598,14 +651,15 @@
     if (hasChanges) {
       if (tree.length !== items.length) {
         recalculatePositions();
-      }
-      const rs = Math.max(0, visibleStart - buf);
-      if (rs === 0) {
-        spacerHeightAdjustment = 0;
-      } else {
-        spacerHeightAdjustment = topSpacerHeight - tree.prefixSum(rs);
+        const rs = Math.max(0, visibleStart - buf);
+        if (rs === 0) {
+          spacerHeightAdjustment = 0;
+        } else {
+          spacerHeightAdjustment = topSpacerHeight - tree.prefixSum(rs);
+        }
       }
       invalidateLayout();
+
       frameDirty |= DIRTY_SCROLL;
     }
   }
@@ -618,6 +672,8 @@
     let immediateAboveDelta = 0;
     let visibleAboveDelta = 0;
     let hasDirectTreeUpdate = false;
+    const visibleBelowHeaderDeltas: Array<{idx: number, delta: number}> = [];
+    const resizedIndices = new Set<number>();
 
     for (const entry of entries) {
       const el = entry.target as HTMLElement;
@@ -645,6 +701,7 @@
             immediateAboveDelta += delta;
           }
         } else if (oldHeight !== undefined && idx >= visibleStart) {
+          resizedIndices.add(idx);
           if (getScrollTop() > topMargin) {
             const rect = el.getBoundingClientRect();
             const containerTop = getContainerTop();
@@ -653,6 +710,11 @@
               const delta = newHeight - oldHeight;
               if (isHeightChanged(delta, 0)) {
                 visibleAboveDelta += delta;
+              }
+            } else {
+              const delta = newHeight - oldHeight;
+              if (isHeightChanged(delta, 0)) {
+                visibleBelowHeaderDeltas.push({idx, delta});
               }
             }
           }
@@ -663,12 +725,15 @@
             tree.setMeasured(idx, newHeight);
             pendingHeights.delete(key);
             hasDirectTreeUpdate = true;
+            resizedIndices.add(idx);
             if (getScrollTop() > topMargin) {
               const rect = el.getBoundingClientRect();
               const containerTop = getContainerTop();
               const relTop = rect.top - containerTop;
               if (relTop < topMargin) {
                 visibleAboveDelta += estimateDelta;
+              } else {
+                visibleBelowHeaderDeltas.push({idx, delta: estimateDelta});
               }
             }
           }
@@ -702,6 +767,38 @@
       _visibleItemScrollOffset += visibleAboveDelta;
       const st = getScrollTop();
       setScrollTop(st + visibleAboveDelta);
+    }
+
+    if (visibleBelowHeaderDeltas.length > 0 && scrollContainer && !('smoothScrolling' in scrollContainer.dataset)) {
+      const containerTop = getContainerTop();
+      const headerBottom = containerTop + topMargin;
+      let anchorIdx = -1;
+
+      for (let i = visibleStart; i <= visibleEnd && i < items.length; i++) {
+        if (resizedIndices.has(i)) continue;
+        const key = getKey(items[i], i);
+        const el = itemRefs.get(key);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top >= headerBottom) {
+            anchorIdx = i;
+            break;
+          }
+        }
+      }
+
+      if (anchorIdx >= 0) {
+        let additionalDelta = 0;
+        for (const {idx, delta} of visibleBelowHeaderDeltas) {
+          if (idx < anchorIdx) {
+            additionalDelta += delta;
+          }
+        }
+        if (additionalDelta !== 0) {
+          _visibleItemScrollOffset += additionalDelta;
+          setScrollTop(getScrollTop() + additionalDelta);
+        }
+      }
     }
 
     clearContainerTopCache();
@@ -1406,7 +1503,7 @@
     {#each visibleIndices as index (getKey(items[index], index))}
       {@const item = items[index]}
       {@const key = getKey(item, index)}
-      {@const useAutoCV = (index >= visibleEnd || index < visibleStart) ? !isNavigating : false}
+      {@const useAutoCV = (index > visibleEnd || index < visibleStart - 1) ? !isNavigating : false}
       <div class="virtual-item" style:content-visibility={useAutoCV ? "auto" : "visible"} style:contain-intrinsic-block-size={useAutoCV ? `auto ${getItemHeight(index)}px` : undefined} {@attach itemAttach(key)}>
         {@render children(item, index)}
       </div>
