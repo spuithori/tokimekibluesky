@@ -260,6 +260,14 @@
     _cachedContainerTop = null;
   }
 
+  function getListOffset(): number {
+    if (!topSpacerEl || !scrollContainer) return 0;
+    const spacerTop = topSpacerEl.getBoundingClientRect().top;
+    const containerTop = getContainerTop();
+    const clientTop = isWindowScroll ? 0 : (scrollContainer.clientTop || 0);
+    return Math.max(0, Math.round(spacerTop - containerTop - clientTop + getScrollTop() - topMargin));
+  }
+
   function findEndIndex(scrollBottom: number): number {
     return Math.min(items.length, tree.findIndex(scrollBottom) + 1);
   }
@@ -268,7 +276,7 @@
     if (isNavigating || !scrollContainer || items.length === 0) return;
 
     const scrollTop = getScrollTop();
-    const effectiveScrollTop = scrollTop - spacerHeightAdjustment - _visibleItemScrollOffset;
+    const effectiveScrollTop = scrollTop - spacerHeightAdjustment - _visibleItemScrollOffset - getListOffset();
 
     const usableHeight = viewportHeight - topMargin;
     const newStart = tree.findIndex(effectiveScrollTop);
@@ -775,7 +783,6 @@
       let anchorIdx = -1;
 
       for (let i = visibleStart; i <= visibleEnd && i < items.length; i++) {
-        if (resizedIndices.has(i)) continue;
         const key = getKey(items[i], i);
         const el = itemRefs.get(key);
         if (el) {
@@ -1280,10 +1287,11 @@
     invalidateLayout();
 
     tick().then(() => {
-      setScrollTop(Math.max(0, targetScrollTop));
+      const listOffset = getListOffset();
+      setScrollTop(Math.max(0, targetScrollTop + listOffset));
       startCorrection(
         () => {
-          const corrected = Math.max(0, computeScrollTop(index, align, offset));
+          const corrected = Math.max(0, computeScrollTop(index, align, offset) + getListOffset());
           return corrected - getScrollTop();
         },
         {
@@ -1330,11 +1338,12 @@
     const container = scrollContainer ?? lastValidScrollContainer;
     const rawScrollTop = scrollContainer ? getScrollTop() : lastKnownScrollTop;
     const currentScrollTop = (rawScrollTop === 0 && lastKnownScrollTop > 0) ? lastKnownScrollTop : rawScrollTop;
+    const treeScrollTop = currentScrollTop - getListOffset();
     let index = (currentScrollTop !== rawScrollTop) ? lastKnownVisibleStart
-      : (scrollContainer ? tree.findIndex(currentScrollTop) : lastKnownVisibleStart);
-    index = adjustIndexForStickyHeader(index, currentScrollTop);
+      : (scrollContainer ? tree.findIndex(treeScrollTop) : lastKnownVisibleStart);
+    index = adjustIndexForStickyHeader(index, treeScrollTop);
     const key = getKey(items[index], index);
-    const offset = currentScrollTop - tree.prefixSum(index);
+    const offset = treeScrollTop - tree.prefixSum(index);
 
     let visualY: number | undefined;
     if (container) {
@@ -1353,10 +1362,11 @@
 
     const container = scrollContainer ?? lastValidScrollContainer;
     const currentScrollTop = scrollContainer ? getScrollTop() : lastKnownScrollTop;
-    let index = scrollContainer ? tree.findIndex(currentScrollTop) : lastKnownVisibleStart;
-    index = adjustIndexForStickyHeader(index, currentScrollTop);
+    const treeScrollTop = currentScrollTop - getListOffset();
+    let index = scrollContainer ? tree.findIndex(treeScrollTop) : lastKnownVisibleStart;
+    index = adjustIndexForStickyHeader(index, treeScrollTop);
     const key = getKey(items[index], index);
-    const offset = currentScrollTop - tree.prefixSum(index);
+    const offset = treeScrollTop - tree.prefixSum(index);
 
     const heightsArray: [string, number][] = [];
     const limit = Math.min(items.length, tree.length);
@@ -1410,7 +1420,7 @@
             onStart: () => {
               if (!itemRefs.get(key)) {
                 const fallbackOffset = targetVisualY - topMargin;
-                setScrollTop(Math.max(0, computeScrollTop(targetIdx, 'start', -fallbackOffset)));
+                setScrollTop(Math.max(0, computeScrollTop(targetIdx, 'start', -fallbackOffset) + getListOffset()));
               }
             },
           },
@@ -1419,11 +1429,11 @@
     } else {
       const position = tree.prefixSum(targetIdx);
       const targetScrollTop = position + offset;
-      setScrollTop(Math.max(0, targetScrollTop));
+      setScrollTop(Math.max(0, targetScrollTop + getListOffset()));
       tick().then(() => {
         startCorrection(
           () => {
-            const corrected = Math.max(0, computeScrollTop(targetIdx, 'start', offset));
+            const corrected = Math.max(0, computeScrollTop(targetIdx, 'start', offset) + getListOffset());
             return corrected - getScrollTop();
           },
           {
@@ -1503,7 +1513,7 @@
     {#each visibleIndices as index (getKey(items[index], index))}
       {@const item = items[index]}
       {@const key = getKey(item, index)}
-      {@const useAutoCV = (index > visibleEnd || index < visibleStart - 1) ? !isNavigating : false}
+      {@const useAutoCV = (index > visibleEnd + _cachedEffectiveBuffer || index < visibleStart - _cachedEffectiveBuffer) ? !isNavigating : false}
       <div class="virtual-item" style:content-visibility={useAutoCV ? "auto" : "visible"} style:contain-intrinsic-block-size={useAutoCV ? `auto ${getItemHeight(index)}px` : undefined} {@attach itemAttach(key)}>
         {@render children(item, index)}
       </div>
