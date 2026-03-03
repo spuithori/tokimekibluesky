@@ -17,6 +17,7 @@
     _agent?: any;
     list?: any;
     title?: string;
+    listItemCount?: number;
     isModerationList?: any;
     uri?: string;
     isMute?: boolean;
@@ -29,6 +30,7 @@
     _agent = $agent,
     list = $bindable(undefined),
     title = $bindable(''),
+    listItemCount = $bindable(0),
     isModerationList = $bindable(list?.purpose === 'app.bsky.graph.defs#modlist' || false),
     uri = '',
     isMute = $bindable(false),
@@ -45,6 +47,7 @@
               list = value.data.list;
               items = value.data.items;
               title = list.name;
+              listItemCount = list.listItemCount;
               isModerationList = list.purpose === 'app.bsky.graph.defs#modlist';
               isMute = list?.viewer?.muted;
               isBlock = list?.viewer?.blocked;
@@ -102,7 +105,7 @@
 
       <p class="list-item__description">
         {#if items.length}
-          <button class="list-item__members-button" onclick={() => {isMembersOpen = true}}>{items.length}{$_('list_members_length_suffix')}</button>
+          <button class="list-item__members-button" onclick={() => {isMembersOpen = true}}>{listItemCount}{$_('list_members_length_suffix')}</button>
           {#if (isMembersOpen)}
             <OfficialListMembersModal members={items} onclose={() => {isMembersOpen = false}}></OfficialListMembersModal>
           {/if}
