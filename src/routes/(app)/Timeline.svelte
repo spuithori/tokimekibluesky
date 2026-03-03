@@ -177,7 +177,7 @@
           f[newDividerIndex] = { ...f[newDividerIndex], isDivider: true };
       });
 
-      const useVirtualList = (column.style === 'default' || !column.style) && !$settings.general?.useVirtual;
+      const useVirtualList = (column.style === 'default' || !column.style) && !$settings.general?.useVirtual && false; //TODO
       if (useVirtualList && virtualTimelineRef) {
         tick().then(() => {
           virtualTimelineRef?.scrollToIndex(newDividerIndex, { align: 'start', offset: 0 });
