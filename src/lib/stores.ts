@@ -124,6 +124,11 @@ export const officialListModal = writable({
     uri: '',
 })
 
+export const starterPackModal = writable({
+    open: false,
+    uri: '',
+})
+
 type listAddModal = {
     open: boolean,
     author: AppBskyActorDefs.ProfileViewBasic | undefined,

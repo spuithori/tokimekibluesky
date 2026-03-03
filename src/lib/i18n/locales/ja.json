@@ -844,5 +844,21 @@
   "split_delete": "削除する",
   "split_select_column": "追加するカラムを選択",
   "split_use_existing": "既存のカラム",
-  "split_no_existing_columns": "移動できるカラムがありません"
+  "split_no_existing_columns": "移動できるカラムがありません",
+  "starter_packs": "スターターパック",
+  "page_title_starter_packs": "のスターターパック",
+  "starter_pack_joined_count": "{count}人がフォロー",
+  "starter_pack_joined_notification": "があなたのスターターパックから参加しました",
+  "starter_pack_view_button": "スターターパックを見る",
+  "starter_pack_follow_all": "全員をフォロー",
+  "starter_pack_create": "スターターパックを作成",
+  "starter_pack_edit": "スターターパックを編集",
+  "starter_pack_delete": "スターターパックを削除",
+  "starter_pack_name": "スターターパック名",
+  "starter_pack_add_feed": "フィードを追加",
+  "starter_pack_feed_search": "フィード検索",
+  "starter_pack_delete_confirm": "このスターターパックを削除しますか？この操作は取り消せません。",
+  "starter_pack_members_min": "メンバーは{min}人以上必要です。",
+  "starter_pack_members_max": "メンバーは最大{max}人までです。",
+  "starter_pack_feeds_max": "フィードは最大{max}個までです。"
 }

@@ -844,5 +844,21 @@
   "split_delete": "Delete",
   "split_select_column": "Select column to add",
   "split_use_existing": "Existing columns",
-  "split_no_existing_columns": "No columns available to move"
+  "split_no_existing_columns": "No columns available to move",
+  "starter_packs": "Starter Packs",
+  "page_title_starter_packs": "starter packs",
+  "starter_pack_joined_count": "{count} joined",
+  "starter_pack_joined_notification": "joined from your starter pack",
+  "starter_pack_view_button": "View Starter Pack",
+  "starter_pack_follow_all": "Follow All",
+  "starter_pack_create": "Create Starter Pack",
+  "starter_pack_edit": "Edit Starter Pack",
+  "starter_pack_delete": "Delete Starter Pack",
+  "starter_pack_name": "Starter Pack Name",
+  "starter_pack_add_feed": "Add Feed",
+  "starter_pack_feed_search": "Search Feeds",
+  "starter_pack_delete_confirm": "Are you sure you want to delete this starter pack? This action cannot be undone.",
+  "starter_pack_members_min": "At least {min} members are required.",
+  "starter_pack_members_max": "Maximum {max} members allowed.",
+  "starter_pack_feeds_max": "Maximum {max} feeds allowed."
 }

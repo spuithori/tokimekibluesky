@@ -5,7 +5,7 @@
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, detectHide} from "$lib/timelineFilter";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, BskyAgent } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, AppBskyGraphDefs, BskyAgent } from "@atproto/api";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {formatTranslateRecord} from "$lib/translate";
@@ -14,6 +14,7 @@
   import TimelineText from "$lib/components/post/TimelineText.svelte";
   import { toast } from "svelte-sonner";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
+  import StarterPackEmbed from "$lib/components/starterpack/StarterPackEmbed.svelte";
   import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
   import {getAllAgentDids, getDidFromUri, getService} from "$lib/util";
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
@@ -333,6 +334,10 @@
       <FeedsItem {_agent} feed={post.embed.record} layout="embed"></FeedsItem>
     {/if}
 
+    {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyGraphDefs.isStarterPackViewBasic(post.embed.record)) }
+      <StarterPackEmbed {_agent} starterPackBasic={post.embed.record}></StarterPackEmbed>
+    {/if}
+
     {#if (AppBskyEmbedRecordWithMedia.isView(post.embed))}
       {#if (AppBskyEmbedImages.isView(post.embed.media))}
         <div class="timeline-images-wrap">
@@ -358,6 +363,10 @@
 
       {#if (AppBskyFeedDefs.isGeneratorView(post.embed.record.record)) }
         <FeedsItem {_agent} feed={post.embed.record.record} layout="embed"></FeedsItem>
+      {/if}
+
+      {#if (AppBskyGraphDefs.isStarterPackViewBasic(post.embed.record.record)) }
+        <StarterPackEmbed {_agent} starterPackBasic={post.embed.record.record}></StarterPackEmbed>
       {/if}
     {/if}
 

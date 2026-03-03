@@ -5,6 +5,7 @@
     import {AtSign, Heart, Quote, Repeat2, Reply, Star, UserPlus2, Pencil} from "lucide-svelte";
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
+    import NotificationStarterpackItem from "$lib/components/notification/NotificationStarterpackItem.svelte";
     import TimelineItem from "./TimelineItem.svelte";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
     import {playSound} from "$lib/sounds";
@@ -159,7 +160,7 @@
           {:else if (item.reason === 'follow')}
             <NotificationFollowItem {_agent} item={item.notifications[0]}></NotificationFollowItem>
           {:else if (item.reason === 'starterpack-joined')}
-
+            <NotificationStarterpackItem {_agent} item={item.notifications[0]}></NotificationStarterpackItem>
           {:else}
             <NotificationReactionItem {_agent} {item} post={column?.data?.feedPool[item.postIndex]?.post}></NotificationReactionItem>
           {/if}

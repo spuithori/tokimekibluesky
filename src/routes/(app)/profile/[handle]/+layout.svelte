@@ -22,7 +22,8 @@
     import {untrack} from "svelte";
     import UserNotification from "./UserNotification.svelte";
     import StatusEditModal from "$lib/components/profile/StatusEditModal.svelte";
-    import {Radio} from "lucide-svelte";
+    import {Radio, Package, Ellipsis} from "lucide-svelte";
+    import Menu from "$lib/components/ui/Menu.svelte";
 
     const junkColumnState = getColumnState(true);
 
@@ -56,6 +57,8 @@
                     return 'feed';
                 case 'lists':
                     return 'lists';
+                case 'starterpack':
+                    return 'starterpack';
                 case 'drawings':
                     return 'drawings';
                 default:
@@ -67,6 +70,7 @@
     });
     let isEditOpen = $state(false);
     let isStatusEditOpen = $state(false);
+    let isMoreMenuOpen = $state(false);
 
     $effect(() => {
         getProfile(handle, true);
@@ -256,6 +260,23 @@
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'feed'}><a href="/profile/{data.params.handle}/feed" data-sveltekit-noscroll>{$_('feeds')}</a></li>
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'lists'}><a href="/profile/{data.params.handle}/lists" data-sveltekit-noscroll>{$_('lists')}</a></li>
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'drawings'}><a href="/profile/{data.params.handle}/drawings" data-sveltekit-noscroll>{$_('drawings')}</a></li>
+          <li class="profile-tab__item profile-tab__item--more" class:profile-tab__item--active={currentPage === 'starterpack'}>
+            <Menu bind:isMenuOpen={isMoreMenuOpen} buttonClassName="profile-tab__more-button" position="bottom-end">
+              {#snippet ref()}
+                <Ellipsis size={18}></Ellipsis>
+              {/snippet}
+              {#snippet content()}
+                <ul class="timeline-menu-list">
+                  <li class="timeline-menu-list__item">
+                    <a class="timeline-menu-list__button" href="/profile/{data.params.handle}/starterpack" data-sveltekit-noscroll onclick={() => { isMoreMenuOpen = false }}>
+                      <Package size="20" color="var(--text-color-1)"></Package>
+                      <span>{$_('starter_packs')}</span>
+                    </a>
+                  </li>
+                </ul>
+              {/snippet}
+            </Menu>
+          </li>
         {:else}
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
         {/if}
@@ -301,5 +322,22 @@
     .user-profile-buttons {
         display: flex;
         gap: 8px;
+    }
+
+    .profile-tab__item--more {
+        margin-left: auto;
+    }
+
+    :global(.profile-tab__more-button) {
+        display: flex;
+        align-items: center;
+        color: var(--text-color-3);
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    :global(.profile-tab__item--active .profile-tab__more-button) {
+        color: var(--primary-color);
     }
 </style>

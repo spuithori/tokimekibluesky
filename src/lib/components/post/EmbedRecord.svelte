@@ -1,7 +1,7 @@
 <script lang="ts">
   import { agent, labelerSettings, settings } from "$lib/stores";
   import {lightFormat} from "date-fns";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "@atproto/api";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
@@ -16,6 +16,7 @@
   import EmbedRecord from './EmbedRecord.svelte'
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
+  import StarterPackEmbed from "$lib/components/starterpack/StarterPackEmbed.svelte";
   import {appState} from "$lib/classes/appState.svelte";
 
   let { record, _agent = $agent, isChild = false, isPublish = false } = $props();
@@ -152,6 +153,8 @@
 
         {:else if ((AppBskyFeedDefs.isGeneratorView(record?.embeds[0]?.record)))}
           <FeedsItem {_agent} feed={record?.embeds[0]?.record} layout="embed"></FeedsItem>
+        {:else if ((AppBskyGraphDefs.isStarterPackViewBasic(record?.embeds[0]?.record)))}
+          <StarterPackEmbed {_agent} starterPackBasic={record?.embeds[0]?.record}></StarterPackEmbed>
         {:else}
           <EmbedRecord record={record.embeds[0].record} {_agent} isChild={true}></EmbedRecord>
         {/if}
