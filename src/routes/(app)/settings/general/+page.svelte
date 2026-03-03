@@ -20,6 +20,7 @@
     let enableAppBrowser = $settings?.general.enableAppBrowser || false;
     let disableChat = $settings?.general?.disableChat || false;
     let disableAtmosphere = $settings?.general?.disableAtmosphere || false;
+    let finnhubApiKey = $state($settings?.general?.finnhubApiKey || '');
 
 const languages = [
     {
@@ -72,6 +73,7 @@ run(() => {
     $settings.general.enableAppBrowser = enableAppBrowser;
     $settings.general.disableChat = disableChat;
     $settings.general.disableAtmosphere = disableAtmosphere;
+    $settings.general.finnhubApiKey = finnhubApiKey;
 });
 
 if (!settingsState?.settings?.translationModel) {
@@ -293,6 +295,20 @@ $effect(() => {
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="useVirtual" bind:checked={$settings.general.useVirtual}><label class="input-toggle__label" for="useVirtual"></label>
         </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        Finnhub API Key
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="select">
+          <input class="select__input" type="password" id="finnhubApiKey" bind:value={finnhubApiKey} placeholder="API Key" autocomplete="off">
+        </div>
+
+        <p class="settings-group__description">{$_('finnhub_api_key_description')} <a href="https://finnhub.io/" target="_blank" rel="noopener noreferrer">finnhub.io</a></p>
       </dd>
     </dl>
   </div>

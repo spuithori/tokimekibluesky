@@ -1,4 +1,3 @@
-import { env } from '$env/dynamic/private';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -98,10 +97,11 @@ async function fetchJapaneseStockYahoo(code: string) {
     };
 }
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, request }) => {
     const symbol = url.searchParams.get('symbol');
     const market = url.searchParams.get('market');
     const isJapanese = market === 'jp';
+    const finnhubApiKey = request.headers.get('X-Finnhub-Token') || '';
 
     if (isJapanese) {
         if (!symbol || !/^\d{4,5}$/.test(symbol)) {
@@ -117,10 +117,8 @@ export const GET: RequestHandler = async ({ url }) => {
         }
 
         try {
-            const FINNHUB_API_KEY = env.FINNHUB_API_KEY;
-
-            let data = FINNHUB_API_KEY
-                ? await fetchJapaneseStockFinnhub(symbol, FINNHUB_API_KEY)
+            let data = finnhubApiKey
+                ? await fetchJapaneseStockFinnhub(symbol, finnhubApiKey)
                 : null;
 
             if (!data) {
@@ -140,8 +138,7 @@ export const GET: RequestHandler = async ({ url }) => {
         }
     }
 
-    const FINNHUB_API_KEY = env.FINNHUB_API_KEY;
-    if (!FINNHUB_API_KEY) {
+    if (!finnhubApiKey) {
         return json({ error: 'API key not configured' }, { status: 503 });
     }
 
@@ -163,7 +160,7 @@ export const GET: RequestHandler = async ({ url }) => {
         if (isCrypto) {
             const quoteSymbol = `BINANCE:${upperSymbol}USDT`;
             const quoteRes = await fetch(
-                `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(quoteSymbol)}&token=${FINNHUB_API_KEY}`
+                `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(quoteSymbol)}&token=${finnhubApiKey}`
             );
 
             if (!quoteRes.ok) {
@@ -196,8 +193,8 @@ export const GET: RequestHandler = async ({ url }) => {
         }
 
         const [quoteRes, profileRes] = await Promise.all([
-            fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(upperSymbol)}&token=${FINNHUB_API_KEY}`),
-            fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${encodeURIComponent(upperSymbol)}&token=${FINNHUB_API_KEY}`),
+            fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(upperSymbol)}&token=${finnhubApiKey}`),
+            fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${encodeURIComponent(upperSymbol)}&token=${finnhubApiKey}`),
         ]);
 
         if (!quoteRes.ok || !profileRes.ok) {

@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { settings } from '$lib/stores';
+
     interface Props {
         symbol: string;
         japanese?: boolean;
@@ -20,16 +22,31 @@
     } | null>(null);
     let loading = $state(true);
     let error = $state(false);
+    let skipped = $state(false);
 
     $effect(() => {
         loading = true;
         error = false;
         data = null;
+        skipped = false;
+
+        const apiKey = $settings?.general?.finnhubApiKey || '';
+
+        if (!apiKey && !japanese) {
+            skipped = true;
+            loading = false;
+            return;
+        }
 
         const params = new URLSearchParams({ symbol });
         if (japanese) params.set('market', 'jp');
 
-        fetch(`/api/cashtag-quote?${params}`)
+        const headers: Record<string, string> = {};
+        if (apiKey) {
+            headers['X-Finnhub-Token'] = apiKey;
+        }
+
+        fetch(`/api/cashtag-quote?${params}`, { headers })
             .then((res) => {
                 if (!res.ok) throw new Error();
                 return res.json();
