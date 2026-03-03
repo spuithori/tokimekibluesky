@@ -7,17 +7,18 @@ import {Plugin, PluginKey} from '@tiptap/pm/state';
 import {Node as ProsemirrorNode} from '@tiptap/pm/model';
 import {Decoration, DecorationSet} from '@tiptap/pm/view';
 import {TAG_REGEX, TRAILING_PUNCTUATION_REGEX} from '@atproto/api';
+import {CASHTAG_REGEX, JP_CASHTAG_REGEX} from '$lib/cashtag';
 
 function getDecorations(doc: ProsemirrorNode) {
     const decorations: Decoration[] = []
 
     doc.descendants((node, pos) => {
         if (node.isText && node.text) {
-            const regex = TAG_REGEX
             const textContent = node.textContent
 
             let match
-            while ((match = regex.exec(textContent))) {
+            const hashtagRegex = new RegExp(TAG_REGEX.source, TAG_REGEX.flags)
+            while ((match = hashtagRegex.exec(textContent))) {
                 const [matchedString, _, tag] = match
 
                 if (!tag || tag.replace(TRAILING_PUNCTUATION_REGEX, '').length > 64)
@@ -33,6 +34,36 @@ function getDecorations(doc: ProsemirrorNode) {
                  */
                 const start = pos + matchedFrom - 1
                 const end = pos + matchedTo
+
+                decorations.push(
+                    Decoration.inline(start, end, {
+                        class: 'editor-hashtag',
+                    }),
+                )
+            }
+
+            const cashtagRegex = new RegExp(CASHTAG_REGEX.source, CASHTAG_REGEX.flags)
+            while ((match = cashtagRegex.exec(textContent))) {
+                const leading = match[1]
+                const ticker = match[2]
+
+                const start = pos + match.index + leading.length
+                const end = start + 1 + ticker.length
+
+                decorations.push(
+                    Decoration.inline(start, end, {
+                        class: 'editor-hashtag',
+                    }),
+                )
+            }
+
+            const jpCashtagRegex = new RegExp(JP_CASHTAG_REGEX.source, JP_CASHTAG_REGEX.flags)
+            while ((match = jpCashtagRegex.exec(textContent))) {
+                const leading = match[1]
+                const code = match[2]
+
+                const start = pos + match.index + leading.length
+                const end = start + 2 + code.length
 
                 decorations.push(
                     Decoration.inline(start, end, {

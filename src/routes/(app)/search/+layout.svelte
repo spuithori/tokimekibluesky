@@ -3,6 +3,7 @@
   import type { LayoutData } from './$types';
   import SearchForm from "../SearchForm.svelte";
   import PageModal from "$lib/components/ui/PageModal.svelte";
+  import CashtagCard from "$lib/components/post/CashtagCard.svelte";
   import {page} from "$app/stores";
 
   interface Props {
@@ -18,6 +19,15 @@
   $effect(() => {
       q = params || '';
   })
+
+  let cashtagInfo = $derived.by(() => {
+      const query = params || '';
+      const usMatch = query.match(/^#?\$([A-Za-z][A-Za-z0-9]{0,4})$/);
+      if (usMatch) return { symbol: usMatch[1].toUpperCase(), japanese: false };
+      const jpMatch = query.match(/^#?\$[\\¥](\d{4,5})$/);
+      if (jpMatch) return { symbol: jpMatch[1], japanese: true };
+      return null;
+  });
 </script>
 
 <PageModal>
@@ -38,6 +48,10 @@
   </div>
 
   <div class="page-search">
+    {#if cashtagInfo}
+      <CashtagCard symbol={cashtagInfo.symbol} japanese={cashtagInfo.japanese} />
+    {/if}
+
     <ul class="profile-tab">
       <li class="profile-tab__item" onclick={() => currentPage = 'posts'} class:profile-tab__item--active={currentPage === 'posts'}><a href="/search?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('posts')}</a></li>
       <li class="profile-tab__item" onclick={() => currentPage = 'user'} class:profile-tab__item--active={currentPage === 'user'}><a href="/search/user?q={encodeURIComponent(q)}" data-sveltekit-noscroll data-sveltekit-replacestate>{$_('user')}</a></li>

@@ -26,7 +26,7 @@
     const newTagSet = new Set<string>();
     for (let i = textArray.length - 1; i >= 0; i--) {
         const item = textArray[i];
-        if (item.isTag() && item.tag?.tag) {
+        if (item.isTag() && item.tag?.tag && !item.tag.tag.startsWith('$')) {
             newTagSet.add(item.tag.tag);
         }
     }

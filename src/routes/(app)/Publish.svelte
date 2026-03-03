@@ -384,7 +384,7 @@
       }
 
       if ($settings?.general?.continuousTag && continuousTags.length) {
-        const tagsText = continuousTags.map(tag => `<span class="editor-hashtag">#${tag}</span>`).join(' ');
+        const tagsText = continuousTags.map(tag => `<span class="editor-hashtag">${tag.startsWith('$') ? tag : '#' + tag}</span>`).join(' ');
         postState.replaceText('<br>' + tagsText);
         await tick();
         editor.focus('start');
@@ -777,17 +777,18 @@
           }
 
           if (rt?.facets) {
-              const tags = rt.facets.map(facet => {
+              const allTags = rt.facets.map(facet => {
                   if (facet?.features[0]?.tag) {
                       return facet.features[0].tag as string;
                   }
-              });
-              let _hashtagHistory = [...tags, ...$hashtagHistory];
+              }).filter(Boolean);
+              const hashTags = allTags.filter(tag => !tag.startsWith('$'));
+              let _hashtagHistory = [...hashTags, ...$hashtagHistory];
               _hashtagHistory = [...new Set(_hashtagHistory)];
               $hashtagHistory = _hashtagHistory.filter(Boolean);
 
               if ($settings?.general?.continuousTag) {
-                  continuousTags = tags.filter(v => v);
+                  continuousTags = allTags;
               }
 
               if ($hashtagHistory.length > 4) {

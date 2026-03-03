@@ -1,5 +1,6 @@
 import {AppBskyRichtextFacet, AtpAgent, RichText} from "@atproto/api";
 import {detectFacets} from "@atproto/api/src/rich-text/detection";
+import {detectCashtagFacets} from "$lib/cashtag";
 const facetSort = (a, b) => a.index.byteStart - b.index.byteStart
 
 export class SimpleRichText extends RichText {
@@ -21,6 +22,14 @@ export class SimpleRichText extends RichText {
                     }
                 }
             }
+        }
+
+        const cashtagFacets = detectCashtagFacets(this.unicodeText);
+        if (cashtagFacets.length) {
+            this.facets = [...(this.facets || []), ...cashtagFacets];
+        }
+
+        if (this.facets) {
             this.facets.sort(facetSort);
         }
     }
