@@ -307,7 +307,7 @@
   }
 </script>
 
-{#if (column.style === 'default' || !column.style) && !$settings.general?.useVirtual}
+{#if (column.style === 'default' || !column.style) && !$settings.general?.useVirtual && false}
   <VirtualTimeline
     {column}
     {_agent}
