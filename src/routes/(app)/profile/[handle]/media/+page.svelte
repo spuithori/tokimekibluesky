@@ -5,7 +5,6 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import DeckRow from "../../../DeckRow.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import type { Snapshot } from './$types';
 
   interface Props {
     data: LayoutData;
@@ -16,20 +15,6 @@
   const agentContext = getAgentContext();
   const columnState = getColumnState(true);
   let columnId = $derived(`media_${data.params.handle}_${agentContext.agent.did()}`);
-
-  export const snapshot: Snapshot<{ scrollTop: number } | null> = {
-    capture: () => {
-      const scrollEl = document.querySelector('.modal-page-content') as HTMLElement;
-      return { scrollTop: scrollEl?.scrollTop ?? 0 };
-    },
-    restore: (value) => {
-      if (!value || value.scrollTop <= 0) return;
-      requestAnimationFrame(() => {
-        const scrollEl = document.querySelector('.modal-page-content') as HTMLElement;
-        scrollEl?.scroll(0, value.scrollTop);
-      });
-    }
-  };
 
   if (!columnState.hasColumn(columnId)) {
       columnState.add({

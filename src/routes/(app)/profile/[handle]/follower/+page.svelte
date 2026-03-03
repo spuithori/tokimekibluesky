@@ -1,10 +1,8 @@
 <script lang="ts">
   import { _ } from 'svelte-i18n';
   import type { LayoutData } from '../$types';
-  import {settings} from "$lib/stores";
   import UserItem from "../UserItem.svelte";
   import type { Snapshot } from './$types';
-  import {tick} from "svelte";
   import {getAgentContext} from "../state.svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
 

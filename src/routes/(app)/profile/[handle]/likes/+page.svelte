@@ -5,9 +5,6 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import DeckRow from "../../../DeckRow.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import type { Snapshot } from './$types';
-  import {settings} from "$lib/stores";
-  import {captureScrollSnapshot, restoreScrollSnapshot, type ScrollSnapshotData} from "$lib/components/virtual/scroll-helpers";
 
   interface Props {
       data: LayoutData;
@@ -18,16 +15,6 @@
   const agentContext = getAgentContext();
   const columnState = getColumnState(true);
   let columnId = $derived(`like_${data.params.handle}_${agentContext.agent.did()}`);
-
-  const getColData = () => columnState.hasColumn(columnId)
-      ? columnState.getColumn(columnState.getColumnIndex(columnId))?.data as any
-      : null;
-  const isSingle = () => $settings.design?.layout !== 'decks';
-
-  export const snapshot: Snapshot<ScrollSnapshotData> = {
-    capture: () => captureScrollSnapshot(getColData, isSingle()),
-    restore: (value) => restoreScrollSnapshot(value, getColData, isSingle()),
-  };
 
   if (!columnState.hasColumn(columnId)) {
       columnState.add({

@@ -1,14 +1,12 @@
 <script lang="ts">
     import { page } from '$app/stores';
-    import {agent, settings} from '$lib/stores';
+    import {agent} from '$lib/stores';
     import {_} from "svelte-i18n";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import { PUBLIC_SUICIDE_WORDS } from '$env/static/public';
     import SuicideSafety from "$lib/components/safety/SuicideSafety.svelte";
-    import type { Snapshot } from './$types';
     import DeckRow from "../DeckRow.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import {captureScrollSnapshot, restoreScrollSnapshot, type ScrollSnapshotData} from "$lib/components/virtual/scroll-helpers";
 
     const junkColumnState = getColumnState(true);
 
@@ -16,18 +14,6 @@
     let isColumnAdded = false;
     let isSafety = $state(false);
     let sort: 'top' | 'latest' = $state('latest');
-
-    const searchColumnId = $page.url.searchParams.get('q') ? 'search_' + $page.url.searchParams.get('q') : '';
-
-    const getColData = () => searchColumnId && junkColumnState.hasColumn(searchColumnId)
-        ? junkColumnState.getColumn(junkColumnState.getColumnIndex(searchColumnId))?.data as any
-        : null;
-    const isSingle = () => $settings.design?.layout !== 'decks';
-
-    export const snapshot: Snapshot<ScrollSnapshotData> = {
-        capture: () => captureScrollSnapshot(getColData, isSingle()),
-        restore: (value) => restoreScrollSnapshot(value, getColData, isSingle()),
-    };
 
     if ($page.url.searchParams.get('q') && !junkColumnState.hasColumn('search_' + $page.url.searchParams.get('q'))) {
         junkColumnState.add({

@@ -1,11 +1,9 @@
 <script lang="ts">
-  import type {LayoutData, Snapshot} from './$types';
-  import {settings} from '$lib/stores';
+  import type {LayoutData} from './$types';
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import DeckRow from "../../DeckRow.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {getAgentContext} from "./state.svelte";
-  import {captureScrollSnapshot, restoreScrollSnapshot, type ScrollSnapshotData} from "$lib/components/virtual/scroll-helpers";
 
   interface Props {
     data: LayoutData;
@@ -44,16 +42,6 @@
   }
 
   const columnId = 'profile_' + data.params.handle;
-
-  const getColData = () => columnState.hasColumn(columnId)
-      ? columnState.getColumn(columnState.getColumnIndex(columnId))?.data as any
-      : null;
-  const isSingle = () => $settings.design?.layout !== 'decks';
-
-  export const snapshot: Snapshot<ScrollSnapshotData> = {
-      capture: () => captureScrollSnapshot(getColData, isSingle()),
-      restore: (value) => restoreScrollSnapshot(value, getColData, isSingle()),
-  };
 </script>
 
 <svelte:head>

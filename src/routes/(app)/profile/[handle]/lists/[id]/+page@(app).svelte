@@ -3,14 +3,8 @@
     import { page } from '$app/stores';
     import ListView from "./ListView.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
-    import type { Snapshot } from './$types';
 
     let title = $state('');
-
-    export const snapshot: Snapshot = {
-        capture: () => null,
-        restore: () => {}
-    };
 </script>
 
 <PageModal>

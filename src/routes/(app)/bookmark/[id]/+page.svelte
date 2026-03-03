@@ -3,12 +3,6 @@
     import {page} from "$app/stores";
     import BookmarkView from "./BookmarkView.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
-    import type { Snapshot } from './$types';
-
-    export const snapshot: Snapshot = {
-        capture: () => null,
-        restore: () => {}
-    };
 </script>
 
 <PageModal>

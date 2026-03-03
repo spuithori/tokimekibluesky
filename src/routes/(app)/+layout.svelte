@@ -2,7 +2,7 @@
   import {_, locale} from 'svelte-i18n'
   import '../styles.css';
   import { isColumnModalOpen, isMobileDataConnection, listAddModal, settings, theme, bluefeedAddModal } from '$lib/stores';
-  import { goto } from '$app/navigation';
+  import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
   import { dev } from '$app/environment';
   import { injectAnalytics } from '@vercel/analytics/sveltekit';
   import {tick, untrack} from 'svelte';
@@ -217,6 +217,34 @@
   viewPortSetting();
   setPostState();
   initColumns();
+
+  const savedScrollPositions = new Map<string, { scroll: { x: number; y: number } | null; modalTop: number | null }>();
+
+  beforeNavigate(({ from }) => {
+    if (!from?.url) return;
+    const key = from.url.pathname + from.url.search;
+    const modal = document.querySelector('.modal-page-content') as HTMLElement | null;
+    savedScrollPositions.set(key, {
+      scroll: from.scroll,
+      modalTop: modal ? modal.scrollTop : null,
+    });
+  });
+
+  afterNavigate(({ to, type }) => {
+    if (type !== 'popstate' || !to?.url) return;
+    const key = to.url.pathname + to.url.search;
+    const saved = savedScrollPositions.get(key);
+    if (!saved) return;
+
+    tick().then(() => {
+      if ($settings.design?.layout === 'decks' && saved.modalTop !== null) {
+        const modal = document.querySelector('.modal-page-content') as HTMLElement | null;
+        if (modal) modal.scrollTop = saved.modalTop;
+      } else if (saved.scroll) {
+        window.scrollTo(saved.scroll.x, saved.scroll.y);
+      }
+    });
+  });
 
   $effect(() => {
       localStorage.setItem('settings', JSON.stringify($settings));
