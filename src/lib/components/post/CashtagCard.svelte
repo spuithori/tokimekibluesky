@@ -22,21 +22,13 @@
     } | null>(null);
     let loading = $state(true);
     let error = $state(false);
-    let skipped = $state(false);
 
     $effect(() => {
         loading = true;
         error = false;
         data = null;
-        skipped = false;
 
         const apiKey = $settings?.general?.finnhubApiKey || '';
-
-        if (!apiKey && !japanese) {
-            skipped = true;
-            loading = false;
-            return;
-        }
 
         const params = new URLSearchParams({ symbol });
         if (japanese) params.set('market', 'jp');

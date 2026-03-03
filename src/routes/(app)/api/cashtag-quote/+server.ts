@@ -64,8 +64,11 @@ async function fetchJapaneseStockFinnhub(code: string, apiKey: string) {
     };
 }
 
-async function fetchJapaneseStockYahoo(code: string) {
-    const yahooSymbol = `${code}.T`;
+async function fetchYahoo(
+    yahooSymbol: string,
+    displaySymbol: string,
+    options: { isCrypto?: boolean; isJapanese?: boolean } = {},
+) {
     const res = await fetch(
         `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?range=1d&interval=1d`,
         { headers: { 'User-Agent': 'Mozilla/5.0' } },
@@ -84,16 +87,16 @@ async function fetchJapaneseStockYahoo(code: string) {
     const changePercent = previousClose ? (change / previousClose) * 100 : 0;
 
     return {
-        symbol: code,
-        name: meta.shortName || meta.longName || code,
+        symbol: displaySymbol,
+        name: meta.shortName || meta.longName || displaySymbol,
         logo: '',
-        industry: '',
+        industry: options.isCrypto ? 'Cryptocurrency' : '',
         price,
         change,
         changePercent,
-        currency: meta.currency || 'JPY',
-        isCrypto: false,
-        isJapanese: true,
+        currency: meta.currency || 'USD',
+        isCrypto: options.isCrypto ?? false,
+        isJapanese: options.isJapanese ?? false,
     };
 }
 
@@ -122,7 +125,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
                 : null;
 
             if (!data) {
-                data = await fetchJapaneseStockYahoo(symbol);
+                data = await fetchYahoo(`${symbol}.T`, symbol, { isJapanese: true });
             }
 
             if (!data) {
@@ -136,10 +139,6 @@ export const GET: RequestHandler = async ({ url, request }) => {
         } catch {
             return json({ error: 'An internal server error occurred' }, { status: 500 });
         }
-    }
-
-    if (!finnhubApiKey) {
-        return json({ error: 'API key not configured' }, { status: 503 });
     }
 
     const upperSymbol = symbol?.toUpperCase();
@@ -157,68 +156,66 @@ export const GET: RequestHandler = async ({ url, request }) => {
     const isCrypto = CRYPTO_SYMBOLS.has(upperSymbol);
 
     try {
-        if (isCrypto) {
-            const quoteSymbol = `BINANCE:${upperSymbol}USDT`;
-            const quoteRes = await fetch(
-                `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(quoteSymbol)}&token=${finnhubApiKey}`
-            );
+        let data = null;
 
-            if (!quoteRes.ok) {
-                return json({ error: 'Failed to fetch quote' }, { status: 502 });
+        if (finnhubApiKey) {
+            if (isCrypto) {
+                const quoteSymbol = `BINANCE:${upperSymbol}USDT`;
+                const quoteRes = await fetch(
+                    `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(quoteSymbol)}&token=${finnhubApiKey}`
+                );
+
+                if (quoteRes.ok) {
+                    const quote = await quoteRes.json();
+                    if (quote.c && quote.c !== 0) {
+                        data = {
+                            symbol: upperSymbol,
+                            name: CRYPTO_NAMES[upperSymbol] || upperSymbol,
+                            logo: '',
+                            industry: 'Cryptocurrency',
+                            price: quote.c,
+                            change: quote.d ?? 0,
+                            changePercent: quote.dp ?? 0,
+                            currency: 'USD',
+                            isCrypto: true,
+                            isJapanese: false,
+                        };
+                    }
+                }
+            } else {
+                const [quoteRes, profileRes] = await Promise.all([
+                    fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(upperSymbol)}&token=${finnhubApiKey}`),
+                    fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${encodeURIComponent(upperSymbol)}&token=${finnhubApiKey}`),
+                ]);
+
+                if (quoteRes.ok && profileRes.ok) {
+                    const [quote, profile] = await Promise.all([quoteRes.json(), profileRes.json()]);
+                    if (quote.c && quote.c !== 0) {
+                        data = {
+                            symbol: upperSymbol,
+                            name: profile.name || upperSymbol,
+                            logo: profile.logo || '',
+                            industry: profile.finnhubIndustry || '',
+                            price: quote.c,
+                            change: quote.d ?? 0,
+                            changePercent: quote.dp ?? 0,
+                            currency: profile.currency || 'USD',
+                            isCrypto: false,
+                            isJapanese: false,
+                        };
+                    }
+                }
             }
-
-            const quote = await quoteRes.json();
-
-            if (!quote.c || quote.c === 0) {
-                return json({ error: 'No data available' }, { status: 404 });
-            }
-
-            const data = {
-                symbol: upperSymbol,
-                name: CRYPTO_NAMES[upperSymbol] || upperSymbol,
-                logo: '',
-                industry: 'Cryptocurrency',
-                price: quote.c,
-                change: quote.d ?? 0,
-                changePercent: quote.dp ?? 0,
-                currency: 'USD',
-                isCrypto: true,
-                isJapanese: false,
-            };
-
-            setCache(upperSymbol, data);
-            return json(data, {
-                headers: { 'Cache-Control': 'public, max-age=900' },
-            });
         }
 
-        const [quoteRes, profileRes] = await Promise.all([
-            fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(upperSymbol)}&token=${finnhubApiKey}`),
-            fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${encodeURIComponent(upperSymbol)}&token=${finnhubApiKey}`),
-        ]);
-
-        if (!quoteRes.ok || !profileRes.ok) {
-            return json({ error: 'Failed to fetch data' }, { status: 502 });
+        if (!data) {
+            const yahooSymbol = isCrypto ? `${upperSymbol}-USD` : upperSymbol;
+            data = await fetchYahoo(yahooSymbol, upperSymbol, { isCrypto });
         }
 
-        const [quote, profile] = await Promise.all([quoteRes.json(), profileRes.json()]);
-
-        if (!quote.c || quote.c === 0) {
+        if (!data) {
             return json({ error: 'No data available' }, { status: 404 });
         }
-
-        const data = {
-            symbol: upperSymbol,
-            name: profile.name || upperSymbol,
-            logo: profile.logo || '',
-            industry: profile.finnhubIndustry || '',
-            price: quote.c,
-            change: quote.d ?? 0,
-            changePercent: quote.dp ?? 0,
-            currency: profile.currency || 'USD',
-            isCrypto: false,
-            isJapanese: false,
-        };
 
         setCache(upperSymbol, data);
         return json(data, {
