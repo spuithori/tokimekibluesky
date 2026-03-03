@@ -10,7 +10,7 @@
     let feedItem = $derived(columnState.getFeed(column.id)[index]);
 </script>
 
-{#key feedItem}
+{#key feedItem?.post?.uri}
   <TimelineItem
           data={feedItem}
           {index}

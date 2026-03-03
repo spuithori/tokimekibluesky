@@ -137,7 +137,7 @@
       class:timeline-images--compact={$settings?.design.postsImageLayout === 'compact'}
       class:timeline-images--nocrop={$settings?.design.oneImageNoCrop}
   >
-    {#each images as image, index (image)}
+    {#each images as image, index (image.thumb)}
       {@const ar = image.aspectRatio}
       <div
         class="timeline-image"

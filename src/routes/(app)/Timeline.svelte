@@ -305,6 +305,24 @@
   export function restoreScrollState(state: ScrollState): void {
     virtualTimelineRef?.restoreScrollState(state);
   }
+
+  function getFeedKey(data: any, index: number): string {
+    if (!data?.post?.uri) return `__divider_${index}`;
+    const base = `${data.post.uri}|${data.reason?.indexedAt || ''}`;
+    return base;
+  }
+
+  function makeFeedKeys(feed: any[]): string[] {
+    const seen = new Map<string, number>();
+    return feed.map((data, i) => {
+      const base = getFeedKey(data, i);
+      const n = seen.get(base) || 0;
+      seen.set(base, n + 1);
+      return n > 0 ? `${base}#${n}` : base;
+    });
+  }
+
+  const feedKeys = $derived(makeFeedKeys(columnState.getFeed(column.id)));
 </script>
 
 {#if (column.style === 'default' || !column.style) && !$settings.general?.useVirtual}
@@ -327,7 +345,7 @@
 {:else}
   <div class="timeline timeline--{column.style || 'default'}">
     <div class:media-list={column.style === 'media'} class:media-list--1={column.style === 'media' && column?.settings?.mediaColumns === 1} class:media-list--2={column.style === 'media' && column?.settings?.mediaColumns === 2} class:video-list={column.style === 'video'}>
-      {#each columnState.getFeed(column.id) as data, index (data)}
+      {#each columnState.getFeed(column.id) as data, index (feedKeys[index])}
         {#if (data?.post?.author?.did)}
           <svelte:boundary>
             <TimelineItem
