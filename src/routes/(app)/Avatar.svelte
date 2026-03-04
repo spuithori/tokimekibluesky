@@ -54,7 +54,7 @@
     }
   }
 
-  function handlePointerUp() {
+  function finishDrag() {
     if (!isDragging) return;
     isDragging = false;
 
@@ -76,6 +76,15 @@
       });
       currentAnimation.onfinish = () => { currentAnimation = null; };
     }
+  }
+
+  function cancelDrag() {
+    if (!isDragging) return;
+    isDragging = false;
+    wasDragged = false;
+    dx = 0;
+    dy = 0;
+    linkEl.style.transform = '';
   }
 
   function handleDragStart(e: DragEvent) {
@@ -167,8 +176,11 @@
      onclick={handleClick}
      onpointerdown={handlePointerDown}
      onpointermove={handlePointerMove}
-     onpointerup={handlePointerUp}
+     onpointerup={finishDrag}
+     onpointercancel={cancelDrag}
+     onlostpointercapture={cancelDrag}
      ondragstart={handleDragStart}
+     class:mochi-enabled={enableMochiHoppe}
      style:transform={mochiTransform}>
     {#if (avatar && !$isDataSaving)}
       <img loading="lazy" src={avatar} width="1000" height="1000" alt="" draggable="false">
@@ -195,9 +207,11 @@
           border-radius: var(--avatar-border-radius);
           overflow: hidden;
           display: block;
-          -webkit-user-drag: none;
-          user-select: none;
-          touch-action: manipulation;
+          &.mochi-enabled {
+              -webkit-user-drag: none;
+              user-select: none;
+              touch-action: none;
+          }
 
           &::before {
               content: '';
