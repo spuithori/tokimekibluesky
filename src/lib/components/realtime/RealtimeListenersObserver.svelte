@@ -38,7 +38,7 @@
           const _agent = $agents.get(getAccountIdByDid($agents, column.did));
           if (_agent) {
             const serviceHost = getServiceHost(_agent);
-            const host = serviceHost === 'bsky.social' ? 'Jetstream (us-west2)' : serviceHost;
+            const host = serviceHost === 'bsky.social' ? 'Jetstream (us-east2)' : serviceHost;
 
             if (column.settings?.autoRefresh === -1) {
               _listeners.add(host);
