@@ -18,7 +18,92 @@
   let avatarMouseOverTimeId: ReturnType<typeof setTimeout>;
   let isProfileShown = $state(false);
 
+  const enableMochiHoppe = true;
+
+  let linkEl: HTMLAnchorElement;
+  let isDragging = false;
+  let wasDragged = false;
+  let startX = 0;
+  let startY = 0;
+  let dx = $state(0);
+  let dy = $state(0);
+  let currentAnimation: Animation | null = null;
+
+  function handlePointerDown(e: PointerEvent) {
+    if (!enableMochiHoppe) return;
+    isDragging = true;
+    wasDragged = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    dx = 0;
+    dy = 0;
+    if (currentAnimation) {
+      currentAnimation.cancel();
+      currentAnimation = null;
+    }
+    linkEl.setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e: PointerEvent) {
+    if (!isDragging) return;
+    dx = e.clientX - startX;
+    dy = e.clientY - startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      wasDragged = true;
+      e.preventDefault();
+    }
+  }
+
+  function handlePointerUp() {
+    if (!isDragging) return;
+    isDragging = false;
+
+    if (wasDragged) {
+      const currentTransform = linkEl.style.transform;
+      linkEl.style.transform = '';
+      dx = 0;
+      dy = 0;
+
+      currentAnimation = linkEl.animate([
+        { transform: currentTransform },
+        { transform: 'scale(1.1, 0.9)', offset: 0.25 },
+        { transform: 'scale(0.95, 1.05)', offset: 0.5 },
+        { transform: 'scale(1.03, 0.97)', offset: 0.75 },
+        { transform: 'scale(1, 1)' }
+      ], {
+        duration: 500,
+        easing: 'ease-out',
+      });
+      currentAnimation.onfinish = () => { currentAnimation = null; };
+    }
+  }
+
+  function handleDragStart(e: DragEvent) {
+    if (!enableMochiHoppe) return;
+    e.preventDefault();
+  }
+
+  let mochiTransform = $derived.by(() => {
+    if (!enableMochiHoppe) return undefined;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 5) return undefined;
+
+    const factor = Math.min(dist, 80) / 80;
+    const angle = Math.atan2(dy, dx);
+
+    const t = 20 * Math.tanh(dist / 60);
+    const tx = t * Math.cos(angle);
+    const ty = t * Math.sin(angle);
+
+    const stretch = 1 + factor * 0.25;
+    const compress = 1 / Math.sqrt(stretch);
+
+    return `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) rotate(${angle.toFixed(3)}rad) scale(${stretch.toFixed(3)}, ${compress.toFixed(3)}) rotate(${(-angle).toFixed(3)}rad)`;
+  });
+
   async function handleAvatarMouseOver() {
+      if (isDragging) return;
+
       if ($settings?.design?.disableProfilePopup) {
           return false;
       }
@@ -48,6 +133,12 @@
 
   function handleClick(e: Event) {
       e.preventDefault();
+      e.stopPropagation();
+
+      if (wasDragged) {
+          wasDragged = false;
+          return;
+      }
 
       if (profile) {
           profileHintState.set(profile);
@@ -69,9 +160,18 @@
 </script>
 
 <div class="avatar" class:avatar--live={profile?.status?.isActive}>
-  <a href={href} onmouseover={handleAvatarMouseOver} onmouseleave={handleAvatarMouseLeave} onclick={handleClick}>
+  <a bind:this={linkEl}
+     href={href}
+     onmouseover={handleAvatarMouseOver}
+     onmouseleave={handleAvatarMouseLeave}
+     onclick={handleClick}
+     onpointerdown={handlePointerDown}
+     onpointermove={handlePointerMove}
+     onpointerup={handlePointerUp}
+     ondragstart={handleDragStart}
+     style:transform={mochiTransform}>
     {#if (avatar && !$isDataSaving)}
-      <img loading="lazy" src={avatar} width="1000" height="1000" alt="">
+      <img loading="lazy" src={avatar} width="1000" height="1000" alt="" draggable="false">
     {/if}
   </a>
 
@@ -95,6 +195,9 @@
           border-radius: var(--avatar-border-radius);
           overflow: hidden;
           display: block;
+          -webkit-user-drag: none;
+          user-select: none;
+          touch-action: manipulation;
 
           &::before {
               content: '';
@@ -122,6 +225,7 @@
           height: auto;
           vertical-align: middle;
           display: block;
+          pointer-events: none;
       }
 
       &--live {
