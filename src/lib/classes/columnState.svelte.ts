@@ -292,16 +292,14 @@ export class ColumnState {
                 const { patched, found } = patchItem(feed[i]);
                 if (found) {
                     feed[i] = patched;
-                    break;
                 }
             }
         } else {
             let mutated = false;
             const newFeed = feed.map(item => {
-                if (mutated) return item;
                 const { patched, found } = patchItem(item);
                 if (found) mutated = true;
-                return patched;
+                return found ? patched : item;
             });
             if (mutated) {
                 this._feeds = { ...this._feeds, [column.id]: newFeed };
@@ -399,16 +397,14 @@ export class ColumnState {
                 const { patched, found } = patchItem(feed[i]);
                 if (found) {
                     feed[i] = patched;
-                    break;
                 }
             }
         } else {
             let mutated = false;
             const newFeed = feed.map(item => {
-                if (mutated) return item;
                 const { patched, found } = patchItem(item);
                 if (found) mutated = true;
-                return patched;
+                return found ? patched : item;
             });
             if (mutated) {
                 this._feeds = { ...this._feeds, [column.id]: newFeed };
