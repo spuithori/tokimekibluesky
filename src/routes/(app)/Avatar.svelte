@@ -207,22 +207,11 @@
           border-radius: var(--avatar-border-radius);
           overflow: hidden;
           display: block;
+
           &.mochi-enabled {
               -webkit-user-drag: none;
               user-select: none;
               touch-action: none;
-          }
-
-          &::before {
-              content: '';
-              display: block;
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              bottom: 0;
-              border-radius: 30px;
-              transition: background-color .2s ease-in-out;
           }
       }
 
