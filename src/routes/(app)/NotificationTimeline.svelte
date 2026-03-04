@@ -114,7 +114,11 @@
 
             const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, column.data.feedPool);
             column.data.notifications = [...column.data.notifications, ...resNotifications];
-            columnState.replaceFeed(column.id, f => [...f, ...newNotificationGroup]);
+            columnState.replaceFeed(column.id, f => {
+                const existingKeys = new Set(f.map(item => item.key));
+                const newItems = newNotificationGroup.filter(item => !existingKeys.has(item.key));
+                return [...f, ...newItems];
+            });
             column.data.feedPool = newFeedPool;
 
             if (column.data.cursor && isOnlyShowUnread ? resNotifications.length : res.data.notifications.length) {
@@ -156,13 +160,15 @@
 
         {#if (column.filter.includes(item.reason))}
           {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-            <TimelineItem {_agent} data={column.data.feedPool[item.postIndex]} {column}></TimelineItem>
+            {#if column.data.feedPool[item.postIndex]}
+              <TimelineItem {_agent} data={column.data.feedPool[item.postIndex]} {column}></TimelineItem>
+            {/if}
           {:else if (item.reason === 'follow')}
             <NotificationFollowItem {_agent} item={item.notifications[0]}></NotificationFollowItem>
           {:else if (item.reason === 'starterpack-joined')}
             <NotificationStarterpackItem {_agent} item={item.notifications[0]}></NotificationStarterpackItem>
-          {:else}
-            <NotificationReactionItem {_agent} {item} post={column?.data?.feedPool[item.postIndex]?.post}></NotificationReactionItem>
+          {:else if column?.data?.feedPool[item.postIndex]}
+            <NotificationReactionItem {_agent} {item} post={column.data.feedPool[item.postIndex].post}></NotificationReactionItem>
           {/if}
         {/if}
       </div>
