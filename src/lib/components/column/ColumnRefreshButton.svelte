@@ -56,7 +56,7 @@
     }
 
     const serviceHost = getServiceHost();
-    const host = serviceHost === 'bsky.social' ? 'Jetstream (us-west2)' : serviceHost;
+    const host = serviceHost === 'bsky.social' ? 'Jetstream (us-east1)' : serviceHost;
 
     watch(() => column.unreadCount, () => {
       if (column.unreadCount && column.data.cursor) {
