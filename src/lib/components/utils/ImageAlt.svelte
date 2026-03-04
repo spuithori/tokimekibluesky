@@ -5,10 +5,12 @@
   import {settings} from "$lib/stores";
   import {Languages} from "lucide-svelte";
 
-  let { pswp, images, index } = $props();
+  let { images = [], index = 0, alt = '', badge = false } = $props();
   let isModalOpen = $state(false);
   let isTranslated = $state(false);
   let translatedText = $state('');
+
+  const altText = $derived(alt || images[index]?.alt || '');
 
   async function translation(text, lang = window.navigator.language) {
     try {
@@ -27,6 +29,14 @@
     }
   }
 
+  function handleOpen(e) {
+    if (badge) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    isModalOpen = true;
+  }
+
   function handleClose() {
     isModalOpen = false;
     translatedText = '';
@@ -34,24 +44,28 @@
   }
 </script>
 
-{#if (images[index]?.alt)}
-  <div class="image-alt">
-    <p class="image-alt-text" onclick={() => {isModalOpen = true}}>{images[index].alt}</p>
-  </div>
+{#if altText}
+  {#if badge}
+    <button type="button" class="alt-badge" onclick={handleOpen}>ALT</button>
+  {:else}
+    <div class="image-alt">
+      <p class="image-alt-text" onclick={handleOpen}>{altText}</p>
+    </div>
+  {/if}
 {/if}
 
 {#if (isModalOpen)}
   <Modal title="ALT" onclose={handleClose}>
-    {#await languageDetect(images[index].alt)}
+    {#await languageDetect(altText)}
     {:then langs}
       {#if (!langs.includes($settings?.general?.language))}
-        <button class="image-alt-translate-button" disabled={isTranslated} onclick={() => translation(images[index].alt, $settings?.general?.userLanguage)}>
+        <button class="image-alt-translate-button" disabled={isTranslated} onclick={() => translation(altText, $settings?.general?.userLanguage)}>
           <Languages size="16" color="var(--primary-color)"></Languages>
           {$_(isTranslated ? 'already_translated' : 'translation')}
         </button>
       {/if}
     {:catch error}
-        <p>Translate error (´；ω；`)</p>
+        <p>Translate error</p>
     {/await}
 
     {#if (translatedText)}
@@ -61,7 +75,7 @@
     {/if}
 
     <p class="image-alt-modal-text">
-      {images[index].alt}
+      {altText}
     </p>
   </Modal>
 {/if}

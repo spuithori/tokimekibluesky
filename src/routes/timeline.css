@@ -1021,20 +1021,36 @@
     }
 }
 
-.gif-label {
+.image-labels {
     position: absolute;
     bottom: 8px;
     left: 8px;
+    display: flex;
+    gap: 4px;
+}
+
+.gif-label,
+.alt-badge {
     background-color: rgba(0, 0, 0, .6);
     font-weight: bold;
-    font-size: 12px;
-    width: 30px;
+    font-size: 11px;
     height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     border-radius: var(--border-radius-1);
+    pointer-events: auto;
+}
+
+.gif-label {
+    width: 30px;
+    font-size: 12px;
+}
+
+.alt-badge {
+    padding: 0 5px;
+    cursor: pointer;
 }
 
 .sticky-post {

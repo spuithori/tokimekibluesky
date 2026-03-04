@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
+
   let { images } = $props();
 </script>
 
@@ -9,6 +11,12 @@
     <div class="media-thumbnail__count">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"><g fill="#fff" data-name="グループ 88" transform="translate(-77 -224)"><rect width="11" height="11" data-name="長方形 73" rx="1" transform="translate(80 224)"/><rect width="2" height="11" data-name="長方形 74" rx="1" transform="translate(77 227)"/><rect width="2" height="11" data-name="長方形 75" rx="1" transform="rotate(-90 157.5 80.5)"/></g></svg>
       {images.length}</div>
+  {/if}
+
+  {#if images[0].alt}
+    <div class="image-labels">
+      <ImageAlt alt={images[0].alt} badge />
+    </div>
   {/if}
 </div>
 

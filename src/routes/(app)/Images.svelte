@@ -4,6 +4,7 @@
     import GifImage from "$lib/components/post/GifImage.svelte";
     import {imageState, type GalleryImage} from "$lib/classes/imageState.svelte";
     import ImageLoader from "$lib/components/utils/ImageLoader.svelte";
+    import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
 
     interface ThreadContext {
       feed?: any[];
@@ -149,6 +150,11 @@
           <button onclick={() => handleOpen(index)} aria-label="Open image.">
             <ImageLoader {image} naturalWidth={(v) => {galleryImages[index].width = v}} naturalHeight={(v) => {galleryImages[index].height = v}}></ImageLoader>
           </button>
+          {#if image.alt}
+            <div class="image-labels">
+              <ImageAlt alt={image.alt} badge />
+            </div>
+          {/if}
         {/if}
       </div>
     {/each}
@@ -157,6 +163,7 @@
 
 <style lang="postcss">
     .timeline-image {
+        position: relative;
         width: 100%;
         height: 100%;
         aspect-ratio: 1 / 1;

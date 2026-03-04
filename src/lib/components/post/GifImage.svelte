@@ -1,6 +1,7 @@
 <script lang="ts">
     import {onMount, onDestroy} from "svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+    import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
     import {BskyAgent} from "@atproto/api";
     import {getService} from "$lib/util";
 
@@ -48,7 +49,12 @@
             <LoadingSpinner color="var(--text-color-1)" size="32" padding="0"></LoadingSpinner>
         </div>
     {/if}
-    <span class="gif-label">GIF</span>
+    <div class="image-labels">
+        <span class="gif-label">GIF</span>
+        {#if alt}
+            <ImageAlt {alt} badge></ImageAlt>
+        {/if}
+    </div>
 </div>
 
 <style lang="postcss">

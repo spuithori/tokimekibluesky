@@ -1,5 +1,6 @@
 <script lang="ts">
   import emblaCarouselSvelte from 'embla-carousel-svelte';
+  import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
 
   let { images } = $props();
   let emblaApi;
@@ -29,6 +30,11 @@
       {#each images as image}
         <div class="embla__slide">
           <img src="{image.fullsize}" alt="{image.alt}" width={image?.aspectRatio?.width} height={image?.aspectRatio?.height}>
+          {#if image.alt}
+            <div class="image-labels">
+              <ImageAlt alt={image.alt} badge />
+            </div>
+          {/if}
         </div>
       {/each}
     </div>
@@ -38,7 +44,14 @@
   </div>
 {:else}
   {#each images as image}
-    <img src="{image.fullsize}" alt="{image.alt}" width={image?.aspectRatio?.width} height={image?.aspectRatio?.height}>
+    <div class="single-image">
+      <img src="{image.fullsize}" alt="{image.alt}" width={image?.aspectRatio?.width} height={image?.aspectRatio?.height}>
+      {#if image.alt}
+        <div class="image-labels">
+          <span class="alt-badge" title={image.alt}>ALT</span>
+        </div>
+      {/if}
+    </div>
   {/each}
 {/if}
 
@@ -67,6 +80,7 @@
     }
 
     .embla__slide {
+        position: relative;
         flex: 0 0 100%;
         min-width: 0;
 
@@ -74,6 +88,12 @@
             display: grid;
             place-content: center;
         }
+    }
+
+    .single-image {
+        position: relative;
+        width: 100%;
+        height: 100%;
     }
 
     .embla__prev {
