@@ -4,9 +4,9 @@
     import {isEmojiSequenceOrCombination} from "$lib/util";
     import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
     import {AppBskyEmbedRecord} from "@atproto/api";
-    import { Laugh } from "lucide-svelte";
+    import { Flag, Laugh } from "lucide-svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-    import {agent} from "$lib/stores";
+    import {agent, reportModal} from "$lib/stores";
 
     let { message, _agent, convoId, updateReaction } = $props();
     const currentAgent = $derived(_agent || $agent);
@@ -80,6 +80,12 @@
             <button onclick={() => {isEmojiPickerOpen = true}}>
                 <Laugh size="20" color="var(--text-color-3)"></Laugh>
             </button>
+
+            {#if message.sender.did !== currentAgent?.did?.()}
+                <button onclick={() => { $reportModal = { open: true, data: { type: 'convoMessage', convoId: convoId, messageId: message.id, did: message.sender.did } } }}>
+                    <Flag size="18" color="var(--text-color-3)"></Flag>
+                </button>
+            {/if}
         </div>
 
         {#if (isEmojiPickerOpen)}

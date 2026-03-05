@@ -313,6 +313,7 @@
       $reportModal = {
         open: true,
         data: {
+          type: 'post',
           uri: data.post.uri,
           cid: data.post.cid,
         }

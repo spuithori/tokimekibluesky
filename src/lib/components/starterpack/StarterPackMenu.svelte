@@ -1,9 +1,10 @@
 <script lang="ts">
-    import {agent} from "$lib/stores";
+    import {agent, reportModal} from "$lib/stores";
     import {_} from "svelte-i18n";
     import Menu from "$lib/components/ui/Menu.svelte";
+    import {Flag} from "lucide-svelte";
 
-  let { _agent = $agent, uri, listUri = '', existingMembers = [], onclose = () => {} } = $props();
+  let { _agent = $agent, uri, cid = '', listUri = '', existingMembers = [], onclose = () => {}, isOwner = true } = $props();
 
     let isMenuOpen = $state(false);
 
@@ -63,11 +64,20 @@
 
     {#snippet content()}
         <ul  class="timeline-menu-list">
-        {#if uri}
+        {#if uri && isOwner}
           <li class="timeline-menu-list__item timeline-menu-list__item--mute">
             <button class="timeline-menu-list__button" onclick={deleteStarterPack}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
               <span class="text-danger">{$_('starter_pack_delete')}</span>
+            </button>
+          </li>
+        {/if}
+
+        {#if uri}
+          <li class="timeline-menu-list__item">
+            <button class="timeline-menu-list__button" onclick={() => { isMenuOpen = false; $reportModal = { open: true, data: { type: 'starterPack', uri: uri, cid: cid } } }}>
+              <Flag size="18" color="var(--danger-color)"></Flag>
+              <span class="text-danger">{$_('report')}</span>
             </button>
           </li>
         {/if}

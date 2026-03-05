@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { X } from 'lucide-svelte';
+  import { X, ArrowLeft } from 'lucide-svelte';
   import { scale } from 'svelte/transition';
 
-  let { title, size = 'normal', onclose, children } = $props();
+  let { title, size = 'normal', onclose, onback, children } = $props();
   const duration = 150;
   let el = $state();
 
@@ -32,6 +32,12 @@
 >
   <div class="v2-modal__inner">
     <div class="modal-heading">
+      {#if onback}
+        <button class="modal-back-button" onclick={onback} aria-label="Back">
+          <ArrowLeft color="var(--text-color-1)"></ArrowLeft>
+        </button>
+      {/if}
+
       <h2 class="modal-title modal-title--smaller">{title}</h2>
 
       <button class="modal-close-button" onclick={onclose} aria-label="Close">
@@ -145,6 +151,16 @@
       @media (max-width: 767px) {
           font-size: 16px;
       }
+  }
+
+  .modal-back-button {
+      position: absolute;
+      height: 64px;
+      width: 64px;
+      top: 0;
+      left: 0;
+      display: grid;
+      place-content: center;
   }
 
   .modal-close-button {

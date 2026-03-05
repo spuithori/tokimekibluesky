@@ -2,7 +2,8 @@
   import { _ } from 'svelte-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
-  import {EllipsisVertical, ExternalLink, Quote} from "lucide-svelte";
+  import {EllipsisVertical, ExternalLink, Flag, Quote} from "lucide-svelte";
+  import {reportModal} from "$lib/stores";
   import {onMount} from "svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
 
@@ -71,6 +72,13 @@
           <button class="timeline-menu-list__button" onclick={handleEmbedClick}>
             <Quote color="var(--text-color-1)" size="20"></Quote>
             <span>{$_('embed_feed_button')}</span>
+          </button>
+        </li>
+
+        <li class="timeline-menu-list__item">
+          <button class="timeline-menu-list__button" onclick={() => { isMenuOpen = false; $reportModal = { open: true, data: { type: 'feed', uri: feed.uri, cid: feed.cid || '' } } }}>
+            <Flag color="var(--danger-color)" size="20"></Flag>
+            <span class="text-danger">{$_('report')}</span>
           </button>
         </li>
       </ul>

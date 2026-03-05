@@ -1,9 +1,9 @@
 <script lang="ts">
-  import {agent, listAddModal, repostMutes} from "$lib/stores";
+  import {agent, listAddModal, repostMutes, reportModal} from "$lib/stores";
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
-  import {AtSign, ShieldBan, VolumeX} from "lucide-svelte";
+  import {AtSign, Flag, ShieldBan, VolumeX} from "lucide-svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
 
   let { profile, handle, onrefresh } = $props();
@@ -182,6 +182,13 @@
               </button>
             </li>
           {/if}
+
+          <li class="timeline-menu-list__item timeline-menu-list__item--report">
+            <button class="timeline-menu-list__button" onclick={() => { isMenuOpen = false; $reportModal = { open: true, data: { type: 'account', did: profile.did } } }}>
+              <Flag size="18" color="var(--danger-color)"></Flag>
+              <span class="text-danger">{$_('report_account')}</span>
+            </button>
+          </li>
         {:else}
           <li class="timeline-menu-list__item timeline-menu-list__item--copy">
             <a href="/mutes/{$agent.did()}" class="timeline-menu-list__button">

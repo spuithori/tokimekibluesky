@@ -5,6 +5,7 @@ import type {Theme} from "$lib/types/theme";
 import {defaultReactionButtons} from "$lib/defaultSettings";
 import timerWorkerUrl from '$lib/workers/timer.js?url'
 import {isSafariOrFirefox} from "$lib/util";
+import type { ReportModalState } from '$lib/components/report/reportTypes';
 
 export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
@@ -162,17 +163,9 @@ export const realtime = writable<Realtime>({
 
 export const realtimeStatuses = writable([]);
 
-type ReportModal = {
-    open: boolean,
-    data: {
-        uri: string,
-        cid: string
-    } | undefined,
-}
-
-export const reportModal = writable<ReportModal>({
+export const reportModal = writable<ReportModalState>({
     open: false,
-    data: {uri: '', cid: ''} || undefined,
+    data: undefined,
 })
 
 export const changedFollowData = writable(undefined);

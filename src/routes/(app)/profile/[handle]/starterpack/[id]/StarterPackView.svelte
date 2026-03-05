@@ -282,9 +282,7 @@
         {/if}
       </div>
 
-      {#if isOwner}
-        <StarterPackMenu uri={starterPack.uri} listUri={starterPack.record?.list || starterPack.list?.uri || ''} {existingMembers} onclose={handleMenuClose}></StarterPackMenu>
-      {/if}
+      <StarterPackMenu uri={starterPack.uri} cid={starterPack.cid || ''} listUri={starterPack.record?.list || starterPack.list?.uri || ''} {existingMembers} {isOwner} onclose={handleMenuClose}></StarterPackMenu>
     </div>
 
     <ul class="profile-tab">
