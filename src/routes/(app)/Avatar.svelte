@@ -13,6 +13,14 @@
     handle,
     href,
     profile = undefined,
+    onavatarclick = undefined,
+  }: {
+    _agent?: any,
+    avatar?: string,
+    handle?: string,
+    href?: string,
+    profile?: any,
+    onavatarclick?: (() => void) | undefined,
   } = $props();
 
   let avatarMouseOverTimeId: ReturnType<typeof setTimeout>;
@@ -111,7 +119,7 @@
   async function handleAvatarMouseOver() {
       if (isDragging) return;
 
-      if ($settings?.design?.disableProfilePopup) {
+      if (onavatarclick || $settings?.design?.disableProfilePopup) {
           return false;
       }
 
@@ -147,6 +155,11 @@
           return;
       }
 
+      if (onavatarclick) {
+          onavatarclick();
+          return;
+      }
+
       if (profile) {
           profileHintState.set(profile);
       }
@@ -163,12 +176,13 @@
     if (avatarMouseOverTimeId) {
       clearTimeout(avatarMouseOverTimeId);
     }
+    currentAnimation?.cancel();
   });
 </script>
 
 <div class="avatar" class:avatar--live={profile?.status?.isActive}>
   <a bind:this={linkEl}
-     href={href}
+     href={href || '#'}
      onmouseover={handleAvatarMouseOver}
      onmouseleave={handleAvatarMouseLeave}
      onclick={handleClick}

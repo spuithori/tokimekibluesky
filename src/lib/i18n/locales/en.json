@@ -927,5 +927,9 @@
   "report_sending": "Sending...",
   "report_labeler_select": "Select moderation service",
   "report_account": "Report account",
-  "disable_mochi_hoppe": "Disable Mochi Hoppe"
+  "disable_mochi_hoppe": "Disable Mochi Hoppe",
+  "thread_mute": "Mute thread",
+  "thread_unmute": "Unmute thread",
+  "thread_mute_success": "Thread muted. You will no longer receive notifications for this thread.",
+  "thread_unmute_success": "Thread unmuted."
 }

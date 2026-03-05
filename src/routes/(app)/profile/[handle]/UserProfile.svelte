@@ -14,6 +14,8 @@
   import VerifierModal from "$lib/components/profile/VerifierModal.svelte";
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
   import {getEndpoint} from "$lib/util";
+  import Avatar from "../../Avatar.svelte";
+  import AvatarZoomModal from "$lib/components/ui/AvatarZoomModal.svelte";
 
   interface Props {
     handle: any;
@@ -38,6 +40,7 @@
   });
   const __agent = new BskyAgent({service: _agent.service()});
   let isVerifierModalOpen = $state(false);
+  let isAvatarZoomOpen = $state(false);
 
   $effect(() => {
     getEndpoint(profile.did)
@@ -146,11 +149,7 @@
             <div class="profile-grid__left">
               <div class="profile-column">
                 <div class="profile-avatar">
-                  {#if (profile.avatar)}
-                    <button onclick={() => imageState.open([{ src: profile.avatar, msrc: profile.avatar, alt: '', width: 1000, height: 1000 }], 0)}>
-                      <img src="{profile.avatar}" alt="">
-                    </button>
-                  {/if}
+                  <Avatar avatar={profile.avatar} onavatarclick={() => { isAvatarZoomOpen = true; }}></Avatar>
                 </div>
 
                 <div class="profile-content">
@@ -287,6 +286,10 @@
   {#if (isVerifierModalOpen)}
     <VerifierModal did={profile?.verification?.verifications[0]?.issuer} {_agent} onclose={() => {isVerifierModalOpen = false}}></VerifierModal>
   {/if}
+
+  {#if (isAvatarZoomOpen && profile.avatar)}
+    <AvatarZoomModal avatar={profile.avatar} onclose={() => { isAvatarZoomOpen = false; }}></AvatarZoomModal>
+  {/if}
 {/if}
 
 <style lang="postcss">
@@ -333,9 +336,6 @@
     .profile-avatar {
         aspect-ratio: 1 / 1;
         width: 100%;
-        border-radius: 50%;
-        overflow: hidden;
-        background-color: var(--primary-color);
     }
 
     .profile-avatar img {

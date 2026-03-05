@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import { Trash2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply, VolumeX, ShieldBan } from 'lucide-svelte';
+  import { Trash2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply, VolumeX, ShieldBan, BellOff, Bell } from 'lucide-svelte';
   import { agent, settings, reportModal, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
   import { AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '@atproto/api'
   import { toast } from "svelte-sonner";
@@ -350,6 +350,34 @@
         toast.success($_('post_mute_success'));
     }
 
+    function getThreadRootUri(): string {
+        return data.reply?.root?.uri || data.post.record?.reply?.root?.uri || data.post.uri;
+    }
+
+    async function muteThread() {
+        isMenuOpen = false;
+
+        try {
+            await _agent.agent.api.app.bsky.graph.muteThread({root: getThreadRootUri()});
+            data.post.viewer = {...data.post.viewer, threadMuted: true};
+            toast.success($_('thread_mute_success'));
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function unmuteThread() {
+        isMenuOpen = false;
+
+        try {
+            await _agent.agent.api.app.bsky.graph.unmuteThread({root: getThreadRootUri()});
+            data.post.viewer = {...data.post.viewer, threadMuted: false};
+            toast.success($_('thread_unmute_success'));
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     async function registerPin() {
         isMenuOpen = false;
 
@@ -641,6 +669,22 @@
                 <button class="timeline-menu-list__button" onclick={mutePost}>
                   <EyeOff size="18" color="var(--text-color-1)"></EyeOff>
                   {$_('post_mute_on')}
+                </button>
+              </li>
+            {/if}
+
+            {#if data.post.viewer?.threadMuted}
+              <li class="timeline-menu-list__item">
+                <button class="timeline-menu-list__button" onclick={unmuteThread}>
+                  <Bell size="18" color="var(--text-color-1)"></Bell>
+                  {$_('thread_unmute')}
+                </button>
+              </li>
+            {:else}
+              <li class="timeline-menu-list__item">
+                <button class="timeline-menu-list__button" onclick={muteThread}>
+                  <BellOff size="18" color="var(--text-color-1)"></BellOff>
+                  {$_('thread_mute')}
                 </button>
               </li>
             {/if}

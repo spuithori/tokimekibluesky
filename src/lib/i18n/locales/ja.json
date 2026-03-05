@@ -927,5 +927,9 @@
   "report_sending": "送信しています...",
   "report_labeler_select": "通報先のモデレーションサービス",
   "report_account": "このアカウントを通報",
-  "disable_mochi_hoppe": "もちほっぺを無効化"
+  "disable_mochi_hoppe": "もちほっぺを無効化",
+  "thread_mute": "スレッドをミュート",
+  "thread_unmute": "スレッドのミュートを解除",
+  "thread_mute_success": "スレッドをミュートしました。今後このスレッドの通知は届かなくなります。",
+  "thread_unmute_success": "スレッドのミュートを解除しました。"
 }
