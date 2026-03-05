@@ -926,5 +926,6 @@
   "report_submit_button": "この内容で通報する",
   "report_sending": "送信しています...",
   "report_labeler_select": "通報先のモデレーションサービス",
-  "report_account": "このアカウントを通報"
+  "report_account": "このアカウントを通報",
+  "disable_mochi_hoppe": "もちほっぺを無効化"
 }

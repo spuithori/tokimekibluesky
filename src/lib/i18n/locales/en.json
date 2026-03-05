@@ -926,5 +926,6 @@
   "report_submit_button": "Submit Report",
   "report_sending": "Sending...",
   "report_labeler_select": "Select moderation service",
-  "report_account": "Report account"
+  "report_account": "Report account",
+  "disable_mochi_hoppe": "Disable Mochi Hoppe"
 }

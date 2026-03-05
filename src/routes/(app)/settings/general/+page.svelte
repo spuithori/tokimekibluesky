@@ -288,6 +288,18 @@ $effect(() => {
 
     <dl class="settings-group">
       <dt class="settings-group__name">
+        {$_('disable_mochi_hoppe')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="disableMochiHoppe" bind:checked={$settings.general.disableMochiHoppe}><label class="input-toggle__label" for="disableMochiHoppe"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
         {$_('use_virtual')}
       </dt>
 

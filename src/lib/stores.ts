@@ -39,6 +39,7 @@ const defaultSettings = {
         requireInputAltText: false,
         useVirtual: false,
         continuousTag: false,
+        disableMochiHoppe: false,
     },
     design: {
         skin: 'default',

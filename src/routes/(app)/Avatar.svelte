@@ -18,8 +18,6 @@
   let avatarMouseOverTimeId: ReturnType<typeof setTimeout>;
   let isProfileShown = $state(false);
 
-  const enableMochiHoppe = true;
-
   let linkEl: HTMLAnchorElement;
   let isDragging = false;
   let wasDragged = false;
@@ -30,7 +28,7 @@
   let currentAnimation: Animation | null = null;
 
   function handlePointerDown(e: PointerEvent) {
-    if (!enableMochiHoppe) return;
+    if ($settings?.general?.disableMochiHoppe) return;
     isDragging = true;
     wasDragged = false;
     startX = e.clientX;
@@ -88,12 +86,12 @@
   }
 
   function handleDragStart(e: DragEvent) {
-    if (!enableMochiHoppe) return;
+    if ($settings?.general?.disableMochiHoppe) return;
     e.preventDefault();
   }
 
   let mochiTransform = $derived.by(() => {
-    if (!enableMochiHoppe) return undefined;
+    if ($settings?.general?.disableMochiHoppe) return undefined;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < 5) return undefined;
 
@@ -180,7 +178,7 @@
      onpointercancel={cancelDrag}
      onlostpointercapture={cancelDrag}
      ondragstart={handleDragStart}
-     class:mochi-enabled={enableMochiHoppe}
+     class:mochi-enabled={!$settings?.general?.disableMochiHoppe}
      style:transform={mochiTransform}>
     {#if (avatar && !$isDataSaving)}
       <img loading="lazy" src={avatar} width="1000" height="1000" alt="" draggable="false">
