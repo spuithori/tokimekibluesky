@@ -13,7 +13,6 @@
 
     let profiles = $derived(liveQuery(async () => {
         const profiles = await accountsDb.profiles
-            .limit(10)
             .toArray();
         return profiles;
     }));
