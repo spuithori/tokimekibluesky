@@ -1,7 +1,7 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
   import { Trash2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply, VolumeX, ShieldBan, BellOff, Bell } from 'lucide-svelte';
-  import { agent, settings, reportModal, listAddModal, agents, repostMutes, postMutes, bluefeedAddModal, pulseDetach, junkAgentDid } from '$lib/stores';
+  import { agent, settings, reportModal, listAddModal, agents, repostMutesSet, postMutes, postMutesSet, bluefeedAddModal, pulseDetach, junkAgentDid, agentDidsSet } from '$lib/stores';
   import { AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '@atproto/api'
   import { toast } from "svelte-sonner";
   import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
@@ -10,7 +10,7 @@
   import TimelineContent from "$lib/components/post/TimelineContent.svelte";
   import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
-  import { getAccountIdByDid, getAllAgentDids, getDidFromUri } from "$lib/util.js";
+  import { getAccountIdByDid, getDidFromUri } from "$lib/util.js";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import MediaTimelineItem from "$lib/components/media/MediaTimelineItem.svelte";
@@ -331,13 +331,13 @@
             return false;
         }
 
-        if ($repostMutes.includes(did)) {
+        if ($repostMutesSet.has(did)) {
             isHide = true;
         }
     }
 
     function detectPostMuteFilter() {
-        if ($postMutes.includes(data.post.uri)) {
+        if ($postMutesSet.has(data.post.uri)) {
             isHide = true;
         }
     }
@@ -595,7 +595,7 @@
 
         {#snippet content()}
           <ul class="timeline-menu-list">
-            {#if (getAllAgentDids($agents).includes(data.post.author.did))}
+            {#if ($agentDidsSet.has(data.post.author.did))}
               <li class="timeline-menu-list__item timeline-menu-list__item--delete">
                 <button class="timeline-menu-list__button" onclick={deletePostStep}>
                   <Trash2 size="18" color="var(--danger-color)"></Trash2>
@@ -664,7 +664,7 @@
               </li>
             {/if}
 
-            {#if (!getAllAgentDids($agents).includes(data.post.author.did))}
+            {#if (!$agentDidsSet.has(data.post.author.did))}
               <li class="timeline-menu-list__item timeline-menu-list__item--hide">
                 <button class="timeline-menu-list__button" onclick={mutePost}>
                   <EyeOff size="18" color="var(--text-color-1)"></EyeOff>
@@ -689,7 +689,7 @@
               </li>
             {/if}
 
-            {#if (getAllAgentDids($agents).includes(data.post?.embed?.record?.author?.did || data.post?.embed?.record?.record?.author?.did))}
+            {#if ($agentDidsSet.has(data.post?.embed?.record?.author?.did || data.post?.embed?.record?.record?.author?.did))}
               {#if (AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record?.record) || AppBskyEmbedRecord.isViewRecord(data?.post?.embed?.record))}
                 <li class="timeline-menu-list__item">
                   <button class="timeline-menu-list__button" onclick={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri)}}>
@@ -700,7 +700,7 @@
               {/if}
             {/if}
 
-            {#if ((data.post?.embed?.record?.detached || data.post?.embed?.record?.record?.detached) && getAllAgentDids($agents).includes(getDidFromUri(data.post?.embed?.record?.uri || data.post?.embed?.record?.record?.uri)))}
+            {#if ((data.post?.embed?.record?.detached || data.post?.embed?.record?.record?.detached) && $agentDidsSet.has(getDidFromUri(data.post?.embed?.record?.uri || data.post?.embed?.record?.record?.uri)))}
               <li class="timeline-menu-list__item">
                 <button class="timeline-menu-list__button" onclick={() => {detachQuote(data?.post?.embed?.record?.uri || data?.post?.embed?.record?.record?.uri, true)}}>
                   <Sticker size="18" color="var(--danger-color)"></Sticker>
@@ -709,7 +709,7 @@
               </li>
             {/if}
 
-            {#if (!getAllAgentDids($agents).includes(data.post.author.did))}
+            {#if (!$agentDidsSet.has(data.post.author.did))}
               <li class="timeline-menu-list__item timeline-menu-list__item--report">
                 <button class="timeline-menu-list__button" onclick={mute}>
                   <VolumeX size="18" color="var(--danger-color)"></VolumeX>

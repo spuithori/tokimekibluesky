@@ -27,10 +27,10 @@ export function getAllAgentDids(agents) {
     if (!agents) {
         return [];
     }
-    let dids = [];
+    const dids: string[] = [];
 
-    agents.forEach((value, key, map) => {
-        dids = [...dids, value.did()];
+    agents.forEach((value) => {
+        dids.push(value.did());
     });
 
     return dids;

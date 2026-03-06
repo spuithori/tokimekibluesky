@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {agents, labelerSettings, settings} from "$lib/stores";
+  import {agentDidsSet, labelerSettings, settings} from "$lib/stores";
   import {lightFormat} from "date-fns";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
@@ -16,7 +16,7 @@
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import StarterPackEmbed from "$lib/components/starterpack/StarterPackEmbed.svelte";
   import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
-  import {getAllAgentDids, getDidFromUri, getService} from "$lib/util";
+  import {getDidFromUri, getService} from "$lib/util";
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {onDestroy, untrack} from "svelte";
@@ -370,7 +370,7 @@
       {/if}
     {/if}
 
-    {#if (AppBskyEmbedRecord.isViewDetached(post?.embed?.record) || AppBskyEmbedRecord.isViewDetached(post?.embed?.record?.record)) && getAllAgentDids($agents).includes(getDidFromUri(post?.embed?.record?.uri || post?.embed?.record?.record?.uri))}
+    {#if (AppBskyEmbedRecord.isViewDetached(post?.embed?.record) || AppBskyEmbedRecord.isViewDetached(post?.embed?.record?.record)) && $agentDidsSet.has(getDidFromUri(post?.embed?.record?.uri || post?.embed?.record?.record?.uri))}
       <EmbedRecordDetached></EmbedRecordDetached>
     {/if}
 
