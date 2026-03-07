@@ -15,7 +15,7 @@
     import ListTimeline from "./ListTimeline.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {scrollDirection} from "$lib/scrollDirection";
-    import {Settings2, CheckCheck, GripVertical} from "lucide-svelte";
+    import {Settings2, CheckCheck, GripVertical, Eraser} from "lucide-svelte";
     import { createLongPress } from "$lib/longpress";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
@@ -123,6 +123,11 @@
         }, 2000);
     }
 
+    function handleClearFeed() {
+        column.data.clearedAt = new Date().toISOString();
+        handleForceRefresh();
+    }
+
     function handleSettingsClick(clear = false) {
         isSettingsOpen = !isSettingsOpen;
 
@@ -220,6 +225,12 @@
             {isSplit}
             {column}
         ></ColumnRefreshButton>
+
+        {#if !isJunk}
+            <button class="deck-column-header__action-button" aria-label="Clear feed" title="Clear feed" onclick={handleClearFeed}>
+                <Eraser color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></Eraser>
+            </button>
+        {/if}
 
         {#if !isJunk}
             <button class="deck-column-header__settings-button" class:deck-column-header__settings-button--open={isSettingsOpen} aria-label="Settings" onclick={() => {isSettingsOpen = !isSettingsOpen}}>
