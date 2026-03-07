@@ -41,9 +41,6 @@
 
 <div class="missing-account-item">
   <h2 class="missing-account-item__title">@{account.handle || account.session?.handle || account.did}</h2>
-  {#if account.isOAuth}
-    <span class="missing-account-item__badge">OAuth</span>
-  {/if}
 
   <div class="missing-account-item__buttons">
     <button class="button button--sm" onclick={() => {isLoginModalOpen = true}}>{$_('login')}</button>

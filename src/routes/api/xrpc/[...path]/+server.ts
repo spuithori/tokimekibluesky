@@ -1,7 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getOAuthClient } from '$lib/server/oauth-client.js';
-import { getDb } from '$lib/server/db.js';
 
 const CHAT_PROXY = 'did:web:api.bsky.chat#bsky_chat';
 const TOKIMEKI_PROXY = 'did:web:api.tokimeki.tech#tokimeki_api';
@@ -18,60 +17,12 @@ interface SessionHandler {
 }
 
 async function getSession(did: string): Promise<SessionHandler> {
-	// Try OAuth session first
+	const oauthClient = await getOAuthClient();
 	try {
-		const oauthClient = await getOAuthClient();
-		const session = await oauthClient.restore(did);
-		if (session) return session;
-	} catch {
-		// Fall through to password session
-	}
-
-	// Try password session
-	const db = await getDb();
-	const pwSession = await db.getPasswordSession(did);
-	if (!pwSession) {
+		return await oauthClient.restore(did);
+	} catch (e) {
 		throw error(401, 'No session found for DID');
 	}
-
-	return {
-		async fetchHandler(path: string, init: RequestInit): Promise<Response> {
-			const url = pwSession.service + path;
-			const headers = new Headers(init.headers);
-			headers.set('Authorization', `Bearer ${pwSession.accessJwt}`);
-
-			let response = await fetch(url, { ...init, headers });
-
-			// Token refresh on 401
-			if (response.status === 401) {
-				try {
-					const refreshRes = await fetch(
-						`${pwSession.service}/xrpc/com.atproto.server.refreshSession`,
-						{
-							method: 'POST',
-							headers: { 'Authorization': `Bearer ${pwSession.refreshJwt}` },
-						}
-					);
-
-					if (refreshRes.ok) {
-						const newTokens = await refreshRes.json();
-						await db.setPasswordSession(did, {
-							...pwSession,
-							accessJwt: newTokens.accessJwt,
-							refreshJwt: newTokens.refreshJwt,
-						});
-
-						headers.set('Authorization', `Bearer ${newTokens.accessJwt}`);
-						response = await fetch(url, { ...init, headers });
-					}
-				} catch (e) {
-					console.error('Token refresh failed:', e);
-				}
-			}
-
-			return response;
-		},
-	};
 }
 
 async function handleXrpc(

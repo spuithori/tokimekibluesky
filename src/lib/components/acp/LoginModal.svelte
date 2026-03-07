@@ -1,7 +1,6 @@
 <script lang="ts">
   import { preventDefault } from 'svelte/legacy';
   import { _ } from "svelte-i18n";
-  import { accountsDb } from "$lib/db";
   import { createEventDispatcher } from "svelte";
   import { toast } from "svelte-sonner";
   import { signIn } from '$lib/oauth';
@@ -13,79 +12,11 @@
     existingId?: any;
     identifier?: string;
     isMissing?: boolean;
-    initialAuthMode?: 'password' | 'oauth';
   }
 
-  let { existingId = undefined, identifier = $bindable(''), isMissing = false, initialAuthMode = undefined }: Props = $props();
+  let { existingId = undefined, identifier = $bindable(''), isMissing = false }: Props = $props();
 
-  let authMode = $state<'password' | 'oauth'>(initialAuthMode || 'password');
-  let password = $state('');
-  let errorMessage = '';
-  let service = $state('https://bsky.social');
-  let isTwoFactor = $state(false);
-  let twoFactorValue = $state('');
   let isOAuthLoading = $state(false);
-
-  async function loginWithPassword() {
-    try {
-      const res = await fetch('/api/auth/password-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          identifier,
-          password,
-          service,
-          authFactorToken: isTwoFactor ? twoFactorValue : undefined,
-        }),
-      });
-      const result = await res.json();
-
-      if (!res.ok) {
-        if (result.error === 'AuthFactorTokenRequired') {
-          toast.info($_('login_2fa_code_send'));
-          isTwoFactor = true;
-          return;
-        }
-        throw { message: result.message || 'Login failed', name: result.error };
-      }
-
-      let id: number;
-
-      if (existingId) {
-        await accountsDb.accounts.update(existingId, {
-          did: result.did || '',
-          service: service,
-          handle: result.handle,
-          isOAuth: false,
-          oauthDid: undefined,
-        });
-        id = existingId;
-      } else {
-        id = await accountsDb.accounts.put({
-          did: result.did || '',
-          service: service,
-          handle: result.handle,
-          avatar: '',
-          following: undefined,
-          notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
-          isOAuth: false,
-        });
-      }
-
-      dispatch('success', {
-        id: id,
-      });
-    } catch (e: any) {
-      if (e.name === 'ConstraintError') {
-        toast.error($_('login_duplicate_account'));
-      } else if (e.error === 'AuthFactorTokenRequired') {
-        toast.info($_('login_2fa_code_send'));
-        isTwoFactor = true;
-      } else {
-        toast.error(e.message);
-      }
-    }
-  }
 
   async function loginWithOAuth() {
     if (!identifier.trim()) {
@@ -111,125 +42,41 @@
 
 <div class="login-modal">
   <div class="login-modal-contents">
-    {#if (errorMessage)}
-      <p>{errorMessage}</p>
-    {/if}
+    <form action="#" onsubmit={preventDefault(loginWithOAuth)}>
+      <dl class="input-group">
+        <dt class="input-group__name input-group__name--show">
+          <label for="handle">Handle</label>
+        </dt>
 
-    <div class="auth-mode-toggle">
-      <button
-        class="auth-mode-toggle__button"
-        class:auth-mode-toggle__button--active={authMode === 'oauth'}
-        onclick={() => authMode = 'oauth'}
-        type="button"
-        disabled={initialAuthMode !== undefined}
-      >
-        OAuth
-      </button>
-      <button
-        class="auth-mode-toggle__button"
-        class:auth-mode-toggle__button--active={authMode === 'password'}
-        onclick={() => authMode = 'password'}
-        type="button"
-        disabled={initialAuthMode !== undefined}
-      >
-        {$_('login_password')}
-      </button>
+        <dd class="input-group__content">
+          <span class="input-group__prefix">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>
+            </svg>
+          </span>
+          <input class="input-group__input" type="text" name="handle" id="handle" placeholder="example.bsky.social" bind:value={identifier} disabled={isOAuthLoading || isMissing} required >
+        </dd>
+      </dl>
+
+      <div class="login-submit">
+        <button class="button button--login" type="submit" disabled={isOAuthLoading}>
+          {#if isOAuthLoading}
+            <LoadingSpinner color="#fff" size={20}></LoadingSpinner>
+          {:else}
+            {$_('oauth_login')}
+          {/if}
+        </button>
+
+        <button class="text-button" onclick={preventDefault(cancel)} disabled={isOAuthLoading}>
+          {$_('cancel')}
+        </button>
+      </div>
+    </form>
+
+    <div class="oauth-info">
+      <p>{$_('oauth_recommended')}</p>
     </div>
-
-    {#if authMode === 'oauth'}
-      <form action="#" onsubmit={preventDefault(loginWithOAuth)}>
-        <dl class="input-group">
-          <dt class="input-group__name input-group__name--show">
-            <label for="handle">Handle</label>
-          </dt>
-
-          <dd class="input-group__content">
-            <span class="input-group__prefix">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="4"/>
-                <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>
-              </svg>
-            </span>
-            <input class="input-group__input" type="text" name="handle" id="handle" placeholder="example.bsky.social" bind:value={identifier} disabled={isOAuthLoading || isMissing} required >
-          </dd>
-        </dl>
-
-        <div class="login-submit">
-          <button class="button button--login" type="submit" disabled={isOAuthLoading}>
-            {#if isOAuthLoading}
-              <LoadingSpinner color="#fff" size={20}></LoadingSpinner>
-            {:else}
-              {$_('oauth_login')}
-            {/if}
-          </button>
-
-          <button class="text-button" onclick={preventDefault(cancel)} disabled={isOAuthLoading}>
-            {$_('cancel')}
-          </button>
-        </div>
-      </form>
-
-      <div class="oauth-info">
-        <p>{$_('oauth_recommended')}</p>
-      </div>
-    {:else}
-      <form action="#" onsubmit={preventDefault(loginWithPassword)}>
-        <dl class="input-group">
-          <dt class="input-group__name input-group__name--show">
-            <label for="service">{$_('login_service')}</label>
-          </dt>
-
-          <dd class="input-group__content">
-            <input class="input-group__input" type="text" name="service" id="service" placeholder="service" bind:value="{service}" required>
-          </dd>
-        </dl>
-
-        <dl class="input-group">
-          <dt class="input-group__name input-group__name--show">
-            <label for="email">{$_('login_handle_or_email')}</label>
-          </dt>
-
-          <dd class="input-group__content">
-            <span class="input-group__prefix"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-at-sign"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg></span>
-            <input class="input-group__input" type="text" name="email" id="email" placeholder="example.bsky.social" bind:value="{identifier}" readonly={isMissing} required>
-          </dd>
-        </dl>
-
-        <dl class="input-group">
-          <dt class="input-group__name input-group__name--show">
-            <label for="password">{$_('login_password')}</label>
-          </dt>
-
-          <dd class="input-group__content">
-            <span class="input-group__prefix"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock-keyhole"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg></span>
-            <input class="input-group__input" type="password" name="password" id="password" placeholder="password" bind:value="{password}" required />
-          </dd>
-        </dl>
-
-        {#if (isTwoFactor)}
-          <dl class="input-group">
-            <dt class="input-group__name input-group__name--show">
-              <label for="2fa">{$_('login_2fa_code')}</label>
-            </dt>
-
-            <dd class="input-group__content">
-              <span class="input-group__prefix"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock-keyhole"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg></span>
-              <input class="input-group__input" type="text" name="2fa" id="2fa" placeholder="XXXX-XXXX" bind:value="{twoFactorValue}" required />
-            </dd>
-          </dl>
-        {/if}
-
-        <div class="login-submit">
-          <button class="button button--login" type="submit">{$_('login')}</button>
-
-          <button class="text-button" onclick={preventDefault(cancel)}>{$_('cancel')}</button>
-        </div>
-      </form>
-
-      <div class="app-password-recommend">
-        <p>{$_('recommend_use_app_password')}<br><a href="{$_('url_app_password')}" target="_blank" rel="noopener">{$_('details')}</a></p>
-      </div>
-    {/if}
   </div>
 </div>
 
@@ -268,48 +115,6 @@
         }
     }
 
-    .auth-mode-toggle {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 24px;
-        background-color: var(--bg-color-2);
-        padding: 4px;
-        border-radius: 8px;
-    }
-
-    .auth-mode-toggle__button {
-        flex: 1;
-        padding: 10px 16px;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--text-color-2);
-        background-color: transparent;
-        transition: all 0.2s ease;
-
-        &:hover:not(:disabled) {
-            color: var(--text-color-1);
-        }
-
-        &:disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-
-        &--active {
-            background-color: var(--primary-color);
-            color: #fff;
-
-            &:hover {
-                color: #fff;
-            }
-
-            &:disabled {
-                opacity: 1;
-            }
-        }
-    }
-
     .login-submit {
         text-align: center;
         margin-top: 30px;
@@ -321,16 +126,6 @@
         .text-button {
             margin-top: 10px;
         }
-    }
-
-    .app-password-recommend {
-        text-align: center;
-        background-color: var(--base-bg-color);
-        color: var(--text-color-2);
-        padding: 10px;
-        border-radius: 6px;
-        margin-top: 20px;
-        font-size: 14px;
     }
 
     .oauth-info {

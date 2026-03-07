@@ -42,12 +42,6 @@
       });
   }
 
-  async function switchAuthMethod(id, isOAuth) {
-      dispatch('switchAuth', {
-          id: id,
-          isOAuth: isOAuth,
-      });
-  }
 </script>
 
 {#if ($account)}
@@ -59,11 +53,6 @@
         <span class="acp-account__label">{$_('profile_main_account')}</span>
       {/if}
 
-      {#if $account?.isOAuth}
-        <span class="acp-account__label acp-account__label--gray">OAuth</span>
-      {:else}
-        <span class="acp-account__label acp-account__label--gray">Password</span>
-      {/if}
     </p>
     <p class="acp-account__service">{$account.service}</p>
 
@@ -91,11 +80,6 @@
       </Menu>
     {:else}
       <div class="acp-account-management-buttons">
-        {#if $account?.isOAuth}
-          <button class="button button--border button--ss" onclick={() => {switchAuthMethod(id, true)}}>{$_('switch_to_password')}</button>
-        {:else}
-          <button class="button button--border button--ss" onclick={() => {switchAuthMethod(id, false)}}>{$_('switch_to_oauth')}</button>
-        {/if}
         <button class="button button--danger button--border button--ss" onclick={() => {deleteAccount(id)}}>{$_('logout_button')}</button>
       </div>
     {/if}

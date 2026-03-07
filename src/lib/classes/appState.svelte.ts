@@ -1,4 +1,4 @@
-import {accountsDb} from "$lib/db";
+import {accountsDb, type Account} from "$lib/db";
 import {agent, agents} from "$lib/stores";
 import {goto} from '$app/navigation';
 import {ProxyAgent} from "$lib/proxyAgent";
@@ -11,7 +11,7 @@ class AppState {
     ready: boolean = $state(false);
     status: number = $state(0);
     profile: PersistedState<number> = new PersistedState('currentProfile', 1);
-    missingAccounts: string[] = $state([]);
+    missingAccounts: Account[] = $state([]);
     labelDefs = new PersistedState('labelDefs', []);
     subscribedLabelers = new PersistedState('subscribedLabelers', ['did:plc:ar7c4by46qjdydhdevvrndac']);
     singleColumnScrollPositions: Map<number, number> = new Map();
@@ -57,7 +57,7 @@ class AppState {
         }
 
         const profile = profiles.find(profile => profile.id === currentProfile);
-        const accounts = await accountsDb.accounts
+        let accounts = await accountsDb.accounts
             .where('id')
             .anyOf(profile.accounts)
             .toArray();
@@ -81,7 +81,24 @@ class AppState {
             return false;
         }
 
-        // Create ProxyAgent instances (no session needed - server manages sessions)
+        try {
+            const sessionRes = await fetch('/api/auth/session');
+            if (sessionRes.ok) {
+                const { valid } = await sessionRes.json();
+                const missing = accounts.filter(a => !valid.includes(a.did));
+                if (missing.length > 0) {
+                    this.missingAccounts = missing;
+                }
+                accounts = accounts.filter(a => valid.includes(a.did));
+
+                if (!accounts.length) {
+                    console.log('All account sessions are invalid.');
+                    this.status = 3;
+                    return false;
+                }
+            }
+        } catch {}
+
         let agentsMap = new Map<number, ProxyAgent>();
         for (const account of accounts) {
             agentsMap.set(account.id!, new ProxyAgent(account.did, account.handle));
@@ -91,7 +108,6 @@ class AppState {
         const _agents = get(agents);
         agent.set(_agents.get(profile.primary));
 
-        // Fetch handles for accounts that don't have one
         for (const account of accounts) {
             const ag = agentsMap.get(account.id!);
             if (ag && !account.handle) {

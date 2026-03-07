@@ -95,30 +95,4 @@ export class SupabaseSessionDb implements SessionDb {
 	async deleteUserSession(sessionId: string): Promise<void> {
 		await getClient().from('user_session').delete().eq('session_id', sessionId);
 	}
-
-	async getPasswordSession(
-		did: string
-	): Promise<{ accessJwt: string; refreshJwt: string; did: string; handle: string; service: string } | undefined> {
-		const { data } = await getClient()
-			.from('password_session')
-			.select('session')
-			.eq('did', did)
-			.single();
-		return data?.session;
-	}
-
-	async setPasswordSession(
-		did: string,
-		sessionData: { accessJwt: string; refreshJwt: string; did: string; handle: string; service: string }
-	): Promise<void> {
-		await getClient().from('password_session').upsert({
-			did,
-			session: sessionData,
-			updated_at: new Date().toISOString()
-		});
-	}
-
-	async deletePasswordSession(did: string): Promise<void> {
-		await getClient().from('password_session').delete().eq('did', did);
-	}
 }

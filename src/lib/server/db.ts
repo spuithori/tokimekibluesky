@@ -15,15 +15,6 @@ export interface SessionDb {
 		data: { dids: string[]; primaryDid: string; expiresAt: string }
 	): Promise<void>;
 	deleteUserSession(sessionId: string): Promise<void>;
-
-	getPasswordSession(
-		did: string
-	): Promise<{ accessJwt: string; refreshJwt: string; did: string; handle: string; service: string } | undefined>;
-	setPasswordSession(
-		did: string,
-		data: { accessJwt: string; refreshJwt: string; did: string; handle: string; service: string }
-	): Promise<void>;
-	deletePasswordSession(did: string): Promise<void>;
 }
 
 import { env } from '$env/dynamic/private';

@@ -84,8 +84,6 @@ export interface Account {
     feeds?: any[],
     lists?: any[],
     cloudBookmarks?: any[],
-    isOAuth?: boolean,
-    oauthDid?: string,
 }
 
 export class AccountSubClassDexie extends Dexie {

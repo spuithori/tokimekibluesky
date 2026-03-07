@@ -31,12 +31,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			console.warn('Failed to revoke OAuth session:', e);
 		}
 
-		// Try deleting password session
-		try {
-			await db.deletePasswordSession(did);
-		} catch (e) {
-			// Ignore if no password session exists
-		}
 		const remainingDids = locals.user.dids.filter((d) => d !== did);
 
 		if (remainingDids.length === 0) {

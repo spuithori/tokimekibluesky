@@ -34,12 +34,6 @@ function getDatabase(): Database.Database {
 			expires_at TEXT NOT NULL
 		);
 
-		CREATE TABLE IF NOT EXISTS password_session (
-			did TEXT PRIMARY KEY,
-			session TEXT NOT NULL,
-			created_at TEXT DEFAULT (datetime('now')),
-			updated_at TEXT DEFAULT (datetime('now'))
-		);
 	`);
 
 	return db;
@@ -115,29 +109,5 @@ export class SqliteSessionDb implements SessionDb {
 
 	async deleteUserSession(sessionId: string): Promise<void> {
 		getDatabase().prepare('DELETE FROM user_session WHERE session_id = ?').run(sessionId);
-	}
-
-	async getPasswordSession(
-		did: string
-	): Promise<{ accessJwt: string; refreshJwt: string; did: string; handle: string; service: string } | undefined> {
-		const row = getDatabase()
-			.prepare('SELECT session FROM password_session WHERE did = ?')
-			.get(did) as { session: string } | undefined;
-		return row ? JSON.parse(row.session) : undefined;
-	}
-
-	async setPasswordSession(
-		did: string,
-		data: { accessJwt: string; refreshJwt: string; did: string; handle: string; service: string }
-	): Promise<void> {
-		getDatabase()
-			.prepare(
-				'INSERT OR REPLACE INTO password_session (did, session, updated_at) VALUES (?, ?, datetime(\'now\'))'
-			)
-			.run(did, JSON.stringify(data));
-	}
-
-	async deletePasswordSession(did: string): Promise<void> {
-		getDatabase().prepare('DELETE FROM password_session WHERE did = ?').run(did);
 	}
 }

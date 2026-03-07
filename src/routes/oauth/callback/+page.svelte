@@ -40,8 +40,6 @@ onMount(async () => {
 
         if (existingAccount) {
             await accountsDb.accounts.update(existingAccount.id, {
-                isOAuth: true,
-                oauthDid: newDid,
                 session: null,
                 handle: handle,
                 avatar: avatar || existingAccount.avatar,
@@ -52,8 +50,6 @@ onMount(async () => {
                 did: newDid,
                 service: 'https://bsky.social',
                 session: null,
-                isOAuth: true,
-                oauthDid: newDid,
                 handle: handle,
                 avatar: avatar || '',
                 name: displayName || '',
