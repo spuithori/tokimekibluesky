@@ -1,4 +1,4 @@
-import { NodeOAuthClient } from '@atproto/oauth-client-node';
+import { NodeOAuthClient, requestLocalLock } from '@atproto/oauth-client-node';
 import { JoseKey } from '@atproto/jwk-jose';
 import { env } from '$env/dynamic/private';
 import { getDb } from './db.js';
@@ -80,6 +80,7 @@ export async function getOAuthClient(): Promise<NodeOAuthClient> {
 		client = new NodeOAuthClient({
 			clientMetadata,
 			...(keyset ? { keyset } : {}),
+			requestLock: requestLocalLock,
 			stateStore: new DbStateStore(db),
 			sessionStore: new DbSessionStore(db)
 		});
