@@ -1,6 +1,9 @@
 import {onDestroy} from "svelte";
+import {browser} from "$app/environment";
 
 export default function viewPortSetting() {
+    if (!browser) return;
+
     const viewport = document.querySelector('meta[name="viewport"]');
     function switchViewport() {
         const value = window.outerWidth > 374 ? 'width=device-width, minimum-scale=1, maximum-scale=1, viewport-fit=cover' : 'width=374, viewport-fit=cover';

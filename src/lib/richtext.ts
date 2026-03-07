@@ -1,4 +1,4 @@
-import { RichText} from '@atproto/api';
+import { RichText } from '$lib/atproto-richtext';
 
 export function getTextArray(record) {
     let array = [];

@@ -1,10 +1,10 @@
-import {AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyFeedDefs, BskyAgent} from "@atproto/api";
-import {getImageBase64FromBlob, getImageObjectFromBlob, getService} from "$lib/util";
+import {AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord} from "$lib/atproto-guards";
+import {getImageBase64FromBlob, getImageObjectFromBlob, getService, createPublicXrpcFetcher} from "$lib/util";
 import {getTextArray} from "$lib/richtext";
 
-export async function getEditPost(data: AppBskyFeedDefs.FeedViewPost) {
+export async function getEditPost(data: any) {
     let _post = { did: data.post.author.did };
-    const __agent = new BskyAgent({service: await getService(data.post.author.did)});
+    const __agent = await createPublicXrpcFetcher(data.post.author.did);
 
     if (AppBskyEmbedImages.isView(data?.post?.embed)) {
         const blobs = data.post.record.embed.images.map(image => {

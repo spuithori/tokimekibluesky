@@ -23,7 +23,7 @@
           return false;
       }
 
-      const res = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
+      const res = await _agent.xrpcGet('app.bsky.feed.getPostThread', {uri: uri});
 
       if (res.data?.thread.parent) {
           addData(res.data.thread.parent);

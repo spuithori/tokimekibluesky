@@ -1,7 +1,6 @@
 <script lang="ts">
   import { preventDefault } from 'svelte/legacy';
   import { _ } from "svelte-i18n";
-  import { AtpAgent, AtpSessionData } from "@atproto/api";
   import { accountsDb } from "$lib/db";
   import { createEventDispatcher } from "svelte";
   import { toast } from "svelte-sonner";
@@ -28,31 +27,44 @@
   let isOAuthLoading = $state(false);
 
   async function loginWithPassword() {
-    const agent = new AtpAgent({
-      service: service,
-    });
-
     try {
-      await agent.login({ identifier: identifier, password: password, authFactorToken: isTwoFactor ? twoFactorValue : undefined });
+      const res = await fetch('/api/auth/password-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier,
+          password,
+          service,
+          authFactorToken: isTwoFactor ? twoFactorValue : undefined,
+        }),
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        if (result.error === 'AuthFactorTokenRequired') {
+          toast.info($_('login_2fa_code_send'));
+          isTwoFactor = true;
+          return;
+        }
+        throw { message: result.message || 'Login failed', name: result.error };
+      }
 
       let id: number;
 
       if (existingId) {
         await accountsDb.accounts.update(existingId, {
-          session: agent.session as AtpSessionData,
-          did: agent.session?.did || '',
+          did: result.did || '',
           service: service,
-          handle: agent.session?.handle,
+          handle: result.handle,
           isOAuth: false,
           oauthDid: undefined,
         });
         id = existingId;
       } else {
         id = await accountsDb.accounts.put({
-          session: agent.session as AtpSessionData,
-          did: agent.session?.did || '',
+          did: result.did || '',
           service: service,
-          handle: agent.session?.handle,
+          handle: result.handle,
           avatar: '',
           following: undefined,
           notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
@@ -63,7 +75,7 @@
       dispatch('success', {
         id: id,
       });
-    } catch (e) {
+    } catch (e: any) {
       if (e.name === 'ConstraintError') {
         toast.error($_('login_duplicate_account'));
       } else if (e.error === 'AuthFactorTokenRequired') {

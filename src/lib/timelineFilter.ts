@@ -1,5 +1,3 @@
-import {moderatePost} from '@atproto/api';
-import type {ModerationOpts} from '@atproto/api';
 import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
 
 function isValidTimeFormat(time: string): boolean {
@@ -54,7 +52,78 @@ export const defaultKeyword: keyword = {
     regExp: false,
 }
 
-export function contentLabelling(post, did, settings, labelDefs, labelerSettings = []) {
+// Lightweight moderation: replaces @atproto/api's moderatePost
+// Returns an object with .ui(context) method compatible with detectHide/detectWarn
+function localModeratePost(post: any, options: any) {
+    const labels = post?.labels || [];
+    const authorLabels = post?.author?.labels || [];
+    const allLabels = [...labels, ...authorLabels];
+    const userPrefs = options.prefs?.labels || {};
+    const labelDefs = options.labelDefs || [];
+    const muted = post?.viewer?.muted || false;
+
+    // Collect label actions based on user preferences
+    const labelActions: Array<{ label: any; action: string; target: 'content' | 'media' }> = [];
+
+    for (const label of allLabels) {
+        const val = label.val;
+        const pref = userPrefs[val];
+
+        // Check custom labeler definitions
+        const customDef = labelDefs.find((d: any) => d.identifier === val);
+        const defaultSeverity = customDef?.defaultSetting || customDef?.severity;
+
+        const action = pref || defaultSeverity || 'warn';
+
+        // Determine target (media vs content)
+        const isMediaLabel = ['porn', 'sexual', 'nudity', 'nsfw', 'graphic-media'].includes(val);
+        const target = isMediaLabel ? 'media' : 'content';
+
+        labelActions.push({ label, action, target });
+    }
+
+    return {
+        muted,
+        ui(context: string) {
+            let filter = false;
+            let blur = false;
+            let inform = false;
+            const blurs: any[] = [];
+            const informs: any[] = [];
+
+            // Muted posts are filtered in list context
+            if (muted && context === 'contentList') {
+                filter = true;
+            }
+
+            for (const { label, action, target } of labelActions) {
+                if (action === 'hide') {
+                    if (context === 'contentList') {
+                        filter = true;
+                    } else {
+                        blur = true;
+                        blurs.push(label);
+                    }
+                } else if (action === 'warn') {
+                    if (context === 'contentMedia' && target === 'media') {
+                        blur = true;
+                        blurs.push(label);
+                    } else if (context !== 'contentMedia' && target === 'content') {
+                        blur = true;
+                        blurs.push(label);
+                    }
+                } else if (action === 'inform') {
+                    inform = true;
+                    informs.push(label);
+                }
+            }
+
+            return { filter, blur, inform, blurs, informs };
+        }
+    };
+}
+
+export function contentLabelling(post: any, did: string, settings: any, labelDefs: any, labelerSettings: any = []) {
     let labels = settings.moderation?.contentLabels || {
         porn: 'warn',
         sexual: 'warn',
@@ -64,7 +133,7 @@ export function contentLabelling(post, did, settings, labelDefs, labelerSettings
     labels['!warn'] = 'warn';
     labels.spoiler = 'warn';
 
-    const options: ModerationOpts = {
+    const options = {
         userDid: did,
         prefs: {
             adultContentEnabled: true,
@@ -76,7 +145,7 @@ export function contentLabelling(post, did, settings, labelDefs, labelerSettings
         labelDefs: labelDefs,
     }
 
-    return moderatePost(post, options);
+    return localModeratePost(post, options);
 }
 
 export function keywordStringToArray(word: any) {
@@ -91,7 +160,7 @@ export function keywordStringToArray(word: any) {
     return words;
 }
 
-export function keywordFilter(keywords, text, indexedAt) {
+export function keywordFilter(keywords: any, text: any, indexedAt: any) {
     if (!Array.isArray(keywords)) {
         return false;
     }
@@ -126,7 +195,7 @@ export function keywordFilter(keywords, text, indexedAt) {
     return false;
 }
 
-export function detectHide(moderateData, contentContext: 'contentView' | 'contentList', current, post) {
+export function detectHide(moderateData: any, contentContext: 'contentView' | 'contentList', current: any, post: any) {
     if (keywordFilter(keywordMuteState.formattedKeywords, post.record.text, post.indexedAt)) {
         return true;
     }
@@ -146,13 +215,13 @@ export function detectHide(moderateData, contentContext: 'contentView' | 'conten
     return current;
 }
 
-export function detectWarn(moderateData, contentContext: 'contentView' | 'contentList') {
+export function detectWarn(moderateData: any, contentContext: 'contentView' | 'contentList') {
     if (!moderateData) {
         return null;
     }
 
     let blurs: 'content' | 'media' | undefined = undefined;
-    let warnLabels = [];
+    let warnLabels: any[] = [];
     let warnBehavior: 'cover' | 'inform' = 'cover';
 
     try {

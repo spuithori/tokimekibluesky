@@ -1,7 +1,7 @@
 <script lang="ts">
   import { agent, labelerSettings, settings } from "$lib/stores";
-  import {lightFormat} from "date-fns";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "@atproto/api";
+  import {formatDate} from "$lib/dateUtil";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "$lib/atproto-guards";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
@@ -115,7 +115,7 @@
         <p class="timeline__user">{ record.author.displayName || record.author.handle }</p>
         <p class="timeline__date">
           {#if $settings?.design.absoluteTime}
-            <span>{lightFormat(new Date(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
+            <span>{formatDate(new Date(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
           {:else}
             <span>{intlRelativeTimeFormatState.format({ laterDate: new Date(record.indexedAt) })}</span>
           {/if}

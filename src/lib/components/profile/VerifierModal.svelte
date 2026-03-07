@@ -9,7 +9,7 @@
 
     onMount(async () => {
         try {
-            const res = await _agent.agent.api.app.bsky.actor.getProfile({actor: did});
+            const res = await _agent.xrpcGet('app.bsky.actor.getProfile', {actor: did});
             profile = res.data;
         } catch (e) {
             console.error(e);

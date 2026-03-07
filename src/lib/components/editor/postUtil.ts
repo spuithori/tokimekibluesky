@@ -1,7 +1,7 @@
 import * as dcbor from '@ipld/dag-cbor';
 import * as Hasher from 'multiformats/hashes/hasher';
 import { CID } from 'multiformats/cid';
-import { AppBskyFeedPost, BlobRef } from '@atproto/api';
+// BlobRef check: objects with ref.$link property (AT Protocol blob references)
 
 /**
  * These codes are inspired by bluesky-social/social-app.
@@ -17,7 +17,7 @@ const mf_sha256 = Hasher.from({
     },
 });
 
-export async function computeCid(record: AppBskyFeedPost.Record): Promise<string> {
+export async function computeCid(record: any): Promise<string> {
     // IMPORTANT: `prepareObject` prepares the record to be hashed by removing
     // fields with undefined value, and converting BlobRef instances to the
     // right IPLD representation.
@@ -36,8 +36,9 @@ function prepareForHashing(v: any): any {
     // IMPORTANT: BlobRef#ipld() returns the correct object we need for hashing,
     // the API client will convert this for you but we're hashing in the client,
     // so we need it *now*.
-    if (v instanceof BlobRef) {
-        return v.ipld()
+    // Handle BlobRef-like objects: convert to IPLD representation
+    if (v && typeof v === 'object' && v.ref && v.ref.$link) {
+        return { $type: 'blob', ref: { $link: v.ref.$link }, mimeType: v.mimeType, size: v.size };
     }
 
     // Walk through arrays

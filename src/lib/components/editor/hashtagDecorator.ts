@@ -6,7 +6,7 @@ import {Mark} from '@tiptap/core';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import {Node as ProsemirrorNode} from '@tiptap/pm/model';
 import {Decoration, DecorationSet} from '@tiptap/pm/view';
-import {TAG_REGEX, TRAILING_PUNCTUATION_REGEX} from '@atproto/api';
+import {TAG_REGEX, TRAILING_PUNCTUATION_REGEX} from '$lib/atproto-richtext';
 import {CASHTAG_REGEX, JP_CASHTAG_REGEX} from '$lib/cashtag';
 
 function getDecorations(doc: ProsemirrorNode) {

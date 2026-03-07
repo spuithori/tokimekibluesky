@@ -1,3 +1,5 @@
+import {browser} from '$app/environment';
+
 type formatOptions = {
     laterDate: Date,
     earlierDate: Date,
@@ -10,8 +12,10 @@ const SECONDS_IN_WEEK = 604800;
 const SECONDS_IN_MONTH = SECONDS_IN_DAY * 30;
 const SECONDS_IN_YEAR = SECONDS_IN_DAY * 365;
 
+const defaultLocale = browser ? navigator.language : 'en';
+
 class IntlRelativeTimeFormatState {
-    locale = $state<string>(navigator.language);
+    locale = $state<string>(defaultLocale);
     instance = new Intl.RelativeTimeFormat(this.locale, { numeric: 'always', style: 'narrow' });
 
     format({ laterDate, earlierDate = new Date() }: formatOptions) {

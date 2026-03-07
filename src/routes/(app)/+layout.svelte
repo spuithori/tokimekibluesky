@@ -3,7 +3,7 @@
   import '../styles.css';
   import { isColumnModalOpen, isMobileDataConnection, listAddModal, settings, theme, bluefeedAddModal } from '$lib/stores';
   import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
-  import { dev } from '$app/environment';
+  import { browser, dev } from '$app/environment';
   import { injectAnalytics } from '@vercel/analytics/sveltekit';
   import {tick, untrack} from 'svelte';
   import { Toaster } from 'svelte-sonner';
@@ -58,8 +58,8 @@
 
   let app = $state();
   let baseColor = $state('#fff');
-  let isRepeater = $state(localStorage.getItem('isRepeater') === 'true');
-  let preferredDarkMode = $state(window.matchMedia('(prefers-color-scheme: dark)').matches);
+  let isRepeater = $state(browser ? localStorage.getItem('isRepeater') === 'true' : false);
+  let preferredDarkMode = $state(browser ? window.matchMedia('(prefers-color-scheme: dark)').matches : false);
   let isDarkMode = $derived.by(() => {
       if ($theme?.options?.darkmodeDisabled) {
           return false;
@@ -114,47 +114,49 @@
       });
   }
 
-  if (!$settings.version) {
-      $settings.version = 1;
-  }
-  console.log('settings version: ' + $settings.version || 0);
-
-  if ($settings.version < 2) {
-      $settings.design.skin = 'default';
-      $settings.version = 2;
-  }
-
-  if (navigator.connection) {
-      navigator.connection.addEventListener('change', () => {
-          isMobileDataConnection.set(navigator.connection.type === 'cellular');
-      })
-  }
-
-  if ($settings?.general?.language) {
-      locale.set($settings.general.language);
-  }
-
-  if (!$settings?.general.userLanguage) {
-      $settings.general.userLanguage = window.navigator.language;
-  }
-
-  if (navigator.storage && navigator.storage.persist) {
-    navigator.storage.persist()
-      .then(res => {
-        console.log(`Storage persisted: ${res}`);
-      });
-  }
-
-  if ($settings?.design?.skin === 'default' || $settings?.design?.skin === 'twilight') {
-    const convertedTheme = oldThemeConvert($settings?.design?.theme);
-    if (convertedTheme) {
-      $settings.design.theme = convertedTheme;
+  if (browser) {
+    if (!$settings.version) {
+        $settings.version = 1;
     }
-  }
+    console.log('settings version: ' + $settings.version || 0);
 
-  if ($settings?.design?.skin === 'twilight') {
-    $settings.design.skin = 'default';
-    $settings.design.darkmode = true;
+    if ($settings.version < 2) {
+        $settings.design.skin = 'default';
+        $settings.version = 2;
+    }
+
+    if (navigator.connection) {
+        navigator.connection.addEventListener('change', () => {
+            isMobileDataConnection.set(navigator.connection.type === 'cellular');
+        })
+    }
+
+    if ($settings?.general?.language) {
+        locale.set($settings.general.language);
+    }
+
+    if (!$settings?.general.userLanguage) {
+        $settings.general.userLanguage = window.navigator.language;
+    }
+
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist()
+        .then(res => {
+          console.log(`Storage persisted: ${res}`);
+        });
+    }
+
+    if ($settings?.design?.skin === 'default' || $settings?.design?.skin === 'twilight') {
+      const convertedTheme = oldThemeConvert($settings?.design?.theme);
+      if (convertedTheme) {
+        $settings.design.theme = convertedTheme;
+      }
+    }
+
+    if ($settings?.design?.skin === 'twilight') {
+      $settings.design.skin = 'default';
+      $settings.design.darkmode = true;
+    }
   }
 
   function handleColumnModalClose() {
@@ -213,10 +215,13 @@
       return theme.style + colorStyle + bubbleStyle + darkmodeStyle;
   }
 
-  appState.init();
-  viewPortSetting();
   setPostState();
   initColumns();
+
+  if (browser) {
+    appState.init();
+    viewPortSetting();
+  }
 
   const savedScrollPositions = new Map<string, { scroll: { x: number; y: number } | null; modalTop: number | null }>();
 

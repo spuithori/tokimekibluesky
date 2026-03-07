@@ -25,7 +25,7 @@
 
     async function handleLoadMore(loaded, complete) {
         try {
-            let raw = await agentContext.agent.agent.api.app.bsky.graph.getFollows({actor: data.params.handle, limit: 20, cursor: cursor});
+            let raw = await agentContext.agent.xrpcGet('app.bsky.graph.getFollows', {actor: data.params.handle, limit: 20, cursor: cursor});
             cursor = raw.data.cursor;
             follows = [...new Map([...follows, ...raw.data.follows].map(follow => [follow.did, follow])).values()];
 

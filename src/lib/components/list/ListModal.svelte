@@ -52,7 +52,7 @@
         }
 
         if (members.length) {
-            const res = await _agent.agent.api.app.bsky.actor.getProfiles({actors: members})
+            const res = await _agent.xrpcGet('app.bsky.actor.getProfiles', {actors: members})
             members = res.data.profiles;
         }
 
@@ -79,7 +79,7 @@
     async function handleKeyDown() {
         clearTimeout(timer);
         timer = setTimeout(async () => {
-            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: search, limit: 10})
+            const res = await _agent.xrpcGet('app.bsky.actor.searchActorsTypeahead', {term: search, limit: 10})
             searchMembers = res.data.actors;
         }, 250)
     }
@@ -119,7 +119,7 @@
     async function importing() {
         try {
             const importObj = JSON.parse(importText);
-            const res = await _agent.agent.api.app.bsky.actor.getProfiles({actors: importObj});
+            const res = await _agent.xrpcGet('app.bsky.actor.getProfiles', {actors: importObj});
             members = res.data.profiles;
 
             handleListChange();

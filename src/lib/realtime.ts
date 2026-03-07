@@ -136,7 +136,7 @@ export class RealtimeClient {
 
 async function getRecord(_agent, uri, repost = undefined, retryCount = 0) {
     try {
-        const res = await _agent.agent.api.app.bsky.feed.getPostThread({depth: 0, parentHeight: 1, uri: uri});
+        const res = await _agent.xrpcGet('app.bsky.feed.getPostThread', {depth: 0, parentHeight: 1, uri: uri});
         let thread = res.data.thread;
 
         if (thread?.parent?.post && thread?.post?.record?.reply) {
@@ -147,7 +147,7 @@ async function getRecord(_agent, uri, repost = undefined, retryCount = 0) {
         }
 
         if (repost) {
-            const rres = await _agent.agent.api.app.bsky.actor.getProfile({actor: repost.repo})
+            const rres = await _agent.xrpcGet('app.bsky.actor.getProfile', {actor: repost.repo})
             thread.reason = {
                 $type: 'app.bsky.feed.defs#reasonRepost',
                 indexedAt: repost.indexedAt,

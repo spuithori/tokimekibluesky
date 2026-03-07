@@ -34,7 +34,7 @@
     }
 
     try {
-      const res = await $agent.agent.api.app.bsky.actor.getProfile({ actor: OFFICIAL_HANDLE });
+      const res = await $agent.xrpcGet('app.bsky.actor.getProfile', { actor: OFFICIAL_HANDLE });
       officialProfile = res.data;
       isFollowing = !!res.data.viewer?.following;
       showFollowPrompt = !isFollowing;
@@ -53,13 +53,14 @@
     if (!$agent || !officialProfile) return;
 
     try {
-      await $agent.agent.api.app.bsky.graph.follow.create(
-        { repo: $agent.did() },
-        {
+      await $agent.xrpcPost('com.atproto.repo.createRecord', {
+        repo: $agent.did(),
+        collection: 'app.bsky.graph.follow',
+        record: {
           subject: officialProfile.did,
           createdAt: new Date().toISOString(),
-        }
-      );
+        },
+      });
       isFollowing = true;
       showFollowPrompt = false;
     } catch (e) {

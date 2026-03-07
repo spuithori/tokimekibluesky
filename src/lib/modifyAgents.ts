@@ -1,5 +1,5 @@
 import {accountsDb} from "$lib/db";
-import {resumeAccountsSession} from "$lib/resumeAccountsSession";
+import {ProxyAgent} from "$lib/proxyAgent";
 
 export async function modifyAgents(ids) {
     const accounts = await accountsDb.accounts
@@ -7,6 +7,9 @@ export async function modifyAgents(ids) {
         .anyOf(ids)
         .toArray();
 
-    let agentsMap = await resumeAccountsSession(accounts);
+    const agentsMap = new Map<number, ProxyAgent>();
+    for (const account of accounts) {
+        agentsMap.set(account.id!, new ProxyAgent(account.did, account.handle));
+    }
     return agentsMap;
 }

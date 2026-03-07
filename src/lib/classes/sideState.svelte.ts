@@ -1,3 +1,5 @@
+import {browser} from '$app/environment';
+
 export type SideItem = 'feeds' | 'chat' | 'notifications' | 'search' | 'profile' | 'refresher' | 'scroll-top' | 'releaseJunk' | 'bluecast' | 'columns' | 'topic' | 'tokmek' | 'workspace' | 'viewer';
 const DEFAULT_ITEMS: SideItem[] = ['workspace', 'feeds', 'search', 'profile'];
 export const ALL_ITEMS: SideItem[] = ['workspace', 'feeds', 'chat', 'notifications', 'search', 'topic', 'profile', 'bluecast', 'tokmek', 'refresher', 'scroll-top', 'columns', 'viewer'];
@@ -7,11 +9,13 @@ class SideState {
     isTokStart = $state(false);
 
     constructor() {
-        const storageItems = localStorage.getItem('sideItems') || JSON.stringify(DEFAULT_ITEMS);
-        this.items = JSON.parse(storageItems);
+        if (browser) {
+            const storageItems = localStorage.getItem('sideItems') || JSON.stringify(DEFAULT_ITEMS);
+            this.items = JSON.parse(storageItems);
 
-        if (!Array.isArray(this.items)) {
-            this.items = DEFAULT_ITEMS;
+            if (!Array.isArray(this.items)) {
+                this.items = DEFAULT_ITEMS;
+            }
         }
     }
 

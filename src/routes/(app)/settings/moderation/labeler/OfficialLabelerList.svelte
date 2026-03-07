@@ -19,7 +19,7 @@
         const dids = await _agent.getSavedLabelerDids();
 
         if (dids.length) {
-            const res = await _agent.agent.getLabelers({dids: dids});
+            const res = await _agent.getLabelers({dids: dids});
             labelers = res.data.views;
         } else {
             labelers = [];

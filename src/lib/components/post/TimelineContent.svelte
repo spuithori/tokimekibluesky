@@ -1,11 +1,11 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
   import {agentDidsSet, labelerSettings, settings} from "$lib/stores";
-  import {lightFormat} from "date-fns";
+  import {formatDate} from "$lib/dateUtil";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, detectHide} from "$lib/timelineFilter";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, AppBskyGraphDefs, BskyAgent } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyGraphDefs } from "$lib/atproto-guards";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {formatTranslateRecord} from "$lib/translate";
@@ -238,10 +238,10 @@
       {#if $settings?.design.absoluteTime}
         <Tooltip>
           {#snippet ref()}
-            <span>{lightFormat(new Date(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
+            <span>{formatDate(new Date(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
           {/snippet}
           {#snippet content()}
-            <span aria-hidden="true" class="timeline-tooltip">{lightFormat(new Date(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+            <span aria-hidden="true" class="timeline-tooltip">{formatDate(new Date(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
           {/snippet}
         </Tooltip>
       {:else}
@@ -250,7 +250,7 @@
             <span>{timeDistanceToNow}</span>
           {/snippet}
           {#snippet content()}
-            <span aria-hidden="true" class="timeline-tooltip">{lightFormat(new Date(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+            <span aria-hidden="true" class="timeline-tooltip">{formatDate(new Date(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
           {/snippet}
         </Tooltip>
       {/if}

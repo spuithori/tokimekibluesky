@@ -15,7 +15,7 @@
     })
 
     async function getSavedFeeds () {
-        const preferenceRes = await _agent.agent.api.app.bsky.actor.getPreferences()
+        const preferenceRes = await _agent.xrpcGet('app.bsky.actor.getPreferences')
         const preference = preferenceRes.data.preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')
         savedFeeds = preference[0]?.saved || [];
     }
@@ -33,7 +33,7 @@
     }
     async function handleLoadMore(loaded, complete) {
         try {
-            let raw = await _agent.agent.api.app.bsky.unspecced.getPopularFeedGenerators({query: $page.url.searchParams.get('q') || '' , limit: 20, cursor: cursor});
+            let raw = await _agent.xrpcGet('app.bsky.unspecced.getPopularFeedGenerators', {query: $page.url.searchParams.get('q') || '' , limit: 20, cursor: cursor});
             cursor = raw.data.cursor;
             feeds = [...feeds, ...raw.data.feeds];
 

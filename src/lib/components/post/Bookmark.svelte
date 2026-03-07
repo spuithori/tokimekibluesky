@@ -132,9 +132,9 @@
 
     try {
       if (post?.viewer?.bookmarked) {
-        await _agent.agent.app.bsky.bookmark.deleteBookmark({uri: post.uri});
+        await _agent.xrpcPost('app.bsky.bookmark.deleteBookmark', {uri: post.uri});
       } else {
-        await _agent.agent.app.bsky.bookmark.createBookmark({uri: post.uri, cid: post.cid});
+        await _agent.xrpcPost('app.bsky.bookmark.createBookmark', {uri: post.uri, cid: post.cid});
       }
 
       toast.success($_('bookmark_save_success'));

@@ -7,13 +7,13 @@
     import { accountsDb } from '$lib/db';
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import { checkScheduleAuth, startScheduleAuth, revokeScheduleAuth, getScheduledPosts, deleteScheduledPost, type ScheduledPost } from '$lib/scheduleApi';
-    import type { Agent } from '$lib/agent';
+    import type { ProxyAgent } from '$lib/proxyAgent';
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { Trash } from 'lucide-svelte';
 
     interface AccountAuthState {
         key: number;
-        agent: Agent;
+        agent: ProxyAgent;
         avatar?: string;
         displayName?: string;
         isAuthenticated: boolean;
@@ -26,7 +26,7 @@
     let isInitialLoading = $state(true);
     let selectedAccountDid = $state<string | null>(null);
 
-    async function loadAccountInfo(key: number, agent: Agent): Promise<{ avatar?: string; displayName?: string }> {
+    async function loadAccountInfo(key: number, agent: ProxyAgent): Promise<{ avatar?: string; displayName?: string }> {
         try {
             const account = await accountsDb.accounts.get(key);
             return {

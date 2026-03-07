@@ -1,7 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
   import { agent, hashtagHistory, settings } from '$lib/stores';
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
   import {toast} from 'svelte-sonner'
   import {goto, pushState} from '$app/navigation';
   import {page} from '$app/stores';
@@ -15,7 +14,7 @@
   import PublishMain from "$lib/components/editor/PublishMain.svelte";
   import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
   import {tick} from "svelte";
-  import {TID} from "@atproto/common-web";
+  import {TID} from "$lib/tid";
   import {computeCid} from "$lib/components/editor/postUtil";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
@@ -172,8 +171,10 @@
   async function uploadBlobWithCompression(image) {
       const compressed = image.isGif ? image.file : await compressImage(image.file);
 
-      return await _agent.agent.api.com.atproto.repo.uploadBlob(compressed, {
-          encoding: compressed.type,
+      const buffer = await (compressed as Blob).arrayBuffer();
+      return await _agent.xrpcPost('com.atproto.repo.uploadBlob', undefined, {
+          contentType: compressed.type,
+          body: buffer,
       });
   }
 
@@ -193,8 +194,10 @@
                   });
               }
 
-              const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
-                  encoding: 'image/jpeg',
+              const buffer = await blob.arrayBuffer();
+              const res = await _agent.xrpcPost('com.atproto.repo.uploadBlob', undefined, {
+                  contentType: 'image/jpeg',
+                  body: buffer,
               });
               return res.data.blob;
           } catch (e) {
@@ -307,7 +310,7 @@
               }
           }
 
-          await _agent.agent.api.com.atproto.repo.applyWrites({
+          await _agent.xrpcPost('com.atproto.repo.applyWrites', {
               repo: _agent.did(),
               writes: writes,
               validate: false,
@@ -343,7 +346,7 @@
                       return facet.features[0].did as string
                   }
               }).filter(results => results !== undefined);
-              const promises = dids.map(did => _agent.agent.com.atproto.repo.describeRepo({repo: did}));
+              const promises = dids.map(did => _agent.xrpcGet('com.atproto.repo.describeRepo', {repo: did}));
               let actors: { did: string; handle: string; isHistory: boolean; }[] = [];
 
               await Promise.all(promises)
@@ -394,15 +397,15 @@
   async function publish(post, treeReplyRef = undefined) {
       isEnabled = true;
 
-      let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
-      let embedImages: AppBskyEmbedImages.Main = {
+      let embed: any;
+      let embedImages: any = {
           $type: 'app.bsky.embed.images',
           images: [],
       };
-      let embedVideo: AppBskyEmbedVideo.Main;
-      let embedRecord: AppBskyEmbedRecord.Main;
-      let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
-      let embedExternal: AppBskyEmbedExternal.Main | undefined = post.embedExternal || undefined;
+      let embedVideo: any;
+      let embedRecord: any;
+      let embedRecordWithMedia: any;
+      let embedExternal: any = post.embedExternal || undefined;
       let lang: string[] = [];
       let selfLabels = [];
 
@@ -454,7 +457,7 @@
               const token = await getServiceAuthToken({lxm: 'com.atproto.repo.uploadBlob', exp: Date.now() / 1000 + 60 * 30}, _agent);
 
               const xhr = new XMLHttpRequest();
-              const res = await new Promise<AppBskyVideoDefs.JobStatus>((resolve, reject) => {
+              const res = await new Promise<any>((resolve, reject) => {
                   xhr.upload.addEventListener('progress', e => {
                       const progress = e.loaded / e.total;
 
@@ -467,7 +470,7 @@
                       if (xhr.readyState === 4) {
                           const uploadRes = JSON.parse(
                               xhr.responseText,
-                          ) as AppBskyVideoDefs.JobStatus
+                          ) as any
                           resolve(uploadRes)
                       } else {
                           reject(new Error(xhr.statusText));
@@ -585,15 +588,17 @@
           let pollThumb;
           try {
               const ogBlob = await generatePollOgImage(post.poll.options);
-              const uploadRes = await _agent.agent.api.com.atproto.repo.uploadBlob(ogBlob, {
-                  encoding: 'image/png',
+              const ogBuffer = await ogBlob.arrayBuffer();
+              const uploadRes = await _agent.xrpcPost('com.atproto.repo.uploadBlob', undefined, {
+                  contentType: 'image/png',
+                  body: ogBuffer,
               });
               pollThumb = uploadRes.data.blob;
           } catch (e) {
               console.error('Failed to generate poll OG image:', e);
           }
 
-          const pollEmbed: AppBskyEmbedExternal.Main = {
+          const pollEmbed: any = {
               $type: 'app.bsky.embed.external',
               external: {
                   uri: pollUrl,
@@ -637,7 +642,7 @@
           }
       }
 
-      let rt: RichText | undefined;
+      let rt: any;
 
       if (post.text) {
           rt = await detectRichTextWithEditorJson(_agent, post.text, post.json);
@@ -916,7 +921,7 @@
       imageIndexOffset: number,
       externalThumbIndex: number
   ): Promise<ProcessedPostContent> {
-      let rt: RichText | undefined;
+      let rt: any;
       if (post.text) {
           rt = await detectRichTextWithEditorJson(_agent, post.text, post.json);
       }

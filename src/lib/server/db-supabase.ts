@@ -1,0 +1,124 @@
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { env } from '$env/dynamic/private';
+import type { SessionDb } from './db.js';
+
+let supabase: SupabaseClient | null = null;
+
+function getClient(): SupabaseClient {
+	if (supabase) return supabase;
+
+	const url = env.SUPABASE_URL;
+	const key = env.SUPABASE_ANON_KEY;
+	if (!url || !key) {
+		throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY must be set for supabase backend');
+	}
+
+	supabase = createClient(url, key);
+	return supabase;
+}
+
+export class SupabaseSessionDb implements SessionDb {
+	async getState(key: string): Promise<any | undefined> {
+		const { data } = await getClient()
+			.from('oauth_state')
+			.select('state')
+			.eq('key', key)
+			.single();
+		return data?.state;
+	}
+
+	async setState(key: string, state: any): Promise<void> {
+		await getClient().from('oauth_state').upsert({
+			key,
+			state,
+			created_at: new Date().toISOString()
+		});
+	}
+
+	async deleteState(key: string): Promise<void> {
+		await getClient().from('oauth_state').delete().eq('key', key);
+	}
+
+	async getSession(key: string): Promise<any | undefined> {
+		const { data } = await getClient()
+			.from('oauth_session')
+			.select('session')
+			.eq('key', key)
+			.single();
+		return data?.session;
+	}
+
+	async setSession(key: string, session: any): Promise<void> {
+		await getClient().from('oauth_session').upsert({
+			key,
+			session,
+			updated_at: new Date().toISOString()
+		});
+	}
+
+	async deleteSession(key: string): Promise<void> {
+		await getClient().from('oauth_session').delete().eq('key', key);
+	}
+
+	async getUserSession(
+		sessionId: string
+	): Promise<{ dids: string[]; primaryDid: string; expiresAt: string } | undefined> {
+		const { data } = await getClient()
+			.from('user_session')
+			.select('dids, primary_did, expires_at')
+			.eq('session_id', sessionId)
+			.single();
+		if (!data) return undefined;
+		if (new Date(data.expires_at) < new Date()) {
+			await getClient().from('user_session').delete().eq('session_id', sessionId);
+			return undefined;
+		}
+		return {
+			dids: data.dids,
+			primaryDid: data.primary_did,
+			expiresAt: data.expires_at
+		};
+	}
+
+	async setUserSession(
+		sessionId: string,
+		data: { dids: string[]; primaryDid: string; expiresAt: string }
+	): Promise<void> {
+		await getClient().from('user_session').upsert({
+			session_id: sessionId,
+			dids: data.dids,
+			primary_did: data.primaryDid,
+			expires_at: data.expiresAt
+		});
+	}
+
+	async deleteUserSession(sessionId: string): Promise<void> {
+		await getClient().from('user_session').delete().eq('session_id', sessionId);
+	}
+
+	async getPasswordSession(
+		did: string
+	): Promise<{ accessJwt: string; refreshJwt: string; did: string; handle: string; service: string } | undefined> {
+		const { data } = await getClient()
+			.from('password_session')
+			.select('session')
+			.eq('did', did)
+			.single();
+		return data?.session;
+	}
+
+	async setPasswordSession(
+		did: string,
+		sessionData: { accessJwt: string; refreshJwt: string; did: string; handle: string; service: string }
+	): Promise<void> {
+		await getClient().from('password_session').upsert({
+			did,
+			session: sessionData,
+			updated_at: new Date().toISOString()
+		});
+	}
+
+	async deletePasswordSession(did: string): Promise<void> {
+		await getClient().from('password_session').delete().eq('did', did);
+	}
+}

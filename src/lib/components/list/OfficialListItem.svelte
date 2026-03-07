@@ -42,7 +42,7 @@
   let isMembersOpen = $state(false);
 
   if (!list && uri) {
-      _agent.agent.api.app.bsky.graph.getList({list: uri, limit: 100})
+      _agent.xrpcGet('app.bsky.graph.getList', {list: uri, limit: 100})
           .then(value => {
               list = value.data.list;
               items = value.data.items;

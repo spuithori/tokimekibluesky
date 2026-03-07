@@ -1,9 +1,9 @@
 <script lang="ts">
     import TimelineText from "$lib/components/post/TimelineText.svelte";
-    import {lightFormat} from "date-fns";
+    import {formatDate} from "$lib/dateUtil";
     import {isEmojiSequenceOrCombination} from "$lib/util";
     import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
-    import {AppBskyEmbedRecord} from "@atproto/api";
+    import {AppBskyEmbedRecord} from "$lib/atproto-guards";
     import { Flag, Laugh } from "lucide-svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {agent, reportModal} from "$lib/stores";
@@ -56,7 +56,7 @@
                     <TimelineText record={message} _agent={currentAgent}></TimelineText>
                 {/if}
 
-                <time class="chat-item__time" datetime={lightFormat(new Date(message.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{lightFormat(new Date(message.sentAt), 'MM/dd HH:mm')}</time>
+                <time class="chat-item__time" datetime={formatDate(new Date(message.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{formatDate(new Date(message.sentAt), 'MM/dd HH:mm')}</time>
             </p>
         {/if}
 

@@ -2,9 +2,10 @@ import type {Column} from "$lib/types/column";
 import {getContext, setContext} from "svelte";
 import {accountsDb} from "$lib/db";
 import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
-import {AppBskyFeedDefs} from "@atproto/api";
+// AppBskyFeedDefs types replaced with any
 import {settingsState} from "$lib/classes/settingsState.svelte";
 import {appState} from "$lib/classes/appState.svelte";
+import {browser} from "$app/environment";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
@@ -88,6 +89,8 @@ export class ColumnState {
             return;
         }
 
+        if (!browser) return;
+
         accountsDb.profiles.get(appState.profile.current)
           .then(res => {
               const cols = res?.columns || [];
@@ -166,7 +169,7 @@ export class ColumnState {
             const oldSplitId = column.splitColumn.id;
             if (keepAsSeparate) {
                 const splitColumn = { ...column.splitColumn };
-                const newId = self.crypto.randomUUID();
+                const newId = crypto.randomUUID();
                 splitColumn.id = newId;
                 this.setFeed(newId, [...this.getFeed(oldSplitId)]);
                 this.columns.splice(index + 1, 0, splitColumn);
@@ -435,10 +438,10 @@ export class ColumnState {
     private deletePostForColumn(column: Column, uri: string) {
         if (column?.algorithm?.type === 'notification') {
             if (column.data?.feedPool) {
-                column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri);
+                column.data.feedPool = column.data.feedPool.filter((data: any) => data?.post?.uri !== uri);
             }
         } else {
-            this.replaceFeed(column.id, f => f.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri));
+            this.replaceFeed(column.id, f => f.filter((data: any) => data?.post?.uri !== uri));
         }
     }
 
@@ -463,10 +466,10 @@ export class ColumnState {
     private deletePostsFromDidForColumn(column: Column, did: string) {
         if (column?.algorithm?.type === 'notification') {
             if (column.data?.feedPool) {
-                column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did);
+                column.data.feedPool = column.data.feedPool.filter((data: any) => data?.post?.author?.did !== did);
             }
         } else {
-            this.replaceFeed(column.id, f => f.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did));
+            this.replaceFeed(column.id, f => f.filter((data: any) => data?.post?.author?.did !== did));
         }
     }
 

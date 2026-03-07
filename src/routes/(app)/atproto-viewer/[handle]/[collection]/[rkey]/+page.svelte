@@ -1,6 +1,5 @@
 <script lang="ts">
     import {page} from "$app/state";
-    import {BskyAgent} from "@atproto/api";
     import Record from "$lib/components/viewer/Record.svelte";
     import {onMount} from "svelte";
 
@@ -8,7 +7,6 @@
     const collection = $derived(page.params.collection);
     const rkey = $derived(page.params.rkey);
     const endpoint = $derived(page.data.endpoint);
-    const _agent = new BskyAgent({service: endpoint});
 
     let record = $state();
 
@@ -17,12 +15,14 @@
             return false;
         }
 
-        const { data } = await _agent.com.atproto.repo.getRecord({repo: handle, collection: collection, rkey: rkey});
+        const res = await fetch(`${endpoint}/xrpc/com.atproto.repo.getRecord?repo=${encodeURIComponent(handle)}&collection=${encodeURIComponent(collection)}&rkey=${encodeURIComponent(rkey)}`);
+        if (!res.ok) return;
+        const data = await res.json();
         record = data.value;
     });
 </script>
 
-{#if _agent}
+{#if endpoint}
     <div class="collections-head">
         <h2 class="collections-head__title">{rkey}</h2>
 

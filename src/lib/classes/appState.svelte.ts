@@ -1,8 +1,7 @@
 import {accountsDb} from "$lib/db";
 import {agent, agents} from "$lib/stores";
-import {resumeAccountsSession} from "$lib/resumeAccountsSession";
 import {goto} from '$app/navigation';
-import {BskyAgent} from "@atproto/api";
+import {ProxyAgent} from "$lib/proxyAgent";
 import { PersistedState } from "runed";
 import { get } from 'svelte/store';
 import { unwrapFunctionStore, format } from 'svelte-i18n';
@@ -81,25 +80,26 @@ class AppState {
             return false;
         }
 
-        let agentsMap = await resumeAccountsSession(accounts, profile?.appViewProxy);
+        // Create ProxyAgent instances (no session needed - server manages sessions)
+        let agentsMap = new Map<number, ProxyAgent>();
+        for (const account of accounts) {
+            agentsMap.set(account.id!, new ProxyAgent(account.did, account.handle));
+        }
+
         agents.set(agentsMap);
         const _agents = get(agents);
         agent.set(_agents.get(profile.primary));
-        const _agent = get(agent);
 
-        try {
-            _agents.forEach((ag) => {
-                ag.agent.configureLabelers(this.subscribedLabelers.current);
-            });
-
-            if (!Object.keys(this.labelDefs.current).length) {
-                this.labelDefs.current = await _agent.agent.getLabelDefinitions(this.subscribedLabelers.current);
+        // Fetch handles for accounts that don't have one
+        for (const account of accounts) {
+            const ag = agentsMap.get(account.id!);
+            if (ag && !account.handle) {
+                ag.getProfile({ actor: account.did }).then(res => {
+                    ag.setHandle(res.data.handle);
+                }).catch(() => {});
             }
-        } catch (e) {
-            console.error(e);
         }
 
-        // this.status = 0;
         this.ready = true;
     }
 

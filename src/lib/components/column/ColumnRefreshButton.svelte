@@ -164,7 +164,7 @@
                 column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
             }
 
-            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+            const res = await _agent.xrpcGet('app.bsky.notification.listNotifications', {
                 limit: 25,
                 cursor: '',
                 reasons: column.filter,
@@ -204,16 +204,14 @@
                     : await _agent.getNotificationCount();
 
                 try {
-                    await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
+                    await _agent.xrpcPost('app.bsky.notification.updateSeen', {seenAt: new Date().toISOString()});
                 } catch (e) {
 
                 }
             }
         } else if (column.algorithm.type === 'chat') {
-            const res = await _agent.agent.api.chat.bsky.convo.getMessages({cursor: '', limit: 50, convoId: column.algorithm.id}, {
-                headers: {
-                    'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
-                }
+            const res = await _agent.xrpcGet('chat.bsky.convo.getMessages', {cursor: '', limit: 50, convoId: column.algorithm.id}, {
+                proxy: 'did:web:api.bsky.chat#bsky_chat',
             });
 
             if (!res?.data) {
@@ -241,19 +239,15 @@
             });
 
             if (!isAutoRefresh) {
-              await _agent.agent.api.chat.bsky.convo.updateRead({convoId: column.algorithm.id}, {
-                headers: {
-                  'atproto-proxy': CHAT_PROXY,
-                }
+              await _agent.xrpcPost('chat.bsky.convo.updateRead', {convoId: column.algorithm.id}, {
+                proxy: CHAT_PROXY,
               });
               await _agent.getChatLogs();
             }
         } else if (column.algorithm.type === 'chatList') {
             if (column.algorithm.id) {
-                const res = await _agent.agent.api.chat.bsky.convo.getMessages({cursor: '', limit: 50, convoId: column.algorithm.id}, {
-                    headers: {
-                        'atproto-proxy': CHAT_PROXY,
-                    }
+                const res = await _agent.xrpcGet('chat.bsky.convo.getMessages', {cursor: '', limit: 50, convoId: column.algorithm.id}, {
+                    proxy: CHAT_PROXY,
                 });
 
                 if (!res?.data) {
@@ -281,10 +275,8 @@
                 });
 
                 if (!isAutoRefresh) {
-                    await _agent.agent.api.chat.bsky.convo.updateRead({convoId: column.algorithm.id}, {
-                        headers: {
-                            'atproto-proxy': CHAT_PROXY,
-                        }
+                    await _agent.xrpcPost('chat.bsky.convo.updateRead', {convoId: column.algorithm.id}, {
+                        proxy: CHAT_PROXY,
                     });
                     await _agent.getChatLogs();
                 }

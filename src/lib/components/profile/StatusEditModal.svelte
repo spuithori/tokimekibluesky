@@ -6,9 +6,9 @@
     import { resource } from "runed";
     import {toast} from "svelte-sonner";
     import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
-    import type {Agent} from "$lib/agent";
+    import type {ProxyAgent} from "$lib/proxyAgent";
 
-    let { _agent, onclose }: { _agent: Agent } = $props();
+    let { _agent, onclose }: { _agent: ProxyAgent } = $props();
 
     let url = $state('');
     let embed = $state();
@@ -77,7 +77,7 @@
         }
 
         try {
-            await _agent.agent.com.atproto.repo.putRecord({
+            await _agent.xrpcPost('com.atproto.repo.putRecord', {
                 repo: _agent.did(),
                 rkey: 'self',
                 collection: 'app.bsky.actor.status',
@@ -94,8 +94,9 @@
     async function deleteStatus() {
         isDisabled = true;
         try {
-            await _agent.agent.app.bsky.actor.status.delete({
+            await _agent.xrpcPost('com.atproto.repo.deleteRecord', {
                 repo: _agent.did(),
+                collection: 'app.bsky.actor.status',
                 rkey: 'self',
             });
 
@@ -111,8 +112,9 @@
             const imageRes = await fetch(_blob);
             let blob = await imageRes.blob();
 
-            const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
-                encoding: 'image/jpeg',
+            const res = await _agent.xrpcPost('com.atproto.repo.uploadBlob', undefined, {
+                contentType: 'image/jpeg',
+                body: blob instanceof Uint8Array ? blob.buffer : blob,
             });
             return res.data.blob;
         } catch (e) {

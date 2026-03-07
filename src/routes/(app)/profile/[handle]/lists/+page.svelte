@@ -16,7 +16,7 @@
 
     async function handleLoadMore(loaded, complete) {
         try {
-            let raw = await $agent.agent.api.app.bsky.graph.getLists({actor: await getDidByHandle(data.params.handle, $agent), limit: 20, cursor: cursor});
+            let raw = await $agent.xrpcGet('app.bsky.graph.getLists', {actor: await getDidByHandle(data.params.handle, $agent), limit: 20, cursor: cursor});
             cursor = raw.data.cursor;
             lists = [...lists, ...raw.data.lists];
             console.log(lists);

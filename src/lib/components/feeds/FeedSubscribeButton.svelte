@@ -13,7 +13,7 @@
     let isProcessing = $state(false);
 
     async function refreshSubscribe() {
-        const res = await _agent.agent.api.app.bsky.actor.getPreferences();
+        const res = await _agent.xrpcGet('app.bsky.actor.getPreferences');
         const getPreferences = res.data.preferences;
         const savedFeeds = getPreferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')[0]?.saved;
         subscribed = savedFeeds.includes(feed.uri);
@@ -21,7 +21,7 @@
 
     async function subscribe() {
         isProcessing = true;
-        const res = await _agent.agent.api.app.bsky.actor.getPreferences();
+        const res = await _agent.xrpcGet('app.bsky.actor.getPreferences');
         const preferences = res.data.preferences;
         const newPreferences = preferences.map(preference => {
             if (preference.$type === 'app.bsky.actor.defs#savedFeedsPref' && preference.saved) {
@@ -39,7 +39,7 @@
         }
 
         try {
-            await _agent.agent.api.app.bsky.actor.putPreferences({preferences: newPreferences})
+            await _agent.xrpcPost('app.bsky.actor.putPreferences', {preferences: newPreferences})
             await refreshSubscribe();
             isProcessing = false;
         } catch (e) {
@@ -50,7 +50,7 @@
 
     async function unsubscribe() {
         isProcessing = true;
-        const res = await _agent.agent.api.app.bsky.actor.getPreferences();
+        const res = await _agent.xrpcGet('app.bsky.actor.getPreferences');
         const preferences = res.data.preferences;
         const newPreferences = preferences.map(preference => {
             if (preference.$type === 'app.bsky.actor.defs#savedFeedsPref' && preference.saved) {
@@ -60,7 +60,7 @@
         });
 
         try {
-            await _agent.agent.api.app.bsky.actor.putPreferences({preferences: newPreferences})
+            await _agent.xrpcPost('app.bsky.actor.putPreferences', {preferences: newPreferences})
             await refreshSubscribe();
             isProcessing = false;
         } catch (e) {

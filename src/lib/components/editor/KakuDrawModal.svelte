@@ -84,10 +84,11 @@
         isPosting = true;
 
         try {
-            const blobResponse = await _agent.agent.api.com.atproto.repo.uploadBlob(
-                new Uint8Array(await imageData.blob.arrayBuffer()),
-                { encoding: imageData.blob.type }
-            );
+            const blobArrayBuffer = await imageData.blob.arrayBuffer();
+            const blobResponse = await _agent.xrpcPost('com.atproto.repo.uploadBlob', undefined, {
+                contentType: imageData.blob.type,
+                body: blobArrayBuffer,
+            });
 
             const blob = blobResponse.data.blob;
             const now = new Date();
@@ -110,7 +111,7 @@
                 record.tags = tags;
             }
 
-            const createResponse = await _agent.agent.api.com.atproto.repo.createRecord({
+            const createResponse = await _agent.xrpcPost('com.atproto.repo.createRecord', {
                 repo: _agent.did(),
                 collection: 'tech.tokimeki.kaku.post',
                 rkey,
@@ -167,13 +168,13 @@
                         }
                     ];
 
-                    const bskyResponse = await _agent.agent.api.com.atproto.repo.createRecord({
+                    const bskyResponse = await _agent.xrpcPost('com.atproto.repo.createRecord', {
                         repo: _agent.did(),
                         collection: 'app.bsky.feed.post',
                         record: bskyRecord
                     });
 
-                    await _agent.agent.api.com.atproto.repo.putRecord({
+                    await _agent.xrpcPost('com.atproto.repo.putRecord', {
                         repo: _agent.did(),
                         collection: 'tech.tokimeki.kaku.post',
                         rkey,

@@ -38,7 +38,7 @@
   }
 
   async function loadSettings() {
-      const res = await _agent.agent.app.bsky.actor.getProfile({actor: _agent.did()});
+      const res = await _agent.xrpcGet('app.bsky.actor.getProfile', {actor: _agent.did()});
       allowInComing = res.data.associated?.chat?.allowIncoming || 'following';
   }
 
@@ -48,7 +48,7 @@
       }
 
       try {
-          const res = await _agent.agent.api.com.atproto.repo.putRecord({
+          const res = await _agent.xrpcPost('com.atproto.repo.putRecord', {
               collection: 'chat.bsky.actor.declaration',
               rkey: 'self',
               repo: _agent.did(),

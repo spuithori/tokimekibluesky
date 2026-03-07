@@ -73,7 +73,7 @@
     }
 
     async function putNotifications() {
-        const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+        const res = await _agent.xrpcGet('app.bsky.notification.listNotifications', {
             limit: 10,
             cursor: '',
         });
@@ -98,7 +98,7 @@
 
     const handleLoadMore = async (loaded, complete) => {
         try {
-            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+            const res = await _agent.xrpcGet('app.bsky.notification.listNotifications', {
                 limit: 25,
                 cursor: column.data.cursor,
                 reasons: column.filter,

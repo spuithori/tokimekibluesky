@@ -2,10 +2,9 @@
 import '../../styles.css';
 import { onMount } from 'svelte';
 import { goto } from '$app/navigation';
-import { initOAuth } from '$lib/oauth';
+import { page } from '$app/stores';
 import { accountsDb } from '$lib/db';
 import { _ } from 'svelte-i18n';
-import { Agent as AtpAgent } from '@atproto/api';
 import { CircleSlash, CircleCheck } from 'lucide-svelte';
 import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
@@ -13,63 +12,61 @@ let status = $state<'loading' | 'success' | 'error'>('loading');
 let errorMessage = $state('');
 
 onMount(async () => {
+    const params = $page.url.searchParams;
+    const error = params.get('error');
+
+    if (error) {
+        status = 'error';
+        errorMessage = decodeURIComponent(error);
+        return;
+    }
+
+    const newDid = params.get('new_did');
+    if (!newDid) {
+        status = 'error';
+        errorMessage = 'No account information returned';
+        return;
+    }
+
     try {
-        const result = await initOAuth();
+        const handle = params.get('handle') || undefined;
+        const avatar = params.get('avatar') || undefined;
+        const displayName = params.get('name') || undefined;
 
-        if (result.session) {
-            const did = result.session.did;
+        const existingAccount = await accountsDb.accounts
+            .where('did')
+            .equals(newDid)
+            .first();
 
-            let handle: string | undefined;
-            let avatar: string | undefined;
-            let displayName: string | undefined;
-            try {
-                const agent = new AtpAgent(result.session);
-                const profile = await agent.getProfile({ actor: did });
-                handle = profile.data.handle;
-                avatar = profile.data.avatar;
-                displayName = profile.data.displayName;
-            } catch (e) {
-                console.warn('Failed to fetch profile for OAuth account:', e);
-            }
-
-            const existingAccount = await accountsDb.accounts
-                .where('did')
-                .equals(did)
-                .first();
-
-            if (existingAccount) {
-                await accountsDb.accounts.update(existingAccount.id, {
-                    isOAuth: true,
-                    oauthDid: did,
-                    session: null,
-                    handle: handle,
-                    avatar: avatar || existingAccount.avatar,
-                    name: displayName || existingAccount.name,
-                });
-            } else {
-                await accountsDb.accounts.add({
-                    did: did,
-                    service: 'https://bsky.social',
-                    session: null,
-                    isOAuth: true,
-                    oauthDid: did,
-                    handle: handle,
-                    avatar: avatar || '',
-                    name: displayName || '',
-                    following: undefined,
-                    notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
-                });
-            }
-
-            status = 'success';
-
-            setTimeout(() => {
-                goto('/');
-            }, 1000);
+        if (existingAccount) {
+            await accountsDb.accounts.update(existingAccount.id, {
+                isOAuth: true,
+                oauthDid: newDid,
+                session: null,
+                handle: handle,
+                avatar: avatar || existingAccount.avatar,
+                name: displayName || existingAccount.name,
+            });
         } else {
-            status = 'error';
-            errorMessage = 'No session returned from OAuth';
+            await accountsDb.accounts.add({
+                did: newDid,
+                service: 'https://bsky.social',
+                session: null,
+                isOAuth: true,
+                oauthDid: newDid,
+                handle: handle,
+                avatar: avatar || '',
+                name: displayName || '',
+                following: undefined,
+                notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
+            });
         }
+
+        status = 'success';
+
+        setTimeout(() => {
+            goto('/');
+        }, 1000);
     } catch (error) {
         console.error('OAuth callback error:', error);
         status = 'error';

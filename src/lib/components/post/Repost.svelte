@@ -6,11 +6,11 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {Repeat} from "lucide-svelte";
   import NumberFlow from '@number-flow/svelte';
-  import { isReasonRepost } from "@atproto/api/dist/client/types/app/bsky/feed/defs";
+  import { isReasonRepost } from "$lib/atproto-guards";
   import {settingsState} from "$lib/classes/settingsState.svelte";
   import { createLongPress } from "$lib/longpress";
   import AvatarAgentsSelectorSkeleton from "$lib/components/acp/AvatarAgentsSelectorSkeleton.svelte";
-  import type {Agent} from "$lib/agent";
+  import type {ProxyAgent} from "$lib/proxyAgent";
 
   interface Props {
     _agent?: any;
@@ -38,10 +38,10 @@
       $settings.general.repostConfirmSkip = false;
   }
 
-  async function getPostRepostViewer(_agent: Agent) {
+  async function getPostRepostViewer(_agent: ProxyAgent) {
       try {
-          const { data } = await _agent.agent.api.app.bsky.feed.getPostThread({uri: post.uri});
-          return data?.thread?.post?.viewer?.repost;
+          const res = await _agent.xrpcGet('app.bsky.feed.getPostThread', {uri: post.uri});
+          return res?.data?.thread?.post?.viewer?.repost;
       } catch (e) {
           throw new Error('Failed to get post repost viewer');
       }

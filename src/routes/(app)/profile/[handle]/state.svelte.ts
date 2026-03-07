@@ -1,17 +1,17 @@
 import { getContext, setContext } from 'svelte';
-import type { Agent } from '$lib/agent';
+import type { ProxyAgent } from '$lib/proxyAgent';
 
 class AgentState {
-    agent: Agent | undefined = $state();
+    agent: ProxyAgent | undefined = $state();
 
-    constructor(agent: Agent) {
+    constructor(agent: ProxyAgent) {
         this.agent = agent;
     }
 }
 
 const agentKey = Symbol('agent');
 
-export function setAgentContext(agent: Agent) {
+export function setAgentContext(agent: ProxyAgent) {
     return setContext(agentKey, new AgentState(agent));
 }
 

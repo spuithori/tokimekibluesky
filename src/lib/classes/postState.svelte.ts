@@ -1,10 +1,10 @@
-import type {AppBskyFeedDefs} from "@atproto/api";
+// Type replaced: AppBskyFeedDefs removed (using any)
 import {getContext, setContext} from "svelte";
 import {PersistedState} from "runed";
 
 type replyRef = {
     did: string,
-    data: AppBskyFeedDefs.ReplyRef | string | undefined
+    data: any
 } | undefined;
 
 type ThreadGate = 'everybody' | 'nobody' | string[];
@@ -26,7 +26,7 @@ type Post = {
     externalImageBlob: string | undefined,
     lang: string[] | undefined,
     links: string[],
-    quotePost: AppBskyFeedDefs.PostView | undefined,
+    quotePost: any,
     replyRef: replyRef,
     selfLabels: any[],
     threadGate: ThreadGate,

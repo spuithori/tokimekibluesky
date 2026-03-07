@@ -16,7 +16,7 @@
   let { data }: Props = $props();
 
     async function getSavedFeeds () {
-        const preferenceRes = await $agent.agent.api.app.bsky.actor.getPreferences()
+        const preferenceRes = await $agent.xrpcGet('app.bsky.actor.getPreferences')
         const preference = preferenceRes.data.preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')
         savedFeeds = preference[0]?.saved || [];
     }
@@ -28,7 +28,7 @@
 
     async function handleLoadMore(loaded, complete) {
         try {
-            let raw = await $agent.agent.api.app.bsky.feed.getActorFeeds({actor: data.params.handle, limit: 20, cursor: cursor});
+            let raw = await $agent.xrpcGet('app.bsky.feed.getActorFeeds', {actor: data.params.handle, limit: 20, cursor: cursor});
             cursor = raw.data.cursor;
             feeds = [...feeds, ...raw.data.feeds];
 

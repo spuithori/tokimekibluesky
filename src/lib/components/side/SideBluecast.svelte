@@ -2,7 +2,7 @@
     import { _ } from 'svelte-i18n';
     import {onMount} from "svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
-    import {fromUnixTime} from "date-fns";
+    import {fromUnixTime} from "$lib/dateUtil";
     import {Mic} from "lucide-svelte";
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 

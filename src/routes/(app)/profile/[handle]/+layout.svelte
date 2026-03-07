@@ -95,7 +95,7 @@
             }
         })
 
-        _agent.agent.api.app.bsky.actor.getProfile({actor: handle})
+        _agent.xrpcGet('app.bsky.actor.getProfile', {actor: handle})
             .then(res => {
                 profile = res.data
 
@@ -116,14 +116,12 @@
 
     async function chatBegin() {
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.getConvoForMembers(
+            const res = await _agent.xrpcGet('chat.bsky.convo.getConvoForMembers',
                 {
                     members: [_agent.did(), profile.did as string]
                 },
                 {
-                    headers: {
-                        'atproto-proxy': CHAT_PROXY,
-                    }
+                    proxy: CHAT_PROXY,
                 }
               );
 

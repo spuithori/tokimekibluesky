@@ -36,11 +36,7 @@
   async function updateAllRead() {
     try {
       isMenuOpen = false;
-      await _agent.agent.chat.bsky.convo.updateAllRead({}, {
-        headers: {
-          'atproto-proxy': CHAT_PROXY,
-        }
-      });
+      await _agent.xrpcPost('chat.bsky.convo.updateAllRead', {}, {proxy: CHAT_PROXY});
 
       await Promise.all([_agent.updateChatCount(), handleRefresh()]);
     } catch (e) {
@@ -50,11 +46,7 @@
 
   async function handleLoadMore(loaded, complete) {
     try {
-      const res = await _agent.agent.api.chat.bsky.convo.listConvos({cursor: cursor}, {
-        headers: {
-          'atproto-proxy': CHAT_PROXY,
-        }
-      })
+      const res = await _agent.xrpcGet('chat.bsky.convo.listConvos', {cursor: cursor}, {proxy: CHAT_PROXY})
 
       convos = [...convos, ...res.data.convos];
       cursor = res.data.cursor;

@@ -2,11 +2,8 @@
     import {_} from "svelte-i18n";
     import {page} from "$app/state";
     import {onMount} from "svelte";
-    import {BskyAgent} from "@atproto/api";
-
     const handle = $derived(page.params.handle);
     const endpoint = $derived(page.data.endpoint);
-    const _agent = new BskyAgent({service: endpoint});
     let collections = $state([]);
     let _handle = $state('');
 
@@ -15,7 +12,9 @@
             return false;
         }
 
-        const { data } = await _agent.com.atproto.repo.describeRepo({repo: handle});
+        const res = await fetch(`${endpoint}/xrpc/com.atproto.repo.describeRepo?repo=${encodeURIComponent(handle)}`);
+        if (!res.ok) return;
+        const data = await res.json();
         collections = data?.collections || [];
         _handle = data?.handle;
     });

@@ -15,7 +15,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
         tos_uri: 'https://docs.tokimeki.blue/ja',
         policy_uri: 'https://docs.tokimeki.blue/ja',
         redirect_uris: [
-            `${origin}/oauth/callback`
+            `${origin}/api/auth/callback`
         ],
         scope: 'atproto transition:generic transition:chat.bsky',
         grant_types: ['authorization_code', 'refresh_token'],
@@ -24,7 +24,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
         token_endpoint_auth_signing_alg: 'ES256',
         application_type: 'web',
         dpop_bound_access_tokens: true,
-        jwks_uri: `${origin}/api/oauth/jwks.json`
+        jwks_uri: `${origin}/oauth/jwks`
     };
 
     return json(metadata, {

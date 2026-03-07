@@ -41,7 +41,7 @@
         const account = await accountsDb.accounts.get(accountId);
         officialLists = account?.lists;
 
-        const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did() as string, limit: 100, cursor: ''});
+        const res = await _agent.xrpcGet('app.bsky.graph.getLists', {actor: _agent.did() as string, limit: 100, cursor: ''});
         officialLists = res.data.lists;
 
         await accountsDb.accounts.update(accountId, {

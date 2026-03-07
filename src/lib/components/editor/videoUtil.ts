@@ -1,7 +1,7 @@
 import {getServiceAuthToken} from "$lib/util";
-import type {Agent} from "$lib/agent";
+import type {ProxyAgent} from "$lib/proxyAgent";
 
-export async function getUploadLimit(_agent: Agent) {
+export async function getUploadLimit(_agent: ProxyAgent) {
     const token = await getServiceAuthToken({lxm: 'app.bsky.video.getUploadLimits', aud: 'did:web:video.bsky.app'}, _agent);
     const res = await fetch(`https://video.bsky.app/xrpc/app.bsky.video.getUploadLimits`, {
         headers: {

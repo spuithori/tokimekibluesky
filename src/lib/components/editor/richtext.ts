@@ -1,4 +1,5 @@
-import {Facet, UnicodeString} from "@atproto/api";
+import {UnicodeString} from "$lib/atproto-richtext";
+import type {Facet} from "$lib/atproto-richtext";
 import {SimpleRichText} from "$lib/components/editor/SimpleRichText";
 
 export async function detectRichTextWithEditorJson(_agent, text, json) {

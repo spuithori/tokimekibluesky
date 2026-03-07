@@ -60,7 +60,7 @@ export async function getFollowsWithUpdateDb(_agent, accountId) {
         follows = [...follows, _agent.did()];
 
         while(cursor !== undefined && count < 30) {
-            const res = await _agent.agent.api.app.bsky.graph.getFollows({actor: _agent.did(), limit: 100, cursor: cursor});
+            const res = await _agent.xrpcGet('app.bsky.graph.getFollows', {actor: _agent.did(), limit: 100, cursor: cursor});
 
             res.data.follows.forEach(follow => {
                 follows = [...follows, follow.did];

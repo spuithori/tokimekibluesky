@@ -2,7 +2,7 @@
   import {settings} from "$lib/stores";
   import {_} from "svelte-i18n";
   import {isFeedByUri} from "$lib/util";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, RichText } from "@atproto/api";
+  import { RichText } from "$lib/atproto-richtext";
   import Tiptap from "$lib/components/editor/Tiptap.svelte";
   import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
   import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
@@ -162,7 +162,7 @@
         id: string,
     }
 
-    let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
+    let embed: any;
 
     $effect(() => {
         isEnabled = isEmpty || isPublishEnabled || isProcessed || isLinkCardAdding || isAltTextRequired || hasPollWithMedia;
@@ -206,7 +206,7 @@
         isLinkCardAdding = true;
 
         try {
-            const { data } = await _agent.agent.api.app.bsky.feed.getPostThread({uri: bskyUrlToAtUri(uri)});
+            const { data } = await _agent.xrpcGet('app.bsky.feed.getPostThread', {uri: bskyUrlToAtUri(uri)});
             const _post = data?.thread?.post;
 
             if (data?.thread?.post?.viewer?.embeddingDisabled) {

@@ -37,7 +37,7 @@
         if (labelersLoaded || isBskyLabelerOnly) return;
 
         try {
-            const prefs = await $agent.agent.api.app.bsky.actor.getPreferences();
+            const prefs = await $agent.xrpcGet('app.bsky.actor.getPreferences');
             const labelersPref: any = prefs.data.preferences.find(
                 (p: any) => p.$type === 'app.bsky.actor.defs#labelersPref'
             );

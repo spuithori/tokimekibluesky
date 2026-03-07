@@ -46,30 +46,28 @@ export async function sendReport(
     ? reasonType
     : reasonType;
 
+  const proxyValue = Object.keys(headers).length > 0 ? headers['atproto-proxy'] : undefined;
+
   try {
-    return await agent.agent.api.com.atproto.moderation.createReport(
+    return await agent.xrpcPost('com.atproto.moderation.createReport',
       {
         reasonType: finalReasonType,
         reason: text || undefined,
         subject: subject,
       },
-      {
-        headers: Object.keys(headers).length > 0 ? headers : undefined,
-      },
+      proxyValue ? { proxy: proxyValue } : undefined,
     );
   } catch (e: any) {
     if (e?.status === 400 && reasonType.startsWith('tools.ozone.report.defs#')) {
       const legacyType = NEW_TO_OLD_REASONS_MAP[reasonType];
       if (legacyType) {
-        return await agent.agent.api.com.atproto.moderation.createReport(
+        return await agent.xrpcPost('com.atproto.moderation.createReport',
           {
             reasonType: legacyType,
             reason: text || undefined,
             subject: subject,
           },
-          {
-            headers: Object.keys(headers).length > 0 ? headers : undefined,
-          },
+          proxyValue ? { proxy: proxyValue } : undefined,
         );
       }
     }
@@ -81,7 +79,7 @@ export async function getAvailableLabelers(agent: any, subscribedDids: string[])
   if (!subscribedDids.length) return [];
 
   try {
-    const res = await agent.agent.api.app.bsky.labeler.getServices({
+    const res = await agent.xrpcGet('app.bsky.labeler.getServices', {
       dids: subscribedDids,
       detailed: true,
     });

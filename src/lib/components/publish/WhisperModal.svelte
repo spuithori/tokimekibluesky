@@ -5,14 +5,14 @@
   import { onMount } from 'svelte';
   import { AlertCircle, Timer } from 'lucide-svelte';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-  import type { Agent } from '$lib/agent';
+  import type { ProxyAgent } from '$lib/proxyAgent';
   import type { WhisperDuration } from '$lib/classes/postState.svelte';
 
   interface Props {
     onclose: () => void;
     onsubmit: (duration: WhisperDuration) => void;
     currentDuration?: WhisperDuration;
-    _agent: Agent;
+    _agent: ProxyAgent;
   }
 
   let { onclose, onsubmit, currentDuration, _agent }: Props = $props();

@@ -1,3 +1,4 @@
+import {browser} from '$app/environment';
 import {defaultKeyword, type keyword, keywordStringToArray} from "$lib/timelineFilter";
 
 class KeywordMuteState {
@@ -15,8 +16,10 @@ class KeywordMuteState {
     })
 
     constructor() {
-        const storageKeywordMutes = localStorage.getItem('keywordMutes') || JSON.stringify([]);
-        this.keywords = JSON.parse(storageKeywordMutes);
+        if (browser) {
+            const storageKeywordMutes = localStorage.getItem('keywordMutes') || JSON.stringify([]);
+            this.keywords = JSON.parse(storageKeywordMutes);
+        }
     }
 
     add(word: string) {

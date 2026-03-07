@@ -21,7 +21,7 @@
 
   onMount(async () => {
       controller = new AbortController();
-      const res = await _agent.agent.api.app.bsky.actor.getProfile({actor: handle}, {signal: controller.signal});
+      const res = await _agent.xrpcGet('app.bsky.actor.getProfile', {actor: handle}, {signal: controller.signal});
       profile = res.data;
   })
 

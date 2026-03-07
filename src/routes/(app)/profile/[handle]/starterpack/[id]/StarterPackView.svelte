@@ -5,7 +5,7 @@
   import UserItem from "../../UserItem.svelte";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import {toast} from "svelte-sonner";
-  import {TID} from "@atproto/common-web";
+  import {TID} from "$lib/tid";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import DeckRow from "../../../../DeckRow.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -60,7 +60,7 @@
     did = handle;
     fetchStarterPack();
   } else {
-    $agent.agent.api.com.atproto.identity.resolveHandle({handle: handle})
+    $agent.xrpcGet('com.atproto.identity.resolveHandle', {handle: handle})
       .then(value => {
         did = value.data.did;
         fetchStarterPack();
@@ -73,7 +73,7 @@
   async function fetchStarterPack() {
     try {
       const atUri = `at://${did}/app.bsky.graph.starterpack/${id}`;
-      const res = await $agent.agent.api.app.bsky.graph.getStarterPack({starterPack: atUri});
+      const res = await $agent.xrpcGet('app.bsky.graph.getStarterPack', {starterPack: atUri});
       starterPack = res.data.starterPack;
       title = starterPack.record?.name || '';
 
@@ -91,7 +91,7 @@
 
       if (listUri) {
         try {
-          const listRes = await $agent.agent.api.app.bsky.graph.getList({list: listUri, limit: 30});
+          const listRes = await $agent.xrpcGet('app.bsky.graph.getList', {list: listUri, limit: 30});
           members = listRes.data.items.map(item => item.subject);
           membersCursor = listRes.data.cursor || '';
         } catch (e) {
@@ -154,7 +154,7 @@
       });
 
       for (let i = 0; i < writes.length; i += 50) {
-        await $agent.agent.api.com.atproto.repo.applyWrites({
+        await $agent.xrpcPost('com.atproto.repo.applyWrites', {
           repo: $agent.did(),
           writes: writes.slice(i, i + 50),
         });
@@ -172,7 +172,7 @@
   async function getExistingListItemUris(listUri) {
     let items = [];
     for (let cursor; cursor !== null;) {
-      const res = await $agent.agent.api.com.atproto.repo.listRecords({
+      const res = await $agent.xrpcGet('com.atproto.repo.listRecords', {
         collection: 'app.bsky.graph.listitem',
         repo: $agent.did(),
         cursor: cursor,
@@ -195,7 +195,7 @@
     }
 
     try {
-      const res = await $agent.agent.api.app.bsky.graph.getList({list: listUri, limit: 30, cursor: membersCursor});
+      const res = await $agent.xrpcGet('app.bsky.graph.getList', {list: listUri, limit: 30, cursor: membersCursor});
       const newMembers = res.data.items.map(item => item.subject);
       members = [...new Map([...members, ...newMembers].map(m => [m.did, m])).values()];
       membersCursor = res.data.cursor || '';
@@ -222,7 +222,7 @@
   async function handleObserverClose() {
     try {
       const atUri = `at://${did}/app.bsky.graph.starterpack/${id}`;
-      const res = await $agent.agent.api.app.bsky.graph.getStarterPack({starterPack: atUri});
+      const res = await $agent.xrpcGet('app.bsky.graph.getStarterPack', {starterPack: atUri});
       starterPack = res.data.starterPack;
       title = starterPack.record?.name || '';
 
@@ -231,7 +231,7 @@
 
       listUri = starterPack.record?.list || starterPack.list?.uri;
       if (listUri) {
-        const listRes = await $agent.agent.api.app.bsky.graph.getList({list: listUri, limit: 30});
+        const listRes = await $agent.xrpcGet('app.bsky.graph.getList', {list: listUri, limit: 30});
         members = listRes.data.items.map(item => item.subject);
         membersCursor = listRes.data.cursor || '';
       }

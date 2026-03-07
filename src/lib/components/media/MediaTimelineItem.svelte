@@ -1,6 +1,6 @@
 <script lang="ts">
     import {settings, labelerSettings} from '$lib/stores';
-    import {AppBskyEmbedImages, AppBskyFeedDefs} from '@atproto/api';
+    import {AppBskyEmbedImages, isReasonRepost} from '$lib/atproto-guards';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
@@ -19,10 +19,6 @@
     let isHide: boolean = $state(false);
     let isWarn = detectWarn(moderateData, 'contentList');
     isHide = detectHide(moderateData, 'contentList', isHide, data.post);
-
-    const isReasonRepost = (reason: any): reason is AppBskyFeedDefs.ReasonRepost => {
-        return !!(reason as AppBskyFeedDefs.ReasonRepost)?.by;
-    }
 
     function modalToggle() {
         targetIndex = index;

@@ -1,7 +1,6 @@
 import {accountsDb} from "$lib/db";
-import {BskyAgent} from "@atproto/api";
 import imageCompression from "browser-image-compression";
-import type {Agent} from "$lib/agent";
+import type {ProxyAgent} from "$lib/proxyAgent";
 
 export function getAccountIdByDid(agents, did) {
     let id;
@@ -43,7 +42,7 @@ export function isDid(name) {
 export function detectDifferentDomainUrl(url: string, text: string) {
     const urlHostname = new URL(url).hostname;
     let textHostname = '';
-    if (urlHostname === window.location.hostname) {
+    if (typeof window !== 'undefined' && urlHostname === window.location.hostname) {
         return true;
     }
 
@@ -73,7 +72,7 @@ export async function getDidByHandle(handle, _agent) {
         return handle;
     }
 
-    const res = await _agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
+    const res = await _agent.xrpcGet('com.atproto.identity.resolveHandle', { handle: handle });
     return res.data.did;
 }
 
@@ -84,9 +83,9 @@ export function getDidFromUri(uri: string | undefined) {
     return uri.split('/')[2];
 }
 
-export async function getDisplayNameByDid(did: string, _agent: Agent) {
+export async function getDisplayNameByDid(did: string, _agent: ProxyAgent) {
     try {
-        const { data } = await _agent.agent.api.app.bsky.actor.getProfile({ actor: did });
+        const { data } = await _agent.xrpcGet('app.bsky.actor.getProfile', { actor: did });
         return data.displayName || `@${data.handle}`;
     } catch (e) {
         console.error(e);
@@ -94,12 +93,12 @@ export async function getDisplayNameByDid(did: string, _agent: Agent) {
     }
 }
 
-export async function getImageObjectFromBlob(did: string, blob: { cid: string, mimeType: string, alt: string, width: string, height: string }, _agent: BskyAgent) {
-    const res =  await _agent.api.com.atproto.sync.getBlob({did: did as string, cid: blob.cid});
+export async function getImageObjectFromBlob(did: string, blob: { cid: string, mimeType: string, alt: string, width: string, height: string }, _agent: any) {
+    const res =  await _agent.xrpcGet('com.atproto.sync.getBlob', {did: did as string, cid: blob.cid});
     const _blob = new Blob([res.data], {type: blob.mimeType});
 
     return {
-        id: self.crypto.randomUUID(),
+        id: crypto.randomUUID(),
         alt: blob.alt,
         file: _blob,
         base64: await imageCompression.getDataUrlFromFile(_blob),
@@ -109,8 +108,8 @@ export async function getImageObjectFromBlob(did: string, blob: { cid: string, m
     };
 }
 
-export async function getImageBase64FromBlob(did: string, blob: { cid: string, mimeType: string }, _agent: BskyAgent) {
-    const res =  await _agent.api.com.atproto.sync.getBlob({did: did as string, cid: blob.cid});
+export async function getImageBase64FromBlob(did: string, blob: { cid: string, mimeType: string }, _agent: any) {
+    const res =  await _agent.xrpcGet('com.atproto.sync.getBlob', {did: did as string, cid: blob.cid});
     const _blob = new Blob([res.data], {type: blob.mimeType});
     return await imageCompression.getDataUrlFromFile(_blob);
 }
@@ -126,19 +125,19 @@ export function isEmojiSequenceOrCombination(str: string) {
     return emojiRegexPattern.test(str) && [...str].length === 1;
 }
 
-// @ts-ignore
 export function isSafariOrFirefox() {
+    if (typeof window === 'undefined') return false;
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
     const isFirefox = /firefox/.test(userAgent);
     return isSafari || isFirefox;
 }
 
-export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: string, exp?: number}, _agent: Agent) {
+export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: string, exp?: number}, _agent: ProxyAgent) {
     const agentHost = new URL(await getService(_agent.did() as string)).hostname;
     const agentAud = 'did:web:' + agentHost;
 
-    const res = await _agent.agent.api.com.atproto.server.getServiceAuth({
+    const res = await _agent.xrpcGet('com.atproto.server.getServiceAuth', {
         aud: aud || agentAud,
         lxm,
         exp,
@@ -147,10 +146,8 @@ export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: 
     return res.data.token;
 }
 
-export async function listRecordsWithBsky(agent: Agent, collection: string, limit: number, cursor: any, repo: string) {
-    const _agent = new BskyAgent({service: agent.service()});
-
-    return await _agent.api.com.atproto.repo.listRecords({
+export async function listRecordsWithBsky(agent: ProxyAgent, collection: string, limit: number, cursor: any, repo: string) {
+    return await agent.xrpcGet('com.atproto.repo.listRecords', {
         collection: collection,
         limit: limit,
         reverse: false,
@@ -218,4 +215,31 @@ export async function getEndpoint(did: string) {
 export function getRkeyFromSplit(uri: string): string {
     const parts = uri.split('/');
     return parts.pop() || '';
+}
+
+/**
+ * Creates a lightweight object with xrpcGet method for public (unauthenticated) PDS access.
+ * Used by getImageObjectFromBlob/getImageBase64FromBlob which expect an agent-like object.
+ */
+export async function createPublicXrpcFetcher(did: string) {
+    const service = await getService(did);
+    return {
+        async xrpcGet(nsid: string, params?: Record<string, any>) {
+            const searchParams = new URLSearchParams();
+            if (params) {
+                for (const [key, value] of Object.entries(params)) {
+                    if (value !== undefined && value !== null) {
+                        searchParams.set(key, String(value));
+                    }
+                }
+            }
+            const res = await fetch(`${service}/xrpc/${nsid}?${searchParams.toString()}`);
+            if (!res.ok) throw new Error(`XRPC ${nsid} failed: ${res.status}`);
+            const contentType = res.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                return { data: await res.json() };
+            }
+            return { data: await res.arrayBuffer() };
+        }
+    };
 }

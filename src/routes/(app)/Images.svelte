@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {AppBskyEmbedImages} from "@atproto/api";
+    import {AppBskyEmbedImages} from "$lib/atproto-guards";
     import {settings, isDataSaving} from '$lib/stores';
     import GifImage from "$lib/components/post/GifImage.svelte";
     import {imageState, type GalleryImage} from "$lib/classes/imageState.svelte";

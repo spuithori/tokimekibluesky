@@ -19,7 +19,7 @@
         let listItems = [];
 
         for (let cursor; cursor !== null;) {
-            const res = await _agent.agent.api.com.atproto.repo.listRecords({
+            const res = await _agent.xrpcGet('com.atproto.repo.listRecords', {
                 collection: 'app.bsky.graph.listitem',
                 repo: _agent.did(),
                 cursor: cursor,
@@ -55,7 +55,7 @@
       isDisabled = true;
 
       try {
-        const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did() as string});
+        const res = await _agent.xrpcGet('app.bsky.graph.getLists', {actor: _agent.did() as string});
 
         lists = await applyListItem(res.data.lists);
       } catch (e) {

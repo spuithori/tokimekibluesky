@@ -26,11 +26,7 @@
         }
 
         try {
-            const res = await currentAgent.agent.api.chat.bsky.convo.getMessages({cursor: column.data.cursor, limit: 50, convoId: column.algorithm.id}, {
-                headers: {
-                    'atproto-proxy': CHAT_PROXY,
-                }
-            });
+            const res = await currentAgent.xrpcGet('chat.bsky.convo.getMessages', {cursor: column.data.cursor, limit: 50, convoId: column.algorithm.id}, {proxy: CHAT_PROXY});
 
             if (res?.data?.cursor) {
                 column.data.cursor = res.data.cursor;

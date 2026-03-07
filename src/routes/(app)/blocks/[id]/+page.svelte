@@ -13,7 +13,7 @@
 
   async function handleLoadMore(loaded, complete) {
     try {
-      let res = await _agent.agent.api.app.bsky.graph.getBlocks({limit: 20, cursor: cursor});
+      let res = await _agent.xrpcGet('app.bsky.graph.getBlocks', {limit: 20, cursor: cursor});
       cursor = res.data.cursor;
       blocks = [...blocks, ...res.data.blocks];
 

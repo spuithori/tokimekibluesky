@@ -11,7 +11,7 @@
 
     async function handleLoadMore(loaded, complete) {
         try {
-            const res = await _agent.agent.api.app.bsky.feed.getLikes({uri: uri, cursor: cursor});
+            const res = await _agent.xrpcGet('app.bsky.feed.getLikes', {uri: uri, cursor: cursor});
             cursor = res.data.cursor;
             likes = [...likes, ...res.data.likes];
 

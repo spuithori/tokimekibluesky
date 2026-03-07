@@ -140,7 +140,7 @@
                 createdAt: new Date().toISOString()
             };
 
-            const result = await _agent.agent.api.com.atproto.repo.createRecord({
+            const result = await _agent.xrpcPost('com.atproto.repo.createRecord', {
                 repo: _agent.did(),
                 collection: 'tech.tokimeki.poll.vote',
                 record: record
@@ -182,7 +182,7 @@
         try {
             const rkey = previousVoteUri.split('/').pop();
 
-            await _agent.agent.api.com.atproto.repo.deleteRecord({
+            await _agent.xrpcPost('com.atproto.repo.deleteRecord', {
                 repo: _agent.did(),
                 collection: 'tech.tokimeki.poll.vote',
                 rkey: rkey

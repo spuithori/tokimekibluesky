@@ -5,13 +5,13 @@
   import { onMount } from 'svelte';
   import { Calendar, Clock, AlertCircle } from 'lucide-svelte';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-  import type { Agent } from '$lib/agent';
+  import type { ProxyAgent } from '$lib/proxyAgent';
 
   interface Props {
     onclose: () => void;
     onschedule: (date: Date) => void;
     isSubmitting?: boolean;
-    _agent: Agent;
+    _agent: ProxyAgent;
   }
 
   let { onclose, onschedule, isSubmitting = false, _agent }: Props = $props();

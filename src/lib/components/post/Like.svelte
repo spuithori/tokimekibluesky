@@ -5,11 +5,11 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {Heart, Star} from "lucide-svelte";
   import NumberFlow from '@number-flow/svelte';
-  import { isReasonRepost } from "@atproto/api/dist/client/types/app/bsky/feed/defs";
+  import { isReasonRepost } from "$lib/atproto-guards";
   import {settingsState} from "$lib/classes/settingsState.svelte";
   import { createLongPress } from "$lib/longpress";
   import AvatarAgentsSelectorSkeleton from "$lib/components/acp/AvatarAgentsSelectorSkeleton.svelte";
-  import type {Agent} from "$lib/agent";
+  import type {ProxyAgent} from "$lib/proxyAgent";
 
   interface Props {
     _agent?: any;
@@ -34,10 +34,10 @@
   let isAgentSelectorOpen = $state(false);
   let temporaryAgent;
 
-  async function getPostLikeViewer(_agent: Agent) {
+  async function getPostLikeViewer(_agent: ProxyAgent) {
       try {
-          const { data } = await _agent.agent.api.app.bsky.feed.getPostThread({uri: post.uri});
-          return data?.thread?.post?.viewer?.like;
+          const res = await _agent.xrpcGet('app.bsky.feed.getPostThread', {uri: post.uri});
+          return res?.data?.thread?.post?.viewer?.like;
       } catch (e) {
           throw new Error('Failed to get post like viewer');
       }

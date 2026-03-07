@@ -8,7 +8,7 @@
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
   import type {ScrollState} from "$lib/components/virtual/types";
   import {resolveScrollContainer} from "$lib/components/virtual/scroll-helpers";
-  import {isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
+  import {isReasonPin} from "$lib/atproto-guards";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {Annoyed} from "lucide-svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";

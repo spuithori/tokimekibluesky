@@ -21,7 +21,7 @@
 
   async function handleLoadMore(loaded, complete) {
       try {
-          let raw = await $agent.agent.api.app.bsky.actor.searchActors({term: $page.url.searchParams.get('q') || '', limit: 20, cursor: cursor});
+          let raw = await $agent.xrpcGet('app.bsky.actor.searchActors', {term: $page.url.searchParams.get('q') || '', limit: 20, cursor: cursor});
           cursor = raw.data.cursor;
           users = [...users, ...raw.data.actors];
 

@@ -13,7 +13,7 @@
   async function mute() {
       try {
           isMenuOpen = false;
-          const mute = await $agent.agent.api.app.bsky.graph.muteActor({actor: handle});
+          const mute = await $agent.xrpcPost('app.bsky.graph.muteActor', {actor: handle});
 
           onrefresh();
       } catch (e) {
@@ -24,7 +24,7 @@
   async function unmute() {
       try {
           isMenuOpen = false;
-          const mute = await $agent.agent.api.app.bsky.graph.unmuteActor({actor: handle});
+          const mute = await $agent.xrpcPost('app.bsky.graph.unmuteActor', {actor: handle});
 
           onrefresh();
       } catch (e) {
@@ -33,19 +33,22 @@
   }
 
   async function getDidByHandle(handle) {
-      const res = await $agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
+      const res = await $agent.xrpcGet('com.atproto.identity.resolveHandle', { handle: handle });
       return res.data.did;
   }
 
   async function block() {
       try {
           isMenuOpen = false;
-          const block = await $agent.agent.api.app.bsky.graph.block.create(
-              { repo: $agent.did() as string },
-              {
+          const block = await $agent.xrpcPost('com.atproto.repo.createRecord', {
+              repo: $agent.did() as string,
+              collection: 'app.bsky.graph.block',
+              record: {
+                  $type: 'app.bsky.graph.block',
                   subject: handle.startsWith('did:plc:') ? handle : await getDidByHandle(handle),
                   createdAt: new Date().toISOString(),
-              });
+              }
+          });
           onrefresh();
       } catch (e) {
           console.error(e)
@@ -56,12 +59,11 @@
       try {
           isMenuOpen = false;
           const rkey = uri.split('/').slice(-1)[0];
-          const block = await $agent.agent.api.app.bsky.graph.block.delete(
-              {rkey: rkey, repo: $agent.did() as string },
-              {
-                  subject: handle.startsWith('did:plc:') ? handle : await getDidByHandle(handle),
-                  createdAt: new Date().toISOString(),
-              });
+          const block = await $agent.xrpcPost('com.atproto.repo.deleteRecord', {
+              repo: $agent.did() as string,
+              collection: 'app.bsky.graph.block',
+              rkey: rkey,
+          });
           onrefresh();
       } catch (e) {
           console.error(e)

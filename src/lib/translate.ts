@@ -1,7 +1,7 @@
-import {RichText} from "@atproto/api";
+import {RichText} from "$lib/atproto-richtext";
 import {settingsState} from "$lib/classes/settingsState.svelte";
 
-export async function translate(text, lang = window.navigator.language, _agent) {
+export async function translate(text, lang = (typeof window !== 'undefined' ? window.navigator.language : 'en'), _agent) {
 
     const res = await fetch(`/api/translator`, {
         method: 'post',
@@ -23,7 +23,7 @@ export async function translate(text, lang = window.navigator.language, _agent) 
     }
 }
 
-export async function formatTranslateRecord(text, lang = window.navigator.language, _agent, record) {
+export async function formatTranslateRecord(text, lang = (typeof window !== 'undefined' ? window.navigator.language : 'en'), _agent, record) {
     const t = await translate(text, lang, _agent);
     return {
         ...record,

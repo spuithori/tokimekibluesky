@@ -1,17 +1,20 @@
 import {derived, readable, writable} from 'svelte/store';
-import type {Agent} from '$lib/agent';
-import type { AppBskyActorDefs } from '@atproto/api';
+import {browser} from '$app/environment';
+import type {ProxyAgent} from '$lib/proxyAgent';
 import type {Theme} from "$lib/types/theme";
 import {defaultReactionButtons} from "$lib/defaultSettings";
-import timerWorkerUrl from '$lib/workers/timer.js?url'
-import {isSafariOrFirefox} from "$lib/util";
 import type { ReportModalState } from '$lib/components/report/reportTypes';
 
-export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
+function getStorage(key: string, fallback: string): string {
+    if (!browser) return fallback;
+    return localStorage.getItem(key) || fallback;
+}
 
-export const agent = writable<Agent>(undefined);
+export const currentTimeline = writable<number>(Number(getStorage('currentTimeline', '0')));
 
-export const agents = writable(new Map<number, Agent>());
+export const agent = writable<ProxyAgent>(undefined);
+
+export const agents = writable(new Map<number, ProxyAgent>());
 
 export const junkAgentDid = writable<string | undefined>(undefined);
 
@@ -23,14 +26,14 @@ export const agentDidsSet = derived(agents, $agents => {
     return s;
 });
 
-export const userLists = writable(localStorage.getItem('lists')
-    ? JSON.parse(localStorage.getItem('lists'))
-    : []);
+export const userLists = writable(JSON.parse(getStorage('lists', '[]')));
+
+const defaultLanguage = browser ? window.navigator.language : 'en';
 
 const defaultSettings = {
     general: {
-        userLanguage: window.navigator.language,
-        language: window.navigator.language,
+        userLanguage: defaultLanguage,
+        language: defaultLanguage,
         disableAlgorithm: false,
         repostConfirmSkip: false,
         deleteConfirmSkip: false,
@@ -52,7 +55,7 @@ const defaultSettings = {
     design: {
         skin: 'default',
         theme: 'defaut-10',
-        nonoto: isSafariOrFirefox() ? true : false,
+        nonoto: false,
         fontTheme: 'default',
         darkmode: false,
         absoluteTime: false,
@@ -105,15 +108,12 @@ const defaultSettings = {
     langFilter: [],
     version: 2,
 }
-const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);
-export const settings = writable(JSON.parse(storageSettings));
+export const settings = writable(JSON.parse(getStorage('settings', JSON.stringify(defaultSettings))));
 
-const storageRepostMutes = localStorage.getItem('repostMutes') || JSON.stringify([]);
-export const repostMutes = writable<string[]>(JSON.parse(storageRepostMutes));
+export const repostMutes = writable<string[]>(JSON.parse(getStorage('repostMutes', '[]')));
 export const repostMutesSet = derived(repostMutes, $rm => new Set($rm));
 
-const storagePostMutes = localStorage.getItem('postMutes') || JSON.stringify([]);
-export const postMutes = writable<string[]>(JSON.parse(storagePostMutes));
+export const postMutes = writable<string[]>(JSON.parse(getStorage('postMutes', '[]')));
 export const postMutesSet = derived(postMutes, $pm => new Set($pm));
 
 export const bookmarkModal = writable({
@@ -143,7 +143,7 @@ export const starterPackModal = writable({
 
 type listAddModal = {
     open: boolean,
-    author: AppBskyActorDefs.ProfileViewBasic | undefined,
+    author: any | undefined,
     did: string,
 }
 
@@ -153,7 +153,9 @@ export const listAddModal = writable<listAddModal>({
     did: '',
 })
 
-export const isMobileDataConnection = writable(navigator.connection ? navigator.connection.type === 'cellular' : false);
+export const isMobileDataConnection = writable(
+    browser && (navigator as any).connection ? (navigator as any).connection.type === 'cellular' : false
+);
 
 export const isDataSaving = derived([settings, isMobileDataConnection], ([$settings, $isMobileDataConnection], set) => {
     set($settings?.general.dataSaver && $isMobileDataConnection)
@@ -193,7 +195,17 @@ type pulseDetach = {
 
 export const pulseDetach = writable<pulseDetach | undefined>(undefined);
 
-export const workerTimer = readable(new Worker(timerWorkerUrl));
+// Timer: only runs on client
+const timerTarget = browser ? new EventTarget() : ({} as EventTarget);
+export const workerTimer = readable(timerTarget, (set) => {
+    if (!browser) return;
+    let counter = 0;
+    const id = setInterval(() => {
+        counter++;
+        timerTarget.dispatchEvent(new MessageEvent('message', { data: counter }));
+    }, 1000);
+    return () => clearInterval(id);
+});
 
 export const isRealtimeListenersModalOpen = writable(false);
 
@@ -237,12 +249,12 @@ const DEFAULT_LABELER_SETTINGS = [
     }
 ];
 
-export const labelerSettings = writable(localStorage.getItem('labelerSettings')
-    ? JSON.parse(localStorage.getItem('labelerSettings'))
-    : DEFAULT_LABELER_SETTINGS);
+export const labelerSettings = writable(
+    JSON.parse(getStorage('labelerSettings', JSON.stringify(DEFAULT_LABELER_SETTINGS)))
+);
 
 export const timelineHashtags = writable([]);
 
-export const hashtagHistory = writable(localStorage.getItem('hashtagHistory')
-    ? JSON.parse(localStorage.getItem('hashtagHistory') as string).filter(Boolean)
-    : []);
+export const hashtagHistory = writable(
+    JSON.parse(getStorage('hashtagHistory', '[]')).filter(Boolean)
+);

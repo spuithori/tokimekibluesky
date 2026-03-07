@@ -2,7 +2,6 @@ import {Node} from '@tiptap/core';
 import type {DOMOutputSpec, Node as ProseMirrorNode} from '@tiptap/pm/model';
 import { PluginKey } from '@tiptap/pm/state';
 import Suggestion, {type SuggestionOptions } from '@tiptap/suggestion';
-import {EMOJI_LIST} from "$lib/components/editor/emojiData";
 
 export type EmojiOptions = {
     HTMLAttributes: Record<string, any>
@@ -59,8 +58,13 @@ export const Emoji = Node.create<EmojiOptions>({
     },
     addStorage() {
         return {
-            emojis: EMOJI_LIST,
+            emojis: [] as { name: string; emoji: string }[],
         }
+    },
+    onCreate() {
+        import("$lib/components/editor/emojiData").then(({ EMOJI_LIST }) => {
+            this.storage.emojis = EMOJI_LIST;
+        });
     },
     addProseMirrorPlugins() {
         return [

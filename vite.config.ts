@@ -26,10 +26,19 @@ export default defineConfig(({ mode }) => {
 
 		build: {
 			rollupOptions: {
+				external: [
+					'@tanstack/svelte-virtual',
+					'virtua/svelte',
+					'better-sqlite3',
+				],
 				optimization: {
 					inlineConst: true,
 				},
 			},
+		},
+
+		ssr: {
+			noExternal: ['tokimeki-video-player', 'hls.js'],
 		},
 
 		server: {

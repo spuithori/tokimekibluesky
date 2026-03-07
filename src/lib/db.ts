@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type {AppBskyFeedDefs, AtpSessionData} from '@atproto/api';
+// Types previously from @atproto/api - now using plain types
 import type {Theme} from "$lib/types/theme";
 
 export interface Feed {
@@ -27,8 +27,8 @@ export interface Draft {
     createdAt: number,
     text: string,
     json?: object,
-    quotePost: AppBskyFeedDefs.PostView | undefined,
-    replyRef: AppBskyFeedDefs.ReplyRef | undefined,
+    quotePost: any,
+    replyRef: any,
     images: [],
     owner: string,
 }
@@ -71,7 +71,7 @@ type notificationCategories = 'reply' | 'like' | 'repost' | 'follow' | 'quote'  
 export interface Account {
     id?: number,
     service: string,
-    session?: AtpSessionData | null,
+    session?: any | null,
     did: string,
     avatar?: string,
     name?: string,

@@ -19,7 +19,7 @@
     async function handleKeyDown() {
         clearTimeout(timer);
         timer = setTimeout(async () => {
-            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: search, limit: 10})
+            const res = await _agent.xrpcGet('app.bsky.actor.searchActorsTypeahead', {term: search, limit: 10})
             actors = res.data.actors;
         }, 250);
     }
@@ -28,16 +28,9 @@
         const actor = e.detail.member;
 
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.getConvoForMembers(
-                {
-                    members: [_agent.did(), actor.did as string]
-                },
-                {
-                    headers: {
-                        'atproto-proxy': CHAT_PROXY,
-                    }
-                }
-            );
+            const res = await _agent.xrpcGet('chat.bsky.convo.getConvoForMembers', {
+                members: [_agent.did(), actor.did as string]
+            }, {proxy: CHAT_PROXY});
 
             const convo = res.data.convo;
 

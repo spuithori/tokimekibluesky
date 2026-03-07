@@ -1,3 +1,5 @@
+import {browser} from '$app/environment';
+
 type Settings = {
   markedUnread: boolean,
   translationModel: 'nmt' | 'llm',
@@ -15,15 +17,17 @@ class SettingsState {
   pdsRequestReady: boolean = $state(false);
 
   constructor() {
-    const storageSettings = localStorage.getItem('stateSettings') || JSON.stringify(defaultSettings);
-    this.settings = JSON.parse(storageSettings);
+    if (browser) {
+      const storageSettings = localStorage.getItem('stateSettings') || JSON.stringify(defaultSettings);
+      this.settings = JSON.parse(storageSettings);
 
-    $effect.root(() => {
-      $effect(() => {
-        localStorage.setItem('stateSettings', JSON.stringify(this.settings));
-      });
-      return () => {};
-    })
+      $effect.root(() => {
+        $effect(() => {
+          localStorage.setItem('stateSettings', JSON.stringify(this.settings));
+        });
+        return () => {};
+      })
+    }
   }
 
   setPdsRequestReady() {

@@ -8,7 +8,7 @@
     let me = $state();
 
     onMount(async () => {
-        const res = await $agent.agent.api.app.bsky.actor.getProfile({actor: 'holybea.blue'});
+        const res = await $agent.xrpcGet('app.bsky.actor.getProfile', {actor: 'holybea.blue'});
         me = res.data;
     })
 </script>

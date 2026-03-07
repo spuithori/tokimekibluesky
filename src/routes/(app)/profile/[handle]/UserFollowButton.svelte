@@ -40,19 +40,21 @@
 
   async function follow() {
       isDisabled = true;
-      const res = await _agent.agent.api.app.bsky.graph.follow.create(
-          { repo: _agent.did() },
-          {
+      const res = await _agent.xrpcPost('com.atproto.repo.createRecord', {
+          repo: _agent.did(),
+          collection: 'app.bsky.graph.follow',
+          record: {
+              $type: 'app.bsky.graph.follow',
               subject: user.did,
               createdAt: new Date().toISOString(),
           },
-      );
-      generateRkey(res.uri);
+      });
+      generateRkey(res.data.uri);
       isDisabled = false;
 
       changedFollowData.set({
           did: user.did,
-          following: res.uri,
+          following: res.data.uri,
           actor: _agent.did(),
       });
 
@@ -61,11 +63,11 @@
 
   async function unfollow() {
       isDisabled = true;
-      const res = await _agent.agent.api.app.bsky.graph.follow.delete({
+      const res = await _agent.xrpcPost('com.atproto.repo.deleteRecord', {
               repo: _agent.did(),
+              collection: 'app.bsky.graph.follow',
               rkey: rkey,
-          },
-      );
+          });
       isDisabled = false;
 
       changedFollowData.set({

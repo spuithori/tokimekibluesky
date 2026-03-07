@@ -25,7 +25,7 @@
 
   async function handleLoadMore(loaded, complete) {
       try {
-          let raw = await agentContext.agent.agent.api.app.bsky.graph.getFollowers({
+          let raw = await agentContext.agent.xrpcGet('app.bsky.graph.getFollowers', {
               actor: data.params.handle,
               limit: 20,
               cursor: cursor

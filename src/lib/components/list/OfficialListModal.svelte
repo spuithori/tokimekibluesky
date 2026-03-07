@@ -31,7 +31,7 @@
 
         try {
             if (uri) {
-                const res = await _agent.agent.api.app.bsky.graph.getList({list: uri, limit: 100});
+                const res = await _agent.xrpcGet('app.bsky.graph.getList', {list: uri, limit: 100});
                 const items = res.data.items;
                 name = res.data.list.name;
 
@@ -56,7 +56,7 @@
         let items = [];
 
         for (let cursor; cursor !== null;) {
-            const res = await _agent.agent.api.com.atproto.repo.listRecords({
+            const res = await _agent.xrpcGet('com.atproto.repo.listRecords', {
                 collection: 'app.bsky.graph.listitem',
                 repo: _agent.did(),
                 cursor: cursor,
@@ -85,7 +85,7 @@
     async function handleKeyDown() {
         clearTimeout(timer);
         timer = setTimeout(async () => {
-            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: search, limit: 10})
+            const res = await _agent.xrpcGet('app.bsky.actor.searchActorsTypeahead', {term: search, limit: 10})
             searchMembers = res.data.actors;
         }, 250)
     }
@@ -105,16 +105,17 @@
 
     async function createList() {
         try {
-            const list = await _agent.agent.api.app.bsky.graph.list.create(
-                {
-                    repo: _agent.did()
-                },
-                {
+            const list = await _agent.xrpcPost('com.atproto.repo.createRecord', {
+                repo: _agent.did(),
+                collection: 'app.bsky.graph.list',
+                record: {
+                    $type: 'app.bsky.graph.list',
                     name: name,
                     purpose: purpose,
                     createdAt: new Date().toISOString(),
-                })
-            return list.uri;
+                },
+            })
+            return list.data.uri;
         } catch (e) {
             isDisabled = false;
             toast.error(e.message);
@@ -135,18 +136,16 @@
             if (uri) {
                 const rkey = uri.split('/').slice(-1)[0];
 
-                await _agent.agent.api.com.atproto.repo.putRecord(
-                    {
-                        repo: _agent.did(),
-                        rkey: rkey,
-                        collection: 'app.bsky.graph.list',
-                        record: {
-                            name: name,
-                            purpose: purpose,
-                            createdAt: new Date().toISOString(),
-                        },
-                    }
-                )
+                await _agent.xrpcPost('com.atproto.repo.putRecord', {
+                    repo: _agent.did(),
+                    rkey: rkey,
+                    collection: 'app.bsky.graph.list',
+                    record: {
+                        name: name,
+                        purpose: purpose,
+                        createdAt: new Date().toISOString(),
+                    },
+                })
             }
 
             let writes = [];
@@ -179,7 +178,7 @@
 
             if (writes.length) {
                 console.log(writes);
-                const res = await _agent.agent.com.atproto.repo.applyWrites({
+                const res = await _agent.xrpcPost('com.atproto.repo.applyWrites', {
                     repo: _agent.did() as string,
                     writes: writes,
                 });
@@ -206,7 +205,7 @@
     async function importing() {
         try {
             const importObj = JSON.parse(importText);
-            const res = await _agent.agent.api.app.bsky.actor.getProfiles({actors: importObj});
+            const res = await _agent.xrpcGet('app.bsky.actor.getProfiles', {actors: importObj});
             members = res.data.profiles;
 
             // handleListChange();

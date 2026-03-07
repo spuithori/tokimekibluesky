@@ -14,7 +14,7 @@
 
     onMount(async () => {
         try {
-            const profile = await agent.agent.api.app.bsky.actor.getProfile({actor: agent.did() as string});
+            const profile = await agent.xrpcGet('app.bsky.actor.getProfile', {actor: agent.did() as string});
 
             avatar = profile.data?.avatar || '';
             displayName = profile.data?.displayName || '';

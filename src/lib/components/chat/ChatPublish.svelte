@@ -1,12 +1,12 @@
 <script lang="ts">
   import ChatTiptap from "$lib/components/chat/ChatTiptap.svelte";
-  import {RichText} from "@atproto/api";
+  import {RichText} from "$lib/atproto-richtext";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
   import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-  import type {Agent} from "$lib/agent";
+  import type {ProxyAgent} from "$lib/proxyAgent";
   import {agent} from "$lib/stores";
 
-  let { id, column, _agent, onrefresh }: { _agent: Agent } = $props();
+  let { id, column, _agent, onrefresh }: { _agent: ProxyAgent } = $props();
   const currentAgent = $derived(_agent || $agent);
   let text = $state('');
   let json = $state();

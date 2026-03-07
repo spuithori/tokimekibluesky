@@ -5,7 +5,7 @@
   import {accountsDb} from '$lib/db';
   import {getAccountIdByDid} from "$lib/util";
   import AvatarAgentsSelectorModalItem from "$lib/components/acp/AvatarAgentsSelectorModalItem.svelte";
-  import type {Agent} from "$lib/agent";
+  import type {ProxyAgent} from "$lib/proxyAgent";
 
   interface Props {
     _agent?: any;
@@ -21,7 +21,7 @@
       selectAgent(_agent);
   });
 
-  function selectAgent(agent: Agent) {
+  function selectAgent(agent: ProxyAgent) {
       accountsDb.accounts.get(getAccountIdByDid($agents, agent.did()))
           .then(res => {
               avatar = res.avatar;
