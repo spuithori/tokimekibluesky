@@ -68,6 +68,14 @@
                   return false;
               }
 
+              const clearedAt = column.data.clearedAt;
+              if (clearedAt) {
+                  const postTime = value.reason?.indexedAt || value.post?.indexedAt;
+                  if (postTime && postTime <= clearedAt) {
+                      return false;
+                  }
+              }
+
               columnState.updateFeed(column.id, f => { f.unshift(value); });
               realtimeCounter = realtimeCounter + 1;
 
@@ -222,11 +230,24 @@
             ])
         );
 
+        let hitClearBoundary = false;
+
         const feed = res.data.feed
             .filter(feed => {
                 const key = feed.reason ? `${feed.post.uri}|${feed.reason.indexedAt}` : feed.post.uri;
                 const existing = existingFeedMap.get(key);
-                return !existing || !isDuplicatePost(existing, feed);
+                if (existing && isDuplicatePost(existing, feed)) return false;
+                
+                const clearedAt = column.data.clearedAt;
+                if (clearedAt) {
+                    const postTime = feed.reason?.indexedAt || feed.post?.indexedAt;
+                    if (postTime <= clearedAt) {
+                        hitClearBoundary = true;
+                        return false;
+                    }
+                }
+
+                return true;
             })
             .map(item => {
                 item.memoryCursor = res.data.cursor;
@@ -270,7 +291,7 @@
 
           isDividerLoading = false;
 
-          if (column.data.cursor) {
+          if (column.data.cursor && !hitClearBoundary) {
               loaded();
           } else {
               complete();
