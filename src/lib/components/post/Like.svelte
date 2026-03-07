@@ -61,7 +61,7 @@
               }
               : undefined;
           const like = await __agent.setVote(cid, uri, viewer || '', via);
-          const likeViewer = like?.uri || undefined;
+          const likeViewer = like?.data?.uri || undefined;
           const pulse = {
               viewer: likeViewer,
               did: __agent.did(),

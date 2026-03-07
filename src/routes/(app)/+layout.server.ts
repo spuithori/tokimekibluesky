@@ -14,30 +14,48 @@ export const load: LayoutServerLoad = async ({ locals }) => {
     }
 
     const oauthClient = await getOAuthClient();
-    const results = await Promise.allSettled(
-        locals.user.dids.map(async (did): Promise<ServerAccount> => {
-            const session = await oauthClient.restore(did);
+    const primaryDid = locals.user.primaryDid;
+    const primarySessionPromise = oauthClient.restore(primaryDid);
+
+    const [profileResults, timelineData] = await Promise.all([
+        Promise.allSettled(
+            locals.user.dids.map(async (did): Promise<ServerAccount> => {
+                const session = did === primaryDid
+                    ? await primarySessionPromise
+                    : await oauthClient.restore(did);
+                try {
+                    const res = await session.fetchHandler(
+                        `/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(did)}`,
+                        { method: 'GET', headers: {} }
+                    );
+                    if (res.ok) {
+                        const profile = await res.json();
+                        return {
+                            did,
+                            handle: profile?.handle,
+                            avatar: profile?.avatar,
+                            displayName: profile?.displayName,
+                        };
+                    }
+                } catch {}
+                return { did };
+            })
+        ),
+        (async () => {
             try {
+                const session = await primarySessionPromise;
                 const res = await session.fetchHandler(
-                    `/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(did)}`,
+                    '/xrpc/app.bsky.feed.getTimeline?limit=20',
                     { method: 'GET', headers: {} }
                 );
-                if (res.ok) {
-                    const profile = await res.json();
-                    return {
-                        did,
-                        handle: profile?.handle,
-                        avatar: profile?.avatar,
-                        displayName: profile?.displayName,
-                    };
-                }
+                if (res.ok) return await res.json();
             } catch {}
-            return { did };
-        })
-    );
+            return null;
+        })(),
+    ]);
 
     const validAccounts: ServerAccount[] = [];
-    for (const r of results) {
+    for (const r of profileResults) {
         if (r.status === 'fulfilled') {
             validAccounts.push(r.value);
         }
@@ -54,5 +72,6 @@ export const load: LayoutServerLoad = async ({ locals }) => {
             accounts: validAccounts,
             invalidDids,
         },
+        prefetch: timelineData ? { timeline: timelineData } : null,
     };
 };

@@ -9,6 +9,7 @@
   import {isReasonRepost, isReasonPin} from "$lib/atproto-guards";
   import {toast} from "svelte-sonner";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {appState} from "$lib/classes/appState.svelte";
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import VirtualTimeline from "$lib/components/timeline/VirtualTimeline.svelte";
@@ -209,6 +210,25 @@
   }
 
   const handleLoadMore = async (loaded, complete) => {
+      if (!column.data.cursor && column.algorithm?.type === 'default'
+          && column.did === _agent.did()) {
+          const prefetched = appState.consumePrefetchedTimeline();
+          if (prefetched) {
+              column.data.cursor = prefetched.cursor;
+              const feed = prefetched.feed.map(item => {
+                  item.memoryCursor = prefetched.cursor;
+                  return item;
+              });
+              columnState.updateFeed(column.id, f => { f.push(...feed); });
+              if (prefetched.cursor) {
+                  loaded();
+              } else {
+                  complete();
+              }
+              return;
+          }
+      }
+
       try {
         controller = new AbortController();
         const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, controller.signal);

@@ -22,8 +22,18 @@ class AppState {
     labelDefs = new PersistedState('labelDefs', []);
     subscribedLabelers = new PersistedState('subscribedLabelers', ['did:plc:ar7c4by46qjdydhdevvrndac']);
     singleColumnScrollPositions: Map<number, number> = new Map();
+    private _prefetchedTimeline: { feed: any[]; cursor?: string } | null = null;
 
-    async init(serverUser?: ServerUserData | null) {
+    consumePrefetchedTimeline(): { feed: any[]; cursor?: string } | null {
+        const data = this._prefetchedTimeline;
+        this._prefetchedTimeline = null;
+        return data;
+    }
+
+    async init(serverUser?: ServerUserData | null, prefetch?: { timeline?: any } | null) {
+        if (prefetch?.timeline) {
+            this._prefetchedTimeline = prefetch.timeline;
+        }
         const profiles = await accountsDb.profiles.toArray();
         const anyAccounts = await accountsDb.accounts
             .toArray();

@@ -65,7 +65,7 @@
               }
               : undefined;
           const repost = await __agent.setRepost(cid, uri, viewer || '', via);
-          const repostViewer = repost?.uri || undefined;
+          const repostViewer = repost?.data?.uri || undefined;
           const pulse = {
               viewer: repostViewer,
               did: __agent.did(),
