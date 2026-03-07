@@ -63,10 +63,13 @@ function localModeratePost(post: any, options: any) {
     const muted = post?.viewer?.muted || false;
 
     // Collect label actions based on user preferences
-    const labelActions: Array<{ label: any; action: string; target: 'content' | 'media' }> = [];
+    const authorDid = post?.author?.did;
+    const labelActions: Array<{ label: any; action: string; target: 'content' | 'media'; labelDef: any; source: any }> = [];
 
     for (const label of allLabels) {
         const val = label.val;
+        // Skip system labels (e.g. !no-unauthenticated) except !warn
+        if (val?.startsWith('!') && val !== '!warn') continue;
         const pref = userPrefs[val];
 
         // Check custom labeler definitions
@@ -79,7 +82,12 @@ function localModeratePost(post: any, options: any) {
         const isMediaLabel = ['porn', 'sexual', 'nudity', 'nsfw', 'graphic-media'].includes(val);
         const target = isMediaLabel ? 'media' : 'content';
 
-        labelActions.push({ label, action, target });
+        // Build source info (compatible with @atproto/api moderatePost output)
+        const source = label.src === authorDid
+            ? { type: 'user' }
+            : { type: 'labeler', did: label.src };
+
+        labelActions.push({ label, action, target, labelDef: customDef || null, source });
     }
 
     return {
@@ -96,25 +104,26 @@ function localModeratePost(post: any, options: any) {
                 filter = true;
             }
 
-            for (const { label, action, target } of labelActions) {
+            for (const { label, action, target, labelDef, source } of labelActions) {
+                const wrapped = { label, labelDef, source };
                 if (action === 'hide') {
                     if (context === 'contentList') {
                         filter = true;
                     } else {
                         blur = true;
-                        blurs.push(label);
+                        blurs.push(wrapped);
                     }
                 } else if (action === 'warn') {
                     if (context === 'contentMedia' && target === 'media') {
                         blur = true;
-                        blurs.push(label);
+                        blurs.push(wrapped);
                     } else if (context !== 'contentMedia' && target === 'content') {
                         blur = true;
-                        blurs.push(label);
+                        blurs.push(wrapped);
                     }
                 } else if (action === 'inform') {
                     inform = true;
-                    informs.push(label);
+                    informs.push(wrapped);
                 }
             }
 
