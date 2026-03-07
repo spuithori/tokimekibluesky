@@ -88,6 +88,7 @@ class AppState {
                 const missing = accounts.filter(a => !valid.includes(a.did));
                 if (missing.length > 0) {
                     this.missingAccounts = missing;
+                    this.status = 3;
                 }
                 accounts = accounts.filter(a => valid.includes(a.did));
 

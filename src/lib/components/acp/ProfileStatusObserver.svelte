@@ -5,11 +5,6 @@
   import MissingPrimaryModal from "$lib/components/acp/MissingPrimaryModal.svelte";
   import {appState} from "$lib/classes/appState.svelte";
 
-  $effect(() => {
-      if (appState.missingAccounts.length) {
-        appState.status = 3;
-      }
-  })
 </script>
 
 {#if (appState.status === 1 || appState.status === 2)}
