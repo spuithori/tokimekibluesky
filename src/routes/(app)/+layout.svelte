@@ -53,8 +53,9 @@
 
   interface Props {
     children?: import('svelte').Snippet;
+    data: { user: { primaryDid: string; dids: string[]; accounts: { did: string; handle?: string; avatar?: string; displayName?: string }[]; invalidDids: string[] } | null };
   }
-  let { children }: Props = $props();
+  let { children, data }: Props = $props();
 
   let app = $state();
   let baseColor = $state('#fff');
@@ -219,7 +220,7 @@
   initColumns();
 
   if (browser) {
-    appState.init();
+    appState.init(data.user);
     viewPortSetting();
   }
 

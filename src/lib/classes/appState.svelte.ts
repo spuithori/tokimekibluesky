@@ -7,6 +7,13 @@ import { get } from 'svelte/store';
 import { unwrapFunctionStore, format } from 'svelte-i18n';
 import {settingsState} from "$lib/classes/settingsState.svelte";
 
+interface ServerUserData {
+    primaryDid: string;
+    dids: string[];
+    accounts: { did: string; handle?: string; avatar?: string; displayName?: string }[];
+    invalidDids: string[];
+}
+
 class AppState {
     ready: boolean = $state(false);
     status: number = $state(0);
@@ -16,7 +23,7 @@ class AppState {
     subscribedLabelers = new PersistedState('subscribedLabelers', ['did:plc:ar7c4by46qjdydhdevvrndac']);
     singleColumnScrollPositions: Map<number, number> = new Map();
 
-    async init() {
+    async init(serverUser?: ServerUserData | null) {
         const profiles = await accountsDb.profiles.toArray();
         const anyAccounts = await accountsDb.accounts
             .toArray();
@@ -44,7 +51,7 @@ class AppState {
             })
             this.profile.current = id;
 
-            await this.init();
+            await this.init(serverUser);
             return false;
         }
 
@@ -81,40 +88,81 @@ class AppState {
             return false;
         }
 
-        try {
-            const sessionRes = await fetch('/api/auth/session');
-            if (sessionRes.ok) {
-                const { valid } = await sessionRes.json();
-                const missing = accounts.filter(a => !valid.includes(a.did));
-                if (missing.length > 0) {
-                    this.missingAccounts = missing;
-                    this.status = 3;
-                }
-                accounts = accounts.filter(a => valid.includes(a.did));
+        if (serverUser) {
+            const validDids = new Set(serverUser.accounts.map(a => a.did));
+            const missing = accounts.filter(a => !validDids.has(a.did));
+            if (missing.length > 0) {
+                this.missingAccounts = missing;
+                this.status = 3;
+            }
+            accounts = accounts.filter(a => validDids.has(a.did));
 
-                if (!accounts.length) {
-                    console.log('All account sessions are invalid.');
-                    this.status = 3;
-                    return false;
+            if (!accounts.length) {
+                console.log('All account sessions are invalid.');
+                this.status = 3;
+                return false;
+            }
+
+            const serverAccountMap = new Map(serverUser.accounts.map(a => [a.did, a]));
+            for (const account of accounts) {
+                const serverAccount = serverAccountMap.get(account.did);
+                if (serverAccount) {
+                    const updates: Partial<Account> = {};
+                    if (serverAccount.handle && serverAccount.handle !== account.handle) {
+                        updates.handle = serverAccount.handle;
+                    }
+                    if (serverAccount.avatar && serverAccount.avatar !== account.avatar) {
+                        updates.avatar = serverAccount.avatar;
+                    }
+                    if (serverAccount.displayName && serverAccount.displayName !== account.name) {
+                        updates.name = serverAccount.displayName;
+                    }
+                    if (Object.keys(updates).length > 0) {
+                        accountsDb.accounts.update(account.id!, updates);
+                        Object.assign(account, updates);
+                    }
                 }
             }
-        } catch {}
+        } else {
+            try {
+                const sessionRes = await fetch('/api/auth/session');
+                if (sessionRes.ok) {
+                    const { valid } = await sessionRes.json();
+                    const missing = accounts.filter(a => !valid.includes(a.did));
+                    if (missing.length > 0) {
+                        this.missingAccounts = missing;
+                        this.status = 3;
+                    }
+                    accounts = accounts.filter(a => valid.includes(a.did));
+
+                    if (!accounts.length) {
+                        console.log('All account sessions are invalid.');
+                        this.status = 3;
+                        return false;
+                    }
+                }
+            } catch {}
+        }
 
         let agentsMap = new Map<number, ProxyAgent>();
         for (const account of accounts) {
-            agentsMap.set(account.id!, new ProxyAgent(account.did, account.handle));
+            const serverAccount = serverUser?.accounts.find(a => a.did === account.did);
+            const handle = serverAccount?.handle || account.handle;
+            agentsMap.set(account.id!, new ProxyAgent(account.did, handle));
         }
 
         agents.set(agentsMap);
         const _agents = get(agents);
         agent.set(_agents.get(profile.primary));
 
-        for (const account of accounts) {
-            const ag = agentsMap.get(account.id!);
-            if (ag && !account.handle) {
-                ag.getProfile({ actor: account.did }).then(res => {
-                    ag.setHandle(res.data.handle);
-                }).catch(() => {});
+        if (!serverUser) {
+            for (const account of accounts) {
+                const ag = agentsMap.get(account.id!);
+                if (ag && !account.handle) {
+                    ag.getProfile({ actor: account.did }).then(res => {
+                        ag.setHandle(res.data.handle);
+                    }).catch(() => {});
+                }
             }
         }
 

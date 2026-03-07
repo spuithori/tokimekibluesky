@@ -12,6 +12,42 @@ function getProxyHeader(nsid: string, customProxy?: string): string | undefined 
 	return undefined;
 }
 
+const CACHE_STATIC = new Set([
+	'com.atproto.identity.resolveHandle',
+	'app.bsky.feed.getFeedGenerators',
+	'app.bsky.feed.getActorFeeds',
+	'app.bsky.feed.describeFeedGenerator',
+	'app.bsky.labeler.getServices',
+]);
+
+const CACHE_PROFILE = new Set([
+	'app.bsky.actor.getProfile',
+	'app.bsky.actor.getProfiles',
+	'app.bsky.feed.getPostThread',
+	'app.bsky.feed.getPosts',
+	'app.bsky.graph.getList',
+	'app.bsky.graph.getLists',
+]);
+
+const CACHE_TIMELINE = new Set([
+	'app.bsky.feed.getTimeline',
+	'app.bsky.feed.getFeed',
+	'app.bsky.feed.getListFeed',
+	'app.bsky.feed.getAuthorFeed',
+	'app.bsky.notification.listNotifications',
+]);
+
+function getCacheControl(nsid: string, method: string): string | undefined {
+	if (method !== 'GET') return undefined;
+	if (nsid.startsWith('chat.bsky.')) return undefined;
+
+	if (CACHE_STATIC.has(nsid)) return 'private, max-age=300';
+	if (CACHE_PROFILE.has(nsid)) return 'private, max-age=60';
+	if (CACHE_TIMELINE.has(nsid)) return 'private, max-age=10';
+
+	return undefined;
+}
+
 interface SessionHandler {
 	fetchHandler(path: string, init: RequestInit): Promise<Response>;
 }
@@ -84,15 +120,19 @@ async function handleXrpc(
 	const response = await session.fetchHandler(xrpcPath, fetchInit);
 
 	const responseContentType = response.headers.get('content-type') || '';
-	const responseBody = responseContentType.includes('application/json')
-		? await response.text()
-		: await response.arrayBuffer();
 
-	return new Response(responseBody, {
+	const responseHeaders: Record<string, string> = {
+		'Content-Type': responseContentType,
+	};
+
+	const cacheControl = getCacheControl(nsid, method);
+	if (cacheControl) {
+		responseHeaders['Cache-Control'] = cacheControl;
+	}
+
+	return new Response(response.body, {
 		status: response.status,
-		headers: {
-			'Content-Type': responseContentType
-		}
+		headers: responseHeaders,
 	});
 }
 
