@@ -52,82 +52,443 @@ export const defaultKeyword: keyword = {
     regExp: false,
 }
 
-// Lightweight moderation: replaces @atproto/api's moderatePost
-// Returns an object with .ui(context) method compatible with detectHide/detectWarn
+interface ModerationBehavior {
+    profileList?: 'blur' | 'alert' | 'inform';
+    profileView?: 'blur' | 'alert' | 'inform';
+    avatar?: 'blur' | 'alert';
+    banner?: 'blur';
+    displayName?: 'blur';
+    contentList?: 'blur' | 'alert' | 'inform';
+    contentView?: 'blur' | 'alert' | 'inform';
+    contentMedia?: 'blur';
+}
+
+interface InterpretedLabelValueDefinition {
+    identifier: string;
+    configurable: boolean;
+    defaultSetting: 'ignore' | 'warn' | 'hide';
+    flags: string[];
+    severity: string;
+    blurs: string;
+    behaviors: {
+        account?: ModerationBehavior;
+        profile?: ModerationBehavior;
+        content?: ModerationBehavior;
+    };
+    locales: any[];
+    definedBy?: string;
+    adultOnly?: boolean;
+}
+
+type LabelPreference = 'ignore' | 'warn' | 'hide';
+
+interface ModerationCause {
+    type: 'label' | 'muted';
+    source?: { type: 'user' } | { type: 'labeler'; did: string };
+    label?: any;
+    labelDef?: InterpretedLabelValueDefinition;
+    target?: 'content' | 'account';
+    setting?: LabelPreference;
+    behavior?: ModerationBehavior;
+    noOverride?: boolean;
+    priority: number;
+}
+
+const CUSTOM_LABEL_VALUE_RE = /^[a-z-]+$/;
+const NOOP_BEHAVIOR: ModerationBehavior = {};
+
+const MUTE_BEHAVIOR: ModerationBehavior = {
+    profileList: 'inform',
+    profileView: 'alert',
+    contentList: 'blur',
+    contentView: 'inform',
+};
+
+const LABELS: Record<string, InterpretedLabelValueDefinition> = {
+    '!hide': {
+        identifier: '!hide',
+        configurable: false,
+        defaultSetting: 'hide',
+        flags: ['no-override', 'no-self'],
+        severity: 'alert',
+        blurs: 'content',
+        behaviors: {
+            account: {
+                profileList: 'blur',
+                profileView: 'blur',
+                avatar: 'blur',
+                banner: 'blur',
+                displayName: 'blur',
+                contentList: 'blur',
+                contentView: 'blur',
+            },
+            profile: {
+                avatar: 'blur',
+                banner: 'blur',
+                displayName: 'blur',
+            },
+            content: {
+                contentList: 'blur',
+                contentView: 'blur',
+            },
+        },
+        locales: [],
+    },
+    '!warn': {
+        identifier: '!warn',
+        configurable: false,
+        defaultSetting: 'warn',
+        flags: ['no-self'],
+        severity: 'none',
+        blurs: 'content',
+        behaviors: {
+            account: {
+                profileList: 'blur',
+                profileView: 'blur',
+                avatar: 'blur',
+                banner: 'blur',
+                contentList: 'blur',
+                contentView: 'blur',
+            },
+            profile: {
+                avatar: 'blur',
+                banner: 'blur',
+                displayName: 'blur',
+            },
+            content: {
+                contentList: 'blur',
+                contentView: 'blur',
+            },
+        },
+        locales: [],
+    },
+    '!no-unauthenticated': {
+        identifier: '!no-unauthenticated',
+        configurable: false,
+        defaultSetting: 'hide',
+        flags: ['no-override', 'unauthed'],
+        severity: 'none',
+        blurs: 'content',
+        behaviors: {
+            account: {
+                profileList: 'blur',
+                profileView: 'blur',
+                avatar: 'blur',
+                banner: 'blur',
+                displayName: 'blur',
+                contentList: 'blur',
+                contentView: 'blur',
+            },
+            profile: {
+                avatar: 'blur',
+                banner: 'blur',
+                displayName: 'blur',
+            },
+            content: {
+                contentList: 'blur',
+                contentView: 'blur',
+            },
+        },
+        locales: [],
+    },
+    porn: {
+        identifier: 'porn',
+        configurable: true,
+        defaultSetting: 'hide',
+        flags: ['adult'],
+        severity: 'none',
+        blurs: 'media',
+        behaviors: {
+            account: { avatar: 'blur', banner: 'blur' },
+            profile: { avatar: 'blur', banner: 'blur' },
+            content: { contentMedia: 'blur' },
+        },
+        locales: [],
+    },
+    sexual: {
+        identifier: 'sexual',
+        configurable: true,
+        defaultSetting: 'warn',
+        flags: ['adult'],
+        severity: 'none',
+        blurs: 'media',
+        behaviors: {
+            account: { avatar: 'blur', banner: 'blur' },
+            profile: { avatar: 'blur', banner: 'blur' },
+            content: { contentMedia: 'blur' },
+        },
+        locales: [],
+    },
+    nudity: {
+        identifier: 'nudity',
+        configurable: true,
+        defaultSetting: 'ignore',
+        flags: [],
+        severity: 'none',
+        blurs: 'media',
+        behaviors: {
+            account: { avatar: 'blur', banner: 'blur' },
+            profile: { avatar: 'blur', banner: 'blur' },
+            content: { contentMedia: 'blur' },
+        },
+        locales: [],
+    },
+    'graphic-media': {
+        identifier: 'graphic-media',
+        configurable: true,
+        defaultSetting: 'warn',
+        flags: ['adult'],
+        severity: 'none',
+        blurs: 'media',
+        behaviors: {
+            account: { avatar: 'blur', banner: 'blur' },
+            profile: { avatar: 'blur', banner: 'blur' },
+            content: { contentMedia: 'blur' },
+        },
+        locales: [],
+    },
+    gore: {
+        identifier: 'gore',
+        configurable: true,
+        defaultSetting: 'warn',
+        flags: ['adult'],
+        severity: 'none',
+        blurs: 'media',
+        behaviors: {
+            account: { avatar: 'blur', banner: 'blur' },
+            profile: { avatar: 'blur', banner: 'blur' },
+            content: { contentMedia: 'blur' },
+        },
+        locales: [],
+    },
+};
+
+function interpretLabelValueDefinition(
+    def: any,
+    definedBy: string | undefined,
+): InterpretedLabelValueDefinition {
+    const behaviors: {
+        account: ModerationBehavior;
+        profile: ModerationBehavior;
+        content: ModerationBehavior;
+    } = {
+        account: {},
+        profile: {},
+        content: {},
+    };
+    const alertOrInform: 'alert' | 'inform' | undefined =
+        def.severity === 'alert'
+            ? 'alert'
+            : def.severity === 'inform'
+                ? 'inform'
+                : undefined;
+
+    if (def.blurs === 'content') {
+        behaviors.account.profileList = alertOrInform;
+        behaviors.account.profileView = alertOrInform;
+        behaviors.account.contentList = 'blur';
+        behaviors.account.contentView = def.adultOnly ? 'blur' : alertOrInform;
+        behaviors.profile.profileList = alertOrInform;
+        behaviors.profile.profileView = alertOrInform;
+        behaviors.content.contentList = 'blur';
+        behaviors.content.contentView = def.adultOnly ? 'blur' : alertOrInform;
+    } else if (def.blurs === 'media') {
+        behaviors.account.profileList = alertOrInform;
+        behaviors.account.profileView = alertOrInform;
+        behaviors.account.avatar = 'blur';
+        behaviors.account.banner = 'blur';
+        behaviors.profile.profileList = alertOrInform;
+        behaviors.profile.profileView = alertOrInform;
+        behaviors.profile.avatar = 'blur';
+        behaviors.profile.banner = 'blur';
+        behaviors.content.contentMedia = 'blur';
+    } else if (def.blurs === 'none') {
+        behaviors.account.profileList = alertOrInform;
+        behaviors.account.profileView = alertOrInform;
+        behaviors.account.contentList = alertOrInform;
+        behaviors.account.contentView = alertOrInform;
+        behaviors.profile.profileList = alertOrInform;
+        behaviors.profile.profileView = alertOrInform;
+        behaviors.content.contentList = alertOrInform;
+        behaviors.content.contentView = alertOrInform;
+    }
+
+    let defaultSetting: LabelPreference = 'warn';
+    if (def.defaultSetting === 'hide' || def.defaultSetting === 'ignore') {
+        defaultSetting = def.defaultSetting;
+    }
+
+    const flags: string[] = ['no-self'];
+    if (def.adultOnly) {
+        flags.push('adult');
+    }
+
+    return {
+        ...def,
+        definedBy,
+        configurable: true,
+        defaultSetting,
+        flags,
+        behaviors,
+    };
+}
+
+function measureBehaviorSeverity(beh: ModerationBehavior | undefined): number {
+    if (!beh) return 2;
+    if (beh.profileView === 'blur' || beh.contentView === 'blur') return 0;
+    if (beh.contentList === 'blur' || beh.contentMedia === 'blur') return 1;
+    return 2;
+}
+
 function localModeratePost(post: any, options: any) {
-    const labels = post?.labels || [];
-    const authorLabels = post?.author?.labels || [];
-    const allLabels = [...labels, ...authorLabels];
-    const userPrefs = options.prefs?.labels || {};
-    const labelDefs = options.labelDefs || [];
+    const allLabels = [...(post?.labels || []), ...(post?.author?.labels || [])];
+    const authorDid = post?.author?.did;
+    const isMe = authorDid === options.userDid;
     const muted = post?.viewer?.muted || false;
 
-    // Collect label actions based on user preferences
-    const authorDid = post?.author?.did;
-    const labelActions: Array<{ label: any; action: string; target: 'content' | 'media'; labelDef: any; source: any }> = [];
+    const causes: ModerationCause[] = [];
+
+    if (muted) {
+        causes.push({ type: 'muted', source: { type: 'user' }, priority: 6 });
+    }
 
     for (const label of allLabels) {
-        const val = label.val;
-        // Skip system labels (e.g. !no-unauthenticated) except !warn
-        if (val?.startsWith('!') && val !== '!warn') continue;
-        const pref = userPrefs[val];
+        const labelDef: InterpretedLabelValueDefinition | undefined =
+            CUSTOM_LABEL_VALUE_RE.test(label.val)
+                ? (options.labelDefs?.[label.src]?.find((d: any) => d.identifier === label.val)
+                    || LABELS[label.val])
+                : LABELS[label.val];
 
-        // Check custom labeler definitions
-        const customDef = labelDefs.find((d: any) => d.identifier === val);
-        const defaultSeverity = customDef?.defaultSetting || customDef?.severity;
+        if (!labelDef) continue;
 
-        const action = pref || defaultSeverity || 'warn';
+        const isSelf = label.src === authorDid;
+        const labeler = isSelf
+            ? undefined
+            : options.prefs.labelers.find((s: any) => s.did === label.src);
 
-        // Determine target (media vs content)
-        const isMediaLabel = ['porn', 'sexual', 'nudity', 'nsfw', 'graphic-media'].includes(val);
-        const target = isMediaLabel ? 'media' : 'content';
+        if (!isSelf && !labeler) continue;
+        if (isSelf && labelDef.flags.includes('no-self')) continue;
 
-        // Build source info (compatible with @atproto/api moderatePost output)
-        const source = label.src === authorDid
-            ? { type: 'user' }
-            : { type: 'labeler', did: label.src };
+        let labelPref: LabelPreference = labelDef.defaultSetting || 'ignore';
+        if (!labelDef.configurable) {
+            labelPref = labelDef.defaultSetting || 'hide';
+        } else if (labelDef.flags.includes('adult') && !options.prefs.adultContentEnabled) {
+            labelPref = 'hide';
+        } else if (labeler?.labels[labelDef.identifier]) {
+            labelPref = labeler.labels[labelDef.identifier];
+        } else if (options.prefs.labels[labelDef.identifier]) {
+            labelPref = options.prefs.labels[labelDef.identifier];
+        }
 
-        labelActions.push({ label, action, target, labelDef: customDef || null, source });
+        if (labelPref === 'ignore') continue;
+
+        if (labelDef.flags.includes('unauthed') && !!options.userDid) continue;
+
+        const target: 'content' | 'account' = 'content';
+
+        const behavior = labelDef.behaviors[target] || NOOP_BEHAVIOR;
+        const severity = measureBehaviorSeverity(behavior);
+
+        let priority: number;
+        if (
+            labelDef.flags.includes('no-override') ||
+            (labelDef.flags.includes('adult') && !options.prefs.adultContentEnabled)
+        ) {
+            priority = 1;
+        } else if (labelPref === 'hide') {
+            priority = 2;
+        } else if (severity === 0) {
+            priority = 5;
+        } else if (severity === 1) {
+            priority = 7;
+        } else {
+            priority = 8;
+        }
+
+        let noOverride = false;
+        if (labelDef.flags.includes('no-override')) {
+            noOverride = true;
+        } else if (labelDef.flags.includes('adult') && !options.prefs.adultContentEnabled) {
+            noOverride = true;
+        }
+
+        causes.push({
+            type: 'label',
+            source: isSelf || !labeler
+                ? { type: 'user' }
+                : { type: 'labeler', did: labeler.did },
+            label,
+            labelDef,
+            target,
+            setting: labelPref,
+            behavior,
+            noOverride,
+            priority,
+        });
     }
 
     return {
         muted,
         ui(context: string) {
-            let filter = false;
-            let blur = false;
-            let inform = false;
-            const blurs: any[] = [];
-            const informs: any[] = [];
+            const filters: ModerationCause[] = [];
+            const blurs: ModerationCause[] = [];
+            const alerts: ModerationCause[] = [];
+            const informs: ModerationCause[] = [];
+            let noOverride = false;
 
-            // Muted posts are filtered in list context
-            if (muted && context === 'contentList') {
-                filter = true;
-            }
+            for (const cause of causes) {
+                if (cause.type === 'muted') {
+                    if (!isMe) {
+                        if (context === 'profileList' || context === 'contentList') {
+                            filters.push(cause);
+                        }
+                        const muteAction = (MUTE_BEHAVIOR as any)[context];
+                        if (muteAction === 'blur') {
+                            blurs.push(cause);
+                        } else if (muteAction === 'alert') {
+                            alerts.push(cause);
+                        } else if (muteAction === 'inform') {
+                            informs.push(cause);
+                        }
+                    }
+                } else if (cause.type === 'label') {
+                    if (
+                        context === 'contentList' &&
+                        (cause.target === 'account' || cause.target === 'content') &&
+                        cause.setting === 'hide' &&
+                        !isMe
+                    ) {
+                        filters.push(cause);
+                    }
 
-            for (const { label, action, target, labelDef, source } of labelActions) {
-                const wrapped = { label, labelDef, source };
-                if (action === 'hide') {
-                    if (context === 'contentList') {
-                        filter = true;
-                    } else {
-                        blur = true;
-                        blurs.push(wrapped);
+                    const action = cause.behavior ? (cause.behavior as any)[context] : undefined;
+                    if (action === 'blur') {
+                        blurs.push(cause);
+                        if (cause.noOverride && !isMe) {
+                            noOverride = true;
+                        }
+                    } else if (action === 'alert') {
+                        alerts.push(cause);
+                    } else if (action === 'inform') {
+                        informs.push(cause);
                     }
-                } else if (action === 'warn') {
-                    if (context === 'contentMedia' && target === 'media') {
-                        blur = true;
-                        blurs.push(wrapped);
-                    } else if (context !== 'contentMedia' && target === 'content') {
-                        blur = true;
-                        blurs.push(wrapped);
-                    }
-                } else if (action === 'inform') {
-                    inform = true;
-                    informs.push(wrapped);
                 }
             }
 
-            return { filter, blur, inform, blurs, informs };
+            filters.sort((a, b) => a.priority - b.priority);
+            blurs.sort((a, b) => a.priority - b.priority);
+
+            return {
+                noOverride,
+                filter: filters.length > 0,
+                blur: blurs.length > 0,
+                alert: alerts.length > 0,
+                inform: informs.length > 0,
+                filters,
+                blurs,
+                alerts,
+                informs,
+            };
         }
     };
 }
@@ -142,16 +503,30 @@ export function contentLabelling(post: any, did: string, settings: any, labelDef
     labels['!warn'] = 'warn';
     labels.spoiler = 'warn';
 
+    const labelDefMap: Record<string, InterpretedLabelValueDefinition[]> = {};
+    if (Array.isArray(labelDefs)) {
+        for (const def of labelDefs) {
+            const defDid = def.definedBy;
+            if (!defDid) continue;
+            if (!labelDefMap[defDid]) labelDefMap[defDid] = [];
+            labelDefMap[defDid].push(
+                def.behaviors
+                    ? def
+                    : interpretLabelValueDefinition(def, defDid)
+            );
+        }
+    }
+
     const options = {
         userDid: did,
         prefs: {
-            adultContentEnabled: true,
+            adultContentEnabled: settings.moderation?.adultContentEnabled ?? true,
             mutedWords: [],
             hiddenPosts: [],
             labelers: labelerSettings,
             labels: labels,
         },
-        labelDefs: labelDefs,
+        labelDefs: labelDefMap,
     }
 
     return localModeratePost(post, options);
@@ -218,7 +593,6 @@ export function detectHide(moderateData: any, contentContext: 'contentView' | 'c
             return true;
         }
     } catch (e) {
-        // Nothing.
     }
 
     return current;

@@ -30,19 +30,11 @@
             value: emoji,
         };
 
-        if (message?.reactions.find(r => r.value === emoji)) {
-            return await currentAgent?.agent?.api.chat.bsky.convo.removeReaction(record, {
-                headers: {
-                    'atproto-proxy': CHAT_PROXY,
-                }
-            });
-        } else {
-            return await currentAgent?.agent?.api.chat.bsky.convo.addReaction(record, {
-                headers: {
-                    'atproto-proxy': CHAT_PROXY,
-                }
-            });
-        }
+        const nsid = message?.reactions.find(r => r.value === emoji)
+            ? 'chat.bsky.convo.removeReaction'
+            : 'chat.bsky.convo.addReaction';
+
+        return await currentAgent.xrpcPost(nsid, record, { proxy: CHAT_PROXY });
     }
 </script>
 

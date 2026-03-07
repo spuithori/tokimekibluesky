@@ -27,17 +27,13 @@
               rt = await detectRichTextWithEditorJson(currentAgent, text, json);
           }
 
-          const create = await currentAgent?.agent?.api.chat.bsky.convo.sendMessage({
+          await currentAgent.xrpcPost('chat.bsky.convo.sendMessage', {
               convoId: id,
               message: {
                   facets: rt ? rt.facets : undefined,
                   text: rt ? rt.text : '',
               },
-          }, {
-              headers: {
-                  'atproto-proxy': CHAT_PROXY,
-              }
-          });
+          }, { proxy: CHAT_PROXY });
 
           text = '';
           json = undefined;

@@ -5,6 +5,7 @@ import {ProxyAgent} from "$lib/proxyAgent";
 import { PersistedState } from "runed";
 import { get } from 'svelte/store';
 import { unwrapFunctionStore, format } from 'svelte-i18n';
+import {settingsState} from "$lib/classes/settingsState.svelte";
 
 class AppState {
     ready: boolean = $state(false);
@@ -101,6 +102,7 @@ class AppState {
         }
 
         this.ready = true;
+        settingsState.setPdsRequestReady();
     }
 
     changeProfile(id) {

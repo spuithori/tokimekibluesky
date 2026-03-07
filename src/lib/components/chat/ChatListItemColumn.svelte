@@ -41,11 +41,7 @@
 
     async function leaveChat() {
         try {
-            const res = await currentAgent?.agent?.api.chat.bsky.convo.leaveConvo({convoId: convo.id}, {
-                headers: {
-                    'atproto-proxy': CHAT_PROXY,
-                }
-            });
+            const res = await currentAgent.xrpcPost('chat.bsky.convo.leaveConvo', {convoId: convo.id}, { proxy: CHAT_PROXY });
             const id = res.data.convoId;
             toast.success($_('success_leave_chat'));
             onrefresh(id);
@@ -56,11 +52,7 @@
 
     async function muteChat() {
         try {
-            const res = await currentAgent?.agent?.api.chat.bsky.convo.muteConvo({convoId: convo.id}, {
-                headers: {
-                    'atproto-proxy': CHAT_PROXY,
-                }
-            });
+            const res = await currentAgent.xrpcPost('chat.bsky.convo.muteConvo', {convoId: convo.id}, { proxy: CHAT_PROXY });
             const id = res.data.convo.id;
             toast.success($_('success_mute_chat'));
             onrefresh(id);
@@ -71,11 +63,7 @@
 
     async function unMuteChat() {
         try {
-            const res = await currentAgent?.agent?.api.chat.bsky.convo.unmuteConvo({convoId: convo.id}, {
-                headers: {
-                    'atproto-proxy': CHAT_PROXY,
-                }
-            });
+            const res = await currentAgent.xrpcPost('chat.bsky.convo.unmuteConvo', {convoId: convo.id}, { proxy: CHAT_PROXY });
             const id = res.data.convo.id;
             toast.success($_('success_unmute_chat'));
             onrefresh(id);
