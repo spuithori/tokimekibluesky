@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
 		},
 
 		ssr: {
-			noExternal: ['tokimeki-video-player', 'hls.js'],
+			noExternal: ['tokimeki-video-player', 'hls.js', 'embla-carousel-wheel-gestures', 'wheel-gestures'],
 		},
 
 		server: {
