@@ -3,6 +3,7 @@ import { JoseKey } from '@atproto/jwk-jose';
 import { env } from '$env/dynamic/private';
 import { getDb } from './db.js';
 import { DbSessionStore, DbStateStore } from './oauth-stores.js';
+import { CachedSessionStore } from './cached-session-store.js';
 
 let client: NodeOAuthClient | null = null;
 let clientPromise: Promise<NodeOAuthClient> | null = null;
@@ -82,7 +83,7 @@ export async function getOAuthClient(): Promise<NodeOAuthClient> {
 			...(keyset ? { keyset } : {}),
 			requestLock: requestLocalLock,
 			stateStore: new DbStateStore(db),
-			sessionStore: new DbSessionStore(db)
+			sessionStore: new CachedSessionStore(new DbSessionStore(db))
 		});
 
 		return client;

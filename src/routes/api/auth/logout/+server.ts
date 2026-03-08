@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getOAuthClient } from '$lib/server/oauth-client.js';
 import { getDb } from '$lib/server/db.js';
+import { getRuntimeCache } from '$lib/server/runtime-cache.js';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
@@ -42,6 +43,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				primaryDid: newPrimary,
 				expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 			});
+		}
+
+		const cache = getRuntimeCache();
+		if (cache) {
+			try {
+				await cache.delete(`user_session:${locals.user.sessionId}`);
+			} catch {}
 		}
 
 		return json({ ok: true });
