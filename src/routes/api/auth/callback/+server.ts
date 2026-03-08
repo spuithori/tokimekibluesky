@@ -2,6 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getOAuthClient } from '$lib/server/oauth-client.js';
 import { getDb } from '$lib/server/db.js';
+import { getRuntimeCache } from '$lib/server/runtime-cache.js';
 import * as cookie from 'cookie';
 
 export const GET: RequestHandler = async ({ url, request, cookies }) => {
@@ -60,6 +61,11 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 				expiresAt: userSession.expiresAt,
 				accounts: [...existingAccounts, newAccount]
 			});
+		}
+
+		const cache = getRuntimeCache();
+		if (cache) {
+			try { await cache.delete(`user_session:${sessionId}`); } catch {}
 		}
 
 		cookies.set('tokimeki_session', sessionId, {
