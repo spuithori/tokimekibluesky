@@ -134,6 +134,26 @@ export class RealtimeClient {
     }
 }
 
+const profileCache = new Map<string, { data: any; ts: number }>();
+const PROFILE_CACHE_TTL = 60_000;
+
+async function getCachedProfile(_agent: any, did: string): Promise<any> {
+    const now = Date.now();
+    const cached = profileCache.get(did);
+    if (cached && now - cached.ts < PROFILE_CACHE_TTL) return cached.data;
+
+    const res = await _agent.xrpcGet('app.bsky.actor.getProfile', { actor: did });
+    profileCache.set(did, { data: res.data, ts: now });
+
+    if (profileCache.size > 200) {
+        for (const [key, val] of profileCache) {
+            if (now - val.ts > PROFILE_CACHE_TTL) profileCache.delete(key);
+        }
+    }
+
+    return res.data;
+}
+
 async function getRecord(_agent, uri, repost = undefined, retryCount = 0) {
     try {
         const res = await _agent.xrpcGet('app.bsky.feed.getPostThread', {depth: 0, parentHeight: 1, uri: uri});
@@ -147,11 +167,11 @@ async function getRecord(_agent, uri, repost = undefined, retryCount = 0) {
         }
 
         if (repost) {
-            const rres = await _agent.xrpcGet('app.bsky.actor.getProfile', {actor: repost.repo})
+            const profileData = await getCachedProfile(_agent, repost.repo);
             thread.reason = {
                 $type: 'app.bsky.feed.defs#reasonRepost',
                 indexedAt: repost.indexedAt,
-                by: rres.data,
+                by: profileData,
             }
         }
 

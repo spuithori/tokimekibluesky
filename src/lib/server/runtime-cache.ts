@@ -1,3 +1,5 @@
+import { getCache } from '@vercel/functions';
+
 export interface RuntimeCache {
 	get: (key: string) => Promise<unknown | null>;
 	set: (key: string, value: unknown, options?: { ttl?: number; tags?: string[] }) => Promise<void>;
@@ -12,7 +14,6 @@ export function getRuntimeCache(): RuntimeCache | null {
 	if (_initialized) return _cache;
 	_initialized = true;
 	try {
-		const { getCache } = require('@vercel/functions');
 		_cache = getCache();
 	} catch {
 		_cache = null;

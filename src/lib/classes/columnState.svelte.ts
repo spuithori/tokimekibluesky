@@ -298,6 +298,13 @@ export class ColumnState {
                 }
             }
         } else {
+            const hasTarget = feed.some((item: any) =>
+                item?.post?.uri === targetUri ||
+                item?.reply?.parent?.uri === targetUri ||
+                item?.reply?.root?.uri === targetUri
+            );
+            if (!hasTarget) return;
+
             let mutated = false;
             const newFeed = feed.map(item => {
                 const { patched, found } = patchItem(item);
@@ -403,6 +410,13 @@ export class ColumnState {
                 }
             }
         } else {
+            const hasTarget = feed.some((item: any) =>
+                item?.post?.uri === targetUri ||
+                item?.reply?.parent?.uri === targetUri ||
+                item?.reply?.root?.uri === targetUri
+            );
+            if (!hasTarget) return;
+
             let mutated = false;
             const newFeed = feed.map(item => {
                 const { patched, found } = patchItem(item);

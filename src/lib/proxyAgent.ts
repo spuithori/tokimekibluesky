@@ -17,6 +17,7 @@ type timelineOpt = {
 export class ProxyAgent {
 	private _did: string;
 	private _handle: string | undefined;
+	private _inflightGets = new Map<string, Promise<{ data: any }>>();
 	latestRev: string = '';
 	unreadChat: number = 0;
 
@@ -46,6 +47,25 @@ export class ProxyAgent {
 		params?: Record<string, any>,
 		opts?: { signal?: AbortSignal; lang?: string; proxy?: string }
 	): Promise<{ data: T }> {
+		const url = this._buildGetUrl(nsid, params, opts);
+
+		if (opts?.signal) return this._doGet<T>(url, opts.signal);
+
+		const existing = this._inflightGets.get(url);
+		if (existing) return existing as Promise<{ data: T }>;
+
+		const promise = this._doGet<T>(url).finally(() => {
+			this._inflightGets.delete(url);
+		});
+		this._inflightGets.set(url, promise);
+		return promise;
+	}
+
+	private _buildGetUrl(
+		nsid: string,
+		params?: Record<string, any>,
+		opts?: { lang?: string; proxy?: string }
+	): string {
 		const searchParams = new URLSearchParams();
 		searchParams.set('_did', this._did);
 		if (opts?.lang) searchParams.set('_lang', opts.lang);
@@ -65,13 +85,15 @@ export class ProxyAgent {
 			}
 		}
 
-		const response = await fetch(`/api/xrpc/${nsid}?${searchParams.toString()}`, {
-			signal: opts?.signal
-		});
+		return `/api/xrpc/${nsid}?${searchParams.toString()}`;
+	}
+
+	private async _doGet<T>(url: string, signal?: AbortSignal): Promise<{ data: T }> {
+		const response = await fetch(url, { signal });
 
 		if (!response.ok) {
 			const errorBody = await response.json().catch(() => ({}));
-			const error: any = new Error(errorBody.message || `XRPC ${nsid} failed: ${response.status}`);
+			const error: any = new Error(errorBody.message || `XRPC failed: ${response.status}`);
 			error.status = response.status;
 			error.error = errorBody.error;
 			throw error;
