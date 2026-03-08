@@ -63,11 +63,18 @@ export class SupabaseSessionDb implements SessionDb {
 	async getUserSession(
 		sessionId: string
 	): Promise<{ dids: string[]; primaryDid: string; expiresAt: string; accounts?: { did: string; handle?: string; avatar?: string; displayName?: string }[] } | undefined> {
-		const { data } = await getClient()
+		let { data } = await getClient()
 			.from('user_session')
 			.select('dids, primary_did, expires_at, accounts')
 			.eq('session_id', sessionId)
 			.single();
+		if (!data) {
+			({ data } = await getClient()
+				.from('user_session')
+				.select('dids, primary_did, expires_at')
+				.eq('session_id', sessionId)
+				.single());
+		}
 		if (!data) return undefined;
 		if (new Date(data.expires_at) < new Date()) {
 			await getClient().from('user_session').delete().eq('session_id', sessionId);
@@ -85,13 +92,22 @@ export class SupabaseSessionDb implements SessionDb {
 		sessionId: string,
 		data: { dids: string[]; primaryDid: string; expiresAt: string; accounts?: { did: string; handle?: string; avatar?: string; displayName?: string }[] }
 	): Promise<void> {
-		await getClient().from('user_session').upsert({
+		const row: Record<string, any> = {
 			session_id: sessionId,
 			dids: data.dids,
 			primary_did: data.primaryDid,
 			expires_at: data.expiresAt,
-			accounts: data.accounts || null
-		});
+		};
+		if (data.accounts) row.accounts = data.accounts;
+		const { error } = await getClient().from('user_session').upsert(row);
+		if (error) {
+			await getClient().from('user_session').upsert({
+				session_id: sessionId,
+				dids: data.dids,
+				primary_did: data.primaryDid,
+				expires_at: data.expiresAt,
+			});
+		}
 	}
 
 	async deleteUserSession(sessionId: string): Promise<void> {
