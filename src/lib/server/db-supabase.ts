@@ -62,10 +62,10 @@ export class SupabaseSessionDb implements SessionDb {
 
 	async getUserSession(
 		sessionId: string
-	): Promise<{ dids: string[]; primaryDid: string; expiresAt: string } | undefined> {
+	): Promise<{ dids: string[]; primaryDid: string; expiresAt: string; accounts?: { did: string; handle?: string; avatar?: string; displayName?: string }[] } | undefined> {
 		const { data } = await getClient()
 			.from('user_session')
-			.select('dids, primary_did, expires_at')
+			.select('dids, primary_did, expires_at, accounts')
 			.eq('session_id', sessionId)
 			.single();
 		if (!data) return undefined;
@@ -76,19 +76,21 @@ export class SupabaseSessionDb implements SessionDb {
 		return {
 			dids: data.dids,
 			primaryDid: data.primary_did,
-			expiresAt: data.expires_at
+			expiresAt: data.expires_at,
+			accounts: data.accounts || undefined
 		};
 	}
 
 	async setUserSession(
 		sessionId: string,
-		data: { dids: string[]; primaryDid: string; expiresAt: string }
+		data: { dids: string[]; primaryDid: string; expiresAt: string; accounts?: { did: string; handle?: string; avatar?: string; displayName?: string }[] }
 	): Promise<void> {
 		await getClient().from('user_session').upsert({
 			session_id: sessionId,
 			dids: data.dids,
 			primary_did: data.primaryDid,
-			expires_at: data.expiresAt
+			expires_at: data.expiresAt,
+			accounts: data.accounts || null
 		});
 	}
 

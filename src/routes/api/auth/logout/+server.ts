@@ -38,10 +38,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			await db.deleteUserSession(locals.user.sessionId);
 		} else {
 			const newPrimary = locals.user.primaryDid === did ? remainingDids[0] : locals.user.primaryDid;
+			const existingAccounts = locals.userSession?.accounts || [];
+			const remainingAccounts = existingAccounts.filter(a => a.did !== did);
 			await db.setUserSession(locals.user.sessionId, {
 				dids: remainingDids,
 				primaryDid: newPrimary,
-				expiresAt: new Date('9999-12-31T23:59:59.999Z').toISOString()
+				expiresAt: new Date('9999-12-31T23:59:59.999Z').toISOString(),
+				accounts: remainingAccounts.length > 0 ? remainingAccounts : undefined
 			});
 		}
 

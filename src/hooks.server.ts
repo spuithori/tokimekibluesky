@@ -40,6 +40,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 					dids: userSession.dids,
 					primaryDid: userSession.primaryDid
 				};
+				event.locals.userSession = userSession;
 			}
 		} catch (e) {
 			console.error('Failed to load user session:', e);

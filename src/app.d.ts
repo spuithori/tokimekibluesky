@@ -9,6 +9,12 @@ declare global {
 				dids: string[];
 				primaryDid: string;
 			};
+			userSession?: {
+				dids: string[];
+				primaryDid: string;
+				expiresAt: string;
+				accounts?: { did: string; handle?: string; avatar?: string; displayName?: string }[];
+			};
 		}
 		// interface PageData {}
 		// interface Platform {}

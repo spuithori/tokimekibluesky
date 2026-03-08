@@ -24,16 +24,17 @@ class AppState {
     singleColumnScrollPositions: Map<number, number> = new Map();
     private _prefetchedTimeline: { feed: any[]; cursor?: string } | null = null;
 
+    setPrefetchedTimeline(data: { feed: any[]; cursor?: string }) {
+        this._prefetchedTimeline = data;
+    }
+
     consumePrefetchedTimeline(): { feed: any[]; cursor?: string } | null {
         const data = this._prefetchedTimeline;
         this._prefetchedTimeline = null;
         return data;
     }
 
-    async init(serverUser?: ServerUserData | null, prefetch?: { timeline?: any } | null) {
-        if (prefetch?.timeline) {
-            this._prefetchedTimeline = prefetch.timeline;
-        }
+    async init(serverUser?: ServerUserData | null) {
         const profiles = await accountsDb.profiles.toArray();
         const anyAccounts = await accountsDb.accounts
             .toArray();

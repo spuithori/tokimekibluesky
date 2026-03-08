@@ -38,22 +38,27 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 		let sessionId = existingCookies['tokimeki_session'];
 		let userSession = sessionId ? await db.getUserSession(sessionId) : undefined;
 
+		const newAccount = { did, handle, avatar, displayName };
+
 		if (!sessionId || !userSession) {
 			sessionId = crypto.randomUUID();
 			const expiresAt = new Date('9999-12-31T23:59:59.999Z').toISOString();
 			await db.setUserSession(sessionId, {
 				dids: [did],
 				primaryDid: did,
-				expiresAt
+				expiresAt,
+				accounts: [newAccount]
 			});
 		} else {
 			const dids = userSession.dids.includes(did)
 				? userSession.dids
 				: [...userSession.dids, did];
+			const existingAccounts = (userSession.accounts || []).filter(a => a.did !== did);
 			await db.setUserSession(sessionId, {
 				dids,
 				primaryDid: userSession.primaryDid,
-				expiresAt: userSession.expiresAt
+				expiresAt: userSession.expiresAt,
+				accounts: [...existingAccounts, newAccount]
 			});
 		}
 

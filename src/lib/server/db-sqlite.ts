@@ -36,6 +36,8 @@ function getDatabase(): Database.Database {
 
 	`);
 
+	try { db.exec('ALTER TABLE user_session ADD COLUMN accounts TEXT'); } catch {}
+
 	return db;
 }
 
@@ -80,10 +82,10 @@ export class SqliteSessionDb implements SessionDb {
 
 	async getUserSession(
 		sessionId: string
-	): Promise<{ dids: string[]; primaryDid: string; expiresAt: string } | undefined> {
+	): Promise<{ dids: string[]; primaryDid: string; expiresAt: string; accounts?: { did: string; handle?: string; avatar?: string; displayName?: string }[] } | undefined> {
 		const row = getDatabase()
-			.prepare('SELECT dids, primary_did, expires_at FROM user_session WHERE session_id = ?')
-			.get(sessionId) as { dids: string; primary_did: string; expires_at: string } | undefined;
+			.prepare('SELECT dids, primary_did, expires_at, accounts FROM user_session WHERE session_id = ?')
+			.get(sessionId) as { dids: string; primary_did: string; expires_at: string; accounts: string | null } | undefined;
 		if (!row) return undefined;
 		if (new Date(row.expires_at) < new Date()) {
 			getDatabase().prepare('DELETE FROM user_session WHERE session_id = ?').run(sessionId);
@@ -92,19 +94,20 @@ export class SqliteSessionDb implements SessionDb {
 		return {
 			dids: JSON.parse(row.dids),
 			primaryDid: row.primary_did,
-			expiresAt: row.expires_at
+			expiresAt: row.expires_at,
+			accounts: row.accounts ? JSON.parse(row.accounts) : undefined
 		};
 	}
 
 	async setUserSession(
 		sessionId: string,
-		data: { dids: string[]; primaryDid: string; expiresAt: string }
+		data: { dids: string[]; primaryDid: string; expiresAt: string; accounts?: { did: string; handle?: string; avatar?: string; displayName?: string }[] }
 	): Promise<void> {
 		getDatabase()
 			.prepare(
-				'INSERT OR REPLACE INTO user_session (session_id, dids, primary_did, expires_at) VALUES (?, ?, ?, ?)'
+				'INSERT OR REPLACE INTO user_session (session_id, dids, primary_did, expires_at, accounts) VALUES (?, ?, ?, ?, ?)'
 			)
-			.run(sessionId, JSON.stringify(data.dids), data.primaryDid, data.expiresAt);
+			.run(sessionId, JSON.stringify(data.dids), data.primaryDid, data.expiresAt, data.accounts ? JSON.stringify(data.accounts) : null);
 	}
 
 	async deleteUserSession(sessionId: string): Promise<void> {

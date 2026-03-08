@@ -53,7 +53,7 @@
 
   interface Props {
     children?: import('svelte').Snippet;
-    data: { user: { primaryDid: string; dids: string[]; accounts: { did: string; handle?: string; avatar?: string; displayName?: string }[]; invalidDids: string[] } | null; prefetch?: { timeline?: any } | null };
+    data: { user: { primaryDid: string; dids: string[]; accounts: { did: string; handle?: string; avatar?: string; displayName?: string }[]; invalidDids: string[] } | null; prefetch?: { timeline?: Promise<{ feed: any[]; cursor?: string } | null> } | null };
   }
   let { children, data }: Props = $props();
 
@@ -220,7 +220,14 @@
   initColumns();
 
   if (browser) {
-    appState.init(data.user, data.prefetch);
+    appState.init(data.user);
+
+    if (data.prefetch?.timeline) {
+      Promise.resolve(data.prefetch.timeline).then(timeline => {
+        if (timeline) appState.setPrefetchedTimeline(timeline);
+      });
+    }
+
     viewPortSetting();
   }
 

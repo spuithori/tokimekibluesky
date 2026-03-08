@@ -9,10 +9,10 @@ export interface SessionDb {
 
 	getUserSession(
 		sessionId: string
-	): Promise<{ dids: string[]; primaryDid: string; expiresAt: string } | undefined>;
+	): Promise<{ dids: string[]; primaryDid: string; expiresAt: string; accounts?: { did: string; handle?: string; avatar?: string; displayName?: string }[] } | undefined>;
 	setUserSession(
 		sessionId: string,
-		data: { dids: string[]; primaryDid: string; expiresAt: string }
+		data: { dids: string[]; primaryDid: string; expiresAt: string; accounts?: { did: string; handle?: string; avatar?: string; displayName?: string }[] }
 	): Promise<void>;
 	deleteUserSession(sessionId: string): Promise<void>;
 }
