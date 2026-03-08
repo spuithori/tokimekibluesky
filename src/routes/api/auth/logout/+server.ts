@@ -41,7 +41,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			await db.setUserSession(locals.user.sessionId, {
 				dids: remainingDids,
 				primaryDid: newPrimary,
-				expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+				expiresAt: new Date('9999-12-31T23:59:59.999Z').toISOString()
 			});
 		}
 

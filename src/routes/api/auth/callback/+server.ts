@@ -40,7 +40,7 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 
 		if (!sessionId || !userSession) {
 			sessionId = crypto.randomUUID();
-			const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+			const expiresAt = new Date('9999-12-31T23:59:59.999Z').toISOString();
 			await db.setUserSession(sessionId, {
 				dids: [did],
 				primaryDid: did,
@@ -62,7 +62,7 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 			httpOnly: true,
 			secure: url.protocol === 'https:',
 			sameSite: 'lax',
-			maxAge: 30 * 24 * 60 * 60
+			maxAge: 10 * 365 * 24 * 60 * 60
 		});
 
 		const callbackParams = new URLSearchParams();
