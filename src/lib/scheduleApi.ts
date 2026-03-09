@@ -1,5 +1,5 @@
 import { PUBLIC_SCHEDULE_API_URL, PUBLIC_SCHEDULE_SERVICE_DID } from '$env/static/public';
-import type { Agent } from '@atproto/api';
+import type { Agent } from '$lib/agent';
 
 const SCHEDULE_API_URL = PUBLIC_SCHEDULE_API_URL;
 const SCHEDULE_SERVICE_DID = PUBLIC_SCHEDULE_SERVICE_DID;
@@ -73,10 +73,10 @@ interface ApiResponse<T = unknown> {
 }
 
 async function getServiceAuthToken(agent: Agent): Promise<string> {
-  const response = await agent.com.atproto.server.getServiceAuth({
+  const res = await agent.getServiceAuth({
     aud: SCHEDULE_SERVICE_DID,
   });
-  return response.data.token;
+  return res.token;
 }
 
 export async function checkScheduleAuth(agent: Agent): Promise<boolean> {

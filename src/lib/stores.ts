@@ -1,6 +1,5 @@
 import {derived, readable, writable} from 'svelte/store';
 import type {Agent} from '$lib/agent';
-import type { AppBskyActorDefs } from '@atproto/api';
 import type {Theme} from "$lib/types/theme";
 import {defaultReactionButtons} from "$lib/defaultSettings";
 import timerWorkerUrl from '$lib/workers/timer.js?url'
@@ -143,7 +142,7 @@ export const starterPackModal = writable({
 
 type listAddModal = {
     open: boolean,
-    author: AppBskyActorDefs.ProfileViewBasic | undefined,
+    author: any | undefined,
     did: string,
 }
 

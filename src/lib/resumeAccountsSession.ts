@@ -1,17 +1,17 @@
-import { AtpSessionData, AtpSessionEvent, BskyAgent, Agent as AtpAgent } from "@atproto/api";
 import { accountsDb, type Account } from "$lib/db";
 import { Agent } from "$lib/agent";
 import { settingsState } from "$lib/classes/settingsState.svelte";
 import { appState } from "$lib/classes/appState.svelte";
 import { restoreSession } from "$lib/oauth";
+import { PasswordSession, type SessionData } from "$lib/password-session";
 import type { OAuthSession } from "@atproto/oauth-client-browser";
 
 let _missingAccounts: Account[] = [];
 
 async function resumePasswordAccount(account: Account, proxy: string | undefined) {
-    const ag = new BskyAgent({
+    const passwordSession = new PasswordSession({
         service: account.service,
-        persistSession: async (evt: AtpSessionEvent, sess?: AtpSessionData) => {
+        persistSession: async (evt, sess?) => {
             await accountsDb.accounts.put({
                 id: account.id,
                 session: sess || account.session,
@@ -29,44 +29,43 @@ async function resumePasswordAccount(account: Account, proxy: string | undefined
         }
     });
 
-    if (proxy) {
-        await ag.configureProxy(proxy);
-    }
+    try {
+        await passwordSession.resumeSession(account.session as SessionData);
+        setTimeout(() => {
+            settingsState.setPdsRequestReady();
+        }, 1000);
+    } catch (error: any) {
+        console.log(error);
 
-    await ag.resumeSession(account.session!)
-        .then(() => {
+        if (error.message === 'Token has expired') {
+            _missingAccounts = [..._missingAccounts, account];
+            appState.missingAccounts = _missingAccounts;
+        } else {
+            console.log('Connection failed. Try resumeSession 3 seconds.');
             setTimeout(() => {
-                settingsState.setPdsRequestReady();
-            }, 1000);
-        })
-        .catch(error => {
-            console.log(error);
+                resumePasswordAccount(account, proxy);
+            }, 3000);
 
-            if (error.message === 'Token has expired') {
-                _missingAccounts = [..._missingAccounts, account];
-                appState.missingAccounts = _missingAccounts;
-            } else {
-                console.log('Connection failed. Try resumeSession 3 seconds.');
-                setTimeout(() => {
-                    resumePasswordAccount(account, proxy);
-                }, 3000);
-
-                return;
-            }
-        });
+            return null;
+        }
+    }
 
     return {
         id: account.id!,
-        agent: ag,
+        fetchHandler: passwordSession.createFetchHandler(),
+        did: account.did,
+        handle: (account.session as SessionData)?.handle,
+        service: account.service,
         isOAuth: false,
+        passwordSession,
     };
 }
 
 async function resumeOAuthAccount(account: Account): Promise<{
     id: number;
-    agent: AtpAgent;
+    fetchHandler: (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
+    did: string;
     isOAuth: true;
-    oauthSession: OAuthSession;
     fetchHandlePromise?: Promise<string | undefined>;
 } | null> {
     try {
@@ -79,14 +78,22 @@ async function resumeOAuthAccount(account: Account): Promise<{
             return null;
         }
 
-        const ag = new AtpAgent(oauthSession);
+        const fetchHandler = oauthSession.fetchHandler.bind(oauthSession);
 
-        const fetchHandlePromise = ag.getProfile({ actor: oauthSession.did })
-            .then(profile => profile.data.handle)
-            .catch(e => {
+        // Fetch handle in background
+        const fetchHandlePromise = (async () => {
+            try {
+                const path = `/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(oauthSession.did)}`;
+                const res = await fetchHandler(path, { method: 'GET' });
+                if (res.ok) {
+                    const data = await res.json();
+                    return data.handle as string;
+                }
+            } catch (e) {
                 console.warn('Failed to fetch handle for OAuth account:', e);
-                return undefined;
-            });
+            }
+            return undefined;
+        })();
 
         setTimeout(() => {
             settingsState.setPdsRequestReady();
@@ -94,10 +101,10 @@ async function resumeOAuthAccount(account: Account): Promise<{
 
         return {
             id: account.id!,
-            agent: ag,
+            fetchHandler,
+            did: oauthSession.did,
             isOAuth: true,
-            oauthSession: oauthSession,
-            fetchHandlePromise: fetchHandlePromise,
+            fetchHandlePromise,
         };
     } catch (error) {
         console.error('OAuth session restore error:', error);
@@ -126,8 +133,15 @@ export async function resumeAccountsSession(accounts: Account[], proxy: string |
     const results = await Promise.all(promises);
 
     results.forEach(result => {
-        if (result && result.agent) {
-            const agent = new Agent(result.agent, result.isOAuth, result.oauthSession);
+        if (result && result.fetchHandler) {
+            const agent = new Agent({
+                fetchHandler: result.fetchHandler,
+                did: result.did,
+                handle: result.handle,
+                service: result.service,
+                isOAuth: result.isOAuth,
+                passwordSession: result.passwordSession,
+            });
 
             if (result.fetchHandlePromise) {
                 result.fetchHandlePromise.then(handle => {

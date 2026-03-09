@@ -19,8 +19,8 @@
         const dids = await _agent.getSavedLabelerDids();
 
         if (dids.length) {
-            const res = await _agent.agent.getLabelers({dids: dids});
-            labelers = res.data.views;
+            const res = await _agent.xrpc.get('app.bsky.labeler.getServices', {dids: dids});
+            labelers = res.views;
         } else {
             labelers = [];
         }

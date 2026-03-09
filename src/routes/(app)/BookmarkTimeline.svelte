@@ -29,7 +29,7 @@
           const uris = feeds.map(feed => feed.uri);
           const res = await _agent.getTimeline({algorithm: column.algorithm, uris: uris});
 
-          const posts = res.data.posts.map(post => {
+          const posts = res.posts.map(post => {
               const id = feeds.find(feed => feed.cid === post.cid)?.id || undefined;
               return { post: post, bookmarkId: id };
           })

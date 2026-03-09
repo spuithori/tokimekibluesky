@@ -95,9 +95,9 @@
             }
         })
 
-        _agent.agent.api.app.bsky.actor.getProfile({actor: handle})
+        _agent.xrpc.get('app.bsky.actor.getProfile', {actor: handle})
             .then(res => {
-                profile = res.data
+                profile = res
 
                 if (profile?.associated?.labeler) {
                     isLabeler = true;
@@ -116,7 +116,7 @@
 
     async function chatBegin() {
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.getConvoForMembers(
+            const res = await _agent.xrpc.get('chat.bsky.convo.getConvoForMembers',
                 {
                     members: [_agent.did(), profile.did as string]
                 },
@@ -127,7 +127,7 @@
                 }
               );
 
-            const convo = res.data.convo;
+            const convo = res.convo;
 
             if (!junkColumnState.hasColumn('chat_' + convo.id)) {
                 junkColumnState.add({

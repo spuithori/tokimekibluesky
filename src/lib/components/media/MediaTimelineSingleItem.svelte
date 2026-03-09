@@ -1,6 +1,6 @@
 <script lang="ts">
     import {settings, labelerSettings} from '$lib/stores';
-    import {AppBskyEmbedImages} from '@atproto/api';
+    import {AppBskyEmbedImages} from '$lib/atproto-guards';
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
     import {EyeOff, Handshake, BadgeCheck, CircleCheck} from "lucide-svelte";
     import {appState} from "$lib/classes/appState.svelte.js";

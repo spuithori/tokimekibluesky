@@ -4,7 +4,7 @@
   import {page} from '$app/stores';
   import {lightFormat} from 'date-fns';
   import { fade } from 'svelte/transition';
-  import {BskyAgent, RichText} from '@atproto/api';
+  import {RichText} from '$lib/atproto-richtext';
   import {BadgeCheck, CircleCheck, Eye, EyeOff, Handshake, Radio, Globe, Calendar, Tag} from 'lucide-svelte';
   import SocialProof from "$lib/components/profile/SocialProof.svelte";
   import ProfileAtmosphere from "$lib/components/profile/ProfileAtmosphere.svelte";
@@ -38,7 +38,7 @@
     loop: false,
     watchDrag: gridWidth < 680,
   });
-  const __agent = new BskyAgent({service: _agent.service()});
+  const __serviceEndpoint = _agent.service();
   let isVerifierModalOpen = $state(false);
   let isAvatarZoomOpen = $state(false);
 
@@ -56,11 +56,8 @@
 
   async function getFirstRecord(handle) {
       try {
-          return await __agent.api.com.atproto.repo.listRecords({
-              collection: "app.bsky.feed.post",
-              limit: 1,
-              reverse: true,
-              repo: handle});
+          const res = await fetch(`${__serviceEndpoint}/xrpc/com.atproto.repo.listRecords?repo=${encodeURIComponent(handle)}&collection=${encodeURIComponent("app.bsky.feed.post")}&limit=1&reverse=true`);
+          return { data: await res.json() };
       } catch (e) {
           return null;
       }
@@ -87,8 +84,8 @@
           return false;
       }
 
-      const res = await _agent.agent.api.app.bsky.actor.getProfile({actor: handle});
-      profile = res.data;
+      const res = await _agent.xrpc.get('app.bsky.actor.getProfile', {actor: handle});
+      profile = res;
 
       if (profile.labels && Array.isArray(profile.labels)) {
           profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');

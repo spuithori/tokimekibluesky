@@ -40,8 +40,6 @@
   },
   "type": "module",
   "dependencies": {
-    "@atproto/api": "0.18.5",
-    "@atproto/common-web": "0.4.10",
     "@atproto/oauth-client-browser": "^0.3.39",
     "@fontsource-variable/inter": "^5.2.5",
     "@fontsource-variable/murecho": "^5.2.5",
@@ -82,6 +80,7 @@
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.0.7",
     "tokimeki-image-editor": "^0.2.9",
+    "tlds": "^1.261.0",
     "tokimeki-video-player": "^1.0.21"
   }
 }

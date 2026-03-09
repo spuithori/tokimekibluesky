@@ -1,10 +1,9 @@
-import {AppBskyRichtextFacet, AtpAgent, RichText} from "@atproto/api";
-import {detectFacets} from "@atproto/api/src/rich-text/detection";
+import {RichText, detectFacets} from "$lib/atproto-richtext";
 import {detectCashtagFacets} from "$lib/cashtag";
 const facetSort = (a, b) => a.index.byteStart - b.index.byteStart
 
 export class SimpleRichText extends RichText {
-    async detectFacetsWithoutLinks(agent: AtpAgent) {
+    async detectFacetsWithoutLinks(resolveHandle: (handle: string) => Promise<string | undefined>) {
         this.facets = detectFacets(this.unicodeText);
         if (this.facets) {
             this.facets = this.facets.filter(facet => {
@@ -13,11 +12,9 @@ export class SimpleRichText extends RichText {
 
             for (const facet of this.facets) {
                 for (const feature of facet.features) {
-                    if (AppBskyRichtextFacet.isMention(feature)) {
-                        const did = await agent
-                            .resolveHandle({handle: feature.did})
-                            .catch((_) => undefined)
-                            .then((res) => res?.data.did);
+                    if (feature.$type === 'app.bsky.richtext.facet#mention') {
+                        const did = await resolveHandle(feature.did)
+                            .catch((_) => undefined);
                         feature.did = did || '';
                     }
                 }

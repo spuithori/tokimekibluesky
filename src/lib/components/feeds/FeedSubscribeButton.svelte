@@ -13,16 +13,16 @@
     let isProcessing = $state(false);
 
     async function refreshSubscribe() {
-        const res = await _agent.agent.api.app.bsky.actor.getPreferences();
-        const getPreferences = res.data.preferences;
+        const res = await _agent.xrpc.get('app.bsky.actor.getPreferences');
+        const getPreferences = res.preferences;
         const savedFeeds = getPreferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')[0]?.saved;
         subscribed = savedFeeds.includes(feed.uri);
     }
 
     async function subscribe() {
         isProcessing = true;
-        const res = await _agent.agent.api.app.bsky.actor.getPreferences();
-        const preferences = res.data.preferences;
+        const res = await _agent.xrpc.get('app.bsky.actor.getPreferences');
+        const preferences = res.preferences;
         const newPreferences = preferences.map(preference => {
             if (preference.$type === 'app.bsky.actor.defs#savedFeedsPref' && preference.saved) {
                 preference.saved = [...preference.saved, feed.uri];
@@ -39,7 +39,7 @@
         }
 
         try {
-            await _agent.agent.api.app.bsky.actor.putPreferences({preferences: newPreferences})
+            await _agent.xrpc.post('app.bsky.actor.putPreferences', {preferences: newPreferences})
             await refreshSubscribe();
             isProcessing = false;
         } catch (e) {
@@ -50,8 +50,8 @@
 
     async function unsubscribe() {
         isProcessing = true;
-        const res = await _agent.agent.api.app.bsky.actor.getPreferences();
-        const preferences = res.data.preferences;
+        const res = await _agent.xrpc.get('app.bsky.actor.getPreferences');
+        const preferences = res.preferences;
         const newPreferences = preferences.map(preference => {
             if (preference.$type === 'app.bsky.actor.defs#savedFeedsPref' && preference.saved) {
                 preference.saved = preference.saved.filter(save => save !== feed.uri);
@@ -60,7 +60,7 @@
         });
 
         try {
-            await _agent.agent.api.app.bsky.actor.putPreferences({preferences: newPreferences})
+            await _agent.xrpc.post('app.bsky.actor.putPreferences', {preferences: newPreferences})
             await refreshSubscribe();
             isProcessing = false;
         } catch (e) {

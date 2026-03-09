@@ -2,7 +2,6 @@ import {accountsDb} from "$lib/db";
 import {agent, agents} from "$lib/stores";
 import {resumeAccountsSession} from "$lib/resumeAccountsSession";
 import {goto} from '$app/navigation';
-import {BskyAgent} from "@atproto/api";
 import { PersistedState } from "runed";
 import { get } from 'svelte/store';
 import { unwrapFunctionStore, format } from 'svelte-i18n';
@@ -89,11 +88,11 @@ class AppState {
 
         try {
             _agents.forEach((ag) => {
-                ag.agent.configureLabelers(this.subscribedLabelers.current);
+                ag.configureLabelers(this.subscribedLabelers.current);
             });
 
             if (!Object.keys(this.labelDefs.current).length) {
-                this.labelDefs.current = await _agent.agent.getLabelDefinitions(this.subscribedLabelers.current);
+                this.labelDefs.current = await _agent.getLabelDefinitions(this.subscribedLabelers.current);
             }
         } catch (e) {
             console.error(e);

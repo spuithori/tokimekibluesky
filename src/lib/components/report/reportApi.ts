@@ -47,7 +47,8 @@ export async function sendReport(
     : reasonType;
 
   try {
-    return await agent.agent.api.com.atproto.moderation.createReport(
+    return await agent.xrpc.post(
+      'com.atproto.moderation.createReport',
       {
         reasonType: finalReasonType,
         reason: text || undefined,
@@ -61,7 +62,8 @@ export async function sendReport(
     if (e?.status === 400 && reasonType.startsWith('tools.ozone.report.defs#')) {
       const legacyType = NEW_TO_OLD_REASONS_MAP[reasonType];
       if (legacyType) {
-        return await agent.agent.api.com.atproto.moderation.createReport(
+        return await agent.xrpc.post(
+          'com.atproto.moderation.createReport',
           {
             reasonType: legacyType,
             reason: text || undefined,
@@ -81,11 +83,11 @@ export async function getAvailableLabelers(agent: any, subscribedDids: string[])
   if (!subscribedDids.length) return [];
 
   try {
-    const res = await agent.agent.api.app.bsky.labeler.getServices({
+    const res = await agent.xrpc.get('app.bsky.labeler.getServices', {
       dids: subscribedDids,
       detailed: true,
     });
-    return res.data.views;
+    return res.views;
   } catch (e) {
     console.error('Failed to get labelers:', e);
     return [];

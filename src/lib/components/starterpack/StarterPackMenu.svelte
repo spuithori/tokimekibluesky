@@ -42,7 +42,7 @@
                 })
             }
 
-            const res = await _agent.agent.com.atproto.repo.applyWrites({
+            const res = await _agent.xrpc.post('com.atproto.repo.applyWrites', {
                 repo: _agent.did() as string,
                 writes: writes,
             });

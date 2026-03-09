@@ -30,10 +30,10 @@
         }
 
         ress.forEach((res, index) => {
-            feedPool.push(...res.data.feed);
+            feedPool.push(...res.feed);
             column.data.cursor.push({
                 actor: actors[index].actor,
-                cursor: res.data.cursor,
+                cursor: res.cursor,
             })
         })
         feedPool = feedPool.sort((a, b) => {

@@ -13,14 +13,14 @@
 
       try {
           const res = profile?.viewer?.activitySubscription
-              ? await _agent.agent.api.app.bsky.notification.putActivitySubscription({
+              ? await _agent.xrpc.post('app.bsky.notification.putActivitySubscription', {
                   subject: profile.did,
                   activitySubscription: {
                       post: false,
                       reply: false,
                   }
               })
-              : await _agent.agent.api.app.bsky.notification.putActivitySubscription({
+              : await _agent.xrpc.post('app.bsky.notification.putActivitySubscription', {
                   subject: profile.did,
                   activitySubscription: {
                       post: true,
@@ -28,10 +28,10 @@
                   }
               });
 
-          onupdate(res.data?.activitySubscription);
+          onupdate(res?.activitySubscription);
           toast.success($_('push_subscription_success'));
 
-          const { data: { subscriptions } } = await _agent.agent.api.app.bsky.notification.listActivitySubscriptions({ limit: 100 });
+          const { subscriptions } = await _agent.xrpc.get('app.bsky.notification.listActivitySubscriptions', { limit: 100 });
           await refreshPushListActivity(subscriptions.map(sub => sub.did), $locale);
       } catch (e) {
           toast.error($_('push_subscription_failed') + ' ' + e.message);

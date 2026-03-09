@@ -1,9 +1,10 @@
-import {Facet, UnicodeString} from "@atproto/api";
+import {UnicodeString} from "$lib/atproto-richtext";
+import type {Facet} from "$lib/atproto-richtext";
 import {SimpleRichText} from "$lib/components/editor/SimpleRichText";
 
 export async function detectRichTextWithEditorJson(_agent, text, json) {
     const rt = new SimpleRichText({text: text});
-    await rt.detectFacetsWithoutLinks(_agent.agent);
+    await rt.detectFacetsWithoutLinks((handle: string) => _agent.resolveHandle(handle));
     const linkFacets: Facet[] = detectLinkFacets(json);
     if (Array.isArray(rt.facets)) {
         rt.facets = [...rt.facets, ...linkFacets];
@@ -75,7 +76,7 @@ export function jsonToText(json) {
             })
         }
     })
-    
+
     return text;
 }
 

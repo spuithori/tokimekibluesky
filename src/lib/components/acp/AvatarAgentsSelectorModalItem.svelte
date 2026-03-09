@@ -21,10 +21,10 @@
 
   onMount(async () => {
       try {
-          const profile = await agent.agent.api.app.bsky.actor.getProfile({actor: agent.did() as string});
+          const profile = await agent.xrpc.get('app.bsky.actor.getProfile', {actor: agent.did() as string});
 
-          avatar = profile.data?.avatar || '';
-          displayName = profile.data?.displayName || '';
+          avatar = profile?.avatar || '';
+          displayName = profile?.displayName || '';
 
           accountsDb.accounts.update(key, {
               avatar: avatar,

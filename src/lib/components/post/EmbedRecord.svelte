@@ -1,7 +1,7 @@
 <script lang="ts">
   import { agent, labelerSettings, settings } from "$lib/stores";
   import {lightFormat} from "date-fns";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "$lib/atproto-guards";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";

@@ -18,7 +18,7 @@
   import {jsonToText} from "$lib/components/editor/richtext";
   import HashtagList from "$lib/components/editor/HashtagList.svelte";
   import {Hashtag} from "$lib/components/editor/hashtag";
-  import {TAG_REGEX, MENTION_REGEX} from '@atproto/api';
+  import {TAG_REGEX, MENTION_REGEX} from '$lib/atproto-richtext';
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
   import {Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink, SquareSplitVertical, BarChart3, Brush} from "lucide-svelte";
@@ -157,8 +157,8 @@
                                 return mentionsHistory || [];
                             }
 
-                            const res = await _agent.agent.api.app.bsky.actor.searchActorsTypeahead({term: query, limit: 6});
-                            return res.data.actors.length ? res.data.actors : mentionsHistory;
+                            const res = await _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term: query, limit: 6});
+                            return res.actors.length ? res.actors : mentionsHistory;
                         },
                         render: () => {
                             return {

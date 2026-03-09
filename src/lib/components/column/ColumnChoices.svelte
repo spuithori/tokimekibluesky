@@ -222,8 +222,8 @@
       const lists = account?.lists;
       officialLists = lists || [];
 
-      const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did(), limit: 100, cursor: ''});
-      officialLists = res.data.lists.filter(item => item?.purpose !== 'app.bsky.graph.defs#modlist');
+      const res = await _agent.xrpc.get('app.bsky.graph.getLists', {actor: _agent.did(), limit: 100, cursor: ''});
+      officialLists = res.lists.filter(item => item?.purpose !== 'app.bsky.graph.defs#modlist');
 
       await accountsDb.accounts.update(accountId, {
           lists: $state.snapshot(officialLists),

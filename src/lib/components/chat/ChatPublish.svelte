@@ -1,6 +1,6 @@
 <script lang="ts">
   import ChatTiptap from "$lib/components/chat/ChatTiptap.svelte";
-  import {RichText} from "@atproto/api";
+  import {RichText} from "$lib/atproto-richtext";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
   import {CHAT_PROXY} from "$lib/components/chat/chatConst";
   import type {Agent} from "$lib/agent";
@@ -27,7 +27,7 @@
               rt = await detectRichTextWithEditorJson(currentAgent, text, json);
           }
 
-          const create = await currentAgent?.agent?.api.chat.bsky.convo.sendMessage({
+          const create = await currentAgent?.xrpc.post('chat.bsky.convo.sendMessage', {
               convoId: id,
               message: {
                   facets: rt ? rt.facets : undefined,

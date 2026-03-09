@@ -27,8 +27,8 @@
           did = await getDidByHandle($page.params.handle, _agent);
         }
 
-        const res = await _agent.agent.api.app.bsky.feed.getFeedGenerator({feed: 'at://' + did + '/app.bsky.feed.generator/' + $page.params.id});
-        feed = res.data.view;
+        const res = await _agent.xrpc.get('app.bsky.feed.getFeedGenerator', {feed: 'at://' + did + '/app.bsky.feed.generator/' + $page.params.id});
+        feed = res.view;
       } catch (e) {
       }
     });

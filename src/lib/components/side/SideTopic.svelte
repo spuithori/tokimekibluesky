@@ -22,12 +22,12 @@
 
     async function handleLoadMore(loaded, complete) {
         try {
-            let raw = await _agent.agent.api.app.bsky.unspecced.getTrendingTopics({ limit: 20 }, {
+            let raw = await _agent.xrpc.get('app.bsky.unspecced.getTrendingTopics', { limit: 20 }, {
                 headers: {
                     'accept-language': $settings?.general?.userLanguage || 'en',
                 }
             });
-            topics = [...topics, ...raw.data.topics];
+            topics = [...topics, ...raw.topics];
 
             complete();
         } catch (e) {

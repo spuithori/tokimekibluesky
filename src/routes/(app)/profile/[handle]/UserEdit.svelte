@@ -67,19 +67,19 @@
             bannerBase64 = await imageCompression.getDataUrlFromFile(image);
         }
 
-        const fileBlob = await _agent.agent.api.com.atproto.repo.uploadBlob(image, {
+        const fileBlob = await _agent.xrpc.post('com.atproto.repo.uploadBlob', image, {
             encoding: 'image/jpeg',
         });
         isSubmitDisabled = false;
         submitButtonText = $_('submit_button_submit');
-        return fileBlob.data.blob
+        return fileBlob.blob
     }
 
     async function submit() {
         isSubmitDisabled = true;
         let currentProfile;
         try {
-            currentProfile = await _agent.agent.api.app.bsky.actor.profile.get({ repo: _agent.did(), rkey: 'self' });
+            currentProfile = await _agent.xrpc.get('com.atproto.repo.getRecord', { repo: _agent.did(), collection: 'app.bsky.actor.profile', rkey: 'self' });
         } catch(e) {
            console.log(e)
         }
@@ -100,7 +100,7 @@
         }
 
         try {
-            await _agent.agent.upsertProfile(_profile => {
+            await _agent.upsertProfile(_profile => {
                 const profile = _profile || {};
 
                 return {

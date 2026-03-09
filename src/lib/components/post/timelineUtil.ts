@@ -1,10 +1,25 @@
-import {AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyFeedDefs, BskyAgent} from "@atproto/api";
+import {AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord} from "$lib/atproto-guards";
 import {getImageBase64FromBlob, getImageObjectFromBlob, getService} from "$lib/util";
 import {getTextArray} from "$lib/richtext";
+import type {Agent} from "$lib/agent";
 
-export async function getEditPost(data: AppBskyFeedDefs.FeedViewPost) {
-    let _post = { did: data.post.author.did };
-    const __agent = new BskyAgent({service: await getService(data.post.author.did)});
+export async function getEditPost(data: any) {
+    let _post: any = { did: data.post.author.did };
+
+    // Create a temporary agent for fetching blobs
+    const service = await getService(data.post.author.did);
+    const tempFetch = async (input: string | URL | Request, init?: RequestInit) => {
+        const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+        const fullUrl = url.startsWith('/') ? `${service}${url}` : url;
+        return fetch(fullUrl, init);
+    };
+    const { Agent: AgentClass } = await import('$lib/agent');
+    const __agent = new AgentClass({
+        fetchHandler: tempFetch,
+        did: data.post.author.did,
+        service: service,
+        isOAuth: false,
+    });
 
     if (AppBskyEmbedImages.isView(data?.post?.embed)) {
         const blobs = data.post.record.embed.images.map(image => {

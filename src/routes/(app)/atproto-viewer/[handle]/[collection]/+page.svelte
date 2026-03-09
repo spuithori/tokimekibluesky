@@ -1,20 +1,19 @@
 <script lang="ts">
     import {page} from "$app/state";
-    import {BskyAgent} from "@atproto/api";
     import Infinite from "$lib/components/utils/Infinite.svelte";
     import Record from "$lib/components/viewer/Record.svelte";
 
     const handle = $derived(page.params.handle);
     const collection = $derived(page.params.collection);
     const endpoint = $derived(page.data.endpoint);
-    const _agent = new BskyAgent({service: endpoint});
 
     let records = $state([]);
     let cursor = $state();
 
     async function handleLoadMore(loaded, complete) {
         try {
-            const { data } = await _agent.com.atproto.repo.listRecords({repo: handle, collection: collection, cursor: cursor});
+            const listRes = await fetch(`${endpoint}/xrpc/com.atproto.repo.listRecords?repo=${encodeURIComponent(handle)}&collection=${encodeURIComponent(collection)}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`);
+            const data = await listRes.json();
             cursor = data.cursor;
             records = [...records, ...data.records];
 
@@ -30,7 +29,7 @@
     }
 </script>
 
-{#if _agent}
+{#if endpoint}
     <div class="collections-head">
         <h2 class="collections-head__title">{collection}</h2>
 

@@ -5,7 +5,6 @@ import { goto } from '$app/navigation';
 import { initOAuth } from '$lib/oauth';
 import { accountsDb } from '$lib/db';
 import { _ } from 'svelte-i18n';
-import { Agent as AtpAgent } from '@atproto/api';
 import { CircleSlash, CircleCheck } from 'lucide-svelte';
 import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
@@ -23,11 +22,14 @@ onMount(async () => {
             let avatar: string | undefined;
             let displayName: string | undefined;
             try {
-                const agent = new AtpAgent(result.session);
-                const profile = await agent.getProfile({ actor: did });
-                handle = profile.data.handle;
-                avatar = profile.data.avatar;
-                displayName = profile.data.displayName;
+                const fetchHandler = result.session.fetchHandler.bind(result.session);
+                const profileRes = await fetchHandler(`/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(did)}`, { method: 'GET' });
+                if (profileRes.ok) {
+                    const profileData = await profileRes.json();
+                    handle = profileData.handle;
+                    avatar = profileData.avatar;
+                    displayName = profileData.displayName;
+                }
             } catch (e) {
                 console.warn('Failed to fetch profile for OAuth account:', e);
             }

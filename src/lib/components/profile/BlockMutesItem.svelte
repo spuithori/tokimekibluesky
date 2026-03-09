@@ -16,7 +16,7 @@
   async function mute() {
       isDisabled = true;
       try {
-          const mute = await _agent.agent.api.app.bsky.graph.muteActor({actor: user.did});
+          const mute = await _agent.xrpc.post('app.bsky.graph.muteActor', {actor: user.did});
           user.viewer.muted = true;
       } catch (e) {
           console.error(e)
@@ -27,7 +27,7 @@
   async function unmute() {
       isDisabled = true;
       try {
-          const mute = await _agent.agent.api.app.bsky.graph.unmuteActor({actor: user.did});
+          const mute = await _agent.xrpc.post('app.bsky.graph.unmuteActor', {actor: user.did});
           user.viewer.muted = false;
       } catch (e) {
           console.error(e)
@@ -38,12 +38,15 @@
   async function block() {
       isDisabled = true;
       try {
-          const block = await _agent.agent.api.app.bsky.graph.block.create(
-              { repo: _agent.did() as string },
-              {
+          const block = await _agent.xrpc.post('com.atproto.repo.createRecord', {
+              repo: _agent.did() as string,
+              collection: 'app.bsky.graph.block',
+              record: {
+                  $type: 'app.bsky.graph.block',
                   subject: user.did,
                   createdAt: new Date().toISOString(),
-              });
+              },
+          });
           user.viewer.blocking = block.uri;
       } catch (e) {
           console.error(e)
@@ -55,12 +58,11 @@
       isDisabled = true;
       try {
           const rkey = user.viewer.blocking.split('/').slice(-1)[0];
-          const block = await _agent.agent.api.app.bsky.graph.block.delete(
-              { rkey: rkey, repo: _agent.did() as string },
-              {
-                  subject: user.did,
-                  createdAt: new Date().toISOString(),
-              });
+          const block = await _agent.xrpc.post('com.atproto.repo.deleteRecord', {
+              repo: _agent.did() as string,
+              collection: 'app.bsky.graph.block',
+              rkey: rkey,
+          });
           user.viewer.blocking = undefined;
       } catch (e) {
           console.error(e)

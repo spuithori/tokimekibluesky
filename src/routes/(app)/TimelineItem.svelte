@@ -2,7 +2,7 @@
   import {_} from 'svelte-i18n'
   import { Trash2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply, VolumeX, ShieldBan, BellOff, Bell } from 'lucide-svelte';
   import { agent, settings, reportModal, listAddModal, agents, repostMutesSet, postMutes, postMutesSet, bluefeedAddModal, pulseDetach, junkAgentDid, agentDidsSet } from '$lib/stores';
-  import { AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '@atproto/api'
+  import { AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '$lib/atproto-guards'
   import { toast } from "svelte-sonner";
   import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
@@ -206,7 +206,7 @@
                 const pollInfo = getPollUrl(embedUri);
                 if (pollInfo && pollInfo.did === _agent.did()) {
                     try {
-                        await _agent.agent.api.com.atproto.repo.deleteRecord({
+                        await _agent.xrpc.post('com.atproto.repo.deleteRecord', {
                             repo: _agent.did(),
                             collection: 'tech.tokimeki.poll.poll',
                             rkey: pollInfo.rkey
@@ -217,9 +217,11 @@
                 }
             }
 
-            await _agent.agent.api.app.bsky.feed.post.delete(
-                {repo: _agent.did(), rkey: rkey}
-            );
+            await _agent.xrpc.post('com.atproto.repo.deleteRecord', {
+                repo: _agent.did(),
+                collection: 'app.bsky.feed.post',
+                rkey: rkey,
+            });
 
             columnState.deletePost(uri);
             junkColumnState.deletePost(uri);
@@ -358,7 +360,7 @@
         isMenuOpen = false;
 
         try {
-            await _agent.agent.api.app.bsky.graph.muteThread({root: getThreadRootUri()});
+            await _agent.xrpc.post('app.bsky.graph.muteThread', {root: getThreadRootUri()});
             data.post.viewer = {...data.post.viewer, threadMuted: true};
             toast.success($_('thread_mute_success'));
         } catch (e) {
@@ -370,7 +372,7 @@
         isMenuOpen = false;
 
         try {
-            await _agent.agent.api.app.bsky.graph.unmuteThread({root: getThreadRootUri()});
+            await _agent.xrpc.post('app.bsky.graph.unmuteThread', {root: getThreadRootUri()});
             data.post.viewer = {...data.post.viewer, threadMuted: false};
             toast.success($_('thread_unmute_success'));
         } catch (e) {
@@ -382,7 +384,7 @@
         isMenuOpen = false;
 
         try {
-            await _agent.agent.upsertProfile(_profile => {
+            await _agent.upsertProfile(_profile => {
                 const profile = _profile || {};
                 profile.pinnedPost = {
                     uri: data.post.uri,
@@ -410,7 +412,7 @@
         isMenuOpen = false;
 
         try {
-            await _agent.agent.upsertProfile(_profile => {
+            await _agent.upsertProfile(_profile => {
                 const profile = _profile || {};
                 profile.pinnedPost = undefined;
 
@@ -443,7 +445,8 @@
         }
 
         try {
-            const { value } = await _agent.agent.app.bsky.feed.postgate.get({repo: _agent.did(), rkey: rkey});
+            const res = await _agent.xrpc.get('com.atproto.repo.getRecord', {repo: _agent.did(), collection: 'app.bsky.feed.postgate', rkey: rkey});
+            const value = res.value;
             detachedEmbeddingUris = value?.detachedEmbeddingUris || [];
             embeddingRules = value?.embeddingRules || [];
         } catch (e) {
@@ -451,7 +454,7 @@
         }
 
         try {
-            const res = await _agent.agent.com.atproto.repo.putRecord({
+            const res = await _agent.xrpc.post('com.atproto.repo.putRecord', {
                 collection: 'app.bsky.feed.postgate',
                 rkey: rkey,
                 repo: _agent.did() as string,
@@ -480,7 +483,7 @@
 
     async function mute() {
         try {
-            const mute = await _agent.agent.api.app.bsky.graph.muteActor({actor: data.post.author.did});
+            await _agent.xrpc.post('app.bsky.graph.muteActor', {actor: data.post.author.did});
             columnState.deletePostsFromDid(data.post.author.did);
             junkColumnState.deletePostsFromDid(data.post.author.did);
             toast.success($_('success_mute_on_menu'));
@@ -491,12 +494,15 @@
 
     async function block() {
         try {
-            const block = await _agent.agent.api.app.bsky.graph.block.create(
-              { repo: _agent.did() as string },
-              {
+            await _agent.xrpc.post('com.atproto.repo.createRecord', {
+              repo: _agent.did() as string,
+              collection: 'app.bsky.graph.block',
+              record: {
+                  $type: 'app.bsky.graph.block',
                   subject: data.post.author.did,
                   createdAt: new Date().toISOString(),
-              });
+              },
+            });
             columnState.deletePostsFromDid(data.post.author.did);
             junkColumnState.deletePostsFromDid(data.post.author.did);
             toast.success($_('success_block_on_menu'));

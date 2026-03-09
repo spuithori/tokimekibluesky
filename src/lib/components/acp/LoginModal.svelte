@@ -1,7 +1,7 @@
 <script lang="ts">
   import { preventDefault } from 'svelte/legacy';
   import { _ } from "svelte-i18n";
-  import { AtpAgent, AtpSessionData } from "@atproto/api";
+  import { PasswordSession, type SessionData } from "$lib/password-session";
   import { accountsDb } from "$lib/db";
   import { createEventDispatcher } from "svelte";
   import { toast } from "svelte-sonner";
@@ -28,31 +28,31 @@
   let isOAuthLoading = $state(false);
 
   async function loginWithPassword() {
-    const agent = new AtpAgent({
+    const passwordSession = new PasswordSession({
       service: service,
     });
 
     try {
-      await agent.login({ identifier: identifier, password: password, authFactorToken: isTwoFactor ? twoFactorValue : undefined });
+      const sessionData = await passwordSession.login({ identifier: identifier, password: password, authFactorToken: isTwoFactor ? twoFactorValue : undefined });
 
       let id: number;
 
       if (existingId) {
         await accountsDb.accounts.update(existingId, {
-          session: agent.session as AtpSessionData,
-          did: agent.session?.did || '',
+          session: sessionData as SessionData,
+          did: sessionData.did || '',
           service: service,
-          handle: agent.session?.handle,
+          handle: sessionData.handle,
           isOAuth: false,
           oauthDid: undefined,
         });
         id = existingId;
       } else {
         id = await accountsDb.accounts.put({
-          session: agent.session as AtpSessionData,
-          did: agent.session?.did || '',
+          session: sessionData as SessionData,
+          did: sessionData.did || '',
           service: service,
-          handle: agent.session?.handle,
+          handle: sessionData.handle,
           avatar: '',
           following: undefined,
           notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],

@@ -4,7 +4,7 @@
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import {getReasonText} from "$lib/components/notification/notificationUtil";
-    import {AppBskyEmbedImages} from "@atproto/api";
+    import {AppBskyEmbedImages} from "$lib/atproto-guards";
     import Images from "../../../routes/(app)/Images.svelte";
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";

@@ -26,9 +26,9 @@
     const uri = column.algorithm.algorithm;
 
     try {
-      const raw = await _agent.agent.api.app.bsky.feed.getPostThread({uri: uri});
-      const authorDid = raw.data.thread?.post?.author?.did;
-      const transFormThread = transformThreadView(raw.data.thread);
+      const raw = await _agent.xrpc.get('app.bsky.feed.getPostThread', {uri: uri});
+      const authorDid = raw.thread?.post?.author?.did;
+      const transFormThread = transformThreadView(raw.thread);
       const sortedThread = sortThreadView(transFormThread, authorDid);
       const flatThread = sortedThread.flat(Infinity);
 

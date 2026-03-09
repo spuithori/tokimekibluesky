@@ -1,7 +1,5 @@
-import type { AppBskyRichtextFacet } from '@atproto/api';
-import { UnicodeString } from '@atproto/api';
-
-type Facet = AppBskyRichtextFacet.Main;
+import { UnicodeString } from '$lib/atproto-richtext';
+import type { Facet } from '$lib/atproto-richtext';
 
 export const CASHTAG_REGEX =
   /(^|\s|\()\$([A-Za-z][A-Za-z0-9]{0,4})(?=[\s.,;:!?)"'\u2019]|$)/gu;

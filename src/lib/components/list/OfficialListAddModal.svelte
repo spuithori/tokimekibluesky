@@ -19,19 +19,19 @@
         let listItems = [];
 
         for (let cursor; cursor !== null;) {
-            const res = await _agent.agent.api.com.atproto.repo.listRecords({
+            const res = await _agent.xrpc.get('com.atproto.repo.listRecords', {
                 collection: 'app.bsky.graph.listitem',
                 repo: _agent.did(),
                 cursor: cursor,
                 limit: 100,
             })
 
-            res.data.records.forEach(record => {
+            res.records.forEach(record => {
                 if (record.value?.subject === author.did) {
                     listItems = [...listItems, record]
                 }
             });
-            cursor = res.data?.cursor || null;
+            cursor = res?.cursor || null;
         }
 
         const _lists = lists.map(list => {
@@ -55,9 +55,9 @@
       isDisabled = true;
 
       try {
-        const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did() as string});
+        const res = await _agent.xrpc.get('app.bsky.graph.getLists', {actor: _agent.did() as string});
 
-        lists = await applyListItem(res.data.lists);
+        lists = await applyListItem(res.lists);
       } catch (e) {
         console.error(e);
         toast.error(e);

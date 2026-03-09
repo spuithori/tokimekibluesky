@@ -30,9 +30,9 @@
 
     async function handleLoadMore(loaded, complete) {
         try {
-            let raw = await $agent.agent.api.app.bsky.graph.getActorStarterPacks({actor: await getDidByHandle(data.params.handle, $agent), limit: 20, cursor: cursor});
-            cursor = raw.data.cursor;
-            starterPacks = [...starterPacks, ...raw.data.starterPacks];
+            let raw = await $agent.xrpc.get('app.bsky.graph.getActorStarterPacks', {actor: await getDidByHandle(data.params.handle, $agent), limit: 20, cursor: cursor});
+            cursor = raw.cursor;
+            starterPacks = [...starterPacks, ...raw.starterPacks];
 
             if (cursor) {
                 loaded();
@@ -53,9 +53,9 @@
         starterPacks = [];
         cursor = '';
         try {
-            let raw = await $agent.agent.api.app.bsky.graph.getActorStarterPacks({actor: await getDidByHandle(data.params.handle, $agent), limit: 20});
-            cursor = raw.data.cursor;
-            starterPacks = raw.data.starterPacks;
+            let raw = await $agent.xrpc.get('app.bsky.graph.getActorStarterPacks', {actor: await getDidByHandle(data.params.handle, $agent), limit: 20});
+            cursor = raw.cursor;
+            starterPacks = raw.starterPacks;
         } catch (e) {
             console.error(e);
         }

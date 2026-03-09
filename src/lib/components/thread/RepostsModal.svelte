@@ -11,9 +11,9 @@
 
     async function handleLoadMore(loaded, complete) {
         try {
-            const res = await _agent.agent.api.app.bsky.feed.getRepostedBy({uri: uri, cursor: cursor});
-            cursor = res.data.cursor;
-            reposts = [...reposts, ...res.data.repostedBy];
+            const res = await _agent.xrpc.get('app.bsky.feed.getRepostedBy', {uri: uri, cursor: cursor});
+            cursor = res.cursor;
+            reposts = [...reposts, ...res.repostedBy];
 
             if (cursor) {
                 loaded();

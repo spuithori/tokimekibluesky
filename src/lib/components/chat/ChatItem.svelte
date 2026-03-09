@@ -3,7 +3,7 @@
     import {lightFormat} from "date-fns";
     import {isEmojiSequenceOrCombination} from "$lib/util";
     import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
-    import {AppBskyEmbedRecord} from "@atproto/api";
+    import {AppBskyEmbedRecord} from "$lib/atproto-guards";
     import { Flag, Laugh } from "lucide-svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {agent, reportModal} from "$lib/stores";
@@ -17,7 +17,7 @@
 
         try {
             const res = await toggleReaction(emoji.native);
-            updateReaction(res.data.message);
+            updateReaction(res.message);
         } catch (e) {
             console.error(e);
         }
@@ -31,13 +31,13 @@
         };
 
         if (message?.reactions.find(r => r.value === emoji)) {
-            return await currentAgent?.agent?.api.chat.bsky.convo.removeReaction(record, {
+            return await currentAgent?.xrpc.post('chat.bsky.convo.removeReaction', record, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
             });
         } else {
-            return await currentAgent?.agent?.api.chat.bsky.convo.addReaction(record, {
+            return await currentAgent?.xrpc.post('chat.bsky.convo.addReaction', record, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }

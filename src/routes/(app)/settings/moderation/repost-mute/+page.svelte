@@ -27,9 +27,9 @@
 
   async function handleLoadMore(loaded, complete) {
     try {
-      let res = await $agent.agent.api.app.bsky.actor.getProfiles({ actors: slicedArray[cursor] });
+      let res = await $agent.xrpc.get('app.bsky.actor.getProfiles', { actors: slicedArray[cursor] });
       cursor = cursor + 1;
-      actors = [...actors, ...res.data.profiles];
+      actors = [...actors, ...res.profiles];
 
       if (cursor < slicedArray.length) {
         loaded();

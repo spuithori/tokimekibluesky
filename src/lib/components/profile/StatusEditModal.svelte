@@ -77,7 +77,7 @@
         }
 
         try {
-            await _agent.agent.com.atproto.repo.putRecord({
+            await _agent.xrpc.post('com.atproto.repo.putRecord', {
                 repo: _agent.did(),
                 rkey: 'self',
                 collection: 'app.bsky.actor.status',
@@ -94,8 +94,9 @@
     async function deleteStatus() {
         isDisabled = true;
         try {
-            await _agent.agent.app.bsky.actor.status.delete({
+            await _agent.xrpc.post('com.atproto.repo.deleteRecord', {
                 repo: _agent.did(),
+                collection: 'app.bsky.actor.status',
                 rkey: 'self',
             });
 
@@ -111,10 +112,10 @@
             const imageRes = await fetch(_blob);
             let blob = await imageRes.blob();
 
-            const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
+            const res = await _agent.xrpc.post('com.atproto.repo.uploadBlob', blob, {
                 encoding: 'image/jpeg',
             });
-            return res.data.blob;
+            return res.blob;
         } catch (e) {
             toast.error(e);
         }

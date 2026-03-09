@@ -13,8 +13,8 @@
   const postState = getPostState();
 
   async function getSavedFeeds () {
-    const preferenceRes = await _agent.agent.api.app.bsky.actor.getPreferences()
-    const preference = preferenceRes.data.preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')
+    const preferenceRes = await _agent.xrpc.get('app.bsky.actor.getPreferences')
+    const preference = preferenceRes.preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')
     savedFeeds = preference[0]?.saved || [];
   }
 

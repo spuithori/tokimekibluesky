@@ -8,8 +8,8 @@
 
   onMount(async () => {
       try {
-          const res = await _agent.agent.api.app.bsky.feed.getFeedGenerator({feed: feedUri});
-          feed = res.data.view;
+          const res = await _agent.xrpc.get('app.bsky.feed.getFeedGenerator', {feed: feedUri});
+          feed = res.view;
       } catch (e) {
           //
       }

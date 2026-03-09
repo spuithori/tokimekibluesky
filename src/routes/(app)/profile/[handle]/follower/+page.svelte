@@ -25,13 +25,13 @@
 
   async function handleLoadMore(loaded, complete) {
       try {
-          let raw = await agentContext.agent.agent.api.app.bsky.graph.getFollowers({
+          let raw = await agentContext.agent.xrpc.get('app.bsky.graph.getFollowers', {
               actor: data.params.handle,
               limit: 20,
               cursor: cursor
           });
-          cursor = raw.data.cursor;
-          followers = [...new Map([...followers, ...raw.data.followers].map(follower => [follower.did, follower])).values()];
+          cursor = raw.cursor;
+          followers = [...new Map([...followers, ...raw.followers].map(follower => [follower.did, follower])).values()];
 
           if (cursor) {
               loaded();

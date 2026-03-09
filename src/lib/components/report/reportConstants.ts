@@ -1,5 +1,5 @@
 import type { ReportCategory } from './reportTypes';
-import { ToolsOzoneReportDefs } from '@atproto/api';
+import { ToolsOzoneReportDefs } from '$lib/atproto-guards';
 
 const {
   REASONMISLEADINGSPAM,

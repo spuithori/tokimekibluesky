@@ -1,5 +1,5 @@
-import {moderatePost} from '@atproto/api';
-import type {ModerationOpts} from '@atproto/api';
+import {moderatePost} from '$lib/atproto-moderation';
+import type {ModerationOpts} from '$lib/atproto-moderation';
 import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
 
 function isValidTimeFormat(time: string): boolean {
