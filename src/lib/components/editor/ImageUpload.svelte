@@ -10,7 +10,6 @@
         resizeAspectRatioSize,
         transformImageFilter
     } from "$lib/components/editor/imageUploadUtil";
-    import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
     import {X} from "lucide-svelte";
     import {toast} from "svelte-sonner";
     import {publishState} from "$lib/classes/publishState.svelte";
@@ -205,7 +204,9 @@
 
 {#if video}
     <div class="video-upload-item">
-        <EmbedVideo video={videoUrl} isLocal={true}></EmbedVideo>
+        {#await import('$lib/components/post/EmbedVideo.svelte') then { default: EmbedVideo }}
+            <EmbedVideo video={videoUrl} isLocal={true}></EmbedVideo>
+        {/await}
 
         <button class="video-upload-item__close" onclick={handleVideoDelete}>
             <X color="#fff" size="18"></X>

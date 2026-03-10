@@ -13,7 +13,6 @@
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
   import imageCompression from 'browser-image-compression';
   import PublishPool from "$lib/components/editor/PublishPool.svelte";
-  import PublishMain from "$lib/components/editor/PublishMain.svelte";
   import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
   import {tick} from "svelte";
   import {TID} from "$lib/atproto-tid";
@@ -1134,17 +1133,19 @@
         {/if}
 
         {#if (index === postState.index)}
-          <PublishMain
-                  {index}
-                  bind:_agent={_agent}
-                  onadd={applyAddThread}
-                  onopen={handleOpen}
-                  onpublish={publishAll}
-                  bind:editor={editor}
-                  bind:isEnabled={isEnabled}
-                  {submitArea}
-          >
-          </PublishMain>
+          {#await import('$lib/components/editor/PublishMain.svelte') then { default: PublishMain }}
+            <PublishMain
+                    {index}
+                    bind:_agent={_agent}
+                    onadd={applyAddThread}
+                    onopen={handleOpen}
+                    onpublish={publishAll}
+                    bind:editor={editor}
+                    bind:isEnabled={isEnabled}
+                    {submitArea}
+            >
+            </PublishMain>
+          {/await}
         {:else}
           <PublishPool {post} {index} bind:_agent={_agent} onchange={applyChangeThread} isEnabled={isPublishing}></PublishPool>
         {/if}

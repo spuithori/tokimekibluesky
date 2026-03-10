@@ -3,7 +3,7 @@
   import { _ } from 'svelte-i18n';
   import { db } from '$lib/db';
   import { agent } from "$lib/stores";
-  import { lightFormat } from 'date-fns';
+  import { formatDate } from '$lib/dateFormat';
   import type { Draft } from '$lib/db';
   import Modal from "$lib/components/ui/Modal.svelte";
   import { stateQuery } from "$lib/classes/dbState.svelte";
@@ -41,7 +41,7 @@
     {#if (drafts)}
       {#each drafts as draft}
         <div class="drafts__item">
-          <p class="drafts__date">{lightFormat(draft.createdAt, 'yyyy-MM-dd HH:mm:ss')}</p>
+          <p class="drafts__date">{formatDate(draft.createdAt, 'yyyy-MM-dd HH:mm:ss')}</p>
 
           {#if draft?.replyRef?.data}
             <p class="drafts__reply">{$_('drafts_reply')}: @{draft.replyRef?.data.parent.author.handle} {draft.replyRef?.data.parent.record.text}</p>

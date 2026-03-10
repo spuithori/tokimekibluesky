@@ -4,7 +4,7 @@ import { settingsState } from "$lib/classes/settingsState.svelte";
 import { appState } from "$lib/classes/appState.svelte";
 import { restoreSession } from "$lib/oauth";
 import { PasswordSession, type SessionData } from "$lib/password-session";
-import type { OAuthSession } from "@atproto/oauth-client-browser";
+import type { OAuthSession } from "$lib/oauth/types";
 
 let _missingAccounts: Account[] = [];
 

@@ -1,14 +1,8 @@
-import { BrowserOAuthClient, type OAuthSession } from '@atproto/oauth-client-browser';
-import { createConfidentialBrowserClient } from './oauth/confidential-browser-client';
+import { OAuthClient } from './oauth/client';
+import { createConfidentialFetch } from './oauth/confidential-fetch';
+import type { OAuthSession } from './oauth/types';
 
-const HANDLE_RESOLVER = 'https://bsky.social';
-
-function getLoopbackClientId(): string {
-    const port = window.location.port || '5173';
-    const redirectUri = `http://127.0.0.1:${port}/oauth/callback`;
-    const scope = 'atproto transition:generic transition:chat.bsky';
-    return `http://localhost?redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
-}
+const SCOPE = 'atproto transition:generic transition:chat.bsky';
 
 function isLocalhost(): boolean {
     if (typeof window === 'undefined') return false;
@@ -16,57 +10,58 @@ function isLocalhost(): boolean {
     return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
+function getLoopbackClientId(): string {
+    const port = window.location.port || '5173';
+    const redirectUri = `http://127.0.0.1:${port}/oauth/callback`;
+    return `http://localhost?redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(SCOPE)}`;
+}
+
 function getClientId(): string {
     if (typeof window === 'undefined') return '';
     return `${window.location.origin}/oauth-client-metadata.json`;
 }
 
-let oauthClient: BrowserOAuthClient | null = null;
-let oauthClientPromise: Promise<BrowserOAuthClient> | null = null;
+function getRedirectUri(): string {
+    if (typeof window === 'undefined') return '';
+    return `${window.location.origin}/oauth/callback`;
+}
 
-export async function getOAuthClient(): Promise<BrowserOAuthClient> {
-    if (oauthClient) {
-        return oauthClient;
-    }
+let oauthClient: OAuthClient | null = null;
 
-    if (oauthClientPromise) {
-        return oauthClientPromise;
-    }
+function getOAuthClient(): OAuthClient {
+    if (oauthClient) return oauthClient;
 
     if (isLocalhost()) {
-        oauthClientPromise = BrowserOAuthClient.load({
+        oauthClient = new OAuthClient({
             clientId: getLoopbackClientId(),
-            handleResolver: HANDLE_RESOLVER,
-        }).then(client => {
-            oauthClient = client;
-            return client;
+            redirectUri: `http://127.0.0.1:${window.location.port || '5173'}/oauth/callback`,
+            scope: SCOPE,
         });
     } else {
-        oauthClientPromise = createConfidentialBrowserClient({
+        const confidentialFetch = createConfidentialFetch('/api/oauth/client-assertion');
+        oauthClient = new OAuthClient({
             clientId: getClientId(),
-            handleResolver: HANDLE_RESOLVER,
-            clientAssertionEndpoint: '/api/oauth/client-assertion',
-        }).then(client => {
-            oauthClient = client;
-            return client;
+            redirectUri: getRedirectUri(),
+            scope: SCOPE,
+            fetch: confidentialFetch,
         });
     }
 
-    return oauthClientPromise;
+    return oauthClient;
 }
 
 export async function initOAuth(): Promise<{
     session: OAuthSession | null;
     state: string | null;
 }> {
-    const client = await getOAuthClient();
+    const client = getOAuthClient();
 
     try {
         const result = await client.init();
         if (result?.session) {
             return {
                 session: result.session,
-                state: 'state' in result ? result.state ?? null : null,
+                state: result.state ?? null,
             };
         }
     } catch (error) {
@@ -80,12 +75,12 @@ export async function initOAuth(): Promise<{
 }
 
 export async function signIn(handle: string): Promise<void> {
-    const client = await getOAuthClient();
-    await client.signInRedirect(handle, {});
+    const client = getOAuthClient();
+    await client.signIn(handle);
 }
 
 export async function restoreSession(did: string): Promise<OAuthSession | null> {
-    const client = await getOAuthClient();
+    const client = getOAuthClient();
     try {
         return await client.restore(did);
     } catch {
@@ -94,7 +89,7 @@ export async function restoreSession(did: string): Promise<OAuthSession | null> 
 }
 
 export async function signOut(did: string): Promise<void> {
-    const client = await getOAuthClient();
+    const client = getOAuthClient();
 
     try {
         await client.revoke(did);

@@ -9,7 +9,6 @@
   import {isReasonRepost, isReasonPin} from "$lib/atproto-guards";
   import {toast} from "svelte-sonner";
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  import {isAfter} from "date-fns";
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import VirtualTimeline from "$lib/components/timeline/VirtualTimeline.svelte";
@@ -155,11 +154,11 @@
 
       const feed = res.feed.filter(feed => {
         if (isReasonRepost(feed.reason)) {
-          if (isAfter(feed?.reason?.indexedAt, last?.reason?.indexedAt || last?.post?.indexedAt)) {
+          if (new Date(feed?.reason?.indexedAt) > new Date(last?.reason?.indexedAt || last?.post?.indexedAt)) {
             return true;
           }
         } else {
-          if (isAfter(feed?.post?.indexedAt, last?.reason?.indexedAt || last?.post?.indexedAt)) {
+          if (new Date(feed?.post?.indexedAt) > new Date(last?.reason?.indexedAt || last?.post?.indexedAt)) {
             return true;
           }
         }

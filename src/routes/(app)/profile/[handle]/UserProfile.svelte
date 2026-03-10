@@ -2,7 +2,7 @@
   import {_} from 'svelte-i18n';
   import {agent, settings} from '$lib/stores';
   import {page} from '$app/stores';
-  import {lightFormat} from 'date-fns';
+  import {formatDate} from '$lib/dateFormat';
   import { fade } from 'svelte/transition';
   import {RichText} from '$lib/atproto-richtext';
   import {BadgeCheck, CircleCheck, Eye, EyeOff, Handshake, Radio, Globe, Calendar, Tag} from 'lucide-svelte';
@@ -72,7 +72,7 @@
           }
 
           const firstPostDateRaw = firstPost.data.records[0].value.createdAt;
-          firstPostDate = lightFormat(new Date(firstPostDateRaw), 'yyyy/MM/dd');
+          firstPostDate = formatDate(new Date(firstPostDateRaw), 'yyyy/MM/dd');
           firstPostUri = '/profile/' + handle + '/post/' + firstPost.data.records[0].uri.split('/').slice(-1)[0];
       } catch (e) {
 

@@ -1,7 +1,6 @@
 <script lang="ts">
     import {agent} from '$lib/stores';
     import ChatItem from "$lib/components/chat/ChatItem.svelte";
-    import ChatPublish from "$lib/components/chat/ChatPublish.svelte";
     import {tick} from "svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import Infinite from "$lib/components/utils/Infinite.svelte";
@@ -92,7 +91,9 @@
 
   <div class="chat-anchor"></div>
 
-  <ChatPublish id={column.algorithm.id} {column} _agent={_agent || $agent} {onrefresh}></ChatPublish>
+  {#await import('$lib/components/chat/ChatPublish.svelte') then { default: ChatPublish }}
+    <ChatPublish id={column.algorithm.id} {column} _agent={_agent || $agent} {onrefresh}></ChatPublish>
+  {/await}
 </div>
 
 <style lang="postcss">
