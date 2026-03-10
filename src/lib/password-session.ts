@@ -17,6 +17,15 @@ export type SessionEvent = 'create' | 'update' | 'expired';
 
 export type PersistSessionHandler = (evt: SessionEvent, sess?: SessionData) => void | Promise<void>;
 
+function isJwtExpired(jwt: string, bufferMs: number = 60_000): boolean {
+	try {
+		const payload = JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+		return !payload.exp || Date.now() >= payload.exp * 1000 - bufferMs;
+	} catch {
+		return true;
+	}
+}
+
 function getPdsEndpointFromDidDoc(didDoc: any): string | undefined {
 	if (!didDoc?.service) return undefined;
 	const pdsService = didDoc.service.find(
@@ -89,15 +98,19 @@ export class PasswordSession {
 			this._updatePdsUrl(session.didDoc);
 		}
 
-		try {
-			await this.refreshSession();
-		} catch (e: any) {
-			if (e.error === 'ExpiredToken' || e.message === 'Token has expired') {
-				this._session = undefined;
-				await this._persistSession?.('expired');
+		if (isJwtExpired(session.accessJwt)) {
+			try {
+				await this.refreshSession();
+			} catch (e: any) {
+				if (e.error === 'ExpiredToken' || e.message === 'Token has expired') {
+					this._session = undefined;
+					await this._persistSession?.('expired');
+					throw e;
+				}
 				throw e;
 			}
-			throw e;
+		} else {
+			this.refreshSession().catch(() => {});
 		}
 	}
 

@@ -15,10 +15,21 @@ class AppState {
     subscribedLabelers = new PersistedState('subscribedLabelers', ['did:plc:ar7c4by46qjdydhdevvrndac']);
     singleColumnScrollPositions: Map<number, number> = new Map();
 
+    private _dbPreload: Promise<{ profiles: any[]; accounts: any[] }> | null = null;
+
+    preloadDb() {
+        if (!this._dbPreload) {
+            this._dbPreload = Promise.all([
+                accountsDb.profiles.toArray(),
+                accountsDb.accounts.toArray(),
+            ]).then(([profiles, accounts]) => ({ profiles, accounts }));
+        }
+        return this._dbPreload;
+    }
+
     async init() {
-        const profiles = await accountsDb.profiles.toArray();
-        const anyAccounts = await accountsDb.accounts
-            .toArray();
+        const { profiles, accounts: anyAccounts } = await this.preloadDb();
+        this._dbPreload = null;
 
         if (!anyAccounts.length) {
             console.log('Accounts are nothing');
@@ -90,16 +101,17 @@ class AppState {
             _agents.forEach((ag) => {
                 ag.configureLabelers(this.subscribedLabelers.current);
             });
-
-            if (!Object.keys(this.labelDefs.current).length) {
-                this.labelDefs.current = await _agent.getLabelDefinitions(this.subscribedLabelers.current);
-            }
         } catch (e) {
             console.error(e);
         }
 
-        // this.status = 0;
         this.ready = true;
+
+        if (!Object.keys(this.labelDefs.current).length) {
+            _agent.getLabelDefinitions(this.subscribedLabelers.current)
+                .then(defs => { this.labelDefs.current = defs; })
+                .catch(e => { console.error(e); });
+        }
     }
 
     changeProfile(id) {

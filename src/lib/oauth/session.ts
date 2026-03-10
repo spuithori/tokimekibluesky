@@ -18,9 +18,11 @@ export function createOAuthSession(
     let dpopKeyPair: DPoPKeyPair | null = null;
     let refreshPromise: Promise<void> | null = null;
 
+    const keyPairPromise = importKeyPair(stored.dpopKeyJwk);
+
     async function getKeyPair(): Promise<DPoPKeyPair> {
         if (!dpopKeyPair) {
-            dpopKeyPair = await importKeyPair(stored.dpopKeyJwk);
+            dpopKeyPair = await keyPairPromise;
         }
         return dpopKeyPair;
     }
@@ -156,6 +158,10 @@ export function createOAuthSession(
         }
 
         throw new Error('DPoP nonce retry exhausted');
+    }
+
+    if (isExpired() && currentRefreshToken) {
+        ensureFreshToken();
     }
 
     return {
