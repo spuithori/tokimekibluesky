@@ -19,6 +19,4 @@ test-results/
 playwright-report/
 heap-analysis.mjs
 memory-test-mock.mjs
-src/routes/test/*
-src/lib/test/*
 .data
