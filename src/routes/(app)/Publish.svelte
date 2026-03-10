@@ -49,7 +49,7 @@
   $effect(() => {
       if (publishState.show) {
           tick().then(() => {
-              editor.focus();
+              editor?.focus();
           });
       }
   })
@@ -59,7 +59,7 @@
           publishState.show = true;
       }
 
-      tick().then(() => { editor.focus(); });
+      tick().then(() => { editor?.focus(); });
 
       if (isMobile) {
           tick().then(() => {
@@ -75,7 +75,7 @@
   function onClose() {
       if (publishState.show) {
           publishState.show = false;
-          editor.blur();
+          editor?.blur();
 
           if (isMobile && $page.state.showPublish) {
               history.back();
@@ -136,7 +136,7 @@
       }];
 
       tick().then(() => {
-          editor.focus();
+          editor?.focus();
       });
   }
 
@@ -296,7 +296,7 @@
               toast.loading($_('whisper_registering'), { id: toastId });
 
               const whisperResult = await registerWhisperPost(
-                  _agent.agent,
+                  _agent,
                   parent.uri,
                   parent.cid,
                   whisperDuration as WhisperExpiresIn
@@ -380,14 +380,14 @@
 
       if (publishState.pinned) {
           await tick();
-          editor.focus();
+          editor?.focus();
       }
 
       if ($settings?.general?.continuousTag && continuousTags.length) {
         const tagsText = continuousTags.map(tag => `<span class="editor-hashtag">${tag.startsWith('$') ? tag : '#' + tag}</span>`).join(' ');
         postState.replaceText('<br>' + tagsText);
         await tick();
-        editor.focus('start');
+        editor?.focus('start');
       }
   }
 
@@ -813,7 +813,7 @@
       postState.posts.splice(postState.index + 1, 0, $state.snapshot(postState.initPost));
       postState.index = postState.index + 1;
       tick().then(() => {
-          editor.focus();
+          editor?.focus();
       })
   }
 
@@ -829,7 +829,7 @@
       }
 
       tick().then(() => {
-          editor.focus();
+          editor?.focus();
       })
   }
 
@@ -845,7 +845,7 @@
           const fileToUpload = compressed instanceof File
               ? compressed
               : new File([compressed], 'image.jpg', { type: compressed.type });
-          const storagePath = await uploadScheduleImage(_agent.agent, {
+          const storagePath = await uploadScheduleImage(_agent, {
               file: fileToUpload,
               postId: tempPostId,
               index: indexOffset + i,
@@ -882,7 +882,7 @@
           const base64Response = await fetch(post.externalImageBlob);
           const blob = await base64Response.blob();
           const thumbFile = new File([blob], 'thumb.jpg', { type: blob.type || 'image/jpeg' });
-          const thumbPath = await uploadScheduleImage(_agent.agent, {
+          const thumbPath = await uploadScheduleImage(_agent, {
               file: thumbFile,
               postId: tempPostId,
               index: thumbIndex,
@@ -1039,7 +1039,7 @@
           applyReplyRef(postData, firstPost.replyRef);
           applyGates(postData, firstPost);
 
-          const result = await createScheduledPost(_agent.agent, postData, scheduledAt);
+          const result = await createScheduledPost(_agent, postData, scheduledAt);
           if (!result) {
               throw new Error('Failed to create scheduled post');
           }
@@ -1056,7 +1056,7 @@
 
           if (publishState.pinned) {
               await tick();
-              editor.focus();
+              editor?.focus();
           }
       } catch (e) {
           isPublishing = false;

@@ -29,7 +29,7 @@
   let firstPostUri = $state('');
   let textRecord = $derived.by(() => {
     const rich = new RichText({text: profile.description});
-    rich.detectFacets(_agent.agent);
+    rich.detectFacetsWithoutResolution();
     return rich;
   });
   let serviceHost = $state('');

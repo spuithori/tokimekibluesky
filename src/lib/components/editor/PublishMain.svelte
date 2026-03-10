@@ -270,7 +270,7 @@
 
     async function detectRichText(text: string) {
         const rt = new RichText({text: text});
-        await rt.detectFacets(_agent.agent);
+        await rt.detectFacets((handle: string) => _agent.resolveHandle(handle));
 
         return rt;
     }
