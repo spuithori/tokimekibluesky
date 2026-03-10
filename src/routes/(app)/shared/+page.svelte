@@ -18,7 +18,7 @@
   const url = params.get('url') ? '<br><a href="' + params.get('url') + '">' + params.get('url') : '</a>';
 
   onMount(async () => {
-      postState.replaceText(decodeURIComponent(title) + decodeURIComponent(text) + decodeURIComponent(url));
+      postState.replaceText(title + text + url);
 
       if (!isNomove) {
           await goto('/');
