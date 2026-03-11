@@ -1,38 +1,5 @@
 const CLIENT_ASSERTION_TYPE = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer';
-const assertionCache = new Map<string, { jwt: string; timestamp: number }>();
-const ASSERTION_CACHE_TTL = 10_000;
 
-function getCachedAssertion(cacheKey: string): string | null {
-    const cached = assertionCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < ASSERTION_CACHE_TTL) {
-        return cached.jwt;
-    }
-    assertionCache.delete(cacheKey);
-    return null;
-}
-
-function setCachedAssertion(cacheKey: string, jwt: string): void {
-    assertionCache.set(cacheKey, { jwt, timestamp: Date.now() });
-}
-
-function getDpopKeyId(dpopProof: string): string | null {
-    try {
-        const headerPart = dpopProof.split('.')[0];
-        const headerJson = atob(headerPart.replace(/-/g, '+').replace(/_/g, '/'));
-        const header = JSON.parse(headerJson);
-        if (header.jwk) {
-            return `${header.jwk.kty}:${header.jwk.x}:${header.jwk.y}`;
-        }
-    } catch {
-        // ignore
-    }
-    return null;
-}
-
-/**
- * Create a fetch wrapper that intercepts token endpoint requests
- * and attaches client assertions from the backend.
- */
 export function createConfidentialFetch(
     clientAssertionEndpoint: string,
     originalFetch: typeof fetch = globalThis.fetch,
@@ -94,45 +61,34 @@ export function createConfidentialFetch(
         }
 
         const aud = url.origin;
-        const dpopKeyId = getDpopKeyId(dpopHeader);
-        const cacheKey = dpopKeyId ? `${aud}:${dpopKeyId}` : null;
 
-        let clientAssertion = cacheKey ? getCachedAssertion(cacheKey) : null;
+        try {
+            const assertionResponse = await originalFetch(clientAssertionEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    DPoP: dpopHeader,
+                },
+                body: JSON.stringify({ aud }),
+            });
 
-        if (!clientAssertion) {
-            try {
-                const assertionResponse = await originalFetch(clientAssertionEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        DPoP: dpopHeader,
-                    },
-                    body: JSON.stringify({ aud }),
-                });
-
-                if (!assertionResponse.ok) {
-                    console.error('Failed to get client assertion');
-                    return originalFetch(input, init);
-                }
-
-                const result = await assertionResponse.json();
-                clientAssertion = result.jwt;
-
-                if (cacheKey && clientAssertion) {
-                    setCachedAssertion(cacheKey, clientAssertion);
-                }
-            } catch (error) {
-                console.error('Error getting client assertion:', error);
-                return originalFetch(url.toString(), {
-                    method: 'POST',
-                    headers,
-                    body: body as string,
-                });
+            if (!assertionResponse.ok) {
+                console.error('Failed to get client assertion');
+                return originalFetch(input, init);
             }
-        }
 
-        params.set('client_assertion_type', CLIENT_ASSERTION_TYPE);
-        params.set('client_assertion', clientAssertion!);
+            const result = await assertionResponse.json();
+
+            params.set('client_assertion_type', CLIENT_ASSERTION_TYPE);
+            params.set('client_assertion', result.jwt);
+        } catch (error) {
+            console.error('Error getting client assertion:', error);
+            return originalFetch(url.toString(), {
+                method: 'POST',
+                headers,
+                body: body as string,
+            });
+        }
 
         return originalFetch(url.toString(), {
             method: 'POST',
