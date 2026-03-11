@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import imageCompression from 'browser-image-compression';
+    import { compressForPreview, blobToDataUrl } from '$lib/imageCompressor/compressor';
     import {flip} from "svelte/animate";
     import {dragHandleZone, dragHandle} from "svelte-dnd-action";
     import ImageUploadItem from "$lib/components/editor/ImageUploadItem.svelte";
@@ -120,7 +120,7 @@
                 return false;
             }
 
-            const videoDataUrl = await imageCompression.getDataUrlFromFile(videoFile);
+            const videoDataUrl = await blobToDataUrl(videoFile);
             const videoBytes = await fetch(videoDataUrl).then(res => res.arrayBuffer());
 
             video = {
@@ -144,13 +144,8 @@
     }
 
     export async function applyImageFromFile(file, alt = '') {
-        const compressed = await imageCompression(file, {
-            maxWidthOrHeight: 1024,
-            initialQuality: 0.8,
-            useWebWorker: true,
-        });
-
-        const base64 = await imageCompression.getDataUrlFromFile(compressed);
+        const compressed = await compressForPreview(file);
+        const base64 = await blobToDataUrl(compressed);
         const isGif = await transformImageFilter(file);
         const {width, height} = resizeAspectRatioSize(await getImageSize(file));
 

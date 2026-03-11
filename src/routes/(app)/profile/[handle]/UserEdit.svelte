@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import imageCompression from 'browser-image-compression';
+    import { compressImage, blobToDataUrl } from '$lib/imageCompressor/compressor';
     import Modal from "$lib/components/ui/Modal.svelte";
 
     let { profile, _agent, onclose, onupdate } = $props();
@@ -55,20 +55,19 @@
     }
 
     async function fileUpload(file, from: 'avatar' | 'banner') {
-        const image = await imageCompression(file, {
-            maxSizeMB: 0.92,
+        const image = await compressImage(file, {
+            maxSizeMB: 1_000_000 / 1024 / 1024,
             maxWidthOrHeight: 2000,
-            useWebWorker: true,
         });
 
         if (from === 'avatar') {
-            avatarBase64 = await imageCompression.getDataUrlFromFile(image);
+            avatarBase64 = await blobToDataUrl(image);
         } else {
-            bannerBase64 = await imageCompression.getDataUrlFromFile(image);
+            bannerBase64 = await blobToDataUrl(image);
         }
 
         const fileBlob = await _agent.xrpc.post('com.atproto.repo.uploadBlob', image, {
-            encoding: 'image/jpeg',
+            encoding: image.type,
         });
         isSubmitDisabled = false;
         submitButtonText = $_('submit_button_submit');

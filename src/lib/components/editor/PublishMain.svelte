@@ -12,7 +12,7 @@
   import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
   import {CirclePlus, Globe, X} from "lucide-svelte";
   import { toast } from "svelte-sonner";
-  import imageCompression from "browser-image-compression";
+  import { compressForPreview, blobToDataUrl } from '$lib/imageCompressor/compressor';
   import {onMount} from "svelte";
   import AltModal from "$lib/components/alt/AltModal.svelte";
   import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
@@ -236,7 +236,7 @@
 
             const res = await fetch(gif.url);
             const blob = await res.blob();
-            post.externalImageBlob = await imageCompression.getDataUrlFromFile(blob);
+            post.externalImageBlob = await blobToDataUrl(blob);
             post.embedExternal = {
                 $type: 'app.bsky.embed.external',
                 external: {
@@ -284,12 +284,8 @@
     }
 
     async function handleKakizomeComplete(dataUrl: string, blobObj: {blob: Blob, width: number, height: number}) {
-        const compressed = await imageCompression(blobObj.blob, {
-            maxWidthOrHeight: 1024,
-            initialQuality: 0.8,
-            useWebWorker: true,
-        });
-        const base64 = await imageCompression.getDataUrlFromFile(compressed);
+        const compressed = await compressForPreview(blobObj.blob);
+        const base64 = await blobToDataUrl(compressed);
 
         const newImage = {
             id: crypto.randomUUID(),

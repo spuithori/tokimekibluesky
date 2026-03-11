@@ -113,7 +113,7 @@
             let blob = await imageRes.blob();
 
             const res = await _agent.xrpc.post('com.atproto.repo.uploadBlob', blob, {
-                encoding: 'image/jpeg',
+                encoding: blob.type,
             });
             return res.blob;
         } catch (e) {

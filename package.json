@@ -77,8 +77,8 @@
     "svelte-dnd-action": "^0.9.69",
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.0.7",
-    "tokimeki-image-editor": "^0.2.9",
     "tlds": "^1.261.0",
+    "tokimeki-image-editor": "^0.2.9",
     "tokimeki-video-player": "^1.0.21"
   }
 }

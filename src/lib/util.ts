@@ -1,5 +1,5 @@
 import {accountsDb} from "$lib/db";
-import imageCompression from "browser-image-compression";
+import { blobToDataUrl } from '$lib/imageCompressor/compressor';
 import type {Agent} from "$lib/agent";
 
 export function getAccountIdByDid(agents, did) {
@@ -100,7 +100,7 @@ export async function getImageObjectFromBlob(did: string, blob: { cid: string, m
         id: self.crypto.randomUUID(),
         alt: blob.alt,
         file: _blob,
-        base64: await imageCompression.getDataUrlFromFile(_blob),
+        base64: await blobToDataUrl(_blob),
         isGif: blob.mimeType === 'image/gif',
         width: blob.width,
         height: blob.height,
@@ -110,7 +110,7 @@ export async function getImageObjectFromBlob(did: string, blob: { cid: string, m
 export async function getImageBase64FromBlob(did: string, blob: { cid: string, mimeType: string }, _agent: Agent) {
     const res = await _agent.getBlob(did, blob.cid);
     const _blob = new Blob([res], {type: blob.mimeType});
-    return await imageCompression.getDataUrlFromFile(_blob);
+    return await blobToDataUrl(_blob);
 }
 
 export async function getService(did: string) {

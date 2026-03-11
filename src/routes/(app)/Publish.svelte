@@ -11,7 +11,7 @@
   import DraftModal from "$lib/components/draft/DraftModal.svelte";
   import {getServiceAuthToken} from "$lib/util";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-  import imageCompression from 'browser-image-compression';
+  import { compressImage as compressImageLib } from '$lib/imageCompressor/compressor';
   import PublishPool from "$lib/components/editor/PublishPool.svelte";
   import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
   import {tick} from "svelte";
@@ -23,7 +23,6 @@
   import {getPostState} from "$lib/classes/postState.svelte";
   import {languageDetect} from '$lib/translate';
   import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
-  import {compressWithIteration} from "$lib/components/editor/imageUploadUtil";
   import ScheduleModal from "$lib/components/publish/ScheduleModal.svelte";
   import { createScheduledPost, uploadScheduleImage, registerWhisperPost, type PostData, type ScheduledImage, type ScheduledExternal, type ThreadPostData, type ProcessedPostContent, type WhisperExpiresIn } from '$lib/scheduleApi';
   import { generatePollOgImage } from '$lib/pollApi';
@@ -140,32 +139,11 @@
       });
   }
 
-  function calculateCompressionQuality(sizeMB: number): number {
-      const targetSizeMB = 0.925;
-      if (sizeMB <= targetSizeMB) {
-          return 0.95;
-      }
-      const minQuality = 0.8;
-      const maxQuality = 0.9;
-      const maxSizeToConsider = 20.0;
-      const overshootRatio = Math.min(1.0, (sizeMB - targetSizeMB) / (maxSizeToConsider - targetSizeMB));
-      return Math.max(minQuality, maxQuality - (overshootRatio * (maxQuality - minQuality)));
-  }
-
-  async function compressImage(file: File | Blob): Promise<File | Blob> {
-      const originalSizeMB = file.size / 1024 / 1024;
-      const dynamicInitialQuality = calculateCompressionQuality(originalSizeMB);
-
-      if ($settings?.general?.losslessImageUpload) {
-          return await compressWithIteration(file, 0.95);
-      }
-
-      return await imageCompression(file, {
-          maxSizeMB: 0.95,
+  async function compressImage(file: File | Blob): Promise<Blob> {
+      return await compressImageLib(file, {
+          maxSizeMB: 1_000_000 / 1024 / 1024,
           maxWidthOrHeight: 2000,
-          fileType: 'image/jpeg',
-          useWebWorker: true,
-          initialQuality: dynamicInitialQuality,
+          maxQuality: $settings?.general?.losslessImageUpload ? 1.0 : 0.95,
       });
   }
 
@@ -184,17 +162,15 @@
               let blob = await imageRes.blob();
 
               if (blob.type === 'image/gif') {
-                  blob = await imageCompression(blob, {
-                      maxSizeMB: 0.925,
+                  blob = await compressImageLib(blob, {
+                      maxSizeMB: 1_000_000 / 1024 / 1024,
                       maxWidthOrHeight: 3000,
-                      fileType: 'image/jpeg',
-                      useWebWorker: true,
                       initialQuality: 0.8,
                   });
               }
 
               const res = await _agent.xrpc.post('com.atproto.repo.uploadBlob', blob, {
-                  encoding: 'image/jpeg',
+                  encoding: blob.type,
               });
               return res.blob;
           } catch (e) {
