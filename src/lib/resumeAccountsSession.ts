@@ -8,6 +8,12 @@ import type { OAuthSession } from "$lib/oauth/types";
 
 let _missingAccounts: Account[] = [];
 
+function markMissing(account: Account) {
+    if (_missingAccounts.some(a => a.id === account.id)) return;
+    _missingAccounts = [..._missingAccounts, account];
+    appState.missingAccounts = _missingAccounts;
+}
+
 async function resumePasswordAccount(account: Account, proxy: string | undefined) {
     const passwordSession = new PasswordSession({
         service: account.service,
@@ -26,7 +32,8 @@ async function resumePasswordAccount(account: Account, proxy: string | undefined
                 cloudBookmarks: account.cloudBookmarks || [],
                 isOAuth: false,
             });
-        }
+        },
+        onExpired: () => markMissing(account),
     });
 
     try {
@@ -38,8 +45,7 @@ async function resumePasswordAccount(account: Account, proxy: string | undefined
         console.log(error);
 
         if (error.message === 'Token has expired') {
-            _missingAccounts = [..._missingAccounts, account];
-            appState.missingAccounts = _missingAccounts;
+            markMissing(account);
         } else {
             console.log('Connection failed. Try resumeSession 3 seconds.');
             setTimeout(() => {
@@ -69,18 +75,19 @@ async function resumeOAuthAccount(account: Account): Promise<{
     fetchHandlePromise?: Promise<string | undefined>;
 } | null> {
     try {
-        const oauthSession = await restoreSession(account.oauthDid || account.did);
+        const oauthSession = await restoreSession(
+            account.oauthDid || account.did,
+            () => markMissing(account),
+        );
 
         if (!oauthSession) {
             console.log('Failed to restore OAuth session for:', account.did);
-            _missingAccounts = [..._missingAccounts, account];
-            appState.missingAccounts = _missingAccounts;
+            markMissing(account);
             return null;
         }
 
         const fetchHandler = oauthSession.fetchHandler.bind(oauthSession);
 
-        // Fetch handle in background
         const fetchHandlePromise = (async () => {
             try {
                 const path = `/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(oauthSession.did)}`;
@@ -108,8 +115,7 @@ async function resumeOAuthAccount(account: Account): Promise<{
         };
     } catch (error) {
         console.error('OAuth session restore error:', error);
-        _missingAccounts = [..._missingAccounts, account];
-        appState.missingAccounts = _missingAccounts;
+        markMissing(account);
         return null;
     }
 }

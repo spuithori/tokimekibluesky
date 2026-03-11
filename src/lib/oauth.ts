@@ -79,10 +79,13 @@ export async function signIn(handle: string): Promise<void> {
     await client.signIn(handle);
 }
 
-export async function restoreSession(did: string): Promise<OAuthSession | null> {
+export async function restoreSession(did: string, onExpired?: () => void): Promise<OAuthSession | null> {
     const client = getOAuthClient();
     try {
-        return await client.restore(did);
+        const session = await client.restore(did, onExpired);
+        if (!session) return null;
+        await session.ensureValid();
+        return session;
     } catch {
         return null;
     }

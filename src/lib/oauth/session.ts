@@ -1,17 +1,17 @@
-import type { OAuthSession, OAuthServerMetadata, StoredSession } from './types';
+import type { OAuthSession, StoredSession } from './types';
 import type { DPoPKeyPair } from './dpop';
 import { createDPoPProof, computeAth, importKeyPair } from './dpop';
-import { refreshToken } from './server';
+import { OAuthTokenError, refreshToken } from './server';
 import { putSession, putDPoPNonce, getDPoPNonce } from './store';
 
-/** Buffer before actual expiry to trigger refresh (60 seconds) */
 const REFRESH_BUFFER = 60_000;
 
 export function createOAuthSession(
     stored: StoredSession,
     clientId: string,
     fetchFn: typeof fetch = globalThis.fetch,
-): OAuthSession & { _stored: StoredSession } {
+    onExpired?: () => void,
+): OAuthSession & { _stored: StoredSession; ensureValid: () => Promise<void> } {
     let accessToken = stored.accessToken;
     let currentRefreshToken = stored.refreshToken;
     let expiresAt = stored.expiresAt;
@@ -36,13 +36,22 @@ export function createOAuthSession(
             throw new Error('No refresh token available');
         }
 
-        const keyPair = await getKeyPair();
-        const tokenRes = await refreshToken(
-            stored.serverMetadata,
-            { refreshToken: currentRefreshToken, clientId },
-            keyPair,
-            fetchFn,
-        );
+        let tokenRes;
+        try {
+            const keyPair = await getKeyPair();
+            tokenRes = await refreshToken(
+                stored.serverMetadata,
+                { refreshToken: currentRefreshToken, clientId },
+                keyPair,
+                fetchFn,
+            );
+        } catch (e) {
+            if (e instanceof OAuthTokenError) {
+                currentRefreshToken = undefined;
+                onExpired?.();
+            }
+            throw e;
+        }
 
         accessToken = tokenRes.access_token;
         if (tokenRes.refresh_token) {
@@ -50,7 +59,6 @@ export function createOAuthSession(
         }
         expiresAt = Date.now() + (tokenRes.expires_in || 3600) * 1000;
 
-        // Persist updated session
         stored.accessToken = accessToken;
         stored.refreshToken = currentRefreshToken;
         stored.expiresAt = expiresAt;
@@ -60,7 +68,6 @@ export function createOAuthSession(
     async function ensureFreshToken(): Promise<void> {
         if (!isExpired()) return;
 
-        // Deduplicate concurrent refresh calls
         if (!refreshPromise) {
             refreshPromise = doRefresh().finally(() => {
                 refreshPromise = null;
@@ -77,12 +84,10 @@ export function createOAuthSession(
 
         const keyPair = await getKeyPair();
 
-        // Determine URL and method
         let url: string;
         let method: string;
 
         if (typeof input === 'string') {
-            // If it's a relative path, resolve against PDS URL
             url = input.startsWith('http') ? input : `${stored.pdsUrl}${input}`;
             method = init?.method || 'GET';
         } else if (input instanceof URL) {
@@ -116,7 +121,6 @@ export function createOAuthSession(
                 headers,
             });
 
-            // Save DPoP-Nonce from response
             const responseNonce = res.headers.get('DPoP-Nonce');
             if (responseNonce) {
                 nonce = responseNonce;
@@ -126,12 +130,10 @@ export function createOAuthSession(
             if (res.status === 401) {
                 const wwwAuth = res.headers.get('WWW-Authenticate') || '';
 
-                // DPoP nonce error — retry with new nonce
                 if (wwwAuth.includes('use_dpop_nonce') && responseNonce) {
                     continue;
                 }
 
-                // Token might be invalid — try refresh once
                 if (attempt === 0 && currentRefreshToken) {
                     try {
                         await doRefresh();
@@ -148,7 +150,6 @@ export function createOAuthSession(
                         retryHeaders.set('DPoP', newProof);
                         return fetch(url, { ...init, method, headers: retryHeaders });
                     } catch {
-                        // Refresh failed, return original 401
                         return res;
                     }
                 }
@@ -160,13 +161,10 @@ export function createOAuthSession(
         throw new Error('DPoP nonce retry exhausted');
     }
 
-    if (isExpired() && currentRefreshToken) {
-        ensureFreshToken();
-    }
-
     return {
         did: stored.did,
         fetchHandler,
         _stored: stored,
+        ensureValid: ensureFreshToken,
     };
 }

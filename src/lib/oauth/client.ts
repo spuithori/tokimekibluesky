@@ -177,11 +177,11 @@ export class OAuthClient {
     /**
      * Restore a session from IndexedDB.
      */
-    async restore(did: string): Promise<OAuthSession | null> {
+    async restore(did: string, onExpired?: () => void): Promise<(OAuthSession & { ensureValid: () => Promise<void> }) | null> {
         const stored = await getSession(did);
         if (!stored) return null;
 
-        return createOAuthSession(stored, this.clientId, this.fetchFn);
+        return createOAuthSession(stored, this.clientId, this.fetchFn, onExpired);
     }
 
     /**

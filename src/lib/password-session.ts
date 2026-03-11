@@ -41,9 +41,12 @@ export class PasswordSession {
 	private _persistSession: PersistSessionHandler | undefined;
 	private _refreshing: Promise<void> | null = null;
 
-	constructor(opts: { service: string; persistSession?: PersistSessionHandler }) {
+	private _onExpired?: () => void;
+
+	constructor(opts: { service: string; persistSession?: PersistSessionHandler; onExpired?: () => void }) {
 		this._service = opts.service.replace(/\/$/, '');
 		this._persistSession = opts.persistSession;
+		this._onExpired = opts.onExpired;
 	}
 
 	get session(): SessionData | undefined {
@@ -181,6 +184,7 @@ export class PasswordSession {
 				try {
 					await this.refreshSession();
 				} catch {
+					this._onExpired?.();
 					return res;
 				}
 
