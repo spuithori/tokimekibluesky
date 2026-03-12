@@ -669,6 +669,8 @@
   "publish_config_modal_title": "投稿設定",
   "lossless_image_upload_mode": "画像をなるべく高画質でアップロード",
   "lossless_image_upload_mode_notice": "画像処理に時間がかかる場合があります。",
+  "avif_upload_mode": "AVIF形式でアップロード（実験的）",
+  "avif_upload_mode_notice": "より高画質で投稿できる可能性がありますが、投稿に時間がかかります。一部の環境では動作しません。",
   "display_mutual_following": "フォローされているユーザーを明示化",
   "show_skyblur_text": "Skyblurで伏せられたテキストを表示",
   "back_to_exit_again": "もう1度戻るとアプリを終了します。",

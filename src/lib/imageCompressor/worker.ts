@@ -1,5 +1,5 @@
 import type { WorkerInput, WorkerOutput } from './types';
-import encode from '@jsquash/webp/encode';
+import encodeWebp from '@jsquash/webp/encode';
 
 function resizeToCanvas(
     bitmap: ImageBitmap,
@@ -80,12 +80,12 @@ function applyUnsharpMask(
     return imageData;
 }
 
-async function encodeWithWasm(imageData: ImageData, maxSizeBytes: number): Promise<ArrayBuffer> {
-    return encode(imageData, {
-        quality: 95,
+async function encodeWebpWasm(imageData: ImageData, maxSizeBytes: number): Promise<ArrayBuffer> {
+    return encodeWebp(imageData, {
+        quality: 100,
         target_size: maxSizeBytes,
         method: 4,
-        pass: 4,
+        pass: 6,
         sns_strength: 80,
         filter_type: 1,
         autofilter: 1,
@@ -96,6 +96,41 @@ async function encodeWithWasm(imageData: ImageData, maxSizeBytes: number): Promi
     });
 }
 
+async function encodeAvifWasm(imageData: ImageData, maxSizeBytes: number): Promise<ArrayBuffer> {
+    const { default: encodeAvif } = await import('@jsquash/avif/encode');
+
+    let lo = 30, hi = 95;
+    let bestBuf: ArrayBuffer | null = null;
+
+    for (let i = 0; i < 6; i++) {
+        const mid = Math.round((lo + hi) / 2);
+        const buf = await encodeAvif(imageData, {
+            quality: mid,
+            speed: 6,
+            enableSharpYUV: true,
+            subsample: 1,
+        });
+        if (buf.byteLength <= maxSizeBytes) {
+            bestBuf = buf;
+            lo = mid;
+            if (buf.byteLength >= maxSizeBytes * 0.90) break;
+        } else {
+            hi = mid;
+        }
+    }
+
+    if (!bestBuf) {
+        bestBuf = await encodeAvif(imageData, {
+            quality: 30,
+            speed: 6,
+            enableSharpYUV: true,
+            subsample: 1,
+        });
+    }
+
+    return bestBuf;
+}
+
 async function compress(input: WorkerInput): Promise<WorkerOutput> {
     const { bitmap, targetWidth, targetHeight, outputType, maxSizeBytes, initialQuality, maxQuality, minQuality, maxIterations } = input;
 
@@ -104,18 +139,30 @@ async function compress(input: WorkerInput): Promise<WorkerOutput> {
 
     const imageData = applyUnsharpMask(canvas, 1, 0.3);
 
-    if (outputType === 'image/webp' && maxSizeBytes !== undefined) {
-        try {
-            const buf = await encodeWithWasm(imageData, maxSizeBytes);
-            if (buf.byteLength <= maxSizeBytes) {
-                return { blob: new Blob([buf], { type: 'image/webp' }), width: targetWidth, height: targetHeight };
+    if (maxSizeBytes !== undefined) {
+        if (outputType === 'image/avif') {
+            try {
+                const buf = await encodeAvifWasm(imageData, maxSizeBytes);
+                if (buf.byteLength <= maxSizeBytes) {
+                    return { blob: new Blob([buf], { type: 'image/avif' }), width: targetWidth, height: targetHeight };
+                }
+            } catch {
             }
-        } catch {
+        }
+
+        if (outputType === 'image/webp' || outputType === 'image/avif') {
+            try {
+                const buf = await encodeWebpWasm(imageData, maxSizeBytes);
+                if (buf.byteLength <= maxSizeBytes) {
+                    return { blob: new Blob([buf], { type: 'image/webp' }), width: targetWidth, height: targetHeight };
+                }
+            } catch {
+            }
         }
     }
 
     if (maxSizeBytes === undefined) {
-        const blob = await canvas.convertToBlob({ type: outputType, quality: initialQuality });
+        const blob = await canvas.convertToBlob({ type: outputType === 'image/avif' ? 'image/webp' : outputType, quality: initialQuality });
         return { blob, width: targetWidth, height: targetHeight };
     }
 
@@ -125,7 +172,7 @@ async function compress(input: WorkerInput): Promise<WorkerOutput> {
 
     for (let i = 0; i < maxIterations; i++) {
         const mid = (lo + hi) / 2;
-        const blob = await canvas.convertToBlob({ type: outputType, quality: mid });
+        const blob = await canvas.convertToBlob({ type: outputType === 'image/avif' ? 'image/webp' : outputType, quality: mid });
 
         if (blob.size <= maxSizeBytes) {
             bestBlob = blob;
@@ -137,7 +184,7 @@ async function compress(input: WorkerInput): Promise<WorkerOutput> {
     }
 
     if (!bestBlob) {
-        bestBlob = await canvas.convertToBlob({ type: outputType, quality: minQuality });
+        bestBlob = await canvas.convertToBlob({ type: outputType === 'image/avif' ? 'image/webp' : outputType, quality: minQuality });
     }
 
     return { blob: bestBlob, width: targetWidth, height: targetHeight };

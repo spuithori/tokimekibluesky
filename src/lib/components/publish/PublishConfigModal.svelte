@@ -27,6 +27,22 @@
 
   <dl class="settings-group">
     <dt class="settings-group__name">
+      {$_('avif_upload_mode')}
+    </dt>
+
+    <dd class="settings-group__content">
+      <div class="input-toggle mb10">
+        <input class="input-toggle__input" type="checkbox" id="avifUpload" bind:checked={$settings.general.avifUpload}><label class="input-toggle__label" for="avifUpload"></label>
+      </div>
+
+      {#if ($settings?.general?.avifUpload)}
+        <Notice text={$_('avif_upload_mode_notice')}></Notice>
+      {/if}
+    </dd>
+  </dl>
+
+  <dl class="settings-group">
+    <dt class="settings-group__name">
       {$_('require_input_alt_text')}
     </dt>
 

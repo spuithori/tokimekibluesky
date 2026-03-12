@@ -47,6 +47,7 @@ const defaultSettings = {
         useVirtual: false,
         continuousTag: false,
         disableMochiHoppe: false,
+        avifUpload: false,
     },
     design: {
         skin: 'default',
