@@ -1,6 +1,5 @@
 import {accountsDb} from "$lib/db";
-import {BskyAgent} from "@atproto/api";
-import imageCompression from "browser-image-compression";
+import { blobToDataUrl } from '$lib/imageCompressor/compressor';
 import type {Agent} from "$lib/agent";
 
 export function getAccountIdByDid(agents, did) {
@@ -27,10 +26,10 @@ export function getAllAgentDids(agents) {
     if (!agents) {
         return [];
     }
-    let dids = [];
+    const dids: string[] = [];
 
-    agents.forEach((value, key, map) => {
-        dids = [...dids, value.did()];
+    agents.forEach((value) => {
+        dids.push(value.did());
     });
 
     return dids;
@@ -68,13 +67,12 @@ export function isFeedByUri(uri: string) {
     return type === 'app.bsky.feed.generator';
 }
 
-export async function getDidByHandle(handle, _agent) {
+export async function getDidByHandle(handle, _agent: Agent) {
     if (isDid(handle)) {
         return handle;
     }
 
-    const res = await _agent.agent.api.com.atproto.identity.resolveHandle({ handle: handle });
-    return res.data.did;
+    return await _agent.resolveHandle(handle);
 }
 
 export function getDidFromUri(uri: string | undefined) {
@@ -86,7 +84,7 @@ export function getDidFromUri(uri: string | undefined) {
 
 export async function getDisplayNameByDid(did: string, _agent: Agent) {
     try {
-        const { data } = await _agent.agent.api.app.bsky.actor.getProfile({ actor: did });
+        const data = await _agent.getProfile(did);
         return data.displayName || `@${data.handle}`;
     } catch (e) {
         console.error(e);
@@ -94,25 +92,25 @@ export async function getDisplayNameByDid(did: string, _agent: Agent) {
     }
 }
 
-export async function getImageObjectFromBlob(did: string, blob: { cid: string, mimeType: string, alt: string, width: string, height: string }, _agent: BskyAgent) {
-    const res =  await _agent.api.com.atproto.sync.getBlob({did: did as string, cid: blob.cid});
-    const _blob = new Blob([res.data], {type: blob.mimeType});
+export async function getImageObjectFromBlob(did: string, blob: { cid: string, mimeType: string, alt: string, width: string, height: string }, _agent: Agent) {
+    const res = await _agent.getBlob(did, blob.cid);
+    const _blob = new Blob([res], {type: blob.mimeType});
 
     return {
         id: self.crypto.randomUUID(),
         alt: blob.alt,
         file: _blob,
-        base64: await imageCompression.getDataUrlFromFile(_blob),
+        base64: await blobToDataUrl(_blob),
         isGif: blob.mimeType === 'image/gif',
         width: blob.width,
         height: blob.height,
     };
 }
 
-export async function getImageBase64FromBlob(did: string, blob: { cid: string, mimeType: string }, _agent: BskyAgent) {
-    const res =  await _agent.api.com.atproto.sync.getBlob({did: did as string, cid: blob.cid});
-    const _blob = new Blob([res.data], {type: blob.mimeType});
-    return await imageCompression.getDataUrlFromFile(_blob);
+export async function getImageBase64FromBlob(did: string, blob: { cid: string, mimeType: string }, _agent: Agent) {
+    const res = await _agent.getBlob(did, blob.cid);
+    const _blob = new Blob([res], {type: blob.mimeType});
+    return await blobToDataUrl(_blob);
 }
 
 export async function getService(did: string) {
@@ -138,24 +136,30 @@ export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: 
     const agentHost = new URL(await getService(_agent.did() as string)).hostname;
     const agentAud = 'did:web:' + agentHost;
 
-    const res = await _agent.agent.api.com.atproto.server.getServiceAuth({
+    const res = await _agent.getServiceAuth({
         aud: aud || agentAud,
         lxm,
         exp,
     });
 
-    return res.data.token;
+    return res.token;
 }
 
-export async function listRecordsWithBsky(agent: Agent, collection: string, limit: number, cursor: any, repo: string) {
-    const _agent = new BskyAgent({service: agent.service()});
+export async function listRecords(collection: string, limit: number, cursor: any, repo: string) {
+    const service = await getService(repo);
+    const params = new URLSearchParams({
+        collection,
+        limit: String(limit),
+        reverse: 'false',
+        repo,
+    });
+    if (cursor) params.set('cursor', String(cursor));
 
-    return await _agent.api.com.atproto.repo.listRecords({
-        collection: collection,
-        limit: limit,
-        reverse: false,
-        cursor: cursor,
-        repo: repo});
+    const res = await fetch(`${service}/xrpc/com.atproto.repo.listRecords?${params}`);
+    if (!res.ok) {
+        throw new Error(`listRecords failed: ${res.status}`);
+    }
+    return await res.json();
 }
 
 export function getScrollableParent( node: Node | null, includeSelf: boolean = false): HTMLElement | null {

@@ -17,25 +17,24 @@
 
       try {
           if (!list.listItem) {
-              const res = await _agent.agent.api.app.bsky.graph.listitem.create(
-                  {
-                      repo: _agent.did() as string,
-                  },
-                  {
+              const res = await _agent.xrpc.post('com.atproto.repo.createRecord', {
+                  repo: _agent.did() as string,
+                  collection: 'app.bsky.graph.listitem',
+                  record: {
+                      $type: 'app.bsky.graph.listitem',
                       subject: memberDid,
                       list: list.uri,
                       createdAt: new Date().toISOString(),
-                  }
-              )
+                  },
+              })
 
               list.listItem = res.uri;
           } else {
-              await _agent.agent.api.app.bsky.graph.listitem.delete(
-                  {
-                      repo: _agent.did() as string,
-                      rkey: list.listItem.split('/').slice(-1)[0],
-                  }
-              )
+              await _agent.xrpc.post('com.atproto.repo.deleteRecord', {
+                  repo: _agent.did() as string,
+                  collection: 'app.bsky.graph.listitem',
+                  rkey: list.listItem.split('/').slice(-1)[0],
+              })
 
               list.listItem = '';
           }

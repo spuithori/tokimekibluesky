@@ -84,12 +84,12 @@
         isPosting = true;
 
         try {
-            const blobResponse = await _agent.agent.api.com.atproto.repo.uploadBlob(
+            const blobResponse = await _agent.xrpc.post('com.atproto.repo.uploadBlob',
                 new Uint8Array(await imageData.blob.arrayBuffer()),
                 { encoding: imageData.blob.type }
             );
 
-            const blob = blobResponse.data.blob;
+            const blob = blobResponse.blob;
             const now = new Date();
             const rkey = generateTID();
             const record: Record<string, unknown> = {
@@ -110,14 +110,14 @@
                 record.tags = tags;
             }
 
-            const createResponse = await _agent.agent.api.com.atproto.repo.createRecord({
+            const createResponse = await _agent.xrpc.post('com.atproto.repo.createRecord', {
                 repo: _agent.did(),
                 collection: 'tech.tokimeki.kaku.post',
                 rkey,
                 record
             });
 
-            const postUri = createResponse.data.uri;
+            const postUri = createResponse.uri;
 
             if (shareToBluesky) {
                 try {
@@ -167,21 +167,21 @@
                         }
                     ];
 
-                    const bskyResponse = await _agent.agent.api.com.atproto.repo.createRecord({
+                    const bskyResponse = await _agent.xrpc.post('com.atproto.repo.createRecord', {
                         repo: _agent.did(),
                         collection: 'app.bsky.feed.post',
                         record: bskyRecord
                     });
 
-                    await _agent.agent.api.com.atproto.repo.putRecord({
+                    await _agent.xrpc.post('com.atproto.repo.putRecord', {
                         repo: _agent.did(),
                         collection: 'tech.tokimeki.kaku.post',
                         rkey,
                         record: {
                             ...record,
                             linkedPost: {
-                                uri: bskyResponse.data.uri,
-                                cid: bskyResponse.data.cid
+                                uri: bskyResponse.uri,
+                                cid: bskyResponse.cid
                             }
                         }
                     });

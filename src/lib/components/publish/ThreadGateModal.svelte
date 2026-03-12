@@ -41,8 +41,8 @@
         const account = await accountsDb.accounts.get(accountId);
         officialLists = account?.lists;
 
-        const res = await _agent.agent.api.app.bsky.graph.getLists({actor: _agent.did() as string, limit: 100, cursor: ''});
-        officialLists = res.data.lists;
+        const res = await _agent.xrpc.get('app.bsky.graph.getLists', {actor: _agent.did() as string, limit: 100, cursor: ''});
+        officialLists = res.lists;
 
         await accountsDb.accounts.update(accountId, {
             lists: $state.snapshot(officialLists),

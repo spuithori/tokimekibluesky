@@ -40,14 +40,14 @@
         if (!currentAgent) return;
 
         try {
-            const res = await currentAgent.agent.api.chat.bsky.convo.listConvos({cursor: ''}, {
+            const res = await currentAgent.xrpc.get('chat.bsky.convo.listConvos', {cursor: ''}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
             });
 
             if (column.settings?.playSound && convos.length > 0) {
-                const hasNewMessage = res.data.convos.some(newConvo => {
+                const hasNewMessage = res.convos.some(newConvo => {
                     const existingConvo = convos.find(c => c.id === newConvo.id);
                     if (!newConvo.lastMessage) return false;
 
@@ -71,7 +71,7 @@
 
             lastCheckedTime = Date.now();
 
-            const newConvosMap = new Map(res.data.convos.map(c => [c.id, c]));
+            const newConvosMap = new Map(res.convos.map(c => [c.id, c]));
             const existingConvosMap = new Map(convos.map(c => [c.id, c]));
 
             for (const [id, convo] of newConvosMap) {
@@ -115,19 +115,19 @@
         }
 
         try {
-            const res = await currentAgent.agent.api.chat.bsky.convo.listConvos({cursor: cursor}, {
+            const res = await currentAgent.xrpc.get('chat.bsky.convo.listConvos', {cursor: cursor}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
             });
 
             const existingIds = new Set(convos.map(c => c.id));
-            const newConvos = res.data.convos.filter(c => !existingIds.has(c.id));
+            const newConvos = res.convos.filter(c => !existingIds.has(c.id));
 
             convos = [...convos, ...newConvos];
-            cursor = res.data.cursor || '';
+            cursor = res.cursor || '';
 
-            if (res.data.cursor) {
+            if (res.cursor) {
                 loaded();
             } else {
                 complete();

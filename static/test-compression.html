@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Image Compression Quality Test</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui; padding: 20px; background: #1a1a1a; color: #e0e0e0; }
+  h1 { margin-bottom: 16px; font-size: 20px; }
+  h2 { margin: 16px 0 8px; font-size: 16px; color: #88ccff; }
+  .controls { margin-bottom: 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  input[type="file"] { padding: 8px; }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 16px; }
+  .result-card { background: #2a2a2a; border-radius: 8px; padding: 12px; }
+  .result-card h3 { font-size: 14px; margin-bottom: 8px; }
+  .result-card img { width: 100%; border-radius: 4px; image-rendering: auto; }
+  .metrics { font-size: 13px; margin-top: 8px; line-height: 1.6; }
+  .metrics span { color: #88ff88; }
+  .warn { color: #ff8888; }
+  .log { background: #111; padding: 12px; border-radius: 8px; margin-top: 16px; font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+  select, button { padding: 6px 12px; border-radius: 4px; border: 1px solid #555; background: #333; color: #e0e0e0; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>Image Compression Quality Comparison</h1>
+<div class="controls">
+  <input type="file" id="fileInput" accept="image/*">
+  <label>Target: <select id="targetSize">
+    <option value="0.95">0.95 MB</option>
+    <option value="0.5">0.5 MB</option>
+    <option value="0.25">0.25 MB</option>
+  </select></label>
+  <label>Max dimension: <select id="maxDim">
+    <option value="2000">2000px</option>
+    <option value="1024">1024px</option>
+  </select></label>
+  <button id="runBtn" disabled>Run Comparison</button>
+</div>
+<div id="results" class="results"></div>
+<div id="log" class="log"></div>
+
+<script>
+const logEl = document.getElementById('log');
+function log(msg) {
+  logEl.textContent += msg + '\n';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function calcTargetDimensions(w, h, max) {
+  if (w <= max && h <= max) return { w, h };
+  const r = Math.min(max / w, max / h);
+  return { w: Math.round(w * r), h: Math.round(h * r) };
+}
+
+// ---------- SSIM ----------
+function computeSSIM(ref, enc, width, height) {
+  const step = Math.max(1, Math.floor(Math.max(width, height) / 256));
+  const sw = Math.floor(width / step), sh = Math.floor(height / step);
+  const n = sw * sh;
+  const l1 = new Float32Array(n), l2 = new Float32Array(n);
+  for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
+    const idx = ((y * step) * width + (x * step)) * 4;
+    const i = y * sw + x;
+    l1[i] = 0.299 * ref[idx] + 0.587 * ref[idx+1] + 0.114 * ref[idx+2];
+    l2[i] = 0.299 * enc[idx] + 0.587 * enc[idx+1] + 0.114 * enc[idx+2];
+  }
+  const bs = 8, bx = Math.floor(sw/bs), by = Math.floor(sh/bs);
+  if (!bx || !by) return 1;
+  const c1 = 6.5025, c2 = 58.5225;
+  let sum = 0;
+  for (let j = 0; j < by; j++) for (let i = 0; i < bx; i++) {
+    let s1=0,s2=0,s1s=0,s2s=0,s12=0;
+    for (let dy=0;dy<bs;dy++) { const row=(j*bs+dy)*sw+i*bs; for (let dx=0;dx<bs;dx++) {
+      const a=l1[row+dx],b=l2[row+dx]; s1+=a;s2+=b;s1s+=a*a;s2s+=b*b;s12+=a*b;
+    }}
+    const nn=bs*bs, m1=s1/nn, m2=s2/nn;
+    sum+=((2*m1*m2+c1)*(2*(s12/nn-m1*m2)+c2))/((m1*m1+m2*m2+c1)*(s1s/nn-m1*m1+s2s/nn-m2*m2+c2));
+  }
+  return sum/(bx*by);
+}
+
+// ---------- Lanczos3 ----------
+function sinc(x) { if (x===0) return 1; const p=Math.PI*x; return Math.sin(p)/p; }
+function lw(x) { return (x>=3||x<=-3)?0:sinc(x)*sinc(x/3); }
+function lanczos3Resize(src, srcW, srcH, dstW, dstH) {
+  if (srcW===dstW && srcH===dstH) return new Uint8ClampedArray(src);
+  // horizontal
+  const scX=srcW/dstW, supX=Math.max(3,3*scX), invX=scX>1?1/scX:1;
+  const tmp=new Float32Array(dstW*srcH*4);
+  for(let y=0;y<srcH;y++){const ys=y*srcW*4,yd=y*dstW*4;for(let x=0;x<dstW;x++){
+    const c=(x+.5)*scX-.5,l=Math.max(0,Math.floor(c-supX)),r=Math.min(srcW-1,Math.ceil(c+supX));
+    let R=0,G=0,B=0,A=0,ws=0;for(let i=l;i<=r;i++){const w=lw((i-c)*invX),idx=ys+i*4;
+    R+=src[idx]*w;G+=src[idx+1]*w;B+=src[idx+2]*w;A+=src[idx+3]*w;ws+=w;}
+    const d=yd+x*4;if(ws>0){const iv=1/ws;tmp[d]=R*iv;tmp[d+1]=G*iv;tmp[d+2]=B*iv;tmp[d+3]=A*iv;}
+  }}
+  // vertical
+  const scY=srcH/dstH, supY=Math.max(3,3*scY), invY=scY>1?1/scY:1;
+  const dst=new Uint8ClampedArray(dstW*dstH*4);
+  for(let y=0;y<dstH;y++){const c=(y+.5)*scY-.5,t=Math.max(0,Math.floor(c-supY)),b=Math.min(srcH-1,Math.ceil(c+supY));
+    for(let x=0;x<dstW;x++){let R=0,G=0,B=0,A=0,ws=0;for(let j=t;j<=b;j++){
+      const w=lw((j-c)*invY),idx=(j*dstW+x)*4;R+=tmp[idx]*w;G+=tmp[idx+1]*w;B+=tmp[idx+2]*w;A+=tmp[idx+3]*w;ws+=w;}
+      const d=(y*dstW+x)*4;if(ws>0){const iv=1/ws;
+      dst[d]=Math.min(255,Math.max(0,Math.round(R*iv)));dst[d+1]=Math.min(255,Math.max(0,Math.round(G*iv)));
+      dst[d+2]=Math.min(255,Math.max(0,Math.round(B*iv)));dst[d+3]=Math.min(255,Math.max(0,Math.round(a*iv)));}
+  }}
+  return dst;
+}
+
+// ---------- Approach A: drawImage (browser-image-compression style) ----------
+async function compressDrawImage(file, maxDim, maxSizeBytes, format, label) {
+  const t0 = performance.now();
+  const bitmap = await createImageBitmap(file);
+  const { w, h } = calcTargetDimensions(bitmap.width, bitmap.height, maxDim);
+
+  // Multi-step resize with imageSmoothingQuality: high
+  let canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  let ctx = canvas.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0);
+  bitmap.close();
+
+  let cw = canvas.width, ch = canvas.height;
+  while (cw > w * 2 || ch > h * 2) {
+    const nw = Math.max(Math.round(cw / 2), w);
+    const nh = Math.max(Math.round(ch / 2), h);
+    const step = new OffscreenCanvas(nw, nh);
+    const sctx = step.getContext('2d');
+    sctx.imageSmoothingEnabled = true;
+    sctx.imageSmoothingQuality = 'high';
+    sctx.drawImage(canvas, 0, 0, nw, nh);
+    canvas = step; cw = nw; ch = nh;
+  }
+  const final = new OffscreenCanvas(w, h);
+  const fctx = final.getContext('2d');
+  fctx.imageSmoothingEnabled = true;
+  fctx.imageSmoothingQuality = 'high';
+  fctx.drawImage(canvas, 0, 0, w, h);
+
+  // Binary search (size-based only)
+  let lo = 0.7, hi = 0.92, best = null, bestQ = 0;
+  for (let i = 0; i < 8; i++) {
+    const mid = (lo + hi) / 2;
+    const blob = await final.convertToBlob({ type: format, quality: mid });
+    if (blob.size <= maxSizeBytes) {
+      best = blob; bestQ = mid; lo = mid;
+      if (blob.size >= maxSizeBytes * 0.95) break;
+    } else {
+      hi = mid;
+    }
+  }
+  if (!best) { best = await final.convertToBlob({ type: format, quality: 0.7 }); bestQ = 0.7; }
+
+  const elapsed = performance.now() - t0;
+  log(`[${label}] quality=${bestQ.toFixed(3)}, size=${(best.size/1024).toFixed(0)}KB, ${w}x${h}, ${elapsed.toFixed(0)}ms`);
+
+  // Get reference pixels for SSIM
+  const refData = fctx.getImageData(0, 0, w, h).data;
+  const decBitmap = await createImageBitmap(best);
+  const decCanvas = new OffscreenCanvas(w, h);
+  const decCtx = decCanvas.getContext('2d');
+  decCtx.drawImage(decBitmap, 0, 0);
+  decBitmap.close();
+  const encData = decCtx.getImageData(0, 0, w, h).data;
+  const ssim = computeSSIM(refData, encData, w, h);
+  log(`  SSIM: ${ssim.toFixed(4)}`);
+
+  return { blob: best, quality: bestQ, w, h, elapsed, ssim };
+}
+
+// ---------- Approach B: Lanczos3 + binary search (current implementation) ----------
+async function compressLanczos3(file, maxDim, maxSizeBytes, format, label) {
+  const t0 = performance.now();
+  const bitmap = await createImageBitmap(file);
+  const { w, h } = calcTargetDimensions(bitmap.width, bitmap.height, maxDim);
+
+  const srcCanvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const srcCtx = srcCanvas.getContext('2d');
+  srcCtx.drawImage(bitmap, 0, 0);
+  const srcData = srcCtx.getImageData(0, 0, bitmap.width, bitmap.height).data;
+  bitmap.close();
+
+  const resized = lanczos3Resize(srcData, srcCanvas.width, srcCanvas.height, w, h);
+  const outCanvas = new OffscreenCanvas(w, h);
+  const outCtx = outCanvas.getContext('2d');
+  outCtx.putImageData(new ImageData(resized, w, h), 0, 0);
+
+  // Binary search (size-based only, NO SSIM early termination)
+  let lo = 0.7, hi = 0.92, best = null, bestQ = 0;
+  for (let i = 0; i < 8; i++) {
+    const mid = (lo + hi) / 2;
+    const blob = await outCanvas.convertToBlob({ type: format, quality: mid });
+    if (blob.size <= maxSizeBytes) {
+      best = blob; bestQ = mid; lo = mid;
+      if (blob.size >= maxSizeBytes * 0.95) break;
+    } else {
+      hi = mid;
+    }
+  }
+  if (!best) { best = await outCanvas.convertToBlob({ type: format, quality: 0.7 }); bestQ = 0.7; }
+
+  const elapsed = performance.now() - t0;
+  log(`[${label}] quality=${bestQ.toFixed(3)}, size=${(best.size/1024).toFixed(0)}KB, ${w}x${h}, ${elapsed.toFixed(0)}ms`);
+
+  const decBitmap = await createImageBitmap(best);
+  const decCanvas = new OffscreenCanvas(w, h);
+  decCanvas.getContext('2d').drawImage(decBitmap, 0, 0);
+  decBitmap.close();
+  const encData = decCanvas.getContext('2d').getImageData(0, 0, w, h).data;
+  const ssim = computeSSIM(resized, encData, w, h);
+  log(`  SSIM: ${ssim.toFixed(4)}`);
+
+  return { blob: best, quality: bestQ, w, h, elapsed, ssim };
+}
+
+// ---------- Approach C: drawImage (browser-image-compression original style — no imageSmoothingQuality, bilinear) ----------
+async function compressOriginalStyle(file, maxDim, maxSizeBytes, label) {
+  const t0 = performance.now();
+  const bitmap = await createImageBitmap(file);
+  const { w, h } = calcTargetDimensions(bitmap.width, bitmap.height, maxDim);
+
+  // Single drawImage resize (browser-image-compression style)
+  const canvas = new OffscreenCanvas(w, h);
+  const ctx = canvas.getContext('2d');
+  // No imageSmoothingQuality set — browser default (bilinear)
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close();
+
+  // Iterative quality+resolution reduction (simulating browser-image-compression)
+  let quality = 0.92;
+  let currentCanvas = canvas;
+  let currentW = w, currentH = h;
+  let best = await currentCanvas.convertToBlob({ type: 'image/jpeg', quality });
+
+  for (let i = 0; i < 10 && best.size > maxSizeBytes; i++) {
+    quality *= 0.95;
+    currentW = Math.round(currentW * 0.95);
+    currentH = Math.round(currentH * 0.95);
+    const stepCanvas = new OffscreenCanvas(currentW, currentH);
+    const stepCtx = stepCanvas.getContext('2d');
+    stepCtx.drawImage(currentCanvas, 0, 0, currentW, currentH);
+    currentCanvas = stepCanvas;
+    best = await currentCanvas.convertToBlob({ type: 'image/jpeg', quality });
+  }
+
+  const elapsed = performance.now() - t0;
+  log(`[${label}] quality=${quality.toFixed(3)}, size=${(best.size/1024).toFixed(0)}KB, ${currentW}x${currentH}, ${elapsed.toFixed(0)}ms, JPEG`);
+  return { blob: best, quality, w: currentW, h: currentH, elapsed, ssim: null };
+}
+
+function showResult(container, label, result) {
+  const card = document.createElement('div');
+  card.className = 'result-card';
+  const url = URL.createObjectURL(result.blob);
+  card.innerHTML = `
+    <h3>${label}</h3>
+    <img src="${url}">
+    <div class="metrics">
+      Size: <span>${(result.blob.size/1024).toFixed(0)} KB</span> (${result.blob.type})<br>
+      Dimensions: <span>${result.w} x ${result.h}</span><br>
+      Quality: <span>${result.quality.toFixed(3)}</span><br>
+      Time: <span>${result.elapsed.toFixed(0)} ms</span><br>
+      ${result.ssim !== null ? `SSIM: <span>${result.ssim.toFixed(4)}</span>` : ''}
+    </div>
+  `;
+  container.appendChild(card);
+}
+
+let selectedFile = null;
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  selectedFile = e.target.files[0];
+  document.getElementById('runBtn').disabled = !selectedFile;
+});
+
+document.getElementById('runBtn').addEventListener('click', async () => {
+  if (!selectedFile) return;
+  const maxSizeMB = parseFloat(document.getElementById('targetSize').value);
+  const maxDim = parseInt(document.getElementById('maxDim').value);
+  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+  const container = document.getElementById('results');
+  container.innerHTML = '';
+  logEl.textContent = '';
+
+  log(`Input: ${selectedFile.name}, ${(selectedFile.size/1024).toFixed(0)}KB, type=${selectedFile.type}`);
+  log(`Target: ${maxSizeMB}MB, max ${maxDim}px\n`);
+
+  log('--- Running comparisons ---\n');
+
+  const [r1, r2, r3, r4] = await Promise.all([
+    compressOriginalStyle(selectedFile, maxDim, maxSizeBytes, 'A: Old-style (drawImage+JPEG)'),
+    compressDrawImage(selectedFile, maxDim, maxSizeBytes, 'image/webp', 'B: drawImage(high)+WebP'),
+    compressDrawImage(selectedFile, maxDim, maxSizeBytes, 'image/jpeg', 'C: drawImage(high)+JPEG'),
+    compressLanczos3(selectedFile, maxDim, maxSizeBytes, 'image/webp', 'D: Lanczos3+WebP'),
+  ]);
+
+  showResult(container, 'A: Old-style (drawImage + JPEG, resolution reduction)', r1);
+  showResult(container, 'B: drawImage(high) + WebP (binary search)', r2);
+  showResult(container, 'C: drawImage(high) + JPEG (binary search)', r3);
+  showResult(container, 'D: Lanczos3 + WebP (binary search)', r4);
+});
+</script>
+</body>
+</html>

@@ -4,11 +4,7 @@
   import {_} from "svelte-i18n";
   import AtmosphereAboutModal from "$lib/components/profile/AtmosphereAboutModal.svelte";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
-  import {BskyAgent} from "@atproto/api";
-
   let { did, handle, endpoint } = $props();
-
-  const _agent = new BskyAgent({service: endpoint});
   let latestFlushes = $state();
   let collections: string[] = $state([]);
   let isOpen = $state(false);
@@ -19,7 +15,8 @@
 
   async function getCollections() {
     try {
-      const { data } = await _agent.com.atproto.repo.describeRepo({repo: did});
+      const res = await fetch(`${endpoint}/xrpc/com.atproto.repo.describeRepo?repo=${encodeURIComponent(did)}`);
+      const data = await res.json();
       return data?.collections || [];
     } catch (e) {
       return [];
@@ -28,12 +25,9 @@
 
   async function getFlushes() {
     try {
-      const res = await _agent.api.com.atproto.repo.listRecords({
-        repo: did,
-        collection: 'im.flushing.right.now',
-        limit: 1,
-      });
-      const records = res.data.records;
+      const res = await fetch(`${endpoint}/xrpc/com.atproto.repo.listRecords?repo=${encodeURIComponent(did)}&collection=${encodeURIComponent('im.flushing.right.now')}&limit=1`);
+      const data = await res.json();
+      const records = data.records;
       return records[0]?.value;
     } catch (e) {
       return false;

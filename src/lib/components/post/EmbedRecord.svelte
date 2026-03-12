@@ -1,13 +1,12 @@
 <script lang="ts">
   import { agent, labelerSettings, settings } from "$lib/stores";
-  import {lightFormat} from "date-fns";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "@atproto/api";
+  import {formatDate} from "$lib/dateFormat";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "$lib/atproto-guards";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
   import {contentLabelling, detectWarn, keywordFilter} from "$lib/timelineFilter";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
-  import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {goto} from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -115,7 +114,7 @@
         <p class="timeline__user">{ record.author.displayName || record.author.handle }</p>
         <p class="timeline__date">
           {#if $settings?.design.absoluteTime}
-            <span>{lightFormat(new Date(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
+            <span>{formatDate(new Date(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
           {:else}
             <span>{intlRelativeTimeFormatState.format({ laterDate: new Date(record.indexedAt) })}</span>
           {/if}
@@ -141,7 +140,9 @@
       {/if}
 
       {#if AppBskyEmbedVideo.isView(record?.embeds[0])}
-        <EmbedVideo video={record.embeds[0]}></EmbedVideo>
+        {#await import('$lib/components/post/EmbedVideo.svelte') then { default: EmbedVideo }}
+          <EmbedVideo video={record.embeds[0]}></EmbedVideo>
+        {/await}
       {/if}
 
       {#if (AppBskyEmbedExternal.isView(record?.embeds[0]))}

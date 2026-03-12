@@ -55,9 +55,9 @@
           });
       }
   } else {
-      $agent.agent.api.com.atproto.identity.resolveHandle({handle: handle})
+      $agent.xrpc.get('com.atproto.identity.resolveHandle', {handle: handle})
           .then(value => {
-              did = value.data.did;
+              did = value.did;
 
               if (!columnState.hasColumn('list_' + id)) {
                   columnState.add({
@@ -87,7 +87,7 @@
       isButtonsDisable = true;
 
       try {
-          const res = await $agent.agent.api.app.bsky.graph.muteActorList({list: 'at://' + did + '/app.bsky.graph.list/' + id});
+          const res = await $agent.xrpc.post('app.bsky.graph.muteActorList', {list: 'at://' + did + '/app.bsky.graph.list/' + id});
           isMute = true;
       } catch (e) {
           console.error(e);
@@ -100,7 +100,7 @@
       isButtonsDisable = true;
 
       try {
-          const res = await $agent.agent.api.app.bsky.graph.unmuteActorList({list: 'at://' + did + '/app.bsky.graph.list/' + id});
+          const res = await $agent.xrpc.post('app.bsky.graph.unmuteActorList', {list: 'at://' + did + '/app.bsky.graph.list/' + id});
           isMute = false;
       } catch (e) {
           console.error(e);
@@ -113,15 +113,15 @@
       isButtonsDisable = true;
 
       try {
-          const res = await $agent.agent.api.app.bsky.graph.listblock.create(
-              {
-                  repo: $agent.did()
-              },
-              {
+          const res = await $agent.xrpc.post('com.atproto.repo.createRecord', {
+              repo: $agent.did(),
+              collection: 'app.bsky.graph.listblock',
+              record: {
+                  $type: 'app.bsky.graph.listblock',
                   subject: 'at://' + did + '/app.bsky.graph.list/' + id,
                   createdAt: new Date().toISOString(),
               },
-          );
+          });
           isBlock = res.uri;
       } catch (e) {
           console.error(e);
@@ -134,12 +134,11 @@
       isButtonsDisable = true;
 
       try {
-          const res = await $agent.agent.api.app.bsky.graph.listblock.delete(
-              {
-                  repo: $agent.did(),
-                  rkey: isBlock.split('/').slice(-1)[0],
-              },
-          );
+          const res = await $agent.xrpc.post('com.atproto.repo.deleteRecord', {
+              repo: $agent.did(),
+              collection: 'app.bsky.graph.listblock',
+              rkey: isBlock.split('/').slice(-1)[0],
+          });
           isBlock = undefined;
       } catch (e) {
           console.error(e);

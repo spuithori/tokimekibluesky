@@ -48,16 +48,16 @@
       const feedsPromises = pinned.map(async (feed) => {
         try {
           if (feed.type === 'feed') {
-            const res = await _agent.agent.api.app.bsky.feed.getFeedGenerator({ feed: feed.value });
+            const res = await _agent.xrpc.get('app.bsky.feed.getFeedGenerator', { feed: feed.value });
             return {
               ...feed,
-              name: res?.data?.view?.displayName,
+              name: res?.view?.displayName,
             };
           } else if (feed.type === 'list') {
-            const res = await _agent.agent.api.app.bsky.graph.getList({ list: feed.value });
+            const res = await _agent.xrpc.get('app.bsky.graph.getList', { list: feed.value });
             return {
               ...feed,
-              name: res?.data?.list?.name,
+              name: res?.list?.name,
             };
           } else {
             return feed;

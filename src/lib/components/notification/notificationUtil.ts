@@ -86,8 +86,8 @@ export async function getNotifications(ctx, putBefore = false, _agent, currentFe
 
     let feedPool = currentFeedPool;
     if (subjects.length && subjects.length <= 25) {
-        const res = await _agent.agent.api.app.bsky.feed.getPosts({uris: subjects});
-        const formattedPosts = res.data.posts.map(post => ({ post: post }));
+        const res = await _agent.xrpc.get('app.bsky.feed.getPosts', {uris: subjects});
+        const formattedPosts = res.posts.map(post => ({ post: post }));
         feedPool = [...currentFeedPool, ...formattedPosts];
     }
 

@@ -3,7 +3,7 @@
     import { agent } from "$lib/stores";
     import Modal from "$lib/components/ui/Modal.svelte";
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
-    import {AppBskyEmbedRecord} from "@atproto/api";
+    import {AppBskyEmbedRecord} from "$lib/atproto-guards";
     import Infinite from "$lib/components/utils/Infinite.svelte";
 
     let { uri, _agent = $agent, onclose } = $props();
@@ -12,9 +12,9 @@
 
     async function handleLoadMore(loaded, complete) {
         try {
-            const res = await _agent.agent.api.app.bsky.feed.getQuotes({uri: uri, cursor: cursor});
-            cursor = res.data.cursor;
-            const wrapRes = res.data.posts.map(post => {
+            const res = await _agent.xrpc.get('app.bsky.feed.getQuotes', {uri: uri, cursor: cursor});
+            cursor = res.cursor;
+            const wrapRes = res.posts.map(post => {
                 return {
                     post: post,
                 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {lightFormat} from "date-fns";
+    import {formatDate} from "$lib/dateFormat";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
@@ -41,12 +41,12 @@
 
     async function leaveChat() {
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.leaveConvo({convoId: convo.id}, {
+            const res = await _agent.xrpc.post('chat.bsky.convo.leaveConvo', {convoId: convo.id}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
             });
-            const id = res.data.convoId;
+            const id = res.convoId;
             toast.success($_('success_leave_chat'));
             onrefresh(id);
         } catch (e) {
@@ -56,12 +56,12 @@
 
     async function muteChat() {
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.muteConvo({convoId: convo.id}, {
+            const res = await _agent.xrpc.post('chat.bsky.convo.muteConvo', {convoId: convo.id}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
             });
-            const id = res.data.convo.id;
+            const id = res.convo.id;
             toast.success($_('success_mute_chat'));
             onrefresh(id);
         } catch (e) {
@@ -71,12 +71,12 @@
 
     async function unMuteChat() {
         try {
-            const res = await _agent.agent.api.chat.bsky.convo.unmuteConvo({convoId: convo.id}, {
+            const res = await _agent.xrpc.post('chat.bsky.convo.unmuteConvo', {convoId: convo.id}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
             });
-            const id = res.data.convo.id;
+            const id = res.convo.id;
             toast.success($_('success_unmute_chat'));
             onrefresh(id);
         } catch (e) {
@@ -129,7 +129,7 @@
 
       <h3 class="convo-item__name">{convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle}</h3>
 
-      <time class="convo-item__date" datetime={lightFormat(new Date(convo.lastMessage.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{intlRelativeTimeFormatState.format({ laterDate: new Date(convo.lastMessage.sentAt) })}</time>
+      <time class="convo-item__date" datetime={formatDate(new Date(convo.lastMessage.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{intlRelativeTimeFormatState.format({ laterDate: new Date(convo.lastMessage.sentAt) })}</time>
     </div>
 
     <p class="convo-item__text">{convo.lastMessage.text}</p>

@@ -1,13 +1,13 @@
 <script lang="ts">
     import {settings, labelerSettings} from '$lib/stores';
-    import {AppBskyEmbedImages} from '@atproto/api';
+    import {AppBskyEmbedImages} from '$lib/atproto-guards';
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
     import {EyeOff, Handshake, BadgeCheck, CircleCheck} from "lucide-svelte";
     import {appState} from "$lib/classes/appState.svelte.js";
     import MediaTimelineSlider from "$lib/components/media/MediaTimelineSlider.svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import Tooltip from "$lib/components/ui/Tooltip.svelte";
-    import {lightFormat} from "date-fns";
+    import {formatDate} from "$lib/dateFormat";
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
     import TimelineText from "$lib/components/post/TimelineText.svelte";
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
@@ -78,10 +78,10 @@
                 {#if $settings?.design.absoluteTime}
                     <Tooltip>
                         {#snippet ref()}
-                            <span>{lightFormat(new Date(data.post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
+                            <span>{formatDate(new Date(data.post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
                         {/snippet}
                         {#snippet content()}
-                            <span aria-hidden="true" class="timeline-tooltip">{lightFormat(new Date(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+                            <span aria-hidden="true" class="timeline-tooltip">{formatDate(new Date(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
                         {/snippet}
                     </Tooltip>
                 {:else}
@@ -90,7 +90,7 @@
                             <span>{timeDistanceToNow}</span>
                         {/snippet}
                         {#snippet content()}
-                            <span aria-hidden="true" class="timeline-tooltip">{lightFormat(new Date(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+                            <span aria-hidden="true" class="timeline-tooltip">{formatDate(new Date(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
                         {/snippet}
                     </Tooltip>
                 {/if}

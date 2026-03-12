@@ -1,7 +1,6 @@
 import * as dcbor from '@ipld/dag-cbor';
 import * as Hasher from 'multiformats/hashes/hasher';
 import { CID } from 'multiformats/cid';
-import { AppBskyFeedPost, BlobRef } from '@atproto/api';
 
 /**
  * These codes are inspired by bluesky-social/social-app.
@@ -17,7 +16,7 @@ const mf_sha256 = Hasher.from({
     },
 });
 
-export async function computeCid(record: AppBskyFeedPost.Record): Promise<string> {
+export async function computeCid(record: any): Promise<string> {
     // IMPORTANT: `prepareObject` prepares the record to be hashed by removing
     // fields with undefined value, and converting BlobRef instances to the
     // right IPLD representation.
@@ -33,11 +32,15 @@ export async function computeCid(record: AppBskyFeedPost.Record): Promise<string
 }
 
 function prepareForHashing(v: any): any {
-    // IMPORTANT: BlobRef#ipld() returns the correct object we need for hashing,
-    // the API client will convert this for you but we're hashing in the client,
-    // so we need it *now*.
-    if (v instanceof BlobRef) {
-        return v.ipld()
+    // Handle blob references: when they come from the XRPC JSON response,
+    // they're plain objects with $type 'blob'. Convert to IPLD representation.
+    if (v && typeof v === 'object' && v.$type === 'blob') {
+        return {
+            $type: 'blob',
+            ref: v.ref?.$link ? CID.parse(v.ref.$link) : v.ref,
+            mimeType: v.mimeType,
+            size: v.size,
+        }
     }
 
     // Walk through arrays

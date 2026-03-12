@@ -14,9 +14,9 @@
 
     async function handleLoadMore(loaded, complete) {
         try {
-            let raw = await $agent.agent.api.app.bsky.graph.getLists({actor: $agent.did(), limit: 100, cursor: cursor});
-            cursor = raw.data.cursor;
-            lists = [...raw.data.lists.filter(list => list?.purpose === 'app.bsky.graph.defs#modlist')];
+            let raw = await $agent.xrpc.get('app.bsky.graph.getLists', {actor: $agent.did(), limit: 100, cursor: cursor});
+            cursor = raw.cursor;
+            lists = [...raw.lists.filter(list => list?.purpose === 'app.bsky.graph.defs#modlist')];
 
             if (cursor) {
                 loaded();
@@ -30,9 +30,9 @@
     }
 
     onMount(async () => {
-        const [muteRes, blockRes] = await Promise.all([$agent.agent.api.app.bsky.graph.getListMutes({limit: 100}), $agent.agent.api.app.bsky.graph.getListBlocks({limit: 100})]);
-        const muteLists = muteRes.data.lists.filter(list => list.creator.did !== $agent.did());
-        const blockLists = blockRes.data.lists.filter(list => list.creator.did !== $agent.did());
+        const [muteRes, blockRes] = await Promise.all([$agent.xrpc.get('app.bsky.graph.getListMutes', {limit: 100}), $agent.xrpc.get('app.bsky.graph.getListBlocks', {limit: 100})]);
+        const muteLists = muteRes.lists.filter(list => list.creator.did !== $agent.did());
+        const blockLists = blockRes.lists.filter(list => list.creator.did !== $agent.did());
 
         modLists = Array.from(
             new Map([...muteLists, ...blockLists].map(list => [list.uri, list])).values()

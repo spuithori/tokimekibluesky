@@ -1,7 +1,8 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
   import { agent, hashtagHistory, settings } from '$lib/stores';
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyVideoDefs, RichText } from '@atproto/api';
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, type AppBskyVideoDefsJobStatus } from '$lib/atproto-guards';
+  import { RichText } from '$lib/atproto-richtext';
   import {toast} from 'svelte-sonner'
   import {goto, pushState} from '$app/navigation';
   import {page} from '$app/stores';
@@ -10,12 +11,11 @@
   import DraftModal from "$lib/components/draft/DraftModal.svelte";
   import {getServiceAuthToken} from "$lib/util";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-  import imageCompression from 'browser-image-compression';
+  import { compressImage as compressImageLib } from '$lib/imageCompressor/compressor';
   import PublishPool from "$lib/components/editor/PublishPool.svelte";
-  import PublishMain from "$lib/components/editor/PublishMain.svelte";
   import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
   import {tick} from "svelte";
-  import {TID} from "@atproto/common-web";
+  import {TID} from "$lib/atproto-tid";
   import {computeCid} from "$lib/components/editor/postUtil";
   import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
   import {publishState} from "$lib/classes/publishState.svelte";
@@ -23,7 +23,6 @@
   import {getPostState} from "$lib/classes/postState.svelte";
   import {languageDetect} from '$lib/translate';
   import PublishConfigModal from "$lib/components/publish/PublishConfigModal.svelte";
-  import {compressWithIteration} from "$lib/components/editor/imageUploadUtil";
   import ScheduleModal from "$lib/components/publish/ScheduleModal.svelte";
   import { createScheduledPost, uploadScheduleImage, registerWhisperPost, type PostData, type ScheduledImage, type ScheduledExternal, type ThreadPostData, type ProcessedPostContent, type WhisperExpiresIn } from '$lib/scheduleApi';
   import { generatePollOgImage } from '$lib/pollApi';
@@ -49,7 +48,7 @@
   $effect(() => {
       if (publishState.show) {
           tick().then(() => {
-              editor.focus();
+              editor?.focus();
           });
       }
   })
@@ -59,7 +58,7 @@
           publishState.show = true;
       }
 
-      tick().then(() => { editor.focus(); });
+      tick().then(() => { editor?.focus(); });
 
       if (isMobile) {
           tick().then(() => {
@@ -75,7 +74,7 @@
   function onClose() {
       if (publishState.show) {
           publishState.show = false;
-          editor.blur();
+          editor?.blur();
 
           if (isMobile && $page.state.showPublish) {
               history.back();
@@ -136,43 +135,23 @@
       }];
 
       tick().then(() => {
-          editor.focus();
+          editor?.focus();
       });
   }
 
-  function calculateCompressionQuality(sizeMB: number): number {
-      const targetSizeMB = 0.925;
-      if (sizeMB <= targetSizeMB) {
-          return 0.95;
-      }
-      const minQuality = 0.8;
-      const maxQuality = 0.9;
-      const maxSizeToConsider = 20.0;
-      const overshootRatio = Math.min(1.0, (sizeMB - targetSizeMB) / (maxSizeToConsider - targetSizeMB));
-      return Math.max(minQuality, maxQuality - (overshootRatio * (maxQuality - minQuality)));
-  }
-
-  async function compressImage(file: File | Blob): Promise<File | Blob> {
-      const originalSizeMB = file.size / 1024 / 1024;
-      const dynamicInitialQuality = calculateCompressionQuality(originalSizeMB);
-
-      if ($settings?.general?.losslessImageUpload) {
-          return await compressWithIteration(file, 0.95);
-      }
-
-      return await imageCompression(file, {
-          maxSizeMB: 0.95,
+  async function compressImage(file: File | Blob): Promise<Blob> {
+      return await compressImageLib(file, {
+          outputType: $settings?.general?.avifUpload ? 'image/avif' : 'image/webp',
+          maxSizeMB: 1_000_000 / 1024 / 1024,
           maxWidthOrHeight: 2000,
-          fileType: 'image/jpeg',
-          useWebWorker: true,
-          initialQuality: dynamicInitialQuality,
+          maxQuality: $settings?.general?.losslessImageUpload ? 1.0 : 0.95,
       });
   }
 
   async function uploadBlobWithCompression(image) {
       const compressed = image.isGif ? image.file : await compressImage(image.file);
 
-      return await _agent.agent.api.com.atproto.repo.uploadBlob(compressed, {
+      return await _agent.xrpc.post('com.atproto.repo.uploadBlob', compressed, {
           encoding: compressed.type,
       });
   }
@@ -184,19 +163,17 @@
               let blob = await imageRes.blob();
 
               if (blob.type === 'image/gif') {
-                  blob = await imageCompression(blob, {
-                      maxSizeMB: 0.925,
+                  blob = await compressImageLib(blob, {
+                      maxSizeMB: 1_000_000 / 1024 / 1024,
                       maxWidthOrHeight: 3000,
-                      fileType: 'image/jpeg',
-                      useWebWorker: true,
                       initialQuality: 0.8,
                   });
               }
 
-              const res = await _agent.agent.api.com.atproto.repo.uploadBlob(blob, {
-                  encoding: 'image/jpeg',
+              const res = await _agent.xrpc.post('com.atproto.repo.uploadBlob', blob, {
+                  encoding: blob.type,
               });
-              return res.data.blob;
+              return res.blob;
           } catch (e) {
               toast.error(e);
           }
@@ -296,7 +273,7 @@
               toast.loading($_('whisper_registering'), { id: toastId });
 
               const whisperResult = await registerWhisperPost(
-                  _agent.agent,
+                  _agent,
                   parent.uri,
                   parent.cid,
                   whisperDuration as WhisperExpiresIn
@@ -307,7 +284,7 @@
               }
           }
 
-          await _agent.agent.api.com.atproto.repo.applyWrites({
+          await _agent.xrpc.post('com.atproto.repo.applyWrites', {
               repo: _agent.did(),
               writes: writes,
               validate: false,
@@ -343,15 +320,15 @@
                       return facet.features[0].did as string
                   }
               }).filter(results => results !== undefined);
-              const promises = dids.map(did => _agent.agent.com.atproto.repo.describeRepo({repo: did}));
+              const promises = dids.map(did => _agent.xrpc.get('com.atproto.repo.describeRepo', {repo: did}));
               let actors: { did: string; handle: string; isHistory: boolean; }[] = [];
 
               await Promise.all(promises)
                   .then(ress => {
                       actors = ress.map(res => {
                           return {
-                              did: res.data.did,
-                              handle: res.data.handle,
+                              did: res.did,
+                              handle: res.handle,
                               isHistory: true,
                           }
                       });
@@ -380,14 +357,14 @@
 
       if (publishState.pinned) {
           await tick();
-          editor.focus();
+          editor?.focus();
       }
 
       if ($settings?.general?.continuousTag && continuousTags.length) {
         const tagsText = continuousTags.map(tag => `<span class="editor-hashtag">${tag.startsWith('$') ? tag : '#' + tag}</span>`).join(' ');
         postState.replaceText('<br>' + tagsText);
         await tick();
-        editor.focus('start');
+        editor?.focus('start');
       }
   }
 
@@ -432,7 +409,7 @@
           await Promise.all(filePromises)
               .then(results => results.forEach((result, index) => {
                   embedImages.images.push({
-                      image: result.data.blob,
+                      image: result.blob,
                       alt: images[index].alt || '',
                       aspectRatio: {
                           width: images[index].width || undefined,
@@ -454,7 +431,7 @@
               const token = await getServiceAuthToken({lxm: 'com.atproto.repo.uploadBlob', exp: Date.now() / 1000 + 60 * 30}, _agent);
 
               const xhr = new XMLHttpRequest();
-              const res = await new Promise<AppBskyVideoDefs.JobStatus>((resolve, reject) => {
+              const res = await new Promise<AppBskyVideoDefsJobStatus>((resolve, reject) => {
                   xhr.upload.addEventListener('progress', e => {
                       const progress = e.loaded / e.total;
 
@@ -467,7 +444,7 @@
                       if (xhr.readyState === 4) {
                           const uploadRes = JSON.parse(
                               xhr.responseText,
-                          ) as AppBskyVideoDefs.JobStatus
+                          ) as AppBskyVideoDefsJobStatus
                           resolve(uploadRes)
                       } else {
                           reject(new Error(xhr.statusText));
@@ -585,10 +562,10 @@
           let pollThumb;
           try {
               const ogBlob = await generatePollOgImage(post.poll.options);
-              const uploadRes = await _agent.agent.api.com.atproto.repo.uploadBlob(ogBlob, {
+              const uploadRes = await _agent.xrpc.post('com.atproto.repo.uploadBlob', ogBlob, {
                   encoding: 'image/png',
               });
-              pollThumb = uploadRes.data.blob;
+              pollThumb = uploadRes.blob;
           } catch (e) {
               console.error('Failed to generate poll OG image:', e);
           }
@@ -758,6 +735,7 @@
                   '7d': 7 * 24 * 60 * 60 * 1000,
               };
               const endsAt = new Date(Date.now() + (durationMs[post.poll.duration] || durationMs['1d'])).toISOString();
+              const postCid = await computeCid(record);
 
               writes.push({
                   $type: 'com.atproto.repo.applyWrites#create',
@@ -767,7 +745,7 @@
                       $type: 'tech.tokimeki.poll.poll',
                       subject: {
                           uri: uri,
-                          cid: '',
+                          cid: postCid,
                       },
                       options: post.poll.options,
                       createdAt: new Date().toISOString(),
@@ -813,7 +791,7 @@
       postState.posts.splice(postState.index + 1, 0, $state.snapshot(postState.initPost));
       postState.index = postState.index + 1;
       tick().then(() => {
-          editor.focus();
+          editor?.focus();
       })
   }
 
@@ -829,7 +807,7 @@
       }
 
       tick().then(() => {
-          editor.focus();
+          editor?.focus();
       })
   }
 
@@ -845,7 +823,7 @@
           const fileToUpload = compressed instanceof File
               ? compressed
               : new File([compressed], 'image.jpg', { type: compressed.type });
-          const storagePath = await uploadScheduleImage(_agent.agent, {
+          const storagePath = await uploadScheduleImage(_agent, {
               file: fileToUpload,
               postId: tempPostId,
               index: indexOffset + i,
@@ -882,7 +860,7 @@
           const base64Response = await fetch(post.externalImageBlob);
           const blob = await base64Response.blob();
           const thumbFile = new File([blob], 'thumb.jpg', { type: blob.type || 'image/jpeg' });
-          const thumbPath = await uploadScheduleImage(_agent.agent, {
+          const thumbPath = await uploadScheduleImage(_agent, {
               file: thumbFile,
               postId: tempPostId,
               index: thumbIndex,
@@ -1039,7 +1017,7 @@
           applyReplyRef(postData, firstPost.replyRef);
           applyGates(postData, firstPost);
 
-          const result = await createScheduledPost(_agent.agent, postData, scheduledAt);
+          const result = await createScheduledPost(_agent, postData, scheduledAt);
           if (!result) {
               throw new Error('Failed to create scheduled post');
           }
@@ -1056,7 +1034,7 @@
 
           if (publishState.pinned) {
               await tick();
-              editor.focus();
+              editor?.focus();
           }
       } catch (e) {
           isPublishing = false;
@@ -1133,17 +1111,19 @@
         {/if}
 
         {#if (index === postState.index)}
-          <PublishMain
-                  {index}
-                  bind:_agent={_agent}
-                  onadd={applyAddThread}
-                  onopen={handleOpen}
-                  onpublish={publishAll}
-                  bind:editor={editor}
-                  bind:isEnabled={isEnabled}
-                  {submitArea}
-          >
-          </PublishMain>
+          {#await import('$lib/components/editor/PublishMain.svelte') then { default: PublishMain }}
+            <PublishMain
+                    {index}
+                    bind:_agent={_agent}
+                    onadd={applyAddThread}
+                    onopen={handleOpen}
+                    onpublish={publishAll}
+                    bind:editor={editor}
+                    bind:isEnabled={isEnabled}
+                    {submitArea}
+            >
+            </PublishMain>
+          {/await}
         {:else}
           <PublishPool {post} {index} bind:_agent={_agent} onchange={applyChangeThread} isEnabled={isPublishing}></PublishPool>
         {/if}

@@ -34,9 +34,9 @@
     }
 
     try {
-      const res = await $agent.agent.api.app.bsky.actor.getProfile({ actor: OFFICIAL_HANDLE });
-      officialProfile = res.data;
-      isFollowing = !!res.data.viewer?.following;
+      const res = await $agent.xrpc.get('app.bsky.actor.getProfile', { actor: OFFICIAL_HANDLE });
+      officialProfile = res;
+      isFollowing = !!res.viewer?.following;
       showFollowPrompt = !isFollowing;
     } catch (e) {
       console.error('Failed to check follow status:', e);
@@ -53,13 +53,15 @@
     if (!$agent || !officialProfile) return;
 
     try {
-      await $agent.agent.api.app.bsky.graph.follow.create(
-        { repo: $agent.did() },
-        {
+      await $agent.xrpc.post('com.atproto.repo.createRecord', {
+        repo: $agent.did(),
+        collection: 'app.bsky.graph.follow',
+        record: {
+          $type: 'app.bsky.graph.follow',
           subject: officialProfile.did,
           createdAt: new Date().toISOString(),
         }
-      );
+      });
       isFollowing = true;
       showFollowPrompt = false;
     } catch (e) {

@@ -1,4 +1,4 @@
-import {RichText} from "@atproto/api";
+import {RichText} from "$lib/atproto-richtext";
 import {settingsState} from "$lib/classes/settingsState.svelte";
 
 export async function translate(text, lang = window.navigator.language, _agent) {
@@ -15,7 +15,7 @@ export async function translate(text, lang = window.navigator.language, _agent) 
     const translatedText = await translation[0].translations[0].text;
 
     const rt = new RichText({text: translatedText});
-    await rt.detectFacets(_agent.agent);
+    await rt.detectFacets((handle: string) => _agent.resolveHandle(handle));
 
     return {
         text: rt.text,

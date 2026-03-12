@@ -2,7 +2,7 @@
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { X, Brush } from 'lucide-svelte';
     import { ImageEditor } from 'tokimeki-image-editor';
-    import imageCompression from "browser-image-compression";
+    import { compressForPreview, blobToDataUrl } from '$lib/imageCompressor/compressor';
 
     let { image, ondelete, onaltclick } = $props();
     let isEdit = $state(false);
@@ -19,12 +19,8 @@
         image.file = blobObj.blob;
         image.width = blobObj.width;
         image.height = blobObj.height;
-        const compressed = await imageCompression(image.file, {
-            maxWidthOrHeight: 1024,
-            initialQuality: 0.8,
-            useWebWorker: true,
-        });
-        image.base64 = await imageCompression.getDataUrlFromFile(compressed);
+        const compressed = await compressForPreview(image.file);
+        image.base64 = await blobToDataUrl(compressed);
         isEdit = false;
     }
 

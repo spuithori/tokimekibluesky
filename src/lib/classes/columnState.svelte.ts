@@ -2,7 +2,7 @@ import type {Column} from "$lib/types/column";
 import {getContext, setContext} from "svelte";
 import {accountsDb} from "$lib/db";
 import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
-import {AppBskyFeedDefs} from "@atproto/api";
+import {AppBskyFeedDefs} from "$lib/atproto-guards";
 import {settingsState} from "$lib/classes/settingsState.svelte";
 import {appState} from "$lib/classes/appState.svelte";
 

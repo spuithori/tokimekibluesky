@@ -669,6 +669,8 @@
   "publish_config_modal_title": "Post customize",
   "lossless_image_upload_mode": "Lossless image upload (as possible)",
   "lossless_image_upload_mode_notice": "Image processing may take some time.",
+  "avif_upload_mode": "Upload in AVIF format (experimental)",
+  "avif_upload_mode_notice": "You may be able to post in higher quality, but it will take longer to upload. It may not work in some environments.",
   "display_mutual_following": "Display Followed badge",
   "show_skyblur_text": "Show hidden text by Skyblur",
   "back_to_exit_again": "Back again to exit.",

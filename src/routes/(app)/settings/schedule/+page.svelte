@@ -41,9 +41,9 @@
     async function checkAuthForAccount(state: AccountAuthState) {
         state.isChecking = true;
         try {
-            state.isAuthenticated = await checkScheduleAuth(state.agent.agent);
+            state.isAuthenticated = await checkScheduleAuth(state.agent);
             if (state.isAuthenticated) {
-                state.scheduledPosts = await getScheduledPosts(state.agent.agent);
+                state.scheduledPosts = await getScheduledPosts(state.agent);
             }
         } catch {
             state.isAuthenticated = false;
@@ -98,7 +98,7 @@
     }
 
     async function disconnect(state: AccountAuthState) {
-        const success = await revokeScheduleAuth(state.agent.agent);
+        const success = await revokeScheduleAuth(state.agent);
         if (success) {
             state.isAuthenticated = false;
             state.scheduledPosts = [];
@@ -111,7 +111,7 @@
     async function handleDeletePost(state: AccountAuthState, id: string) {
         if (!confirm($_('schedule_settings_delete_confirm'))) return;
 
-        const success = await deleteScheduledPost(state.agent.agent, id);
+        const success = await deleteScheduledPost(state.agent, id);
         if (success) {
             state.scheduledPosts = state.scheduledPosts.filter(p => p.id !== id);
             toast.success($_('schedule_settings_delete_success'));

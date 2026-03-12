@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from 'svelte-i18n'
-    import imageCompression from 'browser-image-compression';
+    import { compressForPreview, blobToDataUrl } from '$lib/imageCompressor/compressor';
     import {flip} from "svelte/animate";
     import {dragHandleZone, dragHandle} from "svelte-dnd-action";
     import ImageUploadItem from "$lib/components/editor/ImageUploadItem.svelte";
@@ -10,7 +10,6 @@
         resizeAspectRatioSize,
         transformImageFilter
     } from "$lib/components/editor/imageUploadUtil";
-    import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
     import {X} from "lucide-svelte";
     import {toast} from "svelte-sonner";
     import {publishState} from "$lib/classes/publishState.svelte";
@@ -121,7 +120,7 @@
                 return false;
             }
 
-            const videoDataUrl = await imageCompression.getDataUrlFromFile(videoFile);
+            const videoDataUrl = await blobToDataUrl(videoFile);
             const videoBytes = await fetch(videoDataUrl).then(res => res.arrayBuffer());
 
             video = {
@@ -145,13 +144,8 @@
     }
 
     export async function applyImageFromFile(file, alt = '') {
-        const compressed = await imageCompression(file, {
-            maxWidthOrHeight: 1024,
-            initialQuality: 0.8,
-            useWebWorker: true,
-        });
-
-        const base64 = await imageCompression.getDataUrlFromFile(compressed);
+        const compressed = await compressForPreview(file);
+        const base64 = await blobToDataUrl(compressed);
         const isGif = await transformImageFilter(file);
         const {width, height} = resizeAspectRatioSize(await getImageSize(file));
 
@@ -205,7 +199,9 @@
 
 {#if video}
     <div class="video-upload-item">
-        <EmbedVideo video={videoUrl} isLocal={true}></EmbedVideo>
+        {#await import('$lib/components/post/EmbedVideo.svelte') then { default: EmbedVideo }}
+            <EmbedVideo video={videoUrl} isLocal={true}></EmbedVideo>
+        {/await}
 
         <button class="video-upload-item__close" onclick={handleVideoDelete}>
             <X color="#fff" size="18"></X>

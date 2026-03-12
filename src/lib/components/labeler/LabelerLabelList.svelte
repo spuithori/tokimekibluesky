@@ -18,7 +18,7 @@
 
 
   onMount(async () => {
-      const res = await $agent.agent.getLabelDefinitions([did]);
+      const res = await $agent.getLabelDefinitions([did]);
       defs = res[did];
       const saved = $labelerSettings.find(labeler => labeler.did === did);
 

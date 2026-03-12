@@ -1,7 +1,6 @@
 <script lang="ts">
     import {agent} from '$lib/stores';
     import ChatItem from "$lib/components/chat/ChatItem.svelte";
-    import ChatPublish from "$lib/components/chat/ChatPublish.svelte";
     import {tick} from "svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import Infinite from "$lib/components/utils/Infinite.svelte";
@@ -26,18 +25,18 @@
         }
 
         try {
-            const res = await currentAgent.agent.api.chat.bsky.convo.getMessages({cursor: column.data.cursor, limit: 50, convoId: column.algorithm.id}, {
+            const res = await currentAgent.xrpc.get('chat.bsky.convo.getMessages', {cursor: column.data.cursor, limit: 50, convoId: column.algorithm.id}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
             });
 
-            if (res?.data?.cursor) {
-                column.data.cursor = res.data.cursor;
+            if (res?.cursor) {
+                column.data.cursor = res.cursor;
             }
 
             const currentFeed = columnState.getFeed(column.id);
-            const feed = res.data.messages.filter(feed => {
+            const feed = res.messages.filter(feed => {
                 return !currentFeed.some(item => isDuplicateMessage(item, feed));
             }).reverse();
 
@@ -50,7 +49,7 @@
                 scrollEl?.scrollTo(0, scrollY || 0);
             }
 
-            if (column.data.cursor && res.data.messages.length) {
+            if (column.data.cursor && res.messages.length) {
                 firstLoad = false;
                 loaded();
             } else {
@@ -92,7 +91,9 @@
 
   <div class="chat-anchor"></div>
 
-  <ChatPublish id={column.algorithm.id} {column} _agent={_agent || $agent} {onrefresh}></ChatPublish>
+  {#await import('$lib/components/chat/ChatPublish.svelte') then { default: ChatPublish }}
+    <ChatPublish id={column.algorithm.id} {column} _agent={_agent || $agent} {onrefresh}></ChatPublish>
+  {/await}
 </div>
 
 <style lang="postcss">

@@ -13,9 +13,9 @@
 
   async function handleLoadMore(loaded, complete) {
       try {
-          let res = await _agent.agent.api.app.bsky.graph.getMutes({limit: 20, cursor: cursor});
-          cursor = res.data.cursor;
-          mutes = [...mutes, ...res.data.mutes];
+          let res = await _agent.xrpc.get('app.bsky.graph.getMutes', {limit: 20, cursor: cursor});
+          cursor = res.cursor;
+          mutes = [...mutes, ...res.mutes];
 
           if (cursor) {
               loaded();

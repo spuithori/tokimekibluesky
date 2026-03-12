@@ -73,11 +73,11 @@
     }
 
     async function putNotifications() {
-        const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+        const res = await _agent.xrpc.get('app.bsky.notification.listNotifications', {
             limit: 10,
             cursor: '',
         });
-        const __notifications = res.data.notifications.filter(item => {
+        const __notifications = res.notifications.filter(item => {
             return column.filter.includes(item.reason);
         });
         const resNotifications = isOnlyShowUnread
@@ -98,14 +98,14 @@
 
     const handleLoadMore = async (loaded, complete) => {
         try {
-            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+            const res = await _agent.xrpc.get('app.bsky.notification.listNotifications', {
                 limit: 25,
                 cursor: column.data.cursor,
                 reasons: column.filter,
             });
-            column.data.cursor = res.data.cursor;
+            column.data.cursor = res.cursor;
 
-            const _notifications = res.data.notifications.filter(item => {
+            const _notifications = res.notifications.filter(item => {
                 return column.filter.includes(item.reason);
             });
             const resNotifications = isOnlyShowUnread
@@ -121,7 +121,7 @@
             });
             column.data.feedPool = newFeedPool;
 
-            if (column.data.cursor && isOnlyShowUnread ? resNotifications.length : res.data.notifications.length) {
+            if (column.data.cursor && isOnlyShowUnread ? resNotifications.length : res.notifications.length) {
                 loaded();
             } else {
                 complete();

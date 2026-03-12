@@ -1,13 +1,11 @@
-import { AppBskyActorDefs } from "@atproto/api";
-
 class ProfileHintState {
-    profile = $state<AppBskyActorDefs.ProfileViewBasic | undefined>();
+    profile = $state<any | undefined>();
 
     hasProfile(handle: string) {
         return this.profile?.handle === handle || this.profile?.did === handle;
     }
 
-    set(profile: AppBskyActorDefs.ProfileViewBasic) {
+    set(profile: any) {
         this.profile = profile;
     }
 

@@ -42,10 +42,10 @@
   let isMembersOpen = $state(false);
 
   if (!list && uri) {
-      _agent.agent.api.app.bsky.graph.getList({list: uri, limit: 100})
+      _agent.xrpc.get('app.bsky.graph.getList', {list: uri, limit: 100})
           .then(value => {
-              list = value.data.list;
-              items = value.data.items;
+              list = value.list;
+              items = value.items;
               title = list.name;
               listItemCount = list.listItemCount;
               isModerationList = list.purpose === 'app.bsky.graph.defs#modlist';

@@ -1,6 +1,6 @@
 <script lang="ts">
     import {settings, labelerSettings} from '$lib/stores';
-    import {AppBskyEmbedImages, AppBskyFeedDefs} from '@atproto/api';
+    import {AppBskyEmbedImages, AppBskyFeedDefs} from '$lib/atproto-guards';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";

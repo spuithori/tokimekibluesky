@@ -36,8 +36,8 @@
   }
 
   onMount(async () => {
-    if (_agent.agent) {
-      isAuthenticated = await checkScheduleAuth(_agent.agent);
+    if (_agent) {
+      isAuthenticated = await checkScheduleAuth(_agent);
     }
     isChecking = false;
   });

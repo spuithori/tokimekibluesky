@@ -103,32 +103,32 @@
 
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
 
-            if (!res?.data) {
+            if (!res) {
                 isRefreshing = false;
                 return false;
             }
 
             const currentFeed = columnState.getFeed(column.id);
             const existingKeys = new Set(currentFeed.map(getPostKey));
-            const newFeed = res.data.feed
+            const newFeed = res.feed
                 .filter(feed => !existingKeys.has(getPostKey(feed)))
-                .map(feed => ({...feed, memoryCursor: res.data.cursor}));
+                .map(feed => ({...feed, memoryCursor: res.cursor}));
 
-            if (newFeed.length === res.data.feed.length && currentFeed.length !== 0) {
+            if (newFeed.length === res.feed.length && currentFeed.length !== 0) {
                 const dividerPost = newFeed.slice(-1)[0];
                 dividerPost.isDivider = true;
             }
 
-            const newKeys = new Set(res.data.feed.map(getPostKey));
+            const newKeys = new Set(res.feed.map(getPostKey));
             columnState.replaceFeed(column.id, f => f.map(feed => {
                 if (newKeys.has(getPostKey(feed))) {
-                    feed.memoryCursor = res.data.cursor;
+                    feed.memoryCursor = res.cursor;
                 }
                 return feed;
             }));
 
             if (columnState.getFeed(column.id).length === 0) {
-                column.data.cursor = res.data.cursor;
+                column.data.cursor = res.cursor;
             }
 
             const useVirtualTimeline = (column.style === 'default' || !column.style) && $settings.design?.layout === 'decks' && !$settings.general?.useVirtual && false; //TODO
@@ -164,13 +164,13 @@
                 column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
             }
 
-            const res = await _agent.agent.api.app.bsky.notification.listNotifications({
+            const res = await _agent.xrpc.get('app.bsky.notification.listNotifications', {
                 limit: 25,
                 cursor: '',
                 reasons: column.filter,
             });
 
-            const _notifications = res.data.notifications.filter(item => {
+            const _notifications = res.notifications.filter(item => {
                 return column.filter.includes(item.reason);
             });
             let resNotifications = column.settings?.onlyShowUnread
@@ -204,31 +204,31 @@
                     : await _agent.getNotificationCount();
 
                 try {
-                    await _agent.agent.api.app.bsky.notification.updateSeen({seenAt: new Date().toISOString()});
+                    await _agent.xrpc.post('app.bsky.notification.updateSeen', {seenAt: new Date().toISOString()});
                 } catch (e) {
 
                 }
             }
         } else if (column.algorithm.type === 'chat') {
-            const res = await _agent.agent.api.chat.bsky.convo.getMessages({cursor: '', limit: 50, convoId: column.algorithm.id}, {
+            const res = await _agent.xrpc.get('chat.bsky.convo.getMessages', {cursor: '', limit: 50, convoId: column.algorithm.id}, {
                 headers: {
-                    'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
+                    'atproto-proxy': CHAT_PROXY,
                 }
             });
 
-            if (!res?.data) {
+            if (!res) {
                 isRefreshing = false;
                 return false;
             }
 
             const chatFeed = columnState.getFeed(column.id);
             const existingMessageIds = new Set(chatFeed.map(m => m.id));
-            const newFeed = res.data.messages
+            const newFeed = res.messages
                 .filter(feed => !existingMessageIds.has(feed.id))
                 .reverse();
 
             if (chatFeed.length === 0) {
-                column.data.cursor = res.data.cursor;
+                column.data.cursor = res.cursor;
             }
 
             columnState.replaceFeed(column.id, f => [...f, ...newFeed]);
@@ -241,7 +241,7 @@
             });
 
             if (!isAutoRefresh) {
-              await _agent.agent.api.chat.bsky.convo.updateRead({convoId: column.algorithm.id}, {
+              await _agent.xrpc.post('chat.bsky.convo.updateRead', {convoId: column.algorithm.id}, {
                 headers: {
                   'atproto-proxy': CHAT_PROXY,
                 }
@@ -250,25 +250,25 @@
             }
         } else if (column.algorithm.type === 'chatList') {
             if (column.algorithm.id) {
-                const res = await _agent.agent.api.chat.bsky.convo.getMessages({cursor: '', limit: 50, convoId: column.algorithm.id}, {
+                const res = await _agent.xrpc.get('chat.bsky.convo.getMessages', {cursor: '', limit: 50, convoId: column.algorithm.id}, {
                     headers: {
                         'atproto-proxy': CHAT_PROXY,
                     }
                 });
 
-                if (!res?.data) {
+                if (!res) {
                     isRefreshing = false;
                     return false;
                 }
 
                 const chatListFeed = columnState.getFeed(column.id);
                 const existingMessageIds = new Set(chatListFeed.map(m => m.id));
-                const newFeed = res.data.messages
+                const newFeed = res.messages
                     .filter(feed => !existingMessageIds.has(feed.id))
                     .reverse();
 
                 if (chatListFeed.length === 0) {
-                    column.data.cursor = res.data.cursor;
+                    column.data.cursor = res.cursor;
                 }
 
                 columnState.replaceFeed(column.id, f => [...f, ...newFeed]);
@@ -281,7 +281,7 @@
                 });
 
                 if (!isAutoRefresh) {
-                    await _agent.agent.api.chat.bsky.convo.updateRead({convoId: column.algorithm.id}, {
+                    await _agent.xrpc.post('chat.bsky.convo.updateRead', {convoId: column.algorithm.id}, {
                         headers: {
                             'atproto-proxy': CHAT_PROXY,
                         }

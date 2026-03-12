@@ -2,7 +2,6 @@
     import { _ } from 'svelte-i18n';
     import {onMount} from "svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
-    import {fromUnixTime} from "date-fns";
     import {Mic} from "lucide-svelte";
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 
@@ -33,7 +32,7 @@
             <h3 class="bluecast-item__title"><a href="https://www.bluecast.app/user/@{item?.profileData?.handle}?t=listen" target="_blank" rel="noopener noreferrer">{item?.profileData?.displayName || item?.profileData?.handle}</a></h3>
 
             {#if (item?.createdAt?.seconds)}
-              <p class="bluecast-item__date">{intlRelativeTimeFormatState.format({ laterDate: fromUnixTime(item?.createdAt?.seconds)})}</p>
+              <p class="bluecast-item__date">{intlRelativeTimeFormatState.format({ laterDate: new Date(item?.createdAt?.seconds * 1000)})}</p>
             {/if}
           </div>
 

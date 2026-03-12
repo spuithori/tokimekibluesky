@@ -8,8 +8,8 @@
 
   onMount(async () => {
     try {
-      const res = await _agent.agent.api.app.bsky.graph.getStarterPack({starterPack: starterPackBasic.uri});
-      starterPack = res.data.starterPack;
+      const res = await _agent.xrpc.get('app.bsky.graph.getStarterPack', {starterPack: starterPackBasic.uri});
+      starterPack = res.starterPack;
     } catch (e) {
 
     }

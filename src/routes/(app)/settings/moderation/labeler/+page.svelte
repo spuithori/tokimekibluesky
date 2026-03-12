@@ -12,8 +12,8 @@
 
   async function loadLabelers(subscribedLabelers) {
     if (subscribedLabelers.length) {
-      const res = await $agent.agent.getLabelers({dids: subscribedLabelers, detailed: true});
-      labelers = res.data.views;
+      const res = await $agent.xrpc.get('app.bsky.labeler.getServices', {dids: subscribedLabelers, detailed: true});
+      labelers = res.views;
     }
 
     ready = true;

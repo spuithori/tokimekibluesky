@@ -34,12 +34,12 @@
 
   function applyLabeler() {
       $agents.forEach(_agent => {
-          _agent.agent.configureLabelersHeader(appState.subscribedLabelers.current);
+          _agent.configureLabelers(appState.subscribedLabelers.current);
       })
   }
 
   async function applyLabelDefs(subscribedLabelers) {
-      appState.labelDefs.current = await $agent.agent.getLabelDefinitions(subscribedLabelers);
+      appState.labelDefs.current = await $agent.getLabelDefinitions(subscribedLabelers);
   }
 
   let subscribed = $derived(appState.subscribedLabelers.current.includes(did));

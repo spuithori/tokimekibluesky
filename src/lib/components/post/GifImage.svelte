@@ -2,7 +2,6 @@
     import {onMount, onDestroy} from "svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
-    import {BskyAgent} from "@atproto/api";
     import {getService} from "$lib/util";
 
     let url = $state('');
@@ -17,10 +16,10 @@
 
     async function getUrlByBlob(blob) {
         try {
-            const __agent = new BskyAgent({service: await getService(did)});
-            const cid = blob.ref.toString();
-            const res = await __agent.api.com.atproto.sync.getBlob({did: did as string, cid: cid});
-            const data = new Blob([res.data], {type: 'image/gif'});
+            const service = await getService(did);
+            const cid = blob.ref?.$link ?? blob.ref?.toString();
+            const res = await fetch(`${service}/xrpc/com.atproto.sync.getBlob?did=${encodeURIComponent(did as string)}&cid=${encodeURIComponent(cid)}`);
+            const data = new Blob([await res.arrayBuffer()], {type: 'image/gif'});
 
             return URL.createObjectURL(data);
         } catch (e) {

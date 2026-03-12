@@ -1,11 +1,11 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import {agents, labelerSettings, settings} from "$lib/stores";
-  import {lightFormat} from "date-fns";
+  import {agentDidsSet, labelerSettings, settings} from "$lib/stores";
+  import {formatDate} from "$lib/dateFormat";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, detectHide} from "$lib/timelineFilter";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, AppBskyGraphDefs, BskyAgent } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, AppBskyGraphDefs } from "$lib/atproto-guards";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {formatTranslateRecord} from "$lib/translate";
@@ -16,8 +16,7 @@
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import StarterPackEmbed from "$lib/components/starterpack/StarterPackEmbed.svelte";
   import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
-  import {getAllAgentDids, getDidFromUri, getService} from "$lib/util";
-  import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
+  import {getDidFromUri, getService} from "$lib/util";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
   import {onDestroy, untrack} from "svelte";
   import {BadgeCheck, CircleCheck, CircleDashed, Eye, Handshake} from "lucide-svelte";
@@ -238,10 +237,10 @@
       {#if $settings?.design.absoluteTime}
         <Tooltip>
           {#snippet ref()}
-            <span>{lightFormat(new Date(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
+            <span>{formatDate(new Date(post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
           {/snippet}
           {#snippet content()}
-            <span aria-hidden="true" class="timeline-tooltip">{lightFormat(new Date(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+            <span aria-hidden="true" class="timeline-tooltip">{formatDate(new Date(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
           {/snippet}
         </Tooltip>
       {:else}
@@ -250,7 +249,7 @@
             <span>{timeDistanceToNow}</span>
           {/snippet}
           {#snippet content()}
-            <span aria-hidden="true" class="timeline-tooltip">{lightFormat(new Date(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
+            <span aria-hidden="true" class="timeline-tooltip">{formatDate(new Date(post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
           {/snippet}
         </Tooltip>
       {/if}
@@ -350,7 +349,9 @@
       {/if}
 
       {#if AppBskyEmbedVideo.isView(post.embed?.media)}
-        <EmbedVideo video={post.embed.media}></EmbedVideo>
+        {#await import('$lib/components/post/EmbedVideo.svelte') then { default: EmbedVideo }}
+          <EmbedVideo video={post.embed.media}></EmbedVideo>
+        {/await}
       {/if}
 
       {#if AppBskyEmbedExternal.isView(post.embed.media)}
@@ -370,7 +371,7 @@
       {/if}
     {/if}
 
-    {#if (AppBskyEmbedRecord.isViewDetached(post?.embed?.record) || AppBskyEmbedRecord.isViewDetached(post?.embed?.record?.record)) && getAllAgentDids($agents).includes(getDidFromUri(post?.embed?.record?.uri || post?.embed?.record?.record?.uri))}
+    {#if (AppBskyEmbedRecord.isViewDetached(post?.embed?.record) || AppBskyEmbedRecord.isViewDetached(post?.embed?.record?.record)) && $agentDidsSet.has(getDidFromUri(post?.embed?.record?.uri || post?.embed?.record?.record?.uri))}
       <EmbedRecordDetached></EmbedRecordDetached>
     {/if}
 
@@ -380,7 +381,9 @@
           <TimelineWarn labels={warnLabels}></TimelineWarn>
         {/if}
 
-        <EmbedVideo video={post.embed}></EmbedVideo>
+        {#await import('$lib/components/post/EmbedVideo.svelte') then { default: EmbedVideo }}
+          <EmbedVideo video={post.embed}></EmbedVideo>
+        {/await}
       </div>
     {/if}
   </div>

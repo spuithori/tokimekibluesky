@@ -2,7 +2,8 @@
   import {settings} from "$lib/stores";
   import {_} from "svelte-i18n";
   import {isFeedByUri} from "$lib/util";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, RichText } from "@atproto/api";
+  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia } from "$lib/atproto-guards";
+  import { RichText } from "$lib/atproto-richtext";
   import Tiptap from "$lib/components/editor/Tiptap.svelte";
   import ThreadMembersList from "$lib/components/publish/ThreadMembersList.svelte";
   import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
@@ -11,7 +12,7 @@
   import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
   import {CirclePlus, Globe, X} from "lucide-svelte";
   import { toast } from "svelte-sonner";
-  import imageCompression from "browser-image-compression";
+  import { compressForPreview, blobToDataUrl } from '$lib/imageCompressor/compressor';
   import {onMount} from "svelte";
   import AltModal from "$lib/components/alt/AltModal.svelte";
   import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
@@ -206,7 +207,7 @@
         isLinkCardAdding = true;
 
         try {
-            const { data } = await _agent.agent.api.app.bsky.feed.getPostThread({uri: bskyUrlToAtUri(uri)});
+            const data = await _agent.xrpc.get('app.bsky.feed.getPostThread', {uri: bskyUrlToAtUri(uri)});
             const _post = data?.thread?.post;
 
             if (data?.thread?.post?.viewer?.embeddingDisabled) {
@@ -235,7 +236,7 @@
 
             const res = await fetch(gif.url);
             const blob = await res.blob();
-            post.externalImageBlob = await imageCompression.getDataUrlFromFile(blob);
+            post.externalImageBlob = await blobToDataUrl(blob);
             post.embedExternal = {
                 $type: 'app.bsky.embed.external',
                 external: {
@@ -269,7 +270,7 @@
 
     async function detectRichText(text: string) {
         const rt = new RichText({text: text});
-        await rt.detectFacets(_agent.agent);
+        await rt.detectFacets((handle: string) => _agent.resolveHandle(handle));
 
         return rt;
     }
@@ -283,12 +284,8 @@
     }
 
     async function handleKakizomeComplete(dataUrl: string, blobObj: {blob: Blob, width: number, height: number}) {
-        const compressed = await imageCompression(blobObj.blob, {
-            maxWidthOrHeight: 1024,
-            initialQuality: 0.8,
-            useWebWorker: true,
-        });
-        const base64 = await imageCompression.getDataUrlFromFile(compressed);
+        const compressed = await compressForPreview(blobObj.blob);
+        const base64 = await blobToDataUrl(compressed);
 
         const newImage = {
             id: crypto.randomUUID(),

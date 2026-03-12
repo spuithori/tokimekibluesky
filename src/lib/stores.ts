@@ -1,6 +1,5 @@
 import {derived, readable, writable} from 'svelte/store';
 import type {Agent} from '$lib/agent';
-import type { AppBskyActorDefs } from '@atproto/api';
 import type {Theme} from "$lib/types/theme";
 import {defaultReactionButtons} from "$lib/defaultSettings";
 import timerWorkerUrl from '$lib/workers/timer.js?url'
@@ -14,6 +13,14 @@ export const agent = writable<Agent>(undefined);
 export const agents = writable(new Map<number, Agent>());
 
 export const junkAgentDid = writable<string | undefined>(undefined);
+
+export const agentDidsSet = derived(agents, $agents => {
+    const s = new Set<string>();
+    if ($agents) {
+        $agents.forEach(v => { const d = v.did(); if (d) s.add(d); });
+    }
+    return s;
+});
 
 export const userLists = writable(localStorage.getItem('lists')
     ? JSON.parse(localStorage.getItem('lists'))
@@ -40,6 +47,7 @@ const defaultSettings = {
         useVirtual: false,
         continuousTag: false,
         disableMochiHoppe: false,
+        avifUpload: false,
     },
     design: {
         skin: 'default',
@@ -102,9 +110,11 @@ export const settings = writable(JSON.parse(storageSettings));
 
 const storageRepostMutes = localStorage.getItem('repostMutes') || JSON.stringify([]);
 export const repostMutes = writable<string[]>(JSON.parse(storageRepostMutes));
+export const repostMutesSet = derived(repostMutes, $rm => new Set($rm));
 
 const storagePostMutes = localStorage.getItem('postMutes') || JSON.stringify([]);
 export const postMutes = writable<string[]>(JSON.parse(storagePostMutes));
+export const postMutesSet = derived(postMutes, $pm => new Set($pm));
 
 export const bookmarkModal = writable({
     open: false,
@@ -133,7 +143,7 @@ export const starterPackModal = writable({
 
 type listAddModal = {
     open: boolean,
-    author: AppBskyActorDefs.ProfileViewBasic | undefined,
+    author: any | undefined,
     did: string,
 }
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { once } from 'svelte/legacy';
 
-  import imageCompression from "browser-image-compression";
+  import { compressImage } from '$lib/imageCompressor/compressor';
   import {tick} from "svelte";
   import {_} from 'svelte-i18n';
   import { toast } from "svelte-sonner";
@@ -18,11 +18,9 @@
   async function getAltTextFromAi(category: 'ocr' | 'description') {
       isMenuOpen = false;
       const blob = new Blob([image.file], {type: image.file.type});
-      const compressedFile = await imageCompression(blob, {
+      const compressedFile = await compressImage(blob, {
           maxSizeMB: 0.5,
           maxWidthOrHeight: 1280,
-          useWebWorker: true,
-          fileType: 'image/jpeg',
       });
       const formData = new FormData();
       formData.append('image', compressedFile);

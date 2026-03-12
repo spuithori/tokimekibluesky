@@ -10,10 +10,10 @@
 
     async function handleLoadMore(loaded, complete) {
         try {
-            const res = await _agent.agent.api.app.bsky.graph.getKnownFollowers({actor: actor, cursor: cursor});
+            const res = await _agent.xrpc.get('app.bsky.graph.getKnownFollowers', {actor: actor, cursor: cursor});
             console.log(res)
-            cursor = res.data.cursor;
-            followers = [...followers, ...res.data.followers];
+            cursor = res.cursor;
+            followers = [...followers, ...res.followers];
 
             if (cursor) {
                 loaded();

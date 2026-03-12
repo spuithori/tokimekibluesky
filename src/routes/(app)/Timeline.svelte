@@ -6,10 +6,9 @@
   import {getDbFollows} from "$lib/getActorsList";
   import {playSound} from "$lib/sounds";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
-  import {isReasonRepost, isReasonPin} from "@atproto/api/dist/client/types/app/bsky/feed/defs";
+  import {isReasonRepost, isReasonPin} from "$lib/atproto-guards";
   import {toast} from "svelte-sonner";
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  import {isAfter} from "date-fns";
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import VirtualTimeline from "$lib/components/timeline/VirtualTimeline.svelte";
@@ -76,8 +75,8 @@
 
                   _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm})
                       .then((res) => {
-                          const refPost = res.data.feed.slice(-1)[0];
-                          const cursor = res.data.cursor;
+                          const refPost = res.feed.slice(-1)[0];
+                          const cursor = res.cursor;
                           let i = 0;
 
                           columnState.updateFeed(column.id, f => {
@@ -153,20 +152,20 @@
         return false;
       }
 
-      const feed = res.data.feed.filter(feed => {
+      const feed = res.feed.filter(feed => {
         if (isReasonRepost(feed.reason)) {
-          if (isAfter(feed?.reason?.indexedAt, last?.reason?.indexedAt || last?.post?.indexedAt)) {
+          if (new Date(feed?.reason?.indexedAt) > new Date(last?.reason?.indexedAt || last?.post?.indexedAt)) {
             return true;
           }
         } else {
-          if (isAfter(feed?.post?.indexedAt, last?.reason?.indexedAt || last?.post?.indexedAt)) {
+          if (new Date(feed?.post?.indexedAt) > new Date(last?.reason?.indexedAt || last?.post?.indexedAt)) {
             return true;
           }
         }
 
         return false;
       }).map(item => {
-        item.memoryCursor = res.data.cursor;
+        item.memoryCursor = res.cursor;
         return item;
       });
 
@@ -193,7 +192,7 @@
         }
       }
 
-      if (feed.length !== res.data.feed.length) {
+      if (feed.length !== res.feed.length) {
         tick().then(() => {
           columnState.updateFeed(column.id, f => { f[newDividerIndex] = { ...f[newDividerIndex], isDivider: false }; });
         })
@@ -213,7 +212,7 @@
       try {
         controller = new AbortController();
         const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, controller.signal);
-          column.data.cursor = res.data.cursor;
+          column.data.cursor = res.cursor;
 
         const existingFeedMap = new Map(
             columnState.getFeed(column.id).map(item => [
@@ -222,14 +221,14 @@
             ])
         );
 
-        const feed = res.data.feed
+        const feed = res.feed
             .filter(feed => {
                 const key = feed.reason ? `${feed.post.uri}|${feed.reason.indexedAt}` : feed.post.uri;
                 const existing = existingFeedMap.get(key);
                 return !existing || !isDuplicatePost(existing, feed);
             })
             .map(item => {
-                item.memoryCursor = res.data.cursor;
+                item.memoryCursor = res.cursor;
                 return item;
             });
 
