@@ -24,7 +24,7 @@ export async function getEditPost(data: any) {
     if (AppBskyEmbedImages.isView(data?.post?.embed)) {
         const blobs = data.post.record.embed.images.map(image => {
             return {
-                cid: image.image.ref.toString(),
+                cid: image.image.ref?.$link ?? image.image.ref?.toString(),
                 mimeType: image.image.mimeType,
                 alt: image.alt,
                 width: image.aspectRatio.width,
@@ -39,7 +39,7 @@ export async function getEditPost(data: any) {
     if (AppBskyEmbedImages.isView(data?.post?.embed?.media)) {
         const blobs = data.post.record.embed.media.images.map(image => {
             return {
-                cid: image.image.ref.toString(),
+                cid: image.image.ref?.$link ?? image.image.ref?.toString(),
                 mimeType: image.image.mimeType,
                 alt: image.alt,
                 width: image.aspectRatio.width,
@@ -82,7 +82,7 @@ export async function getEditPost(data: any) {
         };
 
         if (data.post.embed.external?.thumb) {
-            _post.externalImageBlob = await getImageBase64FromBlob(data.post.author.did, {cid: data.post.record.embed.external.thumb.ref.toString(), mimeType: data.post.record.embed.external.thumb.mimeType}, __agent);
+            _post.externalImageBlob = await getImageBase64FromBlob(data.post.author.did, {cid: data.post.record.embed.external.thumb.ref?.$link ?? data.post.record.embed.external.thumb.ref?.toString(), mimeType: data.post.record.embed.external.thumb.mimeType}, __agent);
         }
     }
 

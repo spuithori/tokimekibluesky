@@ -735,6 +735,7 @@
                   '7d': 7 * 24 * 60 * 60 * 1000,
               };
               const endsAt = new Date(Date.now() + (durationMs[post.poll.duration] || durationMs['1d'])).toISOString();
+              const postCid = await computeCid(record);
 
               writes.push({
                   $type: 'com.atproto.repo.applyWrites#create',
@@ -744,7 +745,7 @@
                       $type: 'tech.tokimeki.poll.poll',
                       subject: {
                           uri: uri,
-                          cid: '',
+                          cid: postCid,
                       },
                       options: post.poll.options,
                       createdAt: new Date().toISOString(),

@@ -17,7 +17,7 @@
     async function getUrlByBlob(blob) {
         try {
             const service = await getService(did);
-            const cid = blob.ref.toString();
+            const cid = blob.ref?.$link ?? blob.ref?.toString();
             const res = await fetch(`${service}/xrpc/com.atproto.sync.getBlob?did=${encodeURIComponent(did as string)}&cid=${encodeURIComponent(cid)}`);
             const data = new Blob([await res.arrayBuffer()], {type: 'image/gif'});
 
