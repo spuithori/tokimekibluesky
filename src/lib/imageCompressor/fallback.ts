@@ -30,7 +30,7 @@ function applyUnsharpMask(
     canvas: HTMLCanvasElement,
     radius: number = 1,
     amount: number = 0.3,
-): void {
+): ImageData {
     const ctx = canvas.getContext('2d')!;
     const w = canvas.width;
     const h = canvas.height;
@@ -89,6 +89,24 @@ function applyUnsharpMask(
     }
 
     ctx.putImageData(imageData, 0, 0);
+    return imageData;
+}
+
+async function encodeWithWasm(imageData: ImageData, maxSizeBytes: number): Promise<ArrayBuffer> {
+    const { default: encode } = await import('@jsquash/webp/encode');
+    return encode(imageData, {
+        quality: 95,
+        target_size: maxSizeBytes,
+        method: 4,
+        pass: 4,
+        sns_strength: 80,
+        filter_type: 1,
+        autofilter: 1,
+        preprocessing: 2,
+        use_sharp_yuv: 1,
+        filter_sharpness: 3,
+        segments: 4,
+    });
 }
 
 export async function compressFallback(input: WorkerInput): Promise<WorkerOutput> {
@@ -103,7 +121,17 @@ export async function compressFallback(input: WorkerInput): Promise<WorkerOutput
 
     const canvas = resizeToCanvas(srcCanvas, targetWidth, targetHeight);
 
-    applyUnsharpMask(canvas, 1, 0.3);
+    const imageData = applyUnsharpMask(canvas, 1, 0.3);
+
+    if (outputType === 'image/webp' && maxSizeBytes !== undefined) {
+        try {
+            const buf = await encodeWithWasm(imageData, maxSizeBytes);
+            if (buf.byteLength <= maxSizeBytes) {
+                return { blob: new Blob([buf], { type: 'image/webp' }), width: targetWidth, height: targetHeight };
+            }
+        } catch {
+        }
+    }
 
     if (maxSizeBytes === undefined) {
         const blob = await canvasToBlob(canvas, outputType, initialQuality);
