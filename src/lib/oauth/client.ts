@@ -95,7 +95,7 @@ export class OAuthClient {
                 codeChallenge,
                 scope: this.scope,
                 state,
-                loginHint: did,
+                loginHint: handle,
             },
             dpopKeyPair,
             this.fetchFn,
