@@ -18,29 +18,41 @@ function getWorker(): Worker {
     return workerInstance;
 }
 
+let nextMessageId = 0;
+const pendingRequests = new Map<number, { resolve: (v: WorkerOutput) => void; reject: (e: Error) => void }>();
+
+function ensureWorkerListener(): void {
+    const worker = getWorker();
+    if ((worker as any).__listenerAttached) return;
+    (worker as any).__listenerAttached = true;
+
+    worker.addEventListener('message', (e: MessageEvent) => {
+        const data = e.data;
+        const pending = pendingRequests.get(data.id);
+        if (!pending) return;
+        pendingRequests.delete(data.id);
+        if (data.error) {
+            pending.reject(new Error(data.error));
+        } else {
+            pending.resolve(data as WorkerOutput);
+        }
+    });
+
+    worker.addEventListener('error', (e: ErrorEvent) => {
+        for (const [id, pending] of pendingRequests) {
+            pending.reject(new Error(e.message));
+        }
+        pendingRequests.clear();
+    });
+}
+
 function runInWorker(input: WorkerInput): Promise<WorkerOutput> {
     return new Promise((resolve, reject) => {
-        const worker = getWorker();
-
-        const handler = (e: MessageEvent) => {
-            worker.removeEventListener('message', handler);
-            worker.removeEventListener('error', errHandler);
-            if (e.data.error) {
-                reject(new Error(e.data.error));
-            } else {
-                resolve(e.data as WorkerOutput);
-            }
-        };
-
-        const errHandler = (e: ErrorEvent) => {
-            worker.removeEventListener('message', handler);
-            worker.removeEventListener('error', errHandler);
-            reject(new Error(e.message));
-        };
-
-        worker.addEventListener('message', handler);
-        worker.addEventListener('error', errHandler);
-        worker.postMessage(input, [input.bitmap]);
+        ensureWorkerListener();
+        const id = nextMessageId++;
+        input.id = id;
+        pendingRequests.set(id, { resolve, reject });
+        getWorker().postMessage(input, [input.bitmap]);
     });
 }
 

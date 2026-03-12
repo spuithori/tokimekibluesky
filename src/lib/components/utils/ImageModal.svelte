@@ -6,9 +6,42 @@
   import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
   import { pushState } from '$app/navigation';
   import { page } from '$app/state';
+  import { parseCdnUrl, fetchOriginalBlob } from "$lib/util";
 
   const images = imageState.images;
   let altProps = $state({});
+
+  const objectUrls: string[] = [];
+  let currentAbort: AbortController | null = null;
+
+  async function loadOriginal(index: number) {
+    currentAbort?.abort();
+    const abort = new AbortController();
+    currentAbort = abort;
+
+    const src = images[index]?.src;
+    if (!src) return;
+
+    const parsed = parseCdnUrl(src);
+    if (!parsed) return;
+
+    try {
+      const objectUrl = await fetchOriginalBlob(parsed.did, parsed.cid, abort.signal);
+      if (!objectUrl || abort.signal.aborted) return;
+
+      objectUrls.push(objectUrl);
+      images[index].src = objectUrl;
+
+      if (lightbox.pswp?.currIndex === index) {
+        const el = lightbox.pswp.currSlide?.content?.element;
+        if (el?.tagName === 'IMG') {
+          (el as HTMLImageElement).src = objectUrl;
+        }
+      }
+    } catch (e: any) {
+      if (e?.name !== 'AbortError') console.error(e);
+    }
+  }
 
   const lightbox = new PhotoSwipeLightbox({
     dataSource: images,
@@ -23,6 +56,14 @@
     arrowPrevSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>',
     appendToEl: document.querySelector('.app'),
     loop: false,
+  });
+
+  lightbox.on('firstUpdate', () => {
+    loadOriginal(lightbox.pswp.currIndex);
+
+    lightbox.pswp.on('change', () => {
+      loadOriginal(lightbox.pswp.currIndex);
+    });
   });
 
   lightbox.on('uiRegister', () => {
@@ -97,6 +138,13 @@
   }
 
   lightbox.on('close', () => {
+    currentAbort?.abort();
+    currentAbort = null;
+    for (const url of objectUrls) {
+      URL.revokeObjectURL(url);
+    }
+    objectUrls.length = 0;
+
     if (page.state.showImage) {
       history.back();
     }

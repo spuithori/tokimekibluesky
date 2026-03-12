@@ -15,6 +15,7 @@ export interface PreviewCompressOptions {
 }
 
 export interface WorkerInput {
+    id?: number;
     bitmap: ImageBitmap;
     targetWidth: number;
     targetHeight: number;
@@ -27,6 +28,7 @@ export interface WorkerInput {
 }
 
 export interface WorkerOutput {
+    id?: number;
     blob: Blob;
     width: number;
     height: number;

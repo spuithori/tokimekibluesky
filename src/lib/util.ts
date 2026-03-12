@@ -223,3 +223,23 @@ export function getRkeyFromSplit(uri: string): string {
     const parts = uri.split('/');
     return parts.pop() || '';
 }
+
+export function parseCdnUrl(url: string): { did: string; cid: string } | null {
+    const match = url.match(/\/plain\/(did:[^/]+)\/([^@/]+)/);
+    if (!match) return null;
+    return { did: match[1], cid: match[2] };
+}
+
+export async function fetchOriginalBlob(
+    did: string, cid: string, signal?: AbortSignal
+): Promise<string | null> {
+    const service = await getService(did);
+    if (!service) return null;
+    const res = await fetch(
+        `${service}/xrpc/com.atproto.sync.getBlob?did=${encodeURIComponent(did)}&cid=${encodeURIComponent(cid)}`,
+        { signal }
+    );
+    if (!res.ok) return null;
+    const blob = new Blob([await res.arrayBuffer()]);
+    return URL.createObjectURL(blob);
+}

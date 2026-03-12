@@ -191,10 +191,11 @@ async function compress(input: WorkerInput): Promise<WorkerOutput> {
 }
 
 self.onmessage = async (e: MessageEvent<WorkerInput>) => {
+    const id = e.data.id;
     try {
         const result = await compress(e.data);
-        self.postMessage(result);
+        self.postMessage({ ...result, id });
     } catch (err) {
-        self.postMessage({ error: (err as Error).message });
+        self.postMessage({ error: (err as Error).message, id });
     }
 };
