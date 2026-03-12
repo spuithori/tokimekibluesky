@@ -240,6 +240,7 @@ export async function fetchOriginalBlob(
         { signal }
     );
     if (!res.ok) return null;
-    const blob = new Blob([await res.arrayBuffer()]);
+    const contentType = res.headers.get('content-type') || 'image/jpeg';
+    const blob = new Blob([await res.arrayBuffer()], { type: contentType });
     return URL.createObjectURL(blob);
 }
