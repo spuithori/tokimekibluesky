@@ -6,6 +6,7 @@ import { chatState } from '$lib/classes/chatState.svelte';
 import { XrpcClient, type FetchHandler } from '$lib/xrpc-client';
 import type { PasswordSession, SessionData } from '$lib/password-session';
 import { interpretLabelValueDefinitions } from '$lib/atproto-moderation';
+import { listRecords as listRecordsFromPds } from '$lib/util';
 
 type timelineOpt = {
     limit: number,
@@ -326,7 +327,9 @@ export class Agent {
                     limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: timelineOpt.algorithm.algorithm as string, includePins: true
                 }, {signal});
             case 'authorLike': {
-                const authorLikeRes = await this.listRecords('app.bsky.feed.like', timelineOpt.limit, timelineOpt.cursor, timelineOpt.algorithm.algorithm as string);
+                const actor = timelineOpt.algorithm.algorithm as string;
+                const did = actor.startsWith('did:') ? actor : await this.resolveHandle(actor);
+                const authorLikeRes = await listRecordsFromPds('app.bsky.feed.like', timelineOpt.limit, timelineOpt.cursor, did);
                 const likePosts = await this.getFeedsFromRecords(authorLikeRes.records);
                 return {
                     cursor: authorLikeRes.cursor,
