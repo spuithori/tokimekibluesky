@@ -29,11 +29,11 @@
   let isWarn = detectWarn(moderateData, 'contentView');
 
   let isMuteDisplay = $state(false);
-  let isMuted = $state(record.author.viewer.muted);
+  let isMuted = $state(record.author?.viewer?.muted);
 
   const junkColumnState = getColumnState(true);
 
-  if (keywordFilter(keywordMuteState.formattedKeywords, record.value.text, record.indexedAt)) {
+  if (record.value?.text && keywordFilter(keywordMuteState.formattedKeywords, record.value.text, record.indexedAt)) {
       isMuted = true;
   }
 
@@ -150,7 +150,7 @@
       {/if}
 
       {#if (AppBskyEmbedRecord.isView(record?.embeds[0]))}
-        {#if (AppBskyEmbedRecord.isViewDetached(record?.embeds[0]?.record) || AppBskyEmbedRecord.isViewNotFound(record?.embeds[0]?.record))}
+        {#if (AppBskyEmbedRecord.isViewBlocked(record?.embeds[0]?.record) || AppBskyEmbedRecord.isViewDetached(record?.embeds[0]?.record) || AppBskyEmbedRecord.isViewNotFound(record?.embeds[0]?.record))}
 
         {:else if ((AppBskyFeedDefs.isGeneratorView(record?.embeds[0]?.record)))}
           <FeedsItem {_agent} feed={record?.embeds[0]?.record} layout="embed"></FeedsItem>
