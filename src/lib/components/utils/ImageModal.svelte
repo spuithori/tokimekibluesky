@@ -160,7 +160,7 @@
   });
 
   function handlePopstate() {
-    lightbox.pswp.close();
+    lightbox.pswp?.close();
   }
 </script>
 

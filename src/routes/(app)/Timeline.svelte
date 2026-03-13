@@ -203,6 +203,7 @@
   }
 
   function isDuplicatePost(oldFeed, newFeed) {
+      if (!oldFeed?.post || !newFeed?.post) return false;
       return newFeed.reason
           ? oldFeed.post.uri === newFeed.post.uri && oldFeed.reason?.indexedAt === newFeed.reason.indexedAt
           : oldFeed.post.uri === newFeed.post.uri;
@@ -215,7 +216,7 @@
           column.data.cursor = res.cursor;
 
         const existingFeedMap = new Map(
-            columnState.getFeed(column.id).map(item => [
+            columnState.getFeed(column.id).filter(item => item?.post?.uri).map(item => [
                 item.reason ? `${item.post.uri}|${item.reason.indexedAt}` : item.post.uri,
                 item
             ])

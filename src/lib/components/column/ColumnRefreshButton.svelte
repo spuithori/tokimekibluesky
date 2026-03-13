@@ -65,6 +65,7 @@
     })
 
     function getPostKey(feed) {
+        if (!feed?.post?.uri) return '';
         return feed.reason?.indexedAt
             ? `${feed.post.uri}|${feed.reason.indexedAt}`
             : feed.post.uri;
