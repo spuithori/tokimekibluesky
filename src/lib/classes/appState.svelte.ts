@@ -97,6 +97,15 @@ class AppState {
         agent.set(_agents.get(profile.primary));
         const _agent = get(agent);
 
+        if (!_agent) {
+            console.log('Primary agent session restore failed.');
+            const primaryAccount = accounts.find(a => a.id === profile.primary);
+            if (primaryAccount && !this.missingAccounts.some((a: any) => a.id === primaryAccount.id)) {
+                this.missingAccounts = [...this.missingAccounts, primaryAccount];
+            }
+            return false;
+        }
+
         try {
             _agents.forEach((ag) => {
                 ag.configureLabelers(this.subscribedLabelers.current);
