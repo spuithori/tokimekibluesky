@@ -14,7 +14,7 @@ function markMissing(account: Account) {
     appState.missingAccounts = _missingAccounts;
 }
 
-async function resumePasswordAccount(account: Account, proxy: string | undefined) {
+async function resumePasswordAccount(account: Account, proxy: string | undefined, retryCount = 0) {
     const passwordSession = new PasswordSession({
         service: account.service,
         persistSession: async (evt, sess?) => {
@@ -44,13 +44,17 @@ async function resumePasswordAccount(account: Account, proxy: string | undefined
     } catch (error: any) {
         console.log(error);
 
-        if (error.message === 'Token has expired') {
+        if (error.error === 'ExpiredToken' || error.error === 'InvalidToken') {
             markMissing(account);
         } else {
-            console.log('Connection failed. Try resumeSession 3 seconds.');
-            setTimeout(() => {
-                resumePasswordAccount(account, proxy);
-            }, 3000);
+            if (retryCount < 5) {
+                console.log(`Connection failed. Retry resumeSession in ${3 * (retryCount + 1)} seconds. (${retryCount + 1}/5)`);
+                setTimeout(() => {
+                    resumePasswordAccount(account, proxy, retryCount + 1);
+                }, 3000 * (retryCount + 1));
+            } else {
+                console.error('Max retries reached for password account:', account.did);
+            }
 
             return null;
         }
@@ -115,11 +119,11 @@ async function resumeOAuthAccount(account: Account, retryCount = 0): Promise<{
         };
     } catch (error) {
         console.error('OAuth session restore error:', error);
-        if (retryCount < 2) {
-            await new Promise(resolve => setTimeout(resolve, 3000));
+        if (retryCount < 5) {
+            await new Promise(resolve => setTimeout(resolve, 3000 * (retryCount + 1)));
             return resumeOAuthAccount(account, retryCount + 1);
         }
-        markMissing(account);
+        console.error('Max retries reached for OAuth account:', account.did);
         return null;
     }
 }

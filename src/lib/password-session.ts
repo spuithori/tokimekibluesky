@@ -34,6 +34,10 @@ function getPdsEndpointFromDidDoc(didDoc: any): string | undefined {
 	return pdsService?.serviceEndpoint;
 }
 
+function isTokenError(e: any): boolean {
+	return e?.error === 'ExpiredToken' || e?.error === 'InvalidToken';
+}
+
 export class PasswordSession {
 	private _service: string;
 	private _pdsUrl: string | undefined;
@@ -105,10 +109,9 @@ export class PasswordSession {
 			try {
 				await this.refreshSession();
 			} catch (e: any) {
-				if (e.error === 'ExpiredToken' || e.message === 'Token has expired') {
+				if (isTokenError(e)) {
 					this._session = undefined;
 					await this._persistSession?.('expired');
-					throw e;
 				}
 				throw e;
 			}
@@ -145,9 +148,9 @@ export class PasswordSession {
 
 		if (!res.ok) {
 			const body = await res.json().catch(() => ({}));
-			const err: any = new Error(body.message || 'Token has expired');
+			const err: any = new Error(body.message || `Refresh failed: ${res.status}`);
 			err.status = res.status;
-			err.error = body.error || 'ExpiredToken';
+			err.error = body.error;
 			throw err;
 		}
 
@@ -183,8 +186,10 @@ export class PasswordSession {
 			if (res.status === 401 && this._session?.refreshJwt) {
 				try {
 					await this.refreshSession();
-				} catch {
-					this._onExpired?.();
+				} catch (e: any) {
+					if (isTokenError(e)) {
+						this._onExpired?.();
+					}
 					return res;
 				}
 

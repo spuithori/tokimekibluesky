@@ -81,21 +81,17 @@ export async function signIn(handle: string): Promise<void> {
 
 export async function restoreSession(did: string, onExpired?: () => void): Promise<OAuthSession | null> {
     const client = getOAuthClient();
+    const session = await client.restore(did, onExpired);
+    if (!session) return null;
     try {
-        const session = await client.restore(did, onExpired);
-        if (!session) return null;
-        try {
-            await session.ensureValid();
-        } catch {
-            if (session.dead) {
-                return null;
-            }
-            console.warn('OAuth token refresh failed during restore, will retry on next API call');
-        }
-        return session;
+        await session.ensureValid();
     } catch {
-        return null;
+        if (session.dead) {
+            return null;
+        }
+        console.warn('OAuth token refresh failed during restore, will retry on next API call');
     }
+    return session;
 }
 
 export async function signOut(did: string): Promise<void> {
