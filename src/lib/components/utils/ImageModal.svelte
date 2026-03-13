@@ -39,7 +39,7 @@
         }
       }
     } catch (e: any) {
-      if (e?.name !== 'AbortError') console.error(e);
+      if (e?.name !== 'AbortError' && !abort.signal.aborted) console.error(e);
     }
   }
 

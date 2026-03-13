@@ -275,7 +275,12 @@
           } else {
               complete();
           }
-      } catch (e) {
+      } catch (e: any) {
+          if (e?.name === 'AbortError' || controller?.signal.aborted) {
+              complete();
+              return;
+          }
+
           console.error(e);
 
           if (e.message === 'BlockedActor') {

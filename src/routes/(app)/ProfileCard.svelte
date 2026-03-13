@@ -21,8 +21,12 @@
 
   onMount(async () => {
       controller = new AbortController();
-      const res = await _agent.xrpc.get('app.bsky.actor.getProfile', {actor: handle}, {signal: controller.signal});
-      profile = res;
+      try {
+          const res = await _agent.xrpc.get('app.bsky.actor.getProfile', {actor: handle}, {signal: controller.signal});
+          profile = res;
+      } catch (e: any) {
+          if (e?.name !== 'AbortError' && !controller.signal.aborted) console.error(e);
+      }
   })
 
   $effect(() => {
