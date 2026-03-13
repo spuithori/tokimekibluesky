@@ -477,7 +477,7 @@
             toast.success(unDetach ? $_('success_un_detach') : $_('success_detach'))
         } catch (e) {
             console.error(e);
-            toast.error(e);
+            toast.error(String(e));
         }
     }
 

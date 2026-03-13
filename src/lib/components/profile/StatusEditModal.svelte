@@ -117,7 +117,7 @@
             });
             return res.blob;
         } catch (e) {
-            toast.error(e);
+            toast.error(String(e));
         }
     }
 </script>

@@ -43,7 +43,7 @@
             }
         } catch (e) {
             console.error(e);
-            toast.error(e);
+            toast.error(String(e));
             uri = '';
             members = [];
         }
@@ -189,7 +189,7 @@
         } catch(e) {
             isDisabled = false;
             console.error(e);
-            toast.error(e.message());
+            toast.error(e instanceof Error ? e.message : String(e));
         }
     }
 

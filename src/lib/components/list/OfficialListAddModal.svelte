@@ -60,7 +60,7 @@
         lists = await applyListItem(res.lists);
       } catch (e) {
         console.error(e);
-        toast.error(e);
+        toast.error(String(e));
       }
 
       isDisabled = false;

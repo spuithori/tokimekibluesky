@@ -18,7 +18,9 @@
   let avatar = $state();
 
   $effect(() => {
-      selectAgent(_agent);
+      if (_agent) {
+          selectAgent(_agent);
+      }
   });
 
   function selectAgent(agent: Agent) {

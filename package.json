@@ -78,7 +78,7 @@
     "posthog-js": "^1.360.1",
     "runed": "^0.35.1",
     "svelte-i18n": "^4.0.1",
-    "svelte-sonner": "^1.0.7",
+    "svelte-sonner": "^1.1.0",
     "tlds": "^1.261.0",
     "tokimeki-image-editor": "^0.2.9",
     "tokimeki-video-player": "^1.0.21"

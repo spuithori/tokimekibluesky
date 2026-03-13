@@ -56,7 +56,7 @@
             }
         } catch (e) {
             console.error(e);
-            toast.error(e);
+            toast.error(String(e));
             uri = '';
             members = [];
         }
