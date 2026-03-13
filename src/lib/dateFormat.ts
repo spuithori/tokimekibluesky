@@ -3,6 +3,7 @@ export function formatDate(date: Date | number, format: string): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return format
     .replace('yyyy', String(d.getFullYear()))
+    .replace('yy', String(d.getFullYear()).slice(-2))
     .replace('MM', pad(d.getMonth() + 1))
     .replace('dd', pad(d.getDate()))
     .replace('HH', pad(d.getHours()))
