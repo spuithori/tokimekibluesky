@@ -67,7 +67,7 @@ async function resumePasswordAccount(account: Account, proxy: string | undefined
     };
 }
 
-async function resumeOAuthAccount(account: Account): Promise<{
+async function resumeOAuthAccount(account: Account, retryCount = 0): Promise<{
     id: number;
     fetchHandler: (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
     did: string;
@@ -115,6 +115,10 @@ async function resumeOAuthAccount(account: Account): Promise<{
         };
     } catch (error) {
         console.error('OAuth session restore error:', error);
+        if (retryCount < 2) {
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            return resumeOAuthAccount(account, retryCount + 1);
+        }
         markMissing(account);
         return null;
     }

@@ -84,7 +84,14 @@ export async function restoreSession(did: string, onExpired?: () => void): Promi
     try {
         const session = await client.restore(did, onExpired);
         if (!session) return null;
-        await session.ensureValid();
+        try {
+            await session.ensureValid();
+        } catch {
+            if (session.dead) {
+                return null;
+            }
+            console.warn('OAuth token refresh failed during restore, will retry on next API call');
+        }
         return session;
     } catch {
         return null;

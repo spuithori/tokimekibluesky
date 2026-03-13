@@ -11,12 +11,13 @@ export function createOAuthSession(
     clientId: string,
     fetchFn: typeof fetch = globalThis.fetch,
     onExpired?: () => void,
-): OAuthSession & { _stored: StoredSession; ensureValid: () => Promise<void> } {
+): OAuthSession & { _stored: StoredSession; ensureValid: () => Promise<void>; dead: boolean } {
     let accessToken = stored.accessToken;
     let currentRefreshToken = stored.refreshToken;
     let expiresAt = stored.expiresAt;
     let dpopKeyPair: DPoPKeyPair | null = null;
     let refreshPromise: Promise<void> | null = null;
+    let sessionDead = false;
 
     const keyPairPromise = importKeyPair(stored.dpopKeyJwk);
 
@@ -46,8 +47,9 @@ export function createOAuthSession(
                 fetchFn,
             );
         } catch (e) {
-            if (e instanceof OAuthTokenError) {
+            if (e instanceof OAuthTokenError && e.error === 'invalid_grant') {
                 currentRefreshToken = undefined;
+                sessionDead = true;
                 onExpired?.();
             }
             throw e;
@@ -166,5 +168,6 @@ export function createOAuthSession(
         fetchHandler,
         _stored: stored,
         ensureValid: ensureFreshToken,
+        get dead() { return sessionDead; },
     };
 }

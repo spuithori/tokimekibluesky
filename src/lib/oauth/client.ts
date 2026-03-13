@@ -177,7 +177,7 @@ export class OAuthClient {
     /**
      * Restore a session from IndexedDB.
      */
-    async restore(did: string, onExpired?: () => void): Promise<(OAuthSession & { ensureValid: () => Promise<void> }) | null> {
+    async restore(did: string, onExpired?: () => void): Promise<(OAuthSession & { ensureValid: () => Promise<void>; dead: boolean }) | null> {
         const stored = await getSession(did);
         if (!stored) return null;
 

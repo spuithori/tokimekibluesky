@@ -75,6 +75,7 @@
     "lucide-svelte": "^0.576.0",
     "multiformats": "^13.4.2",
     "photoswipe": "^5.4.4",
+    "posthog-js": "^1.360.1",
     "runed": "^0.35.1",
     "svelte-dnd-action": "^0.9.69",
     "svelte-i18n": "^4.0.1",
