@@ -310,10 +310,14 @@
                 text = jsonToText(json);
             },
             onFocus() {
-                isFocus = true;
+                queueMicrotask(() => {
+                    isFocus = true;
+                });
             },
             onBlur() {
-                isFocus = false;
+                queueMicrotask(() => {
+                    isFocus = false;
+                });
             },
         })
     })

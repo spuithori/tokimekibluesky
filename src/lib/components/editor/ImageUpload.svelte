@@ -2,7 +2,7 @@
     import {_} from 'svelte-i18n'
     import { compressForPreview, blobToDataUrl } from '$lib/imageCompressor/compressor';
     import {flip} from "svelte/animate";
-    import {dragHandleZone, dragHandle} from "svelte-dnd-action";
+    import { createDragSort } from './dragSort.svelte';
     import ImageUploadItem from "$lib/components/editor/ImageUploadItem.svelte";
     import {
         acceptedImageType,
@@ -28,6 +28,8 @@
     }
 
     let { images = $bindable([]), video = $bindable(), onpreparestart = () => {}, onprepareend = () => {}, onaltclick = () => {} }: Props = $props();
+    const dnd = createDragSort();
+    const zoneFn = dnd.zone(() => images, (v) => { images = v; });
     let input = $state();
     let videoUrl = $derived(video?.blob ? URL.createObjectURL(video.blob) : null);
 
@@ -44,13 +46,6 @@
             images = images.slice(0, 4);
         }
     })
-
-    function handleDndConsider(e) {
-        images = e.detail.items;
-    }
-    function handleDndFinalize(e) {
-        images = e.detail.items;
-    }
 
     async function getVideoDimensions(file) {
         return new Promise((resolve, reject) => {
@@ -179,14 +174,12 @@
     <div class="image-upload-drag-area"
          class:image-upload-drag-area--1item={images.length === 1}
          class:image-upload-drag-area--bottom={publishState.layout === 'bottom'}
-         use:dragHandleZone="{{items: images, flipDurationMs: 300, type: 'images', dropTargetStyle: ''}}"
-         onconsider={handleDndConsider}
-         onfinalize={handleDndFinalize}
+         {@attach zoneFn}
     >
-        {#each images as image (image.id)}
+        {#each images as image, i (image.id)}
             <div animate:flip="{{duration: 300}}">
                 <div class="image-upload-item-wrap">
-                    <div class="image-upload-item-drag-area" use:dragHandle></div>
+                    <div class="image-upload-item-drag-area" {@attach dnd.handle(i)}></div>
 
                     <ImageUploadItem {image} ondelete={handleDelete} {onaltclick}></ImageUploadItem>
                 </div>
