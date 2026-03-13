@@ -1502,6 +1502,22 @@
     }
     return result;
   }
+
+  export function prepareForIndex(index: number): void {
+    if (index < 0 || index >= items.length) return;
+    const buf = getEffectiveBuffer();
+    if (index < visibleStart - buf || index > visibleEnd + buf) {
+      visibleStart = Math.max(0, index - buf);
+      visibleEnd = Math.min(items.length, index + buf + 1);
+      invalidateLayout();
+    }
+  }
+
+  export function getItemElement(index: number): HTMLElement | undefined {
+    if (index < 0 || index >= items.length) return undefined;
+    const key = getKey(items[index], index);
+    return itemRefs.get(key);
+  }
 </script>
 
 {#if scrollContainer}
