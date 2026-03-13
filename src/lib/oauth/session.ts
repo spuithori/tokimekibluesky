@@ -82,7 +82,7 @@ export function createOAuthSession(
         input: string | URL | Request,
         init?: RequestInit,
     ): Promise<Response> {
-        await ensureFreshToken();
+        await ensureFreshToken().catch(() => {});
 
         const keyPair = await getKeyPair();
 
