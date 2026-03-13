@@ -38,6 +38,17 @@ function isTokenError(e: any): boolean {
 	return e?.error === 'ExpiredToken' || e?.error === 'InvalidToken';
 }
 
+async function isExpiredTokenResponse(res: Response): Promise<boolean> {
+	if (res.status === 401) return true;
+	if (res.status !== 400) return false;
+	try {
+		const json = await res.clone().json();
+		return json?.error === 'ExpiredToken';
+	} catch {
+		return false;
+	}
+}
+
 export class PasswordSession {
 	private _service: string;
 	private _pdsUrl: string | undefined;
@@ -172,35 +183,52 @@ export class PasswordSession {
 
 	createFetchHandler(): (input: string | URL | Request, init?: RequestInit) => Promise<Response> {
 		return async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+			if (this._refreshing) {
+				await this._refreshing.catch(() => {});
+			}
+
 			const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
 			const serviceUrl = this._pdsUrl || this._service;
 			const fullUrl = url.startsWith('/') ? `${serviceUrl}${url}` : url;
 
 			const headers = new Headers(init?.headers);
-			if (this._session?.accessJwt) {
-				headers.set('Authorization', `Bearer ${this._session.accessJwt}`);
+			const initialToken = this._session?.accessJwt;
+			if (initialToken) {
+				headers.set('Authorization', `Bearer ${initialToken}`);
 			}
 
 			let res = await fetch(fullUrl, { ...init, headers });
 
-			if (res.status === 401 && this._session?.refreshJwt) {
-				try {
-					await this.refreshSession();
-				} catch (e: any) {
-					if (isTokenError(e)) {
-						this._onExpired?.();
-					}
-					return res;
-				}
-
-				const retryHeaders = new Headers(init?.headers);
-				if (this._session?.accessJwt) {
-					retryHeaders.set('Authorization', `Bearer ${this._session.accessJwt}`);
-				}
-				const retryServiceUrl = this._pdsUrl || this._service;
-				const retryFullUrl = url.startsWith('/') ? `${retryServiceUrl}${url}` : url;
-				res = await fetch(retryFullUrl, { ...init, headers: retryHeaders });
+			if (!this._session?.refreshJwt) {
+				return res;
 			}
+
+			const needsRefresh = await isExpiredTokenResponse(res);
+			if (!needsRefresh) {
+				return res;
+			}
+
+			try {
+				await this.refreshSession();
+			} catch (e: any) {
+				if (isTokenError(e)) {
+					this._session = undefined;
+					this._persistSession?.('expired');
+					this._onExpired?.();
+				}
+				return res;
+			}
+
+			const updatedToken = this._session?.accessJwt;
+			if (!updatedToken || updatedToken === initialToken) {
+				return res;
+			}
+
+			const retryHeaders = new Headers(init?.headers);
+			retryHeaders.set('Authorization', `Bearer ${updatedToken}`);
+			const retryServiceUrl = this._pdsUrl || this._service;
+			const retryFullUrl = url.startsWith('/') ? `${retryServiceUrl}${url}` : url;
+			res = await fetch(retryFullUrl, { ...init, headers: retryHeaders });
 
 			return res;
 		};
