@@ -62,10 +62,7 @@ export class XrpcClient {
 		if (contentType?.includes('application/json') || !contentType) {
 			return await res.json();
 		}
-		if (contentType?.includes('application/octet-stream') || contentType?.includes('application/vnd.ipld.car')) {
-			return await res.arrayBuffer() as any;
-		}
-		return await res.json();
+		return await res.arrayBuffer() as any;
 	}
 
 	async getDeduped<T = any>(nsid: string, params?: Record<string, any>, opts?: XrpcCallOptions): Promise<T> {
