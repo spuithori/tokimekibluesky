@@ -428,7 +428,7 @@
           const videoToastId = toast.loading($_('process_to_video_upload'));
 
           try {
-              const token = await getServiceAuthToken({lxm: 'com.atproto.repo.uploadBlob', exp: Date.now() / 1000 + 60 * 30}, _agent);
+              const token = await getServiceAuthToken({lxm: 'com.atproto.repo.uploadBlob', exp: Math.floor(Date.now() / 1000) + 60 * 30}, _agent);
 
               const xhr = new XMLHttpRequest();
               const res = await new Promise<AppBskyVideoDefsJobStatus>((resolve, reject) => {
