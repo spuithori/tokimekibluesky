@@ -2,7 +2,7 @@ import type { OAuthSession, StoredSession } from './types';
 import type { DPoPKeyPair } from './dpop';
 import { createDPoPProof, computeAth, importKeyPair } from './dpop';
 import { OAuthTokenError, refreshToken } from './server';
-import { putSession, putDPoPNonce, getDPoPNonce } from './store';
+import { putSession, deleteSession, getSession, putDPoPNonce, getDPoPNonce } from './store';
 
 const REFRESH_BUFFER = 60_000;
 
@@ -32,7 +32,14 @@ export function createOAuthSession(
         return Date.now() >= expiresAt - REFRESH_BUFFER;
     }
 
-    async function doRefresh(): Promise<void> {
+    function markDead(): void {
+        if (sessionDead) return;
+        currentRefreshToken = undefined;
+        sessionDead = true;
+        onExpired?.();
+    }
+
+    async function performRefresh(): Promise<void> {
         if (!currentRefreshToken) {
             throw new Error('No refresh token available');
         }
@@ -48,9 +55,8 @@ export function createOAuthSession(
             );
         } catch (e) {
             if (e instanceof OAuthTokenError && e.error === 'invalid_grant') {
-                currentRefreshToken = undefined;
-                sessionDead = true;
-                onExpired?.();
+                markDead();
+                await deleteSession(stored.did).catch(() => {});
             }
             throw e;
         }
@@ -67,15 +73,44 @@ export function createOAuthSession(
         await putSession(stored);
     }
 
-    async function ensureFreshToken(): Promise<void> {
-        if (!isExpired()) return;
+    async function doRefresh(): Promise<void> {
+        if (typeof navigator !== 'undefined' && navigator.locks) {
+            await navigator.locks.request('oauth-refresh-' + stored.did, async () => {
+                const latest = await getSession(stored.did);
+                if (!latest || !latest.refreshToken) {
+                    markDead();
+                    throw new Error('Session no longer exists');
+                }
 
+                if (latest.refreshToken !== currentRefreshToken) {
+                    accessToken = latest.accessToken;
+                    currentRefreshToken = latest.refreshToken;
+                    expiresAt = latest.expiresAt;
+                    stored.accessToken = accessToken;
+                    stored.refreshToken = currentRefreshToken;
+                    stored.expiresAt = expiresAt;
+                    return;
+                }
+
+                await performRefresh();
+            });
+        } else {
+            await performRefresh();
+        }
+    }
+
+    function requestRefresh(): Promise<void> {
         if (!refreshPromise) {
             refreshPromise = doRefresh().finally(() => {
                 refreshPromise = null;
             });
         }
         return refreshPromise;
+    }
+
+    async function ensureFreshToken(): Promise<void> {
+        if (!isExpired()) return;
+        return requestRefresh();
     }
 
     async function fetchHandler(
@@ -138,7 +173,7 @@ export function createOAuthSession(
 
                 if (attempt === 0 && currentRefreshToken) {
                     try {
-                        await doRefresh();
+                        await requestRefresh();
                         const newAth = await computeAth(accessToken);
                         const newProof = await createDPoPProof({
                             keyPair,

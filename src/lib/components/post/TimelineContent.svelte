@@ -15,6 +15,7 @@
   import { toast } from "svelte-sonner";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import StarterPackEmbed from "$lib/components/starterpack/StarterPackEmbed.svelte";
+  import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
   import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
   import {getDidFromUri, getService} from "$lib/util";
   import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
@@ -337,6 +338,10 @@
       <StarterPackEmbed {_agent} starterPackBasic={post.embed.record}></StarterPackEmbed>
     {/if}
 
+    {#if (AppBskyEmbedRecord.isView(post.embed) && AppBskyGraphDefs.isListView(post.embed.record)) }
+      <OfficialListItem {_agent} list={post.embed.record}></OfficialListItem>
+    {/if}
+
     {#if (AppBskyEmbedRecordWithMedia.isView(post.embed))}
       {#if (AppBskyEmbedImages.isView(post.embed.media))}
         <div class="timeline-images-wrap">
@@ -368,6 +373,10 @@
 
       {#if (AppBskyGraphDefs.isStarterPackViewBasic(post.embed.record.record)) }
         <StarterPackEmbed {_agent} starterPackBasic={post.embed.record.record}></StarterPackEmbed>
+      {/if}
+
+      {#if (AppBskyGraphDefs.isListView(post.embed.record.record)) }
+        <OfficialListItem {_agent} list={post.embed.record.record}></OfficialListItem>
       {/if}
     {/if}
 

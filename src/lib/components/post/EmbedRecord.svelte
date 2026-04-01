@@ -16,6 +16,7 @@
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import StarterPackEmbed from "$lib/components/starterpack/StarterPackEmbed.svelte";
+  import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
   import {appState} from "$lib/classes/appState.svelte";
 
   let { record, _agent = $agent, isChild = false, isPublish = false } = $props();
@@ -45,7 +46,7 @@
       }
 
       const rkey = record.uri.split('/').slice(-1)[0];
-      const uri = '/profile/' + record.author.did + '/post/' + rkey;
+      const uri = '/profile/' + record.author?.did + '/post/' + rkey;
 
       if (uri === location.pathname) {
           return false;
@@ -69,7 +70,7 @@
           junkColumnState.add({
               id: 'thread_' + rkey,
               algorithm: {
-                  algorithm: 'at://' + record.author.did + '/app.bsky.feed.post/' + rkey,
+                  algorithm: 'at://' + record.author?.did + '/app.bsky.feed.post/' + rkey,
                   type: 'thread',
                   name: 'Thread',
               },
@@ -90,6 +91,13 @@
   }
 </script>
 
+{#if AppBskyGraphDefs.isListView(record)}
+  <OfficialListItem {_agent} list={record}></OfficialListItem>
+{:else if AppBskyFeedDefs.isGeneratorView(record)}
+  <FeedsItem {_agent} feed={record} layout="embed"></FeedsItem>
+{:else if AppBskyGraphDefs.isStarterPackViewBasic(record)}
+  <StarterPackEmbed {_agent} starterPackBasic={record}></StarterPackEmbed>
+{:else}
 <div class="timeline-external timeline-external--record" data-aturi={record?.uri}>
   {#if (isMuted && !isMuteDisplay)}
     <div class="thread-notice thread-notice--quote" class:thread-notice--shown={isMuteDisplay}>
@@ -103,6 +111,7 @@
       <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
     {/if}
 
+    {#if record.author}
     <div class="timeline-external-heading">
       <div class="timeline-external-avatar">
         <Avatar href="/profile/{ record.author.handle }"
@@ -121,6 +130,7 @@
         </p>
       </div>
     </div>
+    {/if}
 
     {#if (AppBskyFeedPost.isRecord(record.value))}
       <p class="timeline-external__description">
@@ -135,7 +145,7 @@
             <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
           {/if}
 
-          <Images images={record.embeds[0].images} blobs={record?.value?.embed.images} did={record.author.did}></Images>
+          <Images images={record.embeds[0].images} blobs={record?.value?.embed.images} did={record.author?.did}></Images>
         </div>
       {/if}
 
@@ -156,6 +166,8 @@
           <FeedsItem {_agent} feed={record?.embeds[0]?.record} layout="embed"></FeedsItem>
         {:else if ((AppBskyGraphDefs.isStarterPackViewBasic(record?.embeds[0]?.record)))}
           <StarterPackEmbed {_agent} starterPackBasic={record?.embeds[0]?.record}></StarterPackEmbed>
+        {:else if ((AppBskyGraphDefs.isListView(record?.embeds[0]?.record)))}
+          <OfficialListItem {_agent} list={record?.embeds[0]?.record}></OfficialListItem>
         {:else}
           <EmbedRecord record={record.embeds[0].record} {_agent} isChild={true}></EmbedRecord>
         {/if}
@@ -171,8 +183,11 @@
     </svg>
   </span>
 
-  <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" onclick={handlePostClick} aria-label="{$_('show_thread')}"></a>
+  {#if record.author}
+    <a class="timeline-external-link" href="/profile/{record.author.handle}/post/{record.uri.split('/').slice(-1)[0]}" onclick={handlePostClick} aria-label="{$_('show_thread')}"></a>
+  {/if}
 </div>
+{/if}
 
 <style lang="postcss">
   .timeline-external {
