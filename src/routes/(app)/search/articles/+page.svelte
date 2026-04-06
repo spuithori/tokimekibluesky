@@ -85,7 +85,7 @@
     </div>
 {:else}
     <div class="blog-grid">
-        {#each articles as article (article.uri)}
+        {#each articles as article}
             <MochottArticleCard {article}></MochottArticleCard>
         {/each}
     </div>
