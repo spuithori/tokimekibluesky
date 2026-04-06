@@ -124,6 +124,39 @@
       },
   ];
 
+  let atmosphereColumns = [
+      {
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'mochottTimeline',
+              name: $_('mochott_timeline'),
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
+      },
+      {
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'networkFeed',
+              name: $_('network_feed'),
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
+      },
+  ];
+
   let bookmarkColumns = $state([]);
   let cloudBookmarkColumns = $state([]);
   let localListColumns = $state([]);
@@ -342,6 +375,14 @@
         </div>
 
         <ColumnListAdder {_agent} items={basicColumns} on:add></ColumnListAdder>
+    </div>
+
+    <div class="column-adder-group">
+        <div class="column-adder-group__heading">
+            <p class="column-adder-group__title">Atmosphere</p>
+        </div>
+
+        <ColumnListAdder {_agent} items={atmosphereColumns} on:add></ColumnListAdder>
     </div>
 
     <div class="column-adder-group">

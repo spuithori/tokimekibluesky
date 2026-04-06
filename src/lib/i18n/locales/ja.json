@@ -933,5 +933,10 @@
   "thread_mute": "スレッドをミュート",
   "thread_unmute": "スレッドのミュートを解除",
   "thread_mute_success": "スレッドをミュートしました。今後このスレッドの通知は届かなくなります。",
-  "thread_unmute_success": "スレッドのミュートを解除しました。"
+  "thread_unmute_success": "スレッドのミュートを解除しました。",
+  "blog": "ブログ",
+  "blog_empty": "ブログ記事はありません",
+  "blog_error": "ブログの読み込みに失敗しました",
+  "mochott_timeline": "タイムライン (mochott)",
+  "network_feed": "standard.site"
 }

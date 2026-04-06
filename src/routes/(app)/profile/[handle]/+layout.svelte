@@ -59,6 +59,8 @@
                     return 'lists';
                 case 'starterpack':
                     return 'starterpack';
+                case 'blog':
+                    return 'blog';
                 case 'drawings':
                     return 'drawings';
                 default:
@@ -259,6 +261,7 @@
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'likes'}><a href="/profile/{data.params.handle}/likes" data-sveltekit-noscroll>{$_('likes')}</a></li>
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'feed'}><a href="/profile/{data.params.handle}/feed" data-sveltekit-noscroll>{$_('feeds')}</a></li>
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'lists'}><a href="/profile/{data.params.handle}/lists" data-sveltekit-noscroll>{$_('lists')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'blog'}><a href="/profile/{data.params.handle}/blog" data-sveltekit-noscroll>{$_('blog')}</a></li>
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'drawings'}><a href="/profile/{data.params.handle}/drawings" data-sveltekit-noscroll>{$_('drawings')}</a></li>
           <li class="profile-tab__item profile-tab__item--more" class:profile-tab__item--active={currentPage === 'starterpack'}>
             <Menu bind:isMenuOpen={isMoreMenuOpen} buttonClassName="profile-tab__more-button" position="bottom-end">

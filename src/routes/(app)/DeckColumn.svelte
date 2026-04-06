@@ -13,6 +13,7 @@
     import Timeline from "./Timeline.svelte";
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
     import ListTimeline from "./ListTimeline.svelte";
+    import MochottTimeline from "./MochottTimeline.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {scrollDirection} from "$lib/scrollDirection";
     import {Settings2, CheckCheck, GripVertical} from "lucide-svelte";
@@ -260,6 +261,8 @@
             {/key}
         {:else if column.algorithm?.type === 'bookmark'}
             <BookmarkTimeline {index} {_agent} {isJunk} {unique} {isSplit} {column}></BookmarkTimeline>
+        {:else if column.algorithm?.type === 'mochottTimeline' || column.algorithm?.type === 'networkFeed'}
+            <MochottTimeline {index} {_agent} {isJunk} {unique} {isSplit} {column}></MochottTimeline>
         {:else}
             <Timeline {index} {_agent} {isJunk} {unique} {isSplit} {column} {isTopScrolling}></Timeline>
         {/if}

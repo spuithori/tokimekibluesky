@@ -27,6 +27,7 @@
     import ChatListTimeline from "./ChatListTimeline.svelte";
     import ListTimeline from "./ListTimeline.svelte";
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
+    import MochottTimeline from "./MochottTimeline.svelte";
     import Timeline from "./Timeline.svelte";
 
     interface Props {
@@ -610,6 +611,8 @@
                             {/key}
                         {:else if (column.algorithm.type === 'bookmark')}
                             <BookmarkTimeline {index} {_agent} {isJunk} {unique}></BookmarkTimeline>
+                        {:else if (column.algorithm.type === 'mochottTimeline' || column.algorithm.type === 'networkFeed')}
+                            <MochottTimeline {index} {_agent} {isJunk} {unique} {column}></MochottTimeline>
                         {:else}
                             <Timeline {index} {_agent} {isJunk} {unique} {isTopScrolling}></Timeline>
                         {/if}

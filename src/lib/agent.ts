@@ -61,6 +61,10 @@ export class Agent {
         return this._service || 'https://bsky.social';
     }
 
+    getToken(): string | undefined {
+        return this._passwordSession?.session?.accessJwt;
+    }
+
     async getPdsUrl(): Promise<string | undefined> {
         const res = await fetch('https://plc.directory/' + this._did);
         const json = await res.json();

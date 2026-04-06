@@ -2,7 +2,7 @@
     import {bookmarkModal, cloudBookmarkModal, listModal, officialListModal} from "$lib/stores";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
     import {createEventDispatcher} from "svelte";
-    import {Bell, Bookmark, Heart, Home, Image, List, Newspaper, Pencil, PlusCircle, UserRound, MessageCircle} from "lucide-svelte";
+    import { Bell, Bookmark, Heart, Home, Image, List, Newspaper, Pencil, PlusCircle, UserRound, MessageCircle, BookType } from "lucide-svelte";
 
     const dispatch = createEventDispatcher();
     let { items, _agent } = $props();
@@ -70,6 +70,8 @@
                     <UserRound size="20" color="var(--text-color-1)"></UserRound>
                 {:else if (column.algorithm.type === 'chatList')}
                     <MessageCircle size="20" color="var(--text-color-1)"></MessageCircle>
+                {:else if (column.algorithm.type === 'networkFeed' || column.algorithm.type === 'mochottTimeline')}
+                    <BookType size="20" color="var(--text-color-1)"></BookType>
                 {:else}
                     <Home size="20" color="var(--text-color-1)"></Home>
                 {/if}
