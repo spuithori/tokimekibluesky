@@ -15,7 +15,8 @@ export const GET: RequestHandler = async ({ url, request }) => {
         tos_uri: 'https://docs.tokimeki.blue/ja',
         policy_uri: 'https://docs.tokimeki.blue/ja',
         redirect_uris: [
-            `${origin}/oauth/callback`
+            `${origin}/oauth/callback`,
+            `${origin}/oauth/native-callback`,
         ],
         scope: 'atproto transition:generic transition:chat.bsky',
         grant_types: ['authorization_code', 'refresh_token'],
