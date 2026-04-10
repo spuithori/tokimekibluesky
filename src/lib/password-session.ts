@@ -55,13 +55,20 @@ export class PasswordSession {
 	private _session: SessionData | undefined;
 	private _persistSession: PersistSessionHandler | undefined;
 	private _refreshing: Promise<void> | null = null;
+	private _loadLatestSession?: () => Promise<SessionData | null | undefined>;
 
 	private _onExpired?: () => void;
 
-	constructor(opts: { service: string; persistSession?: PersistSessionHandler; onExpired?: () => void }) {
+	constructor(opts: {
+		service: string;
+		persistSession?: PersistSessionHandler;
+		onExpired?: () => void;
+		loadLatestSession?: () => Promise<SessionData | null | undefined>;
+	}) {
 		this._service = opts.service.replace(/\/$/, '');
 		this._persistSession = opts.persistSession;
 		this._onExpired = opts.onExpired;
+		this._loadLatestSession = opts.loadLatestSession;
 	}
 
 	get session(): SessionData | undefined {
@@ -145,6 +152,30 @@ export class PasswordSession {
 	}
 
 	private async _doRefresh(): Promise<void> {
+		if (typeof navigator !== 'undefined' && navigator.locks && this._session?.did) {
+			await navigator.locks.request('password-refresh-' + this._session.did, async () => {
+				if (this._loadLatestSession) {
+					try {
+						const latest = await this._loadLatestSession();
+						if (latest?.refreshJwt && latest.refreshJwt !== this._session?.refreshJwt) {
+							this._session = latest;
+							if (latest.didDoc) {
+								this._updatePdsUrl(latest.didDoc);
+							}
+							return;
+						}
+					} catch {
+
+					}
+				}
+				await this._performRefresh();
+			});
+		} else {
+			await this._performRefresh();
+		}
+	}
+
+	private async _performRefresh(): Promise<void> {
 		if (!this._session?.refreshJwt) {
 			throw new Error('No refresh token');
 		}
@@ -213,7 +244,7 @@ export class PasswordSession {
 			} catch (e: any) {
 				if (isTokenError(e)) {
 					this._session = undefined;
-					this._persistSession?.('expired');
+					await this._persistSession?.('expired');
 					this._onExpired?.();
 				}
 				return res;

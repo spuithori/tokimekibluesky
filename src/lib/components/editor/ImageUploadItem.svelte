@@ -3,6 +3,7 @@
     import { X, Brush } from 'lucide-svelte';
     import { ImageEditor } from 'tokimeki-image-editor';
     import { compressForPreview, blobToDataUrl } from '$lib/imageCompressor/compressor';
+    import { settings } from '$lib/stores';
 
     let { image, ondelete, onaltclick } = $props();
     let isEdit = $state(false);
@@ -59,6 +60,7 @@
             initialImage={image.file}
             width={1200}
             height={700}
+            theme={$settings?.design?.darkmode ? 'dark' : 'light'}
             isStandalone={false}
             onComplete={handleComplete}
             onCancel={handleCancel}

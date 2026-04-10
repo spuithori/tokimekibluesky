@@ -20,7 +20,7 @@ async function resumePasswordAccount(account: Account, proxy: string | undefined
         persistSession: async (evt, sess?) => {
             await accountsDb.accounts.put({
                 id: account.id,
-                session: sess || account.session,
+                session: evt === 'expired' ? null : (sess ?? account.session),
                 did: account.did,
                 service: account.service,
                 avatar: account.avatar || '',
@@ -34,6 +34,10 @@ async function resumePasswordAccount(account: Account, proxy: string | undefined
             });
         },
         onExpired: () => markMissing(account),
+        loadLatestSession: async () => {
+            const latest = await accountsDb.accounts.get(account.id!);
+            return latest?.session as SessionData | undefined;
+        },
     });
 
     try {
@@ -46,6 +50,7 @@ async function resumePasswordAccount(account: Account, proxy: string | undefined
 
         if (error.error === 'ExpiredToken' || error.error === 'InvalidToken') {
             markMissing(account);
+            return null;
         } else {
             if (retryCount < 5) {
                 console.log(`Connection failed. Retry resumeSession in ${3 * (retryCount + 1)} seconds. (${retryCount + 1}/5)`);
