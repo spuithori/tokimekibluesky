@@ -2,7 +2,6 @@
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { X, Brush } from 'lucide-svelte';
     import { ImageEditor } from 'tokimeki-image-editor';
-    import { compressForPreview, blobToDataUrl } from '$lib/imageCompressor/compressor';
     import { settings } from '$lib/stores';
 
     let { image, ondelete, onaltclick } = $props();
@@ -20,7 +19,7 @@
         image.file = blobObj.blob;
         image.width = blobObj.width;
         image.height = blobObj.height;
-        image.base64 = await blobToDataUrl(image.file);
+        image.base64 = dataUrl;
         isEdit = false;
     }
 
