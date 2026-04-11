@@ -3,6 +3,8 @@
     import { X, Brush } from 'lucide-svelte';
     import { ImageEditor } from 'tokimeki-image-editor';
     import { settings } from '$lib/stores';
+    import {compressForPreview} from "$lib/imageCompressor/compressor";
+    import {blobToDataUrl} from "$lib/imageCompressor/utils";
 
     let { image, ondelete, onaltclick } = $props();
     let isEdit = $state(false);
@@ -19,7 +21,8 @@
         image.file = blobObj.blob;
         image.width = blobObj.width;
         image.height = blobObj.height;
-        image.base64 = dataUrl;
+        const compressed = await compressForPreview(image.file);
+        image.base64 = await blobToDataUrl(compressed);
         isEdit = false;
     }
 
