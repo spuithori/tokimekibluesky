@@ -18,14 +18,14 @@ export default defineConfig(({ mode }) => {
 
 		plugins: [
 			sveltekit(),
-			posthog({
+			/* posthog({
 				personalApiKey: env.POSTHOG_PERSONAL_KEY,
 				projectId: env.PUBLIC_POSTHOG_PROJECT_ID,
 				sourcemaps: {
 					enabled: true,
 					deleteAfterUpload: true,
 				},
-			}),
+			}), */
 			// visualizer(),
 		],
 
