@@ -20,8 +20,7 @@
         image.file = blobObj.blob;
         image.width = blobObj.width;
         image.height = blobObj.height;
-        const compressed = await compressForPreview(image.file);
-        image.base64 = await blobToDataUrl(compressed);
+        image.base64 = await blobToDataUrl(image.file);
         isEdit = false;
     }
 
