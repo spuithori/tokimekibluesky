@@ -80,7 +80,7 @@
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.1.0",
     "tlds": "^1.261.0",
-    "tokimeki-image-editor": "^0.4.5",
+    "tokimeki-image-editor": "^0.4.6",
     "tokimeki-video-player": "^1.0.21"
   }
 }
