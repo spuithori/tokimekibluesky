@@ -2,30 +2,10 @@ import { env } from '$env/dynamic/private';
 import { importJWK, SignJWT, calculateJwkThumbprint, jwtVerify, decodeProtectedHeader } from 'jose';
 
 export async function POST({ request, url }) {
-    const origin = request.headers.get('origin');
     const host = request.headers.get('host');
     const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
     const forwardedHost = request.headers.get('x-forwarded-host') || host;
     const expectedOrigin = `${forwardedProto}://${forwardedHost}`;
-
-    const allowedOrigins = [
-        'https://tokimeki.blue',
-        'http://localhost:5173',
-        'http://127.0.0.1:5173',
-        'http://tauri.localhost',
-        'https://tauri.localhost',
-        expectedOrigin,
-    ];
-
-    if (origin && !allowedOrigins.includes(origin)) {
-        console.warn(`CORS rejected: origin=${origin}, allowed=${allowedOrigins.join(', ')}`);
-        return new Response(JSON.stringify({ error: 'CORS error' }), {
-            status: 403,
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-    }
 
     try {
         const privateKeyJwkString = env.OAUTH_PRIVATE_KEY_JWK;
@@ -39,7 +19,7 @@ export async function POST({ request, url }) {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': origin || '*',
+                    'Access-Control-Allow-Origin': '*',
                 }
             });
         }
@@ -52,7 +32,7 @@ export async function POST({ request, url }) {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': origin || '*',
+                    'Access-Control-Allow-Origin': '*',
                 }
             });
         }
@@ -63,7 +43,7 @@ export async function POST({ request, url }) {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': origin || '*',
+                    'Access-Control-Allow-Origin': '*',
                 }
             });
         }
@@ -73,7 +53,7 @@ export async function POST({ request, url }) {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': origin || '*',
+                    'Access-Control-Allow-Origin': '*',
                 }
             });
         }
@@ -91,7 +71,7 @@ export async function POST({ request, url }) {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': origin || '*',
+                    'Access-Control-Allow-Origin': '*',
                 }
             });
         }
@@ -101,7 +81,7 @@ export async function POST({ request, url }) {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': origin || '*',
+                    'Access-Control-Allow-Origin': '*',
                 }
             });
         }
@@ -113,7 +93,7 @@ export async function POST({ request, url }) {
                 status: 400,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': origin || '*',
+                    'Access-Control-Allow-Origin': '*',
                 }
             });
         }
@@ -170,7 +150,7 @@ export async function POST({ request, url }) {
             headers: {
                 'Content-Type': 'application/json',
                 'Cache-Control': 'no-store',
-                'Access-Control-Allow-Origin': origin || '*',
+                'Access-Control-Allow-Origin': '*',
             }
         });
     } catch (error) {
@@ -179,20 +159,18 @@ export async function POST({ request, url }) {
             status: 500,
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': origin || '*',
+                'Access-Control-Allow-Origin': '*',
             }
         });
     }
 }
 
 // Handle CORS preflight
-export async function OPTIONS({ request }) {
-    const origin = request.headers.get('origin');
-
+export async function OPTIONS() {
     return new Response(null, {
         status: 204,
         headers: {
-            'Access-Control-Allow-Origin': origin || '*',
+            'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, DPoP',
             'Access-Control-Max-Age': '86400',
