@@ -142,7 +142,7 @@
   async function compressImage(file: File | Blob): Promise<Blob> {
       return await compressImageLib(file, {
           outputType: $settings?.general?.avifUpload ? 'image/avif' : 'image/webp',
-          maxSizeMB: 1_000_000 / 1024 / 1024,
+          maxSizeMB: 2_000_000 / 1024 / 1024,
           maxWidthOrHeight: 2000,
           maxQuality: $settings?.general?.losslessImageUpload ? 1.0 : 0.95,
       });

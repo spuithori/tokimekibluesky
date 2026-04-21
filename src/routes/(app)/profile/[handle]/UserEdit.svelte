@@ -56,7 +56,7 @@
 
     async function fileUpload(file, from: 'avatar' | 'banner') {
         const image = await compressImage(file, {
-            maxSizeMB: 1_000_000 / 1024 / 1024,
+            maxSizeMB: 2_000_000 / 1024 / 1024,
             maxWidthOrHeight: 2000,
         });
 
