@@ -139,17 +139,36 @@
       });
   }
 
+  const UPLOAD_MAX_BYTES = 2_000_000;
+  const UPLOAD_MAX_DIMENSION = 4000;
+
   async function compressImage(file: File | Blob): Promise<Blob> {
       return await compressImageLib(file, {
           outputType: $settings?.general?.avifUpload ? 'image/avif' : 'image/webp',
-          maxSizeMB: 2_000_000 / 1024 / 1024,
-          maxWidthOrHeight: 4000,
+          maxSizeMB: UPLOAD_MAX_BYTES / 1024 / 1024,
+          maxWidthOrHeight: UPLOAD_MAX_DIMENSION,
           maxQuality: $settings?.general?.losslessImageUpload ? 1.0 : 0.95,
       });
   }
 
+  async function prepareBlobForUpload(image: { file: File | Blob; isGif: boolean }): Promise<Blob> {
+      if (image.isGif && image.file.type === 'image/gif') {
+          if (image.file.size > UPLOAD_MAX_BYTES) {
+              throw new Error($_('error_gif_too_large'));
+          }
+          return image.file;
+      }
+
+      try {
+          return await compressImage(image.file);
+      } catch (e) {
+          console.error('Image compression failed:', e);
+          throw new Error($_('error_image_compression_failed'));
+      }
+  }
+
   async function uploadBlobWithCompression(image) {
-      const compressed = image.isGif ? image.file : await compressImage(image.file);
+      const compressed = await prepareBlobForUpload(image);
 
       return await _agent.xrpc.post('com.atproto.repo.uploadBlob', compressed, {
           encoding: compressed.type,
@@ -167,6 +186,12 @@
                       maxSizeMB: 1_000_000 / 1024 / 1024,
                       maxWidthOrHeight: 3000,
                       initialQuality: 0.8,
+                  });
+              } else if (blob.size > UPLOAD_MAX_BYTES) {
+                  blob = await compressImageLib(blob, {
+                      outputType: $settings?.general?.avifUpload ? 'image/avif' : 'image/webp',
+                      maxSizeMB: UPLOAD_MAX_BYTES / 1024 / 1024,
+                      maxWidthOrHeight: UPLOAD_MAX_DIMENSION,
                   });
               }
 
@@ -819,7 +844,7 @@
       const scheduledImages: ScheduledImage[] = [];
       for (let i = 0; i < images.length; i++) {
           const img = images[i];
-          const compressed = img.isGif ? img.file : await compressImage(img.file);
+          const compressed = await prepareBlobForUpload(img);
           const fileToUpload = compressed instanceof File
               ? compressed
               : new File([compressed], 'image.jpg', { type: compressed.type });

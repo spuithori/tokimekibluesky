@@ -631,6 +631,8 @@
   "process_to_video_upload_processing": "ビデオのエンコード中",
   "success_to_video_upload": "ビデオのアップロードに成功しました。",
   "error_video_too_large": "動画がデカすぎるか、長すぎます！ 100MB以内かつ180秒以内の動画をアップロードできます。",
+  "error_gif_too_large": "アニメーションGIFは2MB以下のファイルのみアップロードできます。",
+  "error_image_compression_failed": "画像の圧縮に失敗しました。より小さい画像を選び直してください。",
   "bookmark_local": "ローカルブックマーク",
   "bookmark_cloud": "ブックマーク",
   "bookmark_cloud_add_description": "ブックマークはTOKIMEKIサーバー上に保存され、他のデバイスでも利用できます。",

@@ -169,6 +169,32 @@ async function encodeAvifWasm(imageData: ImageData, maxSizeBytes: number): Promi
     return bestBuf;
 }
 
+let webpBlobSupported: boolean | null = null;
+
+async function encodeCanvasBlob(
+    canvas: OffscreenCanvas,
+    requestedType: string,
+    quality: number,
+): Promise<Blob> {
+    let canvasType = requestedType === 'image/avif' ? 'image/webp' : requestedType;
+
+    if (canvasType === 'image/webp' && webpBlobSupported === false) {
+        canvasType = 'image/jpeg';
+    }
+
+    const blob = await canvas.convertToBlob({ type: canvasType, quality });
+
+    if (canvasType === 'image/webp') {
+        if (blob.type !== 'image/webp') {
+            webpBlobSupported = false;
+            return await canvas.convertToBlob({ type: 'image/jpeg', quality });
+        }
+        webpBlobSupported = true;
+    }
+
+    return blob;
+}
+
 async function compress(input: WorkerInput): Promise<WorkerOutput> {
     const { bitmap, targetWidth, targetHeight, outputType, maxSizeBytes, initialQuality, maxQuality, minQuality, maxIterations, skipWasm } = input;
 
@@ -218,7 +244,7 @@ async function compress(input: WorkerInput): Promise<WorkerOutput> {
 
     if (maxSizeBytes === undefined) {
         const tConvertStart = performance.now();
-        const blob = await canvas.convertToBlob({ type: outputType === 'image/avif' ? 'image/webp' : outputType, quality: initialQuality });
+        const blob = await encodeCanvasBlob(canvas, outputType, initialQuality);
         timings.convertToBlobLoop = performance.now() - tConvertStart;
         timings.total = performance.now() - tStart;
         return { blob, width: targetWidth, height: targetHeight, timings };
@@ -234,7 +260,7 @@ async function compress(input: WorkerInput): Promise<WorkerOutput> {
     for (let i = 0; i < maxIterations; i++) {
         iterations++;
         const mid = (lo + hi) / 2;
-        const blob = await canvas.convertToBlob({ type: outputType === 'image/avif' ? 'image/webp' : outputType, quality: mid });
+        const blob = await encodeCanvasBlob(canvas, outputType, mid);
 
         if (blob.size <= maxSizeBytes) {
             bestBlob = blob;
@@ -248,7 +274,7 @@ async function compress(input: WorkerInput): Promise<WorkerOutput> {
 
     if (!bestBlob) {
         iterations++;
-        bestBlob = await canvas.convertToBlob({ type: outputType === 'image/avif' ? 'image/webp' : outputType, quality: minQuality });
+        bestBlob = await encodeCanvasBlob(canvas, outputType, minQuality);
         bestQuality = minQuality;
     }
 

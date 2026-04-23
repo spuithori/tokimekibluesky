@@ -223,7 +223,6 @@ export async function compressImageWithStats(
     }
 
     const { width, height } = calcTargetDimensions(originalWidth, originalHeight, maxWidthOrHeight);
-
     const skipWasm = originalSize > SKIP_WASM_BYTES_THRESHOLD;
 
     const tProcessStart = performance.now();
@@ -240,6 +239,14 @@ export async function compressImageWithStats(
         skipWasm,
     });
     const processElapsed = performance.now() - tProcessStart;
+
+    if (maxSizeBytes !== undefined && result.blob.size > maxSizeBytes) {
+        throw new Error(
+            `compressImage: unable to compress below ${(maxSizeBytes / 1024 / 1024).toFixed(2)}MB `
+            + `(final: ${(result.blob.size / 1024 / 1024).toFixed(2)}MB, `
+            + `${result.width}x${result.height})`,
+        );
+    }
 
     const workerTimings = result.timings ?? {};
     for (const [key, value] of Object.entries(workerTimings)) {

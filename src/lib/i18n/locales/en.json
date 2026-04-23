@@ -631,6 +631,8 @@
   "process_to_video_upload_processing": "Video encoding...",
   "success_to_video_upload": "Video uploaded successfully.",
   "error_video_too_large": "Video is too big or too long! You can upload videos up to 100 MB and no longer than 180 seconds.",
+  "error_gif_too_large": "Animated GIFs must be 2 MB or smaller.",
+  "error_image_compression_failed": "Image compression failed. Please pick a smaller image and try again.",
   "bookmark_local": "Local Bookmark",
   "bookmark_cloud": "Bookmark",
   "bookmark_cloud_add_description": "Bookmarks are stored on the TOKIMEKI server and can be used on other devices.",
