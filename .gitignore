@@ -24,3 +24,4 @@ src/lib/test/*
 .data
 image-compress/
 .claude/
+src/routes/(app)/test-compress/

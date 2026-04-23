@@ -25,6 +25,7 @@ export interface WorkerInput {
     maxQuality: number;
     minQuality: number;
     maxIterations: number;
+    skipWasm?: boolean;
 }
 
 export interface WorkerOutput {
@@ -32,4 +33,5 @@ export interface WorkerOutput {
     blob: Blob;
     width: number;
     height: number;
+    timings?: Record<string, number>;
 }
