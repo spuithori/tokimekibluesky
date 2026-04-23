@@ -156,7 +156,7 @@
     }
 
     export function open() {
-        input.setAttribute('accept', 'image/png, image/jpeg, image/gif, image/webp, video/mp4, video/quicktime, video/webm');
+        input.setAttribute('accept', 'image/jpeg, image/png, image/gif, image/webp, video/mp4, video/quicktime, video/webm');
         input.setAttribute('multiple', '');
         input.click();
     }
