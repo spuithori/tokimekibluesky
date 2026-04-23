@@ -143,7 +143,7 @@
       return await compressImageLib(file, {
           outputType: $settings?.general?.avifUpload ? 'image/avif' : 'image/webp',
           maxSizeMB: 2_000_000 / 1024 / 1024,
-          maxWidthOrHeight: 2000,
+          maxWidthOrHeight: 4000,
           maxQuality: $settings?.general?.losslessImageUpload ? 1.0 : 0.95,
       });
   }
