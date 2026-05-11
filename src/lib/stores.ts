@@ -75,6 +75,7 @@ const defaultSettings = {
         mobileNewUi: false,
         bubbleTimeline: false,
         threaded: false,
+        monochrome: false,
     },
     timeline: {
         hideRepost: 'all',

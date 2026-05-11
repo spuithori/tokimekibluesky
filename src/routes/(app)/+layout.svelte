@@ -332,6 +332,7 @@
     class:left-mode={$settings?.design?.leftMode}
     class:superstar={$settings.design?.reactionMode === 'superstar'}
     class:bubble={$settings?.design?.bubbleTimeline}
+    class:monochrome={$settings?.design?.monochrome}
     style={outputInlineStyle($theme)}
     dir={$_('dir', {default: 'ltr'})}
     bind:this={app}

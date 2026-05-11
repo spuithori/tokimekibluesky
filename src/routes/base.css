@@ -58,6 +58,10 @@ body {
     background-position: center;
 }
 
+.app.monochrome {
+    filter: grayscale(100%);
+}
+
 h1 {
     font-weight: 900;
 }

@@ -941,5 +941,6 @@
   "blog_empty": "ブログ記事はありません",
   "blog_error": "ブログの読み込みに失敗しました",
   "mochott_timeline": "タイムライン (mochott)",
-  "network_feed": "standard.site"
+  "network_feed": "standard.site",
+  "monochrome": "白黒モード"
 }

@@ -941,5 +941,6 @@
   "blog_empty": "No blog posts",
   "blog_error": "Failed to load blog posts",
   "mochott_timeline": "Timeline (mochott)",
-  "network_feed": "standard.site"
+  "network_feed": "standard.site",
+  "monochrome": "Monochrome mode"
 }

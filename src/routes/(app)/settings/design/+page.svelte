@@ -29,6 +29,7 @@
     let reactionMode = $state($settings?.design.reactionMode || 'tokimeki');
     let leftMode = $state($settings?.design.leftMode || false);
     let disableProfilePopup = $state($settings?.design.disableProfilePopup || false);
+    let monochrome = $state($settings?.design.monochrome || false);
 
     let colors = $derived(detectColors($theme));
 
@@ -56,6 +57,7 @@
         $settings.design.reactionMode = reactionMode;
         $settings.design.leftMode = leftMode;
         $settings.design.disableProfilePopup = disableProfilePopup;
+        $settings.design.monochrome = monochrome;
     });
 
     const datetimeFormats = [
@@ -563,6 +565,18 @@
       <dd class="settings-group__content">
         <div class="input-toggle">
           <input class="input-toggle__input" type="checkbox" id="mobileNewUi" bind:checked={$settings.design.mobileNewUi}><label class="input-toggle__label" for="mobileNewUi"></label>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('monochrome')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="monochrome" bind:checked={monochrome}><label class="input-toggle__label" for="monochrome"></label>
         </div>
       </dd>
     </dl>
