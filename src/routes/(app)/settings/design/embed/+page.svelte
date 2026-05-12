@@ -85,5 +85,17 @@
         </div>
       </dd>
     </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        KLIPY
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="embedKlipy" bind:checked={$settings.embed.klipy}><label class="input-toggle__label" for="embedKlipy"></label>
+        </div>
+      </dd>
+    </dl>
   </div>
 </div>

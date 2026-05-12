@@ -214,14 +214,16 @@
         }
     }
 
-    &--tenor {
+    &--tenor,
+    &--klipy {
         .timeline-external__image {
             aspect-ratio: auto;
         }
     }
 
     &--gif,
-    &--tenor {
+    &--tenor,
+    &--klipy {
         .timeline-external__description {
             display: none;
         }

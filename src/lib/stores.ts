@@ -102,9 +102,10 @@ const defaultSettings = {
         bluemotion: true,
         giphy: true,
         tenor: true,
+        klipy: true,
     },
     langFilter: [],
-    version: 2,
+    version: 3,
 }
 const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);
 export const settings = writable(JSON.parse(storageSettings));

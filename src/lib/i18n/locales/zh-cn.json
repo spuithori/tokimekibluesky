@@ -635,6 +635,7 @@
   "delete_bookmark": "删除书签",
   "privacy_policy": "隐私政策",
   "tenor_picker_placeholder": "通过 Tenor 搜索 GIF",
+  "gif_picker_placeholder": "通过 KLIPY 搜索 GIF",
   "disable_tenor_autoplay": "不自动播放 Tenor GIF",
   "font_theme": "字体主题",
   "font_theme_notice": "由于性能问题，你的浏览器只能显示系统字体。",

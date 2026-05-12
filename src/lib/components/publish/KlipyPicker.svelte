@@ -1,12 +1,19 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import TenorGrid from "$lib/components/publish/TenorGrid.svelte";
+    import { useDebounce, watch } from 'runed';
+    import KlipyGrid from "$lib/components/publish/KlipyGrid.svelte";
 
     let { onclick } = $props();
-    let dialog;
     let term = $state('');
+    let debouncedTerm = $state('');
 
-    function handleClick(gif) {
+    const applyTerm = useDebounce(() => {
+        debouncedTerm = term;
+    }, 300);
+
+    watch(() => term, applyTerm);
+
+    function handleClick(gif: { url: string; title: string }) {
         if (!gif) {
             return false;
         }
@@ -17,17 +24,17 @@
 
 <div class="gif-modal-content">
   <div class="gif-modal-search">
-    <input type="text" class="gif-modal-search__input" placeholder={$_('tenor_picker_placeholder')} bind:value={term}>
+    <input type="text" class="gif-modal-search__input" placeholder={$_('gif_picker_placeholder')} bind:value={term}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
   </div>
 
   <div class="gif-picker">
-    {#key term}
-      <TenorGrid
-              category={term ? 'search' : 'featured'}
-              term={term}
+    {#key debouncedTerm}
+      <KlipyGrid
+              category={debouncedTerm ? 'search' : 'trending'}
+              term={debouncedTerm}
               onclick={handleClick}
-      ></TenorGrid>
+      ></KlipyGrid>
     {/key}
   </div>
 </div>

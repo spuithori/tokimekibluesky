@@ -47,7 +47,7 @@
     normal,
     submitArea,
     onupload,
-    onpicktenor,
+    onpickgif,
     onpublish,
     onthreadsplit,
     onpollclick,
@@ -360,10 +360,10 @@
        editor.commands.setContent(content, true);
     }
 
-    function handlePickTenor(gif) {
+    function handlePickGif(gif) {
         isGiphyPickerOpen = false;
 
-        onpicktenor(gif);
+        onpickgif(gif);
     }
 
     function addHash() {
@@ -454,7 +454,7 @@
 {#if (isGiphyPickerOpen)}
   <GifPickerModal
     onclose={() => {isGiphyPickerOpen = false}}
-    onpicktenor={handlePickTenor}
+    onpickgif={handlePickGif}
   ></GifPickerModal>
 {/if}
 

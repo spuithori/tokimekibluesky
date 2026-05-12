@@ -1,7 +1,8 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
-  import { getBluemotionUrl, getGiphyId, getSpotifyUri, getTwitterUrl, getYouTubeUrl, getTenorUrl, getPollUrl } from "$lib/components/post/embedUtil";
+  import { getBluemotionUrl, getGiphyId, getSpotifyUri, getTwitterUrl, getYouTubeUrl, getTenorUrl, getKlipyUrl, getPollUrl } from "$lib/components/post/embedUtil";
   import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
+  import EmbedKlipy from "$lib/components/post/EmbedKlipy.svelte";
   import EmbedX from "$lib/components/post/EmbedX.svelte";
   import EmbedPoll from "$lib/components/post/EmbedPoll.svelte";
 
@@ -28,6 +29,7 @@
     class:timeline-external--spotify={getSpotifyUri(external.uri)}
     class:timeline-external--gif={getGiphyId(external.uri) && $settings?.embed?.giphy}
     class:timeline-external--tenor={getTenorUrl(external.uri) && $settings?.embed?.tenor}
+    class:timeline-external--klipy={getKlipyUrl(external.uri) && $settings?.embed?.klipy}
   >
     {#if ($settings?.design.externalLayout !== 'compact')}
       {#if (getYouTubeUrl(external.uri) && $settings?.embed?.youtube)}
@@ -48,6 +50,12 @@
         <div class="timeline-external__image">
           <div class="timeline-tenor-external">
             <EmbedTenor tenor={getTenorUrl(external.uri)}></EmbedTenor>
+          </div>
+        </div>
+      {:else if (getKlipyUrl(external.uri) && $settings?.embed?.klipy)}
+        <div class="timeline-external__image">
+          <div class="timeline-klipy-external">
+            <EmbedKlipy klipy={getKlipyUrl(external.uri)}></EmbedKlipy>
           </div>
         </div>
       {:else if (getGiphyId(external.uri) && $settings?.embed?.giphy)}
@@ -115,8 +123,15 @@
       }
   }
 
+  .timeline-klipy-external {
+      position: relative;
+      height: 100%;
+      z-index: 1;
+  }
+
   .timeline-external--gif,
-  .timeline-external--tenor {
+  .timeline-external--tenor,
+  .timeline-external--klipy {
       padding-bottom: 0;
       overflow: hidden;
 

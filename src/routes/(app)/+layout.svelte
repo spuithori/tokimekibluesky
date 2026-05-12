@@ -124,6 +124,16 @@
       $settings.version = 2;
   }
 
+  if ($settings.version < 3) {
+      if (!$settings.embed) {
+          $settings.embed = {};
+      }
+      if ($settings.embed.klipy === undefined) {
+          $settings.embed.klipy = true;
+      }
+      $settings.version = 3;
+  }
+
   if (navigator.connection) {
       navigator.connection.addEventListener('change', () => {
           isMobileDataConnection.set(navigator.connection.type === 'cellular');

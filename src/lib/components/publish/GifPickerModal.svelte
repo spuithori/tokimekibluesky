@@ -1,16 +1,16 @@
 <script lang="ts">
     import {onMount} from 'svelte';
-    import TenorPicker from "$lib/components/publish/TenorPicker.svelte";
+    import KlipyPicker from "$lib/components/publish/KlipyPicker.svelte";
 
-    let { onclose, onpicktenor } = $props();
+    let { onclose, onpickgif } = $props();
     let dialog = $state();
 
-    function handleTenorClick(gif) {
+    function handleGifClick(gif) {
         if (!gif) {
             return false;
         }
 
-        onpicktenor(gif);
+        onpickgif(gif);
     }
 
     onMount(async () => {
@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <TenorPicker onclick={handleTenorClick}></TenorPicker>
+    <KlipyPicker onclick={handleGifClick}></KlipyPicker>
   </div>
 
   <button class="modal-background-close" aria-hidden="true" onclick={onclose}></button>

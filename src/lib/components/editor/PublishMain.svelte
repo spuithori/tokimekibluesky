@@ -20,8 +20,9 @@
   import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
   import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
   import {getUploadLimit} from "$lib/components/editor/videoUtil";
-  import {getTenorUrl} from "$lib/components/post/embedUtil";
+  import {getTenorUrl, getKlipyUrl} from "$lib/components/post/embedUtil";
   import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
+  import EmbedKlipy from "$lib/components/post/EmbedKlipy.svelte";
   import ThreadGateModal from "$lib/components/publish/ThreadGateModal.svelte";
   import WhisperModal from "$lib/components/publish/WhisperModal.svelte";
   import WhisperLabel from "$lib/components/publish/WhisperLabel.svelte";
@@ -226,7 +227,7 @@
         isLinkCardAdding = false;
     }
 
-    async function addTenorLinkCard(gif) {
+    async function addGifLinkCard(gif) {
         if (!gif) {
             return false;
         }
@@ -242,7 +243,7 @@
                 external: {
                     uri: gif.url,
                     title: gif.title || '',
-                    description: 'GIF by Tenor.',
+                    description: 'GIF by KLIPY.',
                 }
             }
 
@@ -467,7 +468,7 @@
           bind:this={editor}
           {onpublish}
           onupload={uploadContextOpen}
-          onpicktenor={addTenorLinkCard}
+          onpickgif={addGifLinkCard}
           onthreadsplit={handleThreadSplit}
           {_agent}
           {isEnabled}
@@ -561,6 +562,10 @@
             {#if getTenorUrl(post.embedExternal.external.uri) && $settings?.embed?.tenor}
               <div class="publish-tenor-external" class:publish-tenor-external--bottom={$settings.design?.publishPosition === 'bottom'}>
                 <EmbedTenor tenor={getTenorUrl(post.embedExternal.external.uri)}></EmbedTenor>
+              </div>
+            {:else if getKlipyUrl(post.embedExternal.external.uri) && $settings?.embed?.klipy}
+              <div class="publish-tenor-external" class:publish-tenor-external--bottom={$settings.design?.publishPosition === 'bottom'}>
+                <EmbedKlipy klipy={getKlipyUrl(post.embedExternal.external.uri)}></EmbedKlipy>
               </div>
             {:else}
               <div class="timeline-external timeline-external--record">

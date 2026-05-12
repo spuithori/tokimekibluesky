@@ -633,6 +633,7 @@
   "delete_bookmark": "Supprimer le favori",
   "privacy_policy": "Politique de confidentialité",
   "tenor_picker_placeholder": "Rechercher des GIF sur Tenor",
+  "gif_picker_placeholder": "Rechercher des GIF sur KLIPY",
   "disable_tenor_autoplay": "Ne pas lire automatiquement les GIF (Tenor)",
   "font_theme": "Thèmes de polices",
   "font_theme_notice": "En raison de problèmes de performances, votre navigateur ne prend pas en charge les polices Web.",

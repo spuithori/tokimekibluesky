@@ -134,6 +134,34 @@ export function getTenorUrl(uri: string) {
     }
 }
 
+export function getKlipyUrl(uri: string) {
+    try {
+        const url = new URL(uri);
+        const hostname = url.hostname;
+
+        if (hostname === 'klipy.com' || hostname.endsWith('.klipy.com')) {
+            const width = url.searchParams.get('ww');
+            const height = url.searchParams.get('hh');
+            const mp4Slug = url.searchParams.get('mp4');
+            const mp4Url = mp4Slug
+                ? url.toString().replace(url.search, '').replace(/[^/]+\.gif$/i, `${mp4Slug}.mp4`)
+                : undefined;
+
+            return {
+                url: uri,
+                mp4Url: mp4Url,
+                width: width,
+                height: height,
+            };
+        }
+
+        return undefined;
+    } catch (e) {
+        console.log(e);
+        return undefined;
+    }
+}
+
 export interface PollUrlInfo {
     did: string;
     rkey: string;

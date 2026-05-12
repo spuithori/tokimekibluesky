@@ -566,6 +566,7 @@
   "delete_bookmark": "Apagar favorito",
   "privacy_policy": "Política de Privacidade",
   "tenor_picker_placeholder": "Buscar GIFs no Tenor",
+  "gif_picker_placeholder": "Buscar GIFs no KLIPY",
   "disable_tenor_autoplay": "Desativar reprodução automática de GIFs (Tenor)",
   "font_theme": "Fonte do tema",
   "font_theme_notice": "Devido a problemas de desempenho, fontes da Web não estão disponíveis no seu navegador.",
