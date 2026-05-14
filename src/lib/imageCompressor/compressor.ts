@@ -1,5 +1,5 @@
 import type { CompressOptions, PreviewCompressOptions, WorkerInput, WorkerOutput } from './types';
-import { blobToDataUrl, calcTargetDimensions } from './utils';
+import { blobToDataUrl, calcTargetDimensions, isHeicImage } from './utils';
 
 export { blobToDataUrl } from './utils';
 
@@ -185,7 +185,10 @@ export async function compressImageWithStats(
     const originalSize = file.size;
 
     const tBitmapStart = performance.now();
-    const bitmap = await createImageBitmap(file);
+    const [bitmap, isHeic] = await Promise.all([
+        createImageBitmap(file),
+        isHeicImage(file),
+    ]);
     timings.createImageBitmap = performance.now() - tBitmapStart;
 
     const originalWidth = bitmap.width;
@@ -195,7 +198,9 @@ export async function compressImageWithStats(
     const sizeOk = maxSizeBytes === undefined || originalSize <= maxSizeBytes;
     const dimsOk = originalWidth <= maxWidthOrHeight && originalHeight <= maxWidthOrHeight;
 
-    if (sizeOk && dimsOk) {
+    // HEIC bytes are never a web-safe upload format — even when small enough to
+    // short-circuit — so always route them through the re-encode path below.
+    if (sizeOk && dimsOk && !isHeic) {
         bitmap.close();
 
         const tStripStart = performance.now();
