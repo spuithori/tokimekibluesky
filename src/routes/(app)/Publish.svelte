@@ -140,7 +140,7 @@
   }
 
   const UPLOAD_MAX_BYTES = 2_000_000;
-  const UPLOAD_MAX_DIMENSION = 4000;
+  const UPLOAD_MAX_DIMENSION = 3000;
 
   async function compressImage(file: File | Blob): Promise<Blob> {
       return await compressImageLib(file, {
