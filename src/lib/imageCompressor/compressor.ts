@@ -1,8 +1,10 @@
 import type { CompressOptions, PreviewCompressOptions, WorkerInput, WorkerOutput } from './types';
-import { blobToDataUrl, calcTargetDimensions, isHeicImage } from './utils';
+import { calcTargetDimensions, isHeicImage } from './utils';
 
 export { blobToDataUrl } from './utils';
 
+/** Result of {@link compressImageWithStats} — the compressed blob plus
+ *  per-phase timing information for instrumentation. */
 export interface CompressStats {
     blob: Blob;
     width: number;
@@ -166,6 +168,18 @@ function logStats(label: string, stats: CompressStats): void {
     /* eslint-enable no-console */
 }
 
+/**
+ * Compress an image and return both the compressed blob and detailed
+ * timing/size statistics. Prefer {@link compressImage} when you only
+ * need the resulting blob.
+ *
+ * Short-circuits if the input already fits both `maxSizeMB` and
+ * `maxWidthOrHeight` (and isn't HEIC), returning the original bytes
+ * with EXIF stripped for JPEG inputs.
+ *
+ * Throws if the result cannot be compressed below `maxSizeMB` even
+ * after exhausting the WASM (WebP → MozJPEG) and `<canvas>` paths.
+ */
 export async function compressImageWithStats(
     file: File | Blob,
     options?: CompressOptions,
@@ -233,6 +247,7 @@ export async function compressImageWithStats(
     const tProcessStart = performance.now();
     const result = await processImage({
         bitmap,
+        originalSize,
         targetWidth: width,
         targetHeight: height,
         outputType,
@@ -283,6 +298,12 @@ export async function compressImageWithStats(
     return stats;
 }
 
+/**
+ * Compress an image and return only the resulting blob.
+ *
+ * Thin wrapper over {@link compressImageWithStats} for callers that
+ * don't need the timing/statistics payload.
+ */
 export async function compressImage(
     file: File | Blob,
     options?: CompressOptions,
@@ -291,6 +312,12 @@ export async function compressImage(
     return stats.blob;
 }
 
+/**
+ * Fast preview-only compression — single-pass encode at a fixed
+ * quality with a smaller default dimension cap (1024px). Skips the
+ * size-binary-search and short-circuit logic used by
+ * {@link compressImageWithStats}.
+ */
 export async function compressForPreview(
     file: File | Blob,
     options?: PreviewCompressOptions,
@@ -306,6 +333,7 @@ export async function compressForPreview(
 
     const result = await processImage({
         bitmap,
+        originalSize: file.size,
         targetWidth: width,
         targetHeight: height,
         outputType,

@@ -1,3 +1,4 @@
+/** Read a `Blob` and resolve to a `data:` URL containing its base64 bytes. */
 export function blobToDataUrl(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -7,6 +8,11 @@ export function blobToDataUrl(blob: Blob): Promise<string> {
     });
 }
 
+/**
+ * Compute target dimensions that fit inside a `maxWidthOrHeight` box
+ * while preserving aspect ratio. Returns the original dimensions
+ * unchanged when the image already fits.
+ */
 export function calcTargetDimensions(
     srcWidth: number,
     srcHeight: number,

@@ -140,11 +140,11 @@
   }
 
   const UPLOAD_MAX_BYTES = 2_000_000;
-  const UPLOAD_MAX_DIMENSION = 3000;
+  const UPLOAD_MAX_DIMENSION = 4000;
 
   async function compressImage(file: File | Blob): Promise<Blob> {
       return await compressImageLib(file, {
-          outputType: $settings?.general?.avifUpload ? 'image/avif' : 'image/webp',
+          outputType: 'image/webp',
           maxSizeMB: UPLOAD_MAX_BYTES / 1024 / 1024,
           maxWidthOrHeight: UPLOAD_MAX_DIMENSION,
           maxQuality: $settings?.general?.losslessImageUpload ? 1.0 : 0.95,
@@ -189,7 +189,7 @@
                   });
               } else if (blob.size > UPLOAD_MAX_BYTES) {
                   blob = await compressImageLib(blob, {
-                      outputType: $settings?.general?.avifUpload ? 'image/avif' : 'image/webp',
+                      outputType: 'image/webp',
                       maxSizeMB: UPLOAD_MAX_BYTES / 1024 / 1024,
                       maxWidthOrHeight: UPLOAD_MAX_DIMENSION,
                   });
