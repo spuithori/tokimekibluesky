@@ -5,6 +5,8 @@
   import EmbedKlipy from "$lib/components/post/EmbedKlipy.svelte";
   import EmbedX from "$lib/components/post/EmbedX.svelte";
   import EmbedPoll from "$lib/components/post/EmbedPoll.svelte";
+  import { LinkIcon } from "lucide-svelte";
+  import { _ } from "svelte-i18n";
 
   interface Props {
     external: any;
@@ -14,6 +16,8 @@
   let { external, _agent }: Props = $props();
 
   const pollInfo = getPollUrl(external.uri);
+  const url = new URL(external.uri);
+  const hostname = url.hostname;
 </script>
 
 {#if pollInfo && _agent}
@@ -88,6 +92,8 @@
       {#if (external.description)}
         <p class="timeline-external__description">{external.description}</p>
       {/if}
+
+      <p class="timeline-external__host"><LinkIcon class="timeline-external__host__icon" size="14" aria-label={$_('external_link_hostname')} />{hostname}</p>
     </div>
   </div>
 {/if}
