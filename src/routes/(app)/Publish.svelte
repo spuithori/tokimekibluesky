@@ -2,6 +2,7 @@
   import {_} from 'svelte-i18n';
   import { agent, hashtagHistory, settings } from '$lib/stores';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, type AppBskyVideoDefsJobStatus } from '$lib/atproto-guards';
+  import { LEGACY_IMAGES_EMBED_MAX } from '$lib/components/post/embedImages';
   import { RichText } from '$lib/atproto-richtext';
   import {toast} from 'svelte-sonner'
   import {goto, pushState} from '$app/navigation';
@@ -397,10 +398,8 @@
       isEnabled = true;
 
       let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
-      let embedImages: AppBskyEmbedImages.Main = {
-          $type: 'app.bsky.embed.images',
-          images: [],
-      };
+      let embedMedia: any;
+      let mediaImageCount = 0;
       let embedVideo: AppBskyEmbedVideo.Main;
       let embedRecord: AppBskyEmbedRecord.Main;
       let embedRecordWithMedia: AppBskyEmbedRecordWithMedia.Main;
@@ -432,19 +431,36 @@
           });
 
           await Promise.all(filePromises)
-              .then(results => results.forEach((result, index) => {
-                  embedImages.images.push({
+              .then(results => {
+                  const built = results.map((result, index) => ({
                       image: result.blob,
                       alt: images[index].alt || '',
                       aspectRatio: {
                           width: images[index].width || undefined,
                           height: images[index].height || undefined,
                       }
-                  });
-              }))
+                  }));
+                  mediaImageCount = built.length;
+
+                  if (built.length <= LEGACY_IMAGES_EMBED_MAX) {
+                      embedMedia = {
+                          $type: 'app.bsky.embed.images',
+                          images: built,
+                      };
+                  } else {
+                      embedMedia = {
+                          $type: 'app.bsky.embed.gallery',
+                          items: built.map(item => ({
+                              $type: 'app.bsky.embed.gallery#image',
+                              ...item,
+                          })),
+                      };
+                  }
+              })
               .catch(error => {
                   isEnabled = false;
-                  embedImages.images = [];
+                  embedMedia = undefined;
+                  mediaImageCount = 0;
                   throw new Error(error);
               });
       }
@@ -546,10 +562,10 @@
           embed = embedRecordWithMedia;
       } else if (embedVideo) {
           embed = embedVideo;
-      } else if (embedImages.images.length && post?.quotePost?.uri) {
+      } else if (mediaImageCount && post?.quotePost?.uri) {
           embedRecordWithMedia = {
               $type: 'app.bsky.embed.recordWithMedia',
-              media: embedImages,
+              media: embedMedia,
               record: embedRecord,
           }
 
@@ -564,15 +580,15 @@
 
           embed = embedRecordWithMedia;
       } else {
-          if (embedImages.images.length) {
-              embed = embedImages;
+          if (mediaImageCount) {
+              embed = embedMedia;
           }
 
           if (post?.quotePost?.uri) {
               embed = embedRecord;
           }
 
-          if (embedExternal && !embedImages.images.length && !post?.quotePost?.uri) {
+          if (embedExternal && !mediaImageCount && !post?.quotePost?.uri) {
               embed = embedExternal;
               embed.external.thumb = await uploadExternalImage(post?.externalImageBlob);
           }
@@ -628,10 +644,10 @@
               },
           };
 
-          if (embedImages.images.length) {
+          if (mediaImageCount) {
               embed = {
                   $type: 'app.bsky.embed.recordWithMedia',
-                  media: embedImages,
+                  media: embedMedia,
                   record: whisperRecord,
               };
           } else {

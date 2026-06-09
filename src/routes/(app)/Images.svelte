@@ -1,10 +1,11 @@
 <script lang="ts">
-    import {AppBskyEmbedImages} from "$lib/atproto-guards";
+    import {getViewImages, hasGalleryImages, LEGACY_IMAGES_EMBED_MAX} from "$lib/components/post/embedImages";
     import {settings, isDataSaving} from '$lib/stores';
     import GifImage from "$lib/components/post/GifImage.svelte";
     import {imageState, type GalleryImage} from "$lib/classes/imageState.svelte";
     import ImageLoader from "$lib/components/utils/ImageLoader.svelte";
     import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
+    import emblaCarouselSvelte from 'embla-carousel-svelte';
 
     interface ThreadContext {
       feed?: any[];
@@ -33,6 +34,17 @@
 
     let isFold = $state($settings?.design.postsImageLayout === 'folding' || $isDataSaving || folding);
 
+    const useCarousel = $derived(images.length > LEGACY_IMAGES_EMBED_MAX && $settings?.design.galleryLayout === 'carousel');
+
+    const MIN_ASPECT_RATIO = 2 / 3;
+    const MAX_ASPECT_RATIO = 3 / 2;
+
+    function slideAspectRatio(image: any): number {
+      const ar = image?.aspectRatio;
+      const raw = (ar?.width && ar?.height) ? ar.width / ar.height : 1;
+      return Math.max(MIN_ASPECT_RATIO, Math.min(raw, MAX_ASPECT_RATIO));
+    }
+
     function toGalleryImages(source: any[]): GalleryImage[] {
       return source.map(image => ({
         src: image.fullsize,
@@ -44,12 +56,12 @@
     }
 
     function extractPostImages(post: any) {
-      if (AppBskyEmbedImages.isView(post?.embed)) {
-        return post.embed.images;
+      if (hasGalleryImages(post?.embed)) {
+        return getViewImages(post.embed);
       }
 
-      if (AppBskyEmbedImages.isView(post?.embed?.media)) {
-        return post.embed.media.images;
+      if (hasGalleryImages(post?.embed?.media)) {
+        return getViewImages(post.embed.media);
       }
 
       return [];
@@ -124,6 +136,21 @@
     }
 </script>
 
+{#snippet imageInner(image: any, index: number)}
+  {#if (blobs[index]?.image.mimeType === 'image/gif')}
+    <GifImage {did} blob={blobs[index]?.image} alt={image.alt} aspectRatio={image.aspectRatio}></GifImage>
+  {:else}
+    <button onclick={() => handleOpen(index)} aria-label="Open image.">
+      <ImageLoader {image} naturalWidth={(v) => {galleryImages[index].width = v}} naturalHeight={(v) => {galleryImages[index].height = v}}></ImageLoader>
+    </button>
+    {#if image.alt}
+      <div class="image-labels">
+        <ImageAlt alt={image.alt} badge />
+      </div>
+    {/if}
+  {/if}
+{/snippet}
+
 {#if isFold}
   <button class="image-unfold-button" onclick={unfold}>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17.143" viewBox="0 0 20 17.143">
@@ -132,6 +159,19 @@
     <span>×</span>
     <span>{images.length}</span>
   </button>
+{:else if useCarousel}
+  <div
+      class="timeline-images-carousel"
+      use:emblaCarouselSvelte={{options: {align: 'start', dragFree: true, containScroll: 'trimSnaps'}}}
+  >
+    <div class="timeline-images-carousel__container">
+      {#each images as image, index (`${index}-${image.thumb}`)}
+        <div class="timeline-images-carousel__slide" style="aspect-ratio: {slideAspectRatio(image)};">
+          {@render imageInner(image, index)}
+        </div>
+      {/each}
+    </div>
+  </div>
 {:else}
   <div
       class="timeline-images"
@@ -144,18 +184,7 @@
         class="timeline-image"
         style={ar?.width && ar?.height ? `--img-width: ${ar.width}; --img-height: ${ar.height}` : ''}
       >
-        {#if (blobs[index]?.image.mimeType === 'image/gif')}
-          <GifImage {did} blob={blobs[index]?.image} alt={image.alt} aspectRatio={image.aspectRatio}></GifImage>
-        {:else}
-          <button onclick={() => handleOpen(index)} aria-label="Open image.">
-            <ImageLoader {image} naturalWidth={(v) => {galleryImages[index].width = v}} naturalHeight={(v) => {galleryImages[index].height = v}}></ImageLoader>
-          </button>
-          {#if image.alt}
-            <div class="image-labels">
-              <ImageAlt alt={image.alt} badge />
-            </div>
-          {/if}
-        {/if}
+        {@render imageInner(image, index)}
       </div>
     {/each}
   </div>
@@ -179,6 +208,47 @@
             width: 100%;
             height: 100%;
             cursor: zoom-in;
+        }
+    }
+
+    .timeline-images-carousel {
+        overflow: hidden;
+        --carousel-height: 300px;
+
+        @media (max-width: 959px) {
+            --carousel-height: 260px;
+        }
+
+        @media (max-width: 767px) {
+            --carousel-height: 200px;
+        }
+    }
+
+    .timeline-images-carousel__container {
+        display: flex;
+        gap: 8px;
+        height: var(--carousel-height);
+    }
+
+    .timeline-images-carousel__slide {
+        position: relative;
+        flex: 0 0 auto;
+        height: 100%;
+        width: auto;
+        overflow: hidden;
+        border-radius: 6px;
+        display: flex;
+
+        button {
+            width: 100%;
+            height: 100%;
+            cursor: zoom-in;
+        }
+
+        & :global(img) {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
     }
 

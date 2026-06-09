@@ -16,6 +16,7 @@
   import {onMount} from "svelte";
   import AltModal from "$lib/components/alt/AltModal.svelte";
   import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
+  import {MAX_GALLERY_IMAGES} from "$lib/components/post/embedImages";
   import {languageMap} from "$lib/langs/languageMap";
   import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
   import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
@@ -329,7 +330,7 @@
 
     async function uploadImageFromFileList(itemsList: FileList) {
         isProcessed = true;
-        const items = Array.from(itemsList).slice(0, 4);
+        const items = Array.from(itemsList).slice(0, MAX_GALLERY_IMAGES);
         let promises = [];
 
         for (const item of items) {

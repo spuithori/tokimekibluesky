@@ -57,6 +57,7 @@ const defaultSettings = {
         absoluteTime: false,
         layout: 'decks',
         postsImageLayout: 'default',
+        galleryLayout: 'carousel',
         postsLayout: 'compact',
         publishPosition: 'left',
         externalLayout: 'normal',

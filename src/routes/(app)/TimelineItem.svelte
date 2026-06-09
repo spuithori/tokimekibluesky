@@ -2,7 +2,8 @@
   import {_} from 'svelte-i18n'
   import { Trash2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply, VolumeX, ShieldBan, BellOff, Bell } from 'lucide-svelte';
   import { agent, settings, reportModal, listAddModal, agents, repostMutesSet, postMutes, postMutesSet, bluefeedAddModal, pulseDetach, junkAgentDid, agentDidsSet } from '$lib/stores';
-  import { AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '$lib/atproto-guards'
+  import { AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '$lib/atproto-guards'
+  import { hasGalleryImages } from '$lib/components/post/embedImages'
   import { toast } from "svelte-sonner";
   import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
@@ -514,7 +515,7 @@
 
 {#if (!isHide)}
   {#if (column?.style === 'media')}
-    {#if (AppBskyEmbedImages.isView(data?.post?.embed) || AppBskyEmbedImages.isView(data?.post?.embed?.media))}
+    {#if (hasGalleryImages(data?.post?.embed) || hasGalleryImages(data?.post?.embed?.media))}
       {#if (column?.settings?.mediaColumns === 1)}
         <MediaTimelineSingleItem feed={feed ?? []} {index} {data} {_agent}></MediaTimelineSingleItem>
       {:else}

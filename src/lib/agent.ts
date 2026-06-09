@@ -1,5 +1,5 @@
 import { AppBskyEmbedVideo } from '$lib/atproto-guards';
-import { AppBskyEmbedImages } from '$lib/atproto-guards';
+import { hasGalleryImages } from '$lib/components/post/embedImages';
 import type { currentAlgorithm } from '../app.d.ts';
 import { CHAT_PROXY } from '$lib/components/chat/chatConst';
 import { chatState } from '$lib/classes/chatState.svelte';
@@ -244,7 +244,7 @@ export class Agent {
 
             if (timelineOpt.type === 'media') {
                 res.feed = res.feed.filter(item => {
-                    return item.post.embed && AppBskyEmbedImages.isView(item.post.embed);
+                    return item.post.embed && hasGalleryImages(item.post.embed);
                 });
             }
 
@@ -348,8 +348,8 @@ export class Agent {
                     filter: 'posts_with_media'
                 }, {signal});
                 const mediaPosts = mediaRes.feed.filter(item =>
-                    AppBskyEmbedImages.isView(item.post?.embed) ||
-                    AppBskyEmbedImages.isView(item.post?.embed?.media)
+                    hasGalleryImages(item.post?.embed) ||
+                    hasGalleryImages(item.post?.embed?.media)
                 );
                 return {
                     cursor: mediaRes.cursor,
@@ -365,7 +365,7 @@ export class Agent {
                 }, {signal});
                 const videoPosts = videoRes.feed.filter(item =>
                     AppBskyEmbedVideo.isView(item.post?.embed) ||
-                    AppBskyEmbedImages.isView(item.post?.embed?.media)
+                    hasGalleryImages(item.post?.embed?.media)
                 );
                 return {
                     cursor: videoRes.cursor,

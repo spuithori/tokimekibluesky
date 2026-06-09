@@ -21,6 +21,7 @@
     let absoluteTime = $state($settings?.design.absoluteTime || false);
     let postsLayout = $state($settings?.design.postsLayout || 'default');
     let postsImageLayout = $state($settings?.design.postsImageLayout || 'default');
+    let galleryLayout = $state($settings?.design.galleryLayout || 'carousel');
     let oneImageNoCrop = $state($settings?.design.oneImageNoCrop || false);
     let fontSize = $state($settings?.design.fontSize || 2);
     let externalLayout = $state($settings?.design.externalLayout || 'normal');
@@ -49,6 +50,7 @@
         $settings.design.datetimeFormat = datetimeFormat;
         $settings.design.postsLayout = postsLayout;
         $settings.design.postsImageLayout = postsImageLayout;
+        $settings.design.galleryLayout = galleryLayout;
         $settings.design.oneImageNoCrop = oneImageNoCrop;
         $settings.design.fontSize = fontSize;
         $settings.design.externalLayout = externalLayout;
@@ -388,6 +390,26 @@
           <div class="icons-radio">
             <input type="radio" bind:group={postsImageLayout} id="postsImageLayoutMinimum" name="posts_image_layout" value={'folding'}>
             <label for="postsImageLayoutMinimum"><span class="icons-radio__ui"><svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><g data-name="グループ 121"><g class="icons-radio__g" data-name="長方形 148" fill="var(--bg-color-1)" stroke="var(--border-color-1)"><rect width="75" height="75" rx="4" stroke="none"/><rect x=".5" y=".5" width="74" height="74" rx="3.5" fill="none"/></g><g data-name="グループ 115" transform="translate(-737 -520)"><rect class="icons-radio__r" data-name="長方形 151" width="24" height="6" rx="2" transform="translate(763 555)" fill="var(--border-color-2)"/></g></g></svg></span>{$_('folding')}</label>
+          </div>
+        </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('gallery_layout')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="icons-radio-group">
+          <div class="icons-radio">
+            <input type="radio" bind:group={galleryLayout} id="galleryLayoutGrid" name="gallery_layout" value={'grid'}>
+            <label for="galleryLayoutGrid"><span class="icons-radio__ui"><svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><g class="icons-radio__g" fill="var(--bg-color-1)" stroke="var(--border-color-1)"><rect width="75" height="75" rx="4" stroke="none"/><rect x=".5" y=".5" width="74" height="74" rx="3.5" fill="none"/></g><g fill="var(--border-color-2)"><rect class="icons-radio__r" width="26" height="18" rx="3" transform="translate(11 12)"/><rect class="icons-radio__r" width="26" height="18" rx="3" transform="translate(40 12)"/><rect class="icons-radio__r" width="26" height="18" rx="3" transform="translate(11 33)"/><rect class="icons-radio__r" width="26" height="18" rx="3" transform="translate(40 33)"/><rect class="icons-radio__r" width="26" height="18" rx="3" transform="translate(11 54)"/><rect class="icons-radio__r" width="26" height="18" rx="3" transform="translate(40 54)"/></g></svg></span>{$_('gallery_layout_grid')}</label>
+          </div>
+
+          <div class="icons-radio">
+            <input type="radio" bind:group={galleryLayout} id="galleryLayoutCarousel" name="gallery_layout" value={'carousel'}>
+            <label for="galleryLayoutCarousel"><span class="icons-radio__ui"><svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75"><g class="icons-radio__g" fill="var(--bg-color-1)" stroke="var(--border-color-1)"><rect width="75" height="75" rx="4" stroke="none"/><rect x=".5" y=".5" width="74" height="74" rx="3.5" fill="none"/></g><g fill="var(--border-color-2)"><rect class="icons-radio__r" width="44" height="34" rx="3" transform="translate(15 16)"/><circle class="icons-radio__r" cx="29" cy="60" r="3"/><circle class="icons-radio__r" cx="37.5" cy="60" r="3"/><circle class="icons-radio__r" cx="46" cy="60" r="3"/></g></svg></span>{$_('gallery_layout_carousel')}</label>
           </div>
         </div>
       </dd>

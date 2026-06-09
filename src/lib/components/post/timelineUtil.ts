@@ -1,4 +1,5 @@
-import {AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord} from "$lib/atproto-guards";
+import {AppBskyEmbedExternal, AppBskyEmbedRecord} from "$lib/atproto-guards";
+import {getRecordImages, hasGalleryImages} from "$lib/components/post/embedImages";
 import {getImageBase64FromBlob, getImageObjectFromBlob, getService} from "$lib/util";
 import {getTextArray} from "$lib/richtext";
 import type {Agent} from "$lib/agent";
@@ -21,8 +22,8 @@ export async function getEditPost(data: any) {
         isOAuth: false,
     });
 
-    if (AppBskyEmbedImages.isView(data?.post?.embed)) {
-        const blobs = data.post.record.embed.images.map(image => {
+    if (hasGalleryImages(data?.post?.embed)) {
+        const blobs = getRecordImages(data.post.record.embed).map(image => {
             return {
                 cid: image.image.ref?.$link ?? image.image.ref?.toString(),
                 mimeType: image.image.mimeType,
@@ -36,8 +37,8 @@ export async function getEditPost(data: any) {
         _post.images = await Promise.all(promises);
     }
 
-    if (AppBskyEmbedImages.isView(data?.post?.embed?.media)) {
-        const blobs = data.post.record.embed.media.images.map(image => {
+    if (hasGalleryImages(data?.post?.embed?.media)) {
+        const blobs = getRecordImages(data.post.record.embed.media).map(image => {
             return {
                 cid: image.image.ref?.$link ?? image.image.ref?.toString(),
                 mimeType: image.image.mimeType,

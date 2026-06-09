@@ -5,7 +5,8 @@
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Tooltip from "$lib/components/ui/Tooltip.svelte";
   import {contentLabelling, detectHide} from "$lib/timelineFilter";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, AppBskyGraphDefs } from "$lib/atproto-guards";
+  import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs, AppBskyFeedPost, AppBskyGraphDefs } from "$lib/atproto-guards";
+  import { getViewImages, getRecordImages, hasGalleryImages } from "$lib/components/post/embedImages";
   import Images from "../../../routes/(app)/Images.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {formatTranslateRecord} from "$lib/translate";
@@ -306,13 +307,13 @@
       </div>
     {/if}
 
-    {#if (AppBskyEmbedImages.isView(post.embed) && !isMedia && post.embed)}
+    {#if (hasGalleryImages(post.embed) && !isMedia && post.embed)}
       <div class="timeline-images-wrap">
         {#if (isWarn === 'media')}
           <TimelineWarn labels={warnLabels}></TimelineWarn>
         {/if}
 
-        <Images images={post.embed.images} blobs={post.record.embed.images} did={post.author.did} {threadContext}></Images>
+        <Images images={getViewImages(post.embed)} blobs={getRecordImages(post.record.embed)} did={post.author.did} {threadContext}></Images>
       </div>
     {/if}
 
@@ -343,13 +344,13 @@
     {/if}
 
     {#if (AppBskyEmbedRecordWithMedia.isView(post.embed))}
-      {#if (AppBskyEmbedImages.isView(post.embed.media))}
+      {#if (hasGalleryImages(post.embed.media))}
         <div class="timeline-images-wrap">
           {#if (isWarn === 'media')}
             <TimelineWarn labels={warnLabels}></TimelineWarn>
           {/if}
 
-          <Images images={post.embed.media.images} blobs={post.record.embed.media.images} did={post.author.did} {threadContext}></Images>
+          <Images images={getViewImages(post.embed.media)} blobs={getRecordImages(post.record.embed.media)} did={post.author.did} {threadContext}></Images>
         </div>
       {/if}
 

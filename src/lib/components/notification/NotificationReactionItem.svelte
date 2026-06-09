@@ -4,7 +4,7 @@
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import {getReasonText} from "$lib/components/notification/notificationUtil";
-    import {AppBskyEmbedImages} from "$lib/atproto-guards";
+    import {getViewImages, getRecordImages, hasGalleryImages} from "$lib/components/post/embedImages";
     import Images from "../../../routes/(app)/Images.svelte";
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
@@ -127,9 +127,9 @@
                     <p><a href="{'/profile/' + post.author.handle + '/post/' + post.uri.split('/').slice(-1)[0]}" onclick={handlePostClick}>{post.record.text}</a></p>
                 </div>
 
-                {#if (AppBskyEmbedImages.isView(post?.embed) && post?.embed)}
+                {#if (hasGalleryImages(post?.embed) && post?.embed)}
                     <div class="notifications-item-images">
-                        <Images images={post.embed.images} blobs={post.record.embed.images} did={post.author.did}></Images>
+                        <Images images={getViewImages(post.embed)} blobs={getRecordImages(post.record.embed)} did={post.author.did}></Images>
                     </div>
                 {/if}
             {:else}

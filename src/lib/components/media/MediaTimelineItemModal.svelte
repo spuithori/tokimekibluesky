@@ -4,7 +4,7 @@
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
     import { beforeNavigate } from "$app/navigation";
     import { afterNavigate } from "$app/navigation";
-    import {AppBskyEmbedImages} from "$lib/atproto-guards";
+    import {getViewImages, hasGalleryImages} from "$lib/components/post/embedImages";
     import MediaTimelineSlider from "$lib/components/media/MediaTimelineSlider.svelte";
     import {modalState} from "$lib/classes/modalState.svelte";
     import {ChevronLeft, ChevronRight, X} from "lucide-svelte";
@@ -80,10 +80,10 @@
         <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
       {/if}
 
-      {#if (AppBskyEmbedImages.isView(data.post?.embed))}
-        <MediaTimelineSlider images={data.post.embed.images}></MediaTimelineSlider>
-      {:else if (AppBskyEmbedImages.isView(data.post?.embed?.media))}
-        <MediaTimelineSlider images={data.post.embed.media.images}></MediaTimelineSlider>
+      {#if (hasGalleryImages(data.post?.embed))}
+        <MediaTimelineSlider images={getViewImages(data.post.embed)}></MediaTimelineSlider>
+      {:else if (hasGalleryImages(data.post?.embed?.media))}
+        <MediaTimelineSlider images={getViewImages(data.post.embed.media)}></MediaTimelineSlider>
       {/if}
     </div>
 

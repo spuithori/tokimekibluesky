@@ -11,6 +11,12 @@ export const AppBskyEmbedImages = {
 	isMain: (v: any): boolean => is$typed(v, 'app.bsky.embed.images', 'main')
 };
 
+export const AppBskyEmbedGallery = {
+	isView: (v: any): boolean => is$typed(v, 'app.bsky.embed.gallery', 'view'),
+	isMain: (v: any): boolean => is$typed(v, 'app.bsky.embed.gallery', 'main'),
+	isViewImage: (v: any): boolean => is$typed(v, 'app.bsky.embed.gallery', 'viewImage')
+};
+
 export const AppBskyEmbedExternal = {
 	isView: (v: any): boolean => is$typed(v, 'app.bsky.embed.external', 'view'),
 	isMain: (v: any): boolean => is$typed(v, 'app.bsky.embed.external', 'main')

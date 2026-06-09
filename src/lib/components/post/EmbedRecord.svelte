@@ -1,7 +1,8 @@
 <script lang="ts">
   import { agent, labelerSettings, settings } from "$lib/stores";
   import {formatDate} from "$lib/dateFormat";
-  import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "$lib/atproto-guards";
+  import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "$lib/atproto-guards";
+  import { getViewImages, getRecordImages, hasGalleryImages } from "$lib/components/post/embedImages";
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
@@ -62,7 +63,7 @@
           viewer: record.viewer ?? {},
       }
 
-      if (AppBskyEmbedImages.isView(record?.embeds[0])) {
+      if (hasGalleryImages(record?.embeds[0])) {
           formattedPost.embed = record.embeds[0];
       }
 
@@ -139,13 +140,13 @@
     {/if}
 
     {#if !isChild}
-      {#if (AppBskyEmbedImages.isView(record?.embeds[0]))}
+      {#if (hasGalleryImages(record?.embeds[0]))}
         <div class="timeline-images-wrap timeline-images-wrap--record">
           {#if isWarn && isWarn?.for === 'media'}
             <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
           {/if}
 
-          <Images images={record.embeds[0].images} blobs={record?.value?.embed.images} did={record.author?.did}></Images>
+          <Images images={getViewImages(record.embeds[0])} blobs={getRecordImages(record?.value?.embed)} did={record.author?.did}></Images>
         </div>
       {/if}
 

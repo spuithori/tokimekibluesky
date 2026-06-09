@@ -1,6 +1,6 @@
 <script lang="ts">
     import {settings, labelerSettings} from '$lib/stores';
-    import {AppBskyEmbedImages} from '$lib/atproto-guards';
+    import {getViewImages, hasGalleryImages} from '$lib/components/post/embedImages';
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
     import {EyeOff, Handshake, BadgeCheck, CircleCheck} from "lucide-svelte";
     import {appState} from "$lib/classes/appState.svelte.js";
@@ -56,10 +56,10 @@
         </div>
 
         <div class="media-timeline-single-slider">
-            {#if (AppBskyEmbedImages.isView(data.post?.embed))}
-                <MediaTimelineSlider images={data.post.embed.images}></MediaTimelineSlider>
-            {:else if (AppBskyEmbedImages.isView(data.post?.embed?.media))}
-                <MediaTimelineSlider images={data.post.embed.media.images}></MediaTimelineSlider>
+            {#if (hasGalleryImages(data.post?.embed))}
+                <MediaTimelineSlider images={getViewImages(data.post.embed)}></MediaTimelineSlider>
+            {:else if (hasGalleryImages(data.post?.embed?.media))}
+                <MediaTimelineSlider images={getViewImages(data.post.embed.media)}></MediaTimelineSlider>
             {/if}
 
             {#if (isWarn && isWarn.for === 'media')}

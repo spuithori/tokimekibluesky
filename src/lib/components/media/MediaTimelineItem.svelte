@@ -1,6 +1,7 @@
 <script lang="ts">
     import {settings, labelerSettings} from '$lib/stores';
-    import {AppBskyEmbedImages, AppBskyFeedDefs} from '$lib/atproto-guards';
+    import {AppBskyFeedDefs} from '$lib/atproto-guards';
+    import {getViewImages, hasGalleryImages} from '$lib/components/post/embedImages';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
     import { goto } from '$app/navigation';
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
@@ -76,10 +77,10 @@
        data-index={index}
   >
     <button onclick={modalToggle} aria-label="Zoom image.">
-      {#if (AppBskyEmbedImages.isView(data.post?.embed))}
-        <MediaTimelineThumbnail images={data.post.embed.images}></MediaTimelineThumbnail>
-      {:else if (AppBskyEmbedImages.isView(data.post?.embed?.media))}
-        <MediaTimelineThumbnail images={data.post.embed.media.images}></MediaTimelineThumbnail>
+      {#if (hasGalleryImages(data.post?.embed))}
+        <MediaTimelineThumbnail images={getViewImages(data.post.embed)}></MediaTimelineThumbnail>
+      {:else if (hasGalleryImages(data.post?.embed?.media))}
+        <MediaTimelineThumbnail images={getViewImages(data.post.embed.media)}></MediaTimelineThumbnail>
       {/if}
 
       {#if (isReasonRepost(data.reason))}

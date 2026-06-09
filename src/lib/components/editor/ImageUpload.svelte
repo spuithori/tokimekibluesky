@@ -13,6 +13,7 @@
     import {X} from "lucide-svelte";
     import {toast} from "svelte-sonner";
     import {publishState} from "$lib/classes/publishState.svelte";
+    import {MAX_GALLERY_IMAGES} from "$lib/components/post/embedImages";
 
     type Image = {
         id: string,
@@ -42,8 +43,8 @@
     });
 
     $effect(() => {
-        if (images.length > 4) {
-            images = images.slice(0, 4);
+        if (images.length > MAX_GALLERY_IMAGES) {
+            images = images.slice(0, MAX_GALLERY_IMAGES);
         }
     })
 
@@ -86,7 +87,7 @@
 
         if (imageFiles.length > 0) {
             video = undefined;
-            const files = imageFiles.slice(0, 4);
+            const files = imageFiles.slice(0, MAX_GALLERY_IMAGES);
             let promises = [];
             for (const file of files) {
                 promises = [...promises, applyImageFromFile(file)];
