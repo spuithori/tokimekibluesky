@@ -6,6 +6,7 @@
     import ImageLoader from "$lib/components/utils/ImageLoader.svelte";
     import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
     import emblaCarouselSvelte from 'embla-carousel-svelte';
+    import {WheelGesturesPlugin} from 'embla-carousel-wheel-gestures';
     import {carouselDragState} from "$lib/classes/carouselDragState";
 
     interface ThreadContext {
@@ -210,7 +211,7 @@
       class="timeline-images-carousel"
       class:timeline-images-carousel--notification={notification}
       role="group"
-      use:emblaCarouselSvelte={{options: {align: 'start', dragFree: true, containScroll: 'trimSnaps'}}}
+      use:emblaCarouselSvelte={{options: {align: 'start', dragFree: true, containScroll: 'trimSnaps'}, plugins: [WheelGesturesPlugin()]}}
       {@attach dragWatch}
   >
     <div class="timeline-images-carousel__container">
@@ -263,6 +264,7 @@
     .timeline-images-carousel {
         overflow: hidden;
         --carousel-height: 300px;
+        margin-right: calc(var(--carousel-bleed, var(--timeline-padding)) * -1);
 
         @media (max-width: 959px) {
             --carousel-height: 260px;
@@ -291,6 +293,10 @@
         overflow: hidden;
         border-radius: 6px;
         display: flex;
+
+        &:last-child {
+            margin-right: var(--carousel-bleed, var(--timeline-padding));
+        }
 
         button {
             width: 100%;

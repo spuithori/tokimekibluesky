@@ -532,6 +532,7 @@
 
     &--record {
         margin-top: 10px;
+        --carousel-bleed: 12px;
 
         .timeline-images {
             grid-template-columns: repeat(2, 1fr);
