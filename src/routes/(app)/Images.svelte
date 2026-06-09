@@ -266,8 +266,16 @@
         --carousel-height: 300px;
         margin-right: calc(var(--carousel-bleed, var(--timeline-padding)) * -1);
 
-        @media (max-width: 959px) {
-            --carousel-height: 260px;
+        @container timeline-item (max-width: 345px) {
+            --carousel-height: 240px;
+        }
+
+        @container timeline-item (max-width: 300px) {
+            --carousel-height: 210px;
+        }
+
+        @container timeline-item (max-width: 265px) {
+            --carousel-height: 180px;
         }
 
         @media (max-width: 767px) {
