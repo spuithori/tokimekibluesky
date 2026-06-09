@@ -167,6 +167,10 @@
     $settings.design.darkmode = true;
   }
 
+  if (!$settings?.design?.galleryLayout) {
+      $settings.design.galleryLayout = 'carousel';
+  }
+
   function handleColumnModalClose() {
     isColumnModalOpen.set(false);
   }
