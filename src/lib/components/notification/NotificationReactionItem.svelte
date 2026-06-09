@@ -129,7 +129,7 @@
 
                 {#if (hasGalleryImages(post?.embed) && post?.embed)}
                     <div class="notifications-item-images">
-                        <Images images={getViewImages(post.embed)} blobs={getRecordImages(post.record.embed)} did={post.author.did}></Images>
+                        <Images images={getViewImages(post.embed)} blobs={getRecordImages(post.record.embed)} did={post.author.did} notification></Images>
                     </div>
                 {/if}
             {:else}

@@ -4,6 +4,7 @@
   import { agent, settings, reportModal, listAddModal, agents, repostMutesSet, postMutes, postMutesSet, bluefeedAddModal, pulseDetach, junkAgentDid, agentDidsSet } from '$lib/stores';
   import { AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '$lib/atproto-guards'
   import { hasGalleryImages } from '$lib/components/post/embedImages'
+  import { carouselDragState } from '$lib/classes/carouselDragState'
   import { toast } from "svelte-sonner";
   import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
@@ -273,6 +274,10 @@
     }
 
     function handleClick(event) {
+        if (carouselDragState.isRecentlyDragged()) {
+            return false;
+        }
+
         if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external') || event.target.closest('.likes-wrap') || event.target.closest('.dialog-modal') || event.target.closest('video') || event.target.closest('.video-player') || event.target.closest('.v2-modal') || event.target.closest('dialog')) {
             return false;
         }

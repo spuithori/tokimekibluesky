@@ -6,6 +6,7 @@
     import ImageLoader from "$lib/components/utils/ImageLoader.svelte";
     import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
     import emblaCarouselSvelte from 'embla-carousel-svelte';
+    import {carouselDragState} from "$lib/classes/carouselDragState";
 
     interface ThreadContext {
       feed?: any[];
@@ -19,6 +20,7 @@
       did?: string;
       folding?: boolean;
       threadContext?: ThreadContext;
+      notification?: boolean;
     }
 
     let {
@@ -26,7 +28,8 @@
       blobs = [],
       did = '',
       folding = false,
-      threadContext
+      threadContext,
+      notification = false
     }: Props = $props();
 
     const galleryImages = toGalleryImages(images);
@@ -43,6 +46,49 @@
       const ar = image?.aspectRatio;
       const raw = (ar?.width && ar?.height) ? ar.width / ar.height : 1;
       return Math.max(MIN_ASPECT_RATIO, Math.min(raw, MAX_ASPECT_RATIO));
+    }
+
+    function dragWatch(node: Element) {
+      let downX = 0;
+      let downY = 0;
+      let moved = false;
+
+      const onMove = (e: PointerEvent) => {
+        if (moved) return;
+        if (Math.abs(e.clientX - downX) > 8 || Math.abs(e.clientY - downY) > 8) {
+          moved = true;
+          carouselDragState.markDragEnd();
+        }
+      };
+
+      const stopTracking = () => {
+        window.removeEventListener('pointermove', onMove, true);
+        window.removeEventListener('pointerup', onUp, true);
+        window.removeEventListener('pointercancel', onUp, true);
+      };
+
+      const onUp = () => {
+        if (moved) {
+          carouselDragState.markDragEnd();
+        }
+        stopTracking();
+      };
+
+      const onDown = (e: PointerEvent) => {
+        downX = e.clientX;
+        downY = e.clientY;
+        moved = false;
+        window.addEventListener('pointermove', onMove, true);
+        window.addEventListener('pointerup', onUp, true);
+        window.addEventListener('pointercancel', onUp, true);
+      };
+
+      node.addEventListener('pointerdown', onDown as EventListener);
+
+      return () => {
+        node.removeEventListener('pointerdown', onDown as EventListener);
+        stopTracking();
+      };
     }
 
     function toGalleryImages(source: any[]): GalleryImage[] {
@@ -162,7 +208,10 @@
 {:else if useCarousel}
   <div
       class="timeline-images-carousel"
+      class:timeline-images-carousel--notification={notification}
+      role="group"
       use:emblaCarouselSvelte={{options: {align: 'start', dragFree: true, containScroll: 'trimSnaps'}}}
+      {@attach dragWatch}
   >
     <div class="timeline-images-carousel__container">
       {#each images as image, index (`${index}-${image.thumb}`)}
@@ -222,6 +271,10 @@
         @media (max-width: 767px) {
             --carousel-height: 200px;
         }
+    }
+
+    .timeline-images-carousel--notification {
+        --carousel-height: 150px;
     }
 
     .timeline-images-carousel__container {
