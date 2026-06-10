@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import { Trash2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply, VolumeX, ShieldBan, BellOff, Bell } from 'lucide-svelte';
+  import { Trash2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply, VolumeX, ShieldBan, BellOff, Bell, Star } from 'lucide-svelte';
   import { agent, settings, reportModal, listAddModal, agents, repostMutesSet, postMutes, postMutesSet, bluefeedAddModal, pulseDetach, junkAgentDid, agentDidsSet } from '$lib/stores';
   import { AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '$lib/atproto-guards'
   import { hasGalleryImages } from '$lib/components/post/embedImages'
@@ -69,6 +69,16 @@
         postUri: data?.post?.uri,
         authorDid: data?.post?.author?.did,
       };
+    });
+
+    const originalUrl: URL | undefined = $derived.by(() => {
+      if (data?.post?.record?.bridgyOriginalUrl) {
+        const url = URL.parse(data.post.record.bridgyOriginalUrl);
+        if (url && url.protocol === 'https:' && url.hostname && !url.username && !url.password) {
+          return url;
+        }
+      }
+      return undefined;
     });
 
     if ($settings.general?.deleteConfirmSkip === undefined) {
@@ -607,6 +617,15 @@
 
         {#snippet content()}
           <ul class="timeline-menu-list">
+            {#if (originalUrl)}
+              <li class="timeline-menu-list__item timeline-menu-list__item--original">
+                <a class="timeline-menu-list__button" href={originalUrl.href} target="_blank" rel="noopener nofollow noreferrer">
+                  <Star size="18" />
+                  {$_('open_original_post', {values: {hostname: originalUrl.hostname}})}
+                </a>
+              </li>
+            {/if}
+
             {#if ($agentDidsSet.has(data.post.author.did))}
               <li class="timeline-menu-list__item timeline-menu-list__item--delete">
                 <button class="timeline-menu-list__button" onclick={deletePostStep}>
