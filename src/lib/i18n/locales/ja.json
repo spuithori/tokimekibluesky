@@ -944,5 +944,6 @@
   "blog_error": "ブログの読み込みに失敗しました",
   "mochott_timeline": "タイムライン (mochott)",
   "network_feed": "standard.site",
-  "monochrome": "白黒モード"
+  "monochrome": "白黒モード",
+  "open_original_post": "元の投稿を見る ({hostname})"
 }
