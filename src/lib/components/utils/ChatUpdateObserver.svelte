@@ -1,8 +1,9 @@
 <script lang="ts">
     import {agents, pauseColumn, workerTimer} from "$lib/stores";
     import {onDestroy, onMount} from "svelte";
+    import {chatRealtime} from "$lib/components/chat/chatRealtime";
 
-    async function updateChatLog() {
+    async function updateChatLog(onlyDids?: Set<string>) {
         let promises = [];
 
         if ($pauseColumn) {
@@ -11,19 +12,21 @@
 
         try {
             $agents.forEach(_agent => {
-                promises = [...promises, _agent ? _agent.getChatLogs() : Promise.reject(new Error('no agent'))];
+                if (!_agent) {
+                    return;
+                }
+
+                if (onlyDids && !onlyDids.has(_agent.did())) {
+                    return;
+                }
+
+                promises = [...promises, _agent.getChatLogs()];
             });
 
-            Promise.allSettled(promises).then(results => {
-                results.forEach((result, index) => {
-                    if (result.status === 'fulfilled') {
-                        // console.log(result.value);
-                    }
+            Promise.allSettled(promises)
+                .catch(e => {
+                    console.log(e);
                 })
-            })
-            .catch(e => {
-                console.log(e);
-            })
         } catch (e) {
             //
         }
@@ -32,6 +35,8 @@
     function handleTimer(e) {
         if (e.data % 30 === 0) {
             updateChatLog();
+        } else if (e.data % 3 === 0 && chatRealtime.hasActive) {
+            updateChatLog(chatRealtime.activeDids);
         }
     }
 

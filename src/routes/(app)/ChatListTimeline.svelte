@@ -7,16 +7,20 @@
     import {settingsState} from "$lib/classes/settingsState.svelte";
     import ChatListItemColumn from "$lib/components/chat/ChatListItemColumn.svelte";
     import ChatTimeline from "./ChatTimeline.svelte";
-    import {ArrowLeft} from "lucide-svelte";
     import {onDestroy} from "svelte";
     import {instantPlaySound} from "$lib/sounds";
+    import {getConvoName, isBlockedDirectConvo} from "$lib/components/chat/convoUtil";
+    import ChatRequestsList from "$lib/components/chat/ChatRequestsList.svelte";
+    import {chatState} from "$lib/classes/chatState.svelte";
+    import {ArrowLeft, Inbox} from "lucide-svelte";
 
     let { index, _agent = $agent, onrefresh, unique, isJunk, isSplit = false, column: columnProp = undefined } = $props();
 
     const columnState = getColumnState(isJunk);
     const column = columnProp ?? columnState.getColumn(index);
 
-    let currentView: 'list' | 'detail' = $state('list');
+    let currentView: 'list' | 'detail' | 'requests' = $state('list');
+    const requestCount = $derived(chatState.getRequestCount((_agent || $agent)?.did?.()));
     let selectedConvoId: string | null = $state(null);
     let selectedConvoName: string = $state('');
     let convos = $state([]);
@@ -40,7 +44,7 @@
         if (!currentAgent) return;
 
         try {
-            const res = await currentAgent.xrpc.get('chat.bsky.convo.listConvos', {cursor: ''}, {
+            const res = await currentAgent.xrpc.get('chat.bsky.convo.listConvos', {cursor: '', status: 'accepted'}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
@@ -91,9 +95,8 @@
     function handleConvoSelect(convo) {
         const currentAgent = _agent || $agent;
         const agentDid = currentAgent?.did?.();
-        const otherMember = convo.members.filter(member => member.did !== agentDid)[0];
         selectedConvoId = convo.id;
-        selectedConvoName = otherMember?.displayName || otherMember?.handle || '';
+        selectedConvoName = getConvoName(convo, agentDid);
         column.algorithm.id = convo.id;
         column.algorithm.name = $_('chat_list') + ' / ' + selectedConvoName;
         column.data = { feed: [], cursor: '' };
@@ -107,6 +110,14 @@
         column.algorithm.name = $_('chat_list');
     }
 
+    function handleLeave() {
+        const removedId = selectedConvoId;
+        handleBack();
+        if (removedId) {
+            handleListRefresh(removedId);
+        }
+    }
+
     async function handleLoadMore(loaded, complete) {
         const currentAgent = _agent || $agent;
         if (!currentAgent) {
@@ -115,7 +126,7 @@
         }
 
         try {
-            const res = await currentAgent.xrpc.get('chat.bsky.convo.listConvos', {cursor: cursor}, {
+            const res = await currentAgent.xrpc.get('chat.bsky.convo.listConvos', {cursor: cursor, status: 'accepted'}, {
                 headers: {
                     'atproto-proxy': CHAT_PROXY,
                 }
@@ -173,12 +184,21 @@
 
 {#if currentView === 'list'}
     <div class="chat-list">
+        <button class="chat-requests-toggle" onclick={() => {currentView = 'requests'}}>
+            <Inbox size="18" color="var(--text-color-1)"></Inbox>
+            <span>{$_('chat_request_inbox')}</span>
+
+            {#if requestCount}
+                <span class="chat-requests-toggle__badge">{requestCount}</span>
+            {/if}
+        </button>
+
         {#key listUnique}
             <div class="convo-list">
                 {#each convos as convo (convo.id)}
                     {@const currentAgent = _agent || $agent}
                     {@const agentDid = currentAgent?.did?.()}
-                    {#if !convo.members.filter(member => member.did !== agentDid)[0]?.viewer?.blocking}
+                    {#if !isBlockedDirectConvo(convo, agentDid)}
                         <ChatListItemColumn
                             {convo}
                             _agent={currentAgent}
@@ -194,16 +214,18 @@
             {/if}
         {/key}
     </div>
+{:else if currentView === 'requests'}
+    <div class="chat-list">
+        <button class="chat-requests-toggle" onclick={() => {currentView = 'list'}}>
+            <ArrowLeft size="18" color="var(--text-color-1)"></ArrowLeft>
+            <span>{$_('chat_request_inbox')}</span>
+        </button>
+
+        <ChatRequestsList _agent={_agent || $agent} onopen={(convo) => {handleListRefresh(); handleConvoSelect(convo)}}></ChatRequestsList>
+    </div>
 {:else}
     <div class="chat-detail">
-        <div class="chat-detail__header">
-            <button class="chat-detail__back" onclick={handleBack} aria-label="Back to list">
-                <ArrowLeft size="20" color="var(--text-color-1)"></ArrowLeft>
-            </button>
-            <span class="chat-detail__name">{selectedConvoName}</span>
-        </div>
-
-        <ChatTimeline {index} _agent={_agent || $agent} {unique} {isJunk} {onrefresh} {isSplit} {column}></ChatTimeline>
+        <ChatTimeline {index} _agent={_agent || $agent} {unique} {isJunk} {onrefresh} {isSplit} {column} onback={handleBack} onleave={handleLeave}></ChatTimeline>
     </div>
 {/if}
 
@@ -216,38 +238,40 @@
         border-top: 1px solid var(--border-color-2);
     }
 
+    .chat-requests-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        height: 44px;
+        padding: 0 16px;
+        color: var(--text-color-1);
+        font-size: 14px;
+        font-weight: bold;
+        text-align: left;
+
+        &:hover {
+            background-color: var(--bg-color-2);
+        }
+
+        &__badge {
+            margin-left: auto;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 10px;
+            background-color: var(--danger-color);
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            display: grid;
+            place-content: center;
+        }
+    }
+
     .chat-detail {
         display: flex;
         flex-direction: column;
         height: 100%;
-
-        &__header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-bottom: 1px solid var(--border-color-2);
-            background-color: var(--bg-color-1);
-            position: sticky;
-            top: var(--deck-heading-height);
-            z-index: 5;
-        }
-
-        &__back {
-            width: 32px;
-            height: 32px;
-            display: grid;
-            place-content: center;
-            border-radius: var(--border-radius-2);
-
-            &:hover {
-                background-color: var(--bg-color-2);
-            }
-        }
-
-        &__name {
-            font-weight: bold;
-            font-size: 14px;
-        }
     }
 </style>

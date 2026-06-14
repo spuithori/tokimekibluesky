@@ -4,7 +4,7 @@
     import DeckRow from "../../DeckRow.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
-    let { _agent = $agent, id, name = $bindable() } = $props();
+    let { _agent = $agent, id } = $props();
     const columnState = getColumnState(true);
 
     if (!columnState.hasColumn('chat_' + id)) {
@@ -30,7 +30,6 @@
             feed: [],
             cursor: '',
         };
-        name = columnState.columns[index].algorithm.name;
     }
 </script>
 

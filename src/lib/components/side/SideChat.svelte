@@ -6,10 +6,18 @@
   import {CHAT_PROXY} from "$lib/components/chat/chatConst";
   import ChatNewModal from "$lib/components/chat/ChatNewModal.svelte";
   import {toast} from "svelte-sonner";
-  import {Ellipsis, MailCheck, MessageCirclePlus, Settings2} from "lucide-svelte";
+  import {ArrowLeft, Ellipsis, Inbox, MailCheck, MessageCirclePlus, Settings2} from "lucide-svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import {settingsState} from "$lib/classes/settingsState.svelte";
+  import {isBlockedDirectConvo, getConvoName} from "$lib/components/chat/convoUtil";
+  import ChatRequestsList from "$lib/components/chat/ChatRequestsList.svelte";
+  import {chatState} from "$lib/classes/chatState.svelte";
+  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import {goto} from "$app/navigation";
+  import {getColumnState} from "$lib/classes/columnState.svelte";
+
+  const junkColumnState = getColumnState(true);
 
   let { path }: { path: string } = $props();
   let convos = $state([]);
@@ -17,20 +25,50 @@
   let _agent = $state($agent);
   let isModalOpen = $state(false);
   let isMenuOpen = $state(false);
+  let currentList: 'convos' | 'requests' = $state('convos');
   let unique = $state(Symbol());
   let id = $derived(path?.split('/').slice(-1)[0]);
+  const requestCount = $derived(chatState.getRequestCount(_agent?.did?.()));
 
   async function handleAgentSelect(event) {
       _agent = event.detail.agent;
       unique = Symbol();
       convos = [];
       cursor = '';
+      currentList = 'convos';
   }
 
-  async function handleRefresh(event) {
+  async function handleRefresh(event?) {
       unique = Symbol();
       convos = [];
       cursor = '';
+  }
+
+  function handleRequestOpen(convo) {
+      if (!junkColumnState.hasColumn('chat_' + convo.id)) {
+          junkColumnState.add({
+              id: 'chat_' + convo.id,
+              algorithm: {
+                  id: convo.id,
+                  type: 'chat',
+                  name: getConvoName(convo, _agent.did()),
+              },
+              style: 'default',
+              settings: {
+                  ...defaultDeckSettings,
+              },
+              did: _agent.did(),
+              handle: _agent.handle(),
+              data: {
+                  feed: [],
+                  cursor: '',
+              }
+          });
+      }
+
+      currentList = 'convos';
+      handleRefresh();
+      goto('/chat/' + convo.id);
   }
 
   async function updateAllRead() {
@@ -50,7 +88,7 @@
 
   async function handleLoadMore(loaded, complete) {
     try {
-      const res = await _agent.xrpc.get('chat.bsky.convo.listConvos', {cursor: cursor}, {
+      const res = await _agent.xrpc.get('chat.bsky.convo.listConvos', {cursor: cursor, status: 'accepted'}, {
         headers: {
           'atproto-proxy': CHAT_PROXY,
         }
@@ -112,21 +150,39 @@
     </Menu>
   </div>
 
-  {#key unique}
-    <div class="convo-list">
-      {#each convos as convo (convo)}
-        {#if !convo.members.filter(member => member.did !== _agent.did())[0]?.viewer?.blocking}
-          <div class="convo-list__item" class:convo-list__item--current={id === convo.id}>
-            <ChatListItem {convo} {_agent} onrefresh={handleRefresh}></ChatListItem>
-          </div>
-        {/if}
-      {/each}
-    </div>
+  {#if currentList === 'requests'}
+    <button class="chat-requests-toggle" onclick={() => {currentList = 'convos'}}>
+      <ArrowLeft size="18" color="var(--text-color-1)"></ArrowLeft>
+      <span>{$_('chat_request_inbox')}</span>
+    </button>
 
-    {#if settingsState.pdsRequestReady}
-      <Infinite oninfinite={handleLoadMore}></Infinite>
-    {/if}
-  {/key}
+    <ChatRequestsList {_agent} onopen={handleRequestOpen}></ChatRequestsList>
+  {:else}
+    <button class="chat-requests-toggle" onclick={() => {currentList = 'requests'}}>
+      <Inbox size="18" color="var(--text-color-1)"></Inbox>
+      <span>{$_('chat_request_inbox')}</span>
+
+      {#if requestCount}
+        <span class="chat-requests-toggle__badge">{requestCount}</span>
+      {/if}
+    </button>
+
+    {#key unique}
+      <div class="convo-list">
+        {#each convos as convo (convo)}
+          {#if !isBlockedDirectConvo(convo, _agent.did())}
+            <div class="convo-list__item" class:convo-list__item--current={id === convo.id}>
+              <ChatListItem {convo} {_agent} onrefresh={handleRefresh}></ChatListItem>
+            </div>
+          {/if}
+        {/each}
+      </div>
+
+      {#if settingsState.pdsRequestReady}
+        <Infinite oninfinite={handleLoadMore}></Infinite>
+      {/if}
+    {/key}
+  {/if}
 </div>
 
 {#if isModalOpen}
@@ -157,13 +213,44 @@
   }
 
   .convo-list {
-    margin-top: 16px;
     border-top: 1px solid var(--border-color-2);
 
     &__item {
       &--current {
         background-color: var(--bg-color-2);
       }
+    }
+  }
+
+  .chat-requests-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 44px;
+    padding: 0 16px;
+    margin-top: 16px;
+    color: var(--text-color-1);
+    font-size: 14px;
+    font-weight: bold;
+    text-align: left;
+
+    &:hover {
+      background-color: var(--bg-color-2);
+    }
+
+    &__badge {
+      margin-left: auto;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      background-color: var(--danger-color);
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      display: grid;
+      place-content: center;
     }
   }
 </style>

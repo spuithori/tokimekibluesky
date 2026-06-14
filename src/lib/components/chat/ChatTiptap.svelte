@@ -23,7 +23,8 @@
     json: any;
     text?: string;
     _agent?: any;
-    isPublishEnabled: any;
+    disabled?: boolean;
+    isSending?: boolean;
     top?: import('svelte').Snippet;
     avatar?: import('svelte').Snippet;
     normal?: import('svelte').Snippet;
@@ -33,7 +34,8 @@
     json = $bindable(),
     text = $bindable(''),
     _agent = $agent,
-    isPublishEnabled,
+    disabled = false,
+    isSending = false,
     top,
     avatar,
     normal
@@ -262,8 +264,12 @@
 
     <div class="chat-editor" bind:this={element}></div>
 
-    <button class="chat-editor-submit" disabled={isPublishEnabled} onclick={() => {dispatch('publish')}}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal"><path d="m3 3 3 9-3 9 19-9Z"/><path d="M6 12h16"/></svg>
+    <button class="chat-editor-submit" disabled={disabled || isSending} onclick={() => {dispatch('publish')}} aria-label="Send">
+      {#if isSending}
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chat-editor-submit__spinner"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      {:else}
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal"><path d="m3 3 3 9-3 9 19-9Z"/><path d="M6 12h16"/></svg>
+      {/if}
     </button>
   </div>
 
@@ -312,5 +318,22 @@
         border-radius: 50%;
         display: grid;
         place-content: center;
+
+        &:disabled {
+            opacity: .5;
+        }
+
+        &__spinner {
+            animation: chat-submit-rotation 1s linear infinite;
+        }
+    }
+
+    @keyframes chat-submit-rotation {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>

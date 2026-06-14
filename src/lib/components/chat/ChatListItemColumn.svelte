@@ -1,20 +1,24 @@
 <script lang="ts">
     import {formatDate} from "$lib/dateFormat";
-    import Avatar from "../../../routes/(app)/Avatar.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
     import {_} from "svelte-i18n";
     import Menu from "$lib/components/ui/Menu.svelte";
-    import {ListPlus, LogOut, MessageCircleOff, PictureInPicture2} from "lucide-svelte";
+    import {ListPlus, Lock, LogOut, MessageCircleOff, PictureInPicture2, Users} from "lucide-svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
     import {agent} from "$lib/stores";
+    import ConvoAvatar from "$lib/components/chat/ConvoAvatar.svelte";
+    import {createNameResolver, getConvoMemberCount, getConvoName, getLastMessagePreview, isConvoLocked, isGroupConvo} from "$lib/components/chat/convoUtil";
     const columnState = getColumnState();
 
     let { convo, _agent, onrefresh, onselect } = $props();
     let isMenuOpen = $state(false);
     const currentAgent = $derived(_agent || $agent);
+    const convoName = $derived(getConvoName(convo, currentAgent?.did?.()));
+    const isGroup = $derived(isGroupConvo(convo));
+    const lastMessagePreview = $derived(getLastMessagePreview(convo, createNameResolver(convo, $_('chat_unknown_user'))));
 
     function addColumn(id, name, isPopup = false) {
         columnState.add({
@@ -91,7 +95,7 @@
 
 <article class="convo-item">
   <div class="convo-item__avatar">
-    <Avatar href="/profile/{convo.members.filter(member => member.did !== currentAgent?.did?.())[0].handle}" avatar={convo.members.filter(member => member.did !== currentAgent?.did?.())[0].avatar} handle={convo.members.filter(member => member.did !== currentAgent?.did?.())[0].handle}></Avatar>
+    <ConvoAvatar {convo} _agent={currentAgent}></ConvoAvatar>
 
     {#if convo.unreadCount && !convo.muted}
       <div class="convo-badge">{convo.unreadCount}</div>
@@ -106,12 +110,27 @@
         </div>
       {/if}
 
-      <h3 class="convo-item__name">{convo.members.filter(member => member.did !== currentAgent?.did?.())[0].displayName || convo.members.filter(member => member.did !== currentAgent?.did?.())[0].handle}</h3>
+      <h3 class="convo-item__name">{convoName}</h3>
 
-      <time class="convo-item__date" datetime={formatDate(new Date(convo.lastMessage.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{intlRelativeTimeFormatState.format({ laterDate: new Date(convo.lastMessage.sentAt) })}</time>
+      {#if isGroup}
+        <span class="convo-item__members">
+          {#if isConvoLocked(convo)}
+            <Lock size="13" color="var(--text-color-3)"></Lock>
+          {:else}
+            <Users size="13" color="var(--text-color-3)"></Users>
+          {/if}
+          {getConvoMemberCount(convo)}
+        </span>
+      {/if}
+
+      {#if convo.lastMessage?.sentAt}
+        <time class="convo-item__date" datetime={formatDate(new Date(convo.lastMessage.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{intlRelativeTimeFormatState.format({ laterDate: new Date(convo.lastMessage.sentAt) })}</time>
+      {/if}
     </div>
 
-    <p class="convo-item__text">{convo.lastMessage.text}</p>
+    {#if lastMessagePreview}
+      <p class="convo-item__text" class:convo-item__text--label={lastMessagePreview.key}>{lastMessagePreview.key ? $_(lastMessagePreview.key, {values: lastMessagePreview.values}) : lastMessagePreview.text}</p>
+    {/if}
 
     <button class="convo-item__button" onclick={handleOpen}></button>
 
@@ -119,14 +138,14 @@
       {#snippet content()}
         <ul class="timeline-menu-list" >
           <li class="timeline-menu-list__item only-pc">
-            <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convo.members.filter(member => member.did !== currentAgent?.did?.())[0].displayName || convo.members.filter(member => member.did !== currentAgent?.did?.())[0].handle, true)}>
+            <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convoName, true)}>
               <PictureInPicture2 size="18" color="var(--text-color-1)"></PictureInPicture2>
               {$_('chat_menu_add_popup')}
             </button>
           </li>
 
           <li class="timeline-menu-list__item">
-            <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convo.members.filter(member => member.did !== currentAgent?.did?.())[0].displayName || convo.members.filter(member => member.did !== currentAgent?.did?.())[0].handle, false)}>
+            <button class="timeline-menu-list__button" onclick={() => addColumn(convo.id, convoName, false)}>
               <ListPlus size="18" color="var(--text-color-1)"></ListPlus>
               {$_('chat_menu_add_column')}
             </button>
@@ -203,6 +222,19 @@
           overflow: hidden;
           text-overflow: ellipsis;
           line-height: 1.3;
+
+          &--label {
+              font-style: italic;
+          }
+      }
+
+      &__members {
+          display: inline-flex;
+          align-items: center;
+          gap: 2px;
+          color: var(--text-color-3);
+          font-size: 13px;
+          margin-left: 6px;
       }
 
       &__date {

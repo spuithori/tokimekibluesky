@@ -13,6 +13,7 @@
     import LabelerSubscribeButton from "$lib/components/labeler/LabelerSubscribeButton.svelte";
     import {goto} from "$app/navigation";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
+    import {getConvoName} from "$lib/components/chat/convoUtil";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -137,7 +138,7 @@
                     algorithm: {
                         id: convo.id,
                         type: 'chat',
-                        name: convo.members.filter(member => member.did !== _agent.did())[0].displayName || convo.members.filter(member => member.did !== _agent.did())[0].handle,
+                        name: getConvoName(convo, _agent.did()),
                     },
                     style: 'default',
                     settings: {

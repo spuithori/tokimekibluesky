@@ -144,8 +144,8 @@
           <GanttChartSquare color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></GanttChartSquare>
         {:else if (item === 'chat')}
           <MessageCircleMore color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></MessageCircleMore>
-          {#if chatState.totalChatCount}
-            <span class="side-nav__count">{chatState.totalChatCount}</span>
+          {#if chatState.totalChatCount + chatState.totalChatRequestCount}
+            <span class="side-nav__count">{chatState.totalChatCount + chatState.totalChatRequestCount}</span>
           {/if}
         {:else if (item === 'notifications')}
           <Bell color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Bell>

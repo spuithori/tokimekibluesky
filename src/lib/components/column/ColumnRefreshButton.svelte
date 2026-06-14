@@ -234,13 +234,6 @@
 
             columnState.replaceFeed(column.id, f => [...f, ...newFeed]);
 
-            const chatScrollEl = getScrollElement();
-            await tick();
-            chatScrollEl.scrollTo({
-                top: chatScrollEl.scrollHeight,
-                behavior: 'smooth',
-            });
-
             if (!isAutoRefresh) {
               await _agent.xrpc.post('chat.bsky.convo.updateRead', {convoId: column.algorithm.id}, {
                 headers: {
@@ -273,13 +266,6 @@
                 }
 
                 columnState.replaceFeed(column.id, f => [...f, ...newFeed]);
-
-                const chatListScrollEl = getScrollElement();
-                await tick();
-                chatListScrollEl.scrollTo({
-                    top: chatListScrollEl.scrollHeight,
-                    behavior: 'smooth',
-                });
 
                 if (!isAutoRefresh) {
                     await _agent.xrpc.post('chat.bsky.convo.updateRead', {convoId: column.algorithm.id}, {

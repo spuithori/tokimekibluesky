@@ -2,6 +2,7 @@ import { AppBskyEmbedVideo } from '$lib/atproto-guards';
 import { hasGalleryImages } from '$lib/components/post/embedImages';
 import type { currentAlgorithm } from '../app.d.ts';
 import { CHAT_PROXY } from '$lib/components/chat/chatConst';
+import { chatRealtime } from '$lib/components/chat/chatRealtime';
 import { chatState } from '$lib/classes/chatState.svelte';
 import { XrpcClient, type FetchHandler } from '$lib/xrpc-client';
 import type { PasswordSession, SessionData } from '$lib/password-session';
@@ -27,7 +28,9 @@ export class Agent {
     private _service?: string;
     private _passwordSession?: PasswordSession;
     latestRev: string = '';
+    private _chatLogInFlight = false;
     unreadChat: number = 0;
+    unreadChatRequests: number = 0;
 
     constructor(opts: {
         fetchHandler: FetchHandler;
@@ -536,17 +539,49 @@ export class Agent {
     }
 
     async getChatLogs() {
-        try {
-            const res = await this.xrpc.get('chat.bsky.convo.getLog', { cursor: this.latestRev }, {
-                headers: { 'atproto-proxy': CHAT_PROXY }
-            });
+        if (this._chatLogInFlight) {
+            return [];
+        }
+        this._chatLogInFlight = true;
 
-            if (this.latestRev !== res.cursor) {
+        try {
+            if (!this.latestRev) {
+                const res = await this.xrpc.get('chat.bsky.convo.getLog', {}, {
+                    headers: { 'atproto-proxy': CHAT_PROXY }
+                });
+                this.latestRev = res?.cursor || '';
+                this.updateChatCount();
+                return [];
+            }
+
+            const aggregated: any[] = [];
+            let changed = false;
+
+            for (let i = 0; i < 20; i++) {
+                const res = await this.xrpc.get('chat.bsky.convo.getLog', { cursor: this.latestRev }, {
+                    headers: { 'atproto-proxy': CHAT_PROXY }
+                });
+
+                const logs = res?.logs || [];
+                const nextCursor = res?.cursor || this.latestRev;
+                const advanced = nextCursor !== this.latestRev;
+
+                this.latestRev = nextCursor;
+                if (advanced) changed = true;
+
+                if (logs.length) {
+                    chatRealtime.dispatch(this.did(), logs);
+                    aggregated.push(...logs);
+                }
+
+                if (!advanced || !logs.length) break;
+            }
+
+            if (changed) {
                 this.updateChatCount();
             }
 
-            this.latestRev = res.cursor || '';
-            return res.logs;
+            return aggregated;
         } catch (e: any) {
             if (e.message === 'XRPCNotSupported') {
                 setTimeout(() => {
@@ -554,34 +589,52 @@ export class Agent {
                 }, 1000);
             } else {
                 console.error(e);
-                return [];
             }
+            return [];
+        } finally {
+            this._chatLogInFlight = false;
         }
     }
 
     async updateChatCount() {
         try {
-            const res = await this.xrpc.get('chat.bsky.convo.listConvos', {}, {
+            const res = await this.xrpc.get('chat.bsky.convo.getUnreadCounts', { includeGroupChats: true }, {
                 headers: { 'atproto-proxy': CHAT_PROXY }
             });
-            const convos = res?.convos || [];
-            const count = convos.reduce((acc, val) => {
-                return acc + val.unreadCount;
-            }, 0);
 
-            this.updateChatUnread(count);
-            chatState.updateTotalChatCount();
+            this.setChatCounts(res.unreadAcceptedConvos, res.unreadRequestConvos);
         } catch (e: any) {
             if (e.message === 'XRPCNotSupported') {
                 setTimeout(() => {
                     this.updateChatCount();
                 }, 1000);
+            } else if (e.status === 404 || e.error === 'MethodNotImplemented') {
+                await this.updateChatCountFallback();
             }
         }
     }
 
-    updateChatUnread(count: number) {
-        this.unreadChat = count;
+    async updateChatCountFallback() {
+        try {
+            const [accepted, requests] = await Promise.all([
+                this.xrpc.get('chat.bsky.convo.listConvos', { status: 'accepted', readState: 'unread', limit: 31 }, {
+                    headers: { 'atproto-proxy': CHAT_PROXY }
+                }),
+                this.xrpc.get('chat.bsky.convo.listConvos', { status: 'request', readState: 'unread', limit: 11 }, {
+                    headers: { 'atproto-proxy': CHAT_PROXY }
+                }),
+            ]);
+
+            this.setChatCounts(accepted?.convos?.length || 0, requests?.convos?.length || 0);
+        } catch (e: any) {
+            console.error(e);
+        }
+    }
+
+    setChatCounts(accepted: number, requests: number) {
+        this.unreadChat = accepted;
+        this.unreadChatRequests = requests;
+        chatState.setCounts(this.did(), accepted, requests);
     }
 
     async getAvatar(did: string) {

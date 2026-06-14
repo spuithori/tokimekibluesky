@@ -1,0 +1,58 @@
+.deck-row:not(.deck-row--single):has(> .svelte-refresher-host .chat-view) {
+    overflow-y: hidden;
+}
+
+.deck-row > .svelte-refresher-host:has(.chat-view) {
+    height: calc(100% - var(--deck-heading-height));
+}
+
+.svelte-refresher-host > .refresher-content:has(.chat-view),
+.deck-row .deck-row__content:has(.chat-view) {
+    height: 100%;
+}
+
+/* Inside a non-scrolling row, sticky headings get pushed down by their
+   top offset and cover the chat header. Static keeps them in flow. */
+.deck-row:not(.deck-row--single):has(> .svelte-refresher-host .chat-view) > .deck-heading,
+.deck-row.deck-row--junk:has(> .svelte-refresher-host .chat-view) > .deck-heading {
+    position: static;
+}
+
+.deck-row.deck-row--junk:has(> .svelte-refresher-host .chat-view) {
+    height: 100%;
+    overflow-y: hidden;
+}
+
+@media (max-width: 767px) {
+    .deck-row.deck-row--mobileV2 > .svelte-refresher-host:has(.chat-view) {
+        height: auto;
+        flex: 1;
+        min-height: 0;
+    }
+}
+
+.deck-popup-wrap .deck-row-wrap:has(.chat-view) {
+    height: 100%;
+}
+
+.deck-row .deck-column-content--split:has(> .chat-view) {
+    overflow-y: hidden;
+}
+
+.deck-row--single:not(.deck-row--junk) .chat-view {
+    height: calc(100dvh - var(--deck-heading-height));
+}
+
+@media (max-width: 767px) {
+    .deck-row--single:not(.deck-row--junk) .chat-view {
+        height: calc(100dvh - var(--deck-heading-height) - 46px - var(--safe-area-bottom));
+    }
+}
+
+.settings-column .settings-content:has(.chat-view) {
+    overflow-y: hidden;
+}
+
+.settings-column .settings-content:has(.chat-view) .settings-content-container {
+    height: 100%;
+}
