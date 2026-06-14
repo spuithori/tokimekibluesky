@@ -53,7 +53,10 @@
     const myDid = $derived(currentAgent?.did?.());
     const isGroup = $derived(isGroupConvo(convo));
     const isRequest = $derived(convo?.status === 'request');
-    const feed = $derived(columnState.getFeed(column.id));
+    const feed = $derived.by(() => {
+        const f = columnState.getFeed(column.id);
+        return [...f].sort((a, b) => (new Date(a.sentAt).getTime() || 0) - (new Date(b.sentAt).getTime() || 0));
+    });
 
     let declineConfirmOpen = $state(false);
 
