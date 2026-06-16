@@ -2,12 +2,14 @@ type Settings = {
   markedUnread: boolean,
   translationModel: 'nmt' | 'llm',
   disableEmbedVia: boolean,
+  autoTranslate: boolean,
 };
 
 const defaultSettings: Settings = {
   markedUnread: false,
   translationModel: 'nmt',
   disableEmbedVia: false,
+  autoTranslate: false,
 }
 
 class SettingsState {

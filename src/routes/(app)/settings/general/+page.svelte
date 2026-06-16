@@ -8,6 +8,7 @@
     import {settingsState} from "$lib/classes/settingsState.svelte";
     import { Sparkle } from 'lucide-svelte';
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
+    import {isLocalTranslateSupported, warmUpTranslator, disposeAllTranslators, normalizeTranslateLang} from "$lib/localTranslate";
 
     let userLanguage = $state($settings?.general.userLanguage || window.navigator.language);
     let language = $state($settings?.general.language || window.navigator.language);
@@ -21,6 +22,8 @@
     let disableChat = $settings?.general?.disableChat || false;
     let disableAtmosphere = $settings?.general?.disableAtmosphere || false;
     let finnhubApiKey = $state($settings?.general?.finnhubApiKey || '');
+    const localSupported = isLocalTranslateSupported();
+    let dlProgress = $state(0);
 
 const languages = [
     {
@@ -87,6 +90,15 @@ $effect(() => {
 $effect(() => {
   locale.set($settings?.general?.language);
 });
+
+function handleAutoTranslation(e: Event & { currentTarget: EventTarget & HTMLInputElement }) {
+  if (e.currentTarget.checked) {
+    const target = normalizeTranslateLang($settings?.general?.userLanguage);
+    warmUpTranslator('en', target, p => { dlProgress = p; });
+  } else {
+    disposeAllTranslators();
+  }
+}
 </script>
 
 <svelte:head>
@@ -159,6 +171,29 @@ $effect(() => {
             </label>
           </div>
         </div>
+      </dd>
+    </dl>
+
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('auto_translation')}
+        <span class="new-label">NEW</span>
+      </dt>
+
+      <dd class="settings-group__content">
+        <div class="input-toggle">
+          <input class="input-toggle__input" type="checkbox" id="autoTranslation" disabled={!localSupported} bind:checked={settingsState.settings.autoTranslate} onchange={handleAutoTranslation}><label class="input-toggle__label" for="autoTranslation"></label>
+        </div>
+
+        <p class="settings-group__description">
+          {#if !localSupported}
+            {$_('auto_translation_unsupported')}
+          {:else if (dlProgress > 0 && dlProgress < 1)}
+            {$_('auto_translation_downloading')} {Math.floor(dlProgress * 100)}%
+          {:else}
+            {$_('auto_translation_description')}
+          {/if}
+        </p>
       </dd>
     </dl>
 
