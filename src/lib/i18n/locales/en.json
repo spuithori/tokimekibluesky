@@ -1041,5 +1041,6 @@
   "blog_error": "Failed to load blog posts",
   "mochott_timeline": "Timeline (mochott)",
   "network_feed": "standard.site",
-  "monochrome": "Monochrome mode"
+  "monochrome": "Monochrome mode",
+  "external_link_hostname": "External link hostname"
 }

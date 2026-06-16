@@ -108,6 +108,19 @@
         font-size: 13px;
     }
 
+    &__host {
+        color: var(--timeline-embed-color);
+        font-size: 13px;
+        margin-top: 8px;
+        word-break: break-all;
+
+        &__icon {
+            display: inline;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+    }
+
     &__url {
         color: var(--timeline-embed-color);
         white-space: nowrap;
@@ -820,7 +833,7 @@
         position: absolute;
         left: 29px;
         width: 2px;
-        background-image: linear-gradient(to top,var(--border-color-2) 4px, transparent 4px);
+        background-image: linear-gradient(to top, var(--border-color-2) 4px, transparent 4px);
         background-repeat: repeat-y;
         background-position: left bottom;
         background-size: 4px 8px;
