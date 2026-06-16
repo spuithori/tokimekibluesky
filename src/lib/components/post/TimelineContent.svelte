@@ -207,29 +207,13 @@
 
         await untrack(async () => {
             try {
-                let record;
 
-                if (localSupported && sourceLang && targetLang) {
-                    record = await formatLocalTranslateRecord(
-                        post.record.text,
-                        sourceLang,
-                        targetLang,
-                        _agent,
-                        post.record,
-                        { fromGesture: true },
-                    );
-                }
-
-                if (!record) {
-                    record = await formatTranslateRecord(
-                        post.record.text,
-                        $settings.general?.userLanguage,
-                        _agent,
-                        post.record,
-                    );
-                }
-
-                translatedRecord = record;
+                translatedRecord = await formatTranslateRecord(
+                    post.record.text,
+                    $settings.general?.userLanguage,
+                    _agent,
+                    post.record,
+                );
             } catch (e) {
                 toast.error("Translate error.");
             }

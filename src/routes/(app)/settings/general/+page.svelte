@@ -24,6 +24,7 @@
     let finnhubApiKey = $state($settings?.general?.finnhubApiKey || '');
     const localSupported = isLocalTranslateSupported();
     let dlProgress = $state(0);
+    let warmState: 'idle' | 'downloading' | 'ready' | 'error' = $state('idle');
 
 const languages = [
     {
@@ -91,12 +92,27 @@ $effect(() => {
   locale.set($settings?.general?.language);
 });
 
+function runWarmUp() {
+  warmState = 'idle';
+  dlProgress = 0;
+  const target = normalizeTranslateLang($settings?.general?.userLanguage);
+  warmUpTranslator('en', target, p => { warmState = 'downloading'; dlProgress = p; })
+    .then(ok => {
+      if (warmState === 'downloading') {
+        warmState = ok ? 'ready' : 'error';
+      } else if (ok) {
+        warmState = 'ready';
+      }
+    });
+}
+
 function handleAutoTranslation(e: Event & { currentTarget: EventTarget & HTMLInputElement }) {
   if (e.currentTarget.checked) {
-    const target = normalizeTranslateLang($settings?.general?.userLanguage);
-    warmUpTranslator('en', target, p => { dlProgress = p; });
+    runWarmUp();
   } else {
     disposeAllTranslators();
+    warmState = 'idle';
+    dlProgress = 0;
   }
 }
 </script>
@@ -188,8 +204,14 @@ function handleAutoTranslation(e: Event & { currentTarget: EventTarget & HTMLInp
         <p class="settings-group__description">
           {#if !localSupported}
             {$_('auto_translation_unsupported')}
-          {:else if (dlProgress > 0 && dlProgress < 1)}
+          {:else if warmState === 'downloading'}
             {$_('auto_translation_downloading')} {Math.floor(dlProgress * 100)}%
+            <span class="dl-progress"><span class="dl-progress__fill" style="width: {Math.floor(dlProgress * 100)}%"></span></span>
+          {:else if warmState === 'ready'}
+            {$_('auto_translation_ready')}
+          {:else if warmState === 'error'}
+            {$_('auto_translation_download_failed')}
+            <button class="dl-retry" onclick={runWarmUp}>{$_('retry')}</button>
           {:else}
             {$_('auto_translation_description')}
           {/if}
@@ -360,3 +382,29 @@ function handleAutoTranslation(e: Event & { currentTarget: EventTarget & HTMLInp
     </dl>
   </div>
 </div>
+
+<style lang="postcss">
+    .dl-progress {
+        display: block;
+        width: 100%;
+        height: 4px;
+        margin-top: 6px;
+        border-radius: 2px;
+        background-color: var(--border-color-1);
+        overflow: hidden;
+    }
+
+    .dl-progress__fill {
+        display: block;
+        height: 100%;
+        background-color: var(--primary-color);
+        transition: width 0.2s ease;
+    }
+
+    .dl-retry {
+        margin-left: 8px;
+        color: var(--primary-color);
+        text-decoration: underline;
+        cursor: pointer;
+    }
+</style>
