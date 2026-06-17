@@ -12,13 +12,7 @@
     import { goto, beforeNavigate, afterNavigate } from "$app/navigation";
     import { dev } from "$app/environment";
     import { injectAnalytics } from "@vercel/analytics/sveltekit";
-    import { tick, untrack, onMount } from "svelte";
-    import { settingsState } from "$lib/classes/settingsState.svelte";
-    import {
-        isLocalTranslateSupported,
-        warmUpTranslator,
-        normalizeTranslateLang,
-    } from "$lib/localTranslate";
+    import { tick, untrack } from "svelte";
     import { Toaster } from "svelte-sonner";
     import viewPortSetting from "$lib/viewport";
     import Footer from "./Footer.svelte";
@@ -71,24 +65,6 @@
         children?: import("svelte").Snippet;
     }
     let { children }: Props = $props();
-
-    onMount(() => {
-        if (
-            !isLocalTranslateSupported() ||
-            !settingsState.settings.autoTranslate
-        ) {
-            return;
-        }
-
-        const target = normalizeTranslateLang($settings?.general?.userLanguage);
-        const warm = () => {
-            warmUpTranslator("en", target);
-        };
-
-        warm();
-        window.addEventListener("pointerdown", warm, { once: true });
-        return () => window.removeEventListener("pointerdown", warm);
-    });
 
     let app = $state();
     let baseColor = $state("#fff");

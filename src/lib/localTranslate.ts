@@ -188,29 +188,74 @@ async function acquireTranslator(
     return promise;
 }
 
-export async function warmUpTranslator(
+export function warmUpTranslator(
     source: string | undefined,
     target: string | undefined,
     onProgress?: (progress: number) => void,
-): Promise<boolean> {
-    const instance = await acquireTranslator(
-        normalizeTranslateLang(source),
-        normalizeTranslateLang(target),
-        { fromGesture: true, onProgress },
-    );
-    return !!instance;
+): Promise<"ready" | "unavailable" | "retry"> {
+    const s = normalizeTranslateLang(source);
+    const t = normalizeTranslateLang(target);
+    if (!isLocalTranslateSupported() || !s || !t || s === t) {
+        return Promise.resolve("unavailable");
+    }
+
+    const key = `${s}->${t}`;
+    const existing = instances.get(key);
+    if (existing?.instance) return Promise.resolve("ready");
+    if (existing?.unavailable) return Promise.resolve("unavailable");
+
+    const settle = (instance: Translator | null) =>
+        instance
+            ? "ready"
+            : instances.get(key)?.unavailable
+              ? ("unavailable" as const)
+              : ("retry" as const);
+
+    if (existing?.promise) {
+        return existing.promise.then(settle);
+    }
+
+    const createOptions: TranslatorCreateOptions = {
+        sourceLanguage: s,
+        targetLanguage: t,
+    };
+    if (onProgress) {
+        createOptions.monitor = (monitor) => {
+            monitor.addEventListener("downloadprogress", (e) =>
+                onProgress(e.loaded),
+            );
+        };
+    }
+
+    const promise = self.Translator.create(createOptions)
+        .then((instance) => {
+            instances.set(key, { instance });
+            translatorReady.update((n) => n + 1);
+            return instance as Translator;
+        })
+        .catch((e) => {
+            if ((e as DOMException)?.name === "NotSupportedError") {
+                instances.set(key, { unavailable: true });
+            } else {
+                instances.delete(key);
+            }
+            return null;
+        });
+
+    instances.set(key, { promise });
+    return promise.then(settle);
 }
 
-export function getCachedTranslator(
+export async function getTranslatorAvailability(
     source: string | undefined,
     target: string | undefined,
-): Translator | null {
-    const nSource = normalizeTranslateLang(source);
-    const nTarget = normalizeTranslateLang(target);
-    if (!nSource || !nTarget || nSource === nTarget) {
-        return null;
+): Promise<TranslatorAvailability> {
+    const s = normalizeTranslateLang(source);
+    const t = normalizeTranslateLang(target);
+    if (!s || !t) {
+        return "unavailable";
     }
-    return instances.get(`${nSource}->${nTarget}`)?.instance ?? null;
+    return (await getAvailability(s, t)) as TranslatorAvailability;
 }
 
 export async function translateLocal(
@@ -223,13 +268,11 @@ export async function translateLocal(
         return null;
     }
 
-    const translator = opts.fromGesture
-        ? await acquireTranslator(
-              normalizeTranslateLang(source),
-              normalizeTranslateLang(target),
-              { fromGesture: true },
-          )
-        : getCachedTranslator(source, target);
+    const translator = await acquireTranslator(
+        normalizeTranslateLang(source),
+        normalizeTranslateLang(target),
+        { fromGesture: !!opts.fromGesture },
+    );
 
     if (!translator || opts.signal?.aborted) {
         return null;

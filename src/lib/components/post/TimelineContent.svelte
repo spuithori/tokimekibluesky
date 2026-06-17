@@ -207,7 +207,6 @@
 
         await untrack(async () => {
             try {
-
                 translatedRecord = await formatTranslateRecord(
                     post.record.text,
                     $settings.general?.userLanguage,
@@ -229,13 +228,14 @@
         signal: AbortSignal,
     ) {
         try {
+            const fromGesture = navigator.userActivation?.isActive ?? false;
             const record = await formatLocalTranslateRecord(
                 post.record.text,
                 source,
                 target,
                 _agent,
                 post.record,
-                { fromGesture: false, signal },
+                { fromGesture, signal },
             );
 
             if (signal.aborted || !record) {
