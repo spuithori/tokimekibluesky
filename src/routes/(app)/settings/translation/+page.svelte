@@ -153,6 +153,13 @@
             ),
     );
 
+    const downloadingMajor = $derived(
+        MAJOR.map((c) => normalizeTranslateLang(c))
+            .filter((n): n is string => !!n && n !== target)
+            .map((n) => states[n])
+            .find((s) => s?.phase === "downloading"),
+    );
+
     function downloadNextMajor() {
         const r = pendingMajor[0];
         if (r) download(r);
@@ -215,12 +222,18 @@
                 {$_("translation_description")}
             </p>
 
-            {#if pendingMajor.length}
+            {#if pendingMajor.length || downloadingMajor}
                 <button
                     class="button button--sm translation-bulk"
                     onclick={downloadNextMajor}
+                    disabled={!!downloadingMajor || !pendingMajor.length}
                 >
-                    {$_("translation_bulk_download")} ({pendingMajor.length})
+                    {#if downloadingMajor}
+                        {$_("auto_translation_downloading")}
+                        {Math.floor((downloadingMajor.progress ?? 0) * 100)}%
+                    {:else}
+                        {$_("translation_bulk_download")} ({pendingMajor.length})
+                    {/if}
                 </button>
             {/if}
 
@@ -253,6 +266,11 @@
 <style lang="postcss">
     .translation-bulk {
         margin: 12px 0;
+    }
+
+    .translation-bulk:disabled {
+        opacity: 0.6;
+        cursor: default;
     }
 
     .translation-list__item {
