@@ -100,6 +100,7 @@
         column.algorithm.id = convo.id;
         column.algorithm.name = $_('chat_list') + ' / ' + selectedConvoName;
         column.data = { feed: [], cursor: '' };
+        columnState.clearFeed(column.id);
         currentView = 'detail';
     }
 
