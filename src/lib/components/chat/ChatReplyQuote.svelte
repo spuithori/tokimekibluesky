@@ -72,8 +72,8 @@
     .chat-reply-quote__connector {
         flex: 0 0 16px;
         margin-top: 8px;
-        border-top: 1px solid var(--border-color-1);
-        border-left: 1px solid var(--border-color-1);
+        border-top: 1px solid var(--text-color-2);
+        border-left: 1px solid var(--text-color-2);
         border-top-left-radius: 10px;
     }
 
@@ -108,7 +108,7 @@
 
         .chat-reply-quote__connector {
             border-left: none;
-            border-right: 1px solid var(--border-color-1);
+            border-right: 1px solid var(--text-color-2);
             border-top-left-radius: 0;
             border-top-right-radius: 10px;
         }
