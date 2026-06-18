@@ -25,6 +25,10 @@ export default defineConfig(({ mode }) => {
 			enableNativePlugin: true,
 		},
 
+		optimizeDeps: {
+			include: ['mux.js/lib/mp4/transmuxer'],
+		},
+
 		build: {
 			rollupOptions: {
 				optimization: {
