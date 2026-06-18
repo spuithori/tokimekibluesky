@@ -34,6 +34,8 @@
     let showNewPill = $state(false);
     let pendingMessages = $state<any[]>([]);
     let sendingCount = $state(0);
+    let replyTarget = $state.raw<any>(undefined);
+    let highlightId = $state<string | null>(null);
     let historyComplete = $state(false);
     let isReady = $state(false);
     let membersLoading = false;
@@ -47,6 +49,8 @@
     $effect(() => {
         void unique;
         historyComplete = false;
+        replyTarget = undefined;
+        highlightId = null;
     });
 
     const currentAgent = $derived(_agent || $agent);
@@ -66,6 +70,7 @@
         const isClusterable = (m: any) => m && m.$type !== SYSTEM_MESSAGE_VIEW_TYPE && m.$type !== DELETED_MESSAGE_VIEW_TYPE;
         const sameCluster = (a: any, b: any) => {
             if (!isClusterable(a) || !isClusterable(b)) return false;
+            if (b.replyTo) return false;
             if (a.sender?.did !== b.sender?.did) return false;
             const ta = new Date(a.sentAt);
             const tb = new Date(b.sentAt);
@@ -437,12 +442,20 @@
     });
 
     async function sendMessage(record) {
+        const target = replyTarget;
         const pending = {
             localId: self.crypto.randomUUID(),
             record: record,
             status: 'sending',
             sentAt: new Date().toISOString(),
+            replyTo: target ?? undefined,
         };
+
+        if (target) {
+            record.replyTo = { messageId: target.id };
+        }
+
+        replyTarget = undefined;
         pendingMessages.push(pending);
         await tick();
         jumpToBottom();
@@ -483,6 +496,40 @@
 
     function discardPending(localId: string) {
         pendingMessages = pendingMessages.filter(p => p.localId !== localId);
+    }
+
+    function handleStartReply(message: any) {
+        replyTarget = message;
+    }
+
+    function requestHighlight(messageId: string) {
+        if (highlightId !== messageId) {
+            highlightId = messageId;
+            return;
+        }
+
+        highlightId = null;
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => { highlightId = messageId; });
+        });
+    }
+
+    function scrollToReply(messageId: string) {
+        const el = contentEl?.querySelector(`[data-message-id="${CSS.escape(messageId)}"]`) as HTMLElement | null;
+
+        if (!el || !scrollEl) {
+            toast.error($_('chat_reply_not_loaded'));
+            return;
+        }
+
+        anchorActive = false;
+        stickBottom = false;
+
+        const maxTop = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+        const target = scrollEl.scrollTop + (el.getBoundingClientRect().top - scrollEl.getBoundingClientRect().top) - scrollEl.clientHeight * 0.3;
+        scrollEl.scrollTo({ top: Math.max(0, Math.min(maxTop, target)), behavior: 'smooth' });
+
+        requestHighlight(messageId);
     }
 
     const handleLoadMore = async (loaded, complete) => {
@@ -588,12 +635,16 @@
               clusterStart={meta.start}
               clusterEnd={meta.end}
               {replaceMessage}
+              onreply={handleStartReply}
+              onjump={scrollToReply}
+              {highlightId}
+              onhighlightend={() => highlightId = null}
           ></ChatItem>
         {/if}
       {/each}
 
       {#each pendingMessages as pending (pending.localId)}
-        <ChatItemPending {pending} onretry={retrySend} ondiscard={discardPending}></ChatItemPending>
+        <ChatItemPending {pending} onretry={retrySend} ondiscard={discardPending} {convo} members={memberMap} onjump={scrollToReply}></ChatItemPending>
       {/each}
       </div>
     </div>
@@ -618,7 +669,7 @@
       </div>
     {:else}
       {#await import('$lib/components/chat/ChatPublish.svelte') then { default: ChatPublish }}
-        <ChatPublish id={column.algorithm.id} _agent={currentAgent} {convo} onsend={sendMessage} isSending={sendingCount > 0}></ChatPublish>
+        <ChatPublish id={column.algorithm.id} _agent={currentAgent} {convo} onsend={sendMessage} isSending={sendingCount > 0} {replyTarget} members={memberMap} oncancelreply={() => replyTarget = undefined}></ChatPublish>
       {/await}
     {/if}
   </div>

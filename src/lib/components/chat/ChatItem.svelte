@@ -1,49 +1,74 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from "svelte-i18n";
     import TimelineText from "$lib/components/post/TimelineText.svelte";
-    import {formatDate} from "$lib/dateFormat";
-    import {isEmojiSequenceOrCombination} from "$lib/util";
+    import { formatDate } from "$lib/dateFormat";
+    import { isEmojiSequenceOrCombination } from "$lib/util";
     import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
-    import {AppBskyEmbedRecord} from "$lib/atproto-guards";
-    import { Flag, Laugh, Trash2 } from "lucide-svelte";
-    import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-    import {agent, reportModal} from "$lib/stores";
-    import {toast} from "svelte-sonner";
+    import { AppBskyEmbedRecord } from "$lib/atproto-guards";
+    import { Flag, Laugh, Reply, Trash2 } from "lucide-svelte";
+    import { CHAT_PROXY } from "$lib/components/chat/chatConst";
+    import { agent, reportModal } from "$lib/stores";
+    import { toast } from "svelte-sonner";
     import Tooltip from "$lib/components/ui/Tooltip.svelte";
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
-    import {chatErrorKey} from "$lib/components/chat/chatErrors";
-    import {DELETED_MESSAGE_VIEW_TYPE, JOIN_LINK_EMBED_VIEW_TYPE} from "$lib/components/chat/convoUtil";
+    import { chatErrorKey } from "$lib/components/chat/chatErrors";
+    import {
+        DELETED_MESSAGE_VIEW_TYPE,
+        JOIN_LINK_EMBED_VIEW_TYPE,
+    } from "$lib/components/chat/convoUtil";
+    import ChatReplyQuote from "$lib/components/chat/ChatReplyQuote.svelte";
 
-    let { message, _agent, convoId, convo = undefined, members = {}, showSender = false, clusterStart = true, clusterEnd = true, replaceMessage } = $props();
+    let {
+        message,
+        _agent,
+        convoId,
+        convo = undefined,
+        members = {},
+        showSender = false,
+        clusterStart = true,
+        clusterEnd = true,
+        replaceMessage,
+        onreply = undefined,
+        onjump = undefined,
+        highlightId = null,
+        onhighlightend = undefined,
+    } = $props();
 
     function memberOf(did) {
         if (!did) return undefined;
-        return members[did] ?? convo?.members?.find(member => member.did === did);
+        return (
+            members[did] ?? convo?.members?.find((member) => member.did === did)
+        );
     }
     const currentAgent = $derived(_agent || $agent);
     const myDid = $derived(currentAgent?.did?.());
     const isMine = $derived(message.sender?.did === myDid);
     let isEmojiPickerOpen = $state(false);
     let isDeleteOpen = $state(false);
-    let pickerPos = $state({x: 0, y: 0});
+    let pickerPos = $state({ x: 0, y: 0 });
 
     function openEmojiPicker(event: MouseEvent) {
-        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        const rect = (
+            event.currentTarget as HTMLElement
+        ).getBoundingClientRect();
         const PICKER_WIDTH = 352;
         const PICKER_HEIGHT = Math.min(435, window.innerHeight * 0.6);
-        const x = Math.min(Math.max(8, rect.left + rect.width / 2 - PICKER_WIDTH / 2), Math.max(8, window.innerWidth - PICKER_WIDTH - 8));
+        const x = Math.min(
+            Math.max(8, rect.left + rect.width / 2 - PICKER_WIDTH / 2),
+            Math.max(8, window.innerWidth - PICKER_WIDTH - 8),
+        );
         let y = rect.bottom + 8;
 
         if (y + PICKER_HEIGHT > window.innerHeight - 8) {
             y = Math.max(8, rect.top - PICKER_HEIGHT - 8);
         }
 
-        pickerPos = {x: x, y: y};
+        pickerPos = { x: x, y: y };
         isEmojiPickerOpen = true;
     }
 
     const sender = $derived(memberOf(message.sender?.did));
-    const senderName = $derived(sender?.displayName || sender?.handle || '');
+    const senderName = $derived(sender?.displayName || sender?.handle || "");
 
     const groupedReactions = $derived.by(() => {
         const map = new Map();
@@ -55,14 +80,23 @@
                 map.set(reaction.value, [reaction.sender]);
             }
         }
-        return [...map.entries()].map(([value, senders]) => ({value, senders}));
+        return [...map.entries()].map(([value, senders]) => ({
+            value,
+            senders,
+        }));
     });
 
     function reactionNames(senders) {
-        return senders.map(sender => {
-            const member = memberOf(sender?.did);
-            return member?.displayName || member?.handle || $_('chat_unknown_user');
-        }).join(', ');
+        return senders
+            .map((sender) => {
+                const member = memberOf(sender?.did);
+                return (
+                    member?.displayName ||
+                    member?.handle ||
+                    $_("chat_unknown_user")
+                );
+            })
+            .join(", ");
     }
 
     async function handleEmojiPick(emoji) {
@@ -71,7 +105,10 @@
     }
 
     function hasMyReaction(emoji: string) {
-        return !!message?.reactions?.find(reaction => reaction.value === emoji && reaction.sender?.did === myDid);
+        return !!message?.reactions?.find(
+            (reaction) =>
+                reaction.value === emoji && reaction.sender?.did === myDid,
+        );
     }
 
     async function toggleReaction(emoji: string) {
@@ -82,11 +119,13 @@
         };
 
         try {
-            const nsid = hasMyReaction(emoji) ? 'chat.bsky.convo.removeReaction' : 'chat.bsky.convo.addReaction';
+            const nsid = hasMyReaction(emoji)
+                ? "chat.bsky.convo.removeReaction"
+                : "chat.bsky.convo.addReaction";
             const res = await currentAgent?.xrpc.post(nsid, record, {
                 headers: {
-                    'atproto-proxy': CHAT_PROXY,
-                }
+                    "atproto-proxy": CHAT_PROXY,
+                },
             });
             replaceMessage(res.message);
         } catch (e) {
@@ -99,15 +138,19 @@
         isDeleteOpen = false;
 
         try {
-            const res = await currentAgent?.xrpc.post('chat.bsky.convo.deleteMessageForSelf', {
-                convoId: convoId,
-                messageId: message.id,
-            }, {
-                headers: {
-                    'atproto-proxy': CHAT_PROXY,
-                }
-            });
-            replaceMessage({...res, $type: DELETED_MESSAGE_VIEW_TYPE});
+            const res = await currentAgent?.xrpc.post(
+                "chat.bsky.convo.deleteMessageForSelf",
+                {
+                    convoId: convoId,
+                    messageId: message.id,
+                },
+                {
+                    headers: {
+                        "atproto-proxy": CHAT_PROXY,
+                    },
+                },
+            );
+            replaceMessage({ ...res, $type: DELETED_MESSAGE_VIEW_TYPE });
         } catch (e) {
             console.error(e);
             toast.error($_(chatErrorKey(e)));
@@ -115,7 +158,14 @@
     }
 </script>
 
-<div class="chat-item-wrap">
+<div
+    class="chat-item-wrap"
+    class:chat-item-wrap--highlight={highlightId === message.id}
+    data-message-id={message.id}
+    onanimationend={(e) => {
+        if (e.animationName === "chat-highlight-fade") onhighlightend?.();
+    }}
+>
     <div
         class="chat-item"
         class:chat-item--me={isMine}
@@ -124,15 +174,36 @@
         class:chat-item--cluster-mid={!clusterStart && !clusterEnd}
         class:chat-item--cluster-last={!clusterStart && clusterEnd}
     >
+        {#if message.replyTo}
+            <ChatReplyQuote
+                replyTo={message.replyTo}
+                {convo}
+                {members}
+                mine={isMine}
+                onjump={message.replyTo.$type !== DELETED_MESSAGE_VIEW_TYPE
+                    ? () => onjump?.(message.replyTo.id)
+                    : undefined}
+            ></ChatReplyQuote>
+        {/if}
+
         {#if showSender}
             <div class="chat-item__sender">
                 {#if sender?.avatar}
-                    <img class="chat-item__sender-avatar" loading="lazy" src={sender.avatar} alt="" width="40" height="40">
+                    <img
+                        class="chat-item__sender-avatar"
+                        loading="lazy"
+                        src={sender.avatar}
+                        alt=""
+                        width="40"
+                        height="40"
+                    />
                 {:else}
                     <span class="chat-item__sender-avatar"></span>
                 {/if}
 
-                <span class="chat-item__sender-name">{senderName || $_('chat_unknown_user')}</span>
+                <span class="chat-item__sender-name"
+                    >{senderName || $_("chat_unknown_user")}</span
+                >
             </div>
         {/if}
 
@@ -141,21 +212,32 @@
                 {#if isEmojiSequenceOrCombination(message.text)}
                     <span class="chat-text-emoji">{message.text}</span>
                 {:else}
-                    <TimelineText record={message} _agent={currentAgent}></TimelineText>
+                    <TimelineText record={message} _agent={currentAgent}
+                    ></TimelineText>
                 {/if}
 
                 {#if clusterEnd}
-                    <time class="chat-item__time" datetime={formatDate(new Date(message.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{formatDate(new Date(message.sentAt), 'HH:mm')}</time>
+                    <time
+                        class="chat-item__time"
+                        datetime={formatDate(
+                            new Date(message.sentAt),
+                            "yyyy-MM-dd'T'HH:mm:ss",
+                        )}>{formatDate(new Date(message.sentAt), "HH:mm")}</time
+                    >
                 {/if}
             </p>
         {/if}
 
         {#if message.embed}
-            {#if (AppBskyEmbedRecord.isView(message.embed) && AppBskyEmbedRecord.isViewRecord(message.embed?.record)) }
-                <EmbedRecord record={message.embed.record} _agent={currentAgent}></EmbedRecord>
+            {#if AppBskyEmbedRecord.isView(message.embed) && AppBskyEmbedRecord.isViewRecord(message.embed?.record)}
+                <EmbedRecord record={message.embed.record} _agent={currentAgent}
+                ></EmbedRecord>
             {:else if message.embed.$type === JOIN_LINK_EMBED_VIEW_TYPE}
-                {#await import('$lib/components/chat/JoinLinkCard.svelte') then { default: JoinLinkCard }}
-                    <JoinLinkCard preview={message.embed.joinLinkPreview} _agent={currentAgent}></JoinLinkCard>
+                {#await import("$lib/components/chat/JoinLinkCard.svelte") then { default: JoinLinkCard }}
+                    <JoinLinkCard
+                        preview={message.embed.joinLinkPreview}
+                        _agent={currentAgent}
+                    ></JoinLinkCard>
                 {/await}
             {/if}
         {/if}
@@ -163,15 +245,26 @@
         {#if groupedReactions.length}
             <ul class="chat-reactions-list">
                 {#each groupedReactions as reaction (reaction.value)}
-                    {@const mine = reaction.senders.some(sender => sender?.did === myDid)}
+                    {@const mine = reaction.senders.some(
+                        (sender) => sender?.did === myDid,
+                    )}
                     <li class="chat-reactions-list__item">
                         <Tooltip>
                             {#snippet ref()}
-                                <button class="chat-reaction" class:chat-reaction--mine={mine} onclick={() => toggleReaction(reaction.value)}>
-                                    <span class="chat-reaction__value">{reaction.value}</span>
+                                <button
+                                    class="chat-reaction"
+                                    class:chat-reaction--mine={mine}
+                                    onclick={() =>
+                                        toggleReaction(reaction.value)}
+                                >
+                                    <span class="chat-reaction__value"
+                                        >{reaction.value}</span
+                                    >
 
                                     {#if reaction.senders.length > 1}
-                                        <span class="chat-reaction__count">{reaction.senders.length}</span>
+                                        <span class="chat-reaction__count"
+                                            >{reaction.senders.length}</span
+                                        >
                                     {/if}
                                 </button>
                             {/snippet}
@@ -186,23 +279,50 @@
         {/if}
 
         <div class="chat-item-menu">
+            {#if onreply}
+                <button
+                    onclick={() => onreply(message)}
+                    aria-label={$_("chat_reply")}
+                >
+                    <Reply size="18" color="var(--text-color-3)"></Reply>
+                </button>
+            {/if}
+
             <button onclick={openEmojiPicker} aria-label="Reaction">
                 <Laugh size="20" color="var(--text-color-3)"></Laugh>
             </button>
 
-            <button onclick={() => {isDeleteOpen = true}} aria-label={$_('chat_message_delete')}>
+            <button
+                onclick={() => {
+                    isDeleteOpen = true;
+                }}
+                aria-label={$_("chat_message_delete")}
+            >
                 <Trash2 size="18" color="var(--text-color-3)"></Trash2>
             </button>
 
             {#if !isMine}
-                <button onclick={() => { $reportModal = { open: true, data: { type: 'convoMessage', convoId: convoId, messageId: message.id, did: message.sender.did } } }} aria-label="Report">
+                <button
+                    onclick={() => {
+                        $reportModal = {
+                            open: true,
+                            data: {
+                                type: "convoMessage",
+                                convoId: convoId,
+                                messageId: message.id,
+                                did: message.sender.did,
+                            },
+                        };
+                    }}
+                    aria-label="Report"
+                >
                     <Flag size="18" color="var(--text-color-3)"></Flag>
                 </button>
             {/if}
         </div>
 
-        {#if (isEmojiPickerOpen)}
-            {#await import('$lib/components/publish/EmojiPicker.svelte') then { default: EmojiPicker }}
+        {#if isEmojiPickerOpen}
+            {#await import("$lib/components/publish/EmojiPicker.svelte") then { default: EmojiPicker }}
                 <div
                     class="chat-emoji-picker"
                     {@attach (node: HTMLElement) => {
@@ -210,14 +330,28 @@
                         node.style.translate = `${pickerPos.x - base.left}px ${pickerPos.y - base.top}px`;
                     }}
                 >
-                    <EmojiPicker onpick={handleEmojiPick} onoutclick={() => {isEmojiPickerOpen = false}}></EmojiPicker>
+                    <EmojiPicker
+                        onpick={handleEmojiPick}
+                        onoutclick={() => {
+                            isEmojiPickerOpen = false;
+                        }}
+                    ></EmojiPicker>
                 </div>
             {/await}
         {/if}
 
-        {#if (isDeleteOpen)}
-            <ConfirmModal on:ok={deleteMessage} on:cancel={() => {isDeleteOpen = false}} yesText={$_('chat_message_delete')} cancelText={$_('cancel')}>
-                <p class="chat-delete-confirm">{$_('chat_message_delete_confirm')}</p>
+        {#if isDeleteOpen}
+            <ConfirmModal
+                on:ok={deleteMessage}
+                on:cancel={() => {
+                    isDeleteOpen = false;
+                }}
+                yesText={$_("chat_message_delete")}
+                cancelText={$_("cancel")}
+            >
+                <p class="chat-delete-confirm">
+                    {$_("chat_message_delete_confirm")}
+                </p>
             </ConfirmModal>
         {/if}
     </div>
@@ -232,6 +366,33 @@
                 visibility: visible;
                 opacity: 1;
             }
+        }
+
+        &--highlight {
+            animation: chat-highlight-fade 2.5s ease-out;
+            border-radius: 12px;
+        }
+    }
+
+    @keyframes chat-highlight-fade {
+        0% {
+            background-color: color-mix(
+                in srgb,
+                var(--primary-color) 14%,
+                transparent
+            );
+        }
+
+        75% {
+            background-color: color-mix(
+                in srgb,
+                var(--primary-color) 14%,
+                transparent
+            );
+        }
+
+        100% {
+            background-color: transparent;
         }
     }
 

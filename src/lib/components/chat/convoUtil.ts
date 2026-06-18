@@ -99,3 +99,43 @@ export function getLastMessagePreview(convo: any, resolveName: (did?: string) =>
 
     return { text: last.text ?? '' };
 }
+
+export function createMemberNameResolver(
+    members: Record<string, any>,
+    convo: any,
+    fallback = '',
+): (did?: string) => string {
+    return (did?: string) => {
+        if (!did) {
+            return fallback;
+        }
+
+        const member = members?.[did] ?? convo?.members?.find((m: any) => m.did === did);
+        return member?.displayName || member?.handle || fallback;
+    };
+}
+
+export function getReplyPreview(
+    replyTo: any,
+    resolveName: (did?: string) => string,
+): { name: string; text?: string; key?: string } | undefined {
+    if (!replyTo) {
+        return undefined;
+    }
+
+    if (replyTo.$type === DELETED_MESSAGE_VIEW_TYPE) {
+        return { name: '', key: 'chat_reply_deleted' };
+    }
+
+    const name = resolveName(replyTo.sender?.did);
+
+    if (replyTo.text) {
+        return { name, text: replyTo.text };
+    }
+
+    if (replyTo.embed) {
+        return { name, key: 'chat_reply_attachment' };
+    }
+
+    return { name, text: '' };
+}

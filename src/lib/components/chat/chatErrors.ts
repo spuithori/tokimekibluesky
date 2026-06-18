@@ -16,6 +16,7 @@ const ERROR_KEY_MAP: Record<string, string> = {
     ConvoLockedByModeration: 'chat_error_convo_locked_moderation',
     NoJoinLink: 'chat_error_no_join_link',
     MessageDeleteNotAllowed: 'chat_error_message_delete_not_allowed',
+    ReplyTargetNotFound: 'chat_error_reply_target_not_found',
 };
 
 export function chatErrorKey(e: any): string {

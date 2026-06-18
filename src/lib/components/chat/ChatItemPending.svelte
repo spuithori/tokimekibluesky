@@ -1,12 +1,17 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { RotateCw, X } from "lucide-svelte";
+    import ChatReplyQuote from "$lib/components/chat/ChatReplyQuote.svelte";
 
-    let { pending, onretry, ondiscard } = $props();
+    let { pending, onretry, ondiscard, convo = undefined, members = {}, onjump = undefined } = $props();
 </script>
 
 <div class="chat-item-pending-wrap">
   <div class="chat-item-pending" class:chat-item-pending--failed={pending.status === 'failed'}>
+    {#if pending.replyTo}
+      <ChatReplyQuote replyTo={pending.replyTo} {convo} {members} mine={true} onjump={pending.replyTo.id ? () => onjump?.(pending.replyTo.id) : undefined}></ChatReplyQuote>
+    {/if}
+
     <p class="chat-item-pending__text">{pending.record.text}</p>
 
     {#if pending.status === 'failed'}
