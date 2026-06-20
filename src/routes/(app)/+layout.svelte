@@ -25,7 +25,7 @@
     import Single from "./Single.svelte";
     import Decks from "./Decks.svelte";
     import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
-    import { builtInThemes, oldThemeConvert } from "$lib/builtInThemes";
+    import { builtInThemes } from "$lib/builtInThemes";
     import { defaultColors } from "$lib/defaultColors";
     import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
     import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
@@ -131,26 +131,6 @@
         });
     }
 
-    if (!$settings.version) {
-        $settings.version = 1;
-    }
-    console.log("settings version: " + $settings.version || 0);
-
-    if ($settings.version < 2) {
-        $settings.design.skin = "default";
-        $settings.version = 2;
-    }
-
-    if ($settings.version < 3) {
-        if (!$settings.embed) {
-            $settings.embed = {};
-        }
-        if ($settings.embed.klipy === undefined) {
-            $settings.embed.klipy = true;
-        }
-        $settings.version = 3;
-    }
-
     if (navigator.connection) {
         navigator.connection.addEventListener("change", () => {
             isMobileDataConnection.set(
@@ -163,33 +143,10 @@
         locale.set($settings.general.language);
     }
 
-    if (!$settings?.general.userLanguage) {
-        $settings.general.userLanguage = window.navigator.language;
-    }
-
     if (navigator.storage && navigator.storage.persist) {
         navigator.storage.persist().then((res) => {
             console.log(`Storage persisted: ${res}`);
         });
-    }
-
-    if (
-        $settings?.design?.skin === "default" ||
-        $settings?.design?.skin === "twilight"
-    ) {
-        const convertedTheme = oldThemeConvert($settings?.design?.theme);
-        if (convertedTheme) {
-            $settings.design.theme = convertedTheme;
-        }
-    }
-
-    if ($settings?.design?.skin === "twilight") {
-        $settings.design.skin = "default";
-        $settings.design.darkmode = true;
-    }
-
-    if (!$settings?.design?.galleryLayout) {
-        $settings.design.galleryLayout = "carousel";
     }
 
     function handleColumnModalClose() {
@@ -301,10 +258,6 @@
                 window.scrollTo(saved.scroll.x, saved.scroll.y);
             }
         });
-    });
-
-    $effect(() => {
-        localStorage.setItem("settings", JSON.stringify($settings));
     });
 
     $effect(() => {

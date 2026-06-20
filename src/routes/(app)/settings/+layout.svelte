@@ -2,12 +2,17 @@
   import {_} from 'svelte-i18n';
   import type {LayoutData} from "./$types";
   import {page} from "$app/stores";
-  import { ArrowLeft, BellRing, Database, GanttChartSquare, Hand, Heart, Layers, Palette, Settings, WholeWord, X, CalendarClock } from "lucide-svelte";
+  import { ArrowLeft, X } from "lucide-svelte";
   import { scale } from 'svelte/transition';
   import { agent } from "$lib/stores";
+  import { settingsNav } from "$lib/settings/nav";
+  import SettingsSearch from "$lib/components/settings/SettingsSearch.svelte";
 
   const OFFICIAL_HANDLE = 'tokimeki.blue';
   const STORAGE_KEY = 'hideFollowPrompt';
+
+  const topNav = settingsNav.filter((item) => item.placement !== 'bottom');
+  const bottomNav = settingsNav.filter((item) => item.placement === 'bottom');
 
   interface Props {
     data: LayoutData;
@@ -90,69 +95,18 @@
           </div>
         </div>
 
+        <SettingsSearch />
+
         <ul class="p-menu-nav">
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/profiles'}>
-            <div class="p-menu-nav__icon">
-              <Layers size="24" color="var(--text-color-1)"></Layers>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/profiles">{$_('settings_profiles')}</a></p>
-          </li>
-
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/general'}>
-            <div class="p-menu-nav__icon">
-              <Settings size="24" color="var(--text-color-1)"></Settings>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/general">{$_('settings_general')}</a></p>
-          </li>
-
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/design'}>
-            <div class="p-menu-nav__icon">
-              <Palette size="24" color="var(--text-color-1)"></Palette>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/design">{$_('settings_design')}</a></p>
-          </li>
-
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/timeline'}>
-            <div class="p-menu-nav__icon">
-              <GanttChartSquare size="24" color="var(--text-color-1)"></GanttChartSquare>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/timeline">{$_('settings_timeline')}</a></p>
-          </li>
-
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/moderation'}>
-            <div class="p-menu-nav__icon">
-              <Hand size="24" color="var(--text-color-1)"></Hand>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/moderation">{$_('settings_moderation')}</a></p>
-          </li>
-
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/keyword-mutes'}>
-            <div class="p-menu-nav__icon">
-              <WholeWord size="24" color="var(--text-color-1)"></WholeWord>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/keyword-mutes">{$_('settings_keyword_mutes')}</a></p>
-          </li>
-
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/push-notification'}>
-            <div class="p-menu-nav__icon">
-              <BellRing size="24" color="var(--text-color-1)"></BellRing>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/push-notification">{$_('settings_push_notification')}</a></p>
-          </li>
-
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/schedule'}>
-            <div class="p-menu-nav__icon">
-              <CalendarClock size="24" color="var(--text-color-1)"></CalendarClock>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/schedule">{$_('schedule_post_title')}</a></p>
-          </li>
-
-          <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/data'}>
-            <div class="p-menu-nav__icon">
-              <Database size="24" color="var(--text-color-1)"></Database>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/data">{$_('settings_data_management')}</a></p>
-          </li>
+          {#each topNav as item (item.id)}
+            {@const Icon = item.icon}
+            <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === item.href}>
+              <div class="p-menu-nav__icon">
+                <Icon size="24" color="var(--text-color-1)"></Icon>
+              </div>
+              <p class="p-menu-nav__title"><a href={item.href}>{$_(item.label)}</a></p>
+            </li>
+          {/each}
 
           {#if showFollowPrompt}
             <li class="p-menu-nav__item p-menu-nav__item--prompt">
@@ -177,12 +131,15 @@
             </li>
           {/if}
 
-          <li class="p-menu-nav__item p-menu-nav__item--bottom" class:p-menu-nav__item--current={$page.url.pathname === '/settings/about'}>
-            <div class="p-menu-nav__icon">
-              <Heart size="24" color="var(--text-color-1)"></Heart>
-            </div>
-            <p class="p-menu-nav__title"><a href="/settings/about">{$_('settings_about')}</a></p>
-          </li>
+          {#each bottomNav as item (item.id)}
+            {@const Icon = item.icon}
+            <li class="p-menu-nav__item p-menu-nav__item--bottom" class:p-menu-nav__item--current={$page.url.pathname === item.href}>
+              <div class="p-menu-nav__icon">
+                <Icon size="24" color="var(--text-color-1)"></Icon>
+              </div>
+              <p class="p-menu-nav__title"><a href={item.href}>{$_(item.label)}</a></p>
+            </li>
+          {/each}
 
           <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/settings/support'}>
             <div class="p-menu-nav__icon">
@@ -257,6 +214,12 @@
       padding: 16px;
       border-right: 1px solid var(--border-color-2);
 
+      @media (min-width: 768px) {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+      }
+
       @media (max-width: 767px) {
           display: none;
           padding: 0;
@@ -271,7 +234,8 @@
       @media (min-width: 768px) {
           display: flex;
           flex-direction: column;
-          height: 100%;
+          flex: 1;
+          min-height: 0;
 
           &__item {
               &--bottom {
