@@ -1,0 +1,105 @@
+import type { Settings } from './types';
+import { createDefaultSettings } from './defaults';
+import { oldThemeConvert } from '$lib/builtInThemes';
+
+/**
+ * Pure (DOM/localStorage-free) settings migration. Brings an arbitrary stored
+ * payload up to CURRENT_VERSION, applies the idempotent skin/theme
+ * normalisations that used to live inline in (app)/+layout.svelte, then
+ * deep-merges against the defaults so missing keys are backfilled (resolving
+ * schema drift) while unknown keys are preserved (non-destructive — a newer
+ * client on another device must not lose keys this build doesn't know yet).
+ */
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function deepMerge<T>(defaults: T, stored: unknown): T {
+    if (!isPlainObject(stored)) {
+        return defaults;
+    }
+
+    const result: Record<string, unknown> = { ...(defaults as Record<string, unknown>) };
+
+    for (const key of Object.keys(stored)) {
+        const storedValue = stored[key];
+        const defaultValue = result[key];
+
+        if (isPlainObject(defaultValue) && isPlainObject(storedValue)) {
+            result[key] = deepMerge(defaultValue, storedValue);
+        } else {
+            // Arrays, primitives and unknown keys: take the stored value verbatim.
+            result[key] = storedValue;
+        }
+    }
+
+    return result as T;
+}
+
+export function migrate(rawSettings: unknown, rawStateSettings?: unknown): Settings {
+    const defaults = createDefaultSettings();
+
+    if (!isPlainObject(rawSettings)) {
+        return defaults;
+    }
+
+    const stored = structuredClone(rawSettings) as Record<string, any>;
+
+    if (!stored.version) {
+        stored.version = 1;
+    }
+
+    if (stored.version < 2) {
+        if (isPlainObject(stored.design)) {
+            stored.design.skin = 'default';
+        }
+        stored.version = 2;
+    }
+
+    if (stored.version < 3) {
+        if (!isPlainObject(stored.embed)) {
+            stored.embed = {};
+        }
+        if ((stored.embed as Record<string, unknown>).klipy === undefined) {
+            (stored.embed as Record<string, unknown>).klipy = true;
+        }
+        stored.version = 3;
+    }
+
+    // Idempotent theme normalisation (previously ran every boot in +layout.svelte).
+    if (isPlainObject(stored.design)) {
+        const design = stored.design as Record<string, any>;
+
+        if (design.skin === 'default' || design.skin === 'twilight') {
+            const convertedTheme = oldThemeConvert(design.theme);
+            if (convertedTheme) {
+                design.theme = convertedTheme;
+            }
+        }
+
+        if (design.skin === 'twilight') {
+            design.skin = 'default';
+            design.darkmode = true;
+        }
+    }
+
+    // v3 -> v4: fold the legacy 'stateSettings' localStorage key into the unified
+    // tree, distributing its keys to their meaningful categories.
+    if (stored.version < 4) {
+        if (isPlainObject(rawStateSettings)) {
+            const legacy = rawStateSettings as Record<string, any>;
+            if (!isPlainObject(stored.general)) stored.general = {};
+            if (!isPlainObject(stored.embed)) stored.embed = {};
+            const general = stored.general as Record<string, any>;
+            const embed = stored.embed as Record<string, any>;
+            if (legacy.translationModel !== undefined) general.translationModel = legacy.translationModel;
+            if (legacy.autoTranslate !== undefined) general.autoTranslate = legacy.autoTranslate;
+            if (legacy.markedUnread !== undefined) general.markedUnread = legacy.markedUnread;
+            if (legacy.disableEmbedVia !== undefined) embed.disableEmbedVia = legacy.disableEmbedVia;
+        }
+        stored.version = 4;
+    }
+
+    return deepMerge(defaults, stored);
+}

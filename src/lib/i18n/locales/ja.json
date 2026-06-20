@@ -169,6 +169,8 @@
     "alt_insert": "ALTテキストの挿入",
     "add_alt_text": "画像にALTテキストを入力する",
     "settings_general": "全般",
+    "settings_search_placeholder": "設定を検索",
+    "settings_search_no_results": "設定が見つかりません",
     "settings_design": "デザイン",
     "settings_timeline": "タイムライン設定",
     "settings_moderation": "モデレーション",

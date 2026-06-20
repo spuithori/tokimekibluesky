@@ -1,10 +1,10 @@
-import {derived, readable, writable} from 'svelte/store';
+import {derived, readable, toStore, writable} from 'svelte/store';
 import type {Agent} from '$lib/agent';
 import type {Theme} from "$lib/types/theme";
-import {defaultReactionButtons} from "$lib/defaultSettings";
 import timerWorkerUrl from '$lib/workers/timer.js?url'
-import {isSafariOrFirefox} from "$lib/util";
 import type { ReportModalState } from '$lib/components/report/reportTypes';
+import {settingsStore} from '$lib/settings/settings.svelte';
+import type {Settings} from '$lib/settings/types';
 
 export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
@@ -26,89 +26,10 @@ export const userLists = writable(localStorage.getItem('lists')
     ? JSON.parse(localStorage.getItem('lists'))
     : []);
 
-const defaultSettings = {
-    general: {
-        userLanguage: window.navigator.language,
-        language: window.navigator.language,
-        disableAlgorithm: false,
-        repostConfirmSkip: false,
-        deleteConfirmSkip: false,
-        linkWarningConfirmSkip: false,
-        hideWorkspaceButton: false,
-        hideProfileCounts: false,
-        enableBluefeed: false,
-        disableHaptics: false,
-        enableAppBrowser: false,
-        disableChat: false,
-        disableTenorAutoplay: false,
-        disableAtmosphere: false,
-        losslessImageUpload: false,
-        requireInputAltText: false,
-        useVirtual: false,
-        continuousTag: false,
-        disableMochiHoppe: false,
-    },
-    design: {
-        skin: 'default',
-        theme: 'defaut-10',
-        nonoto: isSafariOrFirefox() ? true : false,
-        fontTheme: 'default',
-        darkmode: false,
-        absoluteTime: false,
-        layout: 'decks',
-        postsImageLayout: 'default',
-        galleryLayout: 'carousel',
-        postsLayout: 'compact',
-        publishPosition: 'left',
-        externalLayout: 'normal',
-        reactionButtons: defaultReactionButtons,
-        advancedBreak: false,
-        mobilePostLayoutTop: false,
-        displayHandle: true,
-        reactionMode: 'tokimeki',
-        leftMode: false,
-        disableProfilePopup: false,
-        immersiveMode: false,
-        singleWidth: 'medium',
-        fixedFooter: false,
-        mutualDisplay: false,
-        mobileNewUi: false,
-        bubbleTimeline: false,
-        threaded: false,
-        monochrome: false,
-    },
-    timeline: {
-        hideRepost: 'all',
-        hideReply: 'all',
-        hideMention: 'all',
-        hideQuote: false,
-        simpleReply: false,
-    },
-    moderation: {
-        contentLabels: {
-            gore: 'warn',
-            nsfw: 'warn',
-            nudity: 'warn',
-            suggestive: 'warn',
-            porn: 'warn',
-            sexual: 'warn',
-        },
-        labelers: [],
-    },
-    embed: {
-        x: true,
-        youtube: true,
-        spotify: false,
-        bluemotion: true,
-        giphy: true,
-        tenor: true,
-        klipy: true,
-    },
-    langFilter: [],
-    version: 3,
-}
-const storageSettings = localStorage.getItem('settings') || JSON.stringify(defaultSettings);
-export const settings = writable(JSON.parse(storageSettings));
+export const settings = toStore<Settings>(
+    () => settingsStore.snapshot,
+    (value) => { settingsStore.raw = value; },
+);
 
 const storageRepostMutes = localStorage.getItem('repostMutes') || JSON.stringify([]);
 export const repostMutes = writable<string[]>(JSON.parse(storageRepostMutes));

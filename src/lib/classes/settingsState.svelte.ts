@@ -1,36 +1,51 @@
-type Settings = {
-  markedUnread: boolean,
-  translationModel: 'nmt' | 'llm',
-  disableEmbedVia: boolean,
-  autoTranslate: boolean,
-};
+import { settingsStore } from '$lib/settings/settings.svelte';
+import { appState } from '$lib/classes/appState.svelte';
 
-const defaultSettings: Settings = {
-  markedUnread: false,
-  translationModel: 'nmt',
-  disableEmbedVia: false,
-  autoTranslate: false,
-}
-
+/**
+ * Backward-compatible proxy over the unified settings store. The four settings
+ * that used to live here are now part of settingsStore (folded in by the
+ * v3 -> v4 migration); pdsRequestReady is a runtime flag owned by appState.
+ * Consumers can keep using `settingsState.*` while they migrate to settingsStore
+ * / appState directly, after which this module can be removed.
+ */
 class SettingsState {
-  settings: Settings = $state(defaultSettings);
-  pdsRequestReady: boolean = $state(false);
+    settings = {
+        get translationModel(): 'nmt' | 'llm' {
+            return settingsStore.general.translationModel;
+        },
+        set translationModel(value: 'nmt' | 'llm') {
+            settingsStore.general.translationModel = value;
+        },
+        get autoTranslate(): boolean {
+            return settingsStore.general.autoTranslate;
+        },
+        set autoTranslate(value: boolean) {
+            settingsStore.general.autoTranslate = value;
+        },
+        get markedUnread(): boolean {
+            return settingsStore.general.markedUnread;
+        },
+        set markedUnread(value: boolean) {
+            settingsStore.general.markedUnread = value;
+        },
+        get disableEmbedVia(): boolean {
+            return settingsStore.embed.disableEmbedVia;
+        },
+        set disableEmbedVia(value: boolean) {
+            settingsStore.embed.disableEmbedVia = value;
+        },
+    };
 
-  constructor() {
-    const storageSettings = localStorage.getItem('stateSettings') || JSON.stringify(defaultSettings);
-    this.settings = JSON.parse(storageSettings);
+    get pdsRequestReady(): boolean {
+        return appState.pdsRequestReady;
+    }
+    set pdsRequestReady(value: boolean) {
+        appState.pdsRequestReady = value;
+    }
 
-    $effect.root(() => {
-      $effect(() => {
-        localStorage.setItem('stateSettings', JSON.stringify(this.settings));
-      });
-      return () => {};
-    })
-  }
-
-  setPdsRequestReady() {
-    this.pdsRequestReady = true;
-  }
+    setPdsRequestReady() {
+        appState.setPdsRequestReady();
+    }
 }
 
 export const settingsState = new SettingsState();

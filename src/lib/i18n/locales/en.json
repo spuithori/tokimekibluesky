@@ -169,6 +169,8 @@
     "alt_insert": "Insert ALT Text",
     "add_alt_text": "Enter ALT text in the image",
     "settings_general": "General",
+    "settings_search_placeholder": "Search settings",
+    "settings_search_no_results": "No settings found",
     "settings_design": "Design",
     "settings_timeline": "Timeline",
     "settings_moderation": "Content moderation",

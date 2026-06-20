@@ -9,6 +9,7 @@ import { unwrapFunctionStore, format } from 'svelte-i18n';
 class AppState {
     ready: boolean = $state(false);
     status: number = $state(0);
+    pdsRequestReady: boolean = $state(false);
     profile: PersistedState<number> = new PersistedState('currentProfile', 1);
     missingAccounts: string[] = $state([]);
     labelDefs = new PersistedState('labelDefs', []);
@@ -127,6 +128,10 @@ class AppState {
         this.profile.current = id;
         appState.ready = false;
         appState.init();
+    }
+
+    setPdsRequestReady() {
+        this.pdsRequestReady = true;
     }
 }
 
