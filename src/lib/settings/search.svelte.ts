@@ -1,4 +1,5 @@
 import { settingsSchema } from './schema';
+import { settingsNav } from './nav';
 import type { SettingsCategoryId } from './schema.types';
 
 /**
@@ -6,9 +7,14 @@ import type { SettingsCategoryId } from './schema.types';
  * normalized substring matcher both sufficient and correct across all locales —
  * notably for CJK, where Fuse.js's token/typo model would be worse.
  *
- * The index always carries the ENGLISH label and the key's variable name (incl.
- * camelCase word-split), so an English query (e.g. "dark", "embed via") hits the
- * setting under any UI locale. Rebuilt from the schema + i18n on locale change.
+ * The index carries two kinds of entry:
+ *  - field entries (from the schema) — jump to a specific setting via #key.
+ *  - page entries (from the nav) — jump to a whole settings page, so bespoke,
+ *    not-yet-schematized pages (moderation, keyword mutes, ...) are findable.
+ *
+ * Every entry also carries the ENGLISH label and the key/id variable name (incl.
+ * camelCase/kebab word-split), so an English query hits under any UI locale.
+ * Rebuilt from the schema + nav + i18n on locale change.
  */
 
 const categoryRoute: Record<SettingsCategoryId, string> = {
@@ -31,22 +37,22 @@ function normalize(text: string): string {
     return text.normalize('NFKC').toLowerCase().replace(/[̀-ͯ]/g, '');
 }
 
-/** Leaf variable name + camelCase split: 'disableEmbedVia' -> 'disableEmbedVia disable Embed Via'. */
-function keyToText(key: string): string {
-    const leaf = key.split('.').pop() ?? '';
-    const spaced = leaf.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
-    return `${leaf} ${spaced}`;
+/** Variable name + word split: 'disableEmbedVia'/'keyword-mutes' -> '... disable embed via'. */
+function nameToText(name: string): string {
+    const spaced = name.replace(/[-_.]/g, ' ').replace(/([a-z0-9])([A-Z])/g, '$1 $2');
+    return `${name} ${spaced}`;
 }
 
 export interface SearchEntry {
-    key: string;
-    category: SettingsCategoryId;
+    id: string; // unique: field key, or 'page:<navId>'
     route: string;
+    hash?: string; // field anchor (#key); absent for page entries
     label: string; // current-locale display label
+    badge: string; // category label for fields; '' for page entries
     labelNorm: string;
     labelEnNorm: string; // english label, so EN queries hit under any UI locale
-    keyNorm: string; // variable name (camelCase-split)
-    haystack: string; // descriptions, category label, keywords (current + english)
+    keyNorm: string; // variable name / id (word-split)
+    haystack: string;
 }
 
 export interface SearchResult extends SearchEntry {
@@ -61,28 +67,48 @@ export function buildIndex(
     translate: (key: string) => string,
     translateEn: (key: string) => string,
 ): SearchEntry[] {
-    return settingsSchema.map((item) => {
+    const fieldEntries: SearchEntry[] = settingsSchema.map((item) => {
         const label = item.literalLabel ? item.label : translate(item.label);
         const labelEn = item.literalLabel ? item.label : translateEn(item.label);
+        const badge = translate(categoryLabel[item.category]);
         const parts = [
             label,
             labelEn,
             item.description ? translate(item.description) : '',
             item.description ? translateEn(item.description) : '',
-            translate(categoryLabel[item.category]),
+            badge,
             ...(item.searchKeywords ?? []).flatMap((keyword) => [translate(keyword), translateEn(keyword)]),
         ];
         return {
-            key: item.key,
-            category: item.category,
+            id: item.key,
             route: categoryRoute[item.category],
+            hash: item.key,
             label,
+            badge,
             labelNorm: normalize(label),
             labelEnNorm: normalize(labelEn),
-            keyNorm: normalize(keyToText(item.key)),
+            keyNorm: normalize(nameToText(item.key)),
             haystack: normalize(parts.join(' ')),
         };
     });
+
+    const pageEntries: SearchEntry[] = settingsNav.map((nav) => {
+        const label = translate(nav.label);
+        const labelEn = translateEn(nav.label);
+        return {
+            id: `page:${nav.id}`,
+            route: nav.href,
+            hash: undefined,
+            label,
+            badge: '',
+            labelNorm: normalize(label),
+            labelEnNorm: normalize(labelEn),
+            keyNorm: normalize(nameToText(nav.id)),
+            haystack: normalize([label, labelEn].join(' ')),
+        };
+    });
+
+    return [...fieldEntries, ...pageEntries];
 }
 
 export function searchSettings(index: SearchEntry[], query: string): SearchResult[] {

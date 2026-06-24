@@ -1,16 +1,9 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import {_} from "svelte-i18n";
     import { confetti } from '@neoconfetti/svelte';
     import {createEventDispatcher, onMount} from "svelte";
     import {settings} from "$lib/stores";
-    let layout = $state($settings?.design.layout || 'default');
     const dispatch = createEventDispatcher();
-
-    run(() => {
-        $settings.design.layout = layout;
-    });
 
     let el = $state();
 
@@ -36,7 +29,7 @@
                 <div class="settings-group__content">
                     <div class="big-radio-group">
                         <div class="big-radio">
-                            <input type="radio" bind:group={layout} id="layoutDecks" name="layout" value={'decks'}>
+                            <input type="radio" bind:group={$settings.design.layout} id="layoutDecks" name="layout" value={'decks'}>
                             <label for="layoutDecks">
                                 <span class="big-radio__ui">
                                     <span class="big-radio__check">
@@ -51,7 +44,7 @@
                         </div>
 
                         <div class="big-radio">
-                            <input type="radio" bind:group={layout} id="layoutDefault" name="layout" value={'default'}>
+                            <input type="radio" bind:group={$settings.design.layout} id="layoutDefault" name="layout" value={'default'}>
                             <label for="layoutDefault">
                                 <span class="big-radio__ui">
                                     <span class="big-radio__check">

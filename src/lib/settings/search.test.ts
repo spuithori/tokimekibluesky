@@ -11,6 +11,8 @@ const jaLabels: Record<string, string> = {
     skip_repost_confirm: 'リポストの確認をスキップ',
     settings_design: 'デザイン',
     settings_general: '全般',
+    settings_moderation: 'モデレーション',
+    settings_keyword_mutes: 'キーワードミュート',
 };
 const enLabels: Record<string, string> = {
     darkmode: 'Dark mode',
@@ -19,6 +21,8 @@ const enLabels: Record<string, string> = {
     skip_repost_confirm: 'Skip repost confirmation',
     settings_design: 'Design',
     settings_general: 'General',
+    settings_moderation: 'Content moderation',
+    settings_keyword_mutes: 'Keyword Mutes',
 };
 
 const ja = (key: string) => jaLabels[key] ?? key;
@@ -29,28 +33,46 @@ describe('settings search', () => {
 
     it('finds a setting by its key variable name (camelCase joined)', () => {
         const results = searchSettings(index, 'darkmode');
-        expect(results.some((r) => r.key === 'design.darkmode')).toBe(true);
+        expect(results.some((r) => r.id === 'design.darkmode')).toBe(true);
     });
 
     it('finds a setting by english label while UI is in Japanese', () => {
         const results = searchSettings(index, 'dark');
-        expect(results.some((r) => r.key === 'design.darkmode')).toBe(true);
+        expect(results.some((r) => r.id === 'design.darkmode')).toBe(true);
     });
 
     it('finds via camelCase word-split (e.g. "embed via")', () => {
         const results = searchSettings(index, 'embed via');
-        expect(results.some((r) => r.key === 'embed.disableEmbedVia')).toBe(true);
+        expect(results.some((r) => r.id === 'embed.disableEmbedVia')).toBe(true);
     });
 
     it('finds by current-locale (ja) label and ranks an exact match first', () => {
         const results = searchSettings(index, 'ダークモード');
-        expect(results[0]?.key).toBe('design.darkmode');
+        expect(results[0]?.id).toBe('design.darkmode');
     });
 
     it('matches english description text (haystack)', () => {
         // 'confirmation' only appears in the english label of skip_repost_confirm
         const results = searchSettings(index, 'confirmation');
-        expect(results.some((r) => r.key === 'general.repostConfirmSkip')).toBe(true);
+        expect(results.some((r) => r.id === 'general.repostConfirmSkip')).toBe(true);
+    });
+
+    it('finds a bespoke settings page by name (page-level entry, no hash)', () => {
+        const results = searchSettings(index, 'moderation');
+        const page = results.find((r) => r.id === 'page:moderation');
+        expect(page).toBeDefined();
+        expect(page?.hash).toBeUndefined();
+        expect(page?.route).toBe('/settings/moderation');
+    });
+
+    it('finds a settings page by its Japanese name', () => {
+        const results = searchSettings(index, 'モデレーション');
+        expect(results.some((r) => r.id === 'page:moderation')).toBe(true);
+    });
+
+    it('finds the keyword-mutes page by english query under a JA UI', () => {
+        const results = searchSettings(index, 'keyword');
+        expect(results.some((r) => r.id === 'page:keyword-mutes')).toBe(true);
     });
 
     it('returns nothing for a blank query', () => {

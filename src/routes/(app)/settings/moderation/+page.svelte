@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import {_} from 'svelte-i18n';
     import {settings} from '$lib/stores';
     import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
@@ -8,21 +6,11 @@
     import {ChevronRight, Globe2, MessageCircleMore, MessageCircleOff, Repeat2, Shield, VolumeX, ShieldBan} from "lucide-svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {appState} from "$lib/classes/appState.svelte";
-
-    type contentLabelsSelect = 'hide' | 'warn' | 'ignore';
-    type contentLabels = {
-        gore: contentLabelsSelect,
-        hate: contentLabelsSelect,
-        impersonation: contentLabelsSelect,
-        nsfw: contentLabelsSelect,
-        nudity: contentLabelsSelect,
-        spam: contentLabelsSelect,
-        suggestive: contentLabelsSelect,
-    }
+    import type {ContentLabelPrefs} from "$lib/settings/types";
 
     const officialLabelerDid = 'did:plc:ar7c4by46qjdydhdevvrndac';
 
-    let labels: contentLabels = $state($settings.moderation.contentLabels || {
+    let labels: ContentLabelPrefs = $state($settings.moderation.contentLabels || {
         gore: 'warn',
         hate: 'warn',
         impersonation: 'warn',
@@ -32,8 +20,8 @@
         suggestive: 'warn',
     });
 
-    run(() => {
-        let labelsAlt = new Map();
+    $effect(() => {
+        const labelsAlt = new Map<string, string[]>();
         labelsAlt.set('nsfw', ['porn']);
         labelsAlt.set('suggestive', ['sexual']);
         labelsAlt.set('gore', ['graphic-media']);

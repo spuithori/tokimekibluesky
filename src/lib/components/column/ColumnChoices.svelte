@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {agent, bookmarkModal, cloudBookmarkModal, listModal, officialListModal, userLists} from "$lib/stores";
   import {_} from "svelte-i18n";
@@ -157,11 +155,6 @@
       },
   ];
 
-  let bookmarkColumns = $state([]);
-  let cloudBookmarkColumns = $state([]);
-  let localListColumns = $state([]);
-  let officialListColumns = $state([]);
-  let feedColumns = $state([]);
   let savedFeeds = $state([]);
   let officialLists = $state([]);
   let cloudBookmarks = $state([]);
@@ -169,74 +162,67 @@
   let officialListColumnsRefreshing = $state(true);
   let cloudBookmarkColumnRefreshing = $state(true);
   
-  function updateBookmark(bookmarks) {
+  function buildBookmarkColumns(bookmarks) {
       if (!bookmarks) {
-          return false;
+          return [];
       }
 
-      bookmarkColumns = [];
-
-      bookmarks.forEach(bookmark => {
-          if (bookmark.owner === _agent.did()) {
-              bookmarkColumns = [...bookmarkColumns, {
-                  id: self.crypto.randomUUID(),
-                  algorithm: {
-                      type: 'bookmark',
-                      algorithm: String(bookmark.id),
-                      name: bookmark.name,
-                      list: String(bookmark.id),
-                  },
-                  style: 'default',
-                  settings: defaultDeckSettings,
-                  did: _agent.did(),
-                  handle: _agent.handle(),
-                  data: {
-                      feed: [],
-                      cursor: '',
-                  }
-              }]
-          }
-      });
+      return bookmarks
+          .filter(bookmark => bookmark.owner === _agent.did())
+          .map(bookmark => ({
+              id: self.crypto.randomUUID(),
+              algorithm: {
+                  type: 'bookmark',
+                  algorithm: String(bookmark.id),
+                  name: bookmark.name,
+                  list: String(bookmark.id),
+              },
+              style: 'default',
+              settings: defaultDeckSettings,
+              did: _agent.did(),
+              handle: _agent.handle(),
+              data: {
+                  feed: [],
+                  cursor: '',
+              }
+          }));
   }
 
-  function updateList(lists) {
+  function buildListColumns(lists) {
       if (!lists) {
-          return false;
+          return [];
       }
 
-      localListColumns = [];
-
-      lists.forEach(list => {
-          if (list.owner === _agent.did()) {
-              localListColumns = [...localListColumns, {
-                  id: self.crypto.randomUUID(),
-                  algorithm: {
-                      type: 'list',
-                      algorithm: String(list.id),
-                      name: list.name,
-                      list: String(list.id),
-                  },
-                  style: 'default',
-                  settings: defaultDeckSettings,
-                  did: _agent.did(),
-                  handle: _agent.handle(),
-                  data: {
-                      feed: [],
-                      cursor: '',
-                  }
-              }]
-          }
-      });
+      return lists
+          .filter(list => list.owner === _agent.did())
+          .map(list => ({
+              id: self.crypto.randomUUID(),
+              algorithm: {
+                  type: 'list',
+                  algorithm: String(list.id),
+                  name: list.name,
+                  list: String(list.id),
+              },
+              style: 'default',
+              settings: defaultDeckSettings,
+              did: _agent.did(),
+              handle: _agent.handle(),
+              data: {
+                  feed: [],
+                  cursor: '',
+              }
+          }));
   }
 
   async function updateFeeds() {
-      const accountId = await getAccountIdByDidFromDb(_agent.did());
+      const agent = _agent;
+      const accountId = await getAccountIdByDidFromDb(agent.did());
       const account = await accountsDb.accounts.get(accountId);
       const feeds = account?.feeds;
       savedFeeds = feeds || [];
 
       try {
-          savedFeeds = await _agent.getSavedFeeds();
+          savedFeeds = await agent.getSavedFeeds();
           await accountsDb.accounts.update(accountId, {
               feeds: $state.snapshot(savedFeeds),
           });
@@ -250,12 +236,13 @@
   }
 
   async function updateLists() {
-      const accountId = await getAccountIdByDidFromDb(_agent.did());
+      const agent = _agent;
+      const accountId = await getAccountIdByDidFromDb(agent.did());
       const account = await accountsDb.accounts.get(accountId);
       const lists = account?.lists;
       officialLists = lists || [];
 
-      const res = await _agent.xrpc.get('app.bsky.graph.getLists', {actor: _agent.did(), limit: 100, cursor: ''});
+      const res = await agent.xrpc.get('app.bsky.graph.getLists', {actor: agent.did(), limit: 100, cursor: ''});
       officialLists = res.lists.filter(item => item?.purpose !== 'app.bsky.graph.defs#modlist');
 
       await accountsDb.accounts.update(accountId, {
@@ -266,12 +253,13 @@
   }
 
   async function updateCloudBookmarks() {
-      const accountId = await getAccountIdByDidFromDb(_agent.did());
+      const agent = _agent;
+      const accountId = await getAccountIdByDidFromDb(agent.did());
       const account = await accountsDb.accounts.get(accountId);
       const bookmarks = account?.cloudBookmarks;
       cloudBookmarks = bookmarks || [];
 
-      const result = await _agent.getCloudBookmarks();
+      const result = await agent.getCloudBookmarks();
       cloudBookmarks = result.bookmarks;
 
       await accountsDb.accounts.update(accountId, {
@@ -281,91 +269,84 @@
       cloudBookmarkColumnRefreshing = false;
   }
 
-  function applyFeedColumns(feeds) {
+  function buildFeedColumns(feeds) {
       if (!feeds) {
-          return false;
+          return [];
       }
-      
-      feedColumns = feeds.map(feed => {
-          return {
-              id: self.crypto.randomUUID(),
-              algorithm: {
-                  type: 'custom',
-                  algorithm: feed.uri,
-                  name: feed.name,
-              },
-              style: 'default',
-              settings: defaultDeckSettings,
-              did: _agent.did(),
-              handle: _agent.handle(),
-              data: {
-                  feed: [],
-                  cursor: '',
-              }
+
+      return feeds.map(feed => ({
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'custom',
+              algorithm: feed.uri,
+              name: feed.name,
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
           }
-      })
+      }))
   }
 
-  function applyOfficialListColumns(lists) {
-      officialListColumns = lists.map(list => {
-          return  {
-              id: self.crypto.randomUUID(),
-              algorithm: {
-                  type: 'officialList',
-                  algorithm: list.uri,
-                  name: list.name,
-              },
-              style: 'default',
-              settings: defaultDeckSettings,
-              did: _agent.did(),
-              handle: _agent.handle(),
-              data: {
-                  feed: [],
-                  cursor: '',
-              }
+  function buildOfficialListColumns(lists) {
+      if (!lists) {
+          return [];
+      }
+
+      return lists.map(list => ({
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'officialList',
+              algorithm: list.uri,
+              name: list.name,
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
           }
-      })
+      }))
   }
 
-  function applyCloudBookmarkColumns(bookmarks) {
-      cloudBookmarkColumns = bookmarks.map(bookmark => {
-          return  {
-              id: self.crypto.randomUUID(),
-              algorithm: {
-                  type: 'cloudBookmark',
-                  algorithm: bookmark.id,
-                  name: bookmark.name,
-              },
-              style: 'default',
-              settings: defaultDeckSettings,
-              did: _agent.did(),
-              handle: _agent.handle(),
-              data: {
-                  feed: [],
-                  cursor: '',
-              }
+  function buildCloudBookmarkColumns(bookmarks) {
+      if (!bookmarks) {
+          return [];
+      }
+
+      return bookmarks.map(bookmark => ({
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'cloudBookmark',
+              algorithm: bookmark.id,
+              name: bookmark.name,
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
           }
-      })
+      }))
   }
 
   onMount(async () => {
       await Promise.all([updateLists(), updateFeeds(), updateCloudBookmarks()]);
   })
-  run(() => {
-    updateBookmark($bookmarks);
-  });
-  run(() => {
-    updateList($userLists);
-  });
-  run(() => {
-    applyFeedColumns(savedFeeds);
-  });
-  run(() => {
-    applyOfficialListColumns(officialLists);
-  });
-  run(() => {
-    applyCloudBookmarkColumns(cloudBookmarks);
-  });
+
+  const bookmarkColumns = $derived(buildBookmarkColumns($bookmarks));
+  const localListColumns = $derived(buildListColumns($userLists));
+  const feedColumns = $derived(buildFeedColumns(savedFeeds));
+  const officialListColumns = $derived(buildOfficialListColumns(officialLists));
+  const cloudBookmarkColumns = $derived(buildCloudBookmarkColumns(cloudBookmarks));
 </script>
 
 <div>

@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { once } from 'svelte/legacy';
-
   import { compressImage } from '$lib/imageCompressor/compressor';
   import {tick} from "svelte";
   import {_} from 'svelte-i18n';
@@ -16,6 +14,9 @@
   let isUsed = $state(false);
 
   async function getAltTextFromAi(category: 'ocr' | 'description') {
+      if (isProcessing || isUsed) {
+          return;
+      }
       isMenuOpen = false;
       const blob = new Blob([image.file], {type: image.file.type});
       const compressedFile = await compressImage(blob, {
@@ -76,11 +77,11 @@
         {#snippet content()}
                 <ul  class="timeline-menu-list">
             <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button" onclick={once(() => {getAltTextFromAi('ocr')})} disabled={isProcessing}>{$_('ai_alt_ocr')}</button>
+              <button class="timeline-menu-list__button" onclick={() => getAltTextFromAi('ocr')} disabled={isProcessing}>{$_('ai_alt_ocr')}</button>
             </li>
 
             <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button" onclick={once(() => {getAltTextFromAi('description')})} disabled={isProcessing}>{$_('ai_alt_description')}</button>
+              <button class="timeline-menu-list__button" onclick={() => getAltTextFromAi('description')} disabled={isProcessing}>{$_('ai_alt_description')}</button>
             </li>
           </ul>
               {/snippet}

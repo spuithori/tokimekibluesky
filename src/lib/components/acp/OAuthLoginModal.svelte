@@ -1,5 +1,4 @@
 <script lang="ts">
-import { preventDefault } from 'svelte/legacy';
 import { _ } from 'svelte-i18n';
 import { signIn } from '$lib/oauth';
 import { toast } from 'svelte-sonner';
@@ -37,7 +36,7 @@ function cancel() {
     <div class="login-modal-contents">
         <h2 class="login-modal__title">{$_('oauth_login')}</h2>
 
-        <form action="#" onsubmit={preventDefault(loginWithOAuth)}>
+        <form action="#" onsubmit={(e) => { e.preventDefault(); loginWithOAuth(); }}>
             <dl class="input-group">
                 <dt class="input-group__name input-group__name--show">
                     <label for="handle">Handle</label>
@@ -76,7 +75,7 @@ function cancel() {
                     {/if}
                 </button>
 
-                <button class="text-button" onclick={preventDefault(cancel)} disabled={isLoading}>
+                <button class="text-button" onclick={(e) => { e.preventDefault(); cancel(); }} disabled={isLoading}>
                     {$_('cancel')}
                 </button>
             </div>

@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
     import {agent, userLists} from '$lib/stores';
     import {onMount} from "svelte";
     import ListMember from "./ListMember.svelte";
@@ -129,7 +127,7 @@
             toast.error($_('error_invalid_text'));
         }
     }
-    run(() => {
+    $effect(() => {
         if (ready) {
             handleNameChange(name)
         }

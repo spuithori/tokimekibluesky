@@ -42,19 +42,20 @@
   });
 
   onMount(async () => {
+    const agent = _agent;
     try {
-      const pinned = await _agent.getV2PinnedFeeds();
+      const pinned = await agent.getV2PinnedFeeds();
 
       const feedsPromises = pinned.map(async (feed) => {
         try {
           if (feed.type === 'feed') {
-            const res = await _agent.xrpc.get('app.bsky.feed.getFeedGenerator', { feed: feed.value });
+            const res = await agent.xrpc.get('app.bsky.feed.getFeedGenerator', { feed: feed.value });
             return {
               ...feed,
               name: res?.view?.displayName,
             };
           } else if (feed.type === 'list') {
-            const res = await _agent.xrpc.get('app.bsky.graph.getList', { list: feed.value });
+            const res = await agent.xrpc.get('app.bsky.graph.getList', { list: feed.value });
             return {
               ...feed,
               name: res?.list?.name,

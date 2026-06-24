@@ -1,6 +1,4 @@
 <script lang="ts">
-   import { preventDefault } from 'svelte/legacy';
-
     import {createEventDispatcher, onMount, onDestroy} from 'svelte'
     import {Editor} from '@tiptap/core'
     import Link from '@tiptap/extension-link';
@@ -287,7 +285,7 @@
 <dialog class="editor-link-dialog" bind:this={linkDialog} onclose={submitLink}>
   <form>
     <input type="text" class="editor-link-dialog__input" bind:value={linkValue} placeholder="https://tokimeki.blue">
-    <button class="editor-link-dialog__button" onclick={preventDefault(() => {linkDialog.close(linkValue)})}>
+    <button class="editor-link-dialog__button" onclick={(e) => { e.preventDefault(); linkDialog.close(linkValue); }}>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-corner-down-left"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
     </button>
   </form>

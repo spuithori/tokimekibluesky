@@ -87,12 +87,34 @@ export interface TimelineSettings {
     simpleReply: boolean;
 }
 
+/**
+ * Label visibility action. The atproto visibility preferences are standardized
+ * to these three; third-party labelers add new label *identifiers* (keys), not
+ * new actions — so the value is typed while keys stay open.
+ */
+export type LabelPreference = 'hide' | 'warn' | 'ignore';
+
+/**
+ * Map of label identifier → action. Keys are intentionally open-ended: built-in
+ * Bluesky labels, tokimeki aliases ('graphic-media', ...) and arbitrary
+ * third-party labeler values all coexist here.
+ */
+export type ContentLabelPrefs = Record<string, LabelPreference>;
+
+/** Per-labeler preferences — third-party labelers define their own label keys. */
+export interface LabelerPreference {
+    did: string;
+    labels: ContentLabelPrefs;
+}
+
 export interface ModerationSettings {
-    // contentLabels / labelers are complex, account-scoped values reconciled in
-    // Phase 4. The moderation page defines a divergent local key set today, so
-    // these stay loose to preserve existing (previously untyped) behaviour.
-    contentLabels: any;
-    labelers: unknown[];
+    contentLabels: ContentLabelPrefs;
+    /**
+     * Currently vestigial in $settings (no consumer reads it) — the live
+     * per-labeler prefs are the separate `labelerSettings` store. Typed for
+     * shape compatibility / forward use.
+     */
+    labelers: LabelerPreference[];
 }
 
 export interface EmbedSettings {

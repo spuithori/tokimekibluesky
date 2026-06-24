@@ -1,27 +1,20 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
   import {_} from "svelte-i18n";
 
   let { keyword = $bindable(), index } = $props();
 
   const regTime = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/
 
-  let startPercent = $state();
-  let endPercent = $state();
-
-  run(() => {
-      if (regTime.test(keyword.period.start)) {
-          const array = keyword.period.start.split(':');
-          const minutes = Number(array[0]) * 60 + Number(array[1]);
-          startPercent = minutes / 1440 * 100;
+  function toPercent(time: string): number | undefined {
+      if (!regTime.test(time)) {
+          return undefined;
       }
+      const [hours, minutes] = time.split(':');
+      return (Number(hours) * 60 + Number(minutes)) / 1440 * 100;
+  }
 
-      if (regTime.test(keyword.period.end)) {
-          const array = keyword.period.end.split(':');
-          const minutes = Number(array[0]) * 60 + Number(array[1]);
-          endPercent = minutes / 1440 * 100;
-      }
-  });
+  const startPercent = $derived(toPercent(keyword.period.start) ?? 0);
+  const endPercent = $derived(toPercent(keyword.period.end) ?? 0);
 </script>
 
 <div class="keyword-mute">

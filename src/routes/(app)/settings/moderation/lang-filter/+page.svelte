@@ -1,15 +1,8 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import {_} from 'svelte-i18n';
     import { settings } from '$lib/stores';
     import { languageMap } from "$lib/langs/languageMap";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
-    let langFilter = $state($settings.langFilter || []);
-
-    run(() => {
-        $settings.langFilter = langFilter;
-    });
 </script>
 
 <svelte:head>
@@ -18,7 +11,7 @@
 
 <div>
   <SettingsHeader>
-    {$_('settings_lang_filter')} ({langFilter.length})
+    {$_('settings_lang_filter')} ({$settings.langFilter.length})
   </SettingsHeader>
 
   <div class="settings-wrap">
@@ -32,7 +25,7 @@
 
             <div class="input-toggle">
               <input class="input-toggle__input" type="checkbox" id={k}
-              value={k} name="Languages" bind:group={langFilter}><label class="input-toggle__label" for={k}></label>
+              value={k} name="Languages" bind:group={$settings.langFilter}><label class="input-toggle__label" for={k}></label>
             </div>
           </div>
         {/each}

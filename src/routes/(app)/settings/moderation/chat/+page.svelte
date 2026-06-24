@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import {_} from "svelte-i18n";
   import {agent, agents, settings} from "$lib/stores";
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
@@ -67,7 +65,7 @@
       await loadSettings();
       ready = true;
   })
-  run(() => {
+  $effect(() => {
     changeSettings(allowInComing);
   });
 </script>

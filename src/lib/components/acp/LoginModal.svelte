@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { preventDefault } from 'svelte/legacy';
   import { _ } from "svelte-i18n";
   import { PasswordSession, type SessionData } from "$lib/password-session";
   import { accountsDb } from "$lib/db";
@@ -125,7 +124,7 @@
     </div>
 
     {#if authMode === 'oauth'}
-      <form action="#" onsubmit={preventDefault(loginWithOAuth)}>
+      <form action="#" onsubmit={(e) => { e.preventDefault(); loginWithOAuth(); }}>
         <dl class="input-group">
           <dt class="input-group__name input-group__name--show">
             <label for="handle">Handle</label>
@@ -151,7 +150,7 @@
             {/if}
           </button>
 
-          <button class="text-button" onclick={preventDefault(cancel)} disabled={isOAuthLoading}>
+          <button class="text-button" onclick={(e) => { e.preventDefault(); cancel(); }} disabled={isOAuthLoading}>
             {$_('cancel')}
           </button>
         </div>
@@ -161,7 +160,7 @@
         <p>{$_('oauth_recommended')}</p>
       </div>
     {:else}
-      <form action="#" onsubmit={preventDefault(loginWithPassword)}>
+      <form action="#" onsubmit={(e) => { e.preventDefault(); loginWithPassword(); }}>
         <dl class="input-group">
           <dt class="input-group__name input-group__name--show">
             <label for="service">{$_('login_service')}</label>
@@ -210,7 +209,7 @@
         <div class="login-submit">
           <button class="button button--login" type="submit">{$_('login')}</button>
 
-          <button class="text-button" onclick={preventDefault(cancel)}>{$_('cancel')}</button>
+          <button class="text-button" onclick={(e) => { e.preventDefault(); cancel(); }}>{$_('cancel')}</button>
         </div>
       </form>
 

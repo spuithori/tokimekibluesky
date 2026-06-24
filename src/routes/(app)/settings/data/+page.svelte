@@ -2,6 +2,7 @@
     import {_} from 'svelte-i18n';
     import {postMutes} from "$lib/stores";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+    import SettingsBackup from "$lib/components/settings/SettingsBackup.svelte";
     import { ChevronRight, FolderInput } from "lucide-svelte";
 
     function deletePostMutes() {
@@ -25,6 +26,8 @@
       <a href="/settings/data/workspace-import-export">{$_('workspace_import_export')}</a>
       <ChevronRight size="20"></ChevronRight>
     </div>
+
+    <SettingsBackup />
 
     <div class="bookmark-import-export bookmark-import-export--export">
       <h2 class="bookmark-import-export__title">{$_('delete_post_mutes')}</h2>

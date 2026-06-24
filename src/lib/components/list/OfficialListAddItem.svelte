@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { preventDefault } from 'svelte/legacy';
   import {agent} from "$lib/stores";
   import { toast } from "svelte-sonner";
 
@@ -59,7 +58,7 @@
 
   <div class="list-add-item__buttons">
     <div class="input-toggle">
-      <input class="input-toggle__input" type="checkbox" id={list.uri} bind:checked={isChecked} disabled={isDisabled} onclick={preventDefault(handleChange)}><label class="input-toggle__label" for={list.uri}></label>
+      <input class="input-toggle__input" type="checkbox" id={list.uri} bind:checked={isChecked} disabled={isDisabled} onclick={(e) => { e.preventDefault(); handleChange(); }}><label class="input-toggle__label" for={list.uri}></label>
     </div>
   </div>
 </div>
