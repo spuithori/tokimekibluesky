@@ -1,11 +1,13 @@
-import {UnicodeString} from "$lib/atproto-richtext";
+import {UnicodeString, detectFacets} from "$lib/atproto-richtext";
 import type {Facet} from "$lib/atproto-richtext";
 import {SimpleRichText} from "$lib/components/editor/SimpleRichText";
 
 export async function detectRichTextWithEditorJson(_agent, text, json) {
     const rt = new SimpleRichText({text: text});
     await rt.detectFacetsWithoutLinks((handle: string) => _agent.resolveHandle(handle));
-    const linkFacets: Facet[] = detectLinkFacets(json);
+    const linkFacets: Facet[] = Array.isArray(json?.content)
+        ? detectLinkFacets(json)
+        : detectLinkFacetsFromText(text);
     if (Array.isArray(rt.facets)) {
         rt.facets = [...rt.facets, ...linkFacets];
     } else {
@@ -51,6 +53,12 @@ function detectLinkFacets(json): Facet[] {
     })
 
     return facets;
+}
+
+function detectLinkFacetsFromText(text: string): Facet[] {
+    const facets = detectFacets(new UnicodeString(text));
+    if (!facets) return [];
+    return facets.filter(facet => facet.features[0]?.$type === 'app.bsky.richtext.facet#link');
 }
 
 export function jsonToText(json) {
