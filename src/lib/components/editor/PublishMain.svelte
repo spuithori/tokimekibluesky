@@ -611,7 +611,7 @@
 
         <div class="publish-tags">
           <button class="publish-lang" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
-            {#if (post.lang !== 'auto' && Array.isArray(post.lang))}
+            {#if (post.lang !== 'auto' && Array.isArray(post.lang) && post.lang.length)}
               {#each post.lang as lang}
                 <span class="lang-label"><Globe size="16" color="var(--publish-tool-button-color)"></Globe> {$_(languageMap.get(lang)?.name)}</span>
               {/each}

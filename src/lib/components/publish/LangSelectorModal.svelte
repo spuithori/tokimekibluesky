@@ -14,8 +14,12 @@
   });
 
   $effect(() => {
-      if (Array.isArray(post.lang) && post.lang.includes('auto')) {
+      if (!Array.isArray(post.lang)) return;
+
+      if (post.lang.includes('auto')) {
           post.lang = post.lang.filter(lang => lang !== 'auto');
+      } else if (post.lang.length === 0) {
+          post.lang = 'auto';
       }
   });
 </script>
