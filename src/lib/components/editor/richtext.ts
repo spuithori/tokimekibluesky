@@ -16,7 +16,9 @@ export async function detectRichTextWithEditorJson(_agent, text, json) {
 }
 
 function detectLinkFacets(json): Facet[] {
-    const content = json.content;
+    const content = json?.content;
+    if (!Array.isArray(content)) return [];
+
     let length = 0;
     let facets = [];
 
@@ -52,7 +54,9 @@ function detectLinkFacets(json): Facet[] {
 }
 
 export function jsonToText(json) {
-    const content = json.content;
+    const content = json?.content;
+    if (!Array.isArray(content)) return '';
+
     let text = '';
 
     content.forEach((p, index) => {
