@@ -3,9 +3,17 @@
     import { toast } from 'svelte-sonner';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { migrate } from '$lib/settings/migrations';
+    import { muteListsState } from '$lib/classes/muteListsState.svelte';
 
     function exportSettings() {
-        const json = JSON.stringify(settingsStore.snapshot, null, 2);
+        const data = {
+            settings: settingsStore.snapshot,
+            muteLists: {
+                postMutes: muteListsState.postMutes,
+                repostMutes: muteListsState.repostMutes,
+            },
+        };
+        const json = JSON.stringify(data, null, 2);
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
@@ -26,9 +34,11 @@
             if (!confirm($_('settings_import_confirm'))) {
                 return;
             }
-            // migrate() backfills missing keys, preserves unknown keys and lifts
-            // older exports to the current version — importing never corrupts.
-            settingsStore.raw = migrate(parsed);
+            const isWrapped = parsed && typeof parsed === 'object' && 'settings' in parsed;
+            settingsStore.raw = migrate(isWrapped ? parsed.settings : parsed);
+            if (isWrapped && parsed.muteLists) {
+                muteListsState.importLists(parsed.muteLists);
+            }
             toast.success($_('settings_import_success'));
         } catch (e) {
             console.error('Failed to import settings', e);

@@ -1,7 +1,8 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
   import { Trash2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply, VolumeX, ShieldBan, BellOff, Bell } from 'lucide-svelte';
-  import { agent, settings, reportModal, listAddModal, agents, repostMutesSet, postMutes, postMutesSet, bluefeedAddModal, pulseDetach, junkAgentDid, agentDidsSet } from '$lib/stores';
+  import { agent, settings, reportModal, listAddModal, agents, bluefeedAddModal, pulseDetach, junkAgentDid, agentDidsSet } from '$lib/stores';
+  import { muteListsState } from '$lib/classes/muteListsState.svelte';
   import { AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '$lib/atproto-guards'
   import { hasGalleryImages } from '$lib/components/post/embedImages'
   import { carouselDragState } from '$lib/classes/carouselDragState'
@@ -339,20 +340,19 @@
             return false;
         }
 
-        if ($repostMutesSet.has(did)) {
+        if (muteListsState.repostMuteSet.has(did)) {
             isHide = true;
         }
     }
 
     function detectPostMuteFilter() {
-        if ($postMutesSet.has(data.post.uri)) {
+        if (muteListsState.postMuteSet.has(data.post.uri)) {
             isHide = true;
         }
     }
 
     function mutePost() {
-        $postMutes = [...$postMutes, data.post.uri];
-        localStorage.setItem('postMutes', JSON.stringify($postMutes));
+        muteListsState.mutePost(data.post.uri);
         columnState.deletePost(data.post.uri);
         junkColumnState.deletePost(data.post.uri);
         toast.success($_('post_mute_success'));

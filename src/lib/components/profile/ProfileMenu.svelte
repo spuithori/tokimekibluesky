@@ -1,5 +1,6 @@
 <script lang="ts">
-  import {agent, listAddModal, repostMutes, reportModal} from "$lib/stores";
+  import {agent, listAddModal, reportModal} from "$lib/stores";
+  import {muteListsState} from "$lib/classes/muteListsState.svelte";
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
@@ -102,14 +103,12 @@
   }
 
   function repostMute() {
-      $repostMutes = [...$repostMutes, profile.did];
-      localStorage.setItem('repostMutes', JSON.stringify($repostMutes));
+      muteListsState.muteRepost(profile.did);
       toast.success($_('success_repost_mute'));
   }
 
   function repostUnmute() {
-      $repostMutes = $repostMutes.filter(dids => dids !== profile.did);
-      localStorage.setItem('repostMutes', JSON.stringify($repostMutes));
+      muteListsState.unmuteRepost(profile.did);
       toast.success($_('success_repost_unmute'));
   }
 </script>
@@ -169,7 +168,7 @@
             </li>
           {/if}
 
-          {#if $repostMutes.includes(profile.did)}
+          {#if muteListsState.repostMuteSet.has(profile.did)}
             <li class="timeline-menu-list__item timeline-menu-list__item--repost-mute">
               <button class="timeline-menu-list__button" onclick={repostUnmute}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>

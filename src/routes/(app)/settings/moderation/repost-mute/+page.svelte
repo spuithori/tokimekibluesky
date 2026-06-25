@@ -1,6 +1,7 @@
 <script lang="ts">
   import {_} from 'svelte-i18n';
-  import {agent, repostMutes} from "$lib/stores";
+  import {agent} from "$lib/stores";
+  import {muteListsState} from "$lib/classes/muteListsState.svelte";
   import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
   import Avatar from "../../../Avatar.svelte";
   import {Trash2} from "lucide-svelte";
@@ -8,9 +9,10 @@
 
   let slicedArray = $derived.by(() => {
     const result = [];
-    const length = $repostMutes.length;
+    const repostMutes = muteListsState.repostMutes;
+    const length = repostMutes.length;
     for (let i = 0; i < length; i += 20) {
-      const chunk = $repostMutes.slice(i, i + 20);
+      const chunk = repostMutes.slice(i, i + 20);
       result.push(chunk);
     }
 
@@ -21,8 +23,7 @@
 
   function handleRemove(did: string) {
     actors = actors.filter(actor => actor.did !== did);
-    $repostMutes = $repostMutes.filter(_did => did !== _did);
-    localStorage.setItem('repostMutes', JSON.stringify($repostMutes));
+    muteListsState.unmuteRepost(did);
   }
 
   async function handleLoadMore(loaded, complete) {

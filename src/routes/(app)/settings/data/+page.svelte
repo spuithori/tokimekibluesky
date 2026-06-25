@@ -1,13 +1,12 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import {postMutes} from "$lib/stores";
+    import {muteListsState} from "$lib/classes/muteListsState.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import SettingsBackup from "$lib/components/settings/SettingsBackup.svelte";
     import { ChevronRight, FolderInput } from "lucide-svelte";
 
     function deletePostMutes() {
-        $postMutes = [];
-        localStorage.setItem('postMutes', JSON.stringify([]));
+        muteListsState.clearPostMutes();
     }
 </script>
 
@@ -31,7 +30,7 @@
 
     <div class="bookmark-import-export bookmark-import-export--export">
       <h2 class="bookmark-import-export__title">{$_('delete_post_mutes')}</h2>
-      <p class="bookmark-import-export__description">{$_('delete_post_mutes_description_prefix')}: {$postMutes.length}</p>
+      <p class="bookmark-import-export__description">{$_('delete_post_mutes_description_prefix')}: {muteListsState.postMutes.length}</p>
 
       <div class="bookmark-import-export__buttons">
         <button class="button button--danger button--border" onclick={deletePostMutes}>{$_('delete')}</button>
