@@ -1,29 +1,32 @@
-import {defaultKeyword, type keyword, keywordStringToArray} from "$lib/timelineFilter";
+import {defaultKeywordMute, type FormattedKeywordMute, keywordStringToArray} from "$lib/timelineFilter";
+import type {KeywordMute} from "$lib/settings/types";
+import {settingsStore} from "$lib/settings/settings.svelte";
 
 class KeywordMuteState {
-    keywords = $state<keyword[]>([]);
-    formattedKeywords = $derived.by(() => {
+    get keywords(): KeywordMute[] {
+        return settingsStore.moderation.keywordMutes;
+    }
+    set keywords(value: KeywordMute[]) {
+        settingsStore.moderation.keywordMutes = value;
+    }
+
+    formattedKeywords = $derived.by<FormattedKeywordMute[]>(() => {
         const initialMutes = structuredClone($state.snapshot(this.keywords));
         if (!initialMutes || !initialMutes.length) {
             return [];
         }
 
-        return initialMutes.map(mute => {
-            mute.word = keywordStringToArray(mute.word);
-            return mute;
-        });
+        return initialMutes.map(mute => ({
+            ...mute,
+            word: keywordStringToArray(mute.word),
+        }));
     })
-
-    constructor() {
-        const storageKeywordMutes = localStorage.getItem('keywordMutes') || JSON.stringify([]);
-        this.keywords = JSON.parse(storageKeywordMutes);
-    }
 
     add(word: string) {
         this.keywords.push({
-            ...defaultKeyword,
-            word: word,
-        })
+            ...structuredClone(defaultKeywordMute),
+            word,
+        });
     }
 }
 

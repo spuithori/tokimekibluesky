@@ -37,7 +37,10 @@ function deepMerge<T>(defaults: T, stored: unknown): T {
     return result as T;
 }
 
-export function migrate(rawSettings: unknown, rawStateSettings?: unknown): Settings {
+export function migrate(
+    rawSettings: unknown,
+    legacy?: { stateSettings?: unknown; keywordMutes?: unknown },
+): Settings {
     const defaults = createDefaultSettings();
 
     if (!isPlainObject(rawSettings)) {
@@ -87,18 +90,26 @@ export function migrate(rawSettings: unknown, rawStateSettings?: unknown): Setti
     // v3 -> v4: fold the legacy 'stateSettings' localStorage key into the unified
     // tree, distributing its keys to their meaningful categories.
     if (stored.version < 4) {
-        if (isPlainObject(rawStateSettings)) {
-            const legacy = rawStateSettings as Record<string, any>;
+        if (isPlainObject(legacy?.stateSettings)) {
+            const stateSettings = legacy.stateSettings as Record<string, any>;
             if (!isPlainObject(stored.general)) stored.general = {};
             if (!isPlainObject(stored.embed)) stored.embed = {};
             const general = stored.general as Record<string, any>;
             const embed = stored.embed as Record<string, any>;
-            if (legacy.translationModel !== undefined) general.translationModel = legacy.translationModel;
-            if (legacy.autoTranslate !== undefined) general.autoTranslate = legacy.autoTranslate;
-            if (legacy.markedUnread !== undefined) general.markedUnread = legacy.markedUnread;
-            if (legacy.disableEmbedVia !== undefined) embed.disableEmbedVia = legacy.disableEmbedVia;
+            if (stateSettings.translationModel !== undefined) general.translationModel = stateSettings.translationModel;
+            if (stateSettings.autoTranslate !== undefined) general.autoTranslate = stateSettings.autoTranslate;
+            if (stateSettings.markedUnread !== undefined) general.markedUnread = stateSettings.markedUnread;
+            if (stateSettings.disableEmbedVia !== undefined) embed.disableEmbedVia = stateSettings.disableEmbedVia;
         }
         stored.version = 4;
+    }
+
+    if (stored.version < 5) {
+        if (!isPlainObject(stored.moderation)) stored.moderation = {};
+        if (legacy && Array.isArray(legacy.keywordMutes)) {
+            (stored.moderation as Record<string, any>).keywordMutes = legacy.keywordMutes;
+        }
+        stored.version = 5;
     }
 
     return deepMerge(defaults, stored);

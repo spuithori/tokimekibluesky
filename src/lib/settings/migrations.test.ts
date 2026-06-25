@@ -103,9 +103,9 @@ describe('migrate', () => {
     it('folds legacy stateSettings into the unified tree (v3 -> v4)', () => {
         const result = migrate(
             { version: 3 },
-            { translationModel: 'llm', autoTranslate: true, markedUnread: true, disableEmbedVia: true },
+            { stateSettings: { translationModel: 'llm', autoTranslate: true, markedUnread: true, disableEmbedVia: true } },
         );
-        expect(result.version).toBe(4);
+        expect(result.version).toBe(CURRENT_VERSION);
         expect(result.general.translationModel).toBe('llm');
         expect(result.general.autoTranslate).toBe(true);
         expect(result.general.markedUnread).toBe(true);
@@ -123,8 +123,56 @@ describe('migrate', () => {
     it('does not re-fold stateSettings once already at v4', () => {
         const result = migrate(
             { version: 4, general: { translationModel: 'nmt' } },
-            { translationModel: 'llm' },
+            { stateSettings: { translationModel: 'llm' } },
         );
         expect(result.general.translationModel).toBe('nmt');
+    });
+
+    const sampleMute = {
+        enabled: true,
+        word: 'foo',
+        period: { start: '00:00', end: '23:59' },
+        ignoreCaseSensitive: false,
+        regExp: false,
+    };
+
+    it('folds legacy keywordMutes into moderation (v4 -> v5)', () => {
+        const result = migrate({ version: 4 }, { keywordMutes: [sampleMute] });
+        expect(result.version).toBe(5);
+        expect(result.moderation.keywordMutes).toEqual([sampleMute]);
+    });
+
+    it('preserves existing moderation fields while folding keywordMutes', () => {
+        const result = migrate(
+            {
+                version: 4,
+                moderation: { contentLabels: { porn: 'hide' }, labelers: [{ did: 'did:x', labels: {} }] },
+            },
+            { keywordMutes: [{ ...sampleMute, word: 'bar' }] },
+        );
+        expect(result.moderation.contentLabels.porn).toBe('hide');
+        expect(result.moderation.labelers).toEqual([{ did: 'did:x', labels: {} }]);
+        expect(result.moderation.keywordMutes[0].word).toBe('bar');
+    });
+
+    it('initialises keywordMutes to [] when no legacy data exists (v4 -> v5)', () => {
+        const result = migrate({ version: 4 });
+        expect(result.version).toBe(5);
+        expect(result.moderation.keywordMutes).toEqual([]);
+    });
+
+    it('is idempotent on a v5 payload', () => {
+        const once = migrate({ version: 4 }, { keywordMutes: [sampleMute] });
+        const twice = migrate(once);
+        expect(twice).toEqual(once);
+    });
+
+    it('does not re-fold keywordMutes once already at v5', () => {
+        const kept = [{ ...sampleMute, word: 'kept' }];
+        const result = migrate(
+            { version: 5, moderation: { keywordMutes: kept } },
+            { keywordMutes: [{ ...sampleMute, word: 'incoming' }] },
+        );
+        expect(result.moderation.keywordMutes).toEqual(kept);
     });
 });

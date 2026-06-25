@@ -4,8 +4,9 @@
   import {onMount} from "svelte";
   import {createEventDispatcher} from "svelte";
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
-  const dispatch = createEventDispatcher();
-  let words = $state([]);
+  import type {KeywordMute} from "$lib/settings/types";
+  const dispatch = createEventDispatcher<{ add: { word: KeywordMute } }>();
+  let words = $state<{ value: string }[]>([]);
   let _agent = $agent;
 
   async function handleAgentSelect(event) {
@@ -18,7 +19,7 @@
       words = await _agent.getMuteWords();
   })
 
-  function importWord(word) {
+  function importWord(word: string) {
       dispatch('add', {
           word:  {
               enabled: true,

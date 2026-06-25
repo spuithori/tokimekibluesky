@@ -6,7 +6,7 @@ import { isSafariOrFirefox } from '$lib/util';
  * Current settings schema version. Migrations (migrations.ts) bring older
  * stored payloads up to this version before deep-merging against the defaults.
  */
-export const CURRENT_VERSION = 4;
+export const CURRENT_VERSION = 5;
 
 function detectLanguage(): string {
     return typeof navigator !== 'undefined' && navigator.language ? navigator.language : 'en';
@@ -102,6 +102,7 @@ export function createDefaultSettings(): Settings {
                 sexual: 'warn',
             },
             labelers: [],
+            keywordMutes: [],
         },
         embed: {
             x: true,

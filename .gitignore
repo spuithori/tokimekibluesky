@@ -26,3 +26,4 @@ image-compress/
 .claude/
 src/routes/(app)/test-compress/
 scripts/
+docs/

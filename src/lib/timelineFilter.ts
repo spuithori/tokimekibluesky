@@ -1,5 +1,6 @@
 import {moderatePost} from '$lib/atproto-moderation';
 import type {ModerationOpts} from '$lib/atproto-moderation';
+import type {KeywordMute} from '$lib/settings/types';
 import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
 
 function isValidTimeFormat(time: string): boolean {
@@ -28,22 +29,11 @@ function isTimeWithinRange(minutes: number, startMinutes: number, endMinutes: nu
     }
 }
 
-export interface keyword {
-    enabled?: boolean,
-    word: string | string[],
-    period: {
-        start: string,
-        end: string
-    },
-    ignoreCaseSensitive?: boolean,
-    regExp?: boolean,
-}
-
-export interface formattedKeyword extends keyword {
+export interface FormattedKeywordMute extends Omit<KeywordMute, 'word'> {
     word: string[],
 }
 
-export const defaultKeyword: keyword = {
+export const defaultKeywordMute: KeywordMute = {
     enabled: true,
     word: '',
     period: {
@@ -79,7 +69,7 @@ export function contentLabelling(post, did, settings, labelDefs, labelerSettings
     return moderatePost(post, options);
 }
 
-export function keywordStringToArray(word: any) {
+export function keywordStringToArray(word: string | string[]): string[] {
     if (typeof word !== 'string') {
         return word;
     }
@@ -91,12 +81,12 @@ export function keywordStringToArray(word: any) {
     return words;
 }
 
-export function keywordFilter(keywords, text, indexedAt) {
+export function keywordFilter(keywords: FormattedKeywordMute[], text: string, indexedAt: string) {
     if (!Array.isArray(keywords)) {
         return false;
     }
 
-    for (const keyword of keywords as formattedKeyword[]) {
+    for (const keyword of keywords) {
         const timeIsValid = isValidTimeFormat(keyword.period.start)
                          && isValidTimeFormat(keyword.period.end);
 

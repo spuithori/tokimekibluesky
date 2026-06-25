@@ -1,13 +1,12 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
     import KeywordMuteItem from "./KeywordMuteItem.svelte";
-    import {defaultKeyword} from "$lib/timelineFilter";
     import OfficialMuteList from "./OfficialMuteList.svelte";
     import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
 
     function add() {
-        keywordMuteState.keywords.push(defaultKeyword);
+        keywordMuteState.add('');
     }
 
     function keywordDelete(index) {
@@ -23,10 +22,6 @@
             keywordMuteState.keywords.push(event.detail.word);
         }
     }
-
-    $effect(() => {
-        localStorage.setItem('keywordMutes', JSON.stringify($state.snapshot(keywordMuteState.keywords)));
-    })
 </script>
 
 <svelte:head>

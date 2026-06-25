@@ -19,7 +19,19 @@ function loadSettings(): Settings {
     } catch {
         legacyStateSettings = undefined;
     }
-    return migrate(persistence.read('global'), legacyStateSettings);
+
+    let legacyKeywordMutes: unknown;
+    try {
+        const raw = localStorage.getItem('keywordMutes');
+        legacyKeywordMutes = raw ? JSON.parse(raw) : undefined;
+    } catch {
+        legacyKeywordMutes = undefined;
+    }
+
+    return migrate(persistence.read('global'), {
+        stateSettings: legacyStateSettings,
+        keywordMutes: legacyKeywordMutes,
+    });
 }
 
 class SettingsStore {

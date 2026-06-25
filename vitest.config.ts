@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 export default defineConfig({
   plugins: [svelte({ hot: !process.env.VITEST })],
   resolve: {
+    conditions: ['browser'],
     alias: {
       $lib: fileURLToPath(new URL('./src/lib', import.meta.url)),
     },
@@ -13,5 +14,6 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,ts}'],
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['./vitest.setup.ts'],
   },
 });

@@ -1,7 +1,8 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
+  import type {KeywordMute} from "$lib/settings/types";
 
-  let { keyword = $bindable(), index } = $props();
+  let { keyword = $bindable(), index }: { keyword: KeywordMute; index: number } = $props();
 
   const regTime = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/
 

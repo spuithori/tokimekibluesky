@@ -107,6 +107,14 @@ export interface LabelerPreference {
     labels: ContentLabelPrefs;
 }
 
+export interface KeywordMute {
+    enabled: boolean;
+    word: string;
+    period: { start: string; end: string };
+    ignoreCaseSensitive: boolean;
+    regExp: boolean;
+}
+
 export interface ModerationSettings {
     contentLabels: ContentLabelPrefs;
     /**
@@ -115,6 +123,7 @@ export interface ModerationSettings {
      * shape compatibility / forward use.
      */
     labelers: LabelerPreference[];
+    keywordMutes: KeywordMute[];
 }
 
 export interface EmbedSettings {
