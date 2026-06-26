@@ -19,7 +19,12 @@
     }
 </script>
 
-<Sortable {items} onsort={handleSort}>
+<Sortable
+  {items}
+  onsort={handleSort}
+  onDragStart={() => columnState.isReordering = true}
+  onDragEnd={() => columnState.isReordering = false}
+>
   {#snippet content(column, index)}
     <div class="column-list__item">
       <div class="column-list__icon">

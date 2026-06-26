@@ -1,6 +1,6 @@
 <script lang="ts">
   import DeckRow from "./DeckRow.svelte";
-  import { draggable, bounds, ControlFrom, BoundsFrom, events, controls, position, disabled, touchAction } from '@neodrag/svelte';
+  import { draggable, type DragEventData } from "$lib/attachments/draggable.svelte";
 
   interface Props {
     column: any;
@@ -8,27 +8,9 @@
   }
 
   let { column, index = 0 }: Props = $props();
-  let el = $state();
-  let unique = $state(Symbol());
-  let isPopupEnable = $derived(column?.settings?.isPopup);
+  let el = $state<HTMLElement>();
 
-  $effect(() => {
-      //handlePopup(isPopupEnable);
-  })
-
-  /* function handlePopup() {
-      if (isPopupEnable) {
-          dragOptions.disabled = false;
-      } else {
-          dragOptions.disabled = true;
-          dragOptions.position = {
-              x: 300,
-              y: 300,
-          }
-      }
-  } */
-
-  function handleChangePosition(data) {
+  function handleChangePosition(data: DragEventData) {
       const position = {
           ...column?.settings?.popupPosition,
           x: data.offset.x,
@@ -36,24 +18,21 @@
       }
       column.settings = {...column.settings, popupPosition: position};
 
-      el.style.setProperty('--popup-offset-x', `${data.offset.x}px`);
-      el.style.setProperty('--popup-offset-y', `${data.offset.y}px`);
+      el?.style.setProperty('--popup-offset-x', `${data.offset.x}px`);
+      el?.style.setProperty('--popup-offset-y', `${data.offset.y}px`);
   }
 </script>
 
 <div
     class="deck-popup-wrap"
     bind:this={el}
-    {@attach draggable(() => [
-      bounds(BoundsFrom.selector('.wrap')),
-      controls({ allow: ControlFrom.selector('.deck-popup-handle') }),
-      events({
-        // onDrag: ({ offset }) => { dragOptions.position = { x: offset.X, y: offset.y }},
-        onDragEnd: handleChangePosition,
-      }),
-      position({ default: { x: column?.settings?.popupPosition?.x || 0, y: column?.settings?.popupPosition?.y || 0, } }),
-      touchAction('manipulation'),
-    ])}
+    {@attach draggable(() => ({
+      bounds: '.wrap',
+      handle: '.deck-popup-handle',
+      defaultPosition: { x: column?.settings?.popupPosition?.x || 0, y: column?.settings?.popupPosition?.y || 0 },
+      touchAction: 'manipulation',
+      onDragEnd: handleChangePosition,
+    }))}
     style="--deck-popup-opacity: {column?.settings?.opacity || 100}"
     style:--popup-width={column?.settings?.popupPosition?.width}
     style:--popup-height={column?.settings?.popupPosition?.height}
@@ -105,6 +84,7 @@
           border-radius: 2px;
           background-color: var(--border-color-2);
           cursor: grab;
+          touch-action: none;
       }
   }
 </style>

@@ -8,6 +8,7 @@ import {appState} from "$lib/classes/appState.svelte";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
+    isReordering = $state(false);
     private _feeds = $state.raw<Record<string, any[]>>({});
     private _feedStatus = $state.raw<Record<string, string>>({});
 
@@ -112,11 +113,11 @@ export class ColumnState {
         });
 
         $effect(() => {
-            if (this.isColumnsLoaded) {
-                accountsDb.profiles.update(appState.profile.current, {
-                    columns: $state.snapshot(this.syncColumns),
-                });
-            }
+            if (!this.isColumnsLoaded || this.isReordering) return;
+
+            accountsDb.profiles.update(appState.profile.current, {
+                columns: $state.snapshot(this.syncColumns),
+            });
         });
     }
 

@@ -9,7 +9,7 @@
     import {onDestroy, onMount} from "svelte";
     import {toast} from "svelte-sonner";
     import {backgroundsMap} from "$lib/columnBackgrounds";
-    import { draggable, axis, ControlFrom, events, controls, Compartment, position, disabled } from '@neodrag/svelte';
+    import { sortable } from "$lib/attachments/sortable.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
@@ -64,17 +64,10 @@
     let isFiltered = $state(false);
     let isColumnAlreadyAdded = $state(false);
     let refreshEl = $state();
-    let isDragging = $state(false);
-    let reorderIndex = index;
     let isRefreshing = $state(false);
-    let dragPosition = $state({x: 0, y: 0});
     let isSplitResizing = $state(false);
     let isMobile = $state(false);
     let splitTopScrolling = $state<boolean[]>([false]);
-
-    const eventsComp = Compartment.of(() =>
-        position({ current: dragPosition }),
-    );
 
     let splitAgents = $derived(
         column.splitColumn
@@ -289,69 +282,15 @@
         }
     })
 
-    function handleDragStart(e) {
-        isDragging = true;
+    function reorderColumns(from: number, to: number) {
+        const cols = columnState.columns;
+        const reordered = moveElement(cols.filter(c => !c?.settings?.isPopup), from, to);
+
+        let k = 0;
+        columnState.columns = cols.map(c => c?.settings?.isPopup ? c : reordered[k++]);
     }
 
-    function handleDragEnd(e) {
-        dragPosition = {x: 0, y: 0};
-
-        columnState.columns.forEach(_column => {
-            if (_column.scrollElement?.parentElement) {
-                _column.scrollElement.parentElement.style.translate = '0 0 0';
-            }
-        })
-
-        columnState.columns = moveElement(columnState.columns, index, reorderIndex);
-
-        setTimeout(() => {
-            isDragging = false;
-        }, 350)
-    }
-
-    async function handleDragging(data) {
-        const x = data.rootNode.getBoundingClientRect().left;
-
-        if (Math.sign(data.offset.x) === 1) {
-            const prevColumn = columnState.columns[reorderIndex]?.scrollElement?.parentElement;
-            const nextColumn = columnState.columns[reorderIndex + 1]?.scrollElement?.parentElement;
-
-            if (reorderIndex < index) {
-                reorderIndex = index;
-            }
-
-            if (Math.abs(x) > nextColumn?.getBoundingClientRect().left) {
-                nextColumn.style.translate = `${column.scrollElement.parentElement.offsetWidth * -1}px 0 0`;
-                reorderIndex = reorderIndex + 1;
-            }
-
-            if (Math.abs(x) < prevColumn.getBoundingClientRect().left) {
-                prevColumn.style.translate = '0 0 0';
-                reorderIndex = reorderIndex - 1;
-            }
-        } else if (Math.sign(data.offset.x) === -1) {
-            const prevColumn = columnState.columns[reorderIndex - 1]?.scrollElement?.parentElement;
-            const nextColumn = columnState.columns[reorderIndex]?.scrollElement?.parentElement;
-
-            if (reorderIndex > index) {
-                reorderIndex = index;
-            }
-
-            if (Math.abs(x) < prevColumn?.getBoundingClientRect().left) {
-                prevColumn.style.translate = `${column.scrollElement.parentElement.offsetWidth}px 0 0`;
-                reorderIndex = reorderIndex - 1;
-            }
-
-            if (Math.abs(x) > nextColumn.getBoundingClientRect().left) {
-                nextColumn.style.translate = '0 0 0';
-                reorderIndex = reorderIndex + 1;
-            }
-        } else {
-            reorderIndex = index;
-        }
-    }
-
-    function moveElement(arr, fromIndex, toIndex) {
+    function moveElement<T>(arr: T[], fromIndex: number, toIndex: number): T[] {
         const result = [...arr];
         const element = result.splice(fromIndex, 1)[0];
         result.splice(toIndex, 0, element);
@@ -396,18 +335,15 @@
 <div
     class="deck-row-wrap"
      class:deck-row-wrap--single={$settings.design?.layout === 'default'}
-     class:dragging={isDragging}
-     {@attach !isJunk && draggable(() => [
-         axis('x'),
-         controls({ allow: ControlFrom.selector('.deck-drag-area') }),
-         events({
-         onDragStart: handleDragStart,
-         onDrag: handleDragging,
-         onDragEnd: handleDragEnd,
-         }),
-         disabled($settings.design?.layout === 'default'),
-         eventsComp,
-     ])}
+     {@attach !isJunk && sortable(() => ({
+         axis: 'x',
+         participantSelector: '.deck-row-wrap',
+         handle: '.deck-drag-area',
+         disabled: $settings.design?.layout === 'default',
+         onReorder: reorderColumns,
+         onDragStart: () => columnState.isReordering = true,
+         onDragEnd: () => columnState.isReordering = false,
+     }))}
 >
     {#if column.splitColumn && !isMobile && !isJunk && $settings.design?.layout !== 'default'}
         <div
@@ -1080,6 +1016,7 @@
         top: 0;
         z-index: 100;
         cursor: grab;
+        touch-action: none;
 
         @media (max-width: 767px) {
             display: none;
@@ -1087,10 +1024,11 @@
 
     }
 
-    .dragging {
+    .deck-row-wrap:global(.dragging) {
         position: relative;
         z-index: 100000;
         transition: none;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, .28);
     }
 
     .deck-row--split {
