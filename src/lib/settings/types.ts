@@ -117,11 +117,6 @@ export interface KeywordMute {
 
 export interface ModerationSettings {
     contentLabels: ContentLabelPrefs;
-    /**
-     * Currently vestigial in $settings (no consumer reads it) — the live
-     * per-labeler prefs are the separate `labelerSettings` store. Typed for
-     * shape compatibility / forward use.
-     */
     labelers: LabelerPreference[];
     keywordMutes: KeywordMute[];
 }

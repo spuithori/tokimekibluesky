@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from "svelte-i18n";
-    import { agentDidsSet, labelerSettings, settings } from "$lib/stores";
+    import { agentDidsSet, settings } from "$lib/stores";
     import { formatDate } from "$lib/dateFormat";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import Tooltip from "$lib/components/ui/Tooltip.svelte";
@@ -159,7 +159,6 @@
         _agent.did(),
         $settings,
         appState.labelDefs.current,
-        $labelerSettings,
     );
     const contentContext = isSingle ? "contentView" : "contentList";
 

@@ -1,5 +1,6 @@
 <script lang="ts">
-  import {agent, agents, labelerSettings} from "$lib/stores";
+  import {agent, agents} from "$lib/stores";
+  import {settingsStore} from "$lib/settings/settings.svelte";
   import {_} from "svelte-i18n";
   import {appState} from "$lib/classes/appState.svelte";
 
@@ -15,16 +16,15 @@
       appState.subscribedLabelers.current = [...appState.subscribedLabelers.current, did];
       applyLabeler();
 
-      if (!$labelerSettings.find(labelers => labelers.did === did)) {
-          $labelerSettings = [
-              ...$labelerSettings,
+      if (!settingsStore.moderation.labelers.find(labeler => labeler.did === did)) {
+          settingsStore.moderation.labelers = [
+              ...settingsStore.moderation.labelers,
               {
                   did: did,
                   labels: {},
               }
-          ]
+          ];
       }
-      localStorage.setItem('labelerSettings', JSON.stringify($labelerSettings));
   }
 
   function unsubscribe() {

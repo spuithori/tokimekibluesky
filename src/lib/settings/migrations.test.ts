@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { migrate } from './migrations';
-import { createDefaultSettings, CURRENT_VERSION } from './defaults';
+import { createDefaultSettings, CURRENT_VERSION, DEFAULT_LABELER_SETTINGS } from './defaults';
 
 describe('migrate', () => {
     it('returns fresh defaults for non-object input', () => {
@@ -138,7 +138,7 @@ describe('migrate', () => {
 
     it('folds legacy keywordMutes into moderation (v4 -> v5)', () => {
         const result = migrate({ version: 4 }, { keywordMutes: [sampleMute] });
-        expect(result.version).toBe(5);
+        expect(result.version).toBe(CURRENT_VERSION);
         expect(result.moderation.keywordMutes).toEqual([sampleMute]);
     });
 
@@ -146,18 +146,17 @@ describe('migrate', () => {
         const result = migrate(
             {
                 version: 4,
-                moderation: { contentLabels: { porn: 'hide' }, labelers: [{ did: 'did:x', labels: {} }] },
+                moderation: { contentLabels: { porn: 'hide' } },
             },
             { keywordMutes: [{ ...sampleMute, word: 'bar' }] },
         );
         expect(result.moderation.contentLabels.porn).toBe('hide');
-        expect(result.moderation.labelers).toEqual([{ did: 'did:x', labels: {} }]);
         expect(result.moderation.keywordMutes[0].word).toBe('bar');
     });
 
     it('initialises keywordMutes to [] when no legacy data exists (v4 -> v5)', () => {
         const result = migrate({ version: 4 });
-        expect(result.version).toBe(5);
+        expect(result.version).toBe(CURRENT_VERSION);
         expect(result.moderation.keywordMutes).toEqual([]);
     });
 
@@ -174,5 +173,57 @@ describe('migrate', () => {
             { keywordMutes: [{ ...sampleMute, word: 'incoming' }] },
         );
         expect(result.moderation.keywordMutes).toEqual(kept);
+    });
+
+    const sampleLabeler = { did: 'did:plc:x', labels: { spam: 'hide', 'custom-label': 'warn' } };
+
+    it('folds legacy labelerSettings into moderation (v5 -> v6)', () => {
+        const result = migrate({ version: 5 }, { labelerSettings: [sampleLabeler] });
+        expect(result.version).toBe(6);
+        expect(result.moderation.labelers).toEqual([sampleLabeler]);
+    });
+
+    it('backfills DEFAULT_LABELER_SETTINGS when no legacy labelerSettings (v5 -> v6)', () => {
+        const result = migrate({ version: 5, moderation: { labelers: [] } });
+        expect(result.moderation.labelers).toEqual(DEFAULT_LABELER_SETTINGS);
+    });
+
+    it('preserves sibling moderation fields through the v5 -> v6 fold', () => {
+        const result = migrate(
+            { version: 5, moderation: { contentLabels: { porn: 'hide' }, keywordMutes: [sampleMute] } },
+            { labelerSettings: [sampleLabeler] },
+        );
+        expect(result.moderation.contentLabels.porn).toBe('hide');
+        expect(result.moderation.keywordMutes).toEqual([sampleMute]);
+        expect(result.moderation.labelers).toEqual([sampleLabeler]);
+    });
+
+    it('is idempotent on a v6 payload', () => {
+        const once = migrate({ version: 5 }, { labelerSettings: [sampleLabeler] });
+        const twice = migrate(once);
+        expect(twice).toEqual(once);
+    });
+
+    it('does not re-fold labelerSettings once already at v6', () => {
+        const kept = [{ ...sampleLabeler, did: 'did:plc:kept' }];
+        const result = migrate(
+            { version: 6, moderation: { labelers: kept } },
+            { labelerSettings: [{ ...sampleLabeler, did: 'did:plc:incoming' }] },
+        );
+        expect(result.moderation.labelers).toEqual(kept);
+    });
+
+    it('normalizes folded labelerSettings (drops malformed entries and out-of-range values, keeps custom keys)', () => {
+        const result = migrate({ version: 5 }, {
+            labelerSettings: [
+                { did: 'did:plc:ok', labels: { 'custom-x': 'warn', bad: 'nope', spam: 'hide' } },
+                { did: 123, labels: {} },
+                { labels: {} },
+                'garbage',
+            ],
+        });
+        expect(result.moderation.labelers).toEqual([
+            { did: 'did:plc:ok', labels: { 'custom-x': 'warn', spam: 'hide' } },
+        ]);
     });
 });

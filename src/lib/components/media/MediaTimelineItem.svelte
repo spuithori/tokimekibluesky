@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {settings, labelerSettings} from '$lib/stores';
+    import {settings} from '$lib/stores';
     import {AppBskyFeedDefs} from '$lib/atproto-guards';
     import {getViewImages, hasGalleryImages} from '$lib/components/post/embedImages';
     import MediaTimelineItemModal from './MediaTimelineItemModal.svelte';
@@ -16,7 +16,7 @@
     let targetIndex = $state(index);
     let targetEl = $state();
 
-    const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
+    const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current);
     let isHide: boolean = $state(false);
     let isWarn = detectWarn(moderateData, 'contentList');
     isHide = detectHide(moderateData, 'contentList', isHide, data.post);

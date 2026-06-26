@@ -71,9 +71,9 @@ describe('settings backup data contract (SettingsBackup)', () => {
     });
 
     it('preserves sibling moderation fields through a v4 -> v5 import', () => {
-        const backup = { version: 4, moderation: { contentLabels: { porn: 'hide' }, labelers: [{ did: 'did:x', labels: {} }] } };
+        const backup = { version: 4, moderation: { contentLabels: { porn: 'hide' }, keywordMutes: [makeKeywordMute({ word: 'kept' })] } };
         settingsStore.raw = migrate(JSON.parse(JSON.stringify(backup)));
         expect(settingsStore.moderation.contentLabels.porn).toBe('hide');
-        expect(settingsStore.moderation.labelers).toEqual([{ did: 'did:x', labels: {} }]);
+        expect(settingsStore.moderation.keywordMutes[0].word).toBe('kept');
     });
 });

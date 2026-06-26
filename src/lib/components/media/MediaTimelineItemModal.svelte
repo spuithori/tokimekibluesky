@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {settings, labelerSettings} from '$lib/stores';
+    import {settings} from '$lib/stores';
     import { fly } from 'svelte/transition';
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
     import { beforeNavigate } from "$app/navigation";
@@ -15,7 +15,7 @@
     let { _agent, data, close, onprev, onnext } = $props();
     let el = $state();
 
-    const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
+    const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current);
     let isWarn = detectWarn(moderateData, 'contentList');
 
     function modalClose() {

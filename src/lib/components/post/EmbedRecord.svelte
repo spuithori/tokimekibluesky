@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { agent, labelerSettings, settings } from "$lib/stores";
+  import { agent, settings } from "$lib/stores";
   import {formatDate} from "$lib/dateFormat";
   import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "$lib/atproto-guards";
   import { getViewImages, getRecordImages, hasGalleryImages } from "$lib/components/post/embedImages";
@@ -26,7 +26,7 @@
     record.value = record.record;
   }
 
-  let moderateData = contentLabelling(record, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
+  let moderateData = contentLabelling(record, _agent.did(), $settings, appState.labelDefs.current);
 
   let isWarn = detectWarn(moderateData, 'contentView');
 

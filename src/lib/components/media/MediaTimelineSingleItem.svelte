@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {settings, labelerSettings} from '$lib/stores';
+    import {settings} from '$lib/stores';
     import {getViewImages, hasGalleryImages} from '$lib/components/post/embedImages';
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
     import {EyeOff, Handshake, BadgeCheck, CircleCheck} from "lucide-svelte";
@@ -15,7 +15,7 @@
     let { feed, index, data, _agent } = $props();
     let timeDistanceToNow = $state(intlRelativeTimeFormatState.format({ laterDate: new Date(data.post.indexedAt) }));
 
-    const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
+    const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current);
     let isHide: boolean = $state(false);
     let isWarn = $state(detectWarn(moderateData, 'contentList'));
     isHide = detectHide(moderateData, 'contentList', isHide, data.post);

@@ -28,9 +28,18 @@ function loadSettings(): Settings {
         legacyKeywordMutes = undefined;
     }
 
+    let legacyLabelerSettings: unknown;
+    try {
+        const raw = localStorage.getItem('labelerSettings');
+        legacyLabelerSettings = raw ? JSON.parse(raw) : undefined;
+    } catch {
+        legacyLabelerSettings = undefined;
+    }
+
     return migrate(persistence.read('global'), {
         stateSettings: legacyStateSettings,
         keywordMutes: legacyKeywordMutes,
+        labelerSettings: legacyLabelerSettings,
     });
 }
 

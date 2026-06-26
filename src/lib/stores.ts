@@ -126,36 +126,6 @@ export const bluefeedAddModal = writable({
     did: '',
 });
 
-const DEFAULT_LABELER_SETTINGS = [
-    {
-        did: 'did:plc:ar7c4by46qjdydhdevvrndac',
-        labels: {
-            spam: 'hide',
-            impersonation: 'hide',
-            scam: 'hide',
-            intolerant: 'warn',
-            'self-harm': 'warn',
-            security: 'hide',
-            misleading: 'warn',
-            threat: 'hide',
-            'unsafe-link': 'hide',
-            illicit: 'hide',
-            misinformation: 'warn',
-            rumor: 'warn',
-            rude: 'hide',
-            extremist: 'hide',
-            sensitive: 'warn',
-            'engagement-farming': 'hide',
-            inauthentic: 'hide',
-            'sexual-figurative': 'warn'
-        }
-    }
-];
-
-export const labelerSettings = writable(localStorage.getItem('labelerSettings')
-    ? JSON.parse(localStorage.getItem('labelerSettings'))
-    : DEFAULT_LABELER_SETTINGS);
-
 export const timelineHashtags = writable([]);
 
 export const hashtagHistory = writable(localStorage.getItem('hashtagHistory')

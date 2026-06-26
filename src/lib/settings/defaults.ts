@@ -1,12 +1,38 @@
-import type { Settings } from './types';
+import type { Settings, LabelerPreference } from './types';
 import { defaultReactionButtons } from '$lib/defaultSettings';
 import { isSafariOrFirefox } from '$lib/util';
+
+export const DEFAULT_LABELER_SETTINGS: LabelerPreference[] = [
+    {
+        did: 'did:plc:ar7c4by46qjdydhdevvrndac',
+        labels: {
+            spam: 'hide',
+            impersonation: 'hide',
+            scam: 'hide',
+            intolerant: 'warn',
+            'self-harm': 'warn',
+            security: 'hide',
+            misleading: 'warn',
+            threat: 'hide',
+            'unsafe-link': 'hide',
+            illicit: 'hide',
+            misinformation: 'warn',
+            rumor: 'warn',
+            rude: 'hide',
+            extremist: 'hide',
+            sensitive: 'warn',
+            'engagement-farming': 'hide',
+            inauthentic: 'hide',
+            'sexual-figurative': 'warn',
+        },
+    },
+];
 
 /**
  * Current settings schema version. Migrations (migrations.ts) bring older
  * stored payloads up to this version before deep-merging against the defaults.
  */
-export const CURRENT_VERSION = 5;
+export const CURRENT_VERSION = 6;
 
 function detectLanguage(): string {
     return typeof navigator !== 'undefined' && navigator.language ? navigator.language : 'en';
@@ -101,7 +127,7 @@ export function createDefaultSettings(): Settings {
                 porn: 'warn',
                 sexual: 'warn',
             },
-            labelers: [],
+            labelers: structuredClone(DEFAULT_LABELER_SETTINGS),
             keywordMutes: [],
         },
         embed: {

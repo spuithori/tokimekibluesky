@@ -44,7 +44,7 @@ export const defaultKeywordMute: KeywordMute = {
     regExp: false,
 }
 
-export function contentLabelling(post, did, settings, labelDefs, labelerSettings = []) {
+export function contentLabelling(post, did, settings, labelDefs) {
     let labels = settings.moderation?.contentLabels || {
         porn: 'warn',
         sexual: 'warn',
@@ -60,7 +60,7 @@ export function contentLabelling(post, did, settings, labelDefs, labelerSettings
             adultContentEnabled: true,
             mutedWords: [],
             hiddenPosts: [],
-            labelers: labelerSettings,
+            labelers: settings.moderation?.labelers ?? [],
             labels: labels,
         },
         labelDefs: labelDefs,

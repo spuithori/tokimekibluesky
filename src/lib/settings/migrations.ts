@@ -37,9 +37,33 @@ function deepMerge<T>(defaults: T, stored: unknown): T {
     return result as T;
 }
 
+const LABEL_PREFS = new Set(['hide', 'warn', 'ignore']);
+
+function normalizeLabelers(value: unknown): unknown[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    const result: { did: string; labels: Record<string, string> }[] = [];
+    for (const entry of value) {
+        if (!isPlainObject(entry) || typeof entry.did !== 'string') {
+            continue;
+        }
+        const labels: Record<string, string> = {};
+        if (isPlainObject(entry.labels)) {
+            for (const [key, pref] of Object.entries(entry.labels)) {
+                if (typeof pref === 'string' && LABEL_PREFS.has(pref)) {
+                    labels[key] = pref;
+                }
+            }
+        }
+        result.push({ did: entry.did, labels });
+    }
+    return result;
+}
+
 export function migrate(
     rawSettings: unknown,
-    legacy?: { stateSettings?: unknown; keywordMutes?: unknown },
+    legacy?: { stateSettings?: unknown; keywordMutes?: unknown; labelerSettings?: unknown },
 ): Settings {
     const defaults = createDefaultSettings();
 
@@ -110,6 +134,16 @@ export function migrate(
             (stored.moderation as Record<string, any>).keywordMutes = legacy.keywordMutes;
         }
         stored.version = 5;
+    }
+
+    if (stored.version < 6) {
+        if (!isPlainObject(stored.moderation)) stored.moderation = {};
+        if (legacy && Array.isArray(legacy.labelerSettings)) {
+            (stored.moderation as Record<string, any>).labelers = normalizeLabelers(legacy.labelerSettings);
+        } else {
+            delete (stored.moderation as Record<string, any>).labelers;
+        }
+        stored.version = 6;
     }
 
     return deepMerge(defaults, stored);

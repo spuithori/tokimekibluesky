@@ -1,5 +1,6 @@
 <script lang="ts">
-  import {labelerSettings, agent, settings} from '$lib/stores';
+  import {agent, settings} from '$lib/stores';
+  import {settingsStore} from "$lib/settings/settings.svelte";
   import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
@@ -20,7 +21,7 @@
   onMount(async () => {
       const res = await $agent.getLabelDefinitions([did]);
       defs = res[did];
-      const saved = $labelerSettings.find(labeler => labeler.did === did);
+      const saved = settingsStore.moderation.labelers.find(labeler => labeler.did === did);
 
       labels = defs.map(label => [label.identifier, saved?.labels?.[label.identifier] ? saved.labels[label.identifier] : label.defaultSetting]);
       renderLabels = Object.fromEntries(labels);
@@ -40,24 +41,20 @@
           renderLabels = {};
       }
 
-      const labelIndex = $labelerSettings.findIndex(labeler => labeler.did === did);
+      const labelers = settingsStore.moderation.labelers;
+      const labelIndex = labelers.findIndex(labeler => labeler.did === did);
 
       if (labelIndex !== -1) {
-          Object.assign($labelerSettings[labelIndex], {
-              did: did,
-              labels: renderLabels,
-          })
+          labelers[labelIndex].labels = { ...renderLabels };
       } else {
-          $labelerSettings = [
-              ...$labelerSettings,
+          settingsStore.moderation.labelers = [
+              ...labelers,
               {
                   did: did,
-                  labels: renderLabels,
+                  labels: { ...renderLabels },
               }
-          ]
+          ];
       }
-
-      localStorage.setItem('labelerSettings', JSON.stringify($labelerSettings));
   }
 
   function changeLabel(renderLabels) {

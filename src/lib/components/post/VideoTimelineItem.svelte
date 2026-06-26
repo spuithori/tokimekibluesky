@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {agent, settings, labelerSettings} from '$lib/stores';
+  import {agent, settings} from '$lib/stores';
   import Like from "$lib/components/post/Like.svelte";
   import VideoTimelineModal from "$lib/components/post/VideoTimelineModal.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
@@ -13,7 +13,7 @@
   let isOpen = $state(false);
   let el = $state();
 
-  const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current, $labelerSettings);
+  const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current);
   let isHide: boolean = $state(false);
   let isWarn = detectWarn(moderateData, 'contentList');
   isHide = detectHide(moderateData, 'contentList', isHide, data.post);
