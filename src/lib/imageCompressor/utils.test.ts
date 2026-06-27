@@ -2,7 +2,7 @@
 // jsdom's Blob lacks a working arrayBuffer(); Node's Blob is spec-compliant.
 // FileReader is unavailable in node, so blobToDataUrl tests stub it (see below).
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { isHeicImage, calcTargetDimensions, blobToDataUrl } from './utils';
+import { isHeicImage, calcTargetDimensions, blobToDataUrl, getIntrinsicSize, projectWebpQuality, nextResolutionForTarget } from './utils';
 
 function ascii(s: string): number[] {
     return Array.from(s, (c) => c.charCodeAt(0));
@@ -139,6 +139,95 @@ describe('isHeicImage', () => {
     });
 });
 
+describe('getIntrinsicSize', () => {
+    const SOF_TAIL = [0x00, 0x11, 0x08, 0x02, 0x58, 0x03, 0x20];
+
+    it('reads JPEG SOF0 dimensions', async () => {
+        const blob = makeBlob([0xff, 0xd8, 0xff, 0xc0, ...SOF_TAIL]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600 });
+    });
+
+    it('reads JPEG SOF2 (progressive) dimensions', async () => {
+        const blob = makeBlob([0xff, 0xd8, 0xff, 0xc2, ...SOF_TAIL]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600 });
+    });
+
+    it('scans past a leading APP1/EXIF segment to find SOF', async () => {
+        const blob = makeBlob([
+            0xff, 0xd8,
+            0xff, 0xe1, 0x00, 0x06, 0xaa, 0xbb, 0xcc, 0xdd,
+            0xff, 0xc0, ...SOF_TAIL,
+        ]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600 });
+    });
+
+    it('reads PNG IHDR dimensions', async () => {
+        const blob = makeBlob([
+            0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+            0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+            0x00, 0x00, 0x03, 0x20, 0x00, 0x00, 0x02, 0x58,
+        ]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600 });
+    });
+
+    it('reads WebP lossy (VP8 ) dimensions', async () => {
+        const blob = makeBlob([
+            0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00,
+            0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x20,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x9d, 0x01, 0x2a, 0x20, 0x03, 0x58, 0x02,
+        ]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600 });
+    });
+
+    it('reads WebP lossless (VP8L) dimensions', async () => {
+        const blob = makeBlob([
+            0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00,
+            0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x4c,
+            0x00, 0x00, 0x00, 0x00,
+            0x2f, 0x1f, 0xc3, 0x95, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00,
+        ]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600 });
+    });
+
+    it('reads WebP extended (VP8X) canvas dimensions', async () => {
+        const blob = makeBlob([
+            0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00,
+            0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x58,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x1f, 0x03, 0x00, 0x57, 0x02, 0x00,
+        ]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600 });
+    });
+
+    it('returns null for HEIC', async () => {
+        const blob = makeBlob([...BOX_SIZE, ...FTYP, ...ascii('heic'), ...MINOR, ...ascii('mif1')]);
+        expect(await getIntrinsicSize(blob)).toBeNull();
+    });
+
+    it('returns null for truncated JPEG (no SOF)', async () => {
+        const blob = makeBlob([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x04, 0x00, 0x00]);
+        expect(await getIntrinsicSize(blob)).toBeNull();
+    });
+
+    it('returns null for garbage bytes', async () => {
+        const blob = makeBlob([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
+        expect(await getIntrinsicSize(blob)).toBeNull();
+    });
+
+    it('returns null for an empty blob', async () => {
+        expect(await getIntrinsicSize(makeBlob([]))).toBeNull();
+    });
+
+    it('does not throw and returns null when arrayBuffer rejects', async () => {
+        const broken = {
+            slice: () => ({ arrayBuffer: () => Promise.reject(new Error('IO failed')) }),
+        } as unknown as Blob;
+        expect(await getIntrinsicSize(broken)).toBeNull();
+    });
+});
+
 describe('calcTargetDimensions', () => {
     it('returns source dimensions unchanged when both axes are within the limit', () => {
         expect(calcTargetDimensions(800, 600, 2000)).toEqual({ width: 800, height: 600 });
@@ -200,6 +289,76 @@ describe('calcTargetDimensions', () => {
         expect(result.width).toBe(2000);
         // 1000 * (2000/2001) ≈ 999.5 → rounds to 1000
         expect(result.height).toBe(1000);
+    });
+});
+
+describe('projectWebpQuality', () => {
+    it('projects lower quality when the previous encode overshot the target', () => {
+        expect(projectWebpQuality(1000, 90, 2000, 70, 89)).toBe(71);
+    });
+
+    it('lands inside the bracket for a near-target overshoot', () => {
+        expect(projectWebpQuality(1000, 85, 1100, 70, 84)).toBe(77);
+    });
+
+    it('clamps an over-large estimate to hi - 1', () => {
+        expect(projectWebpQuality(10000, 80, 1000, 70, 84)).toBe(83);
+    });
+
+    it('clamps an under-small estimate to lo + 1', () => {
+        expect(projectWebpQuality(100, 80, 2000, 70, 84)).toBe(71);
+    });
+
+    it('returns prevQ when the bracket has no integer room (signals stop)', () => {
+        expect(projectWebpQuality(1000, 80, 1500, 75, 76)).toBe(80);
+        expect(projectWebpQuality(1000, 80, 1500, 75, 75)).toBe(80);
+    });
+
+    it('falls back to the midpoint when prevSize is zero', () => {
+        expect(projectWebpQuality(1000, 80, 0, 70, 90)).toBe(80);
+    });
+
+    it('always returns a value strictly inside the bracket when room exists', () => {
+        for (const prevSize of [500, 1000, 1500, 3000]) {
+            const q = projectWebpQuality(1000, 88, prevSize, 70, 88);
+            expect(q).toBeGreaterThan(70);
+            expect(q).toBeLessThan(88);
+        }
+    });
+});
+
+describe('nextResolutionForTarget', () => {
+    it('reduces hard when the floor size is far over target (clamped near MIN_STEP)', () => {
+        expect(nextResolutionForTarget(4000, 3000, 10_000_000, 2_000_000, 320)).toEqual({ width: 1649, height: 1237 });
+    });
+
+    it('reduces gently when only slightly over target', () => {
+        expect(nextResolutionForTarget(4000, 3000, 2_100_000, 2_000_000, 320)).toEqual({ width: 3599, height: 2699 });
+    });
+
+    it('never reduces by less than MAX_STEP even at a marginal overshoot', () => {
+        expect(nextResolutionForTarget(1000, 1000, 1_000_001, 1_000_000, 320)).toEqual({ width: 920, height: 920 });
+    });
+
+    it('clamps the jump so the larger axis never drops below the floor', () => {
+        expect(nextResolutionForTarget(400, 300, 10_000_000, 2_000_000, 320)).toEqual({ width: 320, height: 240 });
+    });
+
+    it('returns null once already at or below the floor', () => {
+        expect(nextResolutionForTarget(320, 240, 10_000_000, 2_000_000, 320)).toBeNull();
+        expect(nextResolutionForTarget(300, 200, 10_000_000, 2_000_000, 320)).toBeNull();
+    });
+
+    it('guards a degenerate scale >= 1 (oversized not actually over) to MAX_STEP', () => {
+        expect(nextResolutionForTarget(1000, 1000, 1_000_000, 2_000_000, 320)).toEqual({ width: 920, height: 920 });
+    });
+
+    it('always makes progress (smaller than current) across a range of overshoots', () => {
+        for (const oversized of [2_100_000, 5_000_000, 20_000_000]) {
+            const r = nextResolutionForTarget(2000, 1500, oversized, 2_000_000, 320);
+            expect(r).not.toBeNull();
+            expect(Math.max(r!.width, r!.height)).toBeLessThan(2000);
+        }
     });
 });
 

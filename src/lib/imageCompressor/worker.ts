@@ -1,5 +1,6 @@
 import type { WebpEncodeResult, WorkerInput, WorkerOutput } from './types';
 import { applyUnsharpMask } from './imageProcessing';
+import { calcTargetDimensions, projectWebpQuality, nextResolutionForTarget } from './utils';
 import encodeWebp from '@jsquash/webp/encode';
 
 function resizeToCanvas(
@@ -68,9 +69,14 @@ async function encodeWebpWasm(
     let lo = 70, hi = startQ - 1;
     let bestBuf: ArrayBuffer | null = null;
     let bestQ = 70;
+    let prevQ = startQ;
+    let prevSize = startBuf.byteLength;
     for (let i = 0; i < 3; i++) {
-        const mid = Math.round((lo + hi) / 2);
+        const mid = projectWebpQuality(maxSizeBytes, prevQ, prevSize, lo, hi);
+        if (mid === prevQ) break;
         const buf = await encodeWebp(imageData, { ...WEBP_BASE_PARAMS, quality: mid });
+        prevQ = mid;
+        prevSize = buf.byteLength;
         if (buf.byteLength <= maxSizeBytes) {
             bestBuf = buf;
             bestQ = mid;
@@ -92,42 +98,6 @@ async function encodeWebpWasm(
         quality: bestQ,
         fallbackNeeded: bestBuf.byteLength > maxSizeBytes,
     };
-}
-
-const MOZJPEG_BASE_PARAMS = {
-    progressive: true,
-    optimize_coding: true,
-    chroma_subsample: 2,  // 4:2:0
-    auto_subsample: true,
-} as const;
-
-async function encodeMozJpegWasm(imageData: ImageData, maxSizeBytes: number): Promise<ArrayBuffer> {
-    const { default: encodeJpeg } = await import('@jsquash/jpeg/encode');
-
-    // Step 1: q=85 fast-path
-    const q85buf = await encodeJpeg(imageData, { ...MOZJPEG_BASE_PARAMS, quality: 85 });
-    if (q85buf.byteLength <= maxSizeBytes) return q85buf;
-
-    // Step 2: descent search (lo=60 hi=80, 3 iter)
-    let lo = 60, hi = 80;
-    let bestBuf: ArrayBuffer | null = null;
-    for (let i = 0; i < 3; i++) {
-        const mid = Math.round((lo + hi) / 2);
-        const buf = await encodeJpeg(imageData, { ...MOZJPEG_BASE_PARAMS, quality: mid });
-        if (buf.byteLength <= maxSizeBytes) {
-            bestBuf = buf;
-            lo = mid;
-            if (buf.byteLength >= maxSizeBytes * 0.95) break;
-        } else {
-            hi = mid;
-        }
-    }
-
-    // Step 3: last-resort q=60
-    if (!bestBuf) {
-        bestBuf = await encodeJpeg(imageData, { ...MOZJPEG_BASE_PARAMS, quality: 60 });
-    }
-    return bestBuf;
 }
 
 let webpBlobSupported: boolean | null = null;
@@ -156,97 +126,133 @@ async function encodeCanvasBlob(
     return blob;
 }
 
+const MIN_RESOLUTION_DIMENSION = 320;
+const MAX_RESOLUTION_LEVELS = 10;
+
 async function compress(input: WorkerInput): Promise<WorkerOutput> {
-    const { bitmap, originalSize, targetWidth, targetHeight, outputType, maxSizeBytes, initialQuality, maxQuality, minQuality, maxIterations, skipWasm } = input;
+    const { file, originalSize, maxWidthOrHeight, targetWidth, targetHeight, outputType, maxSizeBytes, initialQuality, maxQuality, minQuality, maxIterations } = input;
 
     const timings: Record<string, number> = {};
     const tStart = performance.now();
-    if (skipWasm) timings.skipWasm = 1;
 
-    const tResizeStart = performance.now();
-    const canvas = resizeToCanvas(bitmap, targetWidth, targetHeight);
-    bitmap.close();
-    timings.resize = performance.now() - tResizeStart;
+    const haveTarget = targetWidth !== undefined && targetHeight !== undefined;
 
-    const tUnsharpStart = performance.now();
-    const imageData = sharpenCanvas(canvas, 0.3);
-    timings.unsharpMask = performance.now() - tUnsharpStart;
+    const tDecodeStart = performance.now();
+    const bitmap = haveTarget
+        ? await createImageBitmap(file, { resizeWidth: targetWidth, resizeHeight: targetHeight, resizeQuality: 'high', imageOrientation: 'none' })
+        : await createImageBitmap(file, { imageOrientation: 'none' });
+    timings.decode = performance.now() - tDecodeStart;
 
-    if (maxSizeBytes !== undefined && !skipWasm) {
-        if (outputType === 'image/webp') {
-            try {
-                const tWebpStart = performance.now();
-                const result = await encodeWebpWasm(imageData, maxSizeBytes, originalSize);
-                timings.encodeWebp = performance.now() - tWebpStart;
-                timings.encodeWebpSizeKB = result.buf.byteLength / 1024;
-                timings.encodeWebpQuality = result.quality;
-                if (!result.fallbackNeeded) {
-                    timings.encodeWebpAccepted = 1;
-                    timings.total = performance.now() - tStart;
-                    return { blob: new Blob([result.buf], { type: 'image/webp' }), width: targetWidth, height: targetHeight, timings };
-                }
-                timings.encodeWebpAccepted = 0;
-
-                // G9: fallback to MozJPEG for uncompressible images
-                try {
-                    const tMozStart = performance.now();
-                    const mozBuf = await encodeMozJpegWasm(imageData, maxSizeBytes);
-                    timings.encodeMozJpeg = performance.now() - tMozStart;
-                    timings.encodeMozJpegSizeKB = mozBuf.byteLength / 1024;
-                    if (mozBuf.byteLength <= maxSizeBytes) {
-                        timings.encodeMozJpegAccepted = 1;
-                        timings.total = performance.now() - tStart;
-                        return { blob: new Blob([mozBuf], { type: 'image/jpeg' }), width: targetWidth, height: targetHeight, timings };
-                    }
-                    timings.encodeMozJpegAccepted = 0;
-                } catch {
-                }
-            } catch {
-            }
-        }
-    }
+    const { width: tw, height: th } = haveTarget
+        ? { width: targetWidth!, height: targetHeight! }
+        : calcTargetDimensions(bitmap.width, bitmap.height, maxWidthOrHeight);
+    const sourceWidth = haveTarget ? undefined : bitmap.width;
+    const sourceHeight = haveTarget ? undefined : bitmap.height;
 
     if (maxSizeBytes === undefined) {
+        const canvas = resizeToCanvas(bitmap, tw, th);
+        bitmap.close();
+        const tUnsharpStart = performance.now();
+        sharpenCanvas(canvas, 0.3);
+        timings.unsharpMask = performance.now() - tUnsharpStart;
         const tConvertStart = performance.now();
         const blob = await encodeCanvasBlob(canvas, outputType, initialQuality);
         timings.convertToBlobLoop = performance.now() - tConvertStart;
         timings.total = performance.now() - tStart;
-        return { blob, width: targetWidth, height: targetHeight, timings };
+        return { blob, width: tw, height: th, sourceWidth, sourceHeight, timings };
     }
 
-    const tLoopStart = performance.now();
-    let lo = minQuality;
-    let hi = maxQuality;
-    let bestBlob: Blob | null = null;
-    let bestQuality = minQuality;
-    let iterations = 0;
+    const maxBytes = maxSizeBytes;
 
-    for (let i = 0; i < maxIterations; i++) {
-        iterations++;
-        const mid = (lo + hi) / 2;
-        const blob = await encodeCanvasBlob(canvas, outputType, mid);
+    async function encodeCanvasToFit(c: OffscreenCanvas): Promise<{ blob: Blob; fits: boolean; minSize: number }> {
+        const tLoopStart = performance.now();
+        let lo = minQuality;
+        let hi = maxQuality;
+        let bestBlob: Blob | null = null;
+        let bestQuality = minQuality;
+        let iterations = 0;
 
-        if (blob.size <= maxSizeBytes) {
-            bestBlob = blob;
-            bestQuality = mid;
-            lo = mid;
-            if (blob.size >= maxSizeBytes * 0.95) break;
-        } else {
-            hi = mid;
+        for (let i = 0; i < maxIterations; i++) {
+            iterations++;
+            const mid = (lo + hi) / 2;
+            const blob = await encodeCanvasBlob(c, outputType, mid);
+
+            if (blob.size <= maxBytes) {
+                bestBlob = blob;
+                bestQuality = mid;
+                lo = mid;
+                if (blob.size >= maxBytes * 0.95) break;
+            } else {
+                hi = mid;
+            }
         }
-    }
 
-    if (!bestBlob) {
+        if (bestBlob) {
+            timings.convertToBlobLoop = performance.now() - tLoopStart;
+            timings.convertToBlobIterations = iterations;
+            timings.convertToBlobQuality = bestQuality;
+            return { blob: bestBlob, fits: true, minSize: bestBlob.size };
+        }
+
         iterations++;
-        bestBlob = await encodeCanvasBlob(canvas, outputType, minQuality);
-        bestQuality = minQuality;
+        const floorBlob = await encodeCanvasBlob(c, outputType, minQuality);
+        timings.convertToBlobLoop = performance.now() - tLoopStart;
+        timings.convertToBlobIterations = iterations;
+        timings.convertToBlobQuality = minQuality;
+        return { blob: floorBlob, fits: floorBlob.size <= maxBytes, minSize: floorBlob.size };
     }
 
-    timings.convertToBlobLoop = performance.now() - tLoopStart;
-    timings.convertToBlobIterations = iterations;
-    timings.convertToBlobQuality = bestQuality;
+    let curW = tw, curH = th;
+    let resultBlob: Blob | undefined;
+
+    for (let level = 0; level <= MAX_RESOLUTION_LEVELS; level++) {
+        const tResizeStart = performance.now();
+        const canvas = resizeToCanvas(bitmap, curW, curH);
+        timings.resize = performance.now() - tResizeStart;
+
+        const tUnsharpStart = performance.now();
+        const imageData = sharpenCanvas(canvas, 0.3);
+        timings.unsharpMask = performance.now() - tUnsharpStart;
+
+        let minSize: number;
+
+        if (outputType === 'image/webp') {
+            try {
+                const tWebpStart = performance.now();
+                const result = await encodeWebpWasm(imageData, maxBytes, originalSize);
+                timings.encodeWebp = performance.now() - tWebpStart;
+                timings.encodeWebpSizeKB = result.buf.byteLength / 1024;
+                timings.encodeWebpQuality = result.quality;
+                resultBlob = new Blob([result.buf], { type: 'image/webp' });
+                if (!result.fallbackNeeded) {
+                    timings.encodeWebpAccepted = 1;
+                    break;
+                }
+                timings.encodeWebpAccepted = 0;
+                minSize = result.buf.byteLength;
+            } catch {
+                const r = await encodeCanvasToFit(canvas);
+                resultBlob = r.blob;
+                if (r.fits) break;
+                minSize = r.minSize;
+            }
+        } else {
+            const r = await encodeCanvasToFit(canvas);
+            resultBlob = r.blob;
+            if (r.fits) break;
+            minSize = r.minSize;
+        }
+
+        const next = nextResolutionForTarget(curW, curH, minSize, maxBytes, MIN_RESOLUTION_DIMENSION);
+        if (!next) break;
+        curW = next.width;
+        curH = next.height;
+        timings.resolutionLevels = (timings.resolutionLevels ?? 0) + 1;
+    }
+
+    bitmap.close();
     timings.total = performance.now() - tStart;
-    return { blob: bestBlob, width: targetWidth, height: targetHeight, timings };
+    return { blob: resultBlob!, width: curW, height: curH, sourceWidth, sourceHeight, timings };
 }
 
 self.onmessage = async (e: MessageEvent<WorkerInput>) => {

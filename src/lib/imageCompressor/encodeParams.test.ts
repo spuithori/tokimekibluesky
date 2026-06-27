@@ -53,6 +53,25 @@ describe('encodeWebpWasm params (F1+ regression guard)', () => {
     expect(fallbackSrc).toMatch(/fallbackNeeded/);
   });
 
+  it('both files use the projected descent (projectWebpQuality)', () => {
+    expect(workerSrc).toMatch(/projectWebpQuality/);
+    expect(fallbackSrc).toMatch(/projectWebpQuality/);
+  });
+
+  it('both files have the measurement-based resolution fallback (always completes)', () => {
+    expect(workerSrc).toMatch(/nextResolutionForTarget/);
+    expect(workerSrc).toMatch(/MIN_RESOLUTION_DIMENSION/);
+    expect(fallbackSrc).toMatch(/nextResolutionForTarget/);
+    expect(fallbackSrc).toMatch(/MIN_RESOLUTION_DIMENSION/);
+  });
+
+  it('MozJPEG is fully removed (WebP + resolution reduction only)', () => {
+    expect(workerSrc).not.toMatch(/encodeMozJpegWasm/);
+    expect(workerSrc).not.toMatch(/@jsquash\/jpeg/);
+    expect(fallbackSrc).not.toMatch(/encodeMozJpegWasm/);
+    expect(fallbackSrc).not.toMatch(/@jsquash\/jpeg/);
+  });
+
   it('worker.ts has V5 smart-guess (mp>=5 AND bpp_mp>=200k → qStart=85)', () => {
     expect(workerSrc).toMatch(/smartGuessQStart/);
     expect(workerSrc).toMatch(/mp\s*<\s*5/);
@@ -75,37 +94,6 @@ describe('encodeWebpWasm params (F1+ regression guard)', () => {
   it('fallback.ts uses WEBP method=2', () => {
     expect(fallbackSrc).toMatch(/method:\s*2/);
     expect(fallbackSrc).not.toMatch(/method:\s*4/);
-  });
-
-  it('worker.ts has MozJPEG fallthrough for uncompressible images', () => {
-    expect(workerSrc).toMatch(/encodeMozJpegWasm/);
-    expect(workerSrc).toMatch(/@jsquash\/jpeg\/encode/);
-    expect(workerSrc).toMatch(/image\/jpeg/);
-    expect(workerSrc).toMatch(/progressive:\s*true/);
-    expect(workerSrc).toMatch(/chroma_subsample:\s*2/);
-  });
-
-  it('fallback.ts has same MozJPEG fallthrough', () => {
-    expect(fallbackSrc).toMatch(/encodeMozJpegWasm/);
-    expect(fallbackSrc).toMatch(/@jsquash\/jpeg\/encode/);
-    expect(fallbackSrc).toMatch(/image\/jpeg/);
-  });
-
-  it('worker.ts MozJPEG uses descent search (lo=60 hi=80)', () => {
-    expect(workerSrc).toMatch(/quality:\s*85/);
-    expect(workerSrc).toMatch(/lo\s*=\s*60/);
-    expect(workerSrc).toMatch(/hi\s*=\s*80/);
-  });
-
-  it('worker.ts MozJPEG uses auto_subsample + optimize_coding', () => {
-    expect(workerSrc).toMatch(/optimize_coding:\s*true/);
-    expect(workerSrc).toMatch(/auto_subsample:\s*true/);
-  });
-
-  it('fallback.ts MozJPEG uses same params', () => {
-    expect(fallbackSrc).toMatch(/optimize_coding:\s*true/);
-    expect(fallbackSrc).toMatch(/auto_subsample:\s*true/);
-    expect(fallbackSrc).toMatch(/chroma_subsample:\s*2/);
   });
 
   it('worker.ts smart-guess returns 95 when no maxSizeBytes (unbounded encode)', () => {

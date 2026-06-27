@@ -19,17 +19,17 @@ export interface PreviewCompressOptions {
 /** Payload sent to the worker / fallback compress routine. */
 export interface WorkerInput {
     id?: number;
-    bitmap: ImageBitmap;
+    file: Blob;
     originalSize: number;  // R8 R-E V5 smart-guess 用 (input bytes)
-    targetWidth: number;
-    targetHeight: number;
+    maxWidthOrHeight: number;
+    targetWidth?: number;
+    targetHeight?: number;
     outputType: string;
     maxSizeBytes: number | undefined;
     initialQuality: number;
     maxQuality: number;
     minQuality: number;
     maxIterations: number;
-    skipWasm?: boolean;
 }
 
 /** Result returned by the worker / fallback compress routine. */
@@ -38,6 +38,8 @@ export interface WorkerOutput {
     blob: Blob;
     width: number;
     height: number;
+    sourceWidth?: number;
+    sourceHeight?: number;
     timings?: Record<string, number>;
 }
 

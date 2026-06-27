@@ -1,5 +1,6 @@
 import type { CompressOptions, PreviewCompressOptions, WorkerInput, WorkerOutput } from './types';
-import { calcTargetDimensions, isHeicImage } from './utils';
+import { calcTargetDimensions, getIntrinsicSize, isHeicImage } from './utils';
+import { runInPool } from './workerPool';
 
 export { blobToDataUrl } from './utils';
 
@@ -18,8 +19,6 @@ export interface CompressStats {
 
 const canUseWorker = typeof Worker !== 'undefined'
     && typeof OffscreenCanvas !== 'undefined';
-
-const SKIP_WASM_BYTES_THRESHOLD = 10 * 1024 * 1024;
 
 async function stripJpegMetadata(blob: Blob): Promise<Blob> {
     if (blob.type !== 'image/jpeg') return blob;
@@ -83,64 +82,14 @@ async function stripJpegMetadata(blob: Blob): Promise<Blob> {
     return new Blob([output], { type: 'image/jpeg' });
 }
 
-let workerInstance: Worker | null = null;
-
-function getWorker(): Worker {
-    if (!workerInstance) {
-        workerInstance = new Worker(
-            new URL('./worker.ts', import.meta.url),
-            { type: 'module' },
-        );
-    }
-    return workerInstance;
-}
-
-let nextMessageId = 0;
-const pendingRequests = new Map<number, { resolve: (v: WorkerOutput) => void; reject: (e: Error) => void }>();
-
-function ensureWorkerListener(): void {
-    const worker = getWorker();
-    if ((worker as any).__listenerAttached) return;
-    (worker as any).__listenerAttached = true;
-
-    worker.addEventListener('message', (e: MessageEvent) => {
-        const data = e.data;
-        const pending = pendingRequests.get(data.id);
-        if (!pending) return;
-        pendingRequests.delete(data.id);
-        if (data.error) {
-            pending.reject(new Error(data.error));
-        } else {
-            pending.resolve(data as WorkerOutput);
-        }
-    });
-
-    worker.addEventListener('error', (e: ErrorEvent) => {
-        for (const [id, pending] of pendingRequests) {
-            pending.reject(new Error(e.message));
-        }
-        pendingRequests.clear();
-    });
-}
-
-function runInWorker(input: WorkerInput): Promise<WorkerOutput> {
-    return new Promise((resolve, reject) => {
-        ensureWorkerListener();
-        const id = nextMessageId++;
-        input.id = id;
-        pendingRequests.set(id, { resolve, reject });
-        getWorker().postMessage(input, [input.bitmap]);
-    });
-}
-
 async function runFallback(input: WorkerInput): Promise<WorkerOutput> {
     const { compressFallback } = await import('./fallback');
     return compressFallback(input);
 }
 
-async function processImage(input: WorkerInput): Promise<WorkerOutput> {
+async function processImage(input: WorkerInput, priority: 'preview' | 'compress'): Promise<WorkerOutput> {
     if (canUseWorker) {
-        return runInWorker(input);
+        return runInPool(input, { priority });
     }
     return runFallback(input);
 }
@@ -198,25 +147,22 @@ export async function compressImageWithStats(
     const tStart = performance.now();
     const originalSize = file.size;
 
-    const tBitmapStart = performance.now();
-    const [bitmap, isHeic] = await Promise.all([
-        createImageBitmap(file),
+    const tSizeStart = performance.now();
+    const [intrinsic, isHeic] = await Promise.all([
+        getIntrinsicSize(file),
         isHeicImage(file),
     ]);
-    timings.createImageBitmap = performance.now() - tBitmapStart;
+    timings.intrinsicSize = performance.now() - tSizeStart;
 
-    const originalWidth = bitmap.width;
-    const originalHeight = bitmap.height;
     const maxSizeBytes = maxSizeMB !== undefined ? maxSizeMB * 1024 * 1024 : undefined;
 
     const sizeOk = maxSizeBytes === undefined || originalSize <= maxSizeBytes;
-    const dimsOk = originalWidth <= maxWidthOrHeight && originalHeight <= maxWidthOrHeight;
+    const dimsOk = intrinsic !== null
+        && intrinsic.width <= maxWidthOrHeight && intrinsic.height <= maxWidthOrHeight;
 
     // HEIC bytes are never a web-safe upload format — even when small enough to
     // short-circuit — so always route them through the re-encode path below.
-    if (sizeOk && dimsOk && !isHeic) {
-        bitmap.close();
-
+    if (intrinsic !== null && sizeOk && dimsOk && !isHeic) {
         const tStripStart = performance.now();
         const strippedBlob = await stripJpegMetadata(file);
         timings.stripExif = performance.now() - tStripStart;
@@ -225,11 +171,11 @@ export async function compressImageWithStats(
 
         const stats: CompressStats = {
             blob: strippedBlob,
-            width: originalWidth,
-            height: originalHeight,
+            width: intrinsic.width,
+            height: intrinsic.height,
             originalSize,
-            originalWidth,
-            originalHeight,
+            originalWidth: intrinsic.width,
+            originalHeight: intrinsic.height,
             timings,
             runtime: canUseWorker ? 'worker' : 'fallback',
         };
@@ -241,31 +187,31 @@ export async function compressImageWithStats(
         return stats;
     }
 
-    const { width, height } = calcTargetDimensions(originalWidth, originalHeight, maxWidthOrHeight);
-    const skipWasm = originalSize > SKIP_WASM_BYTES_THRESHOLD;
+    const target = intrinsic !== null
+        ? calcTargetDimensions(intrinsic.width, intrinsic.height, maxWidthOrHeight)
+        : null;
 
     const tProcessStart = performance.now();
     const result = await processImage({
-        bitmap,
+        file,
         originalSize,
-        targetWidth: width,
-        targetHeight: height,
+        maxWidthOrHeight,
+        targetWidth: target?.width,
+        targetHeight: target?.height,
         outputType,
         maxSizeBytes,
         initialQuality,
         maxQuality,
         minQuality,
         maxIterations,
-        skipWasm,
-    });
+    }, 'compress');
     const processElapsed = performance.now() - tProcessStart;
 
+    const originalWidth = intrinsic?.width ?? result.sourceWidth ?? result.width;
+    const originalHeight = intrinsic?.height ?? result.sourceHeight ?? result.height;
+
     if (maxSizeBytes !== undefined && result.blob.size > maxSizeBytes) {
-        throw new Error(
-            `compressImage: unable to compress below ${(maxSizeBytes / 1024 / 1024).toFixed(2)}MB `
-            + `(final: ${(result.blob.size / 1024 / 1024).toFixed(2)}MB, `
-            + `${result.width}x${result.height})`,
-        );
+        timings.overTarget = 1;
     }
 
     const workerTimings = result.timings ?? {};
@@ -328,21 +274,24 @@ export async function compressForPreview(
         quality = 0.8,
     } = options ?? {};
 
-    const bitmap = await createImageBitmap(file);
-    const { width, height } = calcTargetDimensions(bitmap.width, bitmap.height, maxWidthOrHeight);
+    const intrinsic = await getIntrinsicSize(file);
+    const target = intrinsic !== null
+        ? calcTargetDimensions(intrinsic.width, intrinsic.height, maxWidthOrHeight)
+        : null;
 
     const result = await processImage({
-        bitmap,
+        file,
         originalSize: file.size,
-        targetWidth: width,
-        targetHeight: height,
+        maxWidthOrHeight,
+        targetWidth: target?.width,
+        targetHeight: target?.height,
         outputType,
         maxSizeBytes: undefined,
         initialQuality: quality,
         maxQuality: quality,
         minQuality: quality,
         maxIterations: 1,
-    });
+    }, 'preview');
 
     return result.blob;
 }
