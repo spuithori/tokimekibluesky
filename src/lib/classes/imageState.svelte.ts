@@ -4,6 +4,7 @@ export type GalleryImage = {
   width?: number,
   height?: number,
   alt?: string,
+  downloadName?: string,
 }
 
 class ImageState {

@@ -232,7 +232,7 @@ export function parseCdnUrl(url: string): { did: string; cid: string } | null {
 
 export async function fetchOriginalBlob(
     did: string, cid: string, signal?: AbortSignal
-): Promise<string | null> {
+): Promise<{ url: string; type: string } | null> {
     const service = await getService(did);
     if (!service) return null;
     const res = await fetch(
@@ -242,5 +242,5 @@ export async function fetchOriginalBlob(
     if (!res.ok) return null;
     const contentType = res.headers.get('content-type') || 'image/jpeg';
     const blob = new Blob([await res.arrayBuffer()], { type: contentType });
-    return URL.createObjectURL(blob);
+    return { url: URL.createObjectURL(blob), type: contentType };
 }

@@ -14,6 +14,17 @@
   const objectUrls: string[] = [];
   let currentAbort: AbortController | null = null;
 
+  function mimeToExt(type: string): string {
+    switch (type.split(';')[0].trim()) {
+      case 'image/png': return 'png';
+      case 'image/gif': return 'gif';
+      case 'image/webp': return 'webp';
+      case 'image/avif': return 'avif';
+      case 'image/jpeg':
+      default: return 'jpg';
+    }
+  }
+
   async function loadOriginal(index: number) {
     currentAbort?.abort();
     const abort = new AbortController();
@@ -26,21 +37,32 @@
     if (!parsed) return;
 
     try {
-      const objectUrl = await fetchOriginalBlob(parsed.did, parsed.cid, abort.signal);
-      if (!objectUrl || abort.signal.aborted) return;
+      const result = await fetchOriginalBlob(parsed.did, parsed.cid, abort.signal);
+      if (!result || abort.signal.aborted) return;
 
-      objectUrls.push(objectUrl);
-      images[index].src = objectUrl;
+      objectUrls.push(result.url);
+      images[index].src = result.url;
+      images[index].downloadName = `${parsed.cid}.${mimeToExt(result.type)}`;
 
       if (lightbox.pswp?.currIndex === index) {
         const el = lightbox.pswp.currSlide?.content?.element;
         if (el?.tagName === 'IMG') {
-          (el as HTMLImageElement).src = objectUrl;
+          (el as HTMLImageElement).src = result.url;
         }
       }
     } catch (e: any) {
       if (e?.name !== 'AbortError' && !abort.signal.aborted) console.error(e);
     }
+  }
+
+  function triggerDownload(url: string, filename: string) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   }
 
   const lightbox = new PhotoSwipeLightbox({
@@ -73,9 +95,29 @@
       isButton: true,
       tagName: 'button',
       html: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
-      onClick: (event, el) => {
-        const url = lightbox.pswp.currSlide.data.src;
-        window.open(url, '_blank');
+      onClick: async () => {
+        const data = lightbox.pswp.currSlide.data;
+        const originalSrc = data.src ?? '';
+        let url = originalSrc;
+        let filename: string | undefined = data.downloadName;
+
+        if (!filename || !url.startsWith('blob:')) {
+          const parsed = parseCdnUrl(originalSrc);
+          if (parsed) {
+            const result = await fetchOriginalBlob(parsed.did, parsed.cid);
+            if (result) {
+              objectUrls.push(result.url);
+              url = result.url;
+              filename = `${parsed.cid}.${mimeToExt(result.type)}`;
+            }
+          }
+        }
+
+        if (filename && url.startsWith('blob:')) {
+          triggerDownload(url, filename);
+        } else {
+          window.open(originalSrc, '_blank');
+        }
       }
     });
 
