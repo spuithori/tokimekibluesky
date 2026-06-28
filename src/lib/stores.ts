@@ -126,7 +126,7 @@ export const bluefeedAddModal = writable({
     did: '',
 });
 
-export const timelineHashtags = writable([]);
+export const timelineHashtags = writable<string[]>([]);
 
 export const hashtagHistory = writable(localStorage.getItem('hashtagHistory')
     ? JSON.parse(localStorage.getItem('hashtagHistory') as string).filter(Boolean)

@@ -32,7 +32,7 @@
     }
 
     if (newTagSet.size) {
-        $timelineHashtags = [...newTagSet, ...$timelineHashtags.filter(t => !newTagSet.has(t))].slice(0, 5);
+        timelineHashtags.update(prev => [...newTagSet, ...prev.filter(t => !newTagSet.has(t))].slice(0, 5));
     }
 </script>
 

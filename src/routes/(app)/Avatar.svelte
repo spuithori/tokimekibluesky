@@ -14,6 +14,7 @@
     href,
     profile = undefined,
     onavatarclick = undefined,
+    full = false,
   }: {
     _agent?: any,
     avatar?: string,
@@ -21,7 +22,14 @@
     href?: string,
     profile?: any,
     onavatarclick?: (() => void) | undefined,
+    full?: boolean,
   } = $props();
+
+  let displayAvatar = $derived(
+    full || !avatar
+      ? avatar
+      : avatar.replace('/img/avatar/plain/', '/img/avatar_thumbnail/plain/')
+  );
 
   let avatarMouseOverTimeId: ReturnType<typeof setTimeout>;
   let isProfileShown = $state(false);
@@ -195,7 +203,7 @@
      class:mochi-enabled={!$settings?.general?.disableMochiHoppe}
      style:transform={mochiTransform}>
     {#if (avatar && !$isDataSaving)}
-      <img loading="lazy" src={avatar} width="1000" height="1000" alt="" draggable="false">
+      <img loading="lazy" decoding="async" src={displayAvatar} width="1000" height="1000" alt="" draggable="false">
     {/if}
   </a>
 

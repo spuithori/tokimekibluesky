@@ -40,7 +40,7 @@
     import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
     import { getDidFromUri, getService } from "$lib/util";
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
-    import { onDestroy, untrack } from "svelte";
+    import { untrack } from "svelte";
     import type { Attachment } from "svelte/attachments";
     import {
         BadgeCheck,
@@ -52,6 +52,7 @@
     import { intlRelativeTimeFormatState } from "$lib/classes/intlRelativeTimeFormatState.svelte";
     import { appState } from "$lib/classes/appState.svelte";
     import { getNextUpdateDelay } from "$lib/components/post/timelineUtil";
+    import { relativeTimeClock } from "$lib/components/post/relativeTimeClock";
 
     interface Props {
         post: any;
@@ -120,14 +121,15 @@
     };
     let warnLabels = $state([]);
     let warnBehavior: "cover" | "inform" = $state("cover");
-    let timeDistanceToNow = $state(
-        intlRelativeTimeFormatState.format({
-            laterDate: new Date(post.indexedAt),
-        }),
-    );
+    let timeDistanceToNow = $derived.by(() => {
+        const date = new Date(post.indexedAt);
+        if (getNextUpdateDelay(date) !== null) {
+            relativeTimeClock.now;
+        }
+        return intlRelativeTimeFormatState.format({ laterDate: date });
+    });
     let skyblurText = $state("");
     let isSkyblurAdditional = $state(false);
-    let timerId: ReturnType<typeof setTimeout>;
 
     const whisperExpiredAt = (() => {
         const raw = post?.record?.["tech.tokimeki.whisper.expiredAt"];
@@ -298,24 +300,6 @@
         }
     }
 
-    function update() {
-        timeDistanceToNow = intlRelativeTimeFormatState.format({
-            laterDate: new Date(post.indexedAt),
-        });
-
-        const delay = getNextUpdateDelay(new Date(post.indexedAt));
-
-        if (delay !== null) {
-            timerId = setTimeout(update, delay);
-        }
-    }
-    update();
-
-    onDestroy(() => {
-        if (timerId) {
-            clearTimeout(timerId);
-        }
-    });
 </script>
 
 <div class="timeline__image">

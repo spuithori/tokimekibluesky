@@ -1,6 +1,6 @@
 type formatOptions = {
     laterDate: Date,
-    earlierDate: Date,
+    earlierDate?: Date,
 }
 
 const SECONDS_IN_MINUTE = 60;

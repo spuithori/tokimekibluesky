@@ -75,7 +75,7 @@
       {:else}
         {#if (external.thumb)}
           <div class="timeline-external__image">
-            <img src="{external.thumb}" alt="">
+            <img loading="lazy" decoding="async" src="{external.thumb}" alt="">
           </div>
         {/if}
       {/if}
