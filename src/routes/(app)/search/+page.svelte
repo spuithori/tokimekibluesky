@@ -1,5 +1,6 @@
 <script lang="ts">
     import { page } from '$app/stores';
+    import { goto } from '$app/navigation';
     import {agent} from '$lib/stores';
     import {_} from "svelte-i18n";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
@@ -7,21 +8,24 @@
     import SuicideSafety from "$lib/components/safety/SuicideSafety.svelte";
     import DeckRow from "../DeckRow.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {parseSearchParams, buildSearchQuery, searchColumnId, isEmptySearch} from "$lib/search/searchParams";
 
     const junkColumnState = getColumnState(true);
 
-    let isLoaded = false;
-    let isColumnAdded = false;
-    let isSafety = $state(false);
-    let sort: 'top' | 'latest' = $state('latest');
+    const parsed = parseSearchParams($page.url.searchParams);
+    const columnId = searchColumnId(parsed);
+    const hasSearch = !isEmptySearch(parsed);
+    const isSafety = PUBLIC_SUICIDE_WORDS.split(',').includes($page.url.searchParams.get('q') ?? '');
 
-    if ($page.url.searchParams.get('q') && !junkColumnState.hasColumn('search_' + $page.url.searchParams.get('q'))) {
+    if (hasSearch && !junkColumnState.hasColumn(columnId)) {
         junkColumnState.add({
-            id: $page.url.searchParams.get('q') ? 'search_' + $page.url.searchParams.get('q') : 'search_empty',
+            id: columnId,
             algorithm: {
-                algorithm: $page.url.searchParams.get('q') || '',
+                algorithm: parsed.query,
                 type: 'search',
-                name: $_('search') + ' "' + $page.url.searchParams.get('q') + '"',
+                name: $_('search') + (parsed.query ? ' "' + parsed.query + '"' : ''),
+                sort: parsed.sort,
+                searchFilters: parsed.filters,
             },
             style: 'default',
             settings: defaultDeckSettings,
@@ -34,31 +38,17 @@
         });
     }
 
-    const words = PUBLIC_SUICIDE_WORDS.split(',');
-    if (words.includes($page.url.searchParams.get('q'))) {
-        isSafety = true;
-    }
-
-    function toggleSort(_sort) {
-        if (_sort === sort) {
-            return false;
+    function setSort(sort: 'top' | 'latest') {
+        if (sort === parsed.sort) {
+            return;
         }
-
-        sort = _sort;
-
-        if ($page.url.searchParams.get('q') && junkColumnState.hasColumn('search_' + $page.url.searchParams.get('q'))) {
-            const index = junkColumnState.getColumnIndex('search_' + $page.url.searchParams.get('q'));
-
-            junkColumnState.columns[index].algorithm.sort = _sort;
-            junkColumnState.clearFeed(junkColumnState.columns[index].id);
-            junkColumnState.columns[index].data.cursor = 0;
-        }
+        goto('/search?' + buildSearchQuery({ ...parsed, sort }));
     }
 </script>
 
 <div class="sort-toggle-nav">
-    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={sort === 'latest'} onclick={() => {toggleSort('latest')}}>{$_('search_sort_latest')}</button>
-    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={sort === 'top'} onclick={() => {toggleSort('top')}}>{$_('search_sort_top')}</button>
+    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={parsed.sort === 'latest'} onclick={() => setSort('latest')}>{$_('search_sort_latest')}</button>
+    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={parsed.sort === 'top'} onclick={() => setSort('top')}>{$_('search_sort_top')}</button>
 </div>
 
 {#if isSafety}
@@ -67,19 +57,11 @@
     </div>
 {/if}
 
-{#key sort}
-    {#if ($page.url.searchParams.get('q') && junkColumnState.hasColumn('search_' + $page.url.searchParams.get('q')))}
-        <DeckRow index={junkColumnState.getColumnIndex('search_' + $page.url.searchParams.get('q'))} isJunk={true}></DeckRow>
-    {:else}
-        <div class="search-empty">
-            <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="var(--border-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rainbow"><path d="M22 17a10 10 0 0 0-20 0"/><path d="M6 17a6 6 0 0 1 12 0"/><path d="M10 17a2 2 0 0 1 4 0"/></svg>
-        </div>
-    {/if}
-{/key}
-
-{#if (isLoaded)}
-    <div class="search-column-adder">
-        <button class="button button--shadow button--sm" disabled={isColumnAdded} onclick={addColumn}>{$_('feed_quick_add')}</button>
+{#if hasSearch && junkColumnState.hasColumn(columnId)}
+    <DeckRow index={junkColumnState.getColumnIndex(columnId)} isJunk={true}></DeckRow>
+{:else}
+    <div class="search-empty">
+        <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="var(--border-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rainbow"><path d="M22 17a10 10 0 0 0-20 0"/><path d="M6 17a6 6 0 0 1 12 0"/><path d="M10 17a2 2 0 0 1 4 0"/></svg>
     </div>
 {/if}
 
@@ -90,24 +72,6 @@
         align-items: center;
         justify-content: center;
         padding: 32px 0;
-    }
-
-    .search-column-adder {
-        position: sticky;
-        bottom: 24px;
-        display: flex;
-        justify-content: flex-end;
-        padding: 0 24px;
-        pointer-events: none;
-
-        @media (max-width: 767px) {
-            bottom: 80px;
-            padding: 0 20px;
-        }
-
-        .button {
-            pointer-events: auto;
-        }
     }
 
     .sort-toggle-nav {
@@ -125,7 +89,7 @@
             width: 60px;
             font-size: 14px;
             color: var(--text-color-1);
-            
+
             &--active {
                 background-color: var(--primary-color);
                 color: #fff;

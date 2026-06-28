@@ -4,7 +4,7 @@
   import {Annoyed} from "lucide-svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
-  let { oninfinite, children } = $props();
+  let { oninfinite, children = undefined } = $props();
   let el = $state<HTMLElement | undefined>();
   let isIntersecting = $state(false);
   let retryCount = $state(0);

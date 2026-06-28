@@ -2,7 +2,7 @@
   import { X, ArrowLeft } from 'lucide-svelte';
   import { scale } from 'svelte/transition';
 
-  let { title, size = 'normal', onclose, onback, children } = $props();
+  let { title, size = 'normal', onclose, onback = undefined, children } = $props();
   const duration = 150;
   let el = $state();
 
