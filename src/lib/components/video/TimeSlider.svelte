@@ -8,9 +8,10 @@
 
     let cachedRect: DOMRect | null = null;
     let rafId: number | null = null;
+    let pendingSeekTime = 0;
 
     $effect(() => {
-        if (sliderElement && player.duration > 0) {
+        if (sliderElement && !isDragging && player.duration > 0) {
             const percentage = (player.currentTime / player.duration) * 100;
             sliderElement.style.setProperty('--slider-fill', `${percentage}%`);
         }
@@ -22,7 +23,7 @@
         sliderElement.setPointerCapture(e.pointerId);
 
         cachedRect = sliderElement.getBoundingClientRect();
-        updateTime(e);
+        updatePreview(e);
     }
 
     function handlePointerMove(e: PointerEvent) {
@@ -31,32 +32,37 @@
         if (rafId !== null) return;
 
         rafId = requestAnimationFrame(() => {
-            updateTime(e);
+            updatePreview(e);
             rafId = null;
         });
     }
 
     function handlePointerUp(e: PointerEvent) {
-        if (!sliderElement) return;
+        if (!sliderElement || !isDragging) return;
         isDragging = false;
         sliderElement.releasePointerCapture(e.pointerId);
-        cachedRect = null;
 
         if (rafId !== null) {
             cancelAnimationFrame(rafId);
             rafId = null;
         }
+
+        updatePreview(e);
+        cachedRect = null;
+
+        if (player.duration > 0) {
+            player.seek(pendingSeekTime);
+        }
     }
 
-    function updateTime(e: PointerEvent) {
+    function updatePreview(e: PointerEvent) {
         if (!sliderElement || player.duration === 0) return;
 
         const rect = cachedRect || sliderElement.getBoundingClientRect();
         const percentage = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        const time = percentage * player.duration;
+        pendingSeekTime = percentage * player.duration;
 
         sliderElement.style.setProperty('--slider-fill', `${percentage * 100}%`);
-        player.seek(time);
     }
 </script>
 

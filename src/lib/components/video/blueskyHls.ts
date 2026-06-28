@@ -14,6 +14,7 @@ type Transmuxed = { init: Uint8Array<ArrayBuffer>; data: Uint8Array<ArrayBuffer>
 const FORWARD_BUFFER_GOAL = 15;
 const BACK_BUFFER_KEEP = 10;
 const AUDIO_CODEC = 'mp4a.40.2';
+const MAX_TRANSMUX_FAIL_STREAK = 3;
 
 function resolveUrl(base: string, relative: string): string {
     return new URL(relative, base).href;
@@ -101,6 +102,7 @@ export class BlueskyHls {
     private sessionFirstAppend = false;
     private pendingOffset = 0;
     private endRequested = false;
+    private transmuxFailStreak = 0;
 
     private appendQueue: { offset?: number; bytes?: Uint8Array<ArrayBuffer> }[] = [];
 
@@ -257,6 +259,7 @@ export class BlueskyHls {
         this.sessionFirstAppend = true;
         this.pendingOffset = this.segmentStarts[segIdx] ?? 0;
         this.endRequested = false;
+        this.transmuxFailStreak = 0;
         this.worker?.postMessage({ type: 'reset' });
         this.pump();
     }
@@ -305,7 +308,19 @@ export class BlueskyHls {
             if (this.destroyed || session !== this.session) return;
 
             const out = await this.transmuxOne(bytes);
-            if (this.destroyed || session !== this.session || !out) return;
+            if (this.destroyed || session !== this.session) return;
+
+            if (!out) {
+                this.nextSegIdx = idx + 1;
+                if (this.sessionFirstAppend) {
+                    this.pendingOffset = this.segmentStarts[idx + 1] ?? this.pendingOffset;
+                }
+                if (++this.transmuxFailStreak === MAX_TRANSMUX_FAIL_STREAK) {
+                    this.onError?.(new Error('transmux produced no output'));
+                }
+                return;
+            }
+            this.transmuxFailStreak = 0;
 
             if (!this.sourceBuffer) this.createSourceBuffer(out.type);
 
@@ -321,7 +336,7 @@ export class BlueskyHls {
             if (!this.destroyed && session === this.session) this.onError?.(err);
         } finally {
             this.loading = false;
-            if (session === this.session) this.pump();
+            this.pump();
         }
     }
 
