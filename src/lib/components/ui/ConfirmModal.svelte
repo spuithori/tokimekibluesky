@@ -66,6 +66,6 @@
 
 <style lang="postcss">
     .skip-confirmation {
-      margin-bottom: 16px;
+      margin-bottom: 32px;
   }
 </style>
