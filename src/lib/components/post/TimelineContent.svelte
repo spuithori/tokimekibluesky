@@ -140,6 +140,16 @@
         return raw;
     })();
 
+    const audioMeta = (() => {
+        const raw: any = post?.record?.["tech.tokimeki.audio"];
+        if (!raw || typeof raw !== "object" || raw.isAudio !== true) return null;
+        return {
+            title: typeof raw.title === "string" ? raw.title : "",
+            artist: typeof raw.artist === "string" ? raw.artist : "",
+            durationMs: typeof raw.durationMs === "number" ? raw.durationMs : 0,
+        };
+    })();
+
     const whisperRemainingTime = (() => {
         if (!whisperExpiredAt) return "";
         const remaining = new Date(whisperExpiredAt).getTime() - Date.now();
@@ -548,9 +558,15 @@
             {/if}
 
             {#if AppBskyEmbedVideo.isView(post.embed?.media)}
-                {#await import("$lib/components/post/EmbedVideo.svelte") then { default: EmbedVideo }}
-                    <EmbedVideo video={post.embed.media}></EmbedVideo>
-                {/await}
+                {#if audioMeta}
+                    {#await import("$lib/components/post/EmbedAudio.svelte") then { default: EmbedAudio }}
+                        <EmbedAudio video={post.embed.media} audio={audioMeta}></EmbedAudio>
+                    {/await}
+                {:else}
+                    {#await import("$lib/components/post/EmbedVideo.svelte") then { default: EmbedVideo }}
+                        <EmbedVideo video={post.embed.media}></EmbedVideo>
+                    {/await}
+                {/if}
             {/if}
 
             {#if AppBskyEmbedExternal.isView(post.embed.media)}
@@ -594,9 +610,15 @@
                     <TimelineWarn labels={warnLabels}></TimelineWarn>
                 {/if}
 
-                {#await import("$lib/components/post/EmbedVideo.svelte") then { default: EmbedVideo }}
-                    <EmbedVideo video={post.embed}></EmbedVideo>
-                {/await}
+                {#if audioMeta}
+                    {#await import("$lib/components/post/EmbedAudio.svelte") then { default: EmbedAudio }}
+                        <EmbedAudio video={post.embed} audio={audioMeta}></EmbedAudio>
+                    {/await}
+                {:else}
+                    {#await import("$lib/components/post/EmbedVideo.svelte") then { default: EmbedVideo }}
+                        <EmbedVideo video={post.embed}></EmbedVideo>
+                    {/await}
+                {/if}
             </div>
         {/if}
     </div>

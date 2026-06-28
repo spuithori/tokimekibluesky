@@ -1,10 +1,12 @@
 <script lang="ts">
     import { setContext, untrack } from "svelte";
     import VideoLayout from '$lib/components/video/VideoLayout.svelte';
+    import AudioLayout from '$lib/components/video/AudioLayout.svelte';
     import { PersistedState } from "runed";
     import { BlueskyHls } from '$lib/components/video/blueskyHls';
 
-    let { src, poster, isTok = false } = $props();
+    let { src, poster, isTok = false, variant = 'video', title = '', artist = '' } = $props();
+    const isAudio = $derived(variant === 'audio');
 
     let videoElement: HTMLVideoElement | undefined = $state();
     let engine: BlueskyHls | null = null;
@@ -45,6 +47,9 @@
         get isStarted() { return isStarted; },
         get isPip() { return isPip; },
         get isPipSupported() { return isPipSupported; },
+        get variant() { return variant; },
+        get title() { return title; },
+        get artist() { return artist; },
         togglePlay,
         seek,
         setVolume,
@@ -302,13 +307,14 @@
 <div
     class="video-player"
     class:video-player--is-tok={isTok}
+    class:video-player--audio={isAudio}
     data-paused={paused}
     data-ended={ended}
     data-started={isStarted}
     data-controls={showControls}
     data-hover={isHovering}
     role="region"
-    aria-label="Video player"
+    aria-label={isAudio ? 'Audio player' : 'Video player'}
     onmousemove={handleMouseMove}
     onmouseleave={handleMouseLeave}
 >
@@ -320,7 +326,7 @@
         playsinline
         disableremoteplayback
         preload="metadata"
-        loop
+        loop={!isAudio}
         muted={muted.current}
         onkeydown={handleKeyDown}
         ontimeupdate={handleTimeUpdate}
@@ -332,7 +338,11 @@
     >
     </video>
 
-    <VideoLayout></VideoLayout>
+    {#if isAudio}
+        <AudioLayout></AudioLayout>
+    {:else}
+        <VideoLayout></VideoLayout>
+    {/if}
 </div>
 
 <style lang="postcss">
