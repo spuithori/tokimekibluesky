@@ -7,7 +7,7 @@ import { Readable } from 'node:stream';
 import ffmpegPath from 'ffmpeg-static';
 import ffprobeStatic from 'ffprobe-static';
 import { read } from '$app/server';
-import iconUrl from './music-note.png?url';
+import loopUrl from './aurora-loop.mp4?url';
 import type { RequestHandler } from './$types';
 
 export const config = {
@@ -20,16 +20,6 @@ export const config = {
 const MAX_DURATION_SEC = 180;
 const MAX_INPUT_BYTES = 80 * 1000 * 1000;
 const AUDIO_BITRATE = '320k';
-const FPS = 20;
-
-const AURORA_FILTER =
-    "color=c=0x0a0e16:s=1280x720:r=20:d=2[bg];" +
-    "color=c=black@0:s=1280x720:r=20:d=2,format=rgba,geq=r=139:g=92:b=246:a='st(1\\,380+45*sin(PI*T))\\;st(2\\,300+38*cos(PI*T))\\;235*exp(-((X-ld(1))*(X-ld(1))+(Y-ld(2))*(Y-ld(2)))/80000)'[b1];" +
-    "color=c=black@0:s=1280x720:r=20:d=2,format=rgba,geq=r=56:g=132:b=255:a='st(1\\,900+42*sin(PI*T+2))\\;st(2\\,440+40*cos(PI*T+2))\\;235*exp(-((X-ld(1))*(X-ld(1))+(Y-ld(2))*(Y-ld(2)))/80000)'[b2];" +
-    "color=c=black@0:s=1280x720:r=20:d=2,format=rgba,geq=r=34:g=211:b=238:a='st(1\\,700+40*sin(PI*T+4))\\;st(2\\,280+34*cos(PI*T+4))\\;150*exp(-((X-ld(1))*(X-ld(1))+(Y-ld(2))*(Y-ld(2)))/55000)'[b3];" +
-    "[bg][b1]overlay[x1];[x1][b2]overlay[x2];[x2][b3]overlay,noise=alls=6:allf=t+u[aur];" +
-    "[0]scale=260:260[ic];" +
-    "[aur][ic]overlay=(W-w)/2:(H-h)/2,format=yuv420p[out]";
 
 const ACCEPTED_MIME = new Set([
     'audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/aac', 'audio/x-m4a', 'audio/m4a',
@@ -98,9 +88,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const dir = await mkdtemp(join(tmpdir(), 'a2v-'));
     const inputPath = join(dir, 'input');
-    const iconPath = join(dir, 'icon.png');
     const loopPath = join(dir, 'loop.mp4');
-    const loopFilterPath = join(dir, 'loop.filter');
     const outPath = join(dir, 'out.mp4');
 
     const deleteBlob = async () => {
@@ -137,22 +125,12 @@ export const POST: RequestHandler = async ({ request }) => {
         const durationMs = Math.round(duration * 1000);
 
         const audioCodec = (probe.streams || []).find((s: any) => s.codec_type === 'audio')?.codec_name;
-        const audioArgs = audioCodec === 'aac'
+        const audioArgs = audioCodec === 'aac' || audioCodec === 'mp3'
             ? ['-c:a', 'copy']
             : ['-c:a', 'aac', '-b:a', AUDIO_BITRATE];
 
-        const iconBytes = Buffer.from(await read(iconUrl).arrayBuffer());
-        await writeFile(iconPath, iconBytes);
-        await writeFile(loopFilterPath, AURORA_FILTER);
-
-        await run(ffmpegPath, [
-            '-y', '-hide_banner', '-loglevel', 'error',
-            '-i', iconPath,
-            '-filter_complex_script', loopFilterPath,
-            '-map', '[out]', '-r', String(FPS),
-            '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '24', '-g', String(FPS * 2),
-            loopPath,
-        ]);
+        const loopBytes = Buffer.from(await read(loopUrl).arrayBuffer());
+        await writeFile(loopPath, loopBytes);
 
         await run(ffmpegPath, [
             '-y', '-hide_banner', '-loglevel', 'error',
@@ -160,9 +138,8 @@ export const POST: RequestHandler = async ({ request }) => {
             '-i', inputPath,
             '-map', '0:v', '-map', '1:a',
             '-t', String(duration), '-shortest',
-            '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '30', '-pix_fmt', 'yuv420p', '-r', String(FPS),
+            '-c:v', 'copy',
             ...audioArgs,
-            '-movflags', '+faststart',
             outPath,
         ]);
 
