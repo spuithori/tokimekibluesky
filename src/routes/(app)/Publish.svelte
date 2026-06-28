@@ -704,6 +704,15 @@
               record['tech.tokimeki.whisper.expiredAt'] = new Date(Date.now() + (durationMs[post.whisper] || durationMs['1h'])).toISOString();
           }
 
+          if (post.video?.audioMeta?.isAudio) {
+              record['tech.tokimeki.audio'] = {
+                  isAudio: true,
+                  title: post.video.audioMeta.title || undefined,
+                  artist: post.video.audioMeta.artist || undefined,
+                  durationMs: post.video.audioMeta.durationMs || undefined,
+              };
+          }
+
           writes.push({
               $type: 'com.atproto.repo.applyWrites#create',
               collection: 'app.bsky.feed.post',

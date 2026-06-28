@@ -14,6 +14,7 @@
     import {toast} from "svelte-sonner";
     import {publishState} from "$lib/classes/publishState.svelte";
     import {MAX_GALLERY_IMAGES} from "$lib/components/post/embedImages";
+    import {convertAudioToVideo, AudioToVideoError, AUDIO_MAX_DURATION_SEC} from "$lib/components/editor/audioToVideo";
 
     type Image = {
         id: string,
@@ -71,6 +72,22 @@
     }
 
     const acceptedVideoTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
+    const acceptedAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/aac', 'audio/x-m4a', 'audio/m4a', 'audio/wav', 'audio/x-wav', 'audio/wave', 'audio/ogg', 'application/ogg', 'audio/opus', 'audio/flac', 'audio/x-flac', 'audio/webm'];
+
+    async function getAudioDuration(file): Promise<number | null> {
+        return new Promise((resolve) => {
+            const audio = document.createElement('audio');
+            audio.preload = 'metadata';
+            const url = window.URL.createObjectURL(file);
+            const done = (value: number | null) => {
+                window.URL.revokeObjectURL(url);
+                resolve(value);
+            };
+            audio.onloadedmetadata = () => done(Number.isFinite(audio.duration) ? audio.duration : null);
+            audio.onerror = () => done(null);
+            audio.src = url;
+        });
+    }
 
     async function handleInputChange(e) {
         onpreparestart();
@@ -84,6 +101,7 @@
         const allFiles = Array.from(filesList);
         const imageFiles = allFiles.filter(file => acceptedImageType.includes(file.type));
         const videoFiles = allFiles.filter(file => acceptedVideoTypes.includes(file.type));
+        const audioFiles = allFiles.filter(file => acceptedAudioTypes.includes(file.type));
 
         if (imageFiles.length > 0) {
             video = undefined;
@@ -108,7 +126,7 @@
 
             const dimensions = await getVideoDimensions(videoFile);
 
-            if (videoFile.size / 1024 / 1024 > 100 || dimensions.duration > 180) {
+            if (videoFile.size > 300 * 1000 * 1000 || dimensions.duration > 180) {
                 toast.error($_('error_video_too_large'));
                 video = undefined;
                 input.value = '';
@@ -128,6 +146,56 @@
                 bytes: videoBytes,
                 mimeType: videoFile.type,
                 ext: videoFile.type.split('/')[1],
+            }
+
+            input.value = '';
+            onprepareend();
+            return false;
+        }
+
+        if (audioFiles.length > 0) {
+            images = [];
+            video = undefined;
+            const audioFile = audioFiles[0];
+
+            const duration = await getAudioDuration(audioFile);
+            if (duration !== null && duration > AUDIO_MAX_DURATION_SEC) {
+                toast.error($_('error_audio_too_long'));
+                input.value = '';
+                onprepareend();
+                return false;
+            }
+
+            const audioToastId = toast.loading($_('process_audio_converting'));
+
+            try {
+                const result = await convertAudioToVideo(audioFile);
+                toast.dismiss(audioToastId);
+
+                if (!result.audioMeta.title) {
+                    result.audioMeta.title = audioFile.name.replace(/\.[^/.]+$/, '');
+                }
+
+                video = {
+                    aspectRatio: {
+                        width: result.width,
+                        height: result.height,
+                    },
+                    blob: result.blob,
+                    bytes: result.bytes,
+                    mimeType: result.mimeType,
+                    ext: result.ext,
+                    audioMeta: result.audioMeta,
+                };
+            } catch (e) {
+                toast.dismiss(audioToastId);
+                const kind = e instanceof AudioToVideoError ? e.kind : 'failed';
+                const messageKey = kind === 'too_long' ? 'error_audio_too_long'
+                    : kind === 'too_large' ? 'error_audio_too_large'
+                    : kind === 'unsupported' ? 'error_audio_unsupported'
+                    : 'error_audio_convert_failed';
+                toast.error($_(messageKey));
+                video = undefined;
             }
 
             input.value = '';
@@ -157,7 +225,7 @@
     }
 
     export function open() {
-        input.setAttribute('accept', 'image/jpeg, image/png, image/gif, image/webp, video/mp4, video/quicktime, video/webm');
+        input.setAttribute('accept', 'image/jpeg, image/png, image/gif, image/webp, video/mp4, video/quicktime, video/webm, audio/*');
         input.setAttribute('multiple', '');
         input.click();
     }
