@@ -5,15 +5,24 @@
 
     let sliderElement: HTMLDivElement | undefined = $state();
     let isDragging = $state(false);
+    let seeking = $state(false);
+    let previewPercent = $state(0);
 
     let cachedRect: DOMRect | null = null;
     let rafId: number | null = null;
     let pendingSeekTime = 0;
 
+    const fillPercent = $derived(
+        player.duration === 0
+            ? 0
+            : (isDragging || seeking)
+                ? previewPercent
+                : (player.currentTime / player.duration) * 100
+    );
+
     $effect(() => {
-        if (sliderElement && !isDragging && player.duration > 0) {
-            const percentage = (player.currentTime / player.duration) * 100;
-            sliderElement.style.setProperty('--slider-fill', `${percentage}%`);
+        if (seeking && player.duration > 0 && Math.abs(player.currentTime - pendingSeekTime) < 0.5) {
+            seeking = false;
         }
     });
 
@@ -51,6 +60,7 @@
         cachedRect = null;
 
         if (player.duration > 0) {
+            seeking = true;
             player.seek(pendingSeekTime);
         }
     }
@@ -61,8 +71,7 @@
         const rect = cachedRect || sliderElement.getBoundingClientRect();
         const percentage = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         pendingSeekTime = percentage * player.duration;
-
-        sliderElement.style.setProperty('--slider-fill', `${percentage * 100}%`);
+        previewPercent = percentage * 100;
     }
 </script>
 
@@ -79,7 +88,7 @@
     aria-valuemax={player.duration}
     aria-valuenow={player.currentTime}
     tabindex="0"
-    style="--slider-duration: {player.duration}; --slider-current: {player.currentTime}"
+    style="--slider-duration: {player.duration}; --slider-current: {player.currentTime}; --slider-fill: {fillPercent}%"
 >
     <div class="video-time-slider__filler"></div>
 </div>
