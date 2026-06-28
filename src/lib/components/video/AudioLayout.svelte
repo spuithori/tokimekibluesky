@@ -7,10 +7,13 @@
     let seekEl: HTMLDivElement | undefined = $state();
     let volEl: HTMLDivElement | undefined = $state();
     let seekDragging = $state(false);
+    let seeking = $state(false);
+    let seekPreview = $state(0);
     let volDragging = $state(false);
     let seekRect: DOMRect | null = null;
     let volRect: DOMRect | null = null;
     let rafId: number | null = null;
+    let pendingSeekTime = 0;
 
     function formatTime(seconds: number): string {
         if (!Number.isFinite(seconds) || seconds <= 0) return '0:00';
@@ -19,32 +22,52 @@
         return `${m}:${s.toString().padStart(2, '0')}`;
     }
 
-    let progress = $derived(player.duration > 0 ? (player.currentTime / player.duration) * 100 : 0);
+    let progress = $derived(
+        player.duration === 0
+            ? 0
+            : (seekDragging || seeking)
+                ? seekPreview
+                : (player.currentTime / player.duration) * 100
+    );
     let volumeLevel = $derived(player.muted ? 0 : player.volume);
+
+    $effect(() => {
+        if (seeking && player.duration > 0 && Math.abs(player.currentTime - pendingSeekTime) < 0.5) {
+            seeking = false;
+        }
+    });
 
     function seekDown(e: PointerEvent) {
         if (!seekEl) return;
         seekDragging = true;
         seekEl.setPointerCapture(e.pointerId);
         seekRect = seekEl.getBoundingClientRect();
-        seekTo(e);
+        updateSeekPreview(e);
     }
     function seekMove(e: PointerEvent) {
         if (!seekDragging || rafId !== null) return;
-        rafId = requestAnimationFrame(() => { seekTo(e); rafId = null; });
+        rafId = requestAnimationFrame(() => { updateSeekPreview(e); rafId = null; });
     }
     function seekUp(e: PointerEvent) {
-        if (!seekEl) return;
+        if (!seekEl || !seekDragging) return;
         seekDragging = false;
         seekEl.releasePointerCapture(e.pointerId);
-        seekRect = null;
         if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+
+        updateSeekPreview(e);
+        seekRect = null;
+
+        if (player.duration > 0) {
+            seeking = true;
+            player.seek(pendingSeekTime);
+        }
     }
-    function seekTo(e: PointerEvent) {
+    function updateSeekPreview(e: PointerEvent) {
         if (!seekEl || player.duration === 0) return;
         const rect = seekRect || seekEl.getBoundingClientRect();
         const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        player.seek(pct * player.duration);
+        pendingSeekTime = pct * player.duration;
+        seekPreview = pct * 100;
     }
 
     function volDown(e: PointerEvent) {
