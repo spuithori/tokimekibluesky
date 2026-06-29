@@ -3,7 +3,8 @@
   import Modal from "$lib/components/ui/Modal.svelte";
   import { checkScheduleAuth } from '$lib/scheduleApi';
   import { onMount } from 'svelte';
-  import { AlertCircle, Timer } from 'lucide-svelte';
+  import AlertCircle from '@lucide/svelte/icons/alert-circle';
+  import Timer from '@lucide/svelte/icons/timer';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import type { Agent } from '$lib/agent';
   import type { WhisperDuration } from '$lib/classes/postState.svelte';

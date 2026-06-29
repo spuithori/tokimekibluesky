@@ -1,4 +1,8 @@
 <script lang="ts">
+    import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+    import MessageCirclePlus from '@lucide/svelte/icons/message-circle-plus';
+    import Search from '@lucide/svelte/icons/search';
+    import X from '@lucide/svelte/icons/x';
     import { _ } from 'svelte-i18n';
     import {agent, settings} from '$lib/stores';
     import { page } from '$app/stores';
@@ -23,7 +27,9 @@
     import {untrack} from "svelte";
     import UserNotification from "./UserNotification.svelte";
     import StatusEditModal from "$lib/components/profile/StatusEditModal.svelte";
-    import {Radio, Package, Ellipsis} from "lucide-svelte";
+    import Radio from '@lucide/svelte/icons/radio';
+    import Package from '@lucide/svelte/icons/package';
+    import Ellipsis from '@lucide/svelte/icons/ellipsis';
     import Menu from "$lib/components/ui/Menu.svelte";
 
     const junkColumnState = getColumnState(true);
@@ -174,7 +180,7 @@
         {#if profile}
           <div class="column-heading__buttons">
             <button class="settings-back" onclick={() => {history.back()}}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+              <ArrowLeft color="var(--text-color-1)" />
             </button>
           </div>
 
@@ -189,12 +195,12 @@
             {#if (profile.did !== _agent.did() && !isLabeler)}
               {#if !$settings?.general?.disableChat}
                 <button class="profile-heading-button" onclick={chatBegin}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-plus"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                  <MessageCirclePlus size={20} color="var(--text-color-1)" />
                 </button>
               {/if}
 
               <a class="profile-heading-button" href="/search?q=from:{profile?.handle}%20">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <Search size={20} color="var(--text-color-1)" />
               </a>
             {:else if (isLabeler && profile?.did)}
               
@@ -216,7 +222,7 @@
               {/if}
 
               <a class="profile-heading-button" href="/search?q=from:{profile?.handle}%20">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <Search size={20} color="var(--text-color-1)" />
               </a>
             {/if}
 
@@ -225,7 +231,7 @@
         {/if}
 
         <a class="settings-back" href="/">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <X color="var(--text-color-1)" />
         </a>
       </div>
 

@@ -1,4 +1,4 @@
-import { Sparkle } from "lucide-svelte";
+import Sparkle from '@lucide/svelte/icons/sparkle';
 import type { SettingItem } from "./schema.types";
 
 const rawSettingsSchema = [

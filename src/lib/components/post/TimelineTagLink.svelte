@@ -4,7 +4,10 @@
   import { createLongPress } from "$lib/longpress";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import {toast} from "svelte-sonner";
-  import {Copy, Pencil, UserRoundSearch, WholeWord} from "lucide-svelte";
+  import Copy from '@lucide/svelte/icons/copy';
+  import Pencil from '@lucide/svelte/icons/pencil';
+  import UserRoundSearch from '@lucide/svelte/icons/user-round-search';
+  import WholeWord from '@lucide/svelte/icons/whole-word';
   import {getPostState} from "$lib/classes/postState.svelte";
 
   let { item, handle = undefined } = $props();

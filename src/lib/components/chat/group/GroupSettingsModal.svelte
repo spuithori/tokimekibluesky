@@ -11,7 +11,14 @@
     import GroupAddMembers from "$lib/components/chat/group/GroupAddMembers.svelte";
     import GroupJoinLinkSettings from "$lib/components/chat/group/GroupJoinLinkSettings.svelte";
     import GroupJoinRequests from "$lib/components/chat/group/GroupJoinRequests.svelte";
-    import {Check, Inbox, Link2, Lock, LockOpen, LogOut, UserPlus, Users} from "lucide-svelte";
+    import Check from '@lucide/svelte/icons/check';
+    import Inbox from '@lucide/svelte/icons/inbox';
+    import Link2 from '@lucide/svelte/icons/link-2';
+    import Lock from '@lucide/svelte/icons/lock';
+    import LockOpen from '@lucide/svelte/icons/lock-open';
+    import LogOut from '@lucide/svelte/icons/log-out';
+    import UserPlus from '@lucide/svelte/icons/user-plus';
+    import Users from '@lucide/svelte/icons/users';
 
     let { convo, _agent, onconvoupdate = undefined, onleave = undefined, onclose } = $props();
     let view: 'main' | 'members' | 'addMembers' | 'joinLink' | 'joinRequests' = $state('main');

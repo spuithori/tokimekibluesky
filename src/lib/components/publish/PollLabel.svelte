@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { BarChart3 } from 'lucide-svelte';
+    import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
     import type { Poll, PollDuration } from '$lib/classes/postState.svelte';
     import { settings } from '$lib/stores';
 

@@ -2,7 +2,11 @@
     import { _ } from 'svelte-i18n';
     import { onMount, tick } from "svelte";
     import { PersistedState, onClickOutside } from "runed";
-    import {X, Funnel, Languages, Search, CircleUserRound} from "lucide-svelte";
+    import X from '@lucide/svelte/icons/x';
+    import Funnel from '@lucide/svelte/icons/funnel';
+    import Languages from '@lucide/svelte/icons/languages';
+    import Search from '@lucide/svelte/icons/search';
+    import CircleUserRound from '@lucide/svelte/icons/circle-user-round';
     import Menu from "$lib/components/ui/Menu.svelte";
     import {languageMap} from "$lib/langs/languageMap";
     import {settings} from '$lib/stores';

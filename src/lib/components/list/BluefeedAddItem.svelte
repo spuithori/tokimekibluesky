@@ -1,4 +1,6 @@
 <script lang="ts">
+    import Pencil from '@lucide/svelte/icons/pencil';
+    import Check from '@lucide/svelte/icons/check';
   import {_} from "svelte-i18n";
   import {agent} from "$lib/stores";
   import {createEventDispatcher} from "svelte";
@@ -65,7 +67,7 @@
 
   <div class="bluefeed-add-item__buttons">
     <a class="bluefeed-add-item__edit" href="https://www.bluefeed.app/?k={feed.rkey}" target="_blank" rel="noopener" aria-label="Bluefeed上で編集する">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+      <Pencil size={16} color="var(--text-color-1)" />
     </a>
 
     <button class="button button--ss" onclick={add} disabled={isDisabled}>
@@ -76,7 +78,7 @@
       {:else if status === 'processing'}
         <LoadingSpinner size="16" padding="0" color="var(--bg-color-1)"></LoadingSpinner>
       {:else if status === 'success'}
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>
+        <Check size={18} color="var(--bg-color-1)" />
       {:else}
         {$_('bluefeed_add')}
       {/if}

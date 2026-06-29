@@ -2,7 +2,11 @@
     import { currentTimeline, settings, isColumnModalOpen, intersectingIndex } from "$lib/stores";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import {page} from '$app/stores';
-    import {Home, Pen, PenOff, Plus, Settings} from "lucide-svelte";
+    import Home from '@lucide/svelte/icons/home';
+    import Pen from '@lucide/svelte/icons/pen';
+    import PenOff from '@lucide/svelte/icons/pen-off';
+    import Plus from '@lucide/svelte/icons/plus';
+    import Settings from '@lucide/svelte/icons/settings';
     import {iconMap} from "$lib/columnIcons";
     import SideNav from "$lib/components/side/SideNav.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";

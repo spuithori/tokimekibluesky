@@ -1,4 +1,5 @@
 <script lang="ts">
+    import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
   import {_} from 'svelte-i18n';
   import {onMount, onDestroy} from 'svelte'
   import {Editor} from '@tiptap/core'
@@ -21,7 +22,14 @@
   import {TAG_REGEX, MENTION_REGEX} from '$lib/atproto-richtext';
   import GifPickerModal from "$lib/components/publish/GifPickerModal.svelte";
   import {clipboardTextParser} from "$lib/components/editor/prosemirrorExtension";
-  import {Hash, ImagePlus, Laugh, Link as LinkIcon, Unlink, SquareSplitVertical, BarChart3, Brush} from "lucide-svelte";
+  import Hash from '@lucide/svelte/icons/hash';
+  import ImagePlus from '@lucide/svelte/icons/image-plus';
+  import Laugh from '@lucide/svelte/icons/laugh';
+  import LinkIcon from '@lucide/svelte/icons/link';
+  import Unlink from '@lucide/svelte/icons/unlink';
+  import SquareSplitVertical from '@lucide/svelte/icons/square-split-vertical';
+  import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
+  import Brush from '@lucide/svelte/icons/brush';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import EmojiList from "$lib/components/editor/EmojiList.svelte";
   import KakuDrawModal from "$lib/components/editor/KakuDrawModal.svelte";
@@ -481,7 +489,7 @@
   <form>
     <input type="text" class="editor-link-dialog__input" bind:value={linkValue} placeholder="https://tokimeki.blue">
     <button class="editor-link-dialog__button" onclick={() => {linkDialog.close(linkValue)}}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-corner-down-left"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+      <CornerDownLeft size={20} color="var(--bg-color-1)" />
     </button>
   </form>
   

@@ -10,7 +10,9 @@
   import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import ThreadGateLabel from "$lib/components/publish/ThreadGateLabel.svelte";
-  import {CirclePlus, Globe, X} from "lucide-svelte";
+  import CirclePlus from '@lucide/svelte/icons/circle-plus';
+  import Globe from '@lucide/svelte/icons/globe';
+  import X from '@lucide/svelte/icons/x';
   import { toast } from "svelte-sonner";
   import { compressForPreview, blobToDataUrl } from '$lib/imageCompressor/compressor';
   import {onMount} from "svelte";

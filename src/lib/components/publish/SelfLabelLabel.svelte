@@ -1,6 +1,6 @@
 <script lang="ts">
   import {_} from "svelte-i18n";
-  import { AlertTriangle } from 'lucide-svelte';
+  import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
 
   let { labels } = $props();
 </script>

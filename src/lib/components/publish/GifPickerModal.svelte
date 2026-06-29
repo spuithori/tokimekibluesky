@@ -1,4 +1,5 @@
 <script lang="ts">
+    import X from '@lucide/svelte/icons/x';
     import {onMount} from 'svelte';
     import KlipyPicker from "$lib/components/publish/KlipyPicker.svelte";
 
@@ -23,7 +24,7 @@
     <div class="gif-modal-heading">
       <div class="gif-modal-close">
         <div role="button" class="gif-modal-close__button" onclick={onclose}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <X color="var(--text-color-1)" />
         </div>
       </div>
     </div>

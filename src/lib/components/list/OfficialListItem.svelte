@@ -4,7 +4,7 @@
   import {agent, officialListModal} from "$lib/stores";
   import { toast } from "svelte-sonner";
   import {createEventDispatcher} from "svelte";
-  import {List} from "lucide-svelte";
+  import List from '@lucide/svelte/icons/list';
   import OfficialListMembersModal from "$lib/components/list/OfficialListMembersModal.svelte";
   import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";

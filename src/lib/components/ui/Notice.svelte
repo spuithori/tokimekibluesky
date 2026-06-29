@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {AlertTriangle} from "lucide-svelte";
+  import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
 
   let { text } = $props();
 </script>

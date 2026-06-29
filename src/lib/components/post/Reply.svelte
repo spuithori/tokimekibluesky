@@ -3,7 +3,7 @@
   import {agent} from '$lib/stores';
   import {publishState} from "$lib/classes/publishState.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
-  import {MessageSquare} from "lucide-svelte";
+  import MessageSquare from '@lucide/svelte/icons/message-square';
   import {getPostState} from "$lib/classes/postState.svelte";
 
   interface Props {

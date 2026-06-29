@@ -1,7 +1,8 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
     import type {LayoutData} from "./$types";
-    import { ArrowLeft, X } from "lucide-svelte";
+    import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+    import X from '@lucide/svelte/icons/x';
     import { scale } from 'svelte/transition';
     import SideChat from "$lib/components/side/SideChat.svelte";
 

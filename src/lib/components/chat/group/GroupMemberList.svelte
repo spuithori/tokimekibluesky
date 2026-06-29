@@ -6,7 +6,8 @@
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {chatErrorKey} from "$lib/components/chat/chatErrors";
     import {getMemberRole, getMyRole} from "$lib/components/chat/convoUtil";
-    import {Crown, UserX} from "lucide-svelte";
+    import Crown from '@lucide/svelte/icons/crown';
+    import UserX from '@lucide/svelte/icons/user-x';
 
     let { convo, _agent, onconvoupdate = undefined } = $props();
     let members = $state.raw<any[]>([]);

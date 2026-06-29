@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getColumnState } from "$lib/classes/columnState.svelte";
-    import {XCircle} from "lucide-svelte";
+    import XCircle from '@lucide/svelte/icons/x-circle';
     import {iconMap} from "$lib/columnIcons";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import Sortable from "$lib/components/utils/Sortable.svelte";

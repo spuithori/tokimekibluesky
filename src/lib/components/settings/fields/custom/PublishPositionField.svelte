@@ -1,7 +1,9 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { publishState } from '$lib/classes/publishState.svelte';
-    import { PanelLeftOpen, PanelBottomOpen, AppWindowMac } from 'lucide-svelte';
+    import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
+    import PanelBottomOpen from '@lucide/svelte/icons/panel-bottom-open';
+    import AppWindowMac from '@lucide/svelte/icons/app-window-mac';
 </script>
 
 <div class="radio-group">

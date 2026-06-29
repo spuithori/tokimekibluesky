@@ -3,7 +3,7 @@
   import Modal from "$lib/components/ui/Modal.svelte";
   import {languageDetect} from '$lib/translate';
   import {settings} from "$lib/stores";
-  import {Languages} from "lucide-svelte";
+  import Languages from '@lucide/svelte/icons/languages';
 
   let { images = [], index = 0, alt = '', badge = false } = $props();
   let isModalOpen = $state(false);

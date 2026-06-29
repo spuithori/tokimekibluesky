@@ -1,7 +1,8 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
     import Modal from "$lib/components/ui/Modal.svelte";
-    import {Clock, Link} from "lucide-svelte";
+    import Clock from '@lucide/svelte/icons/clock';
+    import Link from '@lucide/svelte/icons/link';
     import {settings} from '$lib/stores';
     import { resource } from "runed";
     import {toast} from "svelte-sonner";

@@ -6,7 +6,8 @@
   import {_} from "svelte-i18n";
   import { offset, flip, shift } from '@floating-ui/dom';
   import { createFloatingActions } from 'svelte-floating-ui';
-  import {BadgeCheck, CircleCheck} from "lucide-svelte";
+  import BadgeCheck from '@lucide/svelte/icons/badge-check';
+  import CircleCheck from '@lucide/svelte/icons/circle-check';
 
   const [floatingRef, floatingContent] = createFloatingActions({
       strategy: 'fixed',

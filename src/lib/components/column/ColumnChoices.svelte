@@ -8,7 +8,7 @@
   import ColumnListAdder from "$lib/components/column/ColumnListAdder.svelte";
   import {getAccountIdByDidFromDb} from "$lib/util";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-  import { HelpCircle } from 'lucide-svelte';
+  import HelpCircle from '@lucide/svelte/icons/help-circle';
 
   let bookmarks = liveQuery(() => db.bookmarks.toArray());
 

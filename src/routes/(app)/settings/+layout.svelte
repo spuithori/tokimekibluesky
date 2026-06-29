@@ -2,7 +2,8 @@
   import {_} from 'svelte-i18n';
   import type {LayoutData} from "./$types";
   import {page} from "$app/stores";
-  import { ArrowLeft, X } from "lucide-svelte";
+  import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+  import X from '@lucide/svelte/icons/x';
   import { scale } from 'svelte/transition';
   import { agent } from "$lib/stores";
   import { settingsNav } from "$lib/settings/nav";

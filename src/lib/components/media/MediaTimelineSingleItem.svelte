@@ -2,7 +2,10 @@
     import {settings} from '$lib/stores';
     import {getViewImages, hasGalleryImages} from '$lib/components/post/embedImages';
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
-    import {EyeOff, Handshake, BadgeCheck, CircleCheck} from "lucide-svelte";
+    import EyeOff from '@lucide/svelte/icons/eye-off';
+    import Handshake from '@lucide/svelte/icons/handshake';
+    import BadgeCheck from '@lucide/svelte/icons/badge-check';
+    import CircleCheck from '@lucide/svelte/icons/circle-check';
     import {appState} from "$lib/classes/appState.svelte.js";
     import MediaTimelineSlider from "$lib/components/media/MediaTimelineSlider.svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";

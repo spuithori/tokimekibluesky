@@ -7,7 +7,7 @@
   import type { Draft } from '$lib/db';
   import Modal from "$lib/components/ui/Modal.svelte";
   import { stateQuery } from "$lib/classes/dbState.svelte";
-  import { Trash2 } from 'lucide-svelte';
+  import Trash2 from '@lucide/svelte/icons/trash-2';
 
   let { _agent = $agent, onuse, onclose } = $props();
 

@@ -1,11 +1,21 @@
 <script lang="ts">
+    import Menu from '@lucide/svelte/icons/menu';
+    import Image from '@lucide/svelte/icons/image';
+    import ChevronDown from '@lucide/svelte/icons/chevron-down';
+    import Info from '@lucide/svelte/icons/info';
+    import PictureInPicture2 from '@lucide/svelte/icons/picture-in-picture-2';
+    import Eraser from '@lucide/svelte/icons/eraser';
+    import Trash2 from '@lucide/svelte/icons/trash-2';
     import {_} from "svelte-i18n";
     import { currentTimeline, settings } from "$lib/stores";
     import { languageMap } from "$lib/langs/languageMap";
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import {Search, SplitSquareVertical, ArrowUpDown, Unlink} from "lucide-svelte";
+    import Search from '@lucide/svelte/icons/search';
+    import SplitSquareVertical from '@lucide/svelte/icons/split-square-vertical';
+    import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
+    import Unlink from '@lucide/svelte/icons/unlink';
     import { fly } from 'svelte/transition';
     import Notice from "$lib/components/ui/Notice.svelte";
     import ColumnChoices from "$lib/components/column/ColumnChoices.svelte";
@@ -388,13 +398,13 @@
                                 <div class="style-nav" data-current="{column.style}">
                                     <div class="style-nav__item style-nav__item--active style-nav__item--default">
                                         <button aria-label="Default Timeline" class="style-nav__button" onclick={() => {toggleStyle('default')}}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu-icon lucide-menu"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>
+                                            <Menu size={20} color="var(--text-color-1)" />
                                         </button>
                                     </div>
 
                                     <div class="style-nav__item style-nav__item--media">
                                         <button aria-label="Media Timeline" class="style-nav__button" onclick={() => {toggleStyle('media')}}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-icon lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                            <Image size={20} color="var(--text-color-1)" />
                                         </button>
                                     </div>
                                 </div>
@@ -473,7 +483,7 @@
 
                         <dd class="settings-group__content">
                             <div class="form-select">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                                <ChevronDown size={20} color="var(--primary-color)" />
 
                                 <select class="form-select__select" bind:value={column.settings.autoRefresh}>
                                     {#each autoRefreshSettings as option}
@@ -500,7 +510,7 @@
 
                     <dd class="settings-group__content">
                         <div class="form-select">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                            <ChevronDown size={20} color="var(--primary-color)" />
 
                             <select class="form-select__select" bind:value={column.settings.playSound}>
                                 {#each playSoundSettings as option}
@@ -628,7 +638,7 @@
 
                         <dd class="settings-group__content">
                             <div class="form-select">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                                <ChevronDown size={20} color="var(--primary-color)" />
 
                                 <select class="form-select__select" bind:value={column.settings.timeline.hideRepost}>
                                     {#each repostSettings as option}
@@ -646,7 +656,7 @@
 
                         <dd class="settings-group__content">
                             <div class="form-select">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                                <ChevronDown size={20} color="var(--primary-color)" />
 
                                 <select class="form-select__select" bind:value={column.settings.timeline.hideReply}>
                                     {#each replySettings as option}
@@ -714,18 +724,18 @@
                 {/if}
 
                 {#if (column.algorithm?.type === 'custom')}
-                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/feed/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--link-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>{$_('column_feed_info')}
+                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/feed/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><Info size={20} color="var(--link-color)" />{$_('column_feed_info')}
                     </a>
                 {/if}
 
                 {#if (column.algorithm?.type === 'officialList')}
-                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/lists/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--link-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>{$_('column_list_info')}
+                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/lists/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><Info size={20} color="var(--link-color)" />{$_('column_list_info')}
                     </a>
                 {/if}
 
                 {#if ($settings.design?.layout === 'decks')}
                     <button class="deck-column-delete-button deck-column-delete-button--popup only-pc" onclick={popupColumn}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-picture-in-picture-2"><path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"/><rect width="10" height="7" x="12" y="13" rx="2"/></svg>{$_('popup_column')}
+                        <PictureInPicture2 size={20} color="var(--primary-color)" />{$_('popup_column')}
                     </button>
                 {/if}
 
@@ -745,10 +755,9 @@
                 {/if}
 
                 <button class="deck-column-delete-button deck-column-delete-button--clear" onclick={clearColumn}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                         stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eraser"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>{$_('clear_column_posts')}</button>
+                    <Eraser size={20} color="var(--text-color-3)" />{$_('clear_column_posts')}</button>
 
-                <button class="deck-column-delete-button" onclick={deleteColumn}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>{$_('delete_column')}</button>
+                <button class="deck-column-delete-button" onclick={deleteColumn}><Trash2 size={20} color="var(--danger-color)" />{$_('delete_column')}</button>
             </div>
         </div>
     </div>

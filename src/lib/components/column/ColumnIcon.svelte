@@ -1,4 +1,20 @@
 <script lang="ts">
+    import House from '@lucide/svelte/icons/home';
+    import Bell from '@lucide/svelte/icons/bell';
+    import Newspaper from '@lucide/svelte/icons/newspaper';
+    import List from '@lucide/svelte/icons/list';
+    import Bookmark from '@lucide/svelte/icons/bookmark';
+    import ListTree from '@lucide/svelte/icons/list-tree';
+    import Search from '@lucide/svelte/icons/search';
+    import Heart from '@lucide/svelte/icons/heart';
+    import Pencil from '@lucide/svelte/icons/pencil';
+    import Image from '@lucide/svelte/icons/image';
+    import Clapperboard from '@lucide/svelte/icons/clapperboard';
+    import UserRound from '@lucide/svelte/icons/user-round';
+    import MessageCircleMore from '@lucide/svelte/icons/message-circle-more';
+    import MessagesSquare from '@lucide/svelte/icons/messages-square';
+    import BookType from '@lucide/svelte/icons/book-type';
+
     interface Props {
         type?: string;
         color?: string;
@@ -6,287 +22,38 @@
 
     let { type = "home", color = "var(--deck-heading-icon-color)" }: Props =
         $props();
+
+    const strokeWidth = "var(--icon-stroke-width, 2px)";
 </script>
 
 {#if type === "default" || type === "realtime"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-home"
-        ><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline
-            points="9 22 9 12 15 12 15 22"
-        /></svg
-    >
+    <House {color} {strokeWidth} />
 {:else if type === "notification"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-bell"
-        ><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path
-            d="M10.3 21a1.94 1.94 0 0 0 3.4 0"
-        /></svg
-    >
+    <Bell {color} {strokeWidth} />
 {:else if type === "custom"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-newspaper"
-        ><path
-            d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"
-        /><path d="M18 14h-8" /><path d="M15 18h-5" /><path
-            d="M10 6h8v4h-8V6Z"
-        /></svg
-    >
+    <Newspaper {color} {strokeWidth} />
 {:else if type === "list" || type === "officialList"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-list"
-        ><line x1="8" x2="21" y1="6" y2="6" /><line
-            x1="8"
-            x2="21"
-            y1="12"
-            y2="12"
-        /><line x1="8" x2="21" y1="18" y2="18" /><line
-            x1="3"
-            x2="3.01"
-            y1="6"
-            y2="6"
-        /><line x1="3" x2="3.01" y1="12" y2="12" /><line
-            x1="3"
-            x2="3.01"
-            y1="18"
-            y2="18"
-        /></svg
-    >
-{:else if type === "bookmark"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-bookmark"
-        ><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg
-    >
-{:else if type === "cloudBookmark"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-bookmark"
-        ><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg
-    >
-{:else if type === "officialBookmark"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-bookmark"
-        ><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg
-    >
+    <List {color} {strokeWidth} />
+{:else if type === "bookmark" || type === "cloudBookmark" || type === "officialBookmark"}
+    <Bookmark {color} {strokeWidth} />
 {:else if type === "thread"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-list-tree"
-        ><path d="M21 12h-8" /><path d="M21 6H8" /><path d="M21 18h-8" /><path
-            d="M3 6v4c0 1.1.9 2 2 2h3"
-        /><path d="M3 10v6c0 1.1.9 2 2 2h3" /></svg
-    >
+    <ListTree {color} {strokeWidth} />
 {:else if type === "search"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-search"
-        ><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg
-    >
+    <Search {color} {strokeWidth} />
 {:else if type === "like"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-heart"
-        ><path
-            d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
-        /></svg
-    >
+    <Heart {color} {strokeWidth} />
 {:else if type === "myPost"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-pencil"
-        ><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path
-            d="m15 5 4 4"
-        /></svg
-    >
+    <Pencil {color} {strokeWidth} />
 {:else if type === "myMedia" || type === "authorMedia"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-image"
-        ><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle
-            cx="9"
-            cy="9"
-            r="2"
-        /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg
-    >
+    <Image {color} {strokeWidth} />
 {:else if type === "myVideo" || type === "authorVideo"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-clapperboard"
-        ><path
-            d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"
-        /><path d="m6.2 5.3 3.1 3.9" /><path d="m12.4 3.4 3.1 4" /><path
-            d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"
-        /></svg
-    >
+    <Clapperboard {color} {strokeWidth} />
 {:else if type === "author"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-user-round"
-        ><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" /></svg
-    >
+    <UserRound {color} {strokeWidth} />
 {:else if type === "chat"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-message-circle-more"
-        ><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /><path d="M8 12h.01" /><path
-            d="M12 12h.01"
-        /><path d="M16 12h.01" /></svg
-    >
+    <MessageCircleMore {color} {strokeWidth} />
 {:else if type === "chatList"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-messages-square"
-        ><path
-            d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2z"
-        /><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" /></svg
-    >
+    <MessagesSquare {color} {strokeWidth} />
 {:else if type === "networkFeed" || type === "mochottTimeline"}
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        stroke-width="var(--icon-stroke-width, 2px)"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="lucide lucide-book-type-icon lucide-book-type"
-        ><path d="M10 13h4" /><path d="M12 6v7" /><path d="M16 8V6H8v2" /><path
-            d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"
-        /></svg
-    >
+    <BookType {color} {strokeWidth} />
 {/if}

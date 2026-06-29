@@ -1,6 +1,7 @@
 <script lang="ts">
   import { _ } from 'svelte-i18n';
-  import {MessageSquareText, X} from "lucide-svelte";
+  import MessageSquareText from '@lucide/svelte/icons/message-square-text';
+  import X from '@lucide/svelte/icons/x';
   import { fly } from 'svelte/transition';
   import ThreadView from "../../../routes/(app)/profile/[handle]/post/[id]/ThreadView.svelte";
 

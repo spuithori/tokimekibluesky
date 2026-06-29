@@ -1,6 +1,6 @@
 <script lang="ts">
   import { sortable } from "$lib/attachments/sortable.svelte";
-  import {GripVertical} from "lucide-svelte";
+  import GripVertical from '@lucide/svelte/icons/grip-vertical';
   import { pauseColumn } from "$lib/stores";
 
   let { handle = '.grab-handle', items, onsort, content, onDragStart, onDragEnd } = $props();

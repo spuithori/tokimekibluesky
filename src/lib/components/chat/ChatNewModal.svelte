@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Search from '@lucide/svelte/icons/search';
     import { _ } from 'svelte-i18n';
     import Modal from "$lib/components/ui/Modal.svelte";
     import {agent} from "$lib/stores";
@@ -138,7 +139,7 @@
     {#if mode === 'direct'}
       <div class="new-chat-search">
         <input type="text" class="new-chat-search__input" placeholder={$_('handle_or_name')} bind:value={search} onkeydown={handleKeyDown} autofocus>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <Search size={20} color="var(--primary-color)" />
       </div>
 
       {#each actors as member}

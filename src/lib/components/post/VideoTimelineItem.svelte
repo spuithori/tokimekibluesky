@@ -6,7 +6,7 @@
   import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
   import {sideState} from "$lib/classes/sideState.svelte";
   import {onMount} from "svelte";
-  import {EyeOff} from "lucide-svelte";
+  import EyeOff from '@lucide/svelte/icons/eye-off';
   import {appState} from "$lib/classes/appState.svelte";
 
   let { _agent = $agent, data, feed, index } = $props();

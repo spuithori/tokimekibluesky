@@ -2,7 +2,8 @@
     import { _ } from 'svelte-i18n';
     import {goto} from "$app/navigation";
     import {JOIN_LINK_PREVIEW_TYPE} from "$lib/components/chat/convoUtil";
-    import {Link2, Users} from "lucide-svelte";
+    import Link2 from '@lucide/svelte/icons/link-2';
+    import Users from '@lucide/svelte/icons/users';
 
     let { preview, _agent } = $props();
     const isActive = $derived(preview?.$type === JOIN_LINK_PREVIEW_TYPE);

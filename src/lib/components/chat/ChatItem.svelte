@@ -5,7 +5,10 @@
     import { isEmojiSequenceOrCombination } from "$lib/util";
     import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
     import { AppBskyEmbedRecord } from "$lib/atproto-guards";
-    import { Flag, Laugh, Reply, Trash2 } from "lucide-svelte";
+    import Flag from '@lucide/svelte/icons/flag';
+    import Laugh from '@lucide/svelte/icons/laugh';
+    import Reply from '@lucide/svelte/icons/reply';
+    import Trash2 from '@lucide/svelte/icons/trash-2';
     import { CHAT_PROXY } from "$lib/components/chat/chatConst";
     import { agent, reportModal } from "$lib/stores";
     import { toast } from "svelte-sonner";

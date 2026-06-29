@@ -11,14 +11,12 @@
         isConvoLocked,
         isGroupConvo,
     } from "$lib/components/chat/convoUtil";
-    import {
-        ArrowLeft,
-        Lock,
-        LogOut,
-        MessageCircleOff,
-        Settings2,
-        Users,
-    } from "lucide-svelte";
+    import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+    import Lock from '@lucide/svelte/icons/lock';
+    import LogOut from '@lucide/svelte/icons/log-out';
+    import MessageCircleOff from '@lucide/svelte/icons/message-circle-off';
+    import Settings2 from '@lucide/svelte/icons/settings-2';
+    import Users from '@lucide/svelte/icons/users';
 
     let {
         convo,

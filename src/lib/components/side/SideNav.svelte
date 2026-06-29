@@ -1,6 +1,20 @@
 <script lang="ts">
   import {agent, currentTimeline, settings} from '$lib/stores';
-  import { Search, GanttChartSquare, MessageCircleMore, Ellipsis, Bell, CircleX, RefreshCcw, UserRound, CircleArrowUp, Mic, Square, TrendingUp, Clapperboard, Layers, Database } from 'lucide-svelte';
+  import Search from '@lucide/svelte/icons/search';
+  import GanttChartSquare from '@lucide/svelte/icons/gantt-chart-square';
+  import MessageCircleMore from '@lucide/svelte/icons/message-circle-more';
+  import Ellipsis from '@lucide/svelte/icons/ellipsis';
+  import Bell from '@lucide/svelte/icons/bell';
+  import CircleX from '@lucide/svelte/icons/circle-x';
+  import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
+  import UserRound from '@lucide/svelte/icons/user-round';
+  import CircleArrowUp from '@lucide/svelte/icons/circle-arrow-up';
+  import Mic from '@lucide/svelte/icons/mic';
+  import Square from '@lucide/svelte/icons/square';
+  import TrendingUp from '@lucide/svelte/icons/trending-up';
+  import Clapperboard from '@lucide/svelte/icons/clapperboard';
+  import Layers from '@lucide/svelte/icons/layers';
+  import Database from '@lucide/svelte/icons/database';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";

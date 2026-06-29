@@ -1,6 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { RotateCw, X } from "lucide-svelte";
+    import RotateCw from '@lucide/svelte/icons/rotate-cw';
+    import X from '@lucide/svelte/icons/x';
     import ChatReplyQuote from "$lib/components/chat/ChatReplyQuote.svelte";
 
     let { pending, onretry, ondiscard, convo = undefined, members = {}, onjump = undefined } = $props();

@@ -2,7 +2,7 @@
     import { _ } from 'svelte-i18n';
     import type { ReportCategory, ReportReason } from './reportTypes';
     import { BSKY_LABELER_DID } from './reportConstants';
-    import { ChevronRight } from 'lucide-svelte';
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
     let { category, labelerDid, onselect }: {
         category: ReportCategory;

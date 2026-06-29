@@ -12,7 +12,9 @@
     import CloudBookmarkObserver from "$lib/components/bookmark/CloudBookmarkObserver.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
-    import {ArrowUpDown, LayoutGrid, Pin} from "lucide-svelte";
+    import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
+    import LayoutGrid from '@lucide/svelte/icons/layout-grid';
+    import Pin from '@lucide/svelte/icons/pin';
     import ColumnChoicesPinned from "$lib/components/column/ColumnChoicesPinned.svelte";
     import ColumnList from "$lib/components/column/ColumnList.svelte";
     import {appState} from "$lib/classes/appState.svelte";

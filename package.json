@@ -73,7 +73,7 @@
         "ffprobe-static": "^3.1.0",
         "google-auth-library": "^10.6.2",
         "jose": "^6.2.1",
-        "lucide-svelte": "^0.576.0",
+        "@lucide/svelte": "^1.22.0",
         "multiformats": "^13.4.2",
         "mux.js": "^6.3.0",
         "photoswipe": "^5.4.4",

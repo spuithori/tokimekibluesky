@@ -1,6 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { Plus, Trash2 } from 'lucide-svelte';
+    import Plus from '@lucide/svelte/icons/plus';
+    import Trash2 from '@lucide/svelte/icons/trash-2';
     import type { Poll, PollDuration } from '$lib/classes/postState.svelte';
     import Modal from '$lib/components/ui/Modal.svelte';
     import { settings } from '$lib/stores';

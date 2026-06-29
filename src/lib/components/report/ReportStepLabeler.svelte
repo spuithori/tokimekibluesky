@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { ChevronRight } from 'lucide-svelte';
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
     let { labelers, onselect }: {
         labelers: any[];

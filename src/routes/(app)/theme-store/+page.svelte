@@ -1,4 +1,8 @@
 <script lang="ts">
+    import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+    import X from '@lucide/svelte/icons/x';
+    import Folder from '@lucide/svelte/icons/folder';
+    import Ticket from '@lucide/svelte/icons/ticket';
   import {_} from "svelte-i18n";
   import {onMount} from "svelte";
   import ThemeItem from "./ThemeItem.svelte";
@@ -25,7 +29,7 @@
   <div class="column-heading">
     <div class="column-heading__buttons">
       <button class="settings-back" onclick={() => {history.back()}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        <ArrowLeft color="var(--text-color-1)" />
       </button>
     </div>
 
@@ -33,7 +37,7 @@
 
     <div class="column-heading__buttons column-heading__buttons--right">
       <a class="settings-back" href="/">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <X color="var(--text-color-1)" />
       </a>
     </div>
   </div>
@@ -66,14 +70,14 @@
       <ul class="p-menu-nav p-menu-nav--2columns">
         <li class="p-menu-nav__item p-menu-nav__item--border">
           <div class="p-menu-nav__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+            <Folder color="var(--text-color-1)" />
           </div>
           <p class="p-menu-nav__title"><a href="/theme-store/mytheme">{$_('theme_store_my_theme')}</a></p>
         </li>
 
         <li class="p-menu-nav__item p-menu-nav__item--border">
           <div class="p-menu-nav__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ticket"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+            <Ticket color="var(--text-color-1)" />
           </div>
           <p class="p-menu-nav__title"><a href="/theme-store/code">{$_('theme_store_code')}</a></p>
         </li>

@@ -1,9 +1,10 @@
 <script lang="ts">
+    import CheckCircle from '@lucide/svelte/icons/check-circle';
     import {onMount} from 'svelte';
     import { _ } from 'svelte-i18n';
     import {getAccountIdByDidFromDb} from "$lib/util";
     import {accountsDb} from "$lib/db";
-    import {List} from "lucide-svelte";
+    import List from '@lucide/svelte/icons/list';
     import Modal from "$lib/components/ui/Modal.svelte";
     import {watch} from "runed";
     import {getPostState} from "$lib/classes/postState.svelte";
@@ -83,7 +84,7 @@
                     <label for="everybody">
                                 <span class="big-radio__ui">
                                     <span class="big-radio__check">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--check-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                                        <CheckCircle size={28} color="var(--check-color)" />
                                     </span>
                                     <span class="big-radio__content">
                                         <span class="big-radio__title">{$_('thread_gate_everybody_title')}</span>
@@ -97,7 +98,7 @@
                     <label for="nobody">
                                 <span class="big-radio__ui">
                                     <span class="big-radio__check">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--check-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                                        <CheckCircle size={28} color="var(--check-color)" />
                                     </span>
                                     <span class="big-radio__content">
                                          <span class="big-radio__title">{$_('thread_gate_nobody_title')}</span>

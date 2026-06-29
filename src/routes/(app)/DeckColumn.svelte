@@ -16,7 +16,9 @@
     import MochottTimeline from "./MochottTimeline.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {scrollDirection} from "$lib/scrollDirection";
-    import {Settings2, CheckCheck, GripVertical} from "lucide-svelte";
+    import Settings2 from '@lucide/svelte/icons/settings-2';
+    import CheckCheck from '@lucide/svelte/icons/check-check';
+    import GripVertical from '@lucide/svelte/icons/grip-vertical';
     import { createLongPress } from "$lib/longpress";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 

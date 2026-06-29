@@ -1,6 +1,7 @@
 <script lang="ts">
     import { getContext } from "svelte";
-    import { Maximize, Minimize } from "lucide-svelte";
+    import Maximize from '@lucide/svelte/icons/maximize';
+    import Minimize from '@lucide/svelte/icons/minimize';
 
     const player: any = getContext('player');
 

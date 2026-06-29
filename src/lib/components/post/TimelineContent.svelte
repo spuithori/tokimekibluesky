@@ -42,13 +42,12 @@
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
     import { untrack } from "svelte";
     import type { Attachment } from "svelte/attachments";
-    import {
-        BadgeCheck,
-        CircleCheck,
-        CircleDashed,
-        Eye,
-        Handshake,
-    } from "lucide-svelte";
+    import BadgeCheck from '@lucide/svelte/icons/badge-check';
+    import Languages from '@lucide/svelte/icons/languages';
+    import CircleCheck from '@lucide/svelte/icons/circle-check';
+    import CircleDashed from '@lucide/svelte/icons/circle-dashed';
+    import Eye from '@lucide/svelte/icons/eye';
+    import Handshake from '@lucide/svelte/icons/handshake';
     import { intlRelativeTimeFormatState } from "$lib/classes/intlRelativeTimeFormatState.svelte";
     import { appState } from "$lib/classes/appState.svelte";
     import { getNextUpdateDelay } from "$lib/components/post/timelineUtil";
@@ -455,24 +454,7 @@
 
         {#if translatedRecord}
             <div class="timeline-translated-text" dir="auto">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="lucide lucide-languages"
-                    aria-label="Translated text: "
-                    ><path d="m5 8 6 6" /><path d="m4 14 6-6 2-3" /><path
-                        d="M2 5h12"
-                    /><path d="M7 2h1" /><path d="m22 22-5-10-5 10" /><path
-                        d="M14 18h6"
-                    /></svg
-                >
+                <Languages size={16} aria-label="Translated text: " />
                 <p class="timeline__text">
                     <TimelineText record={translatedRecord} {_agent}
                     ></TimelineText>

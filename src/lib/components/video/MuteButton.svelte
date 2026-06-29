@@ -1,6 +1,8 @@
 <script lang="ts">
     import { getContext } from "svelte";
-    import { Volume1, Volume2, VolumeOff } from "lucide-svelte";
+    import Volume1 from '@lucide/svelte/icons/volume-1';
+    import Volume2 from '@lucide/svelte/icons/volume-2';
+    import VolumeOff from '@lucide/svelte/icons/volume-off';
 
     const player: any = getContext('player');
 

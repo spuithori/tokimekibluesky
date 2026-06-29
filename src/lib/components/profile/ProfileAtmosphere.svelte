@@ -1,5 +1,8 @@
 <script lang="ts">
-  import {SquareArrowOutUpRight} from "lucide-svelte";
+    import Globe from '@lucide/svelte/icons/globe';
+    import Database from '@lucide/svelte/icons/database';
+    import Info from '@lucide/svelte/icons/info';
+  import SquareArrowOutUpRight from '@lucide/svelte/icons/square-arrow-out-up-right';
   import {onMount} from "svelte";
   import {_} from "svelte-i18n";
   import AtmosphereAboutModal from "$lib/components/profile/AtmosphereAboutModal.svelte";
@@ -39,7 +42,7 @@
   })
 </script>
 
-<p class="atmos-heading"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg> Atmosphere</p>
+<p class="atmos-heading"><Globe size={20} /> Atmosphere</p>
 
 <div class="atmos-wrap">
   <div class="atmos-list">
@@ -111,11 +114,11 @@
   </div>
 
   <a href="/atproto-viewer/{did}" class="atmos-viewer-button">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database-icon lucide-database"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+    <Database size={20} color="var(--text-color-1)" />
   </a>
 
   <button class="atmos-modal-toggle" aria-label="About" onclick={() => {isOpen = !isOpen}}>
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+    <Info size={20} color="var(--text-color-1)" />
   </button>
 </div>
 

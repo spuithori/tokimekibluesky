@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { X, ArrowLeft } from 'lucide-svelte';
+  import X from '@lucide/svelte/icons/x';
+  import ArrowLeft from '@lucide/svelte/icons/arrow-left';
   import { scale } from 'svelte/transition';
 
   let { title, size = 'normal', onclose, onback, children } = $props();

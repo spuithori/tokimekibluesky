@@ -1,6 +1,11 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import {Heart, Repeat2, Star, Pencil, ChevronUp, ChevronDown} from "lucide-svelte";
+    import Heart from '@lucide/svelte/icons/heart';
+    import Repeat2 from '@lucide/svelte/icons/repeat-2';
+    import Star from '@lucide/svelte/icons/star';
+    import Pencil from '@lucide/svelte/icons/pencil';
+    import ChevronUp from '@lucide/svelte/icons/chevron-up';
+    import ChevronDown from '@lucide/svelte/icons/chevron-down';
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import {getReasonText} from "$lib/components/notification/notificationUtil";

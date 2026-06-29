@@ -1,10 +1,16 @@
 <script lang="ts">
+    import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
+    import Repeat2 from '@lucide/svelte/icons/repeat-2';
+    import List from '@lucide/svelte/icons/list';
   import {agent, listAddModal, reportModal} from "$lib/stores";
   import {muteListsState} from "$lib/classes/muteListsState.svelte";
   import {_} from "svelte-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
-  import {AtSign, Flag, ShieldBan, VolumeX} from "lucide-svelte";
+  import AtSign from '@lucide/svelte/icons/at-sign';
+  import Flag from '@lucide/svelte/icons/flag';
+  import ShieldBan from '@lucide/svelte/icons/shield-ban';
+  import VolumeX from '@lucide/svelte/icons/volume-x';
   import {getPostState} from "$lib/classes/postState.svelte";
 
   let { profile, handle, onrefresh } = $props();
@@ -116,7 +122,7 @@
 <div class="profile-menu-wrap">
   <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="profile-menu-toggle">
     {#snippet ref()}
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical-icon lucide-ellipsis-vertical"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      <EllipsisVertical size={20} color="var(--text-color-2)" />
     {/snippet}
 
     {#snippet content()}
@@ -171,14 +177,14 @@
           {#if muteListsState.repostMuteSet.has(profile.did)}
             <li class="timeline-menu-list__item timeline-menu-list__item--repost-mute">
               <button class="timeline-menu-list__button" onclick={repostUnmute}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+                <Repeat2 size={18} color="var(--text-color-3)" />
                 <span>{$_('repost_mute_off')}</span>
               </button>
             </li>
           {:else}
             <li class="timeline-menu-list__item timeline-menu-list__item--repost-mute">
               <button class="timeline-menu-list__button" onclick={repostMute}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat-2"><path d="m2 9 3-3 3 3"/><path d="M13 18H7a2 2 0 0 1-2-2V6"/><path d="m22 15-3 3-3-3"/><path d="M11 6h6a2 2 0 0 1 2 2v10"/></svg>
+                <Repeat2 size={18} color="var(--text-color-3)" />
                 <span>{$_('repost_mute_on')}</span>
               </button>
             </li>
@@ -233,7 +239,7 @@
 
         <li class="timeline-menu-list__item timeline-menu-list__item--report">
           <button class="timeline-menu-list__button" onclick={() => {$listAddModal = {open: true, author: profile, did: $agent.did()}}}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+            <List size={18} color="var(--text-color-1)" />
             {$_('list_instant_manage')}
           </button>
         </li>

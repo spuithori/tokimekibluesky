@@ -10,7 +10,7 @@
         resizeAspectRatioSize,
         transformImageFilter
     } from "$lib/components/editor/imageUploadUtil";
-    import {X} from "lucide-svelte";
+    import X from '@lucide/svelte/icons/x';
     import {toast} from "svelte-sonner";
     import {publishState} from "$lib/classes/publishState.svelte";
     import {MAX_GALLERY_IMAGES} from "$lib/components/post/embedImages";

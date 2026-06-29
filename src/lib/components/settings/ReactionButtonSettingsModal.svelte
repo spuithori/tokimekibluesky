@@ -1,7 +1,11 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
   import {_} from "svelte-i18n";
-  import {Bookmark, Heart, Quote, Repeat2, Reply} from "lucide-svelte";
+  import Bookmark from '@lucide/svelte/icons/bookmark';
+  import Heart from '@lucide/svelte/icons/heart';
+  import Quote from '@lucide/svelte/icons/quote';
+  import Repeat2 from '@lucide/svelte/icons/repeat-2';
+  import Reply from '@lucide/svelte/icons/reply';
 
   const reactions = ['reply', 'repost', 'like', 'quote', 'bookmark'];
   const icons = [Reply, Repeat2, Heart, Quote, Bookmark]

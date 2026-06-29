@@ -1,6 +1,7 @@
 <script lang="ts">
     import {_} from 'svelte-i18n';
-    import { ArrowLeft, X } from "lucide-svelte";
+    import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+    import X from '@lucide/svelte/icons/x';
     import {agents} from "$lib/stores";
     import AgentsUserItem from "$lib/components/acp/AgentsUserItem.svelte";
     import {page} from "$app/state";

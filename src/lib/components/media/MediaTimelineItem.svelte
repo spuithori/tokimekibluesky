@@ -7,7 +7,8 @@
     import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
     import MediaTimelineThumbnail from "$lib/components/media/MediaTimelineThumbnail.svelte";
     import {modalState} from "$lib/classes/modalState.svelte";
-    import {EyeOff, Repeat} from "lucide-svelte";
+    import EyeOff from '@lucide/svelte/icons/eye-off';
+    import Repeat from '@lucide/svelte/icons/repeat';
     import {appState} from "$lib/classes/appState.svelte";
 
     let { feed, index, data, _agent } = $props();

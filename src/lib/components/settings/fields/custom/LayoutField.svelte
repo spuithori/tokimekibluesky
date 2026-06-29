@@ -1,7 +1,8 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { settingsStore } from '$lib/settings/settings.svelte';
-    import { Columns3, RectangleVertical } from 'lucide-svelte';
+    import Columns3 from '@lucide/svelte/icons/columns-3';
+    import RectangleVertical from '@lucide/svelte/icons/rectangle-vertical';
 </script>
 
 <div class="layout-radio-group">

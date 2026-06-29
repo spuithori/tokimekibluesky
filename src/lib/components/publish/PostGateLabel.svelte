@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import { MessageSquareQuote } from 'lucide-svelte';
+    import MessageSquareQuote from '@lucide/svelte/icons/message-square-quote';
 </script>
 
 <p class="post-gate-label"><MessageSquareQuote size="16"></MessageSquareQuote>{$_('post_gate_quote_label')}</p>

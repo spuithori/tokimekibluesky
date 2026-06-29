@@ -3,7 +3,9 @@
   import UserFollowButton from "./UserFollowButton.svelte";
   import {agent, settings} from "$lib/stores";
   import Avatar from "../../Avatar.svelte";
-  import {BadgeCheck, CircleCheck, Handshake} from "lucide-svelte";
+  import BadgeCheck from '@lucide/svelte/icons/badge-check';
+  import CircleCheck from '@lucide/svelte/icons/circle-check';
+  import Handshake from '@lucide/svelte/icons/handshake';
 
   interface Props {
     _agent?: any;

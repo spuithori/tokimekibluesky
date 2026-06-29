@@ -1,4 +1,13 @@
-import { Settings, Palette, GanttChartSquare, Hand, WholeWord, BellRing, CalendarClock, Database, Layers, Heart } from 'lucide-svelte';
+import Settings from '@lucide/svelte/icons/settings';
+import Palette from '@lucide/svelte/icons/palette';
+import GanttChartSquare from '@lucide/svelte/icons/gantt-chart-square';
+import Hand from '@lucide/svelte/icons/hand';
+import WholeWord from '@lucide/svelte/icons/whole-word';
+import BellRing from '@lucide/svelte/icons/bell-ring';
+import CalendarClock from '@lucide/svelte/icons/calendar-clock';
+import Database from '@lucide/svelte/icons/database';
+import Layers from '@lucide/svelte/icons/layers';
+import Heart from '@lucide/svelte/icons/heart';
 
 /**
  * Data-driven settings navigation. The settings layout renders these instead of

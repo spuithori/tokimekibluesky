@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useIntersectionObserver } from "runed";
   import {_} from "svelte-i18n";
-  import {Annoyed} from "lucide-svelte";
+  import Annoyed from '@lucide/svelte/icons/annoyed';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
   let { oninfinite, children } = $props();

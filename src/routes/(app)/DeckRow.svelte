@@ -13,7 +13,14 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
-    import {Filter, GripVertical, PictureInPicture2, Settings2, SquarePlus, TextQuote, CheckCheck, GripHorizontal} from "lucide-svelte";
+    import Filter from '@lucide/svelte/icons/filter';
+    import GripVertical from '@lucide/svelte/icons/grip-vertical';
+    import PictureInPicture2 from '@lucide/svelte/icons/picture-in-picture-2';
+    import Settings2 from '@lucide/svelte/icons/settings-2';
+    import SquarePlus from '@lucide/svelte/icons/square-plus';
+    import TextQuote from '@lucide/svelte/icons/text-quote';
+    import CheckCheck from '@lucide/svelte/icons/check-check';
+    import GripHorizontal from '@lucide/svelte/icons/grip-horizontal';
     import { createLongPress } from "$lib/longpress";
     import Refresher from "$lib/components/utils/Refresher.svelte";
     import DeckColumn from "./DeckColumn.svelte";

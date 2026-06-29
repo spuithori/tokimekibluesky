@@ -1,9 +1,10 @@
 <script lang="ts">
+    import Info from '@lucide/svelte/icons/info';
     import {_} from "svelte-i18n";
 </script>
 
 <div class="embed-detached">
-  <p class="embed-detached__text"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>{$_('detach_information')}
+  <p class="embed-detached__text"><Info size={16} />{$_('detach_information')}
   </p>
 </div>
 

@@ -12,7 +12,8 @@
     import {getConvoName, isBlockedDirectConvo} from "$lib/components/chat/convoUtil";
     import ChatRequestsList from "$lib/components/chat/ChatRequestsList.svelte";
     import {chatState} from "$lib/classes/chatState.svelte";
-    import {ArrowLeft, Inbox} from "lucide-svelte";
+    import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+    import Inbox from '@lucide/svelte/icons/inbox';
 
     let { index, _agent = $agent, onrefresh, unique, isJunk, isSplit = false, column: columnProp = undefined } = $props();
 

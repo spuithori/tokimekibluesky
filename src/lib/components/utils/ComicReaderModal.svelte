@@ -1,4 +1,7 @@
 <script lang="ts">
+    import X from '@lucide/svelte/icons/x';
+    import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import {onMount} from "svelte";
   import {comicReaderState} from "$lib/classes/comicReaderState.svelte";
 
@@ -223,14 +226,14 @@
           {isStartOnRight ? 'P1:R' : 'P1:L'}
         </button>
         <button class="comic-reader-action" onclick={handleClose} aria-label="Close comic reader" title="Close">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <X size={28} />
         </button>
       </div>
     </header>
 
     <div class="comic-reader-pages-wrap">
       <button class="comic-reader-nav comic-reader-nav--left" onclick={goNext} disabled={disableNext} aria-label="Next spread" title="Next">
-        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
+        <ChevronLeft size={36} />
       </button>
 
       <div class="comic-reader-pages" class:comic-reader-pages--single={isSingle}>
@@ -255,7 +258,7 @@
       </div>
 
       <button class="comic-reader-nav comic-reader-nav--right" onclick={goPrev} disabled={disablePrev} aria-label="Previous spread" title="Previous">
-        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+        <ChevronRight size={36} />
       </button>
     </div>
 

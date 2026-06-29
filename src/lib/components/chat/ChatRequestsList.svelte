@@ -7,7 +7,7 @@
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {chatErrorKey} from "$lib/components/chat/chatErrors";
     import {JOIN_REQUEST_CONVO_TYPE, createNameResolver, getConvoMemberCount, getConvoName, getLastMessagePreview} from "$lib/components/chat/convoUtil";
-    import {Users} from "lucide-svelte";
+    import Users from '@lucide/svelte/icons/users';
 
     let { _agent, onopen = undefined } = $props();
     let requests = $state.raw<any[]>([]);

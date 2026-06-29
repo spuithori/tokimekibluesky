@@ -4,7 +4,12 @@
     import {toast} from "svelte-sonner";
     import {_} from "svelte-i18n";
     import Menu from "$lib/components/ui/Menu.svelte";
-    import {ListPlus, Lock, LogOut, MessageCircleOff, PictureInPicture2, Users} from "lucide-svelte";
+    import ListPlus from '@lucide/svelte/icons/list-plus';
+    import Lock from '@lucide/svelte/icons/lock';
+    import LogOut from '@lucide/svelte/icons/log-out';
+    import MessageCircleOff from '@lucide/svelte/icons/message-circle-off';
+    import PictureInPicture2 from '@lucide/svelte/icons/picture-in-picture-2';
+    import Users from '@lucide/svelte/icons/users';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";

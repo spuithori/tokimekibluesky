@@ -18,7 +18,7 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {settingsState} from "$lib/classes/settingsState.svelte";
     import {instantPlaySound} from "$lib/sounds";
-    import {ChevronDown} from "lucide-svelte";
+    import ChevronDown from '@lucide/svelte/icons/chevron-down';
     import {DELETED_MESSAGE_VIEW_TYPE, SYSTEM_MESSAGE_VIEW_TYPE, getConvoName, isGroupConvo} from "$lib/components/chat/convoUtil";
 
     let { index, _agent = $agent, onrefresh, unique, isJunk, isSplit = false, column: columnProp = undefined, onback = undefined, onleave = undefined } = $props();

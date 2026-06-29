@@ -1,4 +1,6 @@
 <script lang="ts">
+    import AtSign from '@lucide/svelte/icons/at-sign';
+    import LockKeyhole from '@lucide/svelte/icons/lock-keyhole';
   import { _ } from "svelte-i18n";
   import { PasswordSession, type SessionData } from "$lib/password-session";
   import { accountsDb } from "$lib/db";
@@ -177,7 +179,7 @@
           </dt>
 
           <dd class="input-group__content">
-            <span class="input-group__prefix"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-at-sign"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg></span>
+            <span class="input-group__prefix"><AtSign size={20} color="var(--text-color-1)" /></span>
             <input class="input-group__input" type="text" name="email" id="email" placeholder="example.bsky.social" bind:value="{identifier}" readonly={isMissing} required>
           </dd>
         </dl>
@@ -188,7 +190,7 @@
           </dt>
 
           <dd class="input-group__content">
-            <span class="input-group__prefix"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock-keyhole"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg></span>
+            <span class="input-group__prefix"><LockKeyhole size={20} color="var(--text-color-1)" /></span>
             <input class="input-group__input" type="password" name="password" id="password" placeholder="password" bind:value="{password}" required />
           </dd>
         </dl>
@@ -200,7 +202,7 @@
             </dt>
 
             <dd class="input-group__content">
-              <span class="input-group__prefix"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock-keyhole"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg></span>
+              <span class="input-group__prefix"><LockKeyhole size={20} color="var(--text-color-1)" /></span>
               <input class="input-group__input" type="text" name="2fa" id="2fa" placeholder="XXXX-XXXX" bind:value="{twoFactorValue}" required />
             </dd>
           </dl>

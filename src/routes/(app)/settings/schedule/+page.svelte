@@ -9,7 +9,7 @@
     import { checkScheduleAuth, startScheduleAuth, revokeScheduleAuth, getScheduledPosts, deleteScheduledPost, type ScheduledPost } from '$lib/scheduleApi';
     import type { Agent } from '$lib/agent';
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-    import { Trash } from 'lucide-svelte';
+    import Trash from '@lucide/svelte/icons/trash';
 
     interface AccountAuthState {
         key: number;

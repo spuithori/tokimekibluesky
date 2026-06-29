@@ -6,7 +6,12 @@
   import {CHAT_PROXY} from "$lib/components/chat/chatConst";
   import ChatNewModal from "$lib/components/chat/ChatNewModal.svelte";
   import {toast} from "svelte-sonner";
-  import {ArrowLeft, Ellipsis, Inbox, MailCheck, MessageCirclePlus, Settings2} from "lucide-svelte";
+  import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+  import Ellipsis from '@lucide/svelte/icons/ellipsis';
+  import Inbox from '@lucide/svelte/icons/inbox';
+  import MailCheck from '@lucide/svelte/icons/mail-check';
+  import MessageCirclePlus from '@lucide/svelte/icons/message-circle-plus';
+  import Settings2 from '@lucide/svelte/icons/settings-2';
   import Menu from "$lib/components/ui/Menu.svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import {settingsState} from "$lib/classes/settingsState.svelte";

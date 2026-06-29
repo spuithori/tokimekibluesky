@@ -1,7 +1,8 @@
 <script lang="ts">
+    import Search from '@lucide/svelte/icons/search';
     import { _ } from 'svelte-i18n';
     import ListMember from "$lib/components/list/ListMember.svelte";
-    import { X } from "lucide-svelte";
+    import X from '@lucide/svelte/icons/x';
 
     let { _agent, selected = $bindable<any[]>([]), max = 49, excludeDids = [] } = $props();
     let search = $state('');
@@ -64,7 +65,7 @@
 
   <div class="actor-multi-select-search">
     <input type="text" class="actor-multi-select-search__input" placeholder={$_('handle_or_name')} bind:value={search} onkeydown={handleKeyDown}>
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <Search size={20} color="var(--primary-color)" />
   </div>
 
   {#each actors as member (member.did)}

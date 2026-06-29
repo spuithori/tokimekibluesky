@@ -1,4 +1,6 @@
 <script lang="ts">
+    import ExternalLink from '@lucide/svelte/icons/external-link';
+    import Quote from '@lucide/svelte/icons/quote';
   import UserItem from '../../../routes/(app)/profile/[handle]/UserItem.svelte';
   import { slide } from 'svelte/transition';
   import { _ } from 'svelte-i18n';
@@ -108,14 +110,14 @@
             <ul class="timeline-menu-list" >
               <li class="timeline-menu-list__item">
                   <a class="timeline-menu-list__button" href="https://bsky.app/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" target="_blank">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+                      <ExternalLink size={20} color="var(--text-color-1)" />
                       <span>{$_('open_social_app')}</span>
                   </a>
               </li>
 
               <li class="timeline-menu-list__item">
                 <button class="timeline-menu-list__button" onclick={handleEmbedClick}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+                  <Quote size={20} color="var(--text-color-1)" />
                   <span>{$_('embed_feed_button')}</span>
                 </button>
               </li>

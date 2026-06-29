@@ -3,7 +3,7 @@
   import { isColumnModalOpen } from "$lib/stores";
   import ColumnList from "$lib/components/column/ColumnList.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  import {SquarePlus} from "lucide-svelte";
+  import SquarePlus from '@lucide/svelte/icons/square-plus';
 
   let { onviewcolumn = () => {} } = $props();
   const columnState = getColumnState();

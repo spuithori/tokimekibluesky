@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Ghost from '@lucide/svelte/icons/ghost';
     import {isColumnModalOpen} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import {_} from "svelte-i18n";
@@ -24,7 +25,7 @@
   {:else}
     <div class="deck-empty">
       <div class="deck-empty__icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ghost"><path d="M9 10h.01"/><path d="M15 10h.01"/><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/></svg>
+        <Ghost size={64} color="var(--text-color-3)" />
       </div>
 
       <h2 class="deck-empty__title">{$_('decks_empty_title')}</h2>

@@ -2,7 +2,7 @@
     import { _ } from 'svelte-i18n';
     import {onMount} from "svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
-    import {Mic} from "lucide-svelte";
+    import Mic from '@lucide/svelte/icons/mic';
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 
     let items = $state([]);

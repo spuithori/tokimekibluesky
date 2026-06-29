@@ -3,7 +3,8 @@
   import { toast } from 'svelte-sonner';
   import { _ } from 'svelte-i18n';
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  import {Heart, Star} from "lucide-svelte";
+  import Heart from '@lucide/svelte/icons/heart';
+  import Star from '@lucide/svelte/icons/star';
   import NumberFlow from '@number-flow/svelte';
   import { isReasonRepost } from "$lib/atproto-guards";
   import {settingsState} from "$lib/classes/settingsState.svelte";

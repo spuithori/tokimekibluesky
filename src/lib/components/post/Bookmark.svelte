@@ -1,4 +1,8 @@
 <script lang="ts">
+    import Trash2 from '@lucide/svelte/icons/trash-2';
+    import Cloud from '@lucide/svelte/icons/cloud';
+    import BookmarkCheck from '@lucide/svelte/icons/bookmark-check';
+    import CirclePlus from '@lucide/svelte/icons/circle-plus';
   import {accountsDb, db} from '$lib/db';
   import {_} from "svelte-i18n";
   import { liveQuery } from 'dexie';
@@ -6,7 +10,7 @@
   import Menu from "$lib/components/ui/Menu.svelte";
   import {getAccountIdByDidFromDb} from "$lib/util";
   import CloudBookmarkModal from "$lib/components/bookmark/CloudBookmarkModal.svelte";
-  import {Bookmark} from "lucide-svelte";
+  import Bookmark from '@lucide/svelte/icons/bookmark';
 
   let { _agent, post } = $props();
   let cloudBookmarks = $state([]);
@@ -161,7 +165,7 @@
                 <li class="timeline-menu-list__item timeline-menu-list__item--mute">
                   <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {deleteBookmark(alreadyBookmarks[0].id)}}>
                     {bookmark.name}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    <Trash2 size={18} color="var(--danger-color)" />
                   </button>
                 </li>
               {:else}
@@ -184,16 +188,16 @@
             {#if !relatedBookmarks.includes(bookmark.id)}
               <li class="timeline-menu-list__item timeline-menu-list__item--mute">
                 <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {addCloud(bookmark.id)}}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                  <Cloud size={20} />
                   {bookmark.name}
                 </button>
               </li>
             {:else}
               <li class="timeline-menu-list__item timeline-menu-list__item--mute">
                 <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {deleteCloud(bookmark.id)}}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                  <Cloud size={20} />
                   {bookmark.name}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                  <Trash2 size={18} color="var(--danger-color)" />
                 </button>
               </li>
             {/if}
@@ -202,14 +206,14 @@
 
         <li class="timeline-menu-list__item">
           <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={toggleOfficialBookmark}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bookmark-check-icon lucide-bookmark-check"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/><path d="m9 10 2 2 4-4"/></svg>
+            <BookmarkCheck size={20} />
             {$_('official_bookmark')}
           </button>
         </li>
 
         <li class="timeline-menu-list__item">
           <button class="timeline-menu-list__button timeline-menu-list__button--bookmark" onclick={() => {isModalOpen = true}}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+            <CirclePlus size={20} color="var(--primary-color)" />
             {$_('new_create')}
           </button>
         </li>

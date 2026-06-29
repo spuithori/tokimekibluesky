@@ -1,7 +1,7 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
     import Modal from "$lib/components/ui/Modal.svelte";
-    import {Waypoints} from "lucide-svelte";
+    import Waypoints from '@lucide/svelte/icons/waypoints';
 
     let { onclose, onchange, profile } = $props();
     let proxy = $state(profile?.appViewProxy || '');

@@ -2,7 +2,18 @@
     import {bookmarkModal, cloudBookmarkModal, listModal, officialListModal} from "$lib/stores";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
     import {createEventDispatcher} from "svelte";
-    import { Bell, Bookmark, Heart, Home, Image, List, Newspaper, Pencil, PlusCircle, UserRound, MessageCircle, BookType } from "lucide-svelte";
+    import Bell from '@lucide/svelte/icons/bell';
+    import Bookmark from '@lucide/svelte/icons/bookmark';
+    import Heart from '@lucide/svelte/icons/heart';
+    import Home from '@lucide/svelte/icons/home';
+    import Image from '@lucide/svelte/icons/image';
+    import List from '@lucide/svelte/icons/list';
+    import Newspaper from '@lucide/svelte/icons/newspaper';
+    import Pencil from '@lucide/svelte/icons/pencil';
+    import PlusCircle from '@lucide/svelte/icons/plus-circle';
+    import UserRound from '@lucide/svelte/icons/user-round';
+    import MessageCircle from '@lucide/svelte/icons/message-circle';
+    import BookType from '@lucide/svelte/icons/book-type';
 
     const dispatch = createEventDispatcher();
     let { items, _agent } = $props();

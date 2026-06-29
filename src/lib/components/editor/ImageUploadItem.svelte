@@ -1,6 +1,7 @@
 <script lang="ts">
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-    import { X, Brush } from 'lucide-svelte';
+    import X from '@lucide/svelte/icons/x';
+    import Brush from '@lucide/svelte/icons/brush';
     import { ImageEditor } from 'tokimeki-image-editor';
     import { settings } from '$lib/stores';
     import {compressForPreview} from "$lib/imageCompressor/compressor";

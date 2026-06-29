@@ -2,7 +2,7 @@
     import { _ } from 'svelte-i18n';
     import { REPORT_CATEGORIES } from './reportConstants';
     import type { ReportCategory } from './reportTypes';
-    import { ChevronRight } from 'lucide-svelte';
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
     let { onselect }: { onselect: (category: ReportCategory) => void } = $props();
 </script>

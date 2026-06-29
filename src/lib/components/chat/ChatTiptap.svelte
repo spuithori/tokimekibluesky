@@ -1,4 +1,6 @@
 <script lang="ts">
+    import SendHorizontal from '@lucide/svelte/icons/send-horizontal';
+    import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
     import {createEventDispatcher, onMount, onDestroy} from 'svelte'
     import {Editor} from '@tiptap/core'
     import Link from '@tiptap/extension-link';
@@ -266,7 +268,7 @@
       {#if isSending}
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chat-editor-submit__spinner"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
       {:else}
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal"><path d="m3 3 3 9-3 9 19-9Z"/><path d="M6 12h16"/></svg>
+        <SendHorizontal size={20} color="var(--bg-color-1)" />
       {/if}
     </button>
   </div>
@@ -286,7 +288,7 @@
   <form>
     <input type="text" class="editor-link-dialog__input" bind:value={linkValue} placeholder="https://tokimeki.blue">
     <button class="editor-link-dialog__button" onclick={(e) => { e.preventDefault(); linkDialog.close(linkValue); }}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-corner-down-left"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+      <CornerDownLeft size={20} color="var(--bg-color-1)" />
     </button>
   </form>
 

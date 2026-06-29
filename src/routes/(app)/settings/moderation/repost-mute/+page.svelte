@@ -4,7 +4,7 @@
   import {muteListsState} from "$lib/classes/muteListsState.svelte";
   import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
   import Avatar from "../../../Avatar.svelte";
-  import {Trash2} from "lucide-svelte";
+  import Trash2 from '@lucide/svelte/icons/trash-2';
   import Infinite from "$lib/components/utils/Infinite.svelte";
 
   let slicedArray = $derived.by(() => {

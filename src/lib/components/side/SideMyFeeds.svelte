@@ -3,7 +3,9 @@
     import {liveQuery} from "dexie";
     import {accountsDb, db} from "$lib/db";
     import {createEventDispatcher, onMount} from "svelte";
-    import {Bookmark, List, Newspaper} from "lucide-svelte";
+    import Bookmark from '@lucide/svelte/icons/bookmark';
+    import List from '@lucide/svelte/icons/list';
+    import Newspaper from '@lucide/svelte/icons/newspaper';
     import {_} from "svelte-i18n";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import {getAccountIdByDidFromDb} from "$lib/util";

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { getContext } from "svelte";
-    import { PictureInPicture, PictureInPicture2 } from "lucide-svelte";
+    import PictureInPicture from '@lucide/svelte/icons/picture-in-picture';
+    import PictureInPicture2 from '@lucide/svelte/icons/picture-in-picture-2';
 
     const player: any = getContext('player');
 </script>

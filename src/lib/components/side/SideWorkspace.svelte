@@ -4,7 +4,9 @@
     import {_} from "svelte-i18n";
     import ProfileMenuItem from "$lib/components/acp/ProfileMenuItem.svelte";
     import Menu from "$lib/components/ui/Menu.svelte";
-    import {HelpCircle, MoreHorizontal, Settings} from "lucide-svelte";
+    import HelpCircle from '@lucide/svelte/icons/help-circle';
+    import MoreHorizontal from '@lucide/svelte/icons/more-horizontal';
+    import Settings from '@lucide/svelte/icons/settings';
     import {appState} from "$lib/classes/appState.svelte";
 
     let { onclose } = $props();

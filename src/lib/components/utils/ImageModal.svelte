@@ -1,4 +1,10 @@
 <script lang="ts">
+    import X from '@lucide/svelte/icons/x';
+    import ZoomIn from '@lucide/svelte/icons/zoom-in';
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
+    import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+    import Save from '@lucide/svelte/icons/save';
+    import BookOpen from '@lucide/svelte/icons/book-open';
   import {imageState} from "$lib/classes/imageState.svelte";
   import {comicReaderState} from "$lib/classes/comicReaderState.svelte";
   import PhotoSwipeLightbox from "photoswipe/lightbox";
@@ -72,10 +78,10 @@
     secondaryZoomLevel: 2,
     maxZoomLevel: 2,
     bgOpacity: 0.9,
-    closeSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
-    zoomSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-zoom-in"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></svg>',
-    arrowNextSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>',
-    arrowPrevSVG: '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>',
+    closeSVG: '<X size={28} color="#fff" />',
+    zoomSVG: '<ZoomIn color="#fff" />',
+    arrowNextSVG: '<ChevronRight size={36} color="#fff" />',
+    arrowPrevSVG: '<ChevronLeft size={36} color="#fff" />',
     appendToEl: document.querySelector('.app'),
     loop: false,
   });
@@ -94,7 +100,7 @@
       order: 8,
       isButton: true,
       tagName: 'button',
-      html: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+      html: '<Save color="#fff" />',
       onClick: async () => {
         const data = lightbox.pswp.currSlide.data;
         const originalSrc = data.src ?? '';
@@ -126,7 +132,7 @@
       order: 7,
       isButton: true,
       tagName: 'button',
-      html: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+      html: '<BookOpen color="#fff" />',
       onInit: (el) => {
         el.setAttribute('aria-label', 'Open comic reader');
         el.setAttribute('title', 'Open comic reader');

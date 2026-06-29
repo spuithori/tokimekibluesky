@@ -10,7 +10,7 @@
   import {resolveScrollContainer} from "$lib/components/virtual/scroll-helpers";
   import {isReasonPin} from "$lib/atproto-guards";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-  import {Annoyed} from "lucide-svelte";
+  import Annoyed from '@lucide/svelte/icons/annoyed';
   import {getColumnState} from "$lib/classes/columnState.svelte";
 
   let {

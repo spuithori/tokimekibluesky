@@ -3,7 +3,8 @@
     import {muteListsState} from "$lib/classes/muteListsState.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import SettingsBackup from "$lib/components/settings/SettingsBackup.svelte";
-    import { ChevronRight, FolderInput } from "lucide-svelte";
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
+    import FolderInput from '@lucide/svelte/icons/folder-input';
 
     function deletePostMutes() {
         muteListsState.clearPostMutes();

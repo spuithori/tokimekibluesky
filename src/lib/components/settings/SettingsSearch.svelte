@@ -1,7 +1,7 @@
 <script lang="ts">
     import { _, locale } from "svelte-i18n";
     import { goto } from "$app/navigation";
-    import { Search } from "lucide-svelte";
+    import Search from '@lucide/svelte/icons/search';
     import {
         buildIndex,
         searchSettings,

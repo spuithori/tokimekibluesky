@@ -6,7 +6,8 @@
     import AccountsManagementModal from "$lib/components/acp/AccountsManagementModal.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {appState} from "$lib/classes/appState.svelte";
-    import { ChevronRight, CalendarClock } from "lucide-svelte";
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
+    import CalendarClock from '@lucide/svelte/icons/calendar-clock';
 
     let isAccountManagementModalOpen = $state(false);
 

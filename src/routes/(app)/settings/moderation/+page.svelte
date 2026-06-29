@@ -3,7 +3,14 @@
     import {settings} from '$lib/stores';
     import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
     import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
-    import {ChevronRight, Globe2, MessageCircleMore, MessageCircleOff, Repeat2, Shield, VolumeX, ShieldBan} from "lucide-svelte";
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
+    import Globe2 from '@lucide/svelte/icons/globe-2';
+    import MessageCircleMore from '@lucide/svelte/icons/message-circle-more';
+    import MessageCircleOff from '@lucide/svelte/icons/message-circle-off';
+    import Repeat2 from '@lucide/svelte/icons/repeat-2';
+    import Shield from '@lucide/svelte/icons/shield';
+    import VolumeX from '@lucide/svelte/icons/volume-x';
+    import ShieldBan from '@lucide/svelte/icons/shield-ban';
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {appState} from "$lib/classes/appState.svelte";
     import type {ContentLabelPrefs} from "$lib/settings/types";

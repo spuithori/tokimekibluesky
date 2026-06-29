@@ -11,7 +11,7 @@
     import {JOIN_LINK_PREVIEW_TYPE, JOIN_LINK_PREVIEW_DISABLED_TYPE, getConvoName} from "$lib/components/chat/convoUtil";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-    import {Users} from "lucide-svelte";
+    import Users from '@lucide/svelte/icons/users';
 
     const junkColumnState = getColumnState(true);
     const code = $page.params.code;

@@ -2,7 +2,14 @@
     import { _ } from 'svelte-i18n';
     import {agent, settings} from '$lib/stores';
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import {AtSign, Heart, Quote, Repeat2, Reply, Star, UserPlus2, Pencil} from "lucide-svelte";
+    import AtSign from '@lucide/svelte/icons/at-sign';
+    import Heart from '@lucide/svelte/icons/heart';
+    import Quote from '@lucide/svelte/icons/quote';
+    import Repeat2 from '@lucide/svelte/icons/repeat-2';
+    import Reply from '@lucide/svelte/icons/reply';
+    import Star from '@lucide/svelte/icons/star';
+    import UserPlus2 from '@lucide/svelte/icons/user-plus-2';
+    import Pencil from '@lucide/svelte/icons/pencil';
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
     import NotificationStarterpackItem from "$lib/components/notification/NotificationStarterpackItem.svelte";

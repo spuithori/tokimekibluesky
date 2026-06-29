@@ -1,4 +1,5 @@
 <script lang="ts">
+    import CheckCircle from '@lucide/svelte/icons/check-circle';
     import {_} from "svelte-i18n";
     import { confetti } from '@neoconfetti/svelte';
     import {createEventDispatcher, onMount} from "svelte";
@@ -33,7 +34,7 @@
                             <label for="layoutDecks">
                                 <span class="big-radio__ui">
                                     <span class="big-radio__check">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--check-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                                        <CheckCircle size={28} color="var(--check-color)" />
                                     </span>
                                     <span class="big-radio__content">
                                          <span class="big-radio__title">{$_('layout_decks')}</span>
@@ -48,7 +49,7 @@
                             <label for="layoutDefault">
                                 <span class="big-radio__ui">
                                     <span class="big-radio__check">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--check-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                                        <CheckCircle size={28} color="var(--check-color)" />
                                     </span>
                                     <span class="big-radio__content">
                                         <span class="big-radio__title">{$_('layout_single')}</span>

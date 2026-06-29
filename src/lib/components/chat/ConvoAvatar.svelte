@@ -1,6 +1,6 @@
 <script lang="ts">
     import Avatar from "../../../routes/(app)/Avatar.svelte";
-    import { Users } from "lucide-svelte";
+    import Users from '@lucide/svelte/icons/users';
     import { isDataSaving } from "$lib/stores";
     import { isGroupConvo, getConvoAvatarMembers, getOtherMembers } from "$lib/components/chat/convoUtil";
 

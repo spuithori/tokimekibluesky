@@ -1,6 +1,22 @@
 <script lang="ts">
   import {_} from 'svelte-i18n'
-  import { Trash2, Languages, Copy, AtSign, List, Flag, EyeOff, Rss, Pin, Pencil, Sticker, Repeat2, Reply, VolumeX, ShieldBan, BellOff, Bell } from 'lucide-svelte';
+  import Trash2 from '@lucide/svelte/icons/trash-2';
+  import Languages from '@lucide/svelte/icons/languages';
+  import Copy from '@lucide/svelte/icons/copy';
+  import AtSign from '@lucide/svelte/icons/at-sign';
+  import List from '@lucide/svelte/icons/list';
+  import Flag from '@lucide/svelte/icons/flag';
+  import EyeOff from '@lucide/svelte/icons/eye-off';
+  import Rss from '@lucide/svelte/icons/rss';
+  import Pin from '@lucide/svelte/icons/pin';
+  import Pencil from '@lucide/svelte/icons/pencil';
+  import Sticker from '@lucide/svelte/icons/sticker';
+  import Repeat2 from '@lucide/svelte/icons/repeat-2';
+  import Reply from '@lucide/svelte/icons/reply';
+  import VolumeX from '@lucide/svelte/icons/volume-x';
+  import ShieldBan from '@lucide/svelte/icons/shield-ban';
+  import BellOff from '@lucide/svelte/icons/bell-off';
+  import Bell from '@lucide/svelte/icons/bell';
   import { agent, settings, reportModal, listAddModal, agents, bluefeedAddModal, pulseDetach, junkAgentDid, agentDidsSet } from '$lib/stores';
   import { muteListsState } from '$lib/classes/muteListsState.svelte';
   import { AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '$lib/atproto-guards'
@@ -540,7 +556,7 @@
              onclick={handleClick}
     >
       {#if isPinned}
-        <p class="sticky-text"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>{$_('pinned_post')}
+        <p class="sticky-text"><Pin size={18} color="var(--primary-color)" />{$_('pinned_post')}
         </p>
       {/if}
 

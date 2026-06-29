@@ -1,6 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { ChevronRight, SmilePlus } from 'lucide-svelte';
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
+    import SmilePlus from '@lucide/svelte/icons/smile-plus';
     import SettingsCategory from '$lib/components/settings/SettingsCategory.svelte';
 </script>
 

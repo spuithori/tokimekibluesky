@@ -1,6 +1,10 @@
 <script lang="ts">
     import { getContext } from "svelte";
-    import { ChevronLeft, ChevronRight, Gauge, Settings, SlidersHorizontal } from "lucide-svelte";
+    import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
+    import Gauge from '@lucide/svelte/icons/gauge';
+    import Settings from '@lucide/svelte/icons/settings';
+    import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
     import { fly } from 'svelte/transition';
 
     const player: any = getContext('player');

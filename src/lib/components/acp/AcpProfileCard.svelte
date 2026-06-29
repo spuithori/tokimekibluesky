@@ -1,4 +1,6 @@
 <script lang="ts">
+    import BookX from '@lucide/svelte/icons/book-x';
+    import PenSquare from '@lucide/svelte/icons/pen-square';
   import {accountsDb} from "$lib/db";
   import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
@@ -10,7 +12,7 @@
   import AcpProfileNameModal from "$lib/components/acp/AcpProfileNameModal.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import AcpAppViewProxyModal from "$lib/components/acp/AcpAppViewProxyModal.svelte";
-  import {Waypoints} from "lucide-svelte";
+  import Waypoints from '@lucide/svelte/icons/waypoints';
   import {appState} from "$lib/classes/appState.svelte";
 
   const columnState = getColumnState();
@@ -132,7 +134,7 @@
           {#if (!isCurrent)}
             <li class="timeline-menu-list__item timeline-menu-list__item--delete">
               <button class="timeline-menu-list__button" onclick={() => {deleteProfile(profile.id)}}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-x"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="m14.5 7-5 5"/><path d="m9.5 7 5 5"/></svg>
+                <BookX size={20} color="var(--danger-color)" />
                 <span class="text-danger">{$_('delete_profile')}</span>
               </button>
             </li>
@@ -140,7 +142,7 @@
 
           <li class="timeline-menu-list__item">
             <button class="timeline-menu-list__button" onclick={() => {isNameModalOpen = true}}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-square"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+              <PenSquare size={20} color="var(--text-color-1)" />
               <span>{$_('profile_change_name')}</span>
             </button>
           </li>

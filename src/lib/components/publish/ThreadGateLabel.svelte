@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import { MessageSquareWarning } from 'lucide-svelte';
+    import MessageSquareWarning from '@lucide/svelte/icons/message-square-warning';
 
     let { post } = $props();
 </script>

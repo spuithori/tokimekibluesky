@@ -6,7 +6,8 @@
   import {MESSAGE_COUNTER_THRESHOLD, MESSAGE_MAX_GRAPHEMES} from "$lib/components/chat/chatConst";
   import {isConvoLocked, createMemberNameResolver, getReplyPreview} from "$lib/components/chat/convoUtil";
   import Notice from "$lib/components/ui/Notice.svelte";
-  import { Reply, X } from "lucide-svelte";
+  import Reply from '@lucide/svelte/icons/reply';
+  import X from '@lucide/svelte/icons/x';
   import type {Agent} from "$lib/agent";
   import {agent} from "$lib/stores";
 

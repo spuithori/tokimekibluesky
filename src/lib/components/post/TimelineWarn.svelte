@@ -1,4 +1,6 @@
 <script lang="ts">
+    import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
+    import Info from '@lucide/svelte/icons/info';
   import {settings} from '$lib/stores';
   import {_} from "svelte-i18n";
   import LabelDetailModal from "$lib/components/post/LabelDetailModal.svelte";
@@ -27,7 +29,7 @@
 
 <div class="timeline-warn" class:timeline-warn--hide={isVisible}>
   <div class="timeline-warn-heading">
-    <p class="timeline-warn-title"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></p>
+    <p class="timeline-warn-title"><AlertTriangle size={18} color="var(--danger-color)" /></p>
     <ul class="timeline-warn-list">
       <li>
         {#if (labels[0]?.source?.type === 'user' || labels[0]?.label?.src === 'did:plc:ar7c4by46qjdydhdevvrndac' || !labels[0]?.labelDef?.locales[0]?.name)}
@@ -48,7 +50,7 @@
   </div>
 
   <button class="timeline-warn-info-button" onclick={() => {isInfoOpen = true}}>
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+    <Info size={20} color="var(--text-color-2)" />
   </button>
 </div>
 
@@ -56,7 +58,7 @@
   {#if (behavior !== 'inform')}
     <div class="timeline-warn-hiding">
       <div class="timeline-warn-heading">
-        <p class="timeline-warn-title"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></p>
+        <p class="timeline-warn-title"><AlertTriangle size={18} color="var(--danger-color)" /></p>
         <ul class="timeline-warn-list">
           <li>
             {#if (labels[0]?.source?.type === 'user' || labels[0]?.label?.src === 'did:plc:ar7c4by46qjdydhdevvrndac' || !labels[0]?.labelDef?.locales[0]?.name)}
@@ -92,7 +94,7 @@
 
           <li class="timeline-small-warn-list__button">
             <button class="timeline-small-warn-list-button" onclick={() => {isInfoOpen = true}}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <Info size={16} color="var(--text-color-2)" />
             </button>
           </li>
         </ul>

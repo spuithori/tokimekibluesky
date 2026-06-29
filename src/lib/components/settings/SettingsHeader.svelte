@@ -1,5 +1,6 @@
 <script lang="ts">
-  import {ArrowLeft, X} from "lucide-svelte";
+  import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+  import X from '@lucide/svelte/icons/x';
 
   let { children } = $props();
 </script>

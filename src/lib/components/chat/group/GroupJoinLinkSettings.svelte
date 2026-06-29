@@ -3,7 +3,8 @@
     import {toast} from "svelte-sonner";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {chatErrorKey} from "$lib/components/chat/chatErrors";
-    import {Copy, Share2} from "lucide-svelte";
+    import Copy from '@lucide/svelte/icons/copy';
+    import Share2 from '@lucide/svelte/icons/share-2';
 
     let { convo, _agent, onconvoupdate = undefined } = $props();
     let joinRule = $state(convo?.kind?.joinLink?.joinRule ?? 'anyone');

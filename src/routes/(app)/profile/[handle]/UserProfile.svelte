@@ -1,11 +1,20 @@
 <script lang="ts">
+    import Database from '@lucide/svelte/icons/database';
   import {_} from 'svelte-i18n';
   import {agent, settings} from '$lib/stores';
   import {page} from '$app/stores';
   import {formatDate} from '$lib/dateFormat';
   import { fade } from 'svelte/transition';
   import {RichText} from '$lib/atproto-richtext';
-  import {BadgeCheck, CircleCheck, Eye, EyeOff, Handshake, Radio, Globe, Calendar, Tag} from 'lucide-svelte';
+  import BadgeCheck from '@lucide/svelte/icons/badge-check';
+  import CircleCheck from '@lucide/svelte/icons/circle-check';
+  import Eye from '@lucide/svelte/icons/eye';
+  import EyeOff from '@lucide/svelte/icons/eye-off';
+  import Handshake from '@lucide/svelte/icons/handshake';
+  import Radio from '@lucide/svelte/icons/radio';
+  import Globe from '@lucide/svelte/icons/globe';
+  import Calendar from '@lucide/svelte/icons/calendar';
+  import Tag from '@lucide/svelte/icons/tag';
   import SocialProof from "$lib/components/profile/SocialProof.svelte";
   import ProfileAtmosphere from "$lib/components/profile/ProfileAtmosphere.svelte";
   import emblaCarouselSvelte from 'embla-carousel-svelte';
@@ -172,7 +181,7 @@
 
                   {#if ($settings?.general.devMode)}
                     {#if (serviceHost)}
-                      <p class="profile-handle profile-handle--service"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>{serviceHost}</p>
+                      <p class="profile-handle profile-handle--service"><Database size={16} color="var(--text-color-3)" />{serviceHost}</p>
                     {/if}
                   {/if}
                 </div>

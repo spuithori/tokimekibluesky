@@ -1,6 +1,11 @@
 <script lang="ts">
     import { getContext } from "svelte";
-    import { Pause, Play, RotateCcw, Volume1, Volume2, VolumeX } from "lucide-svelte";
+    import Pause from '@lucide/svelte/icons/pause';
+    import Play from '@lucide/svelte/icons/play';
+    import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+    import Volume1 from '@lucide/svelte/icons/volume-1';
+    import Volume2 from '@lucide/svelte/icons/volume-2';
+    import VolumeX from '@lucide/svelte/icons/volume-x';
 
     const player: any = getContext('player');
 

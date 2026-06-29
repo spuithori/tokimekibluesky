@@ -2,7 +2,7 @@
   import {settings} from '$lib/stores';
   import EmbedVideo from "$lib/components/post/EmbedVideo.svelte";
   import VideoTimelineNav from "$lib/components/post/VideoTimelineNav.svelte";
-  import {X} from "lucide-svelte";
+  import X from '@lucide/svelte/icons/x';
   import {contentLabelling, detectHide, detectWarn} from "$lib/timelineFilter";
   import {appState} from "$lib/classes/appState.svelte";
 

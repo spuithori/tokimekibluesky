@@ -7,7 +7,9 @@
     import {getViewImages, hasGalleryImages} from "$lib/components/post/embedImages";
     import MediaTimelineSlider from "$lib/components/media/MediaTimelineSlider.svelte";
     import {modalState} from "$lib/classes/modalState.svelte";
-    import {ChevronLeft, ChevronRight, X} from "lucide-svelte";
+    import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
+    import X from '@lucide/svelte/icons/x';
     import {contentLabelling, detectWarn} from "$lib/timelineFilter";
     import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
     import {appState} from "$lib/classes/appState.svelte";

@@ -1,6 +1,7 @@
 <script lang="ts">
   import {_, locale} from 'svelte-i18n';
-  import {BellMinus, BellPlus} from "lucide-svelte";
+  import BellMinus from '@lucide/svelte/icons/bell-minus';
+  import BellPlus from '@lucide/svelte/icons/bell-plus';
   import {toast} from "svelte-sonner";
   import { agent } from "$lib/stores";
   import { refreshPushListActivity } from "$lib/pushSubscription";

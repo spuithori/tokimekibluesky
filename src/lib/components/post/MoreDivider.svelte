@@ -1,5 +1,6 @@
 <script lang="ts">
-  import {ArrowUpFromDot, MoreHorizontal} from "lucide-svelte";
+  import ArrowUpFromDot from '@lucide/svelte/icons/arrow-up-from-dot';
+  import MoreHorizontal from '@lucide/svelte/icons/more-horizontal';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
   let { onDividerClick, onDividerUp } = $props();

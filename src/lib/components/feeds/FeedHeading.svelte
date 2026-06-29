@@ -2,7 +2,10 @@
   import { _ } from 'svelte-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
-  import {EllipsisVertical, ExternalLink, Flag, Quote} from "lucide-svelte";
+  import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
+  import ExternalLink from '@lucide/svelte/icons/external-link';
+  import Flag from '@lucide/svelte/icons/flag';
+  import Quote from '@lucide/svelte/icons/quote';
   import {reportModal} from "$lib/stores";
   import {onMount} from "svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
