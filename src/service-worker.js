@@ -7,6 +7,7 @@ const ASSETS = [
     // ...build,
     ...files,
 ];
+const ASSET_SET = new Set(ASSETS);
 
 self.addEventListener('install', (event) => {
     async function addFilesToCache() {
@@ -17,40 +18,50 @@ self.addEventListener('install', (event) => {
     event.waitUntil(addFilesToCache());
 });
 
-self.addEventListener('activate', (event) => {
-    async function deleteOldCaches() {
-        for (const key of await caches.keys()) {
-            if (key !== CACHE) await caches.delete(key);
-        }
+self.addEventListener('message', (event) => {
+    if (event.data?.type === 'SKIP_WAITING') {
+        self.skipWaiting();
     }
+});
 
-    event.waitUntil(deleteOldCaches());
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        (async () => {
+            for (const key of await caches.keys()) {
+                if (key !== CACHE) await caches.delete(key);
+            }
+            await self.clients.claim();
+        })()
+    );
 });
 
 self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') {
+    const req = event.request;
+
+    if (req.method !== 'GET') {
         return;
     }
 
-    if (!(event.request.url.indexOf('http') === 0)) {
+    if (!req.url.startsWith('http')) {
         return;
     }
 
-    const url = new URL(event.request.url);
-    if (!ASSETS.includes(url.pathname)) {
+    const url = new URL(req.url);
+    if (url.origin !== self.location.origin) {
+        return;
+    }
+
+    if (!ASSET_SET.has(url.pathname)) {
         return;
     }
 
     async function respond() {
         try {
             const cache = await caches.open(CACHE);
-            const response = await cache.match(url.pathname);
-
-            if (response) {
-                return response || fetch(event.request);
-            }
+            const cached = await cache.match(url.pathname);
+            return cached ?? (await fetch(req));
         } catch (e) {
-            return fetch(event.request);
+            return fetch(req);
         }
     }
 

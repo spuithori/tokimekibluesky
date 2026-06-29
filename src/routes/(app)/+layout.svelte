@@ -38,6 +38,7 @@
     import { on } from "svelte/events";
     import { sideState } from "$lib/classes/sideState.svelte";
     import TokBackground from "$lib/components/utils/TokBackground.svelte";
+    import UpdateBanner from "$lib/components/utils/UpdateBanner.svelte";
     import { setPostState } from "$lib/classes/postState.svelte";
     import { imageState } from "$lib/classes/imageState.svelte";
     import { comicReaderState } from "$lib/classes/comicReaderState.svelte";
@@ -409,6 +410,7 @@
     <ReportObserver></ReportObserver>
     <ProfileStatusObserver></ProfileStatusObserver>
     <LinkWarningModal></LinkWarningModal>
+    <UpdateBanner></UpdateBanner>
 
     {#if sideState.isTokStart}
         <TokBackground></TokBackground>
