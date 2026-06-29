@@ -1,5 +1,6 @@
 import type {Column} from "$lib/types/column";
 import {getContext, setContext} from "svelte";
+import {SvelteMap} from "svelte/reactivity";
 import {accountsDb} from "$lib/db";
 import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 import {AppBskyFeedDefs} from "$lib/atproto-guards";
@@ -9,11 +10,11 @@ import {appState} from "$lib/classes/appState.svelte";
 export class ColumnState {
     columns = $state<Column[]>([]);
     isReordering = $state(false);
-    private _feeds = $state.raw<Record<string, any[]>>({});
+    private _feeds = new SvelteMap<string, any[]>();
     private _feedStatus = $state.raw<Record<string, string>>({});
 
     getFeed(columnId: string): any[] {
-        return this._feeds[columnId] ?? [];
+        return this._feeds.get(columnId) ?? [];
     }
 
     getFeedStatus(columnId: string): string | undefined {
@@ -30,35 +31,34 @@ export class ColumnState {
     }
 
     setFeed(columnId: string, feed: any[]): void {
-        this._feeds = { ...this._feeds, [columnId]: feed };
+        this._feeds.set(columnId, feed);
         if (this._feedStatus[columnId]) this.clearFeedStatus(columnId);
     }
 
     updateFeed(columnId: string, fn: (feed: any[]) => void): void {
-        const feed = (this._feeds[columnId] ?? []).slice();
+        const feed = (this._feeds.get(columnId) ?? []).slice();
         fn(feed);
-        this._feeds = { ...this._feeds, [columnId]: feed };
+        this._feeds.set(columnId, feed);
     }
 
     replaceFeed(columnId: string, fn: (feed: any[]) => any[]): void {
-        const feed = this._feeds[columnId] ?? [];
-        this._feeds = { ...this._feeds, [columnId]: fn(feed) };
+        const feed = this._feeds.get(columnId) ?? [];
+        this._feeds.set(columnId, fn(feed));
     }
 
     clearFeed(columnId: string): void {
-        this._feeds = { ...this._feeds, [columnId]: [] };
+        this._feeds.set(columnId, []);
         if (this._feedStatus[columnId]) this.clearFeedStatus(columnId);
     }
 
     deleteFeed(columnId: string): void {
-        const { [columnId]: _, ...rest } = this._feeds;
-        this._feeds = rest;
+        this._feeds.delete(columnId);
     }
 
     syncColumns = $derived(this.columns.map(({ scrollElement, data, splitColumn, ...rest }) => ({
         ...rest,
         data: {
-            feed: !settingsState?.settings?.markedUnread ? [] : data?.notifications ? [] : this._feeds[rest.id] ?? [],
+            feed: !settingsState?.settings?.markedUnread ? [] : data?.notifications ? [] : this._feeds.get(rest.id) ?? [],
             cursor: !settingsState?.settings?.markedUnread ? '' : data?.notifications ? '' : data?.cursor || '',
         },
         ...(splitColumn ? {
@@ -68,7 +68,7 @@ export class ColumnState {
                     return {
                         ...splitRest,
                         data: {
-                            feed: !settingsState?.settings?.markedUnread ? [] : splitData?.notifications ? [] : this._feeds[splitRest.id] ?? [],
+                            feed: !settingsState?.settings?.markedUnread ? [] : splitData?.notifications ? [] : this._feeds.get(splitRest.id) ?? [],
                             cursor: !settingsState?.settings?.markedUnread ? '' : splitData?.notifications ? '' : splitData?.cursor || '',
                         }
                     };
@@ -107,7 +107,9 @@ export class ColumnState {
                       }
                   }
               }
-              this._feeds = feedEntries;
+              for (const [id, feed] of Object.entries(feedEntries)) {
+                  this._feeds.set(id, feed);
+              }
               this.columns = cols;
               this.isColumnsLoaded = true;
         });
@@ -123,7 +125,7 @@ export class ColumnState {
 
     add(column: Column) {
         if (column.data?.feed?.length > 0 && column.id) {
-            this._feeds = { ...this._feeds, [column.id]: column.data.feed };
+            this._feeds.set(column.id, column.data.feed);
             column.data.feed = [];
         }
         this.columns.push(column)
@@ -137,7 +139,7 @@ export class ColumnState {
 
     removeAll() {
         this.columns.length = 0;
-        this._feeds = {};
+        this._feeds.clear();
         this._feedStatus = {};
     }
 
@@ -303,7 +305,7 @@ export class ColumnState {
                 return found ? patched : item;
             });
             if (mutated) {
-                this._feeds = { ...this._feeds, [column.id]: newFeed };
+                this._feeds.set(column.id, newFeed);
             }
         }
     }
@@ -408,7 +410,7 @@ export class ColumnState {
                 return found ? patched : item;
             });
             if (mutated) {
-                this._feeds = { ...this._feeds, [column.id]: newFeed };
+                this._feeds.set(column.id, newFeed);
             }
         }
     }
