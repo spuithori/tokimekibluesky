@@ -39,12 +39,11 @@ export class SvelteMapFeeds {
     }
 }
 
-/**
- * Measures how many times each column's tracked reader re-runs when ONLY the
- * first column's feed is updated K times. `self` = target column reruns,
- * `cross` = sum of reruns of all OTHER columns (the over-invalidation cost).
- */
-export function measureIsolation(adapter: FeedAdapter, keys: string[], K: number): { self: number; cross: number } {
+export function measureIsolation(
+    adapter: FeedAdapter,
+    keys: string[],
+    K: number,
+): { self: number; cross: number } {
     const counts = new Map<string, number>(keys.map((k) => [k, 0]));
 
     for (const k of keys) adapter.setFeed(k, [{ seed: true }]);
@@ -83,7 +82,11 @@ export function createRealColumnState(): { cs: any; cleanup: () => void } {
     return { cs, cleanup };
 }
 
-export function measureRealIsolation(cs: any, keys: string[], K: number): { self: number; cross: number } {
+export function measureRealIsolation(
+    cs: any,
+    keys: string[],
+    K: number,
+): { self: number; cross: number } {
     return measureIsolation(
         {
             getFeed: (id) => cs.getFeed(id),
