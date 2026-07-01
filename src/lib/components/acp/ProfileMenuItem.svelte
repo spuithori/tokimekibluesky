@@ -1,6 +1,7 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {loadDeckState} from "$lib/classes/deckLayout";
     import {appState} from "$lib/classes/appState.svelte";
 
     const columnState = getColumnState();
@@ -21,7 +22,9 @@
         isDisabled = true;
 
         appState.changeProfile(profile.id);
-        columnState.columns = profile.columns;
+        const deck = loadDeckState({ version: profile.deckVersion, columns: profile.columns, slots: profile.slots }, () => self.crypto.randomUUID());
+        columnState.columns = deck.columns;
+        columnState.slots = deck.slots;
     }
 </script>
 

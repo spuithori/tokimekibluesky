@@ -18,7 +18,7 @@
     let { index, _agent = $agent, onrefresh, unique, isJunk, isSplit = false, column: columnProp = undefined } = $props();
 
     const columnState = getColumnState(isJunk);
-    const column = columnProp ?? columnState.getColumn(index);
+    const column = $derived(columnProp ?? columnState.getColumn(index));
 
     let currentView: 'list' | 'detail' | 'requests' = $state('list');
     const requestCount = $derived(chatState.getRequestCount((_agent || $agent)?.did?.()));

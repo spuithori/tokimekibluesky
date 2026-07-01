@@ -4,18 +4,22 @@
     import {iconMap} from "$lib/columnIcons";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import Sortable from "$lib/components/utils/Sortable.svelte";
+    import {flattenLeafIds} from "$lib/classes/deckLayout";
     const columnState = getColumnState();
 
     let { items, onviewcolumn = () => {} } = $props();
 
     function columnRemove(column) {
-        columnState.columns = columnState.columns.filter(_column => _column !== column);
-        items = columnState.columns;
+        columnState.remove(column.id);
+        items = items.filter(_column => _column !== column);
     }
 
     function handleSort(orderedItems) {
         items = orderedItems;
-        columnState.columns = items;
+        const order = orderedItems.map((c: any) => c.id);
+        columnState.slots = [...columnState.slots].sort((a, b) =>
+            order.indexOf(flattenLeafIds(a.layout)[0]) - order.indexOf(flattenLeafIds(b.layout)[0])
+        );
     }
 </script>
 

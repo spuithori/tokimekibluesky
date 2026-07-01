@@ -12,8 +12,10 @@
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {animateLayout} from "$lib/animations/flip";
     import Search from '@lucide/svelte/icons/search';
     import SplitSquareVertical from '@lucide/svelte/icons/split-square-vertical';
+    import SplitSquareHorizontal from '@lucide/svelte/icons/split-square-horizontal';
     import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
     import Unlink from '@lucide/svelte/icons/unlink';
     import { fly } from 'svelte/transition';
@@ -41,6 +43,7 @@
 
     const columnState = getColumnState();
     let column = columnProp ?? columnState.getColumn(index);
+    let slotIndex = columnState.slotIndexOf(column.id);
 
     const defaultSettings = {
         timeline: {
@@ -254,14 +257,14 @@
 
     function deleteColumn() {
         if (isSplit) {
-            columnState.unsplitColumnAt(index, false);
+            animateLayout(() => columnState.unsplitColumnAt(column.id, false), {exiting: [column.id]});
             onclose(true);
             return;
         }
-        if ($currentTimeline === index) {
+        if ($currentTimeline === slotIndex) {
             currentTimeline.set(0);
         }
-        columnState.remove(column.id);
+        animateLayout(() => columnState.remove(column.id), {exiting: [column.id]});
     }
 
     function clearColumn() {
@@ -308,12 +311,12 @@
     let isSplitModalOpen = $state(false);
     let isUnsplitConfirmOpen = $state(false);
     let splitModalTab = $state<'new' | 'existing'>('new');
+    let splitDirection = $state<'row' | 'column'>('column');
 
     let existingColumnsForSplit = $derived(
-        columnState.columns.filter((col, i) =>
-            i !== index &&
-            !col.splitColumn &&
-            col.id !== column.id
+        columnState.columns.filter(col =>
+            col.id !== column.id &&
+            !columnState.isInSplit(col.id)
         )
     );
 
@@ -329,38 +332,24 @@
     function handleSplitColumnAdd(event: CustomEvent) {
         const newColumn = event.detail.column;
         newColumn.id = self.crypto.randomUUID();
-        columnState.splitColumnAt(index, newColumn);
+        animateLayout(() => columnState.splitColumnAt(column.id, newColumn, splitDirection));
         isSplitModalOpen = false;
         onclose(true);
     }
 
     function handleSplitExistingColumn(existingColumnId: string) {
-        const existingColumnIndex = columnState.columns.findIndex(c => c.id === existingColumnId);
-        const existingColumn = columnState.columns[existingColumnIndex];
-        if (!existingColumn) return;
-
-        const splitColumn = {
-            ...existingColumn,
-            id: existingColumn.id,
-            scrollElement: undefined,
-        };
-
-        columnState.remove(existingColumn.id);
-
-        const adjustedIndex = existingColumnIndex < index ? index - 1 : index;
-
-        columnState.splitColumnAt(adjustedIndex, splitColumn);
+        animateLayout(() => columnState.mergeColumnIntoSplit(column.id, existingColumnId, splitDirection));
         isSplitModalOpen = false;
         onclose(true);
     }
 
     function handleSwapSplit() {
-        columnState.swapSplitColumn(index);
+        animateLayout(() => columnState.swapSplitColumn(column.id));
         onclose(true);
     }
 
     function handleUnsplit(keepAsSeparate: boolean) {
-        columnState.unsplitColumnAt(index, keepAsSeparate);
+        animateLayout(() => columnState.unsplitColumnAt(column.id, keepAsSeparate), keepAsSeparate ? {} : {exiting: [column.id]});
         isUnsplitConfirmOpen = false;
         onclose(true);
     }
@@ -437,7 +426,7 @@
                     </dl>
                 {/if}
 
-                {#if (!column.settings?.isPopup && (!isSplit || column.splitColumn))}
+                {#if (!column.settings?.isPopup && (!isSplit || columnState.isInSplit(column.id)))}
                     <dl class="settings-group only-pc">
                         <dt class="settings-group__name">
                             {$_('column_width')}
@@ -740,16 +729,15 @@
                 {/if}
 
                 {#if ($settings.design?.layout === 'decks' && !column.settings?.isPopup)}
-                    {#if column.splitColumn}
+                    <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={openSplitModal}>
+                        <SplitSquareVertical size="20" color="var(--primary-color)"></SplitSquareVertical>{$_('split_column')}
+                    </button>
+                    {#if columnState.isInSplit(column.id)}
                         <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={handleSwapSplit}>
                             <ArrowUpDown size="20" color="var(--primary-color)"></ArrowUpDown>{$_('swap_split')}
                         </button>
                         <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={() => {isUnsplitConfirmOpen = true}}>
                             <Unlink size="20" color="var(--primary-color)"></Unlink>{$_('unsplit_column')}
-                        </button>
-                    {:else if !isSplit}
-                        <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={openSplitModal}>
-                            <SplitSquareVertical size="20" color="var(--primary-color)"></SplitSquareVertical>{$_('split_column')}
                         </button>
                     {/if}
                 {/if}
@@ -786,6 +774,27 @@
                     onclick={() => {splitModalTab = 'existing'}}
                 >
                     {$_('split_use_existing')}
+                </button>
+            </div>
+
+            <div class="split-modal__direction">
+                <button
+                    class="split-modal__dir"
+                    class:split-modal__dir--active={splitDirection === 'column'}
+                    onclick={() => {splitDirection = 'column'}}
+                    aria-label="Split top / bottom"
+                    title="Split top / bottom"
+                >
+                    <SplitSquareHorizontal size="18" color="var(--text-color-1)"></SplitSquareHorizontal>
+                </button>
+                <button
+                    class="split-modal__dir"
+                    class:split-modal__dir--active={splitDirection === 'row'}
+                    onclick={() => {splitDirection = 'row'}}
+                    aria-label="Split left / right"
+                    title="Split left / right"
+                >
+                    <SplitSquareVertical size="18" color="var(--text-color-1)"></SplitSquareVertical>
                 </button>
             </div>
 
@@ -1069,6 +1078,32 @@
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
+            }
+        }
+
+        &__direction {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 8px;
+        }
+
+        &__dir {
+            flex: 1;
+            display: grid;
+            place-content: center;
+            height: 36px;
+            border-radius: var(--border-radius-2);
+            border: 1px solid var(--border-color-1);
+            background-color: var(--bg-color-1);
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+
+            &--active {
+                border-color: var(--primary-color);
+                background-color: var(--bg-color-2);
+            }
+
+            &:hover {
+                background-color: var(--bg-color-2);
             }
         }
 

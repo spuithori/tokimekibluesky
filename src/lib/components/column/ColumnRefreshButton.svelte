@@ -31,7 +31,7 @@
     }: Props = $props();
 
     const columnState = getColumnState(isJunk);
-    let column = columnProp ?? columnState.getColumn(index);
+    const column = $derived(columnProp ?? columnState.getColumn(index));
 
     function getScrollElement(): HTMLElement {
         if ($settings.design?.layout !== 'decks') {

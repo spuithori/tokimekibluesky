@@ -1,5 +1,5 @@
 <script lang="ts">
-  import DeckRow from "./DeckRow.svelte";
+  import DeckSlot from "./DeckSlot.svelte";
   import { draggable, type DragEventData } from "$lib/attachments/draggable.svelte";
 
   interface Props {
@@ -39,7 +39,7 @@
 >
   <div class="deck-popup-handle"></div>
 
-  <DeckRow {index}></DeckRow>
+  <DeckSlot {index}></DeckSlot>
 </div>
 
 <style lang="postcss">

@@ -19,7 +19,7 @@
     let mobileV2Clear = false;
     let els = $state([]);
 
-    if (!columnState.columns[$currentTimeline]) {
+    if (!columnState.slots[$currentTimeline]) {
         currentTimeline.set(0);
     }
 
@@ -46,11 +46,11 @@
         const activeElement = document.activeElement?.tagName;
         const isInactive = (activeElement === 'BODY' || activeElement === 'BUTTON' || document.activeElement?.classList.contains('deck-row'));
 
-        columnState.columns.forEach((column, index) => {
+        columnState.slots.forEach((slot, index) => {
             const i = index + 1;
 
             if (event.key === String(i) && isInactive) {
-                handleColumnClick(column, index)
+                handleColumnClick(columnState.getSlotColumn(index), index)
             }
         })
     }
@@ -103,24 +103,25 @@
         <Plus color="var(--bar-primary-icon-color)"></Plus>
       </button>
 
-      {#each columnState.columns as column, index (column.id)}
+      {#each columnState.slots as slot, index (slot.id)}
+        {@const column = columnState.getSlotColumn(index)}
         <button
             class="side-bar-button"
-            class:side-bar-button--current={$settings.design.layout !== 'decks' && column.id === columnState.columns[$currentTimeline].id}
+            class:side-bar-button--current={$settings.design.layout !== 'decks' && index === $currentTimeline}
             class:side-bar-button--intersecting={$intersectingIndex === index && $settings.design.layout === 'decks'}
             onclick={() => {handleColumnClick(column, index)}}
-            aria-label={column.algorithm?.name}
-            title={column.algorithm?.name}
+            aria-label={column?.algorithm?.name}
+            title={column?.algorithm?.name}
             bind:this={els[index]}
         >
-          {#if column.settings?.icon}
+          {#if column?.settings?.icon}
             {@const SvelteComponent = iconMap.get(column.settings.icon)}
             <SvelteComponent color="var(--bar-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></SvelteComponent>
           {:else}
-            <ColumnIcon type={column.algorithm.type} color="var(--bar-secondary-icon-color)"></ColumnIcon>
+            <ColumnIcon type={column?.algorithm?.type} color="var(--bar-secondary-icon-color)"></ColumnIcon>
           {/if}
 
-          {#if (column.unreadCount)}
+          {#if (column?.unreadCount)}
             <span class="side-bar-button__count">
               {column?.settings?.hideCounts ? '' : column.unreadCount}
             </span>

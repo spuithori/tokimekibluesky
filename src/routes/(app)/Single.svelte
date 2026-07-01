@@ -1,7 +1,7 @@
 <script lang="ts">
     import {agent, currentTimeline} from '$lib/stores';
     import {page} from '$app/stores';
-    import DeckRow from "./DeckRow.svelte";
+    import DeckSlot from "./DeckSlot.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
@@ -11,7 +11,7 @@
 
     const columnState = getColumnState();
 
-    if (!columnState.columns.length) {
+    if (!columnState.slots.length) {
         columnState.add({
             id: self.crypto.randomUUID(),
             algorithm: {
@@ -30,7 +30,7 @@
         })
     }
 
-    if (!columnState.columns[$currentTimeline]) {
+    if (!columnState.slots[$currentTimeline]) {
         currentTimeline.set(0);
     }
 
@@ -79,8 +79,8 @@
 <div class="single-wrap" class:single-wrap--page={$page.url.pathname !== '/'} class:single-wrap--bottom={publishState.isBottom}>
   <div class="single-timeline-wrap">
     {#key $currentTimeline}
-      {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
-        <DeckRow index={$currentTimeline}></DeckRow>
+      {#if (columnState.slots.length && columnState.slots[$currentTimeline])}
+        <DeckSlot index={$currentTimeline}></DeckSlot>
       {/if}
     {/key}
   </div>

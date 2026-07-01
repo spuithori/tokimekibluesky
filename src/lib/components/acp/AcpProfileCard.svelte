@@ -11,6 +11,7 @@
   import {modifyAgents} from "$lib/modifyAgents";
   import AcpProfileNameModal from "$lib/components/acp/AcpProfileNameModal.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {loadDeckState} from "$lib/classes/deckLayout";
   import AcpAppViewProxyModal from "$lib/components/acp/AcpAppViewProxyModal.svelte";
   import Waypoints from '@lucide/svelte/icons/waypoints';
   import {appState} from "$lib/classes/appState.svelte";
@@ -51,7 +52,9 @@
   async function changeProfile() {
       currentTimeline.set(0);
       appState.changeProfile(profile.id);
-      columnState.columns = profile.columns;
+      const deck = loadDeckState({ version: profile.deckVersion, columns: profile.columns, slots: profile.slots }, () => self.crypto.randomUUID());
+      columnState.columns = deck.columns;
+      columnState.slots = deck.slots;
   }
 
   async function deleteProfile(id) {

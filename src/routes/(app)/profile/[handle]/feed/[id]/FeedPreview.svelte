@@ -1,7 +1,7 @@
 <script lang="ts">
   import {onMount} from "svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import DeckRow from "../../../../DeckRow.svelte";
+  import DeckSlot from "../../../../DeckSlot.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
 
   let { id, did, title, _agent, contentMode } = $props();
@@ -32,5 +32,5 @@
 </script>
 
 {#if (columnState.hasColumn(columnId))}
-  <DeckRow index={columnState.getColumnIndex(columnId)} isJunk={true} name={title} {_agent}></DeckRow>
+  <DeckSlot index={columnState.getColumnIndex(columnId)} isJunk={true} name={title} {_agent}></DeckSlot>
 {/if}

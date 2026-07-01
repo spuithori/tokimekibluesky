@@ -25,7 +25,7 @@
     let firstLoad = true;
 
     const columnState = getColumnState(isJunk);
-    const column = columnProp ?? columnState.getColumn(index);
+    const column = $derived(columnProp ?? columnState.getColumn(index));
 
     let convo = $state.raw<any>(undefined);
     let memberMap = $state.raw<Record<string, any>>({});

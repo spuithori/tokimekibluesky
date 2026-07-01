@@ -7,7 +7,7 @@
   import {toast} from "svelte-sonner";
   import {TID} from "$lib/atproto-tid";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import DeckRow from "../../../../DeckRow.svelte";
+  import DeckSlot from "../../../../DeckSlot.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import StarterPackMenu from "$lib/components/starterpack/StarterPackMenu.svelte";
   import StarterPackObserver from "$lib/components/starterpack/StarterPackObserver.svelte";
@@ -322,7 +322,7 @@
 {/if}
 
 {#if activeTab === 'posts' && columnState.hasColumn(columnId)}
-  <DeckRow index={columnState.getColumnIndex(columnId)} isJunk={true} name={title}></DeckRow>
+  <DeckSlot index={columnState.getColumnIndex(columnId)} isJunk={true} name={title}></DeckSlot>
 {/if}
 
 <StarterPackObserver onclose={handleObserverClose}></StarterPackObserver>

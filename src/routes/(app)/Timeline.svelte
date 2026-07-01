@@ -19,7 +19,7 @@
   let virtualTimelineRef: ReturnType<typeof VirtualTimeline> | undefined = $state();
 
   const columnState = getColumnState(isJunk);
-  const column = columnProp ?? columnState.getColumn(index);
+  const column = $derived(columnProp ?? columnState.getColumn(index));
   let isActorsListFinished = false;
   let actors = [];
   let realtimeCounter = 0;

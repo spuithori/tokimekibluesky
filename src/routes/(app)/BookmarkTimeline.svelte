@@ -8,7 +8,7 @@
   let { index, _agent, isJunk, unique, isSplit = false, column: columnProp = undefined } = $props();
 
   const columnState = getColumnState(isJunk);
-  const column = columnProp ?? columnState.getColumn(index);
+  const column = $derived(columnProp ?? columnState.getColumn(index));
   let feeds;
 
   if (typeof column.data.cursor !== 'number') {

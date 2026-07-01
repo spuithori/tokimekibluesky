@@ -2,7 +2,7 @@
     import {agent} from "$lib/stores";
     import {onMount} from "svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-    import DeckRow from "../../../../DeckRow.svelte";
+    import DeckSlot from "../../../../DeckSlot.svelte";
     import {getDidByHandle, isDid} from "$lib/util";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
@@ -44,6 +44,6 @@
 
 {#if (columnState.hasColumn(columnId))}
   {#key _agent}
-    <DeckRow index={columnState.getColumnIndex(columnId)} isJunk={true} name={title} {_agent}></DeckRow>
+    <DeckSlot index={columnState.getColumnIndex(columnId)} isJunk={true} name={title} {_agent}></DeckSlot>
   {/key}
 {/if}

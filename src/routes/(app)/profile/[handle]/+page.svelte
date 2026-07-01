@@ -1,7 +1,7 @@
 <script lang="ts">
   import type {LayoutData} from './$types';
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import DeckRow from "../../DeckRow.svelte";
+  import DeckSlot from "../../DeckSlot.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {getAgentContext} from "./state.svelte";
 
@@ -49,5 +49,5 @@
 </svelte:head>
 
 {#if (columnState.hasColumn('profile_' + data.params.handle))}
-  <DeckRow index={columnState.getColumnIndex('profile_' + data.params.handle)} isJunk={true} _agent={agentContext.agent}></DeckRow>
+  <DeckSlot index={columnState.getColumnIndex('profile_' + data.params.handle)} isJunk={true} _agent={agentContext.agent}></DeckSlot>
 {/if}

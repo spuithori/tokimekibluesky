@@ -1,5 +1,7 @@
 export type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed',
+    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'realtime' | 'thread',
+    id?: string,
+    sort?: string,
     algorithm?: string,
     name?: string,
     list?: object,
@@ -50,9 +52,10 @@ export type Column = {
     settings: deckSettings,
     data: {
         feed?: any[],
-        cursor: string | number,
+        cursor: string | number | any[] | undefined,
+        feedPool?: any[],
+        notifications?: any[],
+        scrollState?: any,
     },
-    scrollElement?: HTMLDivElement,
-    splitColumn?: Column,
-    splitRatio?: number,
+    scrollElement?: HTMLDivElement | null,
 }

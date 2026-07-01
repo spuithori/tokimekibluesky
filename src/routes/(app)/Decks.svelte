@@ -1,24 +1,30 @@
 <script lang="ts">
     import Ghost from '@lucide/svelte/icons/ghost';
     import {isColumnModalOpen} from '$lib/stores';
-    import DeckRow from "./DeckRow.svelte";
+    import DeckSlot from "./DeckSlot.svelte";
     import {_} from "svelte-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
+    import TilingDragOverlay from "$lib/components/deck/TilingDragOverlay.svelte";
+    import TilingDragGhost from "$lib/components/deck/TilingDragGhost.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
     const columnState = getColumnState();
 </script>
 
+<TilingDragOverlay></TilingDragOverlay>
+<TilingDragGhost></TilingDragGhost>
+
 <div class="deck-wrap">
   <div class="deck-divider" class:deck-divider--compact={publishState.isBottom}></div>
 
-  {#if columnState.columns.length}
+  {#if columnState.slots.length}
     <div class="deck">
-      {#each columnState.columns as column, index (column.id)}
-        {#if !column?.settings?.isPopup}
-          <DeckRow {index}></DeckRow>
+      {#each columnState.slots as slot, index (slot.id)}
+        {@const col = columnState.getSlotColumn(index)}
+        {#if !col?.settings?.isPopup}
+          <DeckSlot {index}></DeckSlot>
         {:else}
-          <DeckPopupWrap {column} {index}></DeckPopupWrap>
+          <DeckPopupWrap column={col} {index}></DeckPopupWrap>
         {/if}
       {/each}
     </div>

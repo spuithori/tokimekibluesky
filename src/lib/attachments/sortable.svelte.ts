@@ -1,6 +1,25 @@
 import { flushSync } from 'svelte';
 import type { Attachment } from 'svelte/attachments';
 
+type Rect = { x: number; y: number; w: number; h: number };
+
+export interface TileTarget {
+	kind: 'split';
+	id: string;
+	zone: 'top' | 'bottom' | 'left' | 'right';
+	rect: Rect;
+}
+
+export interface ExtractTarget {
+	kind: 'extract';
+	beforeId: string | null;
+	lineX: number;
+	top: number;
+	height: number;
+}
+
+export type DropPreview = TileTarget | ExtractTarget;
+
 export interface SortableOptions {
 	axis: 'x' | 'y';
 	participantSelector: string;
@@ -10,12 +29,72 @@ export interface SortableOptions {
 	flipDuration?: number;
 	flipEasing?: string;
 	draggingClass?: string;
-	onDragStart?: () => void;
+	onDragStart?: (dragId: string | null) => void;
 	onDragEnd?: () => void;
+	tileSelector?: string;
+	reorderBand?: number;
+	onTilePreview?: (preview: DropPreview | null) => void;
+	onTile?: (sourceId: string, target: TileTarget) => void;
+	onExtract?: (sourceId: string, target?: ExtractTarget) => void;
+	onDragMove?: (clientX: number, clientY: number) => void;
 }
 
 const DEFAULT_DURATION = 220;
 const DEFAULT_EASING = 'cubic-bezier(0.2, 0, 0, 1)';
+const ZONE_DEADBAND = 10;
+const EDGE_PX = 12;
+
+export type ZoneResult = { kind: 'split'; zone: 'top' | 'bottom' } | null;
+
+export function dropZoneAt(
+	height: number,
+	localY: number,
+	reorderBand = 0.25,
+	current: ZoneResult = null,
+	deadband = 0,
+): ZoneResult {
+	const band = Math.min(Math.max(height * reorderBand, 64), 220);
+	const bodyMid = band + (height - band) / 2;
+
+	const bandThresh = current ? band - deadband : band + deadband;
+	if (localY < bandThresh) return null;
+
+	const midThresh =
+		current?.zone === 'top'
+			? bodyMid + deadband
+			: current?.zone === 'bottom'
+				? bodyMid - deadband
+				: bodyMid;
+	return { kind: 'split', zone: localY < midThresh ? 'top' : 'bottom' };
+}
+
+export function insertionIndexAt(cols: { left: number; right: number }[], x: number): number {
+	return cols.filter((r) => (r.left + r.right) / 2 < x).length;
+}
+
+export type GestureResult =
+	| { kind: 'split'; zone: 'top' | 'bottom' }
+	| { kind: 'extract'; side: 'left' | 'right' }
+	| null;
+
+export function tileGesture(
+	width: number,
+	height: number,
+	localX: number,
+	localY: number,
+	isOwnColumn: boolean,
+	opts: { edge?: number; deadband?: number; current?: 'top' | 'bottom' | null } = {},
+): GestureResult {
+	const edge = opts.edge ?? EDGE_PX;
+	if (localX <= edge) return { kind: 'extract', side: 'left' };
+	if (localX >= width - edge) return { kind: 'extract', side: 'right' };
+	if (isOwnColumn) return null;
+
+	const deadband = opts.deadband ?? 0;
+	const mid = height / 2;
+	const midThresh = opts.current === 'top' ? mid + deadband : opts.current === 'bottom' ? mid - deadband : mid;
+	return { kind: 'split', zone: localY < midThresh ? 'top' : 'bottom' };
+}
 
 export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElement> {
 	return (node: HTMLElement) => {
@@ -30,7 +109,97 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 		let off = 0;
 		let current = 0;
 		let pointerPos = 0;
+		let clientX = 0;
+		let clientY = 0;
 		let rafId = 0;
+
+		let dragId: string | null = null;
+		let reorderBand = 0.25;
+		let leafMode = false;
+		let dropTarget: DropPreview | null = null;
+
+		function setDrop(t: DropPreview | null) {
+			const changed =
+				t?.kind !== dropTarget?.kind ||
+				(t?.kind === 'split' &&
+					(t.id !== (dropTarget as TileTarget)?.id || t.zone !== (dropTarget as TileTarget)?.zone)) ||
+				(t?.kind === 'extract' && t.beforeId !== (dropTarget as ExtractTarget)?.beforeId);
+			dropTarget = t;
+			if (changed) opts.onTilePreview?.(t);
+		}
+
+		function detectTile() {
+			if (!opts.tileSelector || !dragId) return setDrop(null);
+			const hit = document.elementFromPoint(clientX, clientY);
+			const el = hit?.closest(opts.tileSelector) as HTMLElement | null;
+			const id = el?.dataset.tileId;
+
+			if (leafMode) {
+				if (el && id) {
+					const wrapper = (el.closest(opts.participantSelector) as HTMLElement | null) ?? el;
+					const wr = wrapper.getBoundingClientRect();
+					const pr = el.getBoundingClientRect();
+					const cur =
+						dropTarget?.kind === 'split' && dropTarget.id === id ? (dropTarget.zone as 'top' | 'bottom') : null;
+					const g = tileGesture(wr.width, pr.height, clientX - wr.left, clientY - pr.top, wrapper === node, {
+						deadband: ZONE_DEADBAND,
+						current: cur,
+					});
+					if (g?.kind === 'split') {
+						setDrop({ kind: 'split', id, zone: g.zone, rect: { x: pr.left, y: pr.top, w: pr.width, h: pr.height } });
+						return;
+					}
+					if (g?.kind === 'extract') {
+						const cols = getParticipants();
+						const idx = cols.indexOf(wrapper);
+						let beforeId: string | null;
+						let lineX: number;
+						if (g.side === 'left') {
+							beforeId = firstTileIdOf(wrapper);
+							lineX = wr.left;
+						} else {
+							const next = cols[idx + 1] as HTMLElement | undefined;
+							beforeId = next ? firstTileIdOf(next) : null;
+							lineX = wr.right;
+						}
+						setDrop({ kind: 'extract', beforeId, lineX, top: wr.top, height: wr.height });
+						return;
+					}
+					return setDrop(null);
+				}
+				const cols = getParticipants();
+				if (cols.length) {
+					const rects = cols.map((c) => c.getBoundingClientRect());
+					const index = insertionIndexAt(rects, clientX);
+					const lineX =
+						index <= 0 ? rects[0].left
+						: index >= rects.length ? rects[rects.length - 1].right
+						: (rects[index - 1].right + rects[index].left) / 2;
+					const ref = cols[index] as HTMLElement | undefined;
+					setDrop({ kind: 'extract', beforeId: ref ? firstTileIdOf(ref) : null, lineX, top: rects[0].top, height: rects[0].height });
+					return;
+				}
+				return setDrop(null);
+			}
+
+			if (el && id && id !== dragId && !node.contains(el)) {
+				const r = el.getBoundingClientRect();
+				const current: ZoneResult =
+					dropTarget?.kind === 'split' && dropTarget.id === id
+						? { kind: 'split', zone: dropTarget.zone as 'top' | 'bottom' }
+						: null;
+				const zone = dropZoneAt(r.height, clientY - r.top, reorderBand, current, ZONE_DEADBAND);
+				if (zone) {
+					setDrop({ kind: 'split', id, zone: zone.zone, rect: { x: r.left, y: r.top, w: r.width, h: r.height } });
+					return;
+				}
+			}
+			setDrop(null);
+		}
+
+		function firstTileIdOf(wrapper: HTMLElement): string | null {
+			return (wrapper.querySelector('[data-tile-id]') as HTMLElement | null)?.dataset.tileId ?? null;
+		}
 
 		let draggingClass = 'dragging';
 		let duration = DEFAULT_DURATION;
@@ -51,6 +220,11 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 		}
 
 		function applyOffset() {
+			if (leafMode) {
+				off = 0;
+				node.style.transform = '';
+				return;
+			}
 			off = pointerPos - grab - naturalPos;
 			writeTransform();
 		}
@@ -72,34 +246,33 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 		}
 
 		function reorderAndFlip(target: number, participants: HTMLElement[]) {
+			const from = current;
+			const lo = Math.min(from, target);
+			const hi = Math.max(from, target);
+
 			const first = new Map<HTMLElement, DOMRect>();
-			for (const el of participants) {
-				if (el === node) continue;
+			for (let i = lo; i <= hi; i++) {
+				const el = participants[i];
+				if (!el || el === node) continue;
 				first.set(el, el.getBoundingClientRect());
 			}
 
-			const from = current;
 			flushSync(() => opts.onReorder(from, target));
 			current = target;
 
 			const after = getParticipants();
 
-			for (const el of after) {
-				if (el === node) continue;
-				flipAnims.get(el)?.cancel();
-			}
-
 			const last = new Map<HTMLElement, DOMRect>();
 			for (const el of after) {
-				if (el === node) continue;
+				if (el === node || !first.has(el)) continue;
+				flipAnims.get(el)?.cancel();
 				last.set(el, el.getBoundingClientRect());
 			}
 
 			for (const el of after) {
-				if (el === node) continue;
-				const f = first.get(el);
-				const l = last.get(el);
-				if (!f || !l) continue;
+				if (el === node || !first.has(el)) continue;
+				const f = first.get(el)!;
+				const l = last.get(el)!;
 				const dx = f.left - l.left;
 				const dy = f.top - l.top;
 				if (!dx && !dy) continue;
@@ -123,23 +296,35 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 		function flush() {
 			rafId = 0;
 			if (!started) return;
-			applyOffset();
+			off = leafMode ? 0 : pointerPos - grab - naturalPos;
+			if (leafMode) opts.onDragMove?.(clientX, clientY);
+			detectTile();
+			if (dropTarget || leafMode) {
+				writeTransform();
+				return;
+			}
 			const participants = getParticipants();
 			const target = computeTarget(participants);
+			writeTransform();
 			if (target !== current) reorderAndFlip(target, participants);
 		}
 
 		function onPointerMove(e: PointerEvent) {
 			if (e.pointerId !== pointerId) return;
 			pointerPos = horizontal ? e.clientX : e.clientY;
+			clientX = e.clientX;
+			clientY = e.clientY;
 
 			if (!started) {
 				started = true;
-				node.classList.add(draggingClass);
-				node.style.willChange = 'transform';
+				if (!leafMode) {
+					node.classList.add(draggingClass);
+					node.style.willChange = 'transform';
+					node.style.pointerEvents = 'none';
+				}
 				document.body.style.userSelect = 'none';
 				document.body.style.cursor = 'grabbing';
-				opts.onDragStart?.();
+				opts.onDragStart?.(dragId);
 			}
 
 			if (!rafId) rafId = requestAnimationFrame(flush);
@@ -148,6 +333,7 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 		function settle() {
 			node.classList.remove(draggingClass);
 			node.style.willChange = '';
+			node.style.pointerEvents = '';
 		}
 
 		function endDrag(e: PointerEvent) {
@@ -163,10 +349,41 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 
 			const wasDragging = started;
 			started = false;
-			if (!wasDragging) return;
+
+			const drop = dropTarget;
+			dropTarget = null;
+			opts.onTilePreview?.(null);
+
+			if (!wasDragging) {
+				dragId = null;
+				return;
+			}
 
 			document.body.style.userSelect = '';
 			document.body.style.cursor = '';
+
+			if (drop?.kind === 'split' && dragId && opts.onTile) {
+				off = 0;
+				node.style.transform = '';
+				settle();
+				const sourceId = dragId;
+				dragId = null;
+				opts.onTile(sourceId, drop);
+				opts.onDragEnd?.();
+				return;
+			}
+
+			if (drop?.kind === 'extract' && dragId && opts.onExtract) {
+				off = 0;
+				node.style.transform = '';
+				settle();
+				const sourceId = dragId;
+				dragId = null;
+				opts.onExtract(sourceId, drop);
+				opts.onDragEnd?.();
+				return;
+			}
+			dragId = null;
 
 			dropAnim?.cancel();
 			const fromOff = off;
@@ -201,16 +418,30 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 			opts = getOptions();
 			if (opts.disabled) return;
 
+			let handleEl: Element | null = null;
 			if (opts.handle) {
 				const target = e.target as Element | null;
-				const h = target?.closest(opts.handle);
-				if (!h || !node.contains(h)) return;
+				handleEl = target?.closest(opts.handle) ?? null;
+				if (!handleEl || !node.contains(handleEl)) return;
 			}
 
 			horizontal = opts.axis === 'x';
 			duration = opts.flipDuration ?? DEFAULT_DURATION;
 			easing = opts.flipEasing ?? DEFAULT_EASING;
 			draggingClass = opts.draggingClass ?? 'dragging';
+			reorderBand = opts.reorderBand ?? 0.25;
+			dropTarget = null;
+
+			dragId = null;
+			leafMode = false;
+			if (opts.tileSelector) {
+				const grabbedPane = handleEl?.closest(opts.tileSelector) as HTMLElement | null;
+				const primaryPane = node.querySelector(opts.tileSelector) as HTMLElement | null;
+				if (grabbedPane?.dataset.tileId) {
+					dragId = grabbedPane.dataset.tileId;
+					leafMode = grabbedPane !== primaryPane;
+				}
+			}
 
 			e.preventDefault();
 			pointerId = e.pointerId;
@@ -218,6 +449,8 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 			current = getParticipants().indexOf(node);
 			const rect = node.getBoundingClientRect();
 			pointerPos = horizontal ? e.clientX : e.clientY;
+			clientX = e.clientX;
+			clientY = e.clientY;
 			naturalPos = horizontal ? rect.left : rect.top;
 			grab = pointerPos - naturalPos;
 			off = 0;
@@ -242,6 +475,7 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 			if (started) {
 				document.body.style.userSelect = '';
 				document.body.style.cursor = '';
+				node.style.pointerEvents = '';
 			}
 		};
 	};

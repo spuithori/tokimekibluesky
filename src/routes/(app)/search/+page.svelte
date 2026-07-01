@@ -6,7 +6,7 @@
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import { PUBLIC_SUICIDE_WORDS } from '$env/static/public';
     import SuicideSafety from "$lib/components/safety/SuicideSafety.svelte";
-    import DeckRow from "../DeckRow.svelte";
+    import DeckSlot from "../DeckSlot.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
     const junkColumnState = getColumnState(true);
@@ -70,7 +70,7 @@
 
 {#key sort}
     {#if ($page.url.searchParams.get('q') && junkColumnState.hasColumn('search_' + $page.url.searchParams.get('q')))}
-        <DeckRow index={junkColumnState.getColumnIndex('search_' + $page.url.searchParams.get('q'))} isJunk={true}></DeckRow>
+        <DeckSlot index={junkColumnState.getColumnIndex('search_' + $page.url.searchParams.get('q'))} isJunk={true}></DeckSlot>
     {:else}
         <div class="search-empty">
             <Rainbow size={128} color="var(--border-color-1)" />
