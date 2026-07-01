@@ -1,6 +1,7 @@
 <script lang="ts">
-    import {agent, currentTimeline} from '$lib/stores';
+    import {agent, currentTimeline, settings} from '$lib/stores';
     import {page} from '$app/stores';
+    import {clampSingleWidth} from "$lib/deckWidth";
     import DeckSlot from "./DeckSlot.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -40,6 +41,46 @@
       });
     }
 
+    let wrapEl = $state<HTMLElement | undefined>();
+    let resizeWidth = $state<number | null>(null);
+    let isMobile = $state(false);
+
+    $effect(() => {
+        if (typeof window === 'undefined') return;
+        const check = () => { isMobile = window.innerWidth <= 767; };
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    });
+
+    const showWidthBar = $derived(!isMobile);
+
+    function startWidthResize(event: PointerEvent) {
+        if (isMobile || !wrapEl) return;
+        const handle = event.currentTarget as HTMLElement;
+        const el = wrapEl;
+        event.preventDefault();
+        handle.setPointerCapture(event.pointerId);
+        const startX = event.clientX;
+        const startWidth = el.offsetWidth;
+        resizeWidth = startWidth;
+
+        const onMove = (e: PointerEvent) => {
+            resizeWidth = clampSingleWidth(startWidth + (e.clientX - startX));
+        };
+        const onUp = (e: PointerEvent) => {
+            try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            document.removeEventListener('pointercancel', onUp);
+            if (resizeWidth != null) $settings.design.singleWidth = resizeWidth;
+            resizeWidth = null;
+        };
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+        document.addEventListener('pointercancel', onUp);
+    }
+
     $effect(() => {
         localStorage.setItem('currentTimeline', JSON.stringify($currentTimeline));
     });
@@ -76,7 +117,13 @@
 
 <svelte:window onscroll={handleScroll}></svelte:window>
 
-<div class="single-wrap" class:single-wrap--page={$page.url.pathname !== '/'} class:single-wrap--bottom={publishState.isBottom}>
+<div
+  class="single-wrap"
+  class:single-wrap--page={$page.url.pathname !== '/'}
+  class:single-wrap--bottom={publishState.isBottom}
+  style:--single-column-width={resizeWidth != null ? `${resizeWidth}px` : null}
+  bind:this={wrapEl}
+>
   <div class="single-timeline-wrap">
     {#key $currentTimeline}
       {#if (columnState.slots.length && columnState.slots[$currentTimeline])}
@@ -84,10 +131,22 @@
       {/if}
     {/key}
   </div>
+
+  {#if showWidthBar}
+    <div
+      class="deck-width-bar"
+      class:deck-width-bar--active={resizeWidth != null}
+      onpointerdown={startWidthResize}
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize column width"
+    ></div>
+  {/if}
 </div>
 
 <style lang="postcss">
     .single-wrap {
+        position: relative;
         border-left: var(--single-border);
         border-right: var(--single-border);
         min-height: 100vh;

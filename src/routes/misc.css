@@ -348,6 +348,41 @@
     }
 }
 
+.deck-width-bar {
+    position: absolute;
+    top: 0;
+    right: -4px;
+    width: 9px;
+    height: 100%;
+    z-index: 15;
+    cursor: ew-resize;
+    touch-action: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity .15s ease;
+
+    &::after {
+        content: '';
+        width: 4px;
+        height: 56px;
+        max-height: 40%;
+        border-radius: 4px;
+        background: var(--primary-color);
+        box-shadow: 0 0 0 1px var(--bg-color-1);
+    }
+
+    &:hover,
+    &--active {
+        opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
 .side-modal {
     .deck-heading {
         top: 0 !important;

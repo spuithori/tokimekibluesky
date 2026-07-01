@@ -1,56 +1,43 @@
 import { describe, it, expect } from 'vitest';
-import { dropZoneAt, insertionIndexAt, tileGesture, dockZoneAt } from './sortable.svelte';
+import { quadrantZone, insertionIndexAt, dockZoneAt } from './sortable.svelte';
 
-describe('dropZoneAt', () => {
-    const H = 800;
+describe('quadrantZone (4方向 split 判定)', () => {
+    const W = 400;
+    const H = 400;
 
-    it('上端帯(localY<band)は null(=並べ替え/独立化は別経路)', () => {
-        expect(dropZoneAt(H, 0)).toBeNull();
-        expect(dropZoneAt(H, 199)).toBeNull();
+    it('各辺に近い位置 → その方向へ分割', () => {
+        expect(quadrantZone(W, H, 200, 40)).toBe('top');
+        expect(quadrantZone(W, H, 200, 360)).toBe('bottom');
+        expect(quadrantZone(W, H, 40, 200)).toBe('left');
+        expect(quadrantZone(W, H, 360, 200)).toBe('right');
     });
 
-    it('本体: band〜bodyMid は split top, bodyMid〜下端は split bottom', () => {
-        expect(dropZoneAt(H, 200)).toEqual({ kind: 'split', zone: 'top' });
-        expect(dropZoneAt(H, 499)).toEqual({ kind: 'split', zone: 'top' });
-        expect(dropZoneAt(H, 500)).toEqual({ kind: 'split', zone: 'bottom' });
-        expect(dropZoneAt(H, 799)).toEqual({ kind: 'split', zone: 'bottom' });
+    it('縦長カラム: 左右端=横分割 / 上下端=縦分割', () => {
+        expect(quadrantZone(400, 800, 20, 400)).toBe('left');
+        expect(quadrantZone(400, 800, 380, 400)).toBe('right');
+        expect(quadrantZone(400, 800, 200, 40)).toBe('top');
+        expect(quadrantZone(400, 800, 200, 760)).toBe('bottom');
     });
 
-    it('band は px 下限64でクランプ', () => {
-        expect(dropZoneAt(120, 63)).toBeNull();
-        expect(dropZoneAt(120, 64)).toEqual({ kind: 'split', zone: 'top' });
+    it('対角線上(tie)は横方向に倒す(adx>=ady)', () => {
+        expect(quadrantZone(W, H, 100, 100)).toBe('left');
+        expect(quadrantZone(W, H, 300, 100)).toBe('right');
     });
 
-    it('band は px 上限220でクランプ', () => {
-        expect(dropZoneAt(2000, 219)).toBeNull();
-        expect(dropZoneAt(2000, 220)).toEqual({ kind: 'split', zone: 'top' });
+    it('軸ヒステリシス: 対角線近傍で current の軸を保持', () => {
+        expect(quadrantZone(W, H, 140, 130)).toBe('top');
+        expect(quadrantZone(W, H, 140, 130, 'left', 0.06)).toBe('left');
+        expect(quadrantZone(W, H, 140, 130, 'top', 0.06)).toBe('top');
     });
 
-    it('reorderBand で帯が変わる(クランプ範囲内)', () => {
-        expect(dropZoneAt(600, 179, 0.3)).toBeNull();
-        expect(dropZoneAt(600, 180, 0.3)).toEqual({ kind: 'split', zone: 'top' });
-    });
-});
-
-describe('dropZoneAt ヒステリシス(デッドバンド)', () => {
-    const H = 800;
-    const D = 10;
-
-    it('band 境界: split 中は band-deadband まで split を保持', () => {
-        expect(dropZoneAt(H, 195, 0.25, null, D)).toBeNull();
-        expect(dropZoneAt(H, 195, 0.25, { kind: 'split', zone: 'top' }, D)).toEqual({ kind: 'split', zone: 'top' });
-        expect(dropZoneAt(H, 189, 0.25, { kind: 'split', zone: 'top' }, D)).toBeNull();
+    it('左右ヒステリシス: 中心線を deadband 分 current 側で保持', () => {
+        expect(quadrantZone(W, H, 210, 200)).toBe('right');
+        expect(quadrantZone(W, H, 210, 200, 'left', 0.06)).toBe('left');
     });
 
-    it('bodyMid 境界: top 中は mid+deadband まで top、bottom 中は mid-deadband まで bottom', () => {
-        expect(dropZoneAt(H, 505, 0.25, { kind: 'split', zone: 'top' }, D)).toEqual({ kind: 'split', zone: 'top' });
-        expect(dropZoneAt(H, 511, 0.25, { kind: 'split', zone: 'top' }, D)).toEqual({ kind: 'split', zone: 'bottom' });
-        expect(dropZoneAt(H, 495, 0.25, { kind: 'split', zone: 'bottom' }, D)).toEqual({ kind: 'split', zone: 'bottom' });
-        expect(dropZoneAt(H, 489, 0.25, { kind: 'split', zone: 'bottom' }, D)).toEqual({ kind: 'split', zone: 'top' });
-    });
-
-    it('deadband=0 は従来挙動(current 無視)', () => {
-        expect(dropZoneAt(H, 195, 0.25, { kind: 'split', zone: 'top' }, 0)).toBeNull();
+    it('上下ヒステリシス: 中心線を deadband 分 current 側で保持', () => {
+        expect(quadrantZone(H, W, 200, 210)).toBe('bottom');
+        expect(quadrantZone(H, W, 200, 210, 'top', 0.06)).toBe('top');
     });
 });
 
@@ -81,36 +68,6 @@ describe('insertionIndexAt', () => {
     });
 });
 
-describe('tileGesture (サブペイン統一判定)', () => {
-    const W = 400;
-    const H = 800;
-
-    it('カラム左右端(±12px)は extract', () => {
-        expect(tileGesture(W, H, 5, 400, false)).toEqual({ kind: 'extract', side: 'left' });
-        expect(tileGesture(W, H, 12, 400, false)).toEqual({ kind: 'extract', side: 'left' });
-        expect(tileGesture(W, H, 395, 400, false)).toEqual({ kind: 'extract', side: 'right' });
-        expect(tileGesture(W, H, 388, 400, false)).toEqual({ kind: 'extract', side: 'right' });
-    });
-
-    it('自カラム中央 → null(その場でやめる)。ただし端は自カラムでも extract', () => {
-        expect(tileGesture(W, H, 200, 400, true)).toBeNull();
-        expect(tileGesture(W, H, 5, 400, true)).toEqual({ kind: 'extract', side: 'left' });
-    });
-
-    it('別カラム中央 → 上下分割(localY)', () => {
-        expect(tileGesture(W, H, 200, 100, false)).toEqual({ kind: 'split', zone: 'top' });
-        expect(tileGesture(W, H, 200, 399, false)).toEqual({ kind: 'split', zone: 'top' });
-        expect(tileGesture(W, H, 200, 400, false)).toEqual({ kind: 'split', zone: 'bottom' });
-        expect(tileGesture(W, H, 200, 700, false)).toEqual({ kind: 'split', zone: 'bottom' });
-    });
-
-    it('mid 付近は deadband でヒステリシス', () => {
-        expect(tileGesture(W, H, 200, 405, false, { deadband: 10, current: 'top' })).toEqual({ kind: 'split', zone: 'top' });
-        expect(tileGesture(W, H, 200, 411, false, { deadband: 10, current: 'top' })).toEqual({ kind: 'split', zone: 'bottom' });
-        expect(tileGesture(W, H, 200, 395, false, { deadband: 10, current: 'bottom' })).toEqual({ kind: 'split', zone: 'bottom' });
-        expect(tileGesture(W, H, 200, 389, false, { deadband: 10, current: 'bottom' })).toEqual({ kind: 'split', zone: 'top' });
-    });
-});
 
 describe('dockZoneAt (フロート→タイル ドック判定)', () => {
     const box = (left: number, right: number) => ({ left, right, top: 0, bottom: 800 });

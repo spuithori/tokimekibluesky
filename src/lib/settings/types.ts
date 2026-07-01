@@ -66,7 +66,7 @@ export interface DesignSettings {
     leftMode: boolean;
     disableProfilePopup: boolean;
     immersiveMode: boolean;
-    singleWidth: string;
+    singleWidth: string | number;
     fixedFooter: boolean;
     mutualDisplay: boolean;
     mobileNewUi: boolean;

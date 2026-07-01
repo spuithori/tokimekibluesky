@@ -2,7 +2,6 @@
     import DeckColumn from "./DeckColumn.svelte";
     import LayoutView from "./LayoutView.svelte";
     import GripHorizontal from '@lucide/svelte/icons/grip-horizontal';
-    import GripVertical from '@lucide/svelte/icons/grip-vertical';
     import { getColumnState } from "$lib/classes/columnState.svelte";
     import { firstLeafId, type LayoutNode } from "$lib/classes/deckLayout";
 
@@ -91,13 +90,11 @@
                     role="separator"
                     aria-orientation={node.direction === 'row' ? 'vertical' : 'horizontal'}
                 >
-                    <div class="layout-split__handle">
-                        {#if node.direction === 'row'}
-                            <GripVertical size="16" color="var(--text-color-3)"></GripVertical>
-                        {:else}
+                    {#if node.direction === 'column'}
+                        <div class="layout-split__handle">
                             <GripHorizontal size="16" color="var(--text-color-3)"></GripHorizontal>
-                        {/if}
-                    </div>
+                        </div>
+                    {/if}
                 </div>
             {/if}
         {/each}
@@ -137,31 +134,56 @@
         flex-shrink: 0;
         position: relative;
         z-index: 20;
-        background-color: var(--bg-color-2);
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: background-color 0.15s ease;
         user-select: none;
         touch-action: none;
 
         &--column {
             height: 8px;
             cursor: ns-resize;
+            background-color: var(--bg-color-2);
             border-top: 1px solid var(--deck-border-color);
             border-bottom: 1px solid var(--deck-border-color);
+            transition: background-color 0.15s ease;
+
+            &:hover,
+            &.layout-split__divider--resizing {
+                background-color: var(--bg-color-3);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                transition: none;
+            }
         }
 
         &--row {
             width: 8px;
             cursor: ew-resize;
-            border-left: 1px solid var(--deck-border-color);
-            border-right: 1px solid var(--deck-border-color);
-        }
 
-        &:hover,
-        &--resizing {
-            background-color: var(--bg-color-3);
+            &::after {
+                content: '';
+                width: 4px;
+                height: 56px;
+                max-height: 40%;
+                border-radius: 4px;
+                background: var(--primary-color);
+                box-shadow: 0 0 0 1px var(--bg-color-1);
+                opacity: 0;
+                transition: opacity .15s ease;
+            }
+
+            &:hover::after,
+            &.layout-split__divider--resizing::after {
+                opacity: 1;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                &::after {
+                    transition: none;
+                }
+            }
         }
     }
 

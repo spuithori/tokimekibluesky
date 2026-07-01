@@ -361,7 +361,10 @@
         >
             <Side></Side>
 
-            <main class="main main--scw-{$settings.design?.singleWidth}">
+            <main
+                class="main {typeof $settings.design?.singleWidth === 'string' ? `main--scw-${$settings.design.singleWidth}` : ''}"
+                style:--single-column-width={typeof $settings.design?.singleWidth === 'number' ? `${$settings.design.singleWidth}px` : null}
+            >
                 {#if $settings.design.layout !== "decks"}
                     <Single></Single>
                 {:else}

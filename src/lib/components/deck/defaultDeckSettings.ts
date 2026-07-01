@@ -9,7 +9,7 @@ export type defaultDeckSettings = {
     refreshToTop?: boolean,
     autoScroll?: boolean,
     autoScrollSpeed?: 'auto' | 'slow' | 'normal' | 'fast',
-    width?: 'large' | 'medium' | 'small',
+    width?: number | 'xxs' | 'xs' | 'small' | 'medium' | 'large' | 'xl' | 'xxl',
     icon?: string | null,
     hideCounts?: boolean,
     background?: string,

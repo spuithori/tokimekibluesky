@@ -12,6 +12,7 @@ export class ColumnState {
     columns = $state<Column[]>([]);
     slots = $state<Slot[]>([]);
     isReordering = $state(false);
+    isResizingWidth = $state(false);
     floatingOrder = $state<string[]>([]);
     activeFloatingId = $state<string | null>(null);
     private _feeds = new SvelteMap<string, any[]>();
@@ -116,7 +117,7 @@ export class ColumnState {
         });
 
         $effect(() => {
-            if (!this.isColumnsLoaded || this.isReordering) return;
+            if (!this.isColumnsLoaded || this.isReordering || this.isResizingWidth) return;
 
             accountsDb.profiles.update(appState.profile.current, {
                 columns: $state.snapshot(this.syncColumns),

@@ -32,7 +32,6 @@ export interface SortableOptions {
 	onDragStart?: (dragId: string | null) => void;
 	onDragEnd?: () => void;
 	tileSelector?: string;
-	reorderBand?: number;
 	onTilePreview?: (preview: DropPreview | null) => void;
 	onTile?: (sourceId: string, target: TileTarget) => void;
 	onExtract?: (sourceId: string, target?: ExtractTarget) => void;
@@ -41,31 +40,37 @@ export interface SortableOptions {
 
 const DEFAULT_DURATION = 220;
 const DEFAULT_EASING = 'cubic-bezier(0.2, 0, 0, 1)';
-const ZONE_DEADBAND = 10;
 const EDGE_PX = 12;
+const QUAD_DEADBAND = 0.06;
 
-export type ZoneResult = { kind: 'split'; zone: 'top' | 'bottom' } | null;
+export type Quad = 'top' | 'bottom' | 'left' | 'right';
 
-export function dropZoneAt(
+export function quadrantZone(
+	width: number,
 	height: number,
+	localX: number,
 	localY: number,
-	reorderBand = 0.25,
-	current: ZoneResult = null,
+	current: Quad | null = null,
 	deadband = 0,
-): ZoneResult {
-	const band = Math.min(Math.max(height * reorderBand, 64), 220);
-	const bodyMid = band + (height - band) / 2;
+): Quad {
+	const dx = width > 0 ? localX / width - 0.5 : 0;
+	const dy = height > 0 ? localY / height - 0.5 : 0;
+	const adx = Math.abs(dx);
+	const ady = Math.abs(dy);
 
-	const bandThresh = current ? band - deadband : band + deadband;
-	if (localY < bandThresh) return null;
+	let horizontal: boolean;
+	if (current === 'left' || current === 'right') horizontal = adx >= ady - deadband;
+	else if (current === 'top' || current === 'bottom') horizontal = adx >= ady + deadband;
+	else horizontal = adx >= ady;
 
-	const midThresh =
-		current?.zone === 'top'
-			? bodyMid + deadband
-			: current?.zone === 'bottom'
-				? bodyMid - deadband
-				: bodyMid;
-	return { kind: 'split', zone: localY < midThresh ? 'top' : 'bottom' };
+	if (horizontal) {
+		if (current === 'left') return dx <= deadband ? 'left' : 'right';
+		if (current === 'right') return dx >= -deadband ? 'right' : 'left';
+		return dx < 0 ? 'left' : 'right';
+	}
+	if (current === 'top') return dy <= deadband ? 'top' : 'bottom';
+	if (current === 'bottom') return dy >= -deadband ? 'bottom' : 'top';
+	return dy < 0 ? 'top' : 'bottom';
 }
 
 export function insertionIndexAt(cols: { left: number; right: number }[], x: number): number {
@@ -113,30 +118,6 @@ export function detectTileAt(clientX: number, clientY: number): ExtractTarget | 
 	return { kind: 'extract', beforeId, lineX: zone.lineX, top: rects[0].top, height: rects[0].height };
 }
 
-export type GestureResult =
-	| { kind: 'split'; zone: 'top' | 'bottom' }
-	| { kind: 'extract'; side: 'left' | 'right' }
-	| null;
-
-export function tileGesture(
-	width: number,
-	height: number,
-	localX: number,
-	localY: number,
-	isOwnColumn: boolean,
-	opts: { edge?: number; deadband?: number; current?: 'top' | 'bottom' | null } = {},
-): GestureResult {
-	const edge = opts.edge ?? EDGE_PX;
-	if (localX <= edge) return { kind: 'extract', side: 'left' };
-	if (localX >= width - edge) return { kind: 'extract', side: 'right' };
-	if (isOwnColumn) return null;
-
-	const deadband = opts.deadband ?? 0;
-	const mid = height / 2;
-	const midThresh = opts.current === 'top' ? mid + deadband : opts.current === 'bottom' ? mid - deadband : mid;
-	return { kind: 'split', zone: localY < midThresh ? 'top' : 'bottom' };
-}
-
 export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElement> {
 	return (node: HTMLElement) => {
 		let opts: SortableOptions;
@@ -155,7 +136,6 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 		let rafId = 0;
 
 		let dragId: string | null = null;
-		let reorderBand = 0.25;
 		let leafMode = false;
 		let dropTarget: DropPreview | null = null;
 
@@ -178,35 +158,13 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 			if (leafMode) {
 				if (el && id) {
 					const wrapper = (el.closest(opts.participantSelector) as HTMLElement | null) ?? el;
-					const wr = wrapper.getBoundingClientRect();
+					if (wrapper === node) return setDrop(null);
 					const pr = el.getBoundingClientRect();
-					const cur =
-						dropTarget?.kind === 'split' && dropTarget.id === id ? (dropTarget.zone as 'top' | 'bottom') : null;
-					const g = tileGesture(wr.width, pr.height, clientX - wr.left, clientY - pr.top, wrapper === node, {
-						deadband: ZONE_DEADBAND,
-						current: cur,
-					});
-					if (g?.kind === 'split') {
-						setDrop({ kind: 'split', id, zone: g.zone, rect: { x: pr.left, y: pr.top, w: pr.width, h: pr.height } });
-						return;
-					}
-					if (g?.kind === 'extract') {
-						const cols = getParticipants();
-						const idx = cols.indexOf(wrapper);
-						let beforeId: string | null;
-						let lineX: number;
-						if (g.side === 'left') {
-							beforeId = firstTileIdOf(wrapper);
-							lineX = wr.left;
-						} else {
-							const next = cols[idx + 1] as HTMLElement | undefined;
-							beforeId = next ? firstTileIdOf(next) : null;
-							lineX = wr.right;
-						}
-						setDrop({ kind: 'extract', beforeId, lineX, top: wr.top, height: wr.height });
-						return;
-					}
-					return setDrop(null);
+					const cur: Quad | null =
+						dropTarget?.kind === 'split' && dropTarget.id === id ? dropTarget.zone : null;
+					const zone = quadrantZone(pr.width, pr.height, clientX - pr.left, clientY - pr.top, cur, QUAD_DEADBAND);
+					setDrop({ kind: 'split', id, zone, rect: { x: pr.left, y: pr.top, w: pr.width, h: pr.height } });
+					return;
 				}
 				const cols = getParticipants();
 				if (cols.length) {
@@ -225,15 +183,11 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 
 			if (el && id && id !== dragId && !node.contains(el)) {
 				const r = el.getBoundingClientRect();
-				const current: ZoneResult =
-					dropTarget?.kind === 'split' && dropTarget.id === id
-						? { kind: 'split', zone: dropTarget.zone as 'top' | 'bottom' }
-						: null;
-				const zone = dropZoneAt(r.height, clientY - r.top, reorderBand, current, ZONE_DEADBAND);
-				if (zone) {
-					setDrop({ kind: 'split', id, zone: zone.zone, rect: { x: r.left, y: r.top, w: r.width, h: r.height } });
-					return;
-				}
+				const cur: Quad | null =
+					dropTarget?.kind === 'split' && dropTarget.id === id ? dropTarget.zone : null;
+				const zone = quadrantZone(r.width, r.height, clientX - r.left, clientY - r.top, cur, QUAD_DEADBAND);
+				setDrop({ kind: 'split', id, zone, rect: { x: r.left, y: r.top, w: r.width, h: r.height } });
+				return;
 			}
 			setDrop(null);
 		}
@@ -470,7 +424,6 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 			duration = opts.flipDuration ?? DEFAULT_DURATION;
 			easing = opts.flipEasing ?? DEFAULT_EASING;
 			draggingClass = opts.draggingClass ?? 'dragging';
-			reorderBand = opts.reorderBand ?? 0.25;
 			dropTarget = null;
 
 			dragId = null;

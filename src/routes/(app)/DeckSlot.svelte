@@ -4,6 +4,7 @@
     import {tilingDrag} from "$lib/classes/tilingDragState.svelte";
     import {animateLayout} from "$lib/animations/flip";
     import {firstLeafId} from "$lib/classes/deckLayout";
+    import {clampDeckWidth} from "$lib/deckWidth";
     import { sortable } from "$lib/attachments/sortable.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
     import LayoutView from "./LayoutView.svelte";
@@ -28,9 +29,12 @@
     const isSplitLayout = $derived(slot?.layout?.type === 'split');
     const leafIndex = $derived(columnState.getColumnIndex(columnState.leafIdsOf(index)[0]));
     const column = $derived(columnState.getColumn(leafIndex));
+    const widthValue = $derived(column?.settings?.width ?? 'medium');
 
     let isScrollPaused = $state(false);
     let isMobile = $state(false);
+    let slotEl = $state<HTMLElement | undefined>();
+    let isWidthResizing = $state(false);
 
     $effect(() => {
         if (typeof window !== 'undefined') {
@@ -61,6 +65,40 @@
 
     const useSplitLayout = $derived(isSplitLayout && !isMobile && !isJunk && $settings.design?.layout !== 'default');
     const showDragHandle = $derived(!column?.settings?.isPopup && $settings.design?.layout === 'decks');
+    const showWidthBar = $derived(
+        $settings.design?.layout === 'decks'
+        && !isMobile
+        && !isJunk
+        && !column?.settings?.isPopup
+    );
+
+    function startWidthResize(event: PointerEvent) {
+        if (isMobile || !slotEl || !column) return;
+        const handle = event.currentTarget as HTMLElement;
+        const el = slotEl;
+        const col = column;
+        event.preventDefault();
+        handle.setPointerCapture(event.pointerId);
+        const startX = event.clientX;
+        const startWidth = el.offsetWidth;
+        isWidthResizing = true;
+        columnState.isResizingWidth = true;
+
+        const onMove = (e: PointerEvent) => {
+            col.settings.width = clampDeckWidth(startWidth + (e.clientX - startX));
+        };
+        const onUp = (e: PointerEvent) => {
+            try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            document.removeEventListener('pointercancel', onUp);
+            isWidthResizing = false;
+            columnState.isResizingWidth = false;
+        };
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+        document.addEventListener('pointercancel', onUp);
+    }
 </script>
 
 <div
@@ -86,16 +124,18 @@
      }))}
 >
     <div
-        class="deck-row-slot deck-row-slot--{column?.settings?.width || 'medium'}"
+        class="deck-row-slot {typeof widthValue === 'string' ? `deck-row-slot--${widthValue}` : ''}"
         class:deck-row-slot--split={useSplitLayout}
         class:deck-row-slot--popup={column?.settings?.isPopup === true}
         class:deck-row-slot--decks={$settings.design?.layout === 'decks'}
         class:deck-row-slot--single={$settings.design?.layout === 'default'}
         class:deck-row-slot--junk={isJunk}
         class:deck-row-slot--compact={publishState.layout === 'bottom'}
+        style:--deck-col-width={typeof widthValue === 'number' ? `${widthValue}px` : null}
         onmouseenter={handleMouseEnter}
         onmouseleave={handleMouseLeave}
         role="group"
+        bind:this={slotEl}
     >
         {#if useSplitLayout}
             <LayoutView
@@ -115,6 +155,17 @@
             ></DeckColumn>
         {/if}
     </div>
+
+    {#if showWidthBar}
+        <div
+            class="deck-width-bar"
+            class:deck-width-bar--active={isWidthResizing}
+            onpointerdown={startWidthResize}
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize column width"
+        ></div>
+    {/if}
 </div>
 
 <style lang="postcss">
@@ -159,7 +210,7 @@
     }
 
     .deck-row-slot {
-        width: 450px;
+        width: var(--deck-col-width, var(--deck-m-width));
         flex-shrink: 0;
         height: 100%;
         display: flex;
@@ -173,13 +224,13 @@
             height: calc(100dvh);
         }
 
-        &--xxs { width: var(--deck-xxs-width); @media (max-width: 767px) { width: 100vw; } }
-        &--xs { width: var(--deck-xs-width); @media (max-width: 767px) { width: 100vw; } }
-        &--small { width: var(--deck-s-width); @media (max-width: 767px) { width: 100vw; } }
-        &--medium { width: var(--deck-m-width); @media (max-width: 767px) { width: 100vw; } }
-        &--large { width: var(--deck-l-width); @media (max-width: 767px) { width: 100vw; } }
-        &--xl { width: var(--deck-xl-width); @media (max-width: 767px) { width: 100vw; } }
-        &--xxl { width: var(--deck-xxl-width); @media (max-width: 767px) { width: 100vw; } }
+        &--xxs { --deck-col-width: var(--deck-xxs-width); }
+        &--xs { --deck-col-width: var(--deck-xs-width); }
+        &--small { --deck-col-width: var(--deck-s-width); }
+        &--medium { --deck-col-width: var(--deck-m-width); }
+        &--large { --deck-col-width: var(--deck-l-width); }
+        &--xl { --deck-col-width: var(--deck-xl-width); }
+        &--xxl { --deck-col-width: var(--deck-xxl-width); }
 
         &--single {
             height: auto;
