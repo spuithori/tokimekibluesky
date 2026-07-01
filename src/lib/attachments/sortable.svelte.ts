@@ -72,6 +72,47 @@ export function insertionIndexAt(cols: { left: number; right: number }[], x: num
 	return cols.filter((r) => (r.left + r.right) / 2 < x).length;
 }
 
+type Box = { left: number; right: number; top: number; bottom: number };
+
+export function dockZoneAt(
+	rects: readonly Box[],
+	clientX: number,
+	clientY: number,
+	edge = EDGE_PX,
+): { index: number; lineX: number } | null {
+	if (!rects.length) return null;
+	const deckTop = Math.min(...rects.map((r) => r.top));
+	const deckBottom = Math.max(...rects.map((r) => r.bottom));
+	if (clientY < deckTop || clientY > deckBottom) return null;
+
+	for (let i = 0; i < rects.length; i++) {
+		const r = rects[i];
+		if (clientX >= r.left && clientX < r.right) {
+			const localX = clientX - r.left;
+			if (localX <= edge) return { index: i, lineX: r.left };
+			if (localX >= r.right - r.left - edge) return { index: i + 1, lineX: r.right };
+			return null;
+		}
+	}
+
+	const first = rects[0];
+	const last = rects[rects.length - 1];
+	if (clientX < first.left || clientX >= last.right) return null;
+	const index = insertionIndexAt(rects, clientX);
+	return { index, lineX: (rects[index - 1].right + rects[index].left) / 2 };
+}
+
+export function detectTileAt(clientX: number, clientY: number): ExtractTarget | null {
+	const cols = Array.from(document.querySelectorAll<HTMLElement>('.deck > .deck-row-wrap'));
+	if (!cols.length) return null;
+	const rects = cols.map((c) => c.getBoundingClientRect());
+	const zone = dockZoneAt(rects, clientX, clientY);
+	if (!zone) return null;
+	const ref = cols[zone.index];
+	const beforeId = ref ? ((ref.querySelector('[data-tile-id]') as HTMLElement | null)?.dataset.tileId ?? null) : null;
+	return { kind: 'extract', beforeId, lineX: zone.lineX, top: rects[0].top, height: rects[0].height };
+}
+
 export type GestureResult =
 	| { kind: 'split'; zone: 'top' | 'bottom' }
 	| { kind: 'extract'; side: 'left' | 'right' }

@@ -12,6 +12,8 @@ export class ColumnState {
     columns = $state<Column[]>([]);
     slots = $state<Slot[]>([]);
     isReordering = $state(false);
+    floatingOrder = $state<string[]>([]);
+    activeFloatingId = $state<string | null>(null);
     private _feeds = new SvelteMap<string, any[]>();
     private _feedStatus = $state.raw<Record<string, string>>({});
 
@@ -55,6 +57,20 @@ export class ColumnState {
 
     deleteFeed(columnId: string): void {
         this._feeds.delete(columnId);
+    }
+
+    registerFloating(id: string): void {
+        if (!this.floatingOrder.includes(id)) this.floatingOrder = [...this.floatingOrder, id];
+    }
+
+    unregisterFloating(id: string): void {
+        this.floatingOrder = this.floatingOrder.filter(x => x !== id);
+        if (this.activeFloatingId === id) this.activeFloatingId = null;
+    }
+
+    raiseFloating(id: string): void {
+        this.floatingOrder = [...this.floatingOrder.filter(x => x !== id), id];
+        this.activeFloatingId = id;
     }
 
     syncColumns = $derived(this.columns.map(({ scrollElement, data, ...rest }) => ({

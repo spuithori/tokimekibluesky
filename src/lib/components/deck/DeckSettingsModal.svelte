@@ -279,11 +279,9 @@
     }
 
     function popupColumn() {
-        if (column.settings.isPopup) {
-            column.settings = {...column.settings, isPopup: false};
-        } else {
-            column.settings = {...column.settings, isPopup: true};
-        }
+        animateLayout(() => {
+            column.settings = {...column.settings, isPopup: !column.settings.isPopup};
+        });
     }
 
     function handleSearchChange() {

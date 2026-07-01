@@ -342,7 +342,9 @@
 
 .deck-popup-wrap {
     .deck-settings-wrap {
-        height: 400px !important;
+        top: 52px;
+        bottom: auto;
+        height: calc(100% - 52px) !important;
     }
 }
 

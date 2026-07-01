@@ -24,7 +24,7 @@
         {#if !col?.settings?.isPopup}
           <DeckSlot {index}></DeckSlot>
         {:else}
-          <DeckPopupWrap column={col} {index}></DeckPopupWrap>
+          <DeckPopupWrap {index}></DeckPopupWrap>
         {/if}
       {/each}
     </div>

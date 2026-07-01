@@ -5,13 +5,14 @@
     import {getAccountIdByDid, getDisplayNameByDid} from "$lib/util";
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
     import {iconMap} from "$lib/columnIcons";
-    import {scrollDirection} from "$lib/scrollDirection";
     import {onDestroy, onMount} from "svelte";
     import {toast} from "svelte-sonner";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {tilingDrag} from "$lib/classes/tilingDragState.svelte";
+    import {animateLayout} from "$lib/animations/flip";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
+    import {scrollDirection} from "$lib/scrollDirection";
     import {publishState} from "$lib/classes/publishState.svelte";
     import Filter from '@lucide/svelte/icons/filter';
     import GripVertical from '@lucide/svelte/icons/grip-vertical';
@@ -146,7 +147,9 @@
     }
 
     function handleChangePopup() {
-        column.settings = {...column.settings, isPopup: !column.settings?.isPopup};
+        animateLayout(() => {
+            column.settings = {...column.settings, isPopup: !column.settings?.isPopup};
+        });
     }
 
     function changeAuthorFilter(isFilter: boolean) {
@@ -237,6 +240,7 @@
     class:deck-row--settings-open={isSettingsOpen}
     class:deck-row--tile-dragging={tilingDrag.draggingId === column?.id}
     data-tile-id={$settings.design?.layout === 'decks' && !isJunk && !column?.settings?.isPopup ? column?.id : undefined}
+    data-flip-id={column?.id}
     onscroll={handleScroll}
     bind:this={column.scrollElement}
     style:background-image={column?.settings?.background ? `url(${backgroundsMap.get(column.settings.background)?.url})` : 'none'}
@@ -395,6 +399,7 @@
             scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
             scrollbar-width: thin;
             box-shadow: none;
+            padding-top: 46px;
         }
 
         &--in-split {

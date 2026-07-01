@@ -156,3 +156,115 @@ describe("ColumnState tiling: split/unsplit/swap (モーダル操作と同一の
         cleanup();
     });
 });
+
+function buildNested(cs: any) {
+    cs.add(col("a"));
+    cs.splitColumnAt("a", col("b"), "column");
+    cs.splitColumnAt("b", col("c"), "column");
+}
+
+describe("ColumnState tiling: 入れ子split(3ペイン) エッジケース", () => {
+    it("入れ子 [a,[b,c]] を構築でき isInSplit/leafIdsOf が正しい", () => {
+        const { cs, cleanup } = createRealColumnState();
+        buildNested(cs);
+        expect(cs.slots).toHaveLength(1);
+        expect(flattenLeafIds(cs.slots[0].layout)).toEqual(["a", "b", "c"]);
+        expect(cs.isInSplit("a")).toBe(true);
+        expect(cs.isInSplit("c")).toBe(true);
+        expect(cs.leafIdsOf(0)).toEqual(["a", "b", "c"]);
+        cleanup();
+    });
+
+    it("入れ子の末端リーフを unsplit(削除)すると内側splitが畳まれる", () => {
+        const { cs, cleanup } = createRealColumnState();
+        buildNested(cs);
+        cs.unsplitColumnAt("c", false);
+        expect(flattenLeafIds(cs.slots[0].layout)).toEqual(["a", "b"]);
+        expect(ids(cs).sort()).toEqual(["a", "b"]);
+        cleanup();
+    });
+
+    it("入れ子のサブペインを独立スロットへ抽出(残りは畳む)", () => {
+        const { cs, cleanup } = createRealColumnState();
+        buildNested(cs);
+        cs.moveLeafToSlot("c", 1);
+        expect(cs.slots).toHaveLength(2);
+        expect(flattenLeafIds(cs.slots[0].layout)).toEqual(["a", "b"]);
+        expect(flattenLeafIds(cs.slots[1].layout)).toEqual(["c"]);
+        cleanup();
+    });
+
+    it("入れ子のサブペインを別リーフへ合流(detach→再構成)", () => {
+        const { cs, cleanup } = createRealColumnState();
+        buildNested(cs);
+        cs.moveLeafToSplit("c", "a", "column", false);
+        expect(cs.slots).toHaveLength(1);
+        expect(flattenLeafIds(cs.slots[0].layout).sort()).toEqual(["a", "b", "c"]);
+        expect(cs.slots[0].layout.type).toBe("split");
+        cleanup();
+    });
+
+    it("swap はスロット直下(root)の子順のみ反転・入れ子は保持", () => {
+        const { cs, cleanup } = createRealColumnState();
+        buildNested(cs);
+        cs.swapSplitColumn("a");
+        expect(flattenLeafIds(cs.slots[0].layout)).toEqual(["b", "c", "a"]);
+        cleanup();
+    });
+});
+
+describe("ColumnState: 単一leafを中間へ移動(dock の index 補正・オフバイワン退行防止)", () => {
+    it("source が挿入先より左: 補正後 index(=slotIndexOf(target)-1)で目的の隣接に入る", () => {
+        const { cs, cleanup } = createRealColumnState();
+        ["F", "B", "C", "D"].forEach((id) => cs.add(col(id)));
+        cs.moveLeafToSlot("F", 1);
+        expect(cs.slots.map((s: any) => flattenLeafIds(s.layout)[0])).toEqual(["B", "F", "C", "D"]);
+        cleanup();
+    });
+
+    it("補正なしの生 index だと detach で1つ右にずれる(バグ再現)", () => {
+        const { cs, cleanup } = createRealColumnState();
+        ["F", "B", "C", "D"].forEach((id) => cs.add(col(id)));
+        cs.moveLeafToSlot("F", 2);
+        expect(cs.slots.map((s: any) => flattenLeafIds(s.layout)[0])).toEqual(["B", "C", "F", "D"]);
+        cleanup();
+    });
+
+    it("source が挿入先より右: 補正不要でそのまま目的位置", () => {
+        const { cs, cleanup } = createRealColumnState();
+        ["B", "C", "F", "D"].forEach((id) => cs.add(col(id)));
+        cs.moveLeafToSlot("F", 1);
+        expect(cs.slots.map((s: any) => flattenLeafIds(s.layout)[0])).toEqual(["B", "F", "C", "D"]);
+        cleanup();
+    });
+});
+
+describe("ColumnState tiling: 単一/空/不正 のエッジケース", () => {
+    it("存在しない source の move は不変(no-op)", () => {
+        const { cs, cleanup } = createRealColumnState();
+        cs.add(col("a"));
+        const before = cs.slots;
+        cs.moveLeafToSplit("zzz", "a");
+        cs.moveLeafToSlot("zzz", 0);
+        expect(cs.slots).toBe(before);
+        cleanup();
+    });
+
+    it("単一カラムを自身の位置へ moveLeafToSlot しても壊れない", () => {
+        const { cs, cleanup } = createRealColumnState();
+        cs.add(col("a"));
+        cs.moveLeafToSlot("a", 0);
+        expect(cs.slots).toHaveLength(1);
+        expect(flattenLeafIds(cs.slots[0].layout)).toEqual(["a"]);
+        expect(ids(cs)).toEqual(["a"]);
+        cleanup();
+    });
+
+    it("空デッキでの move は安全に no-op", () => {
+        const { cs, cleanup } = createRealColumnState();
+        cs.moveLeafToSplit("x", "y");
+        cs.moveLeafToSlot("x", 0);
+        expect(cs.slots).toHaveLength(0);
+        cleanup();
+    });
+});

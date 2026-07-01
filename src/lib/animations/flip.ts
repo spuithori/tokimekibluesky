@@ -58,8 +58,9 @@ export function flipTo<K>(
     return anims;
 }
 
-const TILE_SELECTOR = '.deck-row[data-tile-id]';
-const tileKeyOf = (el: HTMLElement) => el.dataset.tileId;
+const TILE_SELECTOR = '.deck-row[data-flip-id]';
+const tileKeyOf = (el: HTMLElement) => el.dataset.flipId;
+const isFloating = (el: HTMLElement) => !!el.closest('.deck-popup-wrap');
 
 export function animateLayout(mutate: () => void, opts: { exiting?: string[] } = {}): void {
     if (typeof document === 'undefined' || prefersReducedMotion()) {
@@ -82,13 +83,13 @@ export function animateLayout(mutate: () => void, opts: { exiting?: string[] } =
     flushSync(mutate);
 
     const after = [...root.querySelectorAll<HTMLElement>(TILE_SELECTOR)];
-    flipTo(after, tileKeyOf, first);
+    flipTo(after.filter((el) => !isFloating(el)), tileKeyOf, first);
 
     for (const el of after) {
         const key = tileKeyOf(el);
         const saved = scrolls.get(key);
         if (saved) el.scrollTop = saved;
-        if (key && !first.has(key)) {
+        if (key && !first.has(key) && !isFloating(el)) {
             el.animate(
                 [
                     { opacity: '0', transform: 'scale(0.96)' },
