@@ -42,8 +42,14 @@ const DEFAULT_DURATION = 220;
 const DEFAULT_EASING = 'cubic-bezier(0.2, 0, 0, 1)';
 const EDGE_PX = 12;
 const QUAD_DEADBAND = 0.06;
+const REORDER_BAND = 0.25;
+const BAND_DEADBAND = 10;
 
 export type Quad = 'top' | 'bottom' | 'left' | 'right';
+
+export function reorderBandPx(height: number): number {
+	return Math.min(Math.max(height * REORDER_BAND, 64), 220);
+}
 
 export function quadrantZone(
 	width: number,
@@ -183,11 +189,16 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 
 			if (el && id && id !== dragId && !node.contains(el)) {
 				const r = el.getBoundingClientRect();
-				const cur: Quad | null =
-					dropTarget?.kind === 'split' && dropTarget.id === id ? dropTarget.zone : null;
-				const zone = quadrantZone(r.width, r.height, clientX - r.left, clientY - r.top, cur, QUAD_DEADBAND);
-				setDrop({ kind: 'split', id, zone, rect: { x: r.left, y: r.top, w: r.width, h: r.height } });
-				return;
+				const localY = clientY - r.top;
+				const isSplitting = dropTarget?.kind === 'split' && dropTarget.id === id;
+				const band = reorderBandPx(r.height);
+				const bandThresh = isSplitting ? band - BAND_DEADBAND : band + BAND_DEADBAND;
+				if (localY >= bandThresh) {
+					const cur: Quad | null = isSplitting ? dropTarget.zone : null;
+					const zone = quadrantZone(r.width, r.height, clientX - r.left, localY, cur, QUAD_DEADBAND);
+					setDrop({ kind: 'split', id, zone, rect: { x: r.left, y: r.top, w: r.width, h: r.height } });
+					return;
+				}
 			}
 			setDrop(null);
 		}

@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { quadrantZone, insertionIndexAt, dockZoneAt } from './sortable.svelte';
+import { quadrantZone, reorderBandPx, insertionIndexAt, dockZoneAt } from './sortable.svelte';
+
+describe('reorderBandPx (並べ替え上部帯)', () => {
+    it('高さの25%・下限64px・上限220px でクランプ', () => {
+        expect(reorderBandPx(800)).toBe(200);
+        expect(reorderBandPx(120)).toBe(64);
+        expect(reorderBandPx(2000)).toBe(220);
+    });
+});
 
 describe('quadrantZone (4方向 split 判定)', () => {
     const W = 400;
