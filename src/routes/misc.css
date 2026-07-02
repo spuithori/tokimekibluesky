@@ -344,7 +344,7 @@
     .deck-settings-wrap {
         top: 52px;
         bottom: auto;
-        height: calc(100% - 52px) !important;
+        height: calc(var(--popup-height, 400) * 1px - 82px) !important;
     }
 }
 

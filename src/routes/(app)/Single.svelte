@@ -2,6 +2,7 @@
     import {agent, currentTimeline, settings} from '$lib/stores';
     import {page} from '$app/stores';
     import {clampSingleWidth} from "$lib/deckWidth";
+    import {startPointerDrag} from "$lib/pointerDrag";
     import DeckSlot from "./DeckSlot.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -57,28 +58,17 @@
 
     function startWidthResize(event: PointerEvent) {
         if (isMobile || !wrapEl) return;
-        const handle = event.currentTarget as HTMLElement;
-        const el = wrapEl;
-        event.preventDefault();
-        handle.setPointerCapture(event.pointerId);
         const startX = event.clientX;
-        const startWidth = el.offsetWidth;
+        const startWidth = wrapEl.offsetWidth;
         resizeWidth = startWidth;
-
-        const onMove = (e: PointerEvent) => {
-            resizeWidth = clampSingleWidth(startWidth + (e.clientX - startX));
-        };
-        const onUp = (e: PointerEvent) => {
-            try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
-            document.removeEventListener('pointermove', onMove);
-            document.removeEventListener('pointerup', onUp);
-            document.removeEventListener('pointercancel', onUp);
-            if (resizeWidth != null) $settings.design.singleWidth = resizeWidth;
-            resizeWidth = null;
-        };
-        document.addEventListener('pointermove', onMove);
-        document.addEventListener('pointerup', onUp);
-        document.addEventListener('pointercancel', onUp);
+        startPointerDrag(
+            event,
+            (e) => { resizeWidth = clampSingleWidth(startWidth + (e.clientX - startX)); },
+            () => {
+                if (resizeWidth != null) $settings.design.singleWidth = resizeWidth;
+                resizeWidth = null;
+            },
+        );
     }
 
     $effect(() => {

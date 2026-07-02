@@ -5,6 +5,7 @@
     import {animateLayout} from "$lib/animations/flip";
     import {firstLeafId} from "$lib/classes/deckLayout";
     import {clampDeckWidth} from "$lib/deckWidth";
+    import {startPointerDrag} from "$lib/pointerDrag";
     import { sortable } from "$lib/attachments/sortable.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
     import LayoutView from "./LayoutView.svelte";
@@ -74,30 +75,16 @@
 
     function startWidthResize(event: PointerEvent) {
         if (isMobile || !slotEl || !column) return;
-        const handle = event.currentTarget as HTMLElement;
-        const el = slotEl;
         const col = column;
-        event.preventDefault();
-        handle.setPointerCapture(event.pointerId);
         const startX = event.clientX;
-        const startWidth = el.offsetWidth;
+        const startWidth = slotEl.offsetWidth;
         isWidthResizing = true;
         columnState.isResizingWidth = true;
-
-        const onMove = (e: PointerEvent) => {
-            col.settings.width = clampDeckWidth(startWidth + (e.clientX - startX));
-        };
-        const onUp = (e: PointerEvent) => {
-            try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
-            document.removeEventListener('pointermove', onMove);
-            document.removeEventListener('pointerup', onUp);
-            document.removeEventListener('pointercancel', onUp);
-            isWidthResizing = false;
-            columnState.isResizingWidth = false;
-        };
-        document.addEventListener('pointermove', onMove);
-        document.addEventListener('pointerup', onUp);
-        document.addEventListener('pointercancel', onUp);
+        startPointerDrag(
+            event,
+            (e) => { col.settings.width = clampDeckWidth(startWidth + (e.clientX - startX)); },
+            () => { isWidthResizing = false; columnState.isResizingWidth = false; },
+        );
     }
 </script>
 

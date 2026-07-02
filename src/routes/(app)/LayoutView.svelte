@@ -4,6 +4,7 @@
     import GripHorizontal from '@lucide/svelte/icons/grip-horizontal';
     import { getColumnState } from "$lib/classes/columnState.svelte";
     import { firstLeafId, type LayoutNode } from "$lib/classes/deckLayout";
+    import { startPointerDrag } from "$lib/pointerDrag";
 
     interface Props {
         node: LayoutNode;
@@ -26,15 +27,10 @@
         if (node.type !== 'split') return;
         if (typeof window !== 'undefined' && window.innerWidth <= 767) return;
         if (event.button !== 0 && event.pointerType === 'mouse') return;
-        event.preventDefault();
         isResizing = true;
 
-        const handle = event.currentTarget as HTMLElement;
-        const pointerId = event.pointerId;
-        handle.setPointerCapture?.(pointerId);
-
         const splitNode = node;
-        const container = handle.closest('.layout-split') as HTMLElement;
+        const container = (event.currentTarget as HTMLElement).closest('.layout-split') as HTMLElement;
         const rect = container?.getBoundingClientRect();
         const isRow = splitNode.direction === 'row';
         const start = isRow ? event.clientX : event.clientY;
@@ -43,29 +39,19 @@
         const startB = splitNode.sizes[childIndex + 1];
         const pairSum = startA + startB;
 
-        function onMove(e: PointerEvent) {
-            if (e.pointerId !== pointerId) return;
-            const delta = (isRow ? e.clientX : e.clientY) - start;
-            let a = startA + (delta / total);
-            a = Math.max(0.15 * pairSum, Math.min(0.85 * pairSum, a));
-            const sizes = [...splitNode.sizes];
-            sizes[childIndex] = a;
-            sizes[childIndex + 1] = pairSum - a;
-            columnState.setNodeSizes(splitNode, sizes);
-        }
-
-        function onUp(e: PointerEvent) {
-            if (e.pointerId !== pointerId) return;
-            isResizing = false;
-            handle.releasePointerCapture?.(pointerId);
-            document.removeEventListener('pointermove', onMove);
-            document.removeEventListener('pointerup', onUp);
-            document.removeEventListener('pointercancel', onUp);
-        }
-
-        document.addEventListener('pointermove', onMove);
-        document.addEventListener('pointerup', onUp);
-        document.addEventListener('pointercancel', onUp);
+        startPointerDrag(
+            event,
+            (e) => {
+                const delta = (isRow ? e.clientX : e.clientY) - start;
+                let a = startA + (delta / total);
+                a = Math.max(0.15 * pairSum, Math.min(0.85 * pairSum, a));
+                const sizes = [...splitNode.sizes];
+                sizes[childIndex] = a;
+                sizes[childIndex + 1] = pairSum - a;
+                columnState.setNodeSizes(splitNode, sizes);
+            },
+            () => { isResizing = false; },
+        );
     }
 </script>
 

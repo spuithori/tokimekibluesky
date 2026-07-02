@@ -341,11 +341,11 @@
         {#if isIconPickerOpen}
             <ColumnIconPicker onchange={handleIconChange} onclose={() => {isIconPickerOpen = false}} current={column?.settings?.icon}></ColumnIconPicker>
         {/if}
-    </div>
 
-    {#if isSettingsOpen}
-        <DeckSettingsModal {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick} {isSplit}></DeckSettingsModal>
-    {/if}
+        {#if isSettingsOpen}
+            <DeckSettingsModal {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick} {isSplit}></DeckSettingsModal>
+        {/if}
+    </div>
 
     <Refresher
             onrefresh={handleRefresh}
