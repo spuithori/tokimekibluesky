@@ -751,6 +751,7 @@
 
         &--split {
             top: 48px;
+            right: 0;
             bottom: 0;
             height: auto;
         }

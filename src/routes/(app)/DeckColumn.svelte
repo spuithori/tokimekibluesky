@@ -245,6 +245,10 @@
     bind:this={column.scrollElement}
     style:background-image={column?.settings?.background ? `url(${backgroundsMap.get(column.settings.background)?.url})` : 'none'}
 >
+    {#snippet settingsModal()}
+        <DeckSettingsModal {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick} {isSplit}></DeckSettingsModal>
+    {/snippet}
+
     <div class="deck-heading" class:deck-heading--sticky={isJunk && column?.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk}>
         {#if (!isJunk)}
             {#if showDragHandle}
@@ -342,10 +346,14 @@
             <ColumnIconPicker onchange={handleIconChange} onclose={() => {isIconPickerOpen = false}} current={column?.settings?.icon}></ColumnIconPicker>
         {/if}
 
-        {#if isSettingsOpen}
-            <DeckSettingsModal {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick} {isSplit}></DeckSettingsModal>
+        {#if isSettingsOpen && !isSplit}
+            {@render settingsModal()}
         {/if}
     </div>
+
+    {#if isSettingsOpen && isSplit}
+        {@render settingsModal()}
+    {/if}
 
     <Refresher
             onrefresh={handleRefresh}
