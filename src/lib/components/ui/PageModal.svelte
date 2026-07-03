@@ -1,8 +1,7 @@
 <script lang="ts">
   import {settings} from '$lib/stores';
   import {goto} from '$app/navigation';
-  import {publishState} from "$lib/classes/publishState.svelte";
-  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {isJunkModalContinuation} from '$lib/junkModalTransition';
 
   interface Props {
     isVirtual?: boolean;
@@ -10,11 +9,10 @@
   }
 
   let { isVirtual = false, children }: Props = $props();
-  const columnState = getColumnState(true);
+
+  const skipEntrance = isJunkModalContinuation();
 
   function close() {
-      columnState.removeAll();
-      
       goto('/', {
           noScroll: true,
       });
@@ -31,9 +29,11 @@
 
 <svelte:window onkeydown={handleKeydown}></svelte:window>
 
-<div class="modal-page modal-page--{$settings.design?.layout}" class:modal-page--side={publishState.isSideShown}>
-  <div class="modal-page-content" class:modal-page-content--virtual={isVirtual}>
-    {@render children?.()}
+<div class="modal-page modal-page--{$settings.design?.layout}">
+  <div class="modal-page-frame" class:modal-page-frame--no-anim={skipEntrance}>
+    <div class="modal-page-content" class:modal-page-content--virtual={isVirtual}>
+      {@render children?.()}
+    </div>
   </div>
 
   {#if $settings.design?.layout === 'decks'}

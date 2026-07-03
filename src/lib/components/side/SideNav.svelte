@@ -19,7 +19,6 @@
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
   import { clickOutside } from '$lib/clickOutSide';
-  import { publishState } from "$lib/classes/publishState.svelte";
   import {type SideItem, sideState} from "$lib/classes/sideState.svelte";
   import { goto } from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -148,7 +147,7 @@
   }
 </script>
 
-<ul class="side-nav" class:side-nav--vertical={publishState.isBottom} class:side-nav--footer={footer}>
+<ul class="side-nav side-nav--vertical" class:side-nav--footer={footer}>
   {#each sideState.items as item}
     <li class="side-nav__item">
       <button class="side-nav__button side-nav__button--{item}" onclick={() => {handleMenuAction(item)}}>

@@ -3,11 +3,11 @@
     import { page } from '$app/stores';
     import {agent} from '$lib/stores';
     import {_} from "svelte-i18n";
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import { PUBLIC_SUICIDE_WORDS } from '$env/static/public';
     import SuicideSafety from "$lib/components/safety/SuicideSafety.svelte";
-    import DeckSlot from "../DeckSlot.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {type JunkColumnDescriptor} from "$lib/junkColumn";
+    import JunkColumn from "../JunkColumn.svelte";
 
     const junkColumnState = getColumnState(true);
 
@@ -16,24 +16,18 @@
     let isSafety = $state(false);
     let sort: 'top' | 'latest' = $state('latest');
 
-    if ($page.url.searchParams.get('q') && !junkColumnState.hasColumn('search_' + $page.url.searchParams.get('q'))) {
-        junkColumnState.add({
-            id: $page.url.searchParams.get('q') ? 'search_' + $page.url.searchParams.get('q') : 'search_empty',
-            algorithm: {
-                algorithm: $page.url.searchParams.get('q') || '',
-                type: 'search',
-                name: $_('search') + ' "' + $page.url.searchParams.get('q') + '"',
-            },
-            style: 'default',
-            settings: defaultDeckSettings,
-            did: $agent.did(),
-            handle: $agent.handle(),
-            data: {
-                feed: [],
-                cursor: '',
-            }
-        });
-    }
+    const q = $derived($page.url.searchParams.get('q') || '');
+
+    const descriptor: JunkColumnDescriptor = $derived({
+        id: 'search_' + q,
+        algorithm: {
+            algorithm: q,
+            type: 'search',
+            name: $_('search') + ' "' + q + '"',
+        },
+        did: $agent.did(),
+        handle: $agent.handle(),
+    });
 
     const words = PUBLIC_SUICIDE_WORDS.split(',');
     if (words.includes($page.url.searchParams.get('q'))) {
@@ -69,8 +63,8 @@
 {/if}
 
 {#key sort}
-    {#if ($page.url.searchParams.get('q') && junkColumnState.hasColumn('search_' + $page.url.searchParams.get('q')))}
-        <DeckSlot index={junkColumnState.getColumnIndex('search_' + $page.url.searchParams.get('q'))} isJunk={true}></DeckSlot>
+    {#if q}
+        <JunkColumn {descriptor}></JunkColumn>
     {:else}
         <div class="search-empty">
             <Rainbow size={128} color="var(--border-color-1)" />

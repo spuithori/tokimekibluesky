@@ -291,16 +291,6 @@ const rawSettingsSchema = [
 
     // --- design (complex pickers are custom; simple fields use generic Field types) ---
     {
-        key: "design.publishPosition",
-        category: "design",
-        scope: "global",
-        type: "custom",
-        custom: "publishPosition",
-        section: "settings_section_layout",
-        label: "publish_position",
-        default: "left",
-    },
-    {
         key: "design.layout",
         category: "design",
         scope: "global",

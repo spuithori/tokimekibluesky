@@ -1,37 +1,36 @@
 <script lang="ts">
     let { image, naturalWidth, naturalHeight } = $props();
     let loaded = $state(false);
-    let inView = $state(false);
+    let instant = $state(false);
 
-    function lazyLoad(node: HTMLImageElement) {
+    function lazyImage(node: HTMLImageElement) {
         const target = node.closest('.virtual-item') ?? node;
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (entry.isIntersecting) {
-                    inView = true;
-                    observer.disconnect();
+                if (!entry.isIntersecting) return;
+                observer.disconnect();
+                node.src = image.thumb;
+                if (node.complete && node.naturalWidth > 0) {
+                    instant = true;
+                    loaded = true;
                 }
             },
             { rootMargin: '1000px' },
         );
         observer.observe(target);
-        return {
-            destroy() {
-                observer.disconnect();
-            },
-        };
+        return () => observer.disconnect();
     }
 </script>
 
 <img
-    use:lazyLoad
+    {@attach lazyImage}
     decoding="async"
-    src={inView ? image.thumb : undefined}
     alt={image.alt}
     width={image?.aspectRatio?.width}
     height={image?.aspectRatio?.height}
     class="lazy-image"
     class:loaded
+    class:lazy-image--instant={instant}
     onload={() => { loaded = true; }}
     bind:naturalWidth={null, (v) => naturalWidth(image?.aspectRatio?.width || v)}
     bind:naturalHeight={null, (v) => naturalHeight(image?.aspectRatio?.height || v)}
@@ -45,5 +44,8 @@
     }
     .lazy-image.loaded {
         opacity: 1;
+    }
+    .lazy-image--instant {
+        transition: none;
     }
 </style>

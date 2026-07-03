@@ -320,6 +320,8 @@
   "page_title_likes": "的点赞",
   "feed_quick_add": "快速添加列",
   "column_added": "已添加列",
+  "column_publish": "发布",
+  "publish_open_composer": "打开发布框",
   "p_menu_my_accounts": "我的账户",
   "/search/feeds_search": "订阅搜索",
   "column_style": "列样式（标准/媒体）",

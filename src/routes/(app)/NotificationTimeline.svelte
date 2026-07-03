@@ -1,7 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import {agent, settings} from '$lib/stores';
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {getScopedColumnState} from "$lib/classes/columnState.svelte";
     import AtSign from '@lucide/svelte/icons/at-sign';
     import Heart from '@lucide/svelte/icons/heart';
     import Quote from '@lucide/svelte/icons/quote';
@@ -20,8 +20,8 @@
 
     type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow' | 'like-via-repost' | 'repost-via-repost' | 'subscribed-post';
 
-    let { index, isJunk, _agent = $agent, unique, isSplit = false, column: columnProp = undefined } = $props();
-    let columnState = getColumnState(isJunk);
+    let { index, _agent = $agent, unique, isSplit = false, column: columnProp = undefined } = $props();
+    const columnState = getScopedColumnState();
     const column = $derived(columnProp ?? columnState.getColumn(index));
     let sound = $derived(column.settings?.playSound);
     let isOnlyShowUnread = $derived(column.settings?.onlyShowUnread);

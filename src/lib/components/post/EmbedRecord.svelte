@@ -6,9 +6,10 @@
   import {_} from "svelte-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
+  import TimelineVideo from "$lib/components/post/TimelineVideo.svelte";
   import {contentLabelling, detectWarn, keywordFilter} from "$lib/timelineFilter";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import {openJunkColumn} from "$lib/junkColumn";
   import {goto} from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
@@ -67,26 +68,17 @@
           formattedPost.embed = record.embeds[0];
       }
 
-      if (!junkColumnState.hasColumn('thread_' + rkey)) {
-          junkColumnState.add({
-              id: 'thread_' + rkey,
-              algorithm: {
-                  algorithm: 'at://' + record.author?.did + '/app.bsky.feed.post/' + rkey,
-                  type: 'thread',
-                  name: 'Thread',
-              },
-              style: 'default',
-              settings: defaultDeckSettings,
-              did: _agent.did(),
-              handle: _agent.handle(),
-              data: {
-                  feed: [{
-                      post: formattedPost,
-                  }],
-                  cursor: '',
-              }
-          });
-      }
+      openJunkColumn(junkColumnState, {
+          id: 'thread_' + rkey,
+          algorithm: {
+              algorithm: 'at://' + record.author?.did + '/app.bsky.feed.post/' + rkey,
+              type: 'thread',
+              name: 'Thread',
+          },
+          did: _agent.did(),
+          handle: _agent.handle(),
+          seedFeed: [{ post: formattedPost }],
+      });
 
       goto(uri);
   }
@@ -151,9 +143,7 @@
       {/if}
 
       {#if AppBskyEmbedVideo.isView(record?.embeds[0])}
-        {#await import('$lib/components/post/EmbedVideo.svelte') then { default: EmbedVideo }}
-          <EmbedVideo video={record.embeds[0]}></EmbedVideo>
-        {/await}
+        <TimelineVideo video={record.embeds[0]}></TimelineVideo>
       {/if}
 
       {#if (AppBskyEmbedExternal.isView(record?.embeds[0]))}

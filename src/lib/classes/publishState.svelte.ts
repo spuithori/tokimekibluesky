@@ -1,24 +1,26 @@
-type Layout = 'left' | 'bottom' | 'popup';
-
 class PublishState {
-    layout: Layout = $state('left');
-    show: boolean = $state(false);
+    #show: boolean = $state(false);
     pinned: boolean = $state(false);
-    isSideShown = $derived(this.layout === 'left' && this.show);
-    isBottom = $derived(this.layout !== 'left' || !this.show);
+    focusTick = $state(0);
+    intercept: (() => boolean) | undefined;
+
+    get show(): boolean {
+        return this.#show;
+    }
+
+    set show(value: boolean) {
+        if (value && !this.#show && this.intercept?.()) {
+            return;
+        }
+        this.#show = value;
+    }
 
     constructor() {
         const storagePinned = localStorage.getItem('pinned') || JSON.stringify(false);
         this.pinned = JSON.parse(storagePinned);
-        this.layout = localStorage.getItem('layout') as Layout || 'left';
-
-        if (this.pinned && this.layout === 'left') {
-            this.show = true;
-        }
 
         $effect.root(() => {
             $effect(() => {
-                localStorage.setItem('layout', this.layout);
                 localStorage.setItem('pinned', JSON.stringify(this.pinned));
             });
             return () => {};

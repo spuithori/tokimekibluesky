@@ -3,7 +3,7 @@
     import {_} from 'svelte-i18n';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import Infinite from "$lib/components/utils/Infinite.svelte";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {getScopedColumnState} from "$lib/classes/columnState.svelte";
     import {settingsState} from "$lib/classes/settingsState.svelte";
     import ChatListItemColumn from "$lib/components/chat/ChatListItemColumn.svelte";
     import ChatTimeline from "./ChatTimeline.svelte";
@@ -15,9 +15,9 @@
     import ArrowLeft from '@lucide/svelte/icons/arrow-left';
     import Inbox from '@lucide/svelte/icons/inbox';
 
-    let { index, _agent = $agent, onrefresh, unique, isJunk, isSplit = false, column: columnProp = undefined } = $props();
+    let { index, _agent = $agent, onrefresh, unique, isSplit = false, column: columnProp = undefined } = $props();
 
-    const columnState = getColumnState(isJunk);
+    const columnState = getScopedColumnState();
     const column = $derived(columnProp ?? columnState.getColumn(index));
 
     let currentView: 'list' | 'detail' | 'requests' = $state('list');
@@ -227,7 +227,7 @@
     </div>
 {:else}
     <div class="chat-detail">
-        <ChatTimeline {index} _agent={_agent || $agent} {unique} {isJunk} {onrefresh} {isSplit} {column} onback={handleBack} onleave={handleLeave}></ChatTimeline>
+        <ChatTimeline {index} _agent={_agent || $agent} {unique} {onrefresh} {isSplit} {column} onback={handleBack} onleave={handleLeave}></ChatTimeline>
     </div>
 {/if}
 

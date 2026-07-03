@@ -3,10 +3,10 @@
     import Likes from "$lib/components/thread/Likes.svelte";
     import Quotes from "$lib/components/thread/Quotes.svelte";
     import Reposts from "$lib/components/thread/Reposts.svelte";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {getScopedColumnState} from "$lib/classes/columnState.svelte";
 
-    let { column, index, _agent, isJunk = false } = $props();
-    const columnState = getColumnState(isJunk);
+    let { column, index, _agent } = $props();
+    const columnState = getScopedColumnState();
     let feedItem = $derived(columnState.getFeed(column.id)[index]);
 </script>
 

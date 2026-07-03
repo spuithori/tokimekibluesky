@@ -319,6 +319,8 @@
   "page_title_likes": "likes",
   "feed_quick_add": "Add column",
   "column_added": "Column added.",
+  "column_publish": "Пост",
+  "publish_open_composer": "Открыть редактор поста",
   "p_menu_my_accounts": "My accounts",
   "/search/feeds_search": "Feed search",
   "column_style": "Column style (Normal/Media)",

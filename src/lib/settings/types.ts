@@ -56,7 +56,6 @@ export interface DesignSettings {
     postsImageLayout: string;
     galleryLayout: string;
     postsLayout: string;
-    publishPosition: string;
     externalLayout: string;
     reactionButtons: reactionButtons;
     advancedBreak: boolean;

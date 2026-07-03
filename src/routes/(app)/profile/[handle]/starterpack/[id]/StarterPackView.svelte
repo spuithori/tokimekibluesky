@@ -6,7 +6,7 @@
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import {toast} from "svelte-sonner";
   import {TID} from "$lib/atproto-tid";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import {openJunkColumn} from "$lib/junkColumn";
   import DeckSlot from "../../../../DeckSlot.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import StarterPackMenu from "$lib/components/starterpack/StarterPackMenu.svelte";
@@ -99,22 +99,16 @@
         }
       }
 
-      if (listUri && !columnState.hasColumn(columnId)) {
-        columnState.add({
+      if (listUri) {
+        openJunkColumn(columnState, {
           id: columnId,
           algorithm: {
             algorithm: listUri,
             type: 'officialList',
             name: '',
           },
-          style: 'default',
-          settings: defaultDeckSettings,
           did: $agent.did(),
           handle: $agent.handle(),
-          data: {
-            feed: [],
-            cursor: '',
-          }
         });
       }
 

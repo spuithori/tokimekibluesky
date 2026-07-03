@@ -12,9 +12,21 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
+    import {findPublishColumn, togglePublishColumn} from "$lib/publishColumn";
     import {untrack} from "svelte";
 
     const columnState = getColumnState();
+    const isPublishActive = $derived($settings.design?.layout === 'decks'
+        ? !!findPublishColumn(columnState.columns)
+        : publishState.show);
+
+    function handlePublishClick() {
+        if ($settings.design?.layout === 'decks') {
+            togglePublishColumn(columnState);
+        } else {
+            publishState.show = !publishState.show;
+        }
+    }
     let mobileV2Visible = $state(false);
     let mobileV2Clear = false;
     let els = $state([]);
@@ -80,15 +92,15 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="side-bar side-bar--{publishState.layout}" class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--mobileV2={$settings?.design?.mobileNewUi}
+<div class="side-bar" class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--mobileV2={$settings?.design?.mobileNewUi}
  class:side-bar--mobileV2-visible={mobileV2Visible && $settings?.design?.mobileNewUi}>
   <div class="side-bar__list side-bar__top">
     <button
           class="side-publish-button"
-          onclick={() => {publishState.show = !publishState.show}}
+          onclick={handlePublishClick}
           aria-label="Publish Tab"
     >
-      {#if (publishState.show)}
+      {#if (isPublishActive)}
         <PenOff color="var(--bar-primary-icon-color)"></PenOff>
       {:else}
         <Pen color="var(--bar-primary-icon-color)"></Pen>
@@ -139,11 +151,9 @@
   </div>
 
   <div class="side-bar__list side-bar__bottom">
-    {#if (publishState.isBottom)}
-      <div class="side-bar__nav">
-        <SideNav></SideNav>
-      </div>
-    {/if}
+    <div class="side-bar__nav">
+      <SideNav></SideNav>
+    </div>
 
     <a class="side-bar-button side-bar-button--settings only-pc" href="/settings/general">
       <Settings color="var(--bar-bottom-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Settings>

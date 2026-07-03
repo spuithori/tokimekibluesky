@@ -8,17 +8,17 @@
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
   import {isReasonRepost, isReasonPin} from "$lib/atproto-guards";
   import {toast} from "svelte-sonner";
-  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {getScopedColumnState} from "$lib/classes/columnState.svelte";
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import VirtualTimeline from "$lib/components/timeline/VirtualTimeline.svelte";
   import type {ScrollState} from "$lib/components/virtual/types";
 
-  let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
+  let { index, _agent = $agent, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
 
   let virtualTimelineRef: ReturnType<typeof VirtualTimeline> | undefined = $state();
 
-  const columnState = getColumnState(isJunk);
+  const columnState = getScopedColumnState();
   const column = $derived(columnProp ?? columnState.getColumn(index));
   let isActorsListFinished = false;
   let actors = [];
@@ -334,7 +334,6 @@
   <VirtualTimeline
     {column}
     {_agent}
-    {isJunk}
     {unique}
     {handleLoadMore}
     {handleDividerClick}

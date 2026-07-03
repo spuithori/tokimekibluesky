@@ -1,13 +1,12 @@
 <script lang="ts">
     import {settings} from "$lib/stores";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {getColumnState, setScopedColumnState} from "$lib/classes/columnState.svelte";
     import {tilingDrag} from "$lib/classes/tilingDragState.svelte";
     import {animateLayout} from "$lib/animations/flip";
     import {firstLeafId} from "$lib/classes/deckLayout";
     import {clampDeckWidth} from "$lib/deckWidth";
     import {startPointerDrag} from "$lib/pointerDrag";
     import { sortable } from "$lib/attachments/sortable.svelte";
-    import {publishState} from "$lib/classes/publishState.svelte";
     import LayoutView from "./LayoutView.svelte";
     import DeckColumn from "./DeckColumn.svelte";
 
@@ -26,6 +25,7 @@
     }: Props = $props();
 
     const columnState = getColumnState(isJunk);
+    setScopedColumnState(columnState);
     const slot = $derived(columnState.getSlot(index));
     const isSplitLayout = $derived(slot?.layout?.type === 'split');
     const leafIndex = $derived(columnState.getColumnIndex(columnState.leafIdsOf(index)[0]));
@@ -117,7 +117,6 @@
         class:deck-row-slot--decks={$settings.design?.layout === 'decks'}
         class:deck-row-slot--single={$settings.design?.layout === 'default'}
         class:deck-row-slot--junk={isJunk}
-        class:deck-row-slot--compact={publishState.layout === 'bottom'}
         style:--deck-col-width={typeof widthValue === 'number' ? `${widthValue}px` : null}
         onmouseenter={handleMouseEnter}
         onmouseleave={handleMouseLeave}
@@ -127,14 +126,12 @@
         {#if useSplitLayout}
             <LayoutView
                 node={slot.layout}
-                isJunk={false}
                 {isScrollPaused}
                 {showDragHandle}
             ></LayoutView>
         {:else}
             <DeckColumn
                 index={leafIndex}
-                {isJunk}
                 {name}
                 {_agent}
                 {isScrollPaused}

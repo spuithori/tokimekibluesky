@@ -318,6 +318,8 @@
   "page_title_likes": "의 좋아요",
   "feed_quick_add": "열 추가",
   "column_added": "열을 추가했습니다",
+  "column_publish": "글쓰기",
+  "publish_open_composer": "글쓰기 창 열기",
   "p_menu_my_accounts": "자신의 계정",
   "/search/feeds_search": "피드 검색",
   "column_style": "열의 스타일 (통상/미디어)",

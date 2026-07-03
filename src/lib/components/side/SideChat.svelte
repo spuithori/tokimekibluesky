@@ -18,7 +18,7 @@
   import {isBlockedDirectConvo, getConvoName} from "$lib/components/chat/convoUtil";
   import ChatRequestsList from "$lib/components/chat/ChatRequestsList.svelte";
   import {chatState} from "$lib/classes/chatState.svelte";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import {openJunkColumn} from "$lib/junkColumn";
   import {goto} from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
 
@@ -50,26 +50,16 @@
   }
 
   function handleRequestOpen(convo) {
-      if (!junkColumnState.hasColumn('chat_' + convo.id)) {
-          junkColumnState.add({
-              id: 'chat_' + convo.id,
-              algorithm: {
-                  id: convo.id,
-                  type: 'chat',
-                  name: getConvoName(convo, _agent.did()),
-              },
-              style: 'default',
-              settings: {
-                  ...defaultDeckSettings,
-              },
-              did: _agent.did(),
-              handle: _agent.handle(),
-              data: {
-                  feed: [],
-                  cursor: '',
-              }
-          });
-      }
+      openJunkColumn(junkColumnState, {
+          id: 'chat_' + convo.id,
+          algorithm: {
+              id: convo.id,
+              type: 'chat',
+              name: getConvoName(convo, _agent.did()),
+          },
+          did: _agent.did(),
+          handle: _agent.handle(),
+      });
 
       currentList = 'convos';
       handleRefresh();

@@ -6,7 +6,6 @@
     import { settingsSchema } from "$lib/settings/schema";
     import { accessor } from "$lib/settings/settings.svelte";
     import { createDefaultSettings } from "$lib/settings/defaults";
-    import { publishState } from "$lib/classes/publishState.svelte";
     import type {
         SettingItem,
         SettingsCategoryId,
@@ -61,13 +60,6 @@
         for (const item of settingsSchema.filter(
             (entry) => entry.category === category,
         )) {
-            if (item.custom === "publishPosition") {
-                publishState.layout = item.default as
-                    | "left"
-                    | "bottom"
-                    | "popup";
-                continue;
-            }
             accessor.set(item.key, valueAtPath(defaults, item.key));
         }
         toast.success($_("settings_reset_done"));

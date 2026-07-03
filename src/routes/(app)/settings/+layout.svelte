@@ -2,12 +2,18 @@
   import {_} from 'svelte-i18n';
   import type {LayoutData} from "./$types";
   import {page} from "$app/stores";
+  import {goto} from "$app/navigation";
+  import {MediaQuery} from "svelte/reactivity";
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
   import X from '@lucide/svelte/icons/x';
   import { scale } from 'svelte/transition';
-  import { agent } from "$lib/stores";
+  import { agent, settings } from "$lib/stores";
   import { settingsNav } from "$lib/settings/nav";
+  import { getColumnState } from "$lib/classes/columnState.svelte";
+  import { pathToCategoryId } from "$lib/settings/pagesRegistry";
+  import { openSettingsColumn } from "$lib/settingsColumn";
   import SettingsSearch from "$lib/components/settings/SettingsSearch.svelte";
+  import Columns3 from '@lucide/svelte/icons/columns-3';
 
   const OFFICIAL_HANDLE = 'tokimeki.blue';
   const STORAGE_KEY = 'hideFollowPrompt';
@@ -21,6 +27,16 @@
   }
 
   let { data, children }: Props = $props();
+
+  const columnState = getColumnState();
+  const mobileQuery = new MediaQuery('(max-width: 767px)');
+  const canAddColumn = $derived($settings.design?.layout === 'decks' && !mobileQuery.current);
+  const categoryId = $derived(pathToCategoryId(data.pathname));
+
+  function addAsColumn() {
+      openSettingsColumn(columnState, categoryId);
+      goto('/', { noScroll: true });
+  }
 
   let showFollowPrompt = $state(false);
   let isFollowing = $state(false);
@@ -173,6 +189,15 @@
             {@render children?.()}
           </div>
         {/key}
+
+        {#if canAddColumn && categoryId !== 'root'}
+          <div class="settings-column-adder">
+            <button class="button button--shadow button--sm settings-column-adder__button" onclick={addAsColumn}>
+              <Columns3 size="18" color="currentColor"></Columns3>
+              {$_('settings_add_as_column')}
+            </button>
+          </div>
+        {/if}
       </div>
     </div>
   </div>
@@ -205,9 +230,26 @@
       min-width: 0;
       height: 100%;
       overflow-y: scroll;
+      position: relative;
 
       @media (max-width: 767px) {
           padding-left: 0;
+      }
+  }
+
+  .settings-column-adder {
+      position: sticky;
+      bottom: 20px;
+      display: flex;
+      justify-content: flex-end;
+      padding: 16px 20px 0;
+      pointer-events: none;
+
+      &__button {
+          pointer-events: auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
       }
   }
 

@@ -14,6 +14,8 @@
     import MessageCircleMore from '@lucide/svelte/icons/message-circle-more';
     import MessagesSquare from '@lucide/svelte/icons/messages-square';
     import BookType from '@lucide/svelte/icons/book-type';
+    import SquarePen from '@lucide/svelte/icons/square-pen';
+    import Settings from '@lucide/svelte/icons/settings';
 
     interface Props {
         type?: string;
@@ -56,4 +58,8 @@
     <MessagesSquare {color} {strokeWidth} />
 {:else if type === "networkFeed" || type === "mochottTimeline"}
     <BookType {color} {strokeWidth} />
+{:else if type === "publish"}
+    <SquarePen {color} {strokeWidth} />
+{:else if type === "settings"}
+    <Settings {color} {strokeWidth} />
 {/if}

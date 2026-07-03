@@ -15,7 +15,7 @@
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
     import {junkAgentDid, settings} from "$lib/stores";
     import FeedEmbed from "$lib/components/feeds/FeedEmbed.svelte";
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {openJunkColumn} from "$lib/junkColumn";
     import {goto} from "$app/navigation";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
@@ -48,26 +48,17 @@
             return false;
         }
 
-        if (!junkColumnState.hasColumn('thread_' + rkey)) {
-            junkColumnState.add({
-                id: 'thread_' + rkey,
-                algorithm: {
-                    algorithm: 'at://' + post.author.did + '/app.bsky.feed.post/' + rkey,
-                    type: 'thread',
-                    name: 'Thread',
-                },
-                style: 'default',
-                settings: defaultDeckSettings,
-                did: _agent.did(),
-                handle: _agent.handle(),
-                data: {
-                    feed: [{
-                        post: post,
-                    }],
-                    cursor: '',
-                }
-            });
-        }
+        openJunkColumn(junkColumnState, {
+            id: 'thread_' + rkey,
+            algorithm: {
+                algorithm: 'at://' + post.author.did + '/app.bsky.feed.post/' + rkey,
+                type: 'thread',
+                name: 'Thread',
+            },
+            did: _agent.did(),
+            handle: _agent.handle(),
+            seedFeed: [{ post: post }],
+        });
 
         junkAgentDid.set(_agent.did());
         goto(uri);

@@ -1,49 +1,41 @@
 <script lang="ts">
     import {agent} from "$lib/stores";
     import {onMount} from "svelte";
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-    import DeckSlot from "../../../../DeckSlot.svelte";
     import {getDidByHandle, isDid} from "$lib/util";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {type JunkColumnDescriptor} from "$lib/junkColumn";
+    import JunkColumn from "../../../../JunkColumn.svelte";
 
     interface Props {
       id: any;
       handle: any;
       title?: string;
+      _agent?: any;
     }
 
     let { id, handle = $bindable(), title = '', _agent = $agent }: Props = $props();
-    let columnId = $derived(`thread_${id}`);
-    const columnState = getColumnState(true);
+    let ready = $state(false);
 
     onMount(async () => {
         if (!isDid(handle)) {
             handle = await getDidByHandle(handle, _agent);
         }
+        ready = true;
+    });
 
-        if (!columnState.hasColumn(columnId)) {
-            columnState.add({
-                id: columnId,
-                algorithm: {
-                    algorithm: 'at://' + handle + '/app.bsky.feed.post/' + id,
-                    type: 'thread',
-                    name: 'Thread',
-                },
-                style: 'default',
-                settings: defaultDeckSettings,
-                did: _agent.did(),
-                handle: _agent.handle(),
-                data: {
-                    feed: [],
-                    cursor: '',
-                }
-            });
-        }
-    })
+    const descriptor: JunkColumnDescriptor = $derived({
+        id: `thread_${id}`,
+        algorithm: {
+            algorithm: 'at://' + handle + '/app.bsky.feed.post/' + id,
+            type: 'thread',
+            name: 'Thread',
+        },
+        did: _agent.did(),
+        handle: _agent.handle(),
+    });
 </script>
 
-{#if (columnState.hasColumn(columnId))}
+{#if ready}
   {#key _agent}
-    <DeckSlot index={columnState.getColumnIndex(columnId)} isJunk={true} name={title} {_agent}></DeckSlot>
+    <JunkColumn {descriptor} name={title} {_agent}></JunkColumn>
   {/key}
 {/if}

@@ -10,6 +10,7 @@
         bluefeedAddModal,
     } from "$lib/stores";
     import { goto, beforeNavigate, afterNavigate } from "$app/navigation";
+    import { markJunkModalNavStart } from "$lib/junkModalTransition";
     import { dev } from "$app/environment";
     import { injectAnalytics } from "@vercel/analytics/sveltekit";
     import { tick, untrack } from "svelte";
@@ -229,6 +230,7 @@
     >();
 
     beforeNavigate(({ from }) => {
+        markJunkModalNavStart();
         if (!from?.url) return;
         const key = from.url.pathname + from.url.search;
         const modal = document.querySelector(

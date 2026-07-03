@@ -90,7 +90,6 @@ export function createDefaultSettings(): Settings {
             postsImageLayout: 'default',
             galleryLayout: 'carousel',
             postsLayout: 'compact',
-            publishPosition: 'left',
             externalLayout: 'normal',
             reactionButtons: structuredClone(defaultReactionButtons),
             advancedBreak: false,

@@ -1,5 +1,5 @@
 export type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'realtime' | 'thread',
+    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'realtime' | 'thread' | 'publish' | 'settings',
     id?: string,
     sort?: string,
     algorithm?: string,
@@ -34,6 +34,7 @@ type deckSettings = {
         width: number,
         height: number,
     },
+    popupPreset?: 'center' | 'bottom',
     opacity?: number,
     collapse?: boolean,
     showReactionViaRepost?: boolean,

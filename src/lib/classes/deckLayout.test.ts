@@ -289,3 +289,106 @@ describe('swapAt', () => {
         expect(state).toEqual(base);
     });
 });
+
+describe('loadDeckState v3 マイグレーション', () => {
+    const makePublish = () => col('pub', { algorithm: { type: 'publish', name: 'Post' } });
+    const leftPinned = { legacyPublish: { layout: 'left' as const, pinned: true }, injectPublish: true, makePublishColumn: makePublish };
+
+    function v2State() {
+        const split = migrateLegacyColumns([col('a', { splitColumn: col('b'), splitRatio: 0.6 }), col('c')], counterGen());
+        return { version: 2, columns: split.columns, slots: split.slots };
+    }
+
+    it('v3 データは素通し(columns/slots 不変)', () => {
+        const persisted = { version: 3, columns: [col('a')], slots: [{ id: 's0', layout: { type: 'leaf', columnId: 'a' } }] };
+        const state = loadDeckState(persisted, counterGen(), leftPinned);
+        expect(state.columns).toEqual(persisted.columns);
+        expect(state.slots).toEqual(persisted.slots);
+    });
+
+    it('v2 の split 含む slots ツリーが v3 でも完全保持される', () => {
+        const persisted = v2State();
+        const state = loadDeckState(persisted, counterGen(), {});
+        expect(state.columns).toEqual(persisted.columns);
+        expect(state.slots).toEqual(persisted.slots);
+    });
+
+    it('left+pinned は publish カラムを先頭スロットへ注入', () => {
+        const persisted = v2State();
+        const state = loadDeckState(persisted, counterGen(), leftPinned);
+        expect(state.columns.map(c => c.id)).toContain('pub');
+        expect(state.slots[0].layout).toEqual({ type: 'leaf', columnId: 'pub' });
+        expect(state.slots).toHaveLength(persisted.slots.length + 1);
+        expect(state.slots.slice(1)).toEqual(persisted.slots);
+    });
+
+    it('left+pinned=false / popup / bottom / null は注入しない', () => {
+        for (const layout of ['left', 'popup', 'bottom', null] as const) {
+            const pinned = layout !== 'left';
+            const state = loadDeckState(v2State(), counterGen(), {
+                legacyPublish: { layout, pinned },
+                injectPublish: true,
+                makePublishColumn: makePublish,
+            });
+            expect(state.columns.some(c => c.algorithm?.type === 'publish')).toBe(false);
+        }
+    });
+
+    it('injectPublish=false では一切注入しない', () => {
+        const state = loadDeckState(v2State(), counterGen(), { ...leftPinned, injectPublish: false });
+        expect(state.columns.some(c => c.algorithm?.type === 'publish')).toBe(false);
+    });
+
+    it('既に publish カラムがある v2 データには注入しない(冪等)', () => {
+        const persisted = v2State();
+        persisted.columns.push(col('existing-pub', { algorithm: { type: 'publish', name: 'Post' } }));
+        persisted.slots.push({ id: 'sp', layout: { type: 'leaf', columnId: 'existing-pub' } });
+        const state = loadDeckState(persisted, counterGen(), leftPinned);
+        expect(state.columns.filter(c => c.algorithm?.type === 'publish')).toHaveLength(1);
+    });
+
+    it('v3 に publish が2枚あるデータは1枚に正規化', () => {
+        const persisted = {
+            version: 3,
+            columns: [col('p1', { algorithm: { type: 'publish', name: 'Post' } }), col('a'), col('p2', { algorithm: { type: 'publish', name: 'Post' } })],
+            slots: [
+                { id: 's0', layout: { type: 'leaf', columnId: 'p1' } },
+                { id: 's1', layout: { type: 'leaf', columnId: 'a' } },
+                { id: 's2', layout: { type: 'leaf', columnId: 'p2' } },
+            ],
+        };
+        const state = loadDeckState(persisted, counterGen(), {});
+        expect(state.columns.filter(c => c.algorithm?.type === 'publish').map(c => c.id)).toEqual(['p1']);
+        expect(state.slots.map(s => s.id)).toEqual(['s0', 's1']);
+    });
+
+    it('legacy(v1 splitColumn)から v3 直行で変換+注入される', () => {
+        const legacy = [col('top', { splitColumn: col('bottom'), splitRatio: 0.5 })];
+        const state = loadDeckState(legacy, counterGen(), leftPinned);
+        expect(state.columns.map(c => c.id).sort()).toEqual(['bottom', 'pub', 'top']);
+        expect(state.slots[0].layout).toEqual({ type: 'leaf', columnId: 'pub' });
+        expect(state.slots[1].layout.type).toBe('split');
+    });
+
+    it('makePublishColumn が throw しても入力 state のまま起動する', () => {
+        const persisted = v2State();
+        const state = loadDeckState(persisted, counterGen(), {
+            ...leftPinned,
+            makePublishColumn: () => { throw new Error('boom'); },
+        });
+        expect(state.columns).toEqual(persisted.columns);
+        expect(state.slots).toEqual(persisted.slots);
+    });
+
+    it('columns が非配列/欠落でも例外なく起動できる state を返す', () => {
+        expect(loadDeckState({ version: 2, columns: 'broken', slots: [] }, counterGen(), {}).slots).toEqual([]);
+        expect(loadDeckState(undefined, counterGen(), {}).columns).toEqual([]);
+        const rescued = loadDeckState({ version: 3, columns: [col('a')], slots: undefined }, counterGen(), {});
+        expect(rescued.columns.map(c => c.id)).toEqual(['a']);
+        expect(rescued.slots[0].layout).toEqual({ type: 'leaf', columnId: 'a' });
+    });
+
+    it('DECK_SCHEMA_VERSION は 3', () => {
+        expect(DECK_SCHEMA_VERSION).toBe(3);
+    });
+});

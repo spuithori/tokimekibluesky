@@ -318,6 +318,8 @@
   "page_title_likes": "Likes",
   "feed_quick_add": "Ajouter colonne",
   "column_added": "Colonne ajoutée",
+  "column_publish": "Post",
+  "publish_open_composer": "Ouvrir l'éditeur de post",
   "p_menu_my_accounts": "Mon compte",
   "/search/feeds_search": "Recherche de flux",
   "column_style": "Style de colonne (Normal/média)",

@@ -10,7 +10,7 @@
     import {chatErrorKey} from "$lib/components/chat/chatErrors";
     import {JOIN_LINK_PREVIEW_TYPE, JOIN_LINK_PREVIEW_DISABLED_TYPE, getConvoName} from "$lib/components/chat/convoUtil";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {openJunkColumn} from "$lib/junkColumn";
     import Users from '@lucide/svelte/icons/users';
 
     const junkColumnState = getColumnState(true);
@@ -42,26 +42,16 @@
     }
 
     function openConvo(convo) {
-        if (!junkColumnState.hasColumn('chat_' + convo.id)) {
-            junkColumnState.add({
-                id: 'chat_' + convo.id,
-                algorithm: {
-                    id: convo.id,
-                    type: 'chat',
-                    name: getConvoName(convo, $agent.did()),
-                },
-                style: 'default',
-                settings: {
-                    ...defaultDeckSettings,
-                },
-                did: $agent.did(),
-                handle: $agent.handle(),
-                data: {
-                    feed: [],
-                    cursor: '',
-                }
-            });
-        }
+        openJunkColumn(junkColumnState, {
+            id: 'chat_' + convo.id,
+            algorithm: {
+                id: convo.id,
+                type: 'chat',
+                name: getConvoName(convo, $agent.did()),
+            },
+            did: $agent.did(),
+            handle: $agent.handle(),
+        });
 
         return goto('/chat/' + convo.id);
     }

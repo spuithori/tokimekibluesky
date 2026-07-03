@@ -2,9 +2,8 @@
   import { _ } from 'svelte-i18n';
   import type { LayoutData } from '../$types';
   import {getAgentContext} from "../state.svelte";
-  import {getColumnState} from "$lib/classes/columnState.svelte";
-  import DeckSlot from "../../../DeckSlot.svelte";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import {type JunkColumnDescriptor} from "$lib/junkColumn";
+  import JunkColumn from "../../../JunkColumn.svelte";
 
   interface Props {
     data: LayoutData;
@@ -13,33 +12,22 @@
   let { data }: Props = $props();
 
   const agentContext = getAgentContext();
-  const columnState = getColumnState(true);
-  let columnId = $derived(`video_${data.params.handle}_${agentContext.agent.did()}`);
 
-  if (!columnState.hasColumn(columnId)) {
-      columnState.add({
-          id: columnId,
-          algorithm: {
-              algorithm: data.params.handle,
-              type: 'authorVideo',
-              name: 'Video',
-          },
-          style: 'video',
-          settings: defaultDeckSettings,
-          did: agentContext.agent.did(),
-          handle: agentContext.agent.handle(),
-          data: {
-              feed: [],
-              cursor: '',
-          }
-      });
-  }
+  const descriptor: JunkColumnDescriptor = $derived({
+      id: `video_${data.params.handle}_${agentContext.agent.did()}`,
+      algorithm: {
+          algorithm: data.params.handle,
+          type: 'authorVideo',
+          name: 'Video',
+      },
+      style: 'video',
+      did: agentContext.agent.did(),
+      handle: agentContext.agent.handle(),
+  });
 </script>
 
 <svelte:head>
   <title>{data.params.handle} {$_('page_title_media')} - TOKIMEKI</title>
 </svelte:head>
 
-{#if (columnState.hasColumn(columnId))}
-  <DeckSlot index={columnState.getColumnIndex(columnId)} isJunk={true}></DeckSlot>
-{/if}
+<JunkColumn {descriptor}></JunkColumn>

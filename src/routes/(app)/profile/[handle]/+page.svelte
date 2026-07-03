@@ -1,8 +1,7 @@
 <script lang="ts">
   import type {LayoutData} from './$types';
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import DeckSlot from "../../DeckSlot.svelte";
-  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {type JunkColumnDescriptor} from "$lib/junkColumn";
+  import JunkColumn from "../../JunkColumn.svelte";
   import {getAgentContext} from "./state.svelte";
 
   interface Props {
@@ -11,43 +10,30 @@
   let { data }: Props = $props();
 
   const agentContext = getAgentContext();
-  const columnState = getColumnState(true);
 
-  if (!columnState.hasColumn('profile_' + data.params.handle)) {
-      columnState.add({
-          id: 'profile_' + data.params.handle,
-          algorithm: {
-              algorithm: data.params.handle,
-              type: 'author',
-              name: '@' + data.params.handle,
-          },
-          style: 'default',
-          settings: {
-            ...defaultDeckSettings,
-            timeline: {
+  const descriptor: JunkColumnDescriptor = $derived({
+      id: 'profile_' + data.params.handle,
+      algorithm: {
+          algorithm: data.params.handle,
+          type: 'author',
+          name: '@' + data.params.handle,
+      },
+      did: agentContext.agent.did(),
+      handle: agentContext.agent.handle(),
+      settings: {
+          timeline: {
               hideReply: 'all',
               hideRepost: 'all',
               hideQuote: false,
               hideMention: 'all',
               simpleReply: false,
-            }
-          },
-          did: agentContext.agent.did(),
-          handle: agentContext.agent.handle(),
-          data: {
-              feed: [],
-              cursor: '',
           }
-      });
-  }
-
-  const columnId = 'profile_' + data.params.handle;
+      },
+  });
 </script>
 
 <svelte:head>
   <title>{data.params.handle} - TOKIMEKI</title>
 </svelte:head>
 
-{#if (columnState.hasColumn('profile_' + data.params.handle))}
-  <DeckSlot index={columnState.getColumnIndex('profile_' + data.params.handle)} isJunk={true} _agent={agentContext.agent}></DeckSlot>
-{/if}
+<JunkColumn {descriptor} _agent={agentContext.agent}></JunkColumn>

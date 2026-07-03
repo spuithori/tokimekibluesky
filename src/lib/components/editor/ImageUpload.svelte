@@ -12,7 +12,6 @@
     } from "$lib/components/editor/imageUploadUtil";
     import X from '@lucide/svelte/icons/x';
     import {toast} from "svelte-sonner";
-    import {publishState} from "$lib/classes/publishState.svelte";
     import {MAX_GALLERY_IMAGES} from "$lib/components/post/embedImages";
     import {convertAudioToVideo, AudioToVideoError, AUDIO_MAX_DURATION_SEC} from "$lib/components/editor/audioToVideo";
 
@@ -242,7 +241,6 @@
 <div class="image-upload">
     <div class="image-upload-drag-area"
          class:image-upload-drag-area--1item={images.length === 1}
-         class:image-upload-drag-area--bottom={publishState.layout === 'bottom'}
          {@attach zoneFn}
     >
         {#each images as image, i (image.id)}
@@ -279,14 +277,6 @@
 
         &--1item {
             grid-template-columns: 1fr;
-
-            @media (max-width: 767px) {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        &--bottom {
-            grid-template-columns: repeat(4, 1fr);
 
             @media (max-width: 767px) {
                 grid-template-columns: repeat(2, 1fr);

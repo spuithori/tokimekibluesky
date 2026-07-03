@@ -30,7 +30,7 @@
   import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
   import { getAccountIdByDid, getDidFromUri } from "$lib/util.js";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+  import {openJunkColumn} from "$lib/junkColumn";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import MediaTimelineItem from "$lib/components/media/MediaTimelineItem.svelte";
   import VideoTimelineItem from "$lib/components/post/VideoTimelineItem.svelte";
@@ -311,24 +311,17 @@
             return false;
         }
 
-        if (!junkColumnState.hasColumn('thread_' + rkey)) {
-            junkColumnState.add({
-                id: 'thread_' + rkey,
-                algorithm: {
-                    algorithm: 'at://' + data.post.author.did + '/app.bsky.feed.post/' + rkey,
-                    type: 'thread',
-                    name: 'Thread',
-                },
-                style: 'default',
-                settings: defaultDeckSettings,
-                did: _agent.did(),
-                handle: _agent.handle(),
-                data: {
-                    feed: [data],
-                    cursor: '',
-                }
-            })
-        }
+        openJunkColumn(junkColumnState, {
+            id: 'thread_' + rkey,
+            algorithm: {
+                algorithm: 'at://' + data.post.author.did + '/app.bsky.feed.post/' + rkey,
+                type: 'thread',
+                name: 'Thread',
+            },
+            did: _agent.did(),
+            handle: _agent.handle(),
+            seedFeed: [data],
+        });
 
         junkAgentDid.set(_agent.did());
         goto(uri);

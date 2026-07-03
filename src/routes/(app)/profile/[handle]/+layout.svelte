@@ -18,7 +18,7 @@
     import {goto} from "$app/navigation";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {getConvoName} from "$lib/components/chat/convoUtil";
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {openJunkColumn} from "$lib/junkColumn";
     import {toast} from "svelte-sonner";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
@@ -138,27 +138,17 @@
 
             const convo = res.convo;
 
-            if (!junkColumnState.hasColumn('chat_' + convo.id)) {
-                junkColumnState.add({
-                    id: 'chat_' + convo.id,
-                    algorithm: {
-                        id: convo.id,
-                        type: 'chat',
-                        name: getConvoName(convo, _agent.did()),
-                    },
-                    style: 'default',
-                    settings: {
-                        ...defaultDeckSettings,
-                        playSound: 'notification1',
-                    },
-                    did: _agent.did(),
-                    handle: _agent.handle(),
-                    data: {
-                        feed: [],
-                        cursor: '',
-                    }
-                });
-            }
+            openJunkColumn(junkColumnState, {
+                id: 'chat_' + convo.id,
+                algorithm: {
+                    id: convo.id,
+                    type: 'chat',
+                    name: getConvoName(convo, _agent.did()),
+                },
+                did: _agent.did(),
+                handle: _agent.handle(),
+                settings: { playSound: 'notification1' },
+            });
 
             await goto(`/chat/${convo.id}`);
         } catch (e) {

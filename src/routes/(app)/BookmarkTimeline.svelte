@@ -2,12 +2,12 @@
   import TimelineItem from './TimelineItem.svelte';
   import {getBookmarkFeed, getBookmarkName} from "$lib/bookmark";
   import Infinite from "$lib/components/utils/Infinite.svelte";
-  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {getScopedColumnState} from "$lib/classes/columnState.svelte";
   import {settingsState} from "$lib/classes/settingsState.svelte";
 
-  let { index, _agent, isJunk, unique, isSplit = false, column: columnProp = undefined } = $props();
+  let { index, _agent, unique, isSplit = false, column: columnProp = undefined } = $props();
 
-  const columnState = getColumnState(isJunk);
+  const columnState = getScopedColumnState();
   const column = $derived(columnProp ?? columnState.getColumn(index));
   let feeds;
 

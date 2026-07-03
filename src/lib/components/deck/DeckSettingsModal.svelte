@@ -12,6 +12,7 @@
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {isContentColumn} from "$lib/columnKinds";
     import {animateLayout} from "$lib/animations/flip";
     import {
         resolveDeckWidthPx, resolveSingleWidthPx, clampDeckWidth, clampSingleWidth,
@@ -327,7 +328,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed' && !isContentColumn(column.algorithm?.type))}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('column_style')}
@@ -415,7 +416,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed' && !isContentColumn(column.algorithm?.type))}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('refresh_to_top')}
@@ -429,7 +430,7 @@
                     </dl>
                 {/if}
 
-                {#if column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'notification'}
+                {#if column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'notification' && !isContentColumn(column.algorithm?.type)}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('auto_refresh')}
@@ -457,23 +458,25 @@
                     {/if}
                 {/if}
 
-                <dl class="settings-group">
-                    <dt class="settings-group__name">
-                        {$_('play_se')}
-                    </dt>
+                {#if !isContentColumn(column.algorithm?.type)}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('play_se')}
+                        </dt>
 
-                    <dd class="settings-group__content">
-                        <div class="form-select">
-                            <ChevronDown size={20} color="var(--primary-color)" />
+                        <dd class="settings-group__content">
+                            <div class="form-select">
+                                <ChevronDown size={20} color="var(--primary-color)" />
 
-                            <select class="form-select__select" bind:value={column.settings.playSound}>
-                                {#each playSoundSettings as option}
-                                    <option value="{option.value}">{option.name}</option>
-                                {/each}
-                            </select>
-                        </div>
-                    </dd>
-                </dl>
+                                <select class="form-select__select" bind:value={column.settings.playSound}>
+                                    {#each playSoundSettings as option}
+                                        <option value="{option.value}">{option.name}</option>
+                                    {/each}
+                                </select>
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
 
                 {#if (column.settings?.isPopup)}
                     <dl class="settings-group">
@@ -514,7 +517,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && !isContentColumn(column.algorithm?.type))}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('auto_scroll')}
@@ -584,7 +587,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed')}
+                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed' && !isContentColumn(column.algorithm?.type))}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('hide_repost_frequency')}
@@ -704,8 +707,10 @@
                     {/if}
                 {/if}
 
-                <button class="deck-column-delete-button deck-column-delete-button--clear" onclick={clearColumn}>
-                    <Eraser size={20} color="var(--text-color-3)" />{$_('clear_column_posts')}</button>
+                {#if !isContentColumn(column.algorithm?.type)}
+                    <button class="deck-column-delete-button deck-column-delete-button--clear" onclick={clearColumn}>
+                        <Eraser size={20} color="var(--text-color-3)" />{$_('clear_column_posts')}</button>
+                {/if}
 
                 <button class="deck-column-delete-button" onclick={deleteColumn}><Trash2 size={20} color="var(--danger-color)" />{$_('delete_column')}</button>
             </div>

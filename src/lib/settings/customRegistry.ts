@@ -12,7 +12,6 @@ export const customFields = {
     autoTranslate: () => import('$lib/components/settings/fields/custom/AutoTranslateField.svelte'),
     finnhubApiKey: () => import('$lib/components/settings/fields/custom/FinnhubApiKeyField.svelte'),
     // design
-    publishPosition: () => import('$lib/components/settings/fields/custom/PublishPositionField.svelte'),
     layout: () => import('$lib/components/settings/fields/custom/LayoutField.svelte'),
     bubbleTimeline: () => import('$lib/components/settings/fields/custom/BubbleTimelineField.svelte'),
     skin: () => import('$lib/components/settings/fields/custom/SkinField.svelte'),

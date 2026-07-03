@@ -1,10 +1,14 @@
 <script lang="ts">
+  import { getContext } from 'svelte';
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
   import X from '@lucide/svelte/icons/x';
+  import { SETTINGS_COLUMN_HOST } from '$lib/settings/pagesRegistry';
 
   let { children } = $props();
+  const hosted = getContext(SETTINGS_COLUMN_HOST);
 </script>
 
+{#if !hosted}
 <div class="column-heading">
   <div class="column-heading__buttons">
     <button class="settings-back" onclick={() => {history.back()}}>
@@ -22,3 +26,4 @@
     </a>
   </div>
 </div>
+{/if}

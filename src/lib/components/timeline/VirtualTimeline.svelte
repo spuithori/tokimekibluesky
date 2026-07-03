@@ -11,12 +11,11 @@
   import {isReasonPin} from "$lib/atproto-guards";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import Annoyed from '@lucide/svelte/icons/annoyed';
-  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {getScopedColumnState} from "$lib/classes/columnState.svelte";
 
   let {
     column,
     _agent,
-    isJunk = false,
     unique,
     handleLoadMore,
     handleDividerClick,
@@ -26,7 +25,6 @@
   }: {
     column: any;
     _agent: any;
-    isJunk?: boolean;
     unique: any;
     handleLoadMore: any;
     handleDividerClick: any;
@@ -35,7 +33,7 @@
     onScrollStateClear?: () => void;
   } = $props();
 
-  const columnState = getColumnState(isJunk);
+  const columnState = getScopedColumnState();
   let parent = $state<HTMLElement | undefined>();
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
 
@@ -54,8 +52,8 @@
   let lastUnique = $state(unique);
 
   let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
-  let isPaused = $derived(isSingleColumnMode && !isJunk && $page.url.pathname !== '/');
-  let topMargin = $derived((isSingleColumnMode || isJunk) ? 52 : 0);
+  let isPaused = $derived(isSingleColumnMode && !columnState.isJunk && $page.url.pathname !== '/');
+  let topMargin = $derived((isSingleColumnMode || columnState.isJunk) ? 52 : 0);
   let refreshToTop = $derived(!!column.settings?.refreshToTop);
 
   let scrollSaveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -90,7 +88,7 @@
   });
 
   let scrollContainer = $derived.by(() => {
-    return resolveScrollContainer(parent, isSingleColumnMode, isJunk, column.scrollElement)
+    return resolveScrollContainer(parent, isSingleColumnMode, columnState.isJunk, column.scrollElement)
       ?? parent?.closest('.deck-column-content') as HTMLElement | null;
   });
 

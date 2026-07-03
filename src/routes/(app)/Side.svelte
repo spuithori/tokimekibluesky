@@ -1,36 +1,43 @@
 <script lang="ts">
+  import { onDestroy } from "svelte";
   import SideBar from "$lib/components/side/SideBar.svelte";
-  import SideNav from "$lib/components/side/SideNav.svelte";
   import Publish from "./Publish.svelte";
   import { settings } from "$lib/stores";
+  import { getColumnState } from "$lib/classes/columnState.svelte";
   import { publishState } from "$lib/classes/publishState.svelte";
+  import { ensurePublishColumn } from "$lib/publishColumn";
+
+  const columnState = getColumnState();
+
+  publishState.intercept = () => {
+      if ($settings.design?.layout === 'decks' && window.matchMedia('(min-width: 768px)').matches) {
+          ensurePublishColumn(columnState);
+          return true;
+      }
+      return false;
+  };
+
+  onDestroy(() => {
+      publishState.intercept = undefined;
+  });
 </script>
 
 <div
     class="side"
     class:side--single={$settings.design?.layout !== 'decks'}
-    class:side--hidden={publishState.isBottom}
 >
   <SideBar></SideBar>
 
-  <div class="side-main">
-    {#if publishState.isSideShown}
-      <SideNav></SideNav>
-    {/if}
-
-    <div class="side-content">
-      <Publish></Publish>
-    </div>
-  </div>
+  <Publish></Publish>
 </div>
 
 <style lang="postcss">
   .side {
       display: grid;
-      grid-template-columns: 64px 340px;
-      padding-top:var(--side-padding-top, 8px);
+      grid-template-columns: 64px;
+      padding-top: var(--side-padding-top, 8px);
       padding-bottom: 4px;
-      padding-right: var(--side-padding-right, 8px);
+      padding-right: 0;
       position: fixed;
       top: 0;
       bottom: 0;
@@ -61,99 +68,6 @@
               height: auto;
               backdrop-filter: none;
               padding: 0;
-              border-radius: 0;
-          }
-      }
-
-      &--hidden {
-          padding-right: 0;
-          grid-template-columns: 64px;
-
-          @media (max-width: 767px) {
-              grid-template-columns: 0;
-              background-color: transparent;
-          }
-
-          .side-main {
-              position: fixed;
-              left: 0;
-              top: 0;
-              margin: 0 auto;
-              z-index: 1000;
-
-              @media (max-width: 767px) {
-                  max-width: 100vw;
-                  grid-template-columns: 0;
-                  top: auto;
-                  bottom: 0;
-                  border-radius: 0;
-                  box-shadow: none;
-                  height: 56px;
-                  background-color: transparent;
-                  pointer-events: none;
-                  z-index: 1013;
-              }
-          }
-
-          .side-content {
-              position: absolute;
-              right: 0;
-              top: 60px;
-              border: none;
-          }
-      }
-  }
-
-  .side-main {
-      display: flex;
-      flex-direction: column;
-
-      @media (max-width: 767px) {
-          position: absolute;
-          max-width: 100vw;
-          grid-template-columns: 0;
-          top: auto;
-          bottom: 0;
-          border-radius: 0;
-          box-shadow: none;
-          height: 56px;
-          background-color: transparent;
-          pointer-events: none;
-          z-index: 1013;
-      }
-  }
-
-  .side-content {
-      border-radius: var(--nav-content-border-radius);
-      background-color: var(--nav-content-bg-color);
-      background-image: var(--nav-content-bg-image, none);
-      border-width: var(--nav-content-border-width);
-      border-color: var(--nav-content-border-color);
-      border-style: solid;
-      flex: 1;
-      max-height: calc(100svh - 60px);
-      box-shadow: var(--side-box-shadow);
-      padding: var(--nav-content-padding, 0);
-
-      @media (max-width: 767px) {
-          border: none;
-          padding: 0;
-      }
-
-      @media (min-width: 768px) {
-          scrollbar-color: var(--scroll-bar-color) transparent;
-
-          &::-webkit-scrollbar {
-              width: 6px;
-          }
-
-          &::-webkit-scrollbar-thumb {
-              background: var(--scroll-bar-color);
-              border-radius: 0;
-          }
-
-          &::-webkit-scrollbar-track {
-              background: transparent;
               border-radius: 0;
           }
       }

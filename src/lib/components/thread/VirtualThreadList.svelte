@@ -5,16 +5,16 @@
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
   import { getScrollTopFor, setScrollTopFor, resolveScrollContainer } from "$lib/components/virtual/scroll-helpers";
   import {_} from "svelte-i18n";
-  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {getScopedColumnState} from "$lib/classes/columnState.svelte";
 
-  let { column, _agent, rootIndex, onchangeprofile, isJunk } = $props();
-  const columnState = getColumnState(isJunk);
+  let { column, _agent, rootIndex, onchangeprofile } = $props();
+  const columnState = getScopedColumnState();
   let parent = $state<HTMLElement | undefined>();
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
   let hasScrolledToRoot = false;
   let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
   let topMargin = $derived.by(() => {
-    if (isJunk) {
+    if (columnState.isJunk) {
       return isSingleColumnMode ? 108 : 121;
     }
     return isSingleColumnMode ? 52 : 121;
@@ -27,7 +27,7 @@
   }
 
   let scrollContainer = $derived(
-    resolveScrollContainer(parent, isSingleColumnMode, isJunk, column.scrollElement)
+    resolveScrollContainer(parent, isSingleColumnMode, columnState.isJunk, column.scrollElement)
   );
 
   function getKey(data: any, index: number): string {
@@ -124,7 +124,7 @@
             class:is-final={item.post.replyCount === 0}
             class:has-child={item.post.replyCount > 0}
         >
-          <VirtualThreadItem {column} {index} {_agent} {isJunk}></VirtualThreadItem>
+          <VirtualThreadItem {column} {index} {_agent}></VirtualThreadItem>
 
           {#if (item?.depth > 1)}
             <span class="thread-round-border"></span>

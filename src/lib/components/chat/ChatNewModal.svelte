@@ -10,7 +10,7 @@
     import {GROUP_MEMBERS_MAX, GROUP_NAME_CREATE_MAX_GRAPHEMES, getConvoName} from "$lib/components/chat/convoUtil";
     import {RichText} from "$lib/atproto-richtext";
     import {goto} from "$app/navigation";
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
+    import {openJunkColumn} from "$lib/junkColumn";
     import {toast} from "svelte-sonner";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
@@ -44,27 +44,17 @@
     }
 
     function openConvo(convo) {
-        if (!columnState.hasColumn('chat_' + convo.id)) {
-            columnState.add({
-                id: 'chat_' + convo.id,
-                algorithm: {
-                    id: convo.id,
-                    type: 'chat',
-                    name: getConvoName(convo, _agent.did()),
-                },
-                style: 'default',
-                settings: {
-                    ...defaultDeckSettings,
-                    playSound: 'notification1',
-                },
-                did: _agent.did(),
-                handle: _agent.handle(),
-                data: {
-                    feed: [],
-                    cursor: '',
-                }
-            });
-        }
+        openJunkColumn(columnState, {
+            id: 'chat_' + convo.id,
+            algorithm: {
+                id: convo.id,
+                type: 'chat',
+                name: getConvoName(convo, _agent.did()),
+            },
+            did: _agent.did(),
+            handle: _agent.handle(),
+            settings: { playSound: 'notification1' },
+        });
 
         onclose();
         return goto(`/chat/${convo.id}`);

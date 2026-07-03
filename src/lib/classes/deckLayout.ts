@@ -11,7 +11,18 @@ export interface DeckLayoutState {
     slots: Slot[];
 }
 
-export const DECK_SCHEMA_VERSION = 2;
+export const DECK_SCHEMA_VERSION = 3;
+
+export type LegacyPublishPrefs = {
+    layout: 'left' | 'bottom' | 'popup' | null,
+    pinned: boolean,
+};
+
+export type LoadDeckOptions = {
+    legacyPublish?: LegacyPublishPrefs | null,
+    injectPublish?: boolean,
+    makePublishColumn?: () => Column,
+};
 
 const DEFAULT_RATIO = 0.5;
 
@@ -73,12 +84,53 @@ export function migrateLegacyColumns(legacy: any[], genId: () => string): DeckLa
     return { columns, slots };
 }
 
-export function loadDeckState(persisted: any, genId: () => string): DeckLayoutState {
-    if (persisted && persisted.version >= DECK_SCHEMA_VERSION && Array.isArray(persisted.columns) && Array.isArray(persisted.slots)) {
-        return { columns: persisted.columns, slots: persisted.slots };
+export function migrateV2toV3(state: DeckLayoutState, opts: LoadDeckOptions, genId: () => string): DeckLayoutState {
+    try {
+        if (!opts.injectPublish || !opts.makePublishColumn) return state;
+        if (state.columns.some(c => c?.algorithm?.type === 'publish')) return state;
+
+        const prefs = opts.legacyPublish;
+        if (!prefs || prefs.layout !== 'left' || !prefs.pinned) return state;
+
+        const column = opts.makePublishColumn();
+        if (!column?.id) return state;
+
+        return {
+            columns: [...state.columns, column],
+            slots: [{ id: genId(), layout: { type: 'leaf', columnId: column.id } }, ...state.slots],
+        };
+    } catch {
+        return state;
     }
-    const legacy = Array.isArray(persisted) ? persisted : (persisted?.columns ?? []);
-    return migrateLegacyColumns(legacy, genId);
+}
+
+export function normalizeContentColumns(state: DeckLayoutState): DeckLayoutState {
+    try {
+        const publishes = state.columns.filter(c => c?.algorithm?.type === 'publish');
+        if (publishes.length <= 1) return state;
+
+        const removeIds = new Set(publishes.slice(1).map(c => c.id));
+        const columns = state.columns.filter(c => !removeIds.has(c.id));
+        let slots = state.slots;
+        for (const id of removeIds) {
+            slots = detachLeaf(slots, id);
+        }
+        return { columns, slots };
+    } catch {
+        return state;
+    }
+}
+
+export function loadDeckState(persisted: any, genId: () => string, opts: LoadDeckOptions = {}): DeckLayoutState {
+    if (persisted && persisted.version >= 3 && Array.isArray(persisted.columns) && Array.isArray(persisted.slots)) {
+        return normalizeContentColumns({ columns: persisted.columns, slots: persisted.slots });
+    }
+    if (persisted && persisted.version === 2 && Array.isArray(persisted.columns) && Array.isArray(persisted.slots)) {
+        return migrateV2toV3({ columns: persisted.columns, slots: persisted.slots }, opts, genId);
+    }
+    const legacyRaw = Array.isArray(persisted) ? persisted : (persisted?.columns ?? []);
+    const legacy = Array.isArray(legacyRaw) ? legacyRaw : [];
+    return migrateV2toV3(migrateLegacyColumns(legacy, genId), opts, genId);
 }
 
 function collapseSingle(node: LayoutNode): LayoutNode {

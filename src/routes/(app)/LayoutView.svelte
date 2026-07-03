@@ -2,21 +2,20 @@
     import DeckColumn from "./DeckColumn.svelte";
     import LayoutView from "./LayoutView.svelte";
     import GripHorizontal from '@lucide/svelte/icons/grip-horizontal';
-    import { getColumnState } from "$lib/classes/columnState.svelte";
+    import { getScopedColumnState } from "$lib/classes/columnState.svelte";
     import { firstLeafId, type LayoutNode } from "$lib/classes/deckLayout";
     import { startPointerDrag } from "$lib/pointerDrag";
 
     interface Props {
         node: LayoutNode;
-        isJunk?: boolean;
         isScrollPaused?: boolean;
         showDragHandle?: boolean;
         depth?: number;
     }
 
-    let { node, isJunk = false, isScrollPaused = false, showDragHandle = false, depth = 0 }: Props = $props();
+    let { node, isScrollPaused = false, showDragHandle = false, depth = 0 }: Props = $props();
 
-    const columnState = getColumnState(isJunk);
+    const columnState = getScopedColumnState();
     let isResizing = $state(false);
 
     function childKey(child: LayoutNode): string {
@@ -61,7 +60,6 @@
             <div class="layout-split__pane" style="flex: {node.sizes[i]}">
                 <LayoutView
                     node={child}
-                    {isJunk}
                     {isScrollPaused}
                     {showDragHandle}
                     depth={depth + 1}
@@ -87,7 +85,7 @@
     </div>
 {:else}
     {@const index = columnState.getColumnIndex(node.columnId)}
-    <DeckColumn {index} {isJunk} {isScrollPaused} isSplit={depth > 0} {showDragHandle}></DeckColumn>
+    <DeckColumn {index} {isScrollPaused} isSplit={depth > 0} {showDragHandle}></DeckColumn>
 {/if}
 
 <style lang="postcss">

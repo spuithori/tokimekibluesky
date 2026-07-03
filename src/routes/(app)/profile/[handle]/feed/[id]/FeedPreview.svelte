@@ -1,36 +1,20 @@
 <script lang="ts">
-  import {onMount} from "svelte";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import DeckSlot from "../../../../DeckSlot.svelte";
-  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {type JunkColumnDescriptor} from "$lib/junkColumn";
+  import JunkColumn from "../../../../JunkColumn.svelte";
 
   let { id, did, title, _agent, contentMode } = $props();
 
-  const columnState = getColumnState(true);
-  let columnId = $derived(`feed_${id}_${_agent.did()}`);
-
-  onMount(async () => {
-      if (!columnState.hasColumn(columnId)) {
-          columnState.add({
-              id: columnId,
-              algorithm: {
-                  algorithm: 'at://' + did + '/app.bsky.feed.generator/' + id,
-                  type: 'custom',
-                  name: title || '',
-              },
-              style: contentMode === 'app.bsky.feed.defs#contentModeVideo' ? 'video' : 'default',
-              settings: defaultDeckSettings,
-              did: _agent.did(),
-              handle: _agent.handle(),
-              data: {
-                  feed: [],
-                  cursor: '',
-              }
-          });
-      }
-  })
+  const descriptor: JunkColumnDescriptor = $derived({
+      id: `feed_${id}_${_agent.did()}`,
+      algorithm: {
+          algorithm: 'at://' + did + '/app.bsky.feed.generator/' + id,
+          type: 'custom',
+          name: title || '',
+      },
+      style: contentMode === 'app.bsky.feed.defs#contentModeVideo' ? 'video' : 'default',
+      did: _agent.did(),
+      handle: _agent.handle(),
+  });
 </script>
 
-{#if (columnState.hasColumn(columnId))}
-  <DeckSlot index={columnState.getColumnIndex(columnId)} isJunk={true} name={title} {_agent}></DeckSlot>
-{/if}
+<JunkColumn {descriptor} name={title} {_agent}></JunkColumn>

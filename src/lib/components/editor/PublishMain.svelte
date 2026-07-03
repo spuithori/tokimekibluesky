@@ -563,11 +563,11 @@
             </button>
 
             {#if getTenorUrl(post.embedExternal.external.uri) && $settings?.embed?.tenor}
-              <div class="publish-tenor-external" class:publish-tenor-external--bottom={$settings.design?.publishPosition === 'bottom'}>
+              <div class="publish-tenor-external">
                 <EmbedTenor tenor={getTenorUrl(post.embedExternal.external.uri)}></EmbedTenor>
               </div>
             {:else if getKlipyUrl(post.embedExternal.external.uri) && $settings?.embed?.klipy}
-              <div class="publish-tenor-external" class:publish-tenor-external--bottom={$settings.design?.publishPosition === 'bottom'}>
+              <div class="publish-tenor-external">
                 <EmbedKlipy klipy={getKlipyUrl(post.embedExternal.external.uri)}></EmbedKlipy>
               </div>
             {:else}

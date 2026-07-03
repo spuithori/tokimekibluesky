@@ -5,9 +5,8 @@
   import {agent} from "$lib/stores";
   import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
   import {isDid} from "$lib/util";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import DeckSlot from "../../../../DeckSlot.svelte";
-  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {type JunkColumnDescriptor} from "$lib/junkColumn";
+  import JunkColumn from "../../../../JunkColumn.svelte";
 
   interface Props {
     id: any;
@@ -27,63 +26,31 @@
     isBlock = $bindable(undefined)
   }: Props = $props();
 
-  const columnState = getColumnState(true);
-
-  let timeline = [];
-  let cursor = undefined;
-  let feed;
   let did = $state('');
   let isButtonsDisable = $state(false);
 
   if (isDid(handle)) {
       did = handle;
-
-      if (!columnState.hasColumn('list_' + id)) {
-          columnState.add({
-              id: 'list_' + id,
-              algorithm: {
-                  algorithm: 'at://' + did + '/app.bsky.graph.list/' + id,
-                  type: 'officialList',
-                  name: '',
-              },
-              style: 'default',
-              settings: defaultDeckSettings,
-              did: $agent.did(),
-              handle: $agent.handle(),
-              data: {
-                  feed: [],
-                  cursor: '',
-              }
-          });
-      }
   } else {
       $agent.xrpc.get('com.atproto.identity.resolveHandle', {handle: handle})
           .then(value => {
               did = value.did;
-
-              if (!columnState.hasColumn('list_' + id)) {
-                  columnState.add({
-                      id: 'list_' + id,
-                      algorithm: {
-                          algorithm: 'at://' + did + '/app.bsky.graph.list/' + id,
-                          type: 'officialList',
-                          name: '',
-                      },
-                      style: 'default',
-                      settings: defaultDeckSettings,
-                      did: $agent.did(),
-                      handle: $agent.handle(),
-                      data: {
-                          feed: [],
-                          cursor: '',
-                      }
-                  });
-              }
           })
           .catch(e => {
               console.log(e);
           });
   }
+
+  const descriptor: JunkColumnDescriptor = $derived({
+      id: 'list_' + id,
+      algorithm: {
+          algorithm: 'at://' + did + '/app.bsky.graph.list/' + id,
+          type: 'officialList',
+          name: '',
+      },
+      did: $agent.did(),
+      handle: $agent.handle(),
+  });
 
   async function muteList() {
       isButtonsDisable = true;
@@ -156,9 +123,7 @@
   </div>
 
   {#if !isModerationList}
-    {#if (columnState.hasColumn('list_' + id))}
-      <DeckSlot index={columnState.getColumnIndex('list_' + id)} isJunk={true} name={title}></DeckSlot>
-    {/if}
+    <JunkColumn {descriptor} name={title}></JunkColumn>
   {:else}
     <div class="mod-list-cover">
       <h2 class="mod-list-cover__title">{$_('mod_list_cover_title')}</h2>

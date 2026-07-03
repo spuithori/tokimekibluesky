@@ -3,7 +3,6 @@
   import Modal from "$lib/components/ui/Modal.svelte";
   import {settings} from '$lib/stores';
   import Notice from "$lib/components/ui/Notice.svelte";
-  import {publishState} from "$lib/classes/publishState.svelte";
 
   let { onclose } = $props();
 </script>

@@ -1,5 +1,6 @@
 import type {Column} from "$lib/types/column";
 import {type Slot, type LayoutNode, loadDeckState, splitLeaf, splitLeafWithExisting, moveLeafToSplit, moveLeafToSlot, unsplitAt, swapAt, slotIndexOfColumn, flattenLeafIds, DECK_SCHEMA_VERSION} from "$lib/classes/deckLayout";
+import {buildPublishColumn, readLegacyPublishPrefs, resolvePublishColumnName, presetForLegacyLayout, setPreferredPreset, hasStoredPreset} from "$lib/publishColumnCore";
 import {getContext, setContext} from "svelte";
 import {SvelteMap} from "svelte/reactivity";
 import {accountsDb} from "$lib/db";
@@ -15,6 +16,7 @@ export class ColumnState {
     isResizingWidth = $state(false);
     floatingOrder = $state<string[]>([]);
     activeFloatingId = $state<string | null>(null);
+    readonly isJunk: boolean;
     private _feeds = new SvelteMap<string, any[]>();
     private _feedStatus = $state.raw<Record<string, string>>({});
 
@@ -84,21 +86,33 @@ export class ColumnState {
     isColumnsLoaded = $state(false);
 
     constructor(isJunk: boolean = false) {
-       if (isJunk) {
-            $effect(() => {
-                if (this.columns.length > 20) {
-                    this.columns.shift();
-                }
-            })
+       this.isJunk = isJunk;
 
+       if (isJunk) {
             return;
         }
 
         accountsDb.profiles.get(appState.profile.current)
           .then(res => {
+              const persistedVersion = (res as any)?.deckVersion;
+              const legacyPublish = readLegacyPublishPrefs();
+
+              if (!(persistedVersion >= 3) && legacyPublish?.layout && !hasStoredPreset()) {
+                  setPreferredPreset(presetForLegacyLayout(legacyPublish.layout));
+              }
+
               const { columns, slots } = loadDeckState(
-                  { version: (res as any)?.deckVersion, columns: res?.columns, slots: (res as any)?.slots },
+                  { version: persistedVersion, columns: res?.columns, slots: (res as any)?.slots },
                   () => self.crypto.randomUUID(),
+                  {
+                      legacyPublish,
+                      injectPublish: settingsState?.settings?.design?.layout === 'decks',
+                      makePublishColumn: () => buildPublishColumn({
+                          id: self.crypto.randomUUID(),
+                          name: resolvePublishColumnName(),
+                          preset: 'tile',
+                      }),
+                  },
               );
               const feedEntries: Record<string, any[]> = {};
               for (const col of columns) {
@@ -134,6 +148,12 @@ export class ColumnState {
         }
         this.columns.push(column);
         this.slots.push({ id: self.crypto.randomUUID(), layout: { type: 'leaf', columnId: column.id } });
+
+        if (this.isJunk) {
+            while (this.columns.length > 20 && this.columns[0]?.id) {
+                this.remove(this.columns[0].id);
+            }
+        }
     }
 
     remove(id: string) {
@@ -514,4 +534,14 @@ export function setColumnState(isJunk: boolean = false) {
 
 export function getColumnState(isJunk: boolean = false) {
     return getContext<ReturnType<typeof setColumnState>>(isJunk ? JunkColumnUnique : ColumnUnique);
+}
+
+const DeckScopeKey = Symbol('deckScope');
+
+export function setScopedColumnState(columnState: ColumnState) {
+    return setContext(DeckScopeKey, columnState);
+}
+
+export function getScopedColumnState(): ColumnState {
+    return getContext<ColumnState>(DeckScopeKey);
 }

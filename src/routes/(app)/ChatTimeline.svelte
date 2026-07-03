@@ -15,16 +15,16 @@
     import {chatErrorKey} from "$lib/components/chat/chatErrors";
     import {chatRealtime} from "$lib/components/chat/chatRealtime";
     import Infinite from "$lib/components/utils/Infinite.svelte";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {getScopedColumnState} from "$lib/classes/columnState.svelte";
     import {settingsState} from "$lib/classes/settingsState.svelte";
     import {instantPlaySound} from "$lib/sounds";
     import ChevronDown from '@lucide/svelte/icons/chevron-down';
     import {DELETED_MESSAGE_VIEW_TYPE, SYSTEM_MESSAGE_VIEW_TYPE, getConvoName, isGroupConvo} from "$lib/components/chat/convoUtil";
 
-    let { index, _agent = $agent, onrefresh, unique, isJunk, isSplit = false, column: columnProp = undefined, onback = undefined, onleave = undefined } = $props();
+    let { index, _agent = $agent, onrefresh, unique, isSplit = false, column: columnProp = undefined, onback = undefined, onleave = undefined } = $props();
     let firstLoad = true;
 
-    const columnState = getColumnState(isJunk);
+    const columnState = getScopedColumnState();
     const column = $derived(columnProp ?? columnState.getColumn(index));
 
     let convo = $state.raw<any>(undefined);
@@ -185,7 +185,7 @@
     function handleLeave() {
         if (onleave) {
             onleave();
-        } else if (isJunk) {
+        } else if (columnState.isJunk) {
             goto('/chat');
         }
     }

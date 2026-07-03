@@ -2,6 +2,7 @@
   import DeckSlot from "./DeckSlot.svelte";
   import { draggable, type DragEventData } from "$lib/attachments/draggable.svelte";
   import { getColumnState } from "$lib/classes/columnState.svelte";
+  import { removePublishColumn } from "$lib/publishColumn";
   import { animateLayout } from "$lib/animations/flip";
   import { detectTileAt } from "$lib/attachments/sortable.svelte";
   import { tilingDrag } from "$lib/classes/tilingDragState.svelte";
@@ -31,6 +32,10 @@
 
   function closePopup() {
       if (!column) return;
+      if (column.algorithm?.type === 'publish') {
+          removePublishColumn(columnState);
+          return;
+      }
       columnState.remove(column.id);
   }
 
@@ -106,6 +111,8 @@
 <div
     class="deck-popup-wrap"
     class:deck-popup-wrap--active={columnState.activeFloatingId === column?.id}
+    class:deck-popup-wrap--preset-center={column?.settings?.popupPreset === 'center'}
+    class:deck-popup-wrap--preset-bottom={column?.settings?.popupPreset === 'bottom'}
     onpointerdowncapture={() => column && columnState.raiseFloating(column.id)}
     style:--popup-z-index={zIndex}
     {@attach draggable(() => ({
@@ -163,6 +170,19 @@
 
           &--active {
               box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--primary-color) 55%, transparent), 0 6px 28px rgba(0, 0, 0, .38);
+          }
+
+          &--preset-center {
+              inset: 0;
+              margin: auto;
+          }
+
+          &--preset-bottom {
+              top: auto;
+              bottom: 12px;
+              left: 64px;
+              right: 12px;
+              margin: 0 auto;
           }
       }
 

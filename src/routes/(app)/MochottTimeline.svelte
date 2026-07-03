@@ -2,12 +2,12 @@
     import { _ } from 'svelte-i18n';
     import Infinite from "$lib/components/utils/Infinite.svelte";
     import {getServiceAuthToken} from "$lib/util";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {getScopedColumnState} from "$lib/classes/columnState.svelte";
     import MochottArticleCard from "$lib/components/mochott/MochottArticleCard.svelte";
 
-    let { index, _agent, isJunk = false, unique, isSplit = false, column: columnProp = undefined } = $props();
+    let { index, _agent, unique, isSplit = false, column: columnProp = undefined } = $props();
 
-    const columnState = getColumnState(isJunk);
+    const columnState = getScopedColumnState();
     const column = $derived(columnProp ?? columnState.getColumn(index));
 
     let isEmpty = $state(false);

@@ -319,6 +319,8 @@
   "page_title_likes": "Mi piace",
   "feed_quick_add": "Aggiungi colonna",
   "column_added": "Colonna aggiunta.",
+  "column_publish": "Post",
+  "publish_open_composer": "Apri l'editor dei post",
   "p_menu_my_accounts": "I miei account",
   "/search/feeds_search": "Cerca Feed",
   "column_style": "Stile colonna (Normale/Galleria)",

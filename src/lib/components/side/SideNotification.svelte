@@ -1,41 +1,24 @@
 <script lang="ts">
     import {_} from "svelte-i18n";
-    import {onDestroy, onMount} from "svelte";
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
-    import DeckSlot from "../../../routes/(app)/DeckSlot.svelte";
+    import {type JunkColumnDescriptor} from "$lib/junkColumn";
+    import JunkColumn from "../../../routes/(app)/JunkColumn.svelte";
     import {agent} from "$lib/stores";
+
+    interface Props {
+        _agent?: any;
+    }
 
     let { _agent = $agent }: Props = $props();
 
-    const columnState = getColumnState(true);
-    let columnId = $derived(`notifications_${_agent.did()}`);
-
-    onMount(async () => {
-        if (!columnState.hasColumn(columnId)) {
-            columnState.add({
-                id: columnId,
-                algorithm: {
-                    type: 'notification',
-                    name: $_('notifications'),
-                },
-                style: 'default',
-                settings: defaultDeckSettings,
-                did: _agent.did(),
-                handle: _agent.handle(),
-                data: {
-                    feed: [],
-                    cursor: '',
-                }
-            });
-        }
-    });
-
-    onDestroy(() => {
-        columnState.remove(columnId);
+    const descriptor: JunkColumnDescriptor = $derived({
+        id: `notifications_${_agent.did()}`,
+        algorithm: {
+            type: 'notification',
+            name: $_('notifications'),
+        },
+        did: _agent.did(),
+        handle: _agent.handle(),
     });
 </script>
 
-{#if (columnState.hasColumn(columnId))}
-  <DeckSlot index={columnState.getColumnIndex(columnId)} isJunk={true} {_agent}></DeckSlot>
-{/if}
+<JunkColumn {descriptor} {_agent} removeOnDestroy={true}></JunkColumn>

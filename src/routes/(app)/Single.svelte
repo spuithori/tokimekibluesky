@@ -6,7 +6,6 @@
     import DeckSlot from "./DeckSlot.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import {publishState} from "$lib/classes/publishState.svelte";
     import {scrollDirection} from "$lib/scrollDirection";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {appState} from "$lib/classes/appState.svelte";
@@ -110,7 +109,6 @@
 <div
   class="single-wrap"
   class:single-wrap--page={$page.url.pathname !== '/'}
-  class:single-wrap--bottom={publishState.isBottom}
   style:--single-column-width={resizeWidth != null ? `${resizeWidth}px` : null}
   bind:this={wrapEl}
 >
@@ -151,19 +149,11 @@
         &--page {
             position: fixed;
             overflow: hidden;
-            left: 402px;
+            left: 64px;
             top: 0;
             right: 0;
             margin: auto;
             min-height: 100dvh;
-
-            @media (max-width: 767px) {
-                left: 0;
-            }
-        }
-
-        &--bottom {
-            left: 64px;
 
             @media (max-width: 767px) {
                 left: 0;

@@ -8,12 +8,11 @@
     import {onDestroy, onMount} from "svelte";
     import {toast} from "svelte-sonner";
     import {backgroundsMap} from "$lib/columnBackgrounds";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {getColumnState, getScopedColumnState} from "$lib/classes/columnState.svelte";
     import {tilingDrag} from "$lib/classes/tilingDragState.svelte";
     import {animateLayout} from "$lib/animations/flip";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {scrollDirection} from "$lib/scrollDirection";
-    import {publishState} from "$lib/classes/publishState.svelte";
     import Filter from '@lucide/svelte/icons/filter';
     import GripVertical from '@lucide/svelte/icons/grip-vertical';
     import PictureInPicture2 from '@lucide/svelte/icons/picture-in-picture-2';
@@ -23,6 +22,7 @@
     import CheckCheck from '@lucide/svelte/icons/check-check';
     import { createLongPress } from "$lib/longpress";
     import Refresher from "$lib/components/utils/Refresher.svelte";
+    import {isContentColumn} from "$lib/columnKinds";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
     import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
@@ -30,7 +30,6 @@
 
     interface Props {
         index: number;
-        isJunk?: boolean;
         isSplit?: boolean;
         name?: any;
         _agent?: any;
@@ -42,7 +41,6 @@
 
     let {
         index,
-        isJunk = false,
         isSplit = false,
         name = undefined,
         _agent: _agentProp = undefined,
@@ -52,7 +50,8 @@
         showDragHandle = false,
     }: Props = $props();
 
-    const columnState = getColumnState(isJunk);
+    const columnState = getScopedColumnState();
+    const isJunk = columnState.isJunk;
     const fixedColumnState = getColumnState(false);
     const column = $derived(columnState.getColumn(index));
     const _agent = $derived(_agentProp ?? ($agents.get(getAccountIdByDid($agents, column?.did) as any) || $agent));
@@ -73,7 +72,9 @@
         isTopScrolling = true;
 
         if (el.scrollTop === 0) {
-            handleRefresh();
+            if (!isContentColumn(column.algorithm?.type)) {
+                handleRefresh();
+            }
             isTopScrolling = false;
         } else {
             el.dataset.smoothScrolling = '';
@@ -108,6 +109,8 @@
     }
 
     function handleForceRefresh() {
+        if (isContentColumn(column.algorithm?.type)) return;
+
         isRefreshing = true;
         columnState.clearFeed(column.id);
         column.data.cursor = '';
@@ -233,7 +236,6 @@
     class:deck-row--bg={column?.settings?.background}
     class:deck-row--decks={$settings.design?.layout === 'decks'}
     class:deck-row--single={$settings.design?.layout === 'default'}
-    class:deck-row--compact={publishState.layout === 'bottom'}
     class:deck-row--mobileV2={$settings.design?.mobileNewUi && !isJunk}
     class:deck-row--mobileV2-fixed={$settings.design?.fixedFooter}
     class:deck-row--junk={isJunk}
@@ -324,7 +326,6 @@
                     {_agent}
                     bind:unique={unique}
                     bind:this={refreshEl}
-                    {isJunk}
                     bind:isRefreshing={isRefreshing}
                     {isSplit}
             ></ColumnRefreshButton>
@@ -360,10 +361,10 @@
             refresherHeight={80}
             pullMin={80}
             pullMax={160}
-            disabled={column?.algorithm?.type === 'chat' || column?.algorithm?.type === 'chatList' || $settings.design?.layout === 'default'}
+            disabled={column?.algorithm?.type === 'chat' || column?.algorithm?.type === 'chatList' || isContentColumn(column?.algorithm?.type) || $settings.design?.layout === 'default'}
     >
         <div class="deck-row__content">
-            <ColumnContent {index} {_agent} {isJunk} {unique} {isSplit} {isTopScrolling} onrefresh={handleRefresh}></ColumnContent>
+            <ColumnContent {index} {_agent} {unique} {isSplit} {isTopScrolling} onrefresh={handleRefresh}></ColumnContent>
         </div>
     </Refresher>
 </div>

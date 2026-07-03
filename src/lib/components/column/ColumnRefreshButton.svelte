@@ -8,13 +8,13 @@
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { fly } from 'svelte/transition';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {getScopedColumnState} from "$lib/classes/columnState.svelte";
+    import {isContentColumn} from "$lib/columnKinds";
 
     interface Props {
         index: any;
         _agent?: any;
         unique?: any;
-        isJunk?: boolean;
         isRefreshing?: boolean | string;
         isSplit?: boolean;
         column?: any;
@@ -24,13 +24,13 @@
         index,
         _agent = $agent,
         unique = $bindable(Symbol()),
-        isJunk = false,
         isRefreshing = $bindable(false),
         isSplit = false,
         column: columnProp = undefined
     }: Props = $props();
 
-    const columnState = getColumnState(isJunk);
+    const columnState = getScopedColumnState();
+    const isJunk = columnState.isJunk;
     const column = $derived(columnProp ?? columnState.getColumn(index));
 
     function getScrollElement(): HTMLElement {
@@ -59,8 +59,8 @@
     const serviceHost = getServiceHost();
     const host = serviceHost === 'bsky.social' ? 'Jetstream (us-east2)' : serviceHost;
 
-    watch(() => column.unreadCount, () => {
-      if (column.unreadCount && column.data.cursor) {
+    watch(() => column?.unreadCount, () => {
+      if (column?.unreadCount && column?.data?.cursor) {
         refresh(true);
       }
     })
@@ -73,6 +73,10 @@
     }
 
     export async function refresh(isAutoRefresh: boolean = false) {
+        if (isContentColumn(column.algorithm?.type)) {
+            return false;
+        }
+
         if ($pauseColumn) {
             return false;
         }
@@ -351,7 +355,7 @@
     }
 
     function handleTimer(e) {
-        if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0) {
+        if (column?.settings?.autoRefresh && column.settings?.autoRefresh > 0) {
             if (e.data % Number(column.settings.autoRefresh) === 0) {
                 try {
                     refresh(true);
@@ -371,16 +375,16 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if column.settings?.autoRefresh === -1}
-  <button
-          class="refresh-button refresh-button--realtime refresh-button--decks"
-          aria-label="Realtime Connecting"
-          onclick={() => {$isRealtimeListenersModalOpen = true}}
-  >
-    <Radio color={$realtimeStatuses.includes(host) ? 'var(--primary-color)' : 'var(--border-color-1)'} />
-  </button>
-{:else}
-  {#if isJunk}
+{#if !isContentColumn(column.algorithm?.type)}
+  {#if column.settings?.autoRefresh === -1}
+    <button
+            class="refresh-button refresh-button--realtime refresh-button--decks"
+            aria-label="Realtime Connecting"
+            onclick={() => {$isRealtimeListenersModalOpen = true}}
+    >
+      <Radio color={$realtimeStatuses.includes(host) ? 'var(--primary-color)' : 'var(--border-color-1)'} />
+    </button>
+  {:else if isJunk}
     <button
             class="refresh-button"
             class:refresh-button--decks={$settings.design.layout === 'decks' || isJunk}
@@ -393,12 +397,10 @@
         <path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
       </svg>
     </button>
-  {:else}
-    {#if (isRefreshing === true && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList')}
-      <div class="refresher" transition:fly={{ duration: 300, y: -100}}>
-        <LoadingSpinner padding={0} size={24}></LoadingSpinner>
-      </div>
-    {/if}
+  {:else if (isRefreshing === true && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList')}
+    <div class="refresher" transition:fly={{ duration: 300, y: -100}}>
+      <LoadingSpinner padding={0} size={24}></LoadingSpinner>
+    </div>
   {/if}
 {/if}
 

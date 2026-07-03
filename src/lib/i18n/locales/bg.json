@@ -319,6 +319,8 @@
   "page_title_likes": "харесвания",
   "feed_quick_add": "Добяване на колона",
   "column_added": "Колоната е добавена.",
+  "column_publish": "Публикация",
+  "publish_open_composer": "Отвори редактора на публикации",
   "p_menu_my_accounts": "Моите акаунти",
   "/search/feeds_search": "Търсене на емисии",
   "column_style": "Стил на колоната (Нормален/Мултимедия)",

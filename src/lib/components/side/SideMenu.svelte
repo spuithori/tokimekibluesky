@@ -4,7 +4,6 @@
     import { offset, shift, size } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';
     import { fly } from 'svelte/transition';
-    import AppWindowMac from '@lucide/svelte/icons/app-window-mac';
     import Bell from '@lucide/svelte/icons/bell';
     import CircleArrowUp from '@lucide/svelte/icons/circle-arrow-up';
     import Columns3 from '@lucide/svelte/icons/columns-3';
@@ -12,8 +11,6 @@
     import Heart from '@lucide/svelte/icons/heart';
     import MessageCircleMore from '@lucide/svelte/icons/message-circle-more';
     import Mic from '@lucide/svelte/icons/mic';
-    import PanelBottomOpen from '@lucide/svelte/icons/panel-bottom-open';
-    import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
     import Pin from '@lucide/svelte/icons/pin';
     import PinOff from '@lucide/svelte/icons/pin-off';
     import RectangleVertical from '@lucide/svelte/icons/rectangle-vertical';
@@ -26,29 +23,12 @@
     import Clapperboard from '@lucide/svelte/icons/clapperboard';
     import Layers from '@lucide/svelte/icons/layers';
     import Database from '@lucide/svelte/icons/database';
-    import { publishState } from '$lib/classes/publishState.svelte';
     import {ALL_ITEMS, sideState} from "$lib/classes/sideState.svelte";
 
     let { onclose, onaction, footer = false } = $props();
     let el = $state();
-    let placement = $derived.by(() => {
-        if (footer) {
-            return 'top';
-        } else if (publishState.isBottom) {
-            return 'right-end';
-        } else {
-            return 'bottom';
-        }
-    });
-    let mainAxis = $derived.by(() => {
-        if (footer) {
-            return 64;
-        } else if (publishState.isBottom) {
-            return 16;
-        } else {
-            return 8;
-        }
-    })
+    const placement = footer ? 'top' : 'right-end';
+    const mainAxis = footer ? 64 : 16;
 
     const [ floatingRef, floatingContent ] = createFloatingActions({
         strategy: 'absolute',
@@ -91,7 +71,7 @@
 
 <div use:floatingRef></div>
 
-<dialog class="side-menu" class:side-menu--bottom={publishState.isBottom} transition:fly="{{ y: 16, duration: 250 }}" bind:this={el} onclose={onclose} onclick={handleClick} use:floatingContent>
+<dialog class="side-menu side-menu--bottom" transition:fly="{{ y: 16, duration: 250 }}" bind:this={el} onclose={onclose} onclick={handleClick} use:floatingContent>
   <div class="side-menu-row">
     <div class="side-menu-sp-header only-mobile">
       <a class="side-bar-button" href="/settings" onclick={onclose}>
@@ -167,45 +147,6 @@
   </div>
 
   <div class="side-menu-row only-pc">
-    <div class="side-menu-item">
-      <dl class="settings-group">
-        <dt class="settings-group__name">
-          {$_('publish_position')}
-        </dt>
-
-        <dd class="settings-group__content">
-          <div class="radio-group">
-            <div class="radio radio--boxed">
-              <input type="radio" bind:group={publishState.layout} id="publishPositionLeft" name="publishPosition" value={'left'}>
-              <label for="publishPositionLeft">
-                <span class="radio__ui"></span>
-                <PanelLeftOpen size="16"></PanelLeftOpen>
-                {$_('publish_position_left')}
-              </label>
-            </div>
-
-            <div class="radio radio--boxed">
-              <input type="radio" bind:group={publishState.layout} id="publishPositionBottom" name="publishPosition" value={'bottom'}>
-              <label for="publishPositionBottom">
-                <span class="radio__ui"></span>
-                <PanelBottomOpen size="16"></PanelBottomOpen>
-                {$_('publish_position_bottom')}
-              </label>
-            </div>
-
-            <div class="radio radio--boxed">
-              <input type="radio" bind:group={publishState.layout} id="publishPositionPopup" name="publishPosition" value={'popup'}>
-              <label for="publishPositionPopup">
-                <span class="radio__ui"></span>
-                <AppWindowMac size="16"></AppWindowMac>
-                {$_('publish_position_popup')}
-              </label>
-            </div>
-          </div>
-        </dd>
-      </dl>
-    </div>
-
     <div class="side-menu-item">
       <div class="layout-radio-group">
         <div class="layout-radio" class:layout-radio--current={$settings.design?.layout === 'decks'}>

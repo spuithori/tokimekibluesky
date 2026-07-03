@@ -3,21 +3,19 @@
   import {_} from "svelte-i18n";
   import VirtualThreadList from "$lib/components/thread/VirtualThreadList.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {getScopedColumnState} from "$lib/classes/columnState.svelte";
 
   interface Props {
     index: any;
     _agent?: any;
-    isJunk?: boolean;
   }
 
   let {
     index,
     _agent,
-    isJunk = false,
   }: Props = $props();
 
-  const columnState = getColumnState(isJunk);
+  const columnState = getScopedColumnState();
   const column = $derived(columnState.getColumn(index));
 
   let rootIndex = $state<number>();
@@ -144,5 +142,5 @@
 {:else if !columnState.getFeed(column.id).length}
   <LoadingSpinner></LoadingSpinner>
 {:else}
-  <VirtualThreadList {_agent} {column} {rootIndex} onchangeprofile={handleChangeProfile} {isJunk}></VirtualThreadList>
+  <VirtualThreadList {_agent} {column} {rootIndex} onchangeprofile={handleChangeProfile}></VirtualThreadList>
 {/if}

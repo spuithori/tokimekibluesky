@@ -21,6 +21,7 @@
     } from "$lib/components/post/embedImages";
     import Images from "../../../routes/(app)/Images.svelte";
     import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
+    import TimelineVideo from "$lib/components/post/TimelineVideo.svelte";
     import { formatTranslateRecord } from "$lib/translate";
     import {
         isLocalTranslateSupported,
@@ -529,9 +530,7 @@
                         <EmbedAudio video={post.embed.media} audio={audioMeta}></EmbedAudio>
                     {/await}
                 {:else}
-                    {#await import("$lib/components/post/EmbedVideo.svelte") then { default: EmbedVideo }}
-                        <EmbedVideo video={post.embed.media}></EmbedVideo>
-                    {/await}
+                    <TimelineVideo video={post.embed.media}></TimelineVideo>
                 {/if}
             {/if}
 
@@ -581,9 +580,7 @@
                         <EmbedAudio video={post.embed} audio={audioMeta}></EmbedAudio>
                     {/await}
                 {:else}
-                    {#await import("$lib/components/post/EmbedVideo.svelte") then { default: EmbedVideo }}
-                        <EmbedVideo video={post.embed}></EmbedVideo>
-                    {/await}
+                    <TimelineVideo video={post.embed}></TimelineVideo>
                 {/if}
             </div>
         {/if}

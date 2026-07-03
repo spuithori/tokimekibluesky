@@ -7,7 +7,6 @@
     import TilingDragOverlay from "$lib/components/deck/TilingDragOverlay.svelte";
     import TilingDragGhost from "$lib/components/deck/TilingDragGhost.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import {publishState} from "$lib/classes/publishState.svelte";
     const columnState = getColumnState();
 </script>
 
@@ -15,7 +14,7 @@
 <TilingDragGhost></TilingDragGhost>
 
 <div class="deck-wrap">
-  <div class="deck-divider" class:deck-divider--compact={publishState.isBottom}></div>
+  <div class="deck-divider deck-divider--compact"></div>
 
   {#if columnState.slots.length}
     <div class="deck">

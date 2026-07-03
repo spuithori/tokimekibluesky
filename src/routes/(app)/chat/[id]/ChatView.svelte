@@ -1,36 +1,26 @@
 <script lang="ts">
     import {agent} from '$lib/stores';
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-    import DeckSlot from "../../DeckSlot.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {type JunkColumnDescriptor} from "$lib/junkColumn";
+    import JunkColumn from "../../JunkColumn.svelte";
 
     let { _agent = $agent, id } = $props();
-    const columnState = getColumnState(true);
+    const junkState = getColumnState(true);
 
-    if (!columnState.hasColumn('chat_' + id)) {
-        columnState.add({
-            id: 'chat_' + id,
-            algorithm: {
-                id: id,
-                type: 'chat',
-                name: '',
-            },
-            style: 'default',
-            settings: defaultDeckSettings,
-            did: _agent.did(),
-            handle: _agent.handle(),
-            data: {
-                feed: [],
-                cursor: '',
-            }
-        });
-    } else {
-        const index = columnState.getColumnIndex('chat_' + id);
-        columnState.columns[index].data = {
+    if (junkState.hasColumn('chat_' + id)) {
+        const index = junkState.getColumnIndex('chat_' + id);
+        junkState.columns[index].data = {
             feed: [],
             cursor: '',
         };
     }
+
+    const descriptor: JunkColumnDescriptor = $derived({
+        id: 'chat_' + id,
+        algorithm: { id: id, type: 'chat', name: '' },
+        did: _agent.did(),
+        handle: _agent.handle(),
+    });
 </script>
 
-<DeckSlot index={columnState.getColumnIndex('chat_' + id)} isJunk={true}></DeckSlot>
+<JunkColumn {descriptor}></JunkColumn>
