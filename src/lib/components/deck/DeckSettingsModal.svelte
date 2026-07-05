@@ -929,8 +929,8 @@
             .style-nav__item--default {
                 width: 57px;
 
-                path {
-                    fill: var(--primary-color);
+                :global(svg) {
+                    stroke: var(--primary-color);
                 }
             }
         }
@@ -943,13 +943,13 @@
             .style-nav__item--media {
                 width: 57px;
 
-                path {
-                    fill: var(--primary-color);
+                :global(svg) {
+                    stroke: var(--primary-color);
                 }
             }
         }
 
-        svg {
+        :global(svg) {
             position: relative;
             z-index: 3;
         }

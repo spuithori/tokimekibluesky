@@ -61,6 +61,14 @@
     }
   }
 
+  function iconToSvg(Icon: any, props: Record<string, unknown>): string {
+    const target = document.createElement('div');
+    const instance = mount(Icon, { target, props });
+    const html = target.innerHTML;
+    unmount(instance);
+    return html;
+  }
+
   function triggerDownload(url: string, filename: string) {
     const a = document.createElement('a');
     a.href = url;
@@ -78,10 +86,10 @@
     secondaryZoomLevel: 2,
     maxZoomLevel: 2,
     bgOpacity: 0.9,
-    closeSVG: '<X size={28} color="#fff" />',
-    zoomSVG: '<ZoomIn color="#fff" />',
-    arrowNextSVG: '<ChevronRight size={36} color="#fff" />',
-    arrowPrevSVG: '<ChevronLeft size={36} color="#fff" />',
+    closeSVG: iconToSvg(X, { size: 28, color: '#fff' }),
+    zoomSVG: iconToSvg(ZoomIn, { color: '#fff' }),
+    arrowNextSVG: iconToSvg(ChevronRight, { size: 36, color: '#fff' }),
+    arrowPrevSVG: iconToSvg(ChevronLeft, { size: 36, color: '#fff' }),
     appendToEl: document.querySelector('.app'),
     loop: false,
   });
@@ -100,7 +108,7 @@
       order: 8,
       isButton: true,
       tagName: 'button',
-      html: '<Save color="#fff" />',
+      html: iconToSvg(Save, { color: '#fff' }),
       onClick: async () => {
         const data = lightbox.pswp.currSlide.data;
         const originalSrc = data.src ?? '';
@@ -132,7 +140,7 @@
       order: 7,
       isButton: true,
       tagName: 'button',
-      html: '<BookOpen color="#fff" />',
+      html: iconToSvg(BookOpen, { color: '#fff' }),
       onInit: (el) => {
         el.setAttribute('aria-label', 'Open comic reader');
         el.setAttribute('title', 'Open comic reader');
