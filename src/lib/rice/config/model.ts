@@ -78,6 +78,7 @@ export interface SidebarConfig {
 }
 
 export type BarPosition = 'top' | 'bottom' | 'left' | 'right';
+export type BarSlot = BarPosition | 'footer' | 'drawer';
 export type BarStyle = 'bar' | 'icons' | 'menu';
 export type BarGroupName = 'start' | 'center' | 'end';
 
@@ -99,7 +100,7 @@ export interface BarTabSet {
 
 export interface BarConfig {
     kind: 'rice' | 'native';
-    position: BarPosition;
+    position: BarSlot;
     style: BarStyle;
     items: string[] | null;
     itemSpecs: BarItemSpec[] | null;
@@ -112,7 +113,22 @@ export interface BarConfig {
     showSettings: boolean;
 }
 
-export function emptyBar(position: BarPosition, kind: 'rice' | 'native'): BarConfig {
+export interface SwitcherConfig {
+    style: 'strip' | 'pill';
+    position: 'top' | 'bottom';
+    reveal: 'always' | 'scroll' | 'auto';
+    showAdd: boolean;
+    props: Record<string, string>;
+}
+
+export interface FabConfig {
+    show: boolean;
+    position: 'left' | 'right';
+    onClick?: string;
+    props: Record<string, string>;
+}
+
+export function emptyBar(position: BarSlot, kind: 'rice' | 'native'): BarConfig {
     return {
         kind,
         position,
@@ -171,9 +187,9 @@ export interface AnimationsConfig {
     targets: Record<string, AnimationTargetConfig>;
 }
 
-export const ANIMATION_TARGETS = ['panel', 'menu', 'modal', 'tooltip', 'reorder', 'hover'] as const;
+export const ANIMATION_TARGETS = ['panel', 'menu', 'modal', 'drawer', 'tooltip', 'reorder', 'hover'] as const;
 
-export const STYLE_TARGETS = ['panel', 'menu', 'modal'] as const;
+export const STYLE_TARGETS = ['panel', 'menu', 'modal', 'drawer'] as const;
 
 export const STYLE_KEYWORDS = ['slide', 'fade', 'popin', 'blur'] as const;
 
@@ -183,7 +199,9 @@ export interface CompiledRice {
     themeTokens: Record<string, string>;
     themeReset: boolean;
     columnRules: ColumnRule[];
-    bars: Partial<Record<BarPosition, BarConfig>>;
+    bars: Partial<Record<BarSlot, BarConfig>>;
+    switcher: SwitcherConfig | null;
+    fab: FabConfig | null;
     panel: PanelConfig | null;
     layout: LayoutConfig | null;
     focus: FocusConfig | null;
@@ -192,6 +210,7 @@ export interface CompiledRice {
     submaps: Record<string, RiceBind[]>;
     modules: Record<string, { enable: boolean; options: Record<string, string> }>;
     sets: { path: string; value: string }[];
+    mediaQueries: string[];
     diagnostics: RiceDiagnostic[];
 }
 
@@ -201,6 +220,8 @@ export function emptyCompiledRice(): CompiledRice {
         themeReset: false,
         columnRules: [],
         bars: {},
+        switcher: null,
+        fab: null,
         panel: null,
         layout: null,
         focus: null,
@@ -209,6 +230,7 @@ export function emptyCompiledRice(): CompiledRice {
         submaps: {},
         modules: {},
         sets: [],
+        mediaQueries: [],
         diagnostics: [],
     };
 }

@@ -76,6 +76,10 @@
                         return el ? el.getBoundingClientRect().width : null;
                     })(),
                     keymodeChip: document.querySelector('.rice-keymode')?.textContent ?? null,
+                    deckRadiusToken: (() => {
+                        const el = document.querySelector('.app-mock');
+                        return el ? getComputedStyle(el).getPropertyValue('--deck-border-radius').trim() : null;
+                    })(),
                 };
             },
             addClockColumn(id: string, name: string) {

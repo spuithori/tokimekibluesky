@@ -31,7 +31,7 @@
 
     function anchorEdge(anchor: HTMLElement): 'left' | 'right' | 'top' | 'bottom' {
         if (anchor.closest('.rice-statusbar--top')) return 'top';
-        if (anchor.closest('.rice-statusbar--bottom')) return 'bottom';
+        if (anchor.closest('.rice-statusbar--bottom') || anchor.closest('.rice-footer')) return 'bottom';
         if (anchor.closest('.rice-bar--edge-right')) return 'right';
         if (anchor.closest('.rice-bar--edge-left') || anchor.closest('.side')) return 'left';
         const rect = anchor.getBoundingClientRect();
@@ -172,10 +172,11 @@
 
         @media (max-width: 767px) {
             top: auto !important;
-            bottom: 64px !important;
+            bottom: calc(var(--rice-footer-height, 56px) + 8px) !important;
             left: 0 !important;
             right: 0 !important;
             width: auto !important;
+            height: calc(100dvh - 128px);
             max-height: none !important;
         }
 

@@ -150,5 +150,12 @@ export function migrate(
         stored.version = 7;
     }
 
+    if (stored.version < 8) {
+        if (isPlainObject(stored.design)) {
+            delete (stored.design as Record<string, any>).mobileNewUi;
+        }
+        stored.version = 8;
+    }
+
     return deepMerge(defaults, stored);
 }

@@ -864,3 +864,270 @@ describe('rice config submap', () => {
         expect(undefinedRef.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('nope'))).toBe(true);
     });
 });
+
+describe('media', () => {
+    const mobileTokens = 'media "mobile" {\n    theme {\n        tokens {\n            deck-border-radius = 4px\n        }\n    }\n}\n';
+
+    it('ラベルなしは error になる', () => {
+        const out = compile('media {\n    theme {\n        tokens {\n            deck-border-radius = 4px\n        }\n    }\n}\n');
+        expect(out.diagnostics.some((d) => d.severity === 'error' && d.message.includes('条件が必要'))).toBe(true);
+        expect(out.mediaQueries).toEqual([]);
+    });
+
+    it('isActive が true なら子セクションが適用され mediaQueries に登録される', () => {
+        const out = compile(mobileTokens, undefined, () => true);
+        expect(out.themeTokens['deck-border-radius']).toBe('4px');
+        expect(out.mediaQueries).toEqual(['(max-width: 767px)']);
+        expect(out.diagnostics).toEqual([]);
+    });
+
+    it('isActive 省略時は非適用だが mediaQueries には登録され診断もゼロ', () => {
+        const out = compile(mobileTokens);
+        expect(out.themeTokens['deck-border-radius']).toBeUndefined();
+        expect(out.mediaQueries).toEqual(['(max-width: 767px)']);
+        expect(out.diagnostics).toEqual([]);
+    });
+
+    it('アクティブな media は文書順の後勝ちでベースを上書きする', () => {
+        const base = 'theme {\n    tokens {\n        deck-border-radius = 20px\n    }\n}\n';
+        const after = compile(base + mobileTokens, undefined, () => true);
+        expect(after.themeTokens['deck-border-radius']).toBe('4px');
+        const before = compile(mobileTokens + base, undefined, () => true);
+        expect(before.themeTokens['deck-border-radius']).toBe('20px');
+    });
+
+    it('非アクティブ枝の診断は出るが実出力へは漏れない', () => {
+        const out = compile('media "mobile" {\n    columnrule {\n        opacity = 0.5\n    }\n    bar "left" {\n        position = left\n    }\n    module "clock" {\n        enable = true\n    }\n}\n');
+        expect(out.diagnostics.some((d) => d.severity === 'error' && d.message.includes('match がありません'))).toBe(true);
+        expect(out.columnRules).toEqual([]);
+        expect(out.bars).toEqual({});
+        expect(out.modules).toEqual({});
+    });
+
+    it('media のネストは error になる', () => {
+        const out = compile('media "mobile" {\n    media "desktop" {\n        theme {\n            tokens {\n                primary-color = red\n            }\n        }\n    }\n}\n', undefined, () => true);
+        expect(out.diagnostics.some((d) => d.severity === 'error' && d.message.includes('ネスト'))).toBe(true);
+        expect(out.themeTokens['primary-color']).toBeUndefined();
+    });
+
+    it('media 直下のキーは error になる', () => {
+        const out = compile('media "mobile" {\n    foo = bar\n}\n', undefined, () => true);
+        expect(out.diagnostics.some((d) => d.severity === 'error' && d.message.includes('media 直下'))).toBe(true);
+    });
+
+    it('条件ラベルが正規化される（ラップ / raw / キーワード / エイリアス）', () => {
+        const queries = (label: string) => compile(`media "${label}" {\n    layout {\n        align = center\n    }\n}\n`).mediaQueries;
+        expect(queries('max-width: 500px')).toEqual(['(max-width: 500px)']);
+        expect(queries('(min-width: 500px) and (max-width: 900px)')).toEqual(['(min-width: 500px) and (max-width: 900px)']);
+        expect(queries('print')).toEqual(['print']);
+        expect(queries('desktop')).toEqual(['(min-width: 768px)']);
+    });
+
+    it('同一クエリは dedup され isActive は正規化後の文字列で呼ばれる', () => {
+        const seen: string[] = [];
+        const out = compile('media "mobile" {\n    layout {\n        align = center\n    }\n}\nmedia "max-width: 767px" {\n    layout {\n        align = right\n    }\n}\n', undefined, (q) => {
+            seen.push(q);
+            return false;
+        });
+        expect(out.mediaQueries).toEqual(['(max-width: 767px)']);
+        expect(seen).toEqual(['(max-width: 767px)', '(max-width: 767px)']);
+    });
+
+    it('media 内の set はパーサが拒否する', () => {
+        const out = compile('media "mobile" {\n    set design.skin = ochame\n}\n', undefined, () => true);
+        expect(out.diagnostics.some((d) => d.severity === 'error' && d.message.includes('トップレベル'))).toBe(true);
+        expect(out.sets).toEqual([]);
+    });
+
+    it('アクティブな media によるバー上書きは複数定義 warning を出さない', () => {
+        const barPair = 'bar "main" {\n    position = left\n    width = 64px\n}\nmedia "mobile" {\n    bar "main" {\n        position = left\n        width = 200px\n    }\n}\n';
+        const active = compile(barPair, undefined, () => true);
+        expect(active.diagnostics.some((d) => d.message.includes('複数定義'))).toBe(false);
+        expect(active.bars.left?.props.width).toBe('200px');
+        const topLevel = compile('bar "a" {\n    position = left\n}\nbar "b" {\n    position = left\n}\n');
+        expect(topLevel.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('複数定義'))).toBe(true);
+    });
+
+    it('source 経由の media も動作する', () => {
+        const sources: Record<string, string> = { frag: 'media "mobile" {\n    theme {\n        tokens {\n            primary-color = tomato\n        }\n    }\n}\n' };
+        const out = compile('source = frag\n', (ref) => sources[ref], () => true);
+        expect(out.themeTokens['primary-color']).toBe('tomato');
+        expect(out.mediaQueries).toEqual(['(max-width: 767px)']);
+    });
+});
+
+describe('footer section', () => {
+    it('itemsとpropsがbars.footerにコンパイルされる', () => {
+        const out = compile('footer {\n    items = home, search, menu\n    height = 60px\n    background = #111\n}\n');
+        expect(out.bars.footer?.kind).toBe('rice');
+        expect(out.bars.footer?.position).toBe('footer');
+        expect(out.bars.footer?.style).toBe('icons');
+        expect(out.bars.footer?.items).toEqual(['home', 'search', 'menu']);
+        expect(out.bars.footer?.props.height).toBe('60px');
+        expect(out.diagnostics).toEqual([]);
+    });
+
+    it('revealはalways/scrollのみ受理する', () => {
+        const ok = compile('footer {\n    items = home\n    reveal = always\n}\n');
+        expect(ok.bars.footer?.props.reveal).toBe('always');
+        const bad = compile('footer {\n    items = home\n    reveal = hover\n}\n');
+        expect(bad.diagnostics.some((d) => d.severity === 'error' && d.message.includes('reveal'))).toBe(true);
+        expect(bad.bars.footer?.props.reveal).toBeUndefined();
+    });
+
+    it('itemsが無いfooterは割り当てられずwarningになる', () => {
+        const out = compile('footer {\n    height = 60px\n}\n');
+        expect(out.bars.footer).toBeUndefined();
+        expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('items がありません'))).toBe(true);
+    });
+
+    it('groupとper-itemオプションが効く', () => {
+        const out = compile('footer {\n    group "start" {\n        items = home\n    }\n    group "end" {\n        items = notifications\n        item "notifications" {\n            hide-zero = false\n        }\n    }\n}\n');
+        expect(out.bars.footer?.groups?.map((g) => g.name)).toEqual(['start', 'end']);
+        expect(out.bars.footer?.itemSpecs?.find((s) => s.base === 'notifications')?.options['hide-zero']).toBe('false');
+        expect(out.diagnostics).toEqual([]);
+    });
+
+    it('widgetとtabsはfooterで警告されドロップ相当になる', () => {
+        const out = compile('footer {\n    items = home, calendar, tabs\n}\n');
+        expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('calendar'))).toBe(true);
+        expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('tabs は'))).toBe(true);
+    });
+
+    it('media "mobile" 内のfooterはアクティブ時のみ割り当たる', () => {
+        const text = 'media "mobile" {\n    footer {\n        items = home\n    }\n}\n';
+        expect(compile(text, undefined, () => true).bars.footer?.items).toEqual(['home']);
+        expect(compile(text).bars.footer).toBeUndefined();
+    });
+
+    it('footer二重定義はトップレベルではwarning・media内では抑制', () => {
+        const top = compile('footer {\n    items = home\n}\nfooter {\n    items = search\n}\n');
+        expect(top.diagnostics.some((d) => d.message.includes('複数定義'))).toBe(true);
+        expect(top.bars.footer?.items).toEqual(['search']);
+        const viaMedia = compile('footer {\n    items = home\n}\nmedia "mobile" {\n    footer {\n        items = search\n    }\n}\n', undefined, () => true);
+        expect(viaMedia.diagnostics.some((d) => d.message.includes('複数定義'))).toBe(false);
+        expect(viaMedia.bars.footer?.items).toEqual(['search']);
+    });
+});
+
+describe('switcher section', () => {
+    it('strip既定はtop/scroll/add-button有効', () => {
+        const out = compile('switcher {\n    style = strip\n}\n');
+        expect(out.switcher).toEqual({ style: 'strip', position: 'top', reveal: 'scroll', showAdd: true, props: {} });
+        expect(out.diagnostics).toEqual([]);
+    });
+
+    it('pill既定はbottom/auto/add-button無効', () => {
+        const out = compile('switcher {\n    style = pill\n}\n');
+        expect(out.switcher).toEqual({ style: 'pill', position: 'bottom', reveal: 'auto', showAdd: false, props: {} });
+    });
+
+    it('明示キーが既定に勝つ（キー順序非依存）', () => {
+        const out = compile('switcher {\n    position = top\n    reveal = scroll\n    style = pill\n    add-button = true\n    rounding = 20px\n}\n');
+        expect(out.switcher).toEqual({ style: 'pill', position: 'top', reveal: 'scroll', showAdd: true, props: { rounding: '20px' } });
+    });
+
+    it('enum不正はerrorになり後勝ち置換が成立する', () => {
+        const bad = compile('switcher {\n    style = bubble\n    reveal = hover\n    position = center\n}\n');
+        expect(bad.diagnostics.filter((d) => d.severity === 'error').length).toBe(3);
+        expect(bad.switcher?.style).toBe('strip');
+        const replaced = compile('switcher {\n    style = pill\n}\nswitcher {\n    style = strip\n}\n');
+        expect(replaced.switcher?.style).toBe('strip');
+        expect(replaced.switcher?.position).toBe('top');
+    });
+});
+
+describe('fab section', () => {
+    it('既定はshow/right、キーで上書きできる', () => {
+        const out = compile('fab {\n    position = left\n    size = 44px\n    rounding = 50%\n    offset = 12px\n}\n');
+        expect(out.fab).toEqual({ show: true, position: 'left', props: { size: '44px', rounding: '50%', offset: '12px' } });
+        expect(out.diagnostics).toEqual([]);
+    });
+
+    it('show = falseとon-clickが取れる', () => {
+        const out = compile('fab {\n    show = false\n    on-click = side.toggle workspace\n}\n');
+        expect(out.fab?.show).toBe(false);
+        expect(out.fab?.onClick).toBe('side.toggle workspace');
+    });
+
+    it('position不正はerror', () => {
+        const out = compile('fab {\n    position = center\n}\n');
+        expect(out.diagnostics.some((d) => d.severity === 'error' && d.message.includes('fab の position'))).toBe(true);
+        expect(out.fab?.position).toBe('right');
+    });
+
+    it('不明キーはwarning・unsafe値はerror', () => {
+        const out = compile('fab {\n    color = red\n}\n');
+        expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('fab のキー'))).toBe(true);
+        const unsafe = compile('fab {\n    size = 44px;background:red\n}\n');
+        expect(unsafe.diagnostics.some((d) => d.severity === 'error')).toBe(true);
+        expect(unsafe.fab?.props.size).toBeUndefined();
+    });
+});
+
+describe('mobile shell defaults', () => {
+    it('空configではfooter/switcher/fabが全て不在', () => {
+        const out = compile('');
+        expect(out.bars.footer).toBeUndefined();
+        expect(out.switcher).toBeNull();
+        expect(out.fab).toBeNull();
+    });
+});
+
+describe('menu item', () => {
+    it('footer/bar の items に menu を置いても診断ゼロで itemSpecs に載る', () => {
+        const out = compile('footer {\n    items = home, menu\n    item "menu" {\n        items = home, search, settings\n    }\n}\n');
+        expect(out.diagnostics).toEqual([]);
+        const spec = out.bars.footer?.itemSpecs?.find((s) => s.base === 'menu');
+        expect(spec?.options.items).toBe('home, search, settings');
+    });
+});
+
+describe('drawer section', () => {
+    it('itemsとpropsがbars.drawerにコンパイルされstyleはmenu', () => {
+        const out = compile('drawer {\n    items = account, separator, home, feeds\n    width = 320px\n    background = #111\n}\n');
+        expect(out.bars.drawer?.kind).toBe('rice');
+        expect(out.bars.drawer?.style).toBe('menu');
+        expect(out.bars.drawer?.items).toEqual(['account', 'separator', 'home', 'feeds']);
+        expect(out.bars.drawer?.props.width).toBe('320px');
+        expect(out.diagnostics).toEqual([]);
+    });
+
+    it('widgetとper-itemオプションが許可される（縦扱い）', () => {
+        const out = compile('drawer {\n    items = home, calendar\n    item "calendar" {\n        rounding = 12px\n    }\n}\n');
+        expect(out.diagnostics).toEqual([]);
+        expect(out.bars.drawer?.itemSpecs?.find((s) => s.base === 'calendar')?.options.rounding).toBe('12px');
+    });
+
+    it('itemsが無いdrawerは割り当てられずwarning', () => {
+        const out = compile('drawer {\n    width = 320px\n}\n');
+        expect(out.bars.drawer).toBeUndefined();
+        expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('items がありません'))).toBe(true);
+    });
+
+    it('media "mobile" 内のdrawerはアクティブ時のみ割り当たる', () => {
+        const text = 'media "mobile" {\n    drawer {\n        items = home\n    }\n}\n';
+        expect(compile(text, undefined, () => true).bars.drawer?.items).toEqual(['home']);
+        expect(compile(text).bars.drawer).toBeUndefined();
+    });
+
+    it('不明キーはwarning', () => {
+        const out = compile('drawer {\n    items = home\n    float = true\n}\n');
+        expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('drawer のキー'))).toBe(true);
+    });
+});
+
+describe('animation drawer target', () => {
+    it('drawerターゲットがstyle合成込みで受理される', () => {
+        const out = compile('animation {\n    drawer = 260ms, slide left 60px, fade\n}\n');
+        expect(out.diagnostics).toEqual([]);
+        const target = out.animations?.targets['drawer'];
+        expect(target?.duration).toBe(260);
+        expect(target?.styles?.map((s) => s.kind).sort()).toEqual(['fade', 'slide']);
+    });
+
+    it('enabled = falseで全ターゲット0ms化にdrawerも含まれる', () => {
+        const out = compile('animation {\n    enabled = false\n}\n');
+        expect(out.animations?.enabled).toBe(false);
+    });
+});

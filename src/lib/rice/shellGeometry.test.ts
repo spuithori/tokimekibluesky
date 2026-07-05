@@ -142,3 +142,39 @@ describe('shellGeometryVars', () => {
         expect(shellGeometryVars(bars({ top: native }))).toBe('');
     });
 });
+
+describe('shellGeometryVars footer', () => {
+    it('rice footerから--rice-footer-heightを発行する（既定56px）', () => {
+        const footer = emptyBar('footer', 'rice');
+        footer.items = ['home'];
+        expect(shellGeometryVars(bars({ footer }))).toBe('--rice-footer-height: 56px;');
+        footer.props.height = '64px';
+        expect(shellGeometryVars(bars({ footer }))).toBe('--rice-footer-height: 64px;');
+    });
+
+    it('float footerはheight+margin*2で発行しitemsなしは発行しない', () => {
+        const footer = emptyBar('footer', 'rice');
+        footer.items = ['home'];
+        footer.float = true;
+        expect(shellGeometryVars(bars({ footer }))).toBe('--rice-footer-height: calc(56px + 8px * 2);');
+        footer.props.margin = '12px';
+        expect(shellGeometryVars(bars({ footer }))).toBe('--rice-footer-height: calc(56px + 12px * 2);');
+        const empty = emptyBar('footer', 'rice');
+        expect(shellGeometryVars(bars({ footer: empty }))).toBe('');
+    });
+});
+
+describe('shellGeometryVars switcher', () => {
+    it('pillまたはbottomのswitcherで--rice-switcher-top-height: 0pxを発行する', () => {
+        const pill = { style: 'pill', position: 'bottom', reveal: 'auto', showAdd: false, props: {} } as const;
+        expect(shellGeometryVars(bars({}), null, null, null, pill)).toBe('--rice-switcher-top-height: 0px;');
+        const bottomStrip = { style: 'strip', position: 'bottom', reveal: 'scroll', showAdd: true, props: {} } as const;
+        expect(shellGeometryVars(bars({}), null, null, null, bottomStrip)).toBe('--rice-switcher-top-height: 0px;');
+    });
+
+    it('topストリップやswitcher未指定では発行しない', () => {
+        const topStrip = { style: 'strip', position: 'top', reveal: 'scroll', showAdd: true, props: {} } as const;
+        expect(shellGeometryVars(bars({}), null, null, null, topStrip)).toBe('');
+        expect(shellGeometryVars(bars({}), null, null, null, null)).toBe('');
+    });
+});

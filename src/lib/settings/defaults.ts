@@ -32,7 +32,7 @@ export const DEFAULT_LABELER_SETTINGS: LabelerPreference[] = [
  * Current settings schema version. Migrations (migrations.ts) bring older
  * stored payloads up to this version before deep-merging against the defaults.
  */
-export const CURRENT_VERSION = 7;
+export const CURRENT_VERSION = 8;
 
 export const DEFAULT_RICE_CONFIG = `# TOKIMEKI Rice Framework
 # https://docs.tokimeki.blue/rice
@@ -129,6 +129,39 @@ export const DEFAULT_RICE_CONFIG = `# TOKIMEKI Rice Framework
 #     l = column.width +50
 #     j = column.move left
 #     k = column.move right
+# }
+
+# media "mobile" {
+#     theme {
+#         tokens {
+#             deck-border-radius = 0px
+#         }
+#     }
+# }
+
+# footer {
+#     items = workspace, search, notifications, menu
+#     item "menu" {
+#         items = home, feeds, settings
+#     }
+# }
+
+# switcher {
+#     style = pill
+#     reveal = auto
+# }
+
+# fab {
+#     position = left
+#     size = 44px
+# }
+
+# media "prefers-color-scheme: dark" {
+#     theme {
+#         tokens {
+#             primary-color = #9a6cff
+#         }
+#     }
 # }
 
 # module "search" {
@@ -234,7 +267,6 @@ export function createDefaultSettings(): Settings {
             singleWidth: 'medium',
             fixedFooter: false,
             mutualDisplay: false,
-            mobileNewUi: false,
             bubbleTimeline: false,
             threaded: false,
             monochrome: false,

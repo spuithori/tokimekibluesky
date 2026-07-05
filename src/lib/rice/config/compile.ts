@@ -1,8 +1,9 @@
 import { parse } from './parser';
 import { parseCombo } from '$lib/commands/keymap';
-import type { AnimationStyle, AnimationTargetConfig, BarConfig, BarGroupName, BarItemSpec, BarPosition, ColumnRule, CompiledRice, EntryNode, PanelConfig, RiceDiagnostic, SectionNode, TopStatement } from './model';
+import type { AnimationStyle, AnimationTargetConfig, BarConfig, BarGroupName, BarItemSpec, BarPosition, ColumnRule, CompiledRice, EntryNode, FabConfig, PanelConfig, RiceDiagnostic, SectionNode, SwitcherConfig, TopStatement } from './model';
 import { ANIMATION_TARGETS, JS_EASING_KEYWORDS, STYLE_KEYWORDS, STYLE_TARGETS, emptyBar, emptyCompiledRice } from './model';
 import { WIDGET_ONLY_IDS } from '../widgetIds';
+import { normalizeMediaQuery } from './breakpoints';
 
 export type SourceResolver = (ref: string) => string | undefined;
 
@@ -244,9 +245,11 @@ function compileColumnRule(section: SectionNode, out: CompiledRice, resolve: (va
 }
 
 const BAR_STYLE_PROPS = ['height', 'width', 'background', 'blur', 'rounding', 'border', 'font-size', 'margin', 'opacity'] as const;
+const SWITCHER_STYLE_PROPS = ['height', 'background', 'blur', 'rounding', 'offset'] as const;
+const FAB_STYLE_PROPS = ['size', 'rounding', 'offset'] as const;
 
-function assignBar(out: CompiledRice, bar: BarConfig, line: number) {
-    if (out.bars[bar.position]) {
+function assignBar(out: CompiledRice, bar: BarConfig, line: number, inMedia: boolean) {
+    if (out.bars[bar.position] && !inMedia) {
         out.diagnostics.push({ line, col: 1, message: `位置 "${bar.position}" のバーが複数定義されています（後の定義が優先されます）`, severity: 'warning' });
     }
     out.bars[bar.position] = bar;
@@ -413,22 +416,23 @@ function finalizeBarItems(
             out.diagnostics.push({ line: item.line, col: 1, message: `item "${id}" は ${itemsKey} に含まれていません（オプションは適用されません）`, severity: 'warning' });
         }
     }
-    if (bar.position === 'top' || bar.position === 'bottom') {
+    if (bar.position === 'top' || bar.position === 'bottom' || bar.position === 'footer') {
+        const surface = bar.position === 'footer' ? 'footer' : '横バー（top / bottom）';
         const warned = new Set<string>();
         for (const spec of specs ?? []) {
             if ((WIDGET_ONLY_IDS as readonly string[]).includes(spec.base) && !warned.has(spec.base)) {
                 warned.add(spec.base);
-                out.diagnostics.push({ line: itemsEntry?.line ?? sectionLine, col: 1, message: `"${spec.base}" はウィジェットのため横バー（top / bottom）では描画されません（縦バー left / right に置いてください）`, severity: 'warning' });
+                out.diagnostics.push({ line: itemsEntry?.line ?? sectionLine, col: 1, message: `"${spec.base}" はウィジェットのため${surface}では描画されません（縦バー left / right に置いてください）`, severity: 'warning' });
             }
             if (spec.base === 'tabs' && !warned.has('tabs')) {
                 warned.add('tabs');
-                out.diagnostics.push({ line: itemsEntry?.line ?? sectionLine, col: 1, message: `tabs は横バー（top / bottom）では描画されません（縦バー left / right に置いてください）`, severity: 'warning' });
+                out.diagnostics.push({ line: itemsEntry?.line ?? sectionLine, col: 1, message: `tabs は${surface}では描画されません（縦バー left / right に置いてください）`, severity: 'warning' });
             }
         }
     }
 }
 
-function compileStatusbar(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string) {
+function compileStatusbar(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string, inMedia: boolean) {
     const bar = emptyBar('top', 'rice');
     bar.style = 'bar';
     let itemsEntry: { ids: string[]; line: number } | null = null;
@@ -456,10 +460,10 @@ function compileStatusbar(section: SectionNode, out: CompiledRice, resolve: (val
         }
     }
     finalizeBarItems(bar, out, compileBarSections(section, 'statusbar', out, resolve), itemsEntry, 'modules', section.startLine);
-    assignBar(out, bar, section.startLine);
+    assignBar(out, bar, section.startLine, inMedia);
 }
 
-function compileBar(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string) {
+function compileBar(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string, inMedia: boolean) {
     if (!section.label) {
         out.diagnostics.push({ line: section.startLine, col: 1, message: 'bar には名前が必要です（例: bar "left" { ... }）', severity: 'error' });
         return;
@@ -510,7 +514,141 @@ function compileBar(section: SectionNode, out: CompiledRice, resolve: (value: st
         out.diagnostics.push({ line: section.startLine, col: 1, message: `style = menu のバーには width の指定を推奨します（未指定では 64px 相当となりラベルが潰れます）`, severity: 'warning' });
     }
     finalizeBarItems(bar, out, compileBarSections(section, 'bar', out, resolve), itemsEntry, 'items', section.startLine);
-    assignBar(out, bar, section.startLine);
+    assignBar(out, bar, section.startLine, inMedia);
+}
+
+function compileFooter(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string, inMedia: boolean) {
+    const bar = emptyBar('footer', 'rice');
+    let itemsEntry: { ids: string[]; line: number } | null = null;
+    for (const entry of entriesOf(section)) {
+        const value = resolve(entry.value, entry.line);
+        if (entry.key === 'items') {
+            itemsEntry = { ids: splitItems(value), line: entry.line };
+        } else if (entry.key === 'float') {
+            bar.float = value !== 'false';
+        } else if (entry.key === 'reveal') {
+            if (value !== 'always' && value !== 'scroll') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `footer の reveal は always / scroll のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            bar.props.reveal = value;
+        } else if ((BAR_STYLE_PROPS as readonly string[]).includes(entry.key)) {
+            if (isUnsafeCssValue(value)) {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `プロパティ値に使用できない文字が含まれています（; { } " < > / 括弧不均衡）`, severity: 'error' });
+                continue;
+            }
+            bar.props[entry.key] = value;
+        } else {
+            out.diagnostics.push({ line: entry.line, col: 1, message: `footer のキー "${entry.key}" は不明です（items / float / reveal / ${BAR_STYLE_PROPS.join(' / ')}）`, severity: 'warning' });
+        }
+    }
+    finalizeBarItems(bar, out, compileBarSections(section, 'footer', out, resolve), itemsEntry, 'items', section.startLine);
+    if ((bar.items?.length ?? 0) === 0) {
+        out.diagnostics.push({ line: section.startLine, col: 1, message: 'footer に items がありません（ネイティブフッターのままです）', severity: 'warning' });
+        return;
+    }
+    assignBar(out, bar, section.startLine, inMedia);
+}
+
+function compileDrawer(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string, inMedia: boolean) {
+    const bar = emptyBar('drawer', 'rice');
+    bar.style = 'menu';
+    let itemsEntry: { ids: string[]; line: number } | null = null;
+    for (const entry of entriesOf(section)) {
+        const value = resolve(entry.value, entry.line);
+        if (entry.key === 'items') {
+            itemsEntry = { ids: splitItems(value), line: entry.line };
+        } else if ((BAR_STYLE_PROPS as readonly string[]).includes(entry.key)) {
+            if (isUnsafeCssValue(value)) {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `プロパティ値に使用できない文字が含まれています（; { } " < > / 括弧不均衡）`, severity: 'error' });
+                continue;
+            }
+            bar.props[entry.key] = value;
+        } else {
+            out.diagnostics.push({ line: entry.line, col: 1, message: `drawer のキー "${entry.key}" は不明です（items / ${BAR_STYLE_PROPS.join(' / ')}）`, severity: 'warning' });
+        }
+    }
+    finalizeBarItems(bar, out, compileBarSections(section, 'drawer', out, resolve), itemsEntry, 'items', section.startLine);
+    if ((bar.items?.length ?? 0) === 0) {
+        out.diagnostics.push({ line: section.startLine, col: 1, message: 'drawer に items がありません（既定のナビリストのままです）', severity: 'warning' });
+        return;
+    }
+    assignBar(out, bar, section.startLine, inMedia);
+}
+
+function compileSwitcher(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string) {
+    let style: SwitcherConfig['style'] = 'strip';
+    let position: SwitcherConfig['position'] | null = null;
+    let reveal: SwitcherConfig['reveal'] | null = null;
+    let showAdd: boolean | null = null;
+    const props: Record<string, string> = {};
+    for (const entry of entriesOf(section)) {
+        const value = resolve(entry.value, entry.line);
+        if (entry.key === 'style') {
+            if (value !== 'strip' && value !== 'pill') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `switcher の style は strip / pill のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            style = value;
+        } else if (entry.key === 'position') {
+            if (value !== 'top' && value !== 'bottom') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `switcher の position は top / bottom のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            position = value;
+        } else if (entry.key === 'reveal') {
+            if (value !== 'always' && value !== 'scroll' && value !== 'auto') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `switcher の reveal は always / scroll / auto のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            reveal = value;
+        } else if (entry.key === 'add-button') {
+            showAdd = value !== 'false';
+        } else if ((SWITCHER_STYLE_PROPS as readonly string[]).includes(entry.key)) {
+            if (isUnsafeCssValue(value)) {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `プロパティ値に使用できない文字が含まれています（; { } " < > / 括弧不均衡）`, severity: 'error' });
+                continue;
+            }
+            props[entry.key] = value;
+        } else {
+            out.diagnostics.push({ line: entry.line, col: 1, message: `switcher のキー "${entry.key}" は不明です（style / position / reveal / add-button / ${SWITCHER_STYLE_PROPS.join(' / ')}）`, severity: 'warning' });
+        }
+    }
+    const pill = style === 'pill';
+    out.switcher = {
+        style,
+        position: position ?? (pill ? 'bottom' : 'top'),
+        reveal: reveal ?? (pill ? 'auto' : 'scroll'),
+        showAdd: showAdd ?? !pill,
+        props,
+    };
+}
+
+function compileFab(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string) {
+    const fab: FabConfig = out.fab ?? { show: true, position: 'right', props: {} };
+    for (const entry of entriesOf(section)) {
+        const value = resolve(entry.value, entry.line);
+        if (entry.key === 'show') {
+            fab.show = value !== 'false';
+        } else if (entry.key === 'position') {
+            if (value !== 'left' && value !== 'right') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `fab の position は left / right のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            fab.position = value;
+        } else if (entry.key === 'on-click') {
+            fab.onClick = value;
+        } else if ((FAB_STYLE_PROPS as readonly string[]).includes(entry.key)) {
+            if (isUnsafeCssValue(value)) {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `プロパティ値に使用できない文字が含まれています（; { } " < > / 括弧不均衡）`, severity: 'error' });
+                continue;
+            }
+            fab.props[entry.key] = value;
+        } else {
+            out.diagnostics.push({ line: entry.line, col: 1, message: `fab のキー "${entry.key}" は不明です（show / position / on-click / ${FAB_STYLE_PROPS.join(' / ')}）`, severity: 'warning' });
+        }
+    }
+    out.fab = fab;
 }
 
 function compileSidebar(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string) {
@@ -891,7 +1029,114 @@ function compileModule(section: SectionNode, out: CompiledRice, resolve: (value:
     out.modules[section.label] = config;
 }
 
-export function compile(text: string, resolveSource?: SourceResolver): CompiledRice {
+export type MediaMatcher = (query: string) => boolean;
+
+function dispatchSection(
+    statement: SectionNode,
+    out: CompiledRice,
+    resolve: (value: string, line: number) => string,
+    isActive: MediaMatcher,
+    inMedia: boolean,
+) {
+    switch (statement.name) {
+        case 'theme':
+            compileThemeTokens(statement, out, resolve);
+            break;
+        case 'columnrule':
+            compileColumnRule(statement, out, resolve);
+            break;
+        case 'statusbar':
+            compileStatusbar(statement, out, resolve, inMedia);
+            break;
+        case 'footer':
+            compileFooter(statement, out, resolve, inMedia);
+            break;
+        case 'drawer':
+            compileDrawer(statement, out, resolve, inMedia);
+            break;
+        case 'switcher':
+            compileSwitcher(statement, out, resolve);
+            break;
+        case 'fab':
+            compileFab(statement, out, resolve);
+            break;
+        case 'sidebar':
+            compileSidebar(statement, out, resolve);
+            break;
+        case 'bar':
+            compileBar(statement, out, resolve, inMedia);
+            break;
+        case 'bind':
+            compileBind(statement, out, resolve);
+            break;
+        case 'submap':
+            compileSubmap(statement, out, resolve);
+            break;
+        case 'panel':
+            compilePanel(statement, out, resolve);
+            break;
+        case 'layout':
+            compileLayout(statement, out, resolve);
+            break;
+        case 'focus':
+            compileFocus(statement, out, resolve);
+            break;
+        case 'animation':
+            compileAnimation(statement, out, resolve);
+            break;
+        case 'module':
+            compileModule(statement, out, resolve);
+            break;
+        case 'media':
+            compileMedia(statement, out, resolve, isActive, inMedia);
+            break;
+        default:
+            out.diagnostics.push({
+                line: statement.startLine,
+                col: 1,
+                message: `セクション "${statement.name}" は不明です(このバージョンでは無視されます)`,
+                severity: 'warning',
+            });
+    }
+}
+
+function compileMedia(
+    section: SectionNode,
+    out: CompiledRice,
+    resolve: (value: string, line: number) => string,
+    isActive: MediaMatcher,
+    inMedia: boolean,
+) {
+    if (inMedia) {
+        out.diagnostics.push({ line: section.startLine, col: 1, message: 'media はネストできません', severity: 'error' });
+        return;
+    }
+    const query = section.label !== undefined ? normalizeMediaQuery(section.label) : null;
+    if (!query) {
+        out.diagnostics.push({ line: section.startLine, col: 1, message: 'media には条件が必要です（例: media "mobile" { ... } / media "max-width: 767px" { ... }）', severity: 'error' });
+        return;
+    }
+    if (UNSAFE_VALUE_RE.test(query)) {
+        out.diagnostics.push({ line: section.startLine, col: 1, message: `media の条件 "${section.label}" はメディアクエリとして解釈できない可能性があります`, severity: 'warning' });
+    }
+    if (!out.mediaQueries.includes(query)) {
+        out.mediaQueries.push(query);
+    }
+    const active = isActive(query);
+    const target = active ? out : emptyCompiledRice();
+    for (const child of section.children) {
+        if (child.kind === 'entry') {
+            out.diagnostics.push({ line: child.line, col: 1, message: `media 直下にキー "${child.key}" は書けません（セクションで囲んでください）`, severity: 'error' });
+            continue;
+        }
+        dispatchSection(child, target, resolve, isActive, true);
+    }
+    if (!active) {
+        out.diagnostics.push(...target.diagnostics);
+    }
+}
+
+export function compile(text: string, resolveSource?: SourceResolver, isActive: MediaMatcher = () => false): CompiledRice {
     const out = emptyCompiledRice();
     const doc = parse(text);
     out.diagnostics.push(...doc.diagnostics);
@@ -909,51 +1154,7 @@ export function compile(text: string, resolveSource?: SourceResolver): CompiledR
                 out.sets.push({ path: statement.path, value: resolve(statement.value, statement.line) });
                 break;
             case 'section':
-                switch (statement.name) {
-                    case 'theme':
-                        compileThemeTokens(statement, out, resolve);
-                        break;
-                    case 'columnrule':
-                        compileColumnRule(statement, out, resolve);
-                        break;
-                    case 'statusbar':
-                        compileStatusbar(statement, out, resolve);
-                        break;
-                    case 'sidebar':
-                        compileSidebar(statement, out, resolve);
-                        break;
-                    case 'bar':
-                        compileBar(statement, out, resolve);
-                        break;
-                    case 'bind':
-                        compileBind(statement, out, resolve);
-                        break;
-                    case 'submap':
-                        compileSubmap(statement, out, resolve);
-                        break;
-                    case 'panel':
-                        compilePanel(statement, out, resolve);
-                        break;
-                    case 'layout':
-                        compileLayout(statement, out, resolve);
-                        break;
-                    case 'focus':
-                        compileFocus(statement, out, resolve);
-                        break;
-                    case 'animation':
-                        compileAnimation(statement, out, resolve);
-                        break;
-                    case 'module':
-                        compileModule(statement, out, resolve);
-                        break;
-                    default:
-                        out.diagnostics.push({
-                            line: statement.startLine,
-                            col: 1,
-                            message: `セクション "${statement.name}" は不明です(このバージョンでは無視されます)`,
-                            severity: 'warning',
-                        });
-                }
+                dispatchSection(statement, out, resolve, isActive, false);
                 break;
         }
     }

@@ -1,12 +1,10 @@
 <script lang="ts">
   import { runCommand } from '$lib/commands/registry.svelte';
   import Ellipsis from '@lucide/svelte/icons/ellipsis';
-  import Puzzle from '@lucide/svelte/icons/puzzle';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
-  import {type SideItem, sideState} from "$lib/classes/sideState.svelte";
+  import {sideState} from "$lib/classes/sideState.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  import { coreSideItems, type SideItemDef } from "$lib/components/side/sideItems";
-  import { sidebarItemRegistry } from "$lib/rice/modules/registries.svelte";
+  import { resolveSideItemDef } from "$lib/components/side/sideItems";
   import { riceState } from "$lib/rice/riceState.svelte";
 
   let { footer = false } = $props();
@@ -15,21 +13,6 @@
   const columnState = getColumnState();
 
   const visibleItems = $derived(riceState.sidebar?.items ?? sideState.items);
-
-  function resolveSideItem(id: string): SideItemDef | undefined {
-      const core = coreSideItems[id as SideItem];
-      if (core) return core;
-      const moduleItem = sidebarItemRegistry.get(id);
-      if (moduleItem) {
-          return {
-              icon: moduleItem.icon ?? Puzzle,
-              labelKey: moduleItem.title,
-              command: moduleItem.command,
-              commandArg: moduleItem.commandArg,
-          };
-      }
-      return undefined;
-  }
 
   function handleMenuAction(item: string, event?: Event) {
       isMenuOpen = false;
@@ -42,7 +25,7 @@
           }, 3000);
       }
 
-      const def = resolveSideItem(item);
+      const def = resolveSideItemDef(item);
       if (def) {
           const anchor = event?.currentTarget instanceof HTMLElement ? event.currentTarget : undefined;
           runCommand(def.command, def.commandArg, { anchor });
@@ -53,7 +36,7 @@
 
 <ul class="side-nav side-nav--vertical" class:side-nav--footer={footer}>
   {#each visibleItems as item (item)}
-    {@const def = resolveSideItem(item)}
+    {@const def = resolveSideItemDef(item)}
     {#if def}
       {@const Icon = def.icon}
       {@const badgeCount = def.badge?.({ columnState }) ?? 0}

@@ -23,14 +23,6 @@
     overflow-y: hidden;
 }
 
-@media (max-width: 767px) {
-    .deck-row.deck-row--mobileV2 > .svelte-refresher-host:has(.chat-view) {
-        height: auto;
-        flex: 1;
-        min-height: 0;
-    }
-}
-
 .deck-popup-wrap .deck-row-wrap:has(.chat-view) {
     height: 100%;
 }
@@ -45,7 +37,7 @@
 
 @media (max-width: 767px) {
     .deck-row--single:not(.deck-row--junk) .chat-view {
-        height: calc(100dvh - var(--deck-heading-space, var(--deck-heading-height)) - 46px - var(--safe-area-bottom));
+        height: calc(100dvh - var(--deck-heading-space, var(--deck-heading-height)) - var(--rice-footer-height, 46px) - var(--safe-area-bottom));
     }
 }
 

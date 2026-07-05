@@ -78,6 +78,13 @@ panel {
     position = auto
 }
 
+footer {
+    items = workspace, search, notifications, chat, menu
+    item "menu" {
+        items = home, feeds, profile, settings
+    }
+}
+
 module "search" {
     enable = true
 }
@@ -279,6 +286,31 @@ module "search" {
 module "aurora" {
     enable = true
     intensity = 0.55
+}
+
+media "mobile" {
+    theme {
+        tokens {
+            deck-border-radius = 0px
+        }
+    }
+    columnrule {
+        match = all
+        reactions = spread
+    }
+    footer {
+        items = workspace, notifications, chat, menu
+        background = #0d1224
+        border = 1px solid #1f2a55
+        item "menu" {
+            items = home, search, feeds, settings
+        }
+    }
+    switcher {
+        style = pill
+        reveal = auto
+        background = #0d1224
+    }
 }
 `;
 

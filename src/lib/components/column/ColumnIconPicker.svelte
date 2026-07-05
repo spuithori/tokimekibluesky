@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { settings } from '$lib/stores';
   import { iconMap } from '$lib/columnIcons';
   import { riceFx } from '$lib/rice/transition';
 
   let { current, onchange, onclose } = $props();
 </script>
 
-<div class="column-icon-picker" class:column-icon-picker--mobileV2={$settings?.design?.mobileNewUi} transition:riceFx={{ target: 'menu', duration: 250, style: { kind: 'slide', direction: 'top', distance: 30 } }}>
+<div class="column-icon-picker" transition:riceFx={{ target: 'menu', duration: 250, style: { kind: 'slide', direction: 'top', distance: 30 } }}>
   <ul class="icon-picker-list">
     {#each iconMap as [key, icon]}
       {@const SvelteComponent = icon}
@@ -34,11 +33,6 @@
       box-shadow: 0 0 10px var(--box-shadow-color-1);
       border-radius: 6px;
       z-index: 1;
-
-      &--mobileV2 {
-          top: auto;
-          bottom: calc(118px + var(--safe-area-bottom));
-      }
   }
 
   .icon-picker-list {

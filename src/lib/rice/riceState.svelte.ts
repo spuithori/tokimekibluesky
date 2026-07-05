@@ -1,3 +1,4 @@
+import { MediaQuery } from 'svelte/reactivity';
 import type { Column } from '$lib/types/column';
 import { settingsStore } from '$lib/settings/settings.svelte';
 import { compile } from './config/compile';
@@ -8,10 +9,22 @@ import { shellGeometryVars } from './shellGeometry';
 import { moduleThemeTokens } from './modules/registries.svelte';
 
 class RiceState {
+    #matchers = new Map<string, MediaQuery>();
+
+    #isActive = (query: string): boolean => {
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+        let matcher = this.#matchers.get(query);
+        if (!matcher) {
+            matcher = new MediaQuery(query);
+            this.#matchers.set(query, matcher);
+        }
+        return matcher.current;
+    };
+
     readonly compiled: CompiledRice = $derived.by(() => {
         const rice = settingsStore.rice;
         if (!rice?.enabled) return emptyCompiledRice();
-        return compile(rice.config ?? '', (ref) => resolvePresetSource(ref) ?? rice.sources?.[ref]);
+        return compile(rice.config ?? '', (ref) => resolvePresetSource(ref) ?? rice.sources?.[ref], this.#isActive);
     });
 
     readonly enabled = $derived(settingsStore.rice?.enabled ?? false);
@@ -41,6 +54,15 @@ class RiceState {
         };
     });
 
+    readonly footer = $derived.by(() => {
+        const bar = this.compiled.bars.footer;
+        if (bar?.kind !== 'rice' || (bar.items?.length ?? 0) === 0) return null;
+        return bar;
+    });
+
+    readonly switcher = $derived(this.compiled.switcher);
+    readonly fab = $derived(this.compiled.fab);
+
     readonly panel = $derived(this.compiled.panel);
     readonly binds = $derived(this.compiled.binds);
     readonly submaps = $derived(this.compiled.submaps);
@@ -52,7 +74,7 @@ class RiceState {
             Object.assign(merged, tokens);
         }
         Object.assign(merged, this.compiled.themeTokens);
-        return shellGeometryVars(this.compiled.bars, this.compiled.layout, this.compiled.focus, this.compiled.animations) + globalStyleForTokens(merged);
+        return shellGeometryVars(this.compiled.bars, this.compiled.layout, this.compiled.focus, this.compiled.animations, this.compiled.switcher) + globalStyleForTokens(merged);
     });
 
     styleForColumn(column: Column | undefined): string {

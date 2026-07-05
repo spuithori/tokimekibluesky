@@ -1,14 +1,13 @@
 import type { Component } from 'svelte';
-import Puzzle from '@lucide/svelte/icons/puzzle';
 import type { BarStyle } from './config/model';
-import { statusbarItemRegistry, sidebarItemRegistry, widgetRegistry } from './modules/registries.svelte';
-import { coreSideItems, type SideItemDef } from '$lib/components/side/sideItems';
-import type { SideItem } from '$lib/classes/sideState.svelte';
+import { statusbarItemRegistry, widgetRegistry } from './modules/registries.svelte';
+import { resolveSideItemDef, type SideItemDef } from '$lib/components/side/sideItems';
 
 export type BarItemResolved =
     | { kind: 'spacer' }
     | { kind: 'separator' }
     | { kind: 'tabs' }
+    | { kind: 'menu' }
     | { kind: 'component'; loader: () => Promise<{ default: Component<any> }> }
     | { kind: 'widget'; loader: () => Promise<{ default: Component<any> }> }
     | { kind: 'action'; def: SideItemDef };
@@ -16,6 +15,7 @@ export type BarItemResolved =
 export function resolveBarItem(id: string, style: BarStyle, opts?: { allowWidgets?: boolean }): BarItemResolved | undefined {
     if (id === 'spacer') return { kind: 'spacer' };
     if (id === 'separator') return { kind: 'separator' };
+    if (id === 'menu') return { kind: 'menu' };
     if (id === 'tabs' && opts?.allowWidgets) return { kind: 'tabs' };
 
     if (opts?.allowWidgets) {
@@ -24,16 +24,7 @@ export function resolveBarItem(id: string, style: BarStyle, opts?: { allowWidget
     }
 
     const component = statusbarItemRegistry.get(id);
-    const core = coreSideItems[id as SideItem];
-    const moduleSideItem = sidebarItemRegistry.get(id);
-    const action: SideItemDef | undefined = core ?? (moduleSideItem
-        ? {
-            icon: moduleSideItem.icon ?? Puzzle,
-            labelKey: moduleSideItem.title,
-            command: moduleSideItem.command,
-            commandArg: moduleSideItem.commandArg,
-        }
-        : undefined);
+    const action = resolveSideItemDef(id);
 
     if (style === 'bar') {
         if (component) return { kind: 'component', loader: component };

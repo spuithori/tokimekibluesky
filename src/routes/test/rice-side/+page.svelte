@@ -4,6 +4,8 @@
     import Decks from '../../(app)/Decks.svelte';
     import StatusBar from '$lib/components/rice/StatusBar.svelte';
     import RiceBar from '$lib/components/rice/RiceBar.svelte';
+    import FooterHost from '../../(app)/FooterHost.svelte';
+    import RiceDrawer from '$lib/components/rice/RiceDrawer.svelte';
     import SidePanel from '$lib/components/side/SidePanel.svelte';
     import RiceModulesObserver from '$lib/components/rice/RiceModulesObserver.svelte';
     import RiceEffectLayers from '$lib/components/rice/RiceEffectLayers.svelte';
@@ -214,6 +216,8 @@
     <StatusBar position="bottom"></StatusBar>
     <RiceBar position="left"></RiceBar>
     <RiceBar position="right"></RiceBar>
+    <FooterHost></FooterHost>
+    <RiceDrawer></RiceDrawer>
 </div>
 
 <style>

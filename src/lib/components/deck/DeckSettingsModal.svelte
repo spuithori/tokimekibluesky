@@ -751,7 +751,7 @@
         overflow: hidden;
 
         @media (max-width: 767px) {
-            height: calc(100dvh - 64px - 90px - var(--safe-area-bottom));
+            height: calc(100dvh - var(--rice-switcher-top-height, 46px) - var(--deck-heading-space, var(--deck-heading-height)));
         }
 
         &--decks {
@@ -774,6 +774,10 @@
         overflow-x: hidden;
         height: 100%;
         overscroll-behavior-y: contain;
+
+        @media (max-width: 767px) {
+            padding-bottom: calc(var(--rice-footer-height, 56px) + var(--safe-area-bottom) + 12px);
+        }
 
         @supports (-moz-appearance: none) {
             scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);

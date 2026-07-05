@@ -18,7 +18,7 @@
     import { tick, untrack } from "svelte";
     import { Toaster } from "svelte-sonner";
     import viewPortSetting from "$lib/viewport";
-    import Footer from "./Footer.svelte";
+    import FooterHost from "./FooterHost.svelte";
     import { page } from "$app/state";
     import { themesDb } from "$lib/db";
     import ReportObserver from "$lib/components/report/ReportObserver.svelte";
@@ -64,6 +64,7 @@
     import ActionCenter from "$lib/components/commands/ActionCenter.svelte";
     import Orbit from "$lib/components/commands/Orbit.svelte";
     import SidePanel from "$lib/components/side/SidePanel.svelte";
+    import RiceDrawer from "$lib/components/rice/RiceDrawer.svelte";
     import { initCompositorHeartbeat } from "$lib/compositorHeartbeat";
 
     if (typeof window !== 'undefined') {
@@ -412,7 +413,7 @@
             <ChatUpdateObserver></ChatUpdateObserver>
         {/if}
 
-        <Footer></Footer>
+        <FooterHost></FooterHost>
     {:else}
         <div class="top-loading">
             <LoadingSpinner></LoadingSpinner>
@@ -434,6 +435,7 @@
     <ActionCenter></ActionCenter>
     <Orbit></Orbit>
     <SidePanel></SidePanel>
+    <RiceDrawer></RiceDrawer>
     <RiceModulesObserver></RiceModulesObserver>
     <RiceEffectLayers></RiceEffectLayers>
 

@@ -537,16 +537,6 @@ const rawSettingsSchema = [
         default: false,
     },
     {
-        key: "design.mobileNewUi",
-        category: "design",
-        scope: "global",
-        type: "toggle",
-        section: "settings_section_other",
-        label: "mobile_new_ui",
-        platform: "mobile",
-        default: false,
-    },
-    {
         key: "design.monochrome",
         category: "design",
         scope: "global",

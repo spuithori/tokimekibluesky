@@ -4,8 +4,7 @@
   import SideNav from "$lib/components/side/SideNav.svelte";
 </script>
 
-<footer class="footer" class:footer--scroll-down={scrollDirectionState.direction === 'down'} class:footer--fixed={$settings.design?.fixedFooter}
- class:footer--mobileV2={$settings.design?.mobileNewUi}>
+<footer class="footer" class:footer--scroll-down={scrollDirectionState.direction === 'down'} class:footer--fixed={$settings.design?.fixedFooter}>
   <div class="footer__wrap">
     <SideNav footer={true}></SideNav>
   </div>
@@ -52,13 +51,5 @@
           }
       }
 
-      &--mobileV2 {
-          background-color: transparent;
-          box-shadow: none;
-
-          &::before {
-              content: none;
-          }
-      }
   }
 </style>

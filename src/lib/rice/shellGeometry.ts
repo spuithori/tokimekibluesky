@@ -1,4 +1,4 @@
-import type { AnimationsConfig, CompiledRice, FocusConfig, LayoutConfig } from './config/model';
+import type { AnimationsConfig, CompiledRice, FocusConfig, LayoutConfig, SwitcherConfig } from './config/model';
 import { ANIMATION_TARGETS } from './config/model';
 
 export function shellGeometryVars(
@@ -6,6 +6,7 @@ export function shellGeometryVars(
     layout: LayoutConfig | null = null,
     focus: FocusConfig | null = null,
     animations: AnimationsConfig | null = null,
+    switcher: SwitcherConfig | null = null,
 ): string {
     let style = '';
 
@@ -28,6 +29,19 @@ export function shellGeometryVars(
                 : height;
             style += `--rice-statusbar-${position}-height: ${total};`;
         }
+    }
+
+    const footer = bars.footer;
+    if (footer?.kind === 'rice' && (footer.items?.length ?? 0) > 0) {
+        const height = footer.props.height ?? '56px';
+        const total = footer.float
+            ? `calc(${height} + ${footer.props.margin ?? '8px'} * 2)`
+            : height;
+        style += `--rice-footer-height: ${total};`;
+    }
+
+    if (switcher && (switcher.style === 'pill' || switcher.position === 'bottom')) {
+        style += '--rice-switcher-top-height: 0px;';
     }
 
     if (layout?.align === 'center') {

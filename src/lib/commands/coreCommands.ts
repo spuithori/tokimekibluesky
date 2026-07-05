@@ -412,11 +412,16 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
             hidden: true,
             run: (arg) => {
                 const pageId = arg && isSettingsPageId(arg) ? arg : 'general';
-                if (get(settings).design?.layout === 'decks') {
-                    openSettingsColumn(columnState, pageId);
-                } else {
-                    goto(`/settings/${pageId}`);
-                }
+                goto(`/settings/${pageId}`);
+            },
+        },
+        {
+            id: 'settings.column',
+            title: 'command_settings_column',
+            hidden: true,
+            run: (arg) => {
+                const pageId = arg && isSettingsPageId(arg) ? arg : 'general';
+                openSettingsColumn(columnState, pageId);
             },
         },
         {

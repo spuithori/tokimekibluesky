@@ -68,7 +68,6 @@ export interface DesignSettings {
     singleWidth: string | number;
     fixedFooter: boolean;
     mutualDisplay: boolean;
-    mobileNewUi: boolean;
     bubbleTimeline: boolean;
     threaded: boolean;
     monochrome: boolean;

@@ -242,3 +242,17 @@ describe('migrate', () => {
         ]);
     });
 });
+
+describe('v8: mobileNewUi removal', () => {
+    it('drops design.mobileNewUi from stored settings and bumps to v8', () => {
+        const result = migrate({ version: 7, design: { mobileNewUi: true, darkmode: true } }, undefined);
+        expect(result.version).toBe(8);
+        expect('mobileNewUi' in result.design).toBe(false);
+        expect(result.design.darkmode).toBe(true);
+    });
+
+    it('is safe when design is absent', () => {
+        const result = migrate({ version: 7 }, undefined);
+        expect(result.version).toBe(8);
+    });
+});

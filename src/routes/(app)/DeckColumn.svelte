@@ -1,7 +1,7 @@
 <script lang="ts">
     import {_} from 'tokimeki-i18n';
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
-    import {agent, agents, intersectingIndex, isColumnModalOpen, settings} from "$lib/stores";
+    import {agent, agents, intersectingIndex, settings} from "$lib/stores";
     import {getAccountIdByDid, getDisplayNameByDid} from "$lib/util";
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
     import {iconMap} from "$lib/columnIcons";
@@ -239,8 +239,6 @@
     class:deck-row--bg={column?.settings?.background}
     class:deck-row--decks={$settings.design?.layout === 'decks'}
     class:deck-row--single={$settings.design?.layout === 'default'}
-    class:deck-row--mobileV2={$settings.design?.mobileNewUi && !isJunk}
-    class:deck-row--mobileV2-fixed={$settings.design?.fixedFooter}
     class:deck-row--junk={isJunk}
     class:deck-row--settings-open={isSettingsOpen}
     class:deck-row--tile-dragging={tilingDrag.draggingId === column?.id}
@@ -341,12 +339,6 @@
             {/if}
         </div>
 
-        {#if ($settings.design?.mobileNewUi && !isJunk)}
-            <button class="deck-heading-side-button" onclick={() => {$isColumnModalOpen = true}}>
-                <SquarePlus color="var(--bar-primary-icon-color)" size="22"></SquarePlus>
-            </button>
-        {/if}
-
         {#if isIconPickerOpen}
             <ColumnIconPicker onchange={handleIconChange} onclose={() => {isIconPickerOpen = false}} current={column?.settings?.icon}></ColumnIconPicker>
         {/if}
@@ -410,7 +402,7 @@
             scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
             scrollbar-width: thin;
             box-shadow: none;
-            padding-top: 46px;
+            padding-top: var(--rice-switcher-top-height, 46px);
         }
 
         &--in-split {
@@ -427,7 +419,7 @@
 
             .deck-heading {
                 @media (max-width: 767px) {
-                    top: 48px;
+                    top: var(--rice-switcher-top-height, 48px);
                 }
             }
 
@@ -469,83 +461,15 @@
             }
         }
 
-        &--mobileV2 {
-            .deck-heading-side-button {
-                display: none;
-            }
-
-            @media (max-width: 767px) {
-                --deck-heading-icon-bg-color: transparent;
-                --deck-heading-icon-color: var(--text-color-3);
-                display: flex;
-                flex-direction: column;
-                padding-top: 0;
-
-                .deck-row__content {
-                    flex: 1;
-                }
-
-                .deck-heading {
-                    order: 10;
-                    top: auto;
-                    bottom: 0;
-                    flex-shrink: 0;
-                    border-bottom: none;
-                    border-top: 1px solid var(--deck-border-color);
-                    padding: 12px 10px calc(8px + 52px + var(--safe-area-bottom));
-                    height: calc(var(--deck-heading-height) + 56px + var(--safe-area-bottom));
-                    text-align: center;
-                    border-radius: 0;
-
-                    &--scroll-down {
-                        transform: translateY(0);
-                    }
-
-                    &::before {
-                        content: '';
-                        display: block;
-                        position: absolute;
-                        top: 8px;
-                        height: 44px;
-                        left: 8px;
-                        right: 54px;
-                        background-color: var(--bg-color-2);
-                        border-radius: var(--border-radius-3);
-                        z-index: -1;
-                    }
-                }
-
-                .deck-row-settings-button {
-                    width: 36px;
-                    height: 36px;
-
-                    &:hover {
-                        background-color: transparent;
-                    }
-                }
-
-                .deck-heading-side-button {
-                    display: grid;
-                    width: 44px;
-                    height: 44px;
-                    place-content: center;
-                }
-
-                &.deck-row--mobileV2-fixed {
-                    .deck-heading {
-                        transform: none !important;
-                        visibility: visible !important;
-                        opacity: 1 !important;
-                    }
-                }
-            }
-        }
-
         &--settings-open {
-            padding-right: 6px;
+            @media (min-width: 768px) {
+                @supports selector(::-webkit-scrollbar) {
+                    padding-right: 6px;
 
-            &::-webkit-scrollbar {
-                width: 0;
+                    &::-webkit-scrollbar {
+                        width: 0;
+                    }
+                }
             }
         }
 
@@ -762,7 +686,4 @@
         }
     }
 
-    .deck-heading-side-button {
-        display: none;
-    }
 </style>

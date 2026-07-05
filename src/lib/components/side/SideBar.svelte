@@ -22,9 +22,23 @@
         ? !!findPublishColumn(columnState.columns)
         : publishState.show);
 
-    let mobileV2Visible = $state(false);
-    let mobileV2Clear = false;
+    let pillVisible = $state(false);
+    let pillClear = false;
     let els = $state([]);
+
+    const switcher = $derived(riceState.switcher);
+    const reveal = $derived(switcher?.reveal ?? 'scroll');
+    const switcherVars = $derived.by(() => {
+        if (!switcher) return '';
+        const p = switcher.props;
+        let style = '';
+        if (p.height) style += `--rice-switcher-height: ${p.height};`;
+        if (p.background) style += `--rice-switcher-bg: ${p.background};`;
+        if (p.blur) style += `--rice-switcher-backdrop: blur(${p.blur});`;
+        if (p.rounding) style += `--rice-switcher-rounding: ${p.rounding};`;
+        if (p.offset) style += `--rice-switcher-offset: ${p.offset};`;
+        return style;
+    });
 
     if (!columnState.slots[$currentTimeline]) {
         currentTimeline.set(0);
@@ -52,22 +66,22 @@
     }
 
     $effect(() => {
-      if ($settings?.design?.mobileNewUi) {
+      if (reveal === 'auto') {
         if ($intersectingIndex !== undefined) {
-          mobileV2Visible = true;
+          pillVisible = true;
 
           if (els[$intersectingIndex]) {
             els[$intersectingIndex].scrollIntoView({inline: 'center', behavior: 'smooth'});
           }
 
-          if (mobileV2Clear) {
+          if (pillClear) {
             untrack(() => {
-              clearTimeout(mobileV2Clear);
+              clearTimeout(pillClear);
             })
           }
 
-          mobileV2Clear = setTimeout(() => {
-            mobileV2Visible = false;
+          pillClear = setTimeout(() => {
+            pillVisible = false;
           }, 2500);
         }
       }
@@ -76,8 +90,14 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="side-bar" class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--mobileV2={$settings?.design?.mobileNewUi}
- class:side-bar--mobileV2-visible={mobileV2Visible && $settings?.design?.mobileNewUi}>
+<div class="side-bar"
+ class:side-bar--scroll-down={scrollDirectionState.direction === 'down' && reveal === 'scroll'}
+ class:side-bar--pill={switcher?.style === 'pill'}
+ class:side-bar--pill-top={switcher?.style === 'pill' && switcher.position === 'top'}
+ class:side-bar--dock-bottom={switcher?.style === 'strip' && switcher.position === 'bottom'}
+ class:side-bar--auto-hidden={reveal === 'auto' && !pillVisible}
+ class:side-bar--no-add-mobile={switcher !== null && !switcher.showAdd}
+ style={switcherVars}>
   <div class="side-bar__list side-bar__top">
     {#if riceState.sidebar?.showPublish ?? true}
       <button
@@ -174,9 +194,9 @@
             left: 0;
             right: 0;
             z-index: 999;
-            background: var(--bar-bg-color);
-            backdrop-filter: blur(8px);
-            height: min-content;
+            background: var(--rice-switcher-bg, var(--bar-bg-color));
+            backdrop-filter: var(--rice-switcher-backdrop, blur(8px));
+            height: var(--rice-switcher-height, min-content);
             padding: 0 4px 0 8px;
             width: 100vw;
             overflow-x: auto;
@@ -228,28 +248,52 @@
             }
         }
 
-        &--mobileV2 {
+        &--dock-bottom {
             @media (max-width: 767px) {
-                backdrop-filter: none;
+                top: auto;
+                bottom: 0;
+                padding-bottom: var(--safe-area-bottom);
+            }
+
+            &.side-bar--scroll-down {
+                @media (max-width: 767px) {
+                    transform: translateY(calc(48px + var(--safe-area-bottom)));
+                }
+            }
+        }
+
+        &--pill {
+            @media (max-width: 767px) {
+                backdrop-filter: var(--rice-switcher-backdrop, none);
                 width: fit-content;
                 max-width: 80vw;
-                bottom: 128px;
+                bottom: var(--rice-switcher-offset, calc(var(--rice-footer-height, 56px) + var(--safe-area-bottom) + 16px));
                 top: auto;
                 left: 0;
                 right: 0;
                 margin: auto;
                 box-shadow: var(--timeline-embed-box-shadow);
-                border-radius: 24px;
-
+                border-radius: var(--rice-switcher-rounding, 24px);
                 transform: none !important;
+            }
+        }
+
+        &--pill-top {
+            @media (max-width: 767px) {
+                top: var(--rice-switcher-offset, 8px);
+                bottom: auto;
+            }
+        }
+
+        &--auto-hidden {
+            @media (max-width: 767px) {
                 opacity: 0;
                 visibility: hidden;
+            }
+        }
 
-                &.side-bar--mobileV2-visible {
-                    opacity: 1;
-                    visibility: visible;
-                }
-
+        &--no-add-mobile {
+            @media (max-width: 767px) {
                 .side-column-add-button {
                     display: none;
                 }

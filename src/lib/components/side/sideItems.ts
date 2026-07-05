@@ -17,9 +17,11 @@ import Square from '@lucide/svelte/icons/square';
 import SquarePen from '@lucide/svelte/icons/square-pen';
 import TrendingUp from '@lucide/svelte/icons/trending-up';
 import UserRound from '@lucide/svelte/icons/user-round';
+import Puzzle from '@lucide/svelte/icons/puzzle';
 import { chatState } from '$lib/classes/chatState.svelte';
 import type { SideItem } from '$lib/classes/sideState.svelte';
 import type { ColumnState } from '$lib/classes/columnState.svelte';
+import { sidebarItemRegistry } from '$lib/rice/modules/registries.svelte';
 
 export interface SideItemBadgeDeps {
     columnState?: ColumnState;
@@ -69,3 +71,18 @@ export const coreSideItems: Record<SideItem, SideItemDef> = {
     publish: { icon: SquarePen, labelKey: 'new_post', command: 'publish.toggle', pill: true },
     settings: { icon: Settings, labelKey: 'settings', command: 'settings.open', commandArg: 'general' },
 };
+
+export function resolveSideItemDef(id: string): SideItemDef | undefined {
+    const core = coreSideItems[id as SideItem];
+    if (core) return core;
+    const moduleItem = sidebarItemRegistry.get(id);
+    if (moduleItem) {
+        return {
+            icon: moduleItem.icon ?? Puzzle,
+            labelKey: moduleItem.title,
+            command: moduleItem.command,
+            commandArg: moduleItem.commandArg,
+        };
+    }
+    return undefined;
+}
