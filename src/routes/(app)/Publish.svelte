@@ -12,7 +12,7 @@
   import DraftModal from "$lib/components/draft/DraftModal.svelte";
   import {getServiceAuthToken} from "$lib/util";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-  import { compressImage as compressImageLib } from '$lib/imageCompressor/compressor';
+  import { compressImage as compressImageLib, compressImageWithStats } from '$lib/imageCompressor/compressor';
   import PublishPool from "$lib/components/editor/PublishPool.svelte";
   import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
   import {tick} from "svelte";
@@ -148,21 +148,22 @@
   const UPLOAD_MAX_BYTES = 2_000_000;
   const UPLOAD_MAX_DIMENSION = 4000;
 
-  async function compressImage(file: File | Blob): Promise<Blob> {
-      return await compressImageLib(file, {
+  async function compressImage(file: File | Blob): Promise<{ blob: Blob; width: number; height: number }> {
+      const stats = await compressImageWithStats(file, {
           outputType: 'image/webp',
           maxSizeMB: UPLOAD_MAX_BYTES / 1024 / 1024,
           maxWidthOrHeight: UPLOAD_MAX_DIMENSION,
           maxQuality: $settings?.general?.losslessImageUpload ? 1.0 : 0.95,
       });
+      return { blob: stats.blob, width: stats.width, height: stats.height };
   }
 
-  async function prepareBlobForUpload(image: { file: File | Blob; isGif: boolean }): Promise<Blob> {
+  async function prepareBlobForUpload(image: { file: File | Blob; isGif: boolean }): Promise<{ blob: Blob; width?: number; height?: number }> {
       if (image.isGif && image.file.type === 'image/gif') {
           if (image.file.size > UPLOAD_MAX_BYTES) {
               throw new Error($_('error_gif_too_large'));
           }
-          return image.file;
+          return { blob: image.file };
       }
 
       try {
@@ -174,11 +175,13 @@
   }
 
   async function uploadBlobWithCompression(image) {
-      const compressed = await prepareBlobForUpload(image);
+      const { blob, width, height } = await prepareBlobForUpload(image);
 
-      return await _agent.xrpc.post('com.atproto.repo.uploadBlob', compressed, {
-          encoding: compressed.type,
+      const res = await _agent.xrpc.post('com.atproto.repo.uploadBlob', blob, {
+          encoding: blob.type,
       });
+
+      return { res, width, height };
   }
 
   async function uploadExternalImage(_blob) {
@@ -438,11 +441,11 @@
           await Promise.all(filePromises)
               .then(results => {
                   const built = results.map((result, index) => ({
-                      image: result.blob,
+                      image: result.res.blob,
                       alt: images[index].alt || '',
                       aspectRatio: {
-                          width: images[index].width || undefined,
-                          height: images[index].height || undefined,
+                          width: result.width ?? (images[index].width || undefined),
+                          height: result.height ?? (images[index].height || undefined),
                       }
                   }));
                   mediaImageCount = built.length;
@@ -874,7 +877,8 @@
       const scheduledImages: ScheduledImage[] = [];
       for (let i = 0; i < images.length; i++) {
           const img = images[i];
-          const compressed = await prepareBlobForUpload(img);
+          const prepared = await prepareBlobForUpload(img);
+          const compressed = prepared.blob;
           const fileToUpload = compressed instanceof File
               ? compressed
               : new File([compressed], 'image.jpg', { type: compressed.type });
@@ -890,8 +894,8 @@
               storagePath,
               alt: img.alt || '',
               mimeType: compressed.type,
-              width: img.width,
-              height: img.height,
+              width: prepared.width ?? img.width,
+              height: prepared.height ?? img.height,
           });
       }
       return scheduledImages;

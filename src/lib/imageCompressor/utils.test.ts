@@ -226,6 +226,56 @@ describe('getIntrinsicSize', () => {
         } as unknown as Blob;
         expect(await getIntrinsicSize(broken)).toBeNull();
     });
+
+    function exifApp1(orientation: number, little = true): number[] {
+        const tiff = little
+            ? [0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00]
+            : [0x4d, 0x4d, 0x00, 0x2a, 0x00, 0x00, 0x00, 0x08];
+        const entryCount = little ? [0x01, 0x00] : [0x00, 0x01];
+        const entry = little
+            ? [0x12, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, orientation, 0x00, 0x00, 0x00]
+            : [0x01, 0x12, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, orientation, 0x00, 0x00];
+        const payload = [...ascii('Exif'), 0x00, 0x00, ...tiff, ...entryCount, ...entry, 0x00, 0x00, 0x00, 0x00];
+        const length = payload.length + 2;
+        return [0xff, 0xe1, (length >> 8) & 0xff, length & 0xff, ...payload];
+    }
+
+    it('reads EXIF orientation 6 (little-endian TIFF) from a portrait JPEG', async () => {
+        const blob = makeBlob([0xff, 0xd8, ...exifApp1(6), 0xff, 0xc0, ...SOF_TAIL]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600, orientation: 6 });
+    });
+
+    it('reads EXIF orientation 3 (big-endian TIFF)', async () => {
+        const blob = makeBlob([0xff, 0xd8, ...exifApp1(3, false), 0xff, 0xc0, ...SOF_TAIL]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600, orientation: 3 });
+    });
+
+    it('reads EXIF orientation 1 explicitly', async () => {
+        const blob = makeBlob([0xff, 0xd8, ...exifApp1(1), 0xff, 0xc0, ...SOF_TAIL]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600, orientation: 1 });
+    });
+
+    it('skips a non-EXIF APP1 (XMP) and reads orientation from a later EXIF APP1', async () => {
+        const xmpPayload = ascii('http://ns.adobe.com/xap/1.0/');
+        const xmpLength = xmpPayload.length + 2;
+        const xmpApp1 = [0xff, 0xe1, (xmpLength >> 8) & 0xff, xmpLength & 0xff, ...xmpPayload];
+        const blob = makeBlob([0xff, 0xd8, ...xmpApp1, ...exifApp1(8), 0xff, 0xc0, ...SOF_TAIL]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600, orientation: 8 });
+    });
+
+    it('leaves orientation undefined for an out-of-range orientation value', async () => {
+        const blob = makeBlob([0xff, 0xd8, ...exifApp1(9), 0xff, 0xc0, ...SOF_TAIL]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600 });
+    });
+
+    it('leaves orientation undefined for a malformed EXIF payload', async () => {
+        const blob = makeBlob([
+            0xff, 0xd8,
+            0xff, 0xe1, 0x00, 0x06, 0xaa, 0xbb, 0xcc, 0xdd,
+            0xff, 0xc0, ...SOF_TAIL,
+        ]);
+        expect(await getIntrinsicSize(blob)).toEqual({ width: 800, height: 600 });
+    });
 });
 
 describe('calcTargetDimensions', () => {
