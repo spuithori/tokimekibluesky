@@ -10,6 +10,7 @@
 
     let videoElement: HTMLVideoElement | undefined = $state();
     let engine: BlueskyHls | null = null;
+    let usesNativeHls = $state(false);
 
     let paused = $state(true);
     let ended = $state(false);
@@ -256,9 +257,7 @@
         if (src?.type === 'video/object') {
             videoElement.src = src.src;
         } else if (src?.endsWith('.m3u8')) {
-            if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-                videoElement.src = src;
-            } else {
+            if (typeof MediaSource !== 'undefined') {
                 engine = new BlueskyHls(videoElement);
                 engine.onLevels = (levels, current) => {
                     qualities = levels.map((level) => ({
@@ -271,6 +270,10 @@
                 };
                 engine.onError = (err) => console.error('[video] hls engine error', err);
                 await engine.loadSource(src);
+            } else {
+                usesNativeHls = true;
+                videoElement.preload = 'auto';
+                videoElement.src = src;
             }
         } else {
             videoElement.src = src;
@@ -318,6 +321,7 @@
     data-hover={isHovering}
     role="region"
     aria-label={isAudio ? 'Audio player' : 'Video player'}
+    style:background-image={usesNativeHls && poster ? `url("${poster}")` : null}
     onmousemove={handleMouseMove}
     onmouseleave={handleMouseLeave}
 >
@@ -356,12 +360,28 @@
         overflow: hidden;
         z-index: 1;
         border-radius: 8px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
 
         &__provider {
             display: block;
             background-color: transparent;
             width: 100%;
             height: 100%;
+        }
+    }
+
+    @supports (-webkit-touch-callout: none) {
+        .video-player__provider {
+            position: relative;
+            z-index: 0;
+        }
+
+        :global(.video-player-layout),
+        :global(.audio-player) {
+            z-index: 1;
+            transform: translateZ(0);
         }
     }
 
