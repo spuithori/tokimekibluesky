@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
     import type { Poll, PollDuration } from '$lib/classes/postState.svelte';
     import { settings } from '$lib/stores';
@@ -34,7 +34,7 @@
 {#if poll}
     <button type="button" class="poll-label" onclick={onclick}>
         <BarChart3 size="16"></BarChart3>
-        <span>{optionCount} {$_('poll_option_placeholder', { values: { index: '' } }).replace(' {index}', '').trim()}</span>
+        <span>{optionCount} {$_('poll_option_placeholder', { index: '' }).replace(' {index}', '').trim()}</span>
         <span class="poll-duration">{durationLabel}</span>
     </button>
 {/if}

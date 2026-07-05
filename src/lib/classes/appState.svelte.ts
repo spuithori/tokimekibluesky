@@ -4,7 +4,7 @@ import {resumeAccountsSession} from "$lib/resumeAccountsSession";
 import {goto} from '$app/navigation';
 import { PersistedState } from "runed";
 import { get } from 'svelte/store';
-import { unwrapFunctionStore, format } from 'svelte-i18n';
+import { t } from 'tokimeki-i18n';
 
 class AppState {
     ready: boolean = $state(false);
@@ -45,12 +45,11 @@ class AppState {
         if (!profiles.length) {
             console.log('Profiles are empty. create new profile.');
             const acs = anyAccounts.map(account => account.id);
-            const _format = unwrapFunctionStore(format);
             const id = await accountsDb.profiles.put({
                 accounts: acs as number[],
                 columns: [],
                 createdAt: '',
-                name: _format('workspace') + ' 1',
+                name: t('workspace') + ' 1',
                 primary: acs[0] as number,
             })
             this.profile.current = id;

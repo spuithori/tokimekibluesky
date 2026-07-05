@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { settings } from '$lib/stores';
     import { offset, shift, size } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';

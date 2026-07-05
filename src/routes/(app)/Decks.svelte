@@ -2,7 +2,7 @@
     import Ghost from '@lucide/svelte/icons/ghost';
     import {isColumnModalOpen} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";

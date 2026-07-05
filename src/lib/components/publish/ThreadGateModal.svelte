@@ -1,7 +1,7 @@
 <script lang="ts">
     import CheckCircle from '@lucide/svelte/icons/check-circle';
     import {onMount} from 'svelte';
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import {getAccountIdByDidFromDb} from "$lib/util";
     import {accountsDb} from "$lib/db";
     import List from '@lucide/svelte/icons/list';

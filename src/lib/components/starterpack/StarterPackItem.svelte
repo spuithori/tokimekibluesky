@@ -1,6 +1,6 @@
 <script lang="ts">
     import Quote from '@lucide/svelte/icons/quote';
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import {agent} from "$lib/stores";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {goto} from "$app/navigation";
@@ -48,11 +48,11 @@
 
       <div class="starter-pack__meta">
         {#if starterPack.listItemCount != null}
-          <span class="starter-pack__count">{$_('starter_pack_members_count', { values: { count: starterPack.listItemCount }})}</span>
+          <span class="starter-pack__count">{$_('starter_pack_members_count', { count: starterPack.listItemCount })}</span>
         {/if}
 
         {#if starterPack.joinedAllTimeCount}
-          <span class="starter-pack__count">{$_('starter_pack_joined_count', { values: { count: starterPack.joinedAllTimeCount }})}</span>
+          <span class="starter-pack__count">{$_('starter_pack_joined_count', { count: starterPack.joinedAllTimeCount })}</span>
         {/if}
       </div>
 

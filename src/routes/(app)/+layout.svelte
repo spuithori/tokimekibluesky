@@ -1,5 +1,7 @@
 <script lang="ts">
-    import { _, locale } from "svelte-i18n";
+    import { _, locale, setLocale } from "tokimeki-i18n";
+    import { settingsStore } from "$lib/settings/settings.svelte";
+    import { intlRelativeTimeFormatState } from "$lib/classes/intlRelativeTimeFormatState.svelte";
     import "../styles.css";
     import {
         isColumnModalOpen,
@@ -140,9 +142,11 @@
         });
     }
 
-    if ($settings?.general?.language) {
-        locale.set($settings.general.language);
-    }
+    $effect(() => {
+        const language = settingsStore.general?.language || window.navigator.language;
+        setLocale(language);
+        intlRelativeTimeFormatState.changeLocale(language);
+    });
 
     if (navigator.storage && navigator.storage.persist) {
         navigator.storage.persist().then((res) => {
@@ -351,7 +355,7 @@
     class:bubble={$settings?.design?.bubbleTimeline}
     class:monochrome={$settings?.design?.monochrome}
     style={outputInlineStyle($theme)}
-    dir={$_("dir", { default: "ltr" })}
+    dir={$_("dir")}
     bind:this={app}
 >
     {#if appState.ready}

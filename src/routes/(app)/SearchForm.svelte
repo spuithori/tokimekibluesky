@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { onMount, tick } from "svelte";
     import { PersistedState, onClickOutside } from "runed";
     import X from '@lucide/svelte/icons/x';
@@ -105,7 +105,7 @@
             <li class="timeline-menu-list__item">
               <button class="timeline-menu-list__button" onclick={handleLanguageFilter}>
                 <Languages></Languages>
-                {$_('search_filter_language', {values: {lang: formattedLang}})}
+                {$_('search_filter_language', {lang: formattedLang})}
               </button>
             </li>
 

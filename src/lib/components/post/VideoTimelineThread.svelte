@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import MessageSquareText from '@lucide/svelte/icons/message-square-text';
   import X from '@lucide/svelte/icons/x';
   import { fly } from 'svelte/transition';

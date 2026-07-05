@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import type { SettingItem, SettingsContext } from '$lib/settings/schema.types';
     import type { SettingsAccessor } from '$lib/settings/accessor';
     import { customFields } from '$lib/settings/customRegistry';

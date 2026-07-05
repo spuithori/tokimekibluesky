@@ -4,7 +4,7 @@
     import BookmarkCheck from '@lucide/svelte/icons/bookmark-check';
     import CirclePlus from '@lucide/svelte/icons/circle-plus';
   import {accountsDb, db} from '$lib/db';
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import { liveQuery } from 'dexie';
   import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";

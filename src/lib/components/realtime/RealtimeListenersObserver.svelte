@@ -3,7 +3,7 @@
   import {getAccountIdByDid} from "$lib/util";
   import {RealtimeClient} from "$lib/realtime";
   import {onDestroy} from "svelte";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import Modal from "$lib/components/ui/Modal.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
 

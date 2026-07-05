@@ -1,7 +1,7 @@
 <script lang="ts">
     import { agent, reportModal } from '$lib/stores';
     import { toast } from 'svelte-sonner';
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import Modal from "$lib/components/ui/Modal.svelte";
     import ReportStepCategory from './ReportStepCategory.svelte';
     import ReportStepReason from './ReportStepReason.svelte';

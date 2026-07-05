@@ -1,10 +1,8 @@
 import '$lib/i18n';
-import { locale, waitLocale } from 'svelte-i18n';
+import { setLocale } from 'tokimeki-i18n';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async () => {
-    locale.set(window.navigator.language);
-    console.log('current language: ' + window.navigator.language);
-    await waitLocale();
+    await setLocale(window.navigator.language);
 }
 export const ssr = false;

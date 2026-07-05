@@ -1,6 +1,6 @@
 <script lang="ts">
     import {settings} from "$lib/stores";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";

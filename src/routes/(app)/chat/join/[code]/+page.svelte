@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import {page} from "$app/stores";
     import {agent} from "$lib/stores";
     import {goto} from "$app/navigation";
@@ -129,7 +129,7 @@
           <span>{preview.memberCount} / {preview.memberLimit}</span>
         </p>
 
-        <p class="join-page-card__owner">{$_('chat_join_link_owner', {values: {name: preview.owner?.displayName || preview.owner?.handle || ''}})}</p>
+        <p class="join-page-card__owner">{$_('chat_join_link_owner', {name: preview.owner?.displayName || preview.owner?.handle || ''})}</p>
 
         {#if preview.requireApproval && !preview.convo}
           <p class="join-page-card__note">{$_('chat_join_link_require_approval_note')}</p>

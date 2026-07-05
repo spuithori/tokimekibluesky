@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import { settings } from '$lib/stores';
     import { languageMap } from "$lib/langs/languageMap";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";

@@ -1,7 +1,7 @@
 <script lang="ts">
     import ChevronDown from '@lucide/svelte/icons/chevron-down';
     import UserPlus2 from '@lucide/svelte/icons/user-plus-2';
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";
   import LoginModal from "$lib/components/acp/LoginModal.svelte";

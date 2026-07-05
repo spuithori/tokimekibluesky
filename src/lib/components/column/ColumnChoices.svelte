@@ -1,7 +1,7 @@
 <script lang="ts">
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {agent, bookmarkModal, cloudBookmarkModal, listModal, officialListModal, userLists} from "$lib/stores";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {liveQuery} from "dexie";
   import {accountsDb, db} from "$lib/db";
   import {onMount} from "svelte";

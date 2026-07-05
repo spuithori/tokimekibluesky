@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import Modal from "$lib/components/ui/Modal.svelte";
   import {settings} from '$lib/stores';
   import Notice from "$lib/components/ui/Notice.svelte";

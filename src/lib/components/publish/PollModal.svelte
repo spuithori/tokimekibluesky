@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import Plus from '@lucide/svelte/icons/plus';
     import Trash2 from '@lucide/svelte/icons/trash-2';
     import type { Poll, PollDuration } from '$lib/classes/postState.svelte';
@@ -82,7 +82,7 @@
                     <input
                         type="text"
                         bind:value={options[index]}
-                        placeholder={$_('poll_option_placeholder', { values: { index: index + 1 } })}
+                        placeholder={$_('poll_option_placeholder', { index: index + 1 })}
                         maxlength="100"
                         class="poll-option-input"
                     />

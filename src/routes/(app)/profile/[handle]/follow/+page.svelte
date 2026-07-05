@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import type { LayoutData } from '../$types';
     import UserItem from '../UserItem.svelte';
     import type { Snapshot } from './$types';

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _, locale } from 'svelte-i18n';
+    import { _, locale } from 'tokimeki-i18n';
 
     let { date }: { date: Date } = $props();
 

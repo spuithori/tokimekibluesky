@@ -2,7 +2,7 @@
     import {agent} from '$lib/stores';
     import {onMount} from "svelte";
     import { toast } from "svelte-sonner";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import BluefeedAddItem from "$lib/components/list/BluefeedAddItem.svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";

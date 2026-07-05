@@ -1,4 +1,5 @@
 {
+    "dir": "ltr",
     "reposted_by": "Reposted by {name}",
     "reply_to": "Reply to {name}",
     "delete_post": "Delete post",

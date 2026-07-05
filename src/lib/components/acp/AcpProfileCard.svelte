@@ -6,7 +6,7 @@
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
   import {agent, agents, currentTimeline} from "$lib/stores";
   import Menu from "$lib/components/ui/Menu.svelte";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import { toast } from "svelte-sonner";
   import {modifyAgents} from "$lib/modifyAgents";
   import AcpProfileNameModal from "$lib/components/acp/AcpProfileNameModal.svelte";

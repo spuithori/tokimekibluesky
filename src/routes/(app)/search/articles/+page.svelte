@@ -1,6 +1,6 @@
 <script lang="ts">
     import { page } from '$app/stores';
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import Infinite from "$lib/components/utils/Infinite.svelte";
     import MochottArticleCard from "$lib/components/mochott/MochottArticleCard.svelte";
 

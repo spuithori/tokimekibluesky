@@ -4,7 +4,7 @@
     import Info from '@lucide/svelte/icons/info';
   import SquareArrowOutUpRight from '@lucide/svelte/icons/square-arrow-out-up-right';
   import {onMount} from "svelte";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import AtmosphereAboutModal from "$lib/components/profile/AtmosphereAboutModal.svelte";
   import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
   let { did, handle, endpoint } = $props();

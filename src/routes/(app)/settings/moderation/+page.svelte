@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import {settings} from '$lib/stores';
     import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
     import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";

@@ -3,7 +3,7 @@
     import X from '@lucide/svelte/icons/x';
     import Folder from '@lucide/svelte/icons/folder';
     import Ticket from '@lucide/svelte/icons/ticket';
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {onMount} from "svelte";
   import ThemeItem from "./ThemeItem.svelte";
 

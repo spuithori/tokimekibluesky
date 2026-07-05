@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import {goto} from "$app/navigation";
     import {JOIN_LINK_PREVIEW_TYPE} from "$lib/components/chat/convoUtil";
     import Link2 from '@lucide/svelte/icons/link-2';

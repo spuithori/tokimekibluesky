@@ -4,7 +4,7 @@
     import { onMount } from 'svelte';
     import LoginModal from "$lib/components/acp/LoginModal.svelte";
     import OAuthLoginModal from "$lib/components/acp/OAuthLoginModal.svelte";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import { Toaster } from "svelte-sonner";
     import {accountsDb} from "$lib/db";
 

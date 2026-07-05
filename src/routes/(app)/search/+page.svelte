@@ -2,7 +2,7 @@
     import Rainbow from '@lucide/svelte/icons/rainbow';
     import { page } from '$app/stores';
     import {agent} from '$lib/stores';
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import { PUBLIC_SUICIDE_WORDS } from '$env/static/public';
     import SuicideSafety from "$lib/components/safety/SuicideSafety.svelte";

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Picker } from 'emoji-mart'
   import {onMount} from 'svelte';
-  import {locale} from 'svelte-i18n';
+  import {locale} from 'tokimeki-i18n';
   import { clickOutside } from '$lib/clickOutSide';
   import {settings} from "$lib/stores";
   import {publishState} from "$lib/classes/publishState.svelte";

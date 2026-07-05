@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { isLocalTranslateSupported, disposeAllTranslators } from '$lib/localTranslate';
 

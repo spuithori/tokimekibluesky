@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_, locale} from 'svelte-i18n';
+    import {_, locale} from 'tokimeki-i18n';
     import { onMount } from 'svelte';
     import { sub, unsub, isSubscribe } from '$lib/pushSubscription';
     import { toast } from 'svelte-sonner'

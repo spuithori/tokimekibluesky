@@ -1,7 +1,7 @@
 <script lang="ts">
   import {agent, agents} from "$lib/stores";
   import {settingsStore} from "$lib/settings/settings.svelte";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {appState} from "$lib/classes/appState.svelte";
 
   interface Props {

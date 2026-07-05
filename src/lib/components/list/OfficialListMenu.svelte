@@ -2,7 +2,7 @@
     import Trash2 from '@lucide/svelte/icons/trash-2';
     import {createEventDispatcher} from "svelte";
     import {agent, reportModal} from "$lib/stores";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import Menu from "$lib/components/ui/Menu.svelte";
     import Flag from '@lucide/svelte/icons/flag';
 

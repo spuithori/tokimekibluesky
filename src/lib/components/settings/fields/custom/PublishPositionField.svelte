@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { publishState } from '$lib/classes/publishState.svelte';
     import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
     import PanelBottomOpen from '@lucide/svelte/icons/panel-bottom-open';

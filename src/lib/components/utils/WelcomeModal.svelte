@@ -1,6 +1,6 @@
 <script lang="ts">
     import CheckCircle from '@lucide/svelte/icons/check-circle';
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import { confetti } from '@neoconfetti/svelte';
     import {createEventDispatcher, onMount} from "svelte";
     import {settings} from "$lib/stores";

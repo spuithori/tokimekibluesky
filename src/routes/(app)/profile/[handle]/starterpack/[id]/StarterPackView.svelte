@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {agent, starterPackModal} from "$lib/stores";
   import {isDid} from "$lib/util";
   import UserItem from "../../UserItem.svelte";
@@ -256,11 +256,11 @@
 
       <div class="starter-pack-view__meta">
         {#if starterPack.joinedAllTimeCount}
-          <span class="starter-pack-view__stat">{$_('starter_pack_joined_count', { values: { count: starterPack.joinedAllTimeCount }})}</span>
+          <span class="starter-pack-view__stat">{$_('starter_pack_joined_count', { count: starterPack.joinedAllTimeCount })}</span>
         {/if}
 
         {#if starterPack.listItemCount != null}
-          <span class="starter-pack-view__stat">{$_('starter_pack_members_count', { values: { count: starterPack.listItemCount }})}</span>
+          <span class="starter-pack-view__stat">{$_('starter_pack_members_count', { count: starterPack.listItemCount })}</span>
         {/if}
       </div>
 

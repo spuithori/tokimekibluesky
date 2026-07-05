@@ -4,7 +4,7 @@
     import ListMember from "./ListMember.svelte";
     import {createEventDispatcher} from 'svelte';
     import { toast } from "svelte-sonner";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
   import Modal from "$lib/components/ui/Modal.svelte";
     const dispatch = createEventDispatcher();
 

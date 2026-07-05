@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import {languageMap} from "$lib/langs/languageMap";
   import Modal from "$lib/components/ui/Modal.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";

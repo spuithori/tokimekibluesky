@@ -2,7 +2,7 @@
     import Sparkles from '@lucide/svelte/icons/sparkles';
   import { compressImage } from '$lib/imageCompressor/compressor';
   import {tick} from "svelte";
-  import {_} from 'svelte-i18n';
+  import {_} from 'tokimeki-i18n';
   import { toast } from "svelte-sonner";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {settings} from "$lib/stores";

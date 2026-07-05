@@ -1,6 +1,6 @@
 <script lang="ts">
     import Users2 from '@lucide/svelte/icons/users-2';
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {onMount} from "svelte";
   import {getDbFollows, getFollowsWithUpdateDb} from "$lib/getActorsList";
   import {getAccountIdByDidFromDb} from "$lib/util";

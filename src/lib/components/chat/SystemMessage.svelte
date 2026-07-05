@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import {formatDate} from "$lib/dateFormat";
     import {getSystemMessageContent} from "$lib/components/chat/systemMessageText";
 
@@ -15,7 +15,7 @@
 </script>
 
 <div class="chat-system-message">
-  <span class="chat-system-message__text">{$_(content.key, {values: content.values})}</span>
+  <span class="chat-system-message__text">{$_(content.key, content.values)}</span>
   <time class="chat-system-message__time" datetime={formatDate(new Date(message.sentAt), 'yyyy-MM-dd\'T\'HH:mm:ss')}>{formatDate(new Date(message.sentAt), 'MM/dd HH:mm')}</time>
 </div>
 

@@ -4,7 +4,7 @@
     import List from '@lucide/svelte/icons/list';
   import {agent, listAddModal, reportModal} from "$lib/stores";
   import {muteListsState} from "$lib/classes/muteListsState.svelte";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
   import AtSign from '@lucide/svelte/icons/at-sign';

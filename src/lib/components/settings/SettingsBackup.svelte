@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { toast } from 'svelte-sonner';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { migrate } from '$lib/settings/migrations';

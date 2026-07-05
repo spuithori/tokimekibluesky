@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import type {KeywordMute} from "$lib/settings/types";
 
   let { keyword = $bindable(), index }: { keyword: KeywordMute; index: number } = $props();

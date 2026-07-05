@@ -1,7 +1,7 @@
 <script lang="ts">
     import ArrowLeft from '@lucide/svelte/icons/arrow-left';
     import X from '@lucide/svelte/icons/x';
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import {onMount} from "svelte";
     import ThemeItem from "../ThemeItem.svelte";
 

@@ -3,7 +3,7 @@
     import Quote from '@lucide/svelte/icons/quote';
   import UserItem from '../../../routes/(app)/profile/[handle]/UserItem.svelte';
   import { slide } from 'svelte/transition';
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import { createEventDispatcher } from 'svelte';
   import {agent} from "$lib/stores";

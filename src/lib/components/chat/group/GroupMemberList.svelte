@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import {toast} from "svelte-sonner";
     import Infinite from "$lib/components/utils/Infinite.svelte";
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
@@ -101,7 +101,7 @@
 
 {#if (removeTarget)}
   <ConfirmModal on:ok={removeMember} on:cancel={() => {removeTarget = undefined}} yesText={$_('chat_group_remove_member')} cancelText={$_('cancel')}>
-    <p class="group-member-remove-confirm">{$_('chat_group_remove_member_confirm', {values: {name: removeTarget.displayName || removeTarget.handle}})}</p>
+    <p class="group-member-remove-confirm">{$_('chat_group_remove_member_confirm', {name: removeTarget.displayName || removeTarget.handle})}</p>
   </ConfirmModal>
 {/if}
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import {onDestroy, onMount} from "svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";

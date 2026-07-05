@@ -1,5 +1,5 @@
 <script>
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import { agent } from "$lib/stores";
     import Modal from "$lib/components/ui/Modal.svelte";
     import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import { agent, changedFollowData } from "$lib/stores";
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
   import { updateFollowInDb } from "$lib/getActorsList";

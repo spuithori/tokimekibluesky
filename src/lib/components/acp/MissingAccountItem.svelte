@@ -1,6 +1,6 @@
 <script lang="ts">
   import LoginModal from "$lib/components/acp/LoginModal.svelte";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {accountsDb} from "$lib/db";
 
   let { account } = $props();

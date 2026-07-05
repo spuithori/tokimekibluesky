@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import UserItem from "../../profile/[handle]/UserItem.svelte";
     import { onMount } from 'svelte';
     import { agent } from "$lib/stores";

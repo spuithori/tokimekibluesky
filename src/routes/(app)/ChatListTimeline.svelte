@@ -1,6 +1,6 @@
 <script lang="ts">
     import {agent, workerTimer} from '$lib/stores';
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import Infinite from "$lib/components/utils/Infinite.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";

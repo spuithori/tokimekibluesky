@@ -1,6 +1,6 @@
 <script lang="ts">
     import Unplug from '@lucide/svelte/icons/unplug';
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
 
   let { column } = $props();
 
@@ -14,7 +14,7 @@
   <h1 class="modal-title modal-title--smaller modal-title--center">{$_('profile_account_missing_title')}</h1>
 
   {#if column.handle}
-    <p class="modal-text modal-text--center">{$_('column_account_missing_text_1', {values: {name: column.handle}})}</p>
+    <p class="modal-text modal-text--center">{$_('column_account_missing_text_1', {name: column.handle})}</p>
   {:else}
     <p class="modal-text modal-text--center">{$_('column_account_missing_text_2')}</p>
   {/if}

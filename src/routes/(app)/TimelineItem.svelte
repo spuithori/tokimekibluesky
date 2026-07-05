@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n'
+  import {_} from 'tokimeki-i18n'
   import Trash2 from '@lucide/svelte/icons/trash-2';
   import Languages from '@lucide/svelte/icons/languages';
   import Copy from '@lucide/svelte/icons/copy';
@@ -564,7 +564,7 @@
         {#if (isReasonRepost(data.reason))}
           <p class="timeline-repost-message" data-aturi={data.reason.uri}>
             <ProfileCardWrapper handle={data.reason.by.handle} {_agent}>
-              <a href="/profile/{data.reason.by.did}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {values: {name: data.reason.by.displayName || data.reason.by.handle}})}</span></a>
+              <a href="/profile/{data.reason.by.did}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {name: data.reason.by.displayName || data.reason.by.handle})}</span></a>
             </ProfileCardWrapper>
           </p>
         {/if}
@@ -578,7 +578,7 @@
         <p class="timeline-repost-message">
           <button style="pointer-events: none;">
             <Reply size="18" color="var(--primary-color)"></Reply>
-            <span class="timeline-repost-message__text">{$_('reply_to', {values: {name: data.reply.parent.author.displayName || data.reply.parent.author.handle}})}</span>
+            <span class="timeline-repost-message__text">{$_('reply_to', {name: data.reply.parent.author.displayName || data.reply.parent.author.handle})}</span>
           </button>
         </p>
       {:else if data.reply && !isSingle && !isReplyHide}

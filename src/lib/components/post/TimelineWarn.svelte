@@ -2,7 +2,7 @@
     import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
     import Info from '@lucide/svelte/icons/info';
   import {settings} from '$lib/stores';
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import LabelDetailModal from "$lib/components/post/LabelDetailModal.svelte";
 
   interface Props {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import {_} from 'tokimeki-i18n';
   import UserFollowButton from "./UserFollowButton.svelte";
   import {agent, settings} from "$lib/stores";
   import Avatar from "../../Avatar.svelte";

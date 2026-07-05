@@ -3,7 +3,7 @@
   import {formatDate} from "$lib/dateFormat";
   import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "$lib/atproto-guards";
   import { getViewImages, getRecordImages, hasGalleryImages } from "$lib/components/post/embedImages";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import Images from "../../../routes/(app)/Images.svelte";
   import {contentLabelling, detectWarn, keywordFilter} from "$lib/timelineFilter";

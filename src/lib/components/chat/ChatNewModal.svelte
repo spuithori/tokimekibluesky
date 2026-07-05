@@ -1,6 +1,6 @@
 <script lang="ts">
     import Search from '@lucide/svelte/icons/search';
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import Modal from "$lib/components/ui/Modal.svelte";
     import {agent} from "$lib/stores";
     import ListMember from "$lib/components/list/ListMember.svelte";

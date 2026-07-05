@@ -4,7 +4,7 @@
   import { fly } from 'svelte/transition';
   import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
 
   let profiles = $derived(liveQuery(async () => {
       const profiles = await accountsDb.profiles.toArray();

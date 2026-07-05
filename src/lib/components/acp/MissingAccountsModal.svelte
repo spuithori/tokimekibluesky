@@ -1,6 +1,6 @@
 <script lang="ts">
     import Unplug from '@lucide/svelte/icons/unplug';
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import { fly } from 'svelte/transition';
   import MissingAccountItem from "$lib/components/acp/MissingAccountItem.svelte";
   import {appState} from "$lib/classes/appState.svelte";

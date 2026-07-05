@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {createEventDispatcher} from "svelte";
   import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";

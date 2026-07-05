@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import {_} from 'tokimeki-i18n';
   import Avatar from "../../../routes/(app)/Avatar.svelte";
   import {agent} from "$lib/stores";
   import VolumeX from '@lucide/svelte/icons/volume-x';

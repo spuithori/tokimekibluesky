@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
+  import { _ } from "tokimeki-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { createLongPress } from "$lib/longpress";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
@@ -26,14 +26,14 @@
 
   function muteTag() {
       keywordMuteState.add(item.text);
-      toast.success($_('success_mute_tag', {values: {tag: item.text}}));
+      toast.success($_('success_mute_tag', {tag: item.text}));
       isTagMenuOpen = false;
   }
 
   function copyTag() {
       navigator.clipboard.writeText(item.text)
           .then(() => {
-              toast.success($_('success_copy_tag', {values: {tag: item.text}}));
+              toast.success($_('success_copy_tag', {tag: item.text}));
           }, () => {
               toast.success($_('failed_copy'));
           });

@@ -60,7 +60,7 @@ export interface SearchResult extends SearchEntry {
 }
 
 /**
- * Build the search index. `translate` is the resolved svelte-i18n `$_`;
+ * Build the search index. `translate` is the resolved tokimeki-i18n `$_`;
  * `translateEn` resolves the same key under the English locale.
  */
 export function buildIndex(

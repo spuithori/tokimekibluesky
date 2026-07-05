@@ -2,7 +2,7 @@
   import {agent, settings} from '$lib/stores';
   import {settingsStore} from "$lib/settings/settings.svelte";
   import {onMount} from "svelte";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
   import {appState} from "$lib/classes/appState.svelte";
 

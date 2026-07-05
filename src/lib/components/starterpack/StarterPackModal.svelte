@@ -3,7 +3,7 @@
     import {onMount} from "svelte";
     import ListMember from "$lib/components/list/ListMember.svelte";
     import { toast } from "svelte-sonner";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import Modal from "$lib/components/ui/Modal.svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 
@@ -116,7 +116,7 @@
 
     function handleAdd(event) {
         if (members.length >= MAX_MEMBERS) {
-            toast.error($_('starter_pack_members_max', { values: { max: MAX_MEMBERS } }));
+            toast.error($_('starter_pack_members_max', { max: MAX_MEMBERS }));
             return;
         }
         members = [...members, event.detail.member];
@@ -124,7 +124,7 @@
 
     function addFeed(feed) {
         if (feeds.length >= MAX_FEEDS) {
-            toast.error($_('starter_pack_feeds_max', { values: { max: MAX_FEEDS } }));
+            toast.error($_('starter_pack_feeds_max', { max: MAX_FEEDS }));
             return;
         }
         if (!feeds.some(f => f.uri === feed.uri)) {
@@ -163,7 +163,7 @@
         }
 
         if (members.length < MIN_MEMBERS) {
-            toast.error($_('starter_pack_members_min', { values: { min: MIN_MEMBERS } }));
+            toast.error($_('starter_pack_members_min', { min: MIN_MEMBERS }));
             return;
         }
 

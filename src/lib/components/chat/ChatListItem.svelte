@@ -2,7 +2,7 @@
     import {formatDate} from "$lib/dateFormat";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import Menu from "$lib/components/ui/Menu.svelte";
     import ListPlus from '@lucide/svelte/icons/list-plus';
     import Lock from '@lucide/svelte/icons/lock';
@@ -155,7 +155,7 @@
     </div>
 
     {#if lastMessagePreview}
-      <p class="convo-item__text" class:convo-item__text--label={lastMessagePreview.key}>{lastMessagePreview.key ? $_(lastMessagePreview.key, {values: lastMessagePreview.values}) : lastMessagePreview.text}</p>
+      <p class="convo-item__text" class:convo-item__text--label={lastMessagePreview.key}>{lastMessagePreview.key ? $_(lastMessagePreview.key, lastMessagePreview.values) : lastMessagePreview.text}</p>
     {/if}
 
     <button class="convo-item__button" onclick={handleOpen}></button>

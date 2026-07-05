@@ -3,7 +3,7 @@ import { buildIndex, searchSettings } from './search.svelte';
 
 // Minimal i18n mocks: `ja` resolves display labels, `en` resolves the english
 // labels used for cross-locale search. Unknown keys fall back to the key itself
-// (mirrors svelte-i18n returning the key when a message is missing).
+// (mirrors tokimeki-i18n returning the key when a message is missing).
 const jaLabels: Record<string, string> = {
     darkmode: 'ダークモード',
     disable_embed_via: '埋め込みのvia表示を無効化',

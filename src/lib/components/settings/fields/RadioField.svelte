@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import type { SettingOption, RadioAppearance } from '$lib/settings/schema.types';
 
     interface Props {

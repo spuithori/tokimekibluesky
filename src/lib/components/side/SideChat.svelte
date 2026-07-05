@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import {_} from 'tokimeki-i18n';
   import {agent, agents} from "$lib/stores";
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
   import ChatListItem from "$lib/components/chat/ChatListItem.svelte";

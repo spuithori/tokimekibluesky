@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import {toast} from "svelte-sonner";
     import Infinite from "$lib/components/utils/Infinite.svelte";
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
@@ -140,7 +140,7 @@
             </span>
 
             {#if preview}
-              <span class="chat-request__text">{preview.key ? $_(preview.key, {values: preview.values}) : preview.text}</span>
+              <span class="chat-request__text">{preview.key ? $_(preview.key, preview.values) : preview.text}</span>
             {/if}
           </button>
 
