@@ -256,19 +256,22 @@
         if (src?.type === 'video/object') {
             videoElement.src = src.src;
         } else if (src?.endsWith('.m3u8')) {
-
-            engine = new BlueskyHls(videoElement);
-            engine.onLevels = (levels, current) => {
-                qualities = levels.map((level) => ({
-                    height: level.height,
-                    width: level.width,
-                    bitrate: level.bitrate,
-                    index: level.index
-                }));
-                currentQuality = current;
-            };
-            engine.onError = (err) => console.error('[video] hls engine error', err);
-            await engine.loadSource(src);
+            if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                videoElement.src = src;
+            } else {
+                engine = new BlueskyHls(videoElement);
+                engine.onLevels = (levels, current) => {
+                    qualities = levels.map((level) => ({
+                        height: level.height,
+                        width: level.width,
+                        bitrate: level.bitrate,
+                        index: level.index
+                    }));
+                    currentQuality = current;
+                };
+                engine.onError = (err) => console.error('[video] hls engine error', err);
+                await engine.loadSource(src);
+            }
         } else {
             videoElement.src = src;
         }
