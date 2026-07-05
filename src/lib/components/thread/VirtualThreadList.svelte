@@ -4,7 +4,7 @@
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
   import { getScrollTopFor, setScrollTopFor, resolveScrollContainer } from "$lib/components/virtual/scroll-helpers";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {getScopedColumnState} from "$lib/classes/columnState.svelte";
 
   let { column, _agent, rootIndex, onchangeprofile } = $props();

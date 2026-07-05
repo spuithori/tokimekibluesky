@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import MessageSquareWarning from '@lucide/svelte/icons/message-square-warning';
 
     let { post } = $props();

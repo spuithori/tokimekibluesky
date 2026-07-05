@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { tick, type Component } from 'svelte';
     import Plus from '@lucide/svelte/icons/plus';
     import Puzzle from '@lucide/svelte/icons/puzzle';

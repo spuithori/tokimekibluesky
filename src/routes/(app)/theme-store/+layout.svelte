@@ -2,7 +2,7 @@
     import Palette from '@lucide/svelte/icons/palette';
     import Folder from '@lucide/svelte/icons/folder';
     import Ticket from '@lucide/svelte/icons/ticket';
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import { fly } from 'svelte/transition';
     import type {LayoutData} from "./$types";
     import {page} from "$app/stores";

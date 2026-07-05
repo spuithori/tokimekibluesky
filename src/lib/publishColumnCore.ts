@@ -1,5 +1,4 @@
-import { get } from 'svelte/store';
-import { _ } from 'svelte-i18n';
+import { t } from 'tokimeki-i18n';
 import { defaultDeckSettings } from '$lib/components/deck/defaultDeckSettings';
 import type { Column } from '$lib/types/column';
 
@@ -21,7 +20,7 @@ export function findPublishColumn(columns: Column[]): Column | undefined {
 
 export function resolvePublishColumnName(): string {
     try {
-        const translated = get(_)('column_publish');
+        const translated = t('column_publish');
         return translated && translated !== 'column_publish' ? translated : 'Post';
     } catch {
         return 'Post';

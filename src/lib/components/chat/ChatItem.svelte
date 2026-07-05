@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from "svelte-i18n";
+    import { _ } from "tokimeki-i18n";
     import TimelineText from "$lib/components/post/TimelineText.svelte";
     import { formatDate } from "$lib/dateFormat";
     import { isEmojiSequenceOrCombination } from "$lib/util";

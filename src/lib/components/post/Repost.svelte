@@ -2,7 +2,7 @@
     import Quote from '@lucide/svelte/icons/quote';
   import { agent, settings } from '$lib/stores';
   import { toast } from 'svelte-sonner';
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import Repeat from '@lucide/svelte/icons/repeat';

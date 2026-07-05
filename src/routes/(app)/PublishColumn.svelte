@@ -2,7 +2,7 @@
     import { tick } from "svelte";
     import { MediaQuery } from "svelte/reactivity";
     import { watch } from "runed";
-    import { _ } from "svelte-i18n";
+    import { _ } from "tokimeki-i18n";
     import Pencil from '@lucide/svelte/icons/pencil';
     import { settings } from "$lib/stores";
     import { getScopedColumnState } from "$lib/classes/columnState.svelte";

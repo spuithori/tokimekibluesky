@@ -1,6 +1,6 @@
 <script lang="ts">
     import { updated } from '$app/state';
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { reloadApp } from '$lib/appUpdate';
 
     let busy = $state(false);

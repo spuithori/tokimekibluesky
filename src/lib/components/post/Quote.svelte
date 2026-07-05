@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import {publishState} from "$lib/classes/publishState.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
   import Quote from '@lucide/svelte/icons/quote';

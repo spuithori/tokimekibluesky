@@ -3,7 +3,7 @@
   import {themesDb} from "$lib/db";
   import {liveQuery} from "dexie";
   import {settings} from "$lib/stores";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
 

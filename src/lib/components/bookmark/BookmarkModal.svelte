@@ -3,7 +3,7 @@
   import { liveQuery } from 'dexie';
   import { agent } from '$lib/stores';
   import { toast } from 'svelte-sonner';
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import Modal from "$lib/components/ui/Modal.svelte";
 
   let { _agent = $agent, id, close } = $props();

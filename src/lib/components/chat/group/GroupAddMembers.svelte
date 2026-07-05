@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import {toast} from "svelte-sonner";
     import ActorMultiSelect from "$lib/components/chat/ActorMultiSelect.svelte";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";

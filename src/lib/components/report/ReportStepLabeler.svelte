@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
     let { labelers, onselect }: {

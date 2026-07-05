@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import { fly } from 'svelte/transition';
     import {accountsDb} from "$lib/db";
     import {createEventDispatcher} from "svelte";

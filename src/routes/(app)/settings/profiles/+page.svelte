@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import { liveQuery } from 'dexie';
     import {accountsDb} from '$lib/db';
     import AcpProfileCard from "$lib/components/acp/AcpProfileCard.svelte";

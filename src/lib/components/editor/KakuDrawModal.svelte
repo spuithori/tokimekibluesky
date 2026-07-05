@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { ImageEditor } from 'tokimeki-image-editor';
     import { toast } from 'svelte-sonner';
     import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';

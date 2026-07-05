@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import {_} from 'tokimeki-i18n';
   import type {LayoutData} from "./$types";
   import {page} from "$app/stores";
   import {goto} from "$app/navigation";

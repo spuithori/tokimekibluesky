@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import ChevronRight from '@lucide/svelte/icons/chevron-right';
     import SmilePlus from '@lucide/svelte/icons/smile-plus';
     import SettingsCategory from '$lib/components/settings/SettingsCategory.svelte';

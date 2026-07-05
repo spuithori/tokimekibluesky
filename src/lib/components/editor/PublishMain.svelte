@@ -1,6 +1,6 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {isFeedByUri} from "$lib/util";
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia } from "$lib/atproto-guards";
   import { RichText } from "$lib/atproto-richtext";

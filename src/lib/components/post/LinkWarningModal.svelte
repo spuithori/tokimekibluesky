@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
   import {linkWarning} from "$lib/stores";
   let dialog = $state();

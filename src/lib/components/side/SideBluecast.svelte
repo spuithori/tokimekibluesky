@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import {onMount} from "svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import Mic from '@lucide/svelte/icons/mic';

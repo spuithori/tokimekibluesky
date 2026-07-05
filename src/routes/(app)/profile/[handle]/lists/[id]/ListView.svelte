@@ -1,7 +1,7 @@
 <script lang="ts">
     import MessageCircleOff from '@lucide/svelte/icons/message-circle-off';
     import ShieldBan from '@lucide/svelte/icons/shield-ban';
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {agent} from "$lib/stores";
   import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
   import {isDid} from "$lib/util";

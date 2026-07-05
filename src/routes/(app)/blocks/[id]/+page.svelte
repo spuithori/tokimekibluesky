@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {page} from "$app/stores";
   import {agents} from "$lib/stores";
   import BlockMutesItem from "$lib/components/profile/BlockMutesItem.svelte";

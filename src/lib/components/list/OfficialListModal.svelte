@@ -3,7 +3,7 @@
     import {onMount} from "svelte";
     import ListMember from "./ListMember.svelte";
     import { toast } from "svelte-sonner";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import OfficialListMenu from "$lib/components/list/OfficialListMenu.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";

@@ -1,6 +1,6 @@
 <script lang="ts">
     import Info from '@lucide/svelte/icons/info';
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
 </script>
 
 <div class="embed-detached">

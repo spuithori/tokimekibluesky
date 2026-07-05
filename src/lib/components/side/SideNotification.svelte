@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import {type JunkColumnDescriptor} from "$lib/junkColumn";
     import JunkColumn from "../../../routes/(app)/JunkColumn.svelte";
     import {agent} from "$lib/stores";

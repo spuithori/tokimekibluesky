@@ -3,7 +3,7 @@
   import {agent, settings} from "$lib/stores";
   import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
   import { fade } from 'svelte/transition';
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import { offset, flip, shift } from '@floating-ui/dom';
   import { createFloatingActions } from 'svelte-floating-ui';
   import BadgeCheck from '@lucide/svelte/icons/badge-check';

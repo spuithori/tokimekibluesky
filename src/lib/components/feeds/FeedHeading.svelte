@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';

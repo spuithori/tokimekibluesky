@@ -3,7 +3,7 @@
     import MessageCirclePlus from '@lucide/svelte/icons/message-circle-plus';
     import Search from '@lucide/svelte/icons/search';
     import X from '@lucide/svelte/icons/x';
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import {agent, settings} from '$lib/stores';
     import { page } from '$app/stores';
     import type { LayoutData } from './$types';

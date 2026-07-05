@@ -1,6 +1,6 @@
 <script lang="ts">
     import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
-  import {_} from 'svelte-i18n';
+  import {_} from 'tokimeki-i18n';
   import {onMount, onDestroy} from 'svelte'
   import {Editor} from '@tiptap/core'
   import Link from '@tiptap/extension-link';

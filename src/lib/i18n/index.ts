@@ -1,40 +1,47 @@
-import { browser } from '$app/environment'
-import { init, register } from 'svelte-i18n'
+import { setupI18n } from 'tokimeki-i18n';
 
-const defaultLocale = 'en'
-
-register('ja', () => import('./locales/ja.json'));
-register('en', () => import('./locales/en.json'));
-register('pt', () => import('./locales/pt.json'));
-register('pt-BR', () => import('./locales/pt.json'));
-register('ko', () => import('./locales/ko-kr.json'));
-register('fa', () => import('./locales/fa.json'));
-register('ar', () => import('./locales/ar.json'));
-register('bg', () => import('./locales/bg.json'));
-register('zh-CN', () => import('./locales/zh-cn.json'));
-register('ru', () => import('./locales/ru.json'));
-register('fr', () => import('./locales/fr-fr.json'));
-register('it', () => import('./locales/it.json'));
-
-register('ja', () => import('./locales/languageMap/ja.json'));
-register('en', () => import('./locales/languageMap/en.json'));
-register('ko', () => import('./locales/languageMap/ko-kr.json'));
-register('bg', () => import('./locales/languageMap/bg.json'));
-register('zh-CN', () => import('./locales/languageMap/zh-cn.json'));
-register('ru', () => import('./locales/languageMap/ru.json'));
-register('fr', () => import('./locales/languageMap/fr-fr.json'));
-register('it', () => import('./locales/languageMap/it.json'));
-
-register('ja', () => import('./locales/labeling/ja.json'));
-register('en', () => import('./locales/labeling/en.json'));
-
-register('ja', () => import('./locales/labelingInfo/ja.json'));
-register('en', () => import('./locales/labelingInfo/en.json'));
-
-register('ja', () => import('./locales/plyr/ja.json'));
-register('en', () => import('./locales/plyr/en.json'));
-
-init({
-    fallbackLocale: defaultLocale,
-    initialLocale: browser ? window.navigator.language : defaultLocale,
-})
+setupI18n({
+    fallback: 'en',
+    locales: {
+        ja: [
+            () => import('./locales/ja.json'),
+            () => import('./locales/languageMap/ja.json'),
+            () => import('./locales/labeling/ja.json'),
+            () => import('./locales/labelingInfo/ja.json'),
+        ],
+        en: [
+            () => import('./locales/en.json'),
+            () => import('./locales/languageMap/en.json'),
+            () => import('./locales/labeling/en.json'),
+            () => import('./locales/labelingInfo/en.json'),
+        ],
+        pt: [() => import('./locales/pt.json')],
+        'pt-BR': 'pt',
+        ko: [
+            () => import('./locales/ko-kr.json'),
+            () => import('./locales/languageMap/ko-kr.json'),
+        ],
+        fa: [() => import('./locales/fa.json')],
+        ar: [() => import('./locales/ar.json')],
+        bg: [
+            () => import('./locales/bg.json'),
+            () => import('./locales/languageMap/bg.json'),
+        ],
+        'zh-CN': [
+            () => import('./locales/zh-cn.json'),
+            () => import('./locales/languageMap/zh-cn.json'),
+        ],
+        ru: [
+            () => import('./locales/ru.json'),
+            () => import('./locales/languageMap/ru.json'),
+        ],
+        fr: [
+            () => import('./locales/fr-fr.json'),
+            () => import('./locales/languageMap/fr-fr.json'),
+        ],
+        it: [
+            () => import('./locales/it.json'),
+            () => import('./locales/languageMap/it.json'),
+        ],
+    },
+});

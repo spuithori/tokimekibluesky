@@ -1,6 +1,6 @@
 <script lang="ts">
   import {onMount} from "svelte";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import VirtualThreadList from "$lib/components/thread/VirtualThreadList.svelte";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import {getScopedColumnState} from "$lib/classes/columnState.svelte";

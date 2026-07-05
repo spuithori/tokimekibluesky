@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import RotateCw from '@lucide/svelte/icons/rotate-cw';
     import X from '@lucide/svelte/icons/x';
     import ChatReplyQuote from "$lib/components/chat/ChatReplyQuote.svelte";

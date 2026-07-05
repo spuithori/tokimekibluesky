@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import {page} from "$app/state";
     import {onMount} from "svelte";
     const handle = $derived(page.params.handle);

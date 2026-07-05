@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
 
   let { labels } = $props();

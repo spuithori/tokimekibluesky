@@ -4,7 +4,7 @@ import { onMount } from 'svelte';
 import { goto } from '$app/navigation';
 import { initOAuth } from '$lib/oauth';
 import { accountsDb } from '$lib/db';
-import { _ } from 'svelte-i18n';
+import { _ } from 'tokimeki-i18n';
 import CircleSlash from '@lucide/svelte/icons/circle-slash';
 import CircleCheck from '@lucide/svelte/icons/circle-check';
 import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { languageMap } from '$lib/langs/languageMap';
     import type { SettingOption } from '$lib/settings/schema.types';
 

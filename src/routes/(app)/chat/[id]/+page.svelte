@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import {page} from "$app/stores";
     import ChatView from "./ChatView.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";

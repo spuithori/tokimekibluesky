@@ -6,7 +6,7 @@
     import PictureInPicture2 from '@lucide/svelte/icons/picture-in-picture-2';
     import Eraser from '@lucide/svelte/icons/eraser';
     import Trash2 from '@lucide/svelte/icons/trash-2';
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import { currentTimeline, settings } from "$lib/stores";
     import { languageMap } from "$lib/langs/languageMap";
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
@@ -834,8 +834,8 @@
             .style-nav__item--default {
                 width: 57px;
 
-                path {
-                    fill: var(--primary-color);
+                :global(svg) {
+                    stroke: var(--primary-color);
                 }
             }
         }
@@ -848,13 +848,13 @@
             .style-nav__item--media {
                 width: 57px;
 
-                path {
-                    fill: var(--primary-color);
+                :global(svg) {
+                    stroke: var(--primary-color);
                 }
             }
         }
 
-        svg {
+        :global(svg) {
             position: relative;
             z-index: 3;
         }

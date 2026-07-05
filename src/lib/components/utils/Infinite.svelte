@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useIntersectionObserver } from "runed";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import Annoyed from '@lucide/svelte/icons/annoyed';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
 

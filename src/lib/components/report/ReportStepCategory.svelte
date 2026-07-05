@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { REPORT_CATEGORIES } from './reportConstants';
     import type { ReportCategory } from './reportTypes';
     import ChevronRight from '@lucide/svelte/icons/chevron-right';

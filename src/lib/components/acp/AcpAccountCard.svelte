@@ -3,7 +3,7 @@
     import BookX from '@lucide/svelte/icons/book-x';
   import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {createEventDispatcher} from "svelte";
   const dispatch = createEventDispatcher();

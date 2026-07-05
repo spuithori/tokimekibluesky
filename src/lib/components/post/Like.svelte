@@ -1,7 +1,7 @@
 <script lang="ts">
   import { agent, settings } from '$lib/stores';
   import { toast } from 'svelte-sonner';
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import Heart from '@lucide/svelte/icons/heart';
   import Star from '@lucide/svelte/icons/star';

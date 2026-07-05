@@ -1,6 +1,6 @@
 <script lang="ts">
   import { toast } from 'svelte-sonner';
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import { db } from '$lib/db';
   import { agent } from "$lib/stores";
   import { formatDate } from '$lib/dateFormat';

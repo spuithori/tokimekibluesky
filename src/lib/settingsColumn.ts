@@ -1,5 +1,4 @@
-import { get } from 'svelte/store';
-import { _ } from 'svelte-i18n';
+import { t } from 'tokimeki-i18n';
 import { animateLayout } from '$lib/animations/flip';
 import { defaultDeckSettings } from '$lib/components/deck/defaultDeckSettings';
 import type { Column } from '$lib/types/column';
@@ -22,7 +21,7 @@ export function findSettingsColumn(columns: Column[]): Column | undefined {
 
 export function resolveSettingsColumnName(): string {
     try {
-        const translated = get(_)('settings');
+        const translated = t('settings');
         return translated && translated !== 'settings' ? translated : 'Settings';
     } catch {
         return 'Settings';

@@ -1,7 +1,7 @@
 <script lang="ts">
     import Pencil from '@lucide/svelte/icons/pencil';
     import Check from '@lucide/svelte/icons/check';
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {agent} from "$lib/stores";
   import {createEventDispatcher} from "svelte";
   import { toast } from "svelte-sonner";

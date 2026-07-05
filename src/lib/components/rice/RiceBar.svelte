@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { riceState } from '$lib/rice/riceState.svelte';
     import { resolveBarItem } from '$lib/rice/barItems';
     import { runCommand } from '$lib/commands/registry.svelte';

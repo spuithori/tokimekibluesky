@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { locale } from 'svelte-i18n';
+    import { locale } from 'tokimeki-i18n';
     import ChevronLeft from '@lucide/svelte/icons/chevron-left';
     import ChevronRight from '@lucide/svelte/icons/chevron-right';
 

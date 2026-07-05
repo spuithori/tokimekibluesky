@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Snippet } from "svelte";
-    import { _ } from "svelte-i18n";
+    import { _ } from "tokimeki-i18n";
     import { toast } from "svelte-sonner";
     import { afterNavigate } from "$app/navigation";
     import { settingsSchema } from "$lib/settings/schema";

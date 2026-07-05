@@ -79,10 +79,10 @@
         "mux.js": "^6.3.0",
         "photoswipe": "^5.4.4",
         "runed": "^0.35.1",
-        "svelte-i18n": "^4.0.1",
         "svelte-sonner": "^1.1.0",
         "three": "^0.185.1",
         "tlds": "^1.261.0",
-        "tokimeki-image-editor": "^0.5.1"
+        "tokimeki-i18n": "^0.2.0",
+        "tokimeki-image-editor": "^0.6.0"
     }
 }

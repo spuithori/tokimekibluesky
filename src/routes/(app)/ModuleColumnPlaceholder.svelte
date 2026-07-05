@@ -1,6 +1,6 @@
 <script lang="ts">
     import Puzzle from '@lucide/svelte/icons/puzzle';
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { getScopedColumnState } from '$lib/classes/columnState.svelte';
 
     interface Props {

@@ -2,7 +2,7 @@
     import Ghost from '@lucide/svelte/icons/ghost';
     import {isColumnModalOpen} from '$lib/stores';
     import DeckSlot from "./DeckSlot.svelte";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
     import TilingDragOverlay from "$lib/components/deck/TilingDragOverlay.svelte";
     import TilingDragGhost from "$lib/components/deck/TilingDragGhost.svelte";

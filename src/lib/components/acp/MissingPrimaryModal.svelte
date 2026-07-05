@@ -4,7 +4,7 @@
     import { fly } from 'svelte/transition';
     import {liveQuery} from "dexie";
     import {accountsDb} from "$lib/db";
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import {appState} from "$lib/classes/appState.svelte.js";
 
     let profile = $derived(liveQuery(async () => {

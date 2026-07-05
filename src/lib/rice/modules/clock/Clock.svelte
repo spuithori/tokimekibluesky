@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { locale } from 'svelte-i18n';
+    import { locale } from 'tokimeki-i18n';
     import { riceState } from '$lib/rice/riceState.svelte';
 
     interface Props {

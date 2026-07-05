@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_, locale} from 'svelte-i18n';
+  import {_, locale} from 'tokimeki-i18n';
   import BellMinus from '@lucide/svelte/icons/bell-minus';
   import BellPlus from '@lucide/svelte/icons/bell-plus';
   import {toast} from "svelte-sonner";

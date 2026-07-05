@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import ArrowLeft from '@lucide/svelte/icons/arrow-left';
     import X from '@lucide/svelte/icons/x';
     import {agents} from "$lib/stores";

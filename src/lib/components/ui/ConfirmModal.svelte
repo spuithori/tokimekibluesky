@@ -1,6 +1,6 @@
 <script lang="ts">
     import {createEventDispatcher, onMount} from "svelte";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {settings} from "$lib/stores";
 
   const dispatch = createEventDispatcher();

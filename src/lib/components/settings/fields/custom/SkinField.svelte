@@ -1,6 +1,6 @@
 <script lang="ts">
     import Palette from '@lucide/svelte/icons/palette';
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { liveQuery } from 'dexie';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { builtInThemes } from '$lib/builtInThemes';

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import Bookmark from '@lucide/svelte/icons/bookmark';
   import Heart from '@lucide/svelte/icons/heart';
   import Quote from '@lucide/svelte/icons/quote';

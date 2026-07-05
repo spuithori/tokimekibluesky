@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import {_} from 'tokimeki-i18n';
   import { agent, hashtagHistory, settings } from '$lib/stores';
   import { AppBskyEmbedExternal, AppBskyEmbedImages, AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, type AppBskyVideoDefsJobStatus } from '$lib/atproto-guards';
   import { LEGACY_IMAGES_EMBED_MAX } from '$lib/components/post/embedImages';

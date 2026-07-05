@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import QuotesModal from "$lib/components/thread/QuotesModal.svelte";
 
   let { uri, _agent, children } = $props();

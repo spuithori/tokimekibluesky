@@ -1,10 +1,9 @@
 import '$lib/i18n';
-import { locale, waitLocale } from 'svelte-i18n';
+import { setLocale } from 'tokimeki-i18n';
 
 export const ssr = false;
 export const prerender = false;
 
 export async function load() {
-    locale.set(window.navigator.language);
-    await waitLocale();
+    await setLocale(window.navigator.language);
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { tick } from 'svelte';
     import Orbit from '@lucide/svelte/icons/orbit';
     import { overlayState } from '$lib/classes/overlayState.svelte';

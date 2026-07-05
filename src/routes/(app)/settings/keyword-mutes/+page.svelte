@@ -1,6 +1,6 @@
 <script lang="ts">
     import Trash2 from '@lucide/svelte/icons/trash-2';
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import KeywordMuteItem from "./KeywordMuteItem.svelte";
     import OfficialMuteList from "./OfficialMuteList.svelte";
     import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import {muteListsState} from "$lib/classes/muteListsState.svelte";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import SettingsBackup from "$lib/components/settings/SettingsBackup.svelte";

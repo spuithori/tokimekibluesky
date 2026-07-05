@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import CircleDashed from '@lucide/svelte/icons/circle-dashed';
   import type { WhisperDuration } from '$lib/classes/postState.svelte';
 

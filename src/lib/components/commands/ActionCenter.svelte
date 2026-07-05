@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { riceFx } from '$lib/rice/transition';
     import { cubicBezier } from '$lib/rice/easing';
     import Moon from '@lucide/svelte/icons/moon';

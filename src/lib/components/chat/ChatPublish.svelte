@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { _ } from 'svelte-i18n';
+  import { _ } from 'tokimeki-i18n';
   import ChatTiptap from "$lib/components/chat/ChatTiptap.svelte";
   import {RichText} from "$lib/atproto-richtext";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
@@ -64,7 +64,7 @@
     {#if replyTarget}
       <div class="chat-reply-bar">
         <span class="chat-reply-bar__icon"><Reply size="14" color="var(--text-color-3)"></Reply></span>
-        <span class="chat-reply-bar__label">{$_('chat_reply_to', { values: { name: replyPreview?.name } })}</span>
+        <span class="chat-reply-bar__label">{$_('chat_reply_to', { name: replyPreview?.name })}</span>
         <span class="chat-reply-bar__text">{replyPreview?.key ? $_(replyPreview.key) : replyPreview?.text}</span>
         <button class="chat-reply-bar__close" onclick={oncancelreply} aria-label={$_('chat_reply_cancel')}>
           <X size="16" color="var(--text-color-3)"></X>

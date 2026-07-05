@@ -1,6 +1,6 @@
 <script lang="ts">
   import {onDestroy} from "svelte";
-  import {_} from "svelte-i18n";
+  import {_} from "tokimeki-i18n";
   import {page} from '$app/stores';
   import {settings} from '$lib/stores';
   import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from "svelte-i18n";
+    import { _ } from "tokimeki-i18n";
     import { agentDidsSet, settings } from "$lib/stores";
     import { formatDate } from "$lib/dateFormat";
     import Avatar from "../../../routes/(app)/Avatar.svelte";

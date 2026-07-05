@@ -1,5 +1,5 @@
 <script lang="ts">
-import { _ } from 'svelte-i18n';
+import { _ } from 'tokimeki-i18n';
 import { signIn } from '$lib/oauth';
 import { toast } from 'svelte-sonner';
 import { createEventDispatcher } from 'svelte';

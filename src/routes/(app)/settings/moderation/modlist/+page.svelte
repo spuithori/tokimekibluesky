@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import {agent, officialListModal} from "$lib/stores";
     import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
     import {onMount} from "svelte";

@@ -1,7 +1,7 @@
 <script lang="ts">
     import User from '@lucide/svelte/icons/user';
     import Shield from '@lucide/svelte/icons/shield';
-  import {_} from 'svelte-i18n';
+  import {_} from 'tokimeki-i18n';
   import Modal from "$lib/components/ui/Modal.svelte";
 
   let { labels = [], onclose } = $props();

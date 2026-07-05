@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from 'svelte-i18n';
+    import {_} from 'tokimeki-i18n';
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
     import {agent, agents, intersectingIndex, isColumnModalOpen, settings} from "$lib/stores";
     import {getAccountIdByDid, getDisplayNameByDid} from "$lib/util";

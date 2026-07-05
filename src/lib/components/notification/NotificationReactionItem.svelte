@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {_} from "svelte-i18n";
+    import {_} from "tokimeki-i18n";
     import Heart from '@lucide/svelte/icons/heart';
     import Repeat2 from '@lucide/svelte/icons/repeat-2';
     import Star from '@lucide/svelte/icons/star';

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {_} from 'svelte-i18n';
+  import {_} from 'tokimeki-i18n';
   import { isColumnModalOpen } from "$lib/stores";
   import ColumnList from "$lib/components/column/ColumnList.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";

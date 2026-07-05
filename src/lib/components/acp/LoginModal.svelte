@@ -1,7 +1,7 @@
 <script lang="ts">
     import AtSign from '@lucide/svelte/icons/at-sign';
     import LockKeyhole from '@lucide/svelte/icons/lock-keyhole';
-  import { _ } from "svelte-i18n";
+  import { _ } from "tokimeki-i18n";
   import { PasswordSession, type SessionData } from "$lib/password-session";
   import { accountsDb } from "$lib/db";
   import { createEventDispatcher } from "svelte";

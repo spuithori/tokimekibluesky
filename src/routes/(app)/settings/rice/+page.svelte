@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { toast } from 'svelte-sonner';
     import Play from '@lucide/svelte/icons/play';
     import SettingsHeader from '$lib/components/settings/SettingsHeader.svelte';
@@ -16,9 +16,9 @@
     function handleApplySets() {
         const result = applyRiceSets();
         if (result.skipped.length > 0) {
-            toast.warning($_('rice_sets_skipped', { values: { paths: result.skipped.join(', ') } }));
+            toast.warning($_('rice_sets_skipped', { paths: result.skipped.join(', ') }));
         } else {
-            toast.success($_('rice_sets_applied', { values: { count: result.applied } }));
+            toast.success($_('rice_sets_applied', { count: result.applied }));
         }
     }
 </script>

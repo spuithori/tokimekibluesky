@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { _ } from 'svelte-i18n';
+    import { _ } from 'tokimeki-i18n';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import Columns3 from '@lucide/svelte/icons/columns-3';
     import RectangleVertical from '@lucide/svelte/icons/rectangle-vertical';
