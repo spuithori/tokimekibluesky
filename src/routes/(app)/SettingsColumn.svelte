@@ -33,6 +33,7 @@
         'about': () => import('./settings/about/+page.svelte'),
         'support': () => import('./settings/support/+page.svelte'),
         'translation': () => import('./settings/translation/+page.svelte'),
+        'rice': () => import('./settings/rice/+page.svelte'),
     };
 
     interface Props {
@@ -126,7 +127,7 @@
             padding: 8px 12px;
             border-bottom: 1px solid var(--border-color-2);
             position: sticky;
-            top: var(--deck-heading-height);
+            top: var(--deck-heading-space, var(--deck-heading-height));
             background-color: var(--bg-color-1);
             z-index: 5;
         }

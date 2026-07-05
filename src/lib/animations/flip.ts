@@ -1,4 +1,5 @@
 import { flushSync } from 'svelte';
+import { animEasing, animMs } from '$lib/rice/anim';
 
 const DEFAULT_DURATION = 220;
 const DEFAULT_EASING = 'cubic-bezier(0.2, 0, 0, 1)';
@@ -83,7 +84,11 @@ export function animateLayout(mutate: () => void, opts: { exiting?: string[] } =
     flushSync(mutate);
 
     const after = [...root.querySelectorAll<HTMLElement>(TILE_SELECTOR)];
-    flipTo(after.filter((el) => !isFloating(el)), tileKeyOf, first);
+    const reorderEasing = animEasing('reorder', DEFAULT_EASING);
+    flipTo(after.filter((el) => !isFloating(el)), tileKeyOf, first, {
+        duration: animMs('reorder', DEFAULT_DURATION),
+        easing: reorderEasing,
+    });
 
     for (const el of after) {
         const key = tileKeyOf(el);
@@ -95,7 +100,7 @@ export function animateLayout(mutate: () => void, opts: { exiting?: string[] } =
                     { opacity: '0', transform: 'scale(0.96)' },
                     { opacity: '1', transform: 'scale(1)' },
                 ],
-                { duration: 200, easing: DEFAULT_EASING, fill: 'none' },
+                { duration: animMs('reorder', 200), easing: reorderEasing, fill: 'none' },
             );
         }
     }
@@ -106,7 +111,7 @@ export function animateLayout(mutate: () => void, opts: { exiting?: string[] } =
                 { opacity: '1', transform: 'scale(1)' },
                 { opacity: '0', transform: 'scale(0.96)' },
             ],
-            { duration: 180, easing: DEFAULT_EASING, fill: 'forwards' },
+            { duration: animMs('reorder', 180), easing: reorderEasing, fill: 'forwards' },
         );
         anim.finished.then(() => clone.remove()).catch(() => clone.remove());
     }

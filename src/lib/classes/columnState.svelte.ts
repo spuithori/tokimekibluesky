@@ -1,5 +1,6 @@
 import type {Column} from "$lib/types/column";
-import {type Slot, type LayoutNode, loadDeckState, splitLeaf, splitLeafWithExisting, moveLeafToSplit, moveLeafToSlot, unsplitAt, swapAt, slotIndexOfColumn, flattenLeafIds, DECK_SCHEMA_VERSION} from "$lib/classes/deckLayout";
+import {capabilityOf} from "$lib/columnKinds";
+import {type Slot, type LayoutNode, type TabsNode, loadDeckState, splitLeaf, splitLeafWithExisting, moveLeafToSplit, moveLeafToSlot, unsplitAt, swapAt, slotIndexOfColumn, flattenLeafIds, firstLeafId, findTabsNodeOf, tabifyLeaf, untabifyLeaf, reorderedTab, DECK_SCHEMA_VERSION} from "$lib/classes/deckLayout";
 import {buildPublishColumn, readLegacyPublishPrefs, resolvePublishColumnName, presetForLegacyLayout, setPreferredPreset, hasStoredPreset} from "$lib/publishColumnCore";
 import {getContext, setContext} from "svelte";
 import {SvelteMap} from "svelte/reactivity";
@@ -202,8 +203,10 @@ export class ColumnState {
     }
 
     getSlotColumn(slotIndex: number): Column | undefined {
-        const ids = this.leafIdsOf(slotIndex);
-        return ids.length ? this.columns.find(c => c.id === ids[0]) : undefined;
+        const slot = this.slots[slotIndex];
+        if (!slot) return undefined;
+        const id = firstLeafId(slot.layout);
+        return this.columns.find(c => c.id === id);
     }
 
     splitColumnAt(leafColumnId: string, newColumn: Column, direction: 'row' | 'column' = 'column') {
@@ -263,6 +266,86 @@ export class ColumnState {
         return slotIndex !== -1 && flattenLeafIds(this.slots[slotIndex].layout).length > 1;
     }
 
+    tabifyColumn(sourceColumnId: string, targetColumnId: string) {
+        const next = tabifyLeaf({ columns: this.columns, slots: this.slots }, targetColumnId, sourceColumnId);
+        if (next.slots === this.slots) return;
+        this.columns = next.columns;
+        this.slots = next.slots;
+
+        const slotIdx = slotIndexOfColumn(this.slots, targetColumnId);
+        const tabs = slotIdx !== -1 ? findTabsNodeOf(this.slots[slotIdx].layout, targetColumnId) : null;
+        if (!tabs) return;
+        const anchor = this.columns.find(c => c.id === tabs.children[0]);
+        const width = anchor?.settings?.width;
+        if (width === undefined) return;
+        for (const id of tabs.children) {
+            const col = this.columns.find(c => c.id === id);
+            if (col && col.settings?.width !== width) {
+                col.settings = { ...col.settings, width };
+            }
+        }
+    }
+
+    untabifyColumn(columnId: string) {
+        const next = untabifyLeaf({ columns: this.columns, slots: this.slots }, columnId, () => self.crypto.randomUUID());
+        this.columns = next.columns;
+        this.slots = next.slots;
+    }
+
+    tabsNodeOf(columnId: string): TabsNode | null {
+        const slotIndex = slotIndexOfColumn(this.slots, columnId);
+        if (slotIndex === -1) return null;
+        return findTabsNodeOf(this.slots[slotIndex].layout, columnId);
+    }
+
+    setTabsActive(node: TabsNode, index: number) {
+        if (node && node.type === 'tabs') {
+            node.active = Math.max(0, Math.min(index, node.children.length - 1));
+        }
+    }
+
+    moveTab(node: TabsNode, from: number, to: number) {
+        const next = reorderedTab(node, from, to);
+        if (!next) return;
+        node.children = next.children;
+        node.active = next.active;
+    }
+
+    reorderVisibleSlots(from: number, to: number) {
+        const slots = this.slots;
+        const popup = slots.map(s => !!this.columns.find(c => c.id === firstLeafId(s.layout))?.settings?.isPopup);
+        const visible = slots.filter((_, i) => !popup[i]);
+        if (from === to || from < 0 || to < 0 || from >= visible.length || to >= visible.length) return;
+        const reordered = [...visible];
+        const [moved] = reordered.splice(from, 1);
+        reordered.splice(to, 0, moved);
+        let k = 0;
+        this.slots = slots.map((s, i) => (popup[i] ? s : reordered[k++]));
+    }
+
+    visibleSlotIndexOf(columnId: string): number {
+        const slotIndex = slotIndexOfColumn(this.slots, columnId);
+        if (slotIndex === -1) return -1;
+        if (this.columns.find(c => c.id === firstLeafId(this.slots[slotIndex].layout))?.settings?.isPopup) return -1;
+        let visibleIndex = 0;
+        for (let i = 0; i < slotIndex; i++) {
+            const rep = this.columns.find(c => c.id === firstLeafId(this.slots[i].layout));
+            if (!rep?.settings?.isPopup) visibleIndex++;
+        }
+        return visibleIndex;
+    }
+
+    visibleSlotCount(): number {
+        return this.slots.filter(s => !this.columns.find(c => c.id === firstLeafId(s.layout))?.settings?.isPopup).length;
+    }
+
+    cycleTab(columnId: string, dir: 1 | -1) {
+        const node = this.tabsNodeOf(columnId);
+        if (!node) return;
+        const len = node.children.length;
+        node.active = (((node.active ?? 0) + dir) % len + len) % len;
+    }
+
     setNodeSizes(node: LayoutNode, sizes: number[]) {
         if (node && node.type === 'split') {
             node.sizes = sizes;
@@ -270,7 +353,7 @@ export class ColumnState {
     }
 
     private updateLikeForColumn(column: Column, pulse: pulseReaction, targetUri: string) {
-        const isNotification = column?.algorithm?.type === 'notification';
+        const isNotification = capabilityOf(column?.algorithm?.type).feedStorage === 'notification';
         const feed = isNotification ? column?.data?.feedPool : this.getFeed(column.id);
         if (!feed) return;
 
@@ -371,7 +454,7 @@ export class ColumnState {
     }
 
     private updateRepostForColumn(column: Column, pulse: pulseReaction, targetUri: string) {
-        const isNotification = column?.algorithm?.type === 'notification';
+        const isNotification = capabilityOf(column?.algorithm?.type).feedStorage === 'notification';
         const feed = isNotification ? column?.data?.feedPool : this.getFeed(column.id);
         if (!feed) return;
 
@@ -472,7 +555,7 @@ export class ColumnState {
     }
 
     private deletePostForColumn(column: Column, uri: string) {
-        if (column?.algorithm?.type === 'notification') {
+        if (capabilityOf(column?.algorithm?.type).feedStorage === 'notification') {
             if (column.data?.feedPool) {
                 column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri);
             }
@@ -496,7 +579,7 @@ export class ColumnState {
     }
 
     private deletePostsFromDidForColumn(column: Column, did: string) {
-        if (column?.algorithm?.type === 'notification') {
+        if (capabilityOf(column?.algorithm?.type).feedStorage === 'notification') {
             if (column.data?.feedPool) {
                 column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did);
             }

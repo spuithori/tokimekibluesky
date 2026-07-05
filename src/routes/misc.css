@@ -316,15 +316,24 @@
 .deck {
     &:has([data-neodrag-state='dragging']) {
         .deck-row {
-            transition: translate .3s cubic-bezier(0, 0, 0, 1);
+            transition: translate var(--anim-reorder-duration, .3s) var(--anim-reorder-easing, cubic-bezier(0, 0, 0, 1));
         }
     }
+}
+
+.deck .deck-row-wrap:has(.deck-row:focus-visible) {
+    outline: var(--deck-focused-outline, none);
+    outline-offset: calc(-1 * var(--deck-focused-outline-width, 2px));
+}
+
+.deck:has(.deck-row:focus-visible) .deck-row-wrap:not(:has(.deck-row:focus-visible)) {
+    opacity: calc(var(--rice-column-opacity, 1) * var(--deck-unfocused-dim, 1) * var(--rice-column-dim, 1));
 }
 
 .sortable-list {
     &:has(.neodrag-dragging) {
         .sortable-list__item {
-            transition: translate .3s cubic-bezier(0, 0, 0, 1);
+            transition: translate var(--anim-reorder-duration, .3s) var(--anim-reorder-easing, cubic-bezier(0, 0, 0, 1));
 
             &.neodrag-dragging {
                 transition: none;
@@ -383,8 +392,50 @@
     }
 }
 
-.side-modal {
-    .deck-heading {
-        top: 0 !important;
-    }
+.rice-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 11px;
+    color: var(--text-color-1);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    transition: background-color var(--anim-hover-duration, .15s) var(--anim-hover-easing, ease);
+}
+
+.rice-bar-item:hover {
+    background-color: var(--bg-color-2);
+}
+
+.rice-bar-item__count {
+    color: var(--text-color-3);
+}
+
+.rice-bar-item__count--active {
+    color: var(--bg-color-1);
+    background-color: var(--danger-color);
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+
+.rice-bar-item__label {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rice-bar-item__avatar {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    object-fit: cover;
 }

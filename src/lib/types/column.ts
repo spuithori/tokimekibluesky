@@ -1,5 +1,9 @@
+export type BuiltinColumnType = 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'realtime' | 'thread' | 'publish' | 'settings';
+
+export type ColumnKindId = BuiltinColumnType | `module:${string}`;
+
 export type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'realtime' | 'thread' | 'publish' | 'settings',
+    type: ColumnKindId,
     id?: string,
     sort?: string,
     algorithm?: string,

@@ -12,7 +12,7 @@
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import {isContentColumn} from "$lib/columnKinds";
+    import {capabilityOf, hasSettingsPanel} from "$lib/columnKinds";
     import {animateLayout} from "$lib/animations/flip";
     import {
         resolveDeckWidthPx, resolveSingleWidthPx, clampDeckWidth, clampSingleWidth,
@@ -22,7 +22,7 @@
     import Search from '@lucide/svelte/icons/search';
     import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
     import Unlink from '@lucide/svelte/icons/unlink';
-    import { fly } from 'svelte/transition';
+    import { riceFx } from '$lib/rice/transition';
     import Notice from "$lib/components/ui/Notice.svelte";
 
     interface Props {
@@ -196,7 +196,7 @@
         },
     ];
 
-    if (column.algorithm?.type === 'default' || column.algorithm?.type === 'officialList') {
+    if (hasSettingsPanel(column.algorithm?.type, 'autoRefreshRealtime')) {
         autoRefreshSettings.push({
             name: $_('auto_refresh_realtime'),
             value: -1,
@@ -258,7 +258,7 @@
         columnState.clearFeed(column.id);
         column.data.cursor = '';
 
-        if (column.algorithm.type === 'notification') {
+        if (capabilityOf(column.algorithm?.type).feedStorage === 'notification') {
             column.data.feedPool = [];
             column.data.notificationGroup = [];
         }
@@ -307,13 +307,13 @@
     }
 </script>
 
-<div class="deck-settings-wrap deck-settings-wrap--{layout}" class:deck-settings-wrap--split={isSplit} in:fly={{duration: 250, opacity: 0, y: -8}}>
+<div class="deck-settings-wrap deck-settings-wrap--{layout}" class:deck-settings-wrap--split={isSplit} in:riceFx={{ target: 'modal', duration: 250, style: { kind: 'slide', direction: 'top', distance: 8 } }}>
     <div class="deck-settings">
         <div class="deck-settings-content">
             <p class="deck-settings-description">{$_('deck_settings_description')}</p>
 
             <div class="deck-settings-groups">
-                {#if (column.algorithm?.type === 'search')}
+                {#if hasSettingsPanel(column.algorithm?.type, 'search')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('/search_search')}
@@ -328,7 +328,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed' && !isContentColumn(column.algorithm?.type))}
+                {#if hasSettingsPanel(column.algorithm?.type, 'style')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('column_style')}
@@ -416,7 +416,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed' && !isContentColumn(column.algorithm?.type))}
+                {#if hasSettingsPanel(column.algorithm?.type, 'refreshToTop')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('refresh_to_top')}
@@ -430,7 +430,7 @@
                     </dl>
                 {/if}
 
-                {#if column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'notification' && !isContentColumn(column.algorithm?.type)}
+                {#if hasSettingsPanel(column.algorithm?.type, 'autoRefresh')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('auto_refresh')}
@@ -452,13 +452,13 @@
                     {#if (column.settings.autoRefresh === -1)}
                         <Notice text={$_('auto_refresh_realtime_notice')}></Notice>
 
-                        {#if (column.algorithm.type === 'default')}
+                        {#if hasSettingsPanel(column.algorithm?.type, 'realtimeFollows')}
                             <RealtimeFollows {_agent}></RealtimeFollows>
                         {/if}
                     {/if}
                 {/if}
 
-                {#if !isContentColumn(column.algorithm?.type)}
+                {#if hasSettingsPanel(column.algorithm?.type, 'playSound')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('play_se')}
@@ -492,7 +492,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type === 'chat' && !isSplit)}
+                {#if (hasSettingsPanel(column.algorithm?.type, 'background') && !isSplit)}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('column_background')}
@@ -517,7 +517,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && !isContentColumn(column.algorithm?.type))}
+                {#if hasSettingsPanel(column.algorithm?.type, 'autoScroll')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('auto_scroll')}
@@ -549,7 +549,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type === 'notification')}
+                {#if hasSettingsPanel(column.algorithm?.type, 'notificationFilters')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('show_reaction_via_repost')}
@@ -587,7 +587,7 @@
                     </dl>
                 {/if}
 
-                {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed' && !isContentColumn(column.algorithm?.type))}
+                {#if hasSettingsPanel(column.algorithm?.type, 'timelineFilters')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('hide_repost_frequency')}
@@ -680,12 +680,12 @@
                     {/if}
                 {/if}
 
-                {#if (column.algorithm?.type === 'custom')}
+                {#if hasSettingsPanel(column.algorithm?.type, 'feedInfo')}
                     <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/feed/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><Info size={20} color="var(--link-color)" />{$_('column_feed_info')}
                     </a>
                 {/if}
 
-                {#if (column.algorithm?.type === 'officialList')}
+                {#if hasSettingsPanel(column.algorithm?.type, 'listInfo')}
                     <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/lists/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><Info size={20} color="var(--link-color)" />{$_('column_list_info')}
                     </a>
                 {/if}
@@ -707,7 +707,7 @@
                     {/if}
                 {/if}
 
-                {#if !isContentColumn(column.algorithm?.type)}
+                {#if hasSettingsPanel(column.algorithm?.type, 'clearPosts')}
                     <button class="deck-column-delete-button deck-column-delete-button--clear" onclick={clearColumn}>
                         <Eraser size={20} color="var(--text-color-3)" />{$_('clear_column_posts')}</button>
                 {/if}
@@ -721,7 +721,7 @@
 
 {#if isUnsplitConfirmOpen}
     <div class="split-modal-overlay" onclick={() => {isUnsplitConfirmOpen = false}}>
-        <div class="split-modal split-modal--confirm" onclick={(e) => e.stopPropagation()} transition:fly={{duration: 200, y: 20}}>
+        <div class="split-modal split-modal--confirm" onclick={(e) => e.stopPropagation()} transition:riceFx={{ target: 'modal', duration: 200, style: { kind: 'slide', direction: 'bottom', distance: 20 } }}>
             <div class="split-modal__header">
                 <h3 class="split-modal__title">{$_('unsplit_column')}</h3>
                 <button class="split-modal__close" onclick={() => {isUnsplitConfirmOpen = false}}>×</button>
@@ -741,10 +741,10 @@
 <style lang="postcss">
     .deck-settings-wrap {
         position: absolute;
-        top: 52px;
+        top: var(--deck-heading-space, var(--deck-heading-height));
         left: 0;
         right: -6px;
-        height: calc(100dvh - 52px - var(--decks-margin));
+        height: calc(100dvh - var(--deck-heading-space, var(--deck-heading-height)) - var(--decks-margin) - var(--rice-statusbar-top-height, 0px) - var(--rice-statusbar-bottom-height, 0px));
         padding: 0;
         z-index: 100;
         background-color: var(--bg-color-1);
@@ -752,6 +752,12 @@
 
         @media (max-width: 767px) {
             height: calc(100dvh - 64px - 90px - var(--safe-area-bottom));
+        }
+
+        &--decks {
+            @media (min-width: 768px) {
+                height: calc(100cqh - var(--deck-heading-space, var(--deck-heading-height)));
+            }
         }
 
         &--split {

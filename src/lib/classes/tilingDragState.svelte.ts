@@ -27,6 +27,10 @@ class TilingDragState {
     }
 
     applySplit(columnState: ColumnState, sourceId: string, target: TileTarget) {
+        if (target.zone === 'center') {
+            columnState.tabifyColumn(sourceId, target.id);
+            return;
+        }
         const direction = target.zone === 'left' || target.zone === 'right' ? 'row' : 'column';
         const sourceFirst = target.zone === 'left' || target.zone === 'top';
         columnState.moveLeafToSplit(sourceId, target.id, direction, sourceFirst);

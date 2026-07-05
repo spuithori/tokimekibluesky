@@ -1,5 +1,6 @@
 import Settings from '@lucide/svelte/icons/settings';
 import Palette from '@lucide/svelte/icons/palette';
+import WandSparkles from '@lucide/svelte/icons/wand-sparkles';
 import GanttChartSquare from '@lucide/svelte/icons/gantt-chart-square';
 import Hand from '@lucide/svelte/icons/hand';
 import WholeWord from '@lucide/svelte/icons/whole-word';
@@ -26,6 +27,7 @@ export const settingsNav: SettingsNavItem[] = [
     { id: 'profiles', label: 'settings_profiles', href: '/settings/profiles', icon: Layers },
     { id: 'general', label: 'settings_general', href: '/settings/general', icon: Settings },
     { id: 'design', label: 'settings_design', href: '/settings/design', icon: Palette },
+    { id: 'rice', label: 'settings_rice', href: '/settings/rice', icon: WandSparkles },
     { id: 'timeline', label: 'settings_timeline', href: '/settings/timeline', icon: GanttChartSquare },
     { id: 'moderation', label: 'settings_moderation', href: '/settings/moderation', icon: Hand },
     { id: 'keyword-mutes', label: 'settings_keyword_mutes', href: '/settings/keyword-mutes', icon: WholeWord },

@@ -1,53 +1,23 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { settings } from '$lib/stores';
-    import { offset, shift, size } from 'svelte-floating-ui/dom';
-    import { createFloatingActions } from 'svelte-floating-ui';
-    import { fly } from 'svelte/transition';
-    import Bell from '@lucide/svelte/icons/bell';
-    import CircleArrowUp from '@lucide/svelte/icons/circle-arrow-up';
+    import { floatingPopup } from '$lib/attachments/popup.svelte';
+    import { riceFx } from '$lib/rice/transition';
+    import { cubicBezier } from '$lib/rice/easing';
     import Columns3 from '@lucide/svelte/icons/columns-3';
-    import GanttChartSquare from '@lucide/svelte/icons/gantt-chart-square';
     import Heart from '@lucide/svelte/icons/heart';
-    import MessageCircleMore from '@lucide/svelte/icons/message-circle-more';
-    import Mic from '@lucide/svelte/icons/mic';
     import Pin from '@lucide/svelte/icons/pin';
     import PinOff from '@lucide/svelte/icons/pin-off';
     import RectangleVertical from '@lucide/svelte/icons/rectangle-vertical';
-    import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
-    import Search from '@lucide/svelte/icons/search';
     import Settings from '@lucide/svelte/icons/settings';
-    import Square from '@lucide/svelte/icons/square';
-    import TrendingUp from '@lucide/svelte/icons/trending-up';
-    import UserRound from '@lucide/svelte/icons/user-round';
-    import Clapperboard from '@lucide/svelte/icons/clapperboard';
-    import Layers from '@lucide/svelte/icons/layers';
-    import Database from '@lucide/svelte/icons/database';
     import {ALL_ITEMS, sideState} from "$lib/classes/sideState.svelte";
+    import {coreSideItems} from "$lib/components/side/sideItems";
 
     let { onclose, onaction, footer = false } = $props();
     let el = $state();
-    const placement = footer ? 'top' : 'right-end';
-    const mainAxis = footer ? 64 : 16;
+    let anchorEl = $state<HTMLElement>();
 
-    const [ floatingRef, floatingContent ] = createFloatingActions({
-        strategy: 'absolute',
-        placement: placement,
-        middleware: [
-            offset({
-                alignmentAxis: 8,
-                mainAxis: mainAxis,
-            }),
-            shift(),
-            size({
-              apply({availableWidth, availableHeight, elements}) {
-                Object.assign(elements.floating.style, {
-                  maxHeight: `${Math.max(0, availableHeight - 16)}px`,
-                });
-              },
-            }),
-        ]
-    });
+    const expoOut = cubicBezier(0.16, 1, 0.3, 1);
 
     $effect(() => {
         if (el) {
@@ -69,9 +39,24 @@
     }
 </script>
 
-<div use:floatingRef></div>
+<div bind:this={anchorEl}></div>
 
-<dialog class="side-menu side-menu--bottom" transition:fly="{{ y: 16, duration: 250 }}" bind:this={el} onclose={onclose} onclick={handleClick} use:floatingContent>
+<dialog
+    class="side-menu side-menu--bottom"
+    transition:riceFx={{ target: 'panel', duration: 220, easing: expoOut, style: { kind: 'slide', direction: footer ? 'bottom' : 'left', distance: 12 } }}
+    bind:this={el}
+    onclose={onclose}
+    onclick={handleClick}
+    {@attach floatingPopup(() => ({
+        anchor: anchorEl,
+        placement: footer ? 'top' : 'right-end',
+        strategy: 'absolute',
+        offsetMain: footer ? 64 : 16,
+        offsetAlign: 8,
+        shiftPadding: 0,
+        flipEnabled: false,
+    }))}
+>
   <div class="side-menu-row">
     <div class="side-menu-sp-header only-mobile">
       <a class="side-bar-button" href="/settings" onclick={onclose}>
@@ -92,38 +77,13 @@
     </dl>
 
     <ul class="side-items-list">
-      {#each ALL_ITEMS as item}
+      {#each ALL_ITEMS as item (item)}
+        {@const Icon = coreSideItems[item].icon}
         <li class="side-items-list__item">
-          {#if (item === 'workspace')}
-            <Layers size="18" color="var(--nav-secondary-icon-color)"></Layers>
-          {:else if (item === 'feeds')}
-            <GanttChartSquare size="18" color="var(--nav-secondary-icon-color)"></GanttChartSquare>
-          {:else if (item === 'chat')}
-            <MessageCircleMore size="18" color="var(--nav-secondary-icon-color)"></MessageCircleMore>
-          {:else if (item === 'notifications')}
-            <Bell size="18" color="var(--nav-secondary-icon-color)"></Bell>
-          {:else if (item === 'search')}
-            <Search size="18" color="var(--nav-secondary-icon-color)"></Search>
-          {:else if (item === 'topic')}
-            <TrendingUp size="18" color="var(--nav-secondary-icon-color)"></TrendingUp>
-          {:else if (item === 'profile')}
-            <UserRound size="18" color="var(--nav-secondary-icon-color)"></UserRound>
-          {:else if (item === 'refresher')}
-            <RefreshCcw size="18" color="var(--nav-secondary-icon-color)"></RefreshCcw>
-          {:else if (item === 'scroll-top')}
-            <CircleArrowUp size="18" color="var(--nav-secondary-icon-color)"></CircleArrowUp>
-          {:else if (item === 'columns')}
-            <Square size="18" color="var(--nav-secondary-icon-color)"></Square>
-          {:else if (item === 'bluecast')}
-            <Mic size="18" color="var(--nav-secondary-icon-color)"></Mic>
-          {:else if (item === 'tokmek')}
-            <Clapperboard size="18" color="var(--nav-secondary-icon-color)"></Clapperboard>
-          {:else if (item === 'viewer')}
-            <Database size="18" color="var(--nav-secondary-icon-color)"></Database>
-          {/if}
+          <Icon size="18" color="var(--nav-secondary-icon-color)"></Icon>
 
           <button class="side-items-list__button" onclick={() => {onaction(item)}}>
-            {$_(item)}
+            {$_(coreSideItems[item].labelKey)}
           </button>
 
           {#if (sideState.items.includes(item))}

@@ -146,5 +146,9 @@ export function migrate(
         stored.version = 6;
     }
 
+    if (stored.version < 7) {
+        stored.version = 7;
+    }
+
     return deepMerge(defaults, stored);
 }

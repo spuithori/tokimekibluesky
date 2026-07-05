@@ -2,6 +2,8 @@
   import DeckSlot from "./DeckSlot.svelte";
   import { draggable, type DragEventData } from "$lib/attachments/draggable.svelte";
   import { getColumnState } from "$lib/classes/columnState.svelte";
+  import { scratchpadState } from "$lib/classes/scratchpadState.svelte";
+  import { riceState } from "$lib/rice/riceState.svelte";
   import { removePublishColumn } from "$lib/publishColumn";
   import { animateLayout } from "$lib/animations/flip";
   import { detectTileAt } from "$lib/attachments/sortable.svelte";
@@ -110,6 +112,7 @@
 
 <div
     class="deck-popup-wrap"
+    class:deck-popup-wrap--stashed={scratchpadState.hidden}
     class:deck-popup-wrap--active={columnState.activeFloatingId === column?.id}
     class:deck-popup-wrap--preset-center={column?.settings?.popupPreset === 'center'}
     class:deck-popup-wrap--preset-bottom={column?.settings?.popupPreset === 'bottom'}
@@ -126,7 +129,7 @@
     }))}
     {@attach floatingStack}
     {@attach persistResize}
-    style="--deck-popup-opacity: {column?.settings?.opacity || 100}"
+    style="--deck-popup-opacity: {column?.settings?.opacity || 100};{riceState.styleForColumn(column)}"
     style:--popup-width={column?.settings?.popupPosition?.width}
     style:--popup-height={column?.settings?.popupPosition?.height}
 >
@@ -151,7 +154,7 @@
           position: fixed;
           resize: both;
           box-sizing: border-box;
-          padding-top: 30px;
+          padding-top: var(--rice-popup-pt, var(--deck-popup-titlebar-height, 30px));
           display: flex;
           flex-direction: column;
           z-index: var(--popup-z-index, 1010);
@@ -180,8 +183,8 @@
           &--preset-bottom {
               top: auto;
               bottom: 12px;
-              left: 64px;
-              right: 12px;
+              left: var(--side-width, 64px);
+              right: calc(12px + var(--side-right-width, 0px));
               margin: 0 auto;
           }
       }
@@ -191,8 +194,19 @@
           opacity: 1 !important;
       }
 
+      &--stashed {
+          display: none;
+      }
+
       @media (prefers-reduced-motion: reduce) {
           transition: none;
+      }
+
+      @media (min-width: 768px) {
+          &:hover .deck-popup-titlebar,
+          .deck-popup-titlebar:focus-within {
+              opacity: 1;
+          }
       }
   }
 
@@ -202,6 +216,8 @@
           min-height: 0;
           display: flex;
           flex-direction: column;
+          border: none;
+          border-radius: 0;
       }
 
       :global(.deck-popup-wrap .deck-row-slot) {
@@ -221,7 +237,7 @@
           left: 0;
           right: 0;
           z-index: 22;
-          height: 30px;
+          height: var(--deck-popup-titlebar-height, 30px);
           display: flex;
           align-items: center;
           gap: 2px;
@@ -230,6 +246,8 @@
           border-bottom: 1px solid var(--deck-border-color, var(--border-color-1));
           border-radius: 16px 16px 0 0;
           user-select: none;
+          opacity: var(--rice-popup-titlebar-opacity, 1);
+          transition: opacity var(--anim-hover-duration, .15s) var(--anim-hover-easing, ease);
       }
 
       &__drag {

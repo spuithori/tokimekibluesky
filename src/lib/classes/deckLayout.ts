@@ -1,7 +1,11 @@
 import type { Column } from "$lib/types/column";
+import { capabilityOf } from "$lib/columnKinds";
+
+export type TabsNode = { type: 'tabs'; children: string[]; active: number };
 
 export type LayoutNode =
     | { type: 'leaf'; columnId: string }
+    | TabsNode
     | { type: 'split'; direction: 'row' | 'column'; sizes: number[]; children: LayoutNode[] };
 
 export type Slot = { id: string; layout: LayoutNode };
@@ -11,7 +15,7 @@ export interface DeckLayoutState {
     slots: Slot[];
 }
 
-export const DECK_SCHEMA_VERSION = 3;
+export const DECK_SCHEMA_VERSION = 4;
 
 export type LegacyPublishPrefs = {
     layout: 'left' | 'bottom' | 'popup' | null,
@@ -33,6 +37,8 @@ export function isLeaf(node: LayoutNode): node is { type: 'leaf'; columnId: stri
 export function flattenLeafIds(node: LayoutNode, acc: string[] = []): string[] {
     if (node.type === 'leaf') {
         acc.push(node.columnId);
+    } else if (node.type === 'tabs') {
+        acc.push(...node.children);
     } else {
         for (const child of node.children) flattenLeafIds(child, acc);
     }
@@ -43,10 +49,27 @@ export function slotIndexOfColumn(slots: Slot[], columnId: string): number {
     return slots.findIndex(s => flattenLeafIds(s.layout).includes(columnId));
 }
 
+function activeTabId(node: TabsNode): string {
+    return node.children[Math.max(0, Math.min(node.active ?? 0, node.children.length - 1))];
+}
+
 export function firstLeafId(node: LayoutNode): string {
     let n = node;
-    while (n.type === 'split') n = n.children[0];
+    while (n.type !== 'leaf') {
+        if (n.type === 'tabs') return activeTabId(n);
+        n = n.children[0];
+    }
     return n.columnId;
+}
+
+export function findTabsNodeOf(node: LayoutNode, columnId: string): TabsNode | null {
+    if (node.type === 'leaf') return null;
+    if (node.type === 'tabs') return node.children.includes(columnId) ? node : null;
+    for (const child of node.children) {
+        const found = findTabsNodeOf(child, columnId);
+        if (found) return found;
+    }
+    return null;
 }
 
 function stripLegacy(col: any): Column {
@@ -106,10 +129,19 @@ export function migrateV2toV3(state: DeckLayoutState, opts: LoadDeckOptions, gen
 
 export function normalizeContentColumns(state: DeckLayoutState): DeckLayoutState {
     try {
-        const publishes = state.columns.filter(c => c?.algorithm?.type === 'publish');
-        if (publishes.length <= 1) return state;
+        const seen = new Set<string>();
+        const removeIds = new Set<string>();
+        for (const c of state.columns) {
+            const type = c?.algorithm?.type;
+            if (type === undefined || !capabilityOf(type).singleton) continue;
+            if (seen.has(type)) {
+                removeIds.add(c.id);
+            } else {
+                seen.add(type);
+            }
+        }
+        if (removeIds.size === 0) return state;
 
-        const removeIds = new Set(publishes.slice(1).map(c => c.id));
         const columns = state.columns.filter(c => !removeIds.has(c.id));
         let slots = state.slots;
         for (const id of removeIds) {
@@ -123,7 +155,7 @@ export function normalizeContentColumns(state: DeckLayoutState): DeckLayoutState
 
 export function loadDeckState(persisted: any, genId: () => string, opts: LoadDeckOptions = {}): DeckLayoutState {
     if (persisted && persisted.version >= 3 && Array.isArray(persisted.columns) && Array.isArray(persisted.slots)) {
-        return normalizeContentColumns({ columns: persisted.columns, slots: persisted.slots });
+        return normalizeTabsNodes(normalizeContentColumns({ columns: persisted.columns, slots: persisted.slots }));
     }
     if (persisted && persisted.version === 2 && Array.isArray(persisted.columns) && Array.isArray(persisted.slots)) {
         return migrateV2toV3({ columns: persisted.columns, slots: persisted.slots }, opts, genId);
@@ -135,6 +167,9 @@ export function loadDeckState(persisted: any, genId: () => string, opts: LoadDec
 
 function collapseSingle(node: LayoutNode): LayoutNode {
     if (node.type === 'leaf') return node;
+    if (node.type === 'tabs') {
+        return node.children.length === 1 ? { type: 'leaf', columnId: node.children[0] } : node;
+    }
     const children = node.children.map(collapseSingle);
     if (children.length === 1) return children[0];
     return { ...node, children };
@@ -143,6 +178,15 @@ function collapseSingle(node: LayoutNode): LayoutNode {
 function removeLeaf(node: LayoutNode, columnId: string): LayoutNode | null {
     if (node.type === 'leaf') {
         return node.columnId === columnId ? null : node;
+    }
+    if (node.type === 'tabs') {
+        const idx = node.children.indexOf(columnId);
+        if (idx === -1) return node;
+        const children = node.children.filter(id => id !== columnId);
+        if (children.length === 0) return null;
+        if (children.length === 1) return { type: 'leaf', columnId: children[0] };
+        const active = Math.max(0, Math.min(node.active > idx ? node.active - 1 : node.active, children.length - 1));
+        return { type: 'tabs', children, active };
     }
     const kept: LayoutNode[] = [];
     const sizes: number[] = [];
@@ -159,11 +203,24 @@ function removeLeaf(node: LayoutNode, columnId: string): LayoutNode | null {
     return collapseSingle({ type: 'split', direction: node.direction, sizes: norm, children: kept });
 }
 
-function replaceLeaf(node: LayoutNode, targetColumnId: string, replacement: LayoutNode): LayoutNode {
+function findTargetNode(node: LayoutNode, columnId: string): LayoutNode | null {
+    if (node.type === 'leaf') return node.columnId === columnId ? node : null;
+    if (node.type === 'tabs') return node.children.includes(columnId) ? node : null;
+    for (const child of node.children) {
+        const found = findTargetNode(child, columnId);
+        if (found) return found;
+    }
+    return null;
+}
+
+function replaceTarget(node: LayoutNode, targetColumnId: string, replacement: LayoutNode): LayoutNode {
     if (node.type === 'leaf') {
         return node.columnId === targetColumnId ? replacement : node;
     }
-    return { ...node, children: node.children.map(c => replaceLeaf(c, targetColumnId, replacement)) };
+    if (node.type === 'tabs') {
+        return node.children.includes(targetColumnId) ? replacement : node;
+    }
+    return { ...node, children: node.children.map(c => replaceTarget(c, targetColumnId, replacement)) };
 }
 
 export function splitLeaf(
@@ -176,17 +233,18 @@ export function splitLeaf(
     if (slotIndex === -1) return state;
 
     const columns = [...state.columns, newColumn];
+    const targetNode = findTargetNode(state.slots[slotIndex].layout, targetColumnId) ?? { type: 'leaf', columnId: targetColumnId } as LayoutNode;
     const replacement: LayoutNode = {
         type: 'split',
         direction,
         sizes: [DEFAULT_RATIO, 1 - DEFAULT_RATIO],
         children: [
-            { type: 'leaf', columnId: targetColumnId },
+            targetNode,
             { type: 'leaf', columnId: newColumn.id },
         ],
     };
     const slots = state.slots.map((s, i) =>
-        i === slotIndex ? { ...s, layout: replaceLeaf(s.layout, targetColumnId, replacement) } : s,
+        i === slotIndex ? { ...s, layout: replaceTarget(s.layout, targetColumnId, replacement) } : s,
     );
     return { columns, slots };
 }
@@ -202,17 +260,18 @@ export function splitLeafWithExisting(
     const sourceSlotIndex = slotIndexOfColumn(state.slots, sourceColumnId);
     const sourceSlotId = sourceSlotIndex !== -1 ? state.slots[sourceSlotIndex].id : undefined;
 
+    const targetNode = findTargetNode(state.slots[slotIndex].layout, targetColumnId) ?? { type: 'leaf', columnId: targetColumnId } as LayoutNode;
     const replacement: LayoutNode = {
         type: 'split',
         direction,
         sizes: [DEFAULT_RATIO, 1 - DEFAULT_RATIO],
         children: [
-            { type: 'leaf', columnId: targetColumnId },
+            targetNode,
             { type: 'leaf', columnId: sourceColumnId },
         ],
     };
     let slots = state.slots.map((s, i) =>
-        i === slotIndex ? { ...s, layout: replaceLeaf(s.layout, targetColumnId, replacement) } : s,
+        i === slotIndex ? { ...s, layout: replaceTarget(s.layout, targetColumnId, replacement) } : s,
     );
     if (sourceSlotId !== undefined) {
         slots = slots.filter(s => s.id !== sourceSlotId);
@@ -276,15 +335,150 @@ export function moveLeafToSplit(
     if (tgtSlotIdx === -1) return state;
 
     const sourceLeaf: LayoutNode = { type: 'leaf', columnId: sourceColumnId };
-    const targetLeaf: LayoutNode = { type: 'leaf', columnId: targetColumnId };
+    const targetNode = findTargetNode(slots[tgtSlotIdx].layout, targetColumnId) ?? { type: 'leaf', columnId: targetColumnId } as LayoutNode;
     const replacement: LayoutNode = {
         type: 'split',
         direction,
         sizes: [DEFAULT_RATIO, 1 - DEFAULT_RATIO],
-        children: sourceFirst ? [sourceLeaf, targetLeaf] : [targetLeaf, sourceLeaf],
+        children: sourceFirst ? [sourceLeaf, targetNode] : [targetNode, sourceLeaf],
     };
-    const next = slots.map((s, i) => (i === tgtSlotIdx ? { ...s, layout: replaceLeaf(s.layout, targetColumnId, replacement) } : s));
+    const next = slots.map((s, i) => (i === tgtSlotIdx ? { ...s, layout: replaceTarget(s.layout, targetColumnId, replacement) } : s));
     return { columns: state.columns, slots: next };
+}
+
+export function tabifyLeaf(
+    state: DeckLayoutState,
+    targetColumnId: string,
+    sourceColumnId: string,
+): DeckLayoutState {
+    if (sourceColumnId === targetColumnId) return state;
+    if (slotIndexOfColumn(state.slots, sourceColumnId) === -1) return state;
+
+    const slots = detachLeaf(state.slots, sourceColumnId);
+    const tgtSlotIdx = slotIndexOfColumn(slots, targetColumnId);
+    if (tgtSlotIdx === -1) return state;
+
+    const mutate = (node: LayoutNode): LayoutNode => {
+        if (node.type === 'leaf') {
+            return node.columnId === targetColumnId
+                ? { type: 'tabs', children: [targetColumnId, sourceColumnId], active: 1 }
+                : node;
+        }
+        if (node.type === 'tabs') {
+            if (!node.children.includes(targetColumnId)) return node;
+            const children = [...node.children, sourceColumnId];
+            return { type: 'tabs', children, active: children.length - 1 };
+        }
+        return { ...node, children: node.children.map(mutate) };
+    };
+    const next = slots.map((s, i) => (i === tgtSlotIdx ? { ...s, layout: mutate(s.layout) } : s));
+    return { columns: state.columns, slots: next };
+}
+
+export function untabifyLeaf(
+    state: DeckLayoutState,
+    columnId: string,
+    genId: () => string,
+): DeckLayoutState {
+    const slotIdx = slotIndexOfColumn(state.slots, columnId);
+    if (slotIdx === -1) return state;
+    if (!findTabsNodeOf(state.slots[slotIdx].layout, columnId)) return state;
+
+    const slots = detachLeaf(state.slots, columnId);
+    const insertAt = Math.min(slotIdx + 1, slots.length);
+    const next = [...slots];
+    next.splice(insertAt, 0, { id: genId(), layout: { type: 'leaf', columnId } });
+    return { columns: state.columns, slots: next };
+}
+
+export function reorderedTab(node: TabsNode, from: number, to: number): { children: string[]; active: number } | null {
+    if (node?.type !== 'tabs') return null;
+    const len = node.children.length;
+    if (from === to || from < 0 || to < 0 || from >= len || to >= len) return null;
+    const activeId = node.children[Math.max(0, Math.min(node.active ?? 0, len - 1))];
+    const children = [...node.children];
+    const [moved] = children.splice(from, 1);
+    children.splice(to, 0, moved);
+    return { children, active: Math.max(0, children.indexOf(activeId)) };
+}
+
+export function normalizeTabsNodes(state: DeckLayoutState): DeckLayoutState {
+    try {
+        const ids = new Set(state.columns.map(c => c?.id));
+        let changed = false;
+        const fix = (node: LayoutNode): LayoutNode | null => {
+            if (node.type === 'leaf') return node;
+            if (node.type === 'tabs') {
+                const children = node.children.filter(id => ids.has(id));
+                if (children.length === 0) {
+                    changed = true;
+                    return null;
+                }
+                if (children.length === 1) {
+                    changed = true;
+                    return { type: 'leaf', columnId: children[0] };
+                }
+                const active = Math.max(0, Math.min(node.active ?? 0, children.length - 1));
+                if (children.length === node.children.length && active === node.active) return node;
+                changed = true;
+                return { type: 'tabs', children, active };
+            }
+            const kept: LayoutNode[] = [];
+            const sizes: number[] = [];
+            node.children.forEach((child, i) => {
+                const f = fix(child);
+                if (f) {
+                    kept.push(f);
+                    sizes.push(node.sizes[i]);
+                }
+            });
+            if (kept.length === 0) {
+                changed = true;
+                return null;
+            }
+            if (kept.length !== node.children.length) {
+                changed = true;
+                const total = sizes.reduce((a, b) => a + b, 0) || 1;
+                return collapseSingle({ type: 'split', direction: node.direction, sizes: sizes.map(s => s / total), children: kept });
+            }
+            return { ...node, children: kept };
+        };
+        const slots: Slot[] = [];
+        for (const slot of state.slots) {
+            const fixed = fix(slot.layout);
+            if (fixed) {
+                slots.push(fixed === slot.layout ? slot : { ...slot, layout: fixed });
+            } else {
+                changed = true;
+            }
+        }
+
+        let columns = state.columns;
+        const collectTabs = (node: LayoutNode, acc: TabsNode[]): TabsNode[] => {
+            if (node.type === 'tabs') acc.push(node);
+            else if (node.type === 'split') for (const child of node.children) collectTabs(child, acc);
+            return acc;
+        };
+        for (const slot of slots) {
+            for (const tabs of collectTabs(slot.layout, [])) {
+                const anchor = columns.find(c => c?.id === tabs.children[0]);
+                const width = anchor?.settings?.width;
+                if (width === undefined) continue;
+                for (const id of tabs.children.slice(1)) {
+                    const idx = columns.findIndex(c => c?.id === id);
+                    if (idx !== -1 && columns[idx]?.settings?.width !== width) {
+                        if (columns === state.columns) columns = [...state.columns];
+                        columns[idx] = { ...columns[idx], settings: { ...columns[idx].settings, width } };
+                        changed = true;
+                    }
+                }
+            }
+        }
+
+        return changed ? { columns, slots } : state;
+    } catch {
+        return state;
+    }
 }
 
 export function moveLeafToSlot(

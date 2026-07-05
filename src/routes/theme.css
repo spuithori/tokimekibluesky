@@ -38,8 +38,8 @@
 
     /* Side */
     --side-bg-color: var(--blurred-bg-color);
-    --side-backdrop-filter: blur(8px);
-    --side-padding-right: 8px;
+    --side-backdrop-filter: none;
+    --side-padding-right: 0;
     --side-box-shadow: none;
     --side-nav-hover-bg-color: var(--bg-color-1);
 
@@ -91,6 +91,14 @@
     --deck-box-shadow: none;
 
     --deck-heading-height: 52px;
+    --deck-heading-space: var(--deck-heading-height);
+    --deck-popup-titlebar-height: 30px;
+    --deck-tabs-height: 36px;
+    --deck-tabs-bg-color: var(--deck-heading-bg-color);
+    --deck-tabs-color: var(--text-color-3);
+    --deck-tabs-active-color: var(--text-color-1);
+    --deck-tabs-active-border-color: var(--primary-color);
+    --deck-tabs-border-color: var(--deck-border-color);
     --deck-heading-bg-color: var(--bg-color-1);
     --deck-heading-icon-bg-color: var(--bg-color-3);
     --deck-heading-title-color: var(--text-color-1);

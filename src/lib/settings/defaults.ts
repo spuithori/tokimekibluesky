@@ -32,7 +32,139 @@ export const DEFAULT_LABELER_SETTINGS: LabelerPreference[] = [
  * Current settings schema version. Migrations (migrations.ts) bring older
  * stored payloads up to this version before deep-merging against the defaults.
  */
-export const CURRENT_VERSION = 6;
+export const CURRENT_VERSION = 7;
+
+export const DEFAULT_RICE_CONFIG = `# TOKIMEKI Rice Framework
+# https://docs.tokimeki.blue/rice
+
+# $accent = #7a35f1
+
+# theme {
+#     reset = true
+#     tokens {
+#         deck-border-radius = 20px
+#     }
+# }
+
+# columnrule {
+#     match = all
+#     reactions = left 28px
+# }
+
+# columnrule {
+#     match = type:notification
+#     opacity = 0.9
+#     heading = hover
+# }
+
+# columnrule {
+#     match = type:publish
+#     heading = hidden
+#     titlebar = hover
+# }
+
+# statusbar {
+#     position = top
+#     group "start" {
+#         items = workspace
+#     }
+#     group "center" {
+#         items = clock
+#     }
+#     group "end" {
+#         items = notifications
+#     }
+#     item "clock" {
+#         date = true
+#     }
+# }
+
+# bar "left" {
+#     position = left
+#     style = menu
+#     items = account, home, search, notifications, spacer, publish
+#     width = 220px
+# }
+
+# bar "right" {
+#     position = right
+#     style = menu
+#     width = 320px
+#     items = search, trends, feeds, column#mini, calendar, text#hi, button#post, image#banner
+#     item "search" {
+#         placeholder = Search
+#     }
+#     item "column#mini" {
+#         type = module:dummytimeline
+#         height = 420px
+#     }
+#     item "text#hi" {
+#         content = Stay comfy
+#         align = center
+#     }
+#     item "button#post" {
+#         label = New post
+#         on-click = publish.toggle
+#         appearance = primary
+#     }
+#     item "image#banner" {
+#         src = https://example.com/banner.png
+#         rounding = 12px
+#     }
+#     tab "Widgets" {
+#         items = calendar, text#hi
+#     }
+# }
+
+# bind {
+#     alt+g = column.tabify
+#     alt+t = column.tab next
+#     alt+f = column.float
+#     alt+s = scratchpad.toggle
+#     mod+r = submap.enter resize
+# }
+
+# submap "resize" {
+#     h = column.width -50
+#     l = column.width +50
+#     j = column.move left
+#     k = column.move right
+# }
+
+# module "search" {
+#     enable = true
+# }
+
+# module "feeds" {
+#     enable = true
+# }
+
+# source = preset:bluesky-shell
+# source = preset:cyberdeck
+
+# layout {
+#     align = center
+# }
+
+# focus {
+#     outline = 2px solid $accent
+#     dim = 0.85
+# }
+
+# animation {
+#     bezier = smooth, 0.2, 0, 0, 1
+#     panel = 180ms, smooth
+#     hover = off
+# }
+
+# source = preset:bluesky-menu
+
+# module "clock" {
+#     enable = true
+#     seconds = true
+#     date = true
+# }
+`;
 
 function detectLanguage(): string {
     return typeof navigator !== 'undefined' && navigator.language ? navigator.language : 'en';
@@ -140,6 +272,11 @@ export function createDefaultSettings(): Settings {
             disableEmbedVia: false,
         },
         langFilter: [],
+        rice: {
+            enabled: true,
+            config: DEFAULT_RICE_CONFIG,
+            sources: {},
+        },
         version: CURRENT_VERSION,
     };
 }

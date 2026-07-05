@@ -17,15 +17,18 @@
   <div class="deck-divider deck-divider--compact"></div>
 
   {#if columnState.slots.length}
-    <div class="deck">
-      {#each columnState.slots as slot, index (slot.id)}
-        {@const col = columnState.getSlotColumn(index)}
-        {#if !col?.settings?.isPopup}
-          <DeckSlot {index}></DeckSlot>
-        {:else}
-          <DeckPopupWrap {index}></DeckPopupWrap>
-        {/if}
-      {/each}
+    <div class="deck-box">
+      <div class="deck-bg"></div>
+      <div class="deck">
+        {#each columnState.slots as slot, index (slot.id)}
+          {@const col = columnState.getSlotColumn(index)}
+          {#if !col?.settings?.isPopup}
+            <DeckSlot {index}></DeckSlot>
+          {:else}
+            <DeckPopupWrap {index}></DeckPopupWrap>
+          {/if}
+        {/each}
+      </div>
     </div>
   {:else}
     <div class="deck-empty">
@@ -38,6 +41,8 @@
       <button class="button" onclick={() => {$isColumnModalOpen = true}}>{$_('feed_quick_add')}</button>
     </div>
   {/if}
+
+  <div class="deck-divider deck-divider--right"></div>
 </div>
 
 <style lang="postcss">
@@ -54,23 +59,57 @@
       }
 
       &--compact {
-          width: var(--deck-divider-compact-width, 64px);
+          width: var(--deck-divider-compact-width, var(--side-width, 64px));
+      }
+
+      &--right {
+          width: var(--side-right-width, 0px);
+      }
+  }
+
+  .deck-box {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      isolation: isolate;
+      margin: var(--decks-margin) var(--decks-margin) var(--decks-margin-bottom, var(--decks-margin)) var(--decks-margin-left, 0);
+      height: calc(var(--decks-height, calc(100dvh - var(--decks-margin, 0px) * 2)) - var(--rice-statusbar-top-height, 0px) - var(--rice-statusbar-bottom-height, 0px));
+
+      @media (max-width: 767px) {
+          height: 100dvh;
+          margin: 0;
+      }
+  }
+
+  .deck-bg {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      border-radius: var(--decks-border-radius, 0);
+      background-color: var(--decks-bg-color, transparent);
+      border: var(--decks-border, none);
+      border-left: var(--decks-border-left, 0);
+      border-bottom: var(--decks-border-bottom, 0);
+      box-shadow: var(--decks-box-shadow, none);
+
+      @media (max-width: 767px) {
+          border: none;
+          border-radius: 0;
+          box-shadow: none;
       }
   }
 
   .deck {
       display: flex;
       gap: var(--decks-gap);
+      justify-content: var(--deck-justify, flex-start);
+      overflow-x: auto;
       overflow-y: hidden;
       padding: var(--decks-padding-top, var(--decks-padding)) var(--decks-padding-right, var(--decks-padding)) var(--decks-padding-bottom, var(--decks-padding)) var(--decks-padding-left, var(--decks-padding));
-      margin: var(--decks-margin) var(--decks-margin) var(--decks-margin-bottom, var(--decks-margin)) 0;
-      height: var(--decks-height, calc(100dvh - var(--decks-margin, 0px) * 2));
-      flex: var(--decks-flex, initial);
-      background-color: var(--decks-bg-color, transparent);
-      border: var(--decks-border, none);
-      border-left: var(--decks-border-left, 0);
-      border-bottom: var(--decks-border-bottom, 0);
-      box-shadow: var(--decks-box-shadow, none);
+      flex: 1;
+      min-width: 0;
 
       &::-webkit-scrollbar {
           height: 8px;
@@ -90,12 +129,8 @@
 
       @media (max-width: 767px) {
           scroll-snap-type: x mandatory;
-          top: 85px;
+          justify-content: flex-start;
           padding: 0;
-          height: 100dvh;
-          margin: 0;
-          border: none;
-          box-shadow: none;
       }
   }
 
@@ -108,7 +143,7 @@
       flex: 1;
       gap: 10px;
       color: var(--text-color-3);
-      height: 100dvh;
+      height: calc(100dvh - var(--rice-statusbar-top-height, 0px) - var(--rice-statusbar-bottom-height, 0px));
 
       &__title {
           font-size: 24px;

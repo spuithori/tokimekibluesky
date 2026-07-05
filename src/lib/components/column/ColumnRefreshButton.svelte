@@ -9,7 +9,7 @@
     import { fly } from 'svelte/transition';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {getScopedColumnState} from "$lib/classes/columnState.svelte";
-    import {isContentColumn} from "$lib/columnKinds";
+    import {capabilityOf} from "$lib/columnKinds";
 
     interface Props {
         index: any;
@@ -73,7 +73,7 @@
     }
 
     export async function refresh(isAutoRefresh: boolean = false) {
-        if (isContentColumn(column.algorithm?.type)) {
+        if (!capabilityOf(column.algorithm?.type).refreshable) {
             return false;
         }
 
@@ -375,7 +375,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if !isContentColumn(column.algorithm?.type)}
+{#if capabilityOf(column.algorithm?.type).refreshable}
   {#if column.settings?.autoRefresh === -1}
     <button
             class="refresh-button refresh-button--realtime refresh-button--decks"

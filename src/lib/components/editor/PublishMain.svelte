@@ -263,6 +263,10 @@
             _agent = agent;
         }
 
+        if (!_agent) {
+            return;
+        }
+
         post.owner = _agent.did();
         isVideoUploadEnabled = false;
 
@@ -367,7 +371,10 @@
     onMount(() => {
         links = [];
         editor.setContent(post.json || post.text);
-        post.owner = _agent.did();
+
+        if (_agent) {
+            post.owner = _agent.did();
+        }
     })
 
     function addThread() {

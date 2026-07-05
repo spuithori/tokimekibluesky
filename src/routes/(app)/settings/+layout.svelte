@@ -6,7 +6,7 @@
   import {MediaQuery} from "svelte/reactivity";
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
   import X from '@lucide/svelte/icons/x';
-  import { scale } from 'svelte/transition';
+  import { riceFx } from '$lib/rice/transition';
   import { agent, settings } from "$lib/stores";
   import { settingsNav } from "$lib/settings/nav";
   import { getColumnState } from "$lib/classes/columnState.svelte";
@@ -93,7 +93,7 @@
 </script>
 
 <div class="settings-modal" class:settings-modal--transparent-bg={$page.url.pathname === '/settings/design'}>
-  <div class="settings-modal-content" in:scale={{duration: 250, opacity: 0, start: 0.98}}>
+  <div class="settings-modal-content" in:riceFx={{ target: 'modal', duration: 250, style: { kind: 'popin', scale: 0.98 } }}>
     <div class="settings-column" data-path="{data.pathname}">
       <div class="settings-toc">
         <div class="column-heading only-mobile">

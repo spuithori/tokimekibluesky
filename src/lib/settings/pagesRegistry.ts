@@ -19,6 +19,7 @@ export const SETTINGS_PAGE_IDS = [
     'about',
     'support',
     'translation',
+    'rice',
 ] as const;
 
 export type SettingsPageId = (typeof SETTINGS_PAGE_IDS)[number];
@@ -46,6 +47,7 @@ export const SETTINGS_PAGE_TITLES: Record<SettingsPageId, string> = {
     'about': 'settings_about',
     'support': 'settings_support',
     'translation': 'settings_translation',
+    'rice': 'settings_rice',
 };
 
 export function isSettingsPageId(id: string): id is SettingsPageId {

@@ -11,6 +11,7 @@
     import {getColumnState, getScopedColumnState} from "$lib/classes/columnState.svelte";
     import {tilingDrag} from "$lib/classes/tilingDragState.svelte";
     import {animateLayout} from "$lib/animations/flip";
+    import {MediaQuery} from "svelte/reactivity";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {scrollDirection} from "$lib/scrollDirection";
     import Filter from '@lucide/svelte/icons/filter';
@@ -22,7 +23,7 @@
     import CheckCheck from '@lucide/svelte/icons/check-check';
     import { createLongPress } from "$lib/longpress";
     import Refresher from "$lib/components/utils/Refresher.svelte";
-    import {isContentColumn} from "$lib/columnKinds";
+    import {capabilityOf} from "$lib/columnKinds";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
     import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
@@ -51,6 +52,7 @@
     }: Props = $props();
 
     const columnState = getScopedColumnState();
+    const isMobileViewport = new MediaQuery('(max-width: 767px)');
     const isJunk = columnState.isJunk;
     const fixedColumnState = getColumnState(false);
     const column = $derived(columnState.getColumn(index));
@@ -67,12 +69,12 @@
 
     function handleHeaderClick(el: HTMLElement | null) {
         if (!el?.scroll) return;
-        if (column.algorithm?.type === 'chat' || column.algorithm?.type === 'chatList') return;
+        if (!capabilityOf(column.algorithm?.type).scrollToTopOnHeaderClick) return;
 
         isTopScrolling = true;
 
         if (el.scrollTop === 0) {
-            if (!isContentColumn(column.algorithm?.type)) {
+            if (capabilityOf(column.algorithm?.type).refreshable) {
                 handleRefresh();
             }
             isTopScrolling = false;
@@ -109,14 +111,14 @@
     }
 
     function handleForceRefresh() {
-        if (isContentColumn(column.algorithm?.type)) return;
+        if (!capabilityOf(column.algorithm?.type).refreshable) return;
 
         isRefreshing = true;
         columnState.clearFeed(column.id);
         column.data.cursor = '';
         column.data.scrollState = undefined;
 
-        if (column.algorithm?.type === 'notification') {
+        if (capabilityOf(column.algorithm?.type).feedStorage === 'notification') {
             column.data.feedPool = [];
             column.data.notifications = [];
         }
@@ -142,6 +144,7 @@
     }
 
     function handleScroll(event: Event) {
+        if (!isMobileViewport.current) return;
         if (!isJunk && !isSplit) {
             scrollDirection(event.currentTarget as HTMLElement, 80, (scrollDir: string) => {
                 scrollDirectionState.direction = scrollDir as any;
@@ -243,6 +246,7 @@
     class:deck-row--tile-dragging={tilingDrag.draggingId === column?.id}
     data-tile-id={$settings.design?.layout === 'decks' && !isJunk && !column?.settings?.isPopup ? column?.id : undefined}
     data-flip-id={column?.id}
+    tabindex="-1"
     onscroll={handleScroll}
     bind:this={column.scrollElement}
     style:background-image={column?.settings?.background ? `url(${backgroundsMap.get(column.settings.background)?.url})` : 'none'}
@@ -361,7 +365,7 @@
             refresherHeight={80}
             pullMin={80}
             pullMax={160}
-            disabled={column?.algorithm?.type === 'chat' || column?.algorithm?.type === 'chatList' || isContentColumn(column?.algorithm?.type) || $settings.design?.layout === 'default'}
+            disabled={!capabilityOf(column?.algorithm?.type).splittable || $settings.design?.layout === 'default'}
     >
         <div class="deck-row__content">
             <ColumnContent {index} {_agent} {unique} {isSplit} {isTopScrolling} onrefresh={handleRefresh}></ColumnContent>
@@ -398,9 +402,7 @@
 
         &::-webkit-scrollbar-track {
             background: var(--scroll-bar-bg-color);
-            margin-top: 51px;
-            margin-bottom: 1px;
-            border-radius: 0 0 var(--deck-border-radius) 0;
+            margin-top: calc(var(--deck-heading-space, var(--deck-heading-height)) - 1px);
             border-top: 1px solid var(--deck-border-color);
         }
 
@@ -445,7 +447,7 @@
             }
 
             .deck-heading {
-                top: 52px;
+                top: var(--deck-heading-height);
             }
         }
 
@@ -573,9 +575,15 @@
         background-color: var(--deck-heading-bg-color);
         z-index: 10;
         border-bottom: 1px solid var(--deck-border-color);
-        border-radius: var(--deck-border-radius) var(--deck-border-radius) 0 0;
         min-width: 0;
         backdrop-filter: var(--deck-heading-backdrop-filter);
+
+        @media (min-width: 768px) {
+            margin-bottom: var(--rice-heading-mb, 0px);
+            opacity: var(--rice-heading-opacity, 1);
+            pointer-events: var(--rice-heading-pe, auto);
+            transition: opacity var(--anim-hover-duration, .15s) var(--anim-hover-easing, ease);
+        }
 
         @media (max-width: 767px) {
             transition: opacity .2s ease-in-out, visibility .2s ease-in-out, transform .2s ease-in-out;
@@ -640,7 +648,7 @@
 
         &--sticky {
             position: sticky !important;
-            top: 52px;
+            top: var(--deck-heading-height);
             border-radius: 0;
         }
 
@@ -650,6 +658,18 @@
                 visibility: hidden;
                 transform: translateY(-48px);
             }
+        }
+    }
+
+    @media (min-width: 768px) {
+        .deck-row:hover .deck-heading {
+            opacity: var(--rice-heading-hover-opacity, var(--rice-heading-opacity, 1));
+            pointer-events: var(--rice-heading-hover-pe, var(--rice-heading-pe, auto));
+        }
+
+        .deck-row .deck-heading:focus-within {
+            opacity: 1;
+            pointer-events: auto;
         }
     }
 

@@ -421,7 +421,8 @@
 .timeline-reaction {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: var(--timeline-reaction-justify, space-between);
+    gap: var(--timeline-reaction-gap, 0px);
     margin-top: 16px;
     color: var(--text-color-3);
 
@@ -444,7 +445,7 @@
     }
 
     &--media {
-        gap: 10px;
+        gap: var(--timeline-reaction-gap, 10px);
 
         .timeline-reaction__item {
             min-width: 55px;
@@ -458,7 +459,7 @@
     &--1,
     &--2,
     &--3 {
-        display: grid;
+        display: var(--timeline-reaction-compact-display, grid);
         justify-content: flex-start;
         grid-template-columns: repeat(3, 64px);
     }
@@ -502,7 +503,7 @@
     gap: 6px;
     max-width: 60px;
     height: 28px;
-    width: 24px;
+    width: var(--timeline-reaction-item-width, 24px);
     position: relative;
     border-radius: 14px;
     font-size: 12px;

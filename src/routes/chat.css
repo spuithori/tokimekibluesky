@@ -3,7 +3,7 @@
 }
 
 .deck-row > .svelte-refresher-host:has(.chat-view) {
-    height: calc(100% - var(--deck-heading-height));
+    height: calc(100% - var(--deck-heading-space, var(--deck-heading-height)));
 }
 
 .svelte-refresher-host > .refresher-content:has(.chat-view),
@@ -40,12 +40,12 @@
 }
 
 .deck-row--single:not(.deck-row--junk) .chat-view {
-    height: calc(100dvh - var(--deck-heading-height));
+    height: calc(100dvh - var(--deck-heading-space, var(--deck-heading-height)));
 }
 
 @media (max-width: 767px) {
     .deck-row--single:not(.deck-row--junk) .chat-view {
-        height: calc(100dvh - var(--deck-heading-height) - 46px - var(--safe-area-bottom));
+        height: calc(100dvh - var(--deck-heading-space, var(--deck-heading-height)) - 46px - var(--safe-area-bottom));
     }
 }
 

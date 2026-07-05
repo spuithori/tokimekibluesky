@@ -1,4 +1,5 @@
 <script lang="ts">
+    import type { Component } from "svelte";
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
     import ChatTimeline from "./ChatTimeline.svelte";
@@ -9,8 +10,11 @@
     import Timeline from "./Timeline.svelte";
     import PublishColumn from "./PublishColumn.svelte";
     import SettingsColumn from "./SettingsColumn.svelte";
+    import ModuleColumnPlaceholder from "./ModuleColumnPlaceholder.svelte";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import { getScopedColumnState } from "$lib/classes/columnState.svelte";
+    import { capabilityOf } from "$lib/columnKinds";
+    import { getColumnKind } from "$lib/columnKindRegistry.svelte";
 
     interface Props {
         index: number;
@@ -30,33 +34,51 @@
         onrefresh,
     }: Props = $props();
 
+    const builtinComponents: Record<string, Component<any>> = {
+        notification: NotificationTimeline,
+        thread: ThreadTimeline,
+        chat: ChatTimeline,
+        chatList: ChatListTimeline,
+        list: ListTimeline,
+        bookmark: BookmarkTimeline,
+        mochottTimeline: MochottTimeline,
+        networkFeed: MochottTimeline,
+        publish: PublishColumn,
+        settings: SettingsColumn,
+    };
+
     const columnState = getScopedColumnState();
     const column = $derived(columnState.getColumn(index));
+    const type = $derived(column?.algorithm?.type);
+    const capability = $derived(capabilityOf(type));
+    const moduleKind = $derived(type?.startsWith('module:') ? getColumnKind(type) : undefined);
+    const ContentComponent = $derived(type !== undefined ? builtinComponents[type] : undefined);
 </script>
 
-{#if column?.algorithm?.type === 'publish'}
-    <PublishColumn {index}></PublishColumn>
-{:else if column?.algorithm?.type === 'settings'}
-    <SettingsColumn {index}></SettingsColumn>
+{#if type?.startsWith('module:')}
+    {#if moduleKind?.loader}
+        {#await moduleKind.loader() then loaded}
+            {@const ModuleComponent = loaded.default}
+            <ModuleComponent {index} {unique} {isSplit} {onrefresh}></ModuleComponent>
+        {/await}
+    {:else}
+        <ModuleColumnPlaceholder {index}></ModuleColumnPlaceholder>
+    {/if}
+{:else if !capability.hasAgent}
+    {#if ContentComponent}
+        <ContentComponent {index}></ContentComponent>
+    {/if}
 {:else if _agent}
-    {#if column?.algorithm?.type === 'notification'}
-        <NotificationTimeline {index} {_agent} {unique} {isSplit}></NotificationTimeline>
-    {:else if column?.algorithm?.type === 'thread'}
+    {#if capability.remountOnUnique}
         {#key unique}
-            <ThreadTimeline {index} {_agent}></ThreadTimeline>
+            {#if ContentComponent}
+                <ContentComponent {index} {_agent} {unique} {isSplit}></ContentComponent>
+            {:else}
+                <Timeline {index} {_agent} {unique} {isSplit} {isTopScrolling}></Timeline>
+            {/if}
         {/key}
-    {:else if column?.algorithm?.type === 'chat'}
-        <ChatTimeline {index} {_agent} {unique} {onrefresh} {isSplit}></ChatTimeline>
-    {:else if column?.algorithm?.type === 'chatList'}
-        <ChatListTimeline {index} {_agent} {unique} {onrefresh} {isSplit}></ChatListTimeline>
-    {:else if column?.algorithm?.type === 'list'}
-        {#key unique}
-            <ListTimeline {index} {_agent} {unique} {isSplit}></ListTimeline>
-        {/key}
-    {:else if column?.algorithm?.type === 'bookmark'}
-        <BookmarkTimeline {index} {_agent} {unique} {isSplit}></BookmarkTimeline>
-    {:else if column?.algorithm?.type === 'mochottTimeline' || column?.algorithm?.type === 'networkFeed'}
-        <MochottTimeline {index} {_agent} {unique} {isSplit}></MochottTimeline>
+    {:else if ContentComponent}
+        <ContentComponent {index} {_agent} {unique} {onrefresh} {isSplit}></ContentComponent>
     {:else}
         <Timeline {index} {_agent} {unique} {isSplit} {isTopScrolling}></Timeline>
     {/if}

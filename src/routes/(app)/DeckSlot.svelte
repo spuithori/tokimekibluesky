@@ -3,10 +3,10 @@
     import {getColumnState, setScopedColumnState} from "$lib/classes/columnState.svelte";
     import {tilingDrag} from "$lib/classes/tilingDragState.svelte";
     import {animateLayout} from "$lib/animations/flip";
-    import {firstLeafId} from "$lib/classes/deckLayout";
     import {clampDeckWidth} from "$lib/deckWidth";
     import {startPointerDrag} from "$lib/pointerDrag";
     import { sortable } from "$lib/attachments/sortable.svelte";
+    import { riceState } from "$lib/rice/riceState.svelte";
     import LayoutView from "./LayoutView.svelte";
     import DeckColumn from "./DeckColumn.svelte";
 
@@ -27,7 +27,7 @@
     const columnState = getColumnState(isJunk);
     setScopedColumnState(columnState);
     const slot = $derived(columnState.getSlot(index));
-    const isSplitLayout = $derived(slot?.layout?.type === 'split');
+    const isSplitLayout = $derived(!!slot && slot.layout.type !== 'leaf');
     const leafIndex = $derived(columnState.getColumnIndex(columnState.leafIdsOf(index)[0]));
     const column = $derived(columnState.getColumn(leafIndex));
     const widthValue = $derived(column?.settings?.width ?? 'medium');
@@ -50,20 +50,10 @@
     function handleMouseLeave() { isScrollPaused = false; }
 
     function reorderColumns(from: number, to: number) {
-        const slots = columnState.slots;
-        const popup = slots.map(s => !!columnState.columns.find(c => c.id === firstLeafId(s.layout))?.settings?.isPopup);
-        const reordered = moveElement(slots.filter((_, i) => !popup[i]), from, to);
-        let k = 0;
-        columnState.slots = slots.map((s, i) => popup[i] ? s : reordered[k++]);
+        columnState.reorderVisibleSlots(from, to);
     }
 
-    function moveElement<T>(arr: T[], fromIndex: number, toIndex: number): T[] {
-        const result = [...arr];
-        const element = result.splice(fromIndex, 1)[0];
-        result.splice(toIndex, 0, element);
-        return result;
-    }
-
+    const riceStyle = $derived(riceState.styleForColumn(column));
     const useSplitLayout = $derived(isSplitLayout && !isMobile && !isJunk && $settings.design?.layout !== 'default');
     const showDragHandle = $derived(!column?.settings?.isPopup && $settings.design?.layout === 'decks');
     const showWidthBar = $derived(
@@ -75,14 +65,21 @@
 
     function startWidthResize(event: PointerEvent) {
         if (isMobile || !slotEl || !column) return;
-        const col = column;
+        const cols = slot?.layout?.type === 'tabs'
+            ? columnState.leafIdsOf(index)
+                .map((id) => columnState.getColumn(columnState.getColumnIndex(id)))
+                .filter((c) => !!c)
+            : [column];
         const startX = event.clientX;
         const startWidth = slotEl.offsetWidth;
         isWidthResizing = true;
         columnState.isResizingWidth = true;
         startPointerDrag(
             event,
-            (e) => { col.settings.width = clampDeckWidth(startWidth + (e.clientX - startX)); },
+            (e) => {
+                const width = clampDeckWidth(startWidth + (e.clientX - startX));
+                for (const col of cols) col.settings.width = width;
+            },
             () => { isWidthResizing = false; columnState.isResizingWidth = false; },
         );
     }
@@ -91,6 +88,7 @@
 <div
     class="deck-row-wrap"
      class:deck-row-wrap--single={$settings.design?.layout === 'default'}
+     style={riceStyle || null}
      {@attach !isJunk && sortable(() => ({
          axis: 'x',
          participantSelector: '.deck-row-wrap',
@@ -156,50 +154,48 @@
     .deck-row-wrap {
         position: relative;
         touch-action: auto !important;
-        padding: 1px .5px;
+        background-color: var(--deck-content-bg-color);
+        backdrop-filter: var(--deck-content-backdrop-filter, none);
+        border: var(--deck-border, var(--deck-border-width) solid var(--deck-border-color));
+        border-radius: var(--deck-border-radius);
+        box-shadow: var(--deck-box-shadow);
+        overflow: clip;
+        opacity: var(--rice-column-opacity, 1);
 
-        &::before {
+        @media (max-width: 767px) {
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        &:not(.deck-row-wrap--single):not(:has(.deck-row-slot--junk)):has(~ :global(.deck-row-wrap))::after {
             content: '';
-            display: block;
             position: absolute;
-            inset: 0;
-            border-radius: var(--deck-border-radius);
-            border: var(--deck-border-width) solid var(--deck-border-color);
-            border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
-            box-shadow: var(--deck-box-shadow);
-            background-color: var(--deck-content-bg-color);
+            inset: 0 0 0 auto;
+            width: 0;
+            border-right: var(--deck-divider, var(--deck-border-right, none));
             pointer-events: none;
-
-            @media (max-width: 767px) {
-                border-radius: 0;
-                box-shadow: none;
-            }
+            z-index: 1;
         }
 
         &--single {
-            padding: 0;
             position: static;
             display: contents;
-
-            &::before {
-                content: none;
-            }
         }
 
         &:has(.deck-row-slot--junk) {
-            &::before {
-                border: none;
-            }
+            border: none;
+            overflow: visible;
         }
     }
 
     .deck-row-slot {
-        width: var(--deck-col-width, var(--deck-m-width));
+        width: var(--rice-column-width, var(--deck-col-width, var(--deck-m-width)));
         flex-shrink: 0;
         height: 100%;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        container: deck-column / size;
 
         @media (max-width: 767px) {
             width: 100vw;
@@ -221,6 +217,7 @@
             width: auto;
             overflow: visible;
             display: block;
+            container-type: normal;
         }
 
         &--junk {
@@ -228,6 +225,7 @@
             width: 100%;
             height: auto;
             display: block;
+            container-type: normal;
         }
 
         &--popup {

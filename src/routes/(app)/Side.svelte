@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import SideBar from "$lib/components/side/SideBar.svelte";
+  import SideBarHost from "$lib/components/side/SideBarHost.svelte";
   import Publish from "./Publish.svelte";
   import { settings } from "$lib/stores";
   import { getColumnState } from "$lib/classes/columnState.svelte";
@@ -26,7 +26,7 @@
     class="side"
     class:side--single={$settings.design?.layout !== 'decks'}
 >
-  <SideBar></SideBar>
+  <SideBarHost></SideBarHost>
 
   <Publish></Publish>
 </div>
@@ -34,10 +34,12 @@
 <style lang="postcss">
   .side {
       display: grid;
-      grid-template-columns: 64px;
+      grid-template-columns: var(--side-width, 64px);
       padding-top: var(--side-padding-top, 8px);
       padding-bottom: 4px;
-      padding-right: 0;
+      padding-right: var(--side-padding-right, 0);
+      backdrop-filter: var(--side-backdrop-filter, none);
+      box-shadow: var(--side-box-shadow, none);
       position: fixed;
       top: 0;
       bottom: 0;
@@ -58,7 +60,7 @@
 
       &--single {
           position: sticky;
-          height: 100dvh;
+          height: calc(100dvh - var(--rice-statusbar-top-height, 0px) - var(--rice-statusbar-bottom-height, 0px));
           border-radius: var(--single-side-border-radius, 0);
 
           @media (max-width: 767px) {

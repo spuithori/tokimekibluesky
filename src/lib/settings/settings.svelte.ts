@@ -64,6 +64,9 @@ class SettingsStore {
     get langFilter() {
         return this.#data.langFilter;
     }
+    get rice() {
+        return this.#data.rice;
+    }
     get version() {
         return this.#data.version;
     }

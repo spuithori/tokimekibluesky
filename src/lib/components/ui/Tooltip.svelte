@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
+  import { animMs } from '$lib/rice/anim';
   interface Props {
     ref?: import('svelte').Snippet;
     content?: import('svelte').Snippet;
@@ -15,7 +16,7 @@
   </span>
 
   {#if isShown}
-    <span class="tooltip-content" transition:fade="{{ duration: 150, delay: 100 }}">
+    <span class="tooltip-content" transition:fade="{{ duration: animMs('tooltip', 150), delay: 100 }}">
       {@render content?.()}
     </span>
   {/if}

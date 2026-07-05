@@ -11,7 +11,7 @@
     import {languageMap} from "$lib/langs/languageMap";
     import {settings} from '$lib/stores';
 
-    let { search = $bindable(), path = location.pathname } = $props();
+    let { search = $bindable(), path = location.pathname, autofocus = true, placeholder = undefined, showFilter = true } = $props();
 
     let el = $state();
     let searchArea = $state();
@@ -29,7 +29,7 @@
     );
 
     onMount(() => {
-        if (!search) {
+        if (!search && autofocus) {
             searchArea.focus();
             allowHistoryOpen = true;
         }
@@ -84,12 +84,13 @@
 
 <div class="search" bind:this={el}>
   <form bind:this={formEl} action={path} method="get" onsubmit={handleSubmit} data-sveltekit-replacestate>
-    <input type="text" name="q" required bind:value={search} bind:this={searchArea} onclick={() => {allowHistoryOpen = true}} placeholder="{$_(path + '_search')}" autocomplete="off">
+    <input type="text" name="q" required bind:value={search} bind:this={searchArea} onclick={() => {allowHistoryOpen = true}} placeholder={placeholder ?? $_(path + '_search')} autocomplete="off">
     <button type="submit" class="search-submit" aria-label="Search">
       <Search color="var(--primary-color)" size="20"></Search>
     </button>
   </form>
 
+  {#if showFilter}
   <div class="search-filter-menu">
     <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="search-filter-menu__item">
       {#snippet ref()}
@@ -100,7 +101,7 @@
 
       {#snippet content()}
         <ul  class="timeline-menu-list">
-          {#if $settings?.general?.userLanguage}
+          {#if $settings?.general?.userLanguage && languageMap.has($settings.general.userLanguage)}
             {@const formattedLang = $_(languageMap.get($settings.general.userLanguage).name)}
             <li class="timeline-menu-list__item">
               <button class="timeline-menu-list__button" onclick={handleLanguageFilter}>
@@ -120,6 +121,7 @@
       {/snippet}
     </Menu>
   </div>
+  {/if}
 
   {#if (isHistoryOpen && searchHistory.current.length)}
     <div class="search-history">

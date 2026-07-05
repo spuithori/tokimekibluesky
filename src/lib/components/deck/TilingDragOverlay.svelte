@@ -15,6 +15,7 @@
             case 'bottom': return { kind: 'split' as const, left: x, top: y + h / 2, width: w, height: h / 2 };
             case 'left': return { kind: 'split' as const, left: x, top: y, width: w / 2, height: h };
             case 'right': return { kind: 'split' as const, left: x + w / 2, top: y, width: w / 2, height: h };
+            case 'center': return { kind: 'split' as const, left: x + w * 0.12, top: y + h * 0.12, width: w * 0.76, height: h * 0.76 };
         }
     });
 </script>

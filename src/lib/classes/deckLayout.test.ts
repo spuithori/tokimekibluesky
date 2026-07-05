@@ -11,8 +11,14 @@ import {
     unsplitAt,
     swapAt,
     firstLeafId,
+    findTabsNodeOf,
+    tabifyLeaf,
+    untabifyLeaf,
+    normalizeTabsNodes,
+    reorderedTab,
     DECK_SCHEMA_VERSION,
     type DeckLayoutState,
+    type TabsNode,
 } from './deckLayout';
 
 function col(id: string, extra: any = {}): any {
@@ -388,7 +394,193 @@ describe('loadDeckState v3 マイグレーション', () => {
         expect(rescued.slots[0].layout).toEqual({ type: 'leaf', columnId: 'a' });
     });
 
-    it('DECK_SCHEMA_VERSION は 3', () => {
-        expect(DECK_SCHEMA_VERSION).toBe(3);
+    it('DECK_SCHEMA_VERSION は 4(tabs 追加・v3 以降は加算的受理)', () => {
+        expect(DECK_SCHEMA_VERSION).toBe(4);
+    });
+});
+
+describe('tabs node', () => {
+    function tabsState(): DeckLayoutState {
+        return {
+            columns: [col('a'), col('b'), col('c')],
+            slots: [
+                { id: 's1', layout: { type: 'tabs', children: ['a', 'b'], active: 0 } },
+                { id: 's2', layout: { type: 'leaf', columnId: 'c' } },
+            ],
+        };
+    }
+
+    it('flattenLeafIds は tabs の全 children を返す(監視/正規化の前提)', () => {
+        const state = tabsState();
+        expect(flattenLeafIds(state.slots[0].layout)).toEqual(['a', 'b']);
+        expect(slotIndexOfColumn(state.slots, 'b')).toBe(0);
+        expect(slotIndexOfColumn(state.slots, 'c')).toBe(1);
+    });
+
+    it('firstLeafId は active タブを返す(split 内の tabs も)', () => {
+        expect(firstLeafId({ type: 'tabs', children: ['a', 'b'], active: 1 })).toBe('b');
+        expect(firstLeafId({ type: 'tabs', children: ['a', 'b'], active: 99 })).toBe('b');
+        expect(firstLeafId({
+            type: 'split',
+            direction: 'column',
+            sizes: [0.5, 0.5],
+            children: [{ type: 'tabs', children: ['x', 'y'], active: 1 }, { type: 'leaf', columnId: 'z' }],
+        })).toBe('y');
+    });
+
+    it('tabifyLeaf: 2スロットが1つのタブグループになり新入りがアクティブ', () => {
+        const state: DeckLayoutState = {
+            columns: [col('a'), col('b')],
+            slots: [
+                { id: 's1', layout: { type: 'leaf', columnId: 'a' } },
+                { id: 's2', layout: { type: 'leaf', columnId: 'b' } },
+            ],
+        };
+        const next = tabifyLeaf(state, 'a', 'b');
+        expect(next.slots).toHaveLength(1);
+        expect(next.slots[0].layout).toEqual({ type: 'tabs', children: ['a', 'b'], active: 1 });
+    });
+
+    it('tabifyLeaf: 既存タブグループへは append + アクティブ化', () => {
+        const next = tabifyLeaf(tabsState(), 'a', 'c');
+        expect(next.slots).toHaveLength(1);
+        expect(next.slots[0].layout).toEqual({ type: 'tabs', children: ['a', 'b', 'c'], active: 2 });
+    });
+
+    it('tabifyLeaf: split 内の leaf を source にすると detach され split が畳まれる', () => {
+        const state: DeckLayoutState = {
+            columns: [col('a'), col('b'), col('c')],
+            slots: [
+                {
+                    id: 's1',
+                    layout: {
+                        type: 'split',
+                        direction: 'column',
+                        sizes: [0.5, 0.5],
+                        children: [{ type: 'leaf', columnId: 'a' }, { type: 'leaf', columnId: 'b' }],
+                    },
+                },
+                { id: 's2', layout: { type: 'leaf', columnId: 'c' } },
+            ],
+        };
+        const next = tabifyLeaf(state, 'c', 'b');
+        expect(next.slots[0].layout).toEqual({ type: 'leaf', columnId: 'a' });
+        expect(next.slots[1].layout).toEqual({ type: 'tabs', children: ['c', 'b'], active: 1 });
+    });
+
+    it('untabifyLeaf: タブから外して直後に独立スロット挿入・2個グループは leaf に崩れる', () => {
+        const next = untabifyLeaf(tabsState(), 'a', counterGen());
+        expect(next.slots).toHaveLength(3);
+        expect(next.slots[0].layout).toEqual({ type: 'leaf', columnId: 'b' });
+        expect(next.slots[1].layout).toEqual({ type: 'leaf', columnId: 'a' });
+        expect(next.slots[2].layout).toEqual({ type: 'leaf', columnId: 'c' });
+    });
+
+    it('unsplitAt(removeLeaf) は active を補正し1個で leaf に崩す', () => {
+        const state: DeckLayoutState = {
+            columns: [col('a'), col('b'), col('c')],
+            slots: [{ id: 's1', layout: { type: 'tabs', children: ['a', 'b', 'c'], active: 2 } }],
+        };
+        const removedBefore = unsplitAt(state, 0, 'a', false, counterGen());
+        expect(removedBefore.slots[0].layout).toEqual({ type: 'tabs', children: ['b', 'c'], active: 1 });
+
+        const removedActive = unsplitAt(state, 0, 'c', false, counterGen());
+        expect(removedActive.slots[0].layout).toEqual({ type: 'tabs', children: ['a', 'b'], active: 1 });
+    });
+
+    it('splitLeaf: タブメンバーを対象に split するとグループごと包む', () => {
+        const state = tabsState();
+        const next = splitLeaf(state, 'a', col('d'), 'column');
+        const layout = next.slots[0].layout;
+        expect(layout.type).toBe('split');
+        if (layout.type === 'split') {
+            expect(layout.children[0]).toEqual({ type: 'tabs', children: ['a', 'b'], active: 0 });
+            expect(layout.children[1]).toEqual({ type: 'leaf', columnId: 'd' });
+        }
+    });
+
+    it('moveLeafToSplit: タブグループへの4象限ドロップはグループごと split', () => {
+        const next = moveLeafToSplit(tabsState(), 'c', 'b', 'row');
+        expect(next.slots).toHaveLength(1);
+        const layout = next.slots[0].layout;
+        expect(layout.type).toBe('split');
+        if (layout.type === 'split') {
+            expect(layout.children[0]).toEqual({ type: 'tabs', children: ['a', 'b'], active: 0 });
+            expect(layout.children[1]).toEqual({ type: 'leaf', columnId: 'c' });
+        }
+    });
+
+    it('moveLeafToSlot: タブメンバーの抽出でグループが縮む', () => {
+        const next = moveLeafToSlot(tabsState(), 'b', 2, counterGen());
+        expect(next.slots[0].layout).toEqual({ type: 'leaf', columnId: 'a' });
+        expect(next.slots[2].layout).toEqual({ type: 'leaf', columnId: 'b' });
+    });
+
+    it('findTabsNodeOf は所属グループを返す', () => {
+        const state = tabsState();
+        expect(findTabsNodeOf(state.slots[0].layout, 'b')?.children).toEqual(['a', 'b']);
+        expect(findTabsNodeOf(state.slots[1].layout, 'c')).toBeNull();
+    });
+
+it('reorderedTab: 並び替えで active はカラム追随・範囲外/同一は null', () => {
+        const node = { type: 'tabs', children: ['a', 'b', 'c'], active: 2 } as const;
+        expect(reorderedTab(node, 0, 2)).toEqual({ children: ['b', 'c', 'a'], active: 1 });
+        expect(reorderedTab(node, 2, 0)).toEqual({ children: ['c', 'a', 'b'], active: 0 });
+        expect(reorderedTab(node, 1, 1)).toBeNull();
+        expect(reorderedTab(node, 5, 0)).toBeNull();
+    });
+
+    it('normalizeTabsNodes: 欠損 id 除去・active clamp・1個崩し・0個スロット除去', () => {
+        const state: DeckLayoutState = {
+            columns: [col('a')],
+            slots: [
+                { id: 's1', layout: { type: 'tabs', children: ['a', 'ghost'], active: 5 } },
+                { id: 's2', layout: { type: 'tabs', children: ['ghost1', 'ghost2'], active: 0 } },
+            ],
+        };
+        const next = normalizeTabsNodes(state);
+        expect(next.slots).toHaveLength(1);
+        expect(next.slots[0].layout).toEqual({ type: 'leaf', columnId: 'a' });
+    });
+
+it('normalizeTabsNodes: タブメンバーの幅を先頭タブに揃える(グループ単一幅の自己修復)', () => {
+        const state: DeckLayoutState = {
+            columns: [
+                col('a', { settings: { width: 'medium' } }),
+                col('b', { settings: { width: 'xxl' } }),
+                col('c', { settings: { width: 'small' } }),
+            ],
+            slots: [
+                { id: 's1', layout: { type: 'tabs', children: ['a', 'b'], active: 0 } },
+                { id: 's2', layout: { type: 'leaf', columnId: 'c' } },
+            ],
+        };
+        const next = normalizeTabsNodes(state);
+        expect(next.columns.find((c) => c.id === 'b')?.settings?.width).toBe('medium');
+        expect(next.columns.find((c) => c.id === 'c')?.settings?.width).toBe('small');
+        expect(next.columns.find((c) => c.id === 'a')?.settings?.width).toBe('medium');
+    });
+
+    it('loadDeckState: v4 の tabs を round-trip し v3 は従来どおり受理する', () => {
+        const state = tabsState();
+        const loaded = loadDeckState({ version: DECK_SCHEMA_VERSION, columns: state.columns, slots: state.slots }, counterGen());
+        expect(loaded.slots[0].layout).toEqual({ type: 'tabs', children: ['a', 'b'], active: 0 });
+
+        const v3 = loadDeckState({ version: 3, columns: [col('a')], slots: [{ id: 's', layout: { type: 'leaf', columnId: 'a' } }] }, counterGen());
+        expect(v3.slots[0].layout).toEqual({ type: 'leaf', columnId: 'a' });
+        expect(DECK_SCHEMA_VERSION).toBe(4);
+    });
+
+    it('normalizeContentColumns: タブ内の singleton 重複も除去できる', () => {
+        const state: DeckLayoutState = {
+            columns: [col('p1', { algorithm: { type: 'publish', name: 'p1' } }), col('p2', { algorithm: { type: 'publish', name: 'p2' } }), col('a')],
+            slots: [
+                { id: 's1', layout: { type: 'leaf', columnId: 'p1' } },
+                { id: 's2', layout: { type: 'tabs', children: ['p2', 'a'], active: 0 } },
+            ],
+        };
+        const loaded = loadDeckState({ version: 4, columns: state.columns, slots: state.slots }, counterGen());
+        expect(loaded.columns.map((c) => c.id)).toEqual(['p1', 'a']);
+        expect(loaded.slots[1].layout).toEqual({ type: 'leaf', columnId: 'a' });
     });
 });

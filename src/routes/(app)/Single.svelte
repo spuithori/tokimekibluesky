@@ -36,6 +36,7 @@
     }
 
     function handleScroll(event) {
+      if (!isMobile) return;
       const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
         scrollDirectionState.direction = scrollDir;
       });
@@ -137,7 +138,7 @@
         position: relative;
         border-left: var(--single-border);
         border-right: var(--single-border);
-        min-height: 100vh;
+        min-height: calc(100vh - var(--rice-statusbar-top-height, 0px) - var(--rice-statusbar-bottom-height, 0px));
         background-color: var(--single-bg-color, var(--bg-color-1));
         width: var(--single-column-width, var(--single-m-width));
         max-width: 100%;
@@ -149,14 +150,15 @@
         &--page {
             position: fixed;
             overflow: hidden;
-            left: 64px;
+            left: var(--side-width, 64px);
             top: 0;
-            right: 0;
-            margin: auto;
+            right: var(--side-right-width, 0px);
+            margin: auto var(--single-align-mr, auto) auto var(--single-align-ml, auto);
             min-height: 100dvh;
 
             @media (max-width: 767px) {
                 left: 0;
+                right: 0;
             }
         }
     }

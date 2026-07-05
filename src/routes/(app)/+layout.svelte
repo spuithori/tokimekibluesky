@@ -49,6 +49,30 @@
     import "@fontsource-variable/noto-sans-jp";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { appState } from "$lib/classes/appState.svelte";
+    import { riceState } from "$lib/rice/riceState.svelte";
+    import { themeInlineStyle } from "$lib/theme/inlineStyle";
+    import { applyRiceSets } from "$lib/rice/apply";
+    import StatusBar from "$lib/components/rice/StatusBar.svelte";
+    import RiceBar from "$lib/components/rice/RiceBar.svelte";
+    import RiceModulesObserver from "$lib/components/rice/RiceModulesObserver.svelte";
+    import RiceEffectLayers from "$lib/components/rice/RiceEffectLayers.svelte";
+    import CoreCommandsObserver from "$lib/components/commands/CoreCommandsObserver.svelte";
+    import KeybindsObserver from "$lib/components/commands/KeybindsObserver.svelte";
+    import CommandPalette from "$lib/components/commands/CommandPalette.svelte";
+    import ActionCenter from "$lib/components/commands/ActionCenter.svelte";
+    import Orbit from "$lib/components/commands/Orbit.svelte";
+    import SidePanel from "$lib/components/side/SidePanel.svelte";
+    import { initCompositorHeartbeat } from "$lib/compositorHeartbeat";
+
+    if (typeof window !== 'undefined') {
+        if (localStorage.getItem('compositorHeartbeat') !== 'off') {
+            initCompositorHeartbeat();
+        }
+        const jankProbeMode = localStorage.getItem('jankProbe');
+        if (jankProbeMode) {
+            import('$lib/jankProbe').then((m) => m.initJankProbe(jankProbeMode));
+        }
+    }
 
     injectAnalytics({
         mode: dev ? "development" : "production",
@@ -186,43 +210,21 @@
     }
 
     function outputInlineStyle(theme) {
-        if (!theme) {
-            return false;
+        if (riceState.themeReset) {
+            return '';
         }
-
-        let colorStyle = "";
-        let bubbleStyle = "";
-        let darkmodeStyle = "";
-
-        if (theme.options?.colors) {
-            const index = theme.options.colors.findIndex(
-                (color) => color.id === $settings.design?.theme,
-            );
-
-            if (index !== -1) {
-                colorStyle = theme.options?.colors[index].code
-                    ? theme.options.colors[index].code
-                    : "";
-            }
-        }
-
-        if ($settings?.design?.bubbleTimeline) {
-            bubbleStyle = theme?.options?.bubbleStyle || "";
-        }
-
-        if (isDarkMode) {
-            darkmodeStyle = theme.options?.darkmodeStyle
-                ? theme.options.darkmodeStyle
-                : "";
-        }
-
-        return theme.style + colorStyle + bubbleStyle + darkmodeStyle;
+        return themeInlineStyle(theme, {
+            colorId: $settings.design?.theme,
+            bubble: $settings?.design?.bubbleTimeline,
+            darkmode: isDarkMode,
+        });
     }
 
     appState.init();
     viewPortSetting();
     setPostState();
     initColumns();
+    applyRiceSets();
 
     const savedScrollPositions = new Map<
         string,
@@ -352,11 +354,13 @@
     class:superstar={$settings.design?.reactionMode === "superstar"}
     class:bubble={$settings?.design?.bubbleTimeline}
     class:monochrome={$settings?.design?.monochrome}
-    style={outputInlineStyle($theme)}
+    style={outputInlineStyle($theme) + riceState.globalStyle}
     dir={$_("dir", { default: "ltr" })}
     bind:this={app}
 >
     {#if appState.ready}
+        <StatusBar position="top"></StatusBar>
+
         <div
             class="wrap"
             class:layout-decks={$settings.design.layout === "decks"}
@@ -376,6 +380,10 @@
                 {@render children?.()}
             </main>
         </div>
+
+        <StatusBar position="bottom"></StatusBar>
+        <RiceBar position="left"></RiceBar>
+        <RiceBar position="right"></RiceBar>
 
         {#if $isColumnModalOpen}
             <ColumnModal onclose={handleColumnModalClose}></ColumnModal>
@@ -416,6 +424,14 @@
     <ProfileStatusObserver></ProfileStatusObserver>
     <LinkWarningModal></LinkWarningModal>
     <UpdateBanner></UpdateBanner>
+    <CoreCommandsObserver></CoreCommandsObserver>
+    <KeybindsObserver></KeybindsObserver>
+    <CommandPalette></CommandPalette>
+    <ActionCenter></ActionCenter>
+    <Orbit></Orbit>
+    <SidePanel></SidePanel>
+    <RiceModulesObserver></RiceModulesObserver>
+    <RiceEffectLayers></RiceEffectLayers>
 
     {#if sideState.isTokStart}
         <TokBackground></TokBackground>
@@ -485,7 +501,12 @@
         background-attachment: fixed;
 
         .wrap {
-            margin: 0 auto;
+            margin: 0 var(--single-align-mr, auto) 0 var(--single-align-ml, auto);
+            padding-right: var(--side-right-width, 0px);
+
+            @media (max-width: 767px) {
+                padding-right: 0;
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { currentTimeline, settings, isColumnModalOpen, intersectingIndex } from "$lib/stores";
+    import { currentTimeline, settings, intersectingIndex } from "$lib/stores";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import {page} from '$app/stores';
     import Home from '@lucide/svelte/icons/home';
@@ -12,21 +12,16 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
-    import {findPublishColumn, togglePublishColumn} from "$lib/publishColumn";
+    import {findPublishColumn} from "$lib/publishColumn";
     import {untrack} from "svelte";
+    import {runCommand} from "$lib/commands/registry.svelte";
+    import {riceState} from "$lib/rice/riceState.svelte";
 
     const columnState = getColumnState();
     const isPublishActive = $derived($settings.design?.layout === 'decks'
         ? !!findPublishColumn(columnState.columns)
         : publishState.show);
 
-    function handlePublishClick() {
-        if ($settings.design?.layout === 'decks') {
-            togglePublishColumn(columnState);
-        } else {
-            publishState.show = !publishState.show;
-        }
-    }
     let mobileV2Visible = $state(false);
     let mobileV2Clear = false;
     let els = $state([]);
@@ -36,18 +31,7 @@
     }
 
     function handleColumnClick(column, index) {
-        if ($settings.design.layout === 'decks') {
-            if (column.scrollElement) {
-              column.scrollElement.focus();
-              column.scrollElement.scrollIntoView({inline: 'end', behavior: 'instant'});
-            }
-        } else {
-            if ($currentTimeline === index) {
-                return false;
-            }
-
-            currentTimeline.set(index);
-        }
+        runCommand('column.focus', String(index + 1));
     }
 
     function handleKeydown(event) {
@@ -95,25 +79,29 @@
 <div class="side-bar" class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--mobileV2={$settings?.design?.mobileNewUi}
  class:side-bar--mobileV2-visible={mobileV2Visible && $settings?.design?.mobileNewUi}>
   <div class="side-bar__list side-bar__top">
-    <button
-          class="side-publish-button"
-          onclick={handlePublishClick}
-          aria-label="Publish Tab"
-    >
-      {#if (isPublishActive)}
-        <PenOff color="var(--bar-primary-icon-color)"></PenOff>
-      {:else}
-        <Pen color="var(--bar-primary-icon-color)"></Pen>
-      {/if}
-    </button>
+    {#if riceState.sidebar?.showPublish ?? true}
+      <button
+            class="side-publish-button"
+            onclick={() => runCommand('publish.toggle')}
+            aria-label="Publish Tab"
+      >
+        {#if (isPublishActive)}
+          <PenOff color="var(--bar-primary-icon-color)"></PenOff>
+        {:else}
+          <Pen color="var(--bar-primary-icon-color)"></Pen>
+        {/if}
+      </button>
+    {/if}
 
     {#if $page.url.pathname === '/'}
-      <button
-          class="side-bar-button side-column-add-button"
-          onclick={() => {$isColumnModalOpen = true}}
-      >
-        <Plus color="var(--bar-primary-icon-color)"></Plus>
-      </button>
+      {#if riceState.sidebar?.showAdd ?? true}
+        <button
+            class="side-bar-button side-column-add-button"
+            onclick={() => runCommand('column.add')}
+        >
+          <Plus color="var(--bar-primary-icon-color)"></Plus>
+        </button>
+      {/if}
 
       {#each columnState.slots as slot, index (slot.id)}
         {@const column = columnState.getSlotColumn(index)}
@@ -155,9 +143,11 @@
       <SideNav></SideNav>
     </div>
 
-    <a class="side-bar-button side-bar-button--settings only-pc" href="/settings/general">
-      <Settings color="var(--bar-bottom-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Settings>
-    </a>
+    {#if riceState.sidebar?.showSettings ?? true}
+      <a class="side-bar-button side-bar-button--settings only-pc" href="/settings/general">
+        <Settings color="var(--bar-bottom-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Settings>
+      </a>
+    {/if}
   </div>
 </div>
 

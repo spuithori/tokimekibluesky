@@ -1,0 +1,8 @@
+<script lang="ts">
+    import { getColumnState } from '$lib/classes/columnState.svelte';
+    import { registerCommands } from '$lib/commands/registry.svelte';
+    import { createCoreCommands } from '$lib/commands/coreCommands';
+
+    const columnState = getColumnState();
+    registerCommands(createCoreCommands({ columnState }));
+</script>

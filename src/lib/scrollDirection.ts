@@ -1,5 +1,5 @@
-let lastScrollY = 0;
-let ticking = false;
+const lastScrollYByNode = new WeakMap<object, number>();
+const tickingByNode = new WeakMap<object, boolean>();
 
 export function scrollDirection(node, threshold, callback): 'up' | 'down' | undefined {
     if (!node) {
@@ -7,22 +7,22 @@ export function scrollDirection(node, threshold, callback): 'up' | 'down' | unde
     }
 
     const scrollY = node.scrollTop ?? node.scrollY ?? window.scrollY;
-    if (ticking) {
+    if (tickingByNode.get(node)) {
         return;
     }
 
-    ticking = true;
+    tickingByNode.set(node, true);
     requestAnimationFrame(() => {
-        let scrollDir;
+        const lastScrollY = lastScrollYByNode.get(node) ?? 0;
 
         if (Math.abs(scrollY - lastScrollY) < threshold) {
-            ticking = false;
+            tickingByNode.set(node, false);
             return;
         }
 
-        scrollDir = scrollY > lastScrollY ? 'down' : 'up';
-        lastScrollY = scrollY > 0 ? scrollY : 0;
-        ticking = false;
+        const scrollDir = scrollY > lastScrollY ? 'down' : 'up';
+        lastScrollYByNode.set(node, scrollY > 0 ? scrollY : 0);
+        tickingByNode.set(node, false);
 
         callback(scrollDir);
     });

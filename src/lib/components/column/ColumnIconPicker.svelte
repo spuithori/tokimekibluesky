@@ -1,12 +1,12 @@
 <script lang="ts">
   import { settings } from '$lib/stores';
   import { iconMap } from '$lib/columnIcons';
-  import { fly, fade } from 'svelte/transition';
+  import { riceFx } from '$lib/rice/transition';
 
   let { current, onchange, onclose } = $props();
 </script>
 
-<div class="column-icon-picker" class:column-icon-picker--mobileV2={$settings?.design?.mobileNewUi} transition:fly={{ duration:250, y: -30 }}>
+<div class="column-icon-picker" class:column-icon-picker--mobileV2={$settings?.design?.mobileNewUi} transition:riceFx={{ target: 'menu', duration: 250, style: { kind: 'slide', direction: 'top', distance: 30 } }}>
   <ul class="icon-picker-list">
     {#each iconMap as [key, icon]}
       {@const SvelteComponent = icon}
@@ -21,7 +21,7 @@
   </ul>
 </div>
 
-<button class="column-icon-picker-bg" transition:fade={{ duration: 150 }} onclick={onclose} aria-label="Close"></button>
+<button class="column-icon-picker-bg" transition:riceFx={{ target: 'menu', duration: 150, style: { kind: 'fade' } }} onclick={onclose} aria-label="Close"></button>
 
 <style lang="postcss">
   .column-icon-picker {

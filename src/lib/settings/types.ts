@@ -132,6 +132,12 @@ export interface EmbedSettings {
     disableEmbedVia: boolean;
 }
 
+export interface RiceSettings {
+    enabled: boolean;
+    config: string;
+    sources: Record<string, string>;
+}
+
 export interface Settings {
     general: GeneralSettings;
     design: DesignSettings;
@@ -139,6 +145,7 @@ export interface Settings {
     moderation: ModerationSettings;
     embed: EmbedSettings;
     langFilter: string[];
+    rice: RiceSettings;
     version: number;
 }
 

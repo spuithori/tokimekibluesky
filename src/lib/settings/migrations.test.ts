@@ -179,8 +179,23 @@ describe('migrate', () => {
 
     it('folds legacy labelerSettings into moderation (v5 -> v6)', () => {
         const result = migrate({ version: 5 }, { labelerSettings: [sampleLabeler] });
-        expect(result.version).toBe(6);
+        expect(result.version).toBe(CURRENT_VERSION);
         expect(result.moderation.labelers).toEqual([sampleLabeler]);
+    });
+
+    it('backfills rice defaults when upgrading to v7 (v6 -> v7)', () => {
+        const result = migrate({ version: 6 });
+        expect(result.version).toBe(CURRENT_VERSION);
+        expect(result.rice.enabled).toBe(true);
+        expect(typeof result.rice.config).toBe('string');
+        expect(result.rice.sources).toEqual({});
+    });
+
+    it('preserves an existing rice config through migration', () => {
+        const result = migrate({ version: 6, rice: { enabled: false, config: 'theme {\n}', sources: { mine: '# x' } } });
+        expect(result.rice.enabled).toBe(false);
+        expect(result.rice.config).toBe('theme {\n}');
+        expect(result.rice.sources).toEqual({ mine: '# x' });
     });
 
     it('backfills DEFAULT_LABELER_SETTINGS when no legacy labelerSettings (v5 -> v6)', () => {

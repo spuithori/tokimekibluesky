@@ -1,12 +1,14 @@
 import { flushSync } from 'svelte';
 import type { Attachment } from 'svelte/attachments';
+import { animEasing, animMs } from '$lib/rice/anim';
+import { prefersReducedMotion } from '$lib/animations/flip';
 
 type Rect = { x: number; y: number; w: number; h: number };
 
 export interface TileTarget {
 	kind: 'split';
 	id: string;
-	zone: 'top' | 'bottom' | 'left' | 'right';
+	zone: 'top' | 'bottom' | 'left' | 'right' | 'center';
 	rect: Rect;
 }
 
@@ -44,8 +46,9 @@ const EDGE_PX = 12;
 const QUAD_DEADBAND = 0.06;
 const REORDER_BAND = 0.25;
 const BAND_DEADBAND = 10;
+const CENTER_FRAC = 0.12;
 
-export type Quad = 'top' | 'bottom' | 'left' | 'right';
+export type Quad = 'top' | 'bottom' | 'left' | 'right' | 'center';
 
 export function reorderBandPx(height: number): number {
 	return Math.min(Math.max(height * REORDER_BAND, 64), 220);
@@ -63,6 +66,13 @@ export function quadrantZone(
 	const dy = height > 0 ? localY / height - 0.5 : 0;
 	const adx = Math.abs(dx);
 	const ady = Math.abs(dy);
+
+	const centerThresh = current === 'center'
+		? CENTER_FRAC + deadband
+		: current
+			? CENTER_FRAC - deadband
+			: CENTER_FRAC;
+	if (adx < centerThresh && ady < centerThresh) return 'center';
 
 	let horizontal: boolean;
 	if (current === 'left' || current === 'right') horizontal = adx >= ady - deadband;
@@ -432,8 +442,11 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 			}
 
 			horizontal = opts.axis === 'x';
-			duration = opts.flipDuration ?? DEFAULT_DURATION;
-			easing = opts.flipEasing ?? DEFAULT_EASING;
+			duration = opts.flipDuration ?? animMs('reorder', DEFAULT_DURATION);
+			easing = opts.flipEasing ?? animEasing('reorder', DEFAULT_EASING);
+			if (prefersReducedMotion()) {
+				duration = 0;
+			}
 			draggingClass = opts.draggingClass ?? 'dragging';
 			dropTarget = null;
 

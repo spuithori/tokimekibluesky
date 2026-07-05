@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { scale } from 'svelte/transition';
+  import { riceFx } from '$lib/rice/transition';
   import { onDestroy } from 'svelte';
 
   let { avatar, onclose }: { avatar: string, onclose: () => void } = $props();
@@ -120,7 +120,7 @@
 <dialog
   class="avatar-zoom-modal"
   bind:this={el}
-  in:scale={{duration: 250, opacity: 0, start: 0.98}}
+  in:riceFx={{ target: 'modal', duration: 250, style: { kind: 'popin', scale: 0.98 } }}
   onclick={handleClick}
   onclose={onclose}
 >

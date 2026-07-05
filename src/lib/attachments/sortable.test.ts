@@ -38,14 +38,19 @@ describe('quadrantZone (4方向 split 判定)', () => {
         expect(quadrantZone(W, H, 140, 130, 'top', 0.06)).toBe('top');
     });
 
-    it('左右ヒステリシス: 中心線を deadband 分 current 側で保持', () => {
-        expect(quadrantZone(W, H, 210, 200)).toBe('right');
-        expect(quadrantZone(W, H, 210, 200, 'left', 0.06)).toBe('left');
+    it('中央ゾーン: 中心近傍(|dx|,|dy| < 0.12)は center(タブ化)', () => {
+        expect(quadrantZone(W, H, 200, 200)).toBe('center');
+        expect(quadrantZone(W, H, 210, 200)).toBe('center');
+        expect(quadrantZone(H, W, 200, 210)).toBe('center');
+        expect(quadrantZone(W, H, 260, 200)).toBe('right');
+        expect(quadrantZone(W, H, 200, 260)).toBe('bottom');
     });
 
-    it('上下ヒステリシス: 中心線を deadband 分 current 側で保持', () => {
-        expect(quadrantZone(H, W, 200, 210)).toBe('bottom');
-        expect(quadrantZone(H, W, 200, 210, 'top', 0.06)).toBe('top');
+    it('中央ゾーンのヒステリシス: current=center は抜けにくく、辺 current からは入りにくい', () => {
+        expect(quadrantZone(W, H, 260, 200, 'center', 0.06)).toBe('center');
+        expect(quadrantZone(W, H, 300, 200, 'center', 0.06)).toBe('right');
+        expect(quadrantZone(W, H, 236, 200)).toBe('center');
+        expect(quadrantZone(W, H, 236, 200, 'right', 0.06)).toBe('right');
     });
 });
 
