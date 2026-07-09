@@ -116,7 +116,7 @@ export async function getImageBase64FromBlob(did: string, blob: { cid: string, m
 export async function getService(did: string) {
     const res = await fetch('https://plc.directory/' + did);
     const json = await res.json();
-    return json?.service[0]?.serviceEndpoint;
+    return json?.service?.[0]?.serviceEndpoint;
 }
 
 export function isEmojiSequenceOrCombination(str: string) {

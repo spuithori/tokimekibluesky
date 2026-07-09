@@ -183,8 +183,8 @@
           &--preset-bottom {
               top: auto;
               bottom: 12px;
-              left: var(--side-width, 64px);
-              right: calc(12px + var(--side-right-width, 0px));
+              left: calc(var(--shell-inset, 0px) + var(--side-width, 64px));
+              right: calc(12px + var(--shell-inset, 0px) + var(--side-right-width, 0px));
               margin: 0 auto;
           }
       }

@@ -159,8 +159,8 @@
         left: 0;
         right: var(--decks-margin);
         z-index: 1001;
-        margin: auto var(--side-right-width, 0px) auto var(--side-width, 64px);
-        background-color: rgba(0, 0, 0, .35);
+        margin: auto calc(var(--shell-inset, 0px) + var(--side-right-width, 0px)) auto calc(var(--shell-inset, 0px) + var(--side-width, 64px));
+        background-color: var(--pagemodal-scrim, rgba(0, 0, 0, .35));
         border-radius: var(--decks-border-radius);
 
         @media (max-width: 767px) {
@@ -203,19 +203,19 @@
     .modal-page-frame {
         display: block;
         width: 100%;
-        max-width: 740px;
+        max-width: var(--pagemodal-width, 740px);
         position: absolute;
         left: 0;
         top: 0;
         bottom: 0;
         right: 0;
         margin: auto;
-        height: 94vh;
+        height: var(--pagemodal-height, 94vh);
         background-color: var(--modal-page-bg-color, var(--bg-color-1));
         overflow: hidden;
         z-index: 1;
-        border-radius: 10px;
-        box-shadow: rgba(0, 0, 0, 0.07) 0 1px 2px, rgba(0, 0, 0, 0.07) 0 2px 4px, rgba(0, 0, 0, 0.07) 0 4px 8px, rgba(0, 0, 0, 0.07) 0 8px 16px, rgba(0, 0, 0, 0.07) 0 16px 32px, rgba(0, 0, 0, 0.07) 0 32px 64px;
+        border-radius: var(--pagemodal-radius, 10px);
+        box-shadow: var(--pagemodal-shadow, rgba(0, 0, 0, 0.07) 0 1px 2px, rgba(0, 0, 0, 0.07) 0 2px 4px, rgba(0, 0, 0, 0.07) 0 4px 8px, rgba(0, 0, 0, 0.07) 0 8px 16px, rgba(0, 0, 0, 0.07) 0 16px 32px, rgba(0, 0, 0, 0.07) 0 32px 64px);
         animation: modal-page-in var(--anim-modal-duration, 250ms) var(--anim-modal-easing, ease);
 
         @media (prefers-reduced-motion: reduce) {
@@ -266,6 +266,25 @@
 
 .layout-decks .modal-page-frame--no-anim {
     animation: none;
+}
+
+.modal-page-bg-close {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    cursor: pointer;
+}
+
+.modal-page--default {
+    width: var(--single-column-width, var(--single-m-width));
+    max-width: 100%;
+
+    @media (max-width: 767px) {
+        width: 100vw;
+    }
 }
 
 .settings-modal {

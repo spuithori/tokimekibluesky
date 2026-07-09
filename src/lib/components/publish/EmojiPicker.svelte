@@ -1,14 +1,12 @@
 <script lang="ts">
   import { Picker } from 'emoji-mart'
-  import {getContext, onMount} from 'svelte';
+  import {onMount} from 'svelte';
   import {locale} from 'tokimeki-i18n';
   import { clickOutside } from '$lib/clickOutSide';
   import {settings} from "$lib/stores";
 
-  let { onoutclick, onpick } = $props();
+  let { onoutclick = undefined, onpick, bare = false } = $props();
 
-  const getPublishVariant = getContext<(() => string) | undefined>('publishVariant');
-  const variant = $derived(getPublishVariant?.() ?? 'overlay');
   let theme = $settings?.design.darkmode === true ? 'dark' : 'light';
   let el = $state();
 
@@ -35,11 +33,13 @@
   })
 </script>
 
-<div class="emoji-picker-wrap"
-     class:emoji-picker-wrap--sidebar={variant === 'column'}
-     class:emoji-picker-wrap--popup={variant === 'overlay'}
-     {onoutclick}
-     use:clickOutside={{ignoreElement: '.publish-form-emoji-picker-button'}}
->
-  <div bind:this={el}></div>
-</div>
+{#if bare}
+  <div class="emoji-picker-bare" bind:this={el}></div>
+{:else}
+  <div class="emoji-picker-wrap emoji-picker-wrap--popup"
+       {onoutclick}
+       use:clickOutside={{ignoreElement: '.publish-form-emoji-picker-button'}}
+  >
+    <div bind:this={el}></div>
+  </div>
+{/if}

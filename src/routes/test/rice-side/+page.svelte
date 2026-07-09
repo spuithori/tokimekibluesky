@@ -1,5 +1,6 @@
 <script lang="ts">
     import '../../styles.css';
+    import { tick } from 'svelte';
     import Side from '../../(app)/Side.svelte';
     import Decks from '../../(app)/Decks.svelte';
     import StatusBar from '$lib/components/rice/StatusBar.svelte';
@@ -8,23 +9,42 @@
     import RiceDrawer from '$lib/components/rice/RiceDrawer.svelte';
     import SidePanel from '$lib/components/side/SidePanel.svelte';
     import RiceModulesObserver from '$lib/components/rice/RiceModulesObserver.svelte';
+    import RiceLayoutObserver from '$lib/components/rice/RiceLayoutObserver.svelte';
     import RiceEffectLayers from '$lib/components/rice/RiceEffectLayers.svelte';
     import CoreCommandsObserver from '$lib/components/commands/CoreCommandsObserver.svelte';
     import KeybindsObserver from '$lib/components/commands/KeybindsObserver.svelte';
+    import { agent } from '$lib/stores';
+    import { appState } from '$lib/classes/appState.svelte';
+    import { shellResizeState } from '$lib/classes/shellResizeState.svelte';
+
+    const shellPreviewStyle = $derived(
+        shellResizeState.previewWidth != null
+            ? `--shell-max-width: ${shellResizeState.previewWidth}px;--shell-inset: max(0px, calc((100vw - ${shellResizeState.previewWidth}px) / 2));`
+            : ''
+    );
+    const singleColumnStyle = $derived.by(() => {
+        if (shellResizeState.singlePreviewWidth != null) return `--single-column-width: ${shellResizeState.singlePreviewWidth}px;`;
+        if (!riceState.declaresSingleWidth && typeof settingsStore.design?.singleWidth === 'number') return `--single-column-width: ${settingsStore.design.singleWidth}px;`;
+        return '';
+    });
     import { riceState } from '$lib/rice/riceState.svelte';
+    import { verticalBarOffset } from '$lib/rice/shellGeometry';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { getColumnState, initColumns } from '$lib/classes/columnState.svelte';
     import { keymodeState } from '$lib/classes/keymodeState.svelte';
     import { scratchpadState } from '$lib/classes/scratchpadState.svelte';
-    import { firstLeafId } from '$lib/classes/deckLayout';
+    import { firstLeafId, findTabsNodeOf } from '$lib/classes/deckLayout';
     import { setPostState } from '$lib/classes/postState.svelte';
+    import { publishState } from '$lib/classes/publishState.svelte';
     import { sideState } from '$lib/classes/sideState.svelte';
     import { overlayState } from '$lib/classes/overlayState.svelte';
+    import { revealState } from '$lib/classes/revealState.svelte';
     import { runCommand } from '$lib/commands/registry.svelte';
     import { defaultThemeInline } from '$lib/test-fixtures/defaultThemeInline';
+    import { db } from '$lib/db';
 
-    setPostState();
-    initColumns();
+    const postState = setPostState();
+    initColumns({ isDeckLayout: () => riceState.layoutStyle === 'deck' });
     const columnState = getColumnState(false);
 
     $effect(() => {
@@ -60,8 +80,86 @@
             setRiceEnabled(enabled: boolean) {
                 settingsStore.rice.enabled = enabled;
             },
+            setDesignLayout(value: 'decks' | 'default') {
+                settingsStore.design.layout = value;
+            },
+            getRiceConfig() {
+                return settingsStore.rice.config;
+            },
             keepFirstColumnOnly() {
                 columnState.slots = columnState.slots.slice(0, 1);
+            },
+            keepOnlyDummy() {
+                columnState.slots = columnState.slots.filter((slot) => firstLeafId(slot.layout) === 'rice-side-dummy');
+            },
+            async remountSlots() {
+                const slots = columnState.slots;
+                columnState.slots = [];
+                await tick();
+                columnState.slots = slots;
+            },
+            installFakeAgent(pinnedCount: number = 2) {
+                const feeds = ['cats', 'news', 'art', 'games', 'music', 'photo'].slice(0, Math.max(0, pinnedCount - 1));
+                const calls = { getV2PinnedFeeds: 0, xrpcGet: 0, getTimeline: 0 };
+                (window as any).__agentCalls = calls;
+                const base: any = {
+                    did: () => 'did:plc:rice-side',
+                    handle: () => 'rice-side.test',
+                    getV2PinnedFeeds: async () => {
+                        calls.getV2PinnedFeeds++;
+                        return [
+                            { type: 'timeline', value: 'following' },
+                            ...feeds.map((name) => ({ type: 'feed', value: `at://did:plc:rice/app.bsky.feed.generator/${name}` })),
+                        ];
+                    },
+                    getTimeline: async () => {
+                        calls.getTimeline++;
+                        return { cursor: undefined, feed: [] };
+                    },
+                    xrpc: {
+                        get: async (_nsid: string, params: any) => {
+                            calls.xrpcGet++;
+                            return {
+                                view: { displayName: (params?.feed ?? '').split('/').pop() ?? 'Feed' },
+                                list: { name: 'List' },
+                            };
+                        },
+                    },
+                };
+                agent.set(new Proxy(base, {
+                    get(target, prop) {
+                        if (prop in target) return target[prop];
+                        return async () => ({});
+                    },
+                }) as any);
+                appState.ready = true;
+            },
+            makeFeedTabsDemo() {
+                const names: [string, string][] = [
+                    ['ft-following', 'Following'],
+                    ['ft-discover', 'Discover'],
+                    ['ft-cats', 'Cats'],
+                    ['ft-news', 'News JP'],
+                    ['ft-art', 'Art & Illustration'],
+                ];
+                for (const [id, name] of names) {
+                    if (!columnState.hasColumn(id)) {
+                        columnState.add({
+                            id,
+                            algorithm: { type: 'module:dummytimeline', name },
+                            style: 'default',
+                            did: '',
+                            settings: { width: 'xxs' },
+                            data: { cursor: '' },
+                        } as any);
+                    }
+                }
+                for (const [id] of names.slice(1)) {
+                    columnState.tabifyColumn(id, names[0][0]);
+                }
+                const node = columnState.tabsNodeOf(names[0][0]);
+                if (node) columnState.setTabsMeta(node, { kind: 'feedtabs' });
+                columnState.slots = columnState.slots.filter((slot) => firstLeafId(slot.layout) === names[0][0] || findTabsNodeOf(slot.layout, names[0][0]));
             },
             addDummyColumn(id: string, name: string, width: string = 'medium') {
                 columnState.add({
@@ -77,6 +175,51 @@
                 const column = columnState.columns.find((c) => c.id === id);
                 if (column) column.settings = { ...column.settings, icon } as any;
             },
+            async addDraft(text: string) {
+                await db.drafts.add({
+                    id: `rice-side-draft-${text}`,
+                    createdAt: Date.now(),
+                    text,
+                    quotePost: undefined,
+                    replyRef: undefined,
+                    images: [],
+                    owner: 'did:plc:rice-side',
+                } as any);
+            },
+            async clearDrafts() {
+                await db.drafts.clear();
+            },
+            addPublishColumn(settings: Record<string, unknown> = {}) {
+                if (!columnState.hasColumn('rice-side-publish')) {
+                    columnState.add({
+                        id: 'rice-side-publish',
+                        algorithm: { type: 'publish', name: 'Publish' },
+                        style: 'default',
+                        did: '',
+                        settings: { width: 'medium', ...settings },
+                        data: { cursor: '' },
+                    } as any);
+                }
+            },
+            seedComposer({ text = '', images = 0, poll = false }: { text?: string; images?: number; poll?: boolean } = {}) {
+                const px = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+                const post = postState.posts?.[postState.index];
+                if (!post) return;
+                post.text = text;
+                post.images = Array.from({ length: images }, (_, i) => ({
+                    id: `seed-${i}`,
+                    alt: '',
+                    file: undefined,
+                    base64: px,
+                    isGif: false,
+                    width: 1,
+                    height: 1,
+                })) as any;
+                if (poll) {
+                    post.poll = { options: ['A', 'B'], duration: '1d' } as any;
+                }
+                postState.pulse = !postState.pulse;
+            },
             addPopupColumn() {
                 columnState.add({
                     id: 'rice-side-popup',
@@ -89,6 +232,67 @@
             },
             setThemeStyle(style: string) {
                 themeStyle = style;
+            },
+            appendThemeStyle(extra: string) {
+                themeStyle = themeStyle + extra;
+            },
+            openPublishOverlay() {
+                publishState.intercept = undefined;
+                publishState.show = true;
+            },
+            closePublishOverlay() {
+                publishState.show = false;
+            },
+            getPublishMetrics() {
+                const measure = (root: Element | null) => {
+                    const form = root?.querySelector('.publish-form');
+                    if (!form) return null;
+                    const scrollArea = root!.querySelector('.editor-scroll-area');
+                    const tiptap = root!.querySelector('.tiptap');
+                    const toolbar = root!.querySelector('.publish-toolbar');
+                    const meta = root!.querySelector('.publish-meta');
+                    const tags = root!.querySelector('.publish-tags');
+                    const wrap = root!.querySelector('.publish-wrap') ?? (root!.classList?.contains('publish-wrap') ? root : null);
+                    return {
+                        formRect: form.getBoundingClientRect().toJSON(),
+                        formRadius: getComputedStyle(form).borderRadius,
+                        formOverflow: getComputedStyle(form).overflow,
+                        scrollAreaClientHeight: scrollArea ? scrollArea.clientHeight : null,
+                        scrollAreaScrollHeight: scrollArea ? scrollArea.scrollHeight : null,
+                        scrollAreaMaxHeight: scrollArea ? getComputedStyle(scrollArea).maxHeight : null,
+                        tiptapHeight: tiptap ? tiptap.getBoundingClientRect().height : null,
+                        toolbarPosition: toolbar ? getComputedStyle(toolbar).position : null,
+                        toolbarRect: toolbar ? toolbar.getBoundingClientRect().toJSON() : null,
+                        metaRect: meta ? meta.getBoundingClientRect().toJSON() : null,
+                        tagsRect: tags ? tags.getBoundingClientRect().toJSON() : null,
+                        wrapScroll: wrap ? { scrollHeight: wrap.scrollHeight, clientHeight: wrap.clientHeight } : null,
+                        wrapRect: wrap ? wrap.getBoundingClientRect().toJSON() : null,
+                    };
+                };
+                return {
+                    overlay: measure(document.querySelector('.publish-group')),
+                    column: measure(document.querySelector('.publish-wrap--column')),
+                };
+            },
+            probePublishCorners(scope: 'overlay' | 'column' = 'column') {
+                const root = scope === 'overlay'
+                    ? document.querySelector('.publish-group')
+                    : document.querySelector('.publish-wrap--column');
+                const form = root?.querySelector('.publish-form');
+                if (!form) return null;
+                const r = form.getBoundingClientRect();
+                const probe = (x: number, y: number) => {
+                    const el = document.elementFromPoint(x, y);
+                    return el
+                        ? { insideForm: form.contains(el), tag: el.tagName, cls: String((el as HTMLElement).className ?? '').slice(0, 80) }
+                        : null;
+                };
+                return {
+                    bottomLeft: probe(r.left + 4, r.bottom - 5),
+                    bottomRight: probe(r.right - 5, r.bottom - 5),
+                    bottomCenter: probe(r.left + r.width / 2, r.bottom - 5),
+                    center: probe(r.left + r.width / 2, r.top + r.height / 2),
+                };
             },
             runCommand(id: string, arg?: string) {
                 runCommand(id, arg);
@@ -129,6 +333,7 @@
                     deckWrapRects: [...document.querySelectorAll('.deck-row-wrap')].map((el) => el.getBoundingClientRect().toJSON()),
                     deckScrollWidth: deck ? deck.scrollWidth : null,
                     deckClientWidth: deck ? deck.clientWidth : null,
+                    deckScrollLeft: deck ? deck.scrollLeft : null,
                     leftSpacerWidth: leftSpacer ? leftSpacer.getBoundingClientRect().width : null,
                     statusbarPaddingLeft: statusbar ? getComputedStyle(statusbar).paddingLeft : null,
                     statusbarPaddingRight: statusbar ? getComputedStyle(statusbar).paddingRight : null,
@@ -139,6 +344,11 @@
                     scrollWidth: document.documentElement.scrollWidth,
                     clientWidth: document.documentElement.clientWidth,
                     slotCount: columnState.slots.length,
+                    columnsLoaded: columnState.isColumnsLoaded,
+                    activeSlotIndex: columnState.activeSlotIndex,
+                    windowScrollY: window.scrollY,
+                    singleFlow: !!document.querySelector('.deck-single'),
+                    deckBox: !!document.querySelector('.deck-box'),
                     keymode: keymodeState.mode,
                     keymodeChip: document.querySelector('.rice-keymode')?.textContent ?? null,
                     slotIds: columnState.slots.map((slot) => firstLeafId(slot.layout)),
@@ -173,6 +383,9 @@
                         const cs = getComputedStyle(el);
                         return { opacity: cs.opacity, marginBottom: cs.marginBottom, pointerEvents: cs.pointerEvents };
                     }),
+                    headingHints: [...document.querySelectorAll('.deck .deck-heading-hotzone')].map(
+                        (el) => getComputedStyle(el, '::after').opacity,
+                    ),
                     popupTitlebar: (() => {
                         const el = document.querySelector('.deck-popup-titlebar');
                         if (!el) return null;
@@ -198,9 +411,10 @@
 </script>
 
 <RiceModulesObserver></RiceModulesObserver>
+<RiceLayoutObserver></RiceLayoutObserver>
 <CoreCommandsObserver></CoreCommandsObserver>
 <KeybindsObserver></KeybindsObserver>
-<div class="app-mock app" style={(riceState.themeReset ? '' : themeStyle) + riceState.globalStyle}>
+<div class="app-mock app" class:single={riceState.layoutStyle === 'single'} class:rice-headings-reveal={revealState.headings} style={(riceState.themeReset ? '' : themeStyle) + riceState.globalStyle + shellPreviewStyle + singleColumnStyle}>
     <SidePanel></SidePanel>
     <RiceEffectLayers></RiceEffectLayers>
     <StatusBar position="top"></StatusBar>
@@ -214,8 +428,12 @@
     </div>
 
     <StatusBar position="bottom"></StatusBar>
-    <RiceBar position="left"></RiceBar>
-    <RiceBar position="right"></RiceBar>
+    {#each riceState.leftBars as bar, index (bar.label ?? index)}
+        <RiceBar position="left" config={bar} offset={verticalBarOffset(riceState.leftBars, index)}></RiceBar>
+    {/each}
+    {#each riceState.rightBars as bar, index (bar.label ?? index)}
+        <RiceBar position="right" config={bar} offset={verticalBarOffset(riceState.rightBars, index)}></RiceBar>
+    {/each}
     <FooterHost></FooterHost>
     <RiceDrawer></RiceDrawer>
 </div>
@@ -238,6 +456,23 @@
         flex: 1;
         min-height: 0;
         min-width: 0;
+    }
+
+    .app-mock.single .wrap-mock {
+        width: var(--shell-content-width, auto);
+        max-width: 100%;
+        margin: 0 var(--single-align-mr, auto) 0 var(--single-align-ml, auto);
+        padding-right: var(--side-right-width, 0px);
+    }
+
+    @media (max-width: 767px) {
+        .wrap-mock {
+            display: block;
+        }
+
+        .app-mock.single .wrap-mock {
+            padding-right: 0;
+        }
     }
 
     .main-mock {

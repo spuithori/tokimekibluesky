@@ -244,15 +244,116 @@ describe('migrate', () => {
 });
 
 describe('v8: mobileNewUi removal', () => {
-    it('drops design.mobileNewUi from stored settings and bumps to v8', () => {
+    it('drops design.mobileNewUi from stored settings and bumps past v8', () => {
         const result = migrate({ version: 7, design: { mobileNewUi: true, darkmode: true } }, undefined);
-        expect(result.version).toBe(8);
+        expect(result.version).toBe(CURRENT_VERSION);
         expect('mobileNewUi' in result.design).toBe(false);
         expect(result.design.darkmode).toBe(true);
     });
 
     it('is safe when design is absent', () => {
         const result = migrate({ version: 7 }, undefined);
-        expect(result.version).toBe(8);
+        expect(result.version).toBe(CURRENT_VERSION);
+    });
+});
+
+describe('v9: singleWidth string enum retirement', () => {
+    it('converts each legacy preset string to its px value', () => {
+        expect(migrate({ version: 8, design: { singleWidth: 'medium' } }, undefined).design.singleWidth).toBe(528);
+        expect(migrate({ version: 8, design: { singleWidth: 'large' } }, undefined).design.singleWidth).toBe(600);
+        expect(migrate({ version: 8, design: { singleWidth: 'xxs' } }, undefined).design.singleWidth).toBe(380);
+        expect(migrate({ version: 8, design: { singleWidth: 'xxl' } }, undefined).design.singleWidth).toBe(760);
+    });
+
+    it('falls back to 528 for an unknown string', () => {
+        const result = migrate({ version: 8, design: { singleWidth: 'huge' } }, undefined);
+        expect(result.design.singleWidth).toBe(528);
+    });
+
+    it('passes a stored number through unchanged', () => {
+        const result = migrate({ version: 8, design: { singleWidth: 700 } }, undefined);
+        expect(result.design.singleWidth).toBe(700);
+    });
+
+    it('backfills the default when the stored value is garbage', () => {
+        const result = migrate({ version: 8, design: { singleWidth: { broken: true } } }, undefined);
+        expect(result.design.singleWidth).toBe(528);
+    });
+
+    it('is safe when design is absent and bumps to v9', () => {
+        const result = migrate({ version: 8 }, undefined);
+        expect(result.version).toBe(CURRENT_VERSION);
+        expect(result.design.singleWidth).toBe(528);
+    });
+
+    it('converts a versionless legacy backup through the whole chain', () => {
+        const result = migrate({ design: { singleWidth: 'xl' } }, undefined);
+        expect(result.version).toBe(CURRENT_VERSION);
+        expect(result.design.singleWidth).toBe(680);
+    });
+
+    it('is idempotent', () => {
+        const once = migrate({ version: 8, design: { singleWidth: 'large' } }, undefined);
+        const twice = migrate(JSON.parse(JSON.stringify(once)), undefined);
+        expect(twice.design.singleWidth).toBe(600);
+        expect(twice.version).toBe(CURRENT_VERSION);
+    });
+});
+
+describe('v10: rice plugins backfill', () => {
+    it('backfills rice.plugins when upgrading from v9', () => {
+        const result = migrate({ version: 9, rice: { enabled: true, config: '# x', sources: {} } }, undefined);
+        expect(result.version).toBe(CURRENT_VERSION);
+        expect(result.rice.plugins).toEqual({});
+    });
+
+    it('carries installed plugin records through export -> migrate', () => {
+        const exported = {
+            version: CURRENT_VERSION,
+            rice: {
+                enabled: true,
+                config: 'plugin:aurora {\n    enable = true\n}\n',
+                sources: {},
+                plugins: {
+                    aurora: {
+                        url: 'https://example.com/aurora/manifest.json',
+                        name: 'Aurora Effect',
+                        version: '1.0.0',
+                        integrity: 'sha256-abc',
+                        svelteVersion: '5.56.4',
+                        installedAt: '2026-07-09T00:00:00.000Z',
+                    },
+                },
+            },
+        };
+        const result = migrate(JSON.parse(JSON.stringify(exported)), undefined);
+        expect(result.rice.plugins['aurora']?.url).toBe('https://example.com/aurora/manifest.json');
+        expect(result.rice.plugins['aurora']?.integrity).toBe('sha256-abc');
+        expect(result.rice.config).toContain('plugin:aurora');
+    });
+});
+
+describe('rice portability (backup round trip)', () => {
+    it('carries rice.enabled/config/sources through export -> migrate', () => {
+        const exported = {
+            version: CURRENT_VERSION,
+            rice: {
+                enabled: false,
+                config: 'source = preset:bluesky-shell\n\nlayout {\n    style = single\n}\n',
+                sources: { 'store:abc': 'theme {\n}' },
+            },
+        };
+        const result = migrate(JSON.parse(JSON.stringify(exported)), undefined);
+        expect(result.rice.enabled).toBe(false);
+        expect(result.rice.config).toContain('preset:bluesky-shell');
+        expect(result.rice.config).toContain('style = single');
+        expect(result.rice.sources).toEqual({ 'store:abc': 'theme {\n}' });
+    });
+
+    it('backfills rice defaults when a backup predates rice', () => {
+        const result = migrate({ version: 5 }, undefined);
+        expect(result.rice.enabled).toBe(true);
+        expect(typeof result.rice.config).toBe('string');
+        expect(result.rice.sources).toEqual({});
     });
 });

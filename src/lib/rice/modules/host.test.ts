@@ -164,4 +164,33 @@ describe('RiceModuleHost 状態機械', () => {
         await flush();
         expect(host.entries.get('old')?.status).toBe('error');
     });
+
+    it('unregister は disabled のエントリを削除する', () => {
+        const host = new RiceModuleHost();
+        host.register(fakeManifest({ id: 'gone', contributes: {} }));
+        expect(host.unregister('gone')).toBe(true);
+        expect(host.entries.has('gone')).toBe(false);
+    });
+
+    it('unregister は enabled 中を拒否し、disable 後に成功する', async () => {
+        const host = new RiceModuleHost();
+        host.register(fakeManifest({ id: 'busy', contributes: { themeTokens: { t: '1' } } }));
+        host.setWanted('busy', true);
+        await flush();
+        expect(host.entries.get('busy')?.status).toBe('enabled');
+        expect(host.unregister('busy')).toBe(false);
+        expect(host.entries.has('busy')).toBe(true);
+
+        host.setWanted('busy', false);
+        await flush();
+        expect(host.unregister('busy')).toBe(true);
+        expect(host.entries.has('busy')).toBe(false);
+    });
+
+    it('unregister は error 状態と未知 id を許容する', async () => {
+        const host = new RiceModuleHost();
+        host.register(fakeManifest({ id: 'broken', apiVersion: 0 }));
+        expect(host.unregister('broken')).toBe(true);
+        expect(host.unregister('never-registered')).toBe(true);
+    });
 });

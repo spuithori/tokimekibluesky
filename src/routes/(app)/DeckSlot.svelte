@@ -1,9 +1,14 @@
 <script lang="ts">
     import {settings} from "$lib/stores";
     import {getColumnState, setScopedColumnState} from "$lib/classes/columnState.svelte";
+    import {firstLeafId} from "$lib/classes/deckLayout";
     import {tilingDrag} from "$lib/classes/tilingDragState.svelte";
     import {animateLayout} from "$lib/animations/flip";
-    import {clampDeckWidth} from "$lib/deckWidth";
+    import {clampDeckWidth, clampShellWidth, parseShellWidthPx, resolveDeckWidthPx, SHELL_WIDTH_DEFAULT, tileWeightForTargetWidth} from "$lib/deckWidth";
+    import {measureTileContext} from "$lib/tileMeasure";
+    import {shellResizeState} from "$lib/classes/shellResizeState.svelte";
+    import {settingsStore} from "$lib/settings/settings.svelte";
+    import {setValueInText} from "$lib/rice/config/edit";
     import {startPointerDrag} from "$lib/pointerDrag";
     import { sortable } from "$lib/attachments/sortable.svelte";
     import { riceState } from "$lib/rice/riceState.svelte";
@@ -28,7 +33,7 @@
     setScopedColumnState(columnState);
     const slot = $derived(columnState.getSlot(index));
     const isSplitLayout = $derived(!!slot && slot.layout.type !== 'leaf');
-    const leafIndex = $derived(columnState.getColumnIndex(columnState.leafIdsOf(index)[0]));
+    const leafIndex = $derived(slot ? columnState.getColumnIndex(firstLeafId(slot.layout)) : -1);
     const column = $derived(columnState.getColumn(leafIndex));
     const widthValue = $derived(column?.settings?.width ?? 'medium');
 
@@ -54,17 +59,59 @@
     }
 
     const riceStyle = $derived(riceState.styleForColumn(column));
-    const useSplitLayout = $derived(isSplitLayout && !isMobile && !isJunk && $settings.design?.layout !== 'default');
-    const showDragHandle = $derived(!column?.settings?.isPopup && $settings.design?.layout === 'decks');
+    const useSplitLayout = $derived(isSplitLayout && !isJunk && (slot?.layout.type === 'tabs' || (riceState.layoutStyle === 'deck' && !isMobile)));
+    const showDragHandle = $derived(!column?.settings?.isPopup && riceState.layoutStyle === 'deck');
+    const tileMode = $derived(
+        riceState.layoutMode === 'tile'
+        && riceState.layoutStyle === 'deck'
+        && !isJunk
+        && column?.settings?.isPopup !== true
+    );
+    const shellResizeTarget = $derived(
+        tileMode
+        && riceState.compiled.layout?.shell === 'centered'
+        && columnState.visibleSlotCount() === 1
+    );
     const showWidthBar = $derived(
-        $settings.design?.layout === 'decks'
+        riceState.layoutStyle === 'deck'
         && !isMobile
         && !isJunk
         && !column?.settings?.isPopup
+        && (shellResizeTarget || !riceStyle.includes('--rice-column-width'))
     );
+    const tileWeight = $derived(clampDeckWidth(resolveDeckWidthPx(widthValue)));
+
+    function startShellResize(event: PointerEvent) {
+        const startShell = parseShellWidthPx(riceState.compiled.layout?.shellWidth) ?? SHELL_WIDTH_DEFAULT;
+        const startX = event.clientX;
+        isWidthResizing = true;
+        startPointerDrag(
+            event,
+            (e) => {
+                shellResizeState.previewWidth = clampShellWidth(startShell + 2 * (e.clientX - startX));
+            },
+            () => {
+                isWidthResizing = false;
+                const committed = shellResizeState.previewWidth;
+                shellResizeState.previewWidth = null;
+                if (committed != null) {
+                    settingsStore.rice.config = setValueInText(
+                        settingsStore.rice.config ?? '',
+                        [{ name: 'layout' }],
+                        'shellwidth',
+                        `${committed}px`,
+                    );
+                }
+            },
+        );
+    }
 
     function startWidthResize(event: PointerEvent) {
         if (isMobile || !slotEl || !column) return;
+        if (shellResizeTarget) {
+            startShellResize(event);
+            return;
+        }
         const cols = slot?.layout?.type === 'tabs'
             ? columnState.leafIdsOf(index)
                 .map((id) => columnState.getColumn(columnState.getColumnIndex(id)))
@@ -72,12 +119,25 @@
             : [column];
         const startX = event.clientX;
         const startWidth = slotEl.offsetWidth;
+        const tileResize = tileMode;
+        let containerPx = 0;
+        let otherWeightsSum = 0;
+        if (tileResize) {
+            const ctx = measureTileContext(columnState, index, slotEl.closest<HTMLElement>('.deck'));
+            if (ctx) {
+                containerPx = ctx.containerPx;
+                otherWeightsSum = ctx.otherWeightsSum;
+            }
+        }
         isWidthResizing = true;
         columnState.isResizingWidth = true;
         startPointerDrag(
             event,
             (e) => {
-                const width = clampDeckWidth(startWidth + (e.clientX - startX));
+                const target = startWidth + (e.clientX - startX);
+                const width = tileResize
+                    ? tileWeightForTargetWidth(target, otherWeightsSum, containerPx)
+                    : clampDeckWidth(target);
                 for (const col of cols) col.settings.width = width;
             },
             () => { isWidthResizing = false; columnState.isResizingWidth = false; },
@@ -87,17 +147,22 @@
 
 <div
     class="deck-row-wrap"
-     class:deck-row-wrap--single={$settings.design?.layout === 'default'}
+     class:deck-row-wrap--single={riceState.layoutStyle === 'single'}
+     class:deck-row-wrap--tile={tileMode}
      style={riceStyle || null}
+     style:--deck-tile-weight={tileMode ? tileWeight : null}
      {@attach !isJunk && sortable(() => ({
          axis: 'x',
          participantSelector: '.deck-row-wrap',
          handle: '.deck-drag-area',
-         disabled: $settings.design?.layout === 'default',
+         disabled: riceState.layoutStyle === 'single',
          onReorder: reorderColumns,
          onDragStart: (dragId) => { columnState.isReordering = true; tilingDrag.begin(dragId ?? column?.id ?? ''); },
          onDragEnd: () => { columnState.isReordering = false; tilingDrag.end(); },
-         tileSelector: $settings.design?.layout === 'decks' ? '[data-tile-id]' : undefined,
+         tileSelector: riceState.layoutStyle === 'deck' ? '[data-tile-id]' : undefined,
+         edgeScrollContainer: riceState.layoutStyle === 'deck' && !isMobile
+             ? (n) => n.closest<HTMLElement>('.deck')
+             : undefined,
          onTilePreview: (p) => tilingDrag.setPreview(p),
          onDragMove: (x, y) => tilingDrag.setPointer(x, y),
          onTile: (sourceId, target) => animateLayout(() => tilingDrag.applySplit(columnState, sourceId, target)),
@@ -111,9 +176,10 @@
     <div
         class="deck-row-slot {typeof widthValue === 'string' ? `deck-row-slot--${widthValue}` : ''}"
         class:deck-row-slot--split={useSplitLayout}
+        class:deck-row-slot--tile={tileMode}
         class:deck-row-slot--popup={column?.settings?.isPopup === true}
-        class:deck-row-slot--decks={$settings.design?.layout === 'decks'}
-        class:deck-row-slot--single={$settings.design?.layout === 'default'}
+        class:deck-row-slot--decks={riceState.layoutStyle === 'deck'}
+        class:deck-row-slot--single={riceState.layoutStyle === 'single'}
         class:deck-row-slot--junk={isJunk}
         style:--deck-col-width={typeof widthValue === 'number' ? `${widthValue}px` : null}
         onmouseenter={handleMouseEnter}
@@ -186,6 +252,15 @@
             border: none;
             overflow: visible;
         }
+
+        &--tile {
+            @media (min-width: 768px) {
+                flex-grow: var(--rice-tile-weight, var(--deck-tile-weight, 400));
+                flex-shrink: var(--rice-tile-weight, var(--deck-tile-weight, 400));
+                flex-basis: 0;
+                min-width: 0;
+            }
+        }
     }
 
     .deck-row-slot {
@@ -232,6 +307,13 @@
             @media (min-width: 768px) {
                 width: 100%;
                 height: 100%;
+            }
+        }
+
+        &--tile {
+            @media (min-width: 768px) {
+                width: auto;
+                min-width: 0;
             }
         }
     }

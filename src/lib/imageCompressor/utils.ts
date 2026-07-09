@@ -68,8 +68,38 @@ const JPEG_SOF_MARKERS = new Set([
     0xcd, 0xce, 0xcf,
 ]);
 
-function jpegIntrinsicSize(b: Uint8Array): { width: number; height: number } | null {
+function parseExifOrientation(b: Uint8Array, start: number, end: number): number | undefined {
+    if (end - start < 14) return undefined;
+    if (b[start] !== 0x45 || b[start + 1] !== 0x78 || b[start + 2] !== 0x69
+        || b[start + 3] !== 0x66 || b[start + 4] !== 0x00 || b[start + 5] !== 0x00) return undefined;
+    const tiff = start + 6;
+    let little: boolean;
+    if (b[tiff] === 0x49 && b[tiff + 1] === 0x49) little = true;
+    else if (b[tiff] === 0x4d && b[tiff + 1] === 0x4d) little = false;
+    else return undefined;
+    const u16 = (o: number) => little ? b[o] | (b[o + 1] << 8) : (b[o] << 8) | b[o + 1];
+    const u32 = (o: number) => little
+        ? (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0
+        : ((b[o] << 24) | (b[o + 1] << 16) | (b[o + 2] << 8) | b[o + 3]) >>> 0;
+    if (tiff + 8 > end || u16(tiff + 2) !== 0x002a) return undefined;
+    const ifd = tiff + u32(tiff + 4);
+    if (ifd + 2 > end) return undefined;
+    const count = u16(ifd);
+    for (let i = 0; i < count; i++) {
+        const entry = ifd + 2 + i * 12;
+        if (entry + 12 > end) return undefined;
+        if (u16(entry) === 0x0112) {
+            if (u16(entry + 2) !== 3) return undefined;
+            const value = u16(entry + 8);
+            return value >= 1 && value <= 8 ? value : undefined;
+        }
+    }
+    return undefined;
+}
+
+function jpegIntrinsicSize(b: Uint8Array): IntrinsicInfo | null {
     if (b.length < 4 || b[0] !== 0xff || b[1] !== 0xd8) return null;
+    let orientation: number | undefined;
     let i = 2;
     while (i < b.length - 1) {
         if (b[i] !== 0xff) return null;
@@ -83,7 +113,10 @@ function jpegIntrinsicSize(b: Uint8Array): { width: number; height: number } | n
             if (i + 9 > b.length) return null;
             const height = (b[i + 5] << 8) | b[i + 6];
             const width = (b[i + 7] << 8) | b[i + 8];
-            return width > 0 && height > 0 ? { width, height } : null;
+            return width > 0 && height > 0 ? { width, height, orientation } : null;
+        }
+        if (marker === 0xe1 && orientation === undefined) {
+            orientation = parseExifOrientation(b, i + 4, Math.min(i + 2 + length, b.length));
         }
         i += 2 + length;
     }
@@ -125,7 +158,13 @@ function webpIntrinsicSize(b: Uint8Array): { width: number; height: number } | n
     return null;
 }
 
-export async function getIntrinsicSize(blob: Blob): Promise<{ width: number; height: number } | null> {
+export interface IntrinsicInfo {
+    width: number;
+    height: number;
+    orientation?: number;
+}
+
+export async function getIntrinsicSize(blob: Blob): Promise<IntrinsicInfo | null> {
     try {
         const b = new Uint8Array(await blob.slice(0, 131072).arrayBuffer());
         return jpegIntrinsicSize(b) ?? pngIntrinsicSize(b) ?? webpIntrinsicSize(b);

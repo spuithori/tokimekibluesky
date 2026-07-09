@@ -6,13 +6,14 @@
   import { getScrollTopFor, setScrollTopFor, resolveScrollContainer } from "$lib/components/virtual/scroll-helpers";
   import {_} from "tokimeki-i18n";
   import {getScopedColumnState} from "$lib/classes/columnState.svelte";
+  import { riceState } from '$lib/rice/riceState.svelte';
 
   let { column, _agent, rootIndex, onchangeprofile } = $props();
   const columnState = getScopedColumnState();
   let parent = $state<HTMLElement | undefined>();
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
   let hasScrolledToRoot = false;
-  let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
+  let isSingleColumnMode = $derived(riceState.layoutStyle === 'single');
   let topMargin = $derived.by(() => {
     if (columnState.isJunk) {
       return isSingleColumnMode ? 108 : 121;

@@ -38,6 +38,7 @@ export interface SortableOptions {
 	onTile?: (sourceId: string, target: TileTarget) => void;
 	onExtract?: (sourceId: string, target?: ExtractTarget) => void;
 	onDragMove?: (clientX: number, clientY: number) => void;
+	edgeScrollContainer?: (node: HTMLElement) => HTMLElement | null;
 }
 
 const DEFAULT_DURATION = 220;
@@ -47,6 +48,8 @@ const QUAD_DEADBAND = 0.06;
 const REORDER_BAND = 0.25;
 const BAND_DEADBAND = 10;
 const CENTER_FRAC = 0.12;
+const EDGE_SCROLL_BAND = 48;
+const EDGE_SCROLL_MAX = 18;
 
 export type Quad = 'top' | 'bottom' | 'left' | 'right' | 'center';
 
@@ -91,6 +94,26 @@ export function quadrantZone(
 
 export function insertionIndexAt(cols: { left: number; right: number }[], x: number): number {
 	return cols.filter((r) => (r.left + r.right) / 2 < x).length;
+}
+
+export function edgeScrollVelocity(
+	pointerCoord: number,
+	rectStart: number,
+	rectEnd: number,
+	band = EDGE_SCROLL_BAND,
+	maxSpeed = EDGE_SCROLL_MAX,
+): number {
+	const effBand = Math.min(band, (rectEnd - rectStart) / 2);
+	if (effBand <= 0) return 0;
+	if (pointerCoord < rectStart + effBand) {
+		const depth = Math.min((rectStart + effBand - pointerCoord) / effBand, 1);
+		return -maxSpeed * depth;
+	}
+	if (pointerCoord > rectEnd - effBand) {
+		const depth = Math.min((pointerCoord - (rectEnd - effBand)) / effBand, 1);
+		return maxSpeed * depth;
+	}
+	return 0;
 }
 
 type Box = { left: number; right: number; top: number; bottom: number };
@@ -150,6 +173,8 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 		let clientX = 0;
 		let clientY = 0;
 		let rafId = 0;
+		let edgeRafId = 0;
+		let scroller: HTMLElement | null = null;
 
 		let dragId: string | null = null;
 		let leafMode = false;
@@ -309,9 +334,7 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 			applyOffset();
 		}
 
-		function flush() {
-			rafId = 0;
-			if (!started) return;
+		function updateDrag() {
 			off = leafMode ? 0 : pointerPos - grab - naturalPos;
 			if (leafMode) opts.onDragMove?.(clientX, clientY);
 			detectTile();
@@ -323,6 +346,37 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 			const target = computeTarget(participants);
 			writeTransform();
 			if (target !== current) reorderAndFlip(target, participants);
+		}
+
+		function flush() {
+			rafId = 0;
+			if (!started) return;
+			updateDrag();
+			maybeStartEdgeScroll();
+		}
+
+		function edgeVelocity(): number {
+			if (!scroller) return 0;
+			const r = scroller.getBoundingClientRect();
+			return edgeScrollVelocity(clientX, r.left, r.right);
+		}
+
+		function maybeStartEdgeScroll() {
+			if (!scroller || edgeRafId) return;
+			if (edgeVelocity() !== 0) edgeRafId = requestAnimationFrame(edgeTick);
+		}
+
+		function edgeTick() {
+			edgeRafId = 0;
+			if (!started || !scroller) return;
+			const v = edgeVelocity();
+			if (v === 0) return;
+			const before = scroller.scrollLeft;
+			scroller.scrollLeft = before + v;
+			const delta = scroller.scrollLeft - before;
+			if (delta !== 0 && !leafMode) naturalPos -= delta;
+			updateDrag();
+			edgeRafId = requestAnimationFrame(edgeTick);
 		}
 
 		function onPointerMove(e: PointerEvent) {
@@ -361,6 +415,11 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 				cancelAnimationFrame(rafId);
 				rafId = 0;
 			}
+			if (edgeRafId) {
+				cancelAnimationFrame(edgeRafId);
+				edgeRafId = 0;
+			}
+			scroller = null;
 			pointerId = -1;
 
 			const wasDragging = started;
@@ -472,6 +531,7 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 			naturalPos = horizontal ? rect.left : rect.top;
 			grab = pointerPos - naturalPos;
 			off = 0;
+			scroller = opts.edgeScrollContainer?.(node) ?? null;
 
 			controller = new AbortController();
 			const { signal } = controller;
@@ -487,6 +547,8 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 			controller?.abort();
 			controller = null;
 			if (rafId) cancelAnimationFrame(rafId);
+			if (edgeRafId) cancelAnimationFrame(edgeRafId);
+			scroller = null;
 			flipAnims.forEach((a) => a.cancel());
 			flipAnims.clear();
 			dropAnim?.cancel();

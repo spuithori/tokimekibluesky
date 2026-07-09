@@ -6,12 +6,19 @@
   import { getColumnState } from "$lib/classes/columnState.svelte";
   import { publishState } from "$lib/classes/publishState.svelte";
   import { ensurePublishColumn } from "$lib/publishColumn";
+  import { riceState } from '$lib/rice/riceState.svelte';
 
   const columnState = getColumnState();
 
   publishState.intercept = () => {
-      if ($settings.design?.layout === 'decks' && window.matchMedia('(min-width: 768px)').matches) {
+      const desktop = window.matchMedia('(min-width: 768px)').matches;
+      if (!desktop) return false;
+      if (riceState.layoutStyle === 'deck') {
           ensurePublishColumn(columnState);
+          return true;
+      }
+      if (riceState.layoutComposer === 'top') {
+          publishState.focusTick++;
           return true;
       }
       return false;
@@ -24,7 +31,7 @@
 
 <div
     class="side"
-    class:side--single={$settings.design?.layout !== 'decks'}
+    class:side--single={riceState.layoutStyle === 'single'}
 >
   <SideBarHost></SideBarHost>
 
@@ -43,7 +50,7 @@
       position: fixed;
       top: 0;
       bottom: 0;
-      left: 0;
+      left: var(--shell-inset, 0px);
       z-index: 1002;
       background-color: var(--side-bg-color);
       border-radius: var(--side-border-radius, 0);

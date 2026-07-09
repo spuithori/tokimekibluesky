@@ -30,6 +30,14 @@ export class RiceModuleHost {
         this.entries.set(manifest.id, entry);
     }
 
+    unregister(id: string): boolean {
+        const entry = this.entries.get(id);
+        if (!entry) return true;
+        if (entry.status !== 'disabled' && entry.status !== 'error') return false;
+        this.entries.delete(id);
+        return true;
+    }
+
     setWanted(id: string, wanted: boolean): void {
         const entry = this.entries.get(id);
         if (!entry) return;
@@ -75,7 +83,7 @@ export class RiceModuleHost {
                 entry.unregisters.push(() => sidebarItemRegistry.delete(item.id));
             }
             for (const layer of contributes?.effectLayers ?? []) {
-                effectLayerRegistry.set(layer.id, { zIndex: layer.zIndex ?? 0, loader: layer.loader });
+                effectLayerRegistry.set(layer.id, { zIndex: layer.zIndex ?? 0, loader: layer.loader, getOptions: layer.getOptions });
                 entry.unregisters.push(() => effectLayerRegistry.delete(layer.id));
             }
             if (contributes?.themeTokens) {

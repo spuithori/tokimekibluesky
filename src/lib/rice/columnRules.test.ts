@@ -140,12 +140,16 @@ describe('styleForColumn heading / titlebar', () => {
         expect(style).toContain('--deck-heading-space: 0px;');
         expect(style).toContain('--rice-heading-hover-opacity: 1;');
         expect(style).toContain('--rice-heading-hover-pe: auto;');
+        expect(style).toContain('--rice-heading-hotzone-pe: auto;');
+        expect(style).toContain('--rice-heading-hint: 0.45;');
     });
 
     it('heading = hidden は hover 復帰変数を発行しない', () => {
         const style = styleForColumn([{ match: { type: 'default' }, props: { heading: 'hidden' } }], makeColumn());
         expect(style).toContain('--rice-heading-opacity: 0;');
         expect(style).not.toContain('--rice-heading-hover-opacity');
+        expect(style).not.toContain('--rice-heading-hotzone-pe');
+        expect(style).not.toContain('--rice-heading-hint');
     });
 
     it('heading = show は既定値を明示発行する', () => {
@@ -174,6 +178,18 @@ describe('styleForColumn windowrule v2 拡張', () => {
         expect(px).toContain('--rice-column-width: 420px;');
     });
 
+    it('width はタイル重み --rice-tile-weight も発行しクランプする', () => {
+        const preset = styleForColumn([{ match: { type: 'default' }, props: { width: 'small' } }], makeColumn());
+        expect(preset).toContain('--rice-tile-weight: 350;');
+
+        const px = styleForColumn([{ match: { type: 'default' }, props: { width: '420px' } }], makeColumn());
+        expect(px).toContain('--rice-tile-weight: 420;');
+
+        const over = styleForColumn([{ match: { type: 'default' }, props: { width: '2000px' } }], makeColumn());
+        expect(over).toContain('--rice-column-width: 2000px;');
+        expect(over).toContain('--rice-tile-weight: 1200;');
+    });
+
     it('background / dim / padding / heading-bg を対応変数へ発行する', () => {
         const style = styleForColumn(
             [{ match: { type: 'default' }, props: { background: '#101010', dim: '0.6', padding: '12px', 'heading-bg': '#202020' } }],
@@ -183,6 +199,24 @@ describe('styleForColumn windowrule v2 拡張', () => {
         expect(style).toContain('--rice-column-dim: 0.6;');
         expect(style).toContain('--timeline-padding: 12px;');
         expect(style).toContain('--deck-heading-bg-color: #202020;');
+    });
+
+    it('editorheight は px で固定・fill でフレックス伸長の変数ペアを発行する', () => {
+        const px = styleForColumn([{ match: { type: 'publish' }, props: { editorheight: '320px' } }], makeColumn({ type: 'publish' }));
+        expect(px).toContain('--publish-editor-height: 320px;');
+        expect(px).toContain('--publish-editor-flex: 0 0 auto;');
+
+        const fill = styleForColumn([{ match: { type: 'publish' }, props: { editorheight: 'fill' } }], makeColumn({ type: 'publish' }));
+        expect(fill).toContain('--publish-editor-height: 100%;');
+        expect(fill).toContain('--publish-editor-flex: 1;');
+        expect(fill).toContain('--publish-form-flex: 1 1 auto;');
+        expect(fill).toContain('--publish-drafts-display: none;');
+
+        const auto = styleForColumn([{ match: { type: 'publish' }, props: { editorheight: 'auto' } }], makeColumn({ type: 'publish' }));
+        expect(auto).toContain('--publish-editor-height: auto;');
+        expect(auto).toContain('--publish-editor-flex: 0 0 auto;');
+        expect(auto).toContain('--publish-form-flex: 0 1 auto;');
+        expect(auto).toContain('--publish-drafts-display: block;');
     });
 });
 

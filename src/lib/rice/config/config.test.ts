@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parse } from './parser';
 import { compile } from './compile';
-import { getValueInText, setValueInText } from './edit';
+import { getPresetSourceInText, getValueInText, setPresetSourceInText, setValueInText } from './edit';
 
 const SAMPLE = `# my rice
 $accent = #7a35f1
@@ -85,7 +85,7 @@ describe('rice config compile', () => {
         expect(out.columnRules[0].props).toEqual({ opacity: '0.85', rounding: '16px' });
         expect(out.columnRules[1].match).toEqual({ name: '/^Home/', did: 'did:plc:abc' });
         expect(out.modules).toEqual({ clock: { enable: true, options: { format: 'HH:mm' } } });
-        expect(out.bars.top).toEqual({
+        expect(out.bars.top?.[0]).toEqual({
             kind: 'rice',
             position: 'top',
             style: 'bar',
@@ -127,7 +127,7 @@ describe('rice config compile', () => {
     it('statusbar のスタイルプロパティと float を受け付ける(bars.bottom へ正規化)', () => {
         const out = compile('statusbar {\n    position = bottom\n    modules = clock\n    float = true\n    height = 40px\n    background = #101010\n    blur = 8px\n    rounding = 16px\n    font-size = 14px\n}');
         expect(out.diagnostics).toEqual([]);
-        expect(out.bars.bottom).toMatchObject({
+        expect(out.bars.bottom?.[0]).toMatchObject({
             kind: 'rice',
             position: 'bottom',
             style: 'bar',
@@ -140,7 +140,7 @@ describe('rice config compile', () => {
     it('bar セクションで縦バーを定義できる', () => {
         const out = compile('bar "left" {\n    position = left\n    style = menu\n    items = account, home, spacer, publish\n    width = 220px\n}');
         expect(out.diagnostics).toEqual([]);
-        expect(out.bars.left).toMatchObject({
+        expect(out.bars.left?.[0]).toMatchObject({
             kind: 'rice',
             position: 'left',
             style: 'menu',
@@ -151,7 +151,7 @@ describe('rice config compile', () => {
 
     it('縦バーの style = menu で width 未指定は warning', () => {
         const out = compile('bar "left" {\n    position = left\n    style = menu\n    items = home\n}');
-        expect(out.bars.left?.style).toBe('menu');
+        expect(out.bars.left?.[0]?.style).toBe('menu');
         expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('width'))).toBe(true);
     });
 
@@ -163,14 +163,14 @@ describe('rice config compile', () => {
         expect(invalid.diagnostics.some((d) => d.severity === 'error' && d.message.includes('position'))).toBe(true);
 
         const dup = compile('statusbar {\n    modules = clock\n}\n\nbar "x" {\n    position = top\n    items = account\n}');
-        expect(dup.bars.top?.items).toEqual(['account']);
+        expect(dup.bars.top?.[0]?.items).toEqual(['account']);
         expect(dup.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('複数定義'))).toBe(true);
     });
 
     it('bar の position = right を受理する', () => {
         const out = compile('bar "r" {\n    position = right\n    items = home, search\n    width = 72px\n}');
         expect(out.diagnostics).toEqual([]);
-        expect(out.bars.right).toMatchObject({
+        expect(out.bars.right?.[0]).toMatchObject({
             kind: 'rice',
             position: 'right',
             style: 'icons',
@@ -179,13 +179,38 @@ describe('rice config compile', () => {
         });
     });
 
-    it('右バーの重複はwarning・floatはwarning+強制off', () => {
-        const dup = compile('bar "a" {\n    position = right\n    items = home\n    width = 64px\n}\n\nbar "b" {\n    position = right\n    items = search\n    width = 64px\n}');
-        expect(dup.bars.right?.items).toEqual(['search']);
-        expect(dup.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('複数定義'))).toBe(true);
+    it('縦エッジのenable=falseは同ラベルのみ除去し他のバーを残す', () => {
+        const out = compile('bar "a" {\n    position = right\n    items = home\n    width = 64px\n}\n\nbar "b" {\n    position = right\n    items = search\n    width = 72px\n}\n\nbar "b" {\n    position = right\n    enable = false\n}');
+        expect(out.bars.right?.length).toBe(1);
+        expect(out.bars.right?.[0]?.label).toBe('a');
+
+        const nomatch = compile('bar "a" {\n    position = right\n    items = home\n    width = 64px\n}\n\nbar "x" {\n    position = right\n    enable = false\n}');
+        expect(nomatch.bars.right).toBeUndefined();
+    });
+
+    it('bar の enable = false は既存宣言を撤去する', () => {
+        const out = compile('bar "r" {\n    position = right\n    items = home\n    width = 64px\n}\n\nbar "r" {\n    position = right\n    enable = false\n}');
+        expect(out.bars.right?.[0]).toBeUndefined();
+        expect(out.diagnostics.filter((d) => d.severity === 'error')).toEqual([]);
+
+        const solo = compile('bar "r" {\n    position = right\n    enable = false\n}');
+        expect(solo.bars.right?.[0]).toBeUndefined();
+        expect(solo.diagnostics).toEqual([]);
+    });
+
+    it('縦エッジは別ラベルの複数バーを積層し同ラベルは後勝ちで置換する', () => {
+        const dual = compile('bar "a" {\n    position = right\n    items = home\n    width = 64px\n}\n\nbar "b" {\n    position = right\n    items = search\n    width = 72px\n}');
+        expect(dual.diagnostics).toEqual([]);
+        expect(dual.bars.right?.map((b) => b.label)).toEqual(['a', 'b']);
+        expect(dual.bars.right?.[1]?.items).toEqual(['search']);
+
+        const relabel = compile('bar "a" {\n    position = right\n    items = home\n    width = 64px\n}\n\nbar "a" {\n    position = right\n    items = search\n    width = 64px\n}');
+        expect(relabel.bars.right?.length).toBe(1);
+        expect(relabel.bars.right?.[0]?.items).toEqual(['search']);
+        expect(relabel.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('再宣言'))).toBe(true);
 
         const float = compile('bar "r" {\n    position = right\n    items = home\n    float = true\n    width = 64px\n}');
-        expect(float.bars.right?.float).toBe(false);
+        expect(float.bars.right?.[0]?.float).toBe(false);
         expect(float.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('float'))).toBe(true);
     });
 
@@ -202,6 +227,124 @@ describe('rice config compile', () => {
         const unknown = compile('layout {\n    align = right\n    gap = 8px\n}');
         expect(unknown.layout).toEqual({ align: 'right' });
         expect(unknown.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('gap'))).toBe(true);
+    });
+
+    it('layout セクションで mode をコンパイルする', () => {
+        const tile = compile('layout {\n    mode = tile\n}');
+        expect(tile.diagnostics).toEqual([]);
+        expect(tile.layout).toEqual({ align: 'left', mode: 'tile' });
+
+        const scroll = compile('layout {\n    align = center\n    mode = scroll\n}');
+        expect(scroll.diagnostics).toEqual([]);
+        expect(scroll.layout).toEqual({ align: 'center', mode: 'scroll' });
+    });
+
+    it('layout の不正な mode は error で mode 未設定のまま', () => {
+        const out = compile('layout {\n    mode = paging\n}');
+        expect(out.diagnostics.some((d) => d.severity === 'error' && d.message.includes('mode'))).toBe(true);
+        expect(out.layout?.mode).toBeUndefined();
+    });
+
+    it('layout セクションで shell / shellwidth をコンパイルする', () => {
+        const out = compile('layout {\n    align = center\n    shell = centered\n    shellwidth = 1240px\n}');
+        expect(out.diagnostics).toEqual([]);
+        expect(out.layout).toEqual({ align: 'center', shell: 'centered', shellWidth: '1240px' });
+
+        const none = compile('layout {\n    shell = none\n}');
+        expect(none.diagnostics).toEqual([]);
+        expect(none.layout).toEqual({ align: 'left', shell: 'none' });
+    });
+
+    it('style=single + shell=centered の shellwidth は warning になり deck では警告なし', () => {
+        const single = compile('layout {\n    style = single\n    shell = centered\n    shellwidth = 1240px\n}');
+        expect(single.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('shellwidth'))).toBe(true);
+        expect(single.layout?.shellWidth).toBe('1240px');
+
+        const deck = compile('layout {\n    style = deck\n    shell = centered\n    shellwidth = 1240px\n}');
+        expect(deck.diagnostics).toEqual([]);
+
+        const merged = compile('layout {\n    style = single\n    shell = centered\n    shellwidth = 1240px\n}\n\nlayout {\n    composer = top\n}');
+        expect(merged.diagnostics.filter((d) => d.severity === 'warning').length).toBe(1);
+    });
+
+    it('setValueInText は同名セクションが複数あるとき最後のセクションを編集する(compileの後勝ちと整合)', () => {
+        const source = 'layout {\n    align = left\n}\n\nlayout {\n    mode = tile\n}\n';
+        const next = setValueInText(source, [{ name: 'layout' }], 'shellwidth', '1240px');
+        const lastSection = next.lastIndexOf('layout {');
+        expect(next.indexOf('shellwidth = 1240px')).toBeGreaterThan(lastSection);
+        expect(compile(next).layout).toEqual({ align: 'left', mode: 'tile', shellWidth: '1240px' });
+
+        const updated = setValueInText(next, [{ name: 'layout' }], 'shellwidth', '1400px');
+        expect(compile(updated).layout?.shellWidth).toBe('1400px');
+        expect(updated.match(/shellwidth/g)?.length).toBe(1);
+    });
+
+    it('preset source ヘルパは冪等に挿入・置換・削除する', () => {
+        const base = '# comment only\n\nlayout {\n    align = left\n}\n';
+        expect(getPresetSourceInText(base)).toBe(null);
+
+        const inserted = setPresetSourceInText(base, 'bluesky-shell');
+        expect(inserted.startsWith('source = preset:bluesky-shell\n')).toBe(true);
+        expect(getPresetSourceInText(inserted)).toBe('bluesky-shell');
+
+        const replaced = setPresetSourceInText(inserted, 'macaron');
+        expect(getPresetSourceInText(replaced)).toBe('macaron');
+        expect(replaced.match(/source = preset:/g)?.length).toBe(1);
+
+        const removed = setPresetSourceInText(replaced, null);
+        expect(getPresetSourceInText(removed)).toBe(null);
+        expect(removed.includes('preset:')).toBe(false);
+        expect(removed.includes('layout {')).toBe(true);
+
+        expect(setPresetSourceInText(base, null)).toBe(base);
+    });
+
+    it('preset source ヘルパは preset: 以外の source を触らない', () => {
+        const base = 'source = store:abc\n\nlayout {\n    align = left\n}\n';
+        expect(getPresetSourceInText(base)).toBe(null);
+
+        const inserted = setPresetSourceInText(base, 'cozy');
+        expect(getPresetSourceInText(inserted)).toBe('cozy');
+        expect(inserted.includes('source = store:abc')).toBe(true);
+
+        const removed = setPresetSourceInText(inserted, null);
+        expect(removed.includes('source = store:abc')).toBe(true);
+        expect(getPresetSourceInText(removed)).toBe(null);
+    });
+
+    it('layout セクションで feedtabs をコンパイルし後勝ちマージでも維持される', () => {
+        const out = compile('layout {\n    feedtabs = pinned\n}');
+        expect(out.diagnostics).toEqual([]);
+        expect(out.layout).toEqual({ align: 'left', feedTabs: 'pinned' });
+
+        const merged = compile('layout {\n    feedtabs = pinned\n}\nlayout {\n    mode = tile\n}');
+        expect(merged.layout).toEqual({ align: 'left', feedTabs: 'pinned', mode: 'tile' });
+
+        const bad = compile('layout {\n    feedtabs = all\n}');
+        expect(bad.diagnostics.some((d) => d.severity === 'error' && d.message.includes('feedtabs'))).toBe(true);
+        expect(bad.layout?.feedTabs).toBeUndefined();
+    });
+
+    it('layout の不正な shell / shellwidth は error で未設定のまま', () => {
+        const shell = compile('layout {\n    shell = wide\n}');
+        expect(shell.diagnostics.some((d) => d.severity === 'error' && d.message.includes('shell'))).toBe(true);
+        expect(shell.layout?.shell).toBeUndefined();
+
+        const width = compile('layout {\n    shellwidth = 1240\n}');
+        expect(width.diagnostics.some((d) => d.severity === 'error' && d.message.includes('shellwidth'))).toBe(true);
+        expect(width.layout?.shellWidth).toBeUndefined();
+
+        const percent = compile('layout {\n    shellwidth = 90%\n}');
+        expect(percent.diagnostics.some((d) => d.severity === 'error' && d.message.includes('shellwidth'))).toBe(true);
+    });
+
+    it('media ブロック内の layout mode はアクティブ時のみ反映される', () => {
+        const source = 'media "desktop" {\n    layout {\n        mode = tile\n    }\n}';
+        const active = compile(source, undefined, () => true);
+        expect(active.layout?.mode).toBe('tile');
+
+        const inactive = compile(source, undefined, () => false);
+        expect(inactive.layout?.mode).toBeUndefined();
     });
 
     it('focus セクションで outline / dim / outlineWidth をコンパイルする', () => {
@@ -244,7 +387,7 @@ describe('rice config compile', () => {
 
         const prop = compile('bar "l" {\n    position = left\n    items = home\n    background = rgba(0, 0, 0\n}');
         expect(prop.diagnostics.some((d) => d.severity === 'error')).toBe(true);
-        expect(prop.bars.left?.props.background).toBeUndefined();
+        expect(prop.bars.left?.[0]?.props.background).toBeUndefined();
 
         const balanced = compile('theme {\n    tokens {\n        x = calc(100dvh - var(--a, 0px))\n    }\n}');
         expect(balanced.diagnostics).toEqual([]);
@@ -460,14 +603,14 @@ describe('rice config compile', () => {
 
     it('bar(left) と sidebar の競合は bar が勝つ', () => {
         const out = compile('bar "l" {\n    position = left\n    items = home\n}\n\nsidebar {\n    items = search\n}');
-        expect(out.bars.left?.kind).toBe('rice');
-        expect(out.bars.left?.items).toEqual(['home']);
+        expect(out.bars.left?.[0]?.kind).toBe('rice');
+        expect(out.bars.left?.[0]?.items).toEqual(['home']);
         expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('競合'))).toBe(true);
     });
 
     it('statusbar の危険な値と未知キーを診断する', () => {
         const out = compile('statusbar {\n    modules = clock\n    background = red; padding: 0\n    unknownKey = 1\n}');
-        expect(out.bars.top?.props.background).toBeUndefined();
+        expect(out.bars.top?.[0]?.props.background).toBeUndefined();
         expect(out.diagnostics.some((d) => d.severity === 'error')).toBe(true);
         expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('unknownKey'))).toBe(true);
     });
@@ -507,7 +650,7 @@ describe('rice config compile', () => {
     it('sidebar セクションをコンパイルする', () => {
         const out = compile('sidebar {\n    items = workspace, my-item\n    width = 72px\n    publish-button = false\n}');
         expect(out.diagnostics).toEqual([]);
-        expect(out.bars.left).toMatchObject({
+        expect(out.bars.left?.[0]).toMatchObject({
             kind: 'native',
             position: 'left',
             items: ['workspace', 'my-item'],
@@ -519,7 +662,7 @@ describe('rice config compile', () => {
     });
 
     it('sidebar 未記述時は bars.left なし(localStorage フォールバック用)', () => {
-        expect(compile('theme {\n}').bars.left).toBeUndefined();
+        expect(compile('theme {\n}').bars.left?.[0]).toBeUndefined();
     });
 
     it('sidebar の未知キーは警告になる', () => {
@@ -574,7 +717,7 @@ describe('rice config edit (targeted, comment-preserving)', () => {
         const next = setValueInText(SAMPLE, [{ name: 'statusbar' }], 'height', '32px');
         expect(getValueInText(next, [{ name: 'statusbar' }], 'height')).toBe('32px');
         const compiled = compile(next);
-        expect(compiled.bars.top?.position).toBe('top');
+        expect(compiled.bars.top?.[0]?.position).toBe('top');
     });
 
     it('セクションが無ければ末尾にブロックを生成する', () => {
@@ -602,18 +745,18 @@ describe('rice config edit (targeted, comment-preserving)', () => {
 describe('rice config bar items (per-item / group / instance)', () => {
     it('item ブロックで per-item オプションが itemSpecs に載る', () => {
         const out = compile('bar "r" {\n    position = right\n    style = menu\n    width = 320px\n    items = search, trends\n    item "search" {\n        placeholder = 探す\n    }\n}');
-        expect(out.bars.right?.items).toEqual(['search', 'trends']);
-        expect(out.bars.right?.itemSpecs).toEqual([
+        expect(out.bars.right?.[0]?.items).toEqual(['search', 'trends']);
+        expect(out.bars.right?.[0]?.itemSpecs).toEqual([
             { id: 'search', base: 'search', options: { placeholder: '探す' } },
             { id: 'trends', base: 'trends', options: {} },
         ]);
-        expect(out.bars.right?.groups).toBeNull();
+        expect(out.bars.right?.[0]?.groups).toBeNull();
         expect(out.diagnostics).toEqual([]);
     });
 
     it('# サフィックスで base とインスタンスを分離する', () => {
         const out = compile('bar "r" {\n    position = right\n    width = 64px\n    items = clock#1, clock#2\n    item "clock#2" {\n        date = true\n    }\n}');
-        expect(out.bars.right?.itemSpecs).toEqual([
+        expect(out.bars.right?.[0]?.itemSpecs).toEqual([
             { id: 'clock#1', base: 'clock', options: {} },
             { id: 'clock#2', base: 'clock', options: { date: 'true' } },
         ]);
@@ -621,15 +764,15 @@ describe('rice config bar items (per-item / group / instance)', () => {
 
     it('group で start/center/end に分かれ items は連結フラットビューになる', () => {
         const out = compile('bar "t" {\n    position = top\n    group "start" {\n        items = workspace\n    }\n    group "center" {\n        items = clock\n    }\n    group "end" {\n        items = notifications, chat\n    }\n}');
-        expect(out.bars.top?.groups?.map((g) => g.name)).toEqual(['start', 'center', 'end']);
-        expect(out.bars.top?.items).toEqual(['workspace', 'clock', 'notifications', 'chat']);
-        expect(out.bars.top?.itemSpecs?.length).toBe(4);
+        expect(out.bars.top?.[0]?.groups?.map((g) => g.name)).toEqual(['start', 'center', 'end']);
+        expect(out.bars.top?.[0]?.items).toEqual(['workspace', 'clock', 'notifications', 'chat']);
+        expect(out.bars.top?.[0]?.itemSpecs?.length).toBe(4);
         expect(out.diagnostics).toEqual([]);
     });
 
     it('group の別名 left/top→start・right/bottom→end を受理する', () => {
         const out = compile('bar "t" {\n    position = top\n    group "left" {\n        items = home\n    }\n    group "right" {\n        items = settings\n    }\n}');
-        expect(out.bars.top?.groups?.map((g) => g.name)).toEqual(['start', 'end']);
+        expect(out.bars.top?.[0]?.groups?.map((g) => g.name)).toEqual(['start', 'end']);
         expect(out.diagnostics).toEqual([]);
     });
 
@@ -646,7 +789,7 @@ describe('rice config bar items (per-item / group / instance)', () => {
 
     it('items と group の併用は warning で group が優先される', () => {
         const out = compile('bar "t" {\n    position = top\n    items = home, search\n    group "start" {\n        items = clock\n    }\n}');
-        expect(out.bars.top?.items).toEqual(['clock']);
+        expect(out.bars.top?.[0]?.items).toEqual(['clock']);
         expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('併用'))).toBe(true);
     });
 
@@ -657,13 +800,13 @@ describe('rice config bar items (per-item / group / instance)', () => {
 
     it('同名 group は後勝ち warning', () => {
         const out = compile('bar "t" {\n    position = top\n    group "start" {\n        items = home\n    }\n    group "start" {\n        items = clock\n    }\n}');
-        expect(out.bars.top?.items).toEqual(['clock']);
+        expect(out.bars.top?.[0]?.items).toEqual(['clock']);
         expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('複数定義'))).toBe(true);
     });
 
     it('group 内の item ブロックも options として拾う', () => {
         const out = compile('bar "t" {\n    position = top\n    group "start" {\n        items = clock\n        item "clock" {\n            seconds = true\n        }\n    }\n}');
-        expect(out.bars.top?.itemSpecs?.[0]).toEqual({ id: 'clock', base: 'clock', options: { seconds: 'true' } });
+        expect(out.bars.top?.[0]?.itemSpecs?.[0]).toEqual({ id: 'clock', base: 'clock', options: { seconds: 'true' } });
         expect(out.diagnostics).toEqual([]);
     });
 
@@ -676,11 +819,11 @@ describe('rice config bar items (per-item / group / instance)', () => {
 
     it('statusbar でも item / group / modules 併用が同様に動く', () => {
         const out = compile('statusbar {\n    position = top\n    modules = clock\n    item "clock" {\n        seconds = true\n    }\n}');
-        expect(out.bars.top?.itemSpecs).toEqual([{ id: 'clock', base: 'clock', options: { seconds: 'true' } }]);
+        expect(out.bars.top?.[0]?.itemSpecs).toEqual([{ id: 'clock', base: 'clock', options: { seconds: 'true' } }]);
 
         const grouped = compile('statusbar {\n    position = top\n    group "center" {\n        items = clock\n    }\n}');
-        expect(grouped.bars.top?.groups?.[0]?.name).toBe('center');
-        expect(grouped.bars.top?.items).toEqual(['clock']);
+        expect(grouped.bars.top?.[0]?.groups?.[0]?.name).toBe('center');
+        expect(grouped.bars.top?.[0]?.items).toEqual(['clock']);
     });
 
     it('横バーへの widget-only id は warning（縦バーは警告なし）', () => {
@@ -698,20 +841,20 @@ describe('rice config bar items (per-item / group / instance)', () => {
         const legacy = 'bar "left" {\n    position = left\n    style = menu\n    items = account, home, spacer, publish\n    width = 220px\n}\n\nstatusbar {\n    position = top\n    modules = workspace, spacer, clock\n}\n';
         const out = compile(legacy);
         expect(out.diagnostics).toEqual([]);
-        expect(out.bars.left?.items).toEqual(['account', 'home', 'spacer', 'publish']);
-        expect(out.bars.left?.groups).toBeNull();
-        expect(out.bars.left?.itemSpecs).toEqual([
+        expect(out.bars.left?.[0]?.items).toEqual(['account', 'home', 'spacer', 'publish']);
+        expect(out.bars.left?.[0]?.groups).toBeNull();
+        expect(out.bars.left?.[0]?.itemSpecs).toEqual([
             { id: 'account', base: 'account', options: {} },
             { id: 'home', base: 'home', options: {} },
             { id: 'spacer', base: 'spacer', options: {} },
             { id: 'publish', base: 'publish', options: {} },
         ]);
-        expect(out.bars.top?.items).toEqual(['workspace', 'spacer', 'clock']);
-        expect(out.bars.top?.itemSpecs?.every((s) => s.id === s.base && Object.keys(s.options).length === 0)).toBe(true);
+        expect(out.bars.top?.[0]?.items).toEqual(['workspace', 'spacer', 'clock']);
+        expect(out.bars.top?.[0]?.itemSpecs?.every((s) => s.id === s.base && Object.keys(s.options).length === 0)).toBe(true);
 
         const noItems = compile('bar "l" {\n    position = left\n    width = 64px\n}');
-        expect(noItems.bars.left?.items).toBeNull();
-        expect(noItems.bars.left?.itemSpecs).toBeNull();
+        expect(noItems.bars.left?.[0]?.items).toBeNull();
+        expect(noItems.bars.left?.[0]?.itemSpecs).toBeNull();
     });
 });
 
@@ -728,16 +871,17 @@ describe('rice presets', () => {
         const { resolvePresetSource } = await import('../presets');
         const out = compile('source = preset:cyberdeck\n', resolvePresetSource);
         expect(out.themeReset).toBe(true);
-        expect(out.bars.left?.style).toBe('icons');
-        expect(out.bars.right?.tabSets?.map((t) => t.label)).toEqual(['SYSTEM', 'CONSOLE']);
-        expect(out.bars.right?.tabSets?.[0]?.items?.find((s) => s.id === 'column#clock')?.options.type).toBe('module:clock');
-        expect(out.bars.top?.groups?.map((g) => g.name)).toEqual(['start', 'center', 'end']);
+        expect(out.bars.left?.[0]?.style).toBe('icons');
+        expect(out.bars.right?.[0]?.tabSets?.map((t) => t.label)).toEqual(['SYSTEM', 'CONSOLE']);
+        expect(out.bars.right?.[0]?.tabSets?.[0]?.items?.find((s) => s.id === 'column#clock')?.options.type).toBe('module:clock');
+        expect(out.bars.top?.[0]?.groups?.map((g) => g.name)).toEqual(['start', 'center', 'end']);
         expect(out.focus?.outline).toContain('#00e5ff');
         expect(out.binds.length).toBe(8);
         expect(out.submaps['resize']?.length).toBe(6);
         expect(out.columnRules.some((r) => r.props.reactions === 'left 28px')).toBe(true);
         expect(out.columnRules.some((r) => r.props.heading === 'hidden')).toBe(true);
-        expect(out.modules['aurora']?.enable).toBe(true);
+        expect(out.plugins['aurora']?.enable).toBe(true);
+        expect(out.plugins['aurora']?.options.intensity).toBe('0.55');
     });
 });
 
@@ -777,14 +921,89 @@ describe('columnrule heading / titlebar', () => {
     });
 });
 
+describe('layout composer', () => {
+    it('top を受理し不正値は error', () => {
+        const top = compile('layout {\n    composer = top\n}');
+        expect(top.diagnostics).toEqual([]);
+        expect(top.layout?.composer).toBe('top');
+
+        const bad = compile('layout {\n    composer = bottom\n}');
+        expect(bad.diagnostics.some((d) => d.severity === 'error' && d.message.includes('composer'))).toBe(true);
+        expect(bad.layout?.composer).toBeUndefined();
+    });
+});
+
+describe('layout style', () => {
+    it('deck / single を受理し不正値は error', () => {
+        const single = compile('layout {\n    style = single\n}');
+        expect(single.diagnostics).toEqual([]);
+        expect(single.layout?.style).toBe('single');
+
+        const deck = compile('layout {\n    style = deck\n}');
+        expect(deck.diagnostics).toEqual([]);
+        expect(deck.layout?.style).toBe('deck');
+
+        const bad = compile('layout {\n    style = wide\n}');
+        expect(bad.diagnostics.some((d) => d.severity === 'error' && d.message.includes('style'))).toBe(true);
+        expect(bad.layout?.style).toBeUndefined();
+
+        const none = compile('layout {\n    align = center\n}');
+        expect(none.layout?.style).toBeUndefined();
+    });
+});
+
+describe('publish セクション', () => {
+    it('length-ring を受理し未指定は false・セクション無しは null', () => {
+        const on = compile('publish {\n    length-ring = true\n}');
+        expect(on.diagnostics).toEqual([]);
+        expect(on.publish).toEqual({ lengthRing: true });
+
+        const off = compile('publish {\n    length-ring = false\n}');
+        expect(off.diagnostics).toEqual([]);
+        expect(off.publish).toEqual({ lengthRing: false });
+
+        const none = compile('layout {\n    align = center\n}');
+        expect(none.publish).toBeNull();
+    });
+
+    it('不正値は error・未知キー(旧compact含む)は warning', () => {
+        const bad = compile('publish {\n    length-ring = maybe\n}');
+        expect(bad.diagnostics.some((d) => d.severity === 'error' && d.message.includes('length-ring'))).toBe(true);
+        expect(bad.publish).toEqual({ lengthRing: false });
+
+        const unknown = compile('publish {\n    compact = true\n}');
+        expect(unknown.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('compact'))).toBe(true);
+    });
+});
+
+describe('columnrule editorheight', () => {
+    it('px / fill / auto を受理し不正値は error', () => {
+        const px = compile('columnrule {\n    match = type:publish\n    editorheight = 320px\n}');
+        expect(px.diagnostics).toEqual([]);
+        expect(px.columnRules[0].props).toEqual({ editorheight: '320px' });
+
+        const fill = compile('columnrule {\n    match = type:publish\n    editorheight = fill\n}');
+        expect(fill.diagnostics).toEqual([]);
+        expect(fill.columnRules[0].props).toEqual({ editorheight: 'fill' });
+
+        const auto = compile('columnrule {\n    match = type:publish\n    editorheight = auto\n}');
+        expect(auto.diagnostics).toEqual([]);
+        expect(auto.columnRules[0].props).toEqual({ editorheight: 'auto' });
+
+        const bad = compile('columnrule {\n    match = type:publish\n    editorheight = tall\n}');
+        expect(bad.diagnostics.some((d) => d.severity === 'error' && d.message.includes('editorheight'))).toBe(true);
+        expect(bad.columnRules[0].props).toEqual({});
+    });
+});
+
 describe('rice config bar tabs', () => {
     it('tab セクションが tabSets にコンパイルされ items 正典に連結される', () => {
         const out = compile('bar "r" {\n    position = right\n    style = menu\n    width = 320px\n    items = search, tabs, spacer\n    tab "Feeds" {\n        items = feeds\n    }\n    tab "Info" {\n        items = calendar, column#clock\n        item "column#clock" {\n            type = module:clock\n        }\n    }\n}\n\nmodule "search" {\n    enable = true\n}\n\nmodule "feeds" {\n    enable = true\n}');
         expect(out.diagnostics).toEqual([]);
-        expect(out.bars.right?.tabSets?.map((t) => t.label)).toEqual(['Feeds', 'Info']);
-        expect(out.bars.right?.tabSets?.[1]?.items?.[1]).toEqual({ id: 'column#clock', base: 'column', options: { type: 'module:clock' } });
-        expect(out.bars.right?.items).toEqual(['search', 'tabs', 'spacer', 'feeds', 'calendar', 'column#clock']);
-        expect(out.bars.right?.itemSpecs?.map((s) => s.id)).toEqual(['search', 'tabs', 'spacer']);
+        expect(out.bars.right?.[0]?.tabSets?.map((t) => t.label)).toEqual(['Feeds', 'Info']);
+        expect(out.bars.right?.[0]?.tabSets?.[1]?.items?.[1]).toEqual({ id: 'column#clock', base: 'column', options: { type: 'module:clock' } });
+        expect(out.bars.right?.[0]?.items).toEqual(['search', 'tabs', 'spacer', 'feeds', 'calendar', 'column#clock']);
+        expect(out.bars.right?.[0]?.itemSpecs?.map((s) => s.id)).toEqual(['search', 'tabs', 'spacer']);
     });
 
     it('tab の診断: ラベル無し・未参照・tab無し参照・横バー・入れ子', () => {
@@ -802,13 +1021,13 @@ describe('rice config bar tabs', () => {
 
         const nested = compile('bar "r" {\n    position = right\n    width = 64px\n    items = tabs\n    tab "A" {\n        items = home, tabs\n    }\n}');
         expect(nested.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('入れ子'))).toBe(true);
-        expect(nested.bars.right?.tabSets?.[0]?.items?.map((s) => s.id)).toEqual(['home']);
+        expect(nested.bars.right?.[0]?.tabSets?.[0]?.items?.map((s) => s.id)).toEqual(['home']);
     });
 
     it('tab を使わないレガシー config は tabSets が null のまま', () => {
         const out = compile('bar "r" {\n    position = right\n    width = 64px\n    items = home\n}');
-        expect(out.bars.right?.tabSets).toBeNull();
-        expect(out.bars.right?.items).toEqual(['home']);
+        expect(out.bars.right?.[0]?.tabSets).toBeNull();
+        expect(out.bars.right?.[0]?.items).toEqual(['home']);
     });
 });
 
@@ -943,9 +1162,9 @@ describe('media', () => {
         const barPair = 'bar "main" {\n    position = left\n    width = 64px\n}\nmedia "mobile" {\n    bar "main" {\n        position = left\n        width = 200px\n    }\n}\n';
         const active = compile(barPair, undefined, () => true);
         expect(active.diagnostics.some((d) => d.message.includes('複数定義'))).toBe(false);
-        expect(active.bars.left?.props.width).toBe('200px');
-        const topLevel = compile('bar "a" {\n    position = left\n}\nbar "b" {\n    position = left\n}\n');
-        expect(topLevel.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('複数定義'))).toBe(true);
+        expect(active.bars.left?.[0]?.props.width).toBe('200px');
+        const topLevel = compile('bar "a" {\n    position = left\n}\nbar "a" {\n    position = left\n}\n');
+        expect(topLevel.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('再宣言'))).toBe(true);
     });
 
     it('source 経由の media も動作する', () => {
@@ -956,35 +1175,90 @@ describe('media', () => {
     });
 });
 
+describe('plugin: セクション', () => {
+    it('plugin:aurora セクションをパースする', () => {
+        const doc = parse('plugin:aurora {\n    enable = true\n}');
+        expect(doc.diagnostics).toEqual([]);
+        const section = doc.statements[0];
+        expect(section.kind).toBe('section');
+        if (section.kind === 'section') {
+            expect(section.name).toBe('plugin:aurora');
+        }
+    });
+
+    it('enable 既定 true + options をコンパイルする', () => {
+        const out = compile('plugin:aurora {\n    intensity = 0.55\n}');
+        expect(out.diagnostics).toEqual([]);
+        expect(out.plugins).toEqual({ aurora: { enable: true, options: { intensity: '0.55' } } });
+    });
+
+    it('enable = false と $変数解決が効く', () => {
+        const out = compile('$v = 0.8\n\nplugin:aurora {\n    enable = false\n    intensity = $v\n}');
+        expect(out.plugins['aurora']).toEqual({ enable: false, options: { intensity: '0.8' } });
+    });
+
+    it('不正な id は error 診断で無視される', () => {
+        const out = compile('plugin:My_Plugin {\n    enable = true\n}');
+        expect(out.diagnostics.some((d) => d.severity === 'error' && d.message.includes('プラグインID'))).toBe(true);
+        expect(out.plugins).toEqual({});
+    });
+
+    it('ラベルは warning で本体は適用される', () => {
+        const out = compile('plugin:aurora "x" {\n    enable = true\n}');
+        expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('ラベル'))).toBe(true);
+        expect(out.plugins['aurora']?.enable).toBe(true);
+    });
+
+    it('media 内はアクティブ時のみ後勝ちで適用される', () => {
+        const text = 'plugin:aurora {\n    enable = true\n}\n\nmedia "mobile" {\n    plugin:aurora {\n        enable = false\n    }\n}\n';
+        expect(compile(text, undefined, () => true).plugins['aurora']?.enable).toBe(false);
+        expect(compile(text).plugins['aurora']?.enable).toBe(true);
+    });
+
+    it('setValueInText で enable を往復できる', () => {
+        const next = setValueInText('# empty\n', [{ name: 'plugin:aurora' }], 'enable', 'true');
+        expect(getValueInText(next, [{ name: 'plugin:aurora' }], 'enable')).toBe('true');
+        expect(compile(next).plugins['aurora']?.enable).toBe(true);
+        const off = setValueInText(next, [{ name: 'plugin:aurora' }], 'enable', 'false');
+        expect(compile(off).plugins['aurora']?.enable).toBe(false);
+    });
+
+    it('modules とは独立の名前空間になる', () => {
+        const out = compile('module "aurora" {\n    enable = false\n}\n\nplugin:aurora {\n    enable = true\n}');
+        expect(out.modules['aurora']?.enable).toBe(false);
+        expect(out.plugins['aurora']?.enable).toBe(true);
+    });
+});
+
 describe('footer section', () => {
     it('itemsとpropsがbars.footerにコンパイルされる', () => {
         const out = compile('footer {\n    items = home, search, menu\n    height = 60px\n    background = #111\n}\n');
-        expect(out.bars.footer?.kind).toBe('rice');
-        expect(out.bars.footer?.position).toBe('footer');
-        expect(out.bars.footer?.style).toBe('icons');
-        expect(out.bars.footer?.items).toEqual(['home', 'search', 'menu']);
-        expect(out.bars.footer?.props.height).toBe('60px');
+        expect(out.bars.footer?.[0]?.kind).toBe('rice');
+        expect(out.bars.footer?.[0]?.position).toBe('footer');
+        expect(out.bars.footer?.[0]?.style).toBe('icons');
+        expect(out.bars.footer?.[0]?.items).toEqual(['home', 'search', 'menu']);
+        expect(out.bars.footer?.[0]?.props.height).toBe('60px');
         expect(out.diagnostics).toEqual([]);
     });
 
     it('revealはalways/scrollのみ受理する', () => {
         const ok = compile('footer {\n    items = home\n    reveal = always\n}\n');
-        expect(ok.bars.footer?.props.reveal).toBe('always');
+        expect(ok.bars.footer?.[0]?.props.reveal).toBe('always');
         const bad = compile('footer {\n    items = home\n    reveal = hover\n}\n');
         expect(bad.diagnostics.some((d) => d.severity === 'error' && d.message.includes('reveal'))).toBe(true);
-        expect(bad.bars.footer?.props.reveal).toBeUndefined();
+        expect(bad.bars.footer?.[0]?.props.reveal).toBeUndefined();
     });
 
     it('itemsが無いfooterは割り当てられずwarningになる', () => {
         const out = compile('footer {\n    height = 60px\n}\n');
-        expect(out.bars.footer).toBeUndefined();
+        expect(out.bars.footer?.[0]).toBeUndefined();
         expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('items がありません'))).toBe(true);
     });
 
     it('groupとper-itemオプションが効く', () => {
         const out = compile('footer {\n    group "start" {\n        items = home\n    }\n    group "end" {\n        items = notifications\n        item "notifications" {\n            hide-zero = false\n        }\n    }\n}\n');
-        expect(out.bars.footer?.groups?.map((g) => g.name)).toEqual(['start', 'end']);
-        expect(out.bars.footer?.itemSpecs?.find((s) => s.base === 'notifications')?.options['hide-zero']).toBe('false');
+        expect(out.bars.footer?.[0]?.groups?.map((g) => g.name)).toEqual(['start', 'end']);
+        expect(out.bars.footer?.[0]?.itemSpecs?.find((s) => s.base === 'notifications')?.options['hide-zero']).toBe('false');
         expect(out.diagnostics).toEqual([]);
     });
 
@@ -996,17 +1270,17 @@ describe('footer section', () => {
 
     it('media "mobile" 内のfooterはアクティブ時のみ割り当たる', () => {
         const text = 'media "mobile" {\n    footer {\n        items = home\n    }\n}\n';
-        expect(compile(text, undefined, () => true).bars.footer?.items).toEqual(['home']);
-        expect(compile(text).bars.footer).toBeUndefined();
+        expect(compile(text, undefined, () => true).bars.footer?.[0]?.items).toEqual(['home']);
+        expect(compile(text).bars.footer?.[0]).toBeUndefined();
     });
 
     it('footer二重定義はトップレベルではwarning・media内では抑制', () => {
         const top = compile('footer {\n    items = home\n}\nfooter {\n    items = search\n}\n');
         expect(top.diagnostics.some((d) => d.message.includes('複数定義'))).toBe(true);
-        expect(top.bars.footer?.items).toEqual(['search']);
+        expect(top.bars.footer?.[0]?.items).toEqual(['search']);
         const viaMedia = compile('footer {\n    items = home\n}\nmedia "mobile" {\n    footer {\n        items = search\n    }\n}\n', undefined, () => true);
         expect(viaMedia.diagnostics.some((d) => d.message.includes('複数定義'))).toBe(false);
-        expect(viaMedia.bars.footer?.items).toEqual(['search']);
+        expect(viaMedia.bars.footer?.[0]?.items).toEqual(['search']);
     });
 });
 
@@ -1068,7 +1342,7 @@ describe('fab section', () => {
 describe('mobile shell defaults', () => {
     it('空configではfooter/switcher/fabが全て不在', () => {
         const out = compile('');
-        expect(out.bars.footer).toBeUndefined();
+        expect(out.bars.footer?.[0]).toBeUndefined();
         expect(out.switcher).toBeNull();
         expect(out.fab).toBeNull();
     });
@@ -1078,7 +1352,7 @@ describe('menu item', () => {
     it('footer/bar の items に menu を置いても診断ゼロで itemSpecs に載る', () => {
         const out = compile('footer {\n    items = home, menu\n    item "menu" {\n        items = home, search, settings\n    }\n}\n');
         expect(out.diagnostics).toEqual([]);
-        const spec = out.bars.footer?.itemSpecs?.find((s) => s.base === 'menu');
+        const spec = out.bars.footer?.[0]?.itemSpecs?.find((s) => s.base === 'menu');
         expect(spec?.options.items).toBe('home, search, settings');
     });
 });
@@ -1086,29 +1360,29 @@ describe('menu item', () => {
 describe('drawer section', () => {
     it('itemsとpropsがbars.drawerにコンパイルされstyleはmenu', () => {
         const out = compile('drawer {\n    items = account, separator, home, feeds\n    width = 320px\n    background = #111\n}\n');
-        expect(out.bars.drawer?.kind).toBe('rice');
-        expect(out.bars.drawer?.style).toBe('menu');
-        expect(out.bars.drawer?.items).toEqual(['account', 'separator', 'home', 'feeds']);
-        expect(out.bars.drawer?.props.width).toBe('320px');
+        expect(out.bars.drawer?.[0]?.kind).toBe('rice');
+        expect(out.bars.drawer?.[0]?.style).toBe('menu');
+        expect(out.bars.drawer?.[0]?.items).toEqual(['account', 'separator', 'home', 'feeds']);
+        expect(out.bars.drawer?.[0]?.props.width).toBe('320px');
         expect(out.diagnostics).toEqual([]);
     });
 
     it('widgetとper-itemオプションが許可される（縦扱い）', () => {
         const out = compile('drawer {\n    items = home, calendar\n    item "calendar" {\n        rounding = 12px\n    }\n}\n');
         expect(out.diagnostics).toEqual([]);
-        expect(out.bars.drawer?.itemSpecs?.find((s) => s.base === 'calendar')?.options.rounding).toBe('12px');
+        expect(out.bars.drawer?.[0]?.itemSpecs?.find((s) => s.base === 'calendar')?.options.rounding).toBe('12px');
     });
 
     it('itemsが無いdrawerは割り当てられずwarning', () => {
         const out = compile('drawer {\n    width = 320px\n}\n');
-        expect(out.bars.drawer).toBeUndefined();
+        expect(out.bars.drawer?.[0]).toBeUndefined();
         expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('items がありません'))).toBe(true);
     });
 
     it('media "mobile" 内のdrawerはアクティブ時のみ割り当たる', () => {
         const text = 'media "mobile" {\n    drawer {\n        items = home\n    }\n}\n';
-        expect(compile(text, undefined, () => true).bars.drawer?.items).toEqual(['home']);
-        expect(compile(text).bars.drawer).toBeUndefined();
+        expect(compile(text, undefined, () => true).bars.drawer?.[0]?.items).toEqual(['home']);
+        expect(compile(text).bars.drawer?.[0]).toBeUndefined();
     });
 
     it('不明キーはwarning', () => {

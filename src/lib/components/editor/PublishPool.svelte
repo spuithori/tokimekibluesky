@@ -28,7 +28,7 @@
 
 <style lang="postcss">
   .publish-pool {
-      max-width: 740px;
+      max-width: var(--publish-form-max-width, 740px);
       width: 100%;
       margin: 0 auto;
       position: relative;

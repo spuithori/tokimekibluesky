@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { shellGeometryVars } from './shellGeometry';
+import { shellGeometryVars, verticalBarOffset } from './shellGeometry';
 import { emptyBar } from './config/model';
 import type { CompiledRice } from './config/model';
 
@@ -15,42 +15,42 @@ describe('shellGeometryVars', () => {
     it('左バーのwidthから--side-widthを発行する(rice/native両方)', () => {
         const rice = emptyBar('left', 'rice');
         rice.props.width = '220px';
-        expect(shellGeometryVars(bars({ left: rice }))).toBe('--side-width: 220px;');
+        expect(shellGeometryVars(bars({ left: [rice] }))).toBe('--side-width: 220px;');
 
         const native = emptyBar('left', 'native');
         native.props.width = '90px';
-        expect(shellGeometryVars(bars({ left: native }))).toBe('--side-width: 90px;');
+        expect(shellGeometryVars(bars({ left: [native] }))).toBe('--side-width: 90px;');
     });
 
     it('左バーにwidthが無ければ--side-widthを発行しない', () => {
         const bar = emptyBar('left', 'rice');
         bar.items = ['home'];
-        expect(shellGeometryVars(bars({ left: bar }))).toBe('');
+        expect(shellGeometryVars(bars({ left: [bar] }))).toBe('');
     });
 
     it('右riceバーから--side-right-widthを発行する(未指定は64px)', () => {
         const bar = emptyBar('right', 'rice');
         bar.items = ['home'];
-        expect(shellGeometryVars(bars({ right: bar }))).toBe('--side-right-width: 64px;');
+        expect(shellGeometryVars(bars({ right: [bar] }))).toBe('--side-right-width: 64px;');
 
         bar.props.width = '72px';
-        expect(shellGeometryVars(bars({ right: bar }))).toBe('--side-right-width: 72px;');
+        expect(shellGeometryVars(bars({ right: [bar] }))).toBe('--side-right-width: 72px;');
     });
 
     it('itemsが空の右バーは--side-right-widthを発行しない', () => {
         const bar = emptyBar('right', 'rice');
-        expect(shellGeometryVars(bars({ right: bar }))).toBe('');
+        expect(shellGeometryVars(bars({ right: [bar] }))).toBe('');
     });
 
     it('横riceバーの高さを--rice-statusbar-*-heightとして発行する', () => {
         const top = emptyBar('top', 'rice');
         top.items = ['clock'];
-        expect(shellGeometryVars(bars({ top }))).toBe('--rice-statusbar-top-height: 32px;');
+        expect(shellGeometryVars(bars({ top: [top] }))).toBe('--rice-statusbar-top-height: 32px;');
 
         top.props.height = '40px';
         const bottom = emptyBar('bottom', 'rice');
         bottom.items = ['clock'];
-        expect(shellGeometryVars(bars({ top, bottom }))).toBe(
+        expect(shellGeometryVars(bars({ top: [top], bottom: [bottom] }))).toBe(
             '--rice-statusbar-top-height: 40px;--rice-statusbar-bottom-height: 32px;',
         );
     });
@@ -61,7 +61,7 @@ describe('shellGeometryVars', () => {
         top.float = true;
         top.props.height = '40px';
         top.props.margin = '10px';
-        expect(shellGeometryVars(bars({ top }))).toBe(
+        expect(shellGeometryVars(bars({ top: [top] }))).toBe(
             '--rice-statusbar-top-height: calc(40px + 10px * 2);',
         );
     });
@@ -128,18 +128,88 @@ describe('shellGeometryVars', () => {
         expect(shellGeometryVars(bars({}), null)).toBe('');
         expect(shellGeometryVars(bars({}), { align: 'center' })).toBe('--deck-justify: safe center;');
         expect(shellGeometryVars(bars({}), { align: 'right' })).toBe(
-            '--deck-justify: safe flex-end;--single-align-mr: 0;',
+            '--deck-justify: safe flex-end;--single-align-mr: var(--shell-inset, 0px);',
         );
-        expect(shellGeometryVars(bars({}), { align: 'left' })).toBe('--single-align-ml: 0;');
+        expect(shellGeometryVars(bars({}), { align: 'left' })).toBe('--single-align-ml: var(--shell-inset, 0px);');
+    });
+
+    it('shell=centeredで--shell-inset/--shell-max-widthを発行する', () => {
+        expect(shellGeometryVars(bars({}), { align: 'left', shell: 'centered' })).toBe(
+            '--shell-inset: max(0px, calc((100vw - 1280px) / 2));--shell-max-width: 1280px;--single-align-ml: var(--shell-inset, 0px);',
+        );
+        expect(shellGeometryVars(bars({}), { align: 'center', shell: 'centered', shellWidth: '1240px' })).toBe(
+            '--shell-inset: max(0px, calc((100vw - 1240px) / 2));--shell-max-width: 1240px;--deck-justify: safe center;',
+        );
+    });
+
+    it('shell=noneや未指定ではshell varを発行しない', () => {
+        expect(shellGeometryVars(bars({}), { align: 'center', shell: 'none' })).toBe('--deck-justify: safe center;');
+        expect(shellGeometryVars(bars({}), { align: 'center' })).toBe('--deck-justify: safe center;');
+    });
+
+    it('single+centeredはコンテンツ駆動のcontent-width/insetを発行しshell-max-widthを出さない', () => {
+        const single = shellGeometryVars(bars({}), { align: 'center', shell: 'centered' }, null, null, null, 'single');
+        expect(single).toBe(
+            '--shell-content-width: calc(var(--side-width, 64px) + var(--single-column-width, var(--single-m-width, 528px)) + var(--side-right-width, 0px));'
+            + '--shell-inset: max(0px, calc((100vw - var(--shell-content-width)) / 2));'
+            + '--deck-justify: safe center;',
+        );
+        const withWidth = shellGeometryVars(bars({}), { align: 'center', shell: 'centered', shellWidth: '1240px' }, null, null, null, 'single');
+        expect(withWidth).toBe(single);
+        expect(withWidth).not.toContain('--shell-max-width');
+    });
+
+    it('deck+centeredは従来のshellwidth式を維持する', () => {
+        expect(shellGeometryVars(bars({}), { align: 'center', shell: 'centered', shellWidth: '1240px' }, null, null, null, 'deck')).toBe(
+            '--shell-inset: max(0px, calc((100vw - 1240px) / 2));--shell-max-width: 1240px;--deck-justify: safe center;',
+        );
+    });
+
+    it('single+非centeredはshell varを発行しない', () => {
+        expect(shellGeometryVars(bars({}), { align: 'center', shell: 'none' }, null, null, null, 'single')).toBe('--deck-justify: safe center;');
+        expect(shellGeometryVars(bars({}), { align: 'center' }, null, null, null, 'single')).toBe('--deck-justify: safe center;');
     });
 
     it('itemsが空の横バーやnative横バーは高さを発行しない', () => {
         const empty = emptyBar('top', 'rice');
-        expect(shellGeometryVars(bars({ top: empty }))).toBe('');
+        expect(shellGeometryVars(bars({ top: [empty] }))).toBe('');
 
         const native = emptyBar('top', 'native');
         native.items = ['clock'];
-        expect(shellGeometryVars(bars({ top: native }))).toBe('');
+        expect(shellGeometryVars(bars({ top: [native] }))).toBe('');
+    });
+});
+
+describe('複数縦バー', () => {
+    it('左バー2本の幅をcalc合算で--side-widthに発行する', () => {
+        const dock = emptyBar('left', 'rice');
+        dock.items = ['home'];
+        dock.props.width = '64px';
+        const menu = emptyBar('left', 'rice');
+        menu.items = ['settings'];
+        menu.props.width = '220px';
+        expect(shellGeometryVars(bars({ left: [dock, menu] }))).toBe('--side-width: calc(64px + 220px);');
+    });
+
+    it('右バー2本はrice+items有のみ数え幅未指定は64pxで合算する', () => {
+        const a = emptyBar('right', 'rice');
+        a.items = ['home'];
+        const b = emptyBar('right', 'rice');
+        b.items = ['search'];
+        b.props.width = '320px';
+        const ghost = emptyBar('right', 'rice');
+        expect(shellGeometryVars(bars({ right: [a, b, ghost] }))).toBe('--side-right-width: calc(64px + 320px);');
+    });
+
+    it('verticalBarOffsetは前置バー幅の累積を返す', () => {
+        const a = emptyBar('left', 'rice');
+        a.props.width = '64px';
+        const b = emptyBar('left', 'rice');
+        b.props.width = '220px';
+        const c = emptyBar('left', 'rice');
+        expect(verticalBarOffset([a, b, c], 0)).toBe('0px');
+        expect(verticalBarOffset([a, b, c], 1)).toBe('64px');
+        expect(verticalBarOffset([a, b, c], 2)).toBe('calc(64px + 220px)');
     });
 });
 
@@ -147,20 +217,20 @@ describe('shellGeometryVars footer', () => {
     it('rice footerから--rice-footer-heightを発行する（既定56px）', () => {
         const footer = emptyBar('footer', 'rice');
         footer.items = ['home'];
-        expect(shellGeometryVars(bars({ footer }))).toBe('--rice-footer-height: 56px;');
+        expect(shellGeometryVars(bars({ footer: [footer] }))).toBe('--rice-footer-height: 56px;');
         footer.props.height = '64px';
-        expect(shellGeometryVars(bars({ footer }))).toBe('--rice-footer-height: 64px;');
+        expect(shellGeometryVars(bars({ footer: [footer] }))).toBe('--rice-footer-height: 64px;');
     });
 
     it('float footerはheight+margin*2で発行しitemsなしは発行しない', () => {
         const footer = emptyBar('footer', 'rice');
         footer.items = ['home'];
         footer.float = true;
-        expect(shellGeometryVars(bars({ footer }))).toBe('--rice-footer-height: calc(56px + 8px * 2);');
+        expect(shellGeometryVars(bars({ footer: [footer] }))).toBe('--rice-footer-height: calc(56px + 8px * 2);');
         footer.props.margin = '12px';
-        expect(shellGeometryVars(bars({ footer }))).toBe('--rice-footer-height: calc(56px + 12px * 2);');
+        expect(shellGeometryVars(bars({ footer: [footer] }))).toBe('--rice-footer-height: calc(56px + 12px * 2);');
         const empty = emptyBar('footer', 'rice');
-        expect(shellGeometryVars(bars({ footer: empty }))).toBe('');
+        expect(shellGeometryVars(bars({ footer: [empty] }))).toBe('');
     });
 });
 

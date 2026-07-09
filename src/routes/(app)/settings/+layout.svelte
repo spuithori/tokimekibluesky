@@ -14,6 +14,7 @@
   import { openSettingsColumn } from "$lib/settingsColumn";
   import SettingsSearch from "$lib/components/settings/SettingsSearch.svelte";
   import Columns3 from '@lucide/svelte/icons/columns-3';
+  import { riceState } from '$lib/rice/riceState.svelte';
 
   const OFFICIAL_HANDLE = 'tokimeki.blue';
   const STORAGE_KEY = 'hideFollowPrompt';
@@ -30,7 +31,7 @@
 
   const columnState = getColumnState();
   const mobileQuery = new MediaQuery('(max-width: 767px)');
-  const canAddColumn = $derived($settings.design?.layout === 'decks' && !mobileQuery.current);
+  const canAddColumn = $derived(riceState.layoutStyle === 'deck' && !mobileQuery.current);
   const categoryId = $derived(pathToCategoryId(data.pathname));
 
   function addAsColumn() {

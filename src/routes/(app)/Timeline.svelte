@@ -13,6 +13,8 @@
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import VirtualTimeline from "$lib/components/timeline/VirtualTimeline.svelte";
   import type {ScrollState} from "$lib/components/virtual/types";
+  import { riceState } from '$lib/rice/riceState.svelte';
+  import { resolveColumnScrollHost } from '$lib/scroll/scrollHost';
 
   let { index, _agent = $agent, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
 
@@ -102,8 +104,7 @@
   }
 
   function releaseOldPosts() {
-      const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
-      const scrollTop = scrollEl?.scrollTop ?? 0;
+      const scrollTop = resolveColumnScrollHost(column, { layoutStyle: riceState.layoutStyle, isJunk: columnState.isJunk }).scrollTop;
       const feed = columnState.getFeed(column.id);
 
       if (scrollTop !== 0 || feed.length <= 40) {
@@ -185,9 +186,9 @@
         const bottomEl = dividerEl.nextElementSibling as HTMLElement;
         if (bottomEl) {
           tick().then(() => {
-            const scrollEl: HTMLElement = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+            const host = resolveColumnScrollHost(column, { layoutStyle: riceState.layoutStyle, isJunk: columnState.isJunk });
             const offsetTop = bottomEl.offsetTop - 52;
-            scrollEl.scrollTo(0, offsetTop);
+            host.setScrollTop(offsetTop);
           });
         }
       }
@@ -213,7 +214,11 @@
       try {
         controller = new AbortController();
         const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, controller.signal);
-          column.data.cursor = res.cursor;
+        if (!res) {
+            complete();
+            return;
+        }
+        column.data.cursor = res.cursor;
 
         const existingFeedMap = new Map(
             columnState.getFeed(column.id).filter(item => item?.post?.uri).map(item => [

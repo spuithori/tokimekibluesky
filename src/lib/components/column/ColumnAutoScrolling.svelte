@@ -2,6 +2,8 @@
   import {settings} from "$lib/stores";
   import {onDestroy} from "svelte";
   import {imageState} from "$lib/classes/imageState.svelte";
+  import { riceState } from '$lib/rice/riceState.svelte';
+  import { resolveColumnScrollHost } from '$lib/scroll/scrollHost';
 
   interface Props {
     column: any;
@@ -85,10 +87,10 @@
       }
 
       if (isScroll) {
-          const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
+          const host = resolveColumnScrollHost(column, { layoutStyle: riceState.layoutStyle, isJunk: false });
 
           scrollId = setInterval(() => {
-              el.scrollBy(0, -1);
+              host.scrollBy(0, -1);
           }, scrollSpeed);
       } else {
           clearInterval(scrollId);

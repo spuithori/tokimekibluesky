@@ -18,7 +18,7 @@ import BookType from '@lucide/svelte/icons/book-type';
 import SquarePen from '@lucide/svelte/icons/square-pen';
 import Settings from '@lucide/svelte/icons/settings';
 import Puzzle from '@lucide/svelte/icons/puzzle';
-import type { BuiltinColumnType, Column, ColumnKindId } from '$lib/types/column';
+import type { BuiltinColumnType, Column, ColumnKindId, ModuleColumnKindId } from '$lib/types/column';
 import { capabilityOf, columnKindCapabilities, registerModuleCapability, type ColumnKindCapability } from '$lib/columnKinds';
 
 export interface ColumnKindDef {
@@ -30,7 +30,7 @@ export interface ColumnKindDef {
 }
 
 export interface ModuleColumnKindInput {
-    type: `module:${string}`;
+    type: ModuleColumnKindId;
     icon?: Component;
     capability?: Partial<ColumnKindCapability>;
     loader?: () => Promise<{ default: Component }>;

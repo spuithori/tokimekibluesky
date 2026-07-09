@@ -3,7 +3,7 @@
     import { riceState } from '$lib/rice/riceState.svelte';
 
     const riceLeft = $derived(
-        riceState.bars.left?.kind === 'rice' && (riceState.bars.left.items?.length ?? 0) > 0,
+        riceState.leftBars.length > 0,
     );
 </script>
 

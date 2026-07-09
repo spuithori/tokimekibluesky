@@ -4,12 +4,11 @@
     import { floatingPopup } from '$lib/attachments/popup.svelte';
     import { riceFx } from '$lib/rice/transition';
     import { cubicBezier } from '$lib/rice/easing';
-    import Columns3 from '@lucide/svelte/icons/columns-3';
     import Heart from '@lucide/svelte/icons/heart';
     import Pin from '@lucide/svelte/icons/pin';
     import PinOff from '@lucide/svelte/icons/pin-off';
-    import RectangleVertical from '@lucide/svelte/icons/rectangle-vertical';
     import Settings from '@lucide/svelte/icons/settings';
+    import LayoutField from '$lib/components/settings/fields/custom/LayoutField.svelte';
     import {ALL_ITEMS, sideState} from "$lib/classes/sideState.svelte";
     import {coreSideItems} from "$lib/components/side/sideItems";
 
@@ -108,23 +107,7 @@
 
   <div class="side-menu-row only-pc">
     <div class="side-menu-item">
-      <div class="layout-radio-group">
-        <div class="layout-radio" class:layout-radio--current={$settings.design?.layout === 'decks'}>
-          <input type="radio" bind:group={$settings.design.layout} id="layoutDecks" name="layout" value={'decks'}>
-          <label for="layoutDecks">
-            <Columns3 size="22" color="var(--radio-current-color)"></Columns3>
-            {$_('layout_decks')}
-          </label>
-        </div>
-
-        <div class="layout-radio" class:layout-radio--current={$settings.design?.layout === 'default'}>
-          <input type="radio" bind:group={$settings.design.layout} id="layoutDefault" name="layout" value={'default'}>
-          <label for="layoutDefault">
-            <RectangleVertical size="22" color="var(--radio-current-color)"></RectangleVertical>
-            {$_('layout_single')}
-          </label>
-        </div>
-      </div>
+      <LayoutField presets={false}></LayoutField>
     </div>
   </div>
 </dialog>

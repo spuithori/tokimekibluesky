@@ -152,7 +152,7 @@ export async function compressFallback(input: WorkerInput): Promise<WorkerOutput
     const tStart = performance.now();
 
     const tDecodeStart = performance.now();
-    const bitmap = await createImageBitmap(file, { imageOrientation: 'none' });
+    const bitmap = await createImageBitmap(file);
     timings.decode = performance.now() - tDecodeStart;
 
     const haveTarget = targetWidth !== undefined && targetHeight !== undefined;

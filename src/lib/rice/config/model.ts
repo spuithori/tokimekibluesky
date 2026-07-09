@@ -100,6 +100,7 @@ export interface BarTabSet {
 
 export interface BarConfig {
     kind: 'rice' | 'native';
+    label?: string;
     position: BarSlot;
     style: BarStyle;
     items: string[] | null;
@@ -126,6 +127,10 @@ export interface FabConfig {
     position: 'left' | 'right';
     onClick?: string;
     props: Record<string, string>;
+}
+
+export interface PublishConfig {
+    lengthRing: boolean;
 }
 
 export function emptyBar(position: BarSlot, kind: 'rice' | 'native'): BarConfig {
@@ -156,8 +161,16 @@ export interface PanelConfig {
     props: Record<string, string>;
 }
 
+export type LayoutStyle = 'deck' | 'single';
+
 export interface LayoutConfig {
     align: 'left' | 'center' | 'right';
+    mode?: 'scroll' | 'tile';
+    shell?: 'none' | 'centered';
+    shellWidth?: string;
+    feedTabs?: 'pinned';
+    style?: LayoutStyle;
+    composer?: 'top';
 }
 
 export interface FocusConfig {
@@ -199,9 +212,10 @@ export interface CompiledRice {
     themeTokens: Record<string, string>;
     themeReset: boolean;
     columnRules: ColumnRule[];
-    bars: Partial<Record<BarSlot, BarConfig>>;
+    bars: Partial<Record<BarSlot, BarConfig[]>>;
     switcher: SwitcherConfig | null;
     fab: FabConfig | null;
+    publish: PublishConfig | null;
     panel: PanelConfig | null;
     layout: LayoutConfig | null;
     focus: FocusConfig | null;
@@ -209,6 +223,7 @@ export interface CompiledRice {
     binds: RiceBind[];
     submaps: Record<string, RiceBind[]>;
     modules: Record<string, { enable: boolean; options: Record<string, string> }>;
+    plugins: Record<string, { enable: boolean; options: Record<string, string> }>;
     sets: { path: string; value: string }[];
     mediaQueries: string[];
     diagnostics: RiceDiagnostic[];
@@ -222,6 +237,7 @@ export function emptyCompiledRice(): CompiledRice {
         bars: {},
         switcher: null,
         fab: null,
+        publish: null,
         panel: null,
         layout: null,
         focus: null,
@@ -229,6 +245,7 @@ export function emptyCompiledRice(): CompiledRice {
         binds: [],
         submaps: {},
         modules: {},
+        plugins: {},
         sets: [],
         mediaQueries: [],
         diagnostics: [],

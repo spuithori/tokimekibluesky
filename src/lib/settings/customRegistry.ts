@@ -16,6 +16,7 @@ export const customFields = {
     bubbleTimeline: () => import('$lib/components/settings/fields/custom/BubbleTimelineField.svelte'),
     skin: () => import('$lib/components/settings/fields/custom/SkinField.svelte'),
     colorTheme: () => import('$lib/components/settings/fields/custom/ColorThemeField.svelte'),
+    riceAppearance: () => import('$lib/components/settings/fields/custom/RiceAppearanceField.svelte'),
     postsLayout: () => import('$lib/components/settings/fields/custom/PostsLayoutField.svelte'),
     postsImageLayout: () => import('$lib/components/settings/fields/custom/PostsImageLayoutField.svelte'),
     galleryLayout: () => import('$lib/components/settings/fields/custom/GalleryLayoutField.svelte'),

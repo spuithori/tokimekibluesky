@@ -1,5 +1,6 @@
 import type { Component } from 'svelte';
 import type { ColumnKindCapability } from '$lib/columnKinds';
+import type { ModuleColumnKindId } from '$lib/types/column';
 
 export const RICE_API_VERSION = 1;
 
@@ -7,7 +8,7 @@ export type ComponentLoader = () => Promise<{ default: Component<any> }>;
 
 export interface RiceModuleContributes {
     columnKinds?: {
-        type: `module:${string}`;
+        type: ModuleColumnKindId;
         icon?: Component;
         capability?: Partial<ColumnKindCapability>;
         loader: ComponentLoader;
@@ -15,7 +16,7 @@ export interface RiceModuleContributes {
     statusbarItems?: { id: string; loader: ComponentLoader }[];
     widgets?: { id: string; loader: ComponentLoader }[];
     sidebarItems?: { id: string; title: string; icon?: Component; command: string; commandArg?: string }[];
-    effectLayers?: { id: string; zIndex?: number; loader: ComponentLoader }[];
+    effectLayers?: { id: string; zIndex?: number; loader: ComponentLoader; getOptions?: () => Record<string, string> }[];
     themeTokens?: Record<string, string>;
     commands?: { id: string; title: string; run: (arg?: string) => void | Promise<void> }[];
     quickActions?: {

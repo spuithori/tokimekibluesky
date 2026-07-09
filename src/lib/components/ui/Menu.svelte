@@ -7,6 +7,7 @@
   interface Props {
     isMenuOpen?: boolean;
     buttonClassName?: string;
+    ariaLabel?: string;
     position?: Placement;
     ref?: import('svelte').Snippet;
     sub?: import('svelte').Snippet;
@@ -16,6 +17,7 @@
   let {
     isMenuOpen = $bindable(false),
     buttonClassName = 'timeline-menu-toggle',
+    ariaLabel = 'Open menu.',
     position = 'bottom-end',
     ref,
     sub,
@@ -69,7 +71,7 @@
 
 <button
   class={buttonClassName}
-  aria-label="Open menu."
+  aria-label={ariaLabel}
   onclick={menuOpen}
   use:floatingRef
 >

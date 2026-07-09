@@ -1,46 +1,9 @@
 <script lang="ts">
     import { riceState } from '$lib/rice/riceState.svelte';
     import { keymodeState } from '$lib/classes/keymodeState.svelte';
+    import { revealState } from '$lib/classes/revealState.svelte';
     import { parseCommandLine, runCommand } from '$lib/commands/registry.svelte';
-    import { comboKey, DEFAULT_BINDS, eventMatches, parseCombo, type KeyCombo } from '$lib/commands/keymap';
-
-    const submapBinds = $derived.by(() => {
-        if (keymodeState.mode === null) return null;
-        const defs = riceState.submaps[keymodeState.mode] ?? [];
-        const seen = new Set<string>();
-        const result: { combo: KeyCombo; command: string }[] = [];
-        for (const bind of [...defs].reverse()) {
-            const combo = parseCombo(bind.combo);
-            if (!combo) continue;
-            const key = comboKey(combo);
-            if (seen.has(key)) continue;
-            seen.add(key);
-            result.push({ combo, command: bind.command });
-        }
-        return result;
-    });
-
-    const parsedBinds = $derived.by(() => {
-        const seen = new Set<string>();
-        const result: { combo: KeyCombo; command: string }[] = [];
-        for (const bind of [...riceState.binds].reverse()) {
-            const combo = parseCombo(bind.combo);
-            if (!combo) continue;
-            const key = comboKey(combo);
-            if (seen.has(key)) continue;
-            seen.add(key);
-            result.push({ combo, command: bind.command });
-        }
-        for (const def of DEFAULT_BINDS) {
-            const combo = parseCombo(def.combo);
-            if (!combo) continue;
-            const key = comboKey(combo);
-            if (seen.has(key)) continue;
-            seen.add(key);
-            result.push({ combo, command: def.command });
-        }
-        return result;
-    });
+    import { DEFAULT_BINDS, eventMatches, resolveBindList } from '$lib/commands/keymap';
 
     function isEditableTarget(target: EventTarget | null): boolean {
         if (!(target instanceof HTMLElement)) return false;
@@ -51,14 +14,15 @@
     function handleKeydown(event: KeyboardEvent) {
         if (event.isComposing || event.repeat) return;
         if (isEditableTarget(event.target)) return;
-        if (submapBinds !== null) {
+        const mode = keymodeState.mode;
+        if (mode !== null) {
             if (event.key === 'Escape' && !event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) {
                 event.preventDefault();
                 event.stopPropagation();
                 keymodeState.exit();
                 return;
             }
-            for (const bind of submapBinds) {
+            for (const bind of resolveBindList(riceState.submaps[mode] ?? [])) {
                 if (eventMatches(bind.combo, event)) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -69,7 +33,7 @@
             }
             return;
         }
-        for (const bind of parsedBinds) {
+        for (const bind of resolveBindList(riceState.binds, DEFAULT_BINDS)) {
             if (eventMatches(bind.combo, event)) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -79,6 +43,18 @@
             }
         }
     }
+    function trackModifier(event: KeyboardEvent) {
+        revealState.headings = event.altKey;
+    }
+
+    function trackModifierUp(event: KeyboardEvent) {
+        if (event.key === 'Alt') event.preventDefault();
+        revealState.headings = event.altKey;
+    }
+
+    function resetModifier() {
+        revealState.headings = false;
+    }
 </script>
 
-<svelte:window onkeydowncapture={handleKeydown} />
+<svelte:window onkeydowncapture={handleKeydown} onkeydown={trackModifier} onkeyup={trackModifierUp} onblur={resetModifier} />

@@ -111,13 +111,7 @@
     --deck-border-right: inherit;
 
     /* Single */
-    --single-xxs-width: 380px;
-    --single-xs-width: 420px;
-    --single-s-width: 460px;
     --single-m-width: 528px;
-    --single-l-width: 600px;
-    --single-xl-width: 680px;
-    --single-xxl-width: 760px;
     --single-border: 1px solid var(--border-color-2);
 
     --deck-content-bg-color: var(--bg-color-1);
@@ -179,6 +173,8 @@
 
     /* Publish */
     --publish-bg-color: var(--bg-color-1);
+    --publish-border-radius: var(--border-radius-3);
+    --publish-editor-min: 44px;
     --publish-textarea-bg-color: var(--bg-color-2);
     --publish-textarea-color: var(--text-color-1);
     --publish-length-color: var(--text-color-3);

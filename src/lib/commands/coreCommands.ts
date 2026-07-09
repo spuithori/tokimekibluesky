@@ -18,7 +18,8 @@ import Clapperboard from '@lucide/svelte/icons/clapperboard';
 import Moon from '@lucide/svelte/icons/moon';
 import Sparkles from '@lucide/svelte/icons/sparkles';
 import Layers from '@lucide/svelte/icons/layers';
-import { agent, currentTimeline, intersectingIndex, isColumnModalOpen, settings } from '$lib/stores';
+import Columns3 from '@lucide/svelte/icons/columns-3';
+import { agent, intersectingIndex, isColumnModalOpen, settings } from '$lib/stores';
 import { settingsStore } from '$lib/settings/settings.svelte';
 import { publishState } from '$lib/classes/publishState.svelte';
 import { togglePublishColumn } from '$lib/publishColumn';
@@ -29,9 +30,14 @@ import { overlayState } from '$lib/classes/overlayState.svelte';
 import { keymodeState } from '$lib/classes/keymodeState.svelte';
 import { scratchpadState } from '$lib/classes/scratchpadState.svelte';
 import { riceState } from '$lib/rice/riceState.svelte';
+import { resolveColumnScrollHost, windowScrollHost } from '$lib/scroll/scrollHost';
+import { setValueInText } from '$lib/rice/config/edit';
 import { animateLayout } from '$lib/animations/flip';
-import { clampDeckWidth, resolveDeckWidthPx } from '$lib/deckWidth';
+import { clampDeckWidth, resolveDeckWidthPx, tilePxForWeight, tileWeightForTargetWidth } from '$lib/deckWidth';
+import { measureTileContext } from '$lib/tileMeasure';
 import { firstLeafId } from '$lib/classes/deckLayout';
+import { buildPinnedColumn } from '$lib/classes/feedTabs';
+import { syncPinnedFeedTabs } from '$lib/feedTabsSync';
 import PictureInPicture2 from '@lucide/svelte/icons/picture-in-picture-2';
 import SquareStack from '@lucide/svelte/icons/square-stack';
 import { switchWorkspace } from '$lib/workspaces';
@@ -111,7 +117,7 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
             title: 'command_publish_toggle',
             icon: SquarePen,
             run: () => {
-                if (get(settings).design?.layout === 'decks') {
+                if (riceState.layoutStyle === 'deck') {
                     togglePublishColumn(columnState);
                 } else {
                     publishState.show = !publishState.show;
@@ -131,7 +137,7 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
             title: 'command_column_focus',
             hidden: true,
             run: (arg) => {
-                const isDecks = get(settings).design?.layout === 'decks';
+                const isDecks = riceState.layoutStyle === 'deck';
                 let index: number;
                 if (arg === 'next' || arg === 'prev') {
                     const count = columnState.slots.length;
@@ -145,7 +151,7 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
                         current = focused ? columnState.slotIndexOf(focused.id) : get(intersectingIndex);
                         if (current < 0) current = get(intersectingIndex);
                     } else {
-                        current = get(currentTimeline);
+                        current = columnState.activeSlotIndex;
                     }
                     const step = arg === 'next' ? 1 : -1;
                     index = ((current + step) % count + count) % count;
@@ -158,8 +164,8 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
                 if (isDecks) {
                     column.scrollElement?.focus();
                     column.scrollElement?.scrollIntoView({ inline: 'end', behavior: 'instant' });
-                } else if (get(currentTimeline) !== index) {
-                    currentTimeline.set(index);
+                } else if (columnState.activeSlotIndex !== index) {
+                    columnState.setActiveSlot(index);
                 }
             },
         },
@@ -193,6 +199,28 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
             },
         },
         {
+            id: 'column.feedtabs',
+            title: 'command_column_feedtabs',
+            icon: Layers,
+            run: async () => {
+                const _agent = get(agent);
+                if (!_agent) return;
+                const existing = columnState.findPinnedFeedTabs();
+                if (existing) {
+                    await syncPinnedFeedTabs(columnState, existing, _agent);
+                    return;
+                }
+                const column = buildPinnedColumn({ type: 'timeline', value: 'following' }, _agent.did(), _agent.handle());
+                columnState.add(column);
+                columnState.makeFeedTabsSlot(column.id);
+                if (riceState.layoutStyle !== 'deck') {
+                    columnState.setActiveSlot(columnState.slotIndexOf(column.id));
+                }
+                const node = columnState.tabsNodeOf(column.id);
+                if (node) await syncPinnedFeedTabs(columnState, node, _agent);
+            },
+        },
+        {
             id: 'column.tab',
             title: 'command_column_tab',
             hidden: true,
@@ -216,7 +244,7 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
             hidden: true,
             run: (arg) => {
                 if (arg !== 'left' && arg !== 'right') return;
-                if (get(settings).design?.layout !== 'decks') return;
+                if (riceState.layoutStyle !== 'deck') return;
                 const id = resolveFocusedColumnId(columnState);
                 if (!id) return;
                 const from = columnState.visibleSlotIndexOf(id);
@@ -234,7 +262,7 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
             title: 'command_column_width',
             hidden: true,
             run: (arg) => {
-                if (!arg || get(settings).design?.layout !== 'decks') return;
+                if (!arg || riceState.layoutStyle !== 'deck') return;
                 const id = resolveFocusedColumnId(columnState);
                 if (!id) return;
                 const slotIdx = columnState.slotIndexOf(id);
@@ -246,14 +274,20 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
                     .filter((c) => !!c);
                 if (!targets.length) return;
 
+                const tileCtx = riceState.layoutMode === 'tile' ? measureTileContext(columnState, slotIdx) : null;
+                const currentWeight = clampDeckWidth(resolveDeckWidthPx(targets[0]!.settings?.width ?? 'medium'));
+                const currentPx = tileCtx ? tilePxForWeight(currentWeight, tileCtx.otherWeightsSum, tileCtx.containerPx) : currentWeight;
+
                 const relative = /^([+-])(\d+)(px)?$/.exec(arg);
                 const absolute = /^(\d+)(px)?$/.exec(arg);
                 let width: number | string;
                 if (relative) {
                     const delta = Number(relative[2]) * (relative[1] === '-' ? -1 : 1);
-                    width = clampDeckWidth(resolveDeckWidthPx(targets[0]!.settings?.width ?? 'medium') + delta);
+                    const targetPx = clampDeckWidth(currentPx + delta);
+                    width = tileCtx ? tileWeightForTargetWidth(targetPx, tileCtx.otherWeightsSum, tileCtx.containerPx) : targetPx;
                 } else if (absolute) {
-                    width = clampDeckWidth(Number(absolute[1]));
+                    const targetPx = clampDeckWidth(Number(absolute[1]));
+                    width = tileCtx ? tileWeightForTargetWidth(targetPx, tileCtx.otherWeightsSum, tileCtx.containerPx) : targetPx;
                 } else if (['xxs', 'xs', 'small', 'medium', 'large', 'xl', 'xxl'].includes(arg)) {
                     width = arg;
                 } else {
@@ -269,7 +303,7 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
             title: 'command_column_float',
             icon: PictureInPicture2,
             run: () => {
-                if (get(settings).design?.layout !== 'decks') return;
+                if (riceState.layoutStyle !== 'deck') return;
                 const id = resolveFocusedColumnId(columnState);
                 if (!id) return;
                 const slotIdx = columnState.slotIndexOf(id);
@@ -337,12 +371,12 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
             icon: CircleArrowUp,
             run: () => {
                 try {
-                    if (get(settings).design?.layout === 'decks') {
+                    if (riceState.layoutStyle === 'deck') {
                         for (const column of columnState.columns) {
-                            column?.scrollElement?.scroll({ top: 0, left: 0, behavior: 'smooth' });
+                            resolveColumnScrollHost(column, { layoutStyle: 'deck', isJunk: false }).scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                         }
                     } else {
-                        document.querySelector(':root')?.scroll({ top: 0, left: 0, behavior: 'smooth' });
+                        windowScrollHost().scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                     }
                 } catch {
                 }
@@ -454,6 +488,22 @@ export function createCoreCommands({ columnState }: CoreCommandDeps): CommandDef
             icon: Sparkles,
             run: () => {
                 settingsStore.rice.enabled = !settingsStore.rice.enabled;
+            },
+        },
+        {
+            id: 'layout.mode',
+            title: 'command_layout_mode',
+            icon: Columns3,
+            run: (arg) => {
+                const target = arg === 'tile' || arg === 'scroll'
+                    ? arg
+                    : riceState.layoutMode === 'tile' ? 'scroll' : 'tile';
+                settingsStore.rice.config = setValueInText(
+                    settingsStore.rice.config ?? '',
+                    [{ name: 'layout' }],
+                    'mode',
+                    target,
+                );
             },
         },
         {

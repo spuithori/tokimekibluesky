@@ -1,9 +1,8 @@
 <script lang="ts">
-    import CheckCircle from '@lucide/svelte/icons/check-circle';
     import {_} from "tokimeki-i18n";
     import { confetti } from '@neoconfetti/svelte';
-    import {createEventDispatcher, onMount} from "svelte";
-    import {settings} from "$lib/stores";
+    import {createEventDispatcher} from "svelte";
+    import LayoutField from '$lib/components/settings/fields/custom/LayoutField.svelte';
     const dispatch = createEventDispatcher();
 
     let el = $state();
@@ -28,37 +27,7 @@
         <div class="welcome-modal-setting">
             <div class="settings-group">
                 <div class="settings-group__content">
-                    <div class="big-radio-group">
-                        <div class="big-radio">
-                            <input type="radio" bind:group={$settings.design.layout} id="layoutDecks" name="layout" value={'decks'}>
-                            <label for="layoutDecks">
-                                <span class="big-radio__ui">
-                                    <span class="big-radio__check">
-                                        <CheckCircle size={28} color="var(--check-color)" />
-                                    </span>
-                                    <span class="big-radio__content">
-                                         <span class="big-radio__title">{$_('layout_decks')}</span>
-                                         <span class="big-radio__description">{$_('layout_decks_description')}</span>
-                                    </span>
-                                </span>
-                            </label>
-                        </div>
-
-                        <div class="big-radio">
-                            <input type="radio" bind:group={$settings.design.layout} id="layoutDefault" name="layout" value={'default'}>
-                            <label for="layoutDefault">
-                                <span class="big-radio__ui">
-                                    <span class="big-radio__check">
-                                        <CheckCircle size={28} color="var(--check-color)" />
-                                    </span>
-                                    <span class="big-radio__content">
-                                        <span class="big-radio__title">{$_('layout_single')}</span>
-                                        <span class="big-radio__description">{$_('layout_single_description')}</span>
-                                    </span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
+                    <LayoutField detailed></LayoutField>
                 </div>
             </div>
         </div>

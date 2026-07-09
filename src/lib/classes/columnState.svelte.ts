@@ -1,6 +1,7 @@
 import type {Column} from "$lib/types/column";
 import {capabilityOf} from "$lib/columnKinds";
-import {type Slot, type LayoutNode, type TabsNode, loadDeckState, splitLeaf, splitLeafWithExisting, moveLeafToSplit, moveLeafToSlot, unsplitAt, swapAt, slotIndexOfColumn, flattenLeafIds, firstLeafId, findTabsNodeOf, tabifyLeaf, untabifyLeaf, reorderedTab, DECK_SCHEMA_VERSION} from "$lib/classes/deckLayout";
+import {type Slot, type LayoutNode, type TabsNode, loadDeckState, splitLeaf, splitLeafWithExisting, moveLeafToSplit, moveLeafToSlot, unsplitAt, swapAt, slotIndexOfColumn, flattenLeafIds, firstLeafId, findTabsNodeOf, findFeedTabsNode, tabifyLeaf, untabifyLeaf, reorderedTab, DECK_SCHEMA_VERSION} from "$lib/classes/deckLayout";
+import {buildPinnedColumn, diffPinnedTabs, feedKeyOfColumn, type PinnedFeedItem} from "$lib/classes/feedTabs";
 import {buildPublishColumn, readLegacyPublishPrefs, resolvePublishColumnName, presetForLegacyLayout, setPreferredPreset, hasStoredPreset} from "$lib/publishColumnCore";
 import {getContext, setContext} from "svelte";
 import {SvelteMap} from "svelte/reactivity";
@@ -9,6 +10,14 @@ import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 import {AppBskyFeedDefs} from "$lib/atproto-guards";
 import {settingsState} from "$lib/classes/settingsState.svelte";
 import {appState} from "$lib/classes/appState.svelte";
+
+export type ColumnStateOptions = { isDeckLayout?: () => boolean };
+
+function readPersistedActiveSlot(): number {
+    if (typeof localStorage === 'undefined') return 0;
+    const raw = Number(localStorage.getItem('currentTimeline'));
+    return Number.isFinite(raw) && raw >= 0 ? raw : 0;
+}
 
 export class ColumnState {
     columns = $state<Column[]>([]);
@@ -85,8 +94,27 @@ export class ColumnState {
         },
     })));
     isColumnsLoaded = $state(false);
+    #activeSlotIndexRaw = $state(readPersistedActiveSlot());
 
-    constructor(isJunk: boolean = false) {
+    get activeSlotIndex(): number {
+        const raw = this.#activeSlotIndexRaw;
+        return this.slots[raw] ? raw : 0;
+    }
+
+    get activeSlot(): Slot | undefined {
+        return this.slots[this.activeSlotIndex];
+    }
+
+    setActiveSlot(index: number) {
+        if (this.isJunk) return;
+        const clamped = this.slots[index] ? index : 0;
+        this.#activeSlotIndexRaw = clamped;
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('currentTimeline', JSON.stringify(clamped));
+        }
+    }
+
+    constructor(isJunk: boolean = false, opts?: ColumnStateOptions) {
        this.isJunk = isJunk;
 
        if (isJunk) {
@@ -107,7 +135,7 @@ export class ColumnState {
                   () => self.crypto.randomUUID(),
                   {
                       legacyPublish,
-                      injectPublish: settingsState?.settings?.design?.layout === 'decks',
+                      injectPublish: opts?.isDeckLayout?.() ?? false,
                       makePublishColumn: () => buildPublishColumn({
                           id: self.crypto.randomUUID(),
                           name: resolvePublishColumnName(),
@@ -344,6 +372,90 @@ export class ColumnState {
         if (!node) return;
         const len = node.children.length;
         node.active = (((node.active ?? 0) + dir) % len + len) % len;
+    }
+
+    findPinnedFeedTabs(): TabsNode | null {
+        for (const slot of this.slots) {
+            const node = findFeedTabsNode(slot.layout, 'pinned');
+            if (node) return node;
+        }
+        return null;
+    }
+
+    makeFeedTabsSlot(columnId: string) {
+        const slotIdx = slotIndexOfColumn(this.slots, columnId);
+        if (slotIdx === -1 || this.slots[slotIdx].layout.type !== 'leaf') return;
+        this.slots = this.slots.map((s, i) => (
+            i === slotIdx
+                ? { ...s, layout: { type: 'tabs', children: [columnId], active: 0, kind: 'feedtabs', source: 'pinned' } as LayoutNode }
+                : s
+        ));
+    }
+
+    setTabsMeta(node: TabsNode, meta: { kind?: 'feedtabs' | null; source?: 'pinned' | null }) {
+        if (node?.type !== 'tabs') return;
+        if (meta.kind !== undefined) {
+            if (meta.kind === null) delete node.kind;
+            else node.kind = meta.kind;
+        }
+        if (meta.source !== undefined) {
+            if (meta.source === null) delete node.source;
+            else node.source = meta.source;
+        }
+    }
+
+    addColumnToTabs(node: TabsNode, column: Column) {
+        if (node?.type !== 'tabs' || !column?.id) return;
+        if ((column.data?.feed?.length ?? 0) > 0) {
+            this._feeds.set(column.id, column.data.feed as any[]);
+            column.data.feed = [];
+        }
+        const anchor = this.columns.find(c => c.id === node.children[0]);
+        const width = anchor?.settings?.width;
+        if (width !== undefined) {
+            column.settings = { ...column.settings, width };
+        }
+        this.columns.push(column);
+        node.children = [...node.children, column.id];
+    }
+
+    removeColumnFromTabs(node: TabsNode, columnId: string) {
+        if (node?.type !== 'tabs' || !node.children.includes(columnId)) return;
+        this.deleteFeed(columnId);
+        this.clearFeedStatus(columnId);
+        const activeId = node.children[Math.max(0, Math.min(node.active ?? 0, node.children.length - 1))];
+        node.children = node.children.filter(id => id !== columnId);
+        node.active = Math.max(0, node.children.indexOf(activeId));
+        this.columns = this.columns.filter(c => c.id !== columnId);
+    }
+
+    reorderTabChildren(node: TabsNode, orderedIds: string[]) {
+        if (node?.type !== 'tabs' || !node.children.length) return;
+        const activeId = node.children[Math.max(0, Math.min(node.active ?? 0, node.children.length - 1))];
+        const next = orderedIds.filter(id => node.children.includes(id));
+        for (const id of node.children) {
+            if (!next.includes(id)) next.push(id);
+        }
+        if (next.length === node.children.length && next.every((id, i) => id === node.children[i])) return;
+        node.children = next;
+        node.active = Math.max(0, next.indexOf(activeId));
+    }
+
+    applyPinnedSync(node: TabsNode, pinnedItems: PinnedFeedItem[], did: string, handle?: string) {
+        if (node?.type !== 'tabs' || !pinnedItems.length) return;
+        const { toAdd, toRemoveIds, orderedKeys } = diffPinnedTabs(node.children, this.columns, pinnedItems);
+        for (const id of toRemoveIds) {
+            this.removeColumnFromTabs(node, id);
+        }
+        for (const item of toAdd) {
+            this.addColumnToTabs(node, buildPinnedColumn(item, did, handle));
+        }
+        const idByKey = new Map<string | null, string>();
+        for (const id of node.children) {
+            idByKey.set(feedKeyOfColumn(this.columns.find(c => c.id === id)), id);
+        }
+        const orderedIds = orderedKeys.map(k => idByKey.get(k)).filter((v): v is string => v !== undefined);
+        this.reorderTabChildren(node, orderedIds);
     }
 
     setNodeSizes(node: LayoutNode, sizes: number[]) {
@@ -606,13 +718,13 @@ export class ColumnState {
 const ColumnUnique = Symbol();
 const JunkColumnUnique = Symbol('junk');
 
-export function initColumns() {
-    setColumnState(false);
+export function initColumns(opts?: ColumnStateOptions) {
+    setColumnState(false, opts);
     setColumnState(true);
 }
 
-export function setColumnState(isJunk: boolean = false) {
-    return setContext(isJunk ? JunkColumnUnique : ColumnUnique, new ColumnState(isJunk));
+export function setColumnState(isJunk: boolean = false, opts?: ColumnStateOptions) {
+    return setContext(isJunk ? JunkColumnUnique : ColumnUnique, new ColumnState(isJunk, opts));
 }
 
 export function getColumnState(isJunk: boolean = false) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { currentTimeline, settings, intersectingIndex } from "$lib/stores";
+    import { settings, intersectingIndex } from "$lib/stores";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import {page} from '$app/stores';
     import Home from '@lucide/svelte/icons/home';
@@ -18,7 +18,7 @@
     import {riceState} from "$lib/rice/riceState.svelte";
 
     const columnState = getColumnState();
-    const isPublishActive = $derived($settings.design?.layout === 'decks'
+    const isPublishActive = $derived(riceState.layoutStyle === 'deck'
         ? !!findPublishColumn(columnState.columns)
         : publishState.show);
 
@@ -40,9 +40,6 @@
         return style;
     });
 
-    if (!columnState.slots[$currentTimeline]) {
-        currentTimeline.set(0);
-    }
 
     function handleColumnClick(column, index) {
         runCommand('column.focus', String(index + 1));
@@ -127,8 +124,8 @@
         {@const column = columnState.getSlotColumn(index)}
         <button
             class="side-bar-button"
-            class:side-bar-button--current={$settings.design.layout !== 'decks' && index === $currentTimeline}
-            class:side-bar-button--intersecting={$intersectingIndex === index && $settings.design.layout === 'decks'}
+            class:side-bar-button--current={riceState.layoutStyle === 'single' && index === columnState.activeSlotIndex}
+            class:side-bar-button--intersecting={$intersectingIndex === index && riceState.layoutStyle === 'deck'}
             onclick={() => {handleColumnClick(column, index)}}
             aria-label={column?.algorithm?.name}
             title={column?.algorithm?.name}

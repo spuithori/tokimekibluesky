@@ -1,6 +1,5 @@
 import type { RiceModuleManifest } from './types';
 import { clockManifest } from './clock/manifest';
-import { auroraManifest } from './aurora/manifest';
 import { notificationsManifest } from './notifications/manifest';
 import { chatManifest } from './chat/manifest';
 import { accountManifest } from './account/manifest';
@@ -16,7 +15,6 @@ import { keymodeManifest } from './keymode/manifest';
 export const builtinModules: RiceModuleManifest[] = [
     clockManifest,
     dummyTimelineManifest,
-    auroraManifest,
     notificationsManifest,
     chatManifest,
     accountManifest,

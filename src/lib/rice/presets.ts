@@ -44,11 +44,78 @@ module "clock" {
 
 ricePresets['bluesky-menu'] = blueskyMenuPreset;
 
-export const blueskyShellPreset = `bar "left" {
+export const blueskyShellPreset = `# BLUESKY SHELL — 公式アプリ風のシングルカラムレイアウト
+# style = single によりメインカラム1本のページ型レイアウトになります
+# composer = top でメインカラム上部に投稿フォームを常設します
+# フィードタブは layout の feedtabs 宣言により自動生成されます
+# （手で消しても次回起動で復活。不要なら feedtabs 行を削除）
+# mod+t（column.feedtabs）でいつでも手動再同期できます
+# 文字数は公式同様のリングゲージ（length-ring）
+
+$bg = #ffffff
+$card = #f1f3f5
+$border = #d4dbe2
+$blue = #1083fe
+$text = #0b1520
+$text2 = #42576c
+$text3 = #6a7f95
+
+theme {
+    reset = true
+    tokens {
+        current-theme-color = $blue
+        app-bg-color = $bg
+        app-color = $text
+        base-bg-color = $bg
+        bg-color-1 = $bg
+        bg-color-2 = $card
+        bg-color-3 = #e8ecf0
+        blurred-bg-color = rgba(255, 255, 255, .9)
+        menu-bg-color = $bg
+        deck-heading-bubble-color = $card
+        text-color-1 = $text
+        text-color-2 = $text2
+        text-color-3 = $text3
+        border-color-1 = $border
+        border-color-2 = #e3e8ee
+        danger-color = #eb4d4d
+        success-color = #2aa876
+        follow-color = $blue
+        link-color = $blue
+        scroll-bar-color = #c5ced8
+        side-nav-hover-bg-color = $card
+        side-bg-color = $bg
+        publish-textarea-bg-color = $card
+        publish-border = 1px solid $border
+        timeline-embed-border = 1px solid $border
+        timeline-reaction-icon-color = $text3
+        timeline-reaction-liked-icon-color = #ec4899
+        timeline-reaction-reposted-icon-color = #20bc07
+        box-shadow-color-1 = rgba(0, 0, 0, .08)
+        decks-bg-color = $bg
+        decks-gap = 0px
+        decks-padding = 0px
+        decks-margin = 0px
+        deck-border-radius = 0px
+        deck-border-color = $border
+        deck-border-width = 1px
+        deck-divider = 1px solid $border
+        deck-tabs-height = 44px
+        deck-tabs-bg-color = $bg
+        deck-tabs-border-color = $border
+        deck-tabs-color = $text3
+        deck-tabs-active-color = $text
+        deck-tabs-active-border-color = $blue
+        single-m-width = 600px
+        single-border = 1px solid $border
+    }
+}
+
+bar "nav" {
     position = left
     style = menu
-    items = account, home, search, notifications, chat, columns, settings, spacer, publish
     width = 220px
+    items = account, home, notifications, chat, columns, settings, spacer, publish
 }
 
 bar "widgets" {
@@ -61,17 +128,21 @@ bar "widgets" {
     }
 }
 
-statusbar {
-    position = top
-    group "start" {
-        items = workspace
-    }
-    group "center" {
-        items = clock
-    }
-    group "end" {
-        items = notifications, chat
-    }
+layout {
+    align = center
+    shell = centered
+    style = single
+    composer = top
+    feedtabs = pinned
+}
+
+columnrule {
+    match = all
+    heading = hover
+}
+
+publish {
+    length-ring = true
 }
 
 panel {
@@ -82,6 +153,23 @@ footer {
     items = workspace, search, notifications, chat, menu
     item "menu" {
         items = home, feeds, profile, settings
+    }
+}
+
+bind {
+    mod+t = column.feedtabs
+}
+
+media "desktop" {
+    fab {
+        show = false
+    }
+}
+
+media "(max-width: 1279px)" {
+    bar "widgets" {
+        position = right
+        enable = false
     }
 }
 
@@ -283,7 +371,7 @@ module "search" {
     enable = true
 }
 
-module "aurora" {
+plugin:aurora {
     enable = true
     intensity = 0.55
 }
@@ -315,6 +403,173 @@ media "mobile" {
 `;
 
 ricePresets['cyberdeck'] = cyberdeckPreset;
+
+const macaronPreset = `# MACARON — pastel tiling rice
+# Tile mode showcase. alt+m でスクロールデッキと切替。
+
+$base = #1e1e2e
+$mantle = #181825
+$crust = #11111b
+$surface = #313244
+$mauve = #cba6f7
+$pink = #f5c2e7
+
+theme {
+    reset = true
+    tokens {
+        current-theme-color = $mauve
+        base-bg-color = $crust
+        bg-color-1 = $base
+        bg-color-2 = $surface
+        bg-color-3 = $mantle
+        blurred-bg-color = rgba(30, 30, 46, .85)
+        menu-bg-color = $mantle
+        deck-heading-bubble-color = $surface
+        text-color-1 = #cdd6f4
+        text-color-2 = #a6adc8
+        text-color-3 = #6c7086
+        border-color-1 = #45475a
+        border-color-2 = $surface
+        danger-color = #f38ba8
+        success-color = #a6e3a1
+        follow-color = $surface
+        link-color = #89b4fa
+        scroll-bar-color = #45475a
+        side-nav-hover-bg-color = $surface
+        publish-textarea-bg-color = $mantle
+        publish-border = 1px solid $surface
+        timeline-embed-border = 1px solid $surface
+        timeline-reaction-icon-color = #6c7086
+        timeline-reaction-liked-icon-color = $pink
+        timeline-reaction-reposted-icon-color = #94e2d5
+        box-shadow-color-1 = rgba(17, 17, 27, .5)
+        decks-bg-color = $crust
+        decks-gap = 10px
+        decks-padding = 10px
+        deck-border-radius = 16px
+        deck-border-color = $surface
+        deck-border-width = 1px
+    }
+}
+
+layout {
+    mode = tile
+}
+
+columnrule {
+    match = all
+    reactions = left 24px
+    heading = hover
+}
+
+bar "dock" {
+    position = left
+    style = icons
+    width = 64px
+    background = $crust
+    border = 1px solid #45475a
+    items = home, notifications, chat, columns, spacer, settings
+}
+
+statusbar {
+    position = top
+    float = true
+    height = 34px
+    rounding = 17px
+    margin = 10px
+    background = $mantle
+    border = 1px solid $surface
+    font-size = 13px
+    group "start" {
+        items = workspace, keymode
+    }
+    group "center" {
+        items = clock
+    }
+    group "end" {
+        items = notifications, chat
+    }
+    item "clock" {
+        date = true
+    }
+}
+
+panel {
+    position = auto
+    dim = 0.35
+    width = 340px
+    background = $mantle
+    rounding = 16px
+    border = 1px solid $surface
+}
+
+focus {
+    outline = 2px solid $mauve
+    dim = 0.9
+}
+
+animation {
+    bezier = soft, 0.22, 1, 0.36, 1
+    panel = 260ms, soft, slide 20px, blur 6px
+    menu = 150ms, soft, popin 96%
+    modal = 200ms, soft, popin 97%
+    drawer = 260ms, soft, slide left 48px, fade
+    tooltip = 120ms, soft
+    hover = 120ms, soft
+    reorder = 220ms, soft
+}
+
+bind {
+    alt+m = layout.mode
+    alt+j = column.focus next
+    alt+k = column.focus prev
+    alt+n = publish.toggle
+    alt+g = column.tabify
+    alt+t = column.tab next
+    mod+r = submap.enter resize
+}
+
+submap "resize" {
+    h = column.width -50
+    l = column.width +50
+    j = column.move left
+    k = column.move right
+}
+
+module "clock" {
+    enable = true
+}
+
+media "mobile" {
+    theme {
+        tokens {
+            deck-border-radius = 0px
+            decks-gap = 0px
+            decks-padding = 0px
+        }
+    }
+    columnrule {
+        match = all
+        reactions = spread
+        heading = show
+    }
+    footer {
+        items = workspace, notifications, chat, menu
+        background = $mantle
+        border = 1px solid $surface
+        item "menu" {
+            items = home, search, feeds, settings
+        }
+    }
+    switcher {
+        style = pill
+        reveal = auto
+        background = $mantle
+    }
+}
+`;
+
+ricePresets['macaron'] = macaronPreset;
 
 export function resolvePresetSource(ref: string): string | undefined {
     if (!ref.startsWith('preset:')) return undefined;

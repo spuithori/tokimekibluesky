@@ -139,8 +139,8 @@ async function compress(input: WorkerInput): Promise<WorkerOutput> {
 
     const tDecodeStart = performance.now();
     const bitmap = haveTarget
-        ? await createImageBitmap(file, { resizeWidth: targetWidth, resizeHeight: targetHeight, resizeQuality: 'high', imageOrientation: 'none' })
-        : await createImageBitmap(file, { imageOrientation: 'none' });
+        ? await createImageBitmap(file, { resizeWidth: targetWidth, resizeHeight: targetHeight, resizeQuality: 'high' })
+        : await createImageBitmap(file);
     timings.decode = performance.now() - tDecodeStart;
 
     const { width: tw, height: th } = haveTarget

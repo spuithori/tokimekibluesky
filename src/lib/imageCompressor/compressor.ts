@@ -159,10 +159,13 @@ export async function compressImageWithStats(
     const sizeOk = maxSizeBytes === undefined || originalSize <= maxSizeBytes;
     const dimsOk = intrinsic !== null
         && intrinsic.width <= maxWidthOrHeight && intrinsic.height <= maxWidthOrHeight;
+    const uprightPixels = (intrinsic?.orientation ?? 1) === 1;
 
     // HEIC bytes are never a web-safe upload format — even when small enough to
     // short-circuit — so always route them through the re-encode path below.
-    if (intrinsic !== null && sizeOk && dimsOk && !isHeic) {
+    // EXIF-rotated JPEGs also re-encode: passing them through would strip the
+    // APP1 orientation their raw pixels depend on.
+    if (intrinsic !== null && sizeOk && dimsOk && !isHeic && uprightPixels) {
         const tStripStart = performance.now();
         const strippedBlob = await stripJpegMetadata(file);
         timings.stripExif = performance.now() - tStripStart;
@@ -187,7 +190,7 @@ export async function compressImageWithStats(
         return stats;
     }
 
-    const target = intrinsic !== null
+    const target = intrinsic !== null && uprightPixels
         ? calcTargetDimensions(intrinsic.width, intrinsic.height, maxWidthOrHeight)
         : null;
 
@@ -207,8 +210,8 @@ export async function compressImageWithStats(
     }, 'compress');
     const processElapsed = performance.now() - tProcessStart;
 
-    const originalWidth = intrinsic?.width ?? result.sourceWidth ?? result.width;
-    const originalHeight = intrinsic?.height ?? result.sourceHeight ?? result.height;
+    const originalWidth = result.sourceWidth ?? intrinsic?.width ?? result.width;
+    const originalHeight = result.sourceHeight ?? intrinsic?.height ?? result.height;
 
     if (maxSizeBytes !== undefined && result.blob.size > maxSizeBytes) {
         timings.overTarget = 1;
@@ -275,7 +278,7 @@ export async function compressForPreview(
     } = options ?? {};
 
     const intrinsic = await getIntrinsicSize(file);
-    const target = intrinsic !== null
+    const target = intrinsic !== null && (intrinsic.orientation ?? 1) === 1
         ? calcTargetDimensions(intrinsic.width, intrinsic.height, maxWidthOrHeight)
         : null;
 

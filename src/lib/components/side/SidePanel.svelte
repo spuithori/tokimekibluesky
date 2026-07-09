@@ -183,13 +183,13 @@
         &--left {
             top: calc(56px + var(--rice-statusbar-top-height, 0px));
             bottom: calc(16px + var(--rice-statusbar-bottom-height, 0px));
-            left: var(--side-width, 64px);
+            left: calc(var(--shell-inset, 0px) + var(--side-width, 64px));
         }
 
         &--right {
             top: calc(56px + var(--rice-statusbar-top-height, 0px));
             bottom: calc(16px + var(--rice-statusbar-bottom-height, 0px));
-            right: var(--side-right-width, 0px);
+            right: calc(var(--shell-inset, 0px) + var(--side-right-width, 0px));
         }
 
         &--center {

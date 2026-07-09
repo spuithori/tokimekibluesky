@@ -8,7 +8,7 @@ export const widgetRegistry = new SvelteMap<string, ComponentLoader>();
 
 export const sidebarItemRegistry = new SvelteMap<string, { title: string; icon?: Component; command: string; commandArg?: string }>();
 
-export const effectLayerRegistry = new SvelteMap<string, { zIndex: number; loader: ComponentLoader }>();
+export const effectLayerRegistry = new SvelteMap<string, { zIndex: number; loader: ComponentLoader; getOptions?: () => Record<string, string> }>();
 
 export const moduleThemeTokens = new SvelteMap<string, Record<string, string>>();
 

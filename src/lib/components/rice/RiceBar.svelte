@@ -8,17 +8,19 @@
     import RiceMenu from './RiceMenu.svelte';
     import RiceBarItemList from './RiceBarItemList.svelte';
     import { drawerState } from '$lib/classes/drawerState.svelte';
-    import type { BarGroupName, BarItemSpec, BarPosition } from '$lib/rice/config/model';
+    import type { BarConfig, BarGroupName, BarItemSpec, BarPosition } from '$lib/rice/config/model';
 
     interface Props {
         position: BarPosition;
+        config?: BarConfig;
+        offset?: string;
     }
 
-    let { position }: Props = $props();
+    let { position, config = undefined, offset = undefined }: Props = $props();
 
     const columnState = getColumnState();
     const bar = $derived.by(() => {
-        const candidate = riceState.bars[position];
+        const candidate = config ?? riceState.bars[position]?.[0];
         return candidate?.kind === 'rice' && (candidate.items?.length ?? 0) > 0 ? candidate : null;
     });
     const horizontal = $derived(position === 'top' || position === 'bottom');
@@ -47,6 +49,7 @@
         if (p['font-size']) style += `--rice-statusbar-font-size: ${p['font-size']};`;
         if (p.margin) style += `--rice-statusbar-margin: ${p.margin};`;
         if (p.opacity) style += `--rice-statusbar-opacity: ${p.opacity};`;
+        if (offset && offset !== '0px') style += `--rice-bar-offset: ${offset};`;
         return style;
     });
 
@@ -147,7 +150,7 @@
         align-items: center;
         gap: 12px;
         height: var(--rice-statusbar-height, 32px);
-        padding: 0 calc(var(--side-right-width, 0px) + 12px) 0 calc(var(--side-width, 64px) + 12px);
+        padding: 0 calc(var(--shell-inset, 0px) + var(--side-right-width, 0px) + 12px) 0 calc(var(--shell-inset, 0px) + var(--side-width, 64px) + 12px);
         background-color: var(--rice-statusbar-bg, var(--side-bar-bg-color, var(--bg-color-1)));
         backdrop-filter: var(--rice-statusbar-backdrop, none);
         font-size: var(--rice-statusbar-font-size, 13px);
@@ -176,8 +179,8 @@
         border: var(--rice-statusbar-border, 1px solid var(--border-color-1));
         border-radius: var(--rice-statusbar-rounding, 12px);
         margin: var(--rice-statusbar-margin, 8px);
-        margin-left: calc(var(--side-width, 64px) + var(--rice-statusbar-margin, 8px));
-        margin-right: calc(var(--side-right-width, 0px) + var(--rice-statusbar-margin, 8px));
+        margin-left: calc(var(--shell-inset, 0px) + var(--side-width, 64px) + var(--rice-statusbar-margin, 8px));
+        margin-right: calc(var(--shell-inset, 0px) + var(--side-right-width, 0px) + var(--rice-statusbar-margin, 8px));
         padding: 0 12px;
         box-shadow: var(--deck-box-shadow, 0 2px 8px rgba(0, 0, 0, .08));
     }
@@ -217,12 +220,13 @@
     }
 
     :global(.app.left-mode) .rice-statusbar {
-        padding: 0 calc(var(--side-width, 64px) + var(--side-right-width, 0px) + 12px) 0 12px;
+        padding: 0 calc(var(--shell-inset, 0px) + var(--side-width, 64px) + var(--side-right-width, 0px) + 12px) 0 calc(var(--shell-inset, 0px) + 12px);
     }
 
     :global(.app.left-mode) .rice-statusbar--float {
         margin: var(--rice-statusbar-margin, 8px);
-        margin-right: calc(var(--side-width, 64px) + var(--side-right-width, 0px) + var(--rice-statusbar-margin, 8px));
+        margin-left: calc(var(--shell-inset, 0px) + var(--rice-statusbar-margin, 8px));
+        margin-right: calc(var(--shell-inset, 0px) + var(--side-width, 64px) + var(--side-right-width, 0px) + var(--rice-statusbar-margin, 8px));
         padding: 0 12px;
     }
 
@@ -263,12 +267,12 @@
     }
 
     .rice-bar--edge-left {
-        left: 0;
+        left: calc(var(--shell-inset, 0px) + var(--rice-bar-offset, 0px));
         border-right: var(--rice-statusbar-border, none);
     }
 
     .rice-bar--edge-right {
-        right: 0;
+        right: calc(var(--shell-inset, 0px) + var(--rice-bar-offset, 0px));
         border-left: var(--rice-statusbar-border, none);
     }
 

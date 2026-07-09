@@ -2,10 +2,10 @@ import { MediaQuery } from 'svelte/reactivity';
 import type { Column } from '$lib/types/column';
 import { settingsStore } from '$lib/settings/settings.svelte';
 import { compile } from './config/compile';
-import { emptyCompiledRice, type CompiledRice } from './config/model';
+import { emptyCompiledRice, type CompiledRice, type LayoutStyle } from './config/model';
 import { resolvePresetSource } from './presets';
 import { globalStyleForTokens, styleForColumn } from './columnRules';
-import { shellGeometryVars } from './shellGeometry';
+import { renderedVerticalBars, shellGeometryVars } from './shellGeometry';
 import { moduleThemeTokens } from './modules/registries.svelte';
 
 class RiceState {
@@ -34,7 +34,7 @@ class RiceState {
 
     readonly statusbar = $derived.by(() => {
         for (const position of ['top', 'bottom'] as const) {
-            const bar = this.compiled.bars[position];
+            const bar = this.compiled.bars[position]?.[0];
             if (bar?.kind === 'rice' && bar.style === 'bar' && (bar.items?.length ?? 0) > 0) {
                 return { position, modules: bar.items ?? [], float: bar.float, props: bar.props };
             }
@@ -43,8 +43,8 @@ class RiceState {
     });
 
     readonly sidebar = $derived.by(() => {
-        const bar = this.compiled.bars.left;
-        if (bar?.kind !== 'native') return null;
+        const bar = this.compiled.bars.left?.find((candidate) => candidate.kind === 'native');
+        if (!bar) return null;
         return {
             items: bar.items,
             width: bar.props.width,
@@ -55,13 +55,23 @@ class RiceState {
     });
 
     readonly footer = $derived.by(() => {
-        const bar = this.compiled.bars.footer;
+        const bar = this.compiled.bars.footer?.[0];
         if (bar?.kind !== 'rice' || (bar.items?.length ?? 0) === 0) return null;
         return bar;
     });
 
+    readonly leftBars = $derived(renderedVerticalBars(this.compiled.bars, 'left').filter((bar) => bar.kind === 'rice'));
+    readonly rightBars = $derived(renderedVerticalBars(this.compiled.bars, 'right').filter((bar) => bar.kind === 'rice'));
+
     readonly switcher = $derived(this.compiled.switcher);
     readonly fab = $derived(this.compiled.fab);
+    readonly publish = $derived(this.compiled.publish);
+    readonly layoutMode: 'scroll' | 'tile' = $derived(this.compiled.layout?.mode ?? 'scroll');
+    readonly layoutComposer = $derived(this.compiled.layout?.composer ?? null);
+    readonly layoutStyle: LayoutStyle = $derived(
+        this.compiled.layout?.style ?? (settingsStore.design?.layout === 'decks' ? 'deck' : 'single')
+    );
+    readonly declaresSingleWidth = $derived('single-m-width' in this.compiled.themeTokens);
 
     readonly panel = $derived(this.compiled.panel);
     readonly binds = $derived(this.compiled.binds);
@@ -74,7 +84,7 @@ class RiceState {
             Object.assign(merged, tokens);
         }
         Object.assign(merged, this.compiled.themeTokens);
-        return shellGeometryVars(this.compiled.bars, this.compiled.layout, this.compiled.focus, this.compiled.animations, this.compiled.switcher) + globalStyleForTokens(merged);
+        return shellGeometryVars(this.compiled.bars, this.compiled.layout, this.compiled.focus, this.compiled.animations, this.compiled.switcher, this.layoutStyle) + globalStyleForTokens(merged);
     });
 
     styleForColumn(column: Column | undefined): string {
@@ -85,6 +95,10 @@ class RiceState {
 
     moduleConfig(id: string): { enable: boolean; options: Record<string, string> } | undefined {
         return this.compiled.modules[id];
+    }
+
+    pluginConfig(id: string): { enable: boolean; options: Record<string, string> } | undefined {
+        return this.compiled.plugins[id];
     }
 }
 

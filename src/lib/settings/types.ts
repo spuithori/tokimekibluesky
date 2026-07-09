@@ -64,8 +64,7 @@ export interface DesignSettings {
     reactionMode: string;
     leftMode: boolean;
     disableProfilePopup: boolean;
-    immersiveMode: boolean;
-    singleWidth: string | number;
+    singleWidth: number;
     fixedFooter: boolean;
     mutualDisplay: boolean;
     bubbleTimeline: boolean;
@@ -75,6 +74,7 @@ export interface DesignSettings {
     // Formalised in Phase 2 (design page).
     datetimeFormat: string;
     oneImageNoCrop: boolean;
+    publishEditorHeight?: number;
 }
 
 export interface TimelineSettings {
@@ -131,10 +131,20 @@ export interface EmbedSettings {
     disableEmbedVia: boolean;
 }
 
+export interface InstalledRicePlugin {
+    url: string;
+    name: string;
+    version: string;
+    integrity: string;
+    svelteVersion: string;
+    installedAt: string;
+}
+
 export interface RiceSettings {
     enabled: boolean;
     config: string;
     sources: Record<string, string>;
+    plugins: Record<string, InstalledRicePlugin>;
 }
 
 export interface Settings {

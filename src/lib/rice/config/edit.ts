@@ -1,5 +1,5 @@
 import { parse } from './parser';
-import type { EntryNode, SectionNode, TopStatement } from './model';
+import type { EntryNode, SectionNode, SourceStatement, TopStatement } from './model';
 
 export interface SectionRef {
     name: string;
@@ -7,12 +7,13 @@ export interface SectionRef {
 }
 
 function findSection(statements: (TopStatement | EntryNode | SectionNode)[], ref: SectionRef): SectionNode | undefined {
+    let found: SectionNode | undefined;
     for (const statement of statements) {
         if (statement.kind === 'section' && statement.name === ref.name && statement.label === ref.label) {
-            return statement;
+            found = statement;
         }
     }
-    return undefined;
+    return found;
 }
 
 function sectionHeader(ref: SectionRef, depth: number): string {
@@ -71,6 +72,34 @@ export function setValueInText(text: string, path: SectionRef[], key: string, va
     }
     out.push(...block);
     return out.join('\n');
+}
+
+export function getPresetSourceInText(text: string): string | null {
+    const doc = parse(text);
+    for (const statement of doc.statements) {
+        if (statement.kind === 'source' && statement.ref.startsWith('preset:')) {
+            return statement.ref.slice('preset:'.length);
+        }
+    }
+    return null;
+}
+
+export function setPresetSourceInText(text: string, name: string | null): string {
+    const lines = text.split('\n');
+    const doc = parse(text);
+    const existing = doc.statements.find(
+        (s): s is SourceStatement => s.kind === 'source' && s.ref.startsWith('preset:'),
+    );
+    if (existing) {
+        if (name === null) {
+            lines.splice(existing.line - 1, 1);
+            return lines.join('\n');
+        }
+        lines[existing.line - 1] = `source = preset:${name}`;
+        return lines.join('\n');
+    }
+    if (name === null) return text;
+    return [`source = preset:${name}`, '', ...lines].join('\n');
 }
 
 export function getValueInText(text: string, path: SectionRef[], key: string): string | undefined {

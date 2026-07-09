@@ -17,6 +17,8 @@ const ADVERSARIAL_LINES = [
     'bezier = smooth, 0.2, 0, 0, 1',
     '    items = account, home, "quoted", spacer',
     'columnrule "with $2 label" {',
+    'plugin:aurora {',
+    '    intensity = 0.55',
     '!!! invalid line <>&"',
     '',
     '   ',
@@ -47,6 +49,7 @@ describe('rice config highlight', () => {
             '<span class="rc-section">bar</span> <span class="rc-label">&quot;left&quot;</span> {',
         );
         expect(highlightLine('animation {', 1)).toBe('<span class="rc-section">animation</span> {');
+        expect(highlightLine('plugin:aurora {', 1)).toBe('<span class="rc-section">plugin:aurora</span> {');
         expect(highlightLine('}', 1)).toBe('}');
     });
 

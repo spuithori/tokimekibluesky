@@ -16,12 +16,11 @@
     .publish-toolbar {
         display: flex;
         gap: 8px;
-        position: sticky;
-        bottom: 0;
-        z-index: 100;
-        padding-bottom: 12px;
-        padding-inline: 12px;
+        flex-shrink: 0;
+        padding: 8px 12px;
         justify-content: space-between;
+        background: var(--publish-textarea-bg-color, var(--bg-color-1));
+        container: publish-toolbar / inline-size;
 
         &__buttons {
             display: flex;

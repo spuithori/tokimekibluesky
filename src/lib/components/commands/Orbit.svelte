@@ -12,6 +12,7 @@
     import { defaultDeckSettings } from '$lib/components/deck/defaultDeckSettings';
     import { listModuleColumnKinds, type ColumnKindDef } from '$lib/columnKindRegistry.svelte';
     import { riceModuleHost } from '$lib/rice/modules/host.svelte';
+    import { moduleDisplayName } from '$lib/rice/modules/displayName';
     import { animateLayout } from '$lib/animations/flip';
     import { fuzzyFilter } from '$lib/commands/fuzzy';
     import { runCommand } from '$lib/commands/registry.svelte';
@@ -41,9 +42,11 @@
     }
 
     function moduleTitle(def: ColumnKindDef): string {
-        const moduleId = def.type.startsWith('module:') ? def.type.slice('module:'.length) : def.type;
-        const manifest = riceModuleHost.entries.get(moduleId)?.manifest;
-        return manifest ? $_(manifest.name) : moduleId;
+        const entryId = def.type.startsWith('plugin:')
+            ? def.type.split(':').slice(0, 2).join(':')
+            : def.type.startsWith('module:') ? def.type.slice('module:'.length) : def.type;
+        const manifest = riceModuleHost.entries.get(entryId)?.manifest;
+        return manifest ? moduleDisplayName(manifest, $_) : entryId;
     }
 
     interface OrbitTile {

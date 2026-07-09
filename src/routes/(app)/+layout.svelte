@@ -25,7 +25,6 @@
     import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
     import Side from "./Side.svelte";
     import ColumnModal from "$lib/components/column/ColumnModal.svelte";
-    import Single from "./Single.svelte";
     import Decks from "./Decks.svelte";
     import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
     import { builtInThemes } from "$lib/builtInThemes";
@@ -51,12 +50,27 @@
     import "@fontsource-variable/noto-sans-jp";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { appState } from "$lib/classes/appState.svelte";
+    import { revealState } from "$lib/classes/revealState.svelte";
     import { riceState } from "$lib/rice/riceState.svelte";
+    import { shellResizeState } from "$lib/classes/shellResizeState.svelte";
+
+    const shellPreviewStyle = $derived(
+        shellResizeState.previewWidth != null
+            ? `--shell-max-width: ${shellResizeState.previewWidth}px;--shell-inset: max(0px, calc((100vw - ${shellResizeState.previewWidth}px) / 2));`
+            : ''
+    );
+    const singleColumnStyle = $derived.by(() => {
+        if (shellResizeState.singlePreviewWidth != null) return `--single-column-width: ${shellResizeState.singlePreviewWidth}px;`;
+        if (!riceState.declaresSingleWidth && typeof $settings.design?.singleWidth === 'number') return `--single-column-width: ${$settings.design.singleWidth}px;`;
+        return '';
+    });
     import { themeInlineStyle } from "$lib/theme/inlineStyle";
     import { applyRiceSets } from "$lib/rice/apply";
     import StatusBar from "$lib/components/rice/StatusBar.svelte";
     import RiceBar from "$lib/components/rice/RiceBar.svelte";
+    import { verticalBarOffset } from "$lib/rice/shellGeometry";
     import RiceModulesObserver from "$lib/components/rice/RiceModulesObserver.svelte";
+    import RiceLayoutObserver from "$lib/components/rice/RiceLayoutObserver.svelte";
     import RiceEffectLayers from "$lib/components/rice/RiceEffectLayers.svelte";
     import CoreCommandsObserver from "$lib/components/commands/CoreCommandsObserver.svelte";
     import KeybindsObserver from "$lib/components/commands/KeybindsObserver.svelte";
@@ -228,7 +242,7 @@
     appState.init();
     viewPortSetting();
     setPostState();
-    initColumns();
+    initColumns({ isDeckLayout: () => riceState.layoutStyle === 'deck' });
     applyRiceSets();
 
     const savedScrollPositions = new Map<
@@ -257,7 +271,7 @@
 
         tick().then(() => {
             if (
-                $settings.design?.layout === "decks" &&
+                riceState.layoutStyle === 'deck' &&
                 saved.modalTop !== null
             ) {
                 const modal = document.querySelector(
@@ -353,13 +367,14 @@
         2} font-theme-{$settings?.design?.fontTheme || 'default'}"
     class:nonoto={$settings?.design.nonoto || false}
     class:darkmode={isDarkMode}
-    class:single={$settings?.design.layout !== "decks"}
+    class:single={riceState.layoutStyle === 'single'}
     class:ios={isMobile.iOS()}
     class:left-mode={$settings?.design?.leftMode}
     class:superstar={$settings.design?.reactionMode === "superstar"}
     class:bubble={$settings?.design?.bubbleTimeline}
     class:monochrome={$settings?.design?.monochrome}
-    style={outputInlineStyle($theme) + riceState.globalStyle}
+    class:rice-headings-reveal={revealState.headings}
+    style={outputInlineStyle($theme) + riceState.globalStyle + shellPreviewStyle + singleColumnStyle}
     dir={$_("dir")}
     bind:this={app}
 >
@@ -368,27 +383,24 @@
 
         <div
             class="wrap"
-            class:layout-decks={$settings.design.layout === "decks"}
+            class:layout-decks={riceState.layoutStyle === 'deck'}
         >
             <Side></Side>
 
-            <main
-                class="main {typeof $settings.design?.singleWidth === 'string' ? `main--scw-${$settings.design.singleWidth}` : ''}"
-                style:--single-column-width={typeof $settings.design?.singleWidth === 'number' ? `${$settings.design.singleWidth}px` : null}
-            >
-                {#if $settings.design.layout !== "decks"}
-                    <Single></Single>
-                {:else}
-                    <Decks></Decks>
-                {/if}
+            <main class="main">
+                <Decks></Decks>
 
                 {@render children?.()}
             </main>
         </div>
 
         <StatusBar position="bottom"></StatusBar>
-        <RiceBar position="left"></RiceBar>
-        <RiceBar position="right"></RiceBar>
+        {#each riceState.leftBars as bar, index (bar.label ?? index)}
+            <RiceBar position="left" config={bar} offset={verticalBarOffset(riceState.leftBars, index)}></RiceBar>
+        {/each}
+        {#each riceState.rightBars as bar, index (bar.label ?? index)}
+            <RiceBar position="right" config={bar} offset={verticalBarOffset(riceState.rightBars, index)}></RiceBar>
+        {/each}
 
         {#if $isColumnModalOpen}
             <ColumnModal onclose={handleColumnModalClose}></ColumnModal>
@@ -437,6 +449,7 @@
     <SidePanel></SidePanel>
     <RiceDrawer></RiceDrawer>
     <RiceModulesObserver></RiceModulesObserver>
+    <RiceLayoutObserver></RiceLayoutObserver>
     <RiceEffectLayers></RiceEffectLayers>
 
     {#if sideState.isTokStart}
@@ -472,34 +485,6 @@
         display: flex;
         flex-direction: column;
         min-width: 0;
-
-        &--scw-xxs {
-            --single-column-width: var(--single-xxs-width);
-        }
-
-        &--scw-xs {
-            --single-column-width: var(--single-xs-width);
-        }
-
-        &--scw-small {
-            --single-column-width: var(--single-s-width);
-        }
-
-        &--scw-medium {
-            --single-column-width: var(--single-m-width);
-        }
-
-        &--scw-large {
-            --single-column-width: var(--single-l-width);
-        }
-
-        &--scw-xl {
-            --single-column-width: var(--single-xl-width);
-        }
-
-        &--scw-xxl {
-            --single-column-width: var(--single-xxl-width);
-        }
     }
 
     .single {
@@ -507,6 +492,8 @@
         background-attachment: fixed;
 
         .wrap {
+            width: var(--shell-content-width, auto);
+            max-width: 100%;
             margin: 0 var(--single-align-mr, auto) 0 var(--single-align-ml, auto);
             padding-right: var(--side-right-width, 0px);
 

@@ -11,7 +11,7 @@
     const expoOut = cubicBezier(0.16, 1, 0.3, 1);
 
     const drawerBar = $derived.by(() => {
-        const candidate = riceState.bars.drawer;
+        const candidate = riceState.bars.drawer?.[0];
         return candidate?.kind === 'rice' && (candidate.items?.length ?? 0) > 0 ? candidate : null;
     });
 

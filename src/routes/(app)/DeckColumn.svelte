@@ -28,6 +28,8 @@
     import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
     import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
     import ColumnContent from "./ColumnContent.svelte";
+  import { riceState } from '$lib/rice/riceState.svelte';
+  import { resolveColumnScrollHost } from '$lib/scroll/scrollHost';
 
     interface Props {
         index: number;
@@ -237,12 +239,12 @@
     class:deck-row--in-split={isSplit}
     class:deck-row--popup={column?.settings?.isPopup === true}
     class:deck-row--bg={column?.settings?.background}
-    class:deck-row--decks={$settings.design?.layout === 'decks'}
-    class:deck-row--single={$settings.design?.layout === 'default'}
+    class:deck-row--decks={riceState.layoutStyle === 'deck'}
+    class:deck-row--single={riceState.layoutStyle === 'single'}
     class:deck-row--junk={isJunk}
     class:deck-row--settings-open={isSettingsOpen}
     class:deck-row--tile-dragging={tilingDrag.draggingId === column?.id}
-    data-tile-id={$settings.design?.layout === 'decks' && !isJunk && !column?.settings?.isPopup ? column?.id : undefined}
+    data-tile-id={riceState.layoutStyle === 'deck' && !isJunk && !column?.settings?.isPopup ? column?.id : undefined}
     data-flip-id={column?.id}
     tabindex="-1"
     onscroll={handleScroll}
@@ -250,8 +252,10 @@
     style:background-image={column?.settings?.background ? `url(${backgroundsMap.get(column.settings.background)?.url})` : 'none'}
 >
     {#snippet settingsModal()}
-        <DeckSettingsModal {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick} {isSplit}></DeckSettingsModal>
+        <DeckSettingsModal {index} {_agent} onclose={handleSettingsClick} {isSplit}></DeckSettingsModal>
     {/snippet}
+
+    <div class="deck-heading-hotzone" aria-hidden="true"></div>
 
     <div class="deck-heading" class:deck-heading--sticky={isJunk && column?.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk}>
         {#if (!isJunk)}
@@ -276,7 +280,7 @@
                     role="button"
                     tabindex="0"
                     class="deck-heading__scroll-area"
-                    onclick={() => {handleHeaderClick($settings.design?.layout === 'decks' ? (column.scrollElement ?? null) : (document.querySelector(':root') as HTMLElement | null))}}
+                    onclick={() => {handleHeaderClick(resolveColumnScrollHost(column, { layoutStyle: riceState.layoutStyle, isJunk }).element)}}
                     use:createLongPress={{callback: handleForceRefresh, duration: 500}}
                     aria-label="Back to top."
             >
@@ -311,7 +315,7 @@
                 </button>
             {/if}
 
-            {#if column?.algorithm?.type === 'chat' && $settings.design?.layout === 'decks' && !isJunk}
+            {#if column?.algorithm?.type === 'chat' && riceState.layoutStyle === 'deck' && !isJunk}
                 <button class="deck-popup-button only-pc" aria-label="Popup" onclick={handleChangePopup}>
                     <PictureInPicture2 color="var(--text-color-1)"></PictureInPicture2>
                 </button>
@@ -357,7 +361,7 @@
             refresherHeight={80}
             pullMin={80}
             pullMax={160}
-            disabled={!capabilityOf(column?.algorithm?.type).splittable || $settings.design?.layout === 'default'}
+            disabled={!capabilityOf(column?.algorithm?.type).splittable || riceState.layoutStyle === 'single'}
     >
         <div class="deck-row__content">
             <ColumnContent {index} {_agent} {unique} {isSplit} {isTopScrolling} onrefresh={handleRefresh}></ColumnContent>
@@ -585,13 +589,61 @@
         }
     }
 
+    .deck-heading-hotzone {
+        display: none;
+    }
+
     @media (min-width: 768px) {
-        .deck-row:hover .deck-heading {
+        .deck-heading-hotzone {
+            display: block;
+            position: sticky;
+            top: 0;
+            height: 8px;
+            margin-bottom: -8px;
+            z-index: 5;
+            pointer-events: var(--rice-heading-hotzone-pe, none);
+
+            &::after {
+                content: '';
+                position: absolute;
+                top: 3px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 44px;
+                height: 3px;
+                border-radius: 2px;
+                background-color: var(--primary-color);
+                opacity: 0;
+                transition: opacity var(--anim-hover-duration, .15s) var(--anim-hover-easing, ease);
+            }
+        }
+
+        .deck-row:hover .deck-heading-hotzone::after {
+            opacity: var(--rice-heading-hint, 0);
+        }
+
+        .deck-row:has(.deck-heading-hotzone:hover) .deck-heading,
+        .deck-row .deck-heading:hover {
             opacity: var(--rice-heading-hover-opacity, var(--rice-heading-opacity, 1));
             pointer-events: var(--rice-heading-hover-pe, var(--rice-heading-pe, auto));
         }
 
         .deck-row .deck-heading:focus-within {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .deck-row.deck-row--settings-open {
+            --deck-heading-space: var(--deck-heading-height);
+        }
+
+        .deck-row.deck-row--settings-open .deck-heading {
+            margin-bottom: 0;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        :global(.rice-headings-reveal) .deck-heading {
             opacity: 1;
             pointer-events: auto;
         }

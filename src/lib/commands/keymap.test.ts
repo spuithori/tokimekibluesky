@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { comboKey, eventMatches, parseCombo } from './keymap';
+import { comboKey, eventMatches, parseCombo, resolveBindList } from './keymap';
 
 function fakeEvent(init: Partial<KeyboardEvent> & { key: string }): KeyboardEvent {
     return {
@@ -63,5 +63,36 @@ describe('eventMatches', () => {
 describe('comboKey', () => {
     it('同一コンボは同一キーになる', () => {
         expect(comboKey(parseCombo('ctrl+shift+k', false)!)).toBe(comboKey(parseCombo('shift+ctrl+K', false)!));
+    });
+});
+
+describe('resolveBindList', () => {
+    it('同一コンボは後勝ちでデデュープされる', () => {
+        const binds = resolveBindList([
+            { combo: 'alt+m', command: 'first' },
+            { combo: 'alt+m', command: 'second' },
+        ]);
+        expect(binds).toHaveLength(1);
+        expect(binds[0].command).toBe('second');
+    });
+
+    it('fallbackはユーザー未使用のコンボのみ追加される', () => {
+        const binds = resolveBindList(
+            [{ combo: 'mod+k', command: 'custom.palette' }],
+            [
+                { combo: 'mod+k', command: 'palette.toggle' },
+                { combo: 'mod+o', command: 'orbit.toggle' },
+            ],
+        );
+        expect(binds.map((b) => b.command)).toEqual(['custom.palette', 'orbit.toggle']);
+    });
+
+    it('不正コンボはスキップされる', () => {
+        const binds = resolveBindList([
+            { combo: 'ctrl+', command: 'broken' },
+            { combo: 'alt+g', command: 'ok' },
+        ]);
+        expect(binds).toHaveLength(1);
+        expect(binds[0].command).toBe('ok');
     });
 });

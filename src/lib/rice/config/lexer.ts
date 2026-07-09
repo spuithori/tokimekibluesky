@@ -10,7 +10,7 @@ export type LineToken =
     | { kind: 'invalid'; line: number; message: string };
 
 const VAR_RE = /^(\s*)\$([a-zA-Z][\w-]*)\s*=\s*(.*)$/;
-const SECTION_OPEN_RE = /^(\s*)([a-zA-Z][\w-]*)(?:\s+"([^"]*)")?\s*\{\s*$/;
+const SECTION_OPEN_RE = /^(\s*)([a-zA-Z][\w-]*(?::[a-zA-Z][\w-]*)?)(?:\s+"([^"]*)")?\s*\{\s*$/;
 const SECTION_CLOSE_RE = /^\s*\}\s*$/;
 const SET_RE = /^(\s*)set\s+([a-zA-Z][\w.]*)\s*=\s*(.*)$/;
 const SOURCE_RE = /^\s*source\s*=\s*(.*?)\s*$/;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { quadrantZone, reorderBandPx, insertionIndexAt, dockZoneAt } from './sortable.svelte';
+import { quadrantZone, reorderBandPx, insertionIndexAt, dockZoneAt, edgeScrollVelocity } from './sortable.svelte';
 
 describe('reorderBandPx (並べ替え上部帯)', () => {
     it('高さの25%・下限64px・上限220px でクランプ', () => {
@@ -120,5 +120,50 @@ describe('dockZoneAt (フロート→タイル ドック判定)', () => {
 
     it('空配列は null', () => {
         expect(dockZoneAt([], 50, 400)).toBeNull();
+    });
+});
+
+describe('edgeScrollVelocity (エッジ自動スクロール速度)', () => {
+    const L = 0;
+    const R = 1000;
+
+    it('バンド外(中央)は 0', () => {
+        expect(edgeScrollVelocity(500, L, R)).toBe(0);
+    });
+
+    it('バンド境界ちょうどは 0', () => {
+        expect(edgeScrollVelocity(48, L, R)).toBe(0);
+        expect(edgeScrollVelocity(952, L, R)).toBe(0);
+    });
+
+    it('左バンド: 深さに線形で負速度、端で -max', () => {
+        expect(edgeScrollVelocity(24, L, R)).toBe(-9);
+        expect(edgeScrollVelocity(0, L, R)).toBe(-18);
+    });
+
+    it('左端越えは -max にクランプ', () => {
+        expect(edgeScrollVelocity(-100, L, R)).toBe(-18);
+    });
+
+    it('右バンド: 対称の正速度、端越えは +max クランプ', () => {
+        expect(edgeScrollVelocity(976, L, R)).toBe(9);
+        expect(edgeScrollVelocity(1000, L, R)).toBe(18);
+        expect(edgeScrollVelocity(1200, L, R)).toBe(18);
+    });
+
+    it('狭いコンテナはバンドが幅の半分に縮み、中点は 0', () => {
+        expect(edgeScrollVelocity(30, 0, 60)).toBe(0);
+        expect(edgeScrollVelocity(15, 0, 60)).toBe(-9);
+        expect(edgeScrollVelocity(45, 0, 60)).toBe(9);
+    });
+
+    it('幅 0 以下のコンテナは常に 0', () => {
+        expect(edgeScrollVelocity(0, 0, 0)).toBe(0);
+        expect(edgeScrollVelocity(5, 10, 0)).toBe(0);
+    });
+
+    it('band / maxSpeed 引数の明示指定を尊重する', () => {
+        expect(edgeScrollVelocity(50, 0, 1000, 100, 10)).toBe(-5);
+        expect(edgeScrollVelocity(990, 0, 1000, 20, 40)).toBe(20);
     });
 });

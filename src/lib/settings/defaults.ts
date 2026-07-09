@@ -32,7 +32,7 @@ export const DEFAULT_LABELER_SETTINGS: LabelerPreference[] = [
  * Current settings schema version. Migrations (migrations.ts) bring older
  * stored payloads up to this version before deep-merging against the defaults.
  */
-export const CURRENT_VERSION = 8;
+export const CURRENT_VERSION = 10;
 
 export const DEFAULT_RICE_CONFIG = `# TOKIMEKI Rice Framework
 # https://docs.tokimeki.blue/rice
@@ -86,6 +86,13 @@ export const DEFAULT_RICE_CONFIG = `# TOKIMEKI Rice Framework
 #     width = 220px
 # }
 
+# 同じ左右エッジには別ラベルのバーを複数並べられます(宣言順=画面端から内側へ)。
+# 同ラベルの再宣言は後勝ちで置換、enable = false は同ラベルのバーだけを撤去します。
+# bar "dock" {
+#     position = left
+#     items = home, notifications, spacer, settings
+# }
+
 # bar "right" {
 #     position = right
 #     style = menu
@@ -114,6 +121,10 @@ export const DEFAULT_RICE_CONFIG = `# TOKIMEKI Rice Framework
 #     tab "Widgets" {
 #         items = calendar, text#hi
 #     }
+# }
+
+# layout {
+#     mode = tile
 # }
 
 # bind {
@@ -263,8 +274,7 @@ export function createDefaultSettings(): Settings {
             reactionMode: 'tokimeki',
             leftMode: false,
             disableProfilePopup: false,
-            immersiveMode: false,
-            singleWidth: 'medium',
+            singleWidth: 528,
             fixedFooter: false,
             mutualDisplay: false,
             bubbleTimeline: false,
@@ -308,6 +318,7 @@ export function createDefaultSettings(): Settings {
             enabled: true,
             config: DEFAULT_RICE_CONFIG,
             sources: {},
+            plugins: {},
         },
         version: CURRENT_VERSION,
     };

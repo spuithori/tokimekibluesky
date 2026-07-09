@@ -3,6 +3,7 @@
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { theme } from '$lib/stores';
     import { defaultColors } from '$lib/defaultColors';
+    import { riceState } from '$lib/rice/riceState.svelte';
     import Notice from '$lib/components/ui/Notice.svelte';
 
     function detectColors(currentTheme: any) {
@@ -20,6 +21,10 @@
 
 {#if $theme ? $theme.options?.colorDisabled : false}
     <Notice text={$_('color_disabled_theme')}></Notice>
+{/if}
+
+{#if settingsStore.rice.enabled && riceState.compiled.themeTokens['current-theme-color'] !== undefined}
+    <Notice text={$_('rice_overridden_by_config')}></Notice>
 {/if}
 
 <ul class="theme-picker theme-picker--{settingsStore.design.theme}">

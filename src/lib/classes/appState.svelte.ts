@@ -14,7 +14,6 @@ class AppState {
     missingAccounts: string[] = $state([]);
     labelDefs = new PersistedState('labelDefs', []);
     subscribedLabelers = new PersistedState('subscribedLabelers', ['did:plc:ar7c4by46qjdydhdevvrndac']);
-    singleColumnScrollPositions: Map<number, number> = new Map();
 
     private _dbPreload: Promise<{ profiles: any[]; accounts: any[] }> | null = null;
 

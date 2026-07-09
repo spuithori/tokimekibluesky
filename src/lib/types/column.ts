@@ -1,6 +1,8 @@
 export type BuiltinColumnType = 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'realtime' | 'thread' | 'publish' | 'settings';
 
-export type ColumnKindId = BuiltinColumnType | `module:${string}`;
+export type ModuleColumnKindId = `module:${string}` | `plugin:${string}`;
+
+export type ColumnKindId = BuiltinColumnType | ModuleColumnKindId;
 
 export type currentAlgorithm = {
     type: ColumnKindId,
@@ -43,6 +45,7 @@ type deckSettings = {
     collapse?: boolean,
     showReactionViaRepost?: boolean,
     mediaColumns?: number,
+    editorHeight?: number,
 }
 
 export type Column = {

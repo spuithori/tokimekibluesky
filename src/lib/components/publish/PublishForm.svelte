@@ -8,9 +8,10 @@
   import type {Draft} from '$lib/db';
   import {db} from '$lib/db';
   import DraftModal from "$lib/components/draft/DraftModal.svelte";
+  import DraftList from "$lib/components/draft/DraftList.svelte";
   import {getServiceAuthToken} from "$lib/util";
   import {detectRichTextWithEditorJson} from "$lib/components/editor/richtext";
-  import { compressImage as compressImageLib } from '$lib/imageCompressor/compressor';
+  import { compressImage as compressImageLib, compressImageWithStats } from '$lib/imageCompressor/compressor';
   import PublishPool from "$lib/components/editor/PublishPool.svelte";
   import {getIntervalProcessingUpload} from "$lib/components/editor/videoUtil";
   import {setContext, tick} from "svelte";
@@ -30,10 +31,12 @@
   import { generatePollOgImage } from '$lib/pollApi';
 
   interface Props {
-      variant?: 'overlay' | 'column';
+      variant?: 'overlay' | 'column' | 'inline';
       float?: boolean;
       onRequestClose?: () => void;
       onRequestOpen?: () => void;
+      editorHeight?: number;
+      onEditorHeightChange?: (height?: number) => void;
   }
 
   let {
@@ -41,9 +44,22 @@
       float = false,
       onRequestClose = undefined,
       onRequestOpen = undefined,
+      editorHeight = undefined,
+      onEditorHeightChange = undefined,
   }: Props = $props();
 
   setContext('publishVariant', () => variant);
+
+  const resolvedEditorHeight = $derived(variant === 'column' ? editorHeight : variant === 'inline' ? undefined : $settings.design?.publishEditorHeight);
+
+  function handleEditorHeightChange(height?: number) {
+      if (variant === 'inline') return;
+      if (variant === 'column') {
+          onEditorHeightChange?.(height);
+      } else {
+          $settings.design.publishEditorHeight = height;
+      }
+  }
 
   const postState = getPostState();
   const isPinnable = $derived(variant === 'overlay' || float);
@@ -62,8 +78,9 @@
   let continuousTags = [];
   let tid: TID | undefined;
 
-  export function focusEditor(position = undefined) {
-      editor?.focus(position);
+
+  export function focusEditor(position = undefined, options = undefined) {
+      editor?.focus(position, options);
   }
 
   export function blurEditor() {
@@ -114,21 +131,22 @@
   const UPLOAD_MAX_BYTES = 2_000_000;
   const UPLOAD_MAX_DIMENSION = 4000;
 
-  async function compressImage(file: File | Blob): Promise<Blob> {
-      return await compressImageLib(file, {
+  async function compressImage(file: File | Blob): Promise<{ blob: Blob; width: number; height: number }> {
+      const stats = await compressImageWithStats(file, {
           outputType: 'image/webp',
           maxSizeMB: UPLOAD_MAX_BYTES / 1024 / 1024,
           maxWidthOrHeight: UPLOAD_MAX_DIMENSION,
           maxQuality: $settings?.general?.losslessImageUpload ? 1.0 : 0.95,
       });
+      return { blob: stats.blob, width: stats.width, height: stats.height };
   }
 
-  async function prepareBlobForUpload(image: { file: File | Blob; isGif: boolean }): Promise<Blob> {
+  async function prepareBlobForUpload(image: { file: File | Blob; isGif: boolean }): Promise<{ blob: Blob; width?: number; height?: number }> {
       if (image.isGif && image.file.type === 'image/gif') {
           if (image.file.size > UPLOAD_MAX_BYTES) {
               throw new Error($_('error_gif_too_large'));
           }
-          return image.file;
+          return { blob: image.file };
       }
 
       try {
@@ -140,11 +158,13 @@
   }
 
   async function uploadBlobWithCompression(image) {
-      const compressed = await prepareBlobForUpload(image);
+      const { blob, width, height } = await prepareBlobForUpload(image);
 
-      return await _agent.xrpc.post('com.atproto.repo.uploadBlob', compressed, {
-          encoding: compressed.type,
+      const res = await _agent.xrpc.post('com.atproto.repo.uploadBlob', blob, {
+          encoding: blob.type,
       });
+
+      return { res, width, height };
   }
 
   async function uploadExternalImage(_blob) {
@@ -403,11 +423,11 @@
           await Promise.all(filePromises)
               .then(results => {
                   const built = results.map((result, index) => ({
-                      image: result.blob,
+                      image: result.res.blob,
                       alt: images[index].alt || '',
                       aspectRatio: {
-                          width: images[index].width || undefined,
-                          height: images[index].height || undefined,
+                          width: result.width ?? (images[index].width || undefined),
+                          height: result.height ?? (images[index].height || undefined),
                       }
                   }));
                   mediaImageCount = built.length;
@@ -839,7 +859,8 @@
       const scheduledImages: ScheduledImage[] = [];
       for (let i = 0; i < images.length; i++) {
           const img = images[i];
-          const compressed = await prepareBlobForUpload(img);
+          const prepared = await prepareBlobForUpload(img);
+          const compressed = prepared.blob;
           const fileToUpload = compressed instanceof File
               ? compressed
               : new File([compressed], 'image.jpg', { type: compressed.type });
@@ -855,8 +876,8 @@
               storagePath,
               alt: img.alt || '',
               mimeType: compressed.type,
-              width: img.width,
-              height: img.height,
+              width: prepared.width ?? img.width,
+              height: prepared.height ?? img.height,
           });
       }
       return scheduledImages;
@@ -1095,9 +1116,7 @@
       <X color="var(--primary-color)"></X>
     </button>
 
-    <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled}>
-      {$_('publish_button_send')}
-    </button>
+    {@render submitButton('top')}
   </div>
 
   {#each postState.posts as post, index (post)}
@@ -1119,6 +1138,8 @@
                   bind:editor={editor}
                   bind:isEnabled={isEnabled}
                   {submitArea}
+                  editorHeight={resolvedEditorHeight}
+                  onEditorHeightChange={variant === 'inline' ? undefined : handleEditorHeightChange}
           >
           </PublishMain>
         {/await}
@@ -1127,6 +1148,10 @@
       {/if}
     </div>
   {/each}
+
+  {#if variant === 'column'}
+    <DraftList variant="hub" {_agent} onuse={handleDraftUse}></DraftList>
+  {/if}
 </div>
 
 {#if (isDraftModalOpen)}
@@ -1134,7 +1159,7 @@
 {/if}
 
 {#if (isConfigOpen)}
-  <PublishConfigModal onclose={() => {isConfigOpen = false}}></PublishConfigModal>
+  <PublishConfigModal onclose={() => {isConfigOpen = false}} onEditorHeightReset={() => handleEditorHeightChange(undefined)}></PublishConfigModal>
 {/if}
 
 {#if (isScheduleModalOpen)}
@@ -1146,15 +1171,25 @@
   ></ScheduleModal>
 {/if}
 
-{#snippet submitArea()}
-  <button class="publish-submit-button publish-submit-button--bottom" onclick={publishAll} disabled={isEnabled}>
+{#snippet submitButton(position: 'top' | 'bottom')}
+  <button
+    class="publish-submit-button"
+    class:publish-submit-button--top={position === 'top'}
+    class:publish-submit-button--bottom={position === 'bottom'}
+    onclick={publishAll}
+    disabled={isEnabled}
+  >
     {$_('publish_button_send')}
   </button>
 {/snippet}
 
+{#snippet submitArea()}
+  {@render submitButton('bottom')}
+{/snippet}
+
 <style lang="postcss">
     .publish-header {
-        max-width: 740px;
+        max-width: var(--publish-form-max-width, 740px);
         margin: 0 auto;
         display: flex;
         align-items: center;
@@ -1188,45 +1223,20 @@
 
         &--top {
           height: 32px;
+          display: var(--publish-submit-top-display, flex);
+        }
+
+        &--bottom {
+          display: var(--publish-submit-bottom-display, none);
         }
 
         &:disabled {
           opacity: .6;
         }
 
-        &--hide {
-          @media (max-width: 767px) {
-            display: none;
-          }
-        }
-
-      &--bottom {
-        @media (min-width: 768px) {
-          display: none;
-        }
-      }
-
-      &--top {
-        @media (max-width: 767px) {
-          display: none;
-        }
-      }
-
         @media (max-width: 767px) {
             order: 3;
         }
-    }
-
-    :global(.publish-mobile-top) {
-      @media (max-width: 767px) {
-        .publish-submit-button--bottom {
-          display: none;
-        }
-
-        .publish-submit-button--top {
-          display: flex !important;
-        }
-      }
     }
 
     .publish-draft-button {
@@ -1283,12 +1293,8 @@
     .publish-sp-close {
         height: 30px;
         width: 30px;
-        display: none;
+        display: var(--publish-sp-close-display, none);
         place-content: center;
-
-        @media (min-width: 768px) {
-            display: none;
-        }
     }
 
     .publish-item-wrap {

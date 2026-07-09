@@ -1,7 +1,7 @@
 import type { Column } from "$lib/types/column";
 import { capabilityOf } from "$lib/columnKinds";
 
-export type TabsNode = { type: 'tabs'; children: string[]; active: number };
+export type TabsNode = { type: 'tabs'; children: string[]; active: number; kind?: 'feedtabs'; source?: 'pinned' };
 
 export type LayoutNode =
     | { type: 'leaf'; columnId: string }
@@ -67,6 +67,16 @@ export function findTabsNodeOf(node: LayoutNode, columnId: string): TabsNode | n
     if (node.type === 'tabs') return node.children.includes(columnId) ? node : null;
     for (const child of node.children) {
         const found = findTabsNodeOf(child, columnId);
+        if (found) return found;
+    }
+    return null;
+}
+
+export function findFeedTabsNode(node: LayoutNode, source: NonNullable<TabsNode['source']>): TabsNode | null {
+    if (node.type === 'leaf') return null;
+    if (node.type === 'tabs') return node.source === source ? node : null;
+    for (const child of node.children) {
+        const found = findFeedTabsNode(child, source);
         if (found) return found;
     }
     return null;
@@ -168,7 +178,7 @@ export function loadDeckState(persisted: any, genId: () => string, opts: LoadDec
 function collapseSingle(node: LayoutNode): LayoutNode {
     if (node.type === 'leaf') return node;
     if (node.type === 'tabs') {
-        return node.children.length === 1 ? { type: 'leaf', columnId: node.children[0] } : node;
+        return node.children.length === 1 && !node.source ? { type: 'leaf', columnId: node.children[0] } : node;
     }
     const children = node.children.map(collapseSingle);
     if (children.length === 1) return children[0];
@@ -184,9 +194,9 @@ function removeLeaf(node: LayoutNode, columnId: string): LayoutNode | null {
         if (idx === -1) return node;
         const children = node.children.filter(id => id !== columnId);
         if (children.length === 0) return null;
-        if (children.length === 1) return { type: 'leaf', columnId: children[0] };
+        if (children.length === 1 && !node.source) return { type: 'leaf', columnId: children[0] };
         const active = Math.max(0, Math.min(node.active > idx ? node.active - 1 : node.active, children.length - 1));
-        return { type: 'tabs', children, active };
+        return { ...node, children, active };
     }
     const kept: LayoutNode[] = [];
     const sizes: number[] = [];
@@ -367,7 +377,7 @@ export function tabifyLeaf(
         if (node.type === 'tabs') {
             if (!node.children.includes(targetColumnId)) return node;
             const children = [...node.children, sourceColumnId];
-            return { type: 'tabs', children, active: children.length - 1 };
+            return { ...node, children, active: children.length - 1 };
         }
         return { ...node, children: node.children.map(mutate) };
     };
@@ -414,14 +424,14 @@ export function normalizeTabsNodes(state: DeckLayoutState): DeckLayoutState {
                     changed = true;
                     return null;
                 }
-                if (children.length === 1) {
+                if (children.length === 1 && !node.source) {
                     changed = true;
                     return { type: 'leaf', columnId: children[0] };
                 }
                 const active = Math.max(0, Math.min(node.active ?? 0, children.length - 1));
                 if (children.length === node.children.length && active === node.active) return node;
                 changed = true;
-                return { type: 'tabs', children, active };
+                return { ...node, children, active };
             }
             const kept: LayoutNode[] = [];
             const sizes: number[] = [];

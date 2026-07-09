@@ -1,6 +1,6 @@
 import { parse } from './parser';
 import { parseCombo } from '$lib/commands/keymap';
-import type { AnimationStyle, AnimationTargetConfig, BarConfig, BarGroupName, BarItemSpec, BarPosition, ColumnRule, CompiledRice, EntryNode, FabConfig, PanelConfig, RiceDiagnostic, SectionNode, SwitcherConfig, TopStatement } from './model';
+import type { AnimationStyle, AnimationTargetConfig, BarConfig, BarGroupName, BarItemSpec, BarPosition, ColumnRule, CompiledRice, EntryNode, FabConfig, PanelConfig, PublishConfig, RiceDiagnostic, SectionNode, SwitcherConfig, TopStatement } from './model';
 import { ANIMATION_TARGETS, JS_EASING_KEYWORDS, STYLE_KEYWORDS, STYLE_TARGETS, emptyBar, emptyCompiledRice } from './model';
 import { WIDGET_ONLY_IDS } from '../widgetIds';
 import { normalizeMediaQuery } from './breakpoints';
@@ -139,7 +139,7 @@ function parseMatch(value: string, line: number, diagnostics: RiceDiagnostic[]):
     return match;
 }
 
-const RULE_PROPS = ['opacity', 'rounding', 'border', 'blur', 'divider', 'reactions', 'heading', 'titlebar', 'width', 'background', 'dim', 'padding', 'heading-bg'] as const;
+const RULE_PROPS = ['opacity', 'rounding', 'border', 'blur', 'divider', 'reactions', 'heading', 'titlebar', 'width', 'background', 'dim', 'padding', 'heading-bg', 'editorheight'] as const;
 
 const HEADING_MODES = ['show', 'hover', 'hidden'] as const;
 const TITLEBAR_MODES = ['show', 'hover'] as const;
@@ -230,6 +230,15 @@ function compileColumnRule(section: SectionNode, out: CompiledRice, resolve: (va
             props.dim = value;
             continue;
         }
+        if (entry.key === 'editorheight') {
+            const value = resolve(entry.value, entry.line);
+            if (value !== 'fill' && value !== 'auto' && !RULE_WIDTH_PX_RE.test(value)) {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `columnrule の editorheight は fill / auto または px 値で指定します（例: editorheight = 320px）`, severity: 'error' });
+                continue;
+            }
+            props.editorheight = value;
+            continue;
+        }
         const value = resolve(entry.value, entry.line);
         if (isUnsafeCssValue(value)) {
             out.diagnostics.push({ line: entry.line, col: 1, message: `プロパティ値に使用できない文字または閉じていない括弧が含まれています(; { } " < > / 括弧)`, severity: 'error' });
@@ -249,10 +258,27 @@ const SWITCHER_STYLE_PROPS = ['height', 'background', 'blur', 'rounding', 'offse
 const FAB_STYLE_PROPS = ['size', 'rounding', 'offset'] as const;
 
 function assignBar(out: CompiledRice, bar: BarConfig, line: number, inMedia: boolean) {
-    if (out.bars[bar.position] && !inMedia) {
+    const list = out.bars[bar.position];
+    if (bar.position === 'left' || bar.position === 'right') {
+        if (!list) {
+            out.bars[bar.position] = [bar];
+            return;
+        }
+        const index = list.findIndex((existing) => existing.label === bar.label);
+        if (index >= 0) {
+            if (!inMedia) {
+                out.diagnostics.push({ line, col: 1, message: `バー "${bar.label ?? bar.position}" が再宣言されています（後の定義が優先されます）`, severity: 'warning' });
+            }
+            list[index] = bar;
+        } else {
+            list.push(bar);
+        }
+        return;
+    }
+    if (list && !inMedia) {
         out.diagnostics.push({ line, col: 1, message: `位置 "${bar.position}" のバーが複数定義されています（後の定義が優先されます）`, severity: 'warning' });
     }
-    out.bars[bar.position] = bar;
+    out.bars[bar.position] = [bar];
 }
 
 function toSpec(id: string): BarItemSpec {
@@ -470,6 +496,7 @@ function compileBar(section: SectionNode, out: CompiledRice, resolve: (value: st
     }
     let position: BarPosition | null = null;
     let style: BarConfig['style'] | null = null;
+    let enabled = true;
     const bar = emptyBar('top', 'rice');
     let itemsEntry: { ids: string[]; line: number } | null = null;
     for (const entry of entriesOf(section)) {
@@ -480,6 +507,8 @@ function compileBar(section: SectionNode, out: CompiledRice, resolve: (value: st
                 return;
             }
             position = value;
+        } else if (entry.key === 'enable') {
+            enabled = value !== 'false';
         } else if (entry.key === 'style') {
             if (value !== 'bar' && value !== 'icons' && value !== 'menu') {
                 out.diagnostics.push({ line: entry.line, col: 1, message: `bar の style は bar / icons / menu のみ指定できます`, severity: 'error' });
@@ -497,13 +526,28 @@ function compileBar(section: SectionNode, out: CompiledRice, resolve: (value: st
             }
             bar.props[entry.key] = value;
         } else {
-            out.diagnostics.push({ line: entry.line, col: 1, message: `bar のキー "${entry.key}" は不明です（position / style / items / float / ${BAR_STYLE_PROPS.join(' / ')}）`, severity: 'warning' });
+            out.diagnostics.push({ line: entry.line, col: 1, message: `bar のキー "${entry.key}" は不明です（position / style / items / float / enable / ${BAR_STYLE_PROPS.join(' / ')}）`, severity: 'warning' });
         }
     }
     if (!position) {
         out.diagnostics.push({ line: section.startLine, col: 1, message: `bar "${section.label}" に position がありません`, severity: 'error' });
         return;
     }
+    if (!enabled) {
+        const list = out.bars[position];
+        if ((position === 'left' || position === 'right') && list?.some((existing) => existing.label === section.label)) {
+            const filtered = list.filter((existing) => existing.label !== section.label);
+            if (filtered.length > 0) {
+                out.bars[position] = filtered;
+            } else {
+                delete out.bars[position];
+            }
+        } else {
+            delete out.bars[position];
+        }
+        return;
+    }
+    bar.label = section.label;
     bar.position = position;
     bar.style = style ?? (position === 'top' || position === 'bottom' ? 'bar' : 'icons');
     if (bar.float && (position === 'left' || position === 'right')) {
@@ -651,9 +695,26 @@ function compileFab(section: SectionNode, out: CompiledRice, resolve: (value: st
     out.fab = fab;
 }
 
+function compilePublish(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string) {
+    const publish: PublishConfig = out.publish ?? { lengthRing: false };
+    for (const entry of entriesOf(section)) {
+        const value = resolve(entry.value, entry.line);
+        if (entry.key === 'length-ring') {
+            if (value !== 'true' && value !== 'false') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `publish の ${entry.key} は true / false のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            publish.lengthRing = value === 'true';
+        } else {
+            out.diagnostics.push({ line: entry.line, col: 1, message: `publish のキー "${entry.key}" は不明です（length-ring）`, severity: 'warning' });
+        }
+    }
+    out.publish = publish;
+}
+
 function compileSidebar(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string) {
-    const existing = out.bars.left;
-    const bar = existing?.kind === 'native' ? existing : emptyBar('left', 'native');
+    const existingNative = out.bars.left?.find((candidate) => candidate.kind === 'native');
+    const bar = existingNative ?? emptyBar('left', 'native');
     for (const entry of entriesOf(section)) {
         const value = resolve(entry.value, entry.line);
         switch (entry.key) {
@@ -680,11 +741,11 @@ function compileSidebar(section: SectionNode, out: CompiledRice, resolve: (value
                 out.diagnostics.push({ line: entry.line, col: 1, message: `sidebar のキー "${entry.key}" は不明です（items / width / publish-button / add-button / settings-button）`, severity: 'warning' });
         }
     }
-    if (existing && existing.kind === 'rice') {
+    if (out.bars.left?.some((candidate) => candidate.kind === 'rice')) {
         out.diagnostics.push({ line: section.startLine, col: 1, message: `bar 定義と sidebar 定義が競合しています（bar が優先されます）`, severity: 'warning' });
         return;
     }
-    out.bars.left = bar;
+    out.bars.left = [bar];
 }
 
 const PANEL_PROPS = ['width', 'background', 'blur', 'rounding', 'border', 'shadow', 'offset'] as const;
@@ -946,17 +1007,60 @@ function compileAnimation(section: SectionNode, out: CompiledRice, resolve: (val
 
 function compileLayout(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string) {
     const layout = out.layout ?? { align: 'left' as const };
+    let touchedShellFields = false;
     for (const entry of entriesOf(section)) {
         const value = resolve(entry.value, entry.line);
+        if (entry.key === 'style' || entry.key === 'shell' || entry.key === 'shellwidth') {
+            touchedShellFields = true;
+        }
         if (entry.key === 'align') {
             if (value !== 'left' && value !== 'center' && value !== 'right') {
                 out.diagnostics.push({ line: entry.line, col: 1, message: `layout の align は left / center / right のみ指定できます`, severity: 'error' });
                 continue;
             }
             layout.align = value;
+        } else if (entry.key === 'mode') {
+            if (value !== 'scroll' && value !== 'tile') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `layout の mode は scroll / tile のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            layout.mode = value;
+        } else if (entry.key === 'shell') {
+            if (value !== 'none' && value !== 'centered') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `layout の shell は none / centered のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            layout.shell = value;
+        } else if (entry.key === 'shellwidth') {
+            if (!/^\d*\.?\d+(px|rem|vw)$/.test(value)) {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `layout の shellwidth は px / rem / vw 単位で指定してください（例: 1240px）`, severity: 'error' });
+                continue;
+            }
+            layout.shellWidth = value;
+        } else if (entry.key === 'feedtabs') {
+            if (value !== 'pinned') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `layout の feedtabs は pinned のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            layout.feedTabs = 'pinned';
+        } else if (entry.key === 'style') {
+            if (value !== 'deck' && value !== 'single') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `layout の style は deck / single のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            layout.style = value;
+        } else if (entry.key === 'composer') {
+            if (value !== 'top') {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `layout の composer は top のみ指定できます`, severity: 'error' });
+                continue;
+            }
+            layout.composer = 'top';
         } else {
-            out.diagnostics.push({ line: entry.line, col: 1, message: `layout のキー "${entry.key}" は不明です（align）`, severity: 'warning' });
+            out.diagnostics.push({ line: entry.line, col: 1, message: `layout のキー "${entry.key}" は不明です（align / mode / shell / shellwidth / feedtabs / style / composer）`, severity: 'warning' });
         }
+    }
+    if (touchedShellFields && layout.style === 'single' && layout.shell === 'centered' && layout.shellWidth !== undefined) {
+        out.diagnostics.push({ line: section.startLine, col: 1, message: `style = single では shellwidth は無視されます（シェル幅はカラム幅から導出されます）`, severity: 'warning' });
     }
     out.layout = layout;
 }
@@ -1029,6 +1133,29 @@ function compileModule(section: SectionNode, out: CompiledRice, resolve: (value:
     out.modules[section.label] = config;
 }
 
+const PLUGIN_ID_RE = /^[a-z][a-z0-9-]*$/;
+
+function compilePlugin(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string) {
+    const id = section.name.slice('plugin:'.length);
+    if (!PLUGIN_ID_RE.test(id)) {
+        out.diagnostics.push({ line: section.startLine, col: 1, message: `プラグインID "${id}" が不正です(小文字英数字とハイフンのみ: plugin:aurora { ... })`, severity: 'error' });
+        return;
+    }
+    if (section.label) {
+        out.diagnostics.push({ line: section.startLine, col: 1, message: `plugin:${id} にラベルは不要です`, severity: 'warning' });
+    }
+    const config = out.plugins[id] ?? { enable: true, options: {} };
+    for (const entry of entriesOf(section)) {
+        const value = resolve(entry.value, entry.line);
+        if (entry.key === 'enable') {
+            config.enable = value !== 'false';
+        } else {
+            config.options[entry.key] = value;
+        }
+    }
+    out.plugins[id] = config;
+}
+
 export type MediaMatcher = (query: string) => boolean;
 
 function dispatchSection(
@@ -1038,6 +1165,10 @@ function dispatchSection(
     isActive: MediaMatcher,
     inMedia: boolean,
 ) {
+    if (statement.name.startsWith('plugin:')) {
+        compilePlugin(statement, out, resolve);
+        return;
+    }
     switch (statement.name) {
         case 'theme':
             compileThemeTokens(statement, out, resolve);
@@ -1059,6 +1190,9 @@ function dispatchSection(
             break;
         case 'fab':
             compileFab(statement, out, resolve);
+            break;
+        case 'publish':
+            compilePublish(statement, out, resolve);
             break;
         case 'sidebar':
             compileSidebar(statement, out, resolve);

@@ -6,7 +6,6 @@ import type { ReportModalState } from '$lib/components/report/reportTypes';
 import {settingsStore} from '$lib/settings/settings.svelte';
 import type {Settings} from '$lib/settings/types';
 
-export const currentTimeline = writable<number>(Number(localStorage.getItem('currentTimeline')) || 0);
 
 export const agent = writable<Agent>(undefined);
 

@@ -52,7 +52,7 @@
             class="publish-toggle"
             class:publish-toggle--left={fab?.position === 'left'}
             aria-label="Open post composer."
-            class:publish-toggle--decks={$settings.design?.layout === 'decks'}
+            class:publish-toggle--decks={riceState.layoutStyle === 'deck'}
             style={fabVars}
             onclick={handleOpenClick}
         >

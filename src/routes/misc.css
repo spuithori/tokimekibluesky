@@ -216,26 +216,6 @@
                 transform: scale(-1, 1);
             }
         }
-
-        .publish-toolbar {
-            &__top {
-                flex-direction: row-reverse;
-
-                .publish-form-bottom-publish {
-                    margin-right: auto;
-                    margin-left: 0;
-                }
-            }
-
-            &__bottom {
-                flex-direction: row !important;
-
-                .publish-length {
-                    margin-left: 0 !important;
-                    margin-right: auto !important;
-                }
-            }
-        }
     }
 }
 
@@ -390,6 +370,10 @@
     @media (prefers-reduced-motion: reduce) {
         transition: none;
     }
+}
+
+.deck-single .deck-width-bar {
+    right: 0;
 }
 
 .rice-bar-item {

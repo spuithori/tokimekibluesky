@@ -1,4 +1,4 @@
-import type { BuiltinColumnType, currentAlgorithm } from '$lib/types/column';
+import type { BuiltinColumnType, ModuleColumnKindId, currentAlgorithm } from '$lib/types/column';
 
 export const CONTENT_COLUMN_TYPES = ['publish', 'settings'] as const satisfies readonly currentAlgorithm['type'][];
 
@@ -103,7 +103,7 @@ const moduleKindFallback: ColumnKindCapability = {
 
 const moduleCapabilities = new Map<string, ColumnKindCapability>();
 
-export function registerModuleCapability(type: `module:${string}`, capability: Partial<ColumnKindCapability>): () => void {
+export function registerModuleCapability(type: ModuleColumnKindId, capability: Partial<ColumnKindCapability>): () => void {
     moduleCapabilities.set(type, { ...moduleKindFallback, ...capability });
     return () => {
         moduleCapabilities.delete(type);

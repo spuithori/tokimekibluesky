@@ -132,3 +132,27 @@ export class ThemeSubClassDexie extends Dexie {
 }
 
 export const themesDb = new ThemeSubClassDexie();
+
+export interface RicePluginRecord {
+    id: string,
+    url: string,
+    manifest: string,
+    code: string,
+    integrity: string,
+    version: string,
+    updatedAt: string,
+}
+
+export class RicePluginSubClassDexie extends Dexie {
+    plugins!: Table<RicePluginRecord>;
+
+    constructor() {
+        super('ricePluginDatabase');
+
+        this.version(1).stores({
+            plugins: '&id, url, version, updatedAt',
+        });
+    }
+}
+
+export const ricePluginsDb = new RicePluginSubClassDexie();

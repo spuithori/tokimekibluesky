@@ -10,6 +10,8 @@
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {getScopedColumnState} from "$lib/classes/columnState.svelte";
     import {capabilityOf} from "$lib/columnKinds";
+  import { riceState } from '$lib/rice/riceState.svelte';
+  import { resolveColumnScrollHost } from '$lib/scroll/scrollHost';
 
     interface Props {
         index: any;
@@ -34,13 +36,7 @@
     const column = $derived(columnProp ?? columnState.getColumn(index));
 
     function getScrollElement(): HTMLElement {
-        if ($settings.design?.layout !== 'decks') {
-            return document.documentElement;
-        }
-        if (isJunk && column.scrollElement) {
-            return (column.scrollElement.closest('.modal-page-content') as HTMLElement) ?? column.scrollElement;
-        }
-        return column.scrollElement || document.documentElement;
+        return resolveColumnScrollHost(column, { layoutStyle: riceState.layoutStyle, isJunk }).element;
     }
 
     function getServiceHost(): string {
@@ -137,7 +133,7 @@
                 column.data.cursor = res.cursor;
             }
 
-            const useVirtualTimeline = (column.style === 'default' || !column.style) && $settings.design?.layout === 'decks' && !$settings.general?.useVirtual && false; //TODO
+            const useVirtualTimeline = (column.style === 'default' || !column.style) && riceState.layoutStyle === 'deck' && !$settings.general?.useVirtual && false; //TODO
 
             let distanceFromBottom = 0;
             if (!useVirtualTimeline && shouldMaintainPosition && newFeed.length > 0 && columnState.getFeed(column.id).length > 0) {
@@ -387,7 +383,7 @@
   {:else if isJunk}
     <button
             class="refresh-button"
-            class:refresh-button--decks={$settings.design.layout === 'decks' || isJunk}
+            class:refresh-button--decks={riceState.layoutStyle === 'deck' || isJunk}
             class:is-refreshing={isRefreshing}
             aria-label="Refresh"
             onclick={() => {refresh(false)}}

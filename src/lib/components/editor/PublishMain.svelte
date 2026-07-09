@@ -33,6 +33,8 @@
   import PollLabel from "$lib/components/publish/PollLabel.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
+  import {startPointerDrag} from "$lib/pointerDrag";
+  import {clampPublishEditorHeight} from "$lib/publishHeight";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import EmbedRecord from "$lib/components/post/EmbedRecord.svelte";
   import {useDebounce, watch} from "runed";
@@ -46,6 +48,8 @@
     _agent: any;
     editor: any;
     isEnabled: any;
+    editorHeight?: number;
+    onEditorHeightChange?: (height?: number) => void;
   }
 
   let {
@@ -57,6 +61,8 @@
     onopen,
     onpublish,
     submitArea,
+    editorHeight = undefined,
+    onEditorHeightChange = undefined,
   }: Props = $props();
 
     const postState = getPostState();
@@ -85,6 +91,30 @@
     let isKakizomeOpen = $state(false);
     let altFocusPulse = $state();
     let isThreadSplitting = $state(false);
+    let formEl = $state<HTMLElement>();
+    let previewEditorHeight = $state<number | null>(null);
+
+    let appliedEditorHeight = $derived(previewEditorHeight ?? editorHeight);
+
+    function startHeightResize(event: PointerEvent) {
+        const tiptapEl = formEl?.querySelector<HTMLElement>('.tiptap');
+        if (!tiptapEl) return;
+        const startHeight = tiptapEl.offsetHeight;
+        const startY = event.clientY;
+        startPointerDrag(
+            event,
+            (e) => { previewEditorHeight = clampPublishEditorHeight(startHeight + (e.clientY - startY)); },
+            () => {
+                if (previewEditorHeight != null) onEditorHeightChange?.(previewEditorHeight);
+                previewEditorHeight = null;
+            },
+        );
+    }
+
+    function resetEditorHeight() {
+        previewEditorHeight = null;
+        onEditorHeightChange?.(undefined);
+    }
 
     let canWhisper = $derived(
       postState.posts.length === 1 &&
@@ -270,9 +300,13 @@
         post.owner = _agent.did();
         isVideoUploadEnabled = false;
 
-        const limit = await getUploadLimit(_agent);
-        if (limit?.canUpload) {
-            isVideoUploadEnabled = true;
+        try {
+            const limit = await getUploadLimit(_agent);
+            if (limit?.canUpload) {
+                isVideoUploadEnabled = true;
+            }
+        } catch (e) {
+            console.warn(e);
         }
     }
 
@@ -467,6 +501,10 @@
 <div class="publish-form"
      class:publish-form--dragover={isDragover}
      class:publish-form--fit={!$settings.design?.mobilePostLayoutTop}
+     style:--publish-editor-height={appliedEditorHeight != null ? `${appliedEditorHeight}px` : null}
+     style:--publish-editor-flex={appliedEditorHeight != null ? '0 0 auto' : null}
+     style:--publish-scroll-max={appliedEditorHeight != null ? 'none' : null}
+     bind:this={formEl}
      ondragover={(e) => {e.preventDefault()}}
      ondrop={handleDrop}
      ondragenter={handleDragover}
@@ -490,6 +528,9 @@
           {canPoll}
           hasPoll={!!post.poll}
           onpollclick={() => {isPollModalOpen = true}}
+          onheightresize={onEditorHeightChange ? startHeightResize : undefined}
+          onheightreset={onEditorHeightChange ? resetEditorHeight : undefined}
+          heightResizeActive={previewEditorHeight != null}
   >
     {#snippet top()}
       {#if (post.replyRef && typeof post.replyRef !== 'string')}
@@ -530,7 +571,7 @@
                 style={'publish'}
         ></AvatarAgentsSelector>
 
-        {#if (!post.replyRef)}
+        {#if (!post.replyRef && !isEmpty)}
           <button class="add-thread-button" disabled={isEnabled} onclick={addThread} aria-label="{$_('post_add_thread')}">
             <CirclePlus size="20"></CirclePlus>
           </button>
@@ -538,7 +579,7 @@
       </div>
     {/snippet}
 
-    {#snippet normal()}
+    {#snippet attachments()}
       <div class="publish-upload">
         <ImageUpload
           bind:this={imageUploadEl}
@@ -617,7 +658,10 @@
             {/each}
           </div>
         {/if}
+      </div>
+    {/snippet}
 
+    {#snippet meta()}
         <div class="publish-tags">
           <button class="publish-lang" onclick={() => {isLangSelectorOpen = !isLangSelectorOpen}}>
             {#if (post.lang !== 'auto' && Array.isArray(post.lang) && post.lang.length)}
@@ -681,7 +725,6 @@
         {#if hasPollWithMedia}
           <Notice text={$_('poll_media_conflict')}></Notice>
         {/if}
-      </div>
     {/snippet}
   </Tiptap>
 </div>
@@ -868,7 +911,6 @@
       display: flex;
       flex-wrap: wrap;
       gap: 4px 8px;
-      margin: 8px 0;
   }
 
   .kakizome-button {

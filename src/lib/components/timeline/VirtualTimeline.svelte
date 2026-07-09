@@ -12,6 +12,7 @@
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import Annoyed from '@lucide/svelte/icons/annoyed';
   import {getScopedColumnState} from "$lib/classes/columnState.svelte";
+  import { riceState } from '$lib/rice/riceState.svelte';
 
   let {
     column,
@@ -51,7 +52,7 @@
   let isRetryLimit = $derived(retryCount >= 5);
   let lastUnique = $state(unique);
 
-  let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
+  let isSingleColumnMode = $derived(riceState.layoutStyle === 'single');
   let isPaused = $derived(isSingleColumnMode && !columnState.isJunk && $page.url.pathname !== '/');
   let topMargin = $derived((isSingleColumnMode || columnState.isJunk) ? 52 : 0);
   let refreshToTop = $derived(!!column.settings?.refreshToTop);

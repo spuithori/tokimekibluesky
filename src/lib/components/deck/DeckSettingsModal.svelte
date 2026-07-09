@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onDestroy } from 'svelte';
     import Menu from '@lucide/svelte/icons/menu';
     import Image from '@lucide/svelte/icons/image';
     import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -7,7 +8,7 @@
     import Eraser from '@lucide/svelte/icons/eraser';
     import Trash2 from '@lucide/svelte/icons/trash-2';
     import {_} from "tokimeki-i18n";
-    import { currentTimeline, settings } from "$lib/stores";
+    import { settings } from "$lib/stores";
     import { languageMap } from "$lib/langs/languageMap";
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
     import {backgroundsMap} from "$lib/columnBackgrounds";
@@ -15,20 +16,27 @@
     import {capabilityOf, hasSettingsPanel} from "$lib/columnKinds";
     import {animateLayout} from "$lib/animations/flip";
     import {
-        resolveDeckWidthPx, resolveSingleWidthPx, clampDeckWidth, clampSingleWidth,
+        resolveDeckWidthPx, clampDeckWidth, clampSingleWidth, clampShellWidth, parseShellWidthPx,
+        tilePxForWeight, tileWeightForTargetWidth,
         DECK_WIDTH_MIN, DECK_WIDTH_MAX, DECK_WIDTH_DEFAULT,
         SINGLE_WIDTH_MIN, SINGLE_WIDTH_MAX, SINGLE_WIDTH_DEFAULT,
+        SHELL_WIDTH_MIN, SHELL_WIDTH_MAX, SHELL_WIDTH_DEFAULT,
     } from "$lib/deckWidth";
+    import { riceState } from "$lib/rice/riceState.svelte";
+    import { measureTileContext } from "$lib/tileMeasure";
+    import { shellResizeState } from "$lib/classes/shellResizeState.svelte";
+    import { settingsStore } from "$lib/settings/settings.svelte";
+    import { setValueInText } from "$lib/rice/config/edit";
     import Search from '@lucide/svelte/icons/search';
     import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
     import Unlink from '@lucide/svelte/icons/unlink';
     import { riceFx } from '$lib/rice/transition';
     import Notice from "$lib/components/ui/Notice.svelte";
+    import { syncPinnedFeedTabs } from "$lib/feedTabsSync";
 
     interface Props {
         index: any;
         _agent: any;
-        layout?: string;
         onclose: (refreshed?: boolean) => void;
         isSplit?: boolean;
         column?: any;
@@ -37,7 +45,6 @@
     let {
         index,
         _agent,
-        layout = 'default',
         onclose,
         isSplit = false,
         column: columnProp = undefined,
@@ -46,6 +53,7 @@
     const columnState = getColumnState();
     let column = columnProp ?? columnState.getColumn(index);
     let slotIndex = columnState.slotIndexOf(column.id);
+    const tabsNode = $derived(columnState.tabsNodeOf(column.id));
 
     const defaultSettings = {
         timeline: {
@@ -203,20 +211,87 @@
         })
     }
 
-    const isDecksLayout = $derived($settings.design?.layout === 'decks');
-    const widthMin = $derived(isDecksLayout ? DECK_WIDTH_MIN : SINGLE_WIDTH_MIN);
-    const widthMax = $derived(isDecksLayout ? DECK_WIDTH_MAX : SINGLE_WIDTH_MAX);
-    const widthDefault = $derived(isDecksLayout ? DECK_WIDTH_DEFAULT : SINGLE_WIDTH_DEFAULT);
-    const currentWidthPx = $derived(isDecksLayout
-        ? resolveDeckWidthPx(column.settings?.width)
-        : resolveSingleWidthPx($settings.design?.singleWidth));
+    const isDecksLayout = $derived(riceState.layoutStyle === 'deck');
+    const isTileLayout = $derived(isDecksLayout && riceState.layoutMode === 'tile');
+    const shellWidthTarget = $derived(
+        isTileLayout
+        && riceState.compiled.layout?.shell === 'centered'
+        && columnState.visibleSlotCount() === 1
+    );
+    const widthMin = $derived(shellWidthTarget ? SHELL_WIDTH_MIN : isDecksLayout ? DECK_WIDTH_MIN : SINGLE_WIDTH_MIN);
+    const widthMax = $derived(shellWidthTarget ? SHELL_WIDTH_MAX : isDecksLayout ? DECK_WIDTH_MAX : SINGLE_WIDTH_MAX);
+    const widthDefault = $derived(shellWidthTarget ? SHELL_WIDTH_DEFAULT : isDecksLayout ? DECK_WIDTH_DEFAULT : SINGLE_WIDTH_DEFAULT);
+
+    let tileContext: { containerPx: number; otherWeightsSum: number } | null | undefined;
+    function tileCtx() {
+        if (tileContext === undefined) {
+            tileContext = measureTileContext(columnState, slotIndex);
+        }
+        return tileContext;
+    }
+
+    const currentWidthPx = $derived.by(() => {
+        if (!isDecksLayout) {
+            const token = riceState.compiled.themeTokens['single-m-width'];
+            const tokenPx = token ? parseInt(token, 10) : NaN;
+            return Number.isFinite(tokenPx) ? clampSingleWidth(tokenPx) : clampSingleWidth($settings.design?.singleWidth ?? SINGLE_WIDTH_DEFAULT);
+        }
+        if (shellWidthTarget) return parseShellWidthPx(riceState.compiled.layout?.shellWidth) ?? SHELL_WIDTH_DEFAULT;
+        if (isTileLayout) {
+            const ctx = tileCtx();
+            if (ctx) return tilePxForWeight(clampDeckWidth(resolveDeckWidthPx(column.settings?.width)), ctx.otherWeightsSum, ctx.containerPx);
+        }
+        return resolveDeckWidthPx(column.settings?.width);
+    });
+
+    function previewWidth(px: number) {
+        if (shellWidthTarget) {
+            shellResizeState.previewWidth = clampShellWidth(px);
+        } else if (!isDecksLayout) {
+            shellResizeState.singlePreviewWidth = clampSingleWidth(px);
+        } else {
+            setWidth(px);
+        }
+    }
+
+    onDestroy(() => {
+        shellResizeState.previewWidth = null;
+        shellResizeState.singlePreviewWidth = null;
+    });
 
     function setWidth(px: number) {
-        if (isDecksLayout) {
-            column.settings.width = clampDeckWidth(px);
-        } else {
-            $settings.design.singleWidth = clampSingleWidth(px);
+        if (!isDecksLayout) {
+            shellResizeState.singlePreviewWidth = null;
+            if (settingsStore.rice?.enabled) {
+                settingsStore.rice.config = setValueInText(
+                    settingsStore.rice.config ?? '',
+                    [{ name: 'theme' }, { name: 'tokens' }],
+                    'single-m-width',
+                    `${clampSingleWidth(px)}px`,
+                );
+            } else {
+                $settings.design.singleWidth = clampSingleWidth(px);
+            }
+            return;
         }
+        if (shellWidthTarget) {
+            shellResizeState.previewWidth = null;
+            settingsStore.rice.config = setValueInText(
+                settingsStore.rice.config ?? '',
+                [{ name: 'layout' }],
+                'shellwidth',
+                `${clampShellWidth(px)}px`,
+            );
+            return;
+        }
+        if (isTileLayout) {
+            const ctx = tileCtx();
+            if (ctx) {
+                column.settings.width = tileWeightForTargetWidth(clampDeckWidth(px), ctx.otherWeightsSum, ctx.containerPx);
+                return;
+            }
+        }
+        column.settings.width = clampDeckWidth(px);
     }
 
     const autoScrollSpeedSettings = [
@@ -248,8 +323,8 @@
             onclose(true);
             return;
         }
-        if ($currentTimeline === slotIndex) {
-            currentTimeline.set(0);
+        if (columnState.activeSlotIndex === slotIndex) {
+            columnState.setActiveSlot(0);
         }
         animateLayout(() => columnState.remove(column.id), {exiting: [column.id]});
     }
@@ -307,7 +382,7 @@
     }
 </script>
 
-<div class="deck-settings-wrap deck-settings-wrap--{layout}" class:deck-settings-wrap--split={isSplit} in:riceFx={{ target: 'modal', duration: 250, style: { kind: 'slide', direction: 'top', distance: 8 } }}>
+<div class="deck-settings-wrap" class:deck-settings-wrap--decks={isDecksLayout} class:deck-settings-wrap--split={isSplit} in:riceFx={{ target: 'modal', duration: 250, style: { kind: 'slide', direction: 'top', distance: 8 } }}>
     <div class="deck-settings">
         <div class="deck-settings-content">
             <p class="deck-settings-description">{$_('deck_settings_description')}</p>
@@ -393,7 +468,8 @@
                                     max={widthMax}
                                     step="10"
                                     value={currentWidthPx}
-                                    oninput={(e) => setWidth(+e.currentTarget.value)}
+                                    oninput={(e) => previewWidth(+e.currentTarget.value)}
+                                    onchange={(e) => setWidth(+e.currentTarget.value)}
                                     aria-label={$_('column_width')}
                                 >
                                 <div class="column-width-control__row">
@@ -411,6 +487,48 @@
                                         {$_('column_width_reset')}
                                     </button>
                                 </div>
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
+
+                {#if tabsNode}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('feed_tabs_carousel')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input
+                                    class="input-toggle__input"
+                                    type="checkbox"
+                                    id={column.id + 'feedTabsCarousel'}
+                                    checked={tabsNode.kind === 'feedtabs'}
+                                    onchange={(e) => columnState.setTabsMeta(tabsNode, { kind: e.currentTarget.checked ? 'feedtabs' : null })}
+                                ><label class="input-toggle__label" for={column.id + 'feedTabsCarousel'}></label>
+                            </div>
+                        </dd>
+                    </dl>
+
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('feed_tabs_sync')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input
+                                    class="input-toggle__input"
+                                    type="checkbox"
+                                    id={column.id + 'feedTabsSync'}
+                                    checked={tabsNode.source === 'pinned'}
+                                    onchange={(e) => {
+                                        const enabled = e.currentTarget.checked;
+                                        columnState.setTabsMeta(tabsNode, { source: enabled ? 'pinned' : null });
+                                        if (enabled) syncPinnedFeedTabs(columnState, tabsNode, _agent);
+                                    }}
+                                ><label class="input-toggle__label" for={column.id + 'feedTabsSync'}></label>
                             </div>
                         </dd>
                     </dl>
@@ -690,13 +808,13 @@
                     </a>
                 {/if}
 
-                {#if ($settings.design?.layout === 'decks')}
+                {#if (riceState.layoutStyle === 'deck')}
                     <button class="deck-column-delete-button deck-column-delete-button--popup only-pc" onclick={popupColumn}>
                         <PictureInPicture2 size={20} color="var(--primary-color)" />{$_('popup_column')}
                     </button>
                 {/if}
 
-                {#if ($settings.design?.layout === 'decks' && !column.settings?.isPopup)}
+                {#if (riceState.layoutStyle === 'deck' && !column.settings?.isPopup)}
                     {#if columnState.isInSplit(column.id)}
                         <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={handleSwapSplit}>
                             <ArrowUpDown size="20" color="var(--primary-color)"></ArrowUpDown>{$_('swap_split')}

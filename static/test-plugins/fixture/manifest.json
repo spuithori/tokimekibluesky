@@ -1,0 +1,33 @@
+{
+    "id": "fixture",
+    "name": "Fixture Plugin",
+    "version": "1.0.0",
+    "apiVersion": 1,
+    "svelteVersion": "5.56.4",
+    "entry": "main.js",
+    "integrity": "sha256-tzRIWF2x+9bKOCUhXfE5ZIM/GS4h/LrW3CcL0gU18xs=",
+    "description": "E2E fixture plugin for the rice plugin loader",
+    "contributes": {
+        "effectLayers": [
+            {
+                "id": "fx",
+                "zIndex": 50
+            }
+        ],
+        "columnKinds": [
+            {
+                "kind": "panel",
+                "capability": {
+                    "hasAgent": false,
+                    "singleton": false
+                }
+            }
+        ],
+        "commands": [
+            {
+                "id": "hello",
+                "title": "Fixture Hello"
+            }
+        ]
+    }
+}

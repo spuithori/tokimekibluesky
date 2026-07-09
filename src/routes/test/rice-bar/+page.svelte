@@ -7,6 +7,7 @@
     import RiceBar from '$lib/components/rice/RiceBar.svelte';
     import CoreCommandsObserver from '$lib/components/commands/CoreCommandsObserver.svelte';
     import { riceState } from '$lib/rice/riceState.svelte';
+    import { verticalBarOffset } from '$lib/rice/shellGeometry';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { getColumnState, initColumns } from '$lib/classes/columnState.svelte';
     import { runCommand } from '$lib/commands/registry.svelte';
@@ -100,8 +101,12 @@
     </div>
 
     <StatusBar position="bottom"></StatusBar>
-    <RiceBar position="left"></RiceBar>
-    <RiceBar position="right"></RiceBar>
+    {#each riceState.leftBars as bar, index (bar.label ?? index)}
+        <RiceBar position="left" config={bar} offset={verticalBarOffset(riceState.leftBars, index)}></RiceBar>
+    {/each}
+    {#each riceState.rightBars as bar, index (bar.label ?? index)}
+        <RiceBar position="right" config={bar} offset={verticalBarOffset(riceState.rightBars, index)}></RiceBar>
+    {/each}
 </div>
 
 <style>

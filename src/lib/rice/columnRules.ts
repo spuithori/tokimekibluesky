@@ -1,5 +1,6 @@
 import type { Column } from '$lib/types/column';
 import type { ColumnRule, ColumnRuleMatch } from './config/model';
+import { clampDeckWidth, resolveDeckWidthPx } from '$lib/deckWidth';
 
 const BORDER_STYLE_KEYWORDS = ['solid', 'dashed', 'dotted', 'double', 'none', 'hidden', 'groove', 'ridge', 'inset', 'outset'];
 
@@ -74,7 +75,7 @@ export function styleForColumn(rules: ColumnRule[], column: Column): string {
         } else {
             style += `--rice-heading-mb: calc(0px - var(--deck-heading-height));--rice-heading-opacity: 0;--rice-heading-pe: none;--deck-heading-space: 0px;`;
             if (props.heading === 'hover') {
-                style += `--rice-heading-hover-opacity: 1;--rice-heading-hover-pe: auto;`;
+                style += `--rice-heading-hover-opacity: 1;--rice-heading-hover-pe: auto;--rice-heading-hotzone-pe: auto;--rice-heading-hint: 0.45;`;
             }
         }
     }
@@ -88,6 +89,8 @@ export function styleForColumn(rules: ColumnRule[], column: Column): string {
     if (props.width !== undefined) {
         const preset = WIDTH_PRESET_VARS[props.width];
         style += `--rice-column-width: ${preset ?? props.width};`;
+        const px = preset ? resolveDeckWidthPx(props.width) : Number.parseFloat(props.width);
+        style += `--rice-tile-weight: ${clampDeckWidth(px)};`;
     }
     if (props.background !== undefined) {
         style += `--deck-content-bg-color: ${props.background};`;
@@ -100,6 +103,15 @@ export function styleForColumn(rules: ColumnRule[], column: Column): string {
     }
     if (props['heading-bg'] !== undefined) {
         style += `--deck-heading-bg-color: ${props['heading-bg']};`;
+    }
+    if (props.editorheight !== undefined) {
+        if (props.editorheight === 'fill') {
+            style += `--publish-editor-height: 100%;--publish-editor-flex: 1;--publish-form-flex: 1 1 auto;--publish-drafts-display: none;`;
+        } else if (props.editorheight === 'auto') {
+            style += `--publish-editor-height: auto;--publish-editor-flex: 0 0 auto;--publish-form-flex: 0 1 auto;--publish-drafts-display: block;`;
+        } else {
+            style += `--publish-editor-height: ${props.editorheight};--publish-editor-flex: 0 0 auto;`;
+        }
     }
     return style;
 }

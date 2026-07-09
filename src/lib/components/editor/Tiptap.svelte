@@ -29,6 +29,11 @@
   import Unlink from '@lucide/svelte/icons/unlink';
   import SquareSplitVertical from '@lucide/svelte/icons/square-split-vertical';
   import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
+  import Ellipsis from '@lucide/svelte/icons/ellipsis';
+  import Menu from '$lib/components/ui/Menu.svelte';
+  import { riceState } from '$lib/rice/riceState.svelte';
+
+  const RING_CIRCUMFERENCE = 2 * Math.PI * 12;
   import Brush from '@lucide/svelte/icons/brush';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import EmojiList from "$lib/components/editor/EmojiList.svelte";
@@ -42,7 +47,11 @@
     isVideoUploadEnabled: any;
     top?: import('svelte').Snippet;
     avatar?: import('svelte').Snippet;
-    normal?: import('svelte').Snippet;
+    attachments?: import('svelte').Snippet;
+    meta?: import('svelte').Snippet;
+    onheightresize?: (event: PointerEvent) => void;
+    onheightreset?: () => void;
+    heightResizeActive?: boolean;
   }
 
   let {
@@ -52,7 +61,8 @@
     isVideoUploadEnabled,
     top,
     avatar,
-    normal,
+    attachments,
+    meta,
     submitArea,
     onupload,
     onpickgif,
@@ -63,6 +73,9 @@
     isThreadSplitting = false,
     canPoll = false,
     hasPoll = false,
+    onheightresize,
+    onheightreset,
+    heightResizeActive = false,
   }: Props = $props();
 
     let element = $state();
@@ -81,6 +94,8 @@
     let isGiphyPickerOpen = $state(false);
     let isLinkActive = $state(false);
     let isEmojiPickerOpen = $state(false);
+    let isMoreOpen = $state(false);
+    const lengthRing = $derived(riceState.publish?.lengthRing === true);
     let isKakuDrawOpen = $state(false);
     let isFocus = $state(false);
 
@@ -356,8 +371,8 @@
         editor.commands.clearContent(true);
     }
 
-    export function focus(position = null) {
-        editor.commands.focus(position);
+    export function focus(position = null, options = undefined) {
+        editor.commands.focus(position, options);
     }
 
     export function blur() {
@@ -383,15 +398,44 @@
     }
 </script>
 
-{@render top?.()}
+<div class="editor-scroll-area">
+  {@render top?.()}
 
-<div class="editor-column">
-  {@render avatar?.()}
+  <div class="editor-column">
+    {@render avatar?.()}
 
-  <div class="editor" bind:this={element}></div>
+    <div class="editor" bind:this={element}></div>
+  </div>
+
+  {@render attachments?.()}
 </div>
 
-{@render normal?.()}
+{#if onheightresize}
+  <div
+    class="publish-height-bar"
+    class:publish-height-bar--active={heightResizeActive}
+    role="separator"
+    aria-orientation="horizontal"
+    aria-label={$_('publish_editor_height_resize')}
+    onpointerdown={onheightresize}
+    ondblclick={onheightreset}
+  ></div>
+{/if}
+
+{#if meta}
+  <div class="publish-meta">
+    {@render meta()}
+  </div>
+{/if}
+
+{#snippet gifIcon()}
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64">
+    <g transform="translate(-125 -223)">
+      <rect width="64" height="64" transform="translate(125 223)" fill="none"/>
+      <path d="M19.892-4.126H15.035a1.379,1.379,0,0,1-.992-.387,2,2,0,0,1-.588-1.529,1.748,1.748,0,0,1,.79-1.613,1.417,1.417,0,0,1,.79-.218h6.807A2.332,2.332,0,0,1,24.5-5.252V3.622A1.952,1.952,0,0,1,24.144,4.8a1.854,1.854,0,0,1-1.58.689q-1.95,0-1.95-1.832V1.387Q18.565,5.723,12.9,5.723A10.483,10.483,0,0,1,3.859,1.286,14.484,14.484,0,0,1,1.371-7.386a13.388,13.388,0,0,1,3.143-9.059,11.784,11.784,0,0,1,9.412-4.134,12.7,12.7,0,0,1,6.067,1.5,7.722,7.722,0,0,1,2.79,2.319,2.749,2.749,0,0,1,.555,1.546,2.027,2.027,0,0,1-.924,1.664,2.278,2.278,0,0,1-1.378.471,1.911,1.911,0,0,1-1.563-.756,6.985,6.985,0,0,0-5.647-2.74A6.618,6.618,0,0,0,7.69-13.134a11.141,11.141,0,0,0-1.361,5.7A10.817,10.817,0,0,0,7.775-1.672a6.255,6.255,0,0,0,5.58,3.261Q17.96,1.589,19.892-4.126ZM33.077-16.512H30.556a1.311,1.311,0,0,1-.941-.37,1.8,1.8,0,0,1-.538-1.378,1.671,1.671,0,0,1,.723-1.513,1.306,1.306,0,0,1,.756-.218h9.7a1.391,1.391,0,0,1,.975.37,1.8,1.8,0,0,1,.521,1.378,1.7,1.7,0,0,1-.723,1.513,1.336,1.336,0,0,1-.773.218h-2.5V1.656h2.5a1.391,1.391,0,0,1,.975.37A1.8,1.8,0,0,1,41.749,3.4a1.7,1.7,0,0,1-.723,1.513,1.336,1.336,0,0,1-.773.218h-9.7a1.311,1.311,0,0,1-.941-.37,1.765,1.765,0,0,1-.538-1.378A1.671,1.671,0,0,1,29.8,1.874a1.306,1.306,0,0,1,.756-.218h2.521ZM51.741-5.4V3.622A1.7,1.7,0,0,1,51.4,4.664a2.4,2.4,0,0,1-2.034.857,2.521,2.521,0,0,1-1.866-.672,1.664,1.664,0,0,1-.487-1.227V-16.445q0-3.546,3.546-3.546H63.69a1.462,1.462,0,0,1,1.076.437,2.1,2.1,0,0,1,.605,1.58,2,2,0,0,1-.874,1.832,1.5,1.5,0,0,1-.807.218H52.363a.55.55,0,0,0-.622.622v5.983H62.094a1.425,1.425,0,0,1,1.025.4,2.1,2.1,0,0,1,.605,1.58A1.866,1.866,0,0,1,62.867-5.6a1.419,1.419,0,0,1-.773.2Z" transform="translate(123.629 262.428)" fill="var(--publish-tool-button-color)"/>
+    </g>
+  </svg>
+{/snippet}
 
 <EditorBar {isFocus} {submitArea}>
   {#snippet top()}
@@ -409,35 +453,93 @@
         <ImagePlus size="20" color="var(--publish-tool-button-color)"></ImagePlus>
       </button>
 
-      <button class="editor-menu-button" onclick={() => {isGiphyPickerOpen = true}}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64">
-          <g id="icon-gif" transform="translate(-125 -223)">
-            <rect id="長方形_269" data-name="長方形 269" width="64" height="64" transform="translate(125 223)" fill="none"/>
-            <path id="パス_81" data-name="パス 81" d="M19.892-4.126H15.035a1.379,1.379,0,0,1-.992-.387,2,2,0,0,1-.588-1.529,1.748,1.748,0,0,1,.79-1.613,1.417,1.417,0,0,1,.79-.218h6.807A2.332,2.332,0,0,1,24.5-5.252V3.622A1.952,1.952,0,0,1,24.144,4.8a1.854,1.854,0,0,1-1.58.689q-1.95,0-1.95-1.832V1.387Q18.565,5.723,12.9,5.723A10.483,10.483,0,0,1,3.859,1.286,14.484,14.484,0,0,1,1.371-7.386a13.388,13.388,0,0,1,3.143-9.059,11.784,11.784,0,0,1,9.412-4.134,12.7,12.7,0,0,1,6.067,1.5,7.722,7.722,0,0,1,2.79,2.319,2.749,2.749,0,0,1,.555,1.546,2.027,2.027,0,0,1-.924,1.664,2.278,2.278,0,0,1-1.378.471,1.911,1.911,0,0,1-1.563-.756,6.985,6.985,0,0,0-5.647-2.74A6.618,6.618,0,0,0,7.69-13.134a11.141,11.141,0,0,0-1.361,5.7A10.817,10.817,0,0,0,7.775-1.672a6.255,6.255,0,0,0,5.58,3.261Q17.96,1.589,19.892-4.126ZM33.077-16.512H30.556a1.311,1.311,0,0,1-.941-.37,1.8,1.8,0,0,1-.538-1.378,1.671,1.671,0,0,1,.723-1.513,1.306,1.306,0,0,1,.756-.218h9.7a1.391,1.391,0,0,1,.975.37,1.8,1.8,0,0,1,.521,1.378,1.7,1.7,0,0,1-.723,1.513,1.336,1.336,0,0,1-.773.218h-2.5V1.656h2.5a1.391,1.391,0,0,1,.975.37A1.8,1.8,0,0,1,41.749,3.4a1.7,1.7,0,0,1-.723,1.513,1.336,1.336,0,0,1-.773.218h-9.7a1.311,1.311,0,0,1-.941-.37,1.765,1.765,0,0,1-.538-1.378A1.671,1.671,0,0,1,29.8,1.874a1.306,1.306,0,0,1,.756-.218h2.521ZM51.741-5.4V3.622A1.7,1.7,0,0,1,51.4,4.664a2.4,2.4,0,0,1-2.034.857,2.521,2.521,0,0,1-1.866-.672,1.664,1.664,0,0,1-.487-1.227V-16.445q0-3.546,3.546-3.546H63.69a1.462,1.462,0,0,1,1.076.437,2.1,2.1,0,0,1,.605,1.58,2,2,0,0,1-.874,1.832,1.5,1.5,0,0,1-.807.218H52.363a.55.55,0,0,0-.622.622v5.983H62.094a1.425,1.425,0,0,1,1.025.4,2.1,2.1,0,0,1,.605,1.58A1.866,1.866,0,0,1,62.867-5.6a1.419,1.419,0,0,1-.773.2Z" transform="translate(123.629 262.428)" fill="var(--publish-tool-button-color)"/>
-          </g>
-        </svg>
+      <button class="editor-menu-button publish-toolbar__collapsible" onclick={() => {isGiphyPickerOpen = true}} aria-label={$_('publish_tool_gif')}>
+        {@render gifIcon()}
       </button>
 
-      <button class="editor-menu-button only-mobile" onclick={addHash}>
+      <button class="editor-menu-button only-mobile publish-toolbar__collapsible" onclick={addHash} aria-label={$_('publish_tool_hashtag')}>
         <Hash size="20" color="var(--publish-tool-button-color)"></Hash>
       </button>
 
-      <button class="editor-menu-button" onclick={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}>
-        <Laugh size="20" color="var(--publish-tool-button-color)"></Laugh>
-      </button>
+      <Menu bind:isMenuOpen={isEmojiPickerOpen} buttonClassName="editor-menu-button" position="top-start">
+        {#snippet ref()}
+          <Laugh size="20" color="var(--publish-tool-button-color)"></Laugh>
+        {/snippet}
+        {#snippet content()}
+          {#await import('$lib/components/publish/EmojiPicker.svelte') then { default: EmojiPicker }}
+            <EmojiPicker bare onpick={handleEmojiPick}></EmojiPicker>
+          {/await}
+        {/snippet}
+      </Menu>
 
       {#if canPoll}
-        <button class="editor-menu-button" class:editor-menu-button--active={hasPoll} onclick={onpollclick} title={$_('poll_add')}>
+        <button class="editor-menu-button publish-toolbar__collapsible" class:editor-menu-button--active={hasPoll} onclick={onpollclick} title={$_('poll_add')}>
           <BarChart3 size="20" color={hasPoll ? 'var(--primary-color)' : 'var(--publish-tool-button-color)'}></BarChart3>
         </button>
       {/if}
 
-      <button class="editor-menu-button" onclick={() => {isKakuDrawOpen = true}}>
+      <button class="editor-menu-button publish-toolbar__collapsible" onclick={() => {isKakuDrawOpen = true}} aria-label={$_('publish_tool_brush')}>
         <Brush size="20" color="var(--publish-tool-button-color)"></Brush>
       </button>
 
+      <Menu bind:isMenuOpen={isMoreOpen} buttonClassName="editor-menu-button publish-toolbar__more" ariaLabel={$_('publish_more_tools')} position="top-end">
+        {#snippet ref()}
+          <Ellipsis size="20" color="var(--publish-tool-button-color)"></Ellipsis>
+        {/snippet}
+        {#snippet content()}
+          <ul class="timeline-menu-list">
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={() => { isMoreOpen = false; isGiphyPickerOpen = true; }}>
+                {@render gifIcon()}
+                <span>{$_('publish_tool_gif')}</span>
+              </button>
+            </li>
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={() => { isMoreOpen = false; addHash(); }}>
+                <Hash size="18" color="var(--publish-tool-button-color)"></Hash>
+                <span>{$_('publish_tool_hashtag')}</span>
+              </button>
+            </li>
+            {#if canPoll}
+              <li class="timeline-menu-list__item">
+                <button class="timeline-menu-list__button" class:timeline-menu-list__button--active={hasPoll} onclick={() => { isMoreOpen = false; onpollclick(); }}>
+                  <BarChart3 size="18" color={hasPoll ? 'var(--primary-color)' : 'var(--publish-tool-button-color)'}></BarChart3>
+                  <span>{$_('poll_add')}</span>
+                </button>
+              </li>
+            {/if}
+            <li class="timeline-menu-list__item">
+              <button class="timeline-menu-list__button" onclick={() => { isMoreOpen = false; isKakuDrawOpen = true; }}>
+                <Brush size="18" color="var(--publish-tool-button-color)"></Brush>
+                <span>{$_('publish_tool_brush')}</span>
+              </button>
+            </li>
+          </ul>
+        {/snippet}
+      </Menu>
+
       <div class="publish-length-wrap">
-        <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
+        {#if lengthRing}
+          <div class="publish-length-ring" class:over={publishContentLength > 300} role="img" aria-label={String(300 - publishContentLength)}>
+            <svg viewBox="0 0 28 28" width="28" height="28">
+              <circle class="publish-length-ring__track" cx="14" cy="14" r="12"/>
+              <circle
+                class="publish-length-ring__bar"
+                cx="14"
+                cy="14"
+                r="12"
+                stroke-dasharray={RING_CIRCUMFERENCE}
+                stroke-dashoffset={RING_CIRCUMFERENCE * (1 - Math.min(publishContentLength / 300, 1))}
+              />
+            </svg>
+
+            {#if 300 - publishContentLength < 60}
+              <span class="publish-length-ring__count">{300 - publishContentLength}</span>
+            {/if}
+          </div>
+        {:else}
+          <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
+        {/if}
 
         {#if publishContentLength > 300 && onthreadsplit}
           <button class="thread-split-button" onclick={onthreadsplit} disabled={isThreadSplitting} aria-label={$_('thread_split')}>
@@ -452,12 +554,6 @@
       </div>
   {/snippet}
 </EditorBar>
-
-{#if (isEmojiPickerOpen)}
-    {#await import('$lib/components/publish/EmojiPicker.svelte') then { default: EmojiPicker }}
-        <EmojiPicker onpick={handleEmojiPick} onoutclick={() => {isEmojiPickerOpen = !isEmojiPickerOpen}}></EmojiPicker>
-    {/await}
-{/if}
 
 {#if (isGiphyPickerOpen)}
   <GifPickerModal
@@ -559,7 +655,44 @@
         display: grid;
         grid-template-columns: 40px 1fr;
         gap: 8px;
-        padding: 16px;
+        padding: 12px;
+    }
+
+    .publish-height-bar {
+        position: relative;
+        height: 9px;
+        margin: -4px 16px;
+        z-index: 15;
+        cursor: ns-resize;
+        touch-action: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity .15s ease;
+
+        &::after {
+            content: '';
+            height: 4px;
+            width: 56px;
+            max-width: 40%;
+            border-radius: 4px;
+            background: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--bg-color-1);
+        }
+
+        &:hover,
+        &--active {
+            opacity: 1;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
+
+        @media (max-width: 767px) {
+            display: none;
+        }
     }
 
     .publish-length-wrap {
@@ -568,6 +701,48 @@
         gap: 5px;
         position: relative;
         margin-left: auto;
+    }
+
+    .publish-length-ring {
+        position: relative;
+        display: grid;
+        place-items: center;
+
+        svg {
+            display: block;
+            transform: rotate(-90deg);
+        }
+
+        circle {
+            fill: none;
+            stroke-width: 3;
+        }
+
+        .publish-length-ring__track {
+            stroke: var(--border-color-2);
+        }
+
+        .publish-length-ring__bar {
+            stroke: var(--primary-color);
+            transition: stroke-dashoffset .15s ease;
+        }
+
+        .publish-length-ring__count {
+            position: absolute;
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--publish-length-color);
+        }
+
+        &.over {
+            .publish-length-ring__bar {
+                stroke: var(--danger-color);
+            }
+
+            .publish-length-ring__count {
+                color: var(--danger-color);
+            }
+        }
     }
 
     .publish-length {
@@ -607,7 +782,7 @@
         transition: opacity .2s;
         letter-spacing: .05em;
         position: absolute;
-        top: calc(100% + 8px);
+        bottom: calc(100% + 8px);
         left: 50%;
         transform: translateX(-50%);
 
@@ -615,30 +790,15 @@
             content: '';
             position: absolute;
             left: 50%;
-            bottom: calc(100% - 5px);
+            top: calc(100% - 5px);
             width: 12px;
             height: 12px;
             background-color: var(--bg-color-3);
             border: 2px solid var(--primary-color);
-            border-right: none;
-            border-bottom: none;
-            border-top-left-radius: 3px;
+            border-left: none;
+            border-top: none;
+            border-bottom-right-radius: 3px;
             transform: translateX(-50%) rotate(45deg);
-        }
-
-        @media (max-width: 767px) {
-            top: auto;
-            bottom: calc(100% + 8px);
-
-            &::before {
-                bottom: auto;
-                top: calc(100% - 5px);
-                border: 2px solid var(--primary-color);
-                border-left: none;
-                border-top: none;
-                border-top-left-radius: 0;
-                border-bottom-right-radius: 3px;
-            }
         }
 
         &:hover:not(:disabled) {

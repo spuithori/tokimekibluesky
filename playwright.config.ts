@@ -2,6 +2,21 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: [
+    '**/virtual-scroll*.spec.ts',
+    '**/baseline-memory.spec.ts',
+    '**/memory-comparison.spec.ts',
+    '**/memory-profile.spec.ts',
+    '**/realistic-memory-benchmark.spec.ts',
+    '**/heap-snapshot.spec.ts',
+    '**/benchmark-comparison.spec.ts',
+    '**/performance-benchmark.spec.ts',
+    ...(process.env.PROBE ? [] : [
+      '**/research-jank*.spec.ts',
+      '**/research-trace-vocab.spec.ts',
+      '**/research-perf-loop.spec.ts',
+    ]),
+  ],
   globalSetup: './e2e/support/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

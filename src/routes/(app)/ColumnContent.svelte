@@ -15,6 +15,7 @@
     import { getScopedColumnState } from "$lib/classes/columnState.svelte";
     import { capabilityOf } from "$lib/columnKinds";
     import { getColumnKind } from "$lib/columnKindRegistry.svelte";
+    import { riceState } from "$lib/rice/riceState.svelte";
 
     interface Props {
         index: number;
@@ -51,16 +52,23 @@
     const column = $derived(columnState.getColumn(index));
     const type = $derived(column?.algorithm?.type);
     const capability = $derived(capabilityOf(type));
-    const moduleKind = $derived(type?.startsWith('module:') ? getColumnKind(type) : undefined);
+    const isModuleKind = $derived(type?.startsWith('module:') || type?.startsWith('plugin:'));
+    const moduleKind = $derived(isModuleKind ? getColumnKind(type) : undefined);
+    const pluginId = $derived(type?.startsWith('plugin:') ? type.split(':')[1] : undefined);
+    const pluginOptions = $derived(pluginId !== undefined ? riceState.pluginConfig(pluginId)?.options ?? {} : undefined);
     const ContentComponent = $derived(type !== undefined ? builtinComponents[type] : undefined);
 </script>
 
-{#if type?.startsWith('module:')}
+{#if isModuleKind}
     {#if moduleKind?.loader}
-        {#await moduleKind.loader() then loaded}
-            {@const ModuleComponent = loaded.default}
-            <ModuleComponent {index} {unique} {isSplit} {onrefresh}></ModuleComponent>
-        {/await}
+        {#if capability.hasAgent && !_agent}
+            <ColumnAgentMissing {column}></ColumnAgentMissing>
+        {:else}
+            {#await moduleKind.loader() then loaded}
+                {@const ModuleComponent = loaded.default}
+                <ModuleComponent {index} {unique} {isSplit} {onrefresh} {column} options={pluginOptions} _agent={capability.hasAgent ? _agent : undefined}></ModuleComponent>
+            {/await}
+        {/if}
     {:else}
         <ModuleColumnPlaceholder {index}></ModuleColumnPlaceholder>
     {/if}

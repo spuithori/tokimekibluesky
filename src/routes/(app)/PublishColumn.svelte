@@ -5,6 +5,7 @@
     import { _ } from "tokimeki-i18n";
     import Pencil from '@lucide/svelte/icons/pencil';
     import { settings } from "$lib/stores";
+    import { riceState } from '$lib/rice/riceState.svelte';
     import { getScopedColumnState } from "$lib/classes/columnState.svelte";
     import { publishState } from "$lib/classes/publishState.svelte";
     import { removePublishColumn } from "$lib/publishColumn";
@@ -20,23 +21,28 @@
     const column = $derived(columnState.getColumn(index));
     const isFloat = $derived(column?.settings?.isPopup === true);
     const mobileQuery = new MediaQuery('(max-width: 767px)');
-    const isEditorHost = $derived($settings.design?.layout === 'decks' && !mobileQuery.current);
+    const isEditorHost = $derived(riceState.layoutStyle === 'deck' && !mobileQuery.current);
 
     let formEl = $state<{ focusEditor: (position?: any) => void; blurEditor: () => void }>();
 
-    watch(() => publishState.focusTick, () => {
-        if (!isEditorHost) return;
+    watch(() => publishState.focusTick, (focusTick) => {
+        if (!focusTick || !isEditorHost) return;
         tick().then(() => formEl?.focusEditor());
     });
 
     function handleClose() {
         removePublishColumn(columnState);
     }
+
+    function handleEditorHeightChange(height?: number) {
+        if (!column) return;
+        column.settings.editorHeight = height;
+    }
 </script>
 
 <div class="publish-column">
     {#if isEditorHost}
-        <PublishForm bind:this={formEl} variant="column" float={isFloat} onRequestClose={handleClose} onRequestOpen={() => formEl?.focusEditor()}></PublishForm>
+        <PublishForm bind:this={formEl} variant="column" float={isFloat} onRequestClose={handleClose} onRequestOpen={() => formEl?.focusEditor()} editorHeight={column?.settings?.editorHeight} onEditorHeightChange={handleEditorHeightChange}></PublishForm>
     {:else}
         <div class="publish-column__placeholder">
             <button class="button" onclick={() => { publishState.show = true; }}>

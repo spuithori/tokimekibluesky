@@ -6,7 +6,7 @@
     <div class="rice-effect-layer" style:z-index={layer.zIndex}>
         {#await layer.loader() then loaded}
             {@const Layer = loaded.default}
-            <Layer></Layer>
+            <Layer options={layer.getOptions?.()}></Layer>
         {/await}
     </div>
 {/each}

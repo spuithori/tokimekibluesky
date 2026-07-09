@@ -1,10 +1,18 @@
 <script lang="ts">
   import {onMount} from "svelte";
-  import {agent} from '$lib/stores';
+  import {_} from 'tokimeki-i18n';
+  import Layers from '@lucide/svelte/icons/layers';
+  import {agent, isColumnModalOpen} from '$lib/stores';
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import ColumnListAdder from "$lib/components/column/ColumnListAdder.svelte";
+  import {runCommand} from "$lib/commands/registry.svelte";
 
   let { _agent = $agent } = $props();
+
+  function addAsFeedTabs() {
+      runCommand('column.feedtabs');
+      isColumnModalOpen.set(false);
+  }
   let feeds = $state([]);
   let pinnedColumns = $derived.by(() => {
     return feeds.map(feed => {
@@ -86,5 +94,19 @@
 </script>
 
 {#if (pinnedColumns.length)}
+  <button class="button button--sm button--border feed-tabs-add-button" onclick={addAsFeedTabs}>
+    <Layers size="16"></Layers>
+    {$_('feed_tabs_add_pinned')}
+  </button>
+
   <ColumnListAdder {_agent} items={pinnedColumns} on:add></ColumnListAdder>
 {/if}
+
+<style lang="postcss">
+  .feed-tabs-add-button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+  }
+</style>

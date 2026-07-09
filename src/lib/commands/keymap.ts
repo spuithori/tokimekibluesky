@@ -85,3 +85,33 @@ export const DEFAULT_BINDS: { combo: string; command: string }[] = [
     { combo: 'mod+k', command: 'palette.toggle' },
     { combo: 'mod+o', command: 'orbit.toggle' },
 ];
+
+export interface ResolvedBind {
+    combo: KeyCombo;
+    command: string;
+}
+
+export function resolveBindList(
+    defs: { combo: string; command: string }[],
+    fallback: { combo: string; command: string }[] = [],
+): ResolvedBind[] {
+    const seen = new Set<string>();
+    const result: ResolvedBind[] = [];
+    for (const bind of [...defs].reverse()) {
+        const combo = parseCombo(bind.combo);
+        if (!combo) continue;
+        const key = comboKey(combo);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        result.push({ combo, command: bind.command });
+    }
+    for (const def of fallback) {
+        const combo = parseCombo(def.combo);
+        if (!combo) continue;
+        const key = comboKey(combo);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        result.push({ combo, command: def.command });
+    }
+    return result;
+}

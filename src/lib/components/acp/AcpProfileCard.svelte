@@ -4,7 +4,7 @@
   import {accountsDb} from "$lib/db";
   import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
-  import {agent, agents, currentTimeline} from "$lib/stores";
+  import {agent, agents} from "$lib/stores";
   import Menu from "$lib/components/ui/Menu.svelte";
   import {_} from "tokimeki-i18n";
   import { toast } from "svelte-sonner";
@@ -50,7 +50,7 @@
   }
 
   async function changeProfile() {
-      currentTimeline.set(0);
+      columnState.setActiveSlot(0);
       appState.changeProfile(profile.id);
       const deck = loadDeckState({ version: profile.deckVersion, columns: profile.columns, slots: profile.slots }, () => self.crypto.randomUUID());
       columnState.columns = deck.columns;

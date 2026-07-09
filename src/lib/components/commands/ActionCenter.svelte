@@ -10,6 +10,7 @@
     import { overlayState } from '$lib/classes/overlayState.svelte';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { riceModuleHost } from '$lib/rice/modules/host.svelte';
+    import { isPluginEntryId, moduleDisplayName } from '$lib/rice/modules/displayName';
     import { quickActionRegistry } from '$lib/rice/modules/registries.svelte';
     import { setValueInText } from '$lib/rice/config/edit';
     import { runCommand } from '$lib/commands/registry.svelte';
@@ -29,7 +30,7 @@
     function toggleModule(id: string, enable: boolean) {
         settingsStore.rice.config = setValueInText(
             settingsStore.rice.config,
-            [{ name: 'module', label: id }],
+            isPluginEntryId(id) ? [{ name: id }] : [{ name: 'module', label: id }],
             'enable',
             String(enable),
         );
@@ -75,7 +76,7 @@
             {#each [...riceModuleHost.entries.values()] as entry (entry.manifest.id)}
                 <li class="action-center-module">
                     <Puzzle size={16} color="var(--text-color-3)"></Puzzle>
-                    <span class="action-center-module__name">{$_(entry.manifest.name)}</span>
+                    <span class="action-center-module__name">{moduleDisplayName(entry.manifest, $_)}</span>
                     {#if entry.status === 'error'}
                         <span class="action-center-module__error">{entry.errorMessage}</span>
                     {/if}
@@ -104,7 +105,7 @@
     .action-center {
         position: fixed;
         top: calc(8px + var(--rice-statusbar-top-height, 0px));
-        left: calc(var(--side-width, 64px) + 8px);
+        left: calc(var(--shell-inset, 0px) + var(--side-width, 64px) + 8px);
         z-index: 1010;
         width: 320px;
         max-height: calc(100dvh - 32px - var(--rice-statusbar-top-height, 0px) - var(--rice-statusbar-bottom-height, 0px));

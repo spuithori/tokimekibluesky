@@ -4,7 +4,7 @@
   import {settings} from '$lib/stores';
   import Notice from "$lib/components/ui/Notice.svelte";
 
-  let { onclose } = $props();
+  let { onclose, onEditorHeightReset = undefined } = $props();
 </script>
 
 <Modal title={$_('publish_config_modal_title')} size="small" {onclose}>
@@ -47,4 +47,16 @@
       </div>
     </dd>
   </dl>
+
+  {#if onEditorHeightReset}
+    <dl class="settings-group">
+      <dt class="settings-group__name">
+        {$_('publish_editor_height_resize')}
+      </dt>
+
+      <dd class="settings-group__content">
+        <button class="button button--sm" onclick={onEditorHeightReset}>{$_('publish_editor_height_reset')}</button>
+      </dd>
+    </dl>
+  {/if}
 </Modal>

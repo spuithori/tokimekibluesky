@@ -331,6 +331,17 @@ const rawSettingsSchema = [
         default: "defaut-10",
     },
     {
+        key: "rice.enabled",
+        category: "design",
+        scope: "global",
+        type: "custom",
+        custom: "riceAppearance",
+        section: "settings_section_appearance",
+        label: "rice_appearance",
+        default: true,
+        searchKeywords: ["rice", "shell", "tile", "accent", "radius", "gap"],
+    },
+    {
         key: "design.fontTheme",
         category: "design",
         scope: "global",

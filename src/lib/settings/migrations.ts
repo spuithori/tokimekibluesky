@@ -39,6 +39,10 @@ function deepMerge<T>(defaults: T, stored: unknown): T {
 
 const LABEL_PREFS = new Set(['hide', 'warn', 'ignore']);
 
+const LEGACY_SINGLE_WIDTH_PX: Record<string, number> = {
+    xxs: 380, xs: 420, small: 460, medium: 528, large: 600, xl: 680, xxl: 760,
+};
+
 function normalizeLabelers(value: unknown): unknown[] {
     if (!Array.isArray(value)) {
         return [];
@@ -155,6 +159,22 @@ export function migrate(
             delete (stored.design as Record<string, any>).mobileNewUi;
         }
         stored.version = 8;
+    }
+
+    if (stored.version < 9) {
+        if (isPlainObject(stored.design)) {
+            const design = stored.design as Record<string, any>;
+            if (typeof design.singleWidth === 'string') {
+                design.singleWidth = LEGACY_SINGLE_WIDTH_PX[design.singleWidth] ?? 528;
+            } else if (design.singleWidth !== undefined && typeof design.singleWidth !== 'number') {
+                delete design.singleWidth;
+            }
+        }
+        stored.version = 9;
+    }
+
+    if (stored.version < 10) {
+        stored.version = 10;
     }
 
     return deepMerge(defaults, stored);
