@@ -124,18 +124,16 @@ describe('shellGeometryVars', () => {
         expect(withStyle).toBe('--anim-panel-duration: 180ms;--anim-panel-easing: ease-out;');
     });
 
-    it('layout.alignに応じて整列varを発行する', () => {
+    it('layout.alignに応じてdeckの整列varを発行する', () => {
         expect(shellGeometryVars(bars({}), null)).toBe('');
         expect(shellGeometryVars(bars({}), { align: 'center' })).toBe('--deck-justify: safe center;');
-        expect(shellGeometryVars(bars({}), { align: 'right' })).toBe(
-            '--deck-justify: safe flex-end;--single-align-mr: var(--shell-inset, 0px);',
-        );
-        expect(shellGeometryVars(bars({}), { align: 'left' })).toBe('--single-align-ml: var(--shell-inset, 0px);');
+        expect(shellGeometryVars(bars({}), { align: 'right' })).toBe('--deck-justify: safe flex-end;');
+        expect(shellGeometryVars(bars({}), { align: 'left' })).toBe('');
     });
 
     it('shell=centeredで--shell-inset/--shell-max-widthを発行する', () => {
         expect(shellGeometryVars(bars({}), { align: 'left', shell: 'centered' })).toBe(
-            '--shell-inset: max(0px, calc((100vw - 1280px) / 2));--shell-max-width: 1280px;--single-align-ml: var(--shell-inset, 0px);',
+            '--shell-inset: max(0px, calc((100vw - 1280px) / 2));--shell-max-width: 1280px;',
         );
         expect(shellGeometryVars(bars({}), { align: 'center', shell: 'centered', shellWidth: '1240px' })).toBe(
             '--shell-inset: max(0px, calc((100vw - 1240px) / 2));--shell-max-width: 1240px;--deck-justify: safe center;',
@@ -147,16 +145,14 @@ describe('shellGeometryVars', () => {
         expect(shellGeometryVars(bars({}), { align: 'center' })).toBe('--deck-justify: safe center;');
     });
 
-    it('single+centeredはコンテンツ駆動のcontent-width/insetを発行しshell-max-widthを出さない', () => {
+    it('singleのシェル幾何はインライン発行しない(base.cssの.app.singleが単一情報源)', () => {
         const single = shellGeometryVars(bars({}), { align: 'center', shell: 'centered' }, null, null, null, 'single');
-        expect(single).toBe(
-            '--shell-content-width: calc(var(--side-width, 64px) + var(--single-column-width, var(--single-m-width, 528px)) + var(--side-right-width, 0px));'
-            + '--shell-inset: max(0px, calc((100vw - var(--shell-content-width)) / 2));'
-            + '--deck-justify: safe center;',
-        );
+        expect(single).toBe('--deck-justify: safe center;');
         const withWidth = shellGeometryVars(bars({}), { align: 'center', shell: 'centered', shellWidth: '1240px' }, null, null, null, 'single');
         expect(withWidth).toBe(single);
         expect(withWidth).not.toContain('--shell-max-width');
+        expect(withWidth).not.toContain('--shell-content-width');
+        expect(withWidth).not.toContain('--shell-inset');
     });
 
     it('deck+centeredは従来のshellwidth式を維持する', () => {
@@ -168,6 +164,13 @@ describe('shellGeometryVars', () => {
     it('single+非centeredはshell varを発行しない', () => {
         expect(shellGeometryVars(bars({}), { align: 'center', shell: 'none' }, null, null, null, 'single')).toBe('--deck-justify: safe center;');
         expect(shellGeometryVars(bars({}), { align: 'center' }, null, null, null, 'single')).toBe('--deck-justify: safe center;');
+    });
+
+    it('singleではalign=left/rightがシェル配置を動かさない', () => {
+        expect(shellGeometryVars(bars({}), { align: 'left', shell: 'centered' }, null, null, null, 'single')).toBe('');
+        expect(shellGeometryVars(bars({}), { align: 'right', shell: 'centered' }, null, null, null, 'single')).toBe(
+            '--deck-justify: safe flex-end;',
+        );
     });
 
     it('itemsが空の横バーやnative横バーは高さを発行しない', () => {

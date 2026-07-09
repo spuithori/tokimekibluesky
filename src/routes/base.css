@@ -58,6 +58,13 @@ body {
     background-position: center;
 }
 
+@media (min-width: 768px) {
+    .app.single {
+        --shell-content-width: calc(var(--side-width, 64px) + var(--single-column-width, var(--single-m-width, 528px)) + var(--side-right-width, 0px));
+        --shell-inset: max(0px, calc((100vw - var(--shell-content-width)) / 2));
+    }
+}
+
 .app.monochrome {
     filter: grayscale(100%);
 }

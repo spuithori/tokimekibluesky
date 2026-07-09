@@ -461,7 +461,7 @@
     .app-mock.single .wrap-mock {
         width: var(--shell-content-width, auto);
         max-width: 100%;
-        margin: 0 var(--single-align-mr, auto) 0 var(--single-align-ml, auto);
+        margin: 0 auto;
         padding-right: var(--side-right-width, 0px);
     }
 

@@ -214,7 +214,7 @@
           left: calc(var(--shell-inset, 0px) + var(--side-width, 64px));
           top: 0;
           right: calc(var(--shell-inset, 0px) + var(--side-right-width, 0px));
-          margin: auto var(--single-align-mr, auto) auto var(--single-align-ml, auto);
+          margin: auto;
           min-height: 100dvh;
 
           @media (max-width: 767px) {

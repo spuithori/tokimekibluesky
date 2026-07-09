@@ -64,22 +64,15 @@ export function shellGeometryVars(
         style += '--rice-switcher-top-height: 0px;';
     }
 
-    if (layout?.shell === 'centered') {
-        if (resolvedStyle === 'single') {
-            style += '--shell-content-width: calc(var(--side-width, 64px) + var(--single-column-width, var(--single-m-width, 528px)) + var(--side-right-width, 0px));';
-            style += '--shell-inset: max(0px, calc((100vw - var(--shell-content-width)) / 2));';
-        } else {
-            const shellWidth = layout.shellWidth ?? '1280px';
-            style += `--shell-inset: max(0px, calc((100vw - ${shellWidth}) / 2));--shell-max-width: ${shellWidth};`;
-        }
+    if (layout?.shell === 'centered' && resolvedStyle !== 'single') {
+        const shellWidth = layout.shellWidth ?? '1280px';
+        style += `--shell-inset: max(0px, calc((100vw - ${shellWidth}) / 2));--shell-max-width: ${shellWidth};`;
     }
 
     if (layout?.align === 'center') {
         style += '--deck-justify: safe center;';
     } else if (layout?.align === 'right') {
-        style += '--deck-justify: safe flex-end;--single-align-mr: var(--shell-inset, 0px);';
-    } else if (layout?.align === 'left') {
-        style += '--single-align-ml: var(--shell-inset, 0px);';
+        style += '--deck-justify: safe flex-end;';
     }
 
     if (focus?.outline) {
