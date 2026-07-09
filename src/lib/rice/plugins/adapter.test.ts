@@ -43,6 +43,8 @@ describe('synthesizeManifest', () => {
         expect(typeof c.effectLayers?.[0].getOptions).toBe('function');
         expect(c.statusbarItems?.[0].id).toBe('plugin:aurora.badge');
         expect(c.widgets?.[0].id).toBe('plugin:aurora.panel');
+        expect(typeof c.statusbarItems?.[0].getOptions).toBe('function');
+        expect(typeof c.widgets?.[0].getOptions).toBe('function');
         expect(c.columnKinds?.[0].type).toBe('plugin:aurora:timeline');
         expect(c.columnKinds?.[0].capability).toEqual({ hasAgent: true });
         expect(c.sidebarItems?.[0].id).toBe('plugin:aurora.open');

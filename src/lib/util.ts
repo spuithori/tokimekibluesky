@@ -113,10 +113,42 @@ export async function getImageBase64FromBlob(did: string, blob: { cid: string, m
     return await blobToDataUrl(_blob);
 }
 
+export function didDocUrl(did: string): string {
+    if (!did.startsWith('did:web:')) {
+        return 'https://plc.directory/' + did;
+    }
+    const segments = did.slice('did:web:'.length).split(':').map(decodeURIComponent);
+    const host = segments[0];
+    const path = segments.slice(1);
+    return path.length
+        ? `https://${host}/${path.join('/')}/did.json`
+        : `https://${host}/.well-known/did.json`;
+}
+
+export async function resolveDidDoc(did: string): Promise<any | undefined> {
+    const res = await fetch(didDocUrl(did));
+    if (!res.ok) return undefined;
+    return await res.json();
+}
+
+export function pdsEndpointFromDidDoc(doc: any): string | undefined {
+    const services = doc?.service;
+    if (!Array.isArray(services)) return undefined;
+    const entry =
+        services.find((s) => typeof s?.id === 'string' && s.id.endsWith('#atproto_pds')) ??
+        services.find((s) => s?.type === 'AtprotoPersonalDataServer');
+    return typeof entry?.serviceEndpoint === 'string' ? entry.serviceEndpoint : undefined;
+}
+
+export function handleFromDidDoc(doc: any): string | undefined {
+    const aka = doc?.alsoKnownAs;
+    if (!Array.isArray(aka)) return undefined;
+    const at = aka.find((entry) => typeof entry === 'string' && entry.startsWith('at://'));
+    return at ? at.slice('at://'.length) : undefined;
+}
+
 export async function getService(did: string) {
-    const res = await fetch('https://plc.directory/' + did);
-    const json = await res.json();
-    return json?.service?.[0]?.serviceEndpoint;
+    return pdsEndpointFromDidDoc(await resolveDidDoc(did));
 }
 
 export function isEmojiSequenceOrCombination(str: string) {

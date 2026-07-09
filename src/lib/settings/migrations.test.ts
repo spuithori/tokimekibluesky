@@ -316,7 +316,7 @@ describe('v10: rice plugins backfill', () => {
                 sources: {},
                 plugins: {
                     aurora: {
-                        url: 'https://example.com/aurora/manifest.json',
+                        source: { kind: 'at', uri: 'at://did:plc:abc/tech.tokimeki.plugin.declaration/aurora', did: 'did:plc:abc', entryCid: 'bafkreiabc' },
                         name: 'Aurora Effect',
                         version: '1.0.0',
                         integrity: 'sha256-abc',
@@ -327,9 +327,39 @@ describe('v10: rice plugins backfill', () => {
             },
         };
         const result = migrate(JSON.parse(JSON.stringify(exported)), undefined);
-        expect(result.rice.plugins['aurora']?.url).toBe('https://example.com/aurora/manifest.json');
+        expect(result.rice.plugins['aurora']?.source).toEqual({
+            kind: 'at',
+            uri: 'at://did:plc:abc/tech.tokimeki.plugin.declaration/aurora',
+            did: 'did:plc:abc',
+            entryCid: 'bafkreiabc',
+        });
         expect(result.rice.plugins['aurora']?.integrity).toBe('sha256-abc');
         expect(result.rice.config).toContain('plugin:aurora');
+    });
+
+    it('v10 の url 形式のプラグイン記録を v11 の source へ変換する', () => {
+        const stored = {
+            version: 10,
+            rice: {
+                enabled: true,
+                config: '',
+                sources: {},
+                plugins: {
+                    aurora: {
+                        url: 'https://example.com/aurora/manifest.json',
+                        name: 'Aurora Effect',
+                        version: '1.0.0',
+                        integrity: 'sha256-abc',
+                        svelteVersion: '5.56.4',
+                        installedAt: '2026-07-09T00:00:00.000Z',
+                    },
+                },
+            },
+        };
+        const result = migrate(JSON.parse(JSON.stringify(stored)), undefined);
+        expect(result.version).toBe(CURRENT_VERSION);
+        expect(result.rice.plugins['aurora']?.source).toEqual({ kind: 'url', manifestUrl: 'https://example.com/aurora/manifest.json' });
+        expect((result.rice.plugins['aurora'] as any)?.url).toBeUndefined();
     });
 });
 

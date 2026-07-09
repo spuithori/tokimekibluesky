@@ -8,6 +8,7 @@ function FixtureThing($$anchor, $$props) {
 
 	let options = $.prop($$props, 'options', 19, () => ({}));
 	const label = $.derived(() => options().label ?? 'none');
+	const mode = $.derived(() => options().mode ?? 'MISSING');
 	var div = root();
 	var text = $.child(div);
 
@@ -15,6 +16,7 @@ function FixtureThing($$anchor, $$props) {
 
 	$.template_effect(() => {
 		$.set_attribute(div, 'data-label', $.get(label));
+		$.set_attribute(div, 'data-mode', $.get(mode));
 		$.set_text(text, `fixture:${$.get(label) ?? ''}`);
 	});
 
@@ -24,10 +26,16 @@ function FixtureThing($$anchor, $$props) {
 const plugin = {
     effectLayers: { fx: FixtureThing },
     columnKinds: { panel: { component: FixtureThing } },
+    widgets: { badge: FixtureThing },
+    statusbarItems: { clocklike: FixtureThing },
     commands: {
-        hello: () => {
+        hello: (arg, context) => {
             globalThis.__ricePluginFixtureHello = (globalThis.__ricePluginFixtureHello ?? 0) + 1;
+            globalThis.__ricePluginFixtureCommandOptions = context?.options ?? null;
         },
+    },
+    activate: (context) => {
+        globalThis.__ricePluginFixtureActivateOptions = context?.options ?? null;
     },
 };
 export default plugin;

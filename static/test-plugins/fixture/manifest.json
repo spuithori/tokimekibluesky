@@ -5,7 +5,7 @@
     "apiVersion": 1,
     "svelteVersion": "5.56.4",
     "entry": "main.js",
-    "integrity": "sha256-tzRIWF2x+9bKOCUhXfE5ZIM/GS4h/LrW3CcL0gU18xs=",
+    "integrity": "sha256-B8RJlcxmhuGNqxrXkTRBzR23A2Hc9CSnotJbk+r7e14=",
     "description": "E2E fixture plugin for the rice plugin loader",
     "contributes": {
         "effectLayers": [
@@ -23,11 +23,55 @@
                 }
             }
         ],
+        "widgets": [
+            {
+                "id": "badge"
+            }
+        ],
+        "statusbarItems": [
+            {
+                "id": "clocklike"
+            }
+        ],
         "commands": [
             {
                 "id": "hello",
                 "title": "Fixture Hello"
             }
         ]
-    }
+    },
+    "activate": true,
+    "settings": [
+        {
+            "key": "label",
+            "type": "string",
+            "label": "Label",
+            "default": "none"
+        },
+        {
+            "key": "mode",
+            "type": "enum",
+            "label": "Mode",
+            "default": "a",
+            "options": [
+                {
+                    "value": "a",
+                    "label": "A"
+                },
+                {
+                    "value": "b",
+                    "label": "B"
+                }
+            ]
+        },
+        {
+            "key": "intensity",
+            "type": "number",
+            "label": "Intensity",
+            "default": "0.4",
+            "min": "0",
+            "max": "1",
+            "step": "0.1"
+        }
+    ]
 }

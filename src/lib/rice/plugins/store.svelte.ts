@@ -3,17 +3,33 @@ import { ricePluginsDb } from '$lib/db';
 import { settingsStore } from '$lib/settings/settings.svelte';
 import type { InstalledRicePlugin } from '$lib/settings/types';
 import { riceModuleHost } from '../modules/host.svelte';
+import { pluginSettingsRegistry } from '../modules/registries.svelte';
 import { pluginEntryId, synthesizeManifest } from './adapter';
-import { fetchPluginFromUrl, invalidatePluginModule, refetchRecord, type FetchedPlugin } from './loader';
+import { fetchPluginFromSource, invalidatePluginModule, refetchRecord, type FetchedPlugin, type PluginSource } from './loader';
 import { RicePluginError, validatePluginManifest } from './types';
 
 export function installedPlugins(): Record<string, InstalledRicePlugin> {
     return settingsStore.rice.plugins ?? {};
 }
 
+function registerPlugin(manifest: Parameters<typeof synthesizeManifest>[0]): void {
+    riceModuleHost.register(synthesizeManifest(manifest));
+    if (manifest.settings) {
+        pluginSettingsRegistry.set(manifest.id, manifest.settings);
+    } else {
+        pluginSettingsRegistry.delete(manifest.id);
+    }
+}
+
+function plainSource(source: PluginSource): PluginSource {
+    return source.kind === 'at'
+        ? { kind: 'at', uri: source.uri, did: source.did, entryCid: source.entryCid, handle: source.handle }
+        : { kind: 'url', manifestUrl: source.manifestUrl };
+}
+
 function installedRecordFrom(fetched: FetchedPlugin): InstalledRicePlugin {
     return {
-        url: fetched.manifestUrl,
+        source: plainSource(fetched.source),
         name: fetched.manifest.name,
         version: fetched.manifest.version,
         integrity: fetched.integrity,
@@ -25,7 +41,7 @@ function installedRecordFrom(fetched: FetchedPlugin): InstalledRicePlugin {
 async function putRecord(id: string, fetched: FetchedPlugin): Promise<void> {
     await ricePluginsDb.plugins.put({
         id,
-        url: fetched.manifestUrl,
+        source: plainSource(fetched.source),
         manifest: fetched.manifestText,
         code: fetched.code,
         integrity: fetched.integrity,
@@ -42,12 +58,12 @@ export async function registerInstalledPlugins(): Promise<void> {
     await Promise.all(Object.entries(installedPlugins()).map(async ([id, installed]) => {
         try {
             const record = await ricePluginsDb.plugins.get(id);
-            const manifestText = record?.manifest ?? (await refetchRecord(id, installed.url, installed.integrity)).manifest;
+            const manifestText = record?.manifest ?? (await refetchRecord(id, installed.source, installed.integrity)).manifest;
             const validated = validatePluginManifest(JSON.parse(manifestText));
             if ('error' in validated) {
                 throw new RicePluginError('manifest-invalid', validated.error);
             }
-            riceModuleHost.register(synthesizeManifest(validated.ok));
+            registerPlugin(validated.ok);
         } catch (e) {
             console.error(`rice plugin "${id}" の登録に失敗しました`, e);
         }
@@ -66,13 +82,14 @@ export async function commitInstall(fetched: FetchedPlugin): Promise<void> {
     }
     await putRecord(id, fetched);
     settingsStore.rice.plugins = { ...installedPlugins(), [id]: installedRecordFrom(fetched) };
-    riceModuleHost.register(synthesizeManifest(fetched.manifest));
+    registerPlugin(fetched.manifest);
 }
 
 export async function uninstallPlugin(id: string): Promise<boolean> {
     if (!canMutatePlugin(id)) return false;
     if (!riceModuleHost.unregister(pluginEntryId(id))) return false;
     invalidatePluginModule(id);
+    pluginSettingsRegistry.delete(id);
     await ricePluginsDb.plugins.delete(id);
     const next = { ...installedPlugins() };
     delete next[id];
@@ -91,7 +108,7 @@ export async function checkPluginUpdate(id: string): Promise<PluginUpdateCheck> 
     if (!installed) {
         throw new RicePluginError('not-installed', `プラグイン "${id}" はインストールされていません`);
     }
-    const fetched = await fetchPluginFromUrl(installed.url);
+    const fetched = await fetchPluginFromSource(installed.source);
     if (fetched.manifest.id !== id) {
         throw new RicePluginError('manifest-invalid', `配布元の id が "${fetched.manifest.id}" に変わっています`);
     }
@@ -112,6 +129,6 @@ export async function commitUpdate(id: string, fetched: FetchedPlugin): Promise<
         ...installedPlugins(),
         [id]: { ...installedRecordFrom(fetched), installedAt: current?.installedAt ?? new Date().toISOString() },
     };
-    riceModuleHost.register(synthesizeManifest(fetched.manifest));
+    registerPlugin(fetched.manifest);
     return true;
 }

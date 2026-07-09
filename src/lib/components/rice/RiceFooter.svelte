@@ -2,7 +2,8 @@
     import { _ } from 'tokimeki-i18n';
     import { settings } from '$lib/stores';
     import { riceState } from '$lib/rice/riceState.svelte';
-    import { resolveBarItem } from '$lib/rice/barItems';
+    import { barItemOptions, resolveBarItem } from '$lib/rice/barItems';
+    import RiceBarItemError from './RiceBarItemError.svelte';
     import { runCommand } from '$lib/commands/registry.svelte';
     import { getColumnState } from '$lib/classes/columnState.svelte';
     import { scrollDirectionState } from '$lib/classes/scrollDirectionState.svelte';
@@ -72,7 +73,12 @@
     {:else if resolved?.kind === 'component'}
         {#await resolved.loader() then loaded}
             {@const Item = loaded.default}
-            <Item variant="bar" options={spec.options} item={spec.id} position="footer"></Item>
+            <svelte:boundary>
+                <Item variant="bar" options={barItemOptions(resolved, spec.options)} item={spec.id} position="footer"></Item>
+                {#snippet failed()}<RiceBarItemError id={spec.base}></RiceBarItemError>{/snippet}
+            </svelte:boundary>
+        {:catch}
+            <RiceBarItemError id={spec.base}></RiceBarItemError>
         {/await}
     {:else if resolved?.kind === 'menu'}
         <button

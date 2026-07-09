@@ -32,7 +32,7 @@ export const DEFAULT_LABELER_SETTINGS: LabelerPreference[] = [
  * Current settings schema version. Migrations (migrations.ts) bring older
  * stored payloads up to this version before deep-merging against the defaults.
  */
-export const CURRENT_VERSION = 10;
+export const CURRENT_VERSION = 11;
 
 export const DEFAULT_RICE_CONFIG = `# TOKIMEKI Rice Framework
 # https://docs.tokimeki.blue/rice

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { _ } from 'tokimeki-i18n';
-    import { resolveBarItem } from '$lib/rice/barItems';
+    import { barItemOptions, resolveBarItem } from '$lib/rice/barItems';
+    import RiceBarItemError from './RiceBarItemError.svelte';
     import { runCommand } from '$lib/commands/registry.svelte';
     import { getColumnState } from '$lib/classes/columnState.svelte';
     import { drawerState } from '$lib/classes/drawerState.svelte';
@@ -81,13 +82,23 @@
         <div class="rice-widget" data-widget={spec.base}>
             {#await resolved.loader() then loaded}
                 {@const Item = loaded.default}
-                <Item variant={bar.style === 'menu' ? 'menu' : 'bar'} options={spec.options} item={spec.id} {position}></Item>
+                <svelte:boundary>
+                    <Item variant={bar.style === 'menu' ? 'menu' : 'bar'} options={barItemOptions(resolved, spec.options)} item={spec.id} {position}></Item>
+                    {#snippet failed()}<RiceBarItemError id={spec.base}></RiceBarItemError>{/snippet}
+                </svelte:boundary>
+            {:catch}
+                <RiceBarItemError id={spec.base}></RiceBarItemError>
             {/await}
         </div>
     {:else if resolved?.kind === 'component'}
         {#await resolved.loader() then loaded}
             {@const Item = loaded.default}
-            <Item variant={bar.style === 'menu' ? 'menu' : 'bar'} options={spec.options} item={spec.id} {position}></Item>
+            <svelte:boundary>
+                <Item variant={bar.style === 'menu' ? 'menu' : 'bar'} options={barItemOptions(resolved, spec.options)} item={spec.id} {position}></Item>
+                {#snippet failed()}<RiceBarItemError id={spec.base}></RiceBarItemError>{/snippet}
+            </svelte:boundary>
+        {:catch}
+            <RiceBarItemError id={spec.base}></RiceBarItemError>
         {/await}
     {:else if resolved?.kind === 'menu'}
         {#if bar.style === 'menu'}

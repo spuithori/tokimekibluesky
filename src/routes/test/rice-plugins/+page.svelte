@@ -25,6 +25,9 @@
             getRiceConfig() {
                 return settingsStore.rice.config;
             },
+            diagnostics() {
+                return JSON.parse(JSON.stringify(riceState.diagnostics));
+            },
             entryStatus(id: string) {
                 const entry = riceModuleHost.entries.get(`plugin:${id}`);
                 return entry ? { status: entry.status, errorMessage: entry.errorMessage } : null;

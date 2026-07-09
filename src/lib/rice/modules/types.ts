@@ -13,8 +13,8 @@ export interface RiceModuleContributes {
         capability?: Partial<ColumnKindCapability>;
         loader: ComponentLoader;
     }[];
-    statusbarItems?: { id: string; loader: ComponentLoader }[];
-    widgets?: { id: string; loader: ComponentLoader }[];
+    statusbarItems?: { id: string; loader: ComponentLoader; getOptions?: () => Record<string, string> }[];
+    widgets?: { id: string; loader: ComponentLoader; getOptions?: () => Record<string, string> }[];
     sidebarItems?: { id: string; title: string; icon?: Component; command: string; commandArg?: string }[];
     effectLayers?: { id: string; zIndex?: number; loader: ComponentLoader; getOptions?: () => Record<string, string> }[];
     themeTokens?: Record<string, string>;

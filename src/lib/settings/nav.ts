@@ -9,6 +9,7 @@ import CalendarClock from '@lucide/svelte/icons/calendar-clock';
 import Database from '@lucide/svelte/icons/database';
 import Layers from '@lucide/svelte/icons/layers';
 import Heart from '@lucide/svelte/icons/heart';
+import Puzzle from '@lucide/svelte/icons/puzzle';
 
 /**
  * Data-driven settings navigation. The settings layout renders these instead of
@@ -28,6 +29,7 @@ export const settingsNav: SettingsNavItem[] = [
     { id: 'general', label: 'settings_general', href: '/settings/general', icon: Settings },
     { id: 'design', label: 'settings_design', href: '/settings/design', icon: Palette },
     { id: 'rice', label: 'settings_rice', href: '/settings/rice', icon: WandSparkles },
+    { id: 'plugins', label: 'settings_plugins', href: '/settings/plugins', icon: Puzzle },
     { id: 'timeline', label: 'settings_timeline', href: '/settings/timeline', icon: GanttChartSquare },
     { id: 'moderation', label: 'settings_moderation', href: '/settings/moderation', icon: Hand },
     { id: 'keyword-mutes', label: 'settings_keyword_mutes', href: '/settings/keyword-mutes', icon: WholeWord },

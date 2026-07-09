@@ -5,7 +5,6 @@
     import SettingsHeader from '$lib/components/settings/SettingsHeader.svelte';
     import RiceConfigEditor from '$lib/components/rice/RiceConfigEditor.svelte';
     import RiceDiagnostics from '$lib/components/rice/RiceDiagnostics.svelte';
-    import RicePluginsPanel from '$lib/components/rice/RicePluginsPanel.svelte';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { riceState } from '$lib/rice/riceState.svelte';
     import { applyRiceSets } from '$lib/rice/apply';
@@ -63,8 +62,6 @@
             {/if}
 
             <hr class="divider">
-
-            <RicePluginsPanel></RicePluginsPanel>
         </div>
     </div>
 </div>

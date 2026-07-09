@@ -177,5 +177,18 @@ export function migrate(
         stored.version = 10;
     }
 
+    if (stored.version < 11) {
+        if (isPlainObject(stored.rice) && isPlainObject((stored.rice as Record<string, any>).plugins)) {
+            const plugins = (stored.rice as Record<string, any>).plugins as Record<string, any>;
+            for (const entry of Object.values(plugins)) {
+                if (isPlainObject(entry) && entry.source === undefined && typeof entry.url === 'string') {
+                    entry.source = { kind: 'url', manifestUrl: entry.url };
+                    delete entry.url;
+                }
+            }
+        }
+        stored.version = 11;
+    }
+
     return deepMerge(defaults, stored);
 }

@@ -1,10 +1,18 @@
 import type { Component } from 'svelte';
 import { SvelteMap } from 'svelte/reactivity';
+import type { RicePluginSettingItem } from '../plugins/settingsSchema';
 import type { ComponentLoader } from './types';
 
-export const statusbarItemRegistry = new SvelteMap<string, ComponentLoader>();
+export const pluginSettingsRegistry = new SvelteMap<string, RicePluginSettingItem[]>();
 
-export const widgetRegistry = new SvelteMap<string, ComponentLoader>();
+export interface BarComponentEntry {
+    loader: ComponentLoader;
+    getOptions?: () => Record<string, string>;
+}
+
+export const statusbarItemRegistry = new SvelteMap<string, BarComponentEntry>();
+
+export const widgetRegistry = new SvelteMap<string, BarComponentEntry>();
 
 export const sidebarItemRegistry = new SvelteMap<string, { title: string; icon?: Component; command: string; commandArg?: string }>();
 

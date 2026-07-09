@@ -11,6 +11,7 @@
     import PublishColumn from "./PublishColumn.svelte";
     import SettingsColumn from "./SettingsColumn.svelte";
     import ModuleColumnPlaceholder from "./ModuleColumnPlaceholder.svelte";
+    import ModuleColumnError from "./ModuleColumnError.svelte";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import { getScopedColumnState } from "$lib/classes/columnState.svelte";
     import { capabilityOf } from "$lib/columnKinds";
@@ -57,6 +58,12 @@
     const pluginId = $derived(type?.startsWith('plugin:') ? type.split(':')[1] : undefined);
     const pluginOptions = $derived(pluginId !== undefined ? riceState.pluginConfig(pluginId)?.options ?? {} : undefined);
     const ContentComponent = $derived(type !== undefined ? builtinComponents[type] : undefined);
+
+    let reloadKey = $state(0);
+
+    function reloadModule() {
+        reloadKey++;
+    }
 </script>
 
 {#if isModuleKind}
@@ -64,10 +71,20 @@
         {#if capability.hasAgent && !_agent}
             <ColumnAgentMissing {column}></ColumnAgentMissing>
         {:else}
-            {#await moduleKind.loader() then loaded}
-                {@const ModuleComponent = loaded.default}
-                <ModuleComponent {index} {unique} {isSplit} {onrefresh} {column} options={pluginOptions} _agent={capability.hasAgent ? _agent : undefined}></ModuleComponent>
-            {/await}
+            {#key reloadKey}
+                {#await moduleKind.loader() then loaded}
+                    {@const ModuleComponent = loaded.default}
+                    <svelte:boundary>
+                        <ModuleComponent {index} {unique} {isSplit} {onrefresh} {column} options={pluginOptions} _agent={capability.hasAgent ? _agent : undefined}></ModuleComponent>
+
+                        {#snippet failed(error, reset)}
+                            <ModuleColumnError {index} {error} {reset} {pluginId}></ModuleColumnError>
+                        {/snippet}
+                    </svelte:boundary>
+                {:catch error}
+                    <ModuleColumnError {index} {error} {pluginId} reset={reloadModule}></ModuleColumnError>
+                {/await}
+            {/key}
         {/if}
     {:else}
         <ModuleColumnPlaceholder {index}></ModuleColumnPlaceholder>

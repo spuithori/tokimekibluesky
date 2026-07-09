@@ -38,6 +38,52 @@
         value={currentRaw}
         onchange={(e) => commit(e.currentTarget.value)}
     >
+{:else if knob.kind === 'select'}
+    <div class="select select--fullwidth">
+        <select class="select__input" id="knob-{uid}" {disabled} value={currentRaw} onchange={(e) => commit(e.currentTarget.value)}>
+            {#each knob.selectOptions ?? [] as option (option.value)}
+                <option value={option.value}>{option.label}</option>
+            {/each}
+        </select>
+    </div>
+{:else if knob.kind === 'text'}
+    <input
+        class="input-text"
+        type="text"
+        id="knob-{uid}"
+        {disabled}
+        value={currentRaw}
+        onchange={(e) => commit(e.currentTarget.value)}
+    >
+{:else if knob.kind === 'number'}
+    <div class="column-width-control">
+        {#if knob.min !== undefined && knob.max !== undefined}
+            <input
+                class="column-width-control__range"
+                type="range"
+                id="knob-{uid}"
+                {disabled}
+                min={knob.min}
+                max={knob.max}
+                step={knob.step}
+                value={preview ?? currentPx}
+                oninput={(e) => { preview = +e.currentTarget.value; }}
+                onchange={(e) => commit(String(+e.currentTarget.value))}
+            >
+        {/if}
+        <div class="column-width-control__row">
+            <input
+                class="column-width-control__number"
+                type="number"
+                {disabled}
+                min={knob.min}
+                max={knob.max}
+                step={knob.step}
+                value={preview ?? currentPx}
+                onchange={(e) => commit(String(+e.currentTarget.value))}
+            >
+        </div>
+    </div>
 {:else}
     <div class="column-width-control">
         <input

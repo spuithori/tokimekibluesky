@@ -2,7 +2,7 @@ import { HOST_SVELTE_VERSION as hostSvelteVersion } from './hostVersion';
 import type { RiceModuleManifest } from '../modules/types';
 import { riceState } from '../riceState.svelte';
 import { loadPluginModule } from './loader';
-import { RicePluginError, svelteMajor, type RicePluginManifestJson, type RicePluginModule } from './types';
+import { RicePluginError, svelteMajor, type RicePluginContext, type RicePluginManifestJson, type RicePluginModule } from './types';
 
 export function pluginEntryId(id: string): `plugin:${string}` {
     return `plugin:${id}`;
@@ -24,6 +24,7 @@ export function synthesizeManifest(json: RicePluginManifestJson): RiceModuleMani
         throw new RicePluginError('entry-missing', `プラグイン "${json.id}" の main.js に ${kind} "${key}" の実体がありません`);
     };
     const getOptions = () => riceState.pluginConfig(json.id)?.options ?? {};
+    const context = (): RicePluginContext => ({ options: getOptions() });
     const c = json.contributes;
     const needsEagerLoad = json.activate === true || (c?.quickActions?.length ?? 0) > 0 || majorMismatch;
     return {
@@ -39,10 +40,12 @@ export function synthesizeManifest(json: RicePluginManifestJson): RiceModuleMani
             })),
             statusbarItems: c?.statusbarItems?.map((item) => ({
                 id: `${entryId}.${item.id}`,
+                getOptions,
                 loader: () => load().then((mod) => ({ default: mod.statusbarItems?.[item.id] ?? missing('statusbarItem', item.id) })),
             })),
             widgets: c?.widgets?.map((widget) => ({
                 id: `${entryId}.${widget.id}`,
+                getOptions,
                 loader: () => load().then((mod) => ({ default: mod.widgets?.[widget.id] ?? missing('widget', widget.id) })),
             })),
             sidebarItems: c?.sidebarItems?.map((item) => ({
@@ -61,20 +64,20 @@ export function synthesizeManifest(json: RicePluginManifestJson): RiceModuleMani
             commands: c?.commands?.map((command) => ({
                 id: command.id,
                 title: command.title,
-                run: (arg?: string) => load().then((mod) => (mod.commands?.[command.id] ?? missing('command', command.id))(arg)),
+                run: (arg?: string) => load().then((mod) => (mod.commands?.[command.id] ?? missing('command', command.id))(arg, context())),
             })),
             quickActions: c?.quickActions?.map((action) => ({
                 id: action.id,
                 title: action.title,
                 kind: action.kind,
                 get: () => loaded?.quickActions?.[action.id]?.get?.() ?? false,
-                run: () => load().then((mod) => (mod.quickActions?.[action.id] ?? missing('quickAction', action.id)).run()),
+                run: () => load().then((mod) => (mod.quickActions?.[action.id] ?? missing('quickAction', action.id)).run(context())),
             })),
         },
         activate: needsEagerLoad
             ? async () => {
                 const mod = await load();
-                const activated = await mod.activate?.();
+                const activated = await mod.activate?.(context());
                 return activated ?? undefined;
             }
             : undefined,

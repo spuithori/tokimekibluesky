@@ -1,19 +1,23 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { _ } from 'tokimeki-i18n';
     import { toast } from 'svelte-sonner';
-    import Puzzle from '@lucide/svelte/icons/puzzle';
+    import Store from '@lucide/svelte/icons/store';
     import Download from '@lucide/svelte/icons/download';
     import RefreshCw from '@lucide/svelte/icons/refresh-cw';
     import Trash2 from '@lucide/svelte/icons/trash-2';
     import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
     import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
+    import RicePluginSettings from './RicePluginSettings.svelte';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { riceState } from '$lib/rice/riceState.svelte';
     import { riceModuleHost } from '$lib/rice/modules/host.svelte';
-    import { setValueInText } from '$lib/rice/config/edit';
+    import { getColumnState } from '$lib/classes/columnState.svelte';
+    import { removeSectionInText, setValueInText } from '$lib/rice/config/edit';
     import { HOST_SVELTE_VERSION } from '$lib/rice/plugins/hostVersion';
     import { pluginEntryId } from '$lib/rice/plugins/adapter';
-    import { fetchPluginFromUrl, type FetchedPlugin } from '$lib/rice/plugins/loader';
+    import { fetchPluginFromAtUri, fetchPluginFromUrl, sourceLabel, type FetchedPlugin } from '$lib/rice/plugins/loader';
+    import { getUpdates, updatedPluginIds } from '$lib/rice/plugins/catalog';
     import { canMutatePlugin, checkPluginUpdate, commitInstall, commitUpdate, uninstallPlugin } from '$lib/rice/plugins/store.svelte';
 
     let url = $state('');
@@ -21,6 +25,25 @@
     let pendingInstall = $state<FetchedPlugin | null>(null);
     let pendingUpdate = $state<{ id: string; fetched: FetchedPlugin; currentVersion: string } | null>(null);
     let pendingUninstall = $state<string | null>(null);
+    let cleanupOnUninstall = $state(true);
+    let outdated = $state<string[]>([]);
+
+    const columnState = getColumnState();
+
+    onMount(async () => {
+        const installed = settingsStore.rice.plugins ?? {};
+        const uris = Object.values(installed).flatMap((plugin) => (plugin.source.kind === 'at' ? [plugin.source.uri] : []));
+        try {
+            outdated = updatedPluginIds(installed, await getUpdates(uris));
+        } catch {
+            outdated = [];
+        }
+    });
+
+    function orphanColumns(id: string) {
+        const prefix = `plugin:${id}:`;
+        return columnState?.columns.filter((column) => column.algorithm?.type?.startsWith(prefix)) ?? [];
+    }
 
     const installed = $derived(Object.entries(settingsStore.rice.plugins ?? {}));
     const missingEnabled = $derived(
@@ -43,11 +66,18 @@
         return e instanceof Error ? e.message : String(e);
     }
 
+    function authorOf(fetched: FetchedPlugin): string | undefined {
+        return fetched.source.kind === 'at' ? fetched.source.handle ?? fetched.source.did : fetched.manifest.author;
+    }
+
     async function preview() {
-        if (!url.trim() || busy) return;
+        const value = url.trim();
+        if (!value || busy) return;
         busy = true;
         try {
-            pendingInstall = await fetchPluginFromUrl(new URL(url.trim(), location.href).href);
+            pendingInstall = value.startsWith('at://')
+                ? await fetchPluginFromAtUri(value)
+                : await fetchPluginFromUrl(new URL(value, location.href).href);
         } catch (e) {
             toast.error(errorMessage(e));
         } finally {
@@ -111,14 +141,21 @@
 
     async function confirmUninstall() {
         const id = pendingUninstall;
+        const cleanup = cleanupOnUninstall;
         pendingUninstall = null;
         if (!id) return;
         try {
-            if (await uninstallPlugin(id)) {
-                toast.success($_('rice_plugins_uninstalled'));
-            } else {
+            if (!(await uninstallPlugin(id))) {
                 toast.error($_('rice_plugins_busy'));
+                return;
             }
+            if (cleanup) {
+                for (const column of orphanColumns(id)) {
+                    columnState?.remove(column.id);
+                }
+                settingsStore.rice.config = removeSectionInText(settingsStore.rice.config ?? '', { name: pluginEntryId(id) });
+            }
+            toast.success($_('rice_plugins_uninstalled'));
         } catch (e) {
             toast.error(errorMessage(e));
         }
@@ -126,17 +163,19 @@
 </script>
 
 <div class="rice-plugins">
-    <h3 class="rice-plugins__heading">
-        <Puzzle size={18}></Puzzle>
-        {$_('rice_plugins')}
-    </h3>
-
     <p class="rice-plugins__description">{$_('rice_plugins_description')}</p>
+
+    <p class="rice-plugins__store">
+        <a class="text-button rice-plugins__store-link" href="/settings/plugins/store" data-testid="rice-plugins-store-link">
+            <Store size={15}></Store>
+            {$_('rice_plugins_open_store')}
+        </a>
+    </p>
 
     <div class="rice-plugins__install">
         <input
             class="rice-plugins__url input-text"
-            type="url"
+            type="text"
             placeholder={$_('rice_plugins_url_placeholder')}
             bind:value={url}
             onkeydown={(e) => { if (e.key === 'Enter') preview(); }}
@@ -159,6 +198,10 @@
                         <span class="rice-plugin__name">{plugin.name}</span>
                         <span class="rice-plugin__version">v{plugin.version}</span>
                         <span class="rice-plugin__status rice-plugin__status--{status}">{$_(`rice_plugins_status_${status}`)}</span>
+
+                        {#if outdated.includes(id)}
+                            <span class="rice-plugin__outdated" data-testid="rice-plugin-outdated">{$_('rice_plugins_update_available_badge')}</span>
+                        {/if}
 
                         {#if plugin.svelteVersion !== HOST_SVELTE_VERSION}
                             <span class="rice-plugin__warning" title={$_('rice_plugins_svelte_mismatch', { plugin: plugin.svelteVersion, host: HOST_SVELTE_VERSION })}>
@@ -193,6 +236,8 @@
                             {$_('rice_plugins_uninstall')}
                         </button>
                     </div>
+
+                    <RicePluginSettings {id}></RicePluginSettings>
                 </li>
             {/each}
         </ul>
@@ -213,8 +258,19 @@
         yesText={$_('rice_plugins_install')}
         cancelText={$_('cancel')}
     >
+        {@const author = authorOf(pendingInstall)}
         <div class="rice-plugin-confirm">
             <h3 class="rice-plugin-confirm__title">{pendingInstall.manifest.name} <span>v{pendingInstall.manifest.version}</span></h3>
+
+            <p class="rice-plugin-confirm__author" data-testid="rice-plugin-confirm-author">
+                <span class="rice-plugin-confirm__label">{$_('rice_plugins_author')}</span>
+                <strong>{author ?? $_('rice_plugins_author_unknown')}</strong>
+            </p>
+
+            <p class="rice-plugin-confirm__source">
+                <span class="rice-plugin-confirm__label">{$_('rice_plugins_source')}</span>
+                <span class="rice-plugin-confirm__source-value">{sourceLabel(pendingInstall.source)}</span>
+            </p>
 
             {#if pendingInstall.manifest.description}
                 <p class="rice-plugin-confirm__description">{pendingInstall.manifest.description}</p>
@@ -226,7 +282,7 @@
 
             <p class="rice-plugin-confirm__warning">
                 <TriangleAlert size={16}></TriangleAlert>
-                {$_('rice_plugins_trust_warning')}
+                {author ? $_('rice_plugins_trust_warning_by', { author }) : $_('rice_plugins_trust_warning')}
             </p>
 
             {#if pendingInstall.svelteVersionMismatch}
@@ -265,7 +321,26 @@
         yesText={$_('rice_plugins_uninstall')}
         cancelText={$_('cancel')}
     >
+        {@const columns = orphanColumns(pendingUninstall).length}
         <p>{$_('rice_plugins_uninstall_confirm', { name: (settingsStore.rice.plugins ?? {})[pendingUninstall]?.name ?? pendingUninstall })}</p>
+
+        <div class="rice-plugin-cleanup">
+            <div class="input-toggle">
+                <input
+                    class="input-toggle__input"
+                    type="checkbox"
+                    id="rice-plugin-cleanup"
+                    data-testid="rice-plugin-cleanup"
+                    bind:checked={cleanupOnUninstall}
+                ><label class="input-toggle__label" for="rice-plugin-cleanup"></label>
+            </div>
+
+            <label class="rice-plugin-cleanup__text" for="rice-plugin-cleanup">
+                {columns > 0
+                    ? $_('rice_plugins_cleanup_with_columns', { section: pluginEntryId(pendingUninstall), count: String(columns) })
+                    : $_('rice_plugins_cleanup', { section: pluginEntryId(pendingUninstall) })}
+            </label>
+        </div>
     </ConfirmModal>
 {/if}
 
@@ -274,13 +349,6 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
-    }
-
-    .rice-plugins__heading {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 16px;
     }
 
     .rice-plugins__description {
@@ -412,6 +480,27 @@
             word-break: break-all;
         }
 
+        .rice-plugin-confirm__author,
+        .rice-plugin-confirm__source {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-color-2);
+        }
+
+        .rice-plugin-confirm__label {
+            flex: 0 0 auto;
+            font-size: 12px;
+            color: var(--text-color-3);
+        }
+
+        .rice-plugin-confirm__source-value {
+            font-size: 12px;
+            color: var(--text-color-3);
+            word-break: break-all;
+        }
+
         .rice-plugin-confirm__warning {
             display: flex;
             align-items: flex-start;
@@ -419,5 +508,35 @@
             font-size: 13px;
             color: var(--danger-color);
         }
+    }
+    .rice-plugins__store {
+        margin: 8px 0 12px;
+    }
+
+    .rice-plugins__store-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .rice-plugin__outdated {
+        padding: 1px 8px;
+        font-size: 11px;
+        color: var(--bg-color-1);
+        background-color: var(--primary-color);
+        border-radius: 999px;
+    }
+
+    .rice-plugin-cleanup {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--text-color-2);
+    }
+
+    .rice-plugin-cleanup__text {
+        cursor: pointer;
     }
 </style>

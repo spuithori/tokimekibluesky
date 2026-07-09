@@ -4,6 +4,7 @@ import type { AnimationStyle, AnimationTargetConfig, BarConfig, BarGroupName, Ba
 import { ANIMATION_TARGETS, JS_EASING_KEYWORDS, STYLE_KEYWORDS, STYLE_TARGETS, emptyBar, emptyCompiledRice } from './model';
 import { WIDGET_ONLY_IDS } from '../widgetIds';
 import { normalizeMediaQuery } from './breakpoints';
+import { validateSettingValue, type PluginSettingsSchemas } from '../plugins/settingsSchema';
 
 export type SourceResolver = (ref: string) => string | undefined;
 
@@ -1135,7 +1136,12 @@ function compileModule(section: SectionNode, out: CompiledRice, resolve: (value:
 
 const PLUGIN_ID_RE = /^[a-z][a-z0-9-]*$/;
 
-function compilePlugin(section: SectionNode, out: CompiledRice, resolve: (value: string, line: number) => string) {
+function compilePlugin(
+    section: SectionNode,
+    out: CompiledRice,
+    resolve: (value: string, line: number) => string,
+    pluginSchemas: PluginSettingsSchemas | undefined,
+) {
     const id = section.name.slice('plugin:'.length);
     if (!PLUGIN_ID_RE.test(id)) {
         out.diagnostics.push({ line: section.startLine, col: 1, message: `プラグインID "${id}" が不正です(小文字英数字とハイフンのみ: plugin:aurora { ... })`, severity: 'error' });
@@ -1144,14 +1150,26 @@ function compilePlugin(section: SectionNode, out: CompiledRice, resolve: (value:
     if (section.label) {
         out.diagnostics.push({ line: section.startLine, col: 1, message: `plugin:${id} にラベルは不要です`, severity: 'warning' });
     }
+    const schema = pluginSchemas?.get(id);
     const config = out.plugins[id] ?? { enable: true, options: {} };
     for (const entry of entriesOf(section)) {
         const value = resolve(entry.value, entry.line);
         if (entry.key === 'enable') {
             config.enable = value !== 'false';
-        } else {
-            config.options[entry.key] = value;
+            continue;
         }
+        if (schema) {
+            const item = schema.find((candidate) => candidate.key === entry.key);
+            if (!item) {
+                out.diagnostics.push({ line: entry.line, col: 1, message: `plugin:${id} の未知のキー "${entry.key}" は無視されます`, severity: 'warning' });
+            } else {
+                const error = validateSettingValue(item, value);
+                if (error) {
+                    out.diagnostics.push({ line: entry.line, col: 1, message: `plugin:${id}: ${error}`, severity: 'error' });
+                }
+            }
+        }
+        config.options[entry.key] = value;
     }
     out.plugins[id] = config;
 }
@@ -1164,9 +1182,10 @@ function dispatchSection(
     resolve: (value: string, line: number) => string,
     isActive: MediaMatcher,
     inMedia: boolean,
+    pluginSchemas?: PluginSettingsSchemas,
 ) {
     if (statement.name.startsWith('plugin:')) {
-        compilePlugin(statement, out, resolve);
+        compilePlugin(statement, out, resolve, pluginSchemas);
         return;
     }
     switch (statement.name) {
@@ -1222,7 +1241,7 @@ function dispatchSection(
             compileModule(statement, out, resolve);
             break;
         case 'media':
-            compileMedia(statement, out, resolve, isActive, inMedia);
+            compileMedia(statement, out, resolve, isActive, inMedia, pluginSchemas);
             break;
         default:
             out.diagnostics.push({
@@ -1240,6 +1259,7 @@ function compileMedia(
     resolve: (value: string, line: number) => string,
     isActive: MediaMatcher,
     inMedia: boolean,
+    pluginSchemas?: PluginSettingsSchemas,
 ) {
     if (inMedia) {
         out.diagnostics.push({ line: section.startLine, col: 1, message: 'media はネストできません', severity: 'error' });
@@ -1263,14 +1283,19 @@ function compileMedia(
             out.diagnostics.push({ line: child.line, col: 1, message: `media 直下にキー "${child.key}" は書けません（セクションで囲んでください）`, severity: 'error' });
             continue;
         }
-        dispatchSection(child, target, resolve, isActive, true);
+        dispatchSection(child, target, resolve, isActive, true, pluginSchemas);
     }
     if (!active) {
         out.diagnostics.push(...target.diagnostics);
     }
 }
 
-export function compile(text: string, resolveSource?: SourceResolver, isActive: MediaMatcher = () => false): CompiledRice {
+export function compile(
+    text: string,
+    resolveSource?: SourceResolver,
+    isActive: MediaMatcher = () => false,
+    pluginSchemas?: PluginSettingsSchemas,
+): CompiledRice {
     const out = emptyCompiledRice();
     const doc = parse(text);
     out.diagnostics.push(...doc.diagnostics);
@@ -1288,7 +1313,7 @@ export function compile(text: string, resolveSource?: SourceResolver, isActive: 
                 out.sets.push({ path: statement.path, value: resolve(statement.value, statement.line) });
                 break;
             case 'section':
-                dispatchSection(statement, out, resolve, isActive, false);
+                dispatchSection(statement, out, resolve, isActive, false, pluginSchemas);
                 break;
         }
     }

@@ -131,8 +131,12 @@ export interface EmbedSettings {
     disableEmbedVia: boolean;
 }
 
+export type InstalledRicePluginSource =
+    | { kind: 'url'; manifestUrl: string }
+    | { kind: 'at'; uri: string; did: string; entryCid: string; handle?: string };
+
 export interface InstalledRicePlugin {
-    url: string;
+    source: InstalledRicePluginSource;
     name: string;
     version: string;
     integrity: string;

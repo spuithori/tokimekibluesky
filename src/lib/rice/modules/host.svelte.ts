@@ -71,11 +71,11 @@ export class RiceModuleHost {
                 entry.unregisters.push(registerColumnKind(kind));
             }
             for (const item of contributes?.statusbarItems ?? []) {
-                statusbarItemRegistry.set(item.id, item.loader);
+                statusbarItemRegistry.set(item.id, { loader: item.loader, getOptions: item.getOptions });
                 entry.unregisters.push(() => statusbarItemRegistry.delete(item.id));
             }
             for (const widget of contributes?.widgets ?? []) {
-                widgetRegistry.set(widget.id, widget.loader);
+                widgetRegistry.set(widget.id, { loader: widget.loader, getOptions: widget.getOptions });
                 entry.unregisters.push(() => widgetRegistry.delete(widget.id));
             }
             for (const item of contributes?.sidebarItems ?? []) {

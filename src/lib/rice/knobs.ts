@@ -4,13 +4,16 @@ import { getValueInText, setValueInText } from './config/edit';
 export interface RiceKnob {
     id: string;
     label: string;
-    kind: 'length' | 'toggle' | 'color';
+    labelText?: string;
+    description?: string;
+    kind: 'length' | 'toggle' | 'color' | 'number' | 'select' | 'text';
     fallback: string;
     min?: number;
     max?: number;
     step?: number;
     onValue?: string;
     offValue?: string;
+    selectOptions?: { value: string; label: string }[];
     read: (compiled: CompiledRice) => string | undefined;
     write: (config: string, value: string) => string;
 }

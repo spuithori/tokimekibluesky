@@ -5,15 +5,24 @@ import { RICE_API_VERSION } from '../modules/types';
 import { verifyIntegrity } from './integrity';
 import { rewriteImports } from './rewrite';
 import { shimUrlFor } from './shims';
-import { RicePluginError, svelteMajor, validatePluginManifest, type RicePluginManifestJson, type RicePluginModule } from './types';
+import { RicePluginError, svelteMajor, validatePluginManifest, validatePluginDeclaration, declarationToManifest, type RicePluginManifestJson, type RicePluginModule } from './types';
+import { fetchBlobBytes, fetchDeclarationRecord, parsePluginAtUri, resolvePluginIdentity, verifyBlobAgainstCid } from './atproto';
+
+export type PluginSource =
+    | { kind: 'url'; manifestUrl: string }
+    | { kind: 'at'; uri: string; did: string; entryCid: string; handle?: string };
 
 export interface FetchedPlugin {
-    manifestUrl: string;
+    source: PluginSource;
     manifestText: string;
     manifest: RicePluginManifestJson;
     code: string;
     integrity: string;
     svelteVersionMismatch: boolean;
+}
+
+export function sourceLabel(source: PluginSource): string {
+    return source.kind === 'at' ? source.uri : source.manifestUrl;
 }
 
 async function fetchText(url: string): Promise<string> {
@@ -29,6 +38,15 @@ async function fetchText(url: string): Promise<string> {
     return res.text();
 }
 
+function assertHostCompatible(manifest: RicePluginManifestJson): void {
+    if (manifest.apiVersion !== RICE_API_VERSION) {
+        throw new RicePluginError('api-version', `apiVersion ${manifest.apiVersion} はサポートされていません(ホスト: ${RICE_API_VERSION})`);
+    }
+    if (svelteMajor(manifest.svelteVersion) !== svelteMajor(hostSvelteVersion)) {
+        throw new RicePluginError('svelte-major-mismatch', `svelte ${manifest.svelteVersion} でビルドされたプラグインは svelte ${hostSvelteVersion} のホストでは動作しません`);
+    }
+}
+
 export async function fetchPluginFromUrl(manifestUrl: string): Promise<FetchedPlugin> {
     const manifestText = await fetchText(manifestUrl);
     let json: unknown;
@@ -42,19 +60,14 @@ export async function fetchPluginFromUrl(manifestUrl: string): Promise<FetchedPl
         throw new RicePluginError('manifest-invalid', validated.error);
     }
     const manifest = validated.ok;
-    if (manifest.apiVersion !== RICE_API_VERSION) {
-        throw new RicePluginError('api-version', `apiVersion ${manifest.apiVersion} はサポートされていません(ホスト: ${RICE_API_VERSION})`);
-    }
-    if (svelteMajor(manifest.svelteVersion) !== svelteMajor(hostSvelteVersion)) {
-        throw new RicePluginError('svelte-major-mismatch', `svelte ${manifest.svelteVersion} でビルドされたプラグインは svelte ${hostSvelteVersion} のホストでは動作しません`);
-    }
+    assertHostCompatible(manifest);
     const entryUrl = new URL(manifest.entry, manifestUrl).href;
     const code = await fetchText(entryUrl);
     if (!(await verifyIntegrity(code, manifest.integrity))) {
         throw new RicePluginError('integrity-mismatch', `${entryUrl} の内容が manifest の integrity と一致しません`);
     }
     return {
-        manifestUrl,
+        source: { kind: 'url', manifestUrl },
         manifestText,
         manifest,
         code,
@@ -63,14 +76,45 @@ export async function fetchPluginFromUrl(manifestUrl: string): Promise<FetchedPl
     };
 }
 
-export async function refetchRecord(id: string, url: string, integrity: string): Promise<RicePluginRecord> {
-    const fetched = await fetchPluginFromUrl(url);
+export async function fetchPluginFromAtUri(uri: string): Promise<FetchedPlugin> {
+    const { did, rkey } = parsePluginAtUri(uri);
+    const identity = await resolvePluginIdentity(did);
+    const record = await fetchDeclarationRecord(identity.pds, did, rkey);
+    const validated = validatePluginDeclaration(record.value);
+    if ('error' in validated) {
+        throw new RicePluginError('manifest-invalid', validated.error);
+    }
+    const declaration = validated.ok;
+    const entryCid = declaration.entry.ref.$link;
+    const bytes = await fetchBlobBytes(identity.pds, did, entryCid);
+    const integrity = await verifyBlobAgainstCid(bytes, entryCid);
+    const manifest = declarationToManifest(rkey, declaration, integrity);
+    assertHostCompatible(manifest);
+    return {
+        source: { kind: 'at', uri, did, entryCid, handle: identity.handle },
+        manifestText: JSON.stringify(manifest),
+        manifest,
+        code: new TextDecoder().decode(bytes),
+        integrity,
+        svelteVersionMismatch: manifest.svelteVersion !== hostSvelteVersion,
+    };
+}
+
+export function fetchPluginFromSource(source: PluginSource): Promise<FetchedPlugin> {
+    return source.kind === 'at' ? fetchPluginFromAtUri(source.uri) : fetchPluginFromUrl(source.manifestUrl);
+}
+
+export async function refetchRecord(id: string, source: PluginSource, integrity: string): Promise<RicePluginRecord> {
+    const fetched = await fetchPluginFromSource(source);
     if (fetched.integrity !== integrity) {
-        throw new RicePluginError('integrity-mismatch', `配布元 ${url} の内容がインストール時の integrity と一致しません(プラグインの更新が必要です)`);
+        if (source.kind === 'at') {
+            throw new RicePluginError('source-moved', `${source.uri} の作者がプラグインを更新しています。内容を確認して更新を承認してください`);
+        }
+        throw new RicePluginError('integrity-mismatch', `配布元 ${source.manifestUrl} の内容がインストール時の integrity と一致しません(プラグインの更新が必要です)`);
     }
     const record: RicePluginRecord = {
         id,
-        url,
+        source: fetched.source,
         manifest: fetched.manifestText,
         code: fetched.code,
         integrity: fetched.integrity,
@@ -90,7 +134,7 @@ async function ensureRecord(id: string): Promise<RicePluginRecord> {
     if (cached && (await verifyIntegrity(cached.code, installed.integrity))) {
         return cached;
     }
-    return refetchRecord(id, installed.url, installed.integrity);
+    return refetchRecord(id, installed.source, installed.integrity);
 }
 
 async function importPlugin(id: string): Promise<RicePluginModule> {

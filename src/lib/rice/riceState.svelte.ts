@@ -6,7 +6,8 @@ import { emptyCompiledRice, type CompiledRice, type LayoutStyle } from './config
 import { resolvePresetSource } from './presets';
 import { globalStyleForTokens, styleForColumn } from './columnRules';
 import { renderedVerticalBars, shellGeometryVars } from './shellGeometry';
-import { moduleThemeTokens } from './modules/registries.svelte';
+import { moduleThemeTokens, pluginSettingsRegistry } from './modules/registries.svelte';
+import { schemaDefaults } from './plugins/settingsSchema';
 
 class RiceState {
     #matchers = new Map<string, MediaQuery>();
@@ -24,7 +25,7 @@ class RiceState {
     readonly compiled: CompiledRice = $derived.by(() => {
         const rice = settingsStore.rice;
         if (!rice?.enabled) return emptyCompiledRice();
-        return compile(rice.config ?? '', (ref) => resolvePresetSource(ref) ?? rice.sources?.[ref], this.#isActive);
+        return compile(rice.config ?? '', (ref) => resolvePresetSource(ref) ?? rice.sources?.[ref], this.#isActive, pluginSettingsRegistry);
     });
 
     readonly enabled = $derived(settingsStore.rice?.enabled ?? false);
@@ -98,7 +99,11 @@ class RiceState {
     }
 
     pluginConfig(id: string): { enable: boolean; options: Record<string, string> } | undefined {
-        return this.compiled.plugins[id];
+        const config = this.compiled.plugins[id];
+        if (!config) return undefined;
+        const schema = pluginSettingsRegistry.get(id);
+        if (!schema) return config;
+        return { enable: config.enable, options: { ...schemaDefaults(schema), ...config.options } };
     }
 }
 

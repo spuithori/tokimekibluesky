@@ -74,6 +74,18 @@ export function setValueInText(text: string, path: SectionRef[], key: string, va
     return out.join('\n');
 }
 
+export function removeSectionInText(text: string, ref: SectionRef): string {
+    const doc = parse(text);
+    const section = findSection(doc.statements, ref);
+    if (!section) return text;
+
+    const lines = text.split('\n');
+    let end = section.endLine;
+    if (lines[end]?.trim() === '') end++;
+    lines.splice(section.startLine - 1, end - section.startLine + 1);
+    return lines.join('\n');
+}
+
 export function getPresetSourceInText(text: string): string | null {
     const doc = parse(text);
     for (const statement of doc.statements) {

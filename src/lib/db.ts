@@ -133,9 +133,13 @@ export class ThemeSubClassDexie extends Dexie {
 
 export const themesDb = new ThemeSubClassDexie();
 
+export type RicePluginSourceRecord =
+    | { kind: 'url'; manifestUrl: string }
+    | { kind: 'at'; uri: string; did: string; entryCid: string; handle?: string };
+
 export interface RicePluginRecord {
     id: string,
-    url: string,
+    source: RicePluginSourceRecord,
     manifest: string,
     code: string,
     integrity: string,
@@ -152,6 +156,15 @@ export class RicePluginSubClassDexie extends Dexie {
         this.version(1).stores({
             plugins: '&id, url, version, updatedAt',
         });
+
+        this.version(2).stores({
+            plugins: '&id, version, updatedAt',
+        }).upgrade((tx) => tx.table('plugins').toCollection().modify((record: any) => {
+            if (!record.source && typeof record.url === 'string') {
+                record.source = { kind: 'url', manifestUrl: record.url };
+            }
+            delete record.url;
+        }));
     }
 }
 
