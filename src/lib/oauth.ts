@@ -74,9 +74,9 @@ export async function initOAuth(): Promise<{
     };
 }
 
-export async function signIn(handle: string): Promise<void> {
+export async function signIn(identifier: string): Promise<void> {
     const client = getOAuthClient();
-    await client.signIn(handle);
+    await client.signIn(identifier);
 }
 
 export async function restoreSession(did: string, onExpired?: () => void): Promise<OAuthSession | null> {

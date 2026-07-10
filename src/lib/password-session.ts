@@ -39,14 +39,15 @@ function isTokenError(e: any): boolean {
 }
 
 async function isExpiredTokenResponse(res: Response): Promise<boolean> {
-	if (res.status === 401) return true;
-	if (res.status !== 400) return false;
+	if (res.status !== 400 && res.status !== 401) return false;
 	try {
 		const json = await res.clone().json();
-		return json?.error === 'ExpiredToken';
+		if (json?.error) {
+			return json.error === 'ExpiredToken' || json.error === 'InvalidToken';
+		}
 	} catch {
-		return false;
 	}
+	return res.status === 401;
 }
 
 export class PasswordSession {
@@ -153,26 +154,28 @@ export class PasswordSession {
 
 	private async _doRefresh(): Promise<void> {
 		if (typeof navigator !== 'undefined' && navigator.locks && this._session?.did) {
-			await navigator.locks.request('password-refresh-' + this._session.did, async () => {
-				if (this._loadLatestSession) {
-					try {
-						const latest = await this._loadLatestSession();
-						if (latest?.refreshJwt && latest.refreshJwt !== this._session?.refreshJwt) {
-							this._session = latest;
-							if (latest.didDoc) {
-								this._updatePdsUrl(latest.didDoc);
-							}
-							return;
-						}
-					} catch {
-
-					}
-				}
-				await this._performRefresh();
-			});
+			await navigator.locks.request('password-refresh-' + this._session.did, () => this._refreshWithLatest());
 		} else {
-			await this._performRefresh();
+			await this._refreshWithLatest();
 		}
+	}
+
+	private async _refreshWithLatest(): Promise<void> {
+		if (this._loadLatestSession) {
+			try {
+				const latest = await this._loadLatestSession();
+				if (latest?.refreshJwt && latest.refreshJwt !== this._session?.refreshJwt) {
+					this._session = latest;
+					if (latest.didDoc) {
+						this._updatePdsUrl(latest.didDoc);
+					}
+					return;
+				}
+			} catch {
+
+			}
+		}
+		await this._performRefresh();
 	}
 
 	private async _performRefresh(): Promise<void> {

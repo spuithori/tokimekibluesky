@@ -3,13 +3,11 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import LoginModal from "$lib/components/acp/LoginModal.svelte";
-    import OAuthLoginModal from "$lib/components/acp/OAuthLoginModal.svelte";
     import {_} from "tokimeki-i18n";
     import { Toaster } from "svelte-sonner";
     import {accountsDb} from "$lib/db";
 
     let isLoginModalOpen = $state(false);
-    let isOAuthLoginModalOpen = $state(false);
 
     function handleSuccess() {
         goto('/');
@@ -58,10 +56,6 @@
 
 {#if isLoginModalOpen}
   <LoginModal on:success={handleSuccess} on:cancel={() => {isLoginModalOpen = false}}></LoginModal>
-{/if}
-
-{#if isOAuthLoginModalOpen}
-  <OAuthLoginModal on:cancel={() => {isOAuthLoginModalOpen = false}}></OAuthLoginModal>
 {/if}
 
 <Toaster position="top-center"></Toaster>

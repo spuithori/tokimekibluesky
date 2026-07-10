@@ -62,32 +62,37 @@ export function createConfidentialFetch(
 
         const aud = url.origin;
 
-        try {
-            const assertionResponse = await originalFetch(clientAssertionEndpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    DPoP: dpopHeader,
-                },
-                body: JSON.stringify({ aud }),
-            });
-
-            if (!assertionResponse.ok) {
-                console.error('Failed to get client assertion');
-                return originalFetch(input, init);
+        async function requestAssertion(): Promise<Response | null> {
+            try {
+                return await originalFetch(clientAssertionEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        DPoP: dpopHeader,
+                    },
+                    body: JSON.stringify({ aud }),
+                });
+            } catch {
+                return null;
             }
+        }
 
+        let assertionResponse = await requestAssertion();
+        if (!assertionResponse?.ok) {
+            assertionResponse = await requestAssertion();
+        }
+        if (!assertionResponse?.ok) {
+            console.error('Failed to get client assertion');
+            return originalFetch(input, init);
+        }
+
+        try {
             const result = await assertionResponse.json();
-
             params.set('client_assertion_type', CLIENT_ASSERTION_TYPE);
             params.set('client_assertion', result.jwt);
         } catch (error) {
             console.error('Error getting client assertion:', error);
-            return originalFetch(url.toString(), {
-                method: 'POST',
-                headers,
-                body: body as string,
-            });
+            return originalFetch(input, init);
         }
 
         return originalFetch(url.toString(), {

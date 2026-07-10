@@ -4,6 +4,7 @@ import { onMount } from 'svelte';
 import { goto } from '$app/navigation';
 import { initOAuth } from '$lib/oauth';
 import { accountsDb } from '$lib/db';
+import { BSKY_APPVIEW_PROXY } from '$lib/xrpc-client';
 import { _ } from 'tokimeki-i18n';
 import CircleSlash from '@lucide/svelte/icons/circle-slash';
 import CircleCheck from '@lucide/svelte/icons/circle-check';
@@ -24,7 +25,7 @@ onMount(async () => {
             let displayName: string | undefined;
             try {
                 const fetchHandler = result.session.fetchHandler.bind(result.session);
-                const profileRes = await fetchHandler(`/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(did)}`, { method: 'GET' });
+                const profileRes = await fetchHandler(`/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(did)}`, { method: 'GET', headers: { 'atproto-proxy': BSKY_APPVIEW_PROXY } });
                 if (profileRes.ok) {
                     const profileData = await profileRes.json();
                     handle = profileData.handle;
@@ -45,7 +46,7 @@ onMount(async () => {
                     isOAuth: true,
                     oauthDid: did,
                     session: null,
-                    handle: handle,
+                    ...(handle !== undefined && { handle }),
                     avatar: avatar || existingAccount.avatar,
                     name: displayName || existingAccount.name,
                 });

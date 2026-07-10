@@ -48,7 +48,7 @@
             handle: account.handle || account.session?.handle,
             isOAuth: isOAuth,
         };
-        loginModalIdentifier = account.handle || account.session?.handle || account.did;
+        loginModalIdentifier = account.handle || account.session?.handle || '';
         isLoginModalOpen = true;
     }
 
@@ -86,6 +86,7 @@
     existingId={switchingAccount?.id}
     identifier={loginModalIdentifier}
     initialAuthMode={switchingAccount?.isOAuth ? 'password' : 'oauth'}
+    lockAuthMode={true}
     on:success={handleLoginSuccess}
     on:cancel={handleLoginCancel}
   ></LoginModal>

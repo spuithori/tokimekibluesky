@@ -740,8 +740,6 @@
   "oauth_redirecting": "Reindirizzamento...",
   "oauth_login": "Accedi tramite OAuth",
   "oauth_enter_handle": "Inserisci il tuo nome utente",
-  "oauth_recommended": "L'accesso tramite OAuth è attualmente sperimentale.",
-  "login_with_password": "Accedi con password",
   "back_to_login": "Torna al login",
   "switch_to_oauth": "Passa all'accesso OAuth",
   "switch_to_password": "Passa all'accesso con Password",

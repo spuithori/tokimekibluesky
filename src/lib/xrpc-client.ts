@@ -2,6 +2,8 @@
 
 export type FetchHandler = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
+export const BSKY_APPVIEW_PROXY = 'did:web:api.bsky.app#bsky_appview';
+
 export interface XrpcCallOptions {
 	headers?: Record<string, string>;
 	signal?: AbortSignal;
@@ -10,11 +12,13 @@ export interface XrpcCallOptions {
 
 export class XrpcClient {
 	private _fetch: FetchHandler;
+	private _appViewProxy: string;
 	private _labelerDids: string[] = [];
 	private _inflight = new Map<string, Promise<any>>();
 
-	constructor(fetchHandler: FetchHandler) {
+	constructor(fetchHandler: FetchHandler, appViewProxy?: string) {
 		this._fetch = fetchHandler;
+		this._appViewProxy = appViewProxy || BSKY_APPVIEW_PROXY;
 	}
 
 	configureLabelers(dids: string[]): void {
@@ -40,6 +44,9 @@ export class XrpcClient {
 		const path = `/xrpc/${nsid}${query}`;
 
 		const headers: Record<string, string> = { ...opts?.headers };
+		if (nsid.startsWith('app.bsky.') && !headers['atproto-proxy']) {
+			headers['atproto-proxy'] = this._appViewProxy;
+		}
 		if (this._labelerDids.length) {
 			headers['atproto-accept-labelers'] = this._labelerDids.map(d => `${d};redact`).join(', ');
 		}
@@ -84,6 +91,9 @@ export class XrpcClient {
 		const path = `/xrpc/${nsid}`;
 
 		const headers: Record<string, string> = { ...opts?.headers };
+		if (nsid.startsWith('app.bsky.') && !headers['atproto-proxy']) {
+			headers['atproto-proxy'] = this._appViewProxy;
+		}
 		if (this._labelerDids.length) {
 			headers['atproto-accept-labelers'] = this._labelerDids.map(d => `${d};redact`).join(', ');
 		}

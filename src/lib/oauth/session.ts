@@ -73,29 +73,31 @@ export function createOAuthSession(
         await putSession(stored);
     }
 
+    async function refreshAgainstLatest(): Promise<void> {
+        const latest = await getSession(stored.did);
+        if (!latest || !latest.refreshToken) {
+            markDead();
+            throw new Error('Session no longer exists');
+        }
+
+        if (latest.refreshToken !== currentRefreshToken) {
+            accessToken = latest.accessToken;
+            currentRefreshToken = latest.refreshToken;
+            expiresAt = latest.expiresAt;
+            stored.accessToken = accessToken;
+            stored.refreshToken = currentRefreshToken;
+            stored.expiresAt = expiresAt;
+            return;
+        }
+
+        await performRefresh();
+    }
+
     async function doRefresh(): Promise<void> {
         if (typeof navigator !== 'undefined' && navigator.locks) {
-            await navigator.locks.request('oauth-refresh-' + stored.did, async () => {
-                const latest = await getSession(stored.did);
-                if (!latest || !latest.refreshToken) {
-                    markDead();
-                    throw new Error('Session no longer exists');
-                }
-
-                if (latest.refreshToken !== currentRefreshToken) {
-                    accessToken = latest.accessToken;
-                    currentRefreshToken = latest.refreshToken;
-                    expiresAt = latest.expiresAt;
-                    stored.accessToken = accessToken;
-                    stored.refreshToken = currentRefreshToken;
-                    stored.expiresAt = expiresAt;
-                    return;
-                }
-
-                await performRefresh();
-            });
+            await navigator.locks.request('oauth-refresh-' + stored.did, refreshAgainstLatest);
         } else {
-            await performRefresh();
+            await refreshAgainstLatest();
         }
     }
 
@@ -135,11 +137,12 @@ export function createOAuthSession(
             method = input.method;
         }
 
-        const ath = await computeAth(accessToken);
+        let ath = await computeAth(accessToken);
         const origin = new URL(url).origin;
         let nonce = await getDPoPNonce(origin);
+        let didRefresh = false;
 
-        for (let attempt = 0; attempt < 3; attempt++) {
+        for (let attempt = 0; attempt < 4; attempt++) {
             const dpopProof = await createDPoPProof({
                 keyPair,
                 htm: method,
@@ -171,21 +174,12 @@ export function createOAuthSession(
                     continue;
                 }
 
-                if (attempt === 0 && currentRefreshToken) {
+                if (!didRefresh && currentRefreshToken) {
+                    didRefresh = true;
                     try {
                         await requestRefresh();
-                        const newAth = await computeAth(accessToken);
-                        const newProof = await createDPoPProof({
-                            keyPair,
-                            htm: method,
-                            htu: url,
-                            nonce: nonce || undefined,
-                            ath: newAth,
-                        });
-                        const retryHeaders = new Headers(init?.headers);
-                        retryHeaders.set('Authorization', `DPoP ${accessToken}`);
-                        retryHeaders.set('DPoP', newProof);
-                        return fetch(url, { ...init, method, headers: retryHeaders });
+                        ath = await computeAth(accessToken);
+                        continue;
                     } catch {
                         return res;
                     }

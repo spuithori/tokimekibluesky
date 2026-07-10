@@ -8,6 +8,7 @@
   import { toast } from "svelte-sonner";
   import { signIn } from '$lib/oauth';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+  import HandleTypeahead from "$lib/components/acp/HandleTypeahead.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -16,11 +17,13 @@
     identifier?: string;
     isMissing?: boolean;
     initialAuthMode?: 'password' | 'oauth';
+    lockAuthMode?: boolean;
   }
 
-  let { existingId = undefined, identifier = $bindable(''), isMissing = false, initialAuthMode = undefined }: Props = $props();
+  let { existingId = undefined, identifier = $bindable(''), isMissing = false, initialAuthMode = undefined, lockAuthMode = false }: Props = $props();
 
-  let authMode = $state<'password' | 'oauth'>(initialAuthMode || 'password');
+  let authMode = $state<'password' | 'oauth'>(initialAuthMode || 'oauth');
+  const lockIdentifier = isMissing && identifier.trim() !== '';
   let password = $state('');
   let errorMessage = '';
   let service = $state('https://bsky.social');
@@ -39,6 +42,11 @@
       let id: number;
 
       if (existingId) {
+        const existing = await accountsDb.accounts.get(existingId);
+        if (existing?.did && sessionData.did && sessionData.did !== existing.did) {
+          toast.error($_('login_account_mismatch'));
+          return;
+        }
         await accountsDb.accounts.update(existingId, {
           session: sessionData as SessionData,
           did: sessionData.did || '',
@@ -110,16 +118,16 @@
         class:auth-mode-toggle__button--active={authMode === 'oauth'}
         onclick={() => authMode = 'oauth'}
         type="button"
-        disabled={initialAuthMode !== undefined}
+        disabled={lockAuthMode}
       >
-        OAuth
+        {$_('login_tab_oauth')}
       </button>
       <button
         class="auth-mode-toggle__button"
         class:auth-mode-toggle__button--active={authMode === 'password'}
         onclick={() => authMode = 'password'}
         type="button"
-        disabled={initialAuthMode !== undefined}
+        disabled={lockAuthMode}
       >
         {$_('login_password')}
       </button>
@@ -133,13 +141,7 @@
           </dt>
 
           <dd class="input-group__content">
-            <span class="input-group__prefix">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="4"/>
-                <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>
-              </svg>
-            </span>
-            <input class="input-group__input" type="text" name="handle" id="handle" placeholder="example.bsky.social" bind:value={identifier} disabled={isOAuthLoading || isMissing} required >
+            <HandleTypeahead bind:value={identifier} disabled={isOAuthLoading || lockIdentifier} id="handle" />
           </dd>
         </dl>
 
@@ -159,7 +161,7 @@
       </form>
 
       <div class="oauth-info">
-        <p>{$_('oauth_recommended')}</p>
+        <p>{$_('oauth_recommended_note')}</p>
       </div>
     {:else}
       <form action="#" onsubmit={(e) => { e.preventDefault(); loginWithPassword(); }}>
@@ -180,7 +182,7 @@
 
           <dd class="input-group__content">
             <span class="input-group__prefix"><AtSign size={20} color="var(--text-color-1)" /></span>
-            <input class="input-group__input" type="text" name="email" id="email" placeholder="example.bsky.social" bind:value="{identifier}" readonly={isMissing} required>
+            <input class="input-group__input" type="text" name="email" id="email" placeholder="example.bsky.social" bind:value="{identifier}" readonly={lockIdentifier} required>
           </dd>
         </dl>
 

@@ -4,6 +4,7 @@ import { settingsState } from "$lib/classes/settingsState.svelte";
 import { appState } from "$lib/classes/appState.svelte";
 import { restoreSession } from "$lib/oauth";
 import { PasswordSession, type SessionData } from "$lib/password-session";
+import { BSKY_APPVIEW_PROXY } from "$lib/xrpc-client";
 import type { OAuthSession } from "$lib/oauth/types";
 
 let _missingAccounts: Account[] = [];
@@ -14,7 +15,7 @@ function markMissing(account: Account) {
     appState.missingAccounts = _missingAccounts;
 }
 
-async function resumePasswordAccount(account: Account, proxy: string | undefined, retryCount = 0) {
+async function resumePasswordAccount(account: Account, retryCount = 0) {
     const passwordSession = new PasswordSession({
         service: account.service,
         persistSession: async (evt, sess?) => {
@@ -51,18 +52,16 @@ async function resumePasswordAccount(account: Account, proxy: string | undefined
         if (error.error === 'ExpiredToken' || error.error === 'InvalidToken') {
             markMissing(account);
             return null;
-        } else {
-            if (retryCount < 5) {
-                console.log(`Connection failed. Retry resumeSession in ${3 * (retryCount + 1)} seconds. (${retryCount + 1}/5)`);
-                setTimeout(() => {
-                    resumePasswordAccount(account, proxy, retryCount + 1);
-                }, 3000 * (retryCount + 1));
-            } else {
-                console.error('Max retries reached for password account:', account.did);
-            }
-
-            return null;
         }
+
+        if (retryCount < 3) {
+            console.log(`Connection failed. Retry resumeSession in ${3 * (retryCount + 1)} seconds. (${retryCount + 1}/3)`);
+            await new Promise(resolve => setTimeout(resolve, 3000 * (retryCount + 1)));
+            return resumePasswordAccount(account, retryCount + 1);
+        }
+
+        console.error('Max retries reached for password account:', account.did);
+        return null;
     }
 
     return {
@@ -76,7 +75,7 @@ async function resumePasswordAccount(account: Account, proxy: string | undefined
     };
 }
 
-async function resumeOAuthAccount(account: Account, retryCount = 0): Promise<{
+async function resumeOAuthAccount(account: Account, proxy?: string, retryCount = 0): Promise<{
     id: number;
     fetchHandler: (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
     did: string;
@@ -100,9 +99,12 @@ async function resumeOAuthAccount(account: Account, retryCount = 0): Promise<{
         const fetchHandlePromise = (async () => {
             try {
                 const path = `/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(oauthSession.did)}`;
-                const res = await fetchHandler(path, { method: 'GET' });
+                const res = await fetchHandler(path, { method: 'GET', headers: { 'atproto-proxy': proxy || BSKY_APPVIEW_PROXY } });
                 if (res.ok) {
                     const data = await res.json();
+                    if (data.handle && data.handle !== account.handle) {
+                        accountsDb.accounts.update(account.id!, { handle: data.handle }).catch(() => {});
+                    }
                     return data.handle as string;
                 }
             } catch (e) {
@@ -124,24 +126,24 @@ async function resumeOAuthAccount(account: Account, retryCount = 0): Promise<{
         };
     } catch (error) {
         console.error('OAuth session restore error:', error);
-        if (retryCount < 5) {
+        if (retryCount < 3) {
             await new Promise(resolve => setTimeout(resolve, 3000 * (retryCount + 1)));
-            return resumeOAuthAccount(account, retryCount + 1);
+            return resumeOAuthAccount(account, proxy, retryCount + 1);
         }
         console.error('Max retries reached for OAuth account:', account.did);
         return null;
     }
 }
 
-async function resume(account: Account, proxy: string | undefined) {
+async function resume(account: Account, proxy?: string) {
     if (account.isOAuth) {
-        return resumeOAuthAccount(account);
+        return resumeOAuthAccount(account, proxy);
     } else {
-        return resumePasswordAccount(account, proxy);
+        return resumePasswordAccount(account);
     }
 }
 
-export async function resumeAccountsSession(accounts: Account[], proxy: string | undefined) {
+export async function resumeAccountsSession(accounts: Account[], proxy?: string) {
     let agentsMap = new Map<number, Agent>();
     let promises: Promise<any>[] = [];
 
@@ -160,6 +162,7 @@ export async function resumeAccountsSession(accounts: Account[], proxy: string |
                 service: result.service,
                 isOAuth: result.isOAuth,
                 passwordSession: result.passwordSession,
+                appViewProxy: proxy,
             });
 
             if (result.fetchHandlePromise) {

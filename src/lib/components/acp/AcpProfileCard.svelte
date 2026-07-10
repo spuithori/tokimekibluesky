@@ -40,7 +40,7 @@
           }
 
           if (isCurrent) {
-              agents.set(await modifyAgents(_accounts));
+              agents.set(await modifyAgents(_accounts, profile.appViewProxy));
           }
 
       } catch (e) {
@@ -86,7 +86,7 @@
           });
 
           if (isCurrent) {
-              agents.set(await modifyAgents(_accounts));
+              agents.set(await modifyAgents(_accounts, profile.appViewProxy));
           }
       } catch (e) {
           console.error(e);
@@ -107,11 +107,17 @@
 
   async function handleProxyChange(proxy) {
     try {
-      const id = await accountsDb.profiles.update(profile.id, {
-        appViewProxy: proxy,
+      await accountsDb.profiles.update(profile.id, {
+        appViewProxy: proxy || undefined,
       });
 
-      location.reload();
+      isAppViewProxyModalOpen = false;
+
+      if (isCurrent) {
+        location.reload();
+      } else {
+        toast.success($_('appview_proxy_updated'));
+      }
     } catch (e) {
       console.error(e);
     }

@@ -1,6 +1,6 @@
 import type { OAuthSession, OAuthServerMetadata, StoredSession, ClientMetadata } from './types';
 import { generateDPoPKeyPair, exportKeyPair, importKeyPair } from './dpop';
-import { resolveFromHandle } from './resolver';
+import { resolveFromDid, resolveFromHandle } from './resolver';
 import { pushAuthorizationRequest, exchangeCode, revokeToken } from './server';
 import {
     getSession,
@@ -78,10 +78,12 @@ export class OAuthClient {
     }
 
     /**
-     * Start the sign-in flow: resolve handle → PAR → redirect.
+     * Start the sign-in flow: resolve handle or DID → PAR → redirect.
      */
-    async signIn(handle: string): Promise<void> {
-        const { did, pdsUrl, serverMetadata } = await resolveFromHandle(handle);
+    async signIn(identifier: string): Promise<void> {
+        const { did, pdsUrl, serverMetadata } = identifier.startsWith('did:')
+            ? await resolveFromDid(identifier)
+            : await resolveFromHandle(identifier);
 
         const dpopKeyPair = await generateDPoPKeyPair();
         const { codeVerifier, codeChallenge } = await generatePKCE();
@@ -95,7 +97,7 @@ export class OAuthClient {
                 codeChallenge,
                 scope: this.scope,
                 state,
-                loginHint: handle,
+                loginHint: identifier,
             },
             dpopKeyPair,
             this.fetchFn,

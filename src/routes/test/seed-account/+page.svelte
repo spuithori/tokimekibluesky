@@ -30,10 +30,22 @@
     if (typeof window !== 'undefined') {
         (window as any).__seedTest = {
             ready: true,
-            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; settings?: Record<string, unknown> } = {}) {
+            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean } = {}) {
                 const did = opts.did ?? DEFAULT_DID;
                 const handle = opts.handle ?? DEFAULT_HANDLE;
-                await accountsDb.accounts.put({
+                await accountsDb.accounts.put(opts.isOAuth ? {
+                    id: 1,
+                    service: 'https://pds.quality.test',
+                    did,
+                    oauthDid: did,
+                    session: null,
+                    avatar: '',
+                    name: 'Quality Loop',
+                    notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
+                    feeds: [],
+                    lists: [],
+                    isOAuth: true,
+                } as any : {
                     id: 1,
                     service: 'https://pds.quality.test',
                     did,
@@ -58,6 +70,7 @@
                     accounts: [1],
                     primary: 1,
                     columns: opts.columns ?? [homeColumn(did, handle)],
+                    ...(opts.appViewProxy ? { appViewProxy: opts.appViewProxy } : {}),
                 } as any);
                 localStorage.setItem('currentProfile', '1');
                 localStorage.setItem('isRepeater', 'true');

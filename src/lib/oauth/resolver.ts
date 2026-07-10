@@ -113,14 +113,23 @@ export async function resolveAuthServerMetadata(
 }
 
 /**
+ * Full resolution chain: DID → PDS → auth server metadata.
+ */
+export async function resolveFromDid(
+    did: string,
+): Promise<{ did: string; pdsUrl: string; serverMetadata: OAuthServerMetadata }> {
+    const didDoc = await resolveDidDocument(did);
+    const pdsUrl = getPdsEndpoint(didDoc);
+    const serverMetadata = await resolveAuthServerMetadata(pdsUrl);
+    return { did, pdsUrl, serverMetadata };
+}
+
+/**
  * Full resolution chain: handle → DID → PDS → auth server metadata.
  */
 export async function resolveFromHandle(
     handle: string,
 ): Promise<{ did: string; pdsUrl: string; serverMetadata: OAuthServerMetadata }> {
     const did = await resolveHandle(handle);
-    const didDoc = await resolveDidDocument(did);
-    const pdsUrl = getPdsEndpoint(didDoc);
-    const serverMetadata = await resolveAuthServerMetadata(pdsUrl);
-    return { did, pdsUrl, serverMetadata };
+    return resolveFromDid(did);
 }

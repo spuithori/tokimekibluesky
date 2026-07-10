@@ -2,9 +2,25 @@
   import LoginModal from "$lib/components/acp/LoginModal.svelte";
   import {_} from "tokimeki-i18n";
   import {accountsDb} from "$lib/db";
+  import {signIn} from "$lib/oauth";
 
   let { account } = $props();
   let isLoginModalOpen = $state(false);
+  let isReauthLoading = $state(false);
+
+  async function handleLogin() {
+      if (account.isOAuth) {
+          isReauthLoading = true;
+          try {
+              await signIn(account.handle || account.session?.handle || account.oauthDid || account.did);
+              return;
+          } catch (e) {
+              console.error('OAuth re-auth error:', e);
+              isReauthLoading = false;
+          }
+      }
+      isLoginModalOpen = true;
+  }
 
   async function handleSuccess(event) {
       isLoginModalOpen = false;
@@ -46,7 +62,7 @@
   {/if}
 
   <div class="missing-account-item__buttons">
-    <button class="button button--sm" onclick={() => {isLoginModalOpen = true}}>{$_('login')}</button>
+    <button class="button button--sm" onclick={handleLogin} disabled={isReauthLoading}>{$_('login')}</button>
     <button class="button button--border button--sm" onclick={handleDelete}>{$_('logout_button')}</button>
   </div>
 </div>
@@ -56,6 +72,7 @@
       existingId={account.id}
       identifier={account.handle || account.session?.handle || ''}
       isMissing={true}
+      initialAuthMode={account.isOAuth ? 'oauth' : 'password'}
       on:success={handleSuccess}
       on:cancel={handleCancel}></LoginModal>
 {/if}

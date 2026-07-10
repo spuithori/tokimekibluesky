@@ -39,8 +39,9 @@ export class Agent {
         service?: string;
         isOAuth: boolean;
         passwordSession?: PasswordSession;
+        appViewProxy?: string;
     }) {
-        this.xrpc = new XrpcClient(opts.fetchHandler);
+        this.xrpc = new XrpcClient(opts.fetchHandler, opts.appViewProxy);
         this._did = opts.did;
         this._handle = opts.handle;
         this._service = opts.service;

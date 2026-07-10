@@ -28,7 +28,7 @@
               primary: event.detail.id
           });
 
-          $agents = await modifyAgents(_accounts);
+          $agents = await modifyAgents(_accounts, profile.appViewProxy);
           agent.set($agents.get(event.detail.id));
           appState.status = 0;
           appState.init();
