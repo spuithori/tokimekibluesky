@@ -13,6 +13,7 @@ type Transmuxed = { init: Uint8Array<ArrayBuffer>; data: Uint8Array<ArrayBuffer>
 
 const FORWARD_BUFFER_GOAL = 15;
 const BACK_BUFFER_KEEP = 10;
+const MAX_BUFFER_HOLE = 0.5;
 const AUDIO_CODEC = 'mp4a.40.2';
 const MAX_TRANSMUX_FAIL_STREAK = 3;
 
@@ -125,6 +126,7 @@ export class BlueskyHls {
         this.onSourceOpen = this.onSourceOpen.bind(this);
         this.onSeeking = this.onSeeking.bind(this);
         this.onTimeUpdate = this.onTimeUpdate.bind(this);
+        this.onWaiting = this.onWaiting.bind(this);
     }
 
     get currentLevel(): number {
@@ -176,6 +178,7 @@ export class BlueskyHls {
         this.abort.abort();
         this.video.removeEventListener('seeking', this.onSeeking);
         this.video.removeEventListener('timeupdate', this.onTimeUpdate);
+        this.video.removeEventListener('waiting', this.onWaiting);
         if (this.sourceBuffer) {
             this.sourceBuffer.removeEventListener('updateend', this.onUpdateEnd);
             try {
@@ -240,6 +243,7 @@ export class BlueskyHls {
         this.mediaSource.addEventListener('sourceopen', this.onSourceOpen, { once: true });
         this.video.addEventListener('seeking', this.onSeeking);
         this.video.addEventListener('timeupdate', this.onTimeUpdate);
+        this.video.addEventListener('waiting', this.onWaiting);
         this.video.src = this.objectUrl;
     }
 
@@ -288,6 +292,7 @@ export class BlueskyHls {
 
     private async pump(): Promise<void> {
         if (this.loading || this.destroyed || !this.worker || this.recovering || this.switching) return;
+        if (!this.mediaSource || this.mediaSource.readyState === 'closed') return;
         if (this.video.error) { this.recover(); return; }
         if (this.nextSegIdx >= this.segments.length) {
             this.maybeEndOfStream();
@@ -365,7 +370,7 @@ export class BlueskyHls {
     private flushAppendQueue(): void {
         const sb = this.sourceBuffer;
         if (!sb || sb.updating || this.appendQueue.length === 0 || this.destroyed) return;
-        if (this.video.error || !this.mediaSource || this.mediaSource.readyState !== 'open') {
+        if (this.video.error || !this.mediaSource || this.mediaSource.readyState === 'closed') {
             this.recover();
             return;
         }
@@ -387,7 +392,25 @@ export class BlueskyHls {
         this.maybeSeekAfterRecover();
         this.evictBackBuffer();
         this.flushAppendQueue();
+        if (this.video.readyState <= 2) this.maybeJumpHole();
         this.pump();
+    }
+
+    private onWaiting(): void {
+        this.maybeJumpHole();
+    }
+
+    private maybeJumpHole(): void {
+        if (this.destroyed || this.video.seeking || this.video.paused) return;
+        const t = this.video.currentTime;
+        const buffered = this.video.buffered;
+        for (let i = 0; i < buffered.length; i++) {
+            const start = buffered.start(i);
+            if (start > t && start - t <= MAX_BUFFER_HOLE) {
+                this.video.currentTime = start + 0.01;
+                return;
+            }
+        }
     }
 
     private maybeSeekAfterRecover(): void {
@@ -428,6 +451,7 @@ export class BlueskyHls {
         }
         this.video.removeEventListener('seeking', this.onSeeking);
         this.video.removeEventListener('timeupdate', this.onTimeUpdate);
+        this.video.removeEventListener('waiting', this.onWaiting);
         if (this.objectUrl) {
             try { URL.revokeObjectURL(this.objectUrl); } catch {}
             this.objectUrl = null;
@@ -466,6 +490,7 @@ export class BlueskyHls {
     private async switchLevel(levelIdx: number): Promise<void> {
         if (this.destroyed || this.recovering || this.switching || levelIdx === this.activeLevel) return;
         this.switching = true;
+        const session = this.session;
         const resumeIdx = this.nextSegIdx;
         const codecChanged =
             videoCodecOf(this.levels[levelIdx].codecs) !== videoCodecOf(this.levels[this.activeLevel].codecs);
@@ -474,9 +499,16 @@ export class BlueskyHls {
         } catch (err) {
             this.switching = false;
             if (!this.destroyed) this.onError?.(err);
+            this.pump();
             return;
         }
         if (this.destroyed) { this.switching = false; return; }
+        if (this.session !== session) {
+            await this.applyPlaylist(this.activeLevel);
+            this.switching = false;
+            this.pump();
+            return;
+        }
         this.activeLevel = levelIdx;
         if (codecChanged && this.sourceBuffer && !this.sourceBuffer.updating) {
             const codec = `${videoCodecOf(this.levels[levelIdx].codecs)},${AUDIO_CODEC}`;
@@ -493,7 +525,7 @@ export class BlueskyHls {
         const t = this.video.currentTime;
         const buffered = this.sourceBuffer.buffered;
         for (let i = 0; i < buffered.length; i++) {
-            if (t >= buffered.start(i) && t <= buffered.end(i)) return;
+            if (t >= buffered.start(i) - 0.5 && t <= buffered.end(i)) return;
         }
         let segIdx = 0;
         for (let i = 0; i < this.segmentStarts.length; i++) {
