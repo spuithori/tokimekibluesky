@@ -39,16 +39,8 @@ vi.mock('$lib/columnKindRegistry.svelte', () => ({
     getColumnKind: () => ({ type: 'plugin:broken:panel', loader: () => loader() }),
 }));
 
-vi.mock('$lib/rice/riceState.svelte', () => ({
-    riceState: { pluginConfig: () => ({ enable: true, options: {} }) },
-}));
-
-vi.mock('$lib/settings/settings.svelte', () => ({
-    settingsStore: { rice: { config: '', enabled: true } },
-}));
-
-vi.mock('$lib/rice/config/edit', () => ({
-    setValueInText: (text: string) => text,
+vi.mock('$lib/plugins/state.svelte', () => ({
+    pluginState: { config: () => ({ enabled: true, options: {} }), setEnabled: () => {} },
 }));
 
 const { default: ColumnContent } = await import('./ColumnContent.svelte');

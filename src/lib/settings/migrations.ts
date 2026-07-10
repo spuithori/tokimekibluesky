@@ -1,6 +1,10 @@
 import type { Settings } from './types';
 import { createDefaultSettings } from './defaults';
 import { oldThemeConvert } from '$lib/builtInThemes';
+import { parse } from '$lib/rice/config/parser';
+import { removeSectionInText, type SectionRef } from '$lib/rice/config/edit';
+import { PLUGIN_ID_RE } from '$lib/rice/plugins/types';
+import { presetPluginStates } from '$lib/rice/presets';
 
 /**
  * Pure (DOM/localStorage-free) settings migration. Brings an arbitrary stored
@@ -188,6 +192,64 @@ export function migrate(
             }
         }
         stored.version = 11;
+    }
+
+    if (stored.version < 12) {
+        if (!isPlainObject(stored.plugins)) stored.plugins = {};
+        const plugins = stored.plugins as Record<string, any>;
+        if (!isPlainObject(plugins.installed)) plugins.installed = {};
+        if (!isPlainObject(plugins.state)) plugins.state = {};
+
+        if (isPlainObject(stored.rice)) {
+            const rice = stored.rice as Record<string, any>;
+
+            if (isPlainObject(rice.plugins)) {
+                plugins.installed = { ...rice.plugins, ...plugins.installed };
+            }
+            delete rice.plugins;
+
+            if (typeof rice.config === 'string') {
+                const doc = parse(rice.config);
+
+                for (const statement of doc.statements) {
+                    if (statement.kind !== 'source' || !statement.ref.startsWith('preset:')) continue;
+                    const seeds = presetPluginStates[statement.ref.slice('preset:'.length)] ?? {};
+                    for (const [id, seed] of Object.entries(seeds)) {
+                        if (!isPlainObject(plugins.installed[id]) || plugins.state[id] !== undefined) continue;
+                        plugins.state[id] = { enabled: seed.enabled, options: { ...seed.options } };
+                    }
+                }
+
+                const refs: SectionRef[] = [];
+                for (const statement of doc.statements) {
+                    if (statement.kind !== 'section' || !statement.name.startsWith('plugin:')) continue;
+                    const id = statement.name.slice('plugin:'.length);
+                    if (!PLUGIN_ID_RE.test(id)) continue;
+                    const state = isPlainObject(plugins.state[id])
+                        ? (plugins.state[id] as Record<string, any>)
+                        : (plugins.state[id] = { enabled: true, options: {} });
+                    if (typeof state.enabled !== 'boolean') state.enabled = true;
+                    if (!isPlainObject(state.options)) state.options = {};
+                    for (const child of statement.children) {
+                        if (child.kind !== 'entry') continue;
+                        if (child.key === 'enable') state.enabled = child.value !== 'false';
+                        else state.options[child.key] = child.value;
+                    }
+                    refs.push({ name: statement.name, label: statement.label });
+                }
+
+                let text = rice.config as string;
+                for (const ref of refs) {
+                    let next = removeSectionInText(text, ref);
+                    while (next !== text) {
+                        text = next;
+                        next = removeSectionInText(text, ref);
+                    }
+                }
+                rice.config = text;
+            }
+        }
+        stored.version = 12;
     }
 
     return deepMerge(defaults, stored);

@@ -1,7 +1,7 @@
 import type { CompiledRice } from './config/model';
 import { getValueInText, setValueInText } from './config/edit';
 
-export interface RiceKnob {
+interface KnobBase {
     id: string;
     label: string;
     labelText?: string;
@@ -14,8 +14,18 @@ export interface RiceKnob {
     onValue?: string;
     offValue?: string;
     selectOptions?: { value: string; label: string }[];
+}
+
+export interface RiceKnob extends KnobBase {
+    plugin?: false;
     read: (compiled: CompiledRice) => string | undefined;
     write: (config: string, value: string) => string;
+}
+
+export interface PluginKnob extends KnobBase {
+    plugin: true;
+    read: () => string | undefined;
+    write: (value: string) => void;
 }
 
 function writeLayout(key: string) {

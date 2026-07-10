@@ -301,15 +301,16 @@ describe('v9: singleWidth string enum retirement', () => {
 });
 
 describe('v10: rice plugins backfill', () => {
-    it('backfills rice.plugins when upgrading from v9', () => {
+    it('backfills plugins defaults when upgrading from v9', () => {
         const result = migrate({ version: 9, rice: { enabled: true, config: '# x', sources: {} } }, undefined);
         expect(result.version).toBe(CURRENT_VERSION);
-        expect(result.rice.plugins).toEqual({});
+        expect(result.plugins).toEqual({ installed: {}, state: {} });
+        expect((result.rice as any).plugins).toBeUndefined();
     });
 
     it('carries installed plugin records through export -> migrate', () => {
         const exported = {
-            version: CURRENT_VERSION,
+            version: 11,
             rice: {
                 enabled: true,
                 config: 'plugin:aurora {\n    enable = true\n}\n',
@@ -327,17 +328,18 @@ describe('v10: rice plugins backfill', () => {
             },
         };
         const result = migrate(JSON.parse(JSON.stringify(exported)), undefined);
-        expect(result.rice.plugins['aurora']?.source).toEqual({
+        expect(result.plugins.installed['aurora']?.source).toEqual({
             kind: 'at',
             uri: 'at://did:plc:abc/tech.tokimeki.plugin.declaration/aurora',
             did: 'did:plc:abc',
             entryCid: 'bafkreiabc',
         });
-        expect(result.rice.plugins['aurora']?.integrity).toBe('sha256-abc');
-        expect(result.rice.config).toContain('plugin:aurora');
+        expect(result.plugins.installed['aurora']?.integrity).toBe('sha256-abc');
+        expect(result.plugins.state['aurora']).toEqual({ enabled: true, options: {} });
+        expect(result.rice.config).not.toContain('plugin:aurora');
     });
 
-    it('v10 の url 形式のプラグイン記録を v11 の source へ変換する', () => {
+    it('v10 の url 形式のプラグイン記録を v11 の source へ変換してから v12 が installed へ移す', () => {
         const stored = {
             version: 10,
             rice: {
@@ -358,8 +360,94 @@ describe('v10: rice plugins backfill', () => {
         };
         const result = migrate(JSON.parse(JSON.stringify(stored)), undefined);
         expect(result.version).toBe(CURRENT_VERSION);
-        expect(result.rice.plugins['aurora']?.source).toEqual({ kind: 'url', manifestUrl: 'https://example.com/aurora/manifest.json' });
-        expect((result.rice.plugins['aurora'] as any)?.url).toBeUndefined();
+        expect(result.plugins.installed['aurora']?.source).toEqual({ kind: 'url', manifestUrl: 'https://example.com/aurora/manifest.json' });
+        expect((result.plugins.installed['aurora'] as any)?.url).toBeUndefined();
+    });
+});
+
+describe('v12: plugins SoT 移設', () => {
+    const installedAurora = {
+        source: { kind: 'url', manifestUrl: 'https://example.com/aurora/manifest.json' },
+        name: 'Aurora Effect',
+        version: '1.0.0',
+        integrity: 'sha256-abc',
+        svelteVersion: '5.56.4',
+        installedAt: '2026-07-09T00:00:00.000Z',
+    };
+
+    function v11Payload(config: string, plugins: Record<string, unknown> = { aurora: installedAurora }) {
+        return {
+            version: 11,
+            rice: { enabled: true, config, sources: {}, plugins },
+        };
+    }
+
+    it('rice.plugins を installed へ移し config の plugin: セクションを state へ抽出して除去する', () => {
+        const config = 'theme {\n    tokens {\n        deck-border-radius = 12px\n    }\n}\n\nplugin:aurora {\n    enable = true\n    intensity = 0.7\n}\n';
+        const result = migrate(JSON.parse(JSON.stringify(v11Payload(config))), undefined);
+        expect(result.plugins.installed['aurora']?.integrity).toBe('sha256-abc');
+        expect(result.plugins.state['aurora']).toEqual({ enabled: true, options: { intensity: '0.7' } });
+        expect(result.rice.config).not.toContain('plugin:');
+        expect(result.rice.config).toContain('deck-border-radius = 12px');
+        expect((result.rice as any).plugins).toBeUndefined();
+    });
+
+    it('enable キーが無ければ enabled: true、enable = false は false、enable = 1 は true', () => {
+        const config = 'plugin:one {\n    x = 1\n}\n\nplugin:two {\n    enable = false\n}\n\nplugin:three {\n    enable = 1\n}\n';
+        const result = migrate(JSON.parse(JSON.stringify(v11Payload(config, {}))), undefined);
+        expect(result.plugins.state['one']).toEqual({ enabled: true, options: { x: '1' } });
+        expect(result.plugins.state['two']).toEqual({ enabled: false, options: {} });
+        expect(result.plugins.state['three']).toEqual({ enabled: true, options: {} });
+        expect(result.rice.config).not.toContain('plugin:');
+    });
+
+    it('ラベル付きセクションも抽出・除去し、同名重複は後勝ちで全て除去する', () => {
+        const config = 'plugin:aurora "x" {\n    intensity = 0.1\n}\n\nplugin:aurora {\n    intensity = 0.2\n}\n\nplugin:aurora {\n    intensity = 0.9\n}\n';
+        const result = migrate(JSON.parse(JSON.stringify(v11Payload(config))), undefined);
+        expect(result.plugins.state['aurora']?.options.intensity).toBe('0.9');
+        expect(result.rice.config).not.toContain('plugin:');
+    });
+
+    it('不正な id のセクションはスキップしテキストに残す', () => {
+        const config = 'plugin:My_Plugin {\n    enable = true\n}\n';
+        const result = migrate(JSON.parse(JSON.stringify(v11Payload(config, {}))), undefined);
+        expect(result.plugins.state).toEqual({});
+        expect(result.rice.config).toContain('plugin:My_Plugin');
+    });
+
+    it('preset 参照はインストール済みプラグインのみシードする', () => {
+        const config = 'source = preset:cyberdeck\n';
+        const seeded = migrate(JSON.parse(JSON.stringify(v11Payload(config))), undefined);
+        expect(seeded.plugins.state['aurora']).toEqual({ enabled: true, options: { intensity: '0.55' } });
+
+        const notInstalled = migrate(JSON.parse(JSON.stringify(v11Payload(config, {}))), undefined);
+        expect(notInstalled.plugins.state).toEqual({});
+    });
+
+    it('preset シードより明示セクションが優先される', () => {
+        const config = 'source = preset:cyberdeck\n\nplugin:aurora {\n    enable = false\n    intensity = 0.9\n}\n';
+        const result = migrate(JSON.parse(JSON.stringify(v11Payload(config))), undefined);
+        expect(result.plugins.state['aurora']).toEqual({ enabled: false, options: { intensity: '0.9' } });
+    });
+
+    it('冪等であり CURRENT_VERSION の plugins ツリーを往復で保持する', () => {
+        const config = 'plugin:aurora {\n    enable = true\n    intensity = 0.7\n}\n';
+        const once = migrate(JSON.parse(JSON.stringify(v11Payload(config))), undefined);
+        const twice = migrate(JSON.parse(JSON.stringify(once)), undefined);
+        expect(twice.plugins).toEqual(once.plugins);
+        expect(twice.rice.config).toBe(once.rice.config);
+        expect(twice.version).toBe(CURRENT_VERSION);
+
+        const exported = {
+            version: CURRENT_VERSION,
+            plugins: {
+                installed: { aurora: installedAurora },
+                state: { aurora: { enabled: false, options: { intensity: '0.33' } } },
+            },
+        };
+        const roundTrip = migrate(JSON.parse(JSON.stringify(exported)), undefined);
+        expect(roundTrip.plugins.installed['aurora']).toEqual(installedAurora);
+        expect(roundTrip.plugins.state['aurora']).toEqual({ enabled: false, options: { intensity: '0.33' } });
     });
 });
 

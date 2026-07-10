@@ -126,7 +126,7 @@ export async function refetchRecord(id: string, source: PluginSource, integrity:
 }
 
 async function ensureRecord(id: string): Promise<RicePluginRecord> {
-    const installed = settingsStore.rice.plugins?.[id];
+    const installed = settingsStore.plugins.installed[id];
     if (!installed) {
         throw new RicePluginError('not-installed', `プラグイン "${id}" はインストールされていません`);
     }

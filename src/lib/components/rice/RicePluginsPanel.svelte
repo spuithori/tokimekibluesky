@@ -10,10 +10,9 @@
     import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
     import RicePluginSettings from './RicePluginSettings.svelte';
     import { settingsStore } from '$lib/settings/settings.svelte';
-    import { riceState } from '$lib/rice/riceState.svelte';
+    import { pluginState } from '$lib/plugins/state.svelte';
     import { riceModuleHost } from '$lib/rice/modules/host.svelte';
     import { getColumnState } from '$lib/classes/columnState.svelte';
-    import { removeSectionInText, setValueInText } from '$lib/rice/config/edit';
     import { HOST_SVELTE_VERSION } from '$lib/rice/plugins/hostVersion';
     import { pluginEntryId } from '$lib/rice/plugins/adapter';
     import { fetchPluginFromAtUri, fetchPluginFromUrl, sourceLabel, type FetchedPlugin } from '$lib/rice/plugins/loader';
@@ -31,7 +30,7 @@
     const columnState = getColumnState();
 
     onMount(async () => {
-        const installed = settingsStore.rice.plugins ?? {};
+        const installed = settingsStore.plugins.installed;
         const uris = Object.values(installed).flatMap((plugin) => (plugin.source.kind === 'at' ? [plugin.source.uri] : []));
         try {
             outdated = updatedPluginIds(installed, await getUpdates(uris));
@@ -45,10 +44,10 @@
         return columnState?.columns.filter((column) => column.algorithm?.type?.startsWith(prefix)) ?? [];
     }
 
-    const installed = $derived(Object.entries(settingsStore.rice.plugins ?? {}));
+    const installed = $derived(Object.entries(settingsStore.plugins.installed));
     const missingEnabled = $derived(
-        Object.entries(riceState.compiled.plugins)
-            .filter(([id, config]) => config.enable && !(settingsStore.rice.plugins ?? {})[id])
+        Object.entries(settingsStore.plugins.state)
+            .filter(([id, state]) => state.enabled && !settingsStore.plugins.installed[id])
             .map(([id]) => id),
     );
 
@@ -99,12 +98,7 @@
     }
 
     function toggle(id: string, enable: boolean) {
-        settingsStore.rice.config = setValueInText(
-            settingsStore.rice.config,
-            [{ name: pluginEntryId(id) }],
-            'enable',
-            String(enable),
-        );
+        pluginState.setEnabled(id, enable);
     }
 
     async function checkUpdate(id: string) {
@@ -153,7 +147,7 @@
                 for (const column of orphanColumns(id)) {
                     columnState?.remove(column.id);
                 }
-                settingsStore.rice.config = removeSectionInText(settingsStore.rice.config ?? '', { name: pluginEntryId(id) });
+                pluginState.clear(id);
             }
             toast.success($_('rice_plugins_uninstalled'));
         } catch (e) {
@@ -221,7 +215,7 @@
                                 type="checkbox"
                                 id="rice-plugin-{id}"
                                 checked={status === 'enabled' || status === 'enabling'}
-                                disabled={!settingsStore.rice.enabled || !entry}
+                                disabled={!entry}
                                 onchange={(e) => toggle(id, e.currentTarget.checked)}
                             ><label class="input-toggle__label" for="rice-plugin-{id}"></label>
                         </div>
@@ -322,7 +316,7 @@
         cancelText={$_('cancel')}
     >
         {@const columns = orphanColumns(pendingUninstall).length}
-        <p>{$_('rice_plugins_uninstall_confirm', { name: (settingsStore.rice.plugins ?? {})[pendingUninstall]?.name ?? pendingUninstall })}</p>
+        <p>{$_('rice_plugins_uninstall_confirm', { name: settingsStore.plugins.installed[pendingUninstall]?.name ?? pendingUninstall })}</p>
 
         <div class="rice-plugin-cleanup">
             <div class="input-toggle">
@@ -337,8 +331,8 @@
 
             <label class="rice-plugin-cleanup__text" for="rice-plugin-cleanup">
                 {columns > 0
-                    ? $_('rice_plugins_cleanup_with_columns', { section: pluginEntryId(pendingUninstall), count: String(columns) })
-                    : $_('rice_plugins_cleanup', { section: pluginEntryId(pendingUninstall) })}
+                    ? $_('rice_plugins_cleanup_with_columns', { count: String(columns) })
+                    : $_('rice_plugins_cleanup')}
             </label>
         </div>
     </ConfirmModal>

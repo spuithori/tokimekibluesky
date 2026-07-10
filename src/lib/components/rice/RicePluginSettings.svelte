@@ -1,6 +1,5 @@
 <script lang="ts">
     import { _ } from 'tokimeki-i18n';
-    import { settingsStore } from '$lib/settings/settings.svelte';
     import { pluginSettingsRegistry } from '$lib/rice/modules/registries.svelte';
     import { pluginKnobsFromSchema } from '$lib/rice/pluginKnobs';
     import RiceKnobField from '$lib/components/settings/fields/custom/RiceKnobField.svelte';
@@ -24,7 +23,7 @@
                             <span class="rice-plugin-settings__description">{knob.description}</span>
                         {/if}
                     </span>
-                    <RiceKnobField {knob} disabled={!settingsStore.rice.enabled}></RiceKnobField>
+                    <RiceKnobField {knob}></RiceKnobField>
                 </div>
             {/each}
         </div>

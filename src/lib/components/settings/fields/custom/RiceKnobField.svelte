@@ -1,12 +1,12 @@
 <script lang="ts">
     import { riceState } from '$lib/rice/riceState.svelte';
     import { settingsStore } from '$lib/settings/settings.svelte';
-    import type { RiceKnob } from '$lib/rice/knobs';
+    import type { PluginKnob, RiceKnob } from '$lib/rice/knobs';
 
-    let { knob, disabled = false }: { knob: RiceKnob; disabled?: boolean } = $props();
+    let { knob, disabled = false }: { knob: RiceKnob | PluginKnob; disabled?: boolean } = $props();
 
     const uid = $props.id();
-    const currentRaw = $derived(knob.read(riceState.compiled) ?? knob.fallback);
+    const currentRaw = $derived((knob.plugin ? knob.read() : knob.read(riceState.compiled)) ?? knob.fallback);
     const currentPx = $derived(Number.parseFloat(currentRaw) || 0);
     const isOn = $derived(knob.onValue !== undefined && currentRaw === knob.onValue);
 
@@ -14,7 +14,11 @@
 
     function commit(value: string) {
         preview = null;
-        settingsStore.rice.config = knob.write(settingsStore.rice.config ?? '', value);
+        if (knob.plugin) {
+            knob.write(value);
+        } else {
+            settingsStore.rice.config = knob.write(settingsStore.rice.config ?? '', value);
+        }
     }
 </script>
 

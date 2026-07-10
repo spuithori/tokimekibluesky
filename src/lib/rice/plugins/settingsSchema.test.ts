@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { compile } from '../config/compile';
 import { pluginKnobsFromSchema } from '../pluginKnobs';
+import { pluginState } from '$lib/plugins/state.svelte';
+import { settingsStore } from '$lib/settings/settings.svelte';
+import { resetSettings } from '$lib/test-fixtures/settingsTestUtils';
 import { schemaDefaults, validateSettingValue, validateSettingsSchema, type RicePluginSettingItem } from './settingsSchema';
 
 const schema: RicePluginSettingItem[] = [
@@ -67,38 +70,12 @@ describe('schemaDefaults', () => {
     });
 });
 
-describe('compile: plugin セクションの診断', () => {
-    it('schema があるとき未知キーを warning にする', () => {
-        const out = compile('plugin:aurora {\n    enable = true\n    bogus = 1\n}\n', undefined, () => false, schemas);
-        const diag = out.diagnostics.filter((d) => d.message.includes('bogus'));
-        expect(diag).toHaveLength(1);
-        expect(diag[0].severity).toBe('warning');
-        expect(out.plugins['aurora'].options.bogus).toBe('1');
-    });
-
-    it('schema があるとき不正な値を error にする', () => {
-        const out = compile('plugin:aurora {\n    intensity = 5\n    palette = neon\n}\n', undefined, () => false, schemas);
-        const errors = out.diagnostics.filter((d) => d.severity === 'error');
-        expect(errors).toHaveLength(2);
-        expect(errors[0].message).toMatch(/intensity/);
-        expect(errors[1].message).toMatch(/palette/);
-    });
-
-    it('正しい値では診断が出ない', () => {
-        const out = compile('plugin:aurora {\n    intensity = 0.9\n    palette = sunset\n    glow = false\n}\n', undefined, () => false, schemas);
-        expect(out.diagnostics).toHaveLength(0);
-        expect(out.plugins['aurora'].options).toEqual({ intensity: '0.9', palette: 'sunset', glow: 'false' });
-    });
-
-    it('schema が無いプラグインでは診断を出さない(sideload の現行挙動を維持)', () => {
-        const out = compile('plugin:unknown {\n    whatever = 1\n}\n', undefined, () => false, schemas);
-        expect(out.diagnostics).toHaveLength(0);
-        expect(out.plugins['unknown'].options.whatever).toBe('1');
-    });
-
-    it('pluginSchemas を渡さない従来の呼び出しでは診断を出さない', () => {
-        const out = compile('plugin:aurora {\n    bogus = 1\n}\n');
-        expect(out.diagnostics).toHaveLength(0);
+describe('compile: plugin セクションの廃止', () => {
+    it('plugin: セクションは廃止 warning になり適用されない', () => {
+        const out = compile('plugin:aurora {\n    enable = true\n    bogus = 1\n}\n');
+        expect(out.diagnostics).toHaveLength(1);
+        expect(out.diagnostics[0].severity).toBe('warning');
+        expect(out.diagnostics[0].message).toContain('廃止');
     });
 });
 
@@ -109,17 +86,17 @@ describe('pluginKnobsFromSchema', () => {
         expect(knobs.map((k) => k.kind)).toEqual(['number', 'select', 'toggle', 'color', 'length']);
     });
 
-    it('read は compiled の options を引く', () => {
-        const compiled = compile('plugin:aurora {\n    intensity = 0.7\n}\n', undefined, () => false, schemas);
-        expect(knobs[0].read(compiled)).toBe('0.7');
+    it('read は pluginState の options を引く', () => {
+        resetSettings();
+        pluginState.setOption('aurora', 'intensity', '0.7');
+        expect(knobs[0].read()).toBe('0.7');
     });
 
-    it('write は plugin セクションへ書き戻す', () => {
-        const next = knobs[1].write('plugin:aurora {\n    enable = true\n}\n', 'sunset');
-        expect(next).toContain('palette = sunset');
-        const compiled = compile(next, undefined, () => false, schemas);
-        expect(compiled.plugins['aurora'].options.palette).toBe('sunset');
-        expect(compiled.diagnostics).toHaveLength(0);
+    it('write は pluginState へ書き、enabled を立てない', () => {
+        resetSettings();
+        knobs[1].write('sunset');
+        expect(settingsStore.plugins.state['aurora']).toEqual({ enabled: false, options: { palette: 'sunset' } });
+        expect(knobs[1].read()).toBe('sunset');
     });
 
     it('default が無いキーは type ごとの fallback を持つ', () => {

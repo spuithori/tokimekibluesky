@@ -2,6 +2,8 @@
     import { _ } from 'tokimeki-i18n';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { riceState } from '$lib/rice/riceState.svelte';
+    import { pluginState } from '$lib/plugins/state.svelte';
+    import { presetPluginStates } from '$lib/rice/presets';
     import { getPresetSourceInText, setPresetSourceInText, setValueInText } from '$lib/rice/config/edit';
     import Columns3 from '@lucide/svelte/icons/columns-3';
     import RectangleVertical from '@lucide/svelte/icons/rectangle-vertical';
@@ -42,8 +44,11 @@
 
     function applyPreset(id: string | null) {
         settingsStore.rice.config = setPresetSourceInText(settingsStore.rice.config ?? '', id);
-        if (id !== null) {
-            settingsStore.rice.enabled = true;
+        if (id === null) return;
+        settingsStore.rice.enabled = true;
+        for (const [pluginId, seed] of Object.entries(presetPluginStates[id] ?? {})) {
+            if (!settingsStore.plugins.installed[pluginId]) continue;
+            pluginState.set(pluginId, { enabled: seed.enabled, options: { ...seed.options } });
         }
     }
 </script>

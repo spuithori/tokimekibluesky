@@ -880,8 +880,24 @@ describe('rice presets', () => {
         expect(out.submaps['resize']?.length).toBe(6);
         expect(out.columnRules.some((r) => r.props.reactions === 'left 28px')).toBe(true);
         expect(out.columnRules.some((r) => r.props.heading === 'hidden')).toBe(true);
-        expect(out.plugins['aurora']?.enable).toBe(true);
-        expect(out.plugins['aurora']?.options.intensity).toBe('0.55');
+    });
+
+    it('cyberdeck の presetPluginStates が aurora のシードを持つ', async () => {
+        const { presetPluginStates } = await import('../presets');
+        expect(presetPluginStates.cyberdeck).toEqual({
+            aurora: { enabled: true, options: { intensity: '0.55' } },
+        });
+    });
+
+    it('全ビルトインプリセットのテキストに plugin: セクションが含まれない', async () => {
+        const { ricePresets } = await import('../presets');
+        const { parse } = await import('./parser');
+        for (const [name, text] of Object.entries(ricePresets)) {
+            const hasPluginSection = parse(text).statements.some(
+                (statement) => statement.kind === 'section' && statement.name.startsWith('plugin:'),
+            );
+            expect(hasPluginSection, `preset:${name}`).toBe(false);
+        }
     });
 });
 
@@ -1186,47 +1202,22 @@ describe('plugin: セクション', () => {
         }
     });
 
-    it('enable 既定 true + options をコンパイルする', () => {
-        const out = compile('plugin:aurora {\n    intensity = 0.55\n}');
-        expect(out.diagnostics).toEqual([]);
-        expect(out.plugins).toEqual({ aurora: { enable: true, options: { intensity: '0.55' } } });
+    it('廃止 warning が出て error にはならない', () => {
+        const out = compile('plugin:aurora {\n    enable = true\n    intensity = 0.55\n}');
+        expect(out.diagnostics).toHaveLength(1);
+        expect(out.diagnostics[0].severity).toBe('warning');
+        expect(out.diagnostics[0].message).toContain('廃止');
     });
 
-    it('enable = false と $変数解決が効く', () => {
-        const out = compile('$v = 0.8\n\nplugin:aurora {\n    enable = false\n    intensity = $v\n}');
-        expect(out.plugins['aurora']).toEqual({ enable: false, options: { intensity: '0.8' } });
+    it('media 内でも廃止 warning が出る', () => {
+        const out = compile('media "mobile" {\n    plugin:aurora {\n        enable = true\n    }\n}\n', undefined, () => true);
+        expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('廃止'))).toBe(true);
     });
 
-    it('不正な id は error 診断で無視される', () => {
-        const out = compile('plugin:My_Plugin {\n    enable = true\n}');
-        expect(out.diagnostics.some((d) => d.severity === 'error' && d.message.includes('プラグインID'))).toBe(true);
-        expect(out.plugins).toEqual({});
-    });
-
-    it('ラベルは warning で本体は適用される', () => {
-        const out = compile('plugin:aurora "x" {\n    enable = true\n}');
-        expect(out.diagnostics.some((d) => d.severity === 'warning' && d.message.includes('ラベル'))).toBe(true);
-        expect(out.plugins['aurora']?.enable).toBe(true);
-    });
-
-    it('media 内はアクティブ時のみ後勝ちで適用される', () => {
-        const text = 'plugin:aurora {\n    enable = true\n}\n\nmedia "mobile" {\n    plugin:aurora {\n        enable = false\n    }\n}\n';
-        expect(compile(text, undefined, () => true).plugins['aurora']?.enable).toBe(false);
-        expect(compile(text).plugins['aurora']?.enable).toBe(true);
-    });
-
-    it('setValueInText で enable を往復できる', () => {
-        const next = setValueInText('# empty\n', [{ name: 'plugin:aurora' }], 'enable', 'true');
-        expect(getValueInText(next, [{ name: 'plugin:aurora' }], 'enable')).toBe('true');
-        expect(compile(next).plugins['aurora']?.enable).toBe(true);
-        const off = setValueInText(next, [{ name: 'plugin:aurora' }], 'enable', 'false');
-        expect(compile(off).plugins['aurora']?.enable).toBe(false);
-    });
-
-    it('modules とは独立の名前空間になる', () => {
-        const out = compile('module "aurora" {\n    enable = false\n}\n\nplugin:aurora {\n    enable = true\n}');
+    it('他のセクションを巻き添えにしない', () => {
+        const out = compile('theme {\n    tokens {\n        primary-color = tomato\n    }\n}\n\nplugin:aurora {\n    enable = true\n}\n\nmodule "aurora" {\n    enable = false\n}\n');
+        expect(out.themeTokens['primary-color']).toBe('tomato');
         expect(out.modules['aurora']?.enable).toBe(false);
-        expect(out.plugins['aurora']?.enable).toBe(true);
     });
 });
 

@@ -16,7 +16,7 @@
     import { getScopedColumnState } from "$lib/classes/columnState.svelte";
     import { capabilityOf } from "$lib/columnKinds";
     import { getColumnKind } from "$lib/columnKindRegistry.svelte";
-    import { riceState } from "$lib/rice/riceState.svelte";
+    import { pluginState } from "$lib/plugins/state.svelte";
 
     interface Props {
         index: number;
@@ -56,7 +56,7 @@
     const isModuleKind = $derived(type?.startsWith('module:') || type?.startsWith('plugin:'));
     const moduleKind = $derived(isModuleKind ? getColumnKind(type) : undefined);
     const pluginId = $derived(type?.startsWith('plugin:') ? type.split(':')[1] : undefined);
-    const pluginOptions = $derived(pluginId !== undefined ? riceState.pluginConfig(pluginId)?.options ?? {} : undefined);
+    const pluginOptions = $derived(pluginId !== undefined ? pluginState.config(pluginId).options : undefined);
     const ContentComponent = $derived(type !== undefined ? builtinComponents[type] : undefined);
 
     let reloadKey = $state(0);

@@ -1,9 +1,8 @@
-import type { CompiledRice } from './config/model';
-import { setValueInText } from './config/edit';
-import type { RiceKnob } from './knobs';
+import { pluginState } from '$lib/plugins/state.svelte';
+import type { PluginKnob } from './knobs';
 import { numberOf, type RicePluginSettingItem } from './plugins/settingsSchema';
 
-function kindOf(type: RicePluginSettingItem['type']): RiceKnob['kind'] {
+function kindOf(type: RicePluginSettingItem['type']): PluginKnob['kind'] {
     switch (type) {
         case 'boolean':
             return 'toggle';
@@ -38,7 +37,7 @@ function fallbackOf(item: RicePluginSettingItem): string {
     }
 }
 
-export function pluginKnobsFromSchema(id: string, schema: readonly RicePluginSettingItem[]): RiceKnob[] {
+export function pluginKnobsFromSchema(id: string, schema: readonly RicePluginSettingItem[]): PluginKnob[] {
     return schema.map((item) => ({
         id: `plugin:${id}.${item.key}`,
         label: item.label,
@@ -52,7 +51,8 @@ export function pluginKnobsFromSchema(id: string, schema: readonly RicePluginSet
         onValue: item.type === 'boolean' ? 'true' : undefined,
         offValue: item.type === 'boolean' ? 'false' : undefined,
         selectOptions: item.options,
-        read: (compiled: CompiledRice) => compiled.plugins[id]?.options[item.key],
-        write: (config: string, value: string) => setValueInText(config, [{ name: `plugin:${id}` }], item.key, value),
+        plugin: true,
+        read: () => pluginState.config(id).options[item.key],
+        write: (value: string) => pluginState.setOption(id, item.key, value),
     }));
 }

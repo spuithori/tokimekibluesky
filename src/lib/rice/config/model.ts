@@ -223,7 +223,6 @@ export interface CompiledRice {
     binds: RiceBind[];
     submaps: Record<string, RiceBind[]>;
     modules: Record<string, { enable: boolean; options: Record<string, string> }>;
-    plugins: Record<string, { enable: boolean; options: Record<string, string> }>;
     sets: { path: string; value: string }[];
     mediaQueries: string[];
     diagnostics: RiceDiagnostic[];
@@ -245,7 +244,6 @@ export function emptyCompiledRice(): CompiledRice {
         binds: [],
         submaps: {},
         modules: {},
-        plugins: {},
         sets: [],
         mediaQueries: [],
         diagnostics: [],

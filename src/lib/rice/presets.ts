@@ -371,11 +371,6 @@ module "search" {
     enable = true
 }
 
-plugin:aurora {
-    enable = true
-    intensity = 0.55
-}
-
 media "mobile" {
     theme {
         tokens {
@@ -570,6 +565,17 @@ media "mobile" {
 `;
 
 ricePresets['macaron'] = macaronPreset;
+
+export interface PresetPluginState {
+    enabled: boolean;
+    options: Record<string, string>;
+}
+
+export const presetPluginStates: Record<string, Record<string, PresetPluginState>> = {
+    cyberdeck: {
+        aurora: { enabled: true, options: { intensity: '0.55' } },
+    },
+};
 
 export function resolvePresetSource(ref: string): string | undefined {
     if (!ref.startsWith('preset:')) return undefined;

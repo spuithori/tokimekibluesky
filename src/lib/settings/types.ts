@@ -148,7 +148,16 @@ export interface RiceSettings {
     enabled: boolean;
     config: string;
     sources: Record<string, string>;
-    plugins: Record<string, InstalledRicePlugin>;
+}
+
+export interface PluginStateEntry {
+    enabled: boolean;
+    options: Record<string, string>;
+}
+
+export interface PluginsSettings {
+    installed: Record<string, InstalledRicePlugin>;
+    state: Record<string, PluginStateEntry>;
 }
 
 export interface Settings {
@@ -159,6 +168,7 @@ export interface Settings {
     embed: EmbedSettings;
     langFilter: string[];
     rice: RiceSettings;
+    plugins: PluginsSettings;
     version: number;
 }
 

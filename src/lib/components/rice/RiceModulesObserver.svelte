@@ -3,6 +3,7 @@
     import { riceModuleHost } from '$lib/rice/modules/host.svelte';
     import { builtinModules } from '$lib/rice/modules/builtin';
     import { registerInstalledPlugins } from '$lib/rice/plugins/store.svelte';
+    import { pluginState } from '$lib/plugins/state.svelte';
     import { WIDGET_ONLY_IDS } from '$lib/rice/widgetIds';
 
     for (const manifest of builtinModules) {
@@ -13,7 +14,6 @@
 
     $effect(() => {
         const configured = riceState.compiled.modules;
-        const configuredPlugins = riceState.compiled.plugins;
         const specs = Object.values(riceState.compiled.bars).flat()
             .filter((bar) => bar.kind === 'rice')
             .flatMap((bar) => [
@@ -22,8 +22,7 @@
             ]);
         for (const [id, entry] of riceModuleHost.entries) {
             if (id.startsWith('plugin:')) {
-                const pluginId = id.slice('plugin:'.length);
-                riceModuleHost.setWanted(id, riceState.enabled && (configuredPlugins[pluginId]?.enable ?? false));
+                riceModuleHost.setWanted(id, pluginState.isEnabled(id.slice('plugin:'.length)));
                 continue;
             }
             const explicit = configured[id]?.enable;

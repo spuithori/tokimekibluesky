@@ -2,8 +2,7 @@
     import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
     import { _ } from 'tokimeki-i18n';
     import { getScopedColumnState } from '$lib/classes/columnState.svelte';
-    import { settingsStore } from '$lib/settings/settings.svelte';
-    import { setValueInText } from '$lib/rice/config/edit';
+    import { pluginState } from '$lib/plugins/state.svelte';
 
     interface Props {
         index: number;
@@ -20,7 +19,7 @@
 
     function disablePlugin() {
         if (!pluginId) return;
-        settingsStore.rice.config = setValueInText(settingsStore.rice.config, [{ name: `plugin:${pluginId}` }], 'enable', 'false');
+        pluginState.setEnabled(pluginId, false);
     }
 </script>
 

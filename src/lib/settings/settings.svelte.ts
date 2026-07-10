@@ -67,6 +67,9 @@ class SettingsStore {
     get rice() {
         return this.#data.rice;
     }
+    get plugins() {
+        return this.#data.plugins;
+    }
     get version() {
         return this.#data.version;
     }

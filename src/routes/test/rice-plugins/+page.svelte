@@ -6,6 +6,7 @@
     import RicePluginsPanel from '$lib/components/rice/RicePluginsPanel.svelte';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { riceState } from '$lib/rice/riceState.svelte';
+    import { pluginState } from '$lib/plugins/state.svelte';
     import { riceModuleHost } from '$lib/rice/modules/host.svelte';
     import { getColumnKind, listModuleColumnKinds } from '$lib/columnKindRegistry.svelte';
     import { runCommand } from '$lib/commands/registry.svelte';
@@ -25,6 +26,18 @@
             getRiceConfig() {
                 return settingsStore.rice.config;
             },
+            setRiceEnabled(enabled: boolean) {
+                settingsStore.rice.enabled = enabled;
+            },
+            getPluginState() {
+                return JSON.parse(JSON.stringify(settingsStore.plugins.state));
+            },
+            setPluginEnabled(id: string, enabled: boolean) {
+                pluginState.setEnabled(id, enabled);
+            },
+            setPluginOption(id: string, key: string, value: string) {
+                pluginState.setOption(id, key, value);
+            },
             diagnostics() {
                 return JSON.parse(JSON.stringify(riceState.diagnostics));
             },
@@ -33,7 +46,7 @@
                 return entry ? { status: entry.status, errorMessage: entry.errorMessage } : null;
             },
             installedPlugins() {
-                return JSON.parse(JSON.stringify(settingsStore.rice.plugins ?? {}));
+                return JSON.parse(JSON.stringify(settingsStore.plugins.installed));
             },
             hasColumnKind(type: string) {
                 return getColumnKind(type) !== undefined;
@@ -62,7 +75,7 @@
                 {#if def.loader}
                     {#await def.loader() then loaded}
                         {@const ColumnComponent = loaded.default}
-                        <ColumnComponent options={riceState.pluginConfig(def.type.split(':')[1])?.options ?? {}}></ColumnComponent>
+                        <ColumnComponent options={pluginState.config(def.type.split(':')[1]).options}></ColumnComponent>
                     {:catch e}
                         <p data-testid="plugin-column-error">{e instanceof Error ? e.message : String(e)}</p>
                     {/await}

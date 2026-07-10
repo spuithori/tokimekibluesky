@@ -34,13 +34,13 @@ describe('removeSectionInText', () => {
         expect(next).toContain('source = preset:cyberdeck');
     });
 
-    it('除去後も config がコンパイルでき、診断が増えない', () => {
+    it('除去後も config がコンパイルでき、除去した分以外の診断が増えない', () => {
         const before = compile(CONFIG).diagnostics.length;
         const next = removeSectionInText(CONFIG, { name: 'plugin:aurora' });
         const out = compile(next);
-        expect(out.diagnostics).toHaveLength(before);
-        expect(out.plugins['aurora']).toBeUndefined();
-        expect(out.plugins['mochott']?.enable).toBe(true);
+        expect(out.diagnostics).toHaveLength(before - 1);
+        expect(next).not.toContain('plugin:aurora');
+        expect(next).toContain('plugin:mochott');
         expect(out.layout?.style).toBe('single');
         expect(out.themeTokens['accent']).toBe('#ff0000');
     });

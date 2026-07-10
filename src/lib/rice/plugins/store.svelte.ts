@@ -9,7 +9,7 @@ import { fetchPluginFromSource, invalidatePluginModule, refetchRecord, type Fetc
 import { RicePluginError, validatePluginManifest } from './types';
 
 export function installedPlugins(): Record<string, InstalledRicePlugin> {
-    return settingsStore.rice.plugins ?? {};
+    return settingsStore.plugins.installed;
 }
 
 function registerPlugin(manifest: Parameters<typeof synthesizeManifest>[0]): void {
@@ -81,7 +81,7 @@ export async function commitInstall(fetched: FetchedPlugin): Promise<void> {
         throw new RicePluginError('manifest-invalid', `プラグイン "${id}" は既にインストールされています`);
     }
     await putRecord(id, fetched);
-    settingsStore.rice.plugins = { ...installedPlugins(), [id]: installedRecordFrom(fetched) };
+    settingsStore.plugins.installed = { ...installedPlugins(), [id]: installedRecordFrom(fetched) };
     registerPlugin(fetched.manifest);
 }
 
@@ -93,7 +93,7 @@ export async function uninstallPlugin(id: string): Promise<boolean> {
     await ricePluginsDb.plugins.delete(id);
     const next = { ...installedPlugins() };
     delete next[id];
-    settingsStore.rice.plugins = next;
+    settingsStore.plugins.installed = next;
     return true;
 }
 
@@ -125,7 +125,7 @@ export async function commitUpdate(id: string, fetched: FetchedPlugin): Promise<
     invalidatePluginModule(id);
     await putRecord(id, fetched);
     const current = installedPlugins()[id];
-    settingsStore.rice.plugins = {
+    settingsStore.plugins.installed = {
         ...installedPlugins(),
         [id]: { ...installedRecordFrom(fetched), installedAt: current?.installedAt ?? new Date().toISOString() },
     };

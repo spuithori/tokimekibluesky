@@ -27,7 +27,7 @@
     let busyId = $state<string | null>(null);
     let pendingInstall = $state<FetchedPlugin | null>(null);
 
-    const installedIds = $derived(new Set(Object.keys(settingsStore.rice.plugins ?? {})));
+    const installedIds = $derived(new Set(Object.keys(settingsStore.plugins.installed)));
     const canLike = $derived(Boolean($agent));
 
     function errorMessage(e: unknown): string {

@@ -1,6 +1,6 @@
 import { HOST_SVELTE_VERSION as hostSvelteVersion } from './hostVersion';
 import type { RiceModuleManifest } from '../modules/types';
-import { riceState } from '../riceState.svelte';
+import { pluginState } from '$lib/plugins/state.svelte';
 import { loadPluginModule } from './loader';
 import { RicePluginError, svelteMajor, type RicePluginContext, type RicePluginManifestJson, type RicePluginModule } from './types';
 
@@ -23,7 +23,7 @@ export function synthesizeManifest(json: RicePluginManifestJson): RiceModuleMani
     const missing = (kind: string, key: string): never => {
         throw new RicePluginError('entry-missing', `プラグイン "${json.id}" の main.js に ${kind} "${key}" の実体がありません`);
     };
-    const getOptions = () => riceState.pluginConfig(json.id)?.options ?? {};
+    const getOptions = () => pluginState.config(json.id).options;
     const context = (): RicePluginContext => ({ options: getOptions() });
     const c = json.contributes;
     const needsEagerLoad = json.activate === true || (c?.quickActions?.length ?? 0) > 0 || majorMismatch;
