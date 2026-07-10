@@ -1,9 +1,10 @@
 <script lang="ts">
   import X from '@lucide/svelte/icons/x';
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+  import { _ } from 'tokimeki-i18n';
   import { scale } from 'svelte/transition';
 
-  let { title, size = 'normal', onclose, onback = undefined, children } = $props();
+  let { title, size = 'normal', onclose, onback = undefined, children, footer = undefined } = $props();
   const duration = 150;
   let el = $state();
 
@@ -34,14 +35,14 @@
   <div class="v2-modal__inner">
     <div class="modal-heading">
       {#if onback}
-        <button class="modal-back-button" onclick={onback} aria-label="Back">
+        <button class="modal-back-button" onclick={onback} aria-label={$_('back')}>
           <ArrowLeft color="var(--text-color-1)"></ArrowLeft>
         </button>
       {/if}
 
       <h2 class="modal-title modal-title--smaller">{title}</h2>
 
-      <button class="modal-close-button" onclick={onclose} aria-label="Close">
+      <button class="modal-close-button" onclick={onclose} aria-label={$_('close')}>
         <X color="var(--text-color-1)"></X>
       </button>
     </div>
@@ -49,6 +50,12 @@
     <div class="v2-modal-contents">
       {@render children?.()}
     </div>
+
+    {#if footer}
+      <div class="v2-modal-footer">
+        {@render footer()}
+      </div>
+    {/if}
   </div>
 </dialog>
 
@@ -128,6 +135,19 @@
 
       @media (max-width: 767px) {
          padding: 24px 16px;
+      }
+  }
+
+  .v2-modal-footer {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background-color: var(--bg-color-1);
+      border-top: 1px solid var(--border-color-1);
+      padding: 16px 36px;
+
+      @media (max-width: 767px) {
+          padding: 16px;
       }
   }
 

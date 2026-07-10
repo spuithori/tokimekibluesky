@@ -9,6 +9,7 @@
     import { page } from "$app/stores";
     import { agent } from '$lib/stores';
     import { parseSearchParams, buildSearchQuery, type ParsedSearch } from '$lib/search/searchParams';
+    import { searchLabel, filterChips } from '$lib/search/searchDisplay';
     import { searchHistory, type SearchScope } from '$lib/classes/searchHistory.svelte';
     import AdvancedSearchModal from '$lib/components/search/AdvancedSearchModal.svelte';
 
@@ -57,38 +58,27 @@
         }
     }
 
+    function modalInitial(): ParsedSearch {
+        const params = new URLSearchParams($page.url.search);
+        const q = value.trim();
+        if (q) {
+            params.set('q', q);
+        } else {
+            params.delete('q');
+        }
+        return parseSearchParams(params);
+    }
+
     function historyHref(entry: string): string {
         return isPostsScope ? `/search?${entry}` : `/search/${scope}?q=${encodeURIComponent(entry)}`;
     }
 
-    function historyLabel(parsed: ParsedSearch): string {
-        return parsed.query || $_('search_advanced');
-    }
-
-    function historyChips(parsed: ParsedSearch): string[] {
-        const f = parsed.filters;
-        const chips: string[] = [];
-        if (parsed.sort === 'top') chips.push($_('search_sort_top'));
-        if (f.authors?.length) chips.push(`${$_('search_filter_authors')}·${f.authors.length}`);
-        if (f.mentions?.length) chips.push(`${$_('search_filter_mentions')}·${f.mentions.length}`);
-        for (const tag of f.hashtags ?? []) chips.push('#' + tag);
-        if (f.languages?.length) chips.push(`${$_('search_filter_languages')}·${f.languages.length}`);
-        if (f.hasMedia) chips.push($_('search_filter_media_only'));
-        if (f.hasVideo) chips.push($_('search_filter_video_only'));
-        if (f.following) chips.push($_('search_filter_following'));
-        if (f.excludeReplies) chips.push($_('search_filter_exclude_replies'));
-        if (f.repliesOnly) chips.push($_('search_filter_replies_only'));
-        if (f.since || f.until) chips.push(`${f.since ?? ''}〜${f.until ?? ''}`);
-        if (f.domains?.length) chips.push(`${$_('search_filter_domains')}·${f.domains.length}`);
-        if (f.urls?.length) chips.push(`${$_('search_filter_urls')}·${f.urls.length}`);
-        return chips;
-    }
 </script>
 
-<div class="search" bind:this={el}>
+<div class={['search', isPostsScope && 'search--with-filter']} bind:this={el}>
   <form action={path} method="get" onsubmit={handleSubmit} data-sveltekit-replacestate>
     <input type="text" name="q" required bind:value bind:this={searchArea} onclick={() => {allowHistoryOpen = true}} placeholder="{$_(path + '_search')}" autocomplete="off">
-    <button type="submit" class="search-submit" aria-label="Search">
+    <button type="submit" class="search-submit" aria-label={$_('search_button')}>
       <Search color="var(--primary-color)" size="20"></Search>
     </button>
   </form>
@@ -109,8 +99,8 @@
             <a class="search-history__link" href={historyHref(entry)} data-sveltekit-replacestate onclick={() => {allowHistoryOpen = false}}>
               {#if isPostsScope}
                 {@const parsed = parseSearchParams(new URLSearchParams(entry))}
-                <span class="search-history__query">{historyLabel(parsed)}</span>
-                {#each historyChips(parsed) as chip, i (i)}
+                <span class="search-history__query">{searchLabel(parsed, $_)}</span>
+                {#each filterChips(parsed, $_) as chip, i (i)}
                   <span class="search-history__chip">{chip}</span>
                 {/each}
               {:else}
@@ -133,7 +123,7 @@
 </div>
 
 {#if isAdvancedOpen}
-  <AdvancedSearchModal _agent={$agent} initial={parseSearchParams($page.url.searchParams)} onclose={() => {isAdvancedOpen = false}}></AdvancedSearchModal>
+  <AdvancedSearchModal _agent={$agent} initial={modalInitial()} onclose={() => {isAdvancedOpen = false}}></AdvancedSearchModal>
 {/if}
 
 <style lang="postcss">
@@ -163,6 +153,10 @@
                 color: var(--text-color-3);
             }
         }
+    }
+
+    .search--with-filter input {
+        padding-right: 80px;
     }
 
     .search-submit {

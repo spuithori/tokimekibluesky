@@ -13,6 +13,10 @@
     import {backgroundsMap} from "$lib/columnBackgrounds";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import Search from '@lucide/svelte/icons/search';
+    import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
+    import AdvancedSearchModal from "$lib/components/search/AdvancedSearchModal.svelte";
+    import {countActiveFilters, type ParsedSearch} from "$lib/search/searchParams";
+    import {searchColumnName, filterChips} from "$lib/search/searchDisplay";
     import SplitSquareVertical from '@lucide/svelte/icons/split-square-vertical';
     import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
     import Unlink from '@lucide/svelte/icons/unlink';
@@ -283,11 +287,30 @@
         }
     }
 
-    function handleSearchChange() {
-        column.algorithm.name = `${$_('search')} "${column.algorithm.algorithm}"`;
-        columnState.clearFeed(column.id);
-        column.data.cursor = '';
+    let isAdvancedSearchOpen = $state(false);
+
+    function currentParsed(): ParsedSearch {
+        return {
+            query: column.algorithm.algorithm ?? '',
+            sort: column.algorithm.sort === 'top' ? 'top' : 'latest',
+            filters: column.algorithm.searchFilters ?? {},
+        };
     }
+
+    function applySearch(parsed: ParsedSearch) {
+        column.algorithm.algorithm = parsed.query;
+        column.algorithm.sort = parsed.sort;
+        column.algorithm.searchFilters = parsed.filters;
+        column.algorithm.name = searchColumnName(parsed, $_);
+        onclose(true);
+    }
+
+    function handleSearchChange() {
+        applySearch(currentParsed());
+    }
+
+    let activeFilterCount = $derived(column.algorithm?.type === 'search' ? countActiveFilters(column.algorithm.searchFilters ?? {}) : 0);
+    let activeSearchChips = $derived(column.algorithm?.type === 'search' ? filterChips(currentParsed(), $_) : []);
 
     function handleViaRepostChange() {
         if (column.filter.includes('like-via-repost')) {
@@ -383,8 +406,25 @@
                                 <Search size="20" color="var(--text-color-1)"></Search>
                                 <input class="input-text__input" type="text" bind:value={column.algorithm.algorithm} onchange={handleSearchChange}>
                             </div>
+
+                            {#if activeFilterCount || activeSearchChips.length}
+                                <div class="deck-search-filters">
+                                    {#each activeSearchChips as chip, i (i)}
+                                        <span class="deck-search-filters__chip">{chip}</span>
+                                    {/each}
+                                </div>
+                            {/if}
+
+                            <button type="button" class="deck-search-advanced-button" onclick={() => {isAdvancedSearchOpen = true}}>
+                                <SlidersHorizontal size="16"></SlidersHorizontal>
+                                {$_('search_advanced')}{#if activeFilterCount}&nbsp;({activeFilterCount}){/if}
+                            </button>
                         </dd>
                     </dl>
+
+                    {#if isAdvancedSearchOpen}
+                        <AdvancedSearchModal {_agent} initial={currentParsed()} onapply={applySearch} onclose={() => {isAdvancedSearchOpen = false}}></AdvancedSearchModal>
+                    {/if}
                 {/if}
 
                 {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed')}
@@ -1179,5 +1219,35 @@
         color: var(--text-color-3);
         font-size: 14px;
         padding: 24px;
+    }
+
+    .deck-search-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+
+        &__chip {
+            font-size: 12px;
+            color: var(--text-color-3);
+            background-color: var(--bg-color-2);
+            border: 1px solid var(--border-color-2);
+            border-radius: var(--border-radius-2);
+            padding: 1px 6px;
+            white-space: nowrap;
+        }
+    }
+
+    .deck-search-advanced-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--primary-color);
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
 </style>

@@ -56,6 +56,7 @@ export type Column = {
     data: {
         feed?: any[],
         cursor: string | number,
+        hitsTotal?: number,
     },
     scrollElement?: HTMLDivElement,
     splitColumn?: Column,

@@ -80,7 +80,7 @@
           padding-bottom: 8px;
           border-bottom: 1px solid var(--border-color-2);
 
-          svg {
+          :global(svg) {
               flex-shrink: 0;
           }
       }

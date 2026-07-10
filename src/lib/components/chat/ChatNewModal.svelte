@@ -210,7 +210,7 @@
           }
       }
 
-      svg {
+      :global(svg) {
           position: absolute;
           right: 16px;
           top: 0;

@@ -10,6 +10,7 @@
     import DeckRow from "../DeckRow.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {parseSearchParams, buildSearchQuery, searchColumnId, isEmptySearch} from "$lib/search/searchParams";
+    import {searchColumnName} from "$lib/search/searchDisplay";
 
     const junkColumnState = getColumnState(true);
 
@@ -24,7 +25,7 @@
             algorithm: {
                 algorithm: parsed.query,
                 type: 'search',
-                name: $_('search') + (parsed.query ? ' "' + parsed.query + '"' : ''),
+                name: searchColumnName(parsed, $_),
                 sort: parsed.sort,
                 searchFilters: parsed.filters,
             },
@@ -45,12 +46,22 @@
         }
         goto('/search?' + buildSearchQuery({ ...parsed, sort }));
     }
+
+    let hitsTotal = $derived(junkColumnState.columns.find(c => c.id === columnId)?.data?.hitsTotal);
 </script>
 
-<div class="sort-toggle-nav">
-    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={parsed.sort === 'latest'} onclick={() => setSort('latest')}>{$_('search_sort_latest')}</button>
-    <button class="sort-toggle-nav__item" class:sort-toggle-nav__item--active={parsed.sort === 'top'} onclick={() => setSort('top')}>{$_('search_sort_top')}</button>
-</div>
+{#if hasSearch}
+    <div class="search-results-header">
+        {#if hitsTotal != null}
+            <p class="search-results-header__count">{$_('search_hits_total', {count: hitsTotal.toLocaleString()})}</p>
+        {/if}
+
+        <div class="segment" role="group" aria-label={$_('search_sort')}>
+            <button type="button" class={['segment__item', parsed.sort === 'latest' && 'segment__item--on']} aria-pressed={parsed.sort === 'latest'} onclick={() => setSort('latest')}>{$_('search_sort_latest')}</button>
+            <button type="button" class={['segment__item', parsed.sort === 'top' && 'segment__item--on']} aria-pressed={parsed.sort === 'top'} onclick={() => setSort('top')}>{$_('search_sort_top')}</button>
+        </div>
+    </div>
+{/if}
 
 {#if isSafety}
     <div class="timeline">
@@ -75,26 +86,17 @@
         padding: 32px 0;
     }
 
-    .sort-toggle-nav {
-        position: absolute;
-        right: 16px;
-        top: 10px;
-        border: 1px solid var(--border-color-1);
-        background-color: var(--bg-color-2);
-        height: 32px;
-        border-radius: var(--border-radius-3);
-        overflow: hidden;
+    .search-results-header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 8px 16px;
 
-        &__item {
-            height: 100%;
-            width: 60px;
-            font-size: 14px;
-            color: var(--text-color-1);
-
-            &--active {
-                background-color: var(--primary-color);
-                color: #fff;
-            }
+        &__count {
+            margin-right: auto;
+            font-size: 13px;
+            color: var(--text-color-3);
         }
     }
 </style>

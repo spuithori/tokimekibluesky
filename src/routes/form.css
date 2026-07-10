@@ -771,3 +771,24 @@
         top: 0;
     }
 }
+.segment {
+    display: inline-flex;
+    border: 1px solid var(--border-color-1);
+    background-color: var(--bg-color-2);
+    border-radius: var(--border-radius-3);
+    overflow: hidden;
+    align-self: flex-start;
+
+    &__item {
+        min-width: 72px;
+        height: 36px;
+        padding: 0 14px;
+        font-size: 14px;
+        color: var(--text-color-1);
+
+        &--on {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+    }
+}

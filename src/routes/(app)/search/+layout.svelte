@@ -54,7 +54,7 @@
 <PageModal>
   <div class="column-heading column-heading--search">
     <div class="column-heading__buttons">
-      <button class="settings-back" onclick={() => {history.back()}} aria-label="Back">
+      <button class="settings-back" onclick={() => {history.back()}} aria-label={$_('back')}>
         <ArrowLeft color="var(--text-color-1)" />
       </button>
     </div>
@@ -62,7 +62,7 @@
     <SearchForm path={$page.url.pathname}></SearchForm>
 
     <div class="column-heading__buttons column-heading__buttons--right">
-      <a class="settings-back" href="/" aria-label="Close">
+      <a class="settings-back" href="/" aria-label={$_('close')}>
         <X color="var(--text-color-1)" />
       </a>
     </div>

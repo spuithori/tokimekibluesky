@@ -215,6 +215,10 @@
         const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, controller.signal);
           column.data.cursor = res.cursor;
 
+        if (res.hitsTotal !== undefined) {
+            column.data.hitsTotal = res.hitsTotal;
+        }
+
         const existingFeedMap = new Map(
             columnState.getFeed(column.id).filter(item => item?.post?.uri).map(item => [
                 item.reason ? `${item.post.uri}|${item.reason.indexedAt}` : item.post.uri,

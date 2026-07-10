@@ -337,6 +337,7 @@ export class Agent {
                 return {
                     cursor: res.cursor,
                     feed: tempFeeds,
+                    hitsTotal: res.hitsTotal,
                 };
             }
             case 'author':

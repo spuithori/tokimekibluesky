@@ -22,7 +22,7 @@
             grid-template-columns: 16px 1fr;
             gap: 4px;
 
-            svg {
+            :global(svg) {
                 margin-top: 3px;
             }
         }

@@ -80,7 +80,7 @@
             gap: 8px;
             align-items: center;
 
-            svg {
+            :global(svg) {
                 flex-shrink: 0;
             }
         }

@@ -230,7 +230,7 @@
           opacity: .7;
       }
 
-      svg {
+      :global(svg) {
           display: block;
       }
   }
