@@ -1,49 +1,26 @@
-<script>
-    import Rainbow from '@lucide/svelte/icons/rainbow';
+<script lang="ts">
+  import Rainbow from '@lucide/svelte/icons/rainbow';
   import { page } from '$app/stores';
   import { agent } from '$lib/stores';
   import UserItem from "../../profile/[handle]/UserItem.svelte";
-  import Infinite from "$lib/components/utils/Infinite.svelte";
+  import SearchResultList from "$lib/components/search/SearchResultList.svelte";
+  import type { SearchActor } from "$lib/search/types";
 
-  let feeds = [];
-  let cursor = 0;
-  let users = $state([]);
+  let q = $derived($page.url.searchParams.get('q') ?? '');
 
-  $effect(() => {
-      getSearchFeeds($page.url.searchParams.get('q'));
-  })
-
-  async function getSearchFeeds(query) {
-      if (query) {
-          users = [];
-          cursor = undefined;
-      }
-  }
-
-  async function handleLoadMore(loaded, complete) {
-      try {
-          let raw = await $agent.xrpc.get('app.bsky.actor.searchActors', {term: $page.url.searchParams.get('q') || '', limit: 20, cursor: cursor});
-          cursor = raw.cursor;
-          users = [...users, ...raw.actors];
-
-          if (cursor) {
-              loaded();
-          } else {
-              complete();
-          }
-      } catch (e) {
-          complete();
-      }
+  async function load(cursor: string | undefined, signal: AbortSignal) {
+      const res = await $agent.xrpc.get<{ actors: SearchActor[]; cursor?: string }>('app.bsky.actor.searchActors', { term: q, limit: 20, cursor }, { signal });
+      return { items: res.actors ?? [], cursor: res.cursor };
   }
 </script>
 
-{#if $page.url.searchParams.get('q')}
+{#if q}
   <div class="timeline">
-    {#each users as user (user)}
-      <UserItem user={user}></UserItem>
-    {/each}
-
-    <Infinite oninfinite={handleLoadMore}></Infinite>
+    <SearchResultList {load} key={(user) => user.did}>
+      {#snippet item(user)}
+        <UserItem {user}></UserItem>
+      {/snippet}
+    </SearchResultList>
   </div>
 {:else}
   <div class="search-empty">

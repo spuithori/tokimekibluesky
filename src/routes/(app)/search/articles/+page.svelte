@@ -1,6 +1,7 @@
 <script lang="ts">
     import { page } from '$app/stores';
     import { _ } from 'tokimeki-i18n';
+    import { onDestroy } from 'svelte';
     import Infinite from "$lib/components/utils/Infinite.svelte";
     import MochottArticleCard from "$lib/components/mochott/MochottArticleCard.svelte";
 
@@ -10,6 +11,8 @@
     let isError = $state(false);
 
     const MOCHOTT_API_BASE = 'https://mochott.site';
+    const controller = new AbortController();
+    onDestroy(() => controller.abort());
 
     $effect(() => {
         resetSearch($page.url.searchParams.get('q'));
@@ -40,7 +43,7 @@
                 params.set('cursor', cursor);
             }
 
-            const response = await fetch(`${MOCHOTT_API_BASE}/xrpc/site.mochott.article.searchArticles?${params}`);
+            const response = await fetch(`${MOCHOTT_API_BASE}/xrpc/site.mochott.article.searchArticles?${params}`, { signal: controller.signal });
 
             if (!response.ok) {
                 if (response.status === 404) {
@@ -65,7 +68,11 @@
             } else {
                 complete();
             }
-        } catch (e) {
+        } catch (e: any) {
+            if (e?.name === 'AbortError' || controller.signal.aborted) {
+                complete();
+                return;
+            }
             console.error('Failed to search articles:', e);
             isError = true;
             complete();
@@ -85,7 +92,7 @@
     </div>
 {:else}
     <div class="blog-grid">
-        {#each articles as article}
+        {#each articles as article (article.uri)}
             <MochottArticleCard {article}></MochottArticleCard>
         {/each}
     </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
     import Search from '@lucide/svelte/icons/search';
     import { _ } from 'tokimeki-i18n';
+    import { onDestroy } from "svelte";
     import ListMember from "$lib/components/list/ListMember.svelte";
     import X from '@lucide/svelte/icons/x';
 
@@ -8,20 +9,40 @@
     let search = $state('');
     let actors = $state.raw<any[]>([]);
     let timer: ReturnType<typeof setTimeout>;
+    let controller: AbortController | undefined;
 
     function handleKeyDown() {
         clearTimeout(timer);
         timer = setTimeout(async () => {
+            const term = search.trim();
+            if (!term) {
+                controller?.abort();
+                actors = [];
+                return;
+            }
+
+            controller?.abort();
+            controller = new AbortController();
+            const signal = controller.signal;
+
             try {
-                const res = await _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term: search, limit: 10});
+                const res = await _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term, limit: 10}, {signal});
                 actors = res.actors;
-            } catch (e) {
+            } catch (e: any) {
+                if (e?.name === 'AbortError' || signal.aborted) {
+                    return;
+                }
                 console.error(e);
             }
         }, 250);
     }
 
-    function handleAdd(e) {
+    onDestroy(() => {
+        clearTimeout(timer);
+        controller?.abort();
+    });
+
+    function handleAdd(e: CustomEvent<{ member: any }>) {
         const actor = e.detail.member;
 
         if (selected.length >= max || selected.some(member => member.did === actor.did)) {
@@ -35,7 +56,7 @@
         selected = selected.filter(member => member.did !== did);
     }
 
-    function isExcluded(member): boolean {
+    function isExcluded(member: any): boolean {
         return member.did === _agent.did()
             || excludeDids.includes(member.did)
             || selected.some(s => s.did === member.did);

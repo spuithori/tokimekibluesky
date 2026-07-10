@@ -313,17 +313,27 @@ export class Agent {
                     limit: timelineOpt.limit, cursor: timelineOpt.cursor, actor: this.did() as string
                 }, {signal});
             case 'search': {
-                const res = await this.xrpc.get('app.bsky.feed.searchPosts', {
-                    q: timelineOpt.algorithm.algorithm, limit: timelineOpt.limit, cursor: timelineOpt.cursor, sort: timelineOpt.algorithm.sort || 'latest'
+                const algo = timelineOpt.algorithm;
+                const sort = algo.sort === 'top' ? 'top' : 'recent';
+                const { allTime, ...filters } = algo.searchFilters ?? {};
+                const res = await this.xrpc.get('app.bsky.feed.searchPostsV2', {
+                    query: algo.algorithm || undefined,
+                    limit: timelineOpt.limit,
+                    cursor: timelineOpt.cursor || undefined,
+                    sort,
+                    allTime: allTime ?? true,
+                    ...filters,
                 }, {signal});
                 let tempFeeds: any[] = [];
                 res.posts.forEach(post => {
                     tempFeeds.push({ post: post });
                 });
                 tempFeeds = tempFeeds.filter(feed => feed.post?.indexedAt);
-                tempFeeds.sort((a, b) => {
-                    return new Date(b.post.indexedAt).getTime() - new Date(a.post.indexedAt).getTime();
-                });
+                if (sort === 'recent') {
+                    tempFeeds.sort((a, b) => {
+                        return new Date(b.post.indexedAt).getTime() - new Date(a.post.indexedAt).getTime();
+                    });
+                }
                 return {
                     cursor: res.cursor,
                     feed: tempFeeds,

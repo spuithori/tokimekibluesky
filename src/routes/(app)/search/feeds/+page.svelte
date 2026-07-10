@@ -1,70 +1,31 @@
-<script>
+<script lang="ts">
     import { page } from '$app/stores';
     import { agent } from '$lib/stores';
+    import { getContext, onMount } from "svelte";
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
-    import {onMount, tick} from "svelte";
-    import Infinite from "$lib/components/utils/Infinite.svelte";
-    let cursor = '';
-    let feeds = $state([]);
-    let savedFeeds = [];
-    let _agent = $agent;
-    let tempTimeout = $state(false);
+    import SearchResultList from "$lib/components/search/SearchResultList.svelte";
+    import { SAVED_FEEDS_CONTEXT, type SavedFeedsContext } from "../savedFeedsContext";
+    import type { FeedGenerator } from "$lib/search/types";
 
-    $effect(() => {
-        getSearchFeeds($page.url.searchParams.get('q'));
-    })
+    let q = $derived($page.url.searchParams.get('q') ?? '');
 
-    async function getSavedFeeds () {
-        const preferenceRes = await _agent.xrpc.get('app.bsky.actor.getPreferences')
-        const preference = preferenceRes.preferences.filter(preference => preference.$type === 'app.bsky.actor.defs#savedFeedsPref')
-        savedFeeds = preference[0]?.saved || [];
+    const savedFeeds = getContext<SavedFeedsContext>(SAVED_FEEDS_CONTEXT);
+    onMount(() => savedFeeds?.ensure());
+
+    async function load(cursor: string | undefined, signal: AbortSignal) {
+        const res = await $agent.xrpc.get<{ feeds: FeedGenerator[]; cursor?: string }>('app.bsky.unspecced.getPopularFeedGenerators', { query: q, limit: 20, cursor }, { signal });
+        return { items: res.feeds ?? [], cursor: res.cursor };
     }
-
-    function isSaved(feed) {
-        const uri = feed.uri;
-        return savedFeeds.includes(uri);
-    }
-
-    async function getSearchFeeds(query) {
-        if (query) {
-            feeds = [];
-            cursor = undefined;
-        }
-    }
-    async function handleLoadMore(loaded, complete) {
-        try {
-            let raw = await _agent.xrpc.get('app.bsky.unspecced.getPopularFeedGenerators', {query: $page.url.searchParams.get('q') || '' , limit: 20, cursor: cursor});
-            cursor = raw.cursor;
-            feeds = [...feeds, ...raw.feeds];
-
-            if (cursor) {
-                loaded();
-            } else {
-                complete();
-            }
-        } catch (e) {
-            console.error(e);
-            complete();
-        }
-    }
-
-    tick().then(() => {
-        tempTimeout = true;
-    })
-
-    onMount(async () => {
-        await getSavedFeeds();
-    })
 </script>
 
 <div class="divider"></div>
 
 <div class="user-timeline">
-  {#each feeds as feed (feed)}
-    <FeedsItem feed={feed} subscribed={isSaved(feed)} on:close></FeedsItem>
-  {/each}
-
-  <Infinite oninfinite={handleLoadMore}></Infinite>
+  <SearchResultList {load} key={(feed) => feed.uri}>
+    {#snippet item(feed)}
+      <FeedsItem {feed} subscribed={savedFeeds?.value.includes(feed.uri) ?? false}></FeedsItem>
+    {/snippet}
+  </SearchResultList>
 </div>
 
 <style lang="postcss">

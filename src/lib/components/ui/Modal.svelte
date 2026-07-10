@@ -3,7 +3,7 @@
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
   import { scale } from 'svelte/transition';
 
-  let { title, size = 'normal', onclose, onback, children } = $props();
+  let { title, size = 'normal', onclose, onback = undefined, children } = $props();
   const duration = 150;
   let el = $state();
 

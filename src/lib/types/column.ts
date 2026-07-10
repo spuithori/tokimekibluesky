@@ -1,8 +1,13 @@
+import type { searchFilters } from '$lib/search/filterSpec';
+export type { searchFilters };
+
 export type currentAlgorithm = {
     type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed',
     algorithm?: string,
     name?: string,
     list?: object,
+    sort?: 'top' | 'latest',
+    searchFilters?: searchFilters,
 }
 
 type deckSettings = {
