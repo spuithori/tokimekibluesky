@@ -21,6 +21,7 @@
     import GripVertical from '@lucide/svelte/icons/grip-vertical';
     import { createLongPress } from "$lib/longpress";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
 
     interface Props {
         column: any;
@@ -71,27 +72,9 @@
             handleRefresh();
             isTopScrolling = false;
         } else {
-            el.dataset.smoothScrolling = '';
-            el.scroll({
-                top: 0,
-                left: 0,
-                behavior: 'smooth',
-            });
-
-            const onScrollEnd = () => {
-                if (el.scrollTop <= 5) {
-                    isTopScrolling = false;
-                    delete el.dataset.smoothScrolling;
-                    el.removeEventListener('scroll', onScrollEnd);
-                }
-            };
-            el.addEventListener('scroll', onScrollEnd, { passive: true });
-
-            setTimeout(() => {
+            smoothScrollToTopGuarded(el, () => {
                 isTopScrolling = false;
-                delete el.dataset.smoothScrolling;
-                el.removeEventListener('scroll', onScrollEnd);
-            }, 3000);
+            });
         }
     }
 

@@ -100,6 +100,44 @@ export function findTargetIndex<T>(
   return targetIdx;
 }
 
+export function smoothScrollToTopGuarded(el: HTMLElement, onSettled?: () => void): void {
+  const isRoot = el === document.documentElement || el === document.body;
+  const target: EventTarget = isRoot ? window : el;
+  const getSt = () => (isRoot ? window.scrollY : el.scrollTop);
+
+  el.dataset.smoothScrolling = '';
+  let done = false;
+  const cleanup = () => {
+    if (done) return;
+    done = true;
+    delete el.dataset.smoothScrolling;
+    target.removeEventListener('scroll', onScroll);
+    target.removeEventListener('scrollend', onEnd);
+    onSettled?.();
+  };
+  const onScroll = () => {
+    if (getSt() <= 5) cleanup();
+  };
+  const onEnd = () => cleanup();
+  target.addEventListener('scroll', onScroll, { passive: true });
+  target.addEventListener('scrollend', onEnd, { passive: true });
+
+  let lastSt = getSt();
+  const failsafe = () => {
+    if (done) return;
+    const st = getSt();
+    if (st <= 5 || st === lastSt) {
+      cleanup();
+      return;
+    }
+    lastSt = st;
+    setTimeout(failsafe, 1000);
+  };
+  setTimeout(failsafe, 3000);
+
+  el.scroll({ top: 0, left: 0, behavior: 'smooth' });
+}
+
 export function getScrollTopFor(
   container: HTMLElement | null | undefined,
   isWindow: boolean,

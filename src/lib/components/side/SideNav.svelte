@@ -1,5 +1,6 @@
 <script lang="ts">
   import {agent, currentTimeline, settings} from '$lib/stores';
+  import {smoothScrollToTopGuarded} from '$lib/components/virtual/scroll-helpers';
   import Search from '@lucide/svelte/icons/search';
   import GanttChartSquare from '@lucide/svelte/icons/gantt-chart-square';
   import MessageCircleMore from '@lucide/svelte/icons/message-circle-more';
@@ -71,11 +72,11 @@
                 if ($settings.design?.layout === 'decks') {
                     columnState.columns.forEach(column => {
                         if (column?.scrollElement) {
-                            smoothToTop(column.scrollElement);
+                            smoothScrollToTopGuarded(column.scrollElement);
                         }
                     })
                 } else {
-                    smoothToTop(document.querySelector(':root') as HTMLElement);
+                    smoothScrollToTopGuarded(document.querySelector(':root') as HTMLElement);
                 }
             } catch (e) {
                 // nothing.
@@ -101,31 +102,6 @@
               goto('/atproto-viewer/' + $agent.did());
               break;
       }
-  }
-
-  function smoothToTop(el: HTMLElement) {
-      el.dataset.smoothScrolling = '';
-      el.scroll({
-          top: 0,
-          left: 0,
-          behavior: 'smooth',
-      });
-
-      const isRoot = el === document.documentElement || el === document.body;
-      const target: EventTarget = isRoot ? window : el;
-      const onScrollEnd = () => {
-          const st = isRoot ? window.scrollY : el.scrollTop;
-          if (st <= 5) {
-              delete el.dataset.smoothScrolling;
-              target.removeEventListener('scroll', onScrollEnd);
-          }
-      };
-      target.addEventListener('scroll', onScrollEnd, { passive: true });
-
-      setTimeout(() => {
-          delete el.dataset.smoothScrolling;
-          target.removeEventListener('scroll', onScrollEnd);
-      }, 3000);
   }
 
   function handleRefresh() {

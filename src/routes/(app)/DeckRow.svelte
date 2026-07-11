@@ -6,6 +6,7 @@
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
     import {iconMap} from "$lib/columnIcons";
     import {scrollDirection} from "$lib/scrollDirection";
+    import {smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
     import {onDestroy, onMount} from "svelte";
     import {toast} from "svelte-sonner";
     import {backgroundsMap} from "$lib/columnBackgrounds";
@@ -161,27 +162,9 @@
             handleRefresh();
             isTopScrolling = false;
         } else {
-            el.dataset.smoothScrolling = '';
-            el.scroll({
-                top: 0,
-                left: 0,
-                behavior: 'smooth',
-            });
-
-            const onScrollEnd = () => {
-                if (el.scrollTop <= 5) {
-                    isTopScrolling = false;
-                    delete el.dataset.smoothScrolling;
-                    el.removeEventListener('scroll', onScrollEnd);
-                }
-            };
-            el.addEventListener('scroll', onScrollEnd, { passive: true });
-
-            setTimeout(() => {
+            smoothScrollToTopGuarded(el, () => {
                 isTopScrolling = false;
-                delete el.dataset.smoothScrolling;
-                el.removeEventListener('scroll', onScrollEnd);
-            }, 3000);
+            });
         }
     }
 
