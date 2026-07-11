@@ -48,6 +48,7 @@
   let savedState: ScrollState | null = null;
   let savedScrollTop = 0;
   let showVirtualList = $state(true);
+  let aboveBlockHeight = $state(0);
   let initialScrollState = $state<ScrollState | null>(null);
 
   let cachedScrollState: ScrollState | null = null;
@@ -405,6 +406,10 @@
         this.scheduleHeightChanges(changes);
       },
 
+      setAboveBlockHeight(px: number) {
+        aboveBlockHeight = px;
+      },
+
       reset() {
         items = generateItems(200, 0);
         nextId = 200;
@@ -414,6 +419,7 @@
         initialScrollState = null;
         cachedScrollState = null;
         pendingScheduledChanges = 0;
+        aboveBlockHeight = 0;
         if (scrollContainer) {
           scrollContainer.scrollTop = 0;
         }
@@ -427,6 +433,9 @@
 </script>
 
 <div class="timeline">
+  {#if aboveBlockHeight > 0}
+    <div class="above-block" data-testid="above-block" style:height="{aboveBlockHeight}px"></div>
+  {/if}
   {#if showVirtualList}
   <VirtualList
     {items}

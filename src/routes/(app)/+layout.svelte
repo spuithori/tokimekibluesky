@@ -258,7 +258,9 @@
                 const modal = document.querySelector(
                     ".modal-page-content",
                 ) as HTMLElement | null;
-                if (modal) modal.scrollTop = saved.modalTop;
+                if (modal && !modal.querySelector(".virtual-timeline")) {
+                    modal.scrollTop = saved.modalTop;
+                }
             } else if (saved.scroll) {
                 window.scrollTo(saved.scroll.x, saved.scroll.y);
             }

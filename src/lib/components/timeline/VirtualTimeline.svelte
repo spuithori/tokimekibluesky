@@ -1,6 +1,7 @@
 <script lang="ts">
   import {onDestroy} from "svelte";
   import {_} from "tokimeki-i18n";
+  import {beforeNavigate} from '$app/navigation';
   import {page} from '$app/stores';
   import {settings} from '$lib/stores';
   import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
@@ -156,6 +157,19 @@
     }
   });
 
+  beforeNavigate(() => {
+    if (scrollSaveTimer) {
+      clearTimeout(scrollSaveTimer);
+      scrollSaveTimer = null;
+    }
+    if (virtualList) {
+      const state = virtualList.getScrollStateLightweight();
+      if (state && state.visualY !== undefined) {
+        onScrollStateSave?.(state);
+      }
+    }
+  });
+
   onDestroy(() => {
     if (scrollSaveTimer) {
       clearTimeout(scrollSaveTimer);
@@ -258,7 +272,6 @@
 <style lang="postcss">
   .virtual-timeline {
     min-height: 100%;
-    overflow-anchor: none;
   }
 
   .infinite-loading {

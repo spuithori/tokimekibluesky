@@ -83,7 +83,11 @@
   let lastValidScrollContainer: HTMLElement | null = null;
   let lastKnownScrollTop = 0;
   let lastKnownAnchorIndex = 0;
+  let lastKnownVisualY: number | undefined = undefined;
+  let restoreLock: { key: string; y: number } | null = null;
   let resizeObserver: ResizeObserver | null = null;
+  let frameTops: number[] = [];
+  let frameBottoms: number[] = [];
 
   let isWindowScroll = $derived(
     typeof document !== 'undefined' &&
@@ -314,10 +318,26 @@
       pendingEpochBump = false;
       measuredEpoch++;
     }
-    if (!scrollContainer || items.length === 0 || isNavigating || effectivePaused) return;
+    if (!scrollContainer || !canvasEl || items.length === 0 || isNavigating || effectivePaused) return;
+
+    const containerTop = isWindowScroll ? 0 : scrollContainer.getBoundingClientRect().top + (scrollContainer.clientTop || 0);
+
+    if (restoreLock) {
+      const el = itemRefs.get(restoreLock.key);
+      if (!el || !el.isConnected) {
+        restoreLock = null;
+      } else {
+        const drift = el.getBoundingClientRect().top - containerTop - restoreLock.y;
+        if (Math.abs(drift) >= 1) {
+          setScrollTop(getScrollTop() + drift);
+          vlog('restoreLock:drift', { drift: Math.round(drift * 10) / 10 });
+        }
+      }
+    }
 
     const st = getScrollTop();
-    const listOffset = getCanvasTopInContainer();
+    const canvasTop = canvasEl.getBoundingClientRect().top;
+    const listOffset = canvasTop - containerTop + st;
     const viewTop = st - listOffset;
     const buf = getEffectiveBufferPx();
     const wantTop = viewTop - buf;
@@ -326,9 +346,28 @@
     const dropBottom = wantBottom + buf * 0.5;
     const avg = getAverageHeight();
 
-    const edges = renderedEdges();
-    const renderedTop = edges ? edges.top : B + downOffset;
-    const renderedBottom = edges ? edges.bottom : B + downOffset;
+    const count = rangeEnd - rangeStart;
+    if (frameTops.length < count) {
+      frameTops = new Array(count);
+      frameBottoms = new Array(count);
+    }
+    let firstIdx = -1;
+    let lastIdx = -1;
+    for (let i = 0; i < count; i++) {
+      const el = refEl(rangeStart + i);
+      if (!el) {
+        frameTops[i] = NaN;
+        frameBottoms[i] = NaN;
+        continue;
+      }
+      const r = el.getBoundingClientRect();
+      frameTops[i] = r.top - canvasTop;
+      frameBottoms[i] = r.bottom - canvasTop;
+      if (firstIdx === -1) firstIdx = i;
+      lastIdx = i;
+    }
+    const renderedTop = firstIdx >= 0 ? frameTops[firstIdx] : B + downOffset;
+    const renderedBottom = lastIdx >= 0 ? frameBottoms[lastIdx] : B + downOffset;
 
     let ns = rangeStart;
     let ne = rangeEnd;
@@ -336,16 +375,55 @@
     if (renderedTop > wantTop && ns > 0) {
       ns = Math.max(0, ns - Math.max(1, Math.ceil((renderedTop - wantTop) / avg)));
     } else if (renderedTop < dropTop && ns < rangeEnd) {
-      ns = Math.min(rangeEnd, ns + countDroppableFromTop(dropTop));
+      let c = 0;
+      for (let i = 0; i < count; i++) {
+        if (Number.isNaN(frameBottoms[i])) break;
+        if (frameBottoms[i] < dropTop) c++;
+        else break;
+      }
+      ns = Math.min(rangeEnd, ns + c);
     }
 
     if (renderedBottom < wantBottom && ne < items.length) {
       ne = Math.min(items.length, ne + Math.max(1, Math.ceil((wantBottom - renderedBottom) / avg)));
     } else if (renderedBottom > dropBottom && ne > ns) {
-      ne = Math.max(ns, ne - countDroppableFromBottom(dropBottom));
+      let c = 0;
+      for (let i = count - 1; i >= 0; i--) {
+        if (Number.isNaN(frameTops[i])) break;
+        if (frameTops[i] > dropBottom) c++;
+        else break;
+      }
+      ne = Math.max(ns, ne - c);
     }
 
-    updateVisibleBounds(viewTop);
+    if (count > 0) {
+      let vs = rangeStart;
+      for (let i = 0; i < count; i++) {
+        if (Number.isNaN(frameBottoms[i])) continue;
+        vs = rangeStart + i;
+        if (frameBottoms[i] > viewTop) break;
+      }
+      let ve = vs;
+      for (let i = count - 1; i >= vs - rangeStart; i--) {
+        if (Number.isNaN(frameTops[i])) continue;
+        ve = rangeStart + i;
+        if (frameTops[i] < viewTop + viewportHeight) break;
+      }
+      visibleStart = vs;
+      visibleEnd = ve;
+
+      const anchorLimit = viewTop + topMargin - 1;
+      for (let i = 0; i < count; i++) {
+        if (Number.isNaN(frameTops[i])) continue;
+        if (frameTops[i] >= anchorLimit) {
+          lastKnownAnchorIndex = rangeStart + i;
+          lastKnownVisualY = frameTops[i] - viewTop;
+          break;
+        }
+      }
+    }
+
+    const measuredHeadroom = renderedTop - sumEstimate(0, rangeStart);
     const prevRs = rangeStart;
     const prevRe = rangeEnd;
     applyRange(ns, ne);
@@ -355,75 +433,26 @@
       const req = requiredCanvasHeight();
       if (canvasHeight > req + 1) canvasHeight = req;
     }
-    maybeEmergencyRecenter(st, listOffset);
+    if (st - listOffset < viewportHeight * 2 && Math.abs(measuredHeadroom) >= 1) {
+      recenter();
+    }
     scheduleSettlement();
     if (rangeChanged && !frameQueued) {
       frameQueued = true;
       requestAnimationFrame(processScroll);
     }
 
-    if (scrollContainer) {
-      lastValidScrollContainer = scrollContainer;
-      lastKnownScrollTop = st;
-      lastKnownAnchorIndex = findViewportAnchorIndex() ?? lastKnownAnchorIndex;
-    }
+    lastValidScrollContainer = scrollContainer;
+    lastKnownScrollTop = st;
 
     onScroll?.();
     onRangeChange?.({ start: rangeStart, end: rangeEnd });
-  }
-
-  function updateVisibleBounds(viewTop: number): void {
-    if (!canvasEl || rangeEnd <= rangeStart) return;
-    const canvasTop = canvasEl.getBoundingClientRect().top;
-    const vBottom = viewTop + viewportHeight;
-    let vs = rangeStart;
-    for (let i = rangeStart; i < rangeEnd; i++) {
-      const el = refEl(i);
-      if (!el) continue;
-      vs = i;
-      if (el.getBoundingClientRect().bottom - canvasTop > viewTop) break;
-    }
-    let ve = vs;
-    for (let i = rangeEnd - 1; i >= vs; i--) {
-      const el = refEl(i);
-      if (!el) continue;
-      ve = i;
-      if (el.getBoundingClientRect().top - canvasTop < vBottom) break;
-    }
-    visibleStart = vs;
-    visibleEnd = ve;
   }
 
   function isCvAuto(index: number, _epoch: number): boolean {
     const margin = Math.max(CV_CORE_MARGIN, Math.ceil(getEffectiveBufferPx() / getAverageHeight()));
     if (index >= visibleStart - margin && index <= visibleEnd + margin) return false;
     return tree.isMeasured(index);
-  }
-
-  function countDroppableFromTop(limit: number): number {
-    if (!canvasEl) return 0;
-    const canvasTop = canvasEl.getBoundingClientRect().top;
-    let count = 0;
-    for (let i = rangeStart; i < rangeEnd; i++) {
-      const el = refEl(i);
-      if (!el) break;
-      if (el.getBoundingClientRect().bottom - canvasTop < limit) count++;
-      else break;
-    }
-    return count;
-  }
-
-  function countDroppableFromBottom(limit: number): number {
-    if (!canvasEl) return 0;
-    const canvasTop = canvasEl.getBoundingClientRect().top;
-    let count = 0;
-    for (let i = rangeEnd - 1; i >= rangeStart; i--) {
-      const el = refEl(i);
-      if (!el) break;
-      if (el.getBoundingClientRect().top - canvasTop > limit) count++;
-      else break;
-    }
-    return count;
   }
 
   function findViewportAnchorIndex(): number | null {
@@ -463,12 +492,6 @@
     setScrollTop(st + delta);
     vlog('recenter:parallel', { delta });
     return true;
-  }
-
-  function maybeEmergencyRecenter(st: number, listOffset: number): void {
-    if (st - listOffset < viewportHeight * 2 && Math.abs(headroom()) >= 1) {
-      recenter();
-    }
   }
 
   function isUserInteracting(): boolean {
@@ -520,6 +543,7 @@
       _programmaticScroll = false;
     } else {
       lastUserScrollTime = Date.now();
+      restoreLock = null;
     }
     if (!frameQueued) {
       frameQueued = true;
@@ -529,11 +553,20 @@
 
   function handleUserInput(): void {
     lastUserScrollTime = Date.now();
+    restoreLock = null;
   }
 
   function handleTouch(): void {
     lastTouchTime = Date.now();
     lastUserScrollTime = Date.now();
+    restoreLock = null;
+  }
+
+  function handleScrollEnd(): void {
+    lastUserScrollTime = 0;
+    lastTouchTime = 0;
+    cancelSettlement();
+    processSettlement();
   }
 
   function handleResizeEntries(entries: ResizeObserverEntry[]): void {
@@ -546,7 +579,6 @@
       const el = entry.target as HTMLElement;
       const k = el.dataset.virtualKey;
       if (!k) continue;
-      if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true })) continue;
       const h = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
       if (h <= 0) continue;
       const idx = findIndexForKey(k);
@@ -620,6 +652,7 @@
     prevItemCount = 0;
     prevFirstKey = '';
     prevLastKey = '';
+    restoreLock = null;
   }
 
   function handleItemsInitial(): void {
@@ -823,6 +856,7 @@
     if (!scrollContainer || index < 0 || index >= items.length) return;
     const { align = 'start', offset = 0 } = options;
 
+    restoreLock = null;
     isNavigating = true;
     const listOffset = getCanvasTopInContainer();
     const targetCanvasY = Math.max(0, tree.prefixSum(index));
@@ -889,6 +923,7 @@
     tick().then(() => {
       setScrollTop(savedScrollTop);
       isNavigating = false;
+      restoreLock = { key: key(targetIdx), y: visualY };
       if (!frameQueued) {
         frameQueued = true;
         requestAnimationFrame(processScroll);
@@ -910,21 +945,26 @@
   function captureScrollState(includeHeights: boolean): ScrollState | null {
     if (items.length === 0) return null;
     const container = scrollContainer ?? lastValidScrollContainer;
-    const currentScrollTop = scrollContainer ? getScrollTop() : lastKnownScrollTop;
-    const anchorIdx = scrollContainer ? (findViewportAnchorIndex() ?? lastKnownAnchorIndex) : lastKnownAnchorIndex;
+    const connected = !!container && container.isConnected;
+    const currentScrollTop = connected && scrollContainer ? getScrollTop() : lastKnownScrollTop;
+    const anchorIdx = connected && scrollContainer ? (findViewportAnchorIndex() ?? lastKnownAnchorIndex) : lastKnownAnchorIndex;
     const idx = Math.max(0, Math.min(items.length - 1, anchorIdx));
     const k = key(idx);
 
     let visualY: number | undefined;
     let offset = 0;
-    if (container) {
+    if (container && connected) {
       const el = itemRefs.get(k);
-      if (el) {
+      if (el && el.isConnected) {
         const isWin = container === document.documentElement || container === document.body;
         const containerTop = isWin ? 0 : container.getBoundingClientRect().top + (container.clientTop || 0);
         visualY = el.getBoundingClientRect().top - containerTop;
         offset = topMargin - visualY;
       }
+    }
+    if (visualY === undefined && lastKnownVisualY !== undefined) {
+      visualY = lastKnownVisualY;
+      offset = topMargin - visualY;
     }
 
     const heightsArray: [string, number][] = [];
@@ -1013,7 +1053,9 @@
 
     const scrollTarget = isWindowScroll ? window : scrollContainer!;
     scrollTarget.addEventListener('scroll', handleScrollEvent, { passive: true });
+    scrollTarget.addEventListener('scrollend', handleScrollEnd, { passive: true });
     scrollTarget.addEventListener('wheel', handleUserInput, { passive: true });
+    scrollTarget.addEventListener('pointerdown', handleUserInput, { passive: true });
     scrollTarget.addEventListener('touchstart', handleTouch, { passive: true });
     scrollTarget.addEventListener('touchmove', handleTouch, { passive: true });
     scrollTarget.addEventListener('touchend', handleTouch, { passive: true });
@@ -1067,7 +1109,9 @@
         resizeObserver = null;
       }
       scrollTarget.removeEventListener('scroll', handleScrollEvent);
+      scrollTarget.removeEventListener('scrollend', handleScrollEnd);
       scrollTarget.removeEventListener('wheel', handleUserInput);
+      scrollTarget.removeEventListener('pointerdown', handleUserInput);
       scrollTarget.removeEventListener('touchstart', handleTouch);
       scrollTarget.removeEventListener('touchmove', handleTouch);
       scrollTarget.removeEventListener('touchend', handleTouch);
@@ -1130,7 +1174,7 @@
 <style>
   .vl-canvas {
     position: relative;
-    overflow-anchor: none;
+    overflow-anchor: auto;
     contain: layout;
   }
 
