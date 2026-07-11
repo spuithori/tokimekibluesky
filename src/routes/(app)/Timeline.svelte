@@ -145,6 +145,7 @@
   }
 
   function handleDividerClick(index, cursor, pos) {
+      controller?.abort();
       column.data.cursor = cursor;
       columnState.updateFeed(column.id, f => {
           f[index] = { ...f[index], isDivider: false };
@@ -228,6 +229,7 @@
   }
 
   const handleLoadMore = async (loaded, complete) => {
+      let addedCount = 0;
       try {
         controller = new AbortController();
         const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, controller.signal);
@@ -286,11 +288,17 @@
                 });
 
             columnState.updateFeed(column.id, f => { f.push(...processedFeed); });
+            addedCount = processedFeed.length;
           } else {
             columnState.updateFeed(column.id, f => { f.push(...feed); });
+            addedCount = feed.length;
           }
 
-          isDividerLoading = false;
+          if (isDividerLoading && (addedCount > 0 || !res.cursor)) {
+              tick().then(() => {
+                  isDividerLoading = false;
+              });
+          }
 
           if (column.data.cursor) {
               loaded();

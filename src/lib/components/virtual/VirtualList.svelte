@@ -163,6 +163,13 @@
     if (min > canvasHeight) canvasHeight = min;
   }
 
+  function hasBelowCanvasContent(): boolean {
+    if (!scrollContainer || !canvasEl) return false;
+    const sh = isWindowScroll ? document.documentElement.scrollHeight : scrollContainer.scrollHeight;
+    const listOffset = getCanvasTopInContainer();
+    return sh - listOffset - canvasEl.offsetHeight > 100;
+  }
+
   function requiredCanvasHeight(): number {
     const contentBottom = B + downOffset + (downBlockEl?.offsetHeight ?? 0) + sumEstimate(rangeEnd, items.length);
     if (rangeEnd >= items.length && rangeEnd > rangeStart) {
@@ -430,7 +437,7 @@
     applyRange(ns, ne);
     growCanvas(requiredCanvasHeight());
     const rangeChanged = rangeStart !== prevRs || rangeEnd !== prevRe;
-    if (!rangeChanged && rangeEnd >= items.length && rangeEnd > rangeStart) {
+    if (!rangeChanged && rangeEnd >= items.length && rangeEnd > rangeStart && !hasBelowCanvasContent()) {
       const req = requiredCanvasHeight();
       if (canvasHeight > req + 1) canvasHeight = req;
     }
@@ -536,9 +543,11 @@
     if (st - getCanvasTopInContainer() < viewportHeight * 2 && Math.abs(headroom()) >= 1) {
       recenter();
     }
-    const required = requiredCanvasHeight();
-    if (canvasHeight > required + viewportHeight) {
-      canvasHeight = required;
+    if (!hasBelowCanvasContent()) {
+      const required = requiredCanvasHeight();
+      if (canvasHeight > required + viewportHeight) {
+        canvasHeight = required;
+      }
     }
   }
 

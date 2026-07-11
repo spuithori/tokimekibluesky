@@ -102,6 +102,8 @@
     return feedKeys[index] ?? getFeedKey(data, index);
   }
 
+  let pendingForce = false;
+
   async function triggerLoad() {
     if (isLoading || isComplete || isRetryLimit) {
       return;
@@ -115,6 +117,10 @@
       console.error('Load error:', e);
     } finally {
       isLoading = false;
+      if (pendingForce) {
+        pendingForce = false;
+        triggerLoad();
+      }
     }
   }
 
@@ -203,8 +209,12 @@
   }
 
   export function forceLoad(): void {
-    if (isLoading || isComplete) return;
+    if (isComplete) return;
     retryCount = 0;
+    if (isLoading) {
+      pendingForce = true;
+      return;
+    }
     triggerLoad();
   }
 
