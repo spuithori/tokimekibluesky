@@ -269,15 +269,6 @@ const rawSettingsSchema = [
         default: false,
     },
     {
-        key: "general.useVirtual",
-        category: "general",
-        scope: "global",
-        type: "toggle",
-        section: "settings_section_other",
-        label: "use_virtual",
-        default: false,
-    },
-    {
         key: "general.finnhubApiKey",
         category: "general",
         scope: "global",

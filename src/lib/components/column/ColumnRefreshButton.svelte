@@ -1,6 +1,7 @@
 <script lang="ts">
     import Radio from '@lucide/svelte/icons/radio';
     import {agent, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
+    import {isVirtualTimelineEnabled} from "$lib/components/timeline/virtualGate";
     import {onDestroy, tick} from "svelte";
     import { watch } from "runed";
     import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
@@ -133,7 +134,7 @@
                 column.data.cursor = res.cursor;
             }
 
-            const useVirtualTimeline = (column.style === 'default' || !column.style) && $settings.design?.layout === 'decks' && !$settings.general?.useVirtual && false; //TODO
+            const useVirtualTimeline = isVirtualTimelineEnabled(column);
 
             let distanceFromBottom = 0;
             if (!useVirtualTimeline && shouldMaintainPosition && newFeed.length > 0 && columnState.getFeed(column.id).length > 0) {

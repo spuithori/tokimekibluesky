@@ -8,7 +8,7 @@
   let isLoading = $state(false);
 
   function handleClick() {
-      const posFromBottom = window.innerHeight - el.getBoundingClientRect().bottom;
+      const posFromBottom = window.innerHeight - el.getBoundingClientRect().top;
       onDividerClick(posFromBottom);
   }
 

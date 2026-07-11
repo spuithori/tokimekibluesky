@@ -1,14 +1,8 @@
 export const PREPEND_SEARCH_LIMIT = 500;
-export const SCROLL_VELOCITY_THRESHOLD_MS = 150;
-export const CORRECTION_MAX_PASSES = 3;
-export const DRIFT_THRESHOLD_POSITION = 1;
-export const DRIFT_THRESHOLD_SCROLL = 1;
 export const FALLBACK_RENDER_COUNT = 20;
 export const SCROLLTO_EXTRA_BUFFER = 3;
 export const HEIGHT_CHANGE_THRESHOLD = 2;
-export const HEIGHT_APPLY_THRESHOLD = 1;
-export const ANCHOR_TOLERANCE = 2;
 export const DEFAULT_ITEM_HEIGHT = 100;
-export const EARLY_CHECK_FRAMES = 3;
 export const DEFAULT_BUFFER_PX = 150;
-export const SCROLLTO_CORRECTION_MAX_PASSES = 5;
+export const SETTLE_IDLE_MS = 200;
+export const CV_CORE_MARGIN = 2;

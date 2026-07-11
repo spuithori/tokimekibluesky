@@ -12,6 +12,7 @@
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import Annoyed from '@lucide/svelte/icons/annoyed';
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {makeFeedKeys, getFeedKey} from "$lib/components/timeline/feedKeys";
 
   let {
     column,
@@ -94,10 +95,10 @@
       ?? parent?.closest('.deck-column-content') as HTMLElement | null;
   });
 
+  const feedKeys = $derived(makeFeedKeys(columnState.getFeed(column.id)));
+
   function getKey(data: any, index: number): string {
-    const uri = data?.post?.uri || `index-${index}`;
-    const reasonIndexedAt = data?.reason?.indexedAt || '';
-    return `${uri}|${reasonIndexedAt}`;
+    return feedKeys[index] ?? getFeedKey(data, index);
   }
 
   async function triggerLoad() {
@@ -187,6 +188,12 @@
     virtualList?.scrollToIndex(index, options);
   }
 
+  export function forceLoad(): void {
+    if (isLoading || isComplete) return;
+    retryCount = 0;
+    triggerLoad();
+  }
+
 </script>
 
 <div class="timeline timeline--default virtual-timeline" bind:this={parent}>
@@ -251,6 +258,7 @@
 <style lang="postcss">
   .virtual-timeline {
     min-height: 100%;
+    overflow-anchor: none;
   }
 
   .infinite-loading {

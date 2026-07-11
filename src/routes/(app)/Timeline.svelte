@@ -12,7 +12,8 @@
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import VirtualTimeline from "$lib/components/timeline/VirtualTimeline.svelte";
-  import type {ScrollState} from "$lib/components/virtual/types";
+  import {isVirtualTimelineEnabled} from "$lib/components/timeline/virtualGate";
+  import {makeFeedKeys} from "$lib/components/timeline/feedKeys";
 
   let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
 
@@ -20,6 +21,7 @@
 
   const columnState = getColumnState(isJunk);
   const column = columnProp ?? columnState.getColumn(index);
+  const useVirtualList = isVirtualTimelineEnabled(column);
   let isActorsListFinished = false;
   let actors = [];
   let realtimeCounter = 0;
@@ -101,8 +103,18 @@
           });
   }
 
+  function getReleaseScrollElement(): HTMLElement {
+      if ($settings.design?.layout !== 'decks') {
+          return document.documentElement;
+      }
+      if (isJunk && column.scrollElement) {
+          return (column.scrollElement.closest('.modal-page-content') as HTMLElement) ?? column.scrollElement;
+      }
+      return column.scrollElement || document.documentElement;
+  }
+
   function releaseOldPosts() {
-      const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+      const scrollEl = getReleaseScrollElement();
       const scrollTop = scrollEl?.scrollTop ?? 0;
       const feed = columnState.getFeed(column.id);
 
@@ -140,6 +152,12 @@
       });
       isDividerLoading = true;
       dividerFillerHeight = pos;
+
+      if (useVirtualList) {
+          tick().then(() => {
+              virtualTimelineRef?.forceLoad?.();
+          });
+      }
   }
 
   async function handleDividerUp(index, cursor, dividerEl: HTMLElement | undefined) {
@@ -176,10 +194,10 @@
           f[newDividerIndex] = { ...f[newDividerIndex], isDivider: true };
       });
 
-      const useVirtualList = (column.style === 'default' || !column.style) && !$settings.general?.useVirtual && false; //TODO
       if (useVirtualList && virtualTimelineRef) {
         tick().then(() => {
-          virtualTimelineRef?.scrollToIndex(newDividerIndex, { align: 'start', offset: 0 });
+          const target = Math.min(newDividerIndex + 1, columnState.getFeed(column.id).length - 1);
+          virtualTimelineRef?.scrollToIndex(target, { align: 'start', offset: 0 });
         });
       } else if (dividerEl) {
         const bottomEl = dividerEl.nextElementSibling as HTMLElement;
@@ -307,34 +325,10 @@
     }
   })
 
-  export function getScrollState(): ScrollState | null {
-    return virtualTimelineRef?.getScrollState() ?? null;
-  }
-
-  export function restoreScrollState(state: ScrollState): void {
-    virtualTimelineRef?.restoreScrollState(state);
-  }
-
-  function getFeedKey(data: any, index: number): string {
-    if (!data?.post?.uri) return `__divider_${index}`;
-    const base = `${data.post.uri}|${data.reason?.indexedAt || ''}`;
-    return base;
-  }
-
-  function makeFeedKeys(feed: any[]): string[] {
-    const seen = new Map<string, number>();
-    return feed.map((data, i) => {
-      const base = getFeedKey(data, i);
-      const n = seen.get(base) || 0;
-      seen.set(base, n + 1);
-      return n > 0 ? `${base}#${n}` : base;
-    });
-  }
-
   const feedKeys = $derived(makeFeedKeys(columnState.getFeed(column.id)));
 </script>
 
-{#if (column.style === 'default' || !column.style) && !$settings.general?.useVirtual && false}
+{#if useVirtualList}
   <VirtualTimeline
     {column}
     {_agent}

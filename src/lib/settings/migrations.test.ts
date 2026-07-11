@@ -179,9 +179,10 @@ describe('migrate', () => {
 
     it('folds legacy labelerSettings into moderation (v5 -> v6)', () => {
         const result = migrate({ version: 5 }, { labelerSettings: [sampleLabeler] });
-        expect(result.version).toBe(6);
+        expect(result.version).toBe(CURRENT_VERSION);
         expect(result.moderation.labelers).toEqual([sampleLabeler]);
     });
+
 
     it('backfills DEFAULT_LABELER_SETTINGS when no legacy labelerSettings (v5 -> v6)', () => {
         const result = migrate({ version: 5, moderation: { labelers: [] } });

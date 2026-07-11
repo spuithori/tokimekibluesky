@@ -1,26 +1,20 @@
 <script lang="ts">
-  import { tick, untrack } from 'svelte';
+  import { flushSync, tick, untrack } from 'svelte';
   import type { Snippet } from 'svelte';
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
   import { FenwickTree } from './fenwick';
+  import { classifyItemChange } from './item-change-classifier';
+  import { startVlProbe } from './vlProbe';
   import {
-    PREPEND_SEARCH_LIMIT,
-    SCROLL_VELOCITY_THRESHOLD_MS,
-    CORRECTION_MAX_PASSES,
-    DRIFT_THRESHOLD_POSITION,
-    DRIFT_THRESHOLD_SCROLL,
-    FALLBACK_RENDER_COUNT,
-    SCROLLTO_EXTRA_BUFFER,
-    HEIGHT_CHANGE_THRESHOLD,
-    HEIGHT_APPLY_THRESHOLD,
-    ANCHOR_TOLERANCE,
-    DEFAULT_ITEM_HEIGHT,
-    EARLY_CHECK_FRAMES,
+    CV_CORE_MARGIN,
     DEFAULT_BUFFER_PX,
-    SCROLLTO_CORRECTION_MAX_PASSES,
+    DEFAULT_ITEM_HEIGHT,
+    FALLBACK_RENDER_COUNT,
+    HEIGHT_CHANGE_THRESHOLD,
+    PREPEND_SEARCH_LIMIT,
+    SCROLLTO_EXTRA_BUFFER,
+    SETTLE_IDLE_MS,
   } from './constants';
-
-  let fallbackItemHeight = DEFAULT_ITEM_HEIGHT;
 
   interface Props<T> {
     items: T[];
@@ -52,55 +46,44 @@
     children
   }: Props<any> = $props();
 
-  let _cachedEffectiveBuffer = 2;
-
-  function getEffectiveBuffer(): number {
-    if (buffer !== undefined) return buffer;
-    const avgH = getAverageHeight();
-    _cachedEffectiveBuffer = Math.max(1, Math.ceil(bufferPx / avgH));
-    return _cachedEffectiveBuffer;
-  }
-
-  let visibleStart = $state(initialScrollState ? Math.max(0, (initialScrollState.index ?? 0) - _cachedEffectiveBuffer) : 0);
-  let visibleEnd = $state(initialScrollState ? Math.min(
-    initialScrollState.index != null ? initialScrollState.index + _cachedEffectiveBuffer + SCROLLTO_EXTRA_BUFFER : 0,
-    999999
-  ) : 0);
-  let viewportHeight = $state(0);
   let tree = new FenwickTree();
-  let pendingHeights = new Map<string, number>();
-
   let itemRefs = new Map<string, HTMLElement>();
+
+  let pivotIndex = $state(0);
+  let pivotKey = '';
+  let B = $state(0);
+  let downOffset = $state(0);
+  let canvasHeight = $state(0);
+  let rangeStart = $state(0);
+  let rangeEnd = $state(0);
+
+  let viewportHeight = $state(0);
+  let visibleStart = $state(0);
+  let visibleEnd = $state(Infinity);
+  let measuredEpoch = $state(0);
   let isNavigating = $state(false);
   let hasRestoredScroll = $state(false);
-  let minTotalHeight = initialScrollState?.scrollTop != null
-    ? initialScrollState.scrollTop + 1000
-    : 0;
-  let _cachedScrollTop = -1;
+  let restoreDeferred = $state(false);
   let isDocumentHidden = $state(typeof document !== 'undefined' && document.hidden);
   let effectivePaused = $derived(paused || isDocumentHidden);
-  let spacerHeightAdjustment = 0;
-  let _visibleItemScrollOffset = 0;
-  let topSpacerEl: HTMLDivElement | undefined = $state();
-  let frameId: number | null = null;
-  let frameDirty = 0;
-  const DIRTY_SCROLL = 1;
-  const DIRTY_HEIGHTS = 2;
-  const DIRTY_CORRECTION = 4;
-  let earlyCheckId: number | null = null;
-  let earlyCheckCountdown = 0;
+
+  let canvasEl: HTMLDivElement | undefined = $state();
+  let downBlockEl: HTMLDivElement | undefined = $state();
+
   let prevItemCount = 0;
   let prevFirstKey = '';
   let prevLastKey = '';
+  let prevKeys: string[] = [];
+  let pendingEpochBump = false;
+  let lastUserScrollTime = 0;
+  let lastTouchTime = 0;
+  let _programmaticScroll = false;
+  let frameQueued = false;
+  let settlementId: number | null = null;
   let lastValidScrollContainer: HTMLElement | null = null;
   let lastKnownScrollTop = 0;
-  let lastKnownVisibleStart = 0;
-  let lastUserScrollTime = 0;
-  let _programmaticScroll = false;
-  let _deferredScrollDelta = 0;
-  let quickPrependHandled = false;
-  let _postCorrectionAnchor: { key: string; visualY: number } | null = null;
-  let cachedPrependShift = 0;
+  let lastKnownAnchorIndex = 0;
+  let resizeObserver: ResizeObserver | null = null;
 
   let isWindowScroll = $derived(
     typeof document !== 'undefined' &&
@@ -111,127 +94,34 @@
     scrollContainer != null && viewportHeight > 0 && items.length > 0
   );
 
-  let visibleRange = $derived.by((): VisibleRange => {
-    if (items.length === 0) return { start: 0, end: 0 };
-    if (!isVirtualizationEnabled) return { start: 0, end: Math.min(items.length, FALLBACK_RENDER_COUNT) };
-    const buf = getEffectiveBuffer();
-    const start = Math.max(0, visibleStart - buf);
-    const end = Math.min(items.length, visibleEnd + buf);
-    return { start, end: Math.max(start, end) };
+  let upIndices = $derived.by(() => {
+    const end = Math.min(rangeEnd, pivotIndex);
+    const len = Math.max(0, end - rangeStart);
+    const arr = new Array(len);
+    for (let i = 0; i < len; i++) arr[i] = rangeStart + i;
+    return arr;
   });
 
-  let visibleIndices = $derived.by(() => {
-    const { start, end } = visibleRange;
-    const len = end - start;
+  let downIndices = $derived.by(() => {
+    const start = Math.max(rangeStart, pivotIndex);
+    const len = Math.max(0, rangeEnd - start);
     const arr = new Array(len);
     for (let i = 0; i < len; i++) arr[i] = start + i;
     return arr;
   });
 
-  let effectiveTotalHeight = 0;
-  let topSpacerHeight = $state(0);
-  let bottomSpacerHeight = $state(0);
-
-  function isHeightChanged(a: number, b: number, threshold = HEIGHT_APPLY_THRESHOLD): boolean {
-    return Math.abs(a - b) >= threshold;
-  }
-
-  function computeTopSpacerHeight(rangeStart: number): number {
-    return Math.max(0, tree.prefixSum(rangeStart) + spacerHeightAdjustment);
-  }
-
-  function applyTopSpacerHeight(rangeStart: number): void {
-    const h = computeTopSpacerHeight(rangeStart);
-    if (topSpacerEl) topSpacerEl.style.height = h + 'px';
-    topSpacerHeight = h;
-  }
-
-  function invalidateLayout(): void {
-    effectiveTotalHeight = Math.max(tree.total, minTotalHeight);
-    if (!isVirtualizationEnabled) {
-      topSpacerHeight = 0;
-      bottomSpacerHeight = 0;
-      return;
-    }
-    const prefix = tree.prefixSum(visibleRange.start);
-    const rawTopSpacer = prefix + spacerHeightAdjustment;
-    if (rawTopSpacer < 0 && spacerHeightAdjustment < 0) {
-      const excess = -rawTopSpacer;
-      spacerHeightAdjustment += excess;
-      const currentSt = getScrollTop();
-      if (currentSt > 0) { setScrollTop(Math.max(0, currentSt - excess)); }
-    }
-    if (visibleRange.start === 0 && spacerHeightAdjustment > 0) {
-      const excess = spacerHeightAdjustment;
-      spacerHeightAdjustment = 0;
-      const currentSt = getScrollTop();
-      if (currentSt > 0) { setScrollTop(Math.max(0, currentSt - excess)); }
-    }
-    topSpacerHeight = Math.max(0, prefix + spacerHeightAdjustment);
-    const endPos = items.length > 0 ? tree.prefixSum(visibleRange.end) : 0;
-    bottomSpacerHeight = items.length > 0
-      ? Math.max(0, effectiveTotalHeight - endPos)
-      : 0;
-  }
+  let upBottom = $derived(canvasHeight - B);
+  let downTop = $derived(B + downOffset);
 
   function getAverageHeight(): number {
-    return tree.measuredCount > 0 ? tree.measuredAverage : fallbackItemHeight;
+    return tree.measuredCount > 0 ? tree.measuredAverage : DEFAULT_ITEM_HEIGHT;
   }
 
-  function findTargetIndex(state: ScrollState): number {
-    let targetIdx = state.index;
-    if (state.key && items.length > 0) {
-      const currentKey = targetIdx >= 0 && targetIdx < items.length
-        ? getKey(items[targetIdx], targetIdx) : '';
-      if (currentKey !== state.key) {
-        for (let i = 0; i < items.length; i++) {
-          if (getKey(items[i], i) === state.key) { targetIdx = i; break; }
-        }
-      }
-    }
-    return targetIdx;
-  }
-
-  function getItemHeight(index: number): number {
-    if (index < 0 || index >= items.length) return getAverageHeight();
-    return tree.isMeasured(index) ? tree.get(index) : getAverageHeight();
-  }
-
-  function recalculatePositions(): void {
-    const len = items.length;
-    if (len === 0) {
-      tree.clear();
-      return;
-    }
-
-    flushPendingToTree();
-    const avg = getAverageHeight();
-
-    if (tree.length > len) {
-      tree.truncate(len, avg);
-    } else if (tree.length < len) {
-      tree.extendWithCallback(len - tree.length, () => avg);
-      tree.rebuildWithAverage(avg);
-    } else {
-      tree.rebuildWithAverage(avg);
-    }
-  }
-
-  function prependPositions(shiftCount: number): void {
-    if (shiftCount <= 0) return;
-    const avg = getAverageHeight();
-    tree.prependAndTruncate(shiftCount, items.length, () => avg, avg);
-  }
-
-  function appendPositions(startIndex: number): void {
-    const len = items.length;
-    if (len === 0 || startIndex >= len) return;
-    const avg = getAverageHeight();
-    tree.extendWithCallback(len - startIndex, () => avg);
+  function getEffectiveBufferPx(): number {
+    return buffer !== undefined ? buffer * getAverageHeight() : bufferPx;
   }
 
   function getScrollTop(): number {
-    if (_cachedScrollTop >= 0) return _cachedScrollTop;
     if (isWindowScroll) return window.scrollY;
     return scrollContainer?.scrollTop ?? 0;
   }
@@ -239,779 +129,603 @@
   function setScrollTop(value: number): void {
     if (scrollContainer && 'smoothScrolling' in scrollContainer.dataset) return;
     _programmaticScroll = true;
-    _cachedScrollTop = -1;
     if (isWindowScroll) { window.scrollTo(0, value); }
     else if (scrollContainer) { scrollContainer.scrollTop = value; }
   }
 
-  let _cachedContainerTop: number | null = null;
-
-  function getContainerTop(): number {
-    if (isWindowScroll) return 0;
-    if (_cachedContainerTop !== null) return _cachedContainerTop;
-    return scrollContainer?.getBoundingClientRect().top ?? 0;
+  function getCanvasTopInContainer(): number {
+    if (!canvasEl || !scrollContainer) return 0;
+    const canvasTop = canvasEl.getBoundingClientRect().top;
+    const containerTop = isWindowScroll ? 0 : scrollContainer.getBoundingClientRect().top + (scrollContainer.clientTop || 0);
+    return canvasTop - containerTop + getScrollTop();
   }
 
-  function cacheContainerTop(): void {
-    _cachedContainerTop = getContainerTop();
+  function sumEstimate(from: number, to: number): number {
+    if (to <= from) return 0;
+    return tree.prefixSum(to) - tree.prefixSum(from);
   }
 
-  function clearContainerTopCache(): void {
-    _cachedContainerTop = null;
+  function key(i: number): string {
+    return getKey(items[i], i);
   }
 
-  function getListOffset(): number {
-    if (!topSpacerEl || !scrollContainer) return 0;
-    const spacerTop = topSpacerEl.getBoundingClientRect().top;
-    const containerTop = getContainerTop();
-    const clientTop = isWindowScroll ? 0 : (scrollContainer.clientTop || 0);
-    return Math.max(0, Math.round(spacerTop - containerTop - clientTop + getScrollTop() - topMargin));
+  function refEl(i: number): HTMLElement | undefined {
+    if (i < 0 || i >= items.length) return undefined;
+    return itemRefs.get(key(i));
   }
 
-  function findEndIndex(scrollBottom: number): number {
-    return Math.min(items.length, tree.findIndex(scrollBottom) + 1);
+  function growCanvas(min: number): void {
+    if (min > canvasHeight) canvasHeight = min;
   }
 
-  function updateVisibleRange(): void {
-    if (isNavigating || !scrollContainer || items.length === 0) return;
-
-    const scrollTop = getScrollTop();
-    const effectiveScrollTop = scrollTop - spacerHeightAdjustment - _visibleItemScrollOffset - getListOffset();
-
-    const usableHeight = viewportHeight - topMargin;
-    const newStart = tree.findIndex(effectiveScrollTop);
-    const newEnd = findEndIndex(effectiveScrollTop + usableHeight);
-
-    if (newStart !== visibleStart || newEnd !== visibleEnd) {
-      const buf = getEffectiveBuffer();
-      const oldRangeStart = Math.max(0, visibleStart - buf);
-      const newRangeStart = Math.max(0, newStart - buf);
-
-      if (newStart > visibleStart) {
-        if (newRangeStart > oldRangeStart) {
-          measureTransitioningItems(oldRangeStart, newRangeStart);
-        }
-      }
-
-      if (newRangeStart === 0) {
-        spacerHeightAdjustment = 0;
-        _visibleItemScrollOffset = 0;
-      }
-
-      visibleStart = newStart;
-      visibleEnd = newEnd;
-      invalidateLayout();
+  function requiredCanvasHeight(): number {
+    const contentBottom = B + downOffset + (downBlockEl?.offsetHeight ?? 0) + sumEstimate(rangeEnd, items.length);
+    if (rangeEnd >= items.length && rangeEnd > rangeStart) {
+      return Math.max(contentBottom, B);
     }
+    const st = scrollContainer ? getScrollTop() : lastKnownScrollTop;
+    const listOffset = getCanvasTopInContainer();
+    return Math.max(tree.total, contentBottom, st - listOffset + viewportHeight);
   }
 
-  function scheduleFrame(flag: number): void {
-    frameDirty |= flag;
-    if (frameId !== null) return;
-    frameId = requestAnimationFrame(processFrame);
+  function vlog(tag: string, extra: Record<string, unknown> = {}): void {
+    if (typeof window === 'undefined' || !(window as any).__vlDebugOn) return;
+    ((window as any).__vlDebugLog ??= []).push({
+      t: Math.round(performance.now()), tag,
+      B: Math.round(B), down: Math.round(downOffset),
+      pivot: pivotIndex, rs: rangeStart, re: rangeEnd, canvas: Math.round(canvasHeight),
+      ...extra,
+    });
   }
 
-  function cancelFrame(): void {
-    if (frameId !== null) {
-      cancelAnimationFrame(frameId);
-      frameId = null;
-    }
-    frameDirty = 0;
-  }
+  function applyRange(newStart: number, newEnd: number): void {
+    newStart = Math.max(0, Math.min(newStart, items.length));
+    newEnd = Math.max(newStart, Math.min(newEnd, items.length));
+    const oldStart = rangeStart;
+    const oldEnd = rangeEnd;
+    if (newStart === oldStart && newEnd === oldEnd) return;
 
-  let _corrState: {
-    computeDrift: () => number | null;
-    threshold: number;
-    maxPasses: number;
-    measure: 'full' | 'incremental' | 'none';
-    navigating: boolean;
-    onStart?: () => void;
-    onFinish?: () => void;
-    pass: number;
-  } | null = null;
+    const p = pivotIndex;
+    const oldDownHead = Math.max(oldStart, p);
+    const newDownHead = Math.max(newStart, p);
+    const oldUpTail = Math.min(oldEnd, p);
+    const newUpTail = Math.min(newEnd, p);
+    const downHeadDelta = newDownHead - oldDownHead;
+    const upTailDelta = newUpTail - oldUpTail;
 
-  function finishCorrectionState(s: NonNullable<typeof _corrState>): void {
-    s.onFinish?.();
-    if (s.navigating) finishNavigation();
-  }
-
-  function startCorrection(
-    computeDrift: () => number | null,
-    opts: { threshold: number; maxPasses: number; measure: 'full' | 'incremental' | 'none'; navigating: boolean; onStart?: () => void; onFinish?: () => void },
-  ): void {
-    if (_corrState) finishCorrectionState(_corrState);
-    _corrState = { computeDrift, ...opts, pass: 0 };
-    scheduleFrame(DIRTY_CORRECTION);
-  }
-
-  function processCorrection(): void {
-    if (!_corrState) return;
-    if (!scrollContainer || _corrState.pass >= _corrState.maxPasses) {
-      const s = _corrState; _corrState = null;
-      finishCorrectionState(s);
+    if (downHeadDelta === 0 && upTailDelta === 0) {
+      rangeStart = newStart;
+      rangeEnd = newEnd;
       return;
     }
-    if (_corrState.pass === 0 && _corrState.onStart) {
-      _corrState.onStart();
-      _corrState.onStart = undefined;
+
+    if (upTailDelta !== 0) {
+      vlog('rebuild:up-edge', { newStart, newEnd, upTailDelta, downHeadDelta });
+      rebuildAtView();
+      return;
     }
-    if (_corrState.measure === 'full') measureAndRecalculate();
-    else if (_corrState.measure === 'incremental') measureAndRecalculateIncremental();
-    const drift = _corrState.computeDrift();
+
+    const anchorIdx = Math.max(oldDownHead, newDownHead);
+    if (anchorIdx >= newEnd || anchorIdx >= oldEnd || !refEl(anchorIdx)) {
+      vlog('rebuild:down-anchor', { newStart, newEnd, anchorIdx });
+      rebuildAtView();
+      return;
+    }
+    if (downHeadDelta > 0) {
+      const headEl = refEl(oldDownHead);
+      const survivorEl = refEl(newDownHead);
+      if (headEl && survivorEl) {
+        downOffset += survivorEl.getBoundingClientRect().top - headEl.getBoundingClientRect().top;
+      } else {
+        downOffset += sumEstimate(oldDownHead, newDownHead);
+      }
+    } else {
+      downOffset -= sumEstimate(newDownHead, oldDownHead);
+    }
+
+    const anchorEl = refEl(anchorIdx);
+    const y0 = anchorEl?.getBoundingClientRect().top;
+
+    rangeStart = newStart;
+    rangeEnd = newEnd;
+    flushSync();
+
+    if (anchorEl && y0 != null && anchorEl.isConnected) {
+      const residual = anchorEl.getBoundingClientRect().top - y0;
+      if (residual !== 0) {
+        downOffset -= residual;
+        flushSync();
+      }
+      vlog('edge', { newStart, newEnd, downHeadDelta, residual: Math.round(residual * 10) / 10 });
+    } else {
+      vlog('edge:no-anchor-post', { newStart, newEnd, downHeadDelta });
+    }
+  }
+
+  function rebuildAtView(anchorOverride?: { key: string; y0: number } | null): void {
+    if (!scrollContainer || items.length === 0) return;
     const st = getScrollTop();
-    if (drift === null || Math.abs(drift) <= _corrState.threshold) {
-      const s = _corrState; _corrState = null;
-      finishCorrectionState(s);
+    const listOffset = getCanvasTopInContainer();
+    const viewTop = st - listOffset;
+
+    let anchorKey: string | null;
+    let anchorY0: number | undefined;
+    if (anchorOverride) {
+      anchorKey = anchorOverride.key;
+      anchorY0 = anchorOverride.y0;
+    } else {
+      const anchorIdx = findViewportAnchorIndex();
+      anchorKey = anchorIdx != null ? key(anchorIdx) : null;
+      anchorY0 = anchorKey != null ? itemRefs.get(anchorKey)?.getBoundingClientRect().top : undefined;
+    }
+
+    const isSmoothFlight = 'smoothScrolling' in scrollContainer.dataset;
+    const logicalTop = isSmoothFlight ? Math.max(0, viewTop) : Math.max(0, viewTop - headroom());
+    const approxIndex = Math.max(0, Math.min(items.length - 1, tree.findIndex(logicalTop)));
+    const avg = getAverageHeight();
+    const buf = Math.ceil(getEffectiveBufferPx() / avg);
+    const viewItems = Math.ceil(viewportHeight / avg);
+    const pivotIdx = Math.min(items.length - 1, approxIndex + viewItems + Math.ceil(buf / 2));
+    vlog('rebuildAtView', { viewTop: Math.round(viewTop), logicalTop: Math.round(logicalTop), approxIndex, pivotIdx, headroom: Math.round(headroom()), smooth: isSmoothFlight });
+    setPivot(pivotIdx, isSmoothFlight ? tree.prefixSum(pivotIdx) : Math.max(0, viewTop) + topMargin + sumEstimate(approxIndex, pivotIdx));
+    rangeStart = Math.max(0, approxIndex - buf);
+    rangeEnd = Math.min(items.length, Math.max(pivotIdx + 2, approxIndex + buf + SCROLLTO_EXTRA_BUFFER));
+    growCanvas(tree.total + Math.max(0, viewTop + viewportHeight - tree.total));
+    flushSync();
+
+    if (isSmoothFlight) return;
+
+    if (anchorKey != null && anchorY0 != null) {
+      const el = itemRefs.get(anchorKey);
+      if (el && el.isConnected) {
+        const residual = el.getBoundingClientRect().top - anchorY0;
+        if (residual !== 0) {
+          B -= residual;
+          growCanvas(requiredCanvasHeight());
+          flushSync();
+        }
+        vlog('rebuild:residual', { residual: Math.round(residual * 10) / 10 });
+      }
+    }
+  }
+
+  function setPivot(index: number, canvasY: number): void {
+    pivotIndex = index;
+    pivotKey = index >= 0 && index < items.length ? key(index) : '';
+    B = canvasY;
+    downOffset = 0;
+  }
+
+  function renderedEdges(): { top: number; bottom: number } | null {
+    if (rangeEnd <= rangeStart || !canvasEl) return null;
+    const canvasTop = canvasEl.getBoundingClientRect().top;
+    const firstEl = refEl(rangeStart);
+    const lastEl = refEl(rangeEnd - 1);
+    if (!firstEl || !lastEl) return null;
+    return {
+      top: firstEl.getBoundingClientRect().top - canvasTop,
+      bottom: lastEl.getBoundingClientRect().bottom - canvasTop,
+    };
+  }
+
+  function processScroll(): void {
+    frameQueued = false;
+    if (pendingEpochBump) {
+      pendingEpochBump = false;
+      measuredEpoch++;
+    }
+    if (!scrollContainer || items.length === 0 || isNavigating || effectivePaused) return;
+
+    const st = getScrollTop();
+    const listOffset = getCanvasTopInContainer();
+    const viewTop = st - listOffset;
+    const buf = getEffectiveBufferPx();
+    const wantTop = viewTop - buf;
+    const wantBottom = viewTop + viewportHeight + buf;
+    const dropTop = wantTop - buf * 0.5;
+    const dropBottom = wantBottom + buf * 0.5;
+    const avg = getAverageHeight();
+
+    const edges = renderedEdges();
+    const renderedTop = edges ? edges.top : B + downOffset;
+    const renderedBottom = edges ? edges.bottom : B + downOffset;
+
+    let ns = rangeStart;
+    let ne = rangeEnd;
+
+    if (renderedTop > wantTop && ns > 0) {
+      ns = Math.max(0, ns - Math.max(1, Math.ceil((renderedTop - wantTop) / avg)));
+    } else if (renderedTop < dropTop && ns < rangeEnd) {
+      ns = Math.min(rangeEnd, ns + countDroppableFromTop(dropTop));
+    }
+
+    if (renderedBottom < wantBottom && ne < items.length) {
+      ne = Math.min(items.length, ne + Math.max(1, Math.ceil((wantBottom - renderedBottom) / avg)));
+    } else if (renderedBottom > dropBottom && ne > ns) {
+      ne = Math.max(ns, ne - countDroppableFromBottom(dropBottom));
+    }
+
+    updateVisibleBounds(viewTop);
+    const prevRs = rangeStart;
+    const prevRe = rangeEnd;
+    applyRange(ns, ne);
+    growCanvas(requiredCanvasHeight());
+    const rangeChanged = rangeStart !== prevRs || rangeEnd !== prevRe;
+    if (!rangeChanged && rangeEnd >= items.length && rangeEnd > rangeStart) {
+      const req = requiredCanvasHeight();
+      if (canvasHeight > req + 1) canvasHeight = req;
+    }
+    maybeEmergencyRecenter(st, listOffset);
+    scheduleSettlement();
+    if (rangeChanged && !frameQueued) {
+      frameQueued = true;
+      requestAnimationFrame(processScroll);
+    }
+
+    if (scrollContainer) {
+      lastValidScrollContainer = scrollContainer;
+      lastKnownScrollTop = st;
+      lastKnownAnchorIndex = findViewportAnchorIndex() ?? lastKnownAnchorIndex;
+    }
+
+    onScroll?.();
+    onRangeChange?.({ start: rangeStart, end: rangeEnd });
+  }
+
+  function updateVisibleBounds(viewTop: number): void {
+    if (!canvasEl || rangeEnd <= rangeStart) return;
+    const canvasTop = canvasEl.getBoundingClientRect().top;
+    const vBottom = viewTop + viewportHeight;
+    let vs = rangeStart;
+    for (let i = rangeStart; i < rangeEnd; i++) {
+      const el = refEl(i);
+      if (!el) continue;
+      vs = i;
+      if (el.getBoundingClientRect().bottom - canvasTop > viewTop) break;
+    }
+    let ve = vs;
+    for (let i = rangeEnd - 1; i >= vs; i--) {
+      const el = refEl(i);
+      if (!el) continue;
+      ve = i;
+      if (el.getBoundingClientRect().top - canvasTop < vBottom) break;
+    }
+    visibleStart = vs;
+    visibleEnd = ve;
+  }
+
+  function isCvAuto(index: number, _epoch: number): boolean {
+    const margin = Math.max(CV_CORE_MARGIN, Math.ceil(getEffectiveBufferPx() / getAverageHeight()));
+    if (index >= visibleStart - margin && index <= visibleEnd + margin) return false;
+    return tree.isMeasured(index);
+  }
+
+  function countDroppableFromTop(limit: number): number {
+    if (!canvasEl) return 0;
+    const canvasTop = canvasEl.getBoundingClientRect().top;
+    let count = 0;
+    for (let i = rangeStart; i < rangeEnd; i++) {
+      const el = refEl(i);
+      if (!el) break;
+      if (el.getBoundingClientRect().bottom - canvasTop < limit) count++;
+      else break;
+    }
+    return count;
+  }
+
+  function countDroppableFromBottom(limit: number): number {
+    if (!canvasEl) return 0;
+    const canvasTop = canvasEl.getBoundingClientRect().top;
+    let count = 0;
+    for (let i = rangeEnd - 1; i >= rangeStart; i--) {
+      const el = refEl(i);
+      if (!el) break;
+      if (el.getBoundingClientRect().top - canvasTop > limit) count++;
+      else break;
+    }
+    return count;
+  }
+
+  function findViewportAnchorIndex(): number | null {
+    if (!scrollContainer || !canvasEl) return null;
+    const containerTop = isWindowScroll ? 0 : scrollContainer.getBoundingClientRect().top;
+    const headerBottom = containerTop + topMargin;
+    for (let i = rangeStart; i < rangeEnd; i++) {
+      const el = refEl(i);
+      if (el && el.getBoundingClientRect().top >= headerBottom - 1) return i;
+    }
+    return null;
+  }
+
+  function headroom(): number {
+    const edges = renderedEdges();
+    const renderedTop = edges ? edges.top : B + downOffset;
+    return renderedTop - sumEstimate(0, rangeStart);
+  }
+
+  function recenter(): boolean {
+    if (!scrollContainer || isNavigating) return false;
+    if ('smoothScrolling' in scrollContainer.dataset) return false;
+    if (!renderedEdges()) return false;
+    const gap = Math.round(headroom());
+    if (Math.abs(gap) < 1) return false;
+    const st = getScrollTop();
+    if (st <= topMargin && (gap > 0 || refreshToTop)) {
+      B -= gap;
+      canvasHeight = Math.max(requiredCanvasHeight(), canvasHeight - gap);
+      vlog('recenter:pinned', { gap });
+      return true;
+    }
+    const delta = Math.max(-gap, -st);
+    B += delta;
+    canvasHeight = Math.max(requiredCanvasHeight(), canvasHeight + delta);
+    flushSync();
+    setScrollTop(st + delta);
+    vlog('recenter:parallel', { delta });
+    return true;
+  }
+
+  function maybeEmergencyRecenter(st: number, listOffset: number): void {
+    if (st - listOffset < viewportHeight * 2 && Math.abs(headroom()) >= 1) {
+      recenter();
+    }
+  }
+
+  function isUserInteracting(): boolean {
+    const now = Date.now();
+    if (now - lastTouchTime < 300) return true;
+    if (now - lastUserScrollTime < SETTLE_IDLE_MS) return true;
+    if (!scrollContainer) return false;
+    const st = getScrollTop();
+    if (st < 0) return true;
+    const maxScroll = (isWindowScroll ? document.documentElement.scrollHeight - window.innerHeight : scrollContainer.scrollHeight - scrollContainer.clientHeight);
+    if (st > maxScroll) return true;
+    return false;
+  }
+
+  function scheduleSettlement(): void {
+    if (settlementId !== null) return;
+    settlementId = (typeof requestIdleCallback !== 'undefined')
+      ? requestIdleCallback(processSettlement, { timeout: 1000 })
+      : setTimeout(processSettlement, SETTLE_IDLE_MS) as unknown as number;
+  }
+
+  function cancelSettlement(): void {
+    if (settlementId !== null) {
+      if (typeof cancelIdleCallback !== 'undefined') cancelIdleCallback(settlementId);
+      else clearTimeout(settlementId);
+      settlementId = null;
+    }
+  }
+
+  function processSettlement(): void {
+    settlementId = null;
+    if (!scrollContainer || isNavigating || effectivePaused) return;
+    if (isUserInteracting()) {
+      scheduleSettlement();
       return;
     }
-    setScrollTop(st + drift);
-    _corrState.pass++;
-    scheduleFrame(DIRTY_CORRECTION);
-  }
-
-  function cancelCorrection(): void {
-    if (_corrState) finishCorrectionState(_corrState);
-    _corrState = null;
-  }
-
-  function processFrame(): void {
-    _cachedScrollTop = (isWindowScroll ? window.scrollY : scrollContainer?.scrollTop ?? 0);
-    cacheContainerTop();
-
-    if (frameDirty & DIRTY_HEIGHTS) {
-      frameDirty &= ~DIRTY_HEIGHTS;
-      flushHeightUpdates();
+    const st = getScrollTop();
+    if (st - getCanvasTopInContainer() < viewportHeight * 2 && Math.abs(headroom()) >= 1) {
+      recenter();
     }
-
-    if (frameDirty & DIRTY_CORRECTION) {
-      frameDirty &= ~DIRTY_CORRECTION;
-      processCorrection();
-    }
-
-    const buf = getEffectiveBuffer();
-    const oldRangeStart = Math.max(0, visibleStart - buf);
-
-    if ((frameDirty & DIRTY_SCROLL) && !isNavigating) {
-      frameDirty &= ~DIRTY_SCROLL;
-      _cachedScrollTop = (isWindowScroll ? window.scrollY : scrollContainer?.scrollTop ?? 0);
-      updateVisibleRange();
-      onScroll?.();
-      if (scrollContainer) {
-        lastValidScrollContainer = scrollContainer;
-        lastKnownScrollTop = _cachedScrollTop;
-        lastKnownVisibleStart = visibleStart;
-      }
-    }
-
-    const newRangeStart = Math.max(0, visibleStart - buf);
-
-    if (newRangeStart > oldRangeStart && newRangeStart < items.length) {
-      const refKey = getKey(items[newRangeStart], newRangeStart);
-      const driftRefEl = itemRefs.get(refKey) ?? null;
-      if (driftRefEl) {
-        const driftRefY = driftRefEl.getBoundingClientRect().top;
-        tick().then(() => {
-          const newY = driftRefEl.getBoundingClientRect().top;
-          const drift = newY - driftRefY;
-          if (Math.abs(drift) > 0.5) {
-            setScrollTop(getScrollTop() + Math.round(drift));
-          }
-        });
-      }
-    }
-
-    if (_postCorrectionAnchor) {
-      const anchor = _postCorrectionAnchor;
-      _postCorrectionAnchor = null;
-      tick().then(() => {
-        const el = itemRefs.get(anchor.key);
-        if (el && topSpacerEl) {
-          const cTop = isWindowScroll ? 0 : scrollContainer?.getBoundingClientRect().top ?? 0;
-          const residual = el.getBoundingClientRect().top - cTop - anchor.visualY;
-          if (Math.abs(residual) > 0.01) {
-            topSpacerEl.style.height = (topSpacerHeight - residual) + 'px';
-          }
-        }
-      });
-    }
-
-    if (newRangeStart < oldRangeStart && topSpacerEl) {
-      let heightDelta = 0;
-      for (let i = newRangeStart; i < oldRangeStart && i < items.length; i++) {
-        const key = getKey(items[i], i);
-        const pendingH = pendingHeights.get(key);
-        const treeVal = tree.get(i);
-        if (pendingH !== undefined && isHeightChanged(treeVal, pendingH)) {
-          heightDelta += pendingH - treeVal;
-          tree.setMeasured(i, pendingH);
-          pendingHeights.delete(key);
-        } else if (pendingH === undefined) {
-          const el = itemRefs.get(key);
-          if (el) {
-            const domH = el.getBoundingClientRect().height;
-            if (domH > 0 && isHeightChanged(treeVal, domH)) {
-              heightDelta += domH - treeVal;
-              tree.setMeasured(i, domH);
-            }
-          }
-        }
-      }
-      if (heightDelta !== 0) {
-        spacerHeightAdjustment -= heightDelta;
-        applyTopSpacerHeight(newRangeStart);
-      }
-
-      const isUserScrolling = Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS;
-      if (scrollContainer && !isNavigating && isUserScrolling) {
-        let anchorEl: HTMLElement | null = null;
-        let anchorYBefore = 0;
-        const containerTop = isWindowScroll ? 0 : scrollContainer.getBoundingClientRect().top;
-        const headerBottom = containerTop + topMargin;
-        for (let i = visibleStart; i < Math.min(visibleEnd + 1, items.length); i++) {
-          const k = getKey(items[i], i);
-          const el = itemRefs.get(k);
-          if (el) {
-            const rect = el.getBoundingClientRect();
-            if (rect.top >= headerBottom) {
-              anchorEl = el;
-              anchorYBefore = rect.top;
-              break;
-            }
-          }
-        }
-        if (anchorEl) {
-          const capturedEl = anchorEl;
-          const targetY = anchorYBefore;
-          const capturedNewStart = newRangeStart;
-          const capturedOldStart = oldRangeStart;
-          tick().then(() => {
-            let postDelta = 0;
-            for (let i = capturedNewStart; i < capturedOldStart && i < items.length; i++) {
-              const key = getKey(items[i], i);
-              const el = itemRefs.get(key);
-              if (el) {
-                const domH = el.getBoundingClientRect().height;
-                if (domH > 0) {
-                  const treeVal = tree.get(i);
-                  if (!tree.isMeasured(i) || isHeightChanged(treeVal, domH)) {
-                    postDelta += domH - treeVal;
-                    tree.setMeasured(i, domH);
-                    pendingHeights.delete(key);
-                  }
-                }
-              }
-            }
-            if (postDelta !== 0) {
-              spacerHeightAdjustment -= postDelta;
-              applyTopSpacerHeight(capturedNewStart);
-            }
-            const newY = capturedEl.getBoundingClientRect().top;
-            const drift = newY - targetY;
-            if (Math.abs(drift) > 0.5) {
-              setScrollTop(getScrollTop() + Math.round(drift));
-            }
-          });
-        }
-      }
-    }
-
-    _cachedScrollTop = -1;
-    clearContainerTopCache();
-
-    frameId = null;
-    if (frameDirty !== 0) {
-      frameId = requestAnimationFrame(processFrame);
+    const required = requiredCanvasHeight();
+    if (canvasHeight > required + viewportHeight) {
+      canvasHeight = required;
     }
   }
 
-  function handleScroll(): void {
-    if (isNavigating || effectivePaused) return;
+  function handleScrollEvent(): void {
     if (_programmaticScroll) {
       _programmaticScroll = false;
     } else {
       lastUserScrollTime = Date.now();
     }
-    scheduleFrame(DIRTY_SCROLL);
-  }
-
-  function cancelEarlyCheck(): void {
-    if (earlyCheckId !== null) {
-      if (typeof cancelIdleCallback !== 'undefined') cancelIdleCallback(earlyCheckId);
-      else clearTimeout(earlyCheckId);
-      earlyCheckId = null;
+    if (!frameQueued) {
+      frameQueued = true;
+      requestAnimationFrame(processScroll);
     }
   }
 
-  function scheduleEarlyCheck(): void {
-    if (earlyCheckId !== null) return;
-    earlyCheckId = (typeof requestIdleCallback !== 'undefined')
-      ? requestIdleCallback(idleBufferCheck, { timeout: 100 })
-      : setTimeout(idleBufferCheck, 0) as unknown as number;
-  }
-
-  function idleBufferCheck(): void {
-    earlyCheckId = null;
-
-    if (frameDirty !== 0 && frameId === null) {
-      frameId = requestAnimationFrame(processFrame);
-    }
-
-    if (earlyCheckCountdown > 0 && topSpacerEl && !isNavigating) {
-      earlyCheckCountdown--;
-      const rangeStart = Math.max(0, visibleStart - getEffectiveBuffer());
-      let heightDelta = 0;
-      for (let i = rangeStart; i < visibleStart && i < items.length && i < tree.length; i++) {
-        const key = getKey(items[i], i);
-        if (pendingHeights.has(key)) continue;
-        const el = itemRefs.get(key);
-        if (!el) continue;
-        const domH = el.getBoundingClientRect().height;
-        if (domH <= 0) continue;
-        const treeVal = tree.get(i);
-        const bufDelta = domH - treeVal;
-        if (bufDelta === 0) continue;
-        heightDelta += bufDelta;
-        tree.setMeasured(i, domH);
-      }
-      if (heightDelta !== 0) {
-        spacerHeightAdjustment -= heightDelta;
-        applyTopSpacerHeight(rangeStart);
-      }
-    }
-
-    if (earlyCheckCountdown > 0) {
-      scheduleEarlyCheck();
-    }
-  }
-
-  function findIndexForKey(key: string): number | undefined {
-    const buf = getEffectiveBuffer();
-    const rangeStart = Math.max(0, visibleStart - buf);
-    const rangeEnd = Math.min(items.length, visibleEnd + buf);
-    for (let i = rangeStart; i < rangeEnd; i++) {
-      if (getKey(items[i], i) === key) return i;
-    }
-    return undefined;
-  }
-
-  function measureTransitioningItems(fromIdx: number, toIdx: number): void {
-    const oldRangeEnd = visibleEnd + getEffectiveBuffer();
-    for (let i = fromIdx; i < Math.min(toIdx, oldRangeEnd); i++) {
-      if (i >= items.length) break;
-      const key = getKey(items[i], i);
-      if (tree.isMeasured(i) && i < tree.length) {
-        const pendingH = pendingHeights.get(key);
-        if (pendingH !== undefined) {
-          tree.setMeasured(i, pendingH);
-          pendingHeights.delete(key);
-        }
-        continue;
-      }
-      const el = itemRefs.get(key);
-      if (!el) continue;
-      const h = el.getBoundingClientRect().height;
-      if (h <= 0) continue;
-      tree.setMeasured(i, h);
-    }
-  }
-
-  function flushPendingToTree(minIndex = 0): boolean {
-    if (pendingHeights.size === 0) return false;
-
-    let hasChanges = false;
-    const toDelete: string[] = [];
-
-    for (const [key, newHeight] of pendingHeights) {
-      const idx = findIndexForKey(key);
-      if (idx === undefined) {
-        if (!itemRefs.has(key)) toDelete.push(key);
-        continue;
-      }
-      toDelete.push(key);
-      const oldHeight = tree.isMeasured(idx) ? tree.get(idx) : undefined;
-      if (oldHeight !== undefined && !isHeightChanged(oldHeight, newHeight)) continue;
-      if (idx >= minIndex && idx < tree.length) {
-        tree.setMeasured(idx, newHeight);
-        hasChanges = true;
-      }
-    }
-
-    for (const key of toDelete) pendingHeights.delete(key);
-    if (pendingHeights.size === 0) frameDirty &= ~DIRTY_HEIGHTS;
-    return hasChanges;
-  }
-
-  function flushHeightUpdates(): void {
-    if (isNavigating) {
-      if (pendingHeights.size > 0) {
-        scheduleFrame(DIRTY_HEIGHTS);
-      }
-      return;
-    }
-
-    if (pendingHeights.size === 0) {
-      return;
-    }
-
-    const buf = getEffectiveBuffer();
-    const rangeStart = Math.max(0, visibleStart - buf);
-    const hasChanges = flushPendingToTree(rangeStart);
-
-    if (hasChanges) {
-      if (tree.length !== items.length) {
-        recalculatePositions();
-        const rs = Math.max(0, visibleStart - buf);
-        if (rs === 0) {
-          spacerHeightAdjustment = 0;
-        } else {
-          spacerHeightAdjustment = topSpacerHeight - tree.prefixSum(rs);
-        }
-      }
-      invalidateLayout();
-
-      frameDirty |= DIRTY_SCROLL;
-    }
-  }
-
-  let resizeObserver: ResizeObserver | null = null;
-
-  function handleItemResizeBatch(entries: ResizeObserverEntry[]): void {
-    if (isDocumentHidden) return;
-    cacheContainerTop();
-    let immediateAboveDelta = 0;
-    let visibleAboveDelta = 0;
-    let hasDirectTreeUpdate = false;
-    const visibleBelowHeaderDeltas: Array<{idx: number, delta: number}> = [];
-    const resizedIndices = new Set<number>();
-
-    for (const entry of entries) {
-      const el = entry.target as HTMLElement;
-      const key = el.dataset.virtualKey;
-      if (!key) continue;
-
-      if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true })) continue;
-
-      const newHeight = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
-      if (newHeight <= 0) continue;
-
-      const idx = !isNavigating ? findIndexForKey(key) : undefined;
-      const oldHeight = idx !== undefined && tree.isMeasured(idx) ? tree.get(idx) : undefined;
-      if (oldHeight !== undefined && !isHeightChanged(oldHeight, newHeight, HEIGHT_CHANGE_THRESHOLD)) {
-        continue;
-      }
-
-      pendingHeights.set(key, newHeight);
-
-      if (!isNavigating && idx !== undefined) {
-        if (idx < visibleStart && idx < tree.length) {
-          const prevHeight = oldHeight ?? tree.get(idx);
-          const delta = newHeight - prevHeight;
-          if (isHeightChanged(delta, 0)) {
-            immediateAboveDelta += delta;
-          }
-        } else if (oldHeight !== undefined && idx >= visibleStart) {
-          resizedIndices.add(idx);
-          if (getScrollTop() > topMargin) {
-            const rect = el.getBoundingClientRect();
-            const containerTop = getContainerTop();
-            const relTop = rect.top - containerTop;
-            if (relTop < topMargin) {
-              const delta = newHeight - oldHeight;
-              if (isHeightChanged(delta, 0)) {
-                visibleAboveDelta += delta;
-              }
-            } else {
-              const delta = newHeight - oldHeight;
-              if (isHeightChanged(delta, 0)) {
-                visibleBelowHeaderDeltas.push({idx, delta});
-              }
-            }
-          }
-        } else if (oldHeight === undefined && idx >= visibleStart && idx < tree.length) {
-          const treeValue = tree.get(idx);
-          const estimateDelta = newHeight - treeValue;
-          if (isHeightChanged(estimateDelta, 0)) {
-            tree.setMeasured(idx, newHeight);
-            pendingHeights.delete(key);
-            hasDirectTreeUpdate = true;
-            resizedIndices.add(idx);
-            if (getScrollTop() > topMargin) {
-              const rect = el.getBoundingClientRect();
-              const containerTop = getContainerTop();
-              const relTop = rect.top - containerTop;
-              if (relTop < topMargin) {
-                visibleAboveDelta += estimateDelta;
-              } else {
-                visibleBelowHeaderDeltas.push({idx, delta: estimateDelta});
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (immediateAboveDelta !== 0 && topSpacerEl) {
-      spacerHeightAdjustment -= immediateAboveDelta;
-      const rangeStart = Math.max(0, visibleStart - getEffectiveBuffer());
-      const prefix = tree.prefixSum(rangeStart);
-      const rawSpacerHeight = prefix + spacerHeightAdjustment;
-      if (rawSpacerHeight < 0 && spacerHeightAdjustment < 0 && scrollContainer) {
-        const excess = -rawSpacerHeight;
-        spacerHeightAdjustment += excess;
-        const currentSt = getScrollTop();
-        if (currentSt > 0) {
-          setScrollTop(currentSt + excess);
-        }
-      }
-      if (rangeStart === 0 && spacerHeightAdjustment > 0 && scrollContainer) {
-        const excess = spacerHeightAdjustment;
-        spacerHeightAdjustment = 0;
-        const currentSt = getScrollTop();
-        if (currentSt > 0) setScrollTop(Math.max(0, currentSt - excess));
-      }
-      applyTopSpacerHeight(rangeStart);
-    }
-
-    if (visibleAboveDelta !== 0 && scrollContainer && !('smoothScrolling' in scrollContainer.dataset)) {
-      _visibleItemScrollOffset += visibleAboveDelta;
-      const st = getScrollTop();
-      setScrollTop(st + visibleAboveDelta);
-    }
-
-    if (visibleBelowHeaderDeltas.length > 0 && scrollContainer && !('smoothScrolling' in scrollContainer.dataset)) {
-      const containerTop = getContainerTop();
-      const headerBottom = containerTop + topMargin;
-      let anchorIdx = -1;
-
-      for (let i = visibleStart; i <= visibleEnd && i < items.length; i++) {
-        const key = getKey(items[i], i);
-        const el = itemRefs.get(key);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top >= headerBottom) {
-            anchorIdx = i;
-            break;
-          }
-        }
-      }
-
-      if (anchorIdx >= 0) {
-        let additionalDelta = 0;
-        for (const {idx, delta} of visibleBelowHeaderDeltas) {
-          if (idx < anchorIdx) {
-            additionalDelta += delta;
-          }
-        }
-        if (additionalDelta !== 0) {
-          _visibleItemScrollOffset += additionalDelta;
-          setScrollTop(getScrollTop() + additionalDelta);
-        }
-      }
-    }
-
-    clearContainerTopCache();
-
-    if (pendingHeights.size > 0 && !effectivePaused) {
-      earlyCheckCountdown = EARLY_CHECK_FRAMES;
-      scheduleFrame(DIRTY_HEIGHTS);
-      scheduleEarlyCheck();
-    } else if (hasDirectTreeUpdate && !effectivePaused) {
-      scheduleFrame(DIRTY_SCROLL);
-    }
-  }
-
-  function handleUserScroll() {
+  function handleUserInput(): void {
     lastUserScrollTime = Date.now();
   }
 
-  function scrollContainerAttach(element: HTMLElement) {
-    resizeObserver = new ResizeObserver(handleItemResizeBatch);
-    lastValidScrollContainer = scrollContainer ?? null;
-    lastKnownScrollTop = getScrollTop();
-
-    const scrollTarget = isWindowScroll ? window : scrollContainer!;
-    scrollTarget.addEventListener('scroll', handleScroll, { passive: true });
-    scrollTarget.addEventListener('wheel', handleUserScroll, { passive: true });
-    scrollTarget.addEventListener('touchmove', handleUserScroll, { passive: true });
-
-    let extraCleanup: (() => void) | undefined;
-
-    if (isWindowScroll) {
-      viewportHeight = window.innerHeight;
-      const handleResize = () => {
-        const newHeight = window.innerHeight;
-        if (newHeight !== viewportHeight && newHeight > 0) {
-          viewportHeight = newHeight;
-          updateVisibleRange();
-        }
-      };
-      window.addEventListener('resize', handleResize, { passive: true });
-      extraCleanup = () => window.removeEventListener('resize', handleResize);
-    } else {
-      viewportHeight = scrollContainer!.clientHeight;
-      const containerObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const newHeight = entry.contentRect.height;
-          if (newHeight !== viewportHeight && newHeight > 0) {
-            viewportHeight = newHeight;
-            updateVisibleRange();
-          }
-        }
-      });
-      containerObserver.observe(scrollContainer!);
-      extraCleanup = () => containerObserver.disconnect();
-    }
-
-    if (!initialScrollState || hasRestoredScroll) {
-      queueMicrotask(() => updateVisibleRange());
-    } else if (initialScrollState.scrollTop != null) {
-      setScrollTop(Math.max(0, initialScrollState.scrollTop));
-    }
-
-    return () => {
-      cancelEarlyCheck();
-      cancelFrame();
-      cancelCorrection();
-
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver = null;
-      }
-      scrollTarget.removeEventListener('scroll', handleScroll);
-      scrollTarget.removeEventListener('wheel', handleUserScroll);
-      scrollTarget.removeEventListener('touchmove', handleUserScroll);
-      extraCleanup?.();
-    };
+  function handleTouch(): void {
+    lastTouchTime = Date.now();
+    lastUserScrollTime = Date.now();
   }
 
-  function itemAttach(key: string) {
-    return (element: HTMLElement) => {
-      element.dataset.virtualKey = key;
-      resizeObserver?.observe(element);
-      itemRefs.set(key, element);
-
-      return () => {
-        resizeObserver?.unobserve(element);
-        itemRefs.delete(key);
-      };
-    };
-  }
-
-  function captureAnchorItem(
-    shiftCount: number
-  ): { key: string; visualY: number } | null {
-    if (!scrollContainer) return null;
-    const cTop = getContainerTop();
-
-    for (let oldIdx = visibleStart; oldIdx < visibleEnd; oldIdx++) {
-      const newIdx = oldIdx + shiftCount;
-      if (newIdx >= items.length) break;
-      const key = getKey(items[newIdx], newIdx);
-      const el = itemRefs.get(key);
-      if (!el) continue;
-      const vy = el.getBoundingClientRect().top - cTop;
-      if (vy >= topMargin - ANCHOR_TOLERANCE) {
-        return { key, visualY: vy };
+  function handleResizeEntries(entries: ResizeObserverEntry[]): void {
+    if (isDocumentHidden) return;
+    let changed = false;
+    let downAboveDelta = 0;
+    let upBelowDelta = 0;
+    let anchorIdx: number | null | undefined = undefined;
+    for (const entry of entries) {
+      const el = entry.target as HTMLElement;
+      const k = el.dataset.virtualKey;
+      if (!k) continue;
+      if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true })) continue;
+      const h = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+      if (h <= 0) continue;
+      const idx = findIndexForKey(k);
+      if (idx === undefined || idx >= tree.length) continue;
+      const wasMeasured = tree.isMeasured(idx);
+      const old = wasMeasured ? tree.get(idx) : undefined;
+      if (old !== undefined && Math.abs(old - h) < HEIGHT_CHANGE_THRESHOLD) continue;
+      tree.setMeasured(idx, h);
+      changed = true;
+      if (!wasMeasured) pendingEpochBump = true;
+      if (!wasMeasured || old === undefined || isNavigating) continue;
+      if (anchorIdx === undefined) anchorIdx = findViewportAnchorIndex();
+      if (anchorIdx === null) continue;
+      if (idx >= pivotIndex && idx < anchorIdx) {
+        downAboveDelta += h - old;
+      } else if (idx < pivotIndex && idx >= anchorIdx) {
+        upBelowDelta += h - old;
       }
     }
-
-    const newIdx = visibleStart + shiftCount;
-    if (newIdx < items.length) {
-      const key = getKey(items[newIdx], newIdx);
-      const el = itemRefs.get(key);
-      const vy = el
-        ? el.getBoundingClientRect().top - cTop
-        : 0;
-      return { key, visualY: vy };
+    if (downAboveDelta !== 0 || upBelowDelta !== 0) {
+      downOffset -= downAboveDelta;
+      B += upBelowDelta;
+      growCanvas(requiredCanvasHeight());
+      flushSync();
+      vlog('ro:comp', { downAboveDelta, upBelowDelta, anchorIdx });
     }
-
-    return null;
+    if (changed && !effectivePaused) {
+      growCanvas(requiredCanvasHeight());
+      if (!frameQueued) {
+        frameQueued = true;
+        requestAnimationFrame(processScroll);
+      }
+    }
   }
 
-  function captureAnchorWithDefaults(shiftCount: number): { key: string; visualY: number } {
-    const anchor = captureAnchorItem(shiftCount);
-    return { key: anchor?.key ?? '', visualY: anchor?.visualY ?? 0 };
+  function findIndexForKey(k: string): number | undefined {
+    for (let i = rangeStart; i < rangeEnd; i++) {
+      if (key(i) === k) return i;
+    }
+    return undefined;
   }
 
   function detectPrependShift(firstKey: string, prevKey: string): number {
     if (!prevKey || firstKey === prevKey) return 0;
     const limit = Math.min(items.length, PREPEND_SEARCH_LIMIT);
     for (let i = 1; i < limit; i++) {
-      if (getKey(items[i], i) === prevKey) return i;
+      if (key(i) === prevKey) return i;
     }
     return 0;
   }
 
-  function handlePrePrependRefreshToTop(shiftCount: number): void {
-    prependPositions(shiftCount);
-    visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
-    invalidateLayout();
-    scheduleFrame(DIRTY_SCROLL);
-    quickPrependHandled = true;
-  }
-
-  function handlePrePrependActiveScroll(shiftCount: number): void {
-    const { key: anchorKey, visualY: anchorVisualY } = captureAnchorWithDefaults(shiftCount);
-
-    scrollContainer!.style.overflowAnchor = 'none';
-    prependPositions(shiftCount);
-    const scrollDelta = tree.length > 0 ? tree.prefixSum(shiftCount) : (shiftCount * getAverageHeight());
-    setScrollTop(getScrollTop() + scrollDelta);
-    visibleStart = Math.max(0, visibleStart + shiftCount);
-    visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
-    quickPrependHandled = true;
-
-    if (anchorKey) {
-      startCorrection(
-        () => {
-          const el = itemRefs.get(anchorKey);
-          if (!el) return null;
-          return el.getBoundingClientRect().top - getContainerTop() - anchorVisualY;
-        },
-        {
-          threshold: DRIFT_THRESHOLD_POSITION,
-          maxPasses: CORRECTION_MAX_PASSES,
-          measure: 'none',
-          navigating: false,
-          onFinish: () => {
-            _postCorrectionAnchor = { key: anchorKey, visualY: anchorVisualY };
-            if (scrollContainer) scrollContainer.style.overflowAnchor = '';
-          },
-        },
-      );
-    } else {
-      startCorrection(
-        () => null,
-        {
-          threshold: 0,
-          maxPasses: 1,
-          measure: 'none',
-          navigating: false,
-          onFinish: () => { if (scrollContainer) scrollContainer.style.overflowAnchor = ''; },
-        },
-      );
+  function reconcileTreeLength(): void {
+    const len = items.length;
+    const avg = getAverageHeight();
+    if (tree.length > len) {
+      tree.truncate(len, avg);
+    } else if (tree.length < len) {
+      tree.extendWithCallback(len - tree.length, () => avg);
     }
   }
 
-  function handlePrePrependIdle(shiftCount: number): void {
-    prependPositions(shiftCount);
+  function handleItemsClear(): void {
+    tree.clear();
+    pivotIndex = 0;
+    pivotKey = '';
+    B = 0;
+    downOffset = 0;
+    rangeStart = 0;
+    rangeEnd = 0;
+    canvasHeight = 0;
+    prevItemCount = 0;
+    prevFirstKey = '';
+    prevLastKey = '';
+  }
 
-    const newVisibleStart = Math.max(0, visibleStart + shiftCount);
-    const buf = getEffectiveBuffer();
-    const rangeStart = Math.max(0, newVisibleStart - buf);
-    const newSpacerHeight = computeTopSpacerHeight(rangeStart);
-    if (topSpacerEl) topSpacerEl.style.height = newSpacerHeight + 'px';
-    topSpacerHeight = newSpacerHeight;
+  function handleItemsInitial(): void {
+    const avg = getAverageHeight();
+    tree.buildWithCallback(items.length, () => avg);
+    setPivot(0, 0);
+    rangeStart = 0;
+    rangeEnd = Math.min(items.length, initialRenderCount());
+    canvasHeight = Math.max(tree.total, initialScrollState?.scrollTop != null ? initialScrollState.scrollTop + 1000 : 0);
+  }
 
-    const scrollDelta = tree.prefixSum(shiftCount);
-    if (isDocumentHidden) {
-      _deferredScrollDelta += scrollDelta;
-    } else {
-      setScrollTop(getScrollTop() + scrollDelta);
+  function initialRenderCount(): number {
+    if (viewportHeight > 0) {
+      return Math.ceil((viewportHeight + getEffectiveBufferPx()) / getAverageHeight()) + 1;
     }
+    return FALLBACK_RENDER_COUNT;
+  }
 
-    visibleStart = newVisibleStart;
-    visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
-    quickPrependHandled = true;
+  function handleItemsAppend(oldCount: number): void {
+    tree.extendWithCallback(items.length - oldCount, () => getAverageHeight());
+    growCanvas(tree.total);
+  }
+
+  function handlePrepend(shiftCount: number): void {
+    tree.prependWithCallback(shiftCount, () => getAverageHeight());
+    pivotIndex += shiftCount;
+    rangeStart += shiftCount;
+    rangeEnd = Math.min(items.length, rangeEnd + shiftCount);
+    reconcileTreeLength();
+    growCanvas(tree.total);
+
+    if (scrollContainer && refreshToTop && getScrollTop() <= topMargin && !isNavigating) {
+      setPivot(0, 0);
+      rangeStart = 0;
+      rangeEnd = Math.min(items.length, initialRenderCount());
+      canvasHeight = Math.max(tree.total, getScrollTop() - getCanvasTopInContainer() + viewportHeight);
+    } else {
+      scheduleSettlement();
+    }
+  }
+
+  function handleItemsGenericChange(): void {
+    realignTreeByKey();
+    if (rangeEnd > items.length) rangeEnd = items.length;
+    if (rangeStart > rangeEnd) rangeStart = Math.max(0, rangeEnd - 1);
+    const resolved = resolvePivotKey();
+    if (!resolved) {
+      const aIdx = findViewportAnchorIndex();
+      const aKey = aIdx != null ? key(aIdx) : null;
+      const aY0 = aKey != null ? itemRefs.get(aKey)?.getBoundingClientRect().top : undefined;
+      const anchor = aKey != null && aY0 !== undefined ? { key: aKey, y0: aY0 } : null;
+      queueMicrotask(() => {
+        if (scrollContainer) rebuildAtView(anchor);
+      });
+      return;
+    }
+    growCanvas(tree.total);
+  }
+
+  function realignTreeByKey(): void {
+    const n = items.length;
+    if (prevKeys.length === 0) {
+      reconcileTreeLength();
+      return;
+    }
+    const oldIndexByKey = new Map<string, number>();
+    for (let i = 0; i < prevKeys.length; i++) oldIndexByKey.set(prevKeys[i], i);
+    const avg = getAverageHeight();
+    const heights = new Array(n);
+    const measured = new Array(n);
+    for (let j = 0; j < n; j++) {
+      const oldIdx = oldIndexByKey.get(key(j));
+      if (oldIdx !== undefined && oldIdx < tree.length && tree.isMeasured(oldIdx)) {
+        heights[j] = tree.get(oldIdx);
+        measured[j] = true;
+      } else {
+        heights[j] = avg;
+        measured[j] = false;
+      }
+    }
+    tree.buildWithMeasured(n, (j) => heights[j], (j) => measured[j]);
+  }
+
+  function resolvePivotKey(): boolean {
+    if (!pivotKey) return items.length === 0;
+    if (pivotIndex < items.length && key(pivotIndex) === pivotKey) return true;
+    const searchRadius = 50;
+    for (let d = 1; d <= searchRadius; d++) {
+      const lo = pivotIndex - d;
+      const hi = pivotIndex + d;
+      if (lo >= 0 && lo < items.length && key(lo) === pivotKey) {
+        pivotIndex = lo;
+        return true;
+      }
+      if (hi >= 0 && hi < items.length && key(hi) === pivotKey) {
+        pivotIndex = hi;
+        return true;
+      }
+    }
+    for (let i = 0; i < items.length; i++) {
+      if (key(i) === pivotKey) {
+        pivotIndex = i;
+        return true;
+      }
+    }
+    return false;
   }
 
   $effect.pre(() => {
@@ -1019,91 +733,8 @@
     void items;
 
     untrack(() => {
-      cachedPrependShift = 0;
-      if (len === 0 || prevItemCount === 0 || !scrollContainer) return;
-
-      const firstKey = getKey(items[0], 0);
-      const shiftCount = detectPrependShift(firstKey, prevFirstKey);
-      cachedPrependShift = shiftCount;
-
-      if (shiftCount > 0) {
-        if (refreshToTop && getScrollTop() <= topMargin) {
-          handlePrePrependRefreshToTop(shiftCount);
-        } else if (Date.now() - lastUserScrollTime < SCROLL_VELOCITY_THRESHOLD_MS || isNavigating) {
-          handlePrePrependActiveScroll(shiftCount);
-        } else {
-          handlePrePrependIdle(shiftCount);
-        }
-      }
-    });
-  });
-
-  function handleItemsClear(): void {
-    tree.clear();
-    pendingHeights.clear();
-    visibleStart = 0;
-    visibleEnd = 0;
-    prevItemCount = 0;
-    prevFirstKey = '';
-    prevLastKey = '';
-    minTotalHeight = 0;
-    spacerHeightAdjustment = 0;
-    _visibleItemScrollOffset = 0;
-    queueMicrotask(() => invalidateLayout());
-  }
-
-  function handleItemsInitial(): void {
-    pendingHeights.clear();
-    spacerHeightAdjustment = 0;
-    _visibleItemScrollOffset = 0;
-    const avg = getAverageHeight();
-    tree.buildWithCallback(items.length, () => avg);
-    if (!initialScrollState || hasRestoredScroll) {
-      queueMicrotask(() => {
-        invalidateLayout();
-        updateVisibleRange();
-      });
-    }
-  }
-
-  function handleItemsAppend(oldCount: number): void {
-    appendPositions(oldCount);
-    invalidateLayout();
-  }
-
-  function handleItemsGenericChange(): void {
-    spacerHeightAdjustment = 0;
-    _visibleItemScrollOffset = 0;
-    pendingHeights.clear();
-    if (visibleEnd > items.length) visibleEnd = items.length;
-    if (visibleStart > visibleEnd) visibleStart = Math.max(0, visibleEnd - 1);
-    recalculatePositions();
-    queueMicrotask(() => {
-      invalidateLayout();
-      updateVisibleRange();
-    });
-  }
-
-  function handlePrependSimple(shiftCount: number): void {
-    prependPositions(shiftCount);
-    visibleStart = Math.max(0, visibleStart + shiftCount);
-    visibleEnd = Math.min(items.length, visibleEnd + shiftCount);
-    invalidateLayout();
-  }
-
-  function handlePrependFullReset(): void {
-    pendingHeights.clear();
-    tree.clearMeasured();
-    handleItemsGenericChange();
-  }
-
-  $effect(() => {
-    const len = items.length;
-    void items;
-
-    untrack(() => {
-      const firstKey = len > 0 ? getKey(items[0], 0) : '';
-      const lastKey = len > 0 ? getKey(items[len - 1], len - 1) : '';
+      const firstKey = len > 0 ? key(0) : '';
+      const lastKey = len > 0 ? key(len - 1) : '';
       const oldCount = prevItemCount;
       const oldFirstKey = prevFirstKey;
       const oldLastKey = prevLastKey;
@@ -1112,196 +743,158 @@
       prevFirstKey = firstKey;
       prevLastKey = lastKey;
 
-      if (len === 0) { handleItemsClear(); }
-      else if (quickPrependHandled) {
-        quickPrependHandled = false;
-        if (tree.length > len) {
-          tree.truncate(len, getAverageHeight());
-        } else if (tree.length < len) {
-          tree.extendWithCallback(len - tree.length, () => getAverageHeight());
-        }
-        invalidateLayout();
+      const change = classifyItemChange(len, firstKey, lastKey, oldCount, oldFirstKey, oldLastKey, {
+        detectPrependShift,
+        getKeyAt: (i: number) => key(i),
+      });
+
+      if (typeof window !== 'undefined' && (window as any).__vlDebugOn && change.type !== 'unchanged') {
+        vlog('classify:' + change.type, { len, oldCount });
       }
-      else if (oldCount === 0) { handleItemsInitial(); }
-      else if (firstKey === oldFirstKey) {
-        if (len > oldCount && oldLastKey && getKey(items[oldCount - 1], oldCount - 1) === oldLastKey) {
-          handleItemsAppend(oldCount);
-        } else if (len !== oldCount || lastKey !== oldLastKey) {
-          handleItemsGenericChange();
+      switch (change.type) {
+        case 'clear': handleItemsClear(); break;
+        case 'initial': handleItemsInitial(); break;
+        case 'append': handleItemsAppend(change.oldCount); break;
+        case 'unchanged': break;
+        case 'generic': handleItemsGenericChange(); break;
+        case 'prependFullReset': handleItemsGenericChange(); break;
+        case 'prepend': handlePrepend(change.shiftCount); break;
+      }
+
+      if (change.type !== 'unchanged') {
+        prevKeys = Array.from({ length: len }, (_, i) => key(i));
+        if (!frameQueued) {
+          frameQueued = true;
+          requestAnimationFrame(processScroll);
         }
-      } else if (oldFirstKey) {
-        const shiftCount = cachedPrependShift > 0
-          ? cachedPrependShift
-          : detectPrependShift(firstKey, oldFirstKey);
-        if (shiftCount > 0) {
-          handlePrependSimple(shiftCount);
-        } else {
-          handlePrependFullReset();
-        }
-      } else {
-        handleItemsGenericChange();
       }
     });
   });
 
   $effect(() => {
-    const range = visibleRange;
+    void rangeStart;
+    void rangeEnd;
     if (!isNavigating) {
-      onRangeChange?.(range);
+      onRangeChange?.({ start: rangeStart, end: rangeEnd });
     }
   });
 
   $effect(() => {
-    if (!effectivePaused && scrollContainer) {
-      if (pendingHeights.size > 0) {
-        scheduleFrame(DIRTY_HEIGHTS);
-      }
-      scheduleFrame(DIRTY_SCROLL);
+    if (!effectivePaused && scrollContainer && !frameQueued) {
+      frameQueued = true;
+      requestAnimationFrame(processScroll);
     }
   });
 
   $effect(() => {
     if (typeof document === 'undefined') return;
     const handler = () => {
-      const wasHidden = isDocumentHidden;
       isDocumentHidden = document.hidden;
-      if (wasHidden && !document.hidden && scrollContainer) {
-        if (_deferredScrollDelta !== 0) {
-          setScrollTop(getScrollTop() + _deferredScrollDelta);
-          _deferredScrollDelta = 0;
-        }
-        scheduleFrame(DIRTY_HEIGHTS | DIRTY_SCROLL);
-      }
     };
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
   });
 
   $effect(() => {
+    void items.length;
     if (scrollContainer && initialScrollState && !hasRestoredScroll && items.length > 0 && viewportHeight > 0) {
       untrack(() => {
-        const targetIdx = findTargetIndex(initialScrollState);
-        if (targetIdx < 0 || targetIdx >= items.length) return;
-
-        hasRestoredScroll = true;
-        const hasHeights = (initialScrollState.heights?.length ?? 0) > 0;
-        const savedScrollTop = initialScrollState.scrollTop;
-
-        if (!hasHeights && savedScrollTop != null && savedScrollTop > 0 && initialScrollState.index > 0) {
-          minTotalHeight = savedScrollTop + viewportHeight;
+        if (!restoreScrollState(initialScrollState!)) {
+          restoreDeferred = true;
         }
-
-        if (initialScrollState.heights?.length > 0) {
-          const keyToHeight = new Map<string, number>();
-          let heightSum = 0;
-          for (const [key, value] of initialScrollState.heights) {
-            keyToHeight.set(key, value);
-            heightSum += value;
-          }
-          const avg = keyToHeight.size > 0 ? heightSum / keyToHeight.size : getAverageHeight();
-          tree.buildWithMeasured(
-            items.length,
-            (i) => keyToHeight.get(getKey(items[i], i)) ?? avg,
-            (i) => keyToHeight.has(getKey(items[i], i))
-          );
-        } else if (tree.length !== items.length) {
-          recalculatePositions();
-        }
-
-        applyScrollRestore(initialScrollState, !hasHeights && savedScrollTop != null);
       });
     }
   });
 
-  function measureVisibleItems(updateTree: boolean): void {
-    const buf = getEffectiveBuffer();
-    const start = Math.max(0, visibleStart - buf);
-    const end = Math.min(items.length, visibleEnd + buf);
-
-    for (let i = start; i < end; i++) {
-      const key = getKey(items[i], i);
-      const el = itemRefs.get(key);
-      if (!el) continue;
-      const h = el.getBoundingClientRect().height;
-      if (h <= 0) continue;
-      if (i < tree.length) {
-        const treeVal = tree.get(i);
-        if (!isHeightChanged(treeVal, h)) continue;
-      }
-      if (updateTree) {
-        tree.setMeasured(i, h);
-      } else {
-        pendingHeights.set(key, h);
+  function findTargetIndex(state: ScrollState): number {
+    let targetIdx = state.index;
+    if (state.key && items.length > 0) {
+      const currentKey = targetIdx >= 0 && targetIdx < items.length ? key(targetIdx) : '';
+      if (currentKey !== state.key) {
+        for (let i = 0; i < items.length; i++) {
+          if (key(i) === state.key) { targetIdx = i; break; }
+        }
       }
     }
-  }
-
-  function measureAndRecalculate(): void {
-    measureVisibleItems(false);
-    recalculatePositions();
-    if (minTotalHeight > tree.total) {
-      minTotalHeight = tree.total;
-    }
-    invalidateLayout();
-  }
-
-  function measureAndRecalculateIncremental(): void {
-    flushPendingToTree();
-
-    measureVisibleItems(true);
-
-    if (minTotalHeight > tree.total) {
-      minTotalHeight = tree.total;
-    }
-    invalidateLayout();
-  }
-
-  function finishNavigation(): void {
-    isNavigating = false;
-    frameDirty |= DIRTY_SCROLL;
-  }
-
-  function computeScrollTop(index: number, align: string, offset: number): number {
-    const pos = tree.prefixSum(index);
-    const usable = viewportHeight - topMargin;
-    if (align === 'center') return pos - usable / 2 + getItemHeight(index) / 2 + offset;
-    if (align === 'end') return pos - usable + getItemHeight(index) + offset;
-    return pos + offset;
+    return targetIdx;
   }
 
   export function scrollToIndex(index: number, options: ScrollToIndexOptions = {}): void {
     if (!scrollContainer || index < 0 || index >= items.length) return;
-
-    spacerHeightAdjustment = 0;
-    _visibleItemScrollOffset = 0;
-
-    recalculatePositions();
-
     const { align = 'start', offset = 0 } = options;
-    const targetScrollTop = computeScrollTop(index, align, offset);
-    const buf = getEffectiveBuffer();
 
     isNavigating = true;
-    visibleStart = Math.max(0, index - buf);
-    visibleEnd = Math.min(items.length, index + buf + SCROLLTO_EXTRA_BUFFER);
-    invalidateLayout();
+    const listOffset = getCanvasTopInContainer();
+    const targetCanvasY = Math.max(0, tree.prefixSum(index));
+    setPivot(index, targetCanvasY);
+    const buf = Math.ceil(getEffectiveBufferPx() / getAverageHeight());
+    rangeStart = Math.max(0, index - buf);
+    rangeEnd = Math.min(items.length, index + buf + SCROLLTO_EXTRA_BUFFER);
+    const naiveTarget = targetCanvasY + listOffset - topMargin + offset;
+    growCanvas(Math.max(tree.total, naiveTarget + viewportHeight));
 
     tick().then(() => {
-      const listOffset = getListOffset();
-      setScrollTop(Math.max(0, targetScrollTop + listOffset));
-      startCorrection(
-        () => {
-          const corrected = Math.max(0, computeScrollTop(index, align, offset) + getListOffset());
-          return corrected - getScrollTop();
-        },
-        {
-          threshold: DRIFT_THRESHOLD_SCROLL,
-          maxPasses: SCROLLTO_CORRECTION_MAX_PASSES,
-          measure: 'full',
-          navigating: true,
-        },
-      );
+      let target = naiveTarget;
+      if (align !== 'start') {
+        const el = refEl(index);
+        const h = el ? el.getBoundingClientRect().height : getAverageHeight();
+        const usable = viewportHeight - topMargin;
+        if (align === 'center') target = targetCanvasY + listOffset - topMargin - usable / 2 + h / 2 + offset;
+        if (align === 'end') target = targetCanvasY + listOffset - topMargin - usable + h + offset;
+      }
+      setScrollTop(Math.max(0, target));
+      isNavigating = false;
+      if (!frameQueued) {
+        frameQueued = true;
+        requestAnimationFrame(processScroll);
+      }
     });
+  }
+
+  export function restoreScrollState(state: ScrollState): boolean {
+    if (!state || !scrollContainer) return false;
+
+    if (state.heights && state.heights.length > 0) {
+      const keyToHeight = new Map<string, number>();
+      let heightSum = 0;
+      for (const [k, v] of state.heights) {
+        keyToHeight.set(k, v);
+        heightSum += v;
+      }
+      const avg = keyToHeight.size > 0 ? heightSum / keyToHeight.size : getAverageHeight();
+      tree.buildWithMeasured(
+        items.length,
+        (i) => keyToHeight.get(key(i)) ?? avg,
+        (i) => keyToHeight.has(key(i))
+      );
+    } else {
+      reconcileTreeLength();
+    }
+
+    const targetIdx = findTargetIndex(state);
+    if (targetIdx < 0 || targetIdx >= items.length) return false;
+
+    hasRestoredScroll = true;
+    isNavigating = true;
+    const savedScrollTop = Math.max(0, state.scrollTop ?? tree.prefixSum(targetIdx));
+    const listOffset = getCanvasTopInContainer();
+    const visualY = state.visualY ?? (topMargin - (state.offset ?? 0));
+    const targetCanvasY = savedScrollTop - listOffset + visualY;
+    setPivot(targetIdx, Math.max(0, targetCanvasY));
+    const buf = Math.ceil(getEffectiveBufferPx() / getAverageHeight());
+    rangeStart = Math.max(0, targetIdx - buf);
+    rangeEnd = Math.min(items.length, targetIdx + buf + SCROLLTO_EXTRA_BUFFER);
+    growCanvas(Math.max(tree.total, savedScrollTop + viewportHeight));
+
+    tick().then(() => {
+      setScrollTop(savedScrollTop);
+      isNavigating = false;
+      if (!frameQueued) {
+        frameQueued = true;
+        requestAnimationFrame(processScroll);
+      }
+    });
+    return true;
   }
 
   export function getScrollInfo(): { scrollTop: number; viewportHeight: number; totalHeight: number; distanceFromBottom: number } {
@@ -1309,168 +902,48 @@
     if (scrollContainer) {
       const sh = isWindowScroll ? document.documentElement.scrollHeight : scrollContainer.scrollHeight;
       const ch = isWindowScroll ? window.innerHeight : scrollContainer.clientHeight;
-      return {
-        scrollTop: st,
-        viewportHeight: ch,
-        totalHeight: sh,
-        distanceFromBottom: sh - st - ch,
-      };
+      return { scrollTop: st, viewportHeight: ch, totalHeight: sh, distanceFromBottom: sh - st - ch };
     }
-    return {
-      scrollTop: st,
-      viewportHeight,
-      totalHeight: effectiveTotalHeight,
-      distanceFromBottom: effectiveTotalHeight - st - viewportHeight,
-    };
+    return { scrollTop: st, viewportHeight, totalHeight: canvasHeight, distanceFromBottom: canvasHeight - st - viewportHeight };
   }
 
-  function adjustIndexForStickyHeader(idx: number, scrollTop: number): number {
-    if (topMargin > 0 && idx + 1 < items.length && idx < tree.length) {
-      const off = scrollTop - tree.prefixSum(idx);
-      if (off + topMargin >= tree.get(idx)) return idx + 1;
-    }
-    return idx;
-  }
-
-  export function getScrollStateLightweight(): ScrollState | null {
+  function captureScrollState(includeHeights: boolean): ScrollState | null {
     if (items.length === 0) return null;
-
     const container = scrollContainer ?? lastValidScrollContainer;
-    const rawScrollTop = scrollContainer ? getScrollTop() : lastKnownScrollTop;
-    const currentScrollTop = (rawScrollTop === 0 && lastKnownScrollTop > 0) ? lastKnownScrollTop : rawScrollTop;
-    const treeScrollTop = currentScrollTop - getListOffset();
-    let index = (currentScrollTop !== rawScrollTop) ? lastKnownVisibleStart
-      : (scrollContainer ? tree.findIndex(treeScrollTop) : lastKnownVisibleStart);
-    index = adjustIndexForStickyHeader(index, treeScrollTop);
-    const key = getKey(items[index], index);
-    const offset = treeScrollTop - tree.prefixSum(index);
+    const currentScrollTop = scrollContainer ? getScrollTop() : lastKnownScrollTop;
+    const anchorIdx = scrollContainer ? (findViewportAnchorIndex() ?? lastKnownAnchorIndex) : lastKnownAnchorIndex;
+    const idx = Math.max(0, Math.min(items.length - 1, anchorIdx));
+    const k = key(idx);
 
     let visualY: number | undefined;
+    let offset = 0;
     if (container) {
-      const el = itemRefs.get(key);
+      const el = itemRefs.get(k);
       if (el) {
-        const containerTop = getContainerTop();
+        const isWin = container === document.documentElement || container === document.body;
+        const containerTop = isWin ? 0 : container.getBoundingClientRect().top + (container.clientTop || 0);
         visualY = el.getBoundingClientRect().top - containerTop;
+        offset = topMargin - visualY;
       }
     }
 
-    return { index, key, offset, heights: [], scrollTop: currentScrollTop, visualY };
+    const heightsArray: [string, number][] = [];
+    if (includeHeights) {
+      const limit = Math.min(items.length, tree.length);
+      for (let i = 0; i < limit; i++) {
+        if (tree.isMeasured(i)) heightsArray.push([key(i), tree.get(i)]);
+      }
+    }
+
+    return { index: idx, key: k, offset, heights: heightsArray, scrollTop: currentScrollTop, visualY };
   }
 
   export function getScrollState(): ScrollState | null {
-    if (items.length === 0) return null;
-
-    const container = scrollContainer ?? lastValidScrollContainer;
-    const currentScrollTop = scrollContainer ? getScrollTop() : lastKnownScrollTop;
-    const treeScrollTop = currentScrollTop - getListOffset();
-    let index = scrollContainer ? tree.findIndex(treeScrollTop) : lastKnownVisibleStart;
-    index = adjustIndexForStickyHeader(index, treeScrollTop);
-    const key = getKey(items[index], index);
-    const offset = treeScrollTop - tree.prefixSum(index);
-
-    const heightsArray: [string, number][] = [];
-    const limit = Math.min(items.length, tree.length);
-    for (let i = 0; i < limit; i++) {
-      if (tree.isMeasured(i)) {
-        heightsArray.push([getKey(items[i], i), tree.get(i)]);
-      }
-    }
-
-    let visualY: number | undefined;
-    if (container) {
-      const el = itemRefs.get(key);
-      if (el) {
-        const containerTop = getContainerTop();
-        visualY = el.getBoundingClientRect().top - containerTop;
-      }
-    }
-
-    return { index, key, offset, heights: heightsArray, scrollTop: currentScrollTop, visualY };
+    return captureScrollState(true);
   }
 
-  function applyScrollRestore(state: ScrollState, lightweight: boolean): void {
-    const targetIdx = findTargetIndex(state);
-    if (targetIdx < 0 || targetIdx >= items.length) return;
-
-    const offset = state.offset ?? 0;
-
-    const buf = getEffectiveBuffer();
-    isNavigating = true;
-    visibleStart = Math.max(0, targetIdx - buf);
-    visibleEnd = Math.min(items.length, targetIdx + buf + SCROLLTO_EXTRA_BUFFER);
-    invalidateLayout();
-
-    if (lightweight && state.scrollTop != null) {
-      const targetScrollTop = state.scrollTop;
-      const targetVisualY = state.visualY ?? (topMargin - offset);
-      setScrollTop(Math.max(0, targetScrollTop));
-      tick().then(() => {
-        const key = getKey(items[targetIdx], targetIdx);
-        startCorrection(
-          () => {
-            const e = itemRefs.get(key);
-            if (!e) return null;
-            return e.getBoundingClientRect().top - getContainerTop() - targetVisualY;
-          },
-          {
-            threshold: DRIFT_THRESHOLD_POSITION,
-            maxPasses: CORRECTION_MAX_PASSES,
-            measure: 'incremental',
-            navigating: true,
-            onStart: () => {
-              if (!itemRefs.get(key)) {
-                const fallbackOffset = targetVisualY - topMargin;
-                setScrollTop(Math.max(0, computeScrollTop(targetIdx, 'start', -fallbackOffset) + getListOffset()));
-              }
-            },
-          },
-        );
-      });
-    } else {
-      const position = tree.prefixSum(targetIdx);
-      const targetScrollTop = position + offset;
-      setScrollTop(Math.max(0, targetScrollTop + getListOffset()));
-      tick().then(() => {
-        startCorrection(
-          () => {
-            const corrected = Math.max(0, computeScrollTop(targetIdx, 'start', offset) + getListOffset());
-            return corrected - getScrollTop();
-          },
-          {
-            threshold: DRIFT_THRESHOLD_SCROLL,
-            maxPasses: CORRECTION_MAX_PASSES,
-            measure: 'full',
-            navigating: true,
-          },
-        );
-      });
-    }
-  }
-
-  export function restoreScrollState(state: ScrollState): void {
-    if (!state || !scrollContainer) return;
-    hasRestoredScroll = true;
-
-    pendingHeights.clear();
-
-    if (state.heights?.length > 0) {
-      const keyToHeight = new Map<string, number>();
-      let heightSum = 0;
-      for (const [key, value] of state.heights) {
-        keyToHeight.set(key, value);
-        heightSum += value;
-      }
-      const avg = keyToHeight.size > 0 ? heightSum / keyToHeight.size : getAverageHeight();
-      tree.buildWithMeasured(
-        items.length,
-        (i) => keyToHeight.get(getKey(items[i], i)) ?? avg,
-        (i) => keyToHeight.has(getKey(items[i], i))
-      );
-    } else {
-      recalculatePositions();
-    }
-
-    applyScrollRestore(state, false);
+  export function getScrollStateLightweight(): ScrollState | null {
+    return captureScrollState(false);
   }
 
   export function getPositionForIndex(index: number): number {
@@ -1478,17 +951,23 @@
     return tree.prefixSum(index);
   }
 
-  export function getTreeDiagnostics(): {
-    total: number;
-    length: number;
-    measuredCount: number;
-    averageHeight: number;
+  export function getTreeDiagnostics(): { total: number; length: number; measuredCount: number; averageHeight: number } {
+    return { total: tree.total, length: tree.length, measuredCount: tree.measuredCount, averageHeight: getAverageHeight() };
+  }
+
+  export function getLayoutDiagnostics(): {
+    pivotIndex: number; B: number; downOffset: number;
+    canvasHeight: number; rangeStart: number; rangeEnd: number; headroom: number;
+    topGap: number; bottomGap: number;
   } {
+    const edges = renderedEdges();
+    const renderedTop = edges ? edges.top : B + downOffset;
+    const renderedBottom = edges ? edges.bottom : B + downOffset;
     return {
-      total: tree.total,
-      length: tree.length,
-      measuredCount: tree.measuredCount,
-      averageHeight: getAverageHeight(),
+      pivotIndex, B, downOffset, canvasHeight, rangeStart, rangeEnd,
+      headroom: headroom(),
+      topGap: renderedTop,
+      bottomGap: canvasHeight - renderedBottom,
     };
   }
 
@@ -1496,66 +975,178 @@
     const result: [string, number][] = [];
     const limit = Math.min(items.length, tree.length);
     for (let i = 0; i < limit; i++) {
-      if (tree.isMeasured(i)) {
-        result.push([getKey(items[i], i), tree.get(i)]);
-      }
+      if (tree.isMeasured(i)) result.push([key(i), tree.get(i)]);
     }
     return result;
   }
 
   export function prepareForIndex(index: number): void {
     if (index < 0 || index >= items.length) return;
-    const buf = getEffectiveBuffer();
-    if (index < visibleStart - buf || index > visibleEnd + buf) {
-      visibleStart = Math.max(0, index - buf);
-      visibleEnd = Math.min(items.length, index + buf + 1);
-      invalidateLayout();
+    if (index < rangeStart || index >= rangeEnd) {
+      const buf = Math.ceil(getEffectiveBufferPx() / getAverageHeight());
+      applyRange(Math.min(rangeStart, Math.max(0, index - buf)), Math.max(rangeEnd, Math.min(items.length, index + buf + 1)));
+      growCanvas(requiredCanvasHeight());
     }
   }
 
   export function getItemElement(index: number): HTMLElement | undefined {
     if (index < 0 || index >= items.length) return undefined;
-    const key = getKey(items[index], index);
-    return itemRefs.get(key);
+    return itemRefs.get(key(index));
   }
+
+  function itemAttach(k: string) {
+    return (element: HTMLElement) => {
+      element.dataset.virtualKey = k;
+      resizeObserver?.observe(element);
+      itemRefs.set(k, element);
+      return () => {
+        resizeObserver?.unobserve(element);
+        if (itemRefs.get(k) === element) itemRefs.delete(k);
+      };
+    };
+  }
+
+  function scrollContainerAttach(_element: HTMLElement) {
+    resizeObserver = new ResizeObserver(handleResizeEntries);
+    lastValidScrollContainer = scrollContainer ?? null;
+    lastKnownScrollTop = getScrollTop();
+
+    const scrollTarget = isWindowScroll ? window : scrollContainer!;
+    scrollTarget.addEventListener('scroll', handleScrollEvent, { passive: true });
+    scrollTarget.addEventListener('wheel', handleUserInput, { passive: true });
+    scrollTarget.addEventListener('touchstart', handleTouch, { passive: true });
+    scrollTarget.addEventListener('touchmove', handleTouch, { passive: true });
+    scrollTarget.addEventListener('touchend', handleTouch, { passive: true });
+
+    let extraCleanup: (() => void) | undefined;
+
+    if (isWindowScroll) {
+      viewportHeight = window.innerHeight;
+      const handleResize = () => {
+        const newHeight = window.innerHeight;
+        if (newHeight !== viewportHeight && newHeight > 0) viewportHeight = newHeight;
+      };
+      window.addEventListener('resize', handleResize, { passive: true });
+      extraCleanup = () => window.removeEventListener('resize', handleResize);
+    } else {
+      viewportHeight = scrollContainer!.clientHeight;
+      const containerObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const newHeight = entry.contentRect.height;
+          if (newHeight !== viewportHeight && newHeight > 0) viewportHeight = newHeight;
+        }
+      });
+      containerObserver.observe(scrollContainer!);
+      extraCleanup = () => containerObserver.disconnect();
+    }
+
+    const stopProbe = startVlProbe({
+      getScrollTop: () => (isWindowScroll ? window.scrollY : scrollContainer?.scrollTop ?? 0),
+      getHeaderBottom: () => (isWindowScroll ? 0 : scrollContainer?.getBoundingClientRect().top ?? 0) + topMargin,
+      getListRoot: () => canvasEl ?? null,
+      snapshot: () => ({
+        B: Math.round(B),
+        down: Math.round(downOffset),
+        pivot: pivotIndex,
+        rs: rangeStart,
+        re: rangeEnd,
+        canvas: Math.round(canvasHeight),
+        treeLen: tree.length,
+        measured: tree.measuredCount,
+        nav: isNavigating,
+        items: items.length,
+        rtt: refreshToTop,
+      }),
+    });
+
+    return () => {
+      stopProbe?.();
+      cancelSettlement();
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+        resizeObserver = null;
+      }
+      scrollTarget.removeEventListener('scroll', handleScrollEvent);
+      scrollTarget.removeEventListener('wheel', handleUserInput);
+      scrollTarget.removeEventListener('touchstart', handleTouch);
+      scrollTarget.removeEventListener('touchmove', handleTouch);
+      scrollTarget.removeEventListener('touchend', handleTouch);
+      extraCleanup?.();
+    };
+  }
+
 </script>
 
 {#if scrollContainer}
-  <div class="virtual-list" class:virtual-list--restoring={initialScrollState && !hasRestoredScroll} {@attach scrollContainerAttach}>
+  <div
+    class="virtual-list vl-canvas"
+    class:virtual-list--restoring={initialScrollState && !hasRestoredScroll && !restoreDeferred}
+    style:height="{canvasHeight}px"
+    bind:this={canvasEl}
+    {@attach scrollContainerAttach}
+  >
     {#if isVirtualizationEnabled}
-      <div class="virtual-spacer" style:height="{topSpacerHeight}px" aria-hidden="true" bind:this={topSpacerEl}></div>
-    {/if}
-
-    {#each visibleIndices as index (getKey(items[index], index))}
-      {@const item = items[index]}
-      {@const key = getKey(item, index)}
-      {@const useAutoCV = (index > visibleEnd + _cachedEffectiveBuffer || index < visibleStart - _cachedEffectiveBuffer) ? !isNavigating : false}
-      <div class="virtual-item" style:content-visibility={useAutoCV ? "auto" : "visible"} style:contain-intrinsic-block-size={useAutoCV ? `auto ${getItemHeight(index)}px` : undefined} {@attach itemAttach(key)}>
-        {@render children(item, index)}
+      <div class="vl-up" style:bottom="{upBottom}px">
+        {#each upIndices as index (getKey(items[index], index))}
+          {@const k = getKey(items[index], index)}
+          {@const cvAuto = isCvAuto(index, measuredEpoch)}
+          <div
+            class="virtual-item"
+            style:content-visibility={cvAuto ? 'auto' : 'visible'}
+            style:contain-intrinsic-block-size={cvAuto ? `auto ${Math.round(tree.get(index))}px` : undefined}
+            {@attach itemAttach(k)}
+          >
+            {@render children(items[index], index)}
+          </div>
+        {/each}
       </div>
-    {/each}
-
-    {#if isVirtualizationEnabled}
-      <div class="virtual-spacer" style:height="{bottomSpacerHeight}px" aria-hidden="true"></div>
+      <div class="vl-down" style:top="{downTop}px" bind:this={downBlockEl}>
+        {#each downIndices as index (getKey(items[index], index))}
+          {@const k = getKey(items[index], index)}
+          {@const cvAuto = isCvAuto(index, measuredEpoch)}
+          <div
+            class="virtual-item"
+            style:content-visibility={cvAuto ? 'auto' : 'visible'}
+            style:contain-intrinsic-block-size={cvAuto ? `auto ${Math.round(tree.get(index))}px` : undefined}
+            {@attach itemAttach(k)}
+          >
+            {@render children(items[index], index)}
+          </div>
+        {/each}
+      </div>
+    {:else}
+      <div class="vl-down" style:top="0px">
+        {#each items.slice(0, FALLBACK_RENDER_COUNT) as item, index (getKey(item, index))}
+          {@const k = getKey(item, index)}
+          <div class="virtual-item" {@attach itemAttach(k)}>
+            {@render children(item, index)}
+          </div>
+        {/each}
+      </div>
     {/if}
   </div>
 {/if}
 
 <style>
-  .virtual-list {
+  .vl-canvas {
     position: relative;
+    overflow-anchor: none;
+    contain: layout;
   }
 
   .virtual-list--restoring {
     opacity: 0;
   }
 
-  .virtual-item {
+  .vl-up,
+  .vl-down {
+    position: absolute;
+    left: 0;
+    right: 0;
     overflow-anchor: none;
   }
 
-  .virtual-spacer {
-    pointer-events: none;
+  .virtual-item {
     overflow-anchor: none;
   }
 </style>

@@ -71,19 +71,11 @@
                 if ($settings.design?.layout === 'decks') {
                     columnState.columns.forEach(column => {
                         if (column?.scrollElement) {
-                            column.scrollElement.scroll({
-                                top: 0,
-                                left: 0,
-                                behavior: 'smooth',
-                            });
+                            smoothToTop(column.scrollElement);
                         }
                     })
                 } else {
-                    document.querySelector(':root').scroll({
-                        top: 0,
-                        left: 0,
-                        behavior: 'smooth',
-                    });
+                    smoothToTop(document.querySelector(':root') as HTMLElement);
                 }
             } catch (e) {
                 // nothing.
@@ -109,6 +101,31 @@
               goto('/atproto-viewer/' + $agent.did());
               break;
       }
+  }
+
+  function smoothToTop(el: HTMLElement) {
+      el.dataset.smoothScrolling = '';
+      el.scroll({
+          top: 0,
+          left: 0,
+          behavior: 'smooth',
+      });
+
+      const isRoot = el === document.documentElement || el === document.body;
+      const target: EventTarget = isRoot ? window : el;
+      const onScrollEnd = () => {
+          const st = isRoot ? window.scrollY : el.scrollTop;
+          if (st <= 5) {
+              delete el.dataset.smoothScrolling;
+              target.removeEventListener('scroll', onScrollEnd);
+          }
+      };
+      target.addEventListener('scroll', onScrollEnd, { passive: true });
+
+      setTimeout(() => {
+          delete el.dataset.smoothScrolling;
+          target.removeEventListener('scroll', onScrollEnd);
+      }, 3000);
   }
 
   function handleRefresh() {
