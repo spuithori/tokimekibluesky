@@ -258,11 +258,13 @@
                 const modal = document.querySelector(
                     ".modal-page-content",
                 ) as HTMLElement | null;
-                if (modal && !modal.querySelector(".virtual-timeline")) {
+                if (modal && !modal.querySelector(".vl-canvas")) {
                     modal.scrollTop = saved.modalTop;
                 }
             } else if (saved.scroll) {
-                window.scrollTo(saved.scroll.x, saved.scroll.y);
+                if (!document.querySelector(".vl-canvas")) {
+                    window.scrollTo(saved.scroll.x, saved.scroll.y);
+                }
             }
         });
     });

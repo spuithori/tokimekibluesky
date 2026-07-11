@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { tick, onDestroy } from 'svelte';
+  import { beforeNavigate } from '$app/navigation';
   import {settings} from '$lib/stores';
   import VirtualThreadItem from "$lib/components/thread/VirtualThreadItem.svelte";
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
+  import type { ScrollState } from "$lib/components/virtual/types";
   import { getScrollTopFor, setScrollTopFor, resolveScrollContainer } from "$lib/components/virtual/scroll-helpers";
   import {_} from "tokimeki-i18n";
   import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -11,7 +13,37 @@
   const columnState = getColumnState(isJunk);
   let parent = $state<HTMLElement | undefined>();
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
-  let hasScrolledToRoot = false;
+
+  let initialScrollState = $state<ScrollState | null>(column.data?.scrollState ?? null);
+  if (initialScrollState && (!initialScrollState.heights || initialScrollState.heights.length === 0) && column.data?._heightCache?.length > 0) {
+    initialScrollState = { ...initialScrollState, heights: column.data._heightCache };
+  }
+  if (column.data?.scrollState) {
+    column.data.scrollState = null;
+  }
+
+  let hasScrolledToRoot = initialScrollState != null;
+
+  function saveScrollState() {
+    if (!virtualList || !column.data) return;
+    const state = virtualList.getScrollStateLightweight();
+    if (state && state.visualY !== undefined) {
+      column.data.scrollState = state;
+    }
+  }
+
+  beforeNavigate(() => {
+    saveScrollState();
+  });
+
+  onDestroy(() => {
+    if (virtualList && column.data) {
+      column.data._heightCache = virtualList.getHeightEntries();
+      if (!column.data.scrollState) {
+        saveScrollState();
+      }
+    }
+  });
   let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
   let topMargin = $derived.by(() => {
     if (isJunk) {
@@ -108,6 +140,7 @@
     {getKey}
     {scrollContainer}
     {topMargin}
+    {initialScrollState}
     bufferPx={1000}
     bind:this={virtualList}
   >

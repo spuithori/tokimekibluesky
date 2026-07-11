@@ -88,6 +88,7 @@
   let resizeObserver: ResizeObserver | null = null;
   let frameTops: number[] = [];
   let frameBottoms: number[] = [];
+  let pendingTopStill = false;
 
   let isWindowScroll = $derived(
     typeof document !== 'undefined' &&
@@ -444,6 +445,7 @@
 
     lastValidScrollContainer = scrollContainer;
     lastKnownScrollTop = st;
+    if (pendingTopStill && viewTop > viewportHeight) pendingTopStill = false;
 
     onScroll?.();
     onRangeChange?.({ start: rangeStart, end: rangeEnd });
@@ -479,9 +481,10 @@
     const gap = Math.round(headroom());
     if (Math.abs(gap) < 1) return false;
     const st = getScrollTop();
-    if (st <= topMargin && (gap > 0 || refreshToTop)) {
+    if (st <= topMargin && (gap > 0 || refreshToTop || !pendingTopStill)) {
       B -= gap;
       canvasHeight = Math.max(requiredCanvasHeight(), canvasHeight - gap);
+      pendingTopStill = false;
       vlog('recenter:pinned', { gap });
       return true;
     }
@@ -490,6 +493,7 @@
     canvasHeight = Math.max(requiredCanvasHeight(), canvasHeight + delta);
     flushSync();
     setScrollTop(st + delta);
+    pendingTopStill = false;
     vlog('recenter:parallel', { delta });
     return true;
   }
@@ -690,6 +694,9 @@
       rangeEnd = Math.min(items.length, initialRenderCount());
       canvasHeight = Math.max(tree.total, getScrollTop() - getCanvasTopInContainer() + viewportHeight);
     } else {
+      if (scrollContainer && !refreshToTop && getScrollTop() <= topMargin && !isNavigating) {
+        pendingTopStill = true;
+      }
       scheduleSettlement();
     }
   }

@@ -352,7 +352,7 @@
 
       simulateWheelAndPrepend(prependCount: number) {
         if (scrollContainer) {
-          scrollContainer.dispatchEvent(new WheelEvent('wheel', { deltaY: 50, bubbles: true }));
+          scrollContainer.dispatchEvent(new WheelEvent('wheel', { deltaY: 0, bubbles: true }));
         }
         const newItems = generateItems(prependCount, nextId);
         nextId += prependCount;
@@ -361,7 +361,7 @@
 
       simulateWheelAndPrependWithTrim(prependCount: number, keepCount: number) {
         if (scrollContainer) {
-          scrollContainer.dispatchEvent(new WheelEvent('wheel', { deltaY: 50, bubbles: true }));
+          scrollContainer.dispatchEvent(new WheelEvent('wheel', { deltaY: 0, bubbles: true }));
         }
         const newItems = generateItems(prependCount, nextId);
         nextId += prependCount;
