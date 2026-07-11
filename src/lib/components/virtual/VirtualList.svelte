@@ -4,7 +4,6 @@
   import type { VisibleRange, ScrollToIndexOptions, ScrollState } from './types';
   import { FenwickTree } from './fenwick';
   import { classifyItemChange } from './item-change-classifier';
-  import { startVlProbe } from './vlProbe';
   import {
     CV_CORE_MARGIN,
     DEFAULT_BUFFER_PX,
@@ -180,16 +179,6 @@
     return Math.max(tree.total, contentBottom, st - listOffset + viewportHeight);
   }
 
-  function vlog(tag: string, extra: Record<string, unknown> = {}): void {
-    if (typeof window === 'undefined' || !(window as any).__vlDebugOn) return;
-    ((window as any).__vlDebugLog ??= []).push({
-      t: Math.round(performance.now()), tag,
-      B: Math.round(B), down: Math.round(downOffset),
-      pivot: pivotIndex, rs: rangeStart, re: rangeEnd, canvas: Math.round(canvasHeight),
-      ...extra,
-    });
-  }
-
   function applyRange(newStart: number, newEnd: number): void {
     newStart = Math.max(0, Math.min(newStart, items.length));
     newEnd = Math.max(newStart, Math.min(newEnd, items.length));
@@ -212,14 +201,12 @@
     }
 
     if (upTailDelta !== 0) {
-      vlog('rebuild:up-edge', { newStart, newEnd, upTailDelta, downHeadDelta });
       rebuildAtView();
       return;
     }
 
     const anchorIdx = Math.max(oldDownHead, newDownHead);
     if (anchorIdx >= newEnd || anchorIdx >= oldEnd || !refEl(anchorIdx)) {
-      vlog('rebuild:down-anchor', { newStart, newEnd, anchorIdx });
       rebuildAtView();
       return;
     }
@@ -248,9 +235,6 @@
         downOffset -= residual;
         flushSync();
       }
-      vlog('edge', { newStart, newEnd, downHeadDelta, residual: Math.round(residual * 10) / 10 });
-    } else {
-      vlog('edge:no-anchor-post', { newStart, newEnd, downHeadDelta });
     }
   }
 
@@ -278,7 +262,6 @@
     const buf = Math.ceil(getEffectiveBufferPx() / avg);
     const viewItems = Math.ceil(viewportHeight / avg);
     const pivotIdx = Math.min(items.length - 1, approxIndex + viewItems + Math.ceil(buf / 2));
-    vlog('rebuildAtView', { viewTop: Math.round(viewTop), logicalTop: Math.round(logicalTop), approxIndex, pivotIdx, headroom: Math.round(headroom()), smooth: isSmoothFlight });
     setPivot(pivotIdx, isSmoothFlight ? tree.prefixSum(pivotIdx) : Math.max(0, viewTop) + topMargin + sumEstimate(approxIndex, pivotIdx));
     rangeStart = Math.max(0, approxIndex - buf);
     rangeEnd = Math.min(items.length, Math.max(pivotIdx + 2, approxIndex + buf + SCROLLTO_EXTRA_BUFFER));
@@ -296,7 +279,6 @@
           growCanvas(requiredCanvasHeight());
           flushSync();
         }
-        vlog('rebuild:residual', { residual: Math.round(residual * 10) / 10 });
       }
     }
   }
@@ -338,7 +320,6 @@
         const drift = el.getBoundingClientRect().top - containerTop - restoreLock.y;
         if (Math.abs(drift) >= 1) {
           setScrollTop(getScrollTop() + drift);
-          vlog('restoreLock:drift', { drift: Math.round(drift * 10) / 10 });
         }
       }
     }
@@ -492,7 +473,6 @@
       B -= gap;
       canvasHeight = Math.max(requiredCanvasHeight(), canvasHeight - gap);
       pendingTopStill = false;
-      vlog('recenter:pinned', { gap });
       return true;
     }
     const delta = Math.max(-gap, -st);
@@ -501,7 +481,6 @@
     flushSync();
     setScrollTop(st + delta);
     pendingTopStill = false;
-    vlog('recenter:parallel', { delta });
     return true;
   }
 
@@ -616,7 +595,6 @@
       B += upBelowDelta;
       growCanvas(requiredCanvasHeight());
       flushSync();
-      vlog('ro:comp', { downAboveDelta, upBelowDelta, anchorIdx });
     }
     if (changed && !effectivePaused) {
       growCanvas(requiredCanvasHeight());
@@ -797,9 +775,6 @@
         getKeyAt: (i: number) => key(i),
       });
 
-      if (typeof window !== 'undefined' && (window as any).__vlDebugOn && change.type !== 'unchanged') {
-        vlog('classify:' + change.type, { len, oldCount });
-      }
       switch (change.type) {
         case 'clear': handleItemsClear(); break;
         case 'initial': handleItemsInitial(); break;
@@ -1098,27 +1073,7 @@
       extraCleanup = () => containerObserver.disconnect();
     }
 
-    const stopProbe = startVlProbe({
-      getScrollTop: () => (isWindowScroll ? window.scrollY : scrollContainer?.scrollTop ?? 0),
-      getHeaderBottom: () => (isWindowScroll ? 0 : scrollContainer?.getBoundingClientRect().top ?? 0) + topMargin,
-      getListRoot: () => canvasEl ?? null,
-      snapshot: () => ({
-        B: Math.round(B),
-        down: Math.round(downOffset),
-        pivot: pivotIndex,
-        rs: rangeStart,
-        re: rangeEnd,
-        canvas: Math.round(canvasHeight),
-        treeLen: tree.length,
-        measured: tree.measuredCount,
-        nav: isNavigating,
-        items: items.length,
-        rtt: refreshToTop,
-      }),
-    });
-
     return () => {
-      stopProbe?.();
       cancelSettlement();
       if (resizeObserver) {
         resizeObserver.disconnect();
