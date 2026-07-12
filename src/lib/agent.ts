@@ -494,6 +494,11 @@ export class Agent {
                     customFeeds = [...customFeeds, {
                         uri: feed.uri,
                         name: feed.displayName,
+                        cid: feed.cid,
+                        avatar: feed.avatar,
+                        description: feed.description,
+                        contentMode: feed.contentMode ?? null,
+                        creator: feed.creator ? { did: feed.creator.did, handle: feed.creator.handle } : undefined,
                     }];
                 });
                 return customFeeds;

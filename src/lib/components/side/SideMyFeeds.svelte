@@ -9,6 +9,7 @@
     import {_} from "tokimeki-i18n";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import {getAccountIdByDidFromDb} from "$lib/util";
+    import {feedHintState} from "$lib/classes/feedHintState.svelte";
     const dispatch = createEventDispatcher();
 
   let { _agent = $agent } = $props();
@@ -81,6 +82,21 @@
         dispatch('close');
     }
 
+    function handleSelectFeed(feed) {
+        if (feed?.creator?.did) {
+            feedHintState.set({
+                uri: feed.uri,
+                displayName: feed.name,
+                description: feed.description,
+                avatar: feed.avatar,
+                cid: feed.cid,
+                contentMode: feed.contentMode ?? undefined,
+                creator: feed.creator,
+            });
+        }
+        dispatch('close');
+    }
+
     onMount(async () => {
         await Promise.all([updateFeeds(), updateLists(), updateCloudBookmarks()]);
         loaded = true;
@@ -106,7 +122,7 @@
                 {#if customFeeds.length}
                     {#each customFeeds as feed}
                         <li class="side-feeds-list__item">
-                            <a class="side-feeds-list__link" href="{getFeedUrl(feed.uri, 'feed')}" onclick={handleSelect}>
+                            <a class="side-feeds-list__link" href="{getFeedUrl(feed.uri, 'feed')}" onclick={() => {handleSelectFeed(feed)}}>
                                 <Newspaper color="var(--text-color-1)" size="20"></Newspaper>
                                 {feed.name}</a>
                         </li>

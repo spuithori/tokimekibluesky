@@ -9,24 +9,33 @@
     import {onMount} from "svelte";
     import FeedHeading from "$lib/components/feeds/FeedHeading.svelte";
     import {getDidByHandle, isDid} from "$lib/util";
+    import {feedHintState} from "$lib/classes/feedHintState.svelte";
 
     let _agent = $state($agent);
     let feed = $state();
     let did = $state('');
 
     export const snapshot: Snapshot = {
-        capture: () => [feed],
+        capture: () => [feed, did],
         restore: (value) => {
-          [feed] = value;
+          [feed, did] = value;
         }
     };
 
     onMount(async () => {
       try {
-        if (isDid($page.params.handle)) {
-          did = $page.params.handle;
-        } else {
-          did = await getDidByHandle($page.params.handle, _agent);
+        if (feedHintState.hasFeed($page.params.id, $page.params.handle)) {
+          feed = $state.snapshot(feedHintState.view);
+          did = feedHintState.view.creator.did;
+          feedHintState.clear();
+        }
+
+        if (!did) {
+          if (isDid($page.params.handle)) {
+            did = $page.params.handle;
+          } else {
+            did = await getDidByHandle($page.params.handle, _agent);
+          }
         }
 
         const res = await _agent.xrpc.get('app.bsky.feed.getFeedGenerator', {feed: 'at://' + did + '/app.bsky.feed.generator/' + $page.params.id});

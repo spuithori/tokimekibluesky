@@ -7,6 +7,7 @@
     import Eraser from '@lucide/svelte/icons/eraser';
     import Trash2 from '@lucide/svelte/icons/trash-2';
     import {_} from "tokimeki-i18n";
+    import {feedHintState} from "$lib/classes/feedHintState.svelte";
     import { currentTimeline, settings } from "$lib/stores";
     import { languageMap } from "$lib/langs/languageMap";
     import RealtimeFollows from "$lib/components/realtime/RealtimeFollows.svelte";
@@ -777,7 +778,18 @@
                 {/if}
 
                 {#if (column.algorithm?.type === 'custom')}
-                    <a class="deck-column-delete-button deck-column-delete-button--info" href="/profile/{column.algorithm.algorithm.split('/')[2]}/feed/{column.algorithm.algorithm.split('/').slice(-1)[0]}"><Info size={20} color="var(--link-color)" />{$_('column_feed_info')}
+                    <a
+                        class="deck-column-delete-button deck-column-delete-button--info"
+                        href="/profile/{column.algorithm.algorithm.split('/')[2]}/feed/{column.algorithm.algorithm.split('/').slice(-1)[0]}"
+                        onclick={() => {
+                            feedHintState.set({
+                                uri: column.algorithm.algorithm,
+                                displayName: column.algorithm.name,
+                                creator: { did: column.algorithm.algorithm.split('/')[2] },
+                                contentMode: column.style === 'video' ? 'app.bsky.feed.defs#contentModeVideo' : undefined,
+                            });
+                        }}
+                    ><Info size={20} color="var(--link-color)" />{$_('column_feed_info')}
                     </a>
                 {/if}
 

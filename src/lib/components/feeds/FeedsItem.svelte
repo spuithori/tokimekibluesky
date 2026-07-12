@@ -13,6 +13,7 @@
   import {goto} from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
+  import {feedHintState} from "$lib/classes/feedHintState.svelte";
   const dispatch = createEventDispatcher();
   const columnState = getColumnState();
   const postState = getPostState();
@@ -35,6 +36,8 @@
   let isMenuOpen = $state(false);
 
   async function setCurrentFeed () {
+      feedHintState.set(feed);
+
       dispatch('close', {
           clear: false,
           allClose: true,
