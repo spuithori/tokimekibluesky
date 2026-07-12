@@ -8,9 +8,11 @@
   import { getScrollTopFor, setScrollTopFor, resolveScrollContainer } from "$lib/components/virtual/scroll-helpers";
   import {_} from "tokimeki-i18n";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {createThreadOpener} from "$lib/components/thread/threadNav";
 
   let { column, _agent, rootIndex, onchangeprofile, isJunk } = $props();
   const columnState = getColumnState(isJunk);
+  const openThread = createThreadOpener();
   let parent = $state<HTMLElement | undefined>();
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
 
@@ -170,7 +172,11 @@
           {/if}
 
           {#if (item?.post?.replyCount > 0 && item?.depth === 6)}
-            <a href={'/profile/' + item.post.author.handle + '/post/' + item.post.uri.split('/').slice(-1)[0]} class="thread-depth-more">{$_('read_more_thread')}</a>
+            <a
+              href={'/profile/' + item.post.author.handle + '/post/' + item.post.uri.split('/').slice(-1)[0]}
+              class="thread-depth-more"
+              onclick={(e) => {e.preventDefault(); openThread({post: item.post}, _agent)}}
+            >{$_('read_more_thread')}</a>
           {/if}
         </div>
       {:else}

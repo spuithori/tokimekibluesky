@@ -36,7 +36,7 @@ export function getAllAgentDids(agents) {
 }
 
 export function isDid(name) {
-    return !!name.startsWith('did:plc:');
+    return !!name.startsWith('did:');
 }
 
 export function detectDifferentDomainUrl(url: string, text: string) {

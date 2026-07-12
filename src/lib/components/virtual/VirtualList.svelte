@@ -88,6 +88,7 @@
   let frameTops: number[] = [];
   let frameBottoms: number[] = [];
   let pendingTopStill = false;
+  let deferRestoreExpansion = false;
 
   let isWindowScroll = $derived(
     typeof document !== 'undefined' &&
@@ -97,6 +98,8 @@
   let isVirtualizationEnabled = $derived(
     scrollContainer != null && viewportHeight > 0 && items.length > 0
   );
+
+  let restorePending = $derived(!!initialScrollState && !hasRestoredScroll && !restoreDeferred);
 
   let upIndices = $derived.by(() => {
     const end = Math.min(rangeEnd, pivotIndex);
@@ -307,6 +310,12 @@
     if (pendingEpochBump) {
       pendingEpochBump = false;
       measuredEpoch++;
+    }
+    if (deferRestoreExpansion) {
+      deferRestoreExpansion = false;
+      frameQueued = true;
+      requestAnimationFrame(processScroll);
+      return;
     }
     if (!scrollContainer || !canvasEl || items.length === 0 || isNavigating || effectivePaused) return;
 
@@ -651,7 +660,7 @@
     tree.buildWithCallback(items.length, () => avg);
     setPivot(0, 0);
     rangeStart = 0;
-    rangeEnd = Math.min(items.length, initialRenderCount());
+    rangeEnd = initialScrollState && !hasRestoredScroll ? 0 : Math.min(items.length, initialRenderCount());
     canvasHeight = Math.max(tree.total, initialScrollState?.scrollTop != null ? initialScrollState.scrollTop + 1000 : 0);
   }
 
@@ -825,6 +834,9 @@
       untrack(() => {
         if (!restoreScrollState(initialScrollState!)) {
           restoreDeferred = true;
+          if (rangeStart === 0 && rangeEnd === 0) {
+            rangeEnd = Math.min(items.length, initialRenderCount());
+          }
         }
       });
     }
@@ -906,10 +918,13 @@
     const visualY = state.visualY ?? (topMargin - (state.offset ?? 0));
     const targetCanvasY = savedScrollTop - listOffset + visualY;
     setPivot(targetIdx, Math.max(0, targetCanvasY));
-    const buf = Math.ceil(getEffectiveBufferPx() / getAverageHeight());
-    rangeStart = Math.max(0, targetIdx - buf);
-    rangeEnd = Math.min(items.length, targetIdx + buf + SCROLLTO_EXTRA_BUFFER);
+    const avg = getAverageHeight();
+    const upCount = Math.ceil(Math.max(0, visualY) / avg) + 1;
+    const downCount = Math.ceil(Math.max(0, viewportHeight - visualY) / avg) + 1;
+    rangeStart = Math.max(0, targetIdx - upCount);
+    rangeEnd = Math.min(items.length, targetIdx + downCount);
     growCanvas(Math.max(tree.total, savedScrollTop + viewportHeight));
+    deferRestoreExpansion = true;
 
     tick().then(() => {
       setScrollTop(savedScrollTop);
@@ -1095,7 +1110,7 @@
 {#if scrollContainer}
   <div
     class="virtual-list vl-canvas"
-    class:virtual-list--restoring={initialScrollState && !hasRestoredScroll && !restoreDeferred}
+    class:virtual-list--restoring={restorePending}
     style:height="{canvasHeight}px"
     bind:this={canvasEl}
     {@attach scrollContainerAttach}
@@ -1131,7 +1146,7 @@
       </div>
     {:else}
       <div class="vl-down" style:top="0px">
-        {#each items.slice(0, FALLBACK_RENDER_COUNT) as item, index (getKey(item, index))}
+        {#each (restorePending ? [] : items.slice(0, FALLBACK_RENDER_COUNT)) as item, index (getKey(item, index))}
           {@const k = getKey(item, index)}
           <div class="virtual-item" {@attach itemAttach(k)}>
             {@render children(item, index)}

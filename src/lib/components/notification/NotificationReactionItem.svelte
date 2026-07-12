@@ -13,15 +13,14 @@
     import Images from "../../../routes/(app)/Images.svelte";
     import LikesModal from "$lib/components/thread/LikesModal.svelte";
     import RepostsModal from "$lib/components/thread/RepostsModal.svelte";
-    import {junkAgentDid, settings} from "$lib/stores";
+    import {settings} from "$lib/stores";
     import FeedEmbed from "$lib/components/feeds/FeedEmbed.svelte";
-    import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-    import {goto} from "$app/navigation";
-    import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {createThreadOpener} from "$lib/components/thread/threadNav";
+    import {profileHintState} from "$lib/classes/profileHintState.svelte";
 
     let { item, post, _agent } = $props();
 
-    const junkColumnState = getColumnState(true);
+    const openThread = createThreadOpener();
 
     let isLikesOpen = $state(false);
     let isRepostsOpen = $state(false);
@@ -40,37 +39,7 @@
 
     function handlePostClick(e) {
         e.preventDefault();
-
-        const rkey = post.uri.split('/').slice(-1)[0];
-        const uri = '/profile/' + post.author.did + '/post/' + rkey;
-
-        if (uri === location.pathname) {
-            return false;
-        }
-
-        if (!junkColumnState.hasColumn('thread_' + rkey)) {
-            junkColumnState.add({
-                id: 'thread_' + rkey,
-                algorithm: {
-                    algorithm: 'at://' + post.author.did + '/app.bsky.feed.post/' + rkey,
-                    type: 'thread',
-                    name: 'Thread',
-                },
-                style: 'default',
-                settings: defaultDeckSettings,
-                did: _agent.did(),
-                handle: _agent.handle(),
-                data: {
-                    feed: [{
-                        post: post,
-                    }],
-                    cursor: '',
-                }
-            });
-        }
-
-        junkAgentDid.set(_agent.did());
-        goto(uri);
+        openThread({post: post}, _agent);
     }
 </script>
 
@@ -122,7 +91,7 @@
             <h2 class="notifications-item__title">
                 <span class="notifications-item__name">
                   <ProfileCardWrapper handle={item.notifications[0].author.handle} {_agent}>
-                    <a class="notifications-item__link" href="/profile/{item.notifications[0].author.did}">{item.notifications[0].author.displayName || item.notifications[0].author.handle}</a>
+                    <a class="notifications-item__link" href="/profile/{item.notifications[0].author.did}" onclick={() => {profileHintState.set(item.notifications[0].author)}}>{item.notifications[0].author.displayName || item.notifications[0].author.handle}</a>
                   </ProfileCardWrapper>
                 </span> {$_(getReasonText(item.notifications.length === 1 ? item.reason : item.reason + '_multiple'))}
             </h2>
