@@ -14,22 +14,28 @@
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
     import NotificationStarterpackItem from "$lib/components/notification/NotificationStarterpackItem.svelte";
     import TimelineItem from "./TimelineItem.svelte";
-    import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
+    import {
+        NOTIFICATION_FILTER_OPTIONS,
+        ensureNotificationFilter,
+        loadMoreNotificationColumn,
+        needsRefetchForFilter,
+        refreshNotificationColumn,
+        resetNotificationColumnData,
+    } from "$lib/components/notification/notificationPipeline";
     import {playSound} from "$lib/sounds";
     import Infinite from "$lib/components/utils/Infinite.svelte";
 
-    type Filter = 'reply' | 'mention' | 'quote' | 'like' | 'repost' | 'follow' | 'like-via-repost' | 'repost-via-repost' | 'subscribed-post';
-
-    let { index, isJunk, _agent = $agent, unique, isSplit = false, column: columnProp = undefined } = $props();
+    let { index, isJunk, _agent = $agent, unique, column: columnProp = undefined } = $props();
     let columnState = getColumnState(isJunk);
     let column = columnProp ?? columnState.getColumn(index);
     let sound = $derived(column.settings?.playSound);
     let isOnlyShowUnread = $derived(column.settings?.onlyShowUnread);
     let id = $derived(column.id);
+    let filterEpoch = $state(Symbol());
     let notificationTimeoutId: ReturnType<typeof setTimeout>;
+    let filterDebounceId: ReturnType<typeof setTimeout>;
 
-    let filters: Filter[] = $state(['like', 'repost', 'reply', 'mention', 'quote', 'follow', 'like-via-repost', 'repost-via-repost', 'subscribed-post']);
-    let filterIcons = {
+    const filterIcons: Record<string, typeof Heart> = {
         like: $settings?.design?.reactionMode === 'superstar' ? Star : Heart,
         repost: Repeat2,
         reply: Reply,
@@ -39,19 +45,9 @@
         'subscribed-post': Pencil,
     };
 
-    if (!column.data.notifications) {
-        column.data.notifications = [];
-    }
+    ensureNotificationFilter(column);
 
-    if (!column.data.feedPool) {
-        column.data.feedPool = [];
-    }
-
-    if (!column.filter) {
-        column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow', 'subscribed-post'];
-    }
-
-    const handleServiceWorkerMessage = (event) => {
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
         if (event.data.type === 'notification_event') {
             const eventDid = event.data.data?.did;
 
@@ -62,73 +58,34 @@
         }
     };
 
-    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    }
 
     $effect(() => {
         return () => {
-            navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+            }
             clearTimeout(notificationTimeoutId);
+            clearTimeout(filterDebounceId);
         }
     })
 
-    async function getNotificationsFilter(setFilter: Filter[]) {
-        column.filter = setFilter;
-        column.data.notifications = [];
-        columnState.clearFeed(column.id);
-        column.data.feedPool = [];
-        column.data.cursor = '';
-    }
-
     async function putNotifications() {
-        const res = await _agent.xrpc.get('app.bsky.notification.listNotifications', {
-            limit: 10,
-            cursor: '',
-        });
-        const __notifications = res.notifications.filter(item => {
-            return column.filter.includes(item.reason);
-        });
-        const resNotifications = isOnlyShowUnread
-            ? __notifications.filter(notification => !notification.isRead)
-            : __notifications;
-
-        const _notifications = mergeNotifications([...resNotifications, ...column.data.notifications]);
-        const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(_notifications, true, _agent, column.data.feedPool || []);
-
-        column.data.notifications = _notifications;
-        columnState.setFeed(column.id, newNotificationGroup);
-        column.data.feedPool = newFeedPool;
+        const { newestIndexedAt } = await refreshNotificationColumn({ column, columnState, _agent });
 
         if (sound) {
-            playSound(column.data.notifications[0]?.indexedAt, column.lastRefresh, sound)
+            playSound(newestIndexedAt, column.lastRefresh, sound);
         }
+        column.lastRefresh = new Date().toISOString();
     }
 
-    const handleLoadMore = async (loaded, complete) => {
+    const handleLoadMore = async (loaded: () => void, complete: () => void) => {
         try {
-            const res = await _agent.xrpc.get('app.bsky.notification.listNotifications', {
-                limit: 25,
-                cursor: column.data.cursor,
-                reasons: column.filter,
-            });
-            column.data.cursor = res.cursor;
+            const result = await loadMoreNotificationColumn({ column, columnState, _agent });
 
-            const _notifications = res.notifications.filter(item => {
-                return column.filter.includes(item.reason);
-            });
-            const resNotifications = isOnlyShowUnread
-                ? _notifications.filter(notification => !notification.isRead)
-                : _notifications;
-
-            const { notifications: newNotificationGroup, feedPool: newFeedPool } = await getNotifications(resNotifications, true, _agent, column.data.feedPool);
-            column.data.notifications = [...column.data.notifications, ...resNotifications];
-            columnState.replaceFeed(column.id, f => {
-                const existingKeys = new Set(f.map(item => item.key));
-                const newItems = newNotificationGroup.filter(item => !existingKeys.has(item.key));
-                return [...f, ...newItems];
-            });
-            column.data.feedPool = newFeedPool;
-
-            if (column.data.cursor && isOnlyShowUnread ? resNotifications.length : res.notifications.length) {
+            if (result === 'loaded') {
                 loaded();
             } else {
                 complete();
@@ -139,18 +96,29 @@
         }
     }
 
-    function changeFilter(filter: Filter[]) {
-        getNotificationsFilter(filter);
+    function handleFilterChange() {
+        clearTimeout(filterDebounceId);
+
+        if (!needsRefetchForFilter(column)) {
+            return;
+        }
+
+        filterDebounceId = setTimeout(() => {
+            resetNotificationColumnData(column);
+            columnState.clearFeed(column.id);
+            filterEpoch = Symbol();
+        }, 500);
     }
 </script>
 
 <div class="notifications-filter-display">
     <ul class="notifications-filter">
-        {#each filters as item (item)}
+        {#each NOTIFICATION_FILTER_OPTIONS as item (item)}
+            {@const Icon = filterIcons[item]}
             <li class="notifications-filter__item notifications-filter__item--{item}" aria-label={$_(item)}>
-                <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={column.filter} value={item} onchange={() => {changeFilter(column.filter)}}>
+                <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={column.filter} value={item} onchange={handleFilterChange}>
                 <label class="notifications-filter__label" for={id + '_' + item}>
-                    <svelte:component this={filterIcons[item]} size="20" strokeWidth="var(--icon-stroke-width, 2px)"></svelte:component>
+                    <Icon size="20" strokeWidth="var(--icon-stroke-width, 2px)"></Icon>
                 </label>
             </li>
         {/each}
@@ -167,15 +135,15 @@
 
         {#if (column.filter.includes(item.reason))}
           {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
-            {#if column.data.feedPool[item.postIndex]}
-              <TimelineItem {_agent} data={column.data.feedPool[item.postIndex]} {column}></TimelineItem>
+            {#if item.post}
+              <TimelineItem {_agent} data={{post: item.post}} {column}></TimelineItem>
             {/if}
           {:else if (item.reason === 'follow')}
             <NotificationFollowItem {_agent} item={item.notifications[0]}></NotificationFollowItem>
           {:else if (item.reason === 'starterpack-joined')}
             <NotificationStarterpackItem {_agent} item={item.notifications[0]}></NotificationStarterpackItem>
-          {:else if column?.data?.feedPool[item.postIndex]}
-            <NotificationReactionItem {_agent} {item} post={column.data.feedPool[item.postIndex].post}></NotificationReactionItem>
+          {:else if item.post}
+            <NotificationReactionItem {_agent} {item} post={item.post}></NotificationReactionItem>
           {/if}
         {/if}
       </div>
@@ -183,14 +151,16 @@
   </div>
 
   {#key unique}
-    <Infinite oninfinite={handleLoadMore}>
-      <p class="infinite-nomore">
-        {$_('no_more')}
-        {#if isOnlyShowUnread}
-          <br>({$_('only_show_unread')})
-        {/if}
-      </p>
-    </Infinite>
+    {#key filterEpoch}
+      <Infinite oninfinite={handleLoadMore}>
+        <p class="infinite-nomore">
+          {$_('no_more')}
+          {#if isOnlyShowUnread}
+            <br>({$_('only_show_unread')})
+          {/if}
+        </p>
+      </Infinite>
+    {/key}
   {/key}
 </div>
 
@@ -229,13 +199,6 @@
         &__label {
             cursor: pointer;
             color: var(--border-color-2);
-        }
-
-        &__item {
-            &--like-via-repost,
-            &--repost-via-repost {
-                display: none;
-            }
         }
     }
 

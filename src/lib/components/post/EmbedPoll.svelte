@@ -17,7 +17,7 @@
     const minHeight = $derived(
         pollInfo.options
             ? pollInfo.options * 52 + 71
-            : undefined
+            : 2 * 52 + 71
     );
 
     interface OptionResult {

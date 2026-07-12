@@ -1,6 +1,7 @@
 <script lang="ts">
   import {onDestroy} from "svelte";
   import {_} from "tokimeki-i18n";
+  import {beforeNavigate} from '$app/navigation';
   import {page} from '$app/stores';
   import {settings} from '$lib/stores';
   import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
@@ -12,6 +13,7 @@
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import Annoyed from '@lucide/svelte/icons/annoyed';
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {makeFeedKeys, getFeedKey} from "$lib/components/timeline/feedKeys";
 
   let {
     column,
@@ -40,12 +42,12 @@
   let virtualList: ReturnType<typeof VirtualList> | undefined = $state();
 
   let initialScrollState = $state<ScrollState | null>(
-    column.data?.scrollState ?? column.data?._pendingScrollRestore ?? null
+    column.data?.scrollState ?? null
   );
   if (initialScrollState && (!initialScrollState.heights || initialScrollState.heights.length === 0) && column.data?._heightCache?.length > 0) {
     initialScrollState = { ...initialScrollState, heights: column.data._heightCache };
   }
-  if (column.data?.scrollState || column.data?._pendingScrollRestore) onScrollStateClear?.();
+  if (column.data?.scrollState) onScrollStateClear?.();
 
   let isLoading = $state(false);
   let isComplete = $state(false);
@@ -94,11 +96,13 @@
       ?? parent?.closest('.deck-column-content') as HTMLElement | null;
   });
 
+  const feedKeys = $derived(makeFeedKeys(columnState.getFeed(column.id)));
+
   function getKey(data: any, index: number): string {
-    const uri = data?.post?.uri || `index-${index}`;
-    const reasonIndexedAt = data?.reason?.indexedAt || '';
-    return `${uri}|${reasonIndexedAt}`;
+    return feedKeys[index] ?? getFeedKey(data, index);
   }
+
+  let pendingForce = false;
 
   async function triggerLoad() {
     if (isLoading || isComplete || isRetryLimit) {
@@ -113,6 +117,10 @@
       console.error('Load error:', e);
     } finally {
       isLoading = false;
+      if (pendingForce) {
+        pendingForce = false;
+        triggerLoad();
+      }
     }
   }
 
@@ -155,6 +163,19 @@
     }
   });
 
+  beforeNavigate(() => {
+    if (scrollSaveTimer) {
+      clearTimeout(scrollSaveTimer);
+      scrollSaveTimer = null;
+    }
+    if (virtualList) {
+      const state = virtualList.getScrollStateLightweight();
+      if (state && state.visualY !== undefined) {
+        onScrollStateSave?.(state);
+      }
+    }
+  });
+
   onDestroy(() => {
     if (scrollSaveTimer) {
       clearTimeout(scrollSaveTimer);
@@ -185,6 +206,30 @@
 
   export function scrollToIndex(index: number, options?: { align?: 'start' | 'center' | 'end'; offset?: number }): void {
     virtualList?.scrollToIndex(index, options);
+  }
+
+  export function scrollToIndexAt(index: number, clientY: number): void {
+    if (!virtualList) return;
+    const container = scrollContainer;
+    if (!container) {
+      virtualList.scrollToIndex(index, { align: 'start', offset: 0 });
+      return;
+    }
+    const isWin = container === document.documentElement || container === document.body;
+    const containerTop = isWin ? 0 : container.getBoundingClientRect().top + (container.clientTop || 0);
+    const viewportH = isWin ? window.innerHeight : container.clientHeight;
+    const y = Math.max(topMargin, Math.min(clientY - containerTop, viewportH - 56));
+    virtualList.scrollToIndex(index, { align: 'start', offset: topMargin - y });
+  }
+
+  export function forceLoad(): void {
+    if (isComplete) return;
+    retryCount = 0;
+    if (isLoading) {
+      pendingForce = true;
+      return;
+    }
+    triggerLoad();
   }
 
 </script>

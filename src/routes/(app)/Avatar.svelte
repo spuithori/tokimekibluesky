@@ -203,7 +203,7 @@
      class:mochi-enabled={!$settings?.general?.disableMochiHoppe}
      style:transform={mochiTransform}>
     {#if (avatar && !$isDataSaving)}
-      <img loading="lazy" decoding="async" src={displayAvatar} width="1000" height="1000" alt="" draggable="false">
+      <img loading="eager" decoding="sync" fetchpriority="low" src={displayAvatar} width="1000" height="1000" alt="" draggable="false">
     {/if}
   </a>
 

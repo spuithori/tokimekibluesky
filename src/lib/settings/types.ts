@@ -31,7 +31,6 @@ export interface GeneralSettings {
     disableAtmosphere: boolean;
     losslessImageUpload: boolean;
     requireInputAltText: boolean;
-    useVirtual: boolean;
     continuousTag: boolean;
     disableMochiHoppe: boolean;
     dataSaver: boolean;

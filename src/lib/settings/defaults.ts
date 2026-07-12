@@ -68,7 +68,6 @@ export function createDefaultSettings(): Settings {
             disableAtmosphere: false,
             losslessImageUpload: false,
             requireInputAltText: false,
-            useVirtual: false,
             continuousTag: false,
             disableMochiHoppe: false,
             dataSaver: false,

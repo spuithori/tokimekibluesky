@@ -21,6 +21,8 @@
     import GripVertical from '@lucide/svelte/icons/grip-vertical';
     import { createLongPress } from "$lib/longpress";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
+    import {markAllNotificationsRead, resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
 
     interface Props {
         column: any;
@@ -71,27 +73,9 @@
             handleRefresh();
             isTopScrolling = false;
         } else {
-            el.dataset.smoothScrolling = '';
-            el.scroll({
-                top: 0,
-                left: 0,
-                behavior: 'smooth',
-            });
-
-            const onScrollEnd = () => {
-                if (el.scrollTop <= 5) {
-                    isTopScrolling = false;
-                    delete el.dataset.smoothScrolling;
-                    el.removeEventListener('scroll', onScrollEnd);
-                }
-            };
-            el.addEventListener('scroll', onScrollEnd, { passive: true });
-
-            setTimeout(() => {
+            smoothScrollToTopGuarded(el, () => {
                 isTopScrolling = false;
-                delete el.dataset.smoothScrolling;
-                el.removeEventListener('scroll', onScrollEnd);
-            }, 3000);
+            });
         }
     }
 
@@ -107,6 +91,14 @@
         }
     }
 
+    async function handleMarkAllRead() {
+        try {
+            await markAllNotificationsRead({ column, columnState, _agent });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     function handleForceRefresh() {
         isRefreshing = true;
         columnState.clearFeed(column.id);
@@ -114,8 +106,7 @@
         column.data.scrollState = undefined;
 
         if (column.algorithm?.type === 'notification') {
-            column.data.feedPool = [];
-            column.data.notifications = [];
+            resetNotificationColumnData(column);
         }
 
         unique = Symbol();
@@ -135,8 +126,7 @@
             column.data.scrollState = undefined;
 
             if (column.algorithm?.type === 'notification') {
-                column.data.feedPool = [];
-                column.data.notifications = [];
+                resetNotificationColumnData(column);
             }
 
             unique = Symbol();
@@ -208,7 +198,7 @@
 
     <div class="deck-column-header__buttons">
         {#if column.algorithm?.type === 'notification' && !isJunk}
-            <button class="deck-column-header__action-button only-pc" onclick={handleRefresh}>
+            <button class="deck-column-header__action-button only-pc" aria-label="Mark all notifications as read" onclick={handleMarkAllRead}>
                 <CheckCheck color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></CheckCheck>
             </button>
         {/if}
@@ -248,7 +238,7 @@
 >
     {#if _agent}
         {#if column.algorithm?.type === 'notification'}
-            <NotificationTimeline {index} {isJunk} {_agent} {unique} {isSplit} {column}></NotificationTimeline>
+            <NotificationTimeline {index} {isJunk} {_agent} {unique} {column}></NotificationTimeline>
         {:else if column.algorithm?.type === 'thread'}
             {#key unique}
                 <ThreadTimeline {index} {_agent} {isJunk}></ThreadTimeline>

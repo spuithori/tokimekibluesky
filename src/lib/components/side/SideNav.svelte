@@ -1,5 +1,6 @@
 <script lang="ts">
   import {agent, currentTimeline, settings} from '$lib/stores';
+  import {smoothScrollToTopGuarded} from '$lib/components/virtual/scroll-helpers';
   import Search from '@lucide/svelte/icons/search';
   import GanttChartSquare from '@lucide/svelte/icons/gantt-chart-square';
   import MessageCircleMore from '@lucide/svelte/icons/message-circle-more';
@@ -71,19 +72,11 @@
                 if ($settings.design?.layout === 'decks') {
                     columnState.columns.forEach(column => {
                         if (column?.scrollElement) {
-                            column.scrollElement.scroll({
-                                top: 0,
-                                left: 0,
-                                behavior: 'smooth',
-                            });
+                            smoothScrollToTopGuarded(column.scrollElement);
                         }
                     })
                 } else {
-                    document.querySelector(':root').scroll({
-                        top: 0,
-                        left: 0,
-                        behavior: 'smooth',
-                    });
+                    smoothScrollToTopGuarded(document.querySelector(':root') as HTMLElement);
                 }
             } catch (e) {
                 // nothing.

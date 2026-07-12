@@ -22,7 +22,7 @@
 
 <div class="user-item user-item--{layout}">
   <article class="user-item__user">
-    <Avatar href="/profile/{ user.handle }" avatar={user.avatar} handle={user.handle}></Avatar>
+    <Avatar href="/profile/{ user.handle }" avatar={user.avatar} handle={user.handle} profile={user} {_agent}></Avatar>
 
     <div class="user-item__content">
       <h3 class="user-item__title">

@@ -17,7 +17,7 @@
   import ShieldBan from '@lucide/svelte/icons/shield-ban';
   import BellOff from '@lucide/svelte/icons/bell-off';
   import Bell from '@lucide/svelte/icons/bell';
-  import { agent, settings, reportModal, listAddModal, agents, bluefeedAddModal, pulseDetach, junkAgentDid, agentDidsSet } from '$lib/stores';
+  import { agent, settings, reportModal, listAddModal, agents, bluefeedAddModal, pulseDetach, agentDidsSet } from '$lib/stores';
   import { muteListsState } from '$lib/classes/muteListsState.svelte';
   import { AppBskyEmbedRecord, AppBskyEmbedRecordWithMedia, AppBskyEmbedVideo, AppBskyFeedDefs } from '$lib/atproto-guards'
   import { hasGalleryImages } from '$lib/components/post/embedImages'
@@ -25,12 +25,12 @@
   import { toast } from "svelte-sonner";
   import ProfileCardWrapper from "./ProfileCardWrapper.svelte";
   import Menu from "$lib/components/ui/Menu.svelte";
-  import {goto} from "$app/navigation";
+  import {createThreadOpener} from "$lib/components/thread/threadNav";
+  import {profileHintState} from "$lib/classes/profileHintState.svelte";
   import TimelineContent from "$lib/components/post/TimelineContent.svelte";
   import ReactionButtonsInMenu from "$lib/components/post/ReactionButtonsInMenu.svelte";
   import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
   import { getAccountIdByDid, getDidFromUri } from "$lib/util.js";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import MediaTimelineItem from "$lib/components/media/MediaTimelineItem.svelte";
   import VideoTimelineItem from "$lib/components/post/VideoTimelineItem.svelte";
@@ -55,6 +55,7 @@
 
     const columnState = getColumnState();
     const junkColumnState = getColumnState(true);
+    const openThread = createThreadOpener();
     const postState = getPostState();
 
     let isDialogRender = $state(false);
@@ -304,34 +305,7 @@
             return false;
         }
 
-        const rkey = data.post.uri.split('/').slice(-1)[0];
-        const uri = '/profile/' + data.post.author.did + '/post/' + rkey;
-
-        if (uri === location.pathname) {
-            return false;
-        }
-
-        if (!junkColumnState.hasColumn('thread_' + rkey)) {
-            junkColumnState.add({
-                id: 'thread_' + rkey,
-                algorithm: {
-                    algorithm: 'at://' + data.post.author.did + '/app.bsky.feed.post/' + rkey,
-                    type: 'thread',
-                    name: 'Thread',
-                },
-                style: 'default',
-                settings: defaultDeckSettings,
-                did: _agent.did(),
-                handle: _agent.handle(),
-                data: {
-                    feed: [data],
-                    cursor: '',
-                }
-            })
-        }
-
-        junkAgentDid.set(_agent.did());
-        goto(uri);
+        openThread(data, _agent);
     }
 
     function report() {
@@ -564,7 +538,7 @@
         {#if (isReasonRepost(data.reason))}
           <p class="timeline-repost-message" data-aturi={data.reason.uri}>
             <ProfileCardWrapper handle={data.reason.by.handle} {_agent}>
-              <a href="/profile/{data.reason.by.did}"><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {name: data.reason.by.displayName || data.reason.by.handle})}</span></a>
+              <a href="/profile/{data.reason.by.did}" onclick={() => {profileHintState.set(data.reason.by)}}><Repeat2 size="18" color="var(--primary-color)"></Repeat2><span class="timeline-repost-message__text">{$_('reposted_by', {name: data.reason.by.displayName || data.reason.by.handle})}</span></a>
             </ProfileCardWrapper>
           </p>
         {/if}
@@ -589,7 +563,10 @@
 
           {#if data.reply.parent?.record?.reply?.parent?.uri !== data.reply.root.uri}
             <p class="timeline-read-thread-link">
-              <a href={'/profile/' + data.reply.root.author.handle + '/post/' + data.reply.root.uri.split('/').slice(-1)[0]}>
+              <a
+                href={'/profile/' + data.reply.root.author.handle + '/post/' + data.reply.root.uri.split('/').slice(-1)[0]}
+                onclick={(e) => {e.preventDefault(); openThread({post: data.reply.root}, _agent)}}
+              >
                 {$_('read_this_thread')}
               </a>
             </p>

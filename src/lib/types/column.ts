@@ -2,7 +2,7 @@ import type { searchFilters } from '$lib/search/filterSpec';
 export type { searchFilters };
 
 export type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed',
+    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'thread' | 'realtime',
     algorithm?: string,
     name?: string,
     list?: object,
@@ -27,6 +27,7 @@ type deckSettings = {
     width?: 'large' | 'medium' | 'small',
     icon?: string | null,
     onlyShowUnread?: boolean,
+    notificationPriority?: boolean,
     playSound?: null | string,
     hideCounts?: boolean,
     background?: string,
@@ -57,6 +58,7 @@ export type Column = {
         feed?: any[],
         cursor: string | number,
         hitsTotal?: number,
+        scrollState?: unknown,
     },
     scrollElement?: HTMLDivElement,
     splitColumn?: Column,

@@ -17,11 +17,11 @@
     const columnState = getColumnState(true);
 
     onMount(async () => {
-        if (!isDid(handle)) {
-            handle = await getDidByHandle(handle, _agent);
-        }
-
         if (!columnState.hasColumn(columnId)) {
+            if (!isDid(handle)) {
+                handle = await getDidByHandle(handle, _agent);
+            }
+
             columnState.add({
                 id: columnId,
                 algorithm: {

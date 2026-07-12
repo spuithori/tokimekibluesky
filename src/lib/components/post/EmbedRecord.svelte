@@ -8,9 +8,7 @@
   import Images from "../../../routes/(app)/Images.svelte";
   import {contentLabelling, detectWarn, keywordFilter} from "$lib/timelineFilter";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
-  import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import {goto} from "$app/navigation";
-  import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {createThreadOpener} from "$lib/components/thread/threadNav";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
   import EmbedRecord from './EmbedRecord.svelte'
@@ -21,6 +19,8 @@
   import {appState} from "$lib/classes/appState.svelte";
 
   let { record, _agent = $agent, isChild = false, isPublish = false } = $props();
+
+  const openThread = createThreadOpener();
 
   if (isPublish) {
     record.value = record.record;
@@ -33,7 +33,6 @@
   let isMuteDisplay = $state(false);
   let isMuted = $state(record.author?.viewer?.muted);
 
-  const junkColumnState = getColumnState(true);
 
   if (record.value?.text && keywordFilter(keywordMuteState.formattedKeywords, record.value.text, record.indexedAt)) {
       isMuted = true;
@@ -43,13 +42,6 @@
       e.preventDefault();
 
       if (!record?.uri) {
-          return false;
-      }
-
-      const rkey = record.uri.split('/').slice(-1)[0];
-      const uri = '/profile/' + record.author?.did + '/post/' + rkey;
-
-      if (uri === location.pathname) {
           return false;
       }
 
@@ -67,28 +59,7 @@
           formattedPost.embed = record.embeds[0];
       }
 
-      if (!junkColumnState.hasColumn('thread_' + rkey)) {
-          junkColumnState.add({
-              id: 'thread_' + rkey,
-              algorithm: {
-                  algorithm: 'at://' + record.author?.did + '/app.bsky.feed.post/' + rkey,
-                  type: 'thread',
-                  name: 'Thread',
-              },
-              style: 'default',
-              settings: defaultDeckSettings,
-              did: _agent.did(),
-              handle: _agent.handle(),
-              data: {
-                  feed: [{
-                      post: formattedPost,
-                  }],
-                  cursor: '',
-              }
-          });
-      }
-
-      goto(uri);
+      openThread({post: formattedPost}, _agent);
   }
 </script>
 
@@ -117,7 +88,9 @@
       <div class="timeline-external-avatar">
         <Avatar href="/profile/{ record.author.handle }"
                 avatar={ record.author.avatar }
-                handle={ record.author.handle }></Avatar>
+                handle={ record.author.handle }
+                profile={ record.author }
+                {_agent}></Avatar>
       </div>
 
       <div class="timeline__meta">

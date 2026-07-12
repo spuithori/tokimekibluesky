@@ -6,6 +6,7 @@
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
     import {iconMap} from "$lib/columnIcons";
     import {scrollDirection} from "$lib/scrollDirection";
+    import {smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
     import {onDestroy, onMount} from "svelte";
     import {toast} from "svelte-sonner";
     import {backgroundsMap} from "$lib/columnBackgrounds";
@@ -36,6 +37,7 @@
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
     import MochottTimeline from "./MochottTimeline.svelte";
     import Timeline from "./Timeline.svelte";
+    import {markAllNotificationsRead, resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
 
     interface Props {
         index?: number;
@@ -161,27 +163,9 @@
             handleRefresh();
             isTopScrolling = false;
         } else {
-            el.dataset.smoothScrolling = '';
-            el.scroll({
-                top: 0,
-                left: 0,
-                behavior: 'smooth',
-            });
-
-            const onScrollEnd = () => {
-                if (el.scrollTop <= 5) {
-                    isTopScrolling = false;
-                    delete el.dataset.smoothScrolling;
-                    el.removeEventListener('scroll', onScrollEnd);
-                }
-            };
-            el.addEventListener('scroll', onScrollEnd, { passive: true });
-
-            setTimeout(() => {
+            smoothScrollToTopGuarded(el, () => {
                 isTopScrolling = false;
-                delete el.dataset.smoothScrolling;
-                el.removeEventListener('scroll', onScrollEnd);
-            }, 3000);
+            });
         }
     }
 
@@ -251,6 +235,15 @@
         }
     }
 
+    async function handleMarkAllRead() {
+        try {
+            await markAllNotificationsRead({ column, columnState, _agent });
+        } catch (e) {
+            console.error(e);
+            toast.error('Error: ' + e);
+        }
+    }
+
     function handleChangePopup() {
         if (column.settings.isPopup) {
             column.settings = {...column.settings, isPopup: false};
@@ -311,8 +304,7 @@
         column.data.scrollState = undefined;
 
         if (column.algorithm.type === 'notification') {
-            column.data.feedPool = [];
-            column.data.notifications = [];
+            resetNotificationColumnData(column);
         }
 
         unique = Symbol();
@@ -490,7 +482,7 @@
                     {/if}
 
                     {#if column.algorithm?.type === 'notification' && !isJunk}
-                        <button class="deck-popup-button only-pc" onclick={handleRefresh}>
+                        <button class="deck-popup-button only-pc" aria-label="Mark all notifications as read" onclick={handleMarkAllRead}>
                             <CheckCheck color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></CheckCheck>
                         </button>
                     {/if}

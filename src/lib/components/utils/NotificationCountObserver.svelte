@@ -3,41 +3,61 @@
   import {getAccountIdByDid} from "$lib/util";
   import {onDestroy} from "svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import type {Column} from "$lib/types/column";
 
   const columnState = getColumnState();
 
-  function updateCount() {
-      let promises = [];
-      let notificationColumns = [];
+  function collectNotificationColumns(): Map<string, Column[]> {
+      const columnsByTarget = new Map<string, Column[]>();
 
-      if ($pauseColumn) {
-          return false;
+      const register = (column: Column | undefined) => {
+          if (column?.algorithm?.type !== 'notification') {
+              return;
+          }
+          const key = `${column.did}\n${column.settings?.notificationPriority === true}`;
+          const list = columnsByTarget.get(key);
+          if (list) {
+              list.push(column);
+          } else {
+              columnsByTarget.set(key, [column]);
+          }
+      };
+
+      for (const column of columnState.columns) {
+          register(column);
+          register(column.splitColumn);
       }
 
-      columnState.columns.forEach((column, index) => {
-          if (column.algorithm?.type !== 'notification') {
-              return false;
+      return columnsByTarget;
+  }
+
+  function updateCount() {
+      if ($pauseColumn) {
+          return;
+      }
+
+      for (const [target, columns] of collectNotificationColumns()) {
+          const [did, priority] = target.split('\n');
+          const accountId = getAccountIdByDid($agents, did);
+          const _agent = accountId !== undefined ? $agents.get(accountId) : undefined;
+          if (!_agent) {
+              continue;
           }
 
-          const _agent = $agents.get(getAccountIdByDid($agents, column.did));
-          notificationColumns = [...notificationColumns, index];
-          promises = [...promises, _agent ? _agent.getNotificationCount() : Promise.reject(new Error('no agent'))];
-      })
-
-      Promise.allSettled(promises).then(results => {
-          results.forEach((result, index) => {
-              if (result.status === 'fulfilled') {
-                  columnState.columns[notificationColumns[index]].unreadCount = result.value;
-              }
-          })
-      })
-      .catch(e => {
-          console.log(e);
-      })
+          _agent.getNotificationCount(priority === 'true')
+              .then((count: number) => {
+                  for (const column of columns) {
+                      column.unreadCount = count;
+                  }
+              })
+              .catch((e: unknown) => {
+                  console.error(e);
+              });
+      }
   }
   updateCount();
 
-  function handleTimer(e) {
+  function handleTimer(e: MessageEvent) {
       if (e.data % 30 === 0) {
           updateCount();
       }

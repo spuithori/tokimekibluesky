@@ -33,13 +33,18 @@
     const dnd = createDragSort();
     const zoneFn = dnd.zone(() => images, (v) => { images = v; });
     let input = $state();
-    let videoUrl = $derived(video?.blob ? URL.createObjectURL(video.blob) : null);
+    let videoUrl = $state<string | null>(null);
 
     $effect(() => {
+        const blob = video?.blob;
+        if (!blob) {
+            videoUrl = null;
+            return;
+        }
+        const url = URL.createObjectURL(blob);
+        videoUrl = url;
         return () => {
-            if (videoUrl) {
-                URL.revokeObjectURL(videoUrl);
-            }
+            URL.revokeObjectURL(url);
         };
     });
 
@@ -53,21 +58,23 @@
         return new Promise((resolve, reject) => {
             const video = document.createElement('video');
             video.preload = 'metadata';
+            const url = window.URL.createObjectURL(file);
 
-            video.onloadedmetadata = function() {
-                window.URL.revokeObjectURL(video.src);
+            video.onloadedmetadata = () => {
+                window.URL.revokeObjectURL(url);
                 resolve({
-                    width: this.videoWidth,
-                    height: this.videoHeight,
-                    duration: this.duration,
+                    width: video.videoWidth,
+                    height: video.videoHeight,
+                    duration: video.duration,
                 });
             };
 
-            video.onerror = function() {
+            video.onerror = () => {
+                window.URL.revokeObjectURL(url);
                 reject('Error Get Video Dimensions');
             };
 
-            video.src = window.URL.createObjectURL(file);
+            video.src = url;
         });
     }
 
@@ -134,8 +141,7 @@
                 return false;
             }
 
-            const videoDataUrl = await blobToDataUrl(videoFile);
-            const videoBytes = await fetch(videoDataUrl).then(res => res.arrayBuffer());
+            const videoBytes = await videoFile.arrayBuffer();
 
             video = {
                 aspectRatio: {

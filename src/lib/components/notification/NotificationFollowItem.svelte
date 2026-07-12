@@ -1,6 +1,7 @@
 <script lang="ts">
     import {settings} from "$lib/stores";
     import {_} from "tokimeki-i18n";
+    import {profileHintState} from "$lib/classes/profileHintState.svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
     import ProfileCardWrapper from "../../../routes/(app)/ProfileCardWrapper.svelte";
     import UserItem from "../../../routes/(app)/profile/[handle]/UserItem.svelte";
@@ -19,7 +20,7 @@
         <h2 class="notifications-item__title">
                 <span class="notifications-item__name">
                   <ProfileCardWrapper handle="{item.author.handle}" {_agent}>
-                    <a class="notifications-item__link" href="/profile/{item.author.handle}">{item.author.displayName || item.author.handle}</a>
+                    <a class="notifications-item__link" href="/profile/{item.author.handle}" onclick={() => {profileHintState.set(item.author)}}>{item.author.displayName || item.author.handle}</a>
                 </ProfileCardWrapper>
                 </span> {$_('followed_you')}
         </h2>

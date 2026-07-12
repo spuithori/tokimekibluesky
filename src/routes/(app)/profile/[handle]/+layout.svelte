@@ -94,23 +94,20 @@
 
     function getProfile(handle, clear = true) {
         untrack(() => {
-            if (clear && !profile) {
-                profile = undefined;
-            }
-
             if (profileHintState.hasProfile(handle)) {
                 profile = $state.snapshot(profileHintState.profile);
                 profileHintState.clear();
+                isLabeler = !!profile?.associated?.labeler;
+            } else if (clear && profile && profile.handle !== handle && profile.did !== handle) {
+                profile = undefined;
+                isLabeler = false;
             }
         })
 
         _agent.xrpc.get('app.bsky.actor.getProfile', {actor: handle})
             .then(res => {
                 profile = res
-
-                if (profile?.associated?.labeler) {
-                    isLabeler = true;
-                }
+                isLabeler = !!profile?.associated?.labeler;
             })
     }
 

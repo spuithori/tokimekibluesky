@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onMount, onDestroy} from "svelte";
+    import {onMount} from "svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
     import {getService} from "$lib/util";
@@ -29,14 +29,25 @@
         return '';
     }
 
-    onMount(async () => {
-        url = await getUrlByBlob(blob);
-    })
+    onMount(() => {
+        let cancelled = false;
 
-    onDestroy(() => {
-        if (url) {
-            URL.revokeObjectURL(url);
-        }
+        getUrlByBlob(blob).then((u) => {
+            if (cancelled) {
+                if (u) {
+                    URL.revokeObjectURL(u);
+                }
+                return;
+            }
+            url = u;
+        });
+
+        return () => {
+            cancelled = true;
+            if (url) {
+                URL.revokeObjectURL(url);
+            }
+        };
     })
 </script>
 

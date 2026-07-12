@@ -6,6 +6,7 @@ import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 import {AppBskyFeedDefs} from "$lib/atproto-guards";
 import {settingsState} from "$lib/classes/settingsState.svelte";
 import {appState} from "$lib/classes/appState.svelte";
+import {clearAllNotificationLedgers, deleteNotificationLedger, moveNotificationLedger, resetNotificationLedger} from "$lib/components/notification/notificationLedger";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
@@ -58,8 +59,8 @@ export class ColumnState {
     syncColumns = $derived(this.columns.map(({ scrollElement, data, splitColumn, ...rest }) => ({
         ...rest,
         data: {
-            feed: !settingsState?.settings?.markedUnread ? [] : data?.notifications ? [] : this._feeds.get(rest.id) ?? [],
-            cursor: !settingsState?.settings?.markedUnread ? '' : data?.notifications ? '' : data?.cursor || '',
+            feed: !settingsState?.settings?.markedUnread ? [] : rest.algorithm?.type === 'notification' ? [] : this._feeds.get(rest.id) ?? [],
+            cursor: !settingsState?.settings?.markedUnread ? '' : rest.algorithm?.type === 'notification' ? '' : data?.cursor || '',
         },
         ...(splitColumn ? {
             splitColumn: {
@@ -68,8 +69,8 @@ export class ColumnState {
                     return {
                         ...splitRest,
                         data: {
-                            feed: !settingsState?.settings?.markedUnread ? [] : splitData?.notifications ? [] : this._feeds.get(splitRest.id) ?? [],
-                            cursor: !settingsState?.settings?.markedUnread ? '' : splitData?.notifications ? '' : splitData?.cursor || '',
+                            feed: !settingsState?.settings?.markedUnread ? [] : splitRest.algorithm?.type === 'notification' ? [] : this._feeds.get(splitRest.id) ?? [],
+                            cursor: !settingsState?.settings?.markedUnread ? '' : splitRest.algorithm?.type === 'notification' ? '' : splitData?.cursor || '',
                         }
                     };
                 })()
@@ -82,7 +83,12 @@ export class ColumnState {
        if (isJunk) {
             $effect(() => {
                 if (this.columns.length > 20) {
-                    this.columns.shift();
+                    const removed = this.columns.shift();
+                    if (removed) {
+                        this.deleteFeed(removed.id);
+                        this.clearFeedStatus(removed.id);
+                        deleteNotificationLedger(removed.id);
+                    }
                 }
             })
 
@@ -134,13 +140,22 @@ export class ColumnState {
     remove(id: string) {
         this.deleteFeed(id);
         this.clearFeedStatus(id);
+        deleteNotificationLedger(id);
         this.columns = this.columns.filter(column => column.id !== id);
     }
 
     removeAll() {
+        for (const column of this.columns) {
+            deleteNotificationLedger(column.id);
+        }
         this.columns.length = 0;
         this._feeds.clear();
         this._feedStatus = {};
+    }
+
+    replaceAllColumns(columns: Column[]) {
+        clearAllNotificationLedgers();
+        this.columns = columns;
     }
 
     getColumn(index: number) {
@@ -172,7 +187,10 @@ export class ColumnState {
                 const newId = self.crypto.randomUUID();
                 splitColumn.id = newId;
                 this.setFeed(newId, [...this.getFeed(oldSplitId)]);
+                moveNotificationLedger(oldSplitId, newId);
                 this.columns.splice(index + 1, 0, splitColumn);
+            } else {
+                deleteNotificationLedger(oldSplitId);
             }
             this.deleteFeed(oldSplitId);
             column.splitColumn = undefined;
@@ -204,9 +222,9 @@ export class ColumnState {
             column.data = {
                 feed: [],
                 cursor: '',
-                ...(column.splitColumn.algorithm?.type === 'notification' ? { feedPool: [], notifications: [] } : {})
             };
             this.clearFeed(column.id);
+            resetNotificationLedger(column.id);
 
             column.splitColumn.algorithm = tempAlgorithm;
             column.splitColumn.style = tempStyle;
@@ -219,16 +237,15 @@ export class ColumnState {
             column.splitColumn.data = {
                 feed: [],
                 cursor: '',
-                ...(tempAlgorithm?.type === 'notification' ? { feedPool: [], notifications: [] } : {})
             };
             this.clearFeed(column.splitColumn.id);
+            resetNotificationLedger(column.splitColumn.id);
         }
     }
 
     private updateLikeForColumn(column: Column, pulse: pulseReaction, targetUri: string) {
-        const isNotification = column?.algorithm?.type === 'notification';
-        const feed = isNotification ? column?.data?.feedPool : this.getFeed(column.id);
-        if (!feed) return;
+        const feed = this.getFeed(column.id);
+        if (!feed.length) return;
 
         const did = column.did;
         const isOwner = did === pulse.did;
@@ -290,23 +307,14 @@ export class ColumnState {
             return { patched: newItem, found };
         }
 
-        if (isNotification) {
-            for (let i = 0; i < feed.length; i++) {
-                const { patched, found } = patchItem(feed[i]);
-                if (found) {
-                    feed[i] = patched;
-                }
-            }
-        } else {
-            let mutated = false;
-            const newFeed = feed.map(item => {
-                const { patched, found } = patchItem(item);
-                if (found) mutated = true;
-                return found ? patched : item;
-            });
-            if (mutated) {
-                this._feeds.set(column.id, newFeed);
-            }
+        let mutated = false;
+        const newFeed = feed.map(item => {
+            const { patched, found } = patchItem(item);
+            if (found) mutated = true;
+            return found ? patched : item;
+        });
+        if (mutated) {
+            this._feeds.set(column.id, newFeed);
         }
     }
 
@@ -331,9 +339,8 @@ export class ColumnState {
     }
 
     private updateRepostForColumn(column: Column, pulse: pulseReaction, targetUri: string) {
-        const isNotification = column?.algorithm?.type === 'notification';
-        const feed = isNotification ? column?.data?.feedPool : this.getFeed(column.id);
-        if (!feed) return;
+        const feed = this.getFeed(column.id);
+        if (!feed.length) return;
 
         const did = column.did;
         const isOwner = did === pulse.did;
@@ -395,23 +402,14 @@ export class ColumnState {
             return { patched: newItem, found };
         }
 
-        if (isNotification) {
-            for (let i = 0; i < feed.length; i++) {
-                const { patched, found } = patchItem(feed[i]);
-                if (found) {
-                    feed[i] = patched;
-                }
-            }
-        } else {
-            let mutated = false;
-            const newFeed = feed.map(item => {
-                const { patched, found } = patchItem(item);
-                if (found) mutated = true;
-                return found ? patched : item;
-            });
-            if (mutated) {
-                this._feeds.set(column.id, newFeed);
-            }
+        let mutated = false;
+        const newFeed = feed.map(item => {
+            const { patched, found } = patchItem(item);
+            if (found) mutated = true;
+            return found ? patched : item;
+        });
+        if (mutated) {
+            this._feeds.set(column.id, newFeed);
         }
     }
 
@@ -436,13 +434,7 @@ export class ColumnState {
     }
 
     private deletePostForColumn(column: Column, uri: string) {
-        if (column?.algorithm?.type === 'notification') {
-            if (column.data?.feedPool) {
-                column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri);
-            }
-        } else {
-            this.replaceFeed(column.id, f => f.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri));
-        }
+        this.replaceFeed(column.id, f => f.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri));
     }
 
     deletePost(uri: string) {
@@ -464,13 +456,7 @@ export class ColumnState {
     }
 
     private deletePostsFromDidForColumn(column: Column, did: string) {
-        if (column?.algorithm?.type === 'notification') {
-            if (column.data?.feedPool) {
-                column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did);
-            }
-        } else {
-            this.replaceFeed(column.id, f => f.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did));
-        }
+        this.replaceFeed(column.id, f => f.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did));
     }
 
     deletePostsFromDid(did: string) {

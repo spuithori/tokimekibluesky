@@ -6,6 +6,7 @@
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
+    import {appState} from "$lib/classes/appState.svelte";
     const columnState = getColumnState();
 </script>
 
@@ -14,15 +15,17 @@
 
   {#if columnState.columns.length}
     <div class="deck">
-      {#each columnState.columns as column, index (column.id)}
-        {#if !column?.settings?.isPopup}
-          <DeckRow {index}></DeckRow>
-        {:else}
-          <DeckPopupWrap {column} {index}></DeckPopupWrap>
-        {/if}
-      {/each}
+      {#if appState.ready}
+        {#each columnState.columns as column, index (column.id)}
+          {#if !column?.settings?.isPopup}
+            <DeckRow {index}></DeckRow>
+          {:else}
+            <DeckPopupWrap {column} {index}></DeckPopupWrap>
+          {/if}
+        {/each}
+      {/if}
     </div>
-  {:else}
+  {:else if appState.ready && columnState.isColumnsLoaded}
     <div class="deck-empty">
       <div class="deck-empty__icon">
         <Ghost size={64} color="var(--text-color-3)" />

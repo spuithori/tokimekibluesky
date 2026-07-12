@@ -12,7 +12,8 @@
   import {tick} from "svelte";
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import VirtualTimeline from "$lib/components/timeline/VirtualTimeline.svelte";
-  import type {ScrollState} from "$lib/components/virtual/types";
+  import {isVirtualTimelineEnabled} from "$lib/components/timeline/virtualGate";
+  import {makeFeedKeys} from "$lib/components/timeline/feedKeys";
 
   let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
 
@@ -20,6 +21,7 @@
 
   const columnState = getColumnState(isJunk);
   const column = columnProp ?? columnState.getColumn(index);
+  const useVirtualList = isVirtualTimelineEnabled(column);
   let isActorsListFinished = false;
   let actors = [];
   let realtimeCounter = 0;
@@ -101,8 +103,18 @@
           });
   }
 
+  function getReleaseScrollElement(): HTMLElement {
+      if ($settings.design?.layout !== 'decks') {
+          return document.documentElement;
+      }
+      if (isJunk && column.scrollElement) {
+          return (column.scrollElement.closest('.modal-page-content') as HTMLElement) ?? column.scrollElement;
+      }
+      return column.scrollElement || document.documentElement;
+  }
+
   function releaseOldPosts() {
-      const scrollEl = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
+      const scrollEl = getReleaseScrollElement();
       const scrollTop = scrollEl?.scrollTop ?? 0;
       const feed = columnState.getFeed(column.id);
 
@@ -133,6 +145,7 @@
   }
 
   function handleDividerClick(index, cursor, pos) {
+      controller?.abort();
       column.data.cursor = cursor;
       columnState.updateFeed(column.id, f => {
           f[index] = { ...f[index], isDivider: false };
@@ -140,12 +153,26 @@
       });
       isDividerLoading = true;
       dividerFillerHeight = pos;
+
+      if (useVirtualList) {
+          tick().then(() => {
+              virtualTimelineRef?.forceLoad?.();
+          });
+      }
   }
 
   async function handleDividerUp(index, cursor, dividerEl: HTMLElement | undefined) {
     try {
       const res = await _agent.getTimeline({limit: 100, cursor: cursor, algorithm: column.algorithm});
       const currentFeed = columnState.getFeed(column.id);
+
+      if (!currentFeed[index]?.isDivider) {
+        index = currentFeed.findIndex(item => item?.isDivider && item?.memoryCursor === cursor);
+        if (index === -1) {
+          return false;
+        }
+      }
+
       const last = currentFeed[index + 1];
 
       if (!last) {
@@ -169,33 +196,34 @@
         return item;
       });
 
+      const gapRemains = res.feed.length > 0 && feed.length === res.feed.length;
       const newDividerIndex = index + feed.length;
+      const seamY = dividerEl?.isConnected ? dividerEl.getBoundingClientRect().bottom : undefined;
+      const bottomEl = dividerEl?.nextElementSibling as HTMLElement | undefined;
+
       columnState.updateFeed(column.id, f => {
           f.splice(index + 1, 0, ...feed);
           f[index] = { ...f[index], isDivider: false };
-          f[newDividerIndex] = { ...f[newDividerIndex], isDivider: true };
+          if (gapRemains) {
+            f[newDividerIndex] = { ...f[newDividerIndex], isDivider: true };
+          }
       });
 
-      const useVirtualList = (column.style === 'default' || !column.style) && !$settings.general?.useVirtual && false; //TODO
       if (useVirtualList && virtualTimelineRef) {
         tick().then(() => {
-          virtualTimelineRef?.scrollToIndex(newDividerIndex, { align: 'start', offset: 0 });
+          const target = Math.min(newDividerIndex + 1, columnState.getFeed(column.id).length - 1);
+          if (seamY !== undefined) {
+            virtualTimelineRef?.scrollToIndexAt(target, seamY);
+          } else {
+            virtualTimelineRef?.scrollToIndex(target, { align: 'start', offset: 0 });
+          }
         });
-      } else if (dividerEl) {
-        const bottomEl = dividerEl.nextElementSibling as HTMLElement;
-        if (bottomEl) {
-          tick().then(() => {
-            const scrollEl: HTMLElement = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
-            const offsetTop = bottomEl.offsetTop - 52;
-            scrollEl.scrollTo(0, offsetTop);
-          });
-        }
-      }
-
-      if (feed.length !== res.feed.length) {
+      } else if (bottomEl && seamY !== undefined) {
         tick().then(() => {
-          columnState.updateFeed(column.id, f => { f[newDividerIndex] = { ...f[newDividerIndex], isDivider: false }; });
-        })
+          if (!bottomEl.isConnected) return;
+          const scrollEl: HTMLElement = $settings.design?.layout === 'decks' ? column.scrollElement || document.documentElement : document.documentElement;
+          scrollEl.scrollTop += bottomEl.getBoundingClientRect().top - seamY;
+        });
       }
     } catch (e) {
       console.error(e);
@@ -210,6 +238,7 @@
   }
 
   const handleLoadMore = async (loaded, complete) => {
+      let addedCount = 0;
       try {
         controller = new AbortController();
         const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, controller.signal);
@@ -268,11 +297,17 @@
                 });
 
             columnState.updateFeed(column.id, f => { f.push(...processedFeed); });
+            addedCount = processedFeed.length;
           } else {
             columnState.updateFeed(column.id, f => { f.push(...feed); });
+            addedCount = feed.length;
           }
 
-          isDividerLoading = false;
+          if (isDividerLoading && (addedCount > 0 || !res.cursor)) {
+              tick().then(() => {
+                  isDividerLoading = false;
+              });
+          }
 
           if (column.data.cursor) {
               loaded();
@@ -307,34 +342,10 @@
     }
   })
 
-  export function getScrollState(): ScrollState | null {
-    return virtualTimelineRef?.getScrollState() ?? null;
-  }
-
-  export function restoreScrollState(state: ScrollState): void {
-    virtualTimelineRef?.restoreScrollState(state);
-  }
-
-  function getFeedKey(data: any, index: number): string {
-    if (!data?.post?.uri) return `__divider_${index}`;
-    const base = `${data.post.uri}|${data.reason?.indexedAt || ''}`;
-    return base;
-  }
-
-  function makeFeedKeys(feed: any[]): string[] {
-    const seen = new Map<string, number>();
-    return feed.map((data, i) => {
-      const base = getFeedKey(data, i);
-      const n = seen.get(base) || 0;
-      seen.set(base, n + 1);
-      return n > 0 ? `${base}#${n}` : base;
-    });
-  }
-
   const feedKeys = $derived(makeFeedKeys(columnState.getFeed(column.id)));
 </script>
 
-{#if (column.style === 'default' || !column.style) && !$settings.general?.useVirtual && false}
+{#if useVirtualList}
   <VirtualTimeline
     {column}
     {_agent}
@@ -344,7 +355,7 @@
     {handleDividerClick}
     {handleDividerUp}
     onScrollStateSave={(state) => { if (column.data) column.data.scrollState = state; }}
-    onScrollStateClear={() => { if (column.data) column.data.scrollState = null; if (column.data?._pendingScrollRestore) column.data._pendingScrollRestore = null; }}
+    onScrollStateClear={() => { if (column.data) column.data.scrollState = null; }}
     bind:this={virtualTimelineRef}
   />
 
