@@ -208,6 +208,20 @@
     virtualList?.scrollToIndex(index, options);
   }
 
+  export function scrollToIndexAt(index: number, clientY: number): void {
+    if (!virtualList) return;
+    const container = scrollContainer;
+    if (!container) {
+      virtualList.scrollToIndex(index, { align: 'start', offset: 0 });
+      return;
+    }
+    const isWin = container === document.documentElement || container === document.body;
+    const containerTop = isWin ? 0 : container.getBoundingClientRect().top + (container.clientTop || 0);
+    const viewportH = isWin ? window.innerHeight : container.clientHeight;
+    const y = Math.max(topMargin, Math.min(clientY - containerTop, viewportH - 56));
+    virtualList.scrollToIndex(index, { align: 'start', offset: topMargin - y });
+  }
+
   export function forceLoad(): void {
     if (isComplete) return;
     retryCount = 0;

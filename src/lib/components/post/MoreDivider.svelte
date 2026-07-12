@@ -12,9 +12,13 @@
       onDividerClick(posFromBottom);
   }
 
-  function handleUp() {
+  async function handleUp() {
       isLoading = true;
-      onDividerUp(el);
+      try {
+          await onDividerUp(el);
+      } finally {
+          isLoading = false;
+      }
   }
 </script>
 

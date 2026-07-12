@@ -165,6 +165,14 @@
     try {
       const res = await _agent.getTimeline({limit: 100, cursor: cursor, algorithm: column.algorithm});
       const currentFeed = columnState.getFeed(column.id);
+
+      if (!currentFeed[index]?.isDivider) {
+        index = currentFeed.findIndex(item => item?.isDivider && item?.memoryCursor === cursor);
+        if (index === -1) {
+          return false;
+        }
+      }
+
       const last = currentFeed[index + 1];
 
       if (!last) {
@@ -188,33 +196,34 @@
         return item;
       });
 
+      const gapRemains = res.feed.length > 0 && feed.length === res.feed.length;
       const newDividerIndex = index + feed.length;
+      const seamY = dividerEl?.isConnected ? dividerEl.getBoundingClientRect().bottom : undefined;
+      const bottomEl = dividerEl?.nextElementSibling as HTMLElement | undefined;
+
       columnState.updateFeed(column.id, f => {
           f.splice(index + 1, 0, ...feed);
           f[index] = { ...f[index], isDivider: false };
-          f[newDividerIndex] = { ...f[newDividerIndex], isDivider: true };
+          if (gapRemains) {
+            f[newDividerIndex] = { ...f[newDividerIndex], isDivider: true };
+          }
       });
 
       if (useVirtualList && virtualTimelineRef) {
         tick().then(() => {
           const target = Math.min(newDividerIndex + 1, columnState.getFeed(column.id).length - 1);
-          virtualTimelineRef?.scrollToIndex(target, { align: 'start', offset: 0 });
+          if (seamY !== undefined) {
+            virtualTimelineRef?.scrollToIndexAt(target, seamY);
+          } else {
+            virtualTimelineRef?.scrollToIndex(target, { align: 'start', offset: 0 });
+          }
         });
-      } else if (dividerEl) {
-        const bottomEl = dividerEl.nextElementSibling as HTMLElement;
-        if (bottomEl) {
-          tick().then(() => {
-            const scrollEl: HTMLElement = $settings.design?.layout === 'decks' ? column.scrollElement || document.querySelector(':root') : document.querySelector(':root');
-            const offsetTop = bottomEl.offsetTop - 52;
-            scrollEl.scrollTo(0, offsetTop);
-          });
-        }
-      }
-
-      if (feed.length !== res.feed.length) {
+      } else if (bottomEl && seamY !== undefined) {
         tick().then(() => {
-          columnState.updateFeed(column.id, f => { f[newDividerIndex] = { ...f[newDividerIndex], isDivider: false }; });
-        })
+          if (!bottomEl.isConnected) return;
+          const scrollEl: HTMLElement = $settings.design?.layout === 'decks' ? column.scrollElement || document.documentElement : document.documentElement;
+          scrollEl.scrollTop += bottomEl.getBoundingClientRect().top - seamY;
+        });
       }
     } catch (e) {
       console.error(e);
