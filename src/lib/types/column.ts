@@ -1,5 +1,4 @@
 import type { searchFilters } from '$lib/search/filterSpec';
-import type { NotificationView } from '$lib/components/notification/notificationPipeline';
 export type { searchFilters };
 
 export type currentAlgorithm = {
@@ -28,6 +27,7 @@ type deckSettings = {
     width?: 'large' | 'medium' | 'small',
     icon?: string | null,
     onlyShowUnread?: boolean,
+    notificationPriority?: boolean,
     playSound?: null | string,
     hideCounts?: boolean,
     background?: string,
@@ -58,7 +58,6 @@ export type Column = {
         feed?: any[],
         cursor: string | number,
         hitsTotal?: number,
-        notifications?: NotificationView[],
         scrollState?: unknown,
     },
     scrollElement?: HTMLDivElement,

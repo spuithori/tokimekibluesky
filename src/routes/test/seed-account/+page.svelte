@@ -30,7 +30,7 @@
     if (typeof window !== 'undefined') {
         (window as any).__seedTest = {
             ready: true,
-            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean; expiredAccess?: boolean } = {}) {
+            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean; expiredAccess?: boolean; extraAccounts?: Array<{ id: number; did: string; handle: string }> } = {}) {
                 const did = opts.did ?? DEFAULT_DID;
                 const handle = opts.handle ?? DEFAULT_HANDLE;
                 await accountsDb.accounts.put(opts.isOAuth ? {
@@ -63,11 +63,31 @@
                     lists: [],
                     isOAuth: false,
                 } as any);
+                for (const extra of opts.extraAccounts ?? []) {
+                    await accountsDb.accounts.put({
+                        id: extra.id,
+                        service: 'https://pds.quality.test',
+                        did: extra.did,
+                        session: {
+                            did: extra.did,
+                            handle: extra.handle,
+                            accessJwt: fakeJwt(extra.did),
+                            refreshJwt: fakeJwt(extra.did),
+                            active: true,
+                        },
+                        avatar: '',
+                        name: extra.handle,
+                        notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
+                        feeds: [],
+                        lists: [],
+                        isOAuth: false,
+                    } as any);
+                }
                 await accountsDb.profiles.put({
                     id: 1,
                     name: 'Quality Loop',
                     createdAt: '',
-                    accounts: [1],
+                    accounts: [1, ...(opts.extraAccounts ?? []).map(extra => extra.id)],
                     primary: 1,
                     columns: opts.columns ?? [homeColumn(did, handle)],
                     ...(opts.appViewProxy ? { appViewProxy: opts.appViewProxy } : {}),

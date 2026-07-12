@@ -1,4 +1,5 @@
 import type { Column } from '$lib/types/column';
+import { getNotificationLedger, resetNotificationLedger } from './notificationLedger';
 
 export type NotificationFilter =
     | 'reply'
@@ -17,20 +18,28 @@ export interface NotificationAuthor {
     displayName?: string;
     avatar?: string;
     description?: string;
-    viewer?: { muted?: boolean; [k: string]: unknown };
-    [k: string]: unknown;
+    viewer: {
+        muted?: boolean;
+        following?: string;
+        followedBy?: string;
+    };
+    verification?: {
+        trustedVerifierStatus?: string;
+        verifiedStatus?: string;
+    };
+    status?: {
+        isActive?: boolean;
+    };
 }
 
 export interface NotificationView {
     uri: string;
-    cid: string;
     author: NotificationAuthor;
     reason: string;
     reasonSubject?: string;
-    record?: { subject?: { uri?: string }; [k: string]: unknown };
+    record?: { subject?: { uri?: string } };
     isRead: boolean;
     indexedAt: string;
-    [k: string]: unknown;
 }
 
 export interface NotificationPostView {
@@ -78,15 +87,90 @@ export function ensureNotificationFilter(column: Column): string[] {
 }
 
 export function resetNotificationColumnData(column: Column): void {
-    column.data.notifications = [];
     column.data.cursor = '';
+    resetNotificationLedger(column.id);
 }
 
-export function filterNotifications(items: NotificationView[], filter: string[], onlyUnread: boolean = false): NotificationView[] {
+export function needsRefetchForFilter(column: Column): boolean {
+    const fetched = getNotificationLedger(column.id).fetchedReasons;
+    if (!Array.isArray(fetched)) {
+        return true;
+    }
+    const filter = Array.isArray(column.filter) ? column.filter : [];
+    return filter.some(reason => !fetched.includes(reason));
+}
+
+export function projectNotification(raw: any): NotificationView {
+    const author = raw?.author ?? {};
+    const viewer = author.viewer ?? {};
+    const subjectUri = raw?.record?.subject?.uri;
+
+    return {
+        uri: raw.uri,
+        author: {
+            did: author.did,
+            handle: author.handle,
+            displayName: author.displayName,
+            avatar: author.avatar,
+            description: author.description,
+            viewer: {
+                muted: viewer.muted,
+                following: viewer.following,
+                followedBy: viewer.followedBy,
+            },
+            ...(author.verification ? {
+                verification: {
+                    trustedVerifierStatus: author.verification.trustedVerifierStatus,
+                    verifiedStatus: author.verification.verifiedStatus,
+                },
+            } : {}),
+            ...(author.status ? { status: { isActive: author.status.isActive } } : {}),
+        },
+        reason: raw.reason,
+        ...(raw.reasonSubject !== undefined ? { reasonSubject: raw.reasonSubject } : {}),
+        ...(subjectUri !== undefined ? { record: { subject: { uri: subjectUri } } } : {}),
+        isRead: raw.isRead === true,
+        indexedAt: raw.indexedAt,
+    };
+}
+
+export function filterNotifications(
+    items: NotificationView[],
+    filter: string[],
+    opts: { onlyUnread?: boolean; followingOnly?: boolean } = {},
+): NotificationView[] {
     return items.filter(item =>
         filter.includes(item.reason)
         && !item?.author?.viewer?.muted
-        && (!onlyUnread || !item.isRead));
+        && (!opts.onlyUnread || !item.isRead)
+        && (!opts.followingOnly || !!item?.author?.viewer?.following));
+}
+
+export function sameNotification(a: NotificationView, b: NotificationView): boolean {
+    if (a === b) {
+        return true;
+    }
+    if (a.uri !== b.uri
+        || a.reason !== b.reason
+        || a.reasonSubject !== b.reasonSubject
+        || a.indexedAt !== b.indexedAt
+        || a.isRead !== b.isRead
+        || a.record?.subject?.uri !== b.record?.subject?.uri) {
+        return false;
+    }
+    const aa = a.author;
+    const ba = b.author;
+    return aa.did === ba.did
+        && aa.handle === ba.handle
+        && aa.displayName === ba.displayName
+        && aa.avatar === ba.avatar
+        && aa.description === ba.description
+        && aa.viewer?.muted === ba.viewer?.muted
+        && aa.viewer?.following === ba.viewer?.following
+        && aa.viewer?.followedBy === ba.viewer?.followedBy
+        && aa.verification?.trustedVerifierStatus === ba.verification?.trustedVerifierStatus
+        && aa.verification?.verifiedStatus === ba.verification?.verifiedStatus
+        && aa.status?.isActive === ba.status?.isActive;
 }
 
 export function mergeNotifications(
@@ -104,7 +188,8 @@ export function mergeNotifications(
         seen.add(item.uri);
         const prior = existingByUri.get(item.uri);
         const isRead = item.isRead || prior?.isRead === true || (markKnownAsRead && prior !== undefined);
-        merged.push(isRead === item.isRead ? item : { ...item, isRead });
+        const resolved = isRead === item.isRead ? item : { ...item, isRead };
+        merged.push(prior && sameNotification(prior, resolved) ? prior : resolved);
     }
 
     for (const item of existing) {
@@ -117,41 +202,154 @@ export function mergeNotifications(
     return merged;
 }
 
+function groupKeyOf(item: NotificationView): string | null {
+    const reasonSubject = item.reasonSubject || null;
+    if (reasonSubject === null || item.reason === 'reply' || item.reason === 'mention' || item.reason === 'quote') {
+        return null;
+    }
+    return `${reasonSubject}:${item.reason}`;
+}
+
+function makeGroup(members: NotificationView[]): NotificationGroup {
+    const first = members[0];
+    const groupKey = groupKeyOf(first);
+    const key = groupKey === null ? `solo:${first.uri}` : `${groupKey}:${first.uri}`;
+    const subject = first.reasonSubject && first.reason !== 'reply' && first.reason !== 'quote'
+        ? first.record?.subject?.uri
+        : (first.uri && !first.uri.includes('app.bsky.graph.follow')
+            ? first.uri
+            : undefined);
+
+    return {
+        reason: first.reason,
+        notifications: members,
+        latestIndexedAt: first.indexedAt,
+        key,
+        subject,
+    };
+}
+
 export function bundleNotifications(items: NotificationView[]): NotificationGroup[] {
-    const groups = new Map<string, NotificationView[]>();
+    const buckets = new Map<string, NotificationView[]>();
 
     for (const item of items) {
-        const reasonSubject = item.reasonSubject || null;
-        const isSolo = reasonSubject === null || item.reason === 'reply' || item.reason === 'mention' || item.reason === 'quote';
-        const key = isSolo ? `solo:${item.uri}` : `${reasonSubject}:${item.reason}`;
-        const group = groups.get(key);
-        if (group) {
-            group.push(item);
+        const bucketKey = groupKeyOf(item) ?? `solo:${item.uri}`;
+        const bucket = buckets.get(bucketKey);
+        if (bucket) {
+            bucket.push(item);
         } else {
-            groups.set(key, [item]);
+            buckets.set(bucketKey, [item]);
         }
     }
 
     const bundled: NotificationGroup[] = [];
-    for (const group of groups.values()) {
-        const sorted = [...group].sort((a, b) => new Date(b.indexedAt).getTime() - new Date(a.indexedAt).getTime());
-        const first = sorted[0];
-        const subject = first.reasonSubject && first.reason !== 'reply' && first.reason !== 'quote'
-            ? first.record?.subject?.uri
-            : (first.uri && !first.uri.includes('app.bsky.graph.follow')
-                ? first.uri
-                : undefined);
-
-        bundled.push({
-            reason: first.reason,
-            notifications: sorted,
-            latestIndexedAt: first.indexedAt,
-            key: first.uri,
-            subject,
-        });
+    for (const bucket of buckets.values()) {
+        const sorted = [...bucket].sort((a, b) => new Date(b.indexedAt).getTime() - new Date(a.indexedAt).getTime());
+        bundled.push(makeGroup(sorted));
     }
 
     return bundled.sort((a, b) => new Date(b.latestIndexedAt).getTime() - new Date(a.latestIndexedAt).getTime());
+}
+
+export function applyLedgerToFeed(prevFeed: NotificationGroup[], notifications: NotificationView[]): NotificationGroup[] {
+    const byUri = new Map(notifications.map(item => [item.uri, item]));
+    const consumed = new Set<string>();
+    const result: NotificationGroup[] = [];
+
+    for (const group of prevFeed) {
+        const members: NotificationView[] = [];
+        let unchanged = true;
+        for (const old of group.notifications) {
+            const current = byUri.get(old.uri);
+            if (!current) {
+                unchanged = false;
+                continue;
+            }
+            if (current !== old) {
+                unchanged = false;
+            }
+            members.push(current);
+            consumed.add(current.uri);
+        }
+        if (!members.length) {
+            continue;
+        }
+        result.push(unchanged
+            ? group
+            : { ...group, notifications: members, latestIndexedAt: members[0].indexedAt });
+    }
+
+    let boundaryTime = -Infinity;
+    for (const group of result) {
+        const time = new Date(group.latestIndexedAt).getTime();
+        if (time > boundaryTime) {
+            boundaryTime = time;
+        }
+    }
+
+    const newArrivals: NotificationView[] = [];
+    const olderArrivals: NotificationView[] = [];
+    for (const item of notifications) {
+        if (consumed.has(item.uri)) {
+            continue;
+        }
+        if (new Date(item.indexedAt).getTime() > boundaryTime) {
+            newArrivals.push(item);
+        } else {
+            olderArrivals.push(item);
+        }
+    }
+
+    if (newArrivals.length) {
+        newArrivals.sort((a, b) => new Date(b.indexedAt).getTime() - new Date(a.indexedAt).getTime());
+
+        const arrivalsByKey = new Map<string, NotificationView[]>();
+        for (const item of newArrivals) {
+            const groupKey = groupKeyOf(item);
+            if (groupKey === null) {
+                result.push(makeGroup([item]));
+                continue;
+            }
+            const bucket = arrivalsByKey.get(groupKey);
+            if (bucket) {
+                bucket.push(item);
+            } else {
+                arrivalsByKey.set(groupKey, [item]);
+            }
+        }
+
+        for (const [groupKey, items] of arrivalsByKey) {
+            let targetIndex = -1;
+            let targetTime = -Infinity;
+            for (let i = 0; i < result.length; i++) {
+                if (groupKeyOf(result[i].notifications[0]) !== groupKey) {
+                    continue;
+                }
+                const time = new Date(result[i].latestIndexedAt).getTime();
+                if (time > targetTime) {
+                    targetTime = time;
+                    targetIndex = i;
+                }
+            }
+            if (targetIndex >= 0) {
+                const target = result[targetIndex];
+                const members = [...items, ...target.notifications];
+                result[targetIndex] = {
+                    ...target,
+                    notifications: members,
+                    latestIndexedAt: members[0].indexedAt,
+                };
+            } else {
+                result.push(makeGroup(items));
+            }
+        }
+    }
+
+    if (olderArrivals.length) {
+        result.push(...bundleNotifications(olderArrivals));
+    }
+
+    return result.sort((a, b) => new Date(b.latestIndexedAt).getTime() - new Date(a.latestIndexedAt).getTime());
 }
 
 export async function resolveSubjectPosts(ctx: NotificationCtx, groups: NotificationGroup[]): Promise<void> {
@@ -159,6 +357,11 @@ export async function resolveSubjectPosts(ctx: NotificationCtx, groups: Notifica
 
     const knownPosts = new Map<string, NotificationPostView>();
     for (const group of columnState.getFeed(column.id)) {
+        if (group?.post?.uri) {
+            knownPosts.set(group.post.uri, group.post);
+        }
+    }
+    for (const group of groups) {
         if (group?.post?.uri) {
             knownPosts.set(group.post.uri, group.post);
         }
@@ -197,18 +400,25 @@ export async function refreshNotificationColumn(
     const markAsRead = opts.markAsRead ?? false;
 
     const filter = ensureNotificationFilter(column);
-    if (!Array.isArray(column.data.notifications)) {
-        column.data.notifications = [];
-    }
+    const ledger = getNotificationLedger(column.id);
+    const epoch = ledger.epoch;
 
     const res = await _agent.xrpc.get('app.bsky.notification.listNotifications', {
         limit: NOTIFICATION_FETCH_LIMIT,
         cursor: '',
         reasons: filter,
+        ...(column.settings?.notificationPriority ? { priority: true } : {}),
     });
 
+    if (ledger.epoch !== epoch) {
+        return { newestIndexedAt: undefined, pruned: false };
+    }
+
     const onlyUnread = column.settings?.onlyShowUnread === true;
-    let fresh = filterNotifications(res.notifications, filter, onlyUnread);
+    let fresh = filterNotifications((res.notifications ?? []).map(projectNotification), filter, {
+        onlyUnread,
+        followingOnly: column.settings?.notificationPriority === true,
+    });
 
     let merged: NotificationView[];
     let pruned = false;
@@ -222,7 +432,7 @@ export async function refreshNotificationColumn(
         }
         merged = mergeNotifications(fresh, []);
     } else {
-        merged = mergeNotifications(fresh, column.data.notifications, { markKnownAsRead: markAsRead });
+        merged = mergeNotifications(fresh, ledger.notifications, { markKnownAsRead: markAsRead });
         if (opts.allowPrune && merged.length > MAX_NOTIFICATIONS) {
             merged = mergeNotifications(fresh, []);
             column.data.cursor = res.cursor;
@@ -230,10 +440,15 @@ export async function refreshNotificationColumn(
         }
     }
 
-    const groups = bundleNotifications(merged);
+    const groups = applyLedgerToFeed(columnState.getFeed(column.id), merged);
     await resolveSubjectPosts(ctx, groups);
 
-    column.data.notifications = merged;
+    if (ledger.epoch !== epoch) {
+        return { newestIndexedAt: undefined, pruned: false };
+    }
+
+    ledger.notifications = merged;
+    ledger.fetchedReasons = [...filter];
     columnState.setFeed(column.id, groups);
 
     return { newestIndexedAt: merged[0]?.indexedAt, pruned };
@@ -243,31 +458,40 @@ export async function loadMoreNotificationColumn(ctx: NotificationCtx): Promise<
     const { column, columnState, _agent } = ctx;
 
     const filter = ensureNotificationFilter(column);
-    if (!Array.isArray(column.data.notifications)) {
-        column.data.notifications = [];
-    }
+    const ledger = getNotificationLedger(column.id);
+    const epoch = ledger.epoch;
 
     const res = await _agent.xrpc.get('app.bsky.notification.listNotifications', {
         limit: NOTIFICATION_FETCH_LIMIT,
         cursor: column.data.cursor,
         reasons: filter,
+        ...(column.settings?.notificationPriority ? { priority: true } : {}),
     });
+
+    if (ledger.epoch !== epoch) {
+        return 'complete';
+    }
+
     column.data.cursor = res.cursor;
 
     const onlyUnread = column.settings?.onlyShowUnread === true;
-    const knownUris = new Set(column.data.notifications.map(item => item.uri));
-    const pageItems = filterNotifications(res.notifications, filter, onlyUnread)
-        .filter(item => !knownUris.has(item.uri));
+    const knownUris = new Set(ledger.notifications.map(item => item.uri));
+    const pageItems = filterNotifications((res.notifications ?? []).map(projectNotification), filter, {
+        onlyUnread,
+        followingOnly: column.settings?.notificationPriority === true,
+    }).filter(item => !knownUris.has(item.uri));
 
-    column.data.notifications = [...column.data.notifications, ...pageItems];
-
-    const groups = bundleNotifications(pageItems);
+    const nextNotifications = [...ledger.notifications, ...pageItems];
+    const groups = applyLedgerToFeed(columnState.getFeed(column.id), nextNotifications);
     await resolveSubjectPosts(ctx, groups);
 
-    columnState.replaceFeed(column.id, feed => {
-        const existingKeys = new Set(feed.map(group => group.key));
-        return [...feed, ...groups.filter(group => !existingKeys.has(group.key))];
-    });
+    if (ledger.epoch !== epoch) {
+        return 'complete';
+    }
+
+    ledger.notifications = nextNotifications;
+    ledger.fetchedReasons = [...filter];
+    columnState.setFeed(column.id, groups);
 
     const hasMore = res.cursor && (onlyUnread ? pageItems.length : res.notifications.length);
     return hasMore ? 'loaded' : 'complete';
@@ -291,11 +515,16 @@ export async function markAllNotificationsRead(ctx: NotificationCtx): Promise<vo
 
     column.unreadCount = 0;
 
-    if (Array.isArray(column.data.notifications)) {
-        column.data.notifications = column.data.notifications.map(item => item.isRead ? item : { ...item, isRead: true });
+    const ledger = getNotificationLedger(column.id);
+    const epoch = ledger.epoch;
+    ledger.notifications = ledger.notifications.map(item => item.isRead ? item : { ...item, isRead: true });
+
+    const groups = applyLedgerToFeed(columnState.getFeed(column.id), ledger.notifications);
+    await resolveSubjectPosts(ctx, groups);
+
+    if (ledger.epoch !== epoch) {
+        return;
     }
 
-    columnState.replaceFeed(column.id, feed => feed.map(group => group?.notifications
-        ? { ...group, notifications: group.notifications.map((item: NotificationView) => item.isRead ? item : { ...item, isRead: true }) }
-        : group));
+    columnState.setFeed(column.id, groups);
 }

@@ -472,8 +472,8 @@ export class Agent {
         return res.thread;
     }
 
-    async getNotificationCount() {
-        const res = await this.xrpc.get('app.bsky.notification.getUnreadCount');
+    async getNotificationCount(priority: boolean = false) {
+        const res = await this.xrpc.get('app.bsky.notification.getUnreadCount', priority ? { priority: true } : {});
         return res.count;
     }
 

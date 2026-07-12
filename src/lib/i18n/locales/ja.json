@@ -504,6 +504,7 @@
     "reposted_users": "リポストした人",
     "only_show_unread": "未読の通知のみ表示",
     "no_result_only_show_unread": "未読通知が表示されます",
+    "notification_priority_only": "フォロー中のユーザーのみ",
     "no_more": "もうないよ",
     "no_results": "もうないよ",
     "play_sound_nothing": "オフ",

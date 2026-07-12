@@ -16,6 +16,7 @@ vi.mock("$lib/classes/settingsState.svelte", () => ({
 }));
 
 import { createRealColumnState } from "$lib/classes/columnState.perf.harness.svelte";
+import { getNotificationLedger } from "$lib/components/notification/notificationLedger";
 
 function notificationGroup(subjectUri: string, opts: any = {}) {
     return {
@@ -46,7 +47,7 @@ function addNotificationColumn(cs: any, id: string, feed: any[]) {
         id,
         algorithm: { type: "notification" },
         did: "did:plc:me",
-        data: { feed: [], cursor: "", notifications: [] },
+        data: { feed: [], cursor: "" },
     });
     cs.setFeed(id, feed);
 }
@@ -148,6 +149,104 @@ describe("notification groups through generic pulse path", () => {
         cleanup();
     });
 
+    it("remove deletes the ledger and invalidates orphaned references", () => {
+        const { cs, cleanup } = createRealColumnState();
+        addNotificationColumn(cs, "lc-remove", []);
+        const ledger = getNotificationLedger("lc-remove");
+        ledger.fetchedReasons = ["like"];
+        const epoch = ledger.epoch;
+
+        cs.remove("lc-remove");
+
+        expect(ledger.epoch).toBe(epoch + 1);
+        expect(getNotificationLedger("lc-remove")).not.toBe(ledger);
+        cleanup();
+    });
+
+    it("swapSplitColumn resets the ledgers of both ids", () => {
+        const { cs, cleanup } = createRealColumnState();
+        addNotificationColumn(cs, "lc-swap-main", []);
+        const index = cs.columns.length - 1;
+        cs.columns[index].splitColumn = {
+            id: "lc-swap-split",
+            algorithm: { type: "default" },
+            did: "did:plc:me",
+            data: { feed: [], cursor: "" },
+        };
+        const mainLedger = getNotificationLedger("lc-swap-main");
+        mainLedger.notifications = [{ uri: "at://x" }] as any;
+        mainLedger.fetchedReasons = ["like"];
+        const splitLedger = getNotificationLedger("lc-swap-split");
+        const mainEpoch = mainLedger.epoch;
+        const splitEpoch = splitLedger.epoch;
+
+        cs.swapSplitColumn(index);
+
+        expect(mainLedger.notifications).toEqual([]);
+        expect(mainLedger.fetchedReasons).toBeUndefined();
+        expect(mainLedger.epoch).toBe(mainEpoch + 1);
+        expect(splitLedger.epoch).toBe(splitEpoch + 1);
+        cleanup();
+    });
+
+    it("unsplit with keep moves the ledger to the promoted column id", () => {
+        const { cs, cleanup } = createRealColumnState();
+        addNotificationColumn(cs, "lc-unsplit-main", []);
+        const index = cs.columns.length - 1;
+        cs.columns[index].splitColumn = {
+            id: "lc-unsplit-old",
+            algorithm: { type: "notification" },
+            did: "did:plc:me",
+            data: { feed: [], cursor: "" },
+        };
+        const splitLedger = getNotificationLedger("lc-unsplit-old");
+        splitLedger.fetchedReasons = ["like"];
+
+        cs.unsplitColumnAt(index, true);
+
+        const promoted = cs.columns[index + 1];
+        expect(getNotificationLedger(promoted.id)).toBe(splitLedger);
+        expect(getNotificationLedger("lc-unsplit-old")).not.toBe(splitLedger);
+        cleanup();
+    });
+
+    it("unsplit without keeping deletes the split ledger", () => {
+        const { cs, cleanup } = createRealColumnState();
+        addNotificationColumn(cs, "lc-drop-main", []);
+        const index = cs.columns.length - 1;
+        cs.columns[index].splitColumn = {
+            id: "lc-drop-old",
+            algorithm: { type: "notification" },
+            did: "did:plc:me",
+            data: { feed: [], cursor: "" },
+        };
+        const splitLedger = getNotificationLedger("lc-drop-old");
+        const epoch = splitLedger.epoch;
+
+        cs.unsplitColumnAt(index, false);
+
+        expect(splitLedger.epoch).toBe(epoch + 1);
+        expect(getNotificationLedger("lc-drop-old")).not.toBe(splitLedger);
+        cleanup();
+    });
+
+    it("replaceAllColumns clears every ledger for profile switching", () => {
+        const { cs, cleanup } = createRealColumnState();
+        const a = getNotificationLedger("lc-profile-a");
+        const b = getNotificationLedger("lc-profile-b");
+        a.fetchedReasons = ["like"];
+        const aEpoch = a.epoch;
+        const bEpoch = b.epoch;
+
+        cs.replaceAllColumns([]);
+
+        expect(a.epoch).toBe(aEpoch + 1);
+        expect(b.epoch).toBe(bEpoch + 1);
+        expect(getNotificationLedger("lc-profile-a")).not.toBe(a);
+        expect(cs.columns).toEqual([]);
+        cleanup();
+    });
+
     it("patches notification feeds inside splitColumn", () => {
         const { cs, cleanup } = createRealColumnState();
         addNotificationColumn(cs, "main", []);
@@ -156,7 +255,7 @@ describe("notification groups through generic pulse path", () => {
             id: "split-notif",
             algorithm: { type: "notification" },
             did: "did:plc:me",
-            data: { feed: [], cursor: "", notifications: [] },
+            data: { feed: [], cursor: "" },
         };
         cs.setFeed("split-notif", [notificationGroup("at://did:plc:me/app.bsky.feed.post/1")]);
 

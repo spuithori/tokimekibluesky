@@ -18,6 +18,7 @@
         NOTIFICATION_FILTER_OPTIONS,
         ensureNotificationFilter,
         loadMoreNotificationColumn,
+        needsRefetchForFilter,
         refreshNotificationColumn,
         resetNotificationColumnData,
     } from "$lib/components/notification/notificationPipeline";
@@ -30,7 +31,9 @@
     let sound = $derived(column.settings?.playSound);
     let isOnlyShowUnread = $derived(column.settings?.onlyShowUnread);
     let id = $derived(column.id);
+    let filterEpoch = $state(Symbol());
     let notificationTimeoutId: ReturnType<typeof setTimeout>;
+    let filterDebounceId: ReturnType<typeof setTimeout>;
 
     const filterIcons: Record<string, typeof Heart> = {
         like: $settings?.design?.reactionMode === 'superstar' ? Star : Heart,
@@ -43,10 +46,6 @@
     };
 
     ensureNotificationFilter(column);
-
-    if (!column.data.notifications) {
-        column.data.notifications = [];
-    }
 
     const handleServiceWorkerMessage = (event: MessageEvent) => {
         if (event.data.type === 'notification_event') {
@@ -69,6 +68,7 @@
                 navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
             }
             clearTimeout(notificationTimeoutId);
+            clearTimeout(filterDebounceId);
         }
     })
 
@@ -97,8 +97,17 @@
     }
 
     function handleFilterChange() {
-        resetNotificationColumnData(column);
-        columnState.clearFeed(column.id);
+        clearTimeout(filterDebounceId);
+
+        if (!needsRefetchForFilter(column)) {
+            return;
+        }
+
+        filterDebounceId = setTimeout(() => {
+            resetNotificationColumnData(column);
+            columnState.clearFeed(column.id);
+            filterEpoch = Symbol();
+        }, 500);
     }
 </script>
 
@@ -142,14 +151,16 @@
   </div>
 
   {#key unique}
-    <Infinite oninfinite={handleLoadMore}>
-      <p class="infinite-nomore">
-        {$_('no_more')}
-        {#if isOnlyShowUnread}
-          <br>({$_('only_show_unread')})
-        {/if}
-      </p>
-    </Infinite>
+    {#key filterEpoch}
+      <Infinite oninfinite={handleLoadMore}>
+        <p class="infinite-nomore">
+          {$_('no_more')}
+          {#if isOnlyShowUnread}
+            <br>({$_('only_show_unread')})
+          {/if}
+        </p>
+      </Infinite>
+    {/key}
   {/key}
 </div>
 

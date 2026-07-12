@@ -8,17 +8,18 @@
   const columnState = getColumnState();
 
   function collectNotificationColumns(): Map<string, Column[]> {
-      const columnsByDid = new Map<string, Column[]>();
+      const columnsByTarget = new Map<string, Column[]>();
 
       const register = (column: Column | undefined) => {
           if (column?.algorithm?.type !== 'notification') {
               return;
           }
-          const list = columnsByDid.get(column.did);
+          const key = `${column.did}\n${column.settings?.notificationPriority === true}`;
+          const list = columnsByTarget.get(key);
           if (list) {
               list.push(column);
           } else {
-              columnsByDid.set(column.did, [column]);
+              columnsByTarget.set(key, [column]);
           }
       };
 
@@ -27,7 +28,7 @@
           register(column.splitColumn);
       }
 
-      return columnsByDid;
+      return columnsByTarget;
   }
 
   function updateCount() {
@@ -35,14 +36,15 @@
           return;
       }
 
-      for (const [did, columns] of collectNotificationColumns()) {
+      for (const [target, columns] of collectNotificationColumns()) {
+          const [did, priority] = target.split('\n');
           const accountId = getAccountIdByDid($agents, did);
           const _agent = accountId !== undefined ? $agents.get(accountId) : undefined;
           if (!_agent) {
               continue;
           }
 
-          _agent.getNotificationCount()
+          _agent.getNotificationCount(priority === 'true')
               .then((count: number) => {
                   for (const column of columns) {
                       column.unreadCount = count;

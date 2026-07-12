@@ -1,12 +1,12 @@
 const soundUrls = new Map<string, string>([
-    ['sound1', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound1.mp3'],
-    ['sound2', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound2.mp3'],
-    ['sound3', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound3.mp3'],
-    ['sound4', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound4.mp3'],
-    ['sound5', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/sound5.mp3'],
-    ['notification1', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/notification-1.ogg'],
-    ['notification2', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/notification-2.ogg'],
-    ['notification3', 'https://zkcpydmrzurbuoebrhqu.supabase.co/storage/v1/object/public/sounds/notification-3.ogg']
+    ['sound1', '/se/sound1.mp3'],
+    ['sound2', '/se/sound2.mp3'],
+    ['sound3', '/se/sound3.mp3'],
+    ['sound4', '/se/sound4.mp3'],
+    ['sound5', '/se/sound5.mp3'],
+    ['notification1', '/se/notification-1.ogg'],
+    ['notification2', '/se/notification-2.ogg'],
+    ['notification3', '/se/notification-3.ogg']
 ]);
 const soundCache = new Map<string, HTMLAudioElement>();
 

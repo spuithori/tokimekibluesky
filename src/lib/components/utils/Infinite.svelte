@@ -12,6 +12,7 @@
   let isComplete = $state(false);
   let isLoading = $state(false);
   let isRetryLimit = $derived(retryCount >= 5);
+  let isDestroyed = false;
 
   useIntersectionObserver(
     () => el,
@@ -29,7 +30,7 @@
         isLoading = false;
         clearTimeout(intervalId);
       } else {
-        if (!isComplete) {
+        if (!isComplete && !isLoading) {
           handleIntersect();
         }
       }
@@ -41,8 +42,16 @@
   );
 
   async function handleIntersect() {
+    if (isDestroyed) {
+      return false;
+    }
+
     isLoading = true;
     await oninfinite(loaded, complete);
+
+    if (isDestroyed) {
+      return false;
+    }
 
     if (isRetryLimit) {
       clearTimeout(intervalId);
@@ -105,6 +114,7 @@
 
   $effect(() => {
     return () => {
+      isDestroyed = true;
       clearTimeout(intervalId);
     }
   })

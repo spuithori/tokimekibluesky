@@ -64,6 +64,7 @@
         width: 'medium',
         icon: null,
         onlyShowUnread: false,
+        notificationPriority: false,
         playSound: null,
         hideCounts: false,
         isPopup: false,
@@ -633,6 +634,18 @@
                 {/if}
 
                 {#if (column.algorithm?.type === 'notification')}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('notification_priority_only')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-toggle">
+                                <input class="input-toggle__input" type="checkbox" id={column.id + 'notificationPriority'} bind:checked={column.settings.notificationPriority} onchange={() => {onclose(true)}}><label class="input-toggle__label" for={column.id + 'notificationPriority'}></label>
+                            </div>
+                        </dd>
+                    </dl>
+
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('show_reaction_via_repost')}

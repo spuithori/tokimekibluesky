@@ -6,6 +6,7 @@ import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 import {AppBskyFeedDefs} from "$lib/atproto-guards";
 import {settingsState} from "$lib/classes/settingsState.svelte";
 import {appState} from "$lib/classes/appState.svelte";
+import {clearAllNotificationLedgers, deleteNotificationLedger, moveNotificationLedger, resetNotificationLedger} from "$lib/components/notification/notificationLedger";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
@@ -58,8 +59,8 @@ export class ColumnState {
     syncColumns = $derived(this.columns.map(({ scrollElement, data, splitColumn, ...rest }) => ({
         ...rest,
         data: {
-            feed: !settingsState?.settings?.markedUnread ? [] : data?.notifications ? [] : this._feeds.get(rest.id) ?? [],
-            cursor: !settingsState?.settings?.markedUnread ? '' : data?.notifications ? '' : data?.cursor || '',
+            feed: !settingsState?.settings?.markedUnread ? [] : rest.algorithm?.type === 'notification' ? [] : this._feeds.get(rest.id) ?? [],
+            cursor: !settingsState?.settings?.markedUnread ? '' : rest.algorithm?.type === 'notification' ? '' : data?.cursor || '',
         },
         ...(splitColumn ? {
             splitColumn: {
@@ -68,8 +69,8 @@ export class ColumnState {
                     return {
                         ...splitRest,
                         data: {
-                            feed: !settingsState?.settings?.markedUnread ? [] : splitData?.notifications ? [] : this._feeds.get(splitRest.id) ?? [],
-                            cursor: !settingsState?.settings?.markedUnread ? '' : splitData?.notifications ? '' : splitData?.cursor || '',
+                            feed: !settingsState?.settings?.markedUnread ? [] : splitRest.algorithm?.type === 'notification' ? [] : this._feeds.get(splitRest.id) ?? [],
+                            cursor: !settingsState?.settings?.markedUnread ? '' : splitRest.algorithm?.type === 'notification' ? '' : splitData?.cursor || '',
                         }
                     };
                 })()
@@ -86,6 +87,7 @@ export class ColumnState {
                     if (removed) {
                         this.deleteFeed(removed.id);
                         this.clearFeedStatus(removed.id);
+                        deleteNotificationLedger(removed.id);
                     }
                 }
             })
@@ -138,13 +140,22 @@ export class ColumnState {
     remove(id: string) {
         this.deleteFeed(id);
         this.clearFeedStatus(id);
+        deleteNotificationLedger(id);
         this.columns = this.columns.filter(column => column.id !== id);
     }
 
     removeAll() {
+        for (const column of this.columns) {
+            deleteNotificationLedger(column.id);
+        }
         this.columns.length = 0;
         this._feeds.clear();
         this._feedStatus = {};
+    }
+
+    replaceAllColumns(columns: Column[]) {
+        clearAllNotificationLedgers();
+        this.columns = columns;
     }
 
     getColumn(index: number) {
@@ -176,7 +187,10 @@ export class ColumnState {
                 const newId = self.crypto.randomUUID();
                 splitColumn.id = newId;
                 this.setFeed(newId, [...this.getFeed(oldSplitId)]);
+                moveNotificationLedger(oldSplitId, newId);
                 this.columns.splice(index + 1, 0, splitColumn);
+            } else {
+                deleteNotificationLedger(oldSplitId);
             }
             this.deleteFeed(oldSplitId);
             column.splitColumn = undefined;
@@ -208,9 +222,9 @@ export class ColumnState {
             column.data = {
                 feed: [],
                 cursor: '',
-                ...(column.splitColumn.algorithm?.type === 'notification' ? { notifications: [] } : {})
             };
             this.clearFeed(column.id);
+            resetNotificationLedger(column.id);
 
             column.splitColumn.algorithm = tempAlgorithm;
             column.splitColumn.style = tempStyle;
@@ -223,9 +237,9 @@ export class ColumnState {
             column.splitColumn.data = {
                 feed: [],
                 cursor: '',
-                ...(tempAlgorithm?.type === 'notification' ? { notifications: [] } : {})
             };
             this.clearFeed(column.splitColumn.id);
+            resetNotificationLedger(column.splitColumn.id);
         }
     }
 

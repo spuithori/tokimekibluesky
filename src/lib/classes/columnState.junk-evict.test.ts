@@ -17,6 +17,7 @@ vi.mock("$lib/classes/settingsState.svelte", () => ({
 
 import { flushSync } from "svelte";
 import { createRealColumnState } from "$lib/classes/columnState.perf.harness.svelte";
+import { getNotificationLedger } from "$lib/components/notification/notificationLedger";
 
 function post(uri: string) {
     return {
@@ -58,6 +59,24 @@ describe("junk FIFO eviction cleanup", () => {
 
         expect(cs.getFeed("junk-1").length).toBe(1);
         expect(cs.getFeedStatus("junk-1")).toBe("loaded");
+
+        cleanup();
+    });
+
+    it("releases the notification ledger of the evicted column", () => {
+        const { cs, cleanup } = createRealColumnState();
+
+        const evictedLedger = getNotificationLedger("junk-0");
+        evictedLedger.fetchedReasons = ["like"];
+        const epochBefore = evictedLedger.epoch;
+
+        for (let i = 0; i < 21; i++) {
+            addColumn(cs, `junk-${i}`);
+        }
+        flushSync();
+
+        expect(evictedLedger.epoch).toBe(epochBefore + 1);
+        expect(getNotificationLedger("junk-0")).not.toBe(evictedLedger);
 
         cleanup();
     });
