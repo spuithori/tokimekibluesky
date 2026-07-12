@@ -208,7 +208,7 @@ export class ColumnState {
             column.data = {
                 feed: [],
                 cursor: '',
-                ...(column.splitColumn.algorithm?.type === 'notification' ? { feedPool: [], notifications: [] } : {})
+                ...(column.splitColumn.algorithm?.type === 'notification' ? { notifications: [] } : {})
             };
             this.clearFeed(column.id);
 
@@ -223,16 +223,15 @@ export class ColumnState {
             column.splitColumn.data = {
                 feed: [],
                 cursor: '',
-                ...(tempAlgorithm?.type === 'notification' ? { feedPool: [], notifications: [] } : {})
+                ...(tempAlgorithm?.type === 'notification' ? { notifications: [] } : {})
             };
             this.clearFeed(column.splitColumn.id);
         }
     }
 
     private updateLikeForColumn(column: Column, pulse: pulseReaction, targetUri: string) {
-        const isNotification = column?.algorithm?.type === 'notification';
-        const feed = isNotification ? column?.data?.feedPool : this.getFeed(column.id);
-        if (!feed) return;
+        const feed = this.getFeed(column.id);
+        if (!feed.length) return;
 
         const did = column.did;
         const isOwner = did === pulse.did;
@@ -294,23 +293,14 @@ export class ColumnState {
             return { patched: newItem, found };
         }
 
-        if (isNotification) {
-            for (let i = 0; i < feed.length; i++) {
-                const { patched, found } = patchItem(feed[i]);
-                if (found) {
-                    feed[i] = patched;
-                }
-            }
-        } else {
-            let mutated = false;
-            const newFeed = feed.map(item => {
-                const { patched, found } = patchItem(item);
-                if (found) mutated = true;
-                return found ? patched : item;
-            });
-            if (mutated) {
-                this._feeds.set(column.id, newFeed);
-            }
+        let mutated = false;
+        const newFeed = feed.map(item => {
+            const { patched, found } = patchItem(item);
+            if (found) mutated = true;
+            return found ? patched : item;
+        });
+        if (mutated) {
+            this._feeds.set(column.id, newFeed);
         }
     }
 
@@ -335,9 +325,8 @@ export class ColumnState {
     }
 
     private updateRepostForColumn(column: Column, pulse: pulseReaction, targetUri: string) {
-        const isNotification = column?.algorithm?.type === 'notification';
-        const feed = isNotification ? column?.data?.feedPool : this.getFeed(column.id);
-        if (!feed) return;
+        const feed = this.getFeed(column.id);
+        if (!feed.length) return;
 
         const did = column.did;
         const isOwner = did === pulse.did;
@@ -399,23 +388,14 @@ export class ColumnState {
             return { patched: newItem, found };
         }
 
-        if (isNotification) {
-            for (let i = 0; i < feed.length; i++) {
-                const { patched, found } = patchItem(feed[i]);
-                if (found) {
-                    feed[i] = patched;
-                }
-            }
-        } else {
-            let mutated = false;
-            const newFeed = feed.map(item => {
-                const { patched, found } = patchItem(item);
-                if (found) mutated = true;
-                return found ? patched : item;
-            });
-            if (mutated) {
-                this._feeds.set(column.id, newFeed);
-            }
+        let mutated = false;
+        const newFeed = feed.map(item => {
+            const { patched, found } = patchItem(item);
+            if (found) mutated = true;
+            return found ? patched : item;
+        });
+        if (mutated) {
+            this._feeds.set(column.id, newFeed);
         }
     }
 
@@ -440,13 +420,7 @@ export class ColumnState {
     }
 
     private deletePostForColumn(column: Column, uri: string) {
-        if (column?.algorithm?.type === 'notification') {
-            if (column.data?.feedPool) {
-                column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri);
-            }
-        } else {
-            this.replaceFeed(column.id, f => f.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri));
-        }
+        this.replaceFeed(column.id, f => f.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.uri !== uri));
     }
 
     deletePost(uri: string) {
@@ -468,13 +442,7 @@ export class ColumnState {
     }
 
     private deletePostsFromDidForColumn(column: Column, did: string) {
-        if (column?.algorithm?.type === 'notification') {
-            if (column.data?.feedPool) {
-                column.data.feedPool = column.data.feedPool.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did);
-            }
-        } else {
-            this.replaceFeed(column.id, f => f.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did));
-        }
+        this.replaceFeed(column.id, f => f.filter((data: AppBskyFeedDefs.FeedViewPost) => data?.post?.author?.did !== did));
     }
 
     deletePostsFromDid(did: string) {

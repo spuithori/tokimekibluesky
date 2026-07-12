@@ -24,6 +24,7 @@
     import Notice from "$lib/components/ui/Notice.svelte";
     import ColumnChoices from "$lib/components/column/ColumnChoices.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
+    import {resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
 
     interface Props {
         index: any;
@@ -273,8 +274,7 @@
         column.data.cursor = '';
 
         if (column.algorithm.type === 'notification') {
-            column.data.feedPool = [];
-            column.data.notificationGroup = [];
+            resetNotificationColumnData(column);
         }
         onclose(true);
     }

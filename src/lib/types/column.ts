@@ -1,8 +1,9 @@
 import type { searchFilters } from '$lib/search/filterSpec';
+import type { NotificationView } from '$lib/components/notification/notificationPipeline';
 export type { searchFilters };
 
 export type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed',
+    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'thread' | 'realtime',
     algorithm?: string,
     name?: string,
     list?: object,
@@ -57,6 +58,8 @@ export type Column = {
         feed?: any[],
         cursor: string | number,
         hitsTotal?: number,
+        notifications?: NotificationView[],
+        scrollState?: unknown,
     },
     scrollElement?: HTMLDivElement,
     splitColumn?: Column,

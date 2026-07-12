@@ -4,7 +4,7 @@
     import {isVirtualTimelineEnabled} from "$lib/components/timeline/virtualGate";
     import {onDestroy, tick} from "svelte";
     import { watch } from "runed";
-    import {getNotifications, mergeNotifications} from "$lib/components/notification/notificationUtil";
+    import {markNotificationsSeen, refreshNotificationColumn} from "$lib/components/notification/notificationPipeline";
     import {playSound} from "$lib/sounds";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { fly } from 'svelte/transition';
@@ -60,8 +60,8 @@
     const serviceHost = getServiceHost();
     const host = serviceHost === 'bsky.social' ? 'Jetstream (us-east2)' : serviceHost;
 
-    watch(() => column.unreadCount, () => {
-      if (column.unreadCount && column.data.cursor) {
+    watch(() => column.unreadCount, (curr, prev) => {
+      if (curr && curr > (prev ?? 0) && column.data.cursor) {
         refresh(true);
       }
     })
@@ -95,6 +95,7 @@
         isRefreshing = isAutoRefresh ? 'auto' : true;
         const el = getScrollElement();
         const elInitialPosition = el.scrollTop;
+        let notificationNewestIndexedAt: string | undefined;
 
         if (column.algorithm.type !== 'notification') {
             column.unreadCount = 0
@@ -159,41 +160,16 @@
         } else if (column.algorithm.type === 'realtime') {
             return false;
         } else if (column.algorithm.type === 'notification') {
-            if (!Array.isArray(column.filter)) {
-                column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
-            }
+            const { newestIndexedAt, pruned } = await refreshNotificationColumn(
+                { column, columnState, _agent },
+                {
+                    markAsRead: !isAutoRefresh,
+                    allowPrune: !isAutoRefresh && elInitialPosition === 0,
+                },
+            );
+            notificationNewestIndexedAt = newestIndexedAt;
 
-            if (!column.filter.length) {
-                column.filter = ['like', 'repost', 'reply', 'mention', 'quote', 'follow'];
-            }
-
-            const res = await _agent.xrpc.get('app.bsky.notification.listNotifications', {
-                limit: 25,
-                cursor: '',
-                reasons: column.filter,
-            });
-
-            const _notifications = res.notifications.filter(item => {
-                return column.filter.includes(item.reason);
-            });
-            let resNotifications = column.settings?.onlyShowUnread
-                ? _notifications.filter(notification => !notification.isRead)
-                : _notifications;
-
-            if (!isAutoRefresh && column.settings?.onlyShowUnread) {
-                const currentNotifFeed = columnState.getFeed(column.id);
-                resNotifications = resNotifications.filter(notification => !currentNotifFeed.some(_notification => notification.uri === _notification.uri));
-            }
-
-            const notifications = mergeNotifications(column.settings?.onlyShowUnread ? [...resNotifications] : [...resNotifications, ...column.data.notifications], !isAutoRefresh);
-
-            const { notifications: notificationGroup, feedPool: newFeedPool } = await getNotifications(notifications, true, _agent, column.data.feedPool || []);
-
-            column.data.notifications = notifications;
-            columnState.setFeed(column.id, notificationGroup);
-            column.data.feedPool = newFeedPool;
-
-            if (column.settings?.onlyShowUnread) {
+            if (column.settings?.onlyShowUnread || pruned) {
                 unique = Symbol();
             }
 
@@ -202,15 +178,7 @@
             }
 
             if (!isAutoRefresh) {
-                column.unreadCount !== 0
-                    ? column.unreadCount = 0
-                    : await _agent.getNotificationCount();
-
-                try {
-                    await _agent.xrpc.post('app.bsky.notification.updateSeen', {seenAt: new Date().toISOString()});
-                } catch (e) {
-
-                }
+                await markNotificationsSeen({ column, columnState, _agent });
             }
         } else if (column.algorithm.type === 'chat') {
             const res = await _agent.xrpc.get('chat.bsky.convo.getMessages', {cursor: '', limit: 50, convoId: column.algorithm.id}, {
@@ -297,7 +265,7 @@
                         playSound(soundFeed.slice(-1)[0]?.sentAt, column.lastRefresh, column.settings.playSound)
                     }
                 } else {
-                    playSound(column.algorithm.type === 'notification' ? column.data?.notifications[0]?.indexedAt : soundFeed[0]?.post?.indexedAt, column.lastRefresh, column.settings.playSound)
+                    playSound(column.algorithm.type === 'notification' ? notificationNewestIndexedAt : soundFeed[0]?.post?.indexedAt, column.lastRefresh, column.settings.playSound)
                 }
             }
         } catch (e) {

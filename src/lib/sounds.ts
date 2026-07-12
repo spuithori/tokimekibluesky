@@ -26,13 +26,13 @@ function getSound(soundName: string): HTMLAudioElement | undefined {
     return undefined;
 }
 
-export function playSound(indexedAt: string, lastRefresh: string, playSound: string) {
+export function playSound(indexedAt: string | undefined, lastRefresh: string | undefined, soundName: string) {
     try {
-        if (indexedAt && new Date(indexedAt).getTime() > new Date(lastRefresh).getTime()) {
-            const sound = getSound(playSound);
+        if (indexedAt && lastRefresh && new Date(indexedAt).getTime() > new Date(lastRefresh).getTime()) {
+            const sound = getSound(soundName);
             if (sound) {
                 sound.volume = 0.5;
-                sound.play();
+                sound.play().catch(() => {});
             }
         }
     } catch (e) {
@@ -40,12 +40,12 @@ export function playSound(indexedAt: string, lastRefresh: string, playSound: str
     }
 }
 
-export function instantPlaySound(playSound = 'notification1') {
+export function instantPlaySound(soundName = 'notification1') {
     try {
-        const sound = getSound(playSound);
+        const sound = getSound(soundName);
         if (sound) {
             sound.volume = 0.5;
-            sound.play();
+            sound.play().catch(() => {});
         }
     } catch (e) {
         console.error(e);
