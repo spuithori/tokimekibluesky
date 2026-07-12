@@ -82,7 +82,11 @@ export class ColumnState {
        if (isJunk) {
             $effect(() => {
                 if (this.columns.length > 20) {
-                    this.columns.shift();
+                    const removed = this.columns.shift();
+                    if (removed) {
+                        this.deleteFeed(removed.id);
+                        this.clearFeedStatus(removed.id);
+                    }
                 }
             })
 

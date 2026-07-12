@@ -8,6 +8,7 @@ import { t } from 'tokimeki-i18n';
 
 class AppState {
     ready: boolean = $state(false);
+    shellReady: boolean = $state(false);
     status: number = $state(0);
     pdsRequestReady: boolean = $state(false);
     profile: PersistedState<number> = new PersistedState('currentProfile', 1);
@@ -16,6 +17,8 @@ class AppState {
     subscribedLabelers = new PersistedState('subscribedLabelers', ['did:plc:ar7c4by46qjdydhdevvrndac']);
     singleColumnScrollPositions: Map<number, number> = new Map();
 
+    private hasBooted = false;
+    private initEpoch = 0;
     private _dbPreload: Promise<{ profiles: any[]; accounts: any[] }> | null = null;
 
     preloadDb() {
@@ -29,8 +32,14 @@ class AppState {
     }
 
     async init() {
+        const epoch = ++this.initEpoch;
+
         const { profiles, accounts: anyAccounts } = await this.preloadDb();
         this._dbPreload = null;
+
+        if (epoch !== this.initEpoch) {
+            return false;
+        }
 
         if (!anyAccounts.length) {
             console.log('Accounts are nothing');
@@ -52,6 +61,11 @@ class AppState {
                 name: t('workspace') + ' 1',
                 primary: acs[0] as number,
             })
+
+            if (epoch !== this.initEpoch) {
+                return false;
+            }
+
             this.profile.current = id;
 
             await this.init();
@@ -71,6 +85,11 @@ class AppState {
             .where('id')
             .anyOf(profile.accounts)
             .toArray();
+
+        if (epoch !== this.initEpoch) {
+            return false;
+        }
+
         const isPrimaryAvailable = accounts.find(account => account.id === profile.primary);
 
         if (!profile.accounts.length) {
@@ -91,7 +110,16 @@ class AppState {
             return false;
         }
 
+        if (!this.hasBooted) {
+            this.shellReady = true;
+        }
+
         let agentsMap = await resumeAccountsSession(accounts, profile?.appViewProxy);
+
+        if (epoch !== this.initEpoch) {
+            return false;
+        }
+
         agents.set(agentsMap);
         const _agents = get(agents);
         agent.set(_agents.get(profile.primary));
@@ -114,6 +142,8 @@ class AppState {
             console.error(e);
         }
 
+        this.hasBooted = true;
+        this.shellReady = true;
         this.ready = true;
 
         if (!Object.keys(this.labelDefs.current).length) {
@@ -126,6 +156,7 @@ class AppState {
     changeProfile(id) {
         this.profile.current = id;
         appState.ready = false;
+        appState.shellReady = false;
         appState.init();
     }
 

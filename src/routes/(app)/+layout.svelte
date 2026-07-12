@@ -362,7 +362,7 @@
     dir={$_("dir")}
     bind:this={app}
 >
-    {#if appState.ready}
+    {#if appState.shellReady}
         <div
             class="wrap"
             class:layout-decks={$settings.design.layout === "decks"}
@@ -371,36 +371,42 @@
 
             <main class="main main--scw-{$settings.design?.singleWidth}">
                 {#if $settings.design.layout !== "decks"}
-                    <Single></Single>
+                    {#if appState.ready}
+                        <Single></Single>
+                    {/if}
                 {:else}
                     <Decks></Decks>
                 {/if}
 
-                {@render children?.()}
+                {#if appState.ready}
+                    {@render children?.()}
+                {/if}
             </main>
         </div>
 
-        {#if $isColumnModalOpen}
-            <ColumnModal onclose={handleColumnModalClose}></ColumnModal>
-        {/if}
+        {#if appState.ready}
+            {#if $isColumnModalOpen}
+                <ColumnModal onclose={handleColumnModalClose}></ColumnModal>
+            {/if}
 
-        {#if $listAddModal.open}
-            <OfficialListAddObserver></OfficialListAddObserver>
-        {/if}
+            {#if $listAddModal.open}
+                <OfficialListAddObserver></OfficialListAddObserver>
+            {/if}
 
-        {#if $bluefeedAddModal.open}
-            <BluefeedAddObserver></BluefeedAddObserver>
-        {/if}
+            {#if $bluefeedAddModal.open}
+                <BluefeedAddObserver></BluefeedAddObserver>
+            {/if}
 
-        {#if !isRepeater}
-            <WelcomeModal on:close={() => (isRepeater = true)}></WelcomeModal>
-        {/if}
+            {#if !isRepeater}
+                <WelcomeModal on:close={() => (isRepeater = true)}></WelcomeModal>
+            {/if}
 
-        <NotificationCountObserver></NotificationCountObserver>
-        <RealtimeListenersObserver></RealtimeListenersObserver>
+            <NotificationCountObserver></NotificationCountObserver>
+            <RealtimeListenersObserver></RealtimeListenersObserver>
 
-        {#if !$settings?.general?.disableChat}
-            <ChatUpdateObserver></ChatUpdateObserver>
+            {#if !$settings?.general?.disableChat}
+                <ChatUpdateObserver></ChatUpdateObserver>
+            {/if}
         {/if}
 
         <Footer></Footer>

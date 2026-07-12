@@ -35,7 +35,7 @@
 
   const postState = getPostState();
 
-  let _agent = $state($agent);
+  let _agent = $derived($agent);
   let editor = $state();
   let isDraftModalOpen = $state(false);
   let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
@@ -105,6 +105,10 @@
   }
 
   async function saveDraft() {
+      if (!_agent) {
+          return;
+      }
+
       try {
           await db.drafts.add($state.snapshot({
               ...postState.posts[postState.index],
@@ -215,7 +219,7 @@
   }
 
   async function publishAll() {
-      if (isEnabled) {
+      if (isEnabled || !_agent) {
           return false;
       }
 
@@ -1012,7 +1016,7 @@
   }
 
   async function handleSchedulePost(scheduledAt: Date) {
-      if (isEnabled) {
+      if (isEnabled || !_agent) {
           return;
       }
 
@@ -1143,12 +1147,12 @@
       </button>
 
       {#if (!isEnabled)}
-        <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postState.posts.length > 1}>{$_('drafts_save')}</button>
+        <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postState.posts.length > 1 || !_agent}>{$_('drafts_save')}</button>
       {:else}
-        <button class="publish-draft-button publish-view-draft" onclick={openDraft} disabled={postState.posts.length > 1}>{$_('drafts')}</button>
+        <button class="publish-draft-button publish-view-draft" onclick={openDraft} disabled={postState.posts.length > 1 || !_agent}>{$_('drafts')}</button>
       {/if}
 
-      <button class="publish-schedule-button publish-schedule-button--top" onclick={() => {isScheduleModalOpen = true}} disabled={isEnabled || postState.posts.some(p => p.video || p.whisper)} aria-label={$_('schedule_button')}>
+      <button class="publish-schedule-button publish-schedule-button--top" onclick={() => {isScheduleModalOpen = true}} disabled={isEnabled || !_agent || postState.posts.some(p => p.video || p.whisper)} aria-label={$_('schedule_button')}>
         <CalendarClock size="20"></CalendarClock>
       </button>
 
@@ -1156,7 +1160,7 @@
         <X color="var(--primary-color)"></X>
       </button>
 
-      <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled}>
+      <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled || !_agent}>
         {$_('publish_button_send')}
       </button>
     </div>
@@ -1209,7 +1213,7 @@
 </section>
 
 {#snippet submitArea()}
-  <button class="publish-submit-button publish-submit-button--bottom" onclick={publishAll} disabled={isEnabled}>
+  <button class="publish-submit-button publish-submit-button--bottom" onclick={publishAll} disabled={isEnabled || !_agent}>
     {$_('publish_button_send')}
   </button>
 {/snippet}

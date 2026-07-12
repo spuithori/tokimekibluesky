@@ -9,9 +9,9 @@
         return btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
 
-    function fakeJwt(did: string): string {
+    function fakeJwt(did: string, exp: number = 4102444800): string {
         const header = b64url({ typ: 'JWT', alg: 'HS256' });
-        const payload = b64url({ scope: 'com.atproto.appPass', sub: did, iat: 1700000000, exp: 4102444800 });
+        const payload = b64url({ scope: 'com.atproto.appPass', sub: did, iat: 1700000000, exp });
         return `${header}.${payload}.quality-loop`;
     }
 
@@ -30,7 +30,7 @@
     if (typeof window !== 'undefined') {
         (window as any).__seedTest = {
             ready: true,
-            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean } = {}) {
+            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean; expiredAccess?: boolean } = {}) {
                 const did = opts.did ?? DEFAULT_DID;
                 const handle = opts.handle ?? DEFAULT_HANDLE;
                 await accountsDb.accounts.put(opts.isOAuth ? {
@@ -52,7 +52,7 @@
                     session: {
                         did,
                         handle,
-                        accessJwt: fakeJwt(did),
+                        accessJwt: fakeJwt(did, opts.expiredAccess ? 1700000001 : undefined),
                         refreshJwt: fakeJwt(did),
                         active: true,
                     },
@@ -77,6 +77,39 @@
                 if (opts.settings) {
                     localStorage.setItem('settings', JSON.stringify(opts.settings));
                 }
+                return true;
+            },
+            async seedExtraProfile(opts: { id?: number; did?: string; handle?: string; name?: string; expiredAccess?: boolean } = {}) {
+                const id = opts.id ?? 2;
+                const did = opts.did ?? `did:plc:qualityloop0000000000${String(id).padStart(2, '0')}`;
+                const handle = opts.handle ?? `quality${id}.test`;
+                const name = opts.name ?? `Quality Loop ${id}`;
+                await accountsDb.accounts.put({
+                    id,
+                    service: 'https://pds.quality.test',
+                    did,
+                    session: {
+                        did,
+                        handle,
+                        accessJwt: fakeJwt(did, opts.expiredAccess ? 1700000001 : undefined),
+                        refreshJwt: fakeJwt(did),
+                        active: true,
+                    },
+                    avatar: '',
+                    name,
+                    notification: ['reply', 'like', 'repost', 'follow', 'quote', 'mention'],
+                    feeds: [],
+                    lists: [],
+                    isOAuth: false,
+                } as any);
+                await accountsDb.profiles.put({
+                    id,
+                    name,
+                    createdAt: '',
+                    accounts: [id],
+                    primary: id,
+                    columns: [homeColumn(did, handle)],
+                } as any);
                 return true;
             },
             async clear() {
