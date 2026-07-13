@@ -34,6 +34,7 @@ export interface GeneralSettings {
     continuousTag: boolean;
     disableMochiHoppe: boolean;
     dataSaver: boolean;
+    disableVirtualList: boolean;
     // Unified from the legacy settingsState (folded in by the v3 -> v4 migration).
     translationModel: 'nmt' | 'llm';
     autoTranslate: boolean;

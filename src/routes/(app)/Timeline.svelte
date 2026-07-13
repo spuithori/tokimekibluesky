@@ -21,7 +21,7 @@
 
   const columnState = getColumnState(isJunk);
   const column = columnProp ?? columnState.getColumn(index);
-  const useVirtualList = isVirtualTimelineEnabled(column);
+  const useVirtualList = $derived(isVirtualTimelineEnabled(column));
   let isActorsListFinished = false;
   let actors = [];
   let realtimeCounter = 0;

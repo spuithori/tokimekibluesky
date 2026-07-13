@@ -243,6 +243,8 @@
     "active_columns": "現在のカラム",
     "inactive_columns": "非アクティブなカラム",
     "data_saver": "データセーバー",
+    "disable_virtual_list": "バーチャルリストを使用しない",
+    "disable_virtual_list_description": "タイムラインの仮想スクロールを無効にします。スレッド表示では常にバーチャルリストが使用されます。",
     "data_saver_description": "Android Chrome系のみ対応。\nモバイル通信時、画像を折りたたみアバター画像を非表示にします。",
     "finnhub_api_key_description": "$タグで株価・仮想通貨の情報を表示するために必要です。APIキーは無料で取得できます:",
     "user": "ユーザー",

@@ -71,6 +71,7 @@ export function createDefaultSettings(): Settings {
             continuousTag: false,
             disableMochiHoppe: false,
             dataSaver: false,
+            disableVirtualList: false,
             translationModel: 'nmt',
             autoTranslate: false,
             markedUnread: false,

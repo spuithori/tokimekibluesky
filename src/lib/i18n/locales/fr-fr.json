@@ -197,6 +197,8 @@
   "active_columns": "Colonne active",
   "inactive_columns": "Colonnes inactives",
   "data_saver": "Economiseur de données",
+  "disable_virtual_list": "Désactiver la liste virtuelle",
+  "disable_virtual_list_description": "Désactive le défilement virtualisé des timelines. Les fils de discussion utilisent toujours la liste virtuelle.",
   "data_saver_description": "Compatible avec Android Chrome uniquement.\nRange l'image et masque l'image de l'avatar lors de l'utilisation de data mobile.",
   "user": "Utilisateur",
   "/search_search": "Recherche mot-clé",

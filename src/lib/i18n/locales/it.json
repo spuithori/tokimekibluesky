@@ -198,6 +198,8 @@
   "active_columns": "Colonne attive",
   "inactive_columns": "Colonne inattive",
   "data_saver": "Risparmio dati",
+  "disable_virtual_list": "Disattiva lista virtuale",
+  "disable_virtual_list_description": "Disattiva lo scorrimento virtualizzato delle timeline. I thread usano sempre la lista virtuale.",
   "data_saver_description": "Compatibile solo con Chrome per Android.\nComprime i post con immagini e nasconde gli avatar durante la connessione su dati mobili.",
   "user": "Utente",
   "/search_search": "Ricerca parole chiave",

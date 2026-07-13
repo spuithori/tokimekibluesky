@@ -198,6 +198,8 @@
   "active_columns": "Colunas ativas",
   "inactive_columns": "Colunas inativas",
   "data_saver": "Economia de dados",
+  "disable_virtual_list": "Desativar lista virtual",
+  "disable_virtual_list_description": "Desativa a rolagem virtualizada nas linhas do tempo. As conversas sempre usam a lista virtual.",
   "data_saver_description": "Disponível apenas no Chrome para Android.\nEsconde as imagens e o avatar durante o uso de uma conexão de dados móveis",
   "user": "User",
   "/search_search": "Busca por palavras-chave",

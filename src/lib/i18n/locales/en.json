@@ -244,6 +244,8 @@
     "active_columns": "Active Columns",
     "inactive_columns": "Inactive Columns",
     "data_saver": "Data saver",
+    "disable_virtual_list": "Disable virtual list",
+    "disable_virtual_list_description": "Disables virtualized scrolling for timelines. Threads always use the virtual list.",
     "data_saver_description": "Available only with Android Chrome series.\nCollapses the image and hides the avatar image during mobile communication.",
     "finnhub_api_key_description": "Required to display stock and cryptocurrency information with $ tags. You can get a free API key at:",
     "user": "User",

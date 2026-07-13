@@ -177,6 +177,17 @@ const rawSettingsSchema = [
         default: false,
     },
     {
+        key: "general.disableVirtualList",
+        category: "general",
+        scope: "global",
+        type: "toggle",
+        section: "settings_section_behavior",
+        label: "disable_virtual_list",
+        description: "disable_virtual_list_description",
+        isNew: true,
+        default: false,
+    },
+    {
         key: "embed.disableEmbedVia",
         category: "general",
         scope: "global",

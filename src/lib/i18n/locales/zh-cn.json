@@ -199,6 +199,8 @@
   "active_columns": "当前列",
   "inactive_columns": "非活跃列",
   "data_saver": "流量节省程序",
+  "disable_virtual_list": "禁用虚拟列表",
+  "disable_virtual_list_description": "停用时间线的虚拟滚动。会话串始终使用虚拟列表。",
   "data_saver_description": "仅适用于 Android Chrome 浏览器。在移动网络下折叠图片并隐藏头像。",
   "user": "用户",
   "/search_search": "关键词搜索",
