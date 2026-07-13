@@ -3,6 +3,9 @@
     import {page} from '$app/stores';
     import DeckRow from "./DeckRow.svelte";
     import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
+    import ColumnsLoadError from "$lib/components/column/ColumnsLoadError.svelte";
+    import ColumnErrorPanel from "$lib/components/column/ColumnErrorPanel.svelte";
+    import {recordError} from "$lib/errorLog";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
@@ -12,24 +15,26 @@
 
     const columnState = getColumnState();
 
-    if (!columnState.columns.length) {
-        columnState.add({
-            id: self.crypto.randomUUID(),
-            algorithm: {
-                type: 'default',
-                name: 'HOME'
-            },
-            style: 'default',
-            did: $agent.did(),
-            handle: $agent.handle(),
-            unreadCount: 0,
-            settings: defaultDeckSettings,
-            data: {
-                feed: [],
-                cursor: '',
-            }
-        })
-    }
+    $effect(() => {
+        if (columnState.isColumnsLoaded && !columnState.loadFailed && !columnState.columns.length) {
+            columnState.add({
+                id: self.crypto.randomUUID(),
+                algorithm: {
+                    type: 'default',
+                    name: 'HOME'
+                },
+                style: 'default',
+                did: $agent.did(),
+                handle: $agent.handle(),
+                unreadCount: 0,
+                settings: defaultDeckSettings,
+                data: {
+                    feed: [],
+                    cursor: '',
+                }
+            })
+        }
+    });
 
     if (!columnState.columns[$currentTimeline]) {
         currentTimeline.set(0);
@@ -79,12 +84,23 @@
 
 <div class="single-wrap" class:single-wrap--page={$page.url.pathname !== '/'} class:single-wrap--bottom={publishState.isBottom}>
   <div class="single-timeline-wrap">
+    {#if columnState.loadFailed}
+      <ColumnsLoadError></ColumnsLoadError>
+    {/if}
+
     {#key $currentTimeline}
       {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
-        {#if appState.isColumnResumePending($agents, columnState.columns[$currentTimeline]?.did)}
+        {@const gate = appState.getColumnResumeGate($agents, columnState.columns[$currentTimeline]?.did)}
+        {#if gate !== 'mount'}
           <ColumnResumePlaceholder column={columnState.columns[$currentTimeline]}></ColumnResumePlaceholder>
         {:else}
-          <DeckRow index={$currentTimeline}></DeckRow>
+          <svelte:boundary onerror={(error) => recordError(error, 'column')}>
+            <DeckRow index={$currentTimeline}></DeckRow>
+
+            {#snippet failed(error, reset)}
+              <ColumnErrorPanel column={columnState.columns[$currentTimeline]} {reset}></ColumnErrorPanel>
+            {/snippet}
+          </svelte:boundary>
         {/if}
       {/if}
     {/key}

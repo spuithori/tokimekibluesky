@@ -50,6 +50,7 @@
     import "@fontsource-variable/noto-sans-jp";
     import BootStatus from "$lib/components/utils/BootStatus.svelte";
     import { appState } from "$lib/classes/appState.svelte";
+    import { recordError } from "$lib/errorLog";
 
     injectAnalytics({
         mode: dev ? "development" : "production",
@@ -303,6 +304,20 @@
         return on(window, "online", () => {
             appState.retryUnreachableAccounts();
         });
+    });
+
+    $effect(() => {
+        const offError = on(window, "error", (event: ErrorEvent) => {
+            recordError(event.error ?? event.message, "window");
+        });
+        const offRejection = on(window, "unhandledrejection", (event: PromiseRejectionEvent) => {
+            recordError(event.reason, "unhandledrejection");
+        });
+
+        return () => {
+            offError();
+            offRejection();
+        };
     });
 
     $effect(() => {

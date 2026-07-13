@@ -6,6 +6,7 @@ import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 import {AppBskyFeedDefs} from "$lib/atproto-guards";
 import {settingsState} from "$lib/classes/settingsState.svelte";
 import {appState} from "$lib/classes/appState.svelte";
+import {recordError} from "$lib/errorLog";
 import {clearAllNotificationLedgers, deleteNotificationLedger, moveNotificationLedger, resetNotificationLedger} from "$lib/components/notification/notificationLedger";
 
 export class ColumnState {
@@ -78,6 +79,7 @@ export class ColumnState {
         } : {})
     })));
     isColumnsLoaded = $state(false);
+    loadFailed = $state(false);
 
     constructor(isJunk: boolean = false) {
        if (isJunk) {
@@ -94,6 +96,20 @@ export class ColumnState {
 
             return;
         }
+
+        this.loadColumns();
+
+        $effect(() => {
+            if (!this.isColumnsLoaded || this.isReordering) return;
+
+            accountsDb.profiles.update(appState.profile.current, {
+                columns: $state.snapshot(this.syncColumns),
+            });
+        });
+    }
+
+    loadColumns() {
+        this.loadFailed = false;
 
         accountsDb.profiles.get(appState.profile.current)
           .then(res => {
@@ -118,15 +134,12 @@ export class ColumnState {
               }
               this.columns = cols;
               this.isColumnsLoaded = true;
-        });
-
-        $effect(() => {
-            if (!this.isColumnsLoaded || this.isReordering) return;
-
-            accountsDb.profiles.update(appState.profile.current, {
-                columns: $state.snapshot(this.syncColumns),
-            });
-        });
+          })
+          .catch(error => {
+              console.error('Failed to load columns:', error);
+              recordError(error, 'columns');
+              this.loadFailed = true;
+          });
     }
 
     add(column: Column) {

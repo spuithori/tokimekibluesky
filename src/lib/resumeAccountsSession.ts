@@ -9,10 +9,10 @@ export type ResumePhase = 'pending' | 'retrying' | 'resumed' | 'auth-required' |
 export type ResumeOutcome =
     | { status: 'resumed'; agent: Agent }
     | { status: 'auth-required' }
-    | { status: 'unreachable'; error: unknown };
+    | { status: 'unreachable'; error: unknown; offline?: boolean };
 
 export interface ResumeCallbacks {
-    onStatus?: (account: Account, phase: ResumePhase, meta?: { attempt?: number; error?: unknown }) => void;
+    onStatus?: (account: Account, phase: ResumePhase, meta?: { attempt?: number; error?: unknown; offline?: boolean }) => void;
 }
 
 const MAX_RETRIES = 3;
@@ -140,20 +140,24 @@ async function runResume(account: Account, proxy: string | undefined, callbacks?
                 ? await attemptOAuthResume(account, proxy, callbacks)
                 : await attemptPasswordResume(account, proxy, callbacks);
         } catch (error) {
-            if (attempt < MAX_RETRIES) {
+            if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+                console.warn('Offline detected during session resume:', account.did);
+                outcome = { status: 'unreachable', error, offline: true };
+            } else if (attempt < MAX_RETRIES) {
                 attempt++;
                 callbacks?.onStatus?.(account, 'retrying', { attempt, error });
                 await new Promise(resolve => setTimeout(resolve, RETRY_BASE_MS * attempt));
                 continue;
+            } else {
+                console.error('Session resume failed after retries:', account.did, error);
+                outcome = { status: 'unreachable', error };
             }
-            console.error('Session resume failed after retries:', account.did, error);
-            outcome = { status: 'unreachable', error };
         }
 
         callbacks?.onStatus?.(
             account,
             outcome.status,
-            outcome.status === 'unreachable' ? { error: outcome.error } : undefined,
+            outcome.status === 'unreachable' ? { error: outcome.error, offline: outcome.offline } : undefined,
         );
         return outcome;
     }

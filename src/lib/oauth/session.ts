@@ -3,8 +3,31 @@ import type { DPoPKeyPair } from './dpop';
 import { createDPoPProof, computeAth, importKeyPair } from './dpop';
 import { OAuthTokenError, refreshToken } from './server';
 import { putSession, deleteSession, getSession, putDPoPNonce, getDPoPNonce } from './store';
+import { reportPersistFailure } from '$lib/sessionPersistNotice';
 
 const REFRESH_BUFFER = 60_000;
+
+const dirtyFlushes = new Set<() => Promise<void>>();
+let globalFlushHooksInstalled = false;
+
+function flushAllDirty() {
+    for (const flush of [...dirtyFlushes]) {
+        flush().catch(() => {});
+    }
+}
+
+function installGlobalFlushHooks() {
+    if (globalFlushHooksInstalled || typeof window === 'undefined') return;
+    globalFlushHooksInstalled = true;
+
+    window.addEventListener('online', flushAllDirty);
+    window.addEventListener('pagehide', flushAllDirty);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            flushAllDirty();
+        }
+    });
+}
 
 export function createOAuthSession(
     stored: StoredSession,
@@ -18,6 +41,63 @@ export function createOAuthSession(
     let dpopKeyPair: DPoPKeyPair | null = null;
     let refreshPromise: Promise<void> | null = null;
     let sessionDead = false;
+    let persistDirty = false;
+
+    function clearPersistDirty() {
+        persistDirty = false;
+        dirtyFlushes.delete(flushPersistDirty);
+    }
+
+    async function persistStored(): Promise<void> {
+        try {
+            await putSession(stored);
+            clearPersistDirty();
+            return;
+        } catch {
+        }
+
+        try {
+            await putSession(stored);
+            clearPersistDirty();
+        } catch (error) {
+            persistDirty = true;
+            dirtyFlushes.add(flushPersistDirty);
+            installGlobalFlushHooks();
+            reportPersistFailure(stored.did, error);
+        }
+    }
+
+    async function flushPersistDirty(): Promise<void> {
+        if (!persistDirty || sessionDead) {
+            clearPersistDirty();
+            return;
+        }
+
+        const doFlush = async () => {
+            if (!persistDirty || sessionDead) {
+                clearPersistDirty();
+                return;
+            }
+
+            const latest = await getSession(stored.did);
+            if (latest && latest.expiresAt >= stored.expiresAt) {
+                clearPersistDirty();
+                return;
+            }
+
+            await putSession(stored);
+            clearPersistDirty();
+        };
+
+        try {
+            if (typeof navigator !== 'undefined' && navigator.locks) {
+                await navigator.locks.request('oauth-refresh-' + stored.did, doFlush);
+            } else {
+                await doFlush();
+            }
+        } catch {
+        }
+    }
 
     const keyPairPromise = importKeyPair(stored.dpopKeyJwk);
 
@@ -36,6 +116,7 @@ export function createOAuthSession(
         if (sessionDead) return;
         currentRefreshToken = undefined;
         sessionDead = true;
+        clearPersistDirty();
         onExpired?.();
     }
 
@@ -70,7 +151,7 @@ export function createOAuthSession(
         stored.accessToken = accessToken;
         stored.refreshToken = currentRefreshToken;
         stored.expiresAt = expiresAt;
-        await putSession(stored);
+        await persistStored();
     }
 
     async function refreshAgainstLatest(): Promise<void> {
@@ -120,6 +201,10 @@ export function createOAuthSession(
         init?: RequestInit,
     ): Promise<Response> {
         await ensureFreshToken().catch(() => {});
+
+        if (persistDirty) {
+            flushPersistDirty().catch(() => {});
+        }
 
         const keyPair = await getKeyPair();
 

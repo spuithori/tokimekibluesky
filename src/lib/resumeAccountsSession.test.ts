@@ -177,6 +177,26 @@ describe('password account classification', () => {
         expect(events.filter(e => e.phase === 'retrying').map(e => e.attempt)).toEqual([1, 2, 3]);
     });
 
+    it('classifies failures as unreachable immediately when offline, without retrying', async () => {
+        vi.useFakeTimers();
+        installFetch(() => { throw new TypeError('Failed to fetch'); });
+        Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+        const { events, callbacks } = collectStatuses();
+        const account = passwordAccount({
+            session: { did: 'did:plc:one', handle: 'one.example', accessJwt: fakeJwt(1), refreshJwt: fakeJwt() },
+        });
+
+        try {
+            const { perAccount } = startAccountsResume([account], undefined, callbacks);
+            const outcome = await perAccount.get(1)!;
+
+            expect(outcome).toMatchObject({ status: 'unreachable', offline: true });
+            expect(events.map(e => e.phase)).toEqual(['pending', 'unreachable']);
+        } finally {
+            Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+        }
+    });
+
     it('resumes a valid session and returns an agent', async () => {
         installFetch((url) => {
             if (url.includes('refreshSession')) return json({ did: 'did:plc:one', handle: 'one.example', accessJwt: fakeJwt(), refreshJwt: fakeJwt() });

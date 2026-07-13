@@ -104,3 +104,51 @@ describe('OAuth session refresh coordination', () => {
         expect(vi.mocked(refreshToken)).not.toHaveBeenCalled();
     });
 });
+
+describe('OAuth session persist resilience', () => {
+    it('keeps the refresh usable when persisting rotated tokens fails, then flushes on a later call', async () => {
+        const stored = storedSession({ expiresAt: Date.now() - 1000 });
+        vi.mocked(getSession).mockResolvedValue({ ...stored });
+        vi.mocked(refreshToken).mockResolvedValue({ access_token: 'new-token', refresh_token: 'r2', expires_in: 3600 } as any);
+        const { putSession } = await import('./store');
+        vi.mocked(putSession)
+            .mockRejectedValueOnce(new Error('quota'))
+            .mockRejectedValueOnce(new Error('quota'));
+        vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })));
+
+        const session = createOAuthSession(stored, 'client-id');
+        const res = await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+
+        expect(res.status).toBe(200);
+        expect(session.dead).toBe(false);
+
+        await vi.waitFor(() => expect(vi.mocked(putSession).mock.calls.length).toBeGreaterThanOrEqual(3));
+    });
+
+    it('never flushes over a newer session persisted by another tab', async () => {
+        const stored = storedSession({ expiresAt: Date.now() - 1000 });
+        vi.mocked(getSession).mockResolvedValue({ ...stored });
+        vi.mocked(refreshToken).mockResolvedValue({ access_token: 'new-token', refresh_token: 'r2', expires_in: 3600 } as any);
+        const { putSession } = await import('./store');
+        vi.mocked(putSession)
+            .mockRejectedValueOnce(new Error('quota'))
+            .mockRejectedValueOnce(new Error('quota'))
+            .mockRejectedValueOnce(new Error('quota'));
+        vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })));
+
+        const session = createOAuthSession(stored, 'client-id');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await vi.waitFor(() => expect(vi.mocked(putSession).mock.calls.length).toBe(3));
+
+        vi.mocked(getSession).mockResolvedValue(storedSession({
+            refreshToken: 'r9',
+            expiresAt: Date.now() + 24 * 3600_000,
+        }));
+
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(vi.mocked(putSession).mock.calls.length).toBe(3);
+    });
+});

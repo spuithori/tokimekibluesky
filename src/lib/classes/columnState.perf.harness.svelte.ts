@@ -82,6 +82,14 @@ export function createRealColumnState(): { cs: any; cleanup: () => void } {
     return { cs, cleanup };
 }
 
+export function createRealDeckColumnState(): { cs: any; cleanup: () => void } {
+    let cs: any;
+    const cleanup = $effect.root(() => {
+        cs = new ColumnState(false);
+    });
+    return { cs, cleanup };
+}
+
 export function measureRealIsolation(
     cs: any,
     keys: string[],

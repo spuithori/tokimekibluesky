@@ -1,5 +1,7 @@
 // Lightweight password-based session management replacing BskyAgent session handling
 
+import { reportPersistFailure } from '$lib/sessionPersistNotice';
+
 export interface SessionData {
 	did: string;
 	handle: string;
@@ -17,12 +19,23 @@ export type SessionEvent = 'create' | 'update' | 'expired';
 
 export type PersistSessionHandler = (evt: SessionEvent, sess?: SessionData) => void | Promise<void>;
 
+const REFRESH_ROTATE_BUFFER_MS = 60 * 24 * 60 * 60 * 1000;
+
 function isJwtExpired(jwt: string, bufferMs: number = 60_000): boolean {
 	try {
 		const payload = JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
 		return !payload.exp || Date.now() >= payload.exp * 1000 - bufferMs;
 	} catch {
 		return true;
+	}
+}
+
+function getJwtIat(jwt: string): number {
+	try {
+		const payload = JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+		return payload.iat ?? 0;
+	} catch {
+		return 0;
 	}
 }
 
@@ -56,6 +69,7 @@ export class PasswordSession {
 	private _session: SessionData | undefined;
 	private _persistSession: PersistSessionHandler | undefined;
 	private _refreshing: Promise<void> | null = null;
+	private _persistDirty = false;
 	private _loadLatestSession?: () => Promise<SessionData | null | undefined>;
 
 	private _onExpired?: () => void;
@@ -134,7 +148,7 @@ export class PasswordSession {
 				}
 				throw e;
 			}
-		} else {
+		} else if (isJwtExpired(session.refreshJwt, REFRESH_ROTATE_BUFFER_MS)) {
 			this.refreshSession().catch(() => {});
 		}
 	}
@@ -213,13 +227,47 @@ export class PasswordSession {
 			this._updatePdsUrl(data.didDoc);
 		}
 
-		await this._persistSession?.('update', this._session);
+		try {
+			await this._persistSession?.('update', this._session);
+			this._persistDirty = false;
+		} catch (error) {
+			this._persistDirty = true;
+			reportPersistFailure(this._session?.did, error);
+		}
+	}
+
+	private async _flushPersistDirty(): Promise<void> {
+		if (!this._persistDirty || !this._session) {
+			return;
+		}
+
+		try {
+			const latest = await this._loadLatestSession?.();
+
+			if (latest?.refreshJwt === this._session.refreshJwt) {
+				this._persistDirty = false;
+				return;
+			}
+
+			if (latest?.refreshJwt && getJwtIat(latest.refreshJwt) >= getJwtIat(this._session.refreshJwt)) {
+				this._persistDirty = false;
+				return;
+			}
+
+			await this._persistSession?.('update', this._session);
+			this._persistDirty = false;
+		} catch {
+		}
 	}
 
 	createFetchHandler(): (input: string | URL | Request, init?: RequestInit) => Promise<Response> {
 		return async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
 			if (this._refreshing) {
 				await this._refreshing.catch(() => {});
+			}
+
+			if (this._persistDirty) {
+				this._flushPersistDirty();
 			}
 
 			const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
@@ -248,7 +296,11 @@ export class PasswordSession {
 			} catch (e: any) {
 				if (isTokenError(e)) {
 					this._session = undefined;
-					await this._persistSession?.('expired');
+					try {
+						await this._persistSession?.('expired');
+					} catch (persistError) {
+						console.error(persistError);
+					}
 					this._onExpired?.();
 				}
 				return res;

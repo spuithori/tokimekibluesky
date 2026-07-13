@@ -5,12 +5,14 @@ import {startAccountsResume, type ResumeOutcome, type ResumePhase} from "$lib/re
 import {goto} from '$app/navigation';
 import { PersistedState } from "runed";
 import { t } from 'tokimeki-i18n';
+import { recordError } from '$lib/errorLog';
 
 export interface AccountResumeStatus {
     phase: ResumePhase;
     attempt: number;
     handle: string;
     accountId: number;
+    offline?: boolean;
 }
 
 class AppState {
@@ -22,12 +24,14 @@ class AppState {
     missingAccounts: Account[] = $state([]);
     resumeStatus: Record<string, AccountResumeStatus> = $state({});
     resumePrimaryDid: string = $state('');
+    bootError: { name: string; message: string } | null = $state(null);
     labelDefs = new PersistedState('labelDefs', []);
     subscribedLabelers = new PersistedState('subscribedLabelers', ['did:plc:ar7c4by46qjdydhdevvrndac']);
     singleColumnScrollPositions: Map<number, number> = new Map();
 
     private hasBooted = false;
     private initEpoch = 0;
+    private snoozedMissingIds = new Set<number>();
     private resumeGeneration = new Map<number, number>();
     private resumeAccounts: Account[] = [];
     private resumeProxy: string | undefined = undefined;
@@ -47,6 +51,28 @@ class AppState {
     async init() {
         const epoch = ++this.initEpoch;
 
+        if (this.bootError) {
+            this.bootError = null;
+        }
+
+        try {
+            return await this.runInit(epoch);
+        } catch (error) {
+            console.error('Boot initialization failed:', error);
+            recordError(error, 'boot');
+            this._dbPreload = null;
+
+            if (epoch === this.initEpoch) {
+                this.bootError = {
+                    name: error instanceof Error ? error.name : typeof error,
+                    message: error instanceof Error ? error.message : String(error),
+                };
+            }
+            return false;
+        }
+    }
+
+    private async runInit(epoch: number) {
         const { profiles, accounts: anyAccounts } = await this.preloadDb();
         this._dbPreload = null;
 
@@ -189,12 +215,13 @@ class AppState {
         });
     }
 
-    private handleResumeStatus(account: Account, phase: ResumePhase, meta?: { attempt?: number; error?: unknown }) {
+    private handleResumeStatus(account: Account, phase: ResumePhase, meta?: { attempt?: number; error?: unknown; offline?: boolean }) {
         this.resumeStatus[account.did] = {
             phase,
             attempt: meta?.attempt ?? 0,
             handle: account.handle || (account.session as any)?.handle || account.did,
             accountId: account.id!,
+            offline: meta?.offline || undefined,
         };
 
         if (phase === 'auth-required') {
@@ -240,6 +267,23 @@ class AppState {
         this.missingAccounts = [...this.missingAccounts, account];
     }
 
+    snoozeMissingAccounts() {
+        for (const account of this.missingAccounts) {
+            if (account.id !== undefined) {
+                this.snoozedMissingIds.add(account.id);
+            }
+        }
+        this.status = 0;
+    }
+
+    hasUnsnoozedMissing(): boolean {
+        return this.missingAccounts.some(a => a.id !== undefined && !this.snoozedMissingIds.has(a.id));
+    }
+
+    isPrimaryMissing(): boolean {
+        return this.missingAccounts.some(a => a.id === this.resumePrimaryId);
+    }
+
     getResumeAccountById(accountId: number | undefined): Account | undefined {
         if (!accountId) return undefined;
         return this.resumeAccounts.find(a => a.id === accountId);
@@ -250,13 +294,15 @@ class AppState {
         return this.resumeStatus[did]?.phase;
     }
 
-    isColumnResumePending(agentsMap: Map<number, Agent>, did: string | undefined): boolean {
-        if (!did) return false;
+    getColumnResumeGate(agentsMap: Map<number, Agent>, did: string | undefined): 'mount' | 'pending' | 'failed' {
+        if (!did) return 'mount';
         for (const _agent of agentsMap.values()) {
-            if (_agent.did() === did) return false;
+            if (_agent.did() === did) return 'mount';
         }
         const phase = this.resumeStatus[did]?.phase;
-        return phase === 'pending' || phase === 'retrying';
+        if (phase === 'pending' || phase === 'retrying') return 'pending';
+        if (phase === 'auth-required' || phase === 'unreachable') return 'failed';
+        return 'mount';
     }
 
     async retryAccount(accountId: number) {

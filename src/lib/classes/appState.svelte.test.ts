@@ -266,6 +266,44 @@ describe('appState primary-gated progressive resume', () => {
         expect(get(agents as any).has(1)).toBe(true);
     });
 
+    it('captures a preload failure as bootError and recovers on the next init', async () => {
+        seedSingleProfile();
+        const appState = await loadAppState();
+        const { accountsDb } = await import('$lib/db');
+        (accountsDb.profiles.toArray as any).mockImplementationOnce(async () => {
+            throw new Error('VersionError: requested version is lower');
+        });
+
+        await appState.init();
+
+        expect(appState.bootError?.message).toContain('VersionError');
+        expect(appState.ready).toBe(false);
+        expect(appState.shellReady).toBe(false);
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(resumeControls.length).toBe(1));
+        expect(appState.bootError).toBe(null);
+
+        resolveResume(1, resumedOutcome());
+        await boot;
+
+        expect(appState.ready).toBe(true);
+    });
+
+    it('never marks accounts missing on boot failure', async () => {
+        seedSingleProfile();
+        const appState = await loadAppState();
+        const { accountsDb } = await import('$lib/db');
+        (accountsDb.profiles.toArray as any).mockImplementationOnce(async () => {
+            throw new Error('boom');
+        });
+
+        await appState.init();
+
+        expect(appState.bootError).not.toBe(null);
+        expect(appState.missingAccounts).toHaveLength(0);
+    });
+
     it('discards a stale attempt when a retry has superseded it', async () => {
         seedSingleProfile();
         const appState = await loadAppState();

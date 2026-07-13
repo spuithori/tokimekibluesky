@@ -3,7 +3,10 @@
     import {agents, isColumnModalOpen} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
+    import ColumnsLoadError from "$lib/components/column/ColumnsLoadError.svelte";
+    import ColumnErrorPanel from "$lib/components/column/ColumnErrorPanel.svelte";
     import BootStatus from "$lib/components/utils/BootStatus.svelte";
+    import {recordError} from "$lib/errorLog";
     import {_} from "tokimeki-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -15,18 +18,33 @@
 <div class="deck-wrap">
   <div class="deck-divider" class:deck-divider--compact={publishState.isBottom}></div>
 
-  {#if columnState.columns.length}
+  {#if columnState.loadFailed}
+    <div class="deck-empty">
+      <ColumnsLoadError></ColumnsLoadError>
+    </div>
+  {:else if columnState.columns.length}
     <div class="deck">
       {#if appState.ready}
         {#each columnState.columns as column, index (column.id)}
-          {#if appState.isColumnResumePending($agents, column?.did)}
+          {@const gate = appState.getColumnResumeGate($agents, column?.did)}
+          {#if gate !== 'mount'}
             {#if !column?.settings?.isPopup}
               <ColumnResumePlaceholder {column}></ColumnResumePlaceholder>
             {/if}
           {:else if !column?.settings?.isPopup}
-            <DeckRow {index}></DeckRow>
+            <svelte:boundary onerror={(error) => recordError(error, 'column')}>
+              <DeckRow {index}></DeckRow>
+
+              {#snippet failed(error, reset)}
+                <ColumnErrorPanel {column} {reset}></ColumnErrorPanel>
+              {/snippet}
+            </svelte:boundary>
           {:else}
-            <DeckPopupWrap {column} {index}></DeckPopupWrap>
+            <svelte:boundary onerror={(error) => recordError(error, 'column')}>
+              <DeckPopupWrap {column} {index}></DeckPopupWrap>
+
+              {#snippet failed(error, reset)}{/snippet}
+            </svelte:boundary>
           {/if}
         {/each}
       {:else}

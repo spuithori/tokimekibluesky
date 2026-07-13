@@ -5,6 +5,7 @@
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import MissingAccountItem from "$lib/components/acp/MissingAccountItem.svelte";
     import {appState, type AccountResumeStatus} from "$lib/classes/appState.svelte";
+    import {getErrorLog} from "$lib/errorLog";
 
     const statuses = $derived(Object.entries(appState.resumeStatus));
     const primaryStatus = $derived(appState.resumeStatus[appState.resumePrimaryDid]);
@@ -41,12 +42,15 @@
             timestamp: new Date().toISOString(),
             online: navigator.onLine,
             userAgent: navigator.userAgent,
+            bootError: appState.bootError,
             accounts: Object.entries(appState.resumeStatus).map(([did, status]) => ({
                 did,
                 handle: status.handle,
                 phase: status.phase,
                 attempt: status.attempt,
+                offline: status.offline || undefined,
             })),
+            errors: getErrorLog(),
         };
 
         navigator.clipboard.writeText(JSON.stringify(diagnostics, null, 2))
@@ -56,9 +60,24 @@
 </script>
 
 <div class="boot-status">
-  {#if primaryUnreachable}
-    <h2 class="boot-status__title boot-status__title--error">{$_('boot_status_unreachable_title')}</h2>
-    <p class="boot-status__description">{$_('boot_status_unreachable_description')}</p>
+  {#if appState.bootError}
+    <h2 class="boot-status__title boot-status__title--error">{$_('boot_error_title')}</h2>
+    <p class="boot-status__description">{$_('boot_error_description')}</p>
+    <p class="boot-status__description boot-status__description--detail">{appState.bootError.name}: {appState.bootError.message}</p>
+
+    <div class="boot-status__buttons">
+      <button class="button button--sm" onclick={() => location.reload()}>{$_('boot_error_reload')}</button>
+      <button class="button button--border button--sm" onclick={copyDiagnostics}>{$_('boot_copy_diagnostics')}</button>
+    </div>
+
+    <p class="boot-status__recovery-text"><a href="/recovery" data-sveltekit-reload>{$_('boot_error_recovery')}</a></p>
+  {:else if primaryUnreachable}
+    <h2 class="boot-status__title boot-status__title--error">
+      {appState.resumeStatus[appState.resumePrimaryDid]?.offline ? $_('session_offline_notice_title') : $_('boot_status_unreachable_title')}
+    </h2>
+    <p class="boot-status__description">
+      {appState.resumeStatus[appState.resumePrimaryDid]?.offline ? $_('session_offline_notice') : $_('boot_status_unreachable_description')}
+    </p>
   {:else}
     <LoadingSpinner padding={0}></LoadingSpinner>
 
@@ -67,7 +86,7 @@
     {/if}
   {/if}
 
-  {#if (slow || primaryUnreachable) && statuses.length}
+  {#if !appState.bootError && (slow || primaryUnreachable) && statuses.length}
     <ul class="boot-status__accounts">
       {#each statuses as [did, status] (did)}
         <li class="boot-status__account">
@@ -82,14 +101,14 @@
     <p class="boot-status__slow">{$_('boot_status_slow')}</p>
   {/if}
 
-  {#if slow || primaryUnreachable}
+  {#if !appState.bootError && (slow || primaryUnreachable)}
     <div class="boot-status__buttons">
       <button class="button button--sm" onclick={() => appState.retryStalledResume()}>{$_('boot_status_retry_now')}</button>
       <button class="button button--border button--sm" onclick={copyDiagnostics}>{$_('boot_copy_diagnostics')}</button>
     </div>
   {/if}
 
-  {#if primaryUnreachable && primaryAccount}
+  {#if !appState.bootError && primaryUnreachable && primaryAccount}
     <div class="boot-status__recovery">
       <p class="boot-status__recovery-text">{$_('boot_status_manual_recovery')}</p>
       <MissingAccountItem account={primaryAccount}></MissingAccountItem>
@@ -122,6 +141,12 @@
       &__description {
           font-size: 14px;
           text-align: center;
+
+          &--detail {
+              font-size: 12px;
+              color: var(--text-color-3);
+              word-break: break-all;
+          }
       }
 
       &__accounts {

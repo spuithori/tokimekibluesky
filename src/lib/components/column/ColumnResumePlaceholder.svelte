@@ -1,11 +1,15 @@
 <script lang="ts">
     import {_} from "tokimeki-i18n";
+    import Unplug from '@lucide/svelte/icons/unplug';
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+    import MissingAccountItem from "$lib/components/acp/MissingAccountItem.svelte";
     import {appState} from "$lib/classes/appState.svelte";
 
     let { column } = $props();
 
     const status = $derived(appState.resumeStatus[column?.did]);
+    const phase = $derived(status?.phase);
+    const authAccount = $derived(phase === 'auth-required' ? appState.getResumeAccountById(status?.accountId) : undefined);
 
     let slow = $state(false);
 
@@ -17,18 +21,42 @@
     });
 </script>
 
-<div class="column-resume-placeholder column-resume-placeholder--{column?.settings?.width || 'medium'}">
-  <LoadingSpinner padding={0}></LoadingSpinner>
+<div class="column-resume-placeholder deck-row-wrap column-resume-placeholder--{column?.settings?.width || 'medium'}">
+  {#if phase === 'auth-required'}
+    <Unplug size={40} color="var(--danger-color)" />
+    <p class="column-resume-placeholder__text">{$_('column_resume_auth')}</p>
 
-  {#if slow}
-    {#if status?.phase === 'retrying'}
-      <p class="column-resume-placeholder__text">{$_('column_resume_retrying', {attempt: status.attempt})}</p>
-    {:else}
-      <p class="column-resume-placeholder__text">{$_('column_resume_pending')}</p>
+    {#if authAccount}
+      <div class="column-resume-placeholder__account">
+        <MissingAccountItem account={authAccount}></MissingAccountItem>
+      </div>
+    {:else if status?.handle}
+      <p class="column-resume-placeholder__handle">@{status.handle}</p>
     {/if}
+  {:else if phase === 'unreachable'}
+    <Unplug size={40} color="var(--danger-color)" />
+    <p class="column-resume-placeholder__text">
+      {status?.offline ? $_('session_offline_notice') : $_('column_resume_unreachable')}
+    </p>
 
     {#if status?.handle}
       <p class="column-resume-placeholder__handle">@{status.handle}</p>
+    {/if}
+
+    <button class="button button--sm" onclick={() => appState.retryAccount(status.accountId)}>{$_('retry')}</button>
+  {:else}
+    <LoadingSpinner padding={0}></LoadingSpinner>
+
+    {#if slow}
+      {#if phase === 'retrying'}
+        <p class="column-resume-placeholder__text">{$_('column_resume_retrying', {attempt: status.attempt})}</p>
+      {:else}
+        <p class="column-resume-placeholder__text">{$_('column_resume_pending')}</p>
+      {/if}
+
+      {#if status?.handle}
+        <p class="column-resume-placeholder__handle">@{status.handle}</p>
+      {/if}
     {/if}
   {/if}
 </div>
@@ -102,6 +130,10 @@
           font-size: 13px;
           word-break: break-all;
           text-align: center;
+      }
+
+      &__account {
+          width: 100%;
       }
   }
 </style>

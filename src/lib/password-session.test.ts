@@ -102,3 +102,89 @@ describe('PasswordSession refresh coordination without Web Locks', () => {
         expect(calls.filter(u => u.includes('refreshSession'))).toHaveLength(0);
     });
 });
+
+describe('PasswordSession persist resilience', () => {
+    it('does not fail the resume when persisting the rotated session fails, and flushes later', async () => {
+        let updateCalls = 0;
+        installFetch((url) => {
+            if (url.includes('refreshSession')) return json(sessionData());
+            return json({ ok: true });
+        });
+        const session = new PasswordSession({
+            service: 'https://pds.example',
+            persistSession: async (evt) => {
+                if (evt === 'update') {
+                    updateCalls++;
+                    if (updateCalls === 1) throw new Error('quota exceeded');
+                }
+            },
+        });
+
+        await session.resumeSession({ ...sessionData(), accessJwt: fakeJwt(1) });
+
+        expect(session.session?.accessJwt).toBeTruthy();
+
+        const res = await session.createFetchHandler()('/xrpc/app.bsky.feed.getTimeline');
+        expect(res.ok).toBe(true);
+        await vi.waitFor(() => expect(updateCalls).toBeGreaterThanOrEqual(2));
+    });
+
+    it('does not flush over a newer session persisted elsewhere', async () => {
+        let updateCalls = 0;
+        installFetch((url) => {
+            if (url.includes('refreshSession')) return json(sessionData());
+            return json({ ok: true });
+        });
+        const resumed = { ...sessionData(), accessJwt: fakeJwt(1) };
+        let latestFromDb: SessionData = resumed;
+        const session = new PasswordSession({
+            service: 'https://pds.example',
+            persistSession: async (evt) => {
+                if (evt === 'update') {
+                    updateCalls++;
+                    if (updateCalls === 1) throw new Error('quota exceeded');
+                }
+            },
+            loadLatestSession: async () => latestFromDb,
+        });
+
+        await session.resumeSession(resumed);
+        expect(updateCalls).toBe(1);
+
+        latestFromDb = { ...sessionData(), refreshJwt: fakeJwt() };
+
+        await session.createFetchHandler()('/xrpc/app.bsky.feed.getTimeline');
+        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(updateCalls).toBe(1);
+    });
+});
+
+describe('PasswordSession boot rotation gating', () => {
+    it('skips the background rotation when the refresh token has ample lifetime', async () => {
+        const calls = installFetch((url) => {
+            if (url.includes('refreshSession')) return json(sessionData());
+            return json({ ok: true });
+        });
+        const farExp = Math.floor(Date.now() / 1000) + 90 * 24 * 3600;
+        const session = new PasswordSession({ service: 'https://pds.example' });
+
+        await session.resumeSession({ ...sessionData(), refreshJwt: fakeJwt(farExp) });
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(calls.filter(u => u.includes('refreshSession'))).toHaveLength(0);
+    });
+
+    it('still rotates in the background when the refresh token nears expiry', async () => {
+        const calls = installFetch((url) => {
+            if (url.includes('refreshSession')) return json(sessionData());
+            return json({ ok: true });
+        });
+        const nearExp = Math.floor(Date.now() / 1000) + 10 * 24 * 3600;
+        const session = new PasswordSession({ service: 'https://pds.example' });
+
+        await session.resumeSession({ ...sessionData(), refreshJwt: fakeJwt(nearExp) });
+        await vi.waitFor(() => expect(calls.filter(u => u.includes('refreshSession'))).toHaveLength(1));
+    });
+});

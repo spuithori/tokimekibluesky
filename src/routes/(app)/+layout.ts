@@ -9,7 +9,7 @@ export const load: LayoutLoad = async () => {
         console.log('Intl.Segmenter not found. Browser is too old.');
     }
 
-    appState.preloadDb();
+    appState.preloadDb().catch(() => {});
     await setLocale(settingsStore.general?.language || window.navigator.language);
 }
 

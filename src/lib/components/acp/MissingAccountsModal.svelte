@@ -25,10 +25,18 @@
         <MissingAccountItem {account}></MissingAccountItem>
       {/each}
     {/if}
+
+    {#if appState.missingAccounts.length && !appState.isPrimaryMissing()}
+      <p class="text-center">
+        <button class="button button--border" onclick={() => appState.snoozeMissingAccounts()}>{$_('missing_accounts_later')}</button>
+      </p>
+    {/if}
   </div>
 
   {#if (appState.missingAccounts.length === 0)}
     <button class="modal-background-close" aria-hidden="true" onclick={close}></button>
+  {:else if !appState.isPrimaryMissing()}
+    <button class="modal-background-close" aria-hidden="true" onclick={() => appState.snoozeMissingAccounts()}></button>
   {/if}
 </div>
 
