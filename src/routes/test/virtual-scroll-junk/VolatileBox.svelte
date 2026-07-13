@@ -20,7 +20,7 @@
   });
 </script>
 
-<div class="volatile-box" data-testid="volatile-box" style:height="{boxHeight}px"></div>
+<div class="volatile-box" data-testid="volatile-box" data-vl-flex style:height="{boxHeight}px"></div>
 
 <style>
   .volatile-box {

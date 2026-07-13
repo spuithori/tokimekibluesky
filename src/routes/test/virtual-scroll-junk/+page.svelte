@@ -40,7 +40,7 @@
     bodyLines: number;
     isDivider?: boolean;
     isHidden?: boolean;
-    volatile?: { floor: number; delay: number; steps?: Array<{ delay: number; height: number }> | null };
+    volatile?: { floor: number; delay: number; steps?: Array<{ delay: number; height: number }> | null; position?: 'top' | 'bottom' };
   }
 
   let items = $state<TestItem[]>([]);
@@ -165,10 +165,10 @@
         );
       },
 
-      makeVolatile(ids: string[], floor: number = 40, delay: number = 250, steps: Array<{ delay: number; height: number }> | null = null) {
+      makeVolatile(ids: string[], floor: number = 40, delay: number = 250, steps: Array<{ delay: number; height: number }> | null = null, position: 'top' | 'bottom' = 'bottom') {
         const idSet = new Set(ids);
         items = items.map(item =>
-          idSet.has(item.id) ? { ...item, volatile: { floor, delay, steps } } : item
+          idSet.has(item.id) ? { ...item, volatile: { floor, delay, steps, position } } : item
         );
       },
 
@@ -464,6 +464,9 @@
         style:background-color={item.color}
       >
         <div class="item-content">
+          {#if item.volatile && item.volatile.position === 'top'}
+            <VolatileBox floor={item.volatile.floor} settled={item.height} delay={item.volatile.delay} steps={item.volatile.steps} />
+          {/if}
           <div class="item-header">
             <span class="item-label">{item.label}</span>
             <span class="item-id">{item.id}</span>
@@ -479,7 +482,7 @@
               Body line {line + 1} of {item.id} — lorem ipsum dolor sit amet
             </div>
           {/each}
-          {#if item.volatile}
+          {#if item.volatile && item.volatile.position !== 'top'}
             <VolatileBox floor={item.volatile.floor} settled={item.height} delay={item.volatile.delay} steps={item.volatile.steps} />
           {/if}
         </div>

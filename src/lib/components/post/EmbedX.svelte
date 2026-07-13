@@ -13,7 +13,7 @@
     });
 </script>
 
-<div class="x-embed-wrap" bind:this={el}>
+<div class="x-embed-wrap" data-vl-flex bind:this={el}>
     <blockquote class="twitter-tweet"><p lang="ja" dir="ltr"></p><a href="https://twitter.com/{uri}"></a></blockquote>
 </div>
 

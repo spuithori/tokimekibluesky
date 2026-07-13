@@ -15,12 +15,12 @@
         return `${header}.${payload}.quality-loop`;
     }
 
-    function homeColumn(did: string, handle: string) {
+    function homeColumn(did: string, handle: string, extraSettings?: Record<string, unknown>) {
         return {
             id: 'ql-home',
             algorithm: { type: 'default', name: 'HOME' },
             style: 'default',
-            settings: { ...defaultDeckSettings },
+            settings: { ...defaultDeckSettings, ...(extraSettings ?? {}) },
             did,
             handle,
             data: { feed: [], cursor: '' },
@@ -30,7 +30,7 @@
     if (typeof window !== 'undefined') {
         (window as any).__seedTest = {
             ready: true,
-            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; extraColumns?: Array<{ did: string; handle: string; id?: string; algorithm?: Record<string, unknown> }>; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean; expiredAccess?: boolean; extraAccounts?: Array<{ id: number; did: string; handle: string; sessionNull?: boolean; expiredAccess?: boolean }> } = {}) {
+            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; columnSettings?: Record<string, unknown>; extraColumns?: Array<{ did: string; handle: string; id?: string; algorithm?: Record<string, unknown> }>; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean; expiredAccess?: boolean; extraAccounts?: Array<{ id: number; did: string; handle: string; sessionNull?: boolean; expiredAccess?: boolean }> } = {}) {
                 const did = opts.did ?? DEFAULT_DID;
                 const handle = opts.handle ?? DEFAULT_HANDLE;
                 await accountsDb.accounts.put(opts.isOAuth ? {
@@ -85,7 +85,7 @@
                     } as any);
                 }
                 const columns = [
-                    ...(opts.columns ?? [homeColumn(did, handle)]),
+                    ...(opts.columns ?? [homeColumn(did, handle, opts.columnSettings)]),
                     ...(opts.extraColumns ?? []).map((extraCol, i) => ({
                         ...homeColumn(extraCol.did, extraCol.handle),
                         id: extraCol.id ?? `ql-extra-${i}`,

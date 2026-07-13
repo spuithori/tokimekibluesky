@@ -49,6 +49,7 @@
   let tree = new FenwickTree();
   let itemRefs = new Map<string, HTMLElement>();
   let lastDeliveredHeights = new WeakMap<Element, number>();
+  let observedFlexChildren = new WeakSet<Element>();
 
   let pivotIndex = $state(0);
   let pivotKey = '';
@@ -592,6 +593,20 @@
       }
       return gazeLine;
     };
+    let flexHints: Map<Element, number> | null = null;
+    for (const entry of entries) {
+      const el = entry.target as HTMLElement;
+      if (el.dataset.virtualKey !== undefined || el.dataset.vlFlex === undefined) continue;
+      const h = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+      if (h <= 0) continue;
+      const prev = lastDeliveredHeights.get(el);
+      lastDeliveredHeights.set(el, h);
+      if (prev === undefined || h === prev) continue;
+      const item = el.closest('.virtual-item');
+      if (!item) continue;
+      if (!flexHints) flexHints = new Map();
+      flexHints.set(item, el.getBoundingClientRect().bottom - (h - prev));
+    }
     for (const entry of entries) {
       const el = entry.target as HTMLElement;
       const k = el.dataset.virtualKey;
@@ -608,11 +623,23 @@
       tree.setMeasured(idx, h);
       changed = true;
       if (!wasMeasured) pendingEpochBump = true;
+      const flexChildren = el.querySelectorAll('[data-vl-flex]');
+      for (let i = 0; i < flexChildren.length; i++) {
+        const child = flexChildren[i];
+        if (!observedFlexChildren.has(child)) {
+          observedFlexChildren.add(child);
+          lastDeliveredHeights.set(child, child.getBoundingClientRect().height);
+          resizeObserver?.observe(child);
+        }
+      }
       if (prevDelivered === undefined || isNavigating) continue;
       if (anchorIdx === undefined) anchorIdx = findViewportAnchorIndex();
       if (anchorIdx === null) continue;
       let absorbAbove: boolean;
-      if (recentScroll && (idx === anchorIdx || idx === anchorIdx - 1)) {
+      const hintBottom = flexHints?.get(el);
+      if (hintBottom !== undefined) {
+        absorbAbove = hintBottom <= getGazeLine();
+      } else if (recentScroll && (idx === anchorIdx || idx === anchorIdx - 1)) {
         const preChangeBottom = el.getBoundingClientRect().bottom - (h - prevDelivered);
         absorbAbove = preChangeBottom <= getGazeLine();
       } else {
@@ -625,8 +652,7 @@
       }
     }
     if (downAboveDelta !== 0 || upBelowDelta !== 0) {
-      downOffset -= downAboveDelta;
-      B += upBelowDelta;
+      B += upBelowDelta - downAboveDelta;
       growCanvas(requiredCanvasHeight());
       flushSync();
     }
@@ -1073,9 +1099,15 @@
         if (intrinsic) lastDeliveredHeights.set(element, Number(intrinsic[1]));
       }
       resizeObserver?.observe(element);
+      const flexChildren = element.querySelectorAll('[data-vl-flex]');
+      for (let i = 0; i < flexChildren.length; i++) {
+        observedFlexChildren.add(flexChildren[i]);
+        resizeObserver?.observe(flexChildren[i]);
+      }
       itemRefs.set(k, element);
       return () => {
         resizeObserver?.unobserve(element);
+        for (let i = 0; i < flexChildren.length; i++) resizeObserver?.unobserve(flexChildren[i]);
         if (itemRefs.get(k) === element) itemRefs.delete(k);
       };
     };

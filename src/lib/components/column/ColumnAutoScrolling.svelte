@@ -19,80 +19,65 @@
     isScrollPaused = false
   }: Props = $props();
 
-  let scrollId;
-  let scrollSpeed = 24;
+  let rafId = 0;
+  let lastTime = 0;
+  let carry = 0;
+
+  let speedPxPerSec = $derived(getSpeed(column.settings?.autoScrollSpeed));
+  let shouldScroll = $derived(
+      !!column.settings?.autoScroll && !isTopScrolling && !isScrollPaused && !imageState.images.length
+  );
 
   $effect(() => {
-      scrolling(column.settings?.autoScroll);
-  })
-
-  $effect(() => {
-      scrollSpeedChange(column.settings?.autoScrollSpeed);
-  })
-
-  $effect(() => {
-      if (isTopScrolling) {
-          clearInterval(scrollId);
+      if (shouldScroll) {
+          start();
+          return () => stop();
       }
-  })
-
-  $effect(() => {
-      if (isScrollPaused) {
-          clearInterval(scrollId);
-      } else {
-          scrolling(column.settings?.autoScroll);
-      }
-  })
-
-  $effect(() => {
-      if (imageState.images.length) {
-          clearInterval(scrollId);
-      } else {
-          scrolling(column.settings?.autoScroll);
-      }
-  })
-
-  onDestroy(() => {
-      clearInterval(scrollId);
   });
 
-  function scrollSpeedChange(autoScrollSpeed) {
-      switch (autoScrollSpeed) {
-          case 'slow':
-              scrollSpeed = 24;
-              break;
-          case 'normal':
-              scrollSpeed = 16;
-              break;
-          case 'fast':
-              scrollSpeed = 8;
-              break;
-          case 'faster':
-              scrollSpeed = 4;
-              break;
-      }
+  onDestroy(() => {
+      stop();
+  });
 
-      scrolling(column.settings?.autoScroll);
+  function getSpeed(autoScrollSpeed: string | undefined) {
+      switch (autoScrollSpeed) {
+          case 'normal':
+              return 1000 / 16;
+          case 'fast':
+              return 1000 / 8;
+          case 'faster':
+              return 1000 / 4;
+          default:
+              return 1000 / 24;
+      }
   }
 
-  function scrolling(isScroll) {
-      if (scrollId) {
-          clearInterval(scrollId);
+  function start() {
+      if (rafId) {
+          return;
       }
+      lastTime = performance.now();
+      carry = 0;
+      rafId = requestAnimationFrame(step);
+  }
 
-      if (!isScroll) {
-          return false;
+  function stop() {
+      if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = 0;
       }
+  }
 
-      if (isScroll) {
-          const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.querySelector(':root');
-
-          scrollId = setInterval(() => {
-              el.scrollBy(0, -1);
-          }, scrollSpeed);
-      } else {
-          clearInterval(scrollId);
+  function step(time: number) {
+      const el = $settings.design?.layout === 'decks' ? column.scrollElement : document.documentElement;
+      const dt = Math.min(time - lastTime, 100);
+      lastTime = time;
+      carry += speedPxPerSec * dt / 1000;
+      const px = Math.floor(carry);
+      if (px > 0 && el instanceof HTMLElement) {
+          el.scrollBy(0, -px);
+          carry -= px;
       }
+      rafId = requestAnimationFrame(step);
   }
 </script>
-
