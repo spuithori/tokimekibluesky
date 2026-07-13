@@ -22,7 +22,7 @@
     import { createLongPress } from "$lib/longpress";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
-    import {markAllNotificationsRead, resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
+    import {clearNotificationBadgesForDid, markAllNotificationsRead, resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
 
     interface Props {
         column: any;
@@ -94,6 +94,7 @@
     async function handleMarkAllRead() {
         try {
             await markAllNotificationsRead({ column, columnState, _agent });
+            clearNotificationBadgesForDid(getColumnState(false).columns, column.did);
         } catch (e) {
             console.error(e);
         }

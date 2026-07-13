@@ -4,17 +4,27 @@ export interface NotificationLedger {
     notifications: NotificationView[];
     epoch: number;
     fetchedReasons?: string[];
+    lastChimedAt: number;
 }
 
 const ledgers = new Map<string, NotificationLedger>();
+const seenEpochs = new Map<string, number>();
 
 export function getNotificationLedger(columnId: string): NotificationLedger {
     let ledger = ledgers.get(columnId);
     if (!ledger) {
-        ledger = { notifications: [], epoch: 0, fetchedReasons: undefined };
+        ledger = { notifications: [], epoch: 0, fetchedReasons: undefined, lastChimedAt: Date.now() };
         ledgers.set(columnId, ledger);
     }
     return ledger;
+}
+
+export function getSeenEpoch(did: string): number {
+    return seenEpochs.get(did) ?? 0;
+}
+
+export function bumpSeenEpoch(did: string): void {
+    seenEpochs.set(did, getSeenEpoch(did) + 1);
 }
 
 export function resetNotificationLedger(columnId: string): void {
@@ -47,4 +57,5 @@ export function clearAllNotificationLedgers(): void {
         ledger.epoch += 1;
     }
     ledgers.clear();
+    seenEpochs.clear();
 }

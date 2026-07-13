@@ -4,8 +4,8 @@
     import {isVirtualTimelineEnabled} from "$lib/components/timeline/virtualGate";
     import {onDestroy, tick} from "svelte";
     import { watch } from "runed";
-    import {markNotificationsSeen, refreshNotificationColumn} from "$lib/components/notification/notificationPipeline";
-    import {playSound} from "$lib/sounds";
+    import {claimNotificationChime, clearNotificationBadgesForDid, markNotificationsSeen, refreshNotificationColumn} from "$lib/components/notification/notificationPipeline";
+    import {instantPlaySound, playSound} from "$lib/sounds";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { fly } from 'svelte/transition';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
@@ -32,7 +32,9 @@
     }: Props = $props();
 
     const columnState = getColumnState(isJunk);
+    const fixedColumnState = getColumnState(false);
     let column = columnProp ?? columnState.getColumn(index);
+    let currentRefresh: Promise<unknown> | null = null;
 
     function getScrollElement(): HTMLElement {
         if ($settings.design?.layout !== 'decks') {
@@ -62,9 +64,9 @@
 
     watch(() => column.unreadCount, (curr, prev) => {
       if (curr && curr > (prev ?? 0) && column.data.cursor) {
-        refresh(true);
+        refresh(true).catch((e) => console.error(e));
       }
-    })
+    }, { lazy: true })
 
     function getPostKey(feed) {
         if (!feed?.post?.uri) return '';
@@ -79,6 +81,11 @@
         }
 
         if (isRefreshing) {
+            if (!isAutoRefresh && column.algorithm.type === 'notification') {
+                await currentRefresh;
+                await markNotificationsSeen({ column, columnState, _agent });
+                clearNotificationBadgesForDid(fixedColumnState.columns, column.did);
+            }
             return false;
         }
 
@@ -86,13 +93,24 @@
             return false;
         }
 
+        isRefreshing = isAutoRefresh ? 'auto' : true;
+        currentRefresh = doRefresh(isAutoRefresh);
+
+        try {
+            return await currentRefresh;
+        } finally {
+            isRefreshing = false;
+            currentRefresh = null;
+        }
+    }
+
+    async function doRefresh(isAutoRefresh: boolean) {
         if (column.style === 'video') {
             columnState.clearFeed(column.id);
             column.data.cursor = undefined;
             unique = Symbol();
         }
 
-        isRefreshing = isAutoRefresh ? 'auto' : true;
         const el = getScrollElement();
         const elInitialPosition = el.scrollTop;
         let notificationNewestIndexedAt: string | undefined;
@@ -108,7 +126,6 @@
             const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
 
             if (!res) {
-                isRefreshing = false;
                 return false;
             }
 
@@ -179,6 +196,7 @@
 
             if (!isAutoRefresh) {
                 await markNotificationsSeen({ column, columnState, _agent });
+                clearNotificationBadgesForDid(fixedColumnState.columns, column.did);
             }
         } else if (column.algorithm.type === 'chat') {
             const res = await _agent.xrpc.get('chat.bsky.convo.getMessages', {cursor: '', limit: 50, convoId: column.algorithm.id}, {
@@ -188,7 +206,6 @@
             });
 
             if (!res) {
-                isRefreshing = false;
                 return false;
             }
 
@@ -221,7 +238,6 @@
                 });
 
                 if (!res) {
-                    isRefreshing = false;
                     return false;
                 }
 
@@ -258,14 +274,18 @@
         }
 
         try {
-            if (column.settings?.playSound) {
+            if (column.algorithm.type === 'notification') {
+                if (claimNotificationChime(column.id, notificationNewestIndexedAt) && column.settings?.playSound) {
+                    instantPlaySound(column.settings.playSound);
+                }
+            } else if (column.settings?.playSound) {
                 const soundFeed = columnState.getFeed(column.id);
                 if (column.algorithm.type === 'chat') {
                     if (soundFeed.slice(-1)[0]?.sender?.did !== _agent.did()) {
                         playSound(soundFeed.slice(-1)[0]?.sentAt, column.lastRefresh, column.settings.playSound)
                     }
                 } else {
-                    playSound(column.algorithm.type === 'notification' ? notificationNewestIndexedAt : soundFeed[0]?.post?.indexedAt, column.lastRefresh, column.settings.playSound)
+                    playSound(soundFeed[0]?.post?.indexedAt, column.lastRefresh, column.settings.playSound)
                 }
             }
         } catch (e) {
@@ -274,7 +294,7 @@
 
         releasePosts(columnState.getFeed(column.id));
         column.lastRefresh = new Date().toISOString();
-        isRefreshing = false;
+        return true;
     }
 
     function releasePosts(feed) {
@@ -309,25 +329,15 @@
     function handleKeydown(event: { key: string; }) {
         const activeElement = document.activeElement?.tagName;
 
-        if (event.key === 'r' && (activeElement === 'BODY' || activeElement === 'BUTTON') && !isRefreshing) {
-            try {
-                refresh();
-            } catch (e) {
-                console.error(e);
-                isRefreshing = false;
-            }
+        if (event.key === 'r' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
+            refresh().catch((e) => console.error(e));
         }
     }
 
     function handleTimer(e) {
         if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0) {
             if (e.data % Number(column.settings.autoRefresh) === 0) {
-                try {
-                    refresh(true);
-                } catch (e) {
-                    console.error(e);
-                    isRefreshing = false;
-                }
+                refresh(true).catch((err) => console.error(err));
             }
         }
     }

@@ -3,6 +3,7 @@
   import {getAccountIdByDid} from "$lib/util";
   import {onDestroy} from "svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {getSeenEpoch} from "$lib/components/notification/notificationLedger";
   import type {Column} from "$lib/types/column";
 
   const columnState = getColumnState();
@@ -44,8 +45,12 @@
               continue;
           }
 
+          const epochAtRequest = getSeenEpoch(did);
           _agent.getNotificationCount(priority === 'true')
               .then((count: number) => {
+                  if (getSeenEpoch(did) !== epochAtRequest) {
+                      return;
+                  }
                   for (const column of columns) {
                       column.unreadCount = count;
                   }

@@ -37,7 +37,7 @@
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
     import MochottTimeline from "./MochottTimeline.svelte";
     import Timeline from "./Timeline.svelte";
-    import {markAllNotificationsRead, resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
+    import {clearNotificationBadgesForDid, markAllNotificationsRead, resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
 
     interface Props {
         index?: number;
@@ -237,6 +237,7 @@
     async function handleMarkAllRead() {
         try {
             await markAllNotificationsRead({ column, columnState, _agent });
+            clearNotificationBadgesForDid(fixedColumnState.columns, column.did);
         } catch (e) {
             console.error(e);
             toast.error('Error: ' + e);

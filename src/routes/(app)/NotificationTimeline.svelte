@@ -16,13 +16,14 @@
     import TimelineItem from "./TimelineItem.svelte";
     import {
         NOTIFICATION_FILTER_OPTIONS,
+        claimNotificationChime,
         ensureNotificationFilter,
         loadMoreNotificationColumn,
         needsRefetchForFilter,
         refreshNotificationColumn,
         resetNotificationColumnData,
     } from "$lib/components/notification/notificationPipeline";
-    import {playSound} from "$lib/sounds";
+    import {instantPlaySound} from "$lib/sounds";
     import Infinite from "$lib/components/utils/Infinite.svelte";
 
     let { index, isJunk, _agent = $agent, unique, column: columnProp = undefined } = $props();
@@ -73,12 +74,15 @@
     })
 
     async function putNotifications() {
-        const { newestIndexedAt } = await refreshNotificationColumn({ column, columnState, _agent });
+        try {
+            const { newestIndexedAt } = await refreshNotificationColumn({ column, columnState, _agent });
 
-        if (sound) {
-            playSound(newestIndexedAt, column.lastRefresh, sound);
+            if (claimNotificationChime(column.id, newestIndexedAt) && sound) {
+                instantPlaySound(sound);
+            }
+        } catch (e) {
+            console.error(e);
         }
-        column.lastRefresh = new Date().toISOString();
     }
 
     const handleLoadMore = async (loaded: () => void, complete: () => void) => {

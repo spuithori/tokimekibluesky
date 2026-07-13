@@ -5,6 +5,8 @@ import {
     deleteNotificationLedger,
     moveNotificationLedger,
     clearAllNotificationLedgers,
+    getSeenEpoch,
+    bumpSeenEpoch,
 } from './notificationLedger';
 
 let seq = 0;
@@ -61,5 +63,28 @@ describe('notificationLedger', () => {
         clearAllNotificationLedgers();
         expect(a.epoch).toBe(aEpoch + 1);
         expect(b.epoch).toBe(bEpoch + 1);
+    });
+
+    it('seeds lastChimedAt with creation time and keeps it across reset', () => {
+        const id = uid();
+        const before = Date.now();
+        const ledger = getNotificationLedger(id);
+        expect(ledger.lastChimedAt).toBeGreaterThanOrEqual(before);
+        expect(ledger.lastChimedAt).toBeLessThanOrEqual(Date.now());
+
+        ledger.lastChimedAt = ledger.lastChimedAt + 60_000;
+        const kept = ledger.lastChimedAt;
+        resetNotificationLedger(id);
+        expect(ledger.lastChimedAt).toBe(kept);
+    });
+
+    it('seen epoch bumps per did and survives unrelated dids', () => {
+        const didA = `did:plc:${uid()}`;
+        const didB = `did:plc:${uid()}`;
+        expect(getSeenEpoch(didA)).toBe(0);
+        bumpSeenEpoch(didA);
+        bumpSeenEpoch(didA);
+        expect(getSeenEpoch(didA)).toBe(2);
+        expect(getSeenEpoch(didB)).toBe(0);
     });
 });

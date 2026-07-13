@@ -1,5 +1,5 @@
 import type { Column } from '$lib/types/column';
-import { getNotificationLedger, resetNotificationLedger } from './notificationLedger';
+import { bumpSeenEpoch, getNotificationLedger, resetNotificationLedger } from './notificationLedger';
 
 export type NotificationFilter =
     | 'reply'
@@ -89,6 +89,29 @@ export function ensureNotificationFilter(column: Column): string[] {
 export function resetNotificationColumnData(column: Column): void {
     column.data.cursor = '';
     resetNotificationLedger(column.id);
+}
+
+export function claimNotificationChime(columnId: string, newestIndexedAt: string | undefined): boolean {
+    if (!newestIndexedAt) {
+        return false;
+    }
+    const ledger = getNotificationLedger(columnId);
+    const time = new Date(newestIndexedAt).getTime();
+    if (!Number.isFinite(time) || time <= ledger.lastChimedAt) {
+        return false;
+    }
+    ledger.lastChimedAt = time;
+    return true;
+}
+
+export function clearNotificationBadgesForDid(columns: Column[], did: string): void {
+    for (const column of columns) {
+        for (const target of [column, column.splitColumn]) {
+            if (target?.algorithm?.type === 'notification' && target.did === did) {
+                target.unreadCount = 0;
+            }
+        }
+    }
 }
 
 export function needsRefetchForFilter(column: Column): boolean {
@@ -502,6 +525,7 @@ export async function markNotificationsSeen(ctx: NotificationCtx): Promise<void>
 
     try {
         await _agent.xrpc.post('app.bsky.notification.updateSeen', { seenAt: new Date().toISOString() });
+        bumpSeenEpoch(column.did);
         column.unreadCount = 0;
     } catch (e) {
         console.error(e);
@@ -513,6 +537,7 @@ export async function markAllNotificationsRead(ctx: NotificationCtx): Promise<vo
 
     await _agent.xrpc.post('app.bsky.notification.updateSeen', { seenAt: new Date().toISOString() });
 
+    bumpSeenEpoch(column.did);
     column.unreadCount = 0;
 
     const ledger = getNotificationLedger(column.id);

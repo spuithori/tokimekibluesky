@@ -4,6 +4,8 @@ import {
     mergeNotifications,
     filterNotifications,
     applyLedgerToFeed,
+    claimNotificationChime,
+    clearNotificationBadgesForDid,
     ensureNotificationFilter,
     needsRefetchForFilter,
     projectNotification,
@@ -20,7 +22,7 @@ import {
     type NotificationView,
     type NotificationCtx,
 } from './notificationPipeline';
-import { getNotificationLedger } from './notificationLedger';
+import { getNotificationLedger, getSeenEpoch, resetNotificationLedger } from './notificationLedger';
 
 let seq = 0;
 let ctxSeq = 0;
@@ -556,6 +558,96 @@ describe('markNotificationsSeen', () => {
         const { ctx, column } = makeCtx({ updateSeenError: true });
         await markNotificationsSeen(ctx);
         expect(column.unreadCount).toBe(3);
+    });
+
+    it('bumps the seen epoch on success only', async () => {
+        const { ctx, column } = makeCtx();
+        const before = getSeenEpoch(column.did);
+        await markNotificationsSeen(ctx);
+        expect(getSeenEpoch(column.did)).toBe(before + 1);
+
+        const failing = makeCtx({ updateSeenError: true });
+        const beforeFail = getSeenEpoch(failing.column.did);
+        await markNotificationsSeen(failing.ctx);
+        expect(getSeenEpoch(failing.column.did)).toBe(beforeFail);
+    });
+});
+
+describe('claimNotificationChime', () => {
+    const future = (offsetMs: number) => new Date(Date.now() + offsetMs).toISOString();
+
+    it('rejects undefined and invalid dates', () => {
+        const { columnId } = makeCtx();
+        expect(claimNotificationChime(columnId, undefined)).toBe(false);
+        expect(claimNotificationChime(columnId, 'not-a-date')).toBe(false);
+    });
+
+    it('rejects notifications older than the ledger seed', () => {
+        const { columnId } = makeCtx();
+        expect(claimNotificationChime(columnId, new Date(Date.now() - 60_000).toISOString())).toBe(false);
+    });
+
+    it('claims a new arrival exactly once, even across racing callers', () => {
+        const { columnId } = makeCtx();
+        const arrival = future(60_000);
+        expect(claimNotificationChime(columnId, arrival)).toBe(true);
+        expect(claimNotificationChime(columnId, arrival)).toBe(false);
+        expect(claimNotificationChime(columnId, arrival)).toBe(false);
+    });
+
+    it('advances monotonically with newer arrivals', () => {
+        const { columnId } = makeCtx();
+        expect(claimNotificationChime(columnId, future(60_000))).toBe(true);
+        expect(claimNotificationChime(columnId, future(30_000))).toBe(false);
+        expect(claimNotificationChime(columnId, future(120_000))).toBe(true);
+    });
+
+    it('keeps the gate across a ledger reset', () => {
+        const { columnId } = makeCtx();
+        const arrival = future(60_000);
+        expect(claimNotificationChime(columnId, arrival)).toBe(true);
+        resetNotificationLedger(columnId);
+        expect(claimNotificationChime(columnId, arrival)).toBe(false);
+    });
+
+    it('gates per column so distinct columns chime independently', () => {
+        const a = makeCtx();
+        const b = makeCtx();
+        const arrival = future(60_000);
+        expect(claimNotificationChime(a.columnId, arrival)).toBe(true);
+        expect(claimNotificationChime(b.columnId, arrival)).toBe(true);
+    });
+});
+
+describe('clearNotificationBadgesForDid', () => {
+    const makeColumn = (over: any = {}) => ({
+        id: `badge-${++ctxSeq}`,
+        did: 'did:plc:me',
+        algorithm: { type: 'notification' },
+        unreadCount: 5,
+        ...over,
+    });
+
+    it('clears every notification column of the did, including splits', () => {
+        const split = makeColumn();
+        const columns: any[] = [
+            makeColumn(),
+            makeColumn({ splitColumn: split, algorithm: { type: 'default' } }),
+        ];
+        clearNotificationBadgesForDid(columns, 'did:plc:me');
+        expect(columns[0].unreadCount).toBe(0);
+        expect(split.unreadCount).toBe(0);
+        expect(columns[1].unreadCount).toBe(5);
+    });
+
+    it('leaves other dids and other column types untouched', () => {
+        const columns: any[] = [
+            makeColumn({ did: 'did:plc:other' }),
+            makeColumn({ algorithm: { type: 'default' } }),
+        ];
+        clearNotificationBadgesForDid(columns, 'did:plc:me');
+        expect(columns[0].unreadCount).toBe(5);
+        expect(columns[1].unreadCount).toBe(5);
     });
 });
 
