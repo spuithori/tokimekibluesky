@@ -14,13 +14,15 @@ export const agents = writable(new Map<number, Agent>());
 
 export const junkAgentDid = writable<string | undefined>(undefined);
 
-export const agentDidsSet = derived(agents, $agents => {
-    const s = new Set<string>();
+export const agentsByDid = derived(agents, $agents => {
+    const m = new Map<string, Agent>();
     if ($agents) {
-        $agents.forEach(v => { const d = v.did(); if (d) s.add(d); });
+        $agents.forEach(v => { const d = v.did(); if (d) m.set(d, v); });
     }
-    return s;
+    return m;
 });
+
+export const agentDidsSet = derived(agentsByDid, $agentsByDid => new Set($agentsByDid.keys()));
 
 export const userLists = writable(localStorage.getItem('lists')
     ? JSON.parse(localStorage.getItem('lists'))

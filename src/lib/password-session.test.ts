@@ -161,6 +161,42 @@ describe('PasswordSession persist resilience', () => {
     });
 });
 
+describe('PasswordSession onSession hook', () => {
+    it('fires after a successful network refresh', async () => {
+        const seen: string[] = [];
+        installFetch((url) => {
+            if (url.includes('refreshSession')) return json({ ...sessionData(), handle: 'hooked.example' });
+            return json({ ok: true });
+        });
+        const session = new PasswordSession({
+            service: 'https://pds.example',
+            onSession: (sess) => seen.push(sess.handle),
+        });
+
+        await session.resumeSession({ ...sessionData(), accessJwt: fakeJwt(1) });
+
+        expect(seen).toEqual(['hooked.example']);
+    });
+
+    it('fires when adopting a rotated session from storage without a network call', async () => {
+        const rotated = { ...sessionData(), handle: 'adopted.example', refreshJwt: 'rotated-refresh-token' };
+        const calls = installFetch(() => json({ error: 'ShouldNotBeCalled' }, 500));
+        const seen: string[] = [];
+        const farExp = Math.floor(Date.now() / 1000) + 90 * 24 * 3600;
+        const session = new PasswordSession({
+            service: 'https://pds.example',
+            onSession: (sess) => seen.push(sess.handle),
+            loadLatestSession: async () => rotated,
+        });
+
+        await session.resumeSession({ ...sessionData(), refreshJwt: fakeJwt(farExp) });
+        await session.refreshSession();
+
+        expect(seen).toEqual(['adopted.example']);
+        expect(calls.filter(u => u.includes('refreshSession'))).toHaveLength(0);
+    });
+});
+
 describe('PasswordSession boot rotation gating', () => {
     it('skips the background rotation when the refresh token has ample lifetime', async () => {
         const calls = installFetch((url) => {

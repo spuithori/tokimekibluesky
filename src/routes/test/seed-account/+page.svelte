@@ -30,7 +30,7 @@
     if (typeof window !== 'undefined') {
         (window as any).__seedTest = {
             ready: true,
-            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; extraColumns?: Array<{ did: string; handle: string; id?: string }>; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean; expiredAccess?: boolean; extraAccounts?: Array<{ id: number; did: string; handle: string; sessionNull?: boolean; expiredAccess?: boolean }> } = {}) {
+            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; extraColumns?: Array<{ did: string; handle: string; id?: string; algorithm?: Record<string, unknown> }>; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean; expiredAccess?: boolean; extraAccounts?: Array<{ id: number; did: string; handle: string; sessionNull?: boolean; expiredAccess?: boolean }> } = {}) {
                 const did = opts.did ?? DEFAULT_DID;
                 const handle = opts.handle ?? DEFAULT_HANDLE;
                 await accountsDb.accounts.put(opts.isOAuth ? {
@@ -89,6 +89,7 @@
                     ...(opts.extraColumns ?? []).map((extraCol, i) => ({
                         ...homeColumn(extraCol.did, extraCol.handle),
                         id: extraCol.id ?? `ql-extra-${i}`,
+                        ...(extraCol.algorithm ? { algorithm: extraCol.algorithm } : {}),
                     })),
                 ];
                 await accountsDb.profiles.put({

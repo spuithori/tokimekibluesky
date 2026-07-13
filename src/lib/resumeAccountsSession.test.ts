@@ -18,7 +18,7 @@ vi.mock('$lib/agent', () => ({
     Agent: class {
         opts: any;
         constructor(opts: any) { this.opts = opts; }
-        setHandle() {}
+        setHandle(handle: string) { this.opts.handle = handle; }
         did() { return this.opts.did; }
     },
 }));
@@ -78,11 +78,16 @@ function oauthAccount(overrides: Record<string, unknown> = {}) {
 
 function collectStatuses() {
     const events: Array<{ did: string; phase: string; attempt?: number }> = [];
+    const handles: Array<{ did: string; handle: string }> = [];
     return {
         events,
+        handles,
         callbacks: {
             onStatus: (account: any, phase: string, meta?: any) => {
                 events.push({ did: account.did, phase, attempt: meta?.attempt });
+            },
+            onHandle: (account: any, handle: string) => {
+                handles.push({ did: account.did, handle });
             },
         },
     };
@@ -210,6 +215,69 @@ describe('password account classification', () => {
         expect(outcome.status).toBe('resumed');
         expect((outcome as any).agent).toBeDefined();
         expect(events.map(e => e.phase)).toEqual(['pending', 'resumed']);
+    });
+});
+
+describe('password handle freshness', () => {
+    it('adopts the refreshed handle after a blocking refresh and notifies exactly once', async () => {
+        installFetch((url) => {
+            if (url.includes('refreshSession')) return json({ did: 'did:plc:one', handle: 'renamed.example', accessJwt: fakeJwt(), refreshJwt: fakeJwt() });
+            return json({});
+        });
+        const { handles, callbacks } = collectStatuses();
+        const account = passwordAccount({
+            session: { did: 'did:plc:one', handle: 'one.example', accessJwt: fakeJwt(1), refreshJwt: fakeJwt() },
+        });
+
+        const { perAccount } = startAccountsResume([account], undefined, callbacks);
+        const outcome = await perAccount.get(1)!;
+
+        expect(outcome.status).toBe('resumed');
+        expect((outcome as any).agent.opts.handle).toBe('renamed.example');
+        expect(handles).toEqual([{ did: 'did:plc:one', handle: 'renamed.example' }]);
+    });
+
+    it('never notifies handle.invalid or did-shaped handles', async () => {
+        installFetch((url) => {
+            if (url.includes('refreshSession')) return json({ did: 'did:plc:one', handle: 'handle.invalid', accessJwt: fakeJwt(), refreshJwt: fakeJwt() });
+            return json({});
+        });
+        const { handles, callbacks } = collectStatuses();
+        const account = passwordAccount({
+            session: { did: 'did:plc:one', handle: 'one.example', accessJwt: fakeJwt(1), refreshJwt: fakeJwt() },
+        });
+
+        const { perAccount } = startAccountsResume([account], undefined, callbacks);
+        const outcome = await perAccount.get(1)!;
+
+        expect(outcome.status).toBe('resumed');
+        expect(handles).toEqual([]);
+    });
+
+    it('notifies when a runtime refresh returns a changed handle', async () => {
+        let dataCalls = 0;
+        installFetch((url) => {
+            if (url.includes('refreshSession')) return json({ did: 'did:plc:one', handle: 'runtime.example', accessJwt: fakeJwt(), refreshJwt: fakeJwt() });
+            dataCalls++;
+            return dataCalls === 1 ? json({ error: 'ExpiredToken' }, 401) : json({ ok: true });
+        });
+        const farExp = Math.floor(Date.now() / 1000) + 90 * 24 * 3600;
+        const { handles, callbacks } = collectStatuses();
+        const account = passwordAccount({
+            session: { did: 'did:plc:one', handle: 'one.example', accessJwt: fakeJwt(), refreshJwt: fakeJwt(farExp) },
+        });
+
+        const { perAccount } = startAccountsResume([account], undefined, callbacks);
+        const outcome = await perAccount.get(1)!;
+        expect(handles).toEqual([{ did: 'did:plc:one', handle: 'one.example' }]);
+
+        const res = await (outcome as any).agent.opts.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        expect(res.ok).toBe(true);
+        expect(handles).toEqual([
+            { did: 'did:plc:one', handle: 'one.example' },
+            { did: 'did:plc:one', handle: 'runtime.example' },
+        ]);
+        expect((outcome as any).agent.opts.handle).toBe('runtime.example');
     });
 });
 

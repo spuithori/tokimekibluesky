@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {agent, agents, currentTimeline} from '$lib/stores';
+    import {agent, agentsByDid, currentTimeline} from '$lib/stores';
     import {page} from '$app/stores';
     import DeckRow from "./DeckRow.svelte";
     import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
@@ -90,7 +90,7 @@
 
     {#key $currentTimeline}
       {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
-        {@const gate = appState.getColumnResumeGate($agents, columnState.columns[$currentTimeline]?.did)}
+        {@const gate = appState.getColumnResumeGate($agentsByDid, columnState.columns[$currentTimeline]?.did)}
         {#if gate !== 'mount'}
           <ColumnResumePlaceholder column={columnState.columns[$currentTimeline]}></ColumnResumePlaceholder>
         {:else}

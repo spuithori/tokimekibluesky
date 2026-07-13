@@ -13,6 +13,11 @@ export type ResumeOutcome =
 
 export interface ResumeCallbacks {
     onStatus?: (account: Account, phase: ResumePhase, meta?: { attempt?: number; error?: unknown; offline?: boolean }) => void;
+    onHandle?: (account: Account, handle: string) => void;
+}
+
+function isDisplayableHandle(handle: string | undefined | null): handle is string {
+    return !!handle && handle !== 'handle.invalid' && !handle.startsWith('did:');
 }
 
 const MAX_RETRIES = 3;
@@ -30,6 +35,16 @@ async function attemptPasswordResume(account: Account, proxy: string | undefined
     if (!session?.refreshJwt) {
         return { status: 'auth-required' };
     }
+
+    let agentRef: Agent | undefined;
+    let lastNotified: string | undefined;
+
+    const notifyHandle = (handle: string | undefined | null) => {
+        if (!isDisplayableHandle(handle) || handle === lastNotified) return;
+        lastNotified = handle;
+        agentRef?.setHandle(handle);
+        callbacks?.onHandle?.(account, handle);
+    };
 
     const passwordSession = new PasswordSession({
         service: account.service,
@@ -51,6 +66,7 @@ async function attemptPasswordResume(account: Account, proxy: string | undefined
             });
         },
         onExpired: () => callbacks?.onStatus?.(account, 'auth-required'),
+        onSession: (sess) => notifyHandle(sess.handle),
         loadLatestSession: async () => {
             const latest = await accountsDb.accounts.get(account.id!);
             return latest?.session as SessionData | undefined;
@@ -69,12 +85,14 @@ async function attemptPasswordResume(account: Account, proxy: string | undefined
     const agent = new Agent({
         fetchHandler: passwordSession.createFetchHandler(),
         did: account.did,
-        handle: session.handle,
+        handle: passwordSession.session?.handle ?? session.handle,
         service: account.service,
         isOAuth: false,
         passwordSession,
         appViewProxy: proxy,
     });
+    agentRef = agent;
+    notifyHandle(passwordSession.session?.handle);
 
     return { status: 'resumed', agent };
 }
@@ -121,8 +139,9 @@ async function attemptOAuthResume(account: Account, proxy: string | undefined, c
     });
 
     fetchOAuthHandle(fetchHandler, oauthSession.did, account, proxy).then(handle => {
-        if (handle) {
+        if (isDisplayableHandle(handle)) {
             agent.setHandle(handle);
+            callbacks?.onHandle?.(account, handle);
         }
     });
 

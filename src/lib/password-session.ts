@@ -73,16 +73,19 @@ export class PasswordSession {
 	private _loadLatestSession?: () => Promise<SessionData | null | undefined>;
 
 	private _onExpired?: () => void;
+	private _onSession?: (sess: SessionData) => void;
 
 	constructor(opts: {
 		service: string;
 		persistSession?: PersistSessionHandler;
 		onExpired?: () => void;
+		onSession?: (sess: SessionData) => void;
 		loadLatestSession?: () => Promise<SessionData | null | undefined>;
 	}) {
 		this._service = opts.service.replace(/\/$/, '');
 		this._persistSession = opts.persistSession;
 		this._onExpired = opts.onExpired;
+		this._onSession = opts.onSession;
 		this._loadLatestSession = opts.loadLatestSession;
 	}
 
@@ -183,6 +186,7 @@ export class PasswordSession {
 					if (latest.didDoc) {
 						this._updatePdsUrl(latest.didDoc);
 					}
+					this._onSession?.(latest);
 					return;
 				}
 			} catch {
@@ -226,6 +230,8 @@ export class PasswordSession {
 		if (data.didDoc) {
 			this._updatePdsUrl(data.didDoc);
 		}
+
+		this._onSession?.(this._session);
 
 		try {
 			await this._persistSession?.('update', this._session);

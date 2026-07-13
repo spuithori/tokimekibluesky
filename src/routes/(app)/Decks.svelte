@@ -1,6 +1,6 @@
 <script lang="ts">
     import Ghost from '@lucide/svelte/icons/ghost';
-    import {agents, isColumnModalOpen} from '$lib/stores';
+    import {agentsByDid, isColumnModalOpen} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
     import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
     import ColumnsLoadError from "$lib/components/column/ColumnsLoadError.svelte";
@@ -26,7 +26,7 @@
     <div class="deck">
       {#if appState.ready}
         {#each columnState.columns as column, index (column.id)}
-          {@const gate = appState.getColumnResumeGate($agents, column?.did)}
+          {@const gate = appState.getColumnResumeGate($agentsByDid, column?.did)}
           {#if gate !== 'mount'}
             {#if !column?.settings?.isPopup}
               <ColumnResumePlaceholder {column}></ColumnResumePlaceholder>

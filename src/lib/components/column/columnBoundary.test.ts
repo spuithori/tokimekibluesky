@@ -12,7 +12,12 @@ vi.hoisted(() => {
 });
 
 vi.mock('$lib/classes/appState.svelte', () => ({
-    appState: { profile: { current: 1 }, labelDefs: { current: [] } },
+    appState: {
+        profile: { current: 1 },
+        labelDefs: { current: [] },
+        registerHandleListener: () => () => {},
+        getFreshHandle: () => undefined,
+    },
 }));
 vi.mock('$lib/classes/settingsState.svelte', () => ({
     settingsState: { settings: { markedUnread: false } },

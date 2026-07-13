@@ -1,5 +1,5 @@
 import type {Column} from "$lib/types/column";
-import {getContext, setContext} from "svelte";
+import {getContext, setContext, untrack} from "svelte";
 import {SvelteMap} from "svelte/reactivity";
 import {accountsDb} from "$lib/db";
 import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
@@ -100,12 +100,48 @@ export class ColumnState {
         this.loadColumns();
 
         $effect(() => {
+            const unregister = appState.registerHandleListener(this.applyHandle);
+            untrack(() => this.applyAllKnownHandles());
+            return unregister;
+        });
+
+        $effect(() => {
             if (!this.isColumnsLoaded || this.isReordering) return;
 
             accountsDb.profiles.update(appState.profile.current, {
                 columns: $state.snapshot(this.syncColumns),
             });
         });
+    }
+
+    applyHandle = (did: string, handle: string) => {
+        if (!did || !handle) return;
+
+        for (const column of this.columns) {
+            if (column.did === did && column.handle !== handle) {
+                column.handle = handle;
+            }
+            const split = (column as any).splitColumn;
+            if (split?.did === did && split.handle !== handle) {
+                split.handle = handle;
+            }
+        }
+    };
+
+    applyAllKnownHandles() {
+        for (const column of this.columns) {
+            const fresh = appState.getFreshHandle(column.did);
+            if (fresh && column.handle !== fresh) {
+                column.handle = fresh;
+            }
+            const split = (column as any).splitColumn;
+            if (split) {
+                const splitFresh = appState.getFreshHandle(split.did);
+                if (splitFresh && split.handle !== splitFresh) {
+                    split.handle = splitFresh;
+                }
+            }
+        }
     }
 
     loadColumns() {
@@ -134,6 +170,7 @@ export class ColumnState {
               }
               this.columns = cols;
               this.isColumnsLoaded = true;
+              this.applyAllKnownHandles();
           })
           .catch(error => {
               console.error('Failed to load columns:', error);
@@ -169,6 +206,7 @@ export class ColumnState {
     replaceAllColumns(columns: Column[]) {
         clearAllNotificationLedgers();
         this.columns = columns;
+        this.applyAllKnownHandles();
     }
 
     getColumn(index: number) {

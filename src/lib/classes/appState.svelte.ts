@@ -32,6 +32,8 @@ class AppState {
     private hasBooted = false;
     private initEpoch = 0;
     private snoozedMissingIds = new Set<number>();
+    private freshHandles = new Map<string, string>();
+    private handleListeners = new Set<(did: string, handle: string) => void>();
     private resumeGeneration = new Map<number, number>();
     private resumeAccounts: Account[] = [];
     private resumeProxy: string | undefined = undefined;
@@ -206,6 +208,10 @@ class AppState {
                 if (!isCurrent()) return;
                 this.handleResumeStatus(acc, phase, meta);
             },
+            onHandle: (acc, handle) => {
+                if (!isCurrent()) return;
+                this.handleHandleRefreshed(acc, handle);
+            },
         });
 
         return perAccount.get(accountId)!.then(outcome => {
@@ -219,7 +225,7 @@ class AppState {
         this.resumeStatus[account.did] = {
             phase,
             attempt: meta?.attempt ?? 0,
-            handle: account.handle || (account.session as any)?.handle || account.did,
+            handle: this.freshHandles.get(account.did) || account.handle || (account.session as any)?.handle || account.did,
             accountId: account.id!,
             offline: meta?.offline || undefined,
         };
@@ -289,16 +295,39 @@ class AppState {
         return this.resumeAccounts.find(a => a.id === accountId);
     }
 
+    private handleHandleRefreshed(account: Account, handle: string) {
+        this.freshHandles.set(account.did, handle);
+
+        const status = this.resumeStatus[account.did];
+        if (status) {
+            status.handle = handle;
+        }
+
+        for (const listener of this.handleListeners) {
+            listener(account.did, handle);
+        }
+    }
+
+    registerHandleListener(listener: (did: string, handle: string) => void): () => void {
+        this.handleListeners.add(listener);
+        return () => {
+            this.handleListeners.delete(listener);
+        };
+    }
+
+    getFreshHandle(did: string | undefined): string | undefined {
+        if (!did) return undefined;
+        return this.freshHandles.get(did);
+    }
+
     getResumePhase(did: string | undefined): ResumePhase | undefined {
         if (!did) return undefined;
         return this.resumeStatus[did]?.phase;
     }
 
-    getColumnResumeGate(agentsMap: Map<number, Agent>, did: string | undefined): 'mount' | 'pending' | 'failed' {
+    getColumnResumeGate(agentsByDidMap: Map<string, Agent>, did: string | undefined): 'mount' | 'pending' | 'failed' {
         if (!did) return 'mount';
-        for (const _agent of agentsMap.values()) {
-            if (_agent.did() === did) return 'mount';
-        }
+        if (agentsByDidMap.has(did)) return 'mount';
         const phase = this.resumeStatus[did]?.phase;
         if (phase === 'pending' || phase === 'retrying') return 'pending';
         if (phase === 'auth-required' || phase === 'unreachable') return 'failed';

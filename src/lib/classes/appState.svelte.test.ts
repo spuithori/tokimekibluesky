@@ -65,6 +65,12 @@ function resolveResume(accountId: number, outcome: any) {
     control.resolve(outcome);
 }
 
+function emitHandle(accountId: number, handle: string) {
+    const control = resumeControls.find((c) => c.accountId === accountId && !c.used);
+    if (!control) throw new Error(`no pending resume for account ${accountId}`);
+    control.callbacks?.onHandle?.(control.account, handle);
+}
+
 async function loadAppState() {
     const mod = await import('$lib/classes/appState.svelte');
     return mod.appState;
@@ -302,6 +308,51 @@ describe('appState primary-gated progressive resume', () => {
 
         expect(appState.bootError).not.toBe(null);
         expect(appState.missingAccounts).toHaveLength(0);
+    });
+
+    it('keeps a refreshed handle across the resumed status update and notifies listeners until unregistered', async () => {
+        seedSingleProfile();
+        const appState = await loadAppState();
+        const seen: Array<[string, string]> = [];
+        const unregister = appState.registerHandleListener((did: string, handle: string) => seen.push([did, handle]));
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(resumeControls.length).toBe(1));
+
+        emitHandle(1, 'renamed.example');
+        expect(appState.getFreshHandle('did:plc:one')).toBe('renamed.example');
+        expect(seen).toEqual([['did:plc:one', 'renamed.example']]);
+
+        unregister();
+        emitHandle(1, 'again.example');
+        expect(seen).toEqual([['did:plc:one', 'renamed.example']]);
+        expect(appState.getFreshHandle('did:plc:one')).toBe('again.example');
+
+        resolveResume(1, resumedOutcome());
+        await boot;
+
+        expect(appState.resumeStatus['did:plc:one'].handle).toBe('again.example');
+    });
+
+    it('ignores handle updates from a stale epoch', async () => {
+        seedSingleProfile();
+        db.accounts.push({ id: 2, did: 'did:plc:two' });
+        db.profiles.push({ id: 2, accounts: [2], primary: 2, columns: [] });
+        const appState = await loadAppState();
+
+        const firstBoot = appState.init();
+        await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalledTimes(1));
+
+        appState.changeProfile(2);
+        await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalledTimes(2));
+
+        emitHandle(1, 'stale.example');
+        expect(appState.getFreshHandle('did:plc:one')).toBeUndefined();
+
+        resolveResume(1, resumedOutcome());
+        await firstBoot;
+        resolveResume(2, resumedOutcome());
+        await vi.waitFor(() => expect(appState.ready).toBe(true));
     });
 
     it('discards a stale attempt when a retry has superseded it', async () => {

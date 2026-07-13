@@ -1,8 +1,8 @@
 <script lang="ts">
     import {_} from 'tokimeki-i18n';
     import DeckSettingsModal from "$lib/components/deck/DeckSettingsModal.svelte";
-    import {agent, agents, intersectingIndex, isColumnModalOpen, settings} from "$lib/stores";
-    import {getAccountIdByDid, getDisplayNameByDid} from "$lib/util";
+    import {agent, agentsByDid, intersectingIndex, isColumnModalOpen, settings} from "$lib/stores";
+    import {getDisplayNameByDid} from "$lib/util";
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
     import {iconMap} from "$lib/columnIcons";
     import {scrollDirection} from "$lib/scrollDirection";
@@ -62,7 +62,7 @@
     let unique = $state(Symbol());
     let splitUniques = $state<symbol[]>([Symbol()]);
 
-    const _agent = $derived(_agentProp ?? ($agents.get(getAccountIdByDid($agents, column.did)) || $agent));
+    const _agent = $derived(_agentProp ?? ($agentsByDid.get(column.did) || $agent));
 
     let isSettingsOpen = $state(false);
     let isTopScrolling = $state(false);
@@ -79,7 +79,7 @@
 
     let splitAgents = $derived(
         column.splitColumn
-            ? [($agents.get(getAccountIdByDid($agents, column.splitColumn.did)) || $agent)]
+            ? [($agentsByDid.get(column.splitColumn.did) || $agent)]
             : []
     );
 

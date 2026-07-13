@@ -267,6 +267,12 @@
             });
 
         if (column.algorithm.type === 'author') {
+            const first = res.feed?.[0];
+            const target = first?.reason?.by ?? first?.post?.author;
+            if (target?.did && column.algorithm.algorithm !== target.did) {
+                column.algorithm.algorithm = target.did;
+            }
+
             const existingParentUris = new Set();
             const existingRootUris = new Set();
 
