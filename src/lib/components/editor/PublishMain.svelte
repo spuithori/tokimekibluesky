@@ -15,7 +15,7 @@
   import X from '@lucide/svelte/icons/x';
   import { toast } from "svelte-sonner";
   import { compressForPreview, blobToDataUrl } from '$lib/imageCompressor/compressor';
-  import {onMount} from "svelte";
+  import {onMount, untrack} from "svelte";
   import AltModal from "$lib/components/alt/AltModal.svelte";
   import {acceptedImageType} from "$lib/components/editor/imageUploadUtil";
   import {MAX_GALLERY_IMAGES} from "$lib/components/post/embedImages";
@@ -115,7 +115,11 @@
       return false;
     });
 
-    handleAgentSelect();
+    $effect(() => {
+        if (_agent) {
+            untrack(() => handleAgentSelect(_agent));
+        }
+    });
 
     const linkDebounce = useDebounce(
       () => {
@@ -263,6 +267,10 @@
             _agent = agent;
         }
 
+        if (!_agent) {
+            return;
+        }
+
         post.owner = _agent.did();
         isVideoUploadEnabled = false;
 
@@ -367,7 +375,7 @@
     onMount(() => {
         links = [];
         editor.setContent(post.json || post.text);
-        post.owner = _agent.did();
+        post.owner = _agent?.did();
     })
 
     function addThread() {

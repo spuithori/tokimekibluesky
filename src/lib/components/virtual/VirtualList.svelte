@@ -5,6 +5,7 @@
   import { FenwickTree } from './fenwick';
   import { classifyItemChange } from './item-change-classifier';
   import {
+    RESIZE_RECENT_SCROLL_MS,
     CV_CORE_MARGIN,
     DEFAULT_BUFFER_PX,
     DEFAULT_ITEM_HEIGHT,
@@ -47,6 +48,7 @@
 
   let tree = new FenwickTree();
   let itemRefs = new Map<string, HTMLElement>();
+  let lastDeliveredHeights = new WeakMap<Element, number>();
 
   let pivotIndex = $state(0);
   let pivotKey = '';
@@ -76,6 +78,7 @@
   let pendingEpochBump = false;
   let lastUserScrollTime = 0;
   let lastTouchTime = 0;
+  let lastUserActivityTime = 0;
   let _programmaticScroll = false;
   let frameQueued = false;
   let settlementId: number | null = null;
@@ -419,6 +422,7 @@
           break;
         }
       }
+
     }
 
     const measuredHeadroom = renderedTop - sumEstimate(0, rangeStart);
@@ -544,6 +548,7 @@
       _programmaticScroll = false;
     } else {
       lastUserScrollTime = Date.now();
+      lastUserActivityTime = lastUserScrollTime;
       restoreLock = null;
     }
     if (!frameQueued) {
@@ -554,12 +559,14 @@
 
   function handleUserInput(): void {
     lastUserScrollTime = Date.now();
+    lastUserActivityTime = lastUserScrollTime;
     restoreLock = null;
   }
 
   function handleTouch(): void {
     lastTouchTime = Date.now();
     lastUserScrollTime = Date.now();
+    lastUserActivityTime = lastUserScrollTime;
     restoreLock = null;
   }
 
@@ -576,6 +583,15 @@
     let downAboveDelta = 0;
     let upBelowDelta = 0;
     let anchorIdx: number | null | undefined = undefined;
+    const recentScroll = Date.now() - lastUserActivityTime < RESIZE_RECENT_SCROLL_MS;
+    let gazeLine: number | undefined = undefined;
+    const getGazeLine = (): number => {
+      if (gazeLine === undefined) {
+        const containerTop = isWindowScroll ? 0 : (scrollContainer?.getBoundingClientRect().top ?? 0);
+        gazeLine = containerTop + topMargin + (viewportHeight - topMargin) * 0.5;
+      }
+      return gazeLine;
+    };
     for (const entry of entries) {
       const el = entry.target as HTMLElement;
       const k = el.dataset.virtualKey;
@@ -584,19 +600,28 @@
       if (h <= 0) continue;
       const idx = findIndexForKey(k);
       if (idx === undefined || idx >= tree.length) continue;
+      const prevDelivered = lastDeliveredHeights.get(el);
+      lastDeliveredHeights.set(el, h);
       const wasMeasured = tree.isMeasured(idx);
       const old = wasMeasured ? tree.get(idx) : undefined;
       if (old !== undefined && Math.abs(old - h) < HEIGHT_CHANGE_THRESHOLD) continue;
       tree.setMeasured(idx, h);
       changed = true;
       if (!wasMeasured) pendingEpochBump = true;
-      if (!wasMeasured || old === undefined || isNavigating) continue;
+      if (prevDelivered === undefined || isNavigating) continue;
       if (anchorIdx === undefined) anchorIdx = findViewportAnchorIndex();
       if (anchorIdx === null) continue;
-      if (idx >= pivotIndex && idx < anchorIdx) {
-        downAboveDelta += h - old;
-      } else if (idx < pivotIndex && idx >= anchorIdx) {
-        upBelowDelta += h - old;
+      let absorbAbove: boolean;
+      if (recentScroll && (idx === anchorIdx || idx === anchorIdx - 1)) {
+        const preChangeBottom = el.getBoundingClientRect().bottom - (h - prevDelivered);
+        absorbAbove = preChangeBottom <= getGazeLine();
+      } else {
+        absorbAbove = idx < anchorIdx;
+      }
+      if (absorbAbove && idx >= pivotIndex) {
+        downAboveDelta += h - prevDelivered;
+      } else if (!absorbAbove && idx < pivotIndex) {
+        upBelowDelta += h - prevDelivered;
       }
     }
     if (downAboveDelta !== 0 || upBelowDelta !== 0) {
@@ -1043,6 +1068,10 @@
   function itemAttach(k: string) {
     return (element: HTMLElement) => {
       element.dataset.virtualKey = k;
+      if (element.style.contentVisibility === 'auto') {
+        const intrinsic = /auto (\d+(?:\.\d+)?)px/.exec(element.style.getPropertyValue('contain-intrinsic-block-size'));
+        if (intrinsic) lastDeliveredHeights.set(element, Number(intrinsic[1]));
+      }
       resizeObserver?.observe(element);
       itemRefs.set(k, element);
       return () => {

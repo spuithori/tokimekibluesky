@@ -1,17 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { gotoMock, resumeMock, db, resumeResolvers } = vi.hoisted(() => ({
+const { gotoMock, startResumeMock, db, resumeControls } = vi.hoisted(() => ({
     gotoMock: vi.fn(async () => {}),
-    resumeMock: vi.fn(),
+    startResumeMock: vi.fn(),
     db: {
         profiles: [] as any[],
         accounts: [] as any[],
     },
-    resumeResolvers: [] as Array<(map: Map<number, any>) => void>,
+    resumeControls: [] as Array<{
+        accountId: number;
+        account: any;
+        callbacks: any;
+        resolve: (outcome: any) => void;
+        used?: boolean;
+    }>,
 }));
 
 vi.mock('$app/navigation', () => ({ goto: gotoMock }));
-vi.mock('$lib/resumeAccountsSession', () => ({ resumeAccountsSession: resumeMock }));
+vi.mock('$lib/resumeAccountsSession', () => ({ startAccountsResume: startResumeMock }));
 vi.mock('$lib/stores', async () => {
     const { writable } = await import('svelte/store');
     return {
@@ -29,6 +35,7 @@ vi.mock('$lib/db', () => ({
         },
         accounts: {
             toArray: vi.fn(async () => db.accounts),
+            get: vi.fn(async (id: number) => db.accounts.find((a) => a.id === id)),
             where: () => ({
                 anyOf: (ids: number[]) => ({
                     toArray: async () => db.accounts.filter((a) => ids.includes(a.id)),
@@ -42,7 +49,20 @@ function makeAgent() {
     return {
         configureLabelers: vi.fn(),
         getLabelDefinitions: vi.fn(async () => ({ mock: 'defs' })),
+        did: () => 'did:plc:mock',
     };
+}
+
+function resumedOutcome(agent = makeAgent()) {
+    return { status: 'resumed', agent };
+}
+
+function resolveResume(accountId: number, outcome: any) {
+    const control = resumeControls.find((c) => c.accountId === accountId && !c.used);
+    if (!control) throw new Error(`no pending resume for account ${accountId}`);
+    control.used = true;
+    control.callbacks?.onStatus?.(control.account, outcome.status);
+    control.resolve(outcome);
 }
 
 async function loadAppState() {
@@ -56,10 +76,19 @@ beforeEach(async () => {
     localStorage.clear();
     db.profiles = [];
     db.accounts = [];
-    resumeResolvers.length = 0;
-    resumeMock.mockImplementation(
-        () => new Promise((resolve) => { resumeResolvers.push(resolve); }),
-    );
+    resumeControls.length = 0;
+    startResumeMock.mockImplementation((accounts: any[], _proxy: any, callbacks: any) => {
+        const perAccount = new Map<number, Promise<any>>();
+        for (const account of accounts) {
+            let resolver!: (outcome: any) => void;
+            const promise = new Promise((resolve) => { resolver = resolve; });
+            resumeControls.push({ accountId: account.id, account, callbacks, resolve: resolver });
+            perAccount.set(account.id, promise);
+            callbacks?.onStatus?.(account, 'pending');
+        }
+        const all = Promise.all([...perAccount.values()]).then(() => new Map());
+        return { perAccount, all };
+    });
     const { agents, agent } = await import('$lib/stores');
     (agents as any).set(new Map());
     (agent as any).set(undefined);
@@ -86,17 +115,19 @@ describe('appState boot gating', () => {
         const appState = await loadAppState();
 
         const boot = appState.init();
-        await vi.waitFor(() => expect(resumeMock).toHaveBeenCalled());
+        await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalled());
 
         expect(appState.shellReady).toBe(true);
         expect(appState.ready).toBe(false);
+        expect(appState.resumeStatus['did:plc:one'].phase).toBe('pending');
         expect(gotoMock).not.toHaveBeenCalled();
 
-        resumeResolvers[0](new Map([[1, makeAgent()]]));
+        resolveResume(1, resumedOutcome());
         await boot;
 
         expect(appState.shellReady).toBe(true);
         expect(appState.ready).toBe(true);
+        expect(appState.resumeStatus['did:plc:one'].phase).toBe('resumed');
     });
 
     it('drops both flags during changeProfile until the new resume resolves', async () => {
@@ -106,8 +137,8 @@ describe('appState boot gating', () => {
         const appState = await loadAppState();
 
         const boot = appState.init();
-        await vi.waitFor(() => expect(resumeMock).toHaveBeenCalled());
-        resumeResolvers[0](new Map([[1, makeAgent()]]));
+        await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalled());
+        resolveResume(1, resumedOutcome());
         await boot;
         expect(appState.ready).toBe(true);
 
@@ -116,11 +147,11 @@ describe('appState boot gating', () => {
         expect(appState.ready).toBe(false);
         expect(appState.shellReady).toBe(false);
 
-        await vi.waitFor(() => expect(resumeMock).toHaveBeenCalledTimes(2));
+        await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalledTimes(2));
         expect(appState.ready).toBe(false);
         expect(appState.shellReady).toBe(false);
 
-        resumeResolvers[1](new Map([[2, makeAgent()]]));
+        resolveResume(2, resumedOutcome());
         await vi.waitFor(() => expect(appState.ready).toBe(true));
         expect(appState.shellReady).toBe(true);
     });
@@ -132,12 +163,12 @@ describe('appState boot gating', () => {
         const appState = await loadAppState();
 
         const firstBoot = appState.init();
-        await vi.waitFor(() => expect(resumeMock).toHaveBeenCalledTimes(1));
+        await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalledTimes(1));
 
         appState.changeProfile(2);
-        await vi.waitFor(() => expect(resumeMock).toHaveBeenCalledTimes(2));
+        await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalledTimes(2));
 
-        resumeResolvers[0](new Map([[1, makeAgent()]]));
+        resolveResume(1, resumedOutcome());
         await firstBoot;
 
         expect(appState.ready).toBe(false);
@@ -145,10 +176,118 @@ describe('appState boot gating', () => {
         const { get } = await import('svelte/store');
         expect(get(agents as any).size).toBe(0);
 
-        resumeResolvers[1](new Map([[2, makeAgent()]]));
+        resolveResume(2, resumedOutcome());
         await vi.waitFor(() => expect(appState.ready).toBe(true));
         expect(appState.shellReady).toBe(true);
         expect(get(agents as any).has(2)).toBe(true);
         expect(get(agents as any).has(1)).toBe(false);
+    });
+});
+
+describe('appState primary-gated progressive resume', () => {
+    function seedTwoAccountProfile() {
+        db.accounts = [
+            { id: 1, did: 'did:plc:one' },
+            { id: 2, did: 'did:plc:two' },
+        ];
+        db.profiles = [{ id: 1, accounts: [1, 2], primary: 1, columns: [] }];
+    }
+
+    it('sets ready as soon as the primary resolves while others are still pending', async () => {
+        seedTwoAccountProfile();
+        const appState = await loadAppState();
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(resumeControls.length).toBe(2));
+
+        resolveResume(1, resumedOutcome());
+        await boot;
+
+        expect(appState.ready).toBe(true);
+        const { agents } = await import('$lib/stores');
+        const { get } = await import('svelte/store');
+        expect(get(agents as any).has(1)).toBe(true);
+        expect(get(agents as any).has(2)).toBe(false);
+        expect(appState.resumeStatus['did:plc:two'].phase).toBe('pending');
+
+        resolveResume(2, resumedOutcome());
+        await vi.waitFor(() => expect(get(agents as any).has(2)).toBe(true));
+        expect(appState.resumeStatus['did:plc:two'].phase).toBe('resumed');
+    });
+
+    it('surfaces an auth-required primary immediately without waiting for other accounts', async () => {
+        seedTwoAccountProfile();
+        const appState = await loadAppState();
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(resumeControls.length).toBe(2));
+
+        resolveResume(1, { status: 'auth-required' });
+        await boot;
+
+        expect(appState.ready).toBe(false);
+        expect(appState.shellReady).toBe(true);
+        expect(appState.missingAccounts.some((a: any) => a.id === 1)).toBe(true);
+    });
+
+    it('never marks an unreachable account as missing (no re-login demand)', async () => {
+        seedSingleProfile();
+        const appState = await loadAppState();
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(resumeControls.length).toBe(1));
+
+        resolveResume(1, { status: 'unreachable', error: new Error('offline') });
+        await boot;
+
+        expect(appState.ready).toBe(false);
+        expect(appState.missingAccounts).toHaveLength(0);
+        expect(appState.resumeStatus['did:plc:one'].phase).toBe('unreachable');
+    });
+
+    it('recovers via retryAccount after the primary was unreachable', async () => {
+        seedSingleProfile();
+        const appState = await loadAppState();
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(resumeControls.length).toBe(1));
+        resolveResume(1, { status: 'unreachable', error: new Error('offline') });
+        await boot;
+        expect(appState.ready).toBe(false);
+
+        const retry = appState.retryAccount(1);
+        await vi.waitFor(() => expect(resumeControls.filter(c => c.accountId === 1).length).toBe(2));
+        resolveResume(1, resumedOutcome());
+        await retry;
+
+        expect(appState.ready).toBe(true);
+        const { agents } = await import('$lib/stores');
+        const { get } = await import('svelte/store');
+        expect(get(agents as any).has(1)).toBe(true);
+    });
+
+    it('discards a stale attempt when a retry has superseded it', async () => {
+        seedSingleProfile();
+        const appState = await loadAppState();
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(resumeControls.length).toBe(1));
+
+        const retry = appState.retryAccount(1);
+        await vi.waitFor(() => expect(resumeControls.filter(c => c.accountId === 1).length).toBe(2));
+
+        const staleControl = resumeControls[0];
+        staleControl.used = true;
+        staleControl.callbacks?.onStatus?.(staleControl.account, 'unreachable');
+        staleControl.resolve({ status: 'unreachable', error: new Error('stale') });
+        await boot;
+
+        expect(appState.ready).toBe(false);
+        expect(appState.resumeStatus['did:plc:one'].phase).toBe('pending');
+
+        resolveResume(1, resumedOutcome());
+        await retry;
+
+        expect(appState.ready).toBe(true);
     });
 });

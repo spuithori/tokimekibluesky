@@ -1,5 +1,6 @@
 <script lang="ts">
   import VirtualList from '$lib/components/virtual/VirtualList.svelte';
+  import VolatileBox from '../virtual-scroll-junk/VolatileBox.svelte';
   import type { ScrollState } from '$lib/components/virtual/types';
   import { onMount, tick } from 'svelte';
 
@@ -11,6 +12,7 @@
     bodyLines: number;
     isDivider?: boolean;
     isHidden?: boolean;
+    volatile?: { floor: number; delay: number; steps?: Array<{ delay: number; height: number }> | null };
   }
 
   let items = $state<TestItem[]>([]);
@@ -119,6 +121,13 @@
       changeItemHeight(id: string, newHeight: number) {
         items = items.map(item =>
           item.id === id ? { ...item, height: newHeight } : item
+        );
+      },
+
+      makeVolatile(ids: string[], floor: number = 40, delay: number = 250, steps: Array<{ delay: number; height: number }> | null = null) {
+        const idSet = new Set(ids);
+        items = items.map(item =>
+          idSet.has(item.id) ? { ...item, volatile: { floor, delay, steps } } : item
         );
       },
 
@@ -348,7 +357,7 @@
         class="test-item"
         data-testid={item.id}
         data-index={index}
-        style:min-height="{item.height}px"
+        style:min-height={item.volatile ? undefined : `${item.height}px`}
         style:background-color={item.color}
       >
         <div class="item-content">
@@ -362,6 +371,9 @@
               Body line {line + 1} of {item.id} — lorem ipsum dolor sit amet
             </div>
           {/each}
+          {#if item.volatile}
+            <VolatileBox floor={item.volatile.floor} settled={item.height} delay={item.volatile.delay} steps={item.volatile.steps} />
+          {/if}
         </div>
       </div>
       {/if}

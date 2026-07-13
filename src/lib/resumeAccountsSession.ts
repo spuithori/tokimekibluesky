@@ -1,21 +1,36 @@
 import { accountsDb, type Account } from "$lib/db";
 import { Agent } from "$lib/agent";
-import { settingsState } from "$lib/classes/settingsState.svelte";
-import { appState } from "$lib/classes/appState.svelte";
 import { restoreSession } from "$lib/oauth";
 import { PasswordSession, type SessionData } from "$lib/password-session";
 import { BSKY_APPVIEW_PROXY } from "$lib/xrpc-client";
-import type { OAuthSession } from "$lib/oauth/types";
 
-let _missingAccounts: Account[] = [];
+export type ResumePhase = 'pending' | 'retrying' | 'resumed' | 'auth-required' | 'unreachable';
 
-function markMissing(account: Account) {
-    if (_missingAccounts.some(a => a.id === account.id)) return;
-    _missingAccounts = [..._missingAccounts, account];
-    appState.missingAccounts = _missingAccounts;
+export type ResumeOutcome =
+    | { status: 'resumed'; agent: Agent }
+    | { status: 'auth-required' }
+    | { status: 'unreachable'; error: unknown };
+
+export interface ResumeCallbacks {
+    onStatus?: (account: Account, phase: ResumePhase, meta?: { attempt?: number; error?: unknown }) => void;
 }
 
-async function resumePasswordAccount(account: Account, retryCount = 0) {
+const MAX_RETRIES = 3;
+const RETRY_BASE_MS = 3000;
+
+const AUTH_ERROR_CODES = new Set(['ExpiredToken', 'InvalidToken', 'AccountTakedown']);
+
+function isAuthError(error: any): boolean {
+    return AUTH_ERROR_CODES.has(error?.error);
+}
+
+async function attemptPasswordResume(account: Account, proxy: string | undefined, callbacks?: ResumeCallbacks): Promise<ResumeOutcome> {
+    const session = account.session as SessionData | null | undefined;
+
+    if (!session?.refreshJwt) {
+        return { status: 'auth-required' };
+    }
+
     const passwordSession = new PasswordSession({
         service: account.service,
         persistSession: async (evt, sess?) => {
@@ -23,6 +38,7 @@ async function resumePasswordAccount(account: Account, retryCount = 0) {
                 id: account.id,
                 session: evt === 'expired' ? null : (sess ?? account.session),
                 did: account.did,
+                handle: sess?.handle || account.handle || session.handle || undefined,
                 service: account.service,
                 avatar: account.avatar || '',
                 name: account.name || '',
@@ -34,7 +50,7 @@ async function resumePasswordAccount(account: Account, retryCount = 0) {
                 isOAuth: false,
             });
         },
-        onExpired: () => markMissing(account),
+        onExpired: () => callbacks?.onStatus?.(account, 'auth-required'),
         loadLatestSession: async () => {
             const latest = await accountsDb.accounts.get(account.id!);
             return latest?.session as SessionData | undefined;
@@ -42,139 +58,131 @@ async function resumePasswordAccount(account: Account, retryCount = 0) {
     });
 
     try {
-        await passwordSession.resumeSession(account.session as SessionData);
-        setTimeout(() => {
-            settingsState.setPdsRequestReady();
-        }, 1000);
+        await passwordSession.resumeSession(session);
     } catch (error: any) {
-        console.log(error);
-
-        if (error.error === 'ExpiredToken' || error.error === 'InvalidToken') {
-            markMissing(account);
-            return null;
+        if (isAuthError(error)) {
+            return { status: 'auth-required' };
         }
-
-        if (retryCount < 3) {
-            console.log(`Connection failed. Retry resumeSession in ${3 * (retryCount + 1)} seconds. (${retryCount + 1}/3)`);
-            await new Promise(resolve => setTimeout(resolve, 3000 * (retryCount + 1)));
-            return resumePasswordAccount(account, retryCount + 1);
-        }
-
-        console.error('Max retries reached for password account:', account.did);
-        return null;
+        throw error;
     }
 
-    return {
-        id: account.id!,
+    const agent = new Agent({
         fetchHandler: passwordSession.createFetchHandler(),
         did: account.did,
-        handle: (account.session as SessionData)?.handle,
+        handle: session.handle,
         service: account.service,
         isOAuth: false,
         passwordSession,
-    };
+        appViewProxy: proxy,
+    });
+
+    return { status: 'resumed', agent };
 }
 
-async function resumeOAuthAccount(account: Account, proxy?: string, retryCount = 0): Promise<{
-    id: number;
-    fetchHandler: (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
-    did: string;
-    isOAuth: true;
-    fetchHandlePromise?: Promise<string | undefined>;
-} | null> {
+async function fetchOAuthHandle(
+    fetchHandler: (input: string | URL | Request, init?: RequestInit) => Promise<Response>,
+    did: string,
+    account: Account,
+    proxy?: string,
+): Promise<string | undefined> {
     try {
-        const oauthSession = await restoreSession(
-            account.oauthDid || account.did,
-            () => markMissing(account),
-        );
-
-        if (!oauthSession) {
-            console.log('Failed to restore OAuth session for:', account.did);
-            markMissing(account);
-            return null;
-        }
-
-        const fetchHandler = oauthSession.fetchHandler.bind(oauthSession);
-
-        const fetchHandlePromise = (async () => {
-            try {
-                const path = `/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(oauthSession.did)}`;
-                const res = await fetchHandler(path, { method: 'GET', headers: { 'atproto-proxy': proxy || BSKY_APPVIEW_PROXY } });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.handle && data.handle !== account.handle) {
-                        accountsDb.accounts.update(account.id!, { handle: data.handle }).catch(() => {});
-                    }
-                    return data.handle as string;
-                }
-            } catch (e) {
-                console.warn('Failed to fetch handle for OAuth account:', e);
+        const path = `/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(did)}`;
+        const res = await fetchHandler(path, { method: 'GET', headers: { 'atproto-proxy': proxy || BSKY_APPVIEW_PROXY } });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.handle && data.handle !== account.handle) {
+                accountsDb.accounts.update(account.id!, { handle: data.handle }).catch(() => {});
             }
-            return undefined;
-        })();
-
-        setTimeout(() => {
-            settingsState.setPdsRequestReady();
-        }, 1000);
-
-        return {
-            id: account.id!,
-            fetchHandler,
-            did: oauthSession.did,
-            isOAuth: true,
-            fetchHandlePromise,
-        };
-    } catch (error) {
-        console.error('OAuth session restore error:', error);
-        if (retryCount < 3) {
-            await new Promise(resolve => setTimeout(resolve, 3000 * (retryCount + 1)));
-            return resumeOAuthAccount(account, proxy, retryCount + 1);
+            return data.handle as string;
         }
-        console.error('Max retries reached for OAuth account:', account.did);
-        return null;
+    } catch (e) {
+        console.warn('Failed to fetch handle for OAuth account:', e);
     }
+    return undefined;
 }
 
-async function resume(account: Account, proxy?: string) {
-    if (account.isOAuth) {
-        return resumeOAuthAccount(account, proxy);
-    } else {
-        return resumePasswordAccount(account);
-    }
-}
+async function attemptOAuthResume(account: Account, proxy: string | undefined, callbacks?: ResumeCallbacks): Promise<ResumeOutcome> {
+    const oauthSession = await restoreSession(
+        account.oauthDid || account.did,
+        () => callbacks?.onStatus?.(account, 'auth-required'),
+    );
 
-export async function resumeAccountsSession(accounts: Account[], proxy?: string) {
-    let agentsMap = new Map<number, Agent>();
-    let promises: Promise<any>[] = [];
-
-    for (const account of accounts) {
-        promises = [...promises, resume(account, proxy)];
+    if (!oauthSession) {
+        return { status: 'auth-required' };
     }
 
-    const results = await Promise.all(promises);
+    const fetchHandler = oauthSession.fetchHandler.bind(oauthSession);
 
-    results.forEach(result => {
-        if (result && result.fetchHandler) {
-            const agent = new Agent({
-                fetchHandler: result.fetchHandler,
-                did: result.did,
-                handle: result.handle,
-                service: result.service,
-                isOAuth: result.isOAuth,
-                passwordSession: result.passwordSession,
-                appViewProxy: proxy,
-            });
+    const agent = new Agent({
+        fetchHandler,
+        did: oauthSession.did,
+        isOAuth: true,
+        appViewProxy: proxy,
+    });
 
-            if (result.fetchHandlePromise) {
-                result.fetchHandlePromise.then(handle => {
-                    if (handle) {
-                        agent.setHandle(handle);
-                    }
-                });
-            }
-            agentsMap.set(result.id, agent);
+    fetchOAuthHandle(fetchHandler, oauthSession.did, account, proxy).then(handle => {
+        if (handle) {
+            agent.setHandle(handle);
         }
     });
 
-    return agentsMap;
+    return { status: 'resumed', agent };
+}
+
+async function runResume(account: Account, proxy: string | undefined, callbacks?: ResumeCallbacks): Promise<ResumeOutcome> {
+    callbacks?.onStatus?.(account, 'pending');
+
+    let attempt = 0;
+    while (true) {
+        let outcome: ResumeOutcome;
+        try {
+            outcome = account.isOAuth
+                ? await attemptOAuthResume(account, proxy, callbacks)
+                : await attemptPasswordResume(account, proxy, callbacks);
+        } catch (error) {
+            if (attempt < MAX_RETRIES) {
+                attempt++;
+                callbacks?.onStatus?.(account, 'retrying', { attempt, error });
+                await new Promise(resolve => setTimeout(resolve, RETRY_BASE_MS * attempt));
+                continue;
+            }
+            console.error('Session resume failed after retries:', account.did, error);
+            outcome = { status: 'unreachable', error };
+        }
+
+        callbacks?.onStatus?.(
+            account,
+            outcome.status,
+            outcome.status === 'unreachable' ? { error: outcome.error } : undefined,
+        );
+        return outcome;
+    }
+}
+
+export function startAccountsResume(accounts: Account[], proxy?: string, callbacks?: ResumeCallbacks): {
+    perAccount: Map<number, Promise<ResumeOutcome>>;
+    all: Promise<Map<number, Agent>>;
+} {
+    const perAccount = new Map<number, Promise<ResumeOutcome>>();
+
+    for (const account of accounts) {
+        perAccount.set(account.id!, runResume(account, proxy, callbacks));
+    }
+
+    const all = (async () => {
+        const agentsMap = new Map<number, Agent>();
+        for (const [id, promise] of perAccount) {
+            const outcome = await promise;
+            if (outcome.status === 'resumed') {
+                agentsMap.set(id, outcome.agent);
+            }
+        }
+        return agentsMap;
+    })();
+
+    return { perAccount, all };
+}
+
+export async function resumeAccountsSession(accounts: Account[], proxy?: string, callbacks?: ResumeCallbacks): Promise<Map<number, Agent>> {
+    return startAccountsResume(accounts, proxy, callbacks).all;
 }

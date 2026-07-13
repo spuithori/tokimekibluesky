@@ -1,7 +1,8 @@
 <script lang="ts">
-    import {agent, currentTimeline} from '$lib/stores';
+    import {agent, agents, currentTimeline} from '$lib/stores';
     import {page} from '$app/stores';
     import DeckRow from "./DeckRow.svelte";
+    import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
@@ -80,7 +81,11 @@
   <div class="single-timeline-wrap">
     {#key $currentTimeline}
       {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
-        <DeckRow index={$currentTimeline}></DeckRow>
+        {#if appState.isColumnResumePending($agents, columnState.columns[$currentTimeline]?.did)}
+          <ColumnResumePlaceholder column={columnState.columns[$currentTimeline]}></ColumnResumePlaceholder>
+        {:else}
+          <DeckRow index={$currentTimeline}></DeckRow>
+        {/if}
       {/if}
     {/key}
   </div>

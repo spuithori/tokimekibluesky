@@ -6,3 +6,4 @@ export const DEFAULT_ITEM_HEIGHT = 100;
 export const DEFAULT_BUFFER_PX = 150;
 export const SETTLE_IDLE_MS = 200;
 export const CV_CORE_MARGIN = 2;
+export const RESIZE_RECENT_SCROLL_MS = 1500;

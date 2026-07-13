@@ -43,13 +43,14 @@
         index?: number;
         isJunk?: boolean;
         name?: any;
+        _agent?: any;
     }
 
     let {
         index = 0,
         isJunk = false,
         name = undefined,
-        _agent,
+        _agent: _agentProp = undefined,
     }: Props = $props();
 
     const columnState = getColumnState(isJunk);
@@ -61,9 +62,7 @@
     let unique = $state(Symbol());
     let splitUniques = $state<symbol[]>([Symbol()]);
 
-    if (!_agent) {
-        _agent = $agents.get(getAccountIdByDid($agents, column.did)) || $agent;
-    }
+    const _agent = $derived(_agentProp ?? ($agents.get(getAccountIdByDid($agents, column.did)) || $agent));
 
     let isSettingsOpen = $state(false);
     let isTopScrolling = $state(false);

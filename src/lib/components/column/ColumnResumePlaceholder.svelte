@@ -1,0 +1,107 @@
+<script lang="ts">
+    import {_} from "tokimeki-i18n";
+    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+    import {appState} from "$lib/classes/appState.svelte";
+
+    let { column } = $props();
+
+    const status = $derived(appState.resumeStatus[column?.did]);
+
+    let slow = $state(false);
+
+    $effect(() => {
+        const timer = setTimeout(() => {
+            slow = true;
+        }, 3000);
+        return () => clearTimeout(timer);
+    });
+</script>
+
+<div class="column-resume-placeholder column-resume-placeholder--{column?.settings?.width || 'medium'}">
+  <LoadingSpinner padding={0}></LoadingSpinner>
+
+  {#if slow}
+    {#if status?.phase === 'retrying'}
+      <p class="column-resume-placeholder__text">{$_('column_resume_retrying', {attempt: status.attempt})}</p>
+    {:else}
+      <p class="column-resume-placeholder__text">{$_('column_resume_pending')}</p>
+    {/if}
+
+    {#if status?.handle}
+      <p class="column-resume-placeholder__handle">@{status.handle}</p>
+    {/if}
+  {/if}
+</div>
+
+<style lang="postcss">
+  .column-resume-placeholder {
+      width: 450px;
+      flex-shrink: 0;
+      height: 100%;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 50px 30px;
+      color: var(--text-color-3);
+      border-radius: var(--deck-border-radius);
+      border: var(--deck-border-width) solid var(--deck-border-color);
+      background-color: var(--deck-content-bg-color);
+
+      @media (max-width: 767px) {
+          width: 100vw;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
+          height: 100dvh;
+          border: none;
+          border-radius: 0;
+      }
+
+      &--xxs {
+          width: var(--deck-xxs-width);
+      }
+
+      &--xs {
+          width: var(--deck-xs-width);
+      }
+
+      &--small {
+          width: var(--deck-s-width);
+      }
+
+      &--medium {
+          width: var(--deck-m-width);
+      }
+
+      &--large {
+          width: var(--deck-l-width);
+      }
+
+      &--xl {
+          width: var(--deck-xl-width);
+      }
+
+      &--xxl {
+          width: var(--deck-xxl-width);
+      }
+
+      @media (max-width: 767px) {
+          &--xxs, &--xs, &--small, &--medium, &--large, &--xl, &--xxl {
+              width: 100vw;
+          }
+      }
+
+      &__text {
+          font-size: 14px;
+          text-align: center;
+      }
+
+      &__handle {
+          font-size: 13px;
+          word-break: break-all;
+          text-align: center;
+      }
+  }
+</style>

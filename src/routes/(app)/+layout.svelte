@@ -48,7 +48,7 @@
     import ComicReaderModal from "$lib/components/utils/ComicReaderModal.svelte";
     import "@fontsource-variable/inter";
     import "@fontsource-variable/noto-sans-jp";
-    import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+    import BootStatus from "$lib/components/utils/BootStatus.svelte";
     import { appState } from "$lib/classes/appState.svelte";
 
     injectAnalytics({
@@ -300,6 +300,12 @@
     });
 
     $effect(() => {
+        return on(window, "online", () => {
+            appState.retryUnreachableAccounts();
+        });
+    });
+
+    $effect(() => {
         if ($locale === "ko") {
             import("@fontsource-variable/noto-sans-kr/wght.css");
         }
@@ -373,6 +379,8 @@
                 {#if $settings.design.layout !== "decks"}
                     {#if appState.ready}
                         <Single></Single>
+                    {:else}
+                        <BootStatus></BootStatus>
                     {/if}
                 {:else}
                     <Decks></Decks>
@@ -412,7 +420,7 @@
         <Footer></Footer>
     {:else}
         <div class="top-loading">
-            <LoadingSpinner></LoadingSpinner>
+            <BootStatus></BootStatus>
         </div>
     {/if}
 

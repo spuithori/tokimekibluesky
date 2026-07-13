@@ -4,8 +4,6 @@
   import { fly } from 'svelte/transition';
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
   import {accountsDb} from "$lib/db";
-  import {agent, agents} from "$lib/stores";
-  import {modifyAgents} from "$lib/modifyAgents";
   import {appState} from "$lib/classes/appState.svelte";
 
   interface Props {
@@ -28,8 +26,6 @@
               primary: event.detail.id
           });
 
-          $agents = await modifyAgents(_accounts, profile.appViewProxy);
-          agent.set($agents.get(event.detail.id));
           appState.status = 0;
           appState.init();
       } catch (e) {

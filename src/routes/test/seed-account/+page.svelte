@@ -30,7 +30,7 @@
     if (typeof window !== 'undefined') {
         (window as any).__seedTest = {
             ready: true,
-            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean; expiredAccess?: boolean; extraAccounts?: Array<{ id: number; did: string; handle: string }> } = {}) {
+            async seed(opts: { did?: string; handle?: string; columns?: unknown[]; extraColumns?: Array<{ did: string; handle: string; id?: string }>; settings?: Record<string, unknown>; appViewProxy?: string; isOAuth?: boolean; expiredAccess?: boolean; extraAccounts?: Array<{ id: number; did: string; handle: string; sessionNull?: boolean; expiredAccess?: boolean }> } = {}) {
                 const did = opts.did ?? DEFAULT_DID;
                 const handle = opts.handle ?? DEFAULT_HANDLE;
                 await accountsDb.accounts.put(opts.isOAuth ? {
@@ -68,10 +68,11 @@
                         id: extra.id,
                         service: 'https://pds.quality.test',
                         did: extra.did,
-                        session: {
+                        handle: extra.handle,
+                        session: extra.sessionNull ? null : {
                             did: extra.did,
                             handle: extra.handle,
-                            accessJwt: fakeJwt(extra.did),
+                            accessJwt: fakeJwt(extra.did, extra.expiredAccess ? 1700000001 : undefined),
                             refreshJwt: fakeJwt(extra.did),
                             active: true,
                         },
@@ -83,13 +84,20 @@
                         isOAuth: false,
                     } as any);
                 }
+                const columns = [
+                    ...(opts.columns ?? [homeColumn(did, handle)]),
+                    ...(opts.extraColumns ?? []).map((extraCol, i) => ({
+                        ...homeColumn(extraCol.did, extraCol.handle),
+                        id: extraCol.id ?? `ql-extra-${i}`,
+                    })),
+                ];
                 await accountsDb.profiles.put({
                     id: 1,
                     name: 'Quality Loop',
                     createdAt: '',
                     accounts: [1, ...(opts.extraAccounts ?? []).map(extra => extra.id)],
                     primary: 1,
-                    columns: opts.columns ?? [homeColumn(did, handle)],
+                    columns,
                     ...(opts.appViewProxy ? { appViewProxy: opts.appViewProxy } : {}),
                 } as any);
                 localStorage.setItem('currentProfile', '1');

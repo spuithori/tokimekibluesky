@@ -1,7 +1,9 @@
 <script lang="ts">
     import Ghost from '@lucide/svelte/icons/ghost';
-    import {isColumnModalOpen} from '$lib/stores';
+    import {agents, isColumnModalOpen} from '$lib/stores';
     import DeckRow from "./DeckRow.svelte";
+    import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
+    import BootStatus from "$lib/components/utils/BootStatus.svelte";
     import {_} from "tokimeki-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
@@ -17,13 +19,23 @@
     <div class="deck">
       {#if appState.ready}
         {#each columnState.columns as column, index (column.id)}
-          {#if !column?.settings?.isPopup}
+          {#if appState.isColumnResumePending($agents, column?.did)}
+            {#if !column?.settings?.isPopup}
+              <ColumnResumePlaceholder {column}></ColumnResumePlaceholder>
+            {/if}
+          {:else if !column?.settings?.isPopup}
             <DeckRow {index}></DeckRow>
           {:else}
             <DeckPopupWrap {column} {index}></DeckPopupWrap>
           {/if}
         {/each}
+      {:else}
+        <BootStatus></BootStatus>
       {/if}
+    </div>
+  {:else if !appState.ready}
+    <div class="deck-empty">
+      <BootStatus></BootStatus>
     </div>
   {:else if appState.ready && columnState.isColumnsLoaded}
     <div class="deck-empty">

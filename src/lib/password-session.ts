@@ -189,6 +189,7 @@ export class PasswordSession {
 			headers: {
 				Authorization: `Bearer ${this._session.refreshJwt}`,
 			},
+			signal: AbortSignal.timeout(30_000),
 		});
 
 		if (!res.ok) {
