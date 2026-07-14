@@ -32,7 +32,6 @@ async function tokenRequest(
                 'DPoP': dpopProof,
             },
             body: params.toString(),
-            signal: AbortSignal.timeout(30_000),
         });
 
         // Save DPoP-Nonce from response

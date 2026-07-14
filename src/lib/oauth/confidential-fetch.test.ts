@@ -57,13 +57,21 @@ describe('createConfidentialFetch', () => {
         expect(String(tokenCall?.init?.body)).toContain('client_assertion=assertion-jwt');
     });
 
-    it('falls back to the original request when the assertion backend stays down', async () => {
+    it('fails closed when the assertion backend stays down instead of sending an unauthenticated token request', async () => {
         const { confidentialFetch, calls } = setup([() => json({ error: 'down' }, 500)]);
-        await confidentialFetch(TOKEN_URL, tokenRequestInit());
+        await expect(confidentialFetch(TOKEN_URL, tokenRequestInit())).rejects.toThrow();
 
         expect(calls.filter(c => c.url === ASSERTION_ENDPOINT)).toHaveLength(2);
+        expect(calls.find(c => c.url === TOKEN_URL)).toBeUndefined();
+    });
+
+    it('forwards the abort signal on authenticated token requests', async () => {
+        const { confidentialFetch, calls } = setup([() => json({ jwt: 'assertion-jwt' })]);
+        const controller = new AbortController();
+        await confidentialFetch(TOKEN_URL, { ...tokenRequestInit(), signal: controller.signal });
+
         const tokenCall = calls.find(c => c.url === TOKEN_URL);
-        expect(String(tokenCall?.init?.body)).not.toContain('client_assertion');
+        expect(tokenCall?.init?.signal).toBe(controller.signal);
     });
 
     it('passes non-token requests through untouched', async () => {

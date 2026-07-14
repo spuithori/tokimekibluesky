@@ -1,24 +1,49 @@
 <script lang="ts">
-    import X from '@lucide/svelte/icons/x';
-    import ZoomIn from '@lucide/svelte/icons/zoom-in';
-    import ChevronRight from '@lucide/svelte/icons/chevron-right';
-    import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-    import Save from '@lucide/svelte/icons/save';
-    import BookOpen from '@lucide/svelte/icons/book-open';
-  import {imageState} from "$lib/classes/imageState.svelte";
-  import {comicReaderState} from "$lib/classes/comicReaderState.svelte";
-  import PhotoSwipeLightbox from "photoswipe/lightbox";
-  import {mount, onMount, unmount, onDestroy} from "svelte";
-  import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
+  import Save from '@lucide/svelte/icons/save';
+  import BookOpen from '@lucide/svelte/icons/book-open';
+  import { Lightbox, ToolbarButton, type Slide, type Viewer } from 'picola/svelte';
+  import 'picola/picola.css';
+  import { untrack } from 'svelte';
+  import ImageAlt from '$lib/components/utils/ImageAlt.svelte';
+  import { imageState } from '$lib/classes/imageState.svelte';
+  import { comicReaderState } from '$lib/classes/comicReaderState.svelte';
   import { pushState } from '$app/navigation';
   import { page } from '$app/state';
-  import { parseCdnUrl, fetchOriginalBlob } from "$lib/util";
+  import { parseCdnUrl, fetchOriginalBlob } from '$lib/util';
 
-  const images = imageState.images;
-  let altProps = $state({});
+  type Meta = { downloadName?: string };
 
   const objectUrls: string[] = [];
   let currentAbort: AbortController | null = null;
+
+  let open = $state(false);
+  let index = $state(0);
+  let viewer = $state<Viewer<Meta> | null>(null);
+  let lastOpenedImages: unknown = null;
+
+  const slides = $derived(
+    imageState.images.map(
+      (image): Slide<Meta> => ({
+        src: image.src,
+        placeholder: image.msrc,
+        width: image.width,
+        height: image.height,
+        alt: image.alt,
+        meta: { downloadName: image.downloadName }
+      })
+    )
+  );
+
+  $effect(() => {
+    const images = imageState.images;
+    if (images.length && images !== lastOpenedImages) {
+      lastOpenedImages = images;
+      untrack(() => {
+        index = imageState.startIndex;
+        open = true;
+      });
+    }
+  });
 
   function mimeToExt(type: string): string {
     switch (type.split(';')[0].trim()) {
@@ -31,44 +56,6 @@
     }
   }
 
-  async function loadOriginal(index: number) {
-    currentAbort?.abort();
-    const abort = new AbortController();
-    currentAbort = abort;
-
-    const src = images[index]?.src;
-    if (!src) return;
-
-    const parsed = parseCdnUrl(src);
-    if (!parsed) return;
-
-    try {
-      const result = await fetchOriginalBlob(parsed.did, parsed.cid, abort.signal);
-      if (!result || abort.signal.aborted) return;
-
-      objectUrls.push(result.url);
-      images[index].src = result.url;
-      images[index].downloadName = `${parsed.cid}.${mimeToExt(result.type)}`;
-
-      if (lightbox.pswp?.currIndex === index) {
-        const el = lightbox.pswp.currSlide?.content?.element;
-        if (el?.tagName === 'IMG') {
-          (el as HTMLImageElement).src = result.url;
-        }
-      }
-    } catch (e: any) {
-      if (e?.name !== 'AbortError' && !abort.signal.aborted) console.error(e);
-    }
-  }
-
-  function iconToSvg(Icon: any, props: Record<string, unknown>): string {
-    const target = document.createElement('div');
-    const instance = mount(Icon, { target, props });
-    const html = target.innerHTML;
-    unmount(instance);
-    return html;
-  }
-
   function triggerDownload(url: string, filename: string) {
     const a = document.createElement('a');
     a.href = url;
@@ -79,121 +66,69 @@
     a.remove();
   }
 
-  const lightbox = new PhotoSwipeLightbox({
-    dataSource: images,
-    pswpModule: () => import('photoswipe'),
-    initialZoomLevel: 'fit',
-    secondaryZoomLevel: 2,
-    maxZoomLevel: 2,
-    bgOpacity: 0.9,
-    closeSVG: iconToSvg(X, { size: 28, color: '#fff' }),
-    zoomSVG: iconToSvg(ZoomIn, { color: '#fff' }),
-    arrowNextSVG: iconToSvg(ChevronRight, { size: 36, color: '#fff' }),
-    arrowPrevSVG: iconToSvg(ChevronLeft, { size: 36, color: '#fff' }),
-    appendToEl: document.querySelector('.app'),
-    loop: false,
-  });
+  async function loadOriginal(i: number) {
+    currentAbort?.abort();
+    const abort = new AbortController();
+    currentAbort = abort;
 
-  lightbox.on('firstUpdate', () => {
-    loadOriginal(lightbox.pswp.currIndex);
+    const src = (viewer?.slideAt(i) ?? slides[i])?.src;
+    if (!src) return;
 
-    lightbox.pswp.on('change', () => {
-      loadOriginal(lightbox.pswp.currIndex);
-    });
-  });
+    const parsed = parseCdnUrl(src);
+    if (!parsed) return;
 
-  lightbox.on('uiRegister', () => {
-    lightbox.pswp.ui.registerElement({
-      name: 'download-button',
-      order: 8,
-      isButton: true,
-      tagName: 'button',
-      html: iconToSvg(Save, { color: '#fff' }),
-      onClick: async () => {
-        const data = lightbox.pswp.currSlide.data;
-        const originalSrc = data.src ?? '';
-        let url = originalSrc;
-        let filename: string | undefined = data.downloadName;
+    try {
+      const result = await fetchOriginalBlob(parsed.did, parsed.cid, abort.signal);
+      if (!result || abort.signal.aborted) return;
 
-        if (!filename || !url.startsWith('blob:')) {
-          const parsed = parseCdnUrl(originalSrc);
-          if (parsed) {
-            const result = await fetchOriginalBlob(parsed.did, parsed.cid);
-            if (result) {
-              objectUrls.push(result.url);
-              url = result.url;
-              filename = `${parsed.cid}.${mimeToExt(result.type)}`;
-            }
-          }
-        }
-
-        if (filename && url.startsWith('blob:')) {
-          triggerDownload(url, filename);
-        } else {
-          window.open(originalSrc, '_blank');
-        }
-      }
-    });
-
-    lightbox.pswp.ui.registerElement({
-      name: 'comic-reader-button',
-      order: 7,
-      isButton: true,
-      tagName: 'button',
-      html: iconToSvg(BookOpen, { color: '#fff' }),
-      onInit: (el) => {
-        el.setAttribute('aria-label', 'Open comic reader');
-        el.setAttribute('title', 'Open comic reader');
-      },
-      onClick: () => {
-        const pages = imageState.comicReaderImages.length ? imageState.comicReaderImages : imageState.images;
-        const localIndex = lightbox.pswp?.currIndex ?? imageState.startIndex;
-        const baseOffset = imageState.comicReaderStartIndex - imageState.startIndex;
-        const comicReaderIndex = baseOffset + localIndex;
-        comicReaderState.open(pages, comicReaderIndex);
-        lightbox.pswp.close();
-      }
-    });
-
-    lightbox.pswp.ui.registerElement({
-      name: 'alt-text',
-      isButton: false,
-      tagName: 'div',
-      appendTo: 'root',
-      onInit: (el, pswp) => {
-        altProps = {
-          pswp: pswp,
-          images: images,
-          index: pswp.currIndex,
-        }
-
-        const svelteComponent = mount(ImageAlt, {
-          target: el,
-          props: altProps,
-        });
-
-        pswp.on('change', () => {
-          altProps.index = pswp.currIndex;
-        })
-
-        return {
-          destroy: () => {
-            unmount(svelteComponent);
-          }
-        };
-      }
-    });
-  })
-  lightbox.init();
-
-  function open(index: any) {
-    lightbox.loadAndOpen(index);
-    pushState('', {
-      showImage: true,
-    });
+      objectUrls.push(result.url);
+      viewer?.updateSlide(i, {
+        src: result.url,
+        meta: { downloadName: `${parsed.cid}.${mimeToExt(result.type)}` }
+      });
+    } catch (e: any) {
+      if (e?.name !== 'AbortError' && !abort.signal.aborted) console.error(e);
+    }
   }
 
-  lightbox.on('close', () => {
+  async function download(slide: Slide<Meta> | undefined) {
+    if (!slide) return;
+    const originalSrc = slide.src;
+    let url = originalSrc;
+    let filename = slide.meta?.downloadName;
+
+    if (!filename || !url.startsWith('blob:')) {
+      const parsed = parseCdnUrl(originalSrc);
+      if (parsed) {
+        const result = await fetchOriginalBlob(parsed.did, parsed.cid);
+        if (result) {
+          objectUrls.push(result.url);
+          url = result.url;
+          filename = `${parsed.cid}.${mimeToExt(result.type)}`;
+        }
+      }
+    }
+
+    if (filename && url.startsWith('blob:')) {
+      triggerDownload(url, filename);
+    } else {
+      window.open(originalSrc, '_blank', 'noopener');
+    }
+  }
+
+  function openComicReader(currentIndex: number) {
+    const pages = imageState.comicReaderImages.length ? imageState.comicReaderImages : imageState.images;
+    const baseOffset = imageState.comicReaderStartIndex - imageState.startIndex;
+    comicReaderState.open(pages, baseOffset + currentIndex);
+    viewer?.close();
+  }
+
+  function handleOpen(detail: { index: number }) {
+    loadOriginal(detail.index);
+    pushState('', { showImage: true });
+  }
+
+  function handleClose() {
     currentAbort?.abort();
     currentAbort = null;
     for (const url of objectUrls) {
@@ -201,23 +136,40 @@
     }
     objectUrls.length = 0;
 
-    if (page.state.showImage) {
+    if ((page.state as { showImage?: boolean }).showImage) {
       history.back();
     }
     imageState.close();
-  })
-
-  onMount(() => {
-    open(imageState.startIndex);
-  });
-
-  onDestroy(() => {
-    lightbox.destroy();
-  });
+  }
 
   function handlePopstate() {
-    lightbox.pswp?.close();
+    viewer?.close();
   }
 </script>
 
 <svelte:window onpopstate={handlePopstate}></svelte:window>
+
+<Lightbox
+  bind:open
+  bind:index
+  bind:viewer
+  {slides}
+  backdropOpacity={0.9}
+  zoom={{ max: 2, doubleTap: 2 }}
+  onopen={handleOpen}
+  onchange={(detail) => loadOriginal(detail.index)}
+  onclose={handleClose}
+>
+  {#snippet toolbar(ctx)}
+    <ToolbarButton label="Open comic reader" onclick={() => openComicReader(ctx.index)}>
+      <BookOpen />
+    </ToolbarButton>
+    <ToolbarButton label="Download image" onclick={() => download(ctx.slide)}>
+      <Save />
+    </ToolbarButton>
+  {/snippet}
+
+  {#snippet caption(ctx)}
+    <ImageAlt images={imageState.images} index={ctx.index} />
+  {/snippet}
+</Lightbox>

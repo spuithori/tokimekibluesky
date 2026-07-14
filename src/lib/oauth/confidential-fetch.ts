@@ -83,22 +83,18 @@ export function createConfidentialFetch(
         }
         if (!assertionResponse?.ok) {
             console.error('Failed to get client assertion');
-            return originalFetch(input, init);
+            throw new Error('Client assertion unavailable');
         }
 
-        try {
-            const result = await assertionResponse.json();
-            params.set('client_assertion_type', CLIENT_ASSERTION_TYPE);
-            params.set('client_assertion', result.jwt);
-        } catch (error) {
-            console.error('Error getting client assertion:', error);
-            return originalFetch(input, init);
-        }
+        const result = await assertionResponse.json();
+        params.set('client_assertion_type', CLIENT_ASSERTION_TYPE);
+        params.set('client_assertion', result.jwt);
 
         return originalFetch(url.toString(), {
             method: 'POST',
             headers,
             body: params.toString(),
+            signal: init?.signal,
         });
     };
 }

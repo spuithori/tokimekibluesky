@@ -28,6 +28,10 @@ vi.mock('./store', () => ({
     getDPoPNonce: vi.fn(async () => undefined),
 }));
 
+vi.mock('$lib/errorLog', () => ({
+    recordError: vi.fn(),
+}));
+
 afterEach(() => {
     vi.unstubAllGlobals();
     vi.clearAllMocks();
@@ -102,6 +106,67 @@ describe('OAuth session refresh coordination', () => {
         await session.ensureValid();
 
         expect(vi.mocked(refreshToken)).not.toHaveBeenCalled();
+    });
+});
+
+describe('OAuth session invalid_grant resilience', () => {
+    it('adopts a newer stored token instead of dying when invalid_grant races another writer', async () => {
+        const stored = storedSession({ expiresAt: Date.now() - 1000 });
+        vi.mocked(getSession)
+            .mockResolvedValueOnce({ ...stored })
+            .mockResolvedValueOnce(storedSession({
+                accessToken: 'a9',
+                refreshToken: 'r9',
+                expiresAt: Date.now() + 3600_000,
+            }));
+        const { OAuthTokenError } = await import('./server');
+        vi.mocked(refreshToken).mockRejectedValue(new (OAuthTokenError as any)('invalid_grant'));
+
+        const onExpired = vi.fn();
+        const session = createOAuthSession(stored, 'client-id', undefined, onExpired);
+        await session.ensureValid();
+
+        expect(session.dead).toBe(false);
+        expect(onExpired).not.toHaveBeenCalled();
+        const { deleteSession } = await import('./store');
+        expect(vi.mocked(deleteSession)).not.toHaveBeenCalled();
+        expect(vi.mocked(refreshToken)).toHaveBeenCalledTimes(1);
+        expect(stored.refreshToken).toBe('r9');
+    });
+
+    it('kills the session only when invalid_grant is confirmed against the stored token', async () => {
+        const stored = storedSession({ expiresAt: Date.now() - 1000 });
+        vi.mocked(getSession).mockResolvedValue({ ...stored });
+        const { OAuthTokenError } = await import('./server');
+        vi.mocked(refreshToken).mockRejectedValue(new (OAuthTokenError as any)('invalid_grant'));
+
+        const onExpired = vi.fn();
+        const session = createOAuthSession(stored, 'client-id', undefined, onExpired);
+        await expect(session.ensureValid()).rejects.toThrow();
+
+        expect(session.dead).toBe(true);
+        expect(onExpired).toHaveBeenCalledTimes(1);
+        const { deleteSession } = await import('./store');
+        expect(vi.mocked(deleteSession)).toHaveBeenCalledWith('did:plc:test');
+        const { recordError } = await import('$lib/errorLog');
+        expect(vi.mocked(recordError)).toHaveBeenCalled();
+    });
+
+    it('does not kill the session when the store read comes back empty', async () => {
+        const stored = storedSession({ expiresAt: Date.now() - 1000 });
+        vi.mocked(getSession).mockResolvedValue(undefined);
+        vi.mocked(refreshToken).mockResolvedValue({ access_token: 'a2', refresh_token: 'r2', expires_in: 3600 } as any);
+
+        const onExpired = vi.fn();
+        const session = createOAuthSession(stored, 'client-id', undefined, onExpired);
+        await session.ensureValid();
+
+        expect(session.dead).toBe(false);
+        expect(onExpired).not.toHaveBeenCalled();
+        expect(vi.mocked(refreshToken)).toHaveBeenCalledTimes(1);
+        const { putSession } = await import('./store');
+        expect(vi.mocked(putSession)).toHaveBeenCalled();
+        expect(stored.refreshToken).toBe('r2');
     });
 });
 

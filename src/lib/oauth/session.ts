@@ -4,6 +4,7 @@ import { createDPoPProof, computeAth, importKeyPair } from './dpop';
 import { OAuthTokenError, refreshToken } from './server';
 import { putSession, deleteSession, getSession, putDPoPNonce, getDPoPNonce } from './store';
 import { reportPersistFailure } from '$lib/sessionPersistNotice';
+import { recordError } from '$lib/errorLog';
 
 const REFRESH_BUFFER = 60_000;
 
@@ -120,22 +121,40 @@ export function createOAuthSession(
         onExpired?.();
     }
 
+    function adoptSession(latest: StoredSession): void {
+        accessToken = latest.accessToken;
+        currentRefreshToken = latest.refreshToken;
+        expiresAt = latest.expiresAt;
+        stored.accessToken = accessToken;
+        stored.refreshToken = currentRefreshToken;
+        stored.expiresAt = expiresAt;
+    }
+
     async function performRefresh(): Promise<void> {
         if (!currentRefreshToken) {
             throw new Error('No refresh token available');
         }
+
+        const usedToken = currentRefreshToken;
 
         let tokenRes;
         try {
             const keyPair = await getKeyPair();
             tokenRes = await refreshToken(
                 stored.serverMetadata,
-                { refreshToken: currentRefreshToken, clientId },
+                { refreshToken: usedToken, clientId },
                 keyPair,
                 fetchFn,
             );
         } catch (e) {
             if (e instanceof OAuthTokenError && e.error === 'invalid_grant') {
+                const latest = await getSession(stored.did).catch(() => undefined);
+                if (latest?.refreshToken && latest.refreshToken !== usedToken) {
+                    adoptSession(latest);
+                    return;
+                }
+
+                recordError(new Error(`OAuth session terminated by invalid_grant (${stored.did}): ${e.message}`), 'oauth-refresh');
                 markDead();
                 await deleteSession(stored.did).catch(() => {});
             }
@@ -155,19 +174,9 @@ export function createOAuthSession(
     }
 
     async function refreshAgainstLatest(): Promise<void> {
-        const latest = await getSession(stored.did);
-        if (!latest || !latest.refreshToken) {
-            markDead();
-            throw new Error('Session no longer exists');
-        }
-
-        if (latest.refreshToken !== currentRefreshToken) {
-            accessToken = latest.accessToken;
-            currentRefreshToken = latest.refreshToken;
-            expiresAt = latest.expiresAt;
-            stored.accessToken = accessToken;
-            stored.refreshToken = currentRefreshToken;
-            stored.expiresAt = expiresAt;
+        const latest = await getSession(stored.did).catch(() => undefined);
+        if (latest?.refreshToken && latest.refreshToken !== currentRefreshToken) {
+            adoptSession(latest);
             return;
         }
 
