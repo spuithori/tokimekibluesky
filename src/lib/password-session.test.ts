@@ -21,6 +21,10 @@ function sessionData(): SessionData {
         handle: 'test.example',
         accessJwt: fakeJwt(),
         refreshJwt: fakeJwt(),
+        didDoc: {
+            id: 'did:plc:test',
+            service: [{ id: '#atproto_pds', type: 'AtprotoPersonalDataServer', serviceEndpoint: 'https://pds.example' }],
+        },
     } as SessionData;
 }
 
@@ -222,5 +226,87 @@ describe('PasswordSession boot rotation gating', () => {
 
         await session.resumeSession({ ...sessionData(), refreshJwt: fakeJwt(nearExp) });
         await vi.waitFor(() => expect(calls.filter(u => u.includes('refreshSession'))).toHaveLength(1));
+    });
+});
+
+describe('PasswordSession PDS URL resolution', () => {
+    const farExp = () => Math.floor(Date.now() / 1000) + 90 * 24 * 3600;
+
+    const realPdsDoc = {
+        id: 'did:plc:test',
+        service: [{ id: '#atproto_pds', type: 'AtprotoPersonalDataServer', serviceEndpoint: 'https://real-pds.host' }],
+    };
+
+    function noDidDoc(): SessionData {
+        return {
+            did: 'did:plc:test',
+            handle: 'test.example',
+            accessJwt: fakeJwt(),
+            refreshJwt: fakeJwt(farExp()),
+        } as SessionData;
+    }
+
+    it('resolves the real PDS from the DID document and sends proxied requests there', async () => {
+        const calls = installFetch((url) => {
+            if (url.includes('plc.directory')) return json(realPdsDoc);
+            return json({ ok: true });
+        });
+        const session = new PasswordSession({ service: 'https://bsky.social' });
+        await session.resumeSession(noDidDoc());
+        await session.createFetchHandler()('/xrpc/chat.bsky.convo.getLog');
+
+        expect(calls).toContain('https://real-pds.host/xrpc/chat.bsky.convo.getLog');
+        expect(calls.some(u => u.startsWith('https://bsky.social/xrpc/chat'))).toBe(false);
+    });
+
+    it('falls back to the entryway and does not trigger re-login when DID resolution fails', async () => {
+        let expired = false;
+        const calls = installFetch((url) => {
+            if (url.includes('plc.directory')) return json({ error: 'not found' }, 500);
+            return json({ ok: true });
+        });
+        const session = new PasswordSession({
+            service: 'https://bsky.social',
+            onExpired: () => { expired = true; },
+        });
+        await session.resumeSession(noDidDoc());
+        const res = await session.createFetchHandler()('/xrpc/chat.bsky.convo.getLog');
+
+        expect(res.ok).toBe(true);
+        expect(expired).toBe(false);
+        expect(calls).toContain('https://bsky.social/xrpc/chat.bsky.convo.getLog');
+    });
+
+    it('resolves the DID document only once for concurrent requests', async () => {
+        const calls = installFetch((url) => {
+            if (url.includes('plc.directory')) return json(realPdsDoc);
+            return json({ ok: true });
+        });
+        const session = new PasswordSession({ service: 'https://bsky.social' });
+        await session.resumeSession(noDidDoc());
+        const handler = session.createFetchHandler();
+        await Promise.all([
+            handler('/xrpc/chat.bsky.convo.getLog'),
+            handler('/xrpc/chat.bsky.convo.listConvos'),
+            handler('/xrpc/app.bsky.feed.getTimeline'),
+        ]);
+
+        expect(calls.filter(u => u.includes('plc.directory'))).toHaveLength(1);
+    });
+
+    it('persists the didDoc after a refresh so later resumes need no network resolution', async () => {
+        let persisted: SessionData | undefined;
+        installFetch((url) => {
+            if (url.includes('refreshSession')) return json({ ...sessionData(), didDoc: realPdsDoc });
+            return json({ ok: true });
+        });
+        const session = new PasswordSession({
+            service: 'https://bsky.social',
+            persistSession: async (evt, sess) => { if (evt === 'update') persisted = sess; },
+        });
+
+        await session.resumeSession({ ...noDidDoc(), accessJwt: fakeJwt(1) });
+
+        expect(persisted?.didDoc).toBeTruthy();
     });
 });

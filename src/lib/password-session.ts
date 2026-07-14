@@ -1,6 +1,7 @@
 // Lightweight password-based session management replacing BskyAgent session handling
 
 import { reportPersistFailure } from '$lib/sessionPersistNotice';
+import { resolveDidDocument } from '$lib/oauth/resolver';
 
 export interface SessionData {
 	did: string;
@@ -69,6 +70,7 @@ export class PasswordSession {
 	private _session: SessionData | undefined;
 	private _persistSession: PersistSessionHandler | undefined;
 	private _refreshing: Promise<void> | null = null;
+	private _pdsResolving: Promise<void> | null = null;
 	private _persistDirty = false;
 	private _loadLatestSession?: () => Promise<SessionData | null | undefined>;
 
@@ -106,6 +108,29 @@ export class PasswordSession {
 		if (pdsUrl) {
 			this._pdsUrl = pdsUrl.replace(/\/$/, '');
 		}
+	}
+
+	private async _ensurePdsUrl(): Promise<void> {
+		if (this._pdsUrl) return;
+		if (this._pdsResolving) return this._pdsResolving;
+
+		const did = this._session?.did;
+		if (!did) return;
+
+		this._pdsResolving = (async () => {
+			try {
+				const didDoc = await resolveDidDocument(did, AbortSignal.timeout(10_000));
+				this._updatePdsUrl(didDoc);
+				if (this._pdsUrl && this._session) {
+					this._session = { ...this._session, didDoc };
+				}
+			} catch {
+			} finally {
+				this._pdsResolving = null;
+			}
+		})();
+
+		return this._pdsResolving;
 	}
 
 	async login(opts: { identifier: string; password: string; authFactorToken?: string }): Promise<SessionData> {
@@ -225,6 +250,7 @@ export class PasswordSession {
 			handle: data.handle,
 			accessJwt: data.accessJwt,
 			refreshJwt: data.refreshJwt,
+			didDoc: data.didDoc ?? this._session?.didDoc,
 		};
 
 		if (data.didDoc) {
@@ -271,6 +297,8 @@ export class PasswordSession {
 			if (this._refreshing) {
 				await this._refreshing.catch(() => {});
 			}
+
+			await this._ensurePdsUrl();
 
 			if (this._persistDirty) {
 				this._flushPersistDirty();

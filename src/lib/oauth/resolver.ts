@@ -48,15 +48,15 @@ interface DidDocument {
 /**
  * Resolve a DID document.
  */
-export async function resolveDidDocument(did: string): Promise<DidDocument> {
+export async function resolveDidDocument(did: string, signal?: AbortSignal): Promise<DidDocument> {
     if (did.startsWith('did:plc:')) {
-        const res = await fetch(`https://plc.directory/${did}`);
+        const res = await fetch(`https://plc.directory/${did}`, { signal });
         if (!res.ok) throw new Error(`Failed to resolve DID: ${did}`);
         return res.json();
     }
     if (did.startsWith('did:web:')) {
         const host = did.slice('did:web:'.length);
-        const res = await fetch(`https://${host}/.well-known/did.json`);
+        const res = await fetch(`https://${host}/.well-known/did.json`, { signal });
         if (!res.ok) throw new Error(`Failed to resolve DID: ${did}`);
         return res.json();
     }

@@ -264,7 +264,13 @@ describe('password handle freshness', () => {
         const farExp = Math.floor(Date.now() / 1000) + 90 * 24 * 3600;
         const { handles, callbacks } = collectStatuses();
         const account = passwordAccount({
-            session: { did: 'did:plc:one', handle: 'one.example', accessJwt: fakeJwt(), refreshJwt: fakeJwt(farExp) },
+            session: {
+                did: 'did:plc:one',
+                handle: 'one.example',
+                accessJwt: fakeJwt(),
+                refreshJwt: fakeJwt(farExp),
+                didDoc: { id: 'did:plc:one', service: [{ id: '#atproto_pds', type: 'AtprotoPersonalDataServer', serviceEndpoint: 'https://pds.example' }] },
+            },
         });
 
         const { perAccount } = startAccountsResume([account], undefined, callbacks);
