@@ -180,6 +180,9 @@ export class ColumnState {
     }
 
     add(column: Column) {
+        if (column.did && column.handle?.startsWith('did:')) {
+            column.handle = appState.getFreshHandle(column.did) ?? undefined;
+        }
         if (column.data?.feed?.length > 0 && column.id) {
             this._feeds.set(column.id, column.data.feed);
             column.data.feed = [];

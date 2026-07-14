@@ -134,6 +134,7 @@ async function attemptOAuthResume(account: Account, proxy: string | undefined, c
     const agent = new Agent({
         fetchHandler,
         did: oauthSession.did,
+        handle: isDisplayableHandle(account.handle) ? account.handle : undefined,
         isOAuth: true,
         appViewProxy: proxy,
     });
