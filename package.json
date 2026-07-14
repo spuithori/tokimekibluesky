@@ -76,7 +76,7 @@
         "jose": "^6.2.1",
         "multiformats": "^13.4.2",
         "mux.js": "^6.3.0",
-        "picola": "^0.3.3",
+        "picola": "^0.3.4",
         "runed": "^0.35.1",
         "svelte-sonner": "^1.1.0",
         "tlds": "^1.261.0",
