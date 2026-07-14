@@ -139,15 +139,17 @@
     if ((page.state as { showImage?: boolean }).showImage) {
       history.back();
     }
+  }
+
+  function handleClosed() {
     imageState.close();
   }
 
-  function handlePopstate() {
-    viewer?.close();
-  }
+  $effect(() => {
+    const shown = (page.state as { showImage?: boolean }).showImage;
+    if (!shown) untrack(() => viewer?.close());
+  });
 </script>
-
-<svelte:window onpopstate={handlePopstate}></svelte:window>
 
 <Lightbox
   bind:open
@@ -159,6 +161,7 @@
   onopen={handleOpen}
   onchange={(detail) => loadOriginal(detail.index)}
   onclose={handleClose}
+  onclosed={handleClosed}
 >
   {#snippet toolbar(ctx)}
     <ToolbarButton label="Open comic reader" onclick={() => openComicReader(ctx.index)}>

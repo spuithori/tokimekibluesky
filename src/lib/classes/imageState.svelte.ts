@@ -21,18 +21,16 @@ class ImageState {
       comicReaderStartIndex?: number;
     }
   ) {
-    this.images = images;
+    this.images = [...images];
     this.startIndex = startIndex;
-    this.comicReaderImages = options?.comicReaderImages ?? images;
+    this.comicReaderImages = [...(options?.comicReaderImages ?? images)];
     this.comicReaderStartIndex = options?.comicReaderStartIndex ?? startIndex;
   }
 
   close() {
-    setTimeout(() => {
-      this.images = [];
-      this.comicReaderImages = [];
-      this.comicReaderStartIndex = 0;
-    }, 300);
+    this.images = [];
+    this.comicReaderImages = [];
+    this.comicReaderStartIndex = 0;
   }
 }
 
