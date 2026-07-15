@@ -80,6 +80,7 @@
 
   async function handleDeleteAccount(event) {
       try {
+          const removedDid = $agents.get(event.detail.id)?.did();
           const _accounts = profile.accounts.filter(account => account !== event.detail.id)
           const id = await accountsDb.profiles.update(profile.id, {
               accounts: _accounts,
@@ -87,6 +88,7 @@
 
           if (isCurrent) {
               agents.set(await modifyAgents(_accounts, profile.appViewProxy));
+              appState.dropResumeStatus(removedDid);
           }
       } catch (e) {
           console.error(e);

@@ -3,6 +3,7 @@
     import Unplug from '@lucide/svelte/icons/unplug';
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import MissingAccountItem from "$lib/components/acp/MissingAccountItem.svelte";
+    import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import {appState} from "$lib/classes/appState.svelte";
 
     let { column } = $props();
@@ -44,6 +45,8 @@
     {/if}
 
     <button class="button button--sm" onclick={() => appState.retryAccount(status.accountId)}>{$_('retry')}</button>
+  {:else if !phase}
+    <ColumnAgentMissing {column}></ColumnAgentMissing>
   {:else}
     <LoadingSpinner padding={0}></LoadingSpinner>
 

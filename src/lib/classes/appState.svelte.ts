@@ -325,13 +325,20 @@ class AppState {
         return this.resumeStatus[did]?.phase;
     }
 
-    getColumnResumeGate(agentsByDidMap: Map<string, Agent>, did: string | undefined): 'mount' | 'pending' | 'failed' {
+    dropResumeStatus(did: string | undefined) {
+        if (!did || !this.resumeStatus[did]) return;
+        const { [did]: _removed, ...rest } = this.resumeStatus;
+        this.resumeStatus = rest;
+    }
+
+    getColumnResumeGate(agentsByDidMap: Map<string, Agent>, did: string | undefined): 'mount' | 'pending' | 'failed' | 'missing' {
         if (!did) return 'mount';
         if (agentsByDidMap.has(did)) return 'mount';
         const phase = this.resumeStatus[did]?.phase;
         if (phase === 'pending' || phase === 'retrying') return 'pending';
         if (phase === 'auth-required' || phase === 'unreachable') return 'failed';
-        return 'mount';
+        if (phase === 'resumed') return 'mount';
+        return 'missing';
     }
 
     async retryAccount(accountId: number) {
