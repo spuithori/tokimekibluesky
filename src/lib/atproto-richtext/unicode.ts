@@ -5,12 +5,15 @@ const decoder = new TextDecoder();
 
 export class UnicodeString {
 	utf16: string;
-	utf8: Uint8Array;
+	private _utf8?: Uint8Array;
 	private _graphemeLen?: number | undefined;
 
 	constructor(utf16: string) {
 		this.utf16 = utf16;
-		this.utf8 = encoder.encode(utf16);
+	}
+
+	get utf8(): Uint8Array {
+		return (this._utf8 ??= encoder.encode(this.utf16));
 	}
 
 	get length() {
