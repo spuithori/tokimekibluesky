@@ -600,11 +600,7 @@ export class Agent {
 
             return aggregated;
         } catch (e: any) {
-            if (e.message === 'XRPCNotSupported') {
-                setTimeout(() => {
-                    this.updateChatCount();
-                }, 1000);
-            } else {
+            if (e.message !== 'XRPCNotSupported') {
                 console.error(e);
             }
             return [];
@@ -621,11 +617,7 @@ export class Agent {
 
             this.setChatCounts(res.unreadAcceptedConvos, res.unreadRequestConvos);
         } catch (e: any) {
-            if (e.message === 'XRPCNotSupported') {
-                setTimeout(() => {
-                    this.updateChatCount();
-                }, 1000);
-            } else if (e.status === 404 || e.error === 'MethodNotImplemented') {
+            if (e.status === 404 || e.error === 'MethodNotImplemented') {
                 await this.updateChatCountFallback();
             }
         }

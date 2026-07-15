@@ -149,9 +149,9 @@ async function compress(input: WorkerInput): Promise<WorkerOutput> {
     const sourceWidth = haveTarget ? undefined : bitmap.width;
     const sourceHeight = haveTarget ? undefined : bitmap.height;
 
+    try {
     if (maxSizeBytes === undefined) {
         const canvas = resizeToCanvas(bitmap, tw, th);
-        bitmap.close();
         const tUnsharpStart = performance.now();
         sharpenCanvas(canvas, 0.3);
         timings.unsharpMask = performance.now() - tUnsharpStart;
@@ -250,9 +250,11 @@ async function compress(input: WorkerInput): Promise<WorkerOutput> {
         timings.resolutionLevels = (timings.resolutionLevels ?? 0) + 1;
     }
 
-    bitmap.close();
     timings.total = performance.now() - tStart;
     return { blob: resultBlob!, width: curW, height: curH, sourceWidth, sourceHeight, timings };
+    } finally {
+        bitmap.close();
+    }
 }
 
 self.onmessage = async (e: MessageEvent<WorkerInput>) => {

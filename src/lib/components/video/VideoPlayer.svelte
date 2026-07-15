@@ -270,6 +270,7 @@
                 };
                 engine.onError = (err) => console.error('[video] hls engine error', err);
                 await engine.loadSource(src);
+                if (!engine) return;
             } else {
                 usesNativeHls = true;
                 videoElement.preload = 'auto';

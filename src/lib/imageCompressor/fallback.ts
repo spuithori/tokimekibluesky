@@ -155,6 +155,7 @@ export async function compressFallback(input: WorkerInput): Promise<WorkerOutput
     const bitmap = await createImageBitmap(file);
     timings.decode = performance.now() - tDecodeStart;
 
+    try {
     const haveTarget = targetWidth !== undefined && targetHeight !== undefined;
     const { width: tw, height: th } = haveTarget
         ? { width: targetWidth!, height: targetHeight! }
@@ -164,7 +165,6 @@ export async function compressFallback(input: WorkerInput): Promise<WorkerOutput
 
     if (maxSizeBytes === undefined) {
         const canvas = resizeToCanvas(bitmap, tw, th);
-        bitmap.close();
         const tUnsharpStart = performance.now();
         sharpenCanvas(canvas, 0.3);
         timings.unsharpMask = performance.now() - tUnsharpStart;
@@ -263,7 +263,9 @@ export async function compressFallback(input: WorkerInput): Promise<WorkerOutput
         timings.resolutionLevels = (timings.resolutionLevels ?? 0) + 1;
     }
 
-    bitmap.close();
     timings.total = performance.now() - tStart;
     return { blob: resultBlob!, width: curW, height: curH, sourceWidth, sourceHeight, timings };
+    } finally {
+        bitmap.close();
+    }
 }
