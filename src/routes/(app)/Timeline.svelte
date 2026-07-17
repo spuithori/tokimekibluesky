@@ -266,7 +266,7 @@
                 return item;
             });
 
-        if (column.algorithm.type === 'author') {
+        if (column.algorithm.type === 'author' || column.algorithm.type === 'authorReplies') {
             const first = res.feed?.[0];
             const target = first?.reason?.by ?? first?.post?.author;
             if (target?.did && column.algorithm.algorithm !== target.did) {
@@ -380,7 +380,7 @@
                     {column}
                     {_agent}
                     feed={columnState.getFeed(column.id)}
-                    isReplyExpanded={column.algorithm.type === 'author' && !data.isRootHide}
+                    isReplyExpanded={(column.algorithm.type === 'author' || column.algorithm.type === 'authorReplies') && !data.isRootHide}
                     isPinned={isReasonPin(data?.reason)}
             ></TimelineItem>
 

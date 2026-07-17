@@ -11,6 +11,8 @@
     import Image from '@lucide/svelte/icons/image';
     import Clapperboard from '@lucide/svelte/icons/clapperboard';
     import UserRound from '@lucide/svelte/icons/user-round';
+    import MessageCircleReply from '@lucide/svelte/icons/message-circle-reply';
+    import Repeat2 from '@lucide/svelte/icons/repeat-2';
     import MessageCircleMore from '@lucide/svelte/icons/message-circle-more';
     import MessagesSquare from '@lucide/svelte/icons/messages-square';
     import BookType from '@lucide/svelte/icons/book-type';
@@ -50,6 +52,10 @@
     <Clapperboard {color} {strokeWidth} />
 {:else if type === "author"}
     <UserRound {color} {strokeWidth} />
+{:else if type === "authorReplies"}
+    <MessageCircleReply {color} {strokeWidth} />
+{:else if type === "authorReposts"}
+    <Repeat2 {color} {strokeWidth} />
 {:else if type === "chat"}
     <MessageCircleMore {color} {strokeWidth} />
 {:else if type === "chatList"}

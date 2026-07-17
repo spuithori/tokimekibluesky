@@ -69,7 +69,11 @@
     let isScrollPaused = $state(false);
     let isIconPickerOpen = $state(false);
     let observer;
-    let isFiltered = $state(false);
+    const authorMode = $derived(
+        column.algorithm.type === 'authorReplies' ? 'replies'
+            : column.algorithm.type === 'authorReposts' ? 'reposts'
+            : column.settings?.timeline?.hideRepost === 'none' ? 'filtered'
+            : 'all');
     let isColumnAlreadyAdded = $state(false);
     let refreshEl = $state();
     let isRefreshing = $state(false);
@@ -208,7 +212,7 @@
         _column.algorithm.name = name || column.algorithm.name;
 
         try {
-            if (_column.algorithm.type === 'author') {
+            if (_column.algorithm.type === 'author' || _column.algorithm.type === 'authorReplies' || _column.algorithm.type === 'authorReposts') {
                 _column.algorithm.name = await getDisplayNameByDid(_column.algorithm.algorithm, _agent);
             }
 
@@ -314,15 +318,19 @@
         }, 2000);
     }
 
-    function changeAuthorFilter(isFilter: boolean) {
-        if (isFilter) {
-            column.settings.timeline.hideReply = 'me';
-            column.settings.timeline.hideRepost = 'none';
-            isFiltered = true;
-        } else {
+    function setAuthorMode(mode: 'all' | 'filtered' | 'replies' | 'reposts') {
+        if (mode === authorMode) {
+            return;
+        }
+
+        if (mode === 'replies' || mode === 'reposts') {
+            column.algorithm.type = mode === 'replies' ? 'authorReplies' : 'authorReposts';
             column.settings.timeline.hideReply = 'all';
             column.settings.timeline.hideRepost = 'all';
-            isFiltered = false;
+        } else {
+            column.algorithm.type = 'author';
+            column.settings.timeline.hideReply = mode === 'filtered' ? 'me' : 'all';
+            column.settings.timeline.hideRepost = mode === 'filtered' ? 'none' : 'all';
         }
 
         columnState.clearFeed(column.id);
@@ -449,14 +457,16 @@
                         </div>
                     </div>
                 {:else}
-                    {#if (column.algorithm.type === 'author')}
+                    {#if (column.algorithm.type === 'author' || column.algorithm.type === 'authorReplies' || column.algorithm.type === 'authorReposts')}
                         <dl class="profile-posts-nav">
                             <dt class="profile-posts-nav__name">
                                 <Filter size="20" color="var(--text-color-3)"></Filter>
                             </dt>
                             <dd class="profile-posts-nav__content">
-                                <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(false)}} class:profile-posts-nav__button--active={!isFiltered}>{$_('profile_posts_nav_all')}</button>
-                                <button class="profile-posts-nav__button" onclick={() => {changeAuthorFilter(true)}} class:profile-posts-nav__button--active={isFiltered}>{$_('profile_posts_nav_filtered')}</button>
+                                <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('all')}} class:profile-posts-nav__button--active={authorMode === 'all'}>{$_('profile_posts_nav_all')}</button>
+                                <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('filtered')}} class:profile-posts-nav__button--active={authorMode === 'filtered'}>{$_('profile_posts_nav_filtered')}</button>
+                                <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('replies')}} class:profile-posts-nav__button--active={authorMode === 'replies'}>{$_('profile_posts_nav_reply')}</button>
+                                <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('reposts')}} class:profile-posts-nav__button--active={authorMode === 'reposts'}>{$_('profile_posts_nav_repost')}</button>
                             </dd>
                         </dl>
                     {/if}
@@ -962,10 +972,19 @@
         font-size: 14px;
         gap: 8px;
         padding-left: 8px;
+        flex: 1;
+        min-width: 0;
+
+        &__name {
+            flex-shrink: 0;
+            display: flex;
+        }
 
         &__content {
             display: flex;
             gap: 4px;
+            overflow-x: auto;
+            scrollbar-width: none;
         }
 
         &__button {
@@ -977,6 +996,8 @@
             border-radius: 14px;
             font-size: 12px;
             color: var(--primary-color);
+            flex-shrink: 0;
+            white-space: nowrap;
 
             &--active {
                 background-color: var(--primary-color);

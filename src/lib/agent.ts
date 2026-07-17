@@ -355,6 +355,74 @@ export class Agent {
                     feed: likePosts,
                 };
             }
+            case 'authorReplies': {
+                const repliesRes = await this.xrpc.get('app.bsky.feed.searchPostsV2', {
+                    authors: [timelineOpt.algorithm.algorithm as string],
+                    repliesOnly: true,
+                    sort: 'recent',
+                    allTime: true,
+                    limit: timelineOpt.limit,
+                    cursor: timelineOpt.cursor || undefined,
+                }, {signal});
+                const replyPosts = repliesRes.posts.filter(post => post?.indexedAt);
+                replyPosts.sort((a, b) => {
+                    return new Date(b.indexedAt).getTime() - new Date(a.indexedAt).getTime();
+                });
+
+                const viewByUri = new Map(replyPosts.map(post => [post.uri, post]));
+                const contextUris = new Set<string>();
+                replyPosts.forEach(post => {
+                    const ref = post.record?.reply;
+                    [ref?.parent?.uri, ref?.root?.uri].forEach(uri => {
+                        if (uri && !viewByUri.has(uri)) {
+                            contextUris.add(uri);
+                        }
+                    });
+                });
+
+                if (contextUris.size) {
+                    const uris = [...contextUris];
+                    const chunks = [];
+                    for (let i = 0; i < uris.length; i += 25) {
+                        chunks.push(uris.slice(i, i + 25));
+                    }
+                    try {
+                        const contextResults = await Promise.all(chunks.map(chunk => this.xrpc.get('app.bsky.feed.getPosts', {uris: chunk}, {signal})));
+                        contextResults.forEach(result => {
+                            result.posts.forEach(view => viewByUri.set(view.uri, view));
+                        });
+                    } catch (e) {
+                        if (signal?.aborted || e?.name === 'AbortError') {
+                            throw e;
+                        }
+                        console.error(e);
+                    }
+                }
+
+                const replyFeeds = replyPosts.map(post => {
+                    const ref = post.record?.reply;
+                    const parent = ref?.parent?.uri ? viewByUri.get(ref.parent.uri) : undefined;
+                    if (!parent) {
+                        return { post };
+                    }
+                    const root = (ref?.root?.uri ? viewByUri.get(ref.root.uri) : undefined) ?? parent;
+                    return { post, reply: { parent, root } };
+                });
+                return {
+                    cursor: repliesRes.cursor,
+                    feed: replyFeeds,
+                };
+            }
+            case 'authorReposts': {
+                const repostActor = timelineOpt.algorithm.algorithm as string;
+                const repostDid = repostActor.startsWith('did:') ? repostActor : await this.resolveHandle(repostActor);
+                const repostRes = await listRecordsFromPds('app.bsky.feed.repost', timelineOpt.limit, timelineOpt.cursor, repostDid);
+                const repostPosts = await this.getFeedsFromRecords(repostRes.records);
+                return {
+                    cursor: repostRes.cursor,
+                    feed: repostPosts,
+                };
+            }
             case 'authorMedia': {
                 const mediaRes = await this.xrpc.get('app.bsky.feed.getAuthorFeed', {
                     actor: timelineOpt.algorithm.algorithm,
@@ -663,6 +731,10 @@ export class Agent {
     }
 
     async getFeedsFromRecords(records) {
+        if (!records.length) {
+            return [];
+        }
+
         const uris = records.map(record => record.value.subject.uri);
         const res = await this.xrpc.get('app.bsky.feed.getPosts', { uris });
         let feeds = [];

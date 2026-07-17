@@ -79,7 +79,6 @@
     if (unique !== lastUnique) {
       isComplete = false;
       retryCount = 0;
-      isLoading = false;
       initialScrollState = null;
       lastUnique = unique;
       onScrollStateClear?.();
@@ -259,7 +258,7 @@
             {column}
             {_agent}
             feed={columnState.getFeed(column.id)}
-            isReplyExpanded={column.algorithm.type === 'author' && !item.isRootHide}
+            isReplyExpanded={(column.algorithm.type === 'author' || column.algorithm.type === 'authorReplies') && !item.isRootHide}
             isPinned={isReasonPin(item?.reason)}
           ></TimelineItem>
 
