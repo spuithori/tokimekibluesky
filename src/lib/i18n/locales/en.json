@@ -465,7 +465,7 @@
     "skip_delete_confirm": "Do not check when deleting a post",
     "profile_posts_nav": "Filtering",
     "profile_posts_nav_all": "All",
-    "profile_posts_nav_filtered": "Except for reposts and replies",
+    "profile_posts_nav_filtered": "Posts",
     "profile_posts_nav_reply": "Replies",
     "profile_posts_nav_repost": "Reposts",
     "show_screenshots": "Show Screenshots",

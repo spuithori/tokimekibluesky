@@ -241,7 +241,13 @@
       let addedCount = 0;
       try {
         controller = new AbortController();
+        const epoch = unique;
         const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, controller.signal);
+
+        if (unique !== epoch) {
+            return;
+        }
+
           column.data.cursor = res.cursor;
 
         if (res.hitsTotal !== undefined) {
