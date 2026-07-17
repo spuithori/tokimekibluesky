@@ -87,6 +87,7 @@
   let lastKnownScrollTop = 0;
   let lastKnownAnchorIndex = 0;
   let lastKnownVisualY: number | undefined = undefined;
+  let lastKnownCanvasWidth = 0;
   let restoreLock: { key: string; y: number } | null = null;
   let resizeObserver: ResizeObserver | null = null;
   let frameTops: number[] = [];
@@ -615,6 +616,8 @@
       if (h <= 0) continue;
       const idx = findIndexForKey(k);
       if (idx === undefined || idx >= tree.length) continue;
+      const w = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
+      if (w > 0) lastKnownCanvasWidth = w;
       const prevDelivered = lastDeliveredHeights.get(el);
       lastDeliveredHeights.set(el, h);
       const wasMeasured = tree.isMeasured(idx);
@@ -942,7 +945,11 @@
   export function restoreScrollState(state: ScrollState): boolean {
     if (!state || !scrollContainer) return false;
 
-    if (state.heights && state.heights.length > 0) {
+    const savedWidth = state.heightsWidth ?? 0;
+    const currentWidth = canvasEl?.clientWidth || lastKnownCanvasWidth;
+    const heightsUsable = !!state.heights && state.heights.length > 0 &&
+      (savedWidth <= 0 || currentWidth <= 0 || Math.abs(currentWidth - savedWidth) <= 1);
+    if (heightsUsable) {
       const keyToHeight = new Map<string, number>();
       let heightSum = 0;
       for (const [k, v] of state.heights) {
@@ -1032,7 +1039,15 @@
       }
     }
 
-    return { index: idx, key: k, offset, heights: heightsArray, scrollTop: currentScrollTop, visualY };
+    return {
+      index: idx,
+      key: k,
+      offset,
+      heights: heightsArray,
+      ...(includeHeights ? { heightsWidth: (canvasEl?.clientWidth || lastKnownCanvasWidth) } : {}),
+      scrollTop: currentScrollTop,
+      visualY,
+    };
   }
 
   export function getScrollState(): ScrollState | null {
@@ -1068,13 +1083,13 @@
     };
   }
 
-  export function getHeightEntries(): [string, number][] {
-    const result: [string, number][] = [];
+  export function getHeightSnapshot(): { width: number; entries: [string, number][] } {
+    const entries: [string, number][] = [];
     const limit = Math.min(items.length, tree.length);
     for (let i = 0; i < limit; i++) {
-      if (tree.isMeasured(i)) result.push([key(i), tree.get(i)]);
+      if (tree.isMeasured(i)) entries.push([key(i), tree.get(i)]);
     }
-    return result;
+    return { width: canvasEl?.clientWidth || lastKnownCanvasWidth, entries };
   }
 
   export function prepareForIndex(index: number): void {

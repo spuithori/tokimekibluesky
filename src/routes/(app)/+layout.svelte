@@ -342,6 +342,12 @@
 <svelte:head>
     <meta name="theme-color" content={baseColor} />
     <link rel="canonical" href="https://tokimeki.blue{page.url.pathname}" />
+
+    {#if $settings?.embed?.x}
+        <link rel="preconnect" href="https://platform.twitter.com" />
+        <link rel="preconnect" href="https://cdn.syndication.twimg.com" crossorigin="anonymous" />
+        <link rel="preconnect" href="https://pbs.twimg.com" />
+    {/if}
 </svelte:head>
 
 <div

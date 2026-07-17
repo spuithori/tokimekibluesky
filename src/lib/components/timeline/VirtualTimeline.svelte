@@ -45,7 +45,7 @@
     column.data?.scrollState ?? null
   );
   if (initialScrollState && (!initialScrollState.heights || initialScrollState.heights.length === 0) && column.data?._heightCache?.length > 0) {
-    initialScrollState = { ...initialScrollState, heights: column.data._heightCache };
+    initialScrollState = { ...initialScrollState, heights: column.data._heightCache, heightsWidth: column.data._heightCacheWidth };
   }
   if (column.data?.scrollState) onScrollStateClear?.();
 
@@ -184,7 +184,9 @@
 
     if (virtualList) {
       if (column.data) {
-        column.data._heightCache = virtualList.getHeightEntries();
+        const snapshot = virtualList.getHeightSnapshot();
+        column.data._heightCache = snapshot.entries;
+        column.data._heightCacheWidth = snapshot.width;
       }
 
       if (!column.data?.scrollState) {
