@@ -19,6 +19,7 @@
         return {
             destroy() {
                 observer.disconnect();
+                node.src = '';
             },
         };
     }
