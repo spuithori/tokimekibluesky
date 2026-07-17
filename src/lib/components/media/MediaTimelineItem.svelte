@@ -58,7 +58,7 @@
 
       if (currentEl) {
         currentEl.scrollIntoView({ block: 'end' });
-        targetIndex = currentEl.dataset.index;
+        targetIndex = Number(currentEl.dataset.index);
         targetEl = currentEl;
       }
     }
@@ -97,11 +97,17 @@
       {/if}
     </button>
 
-    {#key targetIndex}
-      {#if (isOpen)}
-        <MediaTimelineItemModal data={feed[targetIndex]} close={handleClose} onprev={handlePrev} onnext={handleNext} {_agent}></MediaTimelineItemModal>
-      {/if}
-    {/key}
+    {#if (isOpen)}
+      <MediaTimelineItemModal
+        data={feed[targetIndex]}
+        close={handleClose}
+        onprev={handlePrev}
+        onnext={handleNext}
+        hasPrev={targetIndex > 0}
+        hasNext={targetIndex < feed.length - 1}
+        {_agent}
+      ></MediaTimelineItemModal>
+    {/if}
   </div>
 {/if}
 

@@ -7,6 +7,7 @@
   import ImageAlt from '$lib/components/utils/ImageAlt.svelte';
   import { imageState } from '$lib/classes/imageState.svelte';
   import { comicReaderState } from '$lib/classes/comicReaderState.svelte';
+  import { modalState } from '$lib/classes/modalState.svelte';
   import { pushState } from '$app/navigation';
   import { page } from '$app/state';
   import { parseCdnUrl, fetchOriginalBlob } from '$lib/util';
@@ -156,6 +157,7 @@
   bind:index
   bind:viewer
   {slides}
+  container={modalState.isMediaModalOpen && modalState.mediaModalEl ? modalState.mediaModalEl : undefined}
   backdropOpacity={0.9}
   zoom={{ max: 2, doubleTap: 2 }}
   onopen={handleOpen}

@@ -40,7 +40,7 @@
     import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
     import { getDidFromUri, getService } from "$lib/util";
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
-    import { untrack } from "svelte";
+    import { getContext, untrack } from "svelte";
     import type { Attachment } from "svelte/attachments";
     import BadgeCheck from '@lucide/svelte/icons/badge-check';
     import Languages from '@lucide/svelte/icons/languages';
@@ -84,6 +84,9 @@
     }: Props = $props();
 
     const localSupported = isLocalTranslateSupported();
+
+    const mediaView = getContext<{ readonly uri: string } | undefined>('mediaViewUri');
+    const hideGallery = $derived(isMedia || (!!mediaView && mediaView.uri === post?.uri));
 
     const targetLang = $derived(
         normalizeTranslateLang($settings.general?.userLanguage),
@@ -462,7 +465,7 @@
             </div>
         {/if}
 
-        {#if hasGalleryImages(post.embed) && !isMedia && post.embed}
+        {#if hasGalleryImages(post.embed) && !hideGallery && post.embed}
             <div class="timeline-images-wrap">
                 {#if isWarn === "media"}
                     <TimelineWarn labels={warnLabels}></TimelineWarn>

@@ -6,7 +6,7 @@ export function resolveScrollContainer(
 ): HTMLElement | null {
   if (!parent) return null;
   if (isSingleColumn) return document.documentElement;
-  if (isJunk) return parent.closest('.modal-page-content') as HTMLElement | null;
+  if (isJunk) return parent.closest('[data-junk-scroll], .modal-page-content') as HTMLElement | null;
   return columnScrollElement ?? null;
 }
 

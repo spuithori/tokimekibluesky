@@ -1,47 +1,104 @@
 <script lang="ts">
     import {settings} from '$lib/stores';
+    import { setContext } from 'svelte';
     import { fly } from 'svelte/transition';
-    import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
-    import { beforeNavigate } from "$app/navigation";
-    import { afterNavigate } from "$app/navigation";
+    import { MediaQuery } from 'svelte/reactivity';
+    import { beforeNavigate, afterNavigate } from "$app/navigation";
     import {getViewImages, hasGalleryImages} from "$lib/components/post/embedImages";
-    import MediaTimelineSlider from "$lib/components/media/MediaTimelineSlider.svelte";
+    import MediaLightbox from "$lib/components/media/MediaLightbox.svelte";
+    import ThreadView from "../../../routes/(app)/profile/[handle]/post/[id]/ThreadView.svelte";
+    import BottomSheet from "$lib/components/ui/BottomSheet.svelte";
+    import Avatar from "../../../routes/(app)/Avatar.svelte";
+    import TimelineText from "$lib/components/post/TimelineText.svelte";
+    import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
     import {modalState} from "$lib/classes/modalState.svelte";
     import ChevronLeft from '@lucide/svelte/icons/chevron-left';
     import ChevronRight from '@lucide/svelte/icons/chevron-right';
-    import X from '@lucide/svelte/icons/x';
     import {contentLabelling, detectWarn} from "$lib/timelineFilter";
     import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
     import {appState} from "$lib/classes/appState.svelte";
 
-    let { _agent, data, close, onprev, onnext } = $props();
-    let el = $state();
+    let { _agent, data, close, onprev, onnext, hasPrev = true, hasNext = true } = $props();
+    let el = $state<HTMLDialogElement>();
+    let viewer = $state<any>(null);
+    let uiVisible = $state(true);
+    let sheetMode = $state<'bar' | 'peek' | 'expanded'>('peek');
+    let sheetReservedHeight = $state(0);
 
-    const moderateData = contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current);
-    let isWarn = detectWarn(moderateData, 'contentList');
+    let imageIndex = $derived.by(() => {
+        void data.post.uri;
+        return 0;
+    });
+
+    const mobileQuery = new MediaQuery('(max-width: 959px)');
+    const isMobile = $derived(mobileQuery.current);
+
+    setContext('mediaViewUri', {
+        get uri() {
+            return data.post.uri;
+        }
+    });
+
+    const moderateData = $derived(contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current));
+    const isWarn = $derived(detectWarn(moderateData, 'contentList'));
+
+    const viewImages = $derived.by(() => {
+        if (hasGalleryImages(data.post?.embed)) {
+            return getViewImages(data.post.embed);
+        }
+        if (hasGalleryImages(data.post?.embed?.media)) {
+            return getViewImages(data.post.embed.media);
+        }
+        return [];
+    });
+
+    const rkey = $derived(data.post.uri.split('/').slice(-1)[0]);
+    const did = $derived(data.post.uri.split('/')[2]);
 
     function modalClose() {
         history.back();
         close();
     }
 
-    function handlePopstate(e) {
+    function handleCancel(e: Event) {
+        e.preventDefault();
+        modalClose();
+    }
+
+    function handlePopstate() {
         document.body.classList.remove('scroll-lock');
-        el.close();
+        el?.close();
         close();
     }
 
-    function handleKeydown(event) {
-        if (event.key === 'Escape') {
-            modalClose();
+    function navPrev() {
+        if (imageIndex > 0) {
+            viewer?.prev();
+        } else {
+            onprev();
         }
+    }
+
+    function navNext() {
+        if (imageIndex < viewImages.length - 1) {
+            viewer?.next();
+        } else {
+            onnext();
+        }
+    }
+
+    const prevDisabled = $derived(!hasPrev && imageIndex === 0);
+    const nextDisabled = $derived(!hasNext && imageIndex >= viewImages.length - 1);
+
+    function handleKeydown(event: KeyboardEvent) {
+        if (event.defaultPrevented) return;
 
         if (event.key === 'ArrowLeft') {
-            onprev();
+            navPrev();
         }
 
         if (event.key === 'ArrowRight') {
-            onnext();
+            navNext();
         }
     }
 
@@ -58,88 +115,104 @@
     $effect(() => {
       if (el) {
         modalState.isMediaModalOpen = true;
+        modalState.mediaModalEl = el;
         el.showModal();
       }
 
       return () => {
         modalState.isMediaModalOpen = false;
+        modalState.mediaModalEl = null;
       }
     });
+
 </script>
 
 <svelte:window onpopstate={handlePopstate} onkeydown={handleKeydown}></svelte:window>
 
-<dialog class="media-content-wrap" bind:this={el}>
-  <button onclick={modalClose} class="media-content-close" aria-label="Close">
-    <X size="24" color="#fff"></X>
-  </button>
+<dialog class="media-content-wrap" bind:this={el} oncancel={handleCancel}>
+  <button onclick={modalClose} class="media-content-close-bg" aria-label="Close"></button>
 
-  <button onclick={modalClose} class="media-content-close-bg"></button>
+  {#snippet lightboxArea()}
+    {#if (isWarn && isWarn.for === 'media')}
+      <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
+    {/if}
 
-  <div class="media-content" in:fly="{{ y: 0, duration: 250 }}">
-    <div class="media-content__image">
-      {#if (isWarn && isWarn.for === 'media')}
-        <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
-      {/if}
+    {#key data.post.uri}
+      <MediaLightbox images={viewImages} bind:index={imageIndex} bind:viewer onuichange={(visible) => uiVisible = visible} onclose={modalClose}></MediaLightbox>
+    {/key}
 
-      {#if (hasGalleryImages(data.post?.embed))}
-        <MediaTimelineSlider images={getViewImages(data.post.embed)}></MediaTimelineSlider>
-      {:else if (hasGalleryImages(data.post?.embed?.media))}
-        <MediaTimelineSlider images={getViewImages(data.post.embed.media)}></MediaTimelineSlider>
-      {/if}
+    <div class="media-content-nav" class:media-content-nav--hidden={!uiVisible}>
+      <button class="media-content-nav__item media-content-nav__item--prev" onclick={navPrev} disabled={prevDisabled} aria-label="Previous">
+        <ChevronLeft color="#fff" size="32"></ChevronLeft>
+      </button>
+
+      <button class="media-content-nav__item media-content-nav__item--next" onclick={navNext} disabled={nextDisabled} aria-label="Next">
+        <ChevronRight color="#fff" size="32"></ChevronRight>
+      </button>
     </div>
+  {/snippet}
 
-    <div class="media-content__content">
-      <TimelineItem {data} isMedia={true} {_agent}></TimelineItem>
+  {#if isMobile}
+    <div class="media-content media-content--mobile" in:fly="{{ y: 0, duration: 250 }}">
+      <div class="media-content__image" style:bottom="{sheetReservedHeight}px">
+        {@render lightboxArea()}
+      </div>
+
+      <BottomSheet bind:mode={sheetMode} onreservedheightchange={(px) => sheetReservedHeight = px}>
+        {#snippet peek()}
+          <div class="media-sheet-peek">
+            <div class="media-sheet-peek__profile">
+              <Avatar href="/profile/{ data.post.author.did }" avatar={data.post.author.avatar} profile={data.post.author} handle={data.post.author.handle} {_agent}></Avatar>
+
+              <p class="media-sheet-peek__name">{data.post.author.displayName || data.post.author.handle}</p>
+            </div>
+
+            {#if data.post.record?.text}
+              <p class="media-sheet-peek__text">
+                <TimelineText record={data.post.record} {_agent} handle={data?.post?.author?.handle}></TimelineText>
+              </p>
+            {/if}
+
+            <ReactionButtons {_agent} post={data.post} reason={data?.reason}></ReactionButtons>
+          </div>
+        {/snippet}
+
+        <div class="media-content__thread media-content__thread--sheet" data-junk-scroll>
+          {#key data.post.uri}
+            <ThreadView id={rkey} handle={did} seedFeed={[data]} {_agent}></ThreadView>
+          {/key}
+        </div>
+      </BottomSheet>
     </div>
-  </div>
+  {:else}
+    <div class="media-content" in:fly="{{ y: 0, duration: 250 }}">
+      <div class="media-content__image">
+        {@render lightboxArea()}
+      </div>
 
-  <div class="media-content-nav">
-    <button class="media-content-nav__item media-content-nav__item--prev" onclick={onprev}>
-      <ChevronLeft color="#fff" size="32"></ChevronLeft>
-    </button>
-
-    <button class="media-content-nav__item media-content-nav__item--next" onclick={onnext}>
-      <ChevronRight color="#fff" size="32"></ChevronRight>
-    </button>
-  </div>
+      <div class="media-content__thread" data-junk-scroll>
+        {#key data.post.uri}
+          <ThreadView id={rkey} handle={did} seedFeed={[data]} {_agent}></ThreadView>
+        {/key}
+      </div>
+    </div>
+  {/if}
 </dialog>
 
 <style lang="postcss">
     .media-content-wrap {
         border: none;
         background-color: transparent;
-        margin: auto;
-        padding: 0 40px;
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100dvh;
+        max-width: none;
+        max-height: none;
+        overflow: hidden;
 
         &::backdrop {
             background-color: rgba(0, 0, 0, .9);
-        }
-
-        @media (max-width: 767px) {
-            padding: 0;
-            margin: 0;
-            max-width: none;
-            max-height: none;
-            width: 100%;
-        }
-    }
-
-    .media-content-close {
-        position: fixed;
-        right: 20px;
-        top: 15px;
-        z-index: 50;
-        width: 40px;
-        height: 40px;
-        display: grid;
-        place-content: center;
-
-        @media (max-width: 959px) {
-            right: 8px;
-            top: 8px;
-            background-color: rgba(0, 0, 0, .5);
-            border-radius: 50%;
         }
     }
 
@@ -156,50 +229,106 @@
     }
 
     .media-content {
-        display: grid;
-        grid-template-columns: auto 320px;
-        background-color: var(--bg-color-1);
-        height: 90vh;
-        width: 70vw;
-        padding: 32px;
-        gap: 32px;
-        border-radius: 10px;
-        overflow: auto;
-        overscroll-behavior: contain;
         position: relative;
         z-index: 2;
+        display: flex;
+        gap: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
         color: var(--text-color-1);
 
-        @media (max-width: 959px) {
+        &--mobile {
             display: block;
-            padding: 0;
-            border-radius: 0;
+            pointer-events: auto;
+        }
+    }
+
+    .media-content__image {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        pointer-events: auto;
+
+        .media-content--mobile & {
+            position: absolute;
+            inset: 0;
+            transition: bottom .25s ease;
+        }
+    }
+
+    .media-content__thread {
+        width: 380px;
+        flex-shrink: 0;
+        margin: 16px;
+        pointer-events: auto;
+        background-color: var(--bg-color-1);
+        border-radius: 12px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+        scrollbar-width: thin;
+
+        :global(.deck-row--junk .deck-heading) {
+            top: 0;
+            border-radius: 12px 12px 0 0;
+        }
+
+        &--sheet {
             width: 100%;
-            height: 100vh;
-            gap: 16px;
-            overflow-x: hidden;
-        }
-
-        &__image {
             height: 100%;
-            min-height: 0;
-            position: relative;
+            margin: 0;
+            border-radius: 0;
+            background-color: transparent;
 
-            @media (max-width: 959px) {
-                height: auto;
-            }
-        }
-
-        &__content {
-            @media (max-width: 959px) {
-                padding: 16px;
+            :global(.deck-row--junk .deck-heading) {
+                border-radius: 0;
             }
         }
     }
 
+    .media-sheet-peek {
+        padding: 0 16px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        &__profile {
+            display: grid;
+            grid-template-columns: 28px 1fr;
+            gap: 8px;
+            align-items: center;
+        }
+
+        &__name {
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        &__text {
+            font-size: 14px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    }
+
     .media-content-nav {
+        transition: opacity .2s ease;
+
+        &--hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
         &__item {
-            position: fixed;
+            position: absolute;
             top: 0;
             bottom: 0;
             margin: auto;
@@ -208,19 +337,28 @@
             display: grid;
             place-content: center;
             z-index: 10;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, .35);
+            transition: background-color .15s ease, opacity .15s ease;
+
+            &:hover:not(:disabled) {
+                background-color: rgba(0, 0, 0, .6);
+            }
+
+            &:disabled {
+                opacity: .2;
+            }
 
             @media (max-width: 959px) {
-                position: absolute;
                 top: 8px;
                 bottom: auto;
                 width: 40px;
                 height: 40px;
                 background-color: rgba(0, 0, 0, .5);
-                border-radius: 50%;
             }
 
             &--prev {
-                left: 24px;
+                left: 12px;
 
                 @media (max-width: 959px) {
                     left: 8px;
@@ -228,7 +366,7 @@
             }
 
             &--next {
-                right: 24px;
+                right: 12px;
 
                 @media (max-width: 959px) {
                     right: auto;

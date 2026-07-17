@@ -10,9 +10,11 @@
       id: any;
       handle: any;
       title?: string;
+      seedFeed?: any[];
+      _agent?: any;
     }
 
-    let { id, handle = $bindable(), title = '', _agent = $agent }: Props = $props();
+    let { id, handle = $bindable(), title = '', seedFeed = [], _agent = $agent }: Props = $props();
     let columnId = $derived(`thread_${id}`);
     const columnState = getColumnState(true);
 
@@ -34,7 +36,7 @@
                 did: _agent.did(),
                 handle: _agent.handle(),
                 data: {
-                    feed: [],
+                    feed: seedFeed,
                     cursor: '',
                 }
             });
