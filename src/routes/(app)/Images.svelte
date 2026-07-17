@@ -1,4 +1,5 @@
 <script lang="ts">
+    import {getContext} from 'svelte';
     import {getViewImages, hasGalleryImages, LEGACY_IMAGES_EMBED_MAX} from "$lib/components/post/embedImages";
     import {settings, isDataSaving} from '$lib/stores';
     import GifImage from "$lib/components/post/GifImage.svelte";
@@ -35,6 +36,7 @@
 
     const galleryImages = toGalleryImages(images);
     const threadComicReader = $derived.by(() => buildThreadComicReader(threadContext));
+    const mediaView = getContext<{ uri: string; openPost?: (uri: string, index?: number) => boolean } | undefined>('mediaViewUri');
 
     let isFold = $state($settings?.design.postsImageLayout === 'folding' || $isDataSaving || folding);
 
@@ -163,6 +165,10 @@
     }
 
     function handleOpen(index: number) {
+      if (mediaView?.openPost && threadContext?.postUri && mediaView.openPost(threadContext.postUri, index)) {
+        return;
+      }
+
       let comicReaderImages = galleryImages;
       let comicReaderStartIndex = index;
 

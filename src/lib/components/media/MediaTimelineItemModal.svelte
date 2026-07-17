@@ -12,6 +12,7 @@
     import TimelineText from "$lib/components/post/TimelineText.svelte";
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
     import {modalState} from "$lib/classes/modalState.svelte";
+    import {getColumnState} from "$lib/classes/columnState.svelte";
     import ChevronLeft from '@lucide/svelte/icons/chevron-left';
     import ChevronRight from '@lucide/svelte/icons/chevron-right';
     import {contentLabelling, detectWarn} from "$lib/timelineFilter";
@@ -25,35 +26,63 @@
     let sheetMode = $state<'bar' | 'peek' | 'expanded'>('peek');
     let sheetReservedHeight = $state(0);
 
-    let imageIndex = $derived.by(() => {
-        void data.post.uri;
-        return 0;
+    const junkColumnState = getColumnState(true);
+
+    let overrideData = $derived.by((): { post: any } | null => {
+        void data;
+        return null;
     });
+    const current = $derived(overrideData ?? data);
+
+    let imageTarget = $state({ uri: '', index: 0 });
+    let imageIndex = $derived.by(() =>
+        current.post.uri === imageTarget.uri ? imageTarget.index : 0
+    );
 
     const mobileQuery = new MediaQuery('(max-width: 959px)');
     const isMobile = $derived(mobileQuery.current);
 
+    function hasPostImages(post: any): boolean {
+        return hasGalleryImages(post?.embed) || hasGalleryImages(post?.embed?.media);
+    }
+
+    function openThreadPost(uri: string, index: number = 0): boolean {
+        if (uri === current.post.uri) {
+            return true;
+        }
+
+        const item = junkColumnState.getFeed(`thread_${rkey}`).find((feedItem: any) => feedItem?.post?.uri === uri);
+        if (!item?.post || !hasPostImages(item.post)) {
+            return false;
+        }
+
+        imageTarget = { uri, index };
+        overrideData = { post: item.post };
+        return true;
+    }
+
     setContext('mediaViewUri', {
         get uri() {
-            return data.post.uri;
-        }
+            return current.post.uri;
+        },
+        openPost: openThreadPost
     });
 
-    const moderateData = $derived(contentLabelling(data.post, _agent.did(), $settings, appState.labelDefs.current));
+    const moderateData = $derived(contentLabelling(current.post, _agent.did(), $settings, appState.labelDefs.current));
     const isWarn = $derived(detectWarn(moderateData, 'contentList'));
 
     const viewImages = $derived.by(() => {
-        if (hasGalleryImages(data.post?.embed)) {
-            return getViewImages(data.post.embed);
+        if (hasGalleryImages(current.post?.embed)) {
+            return getViewImages(current.post.embed);
         }
-        if (hasGalleryImages(data.post?.embed?.media)) {
-            return getViewImages(data.post.embed.media);
+        if (hasGalleryImages(current.post?.embed?.media)) {
+            return getViewImages(current.post.embed.media);
         }
         return [];
     });
 
-    const rkey = $derived(data.post.uri.split('/').slice(-1)[0]);
-    const did = $derived(data.post.uri.split('/')[2]);
+    const rkey = $derived(current.post.uri.split('/').slice(-1)[0]);
+    const did = $derived(current.post.uri.split('/')[2]);
 
     function modalClose() {
         history.back();
@@ -137,7 +166,7 @@
       <TimelineWarn labels={isWarn.labels} behavior={isWarn.behavior}></TimelineWarn>
     {/if}
 
-    {#key data.post.uri}
+    {#key current.post.uri}
       <MediaLightbox images={viewImages} bind:index={imageIndex} bind:viewer onuichange={(visible) => uiVisible = visible} onclose={modalClose}></MediaLightbox>
     {/key}
 
@@ -162,24 +191,24 @@
         {#snippet peek()}
           <div class="media-sheet-peek">
             <div class="media-sheet-peek__profile">
-              <Avatar href="/profile/{ data.post.author.did }" avatar={data.post.author.avatar} profile={data.post.author} handle={data.post.author.handle} {_agent}></Avatar>
+              <Avatar href="/profile/{ current.post.author.did }" avatar={current.post.author.avatar} profile={current.post.author} handle={current.post.author.handle} {_agent}></Avatar>
 
-              <p class="media-sheet-peek__name">{data.post.author.displayName || data.post.author.handle}</p>
+              <p class="media-sheet-peek__name">{current.post.author.displayName || current.post.author.handle}</p>
             </div>
 
-            {#if data.post.record?.text}
+            {#if current.post.record?.text}
               <p class="media-sheet-peek__text">
-                <TimelineText record={data.post.record} {_agent} handle={data?.post?.author?.handle}></TimelineText>
+                <TimelineText record={current.post.record} {_agent} handle={current?.post?.author?.handle}></TimelineText>
               </p>
             {/if}
 
-            <ReactionButtons {_agent} post={data.post} reason={data?.reason}></ReactionButtons>
+            <ReactionButtons {_agent} post={current.post} reason={current?.reason}></ReactionButtons>
           </div>
         {/snippet}
 
         <div class="media-content__thread media-content__thread--sheet" data-junk-scroll>
-          {#key data.post.uri}
-            <ThreadView id={rkey} handle={did} seedFeed={[data]} {_agent}></ThreadView>
+          {#key current.post.uri}
+            <ThreadView id={rkey} handle={did} seedFeed={[current]} {_agent}></ThreadView>
           {/key}
         </div>
       </BottomSheet>
@@ -191,8 +220,8 @@
       </div>
 
       <div class="media-content__thread" data-junk-scroll>
-        {#key data.post.uri}
-          <ThreadView id={rkey} handle={did} seedFeed={[data]} {_agent}></ThreadView>
+        {#key current.post.uri}
+          <ThreadView id={rkey} handle={did} seedFeed={[current]} {_agent}></ThreadView>
         {/key}
       </div>
     </div>

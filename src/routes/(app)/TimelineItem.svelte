@@ -1,5 +1,6 @@
 <script lang="ts">
   import {_} from 'tokimeki-i18n'
+  import {getContext} from 'svelte';
   import Trash2 from '@lucide/svelte/icons/trash-2';
   import Languages from '@lucide/svelte/icons/languages';
   import Copy from '@lucide/svelte/icons/copy';
@@ -57,6 +58,7 @@
     const junkColumnState = getColumnState(true);
     const openThread = createThreadOpener();
     const postState = getPostState();
+    const mediaView = getContext<{ uri: string; openPost?: (uri: string, index?: number) => boolean } | undefined>('mediaViewUri');
 
     let isDialogRender = $state(false);
     let isEditDialogRender = $state(false);
@@ -296,12 +298,23 @@
             return false;
         }
 
-        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external') || event.target.closest('.likes-wrap') || event.target.closest('.dialog-modal') || event.target.closest('video') || event.target.closest('.video-player') || event.target.closest('.v2-modal') || event.target.closest('dialog')) {
+        if (event.target.closest('button') || event.target.closest('.profile-card') || event.target.closest('a') || event.target.closest('.timeline-external') || event.target.closest('.likes-wrap') || event.target.closest('.dialog-modal') || event.target.closest('video') || event.target.closest('.video-player') || event.target.closest('.v2-modal')) {
             return false;
         }
 
         const selectionText = window.getSelection()?.toString();
         if (selectionText) {
+            return false;
+        }
+
+        if (mediaView?.openPost) {
+            if (!mediaView.openPost(data.post.uri)) {
+                openThread(data, _agent);
+            }
+            return;
+        }
+
+        if (event.target.closest('dialog')) {
             return false;
         }
 
