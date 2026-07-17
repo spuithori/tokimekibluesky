@@ -47,11 +47,14 @@ export function parseSearchParams(searchParams: URLSearchParams): ParsedSearch {
         query = query.replace(/\blang:\S+/g, '').trim();
     }
 
-    const fromMatches = [...query.matchAll(/\bfrom:(\S+)/g)].map(m => m[1]);
-    if (fromMatches.length) {
-        const authors = new Set([...(filters.authors || []), ...fromMatches]);
-        filters.authors = [...authors];
-        query = query.replace(/\bfrom:\S+/g, '').trim();
+    const fromAuthors: string[] = [];
+    query = query.replace(/\bfrom:(\S+)/g, (match, value) => {
+        if (value === 'me') return match;
+        fromAuthors.push(value.startsWith('@') ? value.slice(1) : value);
+        return '';
+    });
+    if (fromAuthors.length) {
+        filters.authors = [...new Set([...(filters.authors || []), ...fromAuthors])];
     }
 
     query = query.replace(/\s{2,}/g, ' ').trim();

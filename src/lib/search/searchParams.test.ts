@@ -51,6 +51,20 @@ describe('searchParams', () => {
         expect(parsed.filters.authors).toEqual(['alice.bsky.social']);
     });
 
+    it('keeps from:me in the query verbatim instead of lifting it into authors', () => {
+        const parsed = parseSearchParams(new URLSearchParams('q=' + encodeURIComponent('cats from:me')));
+
+        expect(parsed.query).toBe('cats from:me');
+        expect(parsed.filters.authors).toBeUndefined();
+    });
+
+    it('strips a leading @ when lifting from: into authors', () => {
+        const parsed = parseSearchParams(new URLSearchParams('q=' + encodeURIComponent('cats from:@alice.bsky.social')));
+
+        expect(parsed.query).toBe('cats');
+        expect(parsed.filters.authors).toEqual(['alice.bsky.social']);
+    });
+
     it('treats a filters-only search as non-empty', () => {
         expect(isEmptySearch({ query: '', sort: 'latest', filters: {} })).toBe(true);
         expect(isEmptySearch({ query: '', sort: 'latest', filters: { excludeHashtags: ['a'] } })).toBe(false);
