@@ -1,33 +1,14 @@
-export type defaultDeckSettings = {
-    timeline?: {
-        hideRepost: 'all' | 'many' | 'soso' | 'less' | 'none' | null,
-        hideReply: 'all' | 'following' | 'me' | null,
-    },
-    langFilterEnabled?: boolean,
-    langFilter?: string[],
-    autoRefresh?: number,
-    refreshToTop?: boolean,
-    autoScroll?: boolean,
-    autoScrollSpeed?: 'auto' | 'slow' | 'normal' | 'fast',
-    width?: 'large' | 'medium' | 'small',
-    icon?: string | null,
-    hideCounts?: boolean,
-    notificationPriority?: boolean,
-    background?: string,
-    isPopup?: boolean,
-    popupPosition?: {
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-    },
-    opacity?: number,
-}
+import type {deckSettings} from "$lib/types/column";
+
+export type defaultDeckSettings = deckSettings;
 
 export const defaultDeckSettings: defaultDeckSettings = {
     timeline: {
         hideRepost: null,
         hideReply: null,
+        hideMention: null,
+        hideQuote: null,
+        simpleReply: null,
     },
     langFilterEnabled: false,
     langFilter: [],

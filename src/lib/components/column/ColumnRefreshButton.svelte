@@ -2,7 +2,9 @@
     import Radio from '@lucide/svelte/icons/radio';
     import {agent, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
     import {isVirtualTimelineEnabled} from "$lib/components/timeline/virtualGate";
-    import {onDestroy, tick} from "svelte";
+    import {trimFeedAtBorder} from "$lib/components/timeline/feedTrim";
+    import {onDestroy, tick, untrack} from "svelte";
+    import {refreshSignal} from "$lib/refreshSignal.svelte";
     import { watch } from "runed";
     import {claimNotificationChime, clearNotificationBadgesForDid, markNotificationsSeen, refreshNotificationColumn} from "$lib/components/notification/notificationPipeline";
     import {instantPlaySound, playSound} from "$lib/sounds";
@@ -300,25 +302,18 @@
     function releasePosts(feed) {
         const scrollTop = getScrollTop();
 
-        if (column.style === 'media') {
-            return false;
-        }
-
         if (isJunk && !isRefreshing) {
             return false;
         }
 
-        if (scrollTop === 0 && feed.length > 40) {
-            const borderItem = feed[39];
+        if (scrollTop !== 0) {
+            return false;
+        }
 
-            if (borderItem && borderItem.memoryCursor) {
-                const lastCursorIndex = feed.findLastIndex(item => item.memoryCursor === borderItem.memoryCursor);
-
-                if (lastCursorIndex !== -1) {
-                    columnState.updateFeed(column.id, f => { f.splice(lastCursorIndex + 1); });
-                    column.data.cursor = borderItem.memoryCursor;
-                }
-            }
+        const plan = trimFeedAtBorder(feed, column.style);
+        if (plan) {
+            columnState.updateFeed(column.id, f => { f.splice(plan.spliceStart); });
+            column.data.cursor = plan.cursor;
         }
     }
 
@@ -333,6 +328,22 @@
             refresh().catch((e) => console.error(e));
         }
     }
+
+    let lastRefreshSignal = -1;
+    $effect(() => {
+        const count = refreshSignal.count;
+        if (lastRefreshSignal === -1) {
+            lastRefreshSignal = count;
+            return;
+        }
+        if (count === lastRefreshSignal) {
+            return;
+        }
+        lastRefreshSignal = count;
+        untrack(() => {
+            refresh().catch((e) => console.error(e));
+        });
+    });
 
     function handleTimer(e) {
         if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0) {

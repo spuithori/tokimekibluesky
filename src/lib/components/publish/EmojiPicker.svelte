@@ -17,12 +17,7 @@
   onMount(async () => {
       const pickerOptions = {
           onEmojiSelect: handleEmojiPick,
-          data: async () => {
-            const response = await fetch(
-                'https://cdn.jsdelivr.net/npm/@emoji-mart/data',
-            );
-            return response.json();
-          },
+          data: async () => (await import('@emoji-mart/data')).default,
           locale: $locale,
           theme: theme,
           dynamicWidth: publishState.layout !== 'bottom',

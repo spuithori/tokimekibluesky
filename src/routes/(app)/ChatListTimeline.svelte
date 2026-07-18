@@ -2,6 +2,7 @@
     import {agent, workerTimer} from '$lib/stores';
     import {_} from 'tokimeki-i18n';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
+    import type {ConvoView} from "$lib/components/chat/chatTypes";
     import Infinite from "$lib/components/utils/Infinite.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {settingsState} from "$lib/classes/settingsState.svelte";
@@ -24,7 +25,7 @@
     const requestCount = $derived(chatState.getRequestCount((_agent || $agent)?.did?.()));
     let selectedConvoId: string | null = $state(null);
     let selectedConvoName: string = $state('');
-    let convos = $state([]);
+    let convos = $state<ConvoView[]>([]);
     let cursor = $state('');
     let listUnique = $state(Symbol());
     let lastCheckedTime = $state(Date.now());

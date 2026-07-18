@@ -1,10 +1,11 @@
 <script lang="ts">
+  import type {Column} from "$lib/types/column";
   import {settings} from "$lib/stores";
   import {onDestroy} from "svelte";
   import {imageState} from "$lib/classes/imageState.svelte";
 
   interface Props {
-    column: any;
+    column: Column;
     index: any;
     unique: any;
     isTopScrolling?: boolean;

@@ -41,10 +41,6 @@ export function getTwitterUrl(uri: string) {
     }
 }
 
-export function getMastodonUrl(uri: string) {
-
-}
-
 export function getSpotifyUri(uri: string) {
     try {
         const url = new URL(uri);

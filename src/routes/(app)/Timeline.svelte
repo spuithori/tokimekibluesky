@@ -13,6 +13,7 @@
   import Infinite from "$lib/components/utils/Infinite.svelte";
   import VirtualTimeline from "$lib/components/timeline/VirtualTimeline.svelte";
   import {isVirtualTimelineEnabled} from "$lib/components/timeline/virtualGate";
+  import {trimFeedAtBorder} from "$lib/components/timeline/feedTrim";
   import {makeFeedKeys} from "$lib/components/timeline/feedKeys";
 
   let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
@@ -116,19 +117,15 @@
   function releaseOldPosts() {
       const scrollEl = getReleaseScrollElement();
       const scrollTop = scrollEl?.scrollTop ?? 0;
-      const feed = columnState.getFeed(column.id);
 
-      if (scrollTop !== 0 || feed.length <= 40) {
+      if (scrollTop !== 0) {
           return;
       }
 
-      const borderItem = feed[39];
-      if (borderItem?.memoryCursor) {
-          const lastCursorIndex = feed.findLastIndex(item => item.memoryCursor === borderItem.memoryCursor);
-          if (lastCursorIndex !== -1) {
-              columnState.updateFeed(column.id, f => { f.splice(lastCursorIndex + 1); });
-              column.data.cursor = borderItem.memoryCursor;
-          }
+      const plan = trimFeedAtBorder(columnState.getFeed(column.id), column.style);
+      if (plan) {
+          columnState.updateFeed(column.id, f => { f.splice(plan.spliceStart); });
+          column.data.cursor = plan.cursor;
       }
   }
 

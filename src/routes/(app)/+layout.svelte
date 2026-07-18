@@ -135,13 +135,19 @@
         });
     }
 
-    if (navigator.connection) {
-        navigator.connection.addEventListener("change", () => {
+    $effect(() => {
+        if (!navigator.connection) {
+            return;
+        }
+
+        const handleConnectionChange = () => {
             isMobileDataConnection.set(
                 navigator.connection.type === "cellular",
             );
-        });
-    }
+        };
+        navigator.connection.addEventListener("change", handleConnectionChange);
+        return () => navigator.connection.removeEventListener("change", handleConnectionChange);
+    });
 
     $effect(() => {
         const language = settingsStore.general?.language || window.navigator.language;

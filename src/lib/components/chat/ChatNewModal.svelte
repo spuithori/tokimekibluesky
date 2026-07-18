@@ -13,12 +13,14 @@
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {toast} from "svelte-sonner";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {createDebouncedSearch} from "$lib/typeaheadSearch";
+    import type {ProfileViewBasic} from "$lib/types/atproto";
+    import {onDestroy} from "svelte";
 
     let { _agent = $agent, convos, onclose } = $props();
     let mode: 'direct' | 'group' = $state('direct');
     let search = $state('');
-    let actors = $state([]);
-    let timer;
+    let actors = $state<ProfileViewBasic[]>([]);
 
     let groupName = $state('');
     let groupMembers = $state<any[]>([]);
@@ -35,13 +37,21 @@
 
     const columnState = getColumnState(true);
 
-    async function handleKeyDown() {
-        clearTimeout(timer);
-        timer = setTimeout(async () => {
-            const res = await _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term: search, limit: 10})
-            actors = res.actors;
-        }, 250);
+    const actorSearch = createDebouncedSearch(
+        (term, signal) => _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term, limit: 10}, {signal}),
+        {
+            onResult: (res) => { actors = res.actors; },
+            onClear: () => { actors = []; },
+        },
+    );
+
+    function handleKeyDown() {
+        actorSearch.run(search);
     }
+
+    onDestroy(() => {
+        actorSearch.cancel();
+    });
 
     function openConvo(convo) {
         if (!columnState.hasColumn('chat_' + convo.id)) {

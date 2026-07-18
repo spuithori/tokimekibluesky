@@ -262,7 +262,7 @@
     function deleteColumn() {
         if (isSplit) {
             columnState.unsplitColumnAt(index, false);
-            onclose(true);
+            onclose(false);
             return;
         }
         if ($currentTimeline === index) {

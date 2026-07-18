@@ -1,6 +1,8 @@
 <script lang="ts">
     import {agent, userLists} from '$lib/stores';
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
+    import {createDebouncedSearch} from "$lib/typeaheadSearch";
+    import type {ProfileView, ProfileViewBasic} from "$lib/types/atproto";
     import ListMember from "./ListMember.svelte";
     import {createEventDispatcher} from 'svelte';
     import { toast } from "svelte-sonner";
@@ -22,10 +24,9 @@
   let { _agent = $agent, id = new Date().getTime().toString() } = $props();
     let name = $state('');
     let owner = '';
-    let members = $state([]);
+    let members = $state<ProfileView[]>([]);
     let search = $state('');
-    let searchMembers = $state([]);
-    let timer;
+    let searchMembers = $state<ProfileViewBasic[]>([]);
     let currentIndex = 0;
     let ready = $state(false);
     let exportText = $state();
@@ -74,13 +75,21 @@
         userLists.set(lists);
     }
 
-    async function handleKeyDown() {
-        clearTimeout(timer);
-        timer = setTimeout(async () => {
-            const res = await _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term: search, limit: 10})
-            searchMembers = res.actors;
-        }, 250)
+    const memberSearch = createDebouncedSearch(
+        (term, signal) => _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term, limit: 10}, {signal}),
+        {
+            onResult: (res) => { searchMembers = res.actors; },
+            onClear: () => { searchMembers = []; },
+        },
+    );
+
+    function handleKeyDown() {
+        memberSearch.run(search);
     }
+
+    onDestroy(() => {
+        memberSearch.cancel();
+    });
 
     function handleDelete(event) {
         members = members.filter(member => {

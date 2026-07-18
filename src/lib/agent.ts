@@ -102,7 +102,7 @@ export class Agent {
         return res.did;
     }
 
-    async getProfile(actor: string): Promise<any> {
+    async getProfile(actor: string) {
         return await this.xrpc.get('app.bsky.actor.getProfile', { actor });
     }
 

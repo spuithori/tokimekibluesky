@@ -1,9 +1,10 @@
 <script lang="ts">
+  import type {Column} from "$lib/types/column";
   import DeckRow from "./DeckRow.svelte";
   import { draggable, type DragEventData } from "$lib/attachments/draggable.svelte";
 
   interface Props {
-    column: any;
+    column: Column;
     index?: number;
   }
 

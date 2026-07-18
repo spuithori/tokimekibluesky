@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import type {SessionData as AtpSessionData} from '$lib/password-session';
 import type {Theme} from "$lib/types/theme";
+import type {Column} from "$lib/types/column";
 
 export interface Feed {
     id?: number;
@@ -62,7 +63,7 @@ export interface Profile {
     createdAt: string,
     accounts: number[],
     primary: number | null,
-    columns: any[],
+    columns: Column[],
     appViewProxy?: string,
 }
 

@@ -1,6 +1,8 @@
 <script lang="ts">
     import {agent} from '$lib/stores';
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
+    import {createDebouncedSearch} from "$lib/typeaheadSearch";
+    import type {GeneratorView, ProfileView, ProfileViewBasic} from "$lib/types/atproto";
     import ListMember from "$lib/components/list/ListMember.svelte";
     import { toast } from "svelte-sonner";
     import {_} from "tokimeki-i18n";
@@ -21,15 +23,13 @@
 
     let name = $state('');
     let description = $state('');
-    let members = $state([]);
+    let members = $state<ProfileView[]>([]);
     let existingMembers = $state([]);
-    let feeds = $state([]);
+    let feeds = $state<GeneratorView[]>([]);
     let search = $state('');
     let feedSearch = $state('');
-    let searchMembers = $state([]);
-    let searchFeeds = $state([]);
-    let timer;
-    let feedTimer;
+    let searchMembers = $state<ProfileViewBasic[]>([]);
+    let searchFeeds = $state<GeneratorView[]>([]);
     let ready = $state(false);
     let listUri = $state('');
 
@@ -90,25 +90,34 @@
         return items;
     }
 
-    async function handleKeyDown() {
-        clearTimeout(timer);
-        timer = setTimeout(async () => {
-            const res = await _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term: search, limit: 10})
-            searchMembers = res.actors;
-        }, 250)
+    const memberSearch = createDebouncedSearch(
+        (term, signal) => _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term, limit: 10}, {signal}),
+        {
+            onResult: (res) => { searchMembers = res.actors; },
+            onClear: () => { searchMembers = []; },
+        },
+    );
+
+    function handleKeyDown() {
+        memberSearch.run(search);
     }
 
-    async function handleFeedKeyDown() {
-        clearTimeout(feedTimer);
-        feedTimer = setTimeout(async () => {
-            if (!feedSearch.trim()) {
-                searchFeeds = [];
-                return;
-            }
-            const res = await _agent.xrpc.get('app.bsky.unspecced.getPopularFeedGenerators', {query: feedSearch, limit: 10});
-            searchFeeds = res.feeds;
-        }, 250)
+    const feedSearchRunner = createDebouncedSearch(
+        (query, signal) => _agent.xrpc.get('app.bsky.unspecced.getPopularFeedGenerators', {query, limit: 10}, {signal}),
+        {
+            onResult: (res) => { searchFeeds = res.feeds; },
+            onClear: () => { searchFeeds = []; },
+        },
+    );
+
+    function handleFeedKeyDown() {
+        feedSearchRunner.run(feedSearch);
     }
+
+    onDestroy(() => {
+        memberSearch.cancel();
+        feedSearchRunner.cancel();
+    });
 
     function handleDelete(event) {
         members = members.filter(member => member.did !== event.detail.member.did);

@@ -1,4 +1,5 @@
 import type { searchFilters } from '$lib/search/filterSpec';
+import type { ScrollState } from '$lib/components/virtual/types';
 export type { searchFilters };
 
 export type currentAlgorithm = {
@@ -10,7 +11,7 @@ export type currentAlgorithm = {
     searchFilters?: searchFilters,
 }
 
-type deckSettings = {
+export type deckSettings = {
     timeline?: {
         hideRepost: 'all' | 'many' | 'soso' | 'less' | 'none' | null,
         hideReply: 'all' | 'following' | 'me' | null,
@@ -35,8 +36,8 @@ type deckSettings = {
     popupPosition?: {
         x: number,
         y: number,
-        width: number,
-        height: number,
+        width?: number,
+        height?: number,
     },
     opacity?: number,
     collapse?: boolean,
@@ -56,9 +57,13 @@ export type Column = {
     settings: deckSettings,
     data: {
         feed?: any[],
-        cursor: string | number,
+        cursor?: string | number,
         hitsTotal?: number,
-        scrollState?: unknown,
+        scrollState?: ScrollState,
+        _heightCache?: [string, number][],
+        _heightCacheWidth?: number,
+        activeTab?: string,
+        starterPackCache?: any,
     },
     scrollElement?: HTMLDivElement,
     splitColumn?: Column,

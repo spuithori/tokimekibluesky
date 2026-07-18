@@ -17,6 +17,41 @@ type AcquireOptions = {
 
 const instances = new Map<string, Entry>();
 
+const MAX_TRANSLATOR_INSTANCES = 3;
+
+function touchInstanceEntry(key: string, entry: Entry): void {
+    instances.delete(key);
+    instances.set(key, entry);
+}
+
+function storeInstance(key: string, instance: Translator): void {
+    instances.delete(key);
+    instances.set(key, { instance });
+    evictOverflowInstances();
+}
+
+function evictOverflowInstances(): void {
+    let liveCount = 0;
+    for (const entry of instances.values()) {
+        if (entry.instance) liveCount++;
+    }
+    if (liveCount <= MAX_TRANSLATOR_INSTANCES) {
+        return;
+    }
+
+    for (const [key, entry] of instances) {
+        if (!entry.instance) continue;
+        try {
+            entry.instance.destroy();
+        } catch (e) {}
+        instances.delete(key);
+        liveCount--;
+        if (liveCount <= MAX_TRANSLATOR_INSTANCES) {
+            return;
+        }
+    }
+}
+
 const MAX_CONCURRENT = 2;
 let activeCount = 0;
 const waiters: Array<() => void> = [];
@@ -137,6 +172,7 @@ async function acquireTranslator(
         return null;
     }
     if (existing?.instance) {
+        touchInstanceEntry(key, existing);
         return existing.instance;
     }
     if (existing?.promise) {
@@ -171,7 +207,7 @@ async function acquireTranslator(
             }
 
             const instance = await self.Translator.create(createOptions);
-            instances.set(key, { instance });
+            storeInstance(key, instance);
             translatorReady.update((n) => n + 1);
             return instance;
         } catch (e) {
@@ -201,7 +237,10 @@ export function warmUpTranslator(
 
     const key = `${s}->${t}`;
     const existing = instances.get(key);
-    if (existing?.instance) return Promise.resolve("ready");
+    if (existing?.instance) {
+        touchInstanceEntry(key, existing);
+        return Promise.resolve("ready");
+    }
     if (existing?.unavailable) return Promise.resolve("unavailable");
 
     const settle = (instance: Translator | null) =>
@@ -229,7 +268,7 @@ export function warmUpTranslator(
 
     const promise = self.Translator.create(createOptions)
         .then((instance) => {
-            instances.set(key, { instance });
+            storeInstance(key, instance as Translator);
             translatorReady.update((n) => n + 1);
             return instance as Translator;
         })

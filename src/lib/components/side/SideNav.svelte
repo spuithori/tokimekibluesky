@@ -24,11 +24,13 @@
   import {type SideItem, sideState} from "$lib/classes/sideState.svelte";
   import { goto } from "$app/navigation";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import type {Column} from "$lib/types/column";
   import SideBluecast from "$lib/components/side/SideBluecast.svelte";
   import SideNotification from "$lib/components/side/SideNotification.svelte";
   import SideColumns from "$lib/components/side/SideColumns.svelte";
   import SideTopic from "$lib/components/side/SideTopic.svelte";
   import {chatState} from "$lib/classes/chatState.svelte";
+  import {refreshSignal} from "$lib/refreshSignal.svelte";
   import SideWorkspace from "$lib/components/side/SideWorkspace.svelte";
 
   let { footer = false } = $props();
@@ -39,10 +41,9 @@
   let isColumnsModalOpen = $state(false);
   let isTopicModalOpen = $state(false);
   let isMenuOpen = $state(false);
-  let refreshTimeout = $state(false);
   const columnState = getColumnState();
 
-  function handleMenuAction(item: SideItem) {
+  async function handleMenuAction(item: SideItem) {
       isMenuOpen = false;
 
       switch (item) {
@@ -92,10 +93,8 @@
             isTopicModalOpen = !isTopicModalOpen
             break;
           case 'tokmek':
-            goto('/');
-            setTimeout(() => {
-              goto('/profile/did:plc:z72i7hdynmk6r22z27h6tvur/feed/thevids');
-            }, 250);
+            await goto('/');
+            await goto('/profile/did:plc:z72i7hdynmk6r22z27h6tvur/feed/thevids');
             sideState.isTokStart = true;
             break;
           case 'viewer':
@@ -105,26 +104,10 @@
   }
 
   function handleRefresh() {
-      if (refreshTimeout) {
-          return false;
-      }
-      refreshTimeout = true;
-
-      const character = 'r';
-      const keyboardEvent = new KeyboardEvent('keydown', {
-          key: character,
-          code: character.toUpperCase(),
-          bubbles: true,
-          cancelable: true,
-      });
-      document.dispatchEvent(keyboardEvent);
-
-      setTimeout(() => {
-          refreshTimeout = false;
-      }, 3000);
+      refreshSignal.bump();
   }
 
-  function handleViewColumn(column: any, index: number) {
+  function handleViewColumn(column: Column, index: number) {
     if ($settings.design.layout === 'decks') {
       if (column.scrollElement) {
         column.scrollElement.scrollIntoView({inline: 'end', behavior: 'instant'});
@@ -163,7 +146,7 @@
         {:else if (item === 'profile')}
           <UserRound color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></UserRound>
         {:else if (item === 'refresher')}
-          <RefreshCcw color={refreshTimeout ? 'var(--border-color-1)' : 'var(--nav-secondary-icon-color)'} strokeWidth="var(--icon-stroke-width, 2px)"></RefreshCcw>
+          <RefreshCcw color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></RefreshCcw>
         {:else if (item === 'scroll-top')}
           <CircleArrowUp color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></CircleArrowUp>
         {:else if (item === 'bluecast')}

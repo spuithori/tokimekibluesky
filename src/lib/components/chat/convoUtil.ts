@@ -1,4 +1,5 @@
 import {getSystemMessageContent} from "$lib/components/chat/systemMessageText";
+import type {ChatMessageView, ConvoMember, ConvoView} from "$lib/components/chat/chatTypes";
 
 export const GROUP_CONVO_TYPE = 'chat.bsky.convo.defs#groupConvo';
 export const GROUP_MEMBER_TYPE = 'chat.bsky.actor.defs#groupConvoMember';
@@ -19,49 +20,49 @@ export type LastMessagePreview = {
     values?: Record<string, string>;
 };
 
-export function isGroupConvo(convo: any): boolean {
+export function isGroupConvo(convo: ConvoView | undefined | null): boolean {
     return convo?.kind?.$type === GROUP_CONVO_TYPE;
 }
 
-export function getOtherMembers(convo: any, myDid: string | undefined): any[] {
+export function getOtherMembers(convo: ConvoView | undefined | null, myDid: string | undefined): ConvoMember[] {
     return convo?.members?.filter(member => member.did !== myDid) || [];
 }
 
-export function getConvoName(convo: any, myDid: string | undefined): string {
+export function getConvoName(convo: ConvoView | undefined | null, myDid: string | undefined): string {
     if (isGroupConvo(convo)) {
-        return convo.kind.name || '';
+        return convo?.kind?.name || '';
     }
 
     const other = getOtherMembers(convo, myDid)[0];
     return other?.displayName || other?.handle || '';
 }
 
-export function getConvoAvatarMembers(convo: any, myDid: string | undefined, max: number = 2): any[] {
+export function getConvoAvatarMembers(convo: ConvoView | undefined | null, myDid: string | undefined, max: number = 2): ConvoMember[] {
     return getOtherMembers(convo, myDid).slice(0, max);
 }
 
-export function getConvoMemberCount(convo: any): number {
-    return isGroupConvo(convo) ? convo.kind.memberCount : (convo?.members?.length || 0);
+export function getConvoMemberCount(convo: ConvoView | undefined | null): number {
+    return isGroupConvo(convo) ? (convo?.kind?.memberCount ?? 0) : (convo?.members?.length || 0);
 }
 
-export function getMyRole(convo: any, myDid: string | undefined): 'owner' | 'standard' | undefined {
+export function getMyRole(convo: ConvoView | undefined | null, myDid: string | undefined): 'owner' | 'standard' | undefined {
     const me = convo?.members?.find(member => member.did === myDid);
     return me?.kind?.$type === GROUP_MEMBER_TYPE ? me.kind.role : undefined;
 }
 
-export function getMemberRole(member: any): 'owner' | 'standard' | undefined {
+export function getMemberRole(member: ConvoMember | undefined | null): 'owner' | 'standard' | undefined {
     return member?.kind?.$type === GROUP_MEMBER_TYPE ? member.kind.role : undefined;
 }
 
-export function isConvoLocked(convo: any): boolean {
-    return isGroupConvo(convo) && convo.kind.lockStatus !== 'unlocked';
+export function isConvoLocked(convo: ConvoView | undefined | null): boolean {
+    return isGroupConvo(convo) && convo?.kind?.lockStatus !== 'unlocked';
 }
 
-export function isLockedPermanently(convo: any): boolean {
-    return isGroupConvo(convo) && convo.kind.lockStatus === 'locked-permanently';
+export function isLockedPermanently(convo: ConvoView | undefined | null): boolean {
+    return isGroupConvo(convo) && convo?.kind?.lockStatus === 'locked-permanently';
 }
 
-export function isBlockedDirectConvo(convo: any, myDid: string | undefined): boolean {
+export function isBlockedDirectConvo(convo: ConvoView | undefined | null, myDid: string | undefined): boolean {
     if (isGroupConvo(convo)) {
         return false;
     }
@@ -69,7 +70,7 @@ export function isBlockedDirectConvo(convo: any, myDid: string | undefined): boo
     return !!getOtherMembers(convo, myDid)[0]?.viewer?.blocking;
 }
 
-export function resolveMemberName(convo: any, did: string | undefined): string {
+export function resolveMemberName(convo: ConvoView | undefined | null, did: string | undefined): string {
     if (!did) {
         return '';
     }
@@ -78,11 +79,11 @@ export function resolveMemberName(convo: any, did: string | undefined): string {
     return member?.displayName || member?.handle || '';
 }
 
-export function createNameResolver(convo: any, fallback: string): (did?: string) => string {
+export function createNameResolver(convo: ConvoView | undefined | null, fallback: string): (did?: string) => string {
     return (did?: string) => resolveMemberName(convo, did) || fallback;
 }
 
-export function getLastMessagePreview(convo: any, resolveName: (did?: string) => string): LastMessagePreview | undefined {
+export function getLastMessagePreview(convo: ConvoView | undefined | null, resolveName: (did?: string) => string): LastMessagePreview | undefined {
     const last = convo?.lastMessage;
 
     if (!last) {
@@ -101,8 +102,8 @@ export function getLastMessagePreview(convo: any, resolveName: (did?: string) =>
 }
 
 export function createMemberNameResolver(
-    members: Record<string, any>,
-    convo: any,
+    members: Record<string, ConvoMember>,
+    convo: ConvoView | undefined | null,
     fallback = '',
 ): (did?: string) => string {
     return (did?: string) => {
@@ -110,13 +111,13 @@ export function createMemberNameResolver(
             return fallback;
         }
 
-        const member = members?.[did] ?? convo?.members?.find((m: any) => m.did === did);
+        const member = members?.[did] ?? convo?.members?.find((m) => m.did === did);
         return member?.displayName || member?.handle || fallback;
     };
 }
 
 export function getReplyPreview(
-    replyTo: any,
+    replyTo: ChatMessageView | undefined | null,
     resolveName: (did?: string) => string,
 ): { name: string; text?: string; key?: string } | undefined {
     if (!replyTo) {

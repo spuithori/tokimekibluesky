@@ -201,10 +201,20 @@
     const newUpTail = Math.min(newEnd, p);
     const downHeadDelta = newDownHead - oldDownHead;
     const upTailDelta = newUpTail - oldUpTail;
+    const upBecomesNonEmpty = oldUpTail <= oldStart && newUpTail > newStart;
+    const foldSeamOffset = () => {
+      if (upBecomesNonEmpty && downOffset !== 0) {
+        B += downOffset;
+        downOffset = 0;
+        growCanvas(requiredCanvasHeight());
+        flushSync();
+      }
+    };
 
     if (downHeadDelta === 0 && upTailDelta === 0) {
       rangeStart = newStart;
       rangeEnd = newEnd;
+      foldSeamOffset();
       return;
     }
 
@@ -244,6 +254,7 @@
         flushSync();
       }
     }
+    foldSeamOffset();
   }
 
   function rebuildAtView(anchorOverride?: { key: string; y0: number } | null): void {
@@ -431,6 +442,11 @@
     const prevRs = rangeStart;
     const prevRe = rangeEnd;
     applyRange(ns, ne);
+    if (rangeStart < Math.min(rangeEnd, pivotIndex) && downOffset !== 0) {
+      B += downOffset;
+      downOffset = 0;
+      flushSync();
+    }
     growCanvas(requiredCanvasHeight());
     const rangeChanged = rangeStart !== prevRs || rangeEnd !== prevRe;
     if (!rangeChanged && rangeEnd >= items.length && rangeEnd > rangeStart && !hasBelowCanvasContent()) {

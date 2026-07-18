@@ -1,6 +1,7 @@
+import type {Column} from "$lib/types/column";
 import { settingsStore } from '$lib/settings/settings.svelte';
 
-export function isVirtualTimelineEnabled(column: any): boolean {
+export function isVirtualTimelineEnabled(column: Column): boolean {
   try {
     if (typeof localStorage !== 'undefined' && localStorage.getItem('vlDisable') === '1') return false;
   } catch {}

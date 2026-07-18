@@ -23,6 +23,8 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import AvatarAgentsSelector from "$lib/components/acp/AvatarAgentsSelector.svelte";
     import {setAgentContext} from "./state.svelte";
+    import {setProfileRefreshContext} from "$lib/classes/profileRefreshContext.svelte";
+    import Refresher from "$lib/components/utils/Refresher.svelte";
     import {profileHintState} from "$lib/classes/profileHintState.svelte";
     import {untrack} from "svelte";
     import UserNotification from "./UserNotification.svelte";
@@ -45,6 +47,7 @@
     let handle = $derived($page.params.handle);
     let _agent = $state($agent);
     let agentContext = setAgentContext(_agent);
+    let profileRefreshContext = setProfileRefreshContext();
     let currentPage = $derived.by(() => {
         try {
             const paths = data.url.pathname.split('/');
@@ -104,7 +107,7 @@
             }
         })
 
-        _agent.xrpc.get('app.bsky.actor.getProfile', {actor: handle})
+        return _agent.xrpc.get('app.bsky.actor.getProfile', {actor: handle})
             .then(res => {
                 profile = res
                 isLabeler = !!profile?.associated?.labeler;
@@ -118,6 +121,19 @@
 
     function handleRefresh() {
         getProfile(handle, false);
+    }
+
+    async function handlePullRefresh(event: { complete: () => void }) {
+        try {
+            await Promise.all([
+                getProfile(handle, false),
+                profileRefreshContext.refresh?.(),
+            ]);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            event.complete();
+        }
     }
 
     async function chatBegin() {
@@ -200,7 +216,7 @@
                 <Search size={20} color="var(--text-color-1)" />
               </a>
             {:else if (isLabeler && profile?.did)}
-              
+
             {:else}
               <div class="profile-follow-button profile-follow-button--me">
                 <button class="button button--sm" onclick={() => {isEditOpen = !isEditOpen}}>{$_('edit_profile_button')}</button>
@@ -232,7 +248,14 @@
         </a>
       </div>
 
-      <div class="user-profile-wrap">
+      <Refresher
+          onrefresh={handlePullRefresh}
+          refresherHeight={80}
+          pullMin={80}
+          pullMax={160}
+          disabled={$settings.design?.layout === 'default'}
+      >
+        <div class="user-profile-wrap">
         {#if profile}
           <UserProfile {handle} {profile} {isLabeler} {_agent} onrefresh={handleRefresh}>
             {#if (profile.did !== _agent.did() && !isLabeler)}
@@ -289,9 +312,10 @@
         {/if}
       </ul>
 
-      {#key agentContext.agent}
-        {@render children?.()}
-      {/key}
+        {#key agentContext.agent}
+          {@render children?.()}
+        {/key}
+      </Refresher>
     </section>
   </PageModal>
 {/key}

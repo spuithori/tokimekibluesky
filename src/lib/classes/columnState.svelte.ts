@@ -109,7 +109,7 @@ export class ColumnState {
             if (!this.isColumnsLoaded || this.isReordering) return;
 
             accountsDb.profiles.update(appState.profile.current, {
-                columns: $state.snapshot(this.syncColumns),
+                columns: $state.snapshot(this.syncColumns) as unknown as Column[],
             });
         });
     }
@@ -121,7 +121,7 @@ export class ColumnState {
             if (column.did === did && column.handle !== handle) {
                 column.handle = handle;
             }
-            const split = (column as any).splitColumn;
+            const split = column.splitColumn;
             if (split?.did === did && split.handle !== handle) {
                 split.handle = handle;
             }
@@ -134,7 +134,7 @@ export class ColumnState {
             if (fresh && column.handle !== fresh) {
                 column.handle = fresh;
             }
-            const split = (column as any).splitColumn;
+            const split = column.splitColumn;
             if (split) {
                 const splitFresh = appState.getFreshHandle(split.did);
                 if (splitFresh && split.handle !== splitFresh) {
@@ -152,16 +152,21 @@ export class ColumnState {
               const cols = res?.columns || [];
               const feedEntries: Record<string, any[]> = {};
               for (const col of cols) {
-                  if (col.data) col.data.scrollState = undefined;
-                  if (col.data?.feed?.length > 0 && col.id) {
-                      feedEntries[col.id] = col.data.feed;
-                      col.data.feed = [];
+                  if (col.data) {
+                      col.data.scrollState = undefined;
+                      const feed = col.data.feed;
+                      if (feed && feed.length > 0 && col.id) {
+                          feedEntries[col.id] = feed;
+                          col.data.feed = [];
+                      }
                   }
-                  if ((col as any).splitColumn?.data) {
-                      (col as any).splitColumn.data.scrollState = undefined;
-                      if ((col as any).splitColumn.data?.feed?.length > 0 && (col as any).splitColumn.id) {
-                          feedEntries[(col as any).splitColumn.id] = (col as any).splitColumn.data.feed;
-                          (col as any).splitColumn.data.feed = [];
+                  const split = col.splitColumn;
+                  if (split?.data) {
+                      split.data.scrollState = undefined;
+                      const splitFeed = split.data.feed;
+                      if (splitFeed && splitFeed.length > 0 && split.id) {
+                          feedEntries[split.id] = splitFeed;
+                          split.data.feed = [];
                       }
                   }
               }
@@ -191,6 +196,13 @@ export class ColumnState {
     }
 
     remove(id: string) {
+        const column = this.columns.find(column => column.id === id);
+        const splitId = column?.splitColumn?.id;
+        if (splitId) {
+            this.deleteFeed(splitId);
+            this.clearFeedStatus(splitId);
+            deleteNotificationLedger(splitId);
+        }
         this.deleteFeed(id);
         this.clearFeedStatus(id);
         deleteNotificationLedger(id);
@@ -199,6 +211,10 @@ export class ColumnState {
 
     removeAll() {
         for (const column of this.columns) {
+            const splitId = column?.splitColumn?.id;
+            if (splitId) {
+                deleteNotificationLedger(splitId);
+            }
             deleteNotificationLedger(column.id);
         }
         this.columns.length = 0;
@@ -247,6 +263,7 @@ export class ColumnState {
                 deleteNotificationLedger(oldSplitId);
             }
             this.deleteFeed(oldSplitId);
+            this.clearFeedStatus(oldSplitId);
             column.splitColumn = undefined;
             column.splitRatio = undefined;
         }

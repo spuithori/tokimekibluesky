@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {accountsDb} from "$lib/db";
   import {onMount} from "svelte";
+  import {createAccountProfileLoader} from "$lib/components/acp/accountProfileLoader.svelte";
 
   interface Props {
     agent: any;
@@ -10,29 +10,10 @@
 
   let { agent, key, isCurrent = false, onselect }: Props = $props();
 
-  let avatar = $state();
-  let displayName = $state();
+  const { profile, loadFresh } = createAccountProfileLoader(() => agent, () => key);
 
-  accountsDb.accounts.get(key)
-      .then(value => {
-          avatar = value?.avatar;
-          displayName = value?.name;
-      })
-
-  onMount(async () => {
-      try {
-          const profile = await agent.xrpc.get('app.bsky.actor.getProfile', {actor: agent.did() as string});
-
-          avatar = profile?.avatar || '';
-          displayName = profile?.displayName || '';
-
-          accountsDb.accounts.update(key, {
-              avatar: avatar,
-              name: displayName,
-          });
-      } catch (e) {
-          console.error(e);
-      }
+  onMount(() => {
+      loadFresh();
   })
 </script>
 
@@ -43,13 +24,13 @@
      onclick={onselect}
 >
   <div class="avatar-agents-selector-item__avatar">
-    {#if (avatar)}
-      <img loading="lazy" src={avatar} alt="">
+    {#if (profile.avatar)}
+      <img loading="lazy" src={profile.avatar} alt="">
     {/if}
   </div>
 
   <div class="avatar-agents-selector-item__content">
-    <p class="avatar-agents-selector-item__name">{displayName || '読み込みちゅう…'}</p>
+    <p class="avatar-agents-selector-item__name">{profile.displayName || '読み込みちゅう…'}</p>
     <p class="avatar-agents-selector-item__handle">@{agent.handle()}</p>
   </div>
 </div>

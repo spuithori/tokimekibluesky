@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type {Column} from "$lib/types/column";
   import {onDestroy} from "svelte";
   import {_} from "tokimeki-i18n";
   import {beforeNavigate} from '$app/navigation';
@@ -26,7 +27,7 @@
     onScrollStateSave,
     onScrollStateClear,
   }: {
-    column: any;
+    column: Column;
     _agent: any;
     isJunk?: boolean;
     unique: any;
@@ -44,8 +45,9 @@
   let initialScrollState = $state<ScrollState | null>(
     column.data?.scrollState ?? null
   );
-  if (initialScrollState && (!initialScrollState.heights || initialScrollState.heights.length === 0) && column.data?._heightCache?.length > 0) {
-    initialScrollState = { ...initialScrollState, heights: column.data._heightCache, heightsWidth: column.data._heightCacheWidth };
+  const cachedHeights = column.data?._heightCache;
+  if (initialScrollState && (!initialScrollState.heights || initialScrollState.heights.length === 0) && cachedHeights && cachedHeights.length > 0) {
+    initialScrollState = { ...initialScrollState, heights: cachedHeights, heightsWidth: column.data?._heightCacheWidth };
   }
   if (column.data?.scrollState) onScrollStateClear?.();
 

@@ -455,7 +455,7 @@
 
         try {
             const res = await _agent.xrpc.get('com.atproto.repo.getRecord', {repo: _agent.did(), collection: 'app.bsky.feed.postgate', rkey: rkey});
-            const value = res.value;
+            const value = res.value as { detachedEmbeddingUris?: string[]; embeddingRules?: any[] } | undefined;
             detachedEmbeddingUris = value?.detachedEmbeddingUris || [];
             embeddingRules = value?.embeddingRules || [];
         } catch (e) {

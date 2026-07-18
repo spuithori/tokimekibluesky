@@ -234,11 +234,6 @@ class AppState {
             this.reportAuthRequired(account);
         }
 
-        if (phase === 'resumed') {
-            setTimeout(() => {
-                this.setPdsRequestReady();
-            }, 1000);
-        }
     }
 
     private handleAccountResolved(account: Account, outcome: ResumeOutcome) {
@@ -253,6 +248,7 @@ class AppState {
         }
 
         agents.update(map => new Map(map).set(account.id!, outcome.agent));
+        this.setPdsRequestReady();
     }
 
     private completeBoot(primaryAgent: Agent) {

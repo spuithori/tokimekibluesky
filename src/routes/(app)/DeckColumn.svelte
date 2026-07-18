@@ -23,9 +23,11 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
     import {clearNotificationBadgesForDid, markAllNotificationsRead, resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
+    import {resetColumnForRefresh} from "$lib/components/column/forceRefresh";
+    import type {Column} from "$lib/types/column";
 
     interface Props {
-        column: any;
+        column: Column;
         _agent: any;
         index: number;
         isJunk?: boolean;
@@ -102,14 +104,7 @@
 
     function handleForceRefresh() {
         isRefreshing = true;
-        columnState.clearFeed(column.id);
-        column.data.cursor = undefined;
-        column.data.scrollState = undefined;
-
-        if (column.algorithm?.type === 'notification') {
-            resetNotificationColumnData(column);
-        }
-
+        resetColumnForRefresh(column, columnState);
         unique = Symbol();
         onForceRefresh?.();
 
@@ -121,7 +116,7 @@
     function handleSettingsClick(clear = false) {
         isSettingsOpen = !isSettingsOpen;
 
-        if (clear) {
+        if (clear && column) {
             columnState.clearFeed(column.id);
             column.data.cursor = undefined;
             column.data.scrollState = undefined;
@@ -188,7 +183,7 @@
     <div
         role="button"
         class="deck-column-header__scroll-area"
-        onclick={() => {handleHeaderClick(column.scrollElement)}}
+        onclick={() => {handleHeaderClick(column.scrollElement ?? null)}}
         use:createLongPress={{callback: handleForceRefresh, duration: 500}}
         aria-label="Back to top."
     >

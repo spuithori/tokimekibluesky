@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type {Column} from "$lib/types/column";
     import ExternalLink from '@lucide/svelte/icons/external-link';
     import Quote from '@lucide/svelte/icons/quote';
   import UserItem from '../../../routes/(app)/profile/[handle]/UserItem.svelte';
@@ -45,7 +46,7 @@
   }
 
   async function addColumn() {
-      const _column = {
+      const _column: Column = {
           id: self.crypto.randomUUID(),
           algorithm: {
               type: 'custom',

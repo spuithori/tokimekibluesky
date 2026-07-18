@@ -2,6 +2,7 @@
   import {_} from "tokimeki-i18n";
   import {agent, starterPackModal} from "$lib/stores";
   import {isDid} from "$lib/util";
+  import type {ProfileView} from "$lib/types/atproto";
   import UserItem from "../../UserItem.svelte";
   import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
   import {toast} from "svelte-sonner";
@@ -37,11 +38,11 @@
   let isFollowingAll = $state(false);
   let isFollowingProgress = $state(false);
   let isOwner = $state(starterPack?.creator?.did === $agent.did());
-  let existingMembers = $state([]);
-  let members = $state([]);
+  let existingMembers = $state<any[]>([]);
+  let members = $state<ProfileView[]>([]);
   let membersCursor = $state('');
   let listUri = $state('');
-  let activeTab: 'members' | 'posts' = $state(existingColumn?.data?.activeTab || 'members');
+  let activeTab: 'members' | 'posts' = $state((existingColumn?.data?.activeTab as 'members' | 'posts' | undefined) || 'members');
 
   if (starterPack) {
     title = starterPack.record?.name || '';

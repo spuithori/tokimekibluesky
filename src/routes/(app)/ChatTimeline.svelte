@@ -584,9 +584,7 @@
             }
         } catch (e) {
             if (e.message === 'XRPC Not Supported') {
-                setTimeout(() => {
-                    loaded();
-                }, 1000)
+                finish();
             } else {
                 console.error(e);
                 finish();

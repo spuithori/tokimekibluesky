@@ -380,3 +380,61 @@ describe('appState primary-gated progressive resume', () => {
         expect(appState.ready).toBe(true);
     });
 });
+
+describe('pdsRequestReady gating', () => {
+    it('stays false while every resume is still pending', async () => {
+        seedSingleProfile();
+        const appState = await loadAppState();
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalled());
+
+        expect(appState.pdsRequestReady).toBe(false);
+
+        resolveResume(1, resumedOutcome());
+        await boot;
+    });
+
+    it('flips true only after the resumed agent is registered in the agents store', async () => {
+        seedSingleProfile();
+        const appState = await loadAppState();
+        const { agents } = await import('$lib/stores');
+
+        const agentInstance = makeAgent();
+        let readyWhenAgentRegistered: boolean | undefined;
+        const unsubscribe = (agents as any).subscribe((map: Map<number, any>) => {
+            if (map.get(1) === agentInstance && readyWhenAgentRegistered === undefined) {
+                readyWhenAgentRegistered = appState.pdsRequestReady;
+            }
+        });
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalled());
+
+        resolveResume(1, resumedOutcome(agentInstance));
+        await boot;
+
+        expect(appState.pdsRequestReady).toBe(true);
+        expect(readyWhenAgentRegistered).toBe(false);
+        unsubscribe();
+    });
+
+    it('opens the gate via a secondary account even when the primary needs re-login', async () => {
+        db.accounts = [{ id: 1, did: 'did:plc:one' }, { id: 2, did: 'did:plc:two' }];
+        db.profiles = [{ id: 1, accounts: [1, 2], primary: 1, columns: [] }];
+        const appState = await loadAppState();
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(resumeControls.length).toBe(2));
+
+        expect(appState.pdsRequestReady).toBe(false);
+
+        resolveResume(1, { status: 'auth-required' });
+        expect(appState.pdsRequestReady).toBe(false);
+
+        resolveResume(2, resumedOutcome());
+        await vi.waitFor(() => expect(appState.pdsRequestReady).toBe(true));
+
+        await boot.catch(() => {});
+    });
+});

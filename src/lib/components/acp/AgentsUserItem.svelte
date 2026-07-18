@@ -1,43 +1,24 @@
 <script lang="ts">
-    import {accountsDb} from "$lib/db";
     import {onMount} from "svelte";
+    import {createAccountProfileLoader} from "$lib/components/acp/accountProfileLoader.svelte";
 
     let { agent, key } = $props();
-    let avatar = $state();
-    let displayName = $state();
+    const { profile, loadFresh } = createAccountProfileLoader(() => agent, () => key);
 
-    accountsDb.accounts.get(key)
-        .then(value => {
-            avatar = value?.avatar;
-            displayName = value?.name;
-        })
-
-    onMount(async () => {
-        try {
-            const profile = await agent.xrpc.get('app.bsky.actor.getProfile', {actor: agent.did() as string});
-
-            avatar = profile?.avatar || '';
-            displayName = profile?.displayName || '';
-
-            accountsDb.accounts.update(key, {
-                avatar: avatar,
-                name: displayName,
-            });
-        } catch (e) {
-            console.error(e);
-        }
+    onMount(() => {
+        loadFresh();
     });
 </script>
 
 <div class="agent-user-item">
     <div class="agent-user-item__avatar">
-        {#if (avatar)}
-            <img src="{avatar}" alt="">
+        {#if (profile.avatar)}
+            <img src="{profile.avatar}" alt="">
         {/if}
     </div>
 
     <div class="agent-user-item__content">
-        <p class="agent-user-item__name">{displayName || ' '}</p>
+        <p class="agent-user-item__name">{profile.displayName || ' '}</p>
         <p class="agent-user-item__handle">@{agent.handle()}</p>
     </div>
 </div>

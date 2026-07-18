@@ -1,6 +1,8 @@
 <script lang="ts">
     import {agent} from '$lib/stores';
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
+    import {createDebouncedSearch} from "$lib/typeaheadSearch";
+    import type {ProfileView, ProfileViewBasic} from "$lib/types/atproto";
     import ListMember from "./ListMember.svelte";
     import { toast } from "svelte-sonner";
     import {_} from "tokimeki-i18n";
@@ -17,11 +19,10 @@
 
     let { _agent = $agent, purpose = 'app.bsky.graph.defs#curatelist', uri = $bindable(''), onclose }: Props = $props();
     let name = $state('new list');
-    let members = $state([]);
+    let members = $state<ProfileView[]>([]);
     let existingMembers = $state([]);
     let search = $state('');
-    let searchMembers = $state([]);
-    let timer;
+    let searchMembers = $state<ProfileViewBasic[]>([]);
     let ready = $state(false);
     let exportText;
     let importText = '';
@@ -82,13 +83,21 @@
         exportText = JSON.stringify(members.map(member => member.did));
     }
 
-    async function handleKeyDown() {
-        clearTimeout(timer);
-        timer = setTimeout(async () => {
-            const res = await _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term: search, limit: 10})
-            searchMembers = res.actors;
-        }, 250)
+    const memberSearch = createDebouncedSearch(
+        (term, signal) => _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term, limit: 10}, {signal}),
+        {
+            onResult: (res) => { searchMembers = res.actors; },
+            onClear: () => { searchMembers = []; },
+        },
+    );
+
+    function handleKeyDown() {
+        memberSearch.run(search);
     }
+
+    onDestroy(() => {
+        memberSearch.cancel();
+    });
 
     function handleDelete(event) {
         members = members.filter(member => {

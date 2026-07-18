@@ -1,22 +1,4 @@
-import { build, files, version } from '$service-worker';
 import {accountsDb} from "./lib/db";
-
-const CACHE = `cache-${version}`;
-
-const ASSETS = [
-    // ...build,
-    ...files,
-];
-const ASSET_SET = new Set(ASSETS);
-
-self.addEventListener('install', (event) => {
-    async function addFilesToCache() {
-        const cache = await caches.open(CACHE);
-        await cache.addAll(ASSETS);
-    }
-
-    event.waitUntil(addFilesToCache());
-});
 
 self.addEventListener('message', (event) => {
     if (event.data?.type === 'SKIP_WAITING') {
@@ -28,44 +10,11 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(
         (async () => {
             for (const key of await caches.keys()) {
-                if (key !== CACHE) await caches.delete(key);
+                await caches.delete(key);
             }
             await self.clients.claim();
         })()
     );
-});
-
-self.addEventListener('fetch', (event) => {
-    const req = event.request;
-
-    if (req.method !== 'GET') {
-        return;
-    }
-
-    if (!req.url.startsWith('http')) {
-        return;
-    }
-
-    const url = new URL(req.url);
-    if (url.origin !== self.location.origin) {
-        return;
-    }
-
-    if (!ASSET_SET.has(url.pathname)) {
-        return;
-    }
-
-    async function respond() {
-        try {
-            const cache = await caches.open(CACHE);
-            const cached = await cache.match(url.pathname);
-            return cached ?? (await fetch(req));
-        } catch (e) {
-            return fetch(req);
-        }
-    }
-
-    event.respondWith(respond());
 });
 
 function chooseBadge(rawType) {

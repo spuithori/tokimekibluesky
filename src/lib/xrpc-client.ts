@@ -1,5 +1,7 @@
 // Lightweight XRPC client that accepts a FetchHandler
 
+import type {XrpcGetMap, XrpcPostMap} from "$lib/types/xrpc";
+
 export type FetchHandler = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
 export const BSKY_APPVIEW_PROXY = 'did:web:api.bsky.app#bsky_appview';
@@ -25,7 +27,9 @@ export class XrpcClient {
 		this._labelerDids = dids;
 	}
 
-	async get<T = any>(nsid: string, params?: Record<string, any>, opts?: XrpcCallOptions): Promise<T> {
+	async get<N extends keyof XrpcGetMap>(nsid: N, params?: XrpcGetMap[N]['params'], opts?: XrpcCallOptions): Promise<XrpcGetMap[N]['output']>;
+	async get<T = any>(nsid: string, params?: Record<string, any>, opts?: XrpcCallOptions): Promise<T>;
+	async get(nsid: string, params?: Record<string, any>, opts?: XrpcCallOptions): Promise<any> {
 		const queryParts: string[] = [];
 		if (params) {
 			for (const [key, value] of Object.entries(params)) {
@@ -72,7 +76,9 @@ export class XrpcClient {
 		return await res.arrayBuffer() as any;
 	}
 
-	async getDeduped<T = any>(nsid: string, params?: Record<string, any>, opts?: XrpcCallOptions): Promise<T> {
+	async getDeduped<N extends keyof XrpcGetMap>(nsid: N, params?: XrpcGetMap[N]['params'], opts?: XrpcCallOptions): Promise<XrpcGetMap[N]['output']>;
+	async getDeduped<T = any>(nsid: string, params?: Record<string, any>, opts?: XrpcCallOptions): Promise<T>;
+	async getDeduped(nsid: string, params?: Record<string, any>, opts?: XrpcCallOptions): Promise<any> {
 		const key = nsid + JSON.stringify(params || {});
 
 		const existing = this._inflight.get(key);
@@ -80,14 +86,16 @@ export class XrpcClient {
 			return existing;
 		}
 
-		const promise = this.get<T>(nsid, params, opts).finally(() => {
+		const promise = this.get<any>(nsid, params, opts).finally(() => {
 			this._inflight.delete(key);
 		});
 		this._inflight.set(key, promise);
 		return promise;
 	}
 
-	async post<T = any>(nsid: string, data?: unknown, opts?: XrpcCallOptions): Promise<T> {
+	async post<N extends keyof XrpcPostMap>(nsid: N, data?: XrpcPostMap[N]['input'], opts?: XrpcCallOptions): Promise<XrpcPostMap[N]['output']>;
+	async post<T = any>(nsid: string, data?: unknown, opts?: XrpcCallOptions): Promise<T>;
+	async post(nsid: string, data?: unknown, opts?: XrpcCallOptions): Promise<any> {
 		const path = `/xrpc/${nsid}`;
 
 		const headers: Record<string, string> = { ...opts?.headers };

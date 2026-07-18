@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onDestroy } from 'svelte';
+    import { createDebouncedSearch } from '$lib/typeaheadSearch';
     import { scale } from 'svelte/transition';
     import { backOut } from 'svelte/easing';
 
@@ -9,44 +10,39 @@
     let selectedIndex = $state(-1);
     let isOpen = $state(false);
     let failed = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let controller: AbortController | undefined;
     let wrapperEl: HTMLElement;
 
-    function handleInput() {
-        clearTimeout(timer);
-        timer = setTimeout(query, 250);
-    }
+    const typeahead = createDebouncedSearch(
+        async (term, signal) => {
+            const res = await fetch(`https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=${encodeURIComponent(term)}&limit=6`, { signal });
+            if (!res.ok) {
+                throw new Error(`typeahead request failed: ${res.status}`);
+            }
+            return res.json();
+        },
+        {
+            onResult: (data) => {
+                suggestions = data.actors ?? [];
+                selectedIndex = -1;
+                isOpen = suggestions.length > 0;
+            },
+            onClear: () => closeList(),
+            onError: () => {
+                failed = true;
+                closeList();
+            },
+        },
+    );
 
-    async function query() {
+    function handleInput() {
         const term = value.trim().replace(/^@/, '');
         if (!term || term.startsWith('did:') || failed) {
+            typeahead.cancel();
             closeList();
             return;
         }
 
-        controller?.abort();
-        controller = new AbortController();
-        const signal = controller.signal;
-
-        try {
-            const res = await fetch(`https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=${encodeURIComponent(term)}&limit=6`, { signal });
-            if (!res.ok) {
-                failed = true;
-                closeList();
-                return;
-            }
-            const data = await res.json();
-            suggestions = data.actors ?? [];
-            selectedIndex = -1;
-            isOpen = suggestions.length > 0;
-        } catch (e) {
-            if (signal.aborted) {
-                return;
-            }
-            failed = true;
-            closeList();
-        }
+        typeahead.run(term);
     }
 
     function closeList() {
@@ -89,8 +85,7 @@
     }
 
     onDestroy(() => {
-        clearTimeout(timer);
-        controller?.abort();
+        typeahead.cancel();
     });
 </script>
 

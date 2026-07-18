@@ -37,7 +37,9 @@
     import BookmarkTimeline from "./BookmarkTimeline.svelte";
     import MochottTimeline from "./MochottTimeline.svelte";
     import Timeline from "./Timeline.svelte";
-    import {clearNotificationBadgesForDid, markAllNotificationsRead, resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
+    import {clearNotificationBadgesForDid, markAllNotificationsRead} from "$lib/components/notification/notificationPipeline";
+    import {resetColumnForRefresh} from "$lib/components/column/forceRefresh";
+    import {getProfileRefreshContext} from "$lib/classes/profileRefreshContext.svelte";
 
     interface Props {
         index?: number;
@@ -105,6 +107,21 @@
             window.addEventListener('resize', checkMobile);
             return () => window.removeEventListener('resize', checkMobile);
         }
+    });
+
+    const profileRefreshContext = getProfileRefreshContext();
+
+    $effect(() => {
+        if (!profileRefreshContext) return;
+
+        const refresh = () => (refreshEl as any)?.refresh();
+        profileRefreshContext.refresh = refresh;
+
+        return () => {
+            if (profileRefreshContext.refresh === refresh) {
+                profileRefreshContext.refresh = null;
+            }
+        };
     });
 
     function startSplitResize(event: MouseEvent, splitIndex: number = 0) {
@@ -279,7 +296,7 @@
 
         try {
             if (column.scrollElement) {
-                column.scrollElement = null;
+                column.scrollElement = undefined;
             }
         } catch (e) {
             console.error(e);
@@ -303,14 +320,7 @@
 
     function forceRefresh() {
         isRefreshing = true;
-        columnState.clearFeed(column.id);
-        column.data.cursor = undefined;
-        column.data.scrollState = undefined;
-
-        if (column.algorithm.type === 'notification') {
-            resetNotificationColumnData(column);
-        }
-
+        resetColumnForRefresh(column, columnState);
         unique = Symbol();
 
         setTimeout(() => {
@@ -536,7 +546,7 @@
                     refresherHeight={80}
                     pullMin={80}
                     pullMax={160}
-                    disabled={column.algorithm.type === 'chat' || column.algorithm.type === 'chatList' || $settings.design?.layout === 'default'}
+                    disabled={column.algorithm.type === 'chat' || column.algorithm.type === 'chatList' || $settings.design?.layout === 'default' || !!profileRefreshContext}
             >
                 {#if _agent}
                     <div class="deck-row__content">

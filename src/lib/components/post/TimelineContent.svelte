@@ -257,7 +257,11 @@
 
             translatedRecord = record;
             isTranslated = true;
-        } catch (e) {}
+        } catch (e) {
+            if ((e as any)?.name !== 'AbortError' && !signal.aborted) {
+                console.error(e);
+            }
+        }
     }
 
     async function handleSkyblurShow() {

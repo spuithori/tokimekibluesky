@@ -42,6 +42,7 @@
     },
     "type": "module",
     "dependencies": {
+        "@emoji-mart/data": "^1.2.1",
         "@fontsource-variable/inter": "^5.2.5",
         "@fontsource-variable/murecho": "^5.2.5",
         "@fontsource-variable/noto-sans-jp": "^5.2.5",

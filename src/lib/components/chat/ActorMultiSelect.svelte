@@ -3,6 +3,7 @@
     import { _ } from 'tokimeki-i18n';
     import { onDestroy } from "svelte";
     import ListMember from "$lib/components/list/ListMember.svelte";
+    import {createDebouncedSearch} from "$lib/typeaheadSearch";
     import X from '@lucide/svelte/icons/x';
     import Plus from '@lucide/svelte/icons/plus';
     import Minus from '@lucide/svelte/icons/minus';
@@ -10,38 +11,21 @@
     let { _agent, selected = $bindable<any[]>([]), excluded = $bindable<any[]>([]), negatable = false, allowSelf = false, max = 49, excludeDids = [], ariaLabel = undefined } = $props();
     let search = $state('');
     let actors = $state.raw<any[]>([]);
-    let timer: ReturnType<typeof setTimeout>;
-    let controller: AbortController | undefined;
+
+    const actorSearch = createDebouncedSearch(
+        (term, signal) => _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term, limit: 10}, {signal}),
+        {
+            onResult: (res) => { actors = res.actors; },
+            onClear: () => { actors = []; },
+        },
+    );
 
     function handleKeyDown() {
-        clearTimeout(timer);
-        timer = setTimeout(async () => {
-            const term = search.trim();
-            if (!term) {
-                controller?.abort();
-                actors = [];
-                return;
-            }
-
-            controller?.abort();
-            controller = new AbortController();
-            const signal = controller.signal;
-
-            try {
-                const res = await _agent.xrpc.get('app.bsky.actor.searchActorsTypeahead', {term, limit: 10}, {signal});
-                actors = res.actors;
-            } catch (e: any) {
-                if (e?.name === 'AbortError' || signal.aborted) {
-                    return;
-                }
-                console.error(e);
-            }
-        }, 250);
+        actorSearch.run(search);
     }
 
     onDestroy(() => {
-        clearTimeout(timer);
-        controller?.abort();
+        actorSearch.cancel();
     });
 
     function handleAdd(e: CustomEvent<{ member: any }>) {

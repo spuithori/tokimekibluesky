@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type {Column} from "$lib/types/column";
   import {_} from "tokimeki-i18n";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {agent, officialListModal} from "$lib/stores";
@@ -58,7 +59,7 @@
   }
 
   async function addColumn() {
-      const _column = {
+      const _column: Column = {
           id: self.crypto.randomUUID(),
           algorithm: {
               type: 'officialList',
