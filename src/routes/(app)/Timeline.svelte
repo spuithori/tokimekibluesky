@@ -3,6 +3,7 @@
   import {agent, realtime, settings, changedFollowData} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
   import {getPostRealtime} from "$lib/realtime";
+  import {isRelevantRealtimeEvent} from "$lib/realtimeGuard";
   import {getDbFollows} from "$lib/getActorsList";
   import {playSound} from "$lib/sounds";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
@@ -25,6 +26,7 @@
   const useVirtualList = $derived(isVirtualTimelineEnabled(column));
   let isActorsListFinished = false;
   let actors = [];
+  let actorsSet: Set<string> = new Set();
   let realtimeCounter = 0;
   let isDividerLoading = $state(false);
   let dividerFillerHeight = $state(0);
@@ -57,10 +59,15 @@
       } else {
           actors = actors.filter(actor => actor !== did);
       }
+      actorsSet = new Set(actors);
   })
 
   function insertRealtimeData(realtime) {
       if (!isActorsListFinished) {
+          return false;
+      }
+
+      if (!isRelevantRealtimeEvent(realtime, actorsSet)) {
           return false;
       }
 
@@ -138,6 +145,7 @@
           actors = await _agent.getListActors(column.algorithm.algorithm);
 
       }
+      actorsSet = new Set(actors);
       isActorsListFinished = true;
   }
 

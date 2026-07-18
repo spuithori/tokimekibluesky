@@ -1,8 +1,8 @@
 <script lang="ts">
-    import {onMount} from "svelte";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import ImageAlt from "$lib/components/utils/ImageAlt.svelte";
     import {getService} from "$lib/util";
+    import {observeVisible} from "$lib/lazyObserver";
 
     let url = $state('');
     interface Props {
@@ -14,14 +14,11 @@
 
     let { did, blob, alt = '', aspectRatio }: Props = $props();
 
-    async function getUrlByBlob(blob) {
+    async function resolveBlobUrl(): Promise<string> {
         try {
             const service = await getService(did);
             const cid = blob.ref?.$link ?? blob.ref?.toString();
-            const res = await fetch(`${service}/xrpc/com.atproto.sync.getBlob?did=${encodeURIComponent(did as string)}&cid=${encodeURIComponent(cid)}`);
-            const data = new Blob([await res.arrayBuffer()], {type: 'image/gif'});
-
-            return URL.createObjectURL(data);
+            return `${service}/xrpc/com.atproto.sync.getBlob?did=${encodeURIComponent(did as string)}&cid=${encodeURIComponent(cid)}`;
         } catch (e) {
             console.error(e)
         }
@@ -29,29 +26,27 @@
         return '';
     }
 
-    onMount(() => {
+    function lazyResolve(node: HTMLElement) {
         let cancelled = false;
-
-        getUrlByBlob(blob).then((u) => {
-            if (cancelled) {
-                if (u) {
-                    URL.revokeObjectURL(u);
+        const target = node.closest('.virtual-item') ?? node;
+        const unobserve = observeVisible(target, () => {
+            resolveBlobUrl().then((u) => {
+                if (!cancelled) {
+                    url = u;
                 }
-                return;
-            }
-            url = u;
+            });
         });
 
-        return () => {
-            cancelled = true;
-            if (url) {
-                URL.revokeObjectURL(url);
-            }
+        return {
+            destroy() {
+                cancelled = true;
+                unobserve();
+            },
         };
-    })
+    }
 </script>
 
-<div class="gif-image" style={aspectRatio?.width && aspectRatio?.height ? `--gif-width: ${aspectRatio.width}; --gif-height: ${aspectRatio.height}` : ''}>
+<div class="gif-image" use:lazyResolve style={aspectRatio?.width && aspectRatio?.height ? `--gif-width: ${aspectRatio.width}; --gif-height: ${aspectRatio.height}` : ''}>
     {#if (url)}
         <img src={url} alt={alt} width={aspectRatio?.width} height={aspectRatio?.height}>
     {:else}

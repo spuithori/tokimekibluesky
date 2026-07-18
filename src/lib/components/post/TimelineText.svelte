@@ -9,10 +9,6 @@
     let textArray = $derived(getTextArray(record));
 
     function handleUrlClick(e, item) {
-        if (!$settings.general.linkWarningConfirmSkip) {
-            $settings.general.linkWarningConfirmSkip = false;
-        }
-
         if ($settings.general.linkWarningConfirmSkip) {
             return true;
         }

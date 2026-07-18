@@ -108,10 +108,32 @@ export class ColumnState {
         $effect(() => {
             if (!this.isColumnsLoaded || this.isReordering) return;
 
-            accountsDb.profiles.update(appState.profile.current, {
-                columns: $state.snapshot(this.syncColumns) as unknown as Column[],
-            });
+            this.syncColumns;
+            untrack(() => this.persistColumns());
         });
+    }
+
+    private persistInFlight = false;
+    private persistDirty = false;
+
+    private persistColumns() {
+        if (this.persistInFlight) {
+            this.persistDirty = true;
+            return;
+        }
+
+        this.persistInFlight = true;
+        accountsDb.profiles.update(appState.profile.current, {
+            columns: $state.snapshot(this.syncColumns) as unknown as Column[],
+        })
+            .catch(console.error)
+            .finally(() => {
+                this.persistInFlight = false;
+                if (this.persistDirty) {
+                    this.persistDirty = false;
+                    this.persistColumns();
+                }
+            });
     }
 
     applyHandle = (did: string, handle: string) => {
@@ -402,6 +424,42 @@ export class ColumnState {
 
                 if (column.splitColumn) {
                     this.updateLikeForColumn(column.splitColumn as Column, pulse, targetUri);
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    private applyEmbedDetachForColumn(column: Column, uri: string, embed: any) {
+        const feed = this.getFeed(column.id);
+        if (!feed.length) return;
+
+        let mutated = false;
+        const newFeed = feed.map(item => {
+            if (item?.post?.uri === uri) {
+                mutated = true;
+                return { ...item, post: { ...item.post, embed } };
+            }
+            return item;
+        });
+
+        if (mutated) {
+            this._feeds.set(column.id, newFeed);
+        }
+    }
+
+    applyEmbedDetach(uri: string, embed: any) {
+        if (!uri) {
+            return;
+        }
+
+        try {
+            for (const column of this.columns) {
+                this.applyEmbedDetachForColumn(column, uri, embed);
+
+                if (column.splitColumn) {
+                    this.applyEmbedDetachForColumn(column.splitColumn as Column, uri, embed);
                 }
             }
         } catch (e) {

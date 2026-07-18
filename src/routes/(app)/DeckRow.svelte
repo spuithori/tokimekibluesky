@@ -80,6 +80,7 @@
     let refreshEl = $state();
     let isRefreshing = $state(false);
     let isSplitResizing = $state(false);
+    let splitResizePreview = $state<number | null>(null);
     let isMobile = $state(false);
     let splitTopScrolling = $state<boolean[]>([false]);
 
@@ -140,11 +141,15 @@
             const deltaRatio = deltaY / containerRect.height;
             let newRatio = startRatio + deltaRatio;
             newRatio = Math.max(0.3, Math.min(0.7, newRatio));
-            column.splitRatio = newRatio;
+            splitResizePreview = newRatio;
         }
 
         function onMouseUp() {
             isSplitResizing = false;
+            if (splitResizePreview !== null) {
+                column.splitRatio = splitResizePreview;
+                splitResizePreview = null;
+            }
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
         }
@@ -374,7 +379,7 @@
             <div class="deck-row-split-container">
                 <div
                     class="deck-row-split deck-row-split--top"
-                    style="flex: {column.splitRatio ?? 0.5}"
+                    style="flex: {splitResizePreview ?? column.splitRatio ?? 0.5}"
                 >
                     <DeckColumn
                         bind:this={mainColumnEl}
@@ -403,7 +408,7 @@
                     </div>
                 </div>
 
-                <div class="deck-row-split deck-row-split--bottom" style="flex: {1 - (column.splitRatio ?? 0.5)}">
+                <div class="deck-row-split deck-row-split--bottom" style="flex: {1 - (splitResizePreview ?? column.splitRatio ?? 0.5)}">
                     <DeckColumn
                         bind:this={splitColumnEls[0]}
                         column={column.splitColumn}

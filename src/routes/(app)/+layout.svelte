@@ -21,6 +21,7 @@
     import { page } from "$app/state";
     import { themesDb } from "$lib/db";
     import ReportObserver from "$lib/components/report/ReportObserver.svelte";
+    import EmbedDetachObserver from "$lib/components/utils/EmbedDetachObserver.svelte";
     import ProfileStatusObserver from "$lib/components/acp/ProfileStatusObserver.svelte";
     import Side from "./Side.svelte";
     import ColumnModal from "$lib/components/column/ColumnModal.svelte";
@@ -435,6 +436,7 @@
         closeButton
     ></Toaster>
     <ReportObserver></ReportObserver>
+    <EmbedDetachObserver></EmbedDetachObserver>
     <ProfileStatusObserver></ProfileStatusObserver>
     <LinkWarningModal></LinkWarningModal>
     <UpdateBanner></UpdateBanner>

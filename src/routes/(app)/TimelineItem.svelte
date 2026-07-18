@@ -107,25 +107,11 @@
     let isReplyHide: boolean = $state(false);
     let isMuteOpen = $state(false);
 
-    $effect(() => {
-        handleEmbedDetach($pulseDetach);
-    })
-
     detectPostMuteFilter();
     detectRepostMuteFilter();
 
     function probability(n) {
       return Math.random() < n / 100;
-    }
-
-    function handleEmbedDetach(detach: pulseDetach) {
-        if (!detach) {
-            return false;
-        }
-
-        if (detach.uri === data?.post?.uri) {
-            data.post.embed = detach.embed;
-        }
     }
 
     if (data.post?.author?.did !== _agent.did()) {

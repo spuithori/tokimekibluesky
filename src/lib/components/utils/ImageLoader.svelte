@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { observeVisible } from "$lib/lazyObserver";
+
     let { image, naturalWidth, naturalHeight } = $props();
     let loaded = $state(false);
     let instant = $state(false);
@@ -6,19 +8,12 @@
 
     function lazyLoad(node: HTMLImageElement) {
         const target = node.closest('.virtual-item') ?? node;
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    inView = true;
-                    observer.disconnect();
-                }
-            },
-            { rootMargin: '1000px' },
-        );
-        observer.observe(target);
+        const unobserve = observeVisible(target, () => {
+            inView = true;
+        });
         return {
             destroy() {
-                observer.disconnect();
+                unobserve();
                 node.src = '';
             },
         };

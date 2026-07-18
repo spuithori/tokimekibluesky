@@ -22,61 +22,78 @@ vi.mock('$lib/util', async (importOriginal) => ({
     getService: vi.fn(() => Promise.resolve('https://pds.example')),
 }));
 
-import GifImage from './GifImage.svelte';
+class MockIntersectionObserver {
+    static instances: MockIntersectionObserver[] = [];
+    callback: IntersectionObserverCallback;
+    observed: Element[] = [];
 
-const created: string[] = [];
-const revoked: string[] = [];
-let resolveFetch: (() => void) | undefined;
+    constructor(callback: IntersectionObserverCallback) {
+        this.callback = callback;
+        MockIntersectionObserver.instances.push(this);
+    }
+    observe(el: Element) {
+        this.observed.push(el);
+    }
+    unobserve(el: Element) {
+        this.observed = this.observed.filter((o) => o !== el);
+    }
+    disconnect() {
+        this.observed = [];
+    }
+}
+vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
+
+import GifImage from './GifImage.svelte';
+import { getService } from '$lib/util';
+
 let fetchMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
-    created.length = 0;
-    revoked.length = 0;
-    resolveFetch = undefined;
+    vi.mocked(getService).mockClear();
+    URL.createObjectURL = vi.fn() as any;
 
-    let n = 0;
-    URL.createObjectURL = vi.fn(() => {
-        const u = `blob:vitest-${n++}`;
-        created.push(u);
-        return u;
-    }) as any;
-    URL.revokeObjectURL = vi.fn((u: string) => {
-        revoked.push(u);
-    }) as any;
-
-    fetchMock = vi.fn(() => new Promise((resolve) => {
-        resolveFetch = () => resolve({
-            arrayBuffer: async () => new ArrayBuffer(4),
-        });
-    }));
+    fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
 });
 
 const props = { did: 'did:plc:test', blob: { ref: { $link: 'bafycid' } } };
 
-describe('GifImage object URL lifecycle', () => {
-    it('revokes the URL on unmount after load completes', async () => {
-        const { unmount } = render(GifImage, { props });
+function fireVisible(target: Element) {
+    for (const io of MockIntersectionObserver.instances) {
+        if (io.observed.includes(target)) {
+            io.callback([{ isIntersecting: true, target } as IntersectionObserverEntry], io as any);
+        }
+    }
+}
 
-        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
-        resolveFetch!();
-        await vi.waitFor(() => expect(created.length).toBe(1));
+describe('GifImage lazy direct-src', () => {
+    it('does not resolve anything until the element becomes visible', async () => {
+        const { container } = render(GifImage, { props });
 
-        unmount();
+        expect(getService).not.toHaveBeenCalled();
 
-        expect(revoked).toEqual(created);
+        const wrapper = container.querySelector('.gif-image')!;
+        fireVisible(wrapper);
+
+        await vi.waitFor(() => {
+            const img = container.querySelector('img');
+            expect(img?.getAttribute('src')).toBe(
+                'https://pds.example/xrpc/com.atproto.sync.getBlob?did=did%3Aplc%3Atest&cid=bafycid',
+            );
+        });
+
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(URL.createObjectURL).not.toHaveBeenCalled();
     });
 
-    it('revokes the URL when unmounted before the fetch resolves', async () => {
-        const { unmount } = render(GifImage, { props });
+    it('does not resolve when unmounted before becoming visible', async () => {
+        const { container, unmount } = render(GifImage, { props });
+        const wrapper = container.querySelector('.gif-image')!;
 
-        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
         unmount();
-        expect(created.length).toBe(0);
+        fireVisible(wrapper);
 
-        resolveFetch!();
-        await vi.waitFor(() => expect(created.length).toBe(1));
-
-        expect(revoked).toEqual(created);
+        await Promise.resolve();
+        expect(getService).not.toHaveBeenCalled();
     });
 });
