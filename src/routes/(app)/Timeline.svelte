@@ -25,6 +25,7 @@
   const column = columnProp ?? columnState.getColumn(index);
   const useVirtualList = $derived(isVirtualTimelineEnabled(column));
   let isActorsListFinished = false;
+  let actorsDid: string | undefined = undefined;
   let actors = [];
   let actorsSet: Set<string> = new Set();
   let realtimeCounter = 0;
@@ -37,9 +38,15 @@
   })
 
   $effect(() => {
-      if (column.settings?.autoRefresh === -1 && !isActorsListFinished) {
-          getActors();
+      const did = _agent?.did?.();
+
+      if (column.settings?.autoRefresh !== -1 || !did || actorsDid === did) {
+          return;
       }
+
+      actorsDid = did;
+      isActorsListFinished = false;
+      getActors();
   })
 
   $effect(() => {

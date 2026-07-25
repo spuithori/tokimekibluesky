@@ -78,7 +78,7 @@
     }
 
     export async function refresh(isAutoRefresh: boolean = false) {
-        if ($pauseColumn) {
+        if ($pauseColumn || !_agent) {
             return false;
         }
 

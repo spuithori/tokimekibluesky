@@ -28,8 +28,9 @@
                 const img = wrapEl?.querySelector('img');
                 if (!img) return null;
                 const cs = getComputedStyle(img);
+                const srcAttr = img.getAttribute('src') ?? '';
                 return {
-                    hasSrc: !!img.getAttribute('src'),
+                    hasSrc: !!srcAttr && !srcAttr.startsWith('data:'),
                     naturalWidth: img.naturalWidth,
                     complete: img.complete,
                     loaded: img.classList.contains('loaded'),
@@ -41,6 +42,8 @@
         };
     }
 </script>
+
+<button class="flush-events" onclick={() => {}}>flush</button>
 
 <div class="image-loader-harness" bind:this={wrapEl}>
     {#if mounted}

@@ -57,6 +57,23 @@ function status(phase: string) {
     return { phase, attempt: 0, handle: 'x', accountId: 0 } as any;
 }
 
+function resolveColumnAgentStrict(
+    agentsByDid: Map<string, MockAgent>,
+    columnDid: string,
+    primaryAgent: MockAgent,
+    isJunk: boolean,
+    agentProp: MockAgent | undefined = undefined,
+): MockAgent | undefined {
+    return agentProp ?? agentsByDid.get(columnDid) ?? (isJunk ? primaryAgent : undefined);
+}
+
+function resolveSplitAgentStrict(
+    agentsByDid: Map<string, MockAgent>,
+    splitDid: string,
+): MockAgent | undefined {
+    return agentsByDid.get(splitDid);
+}
+
 beforeEach(() => {
     appState.resumeStatus = {};
 });
@@ -83,6 +100,69 @@ describe('通常フロー: 本垢もサブ垢もログイン維持したまま�
     });
 });
 
+describe('厳格化: デッキカラムは本垢agentへフォールバックしない', () => {
+    it('agentsByDid未登録のデッキカラムは undefined(=取得させない)に解決する', () => {
+        const agentsByDid = buildAgentsByDid([HON]);
+        expect(resolveColumnAgentStrict(agentsByDid, 'did:plc:sub', HON, false)).toBeUndefined();
+    });
+
+    it('junkカラムは従来どおり本垢agentへフォールバックする(プロフィール等の閲覧用途)', () => {
+        const agentsByDid = buildAgentsByDid([HON]);
+        expect(resolveColumnAgentStrict(agentsByDid, 'did:plc:sub', HON, true)).toBe(HON);
+    });
+
+    it('明示的に渡された_agentは常に優先される', () => {
+        const agentsByDid = buildAgentsByDid([HON]);
+        expect(resolveColumnAgentStrict(agentsByDid, 'did:plc:sub', HON, false, SUB)).toBe(SUB);
+    });
+
+    it('登録済みなら当然そのagentへ解決する', () => {
+        const agentsByDid = buildAgentsByDid([HON, SUB]);
+        expect(resolveColumnAgentStrict(agentsByDid, 'did:plc:sub', HON, false)).toBe(SUB);
+    });
+
+    it('ワークスペース再構築で agent が消えても本垢TLを取りに行かない(phase=resumedが居残っても)', () => {
+        const agentsByDid = buildAgentsByDid([HON]);
+        appState.resumeStatus = {
+            'did:plc:hon': status('resumed'),
+            'did:plc:sub': status('resumed'),
+        };
+
+        expect(appState.getColumnResumeGate(agentsByDid as any, 'did:plc:sub')).toBe('mount');
+        expect(resolveColumnAgentStrict(agentsByDid, 'did:plc:sub', HON, false)).toBeUndefined();
+    });
+});
+
+describe('分割カラム(横分割): 下段も所有アカウントのゲートを通す', () => {
+    it('親=本垢(復帰済) / 分割=サブ垢(pending) のとき、分割側は mount せず本垢agentも渡らない', () => {
+        const agentsByDid = buildAgentsByDid([HON]);
+        appState.resumeStatus = {
+            'did:plc:hon': status('resumed'),
+            'did:plc:sub': status('pending'),
+        };
+
+        expect(appState.getColumnResumeGate(agentsByDid as any, 'did:plc:hon')).toBe('mount');
+        expect(appState.getColumnResumeGate(agentsByDid as any, 'did:plc:sub')).toBe('pending');
+        expect(resolveSplitAgentStrict(agentsByDid, 'did:plc:sub')).toBeUndefined();
+    });
+
+    it('分割=サブ垢が unreachable なら failed(リトライ導線)へ落ち、本垢agentへフォールバックしない', () => {
+        const agentsByDid = buildAgentsByDid([HON]);
+        appState.resumeStatus = { 'did:plc:sub': status('unreachable') };
+
+        expect(appState.getColumnResumeGate(agentsByDid as any, 'did:plc:sub')).toBe('failed');
+        expect(resolveSplitAgentStrict(agentsByDid, 'did:plc:sub')).toBeUndefined();
+    });
+
+    it('サブ垢が復帰したら分割側も mount して自分のagentへ解決する', () => {
+        const agentsByDid = buildAgentsByDid([HON, SUB]);
+        appState.resumeStatus = { 'did:plc:sub': status('resumed') };
+
+        expect(appState.getColumnResumeGate(agentsByDid as any, 'did:plc:sub')).toBe('mount');
+        expect(resolveSplitAgentStrict(agentsByDid, 'did:plc:sub')).toBe(SUB);
+    });
+});
+
 describe('③孤児カラム(除去済み垢): 修正後は gate=missing でDeckRowをマウントさせない', () => {
     it('handleDeleteAccount相当でresumeStatusを落とす(phase未定義化)と、gate は missing を返す', () => {
         const agentsByDid = buildAgentsByDid([HON]);
@@ -94,7 +174,7 @@ describe('③孤児カラム(除去済み垢): 修正後は gate=missing でDeck
         appState.dropResumeStatus('did:plc:sub');
 
         expect(appState.getResumePhase('did:plc:sub')).toBeUndefined();
-        expect(appState.getColumnResumeGate(agentsByDid, 'did:plc:sub')).toBe('missing');
+        expect(appState.getColumnResumeGate(agentsByDid as any, 'did:plc:sub')).toBe('missing');
     });
 
     it('一度もtrackされていない did の孤児カラムも missing', () => {
@@ -103,7 +183,7 @@ describe('③孤児カラム(除去済み垢): 修正後は gate=missing でDeck
 
         expect(agentsByDid.has('did:plc:sub')).toBe(false);
         expect(appState.getResumePhase('did:plc:sub')).toBeUndefined();
-        expect(appState.getColumnResumeGate(agentsByDid, 'did:plc:sub')).toBe('missing');
+        expect(appState.getColumnResumeGate(agentsByDid as any, 'did:plc:sub')).toBe('missing');
     });
 });
 
@@ -170,7 +250,7 @@ describe('門番が守る場合: サブ垢のresume phaseが追跡されてい�
         ['unreachable', 'failed'],
     ])('phase=%s のとき gate=%s (=プレースホルダ表示で本垢agentのマウントを阻止)', (phase, expected) => {
         appState.resumeStatus = { 'did:plc:sub': status(phase) };
-        expect(appState.getColumnResumeGate(agentsByDid, 'did:plc:sub')).toBe(expected);
+        expect(appState.getColumnResumeGate(agentsByDid as any, 'did:plc:sub')).toBe(expected);
     });
 
     it('サブ垢が resumed 済みなら agentsByDid に載るので gate=mount かつ正しいagentへ解決', () => {

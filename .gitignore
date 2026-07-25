@@ -26,3 +26,4 @@ image-compress/
 src/routes/(app)/test-compress/
 scripts/
 docs/
+tmp-heap/

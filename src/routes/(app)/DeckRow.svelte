@@ -29,6 +29,8 @@
     import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
     import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
+    import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
+    import {appState} from "$lib/classes/appState.svelte";
     import NotificationTimeline from "./NotificationTimeline.svelte";
     import ThreadTimeline from "./ThreadTimeline.svelte";
     import ChatTimeline from "./ChatTimeline.svelte";
@@ -64,7 +66,7 @@
     let unique = $state(Symbol());
     let splitUniques = $state<symbol[]>([Symbol()]);
 
-    const _agent = $derived(_agentProp ?? ($agentsByDid.get(column.did) || $agent));
+    const _agent = $derived(_agentProp ?? $agentsByDid.get(column.did) ?? (isJunk ? $agent : undefined));
 
     let isSettingsOpen = $state(false);
     let isTopScrolling = $state(false);
@@ -86,8 +88,14 @@
 
     let splitAgents = $derived(
         column.splitColumn
-            ? [($agentsByDid.get(column.splitColumn.did) || $agent)]
+            ? [$agentsByDid.get(column.splitColumn.did)]
             : []
+    );
+
+    const splitGate = $derived(
+        column.splitColumn
+            ? appState.getColumnResumeGate($agentsByDid, column.splitColumn.did)
+            : 'mount'
     );
 
     $effect(() => {
@@ -261,6 +269,10 @@
     }
 
     async function handleMarkAllRead() {
+        if (!_agent) {
+            return;
+        }
+
         try {
             await markAllNotificationsRead({ column, columnState, _agent });
             clearNotificationBadgesForDid(fixedColumnState.columns, column.did);
@@ -409,17 +421,21 @@
                 </div>
 
                 <div class="deck-row-split deck-row-split--bottom" style="flex: {1 - (splitResizePreview ?? column.splitRatio ?? 0.5)}">
-                    <DeckColumn
-                        bind:this={splitColumnEls[0]}
-                        column={column.splitColumn}
-                        _agent={splitAgents[0]}
-                        {index}
-                        isJunk={false}
-                        isSplit={true}
-                        bind:unique={splitUniques[0]}
-                        bind:isTopScrolling={splitTopScrolling[0]}
-                        {isScrollPaused}
-                    />
+                    {#if splitGate === 'mount'}
+                        <DeckColumn
+                            bind:this={splitColumnEls[0]}
+                            column={column.splitColumn}
+                            _agent={splitAgents[0]}
+                            {index}
+                            isJunk={false}
+                            isSplit={true}
+                            bind:unique={splitUniques[0]}
+                            bind:isTopScrolling={splitTopScrolling[0]}
+                            {isScrollPaused}
+                        />
+                    {:else}
+                        <ColumnResumePlaceholder column={column.splitColumn} inline={true}></ColumnResumePlaceholder>
+                    {/if}
                 </div>
             </div>
         </div>

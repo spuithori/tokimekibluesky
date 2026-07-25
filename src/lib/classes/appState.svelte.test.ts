@@ -45,12 +45,24 @@ vi.mock('$lib/db', () => ({
     },
 }));
 
-function makeAgent() {
+function makeAgent(did = 'did:plc:mock') {
     return {
         configureLabelers: vi.fn(),
         getLabelDefinitions: vi.fn(async () => ({ mock: 'defs' })),
-        did: () => 'did:plc:mock',
+        did: () => did,
     };
+}
+
+function buildAgentsByDid(map: Map<number, any>) {
+    const m = new Map<string, any>();
+    map.forEach((v) => { const d = v.did(); if (d) m.set(d, v); });
+    return m;
+}
+
+async function loadAgentsReader(): Promise<() => Map<number, any>> {
+    const { agents } = await import('$lib/stores');
+    const { get } = await import('svelte/store');
+    return () => get(agents as any) as Map<number, any>;
 }
 
 function resumedOutcome(agent = makeAgent()) {
@@ -219,6 +231,58 @@ describe('appState primary-gated progressive resume', () => {
         resolveResume(2, resumedOutcome());
         await vi.waitFor(() => expect(get(agents as any).has(2)).toBe(true));
         expect(appState.resumeStatus['did:plc:two'].phase).toBe('resumed');
+    });
+
+    it('サブ垢の phase=resumed は agents 登録より先に観測されない(ブート)', async () => {
+        seedTwoAccountProfile();
+        const appState = await loadAppState();
+        const readAgents = await loadAgentsReader();
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(resumeControls.length).toBe(2));
+
+        resolveResume(1, resumedOutcome(makeAgent('did:plc:one')));
+        await boot;
+
+        resolveResume(2, resumedOutcome(makeAgent('did:plc:two')));
+
+        expect(readAgents().has(2)).toBe(false);
+        expect(appState.resumeStatus['did:plc:two'].phase).not.toBe('resumed');
+        expect(appState.getColumnResumeGate(buildAgentsByDid(readAgents()), 'did:plc:two')).not.toBe('mount');
+
+        await vi.waitFor(() => expect(readAgents().has(2)).toBe(true));
+        expect(appState.resumeStatus['did:plc:two'].phase).toBe('resumed');
+        expect(appState.getColumnResumeGate(buildAgentsByDid(readAgents()), 'did:plc:two')).toBe('mount');
+    });
+
+    it('retryAccount 経由でも phase=resumed は agents 登録より先に観測されない(非起動時)', async () => {
+        seedTwoAccountProfile();
+        const appState = await loadAppState();
+        const readAgents = await loadAgentsReader();
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(resumeControls.length).toBe(2));
+
+        resolveResume(1, resumedOutcome(makeAgent('did:plc:one')));
+        await boot;
+
+        resolveResume(2, { status: 'unreachable', error: new Error('offline') });
+        await vi.waitFor(() => expect(appState.resumeStatus['did:plc:two'].phase).toBe('unreachable'));
+        expect(appState.missingAccounts.some((a: any) => a.id === 2)).toBe(false);
+
+        const retry = appState.retryAccount(2);
+        await vi.waitFor(() => expect(resumeControls.filter((c) => c.accountId === 2 && !c.used).length).toBe(1));
+
+        resolveResume(2, resumedOutcome(makeAgent('did:plc:two')));
+
+        expect(readAgents().has(2)).toBe(false);
+        expect(appState.resumeStatus['did:plc:two'].phase).not.toBe('resumed');
+
+        await retry;
+
+        expect(readAgents().has(2)).toBe(true);
+        expect(appState.resumeStatus['did:plc:two'].phase).toBe('resumed');
+        expect(appState.missingAccounts.some((a: any) => a.id === 2)).toBe(false);
     });
 
     it('surfaces an auth-required primary immediately without waiting for other accounts', async () => {

@@ -206,6 +206,7 @@ class AppState {
         const { perAccount } = startAccountsResume([account], this.resumeProxy, {
             onStatus: (acc, phase, meta) => {
                 if (!isCurrent()) return;
+                if (phase === 'resumed') return;
                 this.handleResumeStatus(acc, phase, meta);
             },
             onHandle: (acc, handle) => {
@@ -248,6 +249,7 @@ class AppState {
         }
 
         agents.update(map => new Map(map).set(account.id!, outcome.agent));
+        this.handleResumeStatus(account, 'resumed');
         this.setPdsRequestReady();
     }
 
@@ -325,6 +327,14 @@ class AppState {
         if (!did || !this.resumeStatus[did]) return;
         const { [did]: _removed, ...rest } = this.resumeStatus;
         this.resumeStatus = rest;
+    }
+
+    applyExternalResumeStatus(account: Account, phase: ResumePhase, meta?: { attempt?: number; error?: unknown; offline?: boolean }) {
+        this.handleResumeStatus(account, phase, meta);
+    }
+
+    setResumeAccounts(accounts: Account[]) {
+        this.resumeAccounts = accounts;
     }
 
     getColumnResumeGate(agentsByDidMap: Map<string, Agent>, did: string | undefined): 'mount' | 'pending' | 'failed' | 'missing' {

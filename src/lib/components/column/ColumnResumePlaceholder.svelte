@@ -6,7 +6,7 @@
     import ColumnAgentMissing from "$lib/components/column/ColumnAgentMissing.svelte";
     import {appState} from "$lib/classes/appState.svelte";
 
-    let { column } = $props();
+    let { column, inline = false } = $props();
 
     const status = $derived(appState.resumeStatus[column?.did]);
     const phase = $derived(status?.phase);
@@ -22,7 +22,11 @@
     });
 </script>
 
-<div class="column-resume-placeholder deck-row-wrap column-resume-placeholder--{column?.settings?.width || 'medium'}">
+<div
+    class="column-resume-placeholder column-resume-placeholder--{column?.settings?.width || 'medium'}"
+    class:deck-row-wrap={!inline}
+    class:column-resume-placeholder--inline={inline}
+>
   {#if phase === 'auth-required'}
     <Unplug size={40} color="var(--danger-color)" />
     <p class="column-resume-placeholder__text">{$_('column_resume_auth')}</p>
@@ -137,6 +141,20 @@
 
       &__account {
           width: 100%;
+      }
+
+      &--inline {
+          width: 100%;
+          height: 100%;
+          padding: 20px;
+          border: none;
+          border-radius: 0;
+          background-color: transparent;
+
+          @media (max-width: 767px) {
+              width: 100%;
+              height: 100%;
+          }
       }
   }
 </style>

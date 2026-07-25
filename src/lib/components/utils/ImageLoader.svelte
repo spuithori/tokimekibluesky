@@ -1,6 +1,8 @@
 <script lang="ts">
     import { observeVisible } from "$lib/lazyObserver";
 
+    const PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
     let { image, naturalWidth, naturalHeight } = $props();
     let loaded = $state(false);
     let instant = $state(false);
@@ -14,13 +16,14 @@
         return {
             destroy() {
                 unobserve();
-                node.src = '';
+                node.src = PLACEHOLDER;
+                node.remove();
             },
         };
     }
 
     function detectCached(node: HTMLImageElement) {
-        if (inView && !loaded && node.complete && node.naturalWidth > 0) {
+        if (inView && !loaded && node.complete && node.naturalWidth > 0 && node.src !== PLACEHOLDER) {
             instant = true;
             loaded = true;
         }
@@ -31,16 +34,16 @@
     use:lazyLoad
     {@attach detectCached}
     decoding="async"
-    src={inView ? image.thumb : undefined}
+    src={inView ? image.thumb : PLACEHOLDER}
     alt={image.alt}
     width={image?.aspectRatio?.width}
     height={image?.aspectRatio?.height}
     class="lazy-image"
     class:loaded
     class:lazy-image--instant={instant}
-    onload={() => { loaded = true; }}
-    bind:naturalWidth={null, (v) => naturalWidth(image?.aspectRatio?.width || v)}
-    bind:naturalHeight={null, (v) => naturalHeight(image?.aspectRatio?.height || v)}
+    onload={(e) => { if ((e.currentTarget as HTMLImageElement).src !== PLACEHOLDER) loaded = true; }}
+    bind:naturalWidth={null, (v) => { if (inView) naturalWidth(image?.aspectRatio?.width || v); }}
+    bind:naturalHeight={null, (v) => { if (inView) naturalHeight(image?.aspectRatio?.height || v); }}
 >
 
 <style lang="postcss">

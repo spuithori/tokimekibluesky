@@ -8,11 +8,11 @@ export async function modifyAgents(ids, proxy?: string) {
         .anyOf(ids)
         .toArray();
 
+    appState.setResumeAccounts(accounts);
+
     let agentsMap = await resumeAccountsSession(accounts, proxy, {
-        onStatus: (account, phase) => {
-            if (phase === 'auth-required') {
-                appState.reportAuthRequired(account);
-            }
+        onStatus: (account, phase, meta) => {
+            appState.applyExternalResumeStatus(account, phase, meta);
         },
     });
     return agentsMap;
