@@ -12,7 +12,7 @@ const config = {
   kit: {
     adapter: adapter(),
     version: {
-      pollInterval: 60_000,
+      pollInterval: 3_600_000,
     },
   },
 

@@ -82,6 +82,8 @@
           <a href="https://tokimeki.fanbox.cc/" target="_blank"><img src="/fanbox.png" alt="PIXIV FANBOX" style="height: 60px !important;width: 217px !important;" ></a>
         </div>
 
+        <p class="about-pp"><a href="https://diary.tokimeki.blue/" target="_blank" rel="noopener">{$_('diary')}</a></p>
+
         <p class="about-pp"><a href="https://docs.tokimeki.blue/" target="_blank" rel="noopener">{$_('document')}</a></p>
 
         <p class="about-pp"><a href="https://docs.tokimeki.blue/privacy" target="_blank" rel="noopener">{$_('privacy_policy')}</a></p>
