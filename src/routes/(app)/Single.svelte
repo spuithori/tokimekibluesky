@@ -177,7 +177,7 @@
             }
         }
 
-        &--bottom {
+        &--page&--bottom {
             left: 64px;
 
             @media (max-width: 767px) {
