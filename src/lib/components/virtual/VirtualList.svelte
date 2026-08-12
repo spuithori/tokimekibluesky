@@ -333,7 +333,11 @@
       requestAnimationFrame(processScroll);
       return;
     }
-    if (!scrollContainer || !canvasEl || items.length === 0 || isNavigating || effectivePaused) return;
+    if (!scrollContainer || !canvasEl || items.length === 0 || isNavigating) return;
+    if (effectivePaused) {
+      if (paused || document.hidden) return;
+      isDocumentHidden = false;
+    }
 
     const containerTop = isWindowScroll ? 0 : scrollContainer.getBoundingClientRect().top + (scrollContainer.clientTop || 0);
 
@@ -894,8 +898,15 @@
     const handler = () => {
       isDocumentHidden = document.hidden;
     };
+    handler();
     document.addEventListener('visibilitychange', handler);
-    return () => document.removeEventListener('visibilitychange', handler);
+    window.addEventListener('pageshow', handler);
+    window.addEventListener('focus', handler);
+    return () => {
+      document.removeEventListener('visibilitychange', handler);
+      window.removeEventListener('pageshow', handler);
+      window.removeEventListener('focus', handler);
+    };
   });
 
   $effect(() => {
