@@ -1,4 +1,5 @@
 import type {Column} from "$lib/types/column";
+import {type Slot, type LayoutNode, loadDeckState, migrateLegacyColumns, splitLeaf, splitLeafWithExisting, moveLeafToSplit, moveLeafToSlot, unsplitAt, swapAt, slotIndexOfColumn, flattenLeafIds, firstLeafId, DECK_SCHEMA_VERSION} from "$lib/classes/deckLayout";
 import {getContext, setContext, untrack} from "svelte";
 import {SvelteMap} from "svelte/reactivity";
 import {accountsDb} from "$lib/db";
@@ -7,11 +8,16 @@ import {AppBskyFeedDefs} from "$lib/atproto-guards";
 import {settingsState} from "$lib/classes/settingsState.svelte";
 import {appState} from "$lib/classes/appState.svelte";
 import {recordError} from "$lib/errorLog";
-import {clearAllNotificationLedgers, deleteNotificationLedger, moveNotificationLedger, resetNotificationLedger} from "$lib/components/notification/notificationLedger";
+import {clearAllNotificationLedgers, deleteNotificationLedger} from "$lib/components/notification/notificationLedger";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
+    slots = $state<Slot[]>([]);
     isReordering = $state(false);
+    isResizingWidth = $state(false);
+    floatingOrder = $state<string[]>([]);
+    activeFloatingId = $state<string | null>(null);
+    private readonly isJunk: boolean;
     private _feeds = new SvelteMap<string, any[]>();
     private _feedStatus = $state.raw<Record<string, string>>({});
 
@@ -57,32 +63,36 @@ export class ColumnState {
         this._feeds.delete(columnId);
     }
 
-    syncColumns = $derived(this.columns.map(({ scrollElement, data, splitColumn, ...rest }) => ({
+    registerFloating(id: string): void {
+        if (!this.floatingOrder.includes(id)) this.floatingOrder = [...this.floatingOrder, id];
+    }
+
+    unregisterFloating(id: string): void {
+        this.floatingOrder = this.floatingOrder.filter(x => x !== id);
+        if (this.activeFloatingId === id) this.activeFloatingId = null;
+    }
+
+    raiseFloating(id: string): void {
+        this.floatingOrder = [...this.floatingOrder.filter(x => x !== id), id];
+        this.activeFloatingId = id;
+    }
+
+    columnById = $derived(new Map(this.columns.map(c => [c.id, c] as const)));
+
+    syncColumns = $derived(this.columns.map(({ scrollElement, data, ...rest }) => ({
         ...rest,
         data: {
             feed: !settingsState?.settings?.markedUnread ? [] : rest.algorithm?.type === 'notification' ? [] : this._feeds.get(rest.id) ?? [],
             cursor: !settingsState?.settings?.markedUnread ? '' : rest.algorithm?.type === 'notification' ? '' : data?.cursor || '',
         },
-        ...(splitColumn ? {
-            splitColumn: {
-                ...(() => {
-                    const { scrollElement: splitScrollElement, data: splitData, ...splitRest } = splitColumn;
-                    return {
-                        ...splitRest,
-                        data: {
-                            feed: !settingsState?.settings?.markedUnread ? [] : splitRest.algorithm?.type === 'notification' ? [] : this._feeds.get(splitRest.id) ?? [],
-                            cursor: !settingsState?.settings?.markedUnread ? '' : splitRest.algorithm?.type === 'notification' ? '' : splitData?.cursor || '',
-                        }
-                    };
-                })()
-            }
-        } : {})
     })));
     isColumnsLoaded = $state(false);
     loadFailed = $state(false);
 
     constructor(isJunk: boolean = false) {
-       if (isJunk) {
+        this.isJunk = isJunk;
+
+        if (isJunk) {
             $effect(() => {
                 if (this.columns.length > 20) {
                     const removed = this.columns.shift();
@@ -106,9 +116,10 @@ export class ColumnState {
         });
 
         $effect(() => {
-            if (!this.isColumnsLoaded || this.isReordering) return;
+            if (!this.isColumnsLoaded || this.isReordering || this.isResizingWidth) return;
 
             this.syncColumns;
+            $state.snapshot(this.slots);
             untrack(() => this.persistColumns());
         });
     }
@@ -125,6 +136,8 @@ export class ColumnState {
         this.persistInFlight = true;
         accountsDb.profiles.update(appState.profile.current, {
             columns: $state.snapshot(this.syncColumns) as unknown as Column[],
+            slots: $state.snapshot(this.slots),
+            deckVersion: DECK_SCHEMA_VERSION,
         })
             .catch(console.error)
             .finally(() => {
@@ -143,10 +156,6 @@ export class ColumnState {
             if (column.did === did && column.handle !== handle) {
                 column.handle = handle;
             }
-            const split = column.splitColumn;
-            if (split?.did === did && split.handle !== handle) {
-                split.handle = handle;
-            }
         }
     };
 
@@ -156,13 +165,6 @@ export class ColumnState {
             if (fresh && column.handle !== fresh) {
                 column.handle = fresh;
             }
-            const split = column.splitColumn;
-            if (split) {
-                const splitFresh = appState.getFreshHandle(split.did);
-                if (splitFresh && split.handle !== splitFresh) {
-                    split.handle = splitFresh;
-                }
-            }
         }
     }
 
@@ -171,9 +173,12 @@ export class ColumnState {
 
         accountsDb.profiles.get(appState.profile.current)
           .then(res => {
-              const cols = res?.columns || [];
+              const { columns, slots } = loadDeckState(
+                  { version: res?.deckVersion, columns: res?.columns, slots: res?.slots },
+                  () => self.crypto.randomUUID(),
+              );
               const feedEntries: Record<string, any[]> = {};
-              for (const col of cols) {
+              for (const col of columns) {
                   if (col.data) {
                       col.data.scrollState = undefined;
                       const feed = col.data.feed;
@@ -182,20 +187,12 @@ export class ColumnState {
                           col.data.feed = [];
                       }
                   }
-                  const split = col.splitColumn;
-                  if (split?.data) {
-                      split.data.scrollState = undefined;
-                      const splitFeed = split.data.feed;
-                      if (splitFeed && splitFeed.length > 0 && split.id) {
-                          feedEntries[split.id] = splitFeed;
-                          split.data.feed = [];
-                      }
-                  }
               }
               for (const [id, feed] of Object.entries(feedEntries)) {
                   this._feeds.set(id, feed);
               }
-              this.columns = cols;
+              this.columns = columns;
+              this.slots = slots;
               this.isColumnsLoaded = true;
               this.applyAllKnownHandles();
           })
@@ -214,39 +211,45 @@ export class ColumnState {
             this._feeds.set(column.id, column.data.feed);
             column.data.feed = [];
         }
-        this.columns.push(column)
+        this.columns.push(column);
+        if (!this.isJunk) {
+            this.slots.push({ id: self.crypto.randomUUID(), layout: { type: 'leaf', columnId: column.id } });
+        }
     }
 
     remove(id: string) {
-        const column = this.columns.find(column => column.id === id);
-        const splitId = column?.splitColumn?.id;
-        if (splitId) {
-            this.deleteFeed(splitId);
-            this.clearFeedStatus(splitId);
-            deleteNotificationLedger(splitId);
-        }
         this.deleteFeed(id);
         this.clearFeedStatus(id);
         deleteNotificationLedger(id);
-        this.columns = this.columns.filter(column => column.id !== id);
+
+        const slotIndex = slotIndexOfColumn(this.slots, id);
+        if (slotIndex === -1) {
+            this.columns = this.columns.filter(column => column.id !== id);
+            return;
+        }
+        const next = unsplitAt({ columns: this.columns, slots: this.slots }, slotIndex, id, false, () => self.crypto.randomUUID());
+        this.columns = next.columns;
+        this.slots = next.slots;
     }
 
     removeAll() {
         for (const column of this.columns) {
-            const splitId = column?.splitColumn?.id;
-            if (splitId) {
-                deleteNotificationLedger(splitId);
-            }
             deleteNotificationLedger(column.id);
         }
         this.columns.length = 0;
+        this.slots.length = 0;
         this._feeds.clear();
         this._feedStatus = {};
     }
 
-    replaceAllColumns(columns: Column[]) {
+    replaceAllColumns(columns: Column[], slots?: Slot[], version?: number) {
         clearAllNotificationLedgers();
-        this.columns = columns;
+        const deck = loadDeckState(
+            { version, columns, slots },
+            () => self.crypto.randomUUID(),
+        );
+        this.columns = deck.columns;
+        this.slots = deck.slots;
         this.applyAllKnownHandles();
     }
 
@@ -262,77 +265,89 @@ export class ColumnState {
         return this.columns.findIndex(column => column.id === id);
     }
 
-    splitColumnAt(index: number, newColumn: Column) {
-        const column = this.columns[index];
-        if (column) {
-            column.splitColumn = newColumn;
-            column.splitRatio = column.splitRatio ?? 0.5;
-        }
+    slotIndexOf(columnId: string) {
+        return slotIndexOfColumn(this.slots, columnId);
     }
 
-    unsplitColumnAt(index: number, keepAsSeparate: boolean) {
-        const column = this.columns[index];
-        if (column && column.splitColumn) {
-            const oldSplitId = column.splitColumn.id;
-            if (keepAsSeparate) {
-                const splitColumn = { ...column.splitColumn };
-                const newId = self.crypto.randomUUID();
-                splitColumn.id = newId;
-                this.setFeed(newId, [...this.getFeed(oldSplitId)]);
-                moveNotificationLedger(oldSplitId, newId);
-                this.columns.splice(index + 1, 0, splitColumn);
-            } else {
-                deleteNotificationLedger(oldSplitId);
-            }
-            this.deleteFeed(oldSplitId);
-            this.clearFeedStatus(oldSplitId);
-            column.splitColumn = undefined;
-            column.splitRatio = undefined;
-        }
+    getSlot(slotIndex: number) {
+        return this.slots[slotIndex];
     }
 
-    swapSplitColumn(index: number) {
-        const column = this.columns[index];
-        if (column && column.splitColumn) {
-            const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
+    leafIdsOf(slotIndex: number): string[] {
+        const slot = this.slots[slotIndex];
+        return slot ? flattenLeafIds(slot.layout) : [];
+    }
 
-            const tempAlgorithm = deepClone(column.algorithm);
-            const tempStyle = column.style;
-            const tempDid = column.did;
-            const tempHandle = column.handle;
-            const tempUnreadCount = column.unreadCount;
-            const tempFilter = column.filter ? deepClone(column.filter) : undefined;
-            const tempLastRefresh = column.lastRefresh;
-            const tempSettings = column.settings ? deepClone(column.settings) : {};
+    getSlotColumn(slotIndex: number): Column | undefined {
+        const slot = this.slots[slotIndex];
+        if (!slot) return undefined;
+        return this.columnById.get(firstLeafId(slot.layout));
+    }
 
-            column.algorithm = deepClone(column.splitColumn.algorithm);
-            column.style = column.splitColumn.style;
-            column.did = column.splitColumn.did;
-            column.handle = column.splitColumn.handle;
-            column.unreadCount = column.splitColumn.unreadCount;
-            column.filter = column.splitColumn.filter ? deepClone(column.splitColumn.filter) : undefined;
-            column.lastRefresh = column.splitColumn.lastRefresh;
-            column.data = {
-                feed: [],
-                cursor: '',
-            };
-            this.clearFeed(column.id);
-            resetNotificationLedger(column.id);
+    splitColumnAt(leafColumnId: string, newColumn: Column, direction: 'row' | 'column' = 'column') {
+        const slotIndex = slotIndexOfColumn(this.slots, leafColumnId);
+        if (slotIndex === -1) return;
+        if (newColumn.did && newColumn.handle?.startsWith('did:')) {
+            newColumn.handle = appState.getFreshHandle(newColumn.did) ?? undefined;
+        }
+        if ((newColumn.data?.feed?.length ?? 0) > 0 && newColumn.id) {
+            this._feeds.set(newColumn.id, newColumn.data.feed as any[]);
+            newColumn.data.feed = [];
+        }
+        const next = splitLeaf({ columns: this.columns, slots: this.slots }, leafColumnId, newColumn, direction);
+        this.columns = next.columns;
+        this.slots = next.slots;
+    }
 
-            column.splitColumn.algorithm = tempAlgorithm;
-            column.splitColumn.style = tempStyle;
-            column.splitColumn.did = tempDid;
-            column.splitColumn.handle = tempHandle;
-            column.splitColumn.unreadCount = tempUnreadCount;
-            column.splitColumn.filter = tempFilter;
-            column.splitColumn.lastRefresh = tempLastRefresh;
-            column.splitColumn.settings = tempSettings;
-            column.splitColumn.data = {
-                feed: [],
-                cursor: '',
-            };
-            this.clearFeed(column.splitColumn.id);
-            resetNotificationLedger(column.splitColumn.id);
+    unsplitColumnAt(leafColumnId: string, keepAsSeparate: boolean) {
+        const slotIndex = slotIndexOfColumn(this.slots, leafColumnId);
+        if (slotIndex === -1) return;
+        if (!keepAsSeparate) {
+            this.deleteFeed(leafColumnId);
+            this.clearFeedStatus(leafColumnId);
+            deleteNotificationLedger(leafColumnId);
+        }
+        const next = unsplitAt({ columns: this.columns, slots: this.slots }, slotIndex, leafColumnId, keepAsSeparate, () => self.crypto.randomUUID());
+        this.columns = next.columns;
+        this.slots = next.slots;
+    }
+
+    swapSplitColumn(leafColumnId: string) {
+        const slotIndex = slotIndexOfColumn(this.slots, leafColumnId);
+        if (slotIndex === -1) return;
+        const next = swapAt({ columns: this.columns, slots: this.slots }, slotIndex);
+        this.columns = next.columns;
+        this.slots = next.slots;
+    }
+
+    mergeColumnIntoSplit(targetLeafColumnId: string, sourceColumnId: string, direction: 'row' | 'column' = 'column') {
+        const slotIndex = slotIndexOfColumn(this.slots, targetLeafColumnId);
+        if (slotIndex === -1) return;
+        const next = splitLeafWithExisting({ columns: this.columns, slots: this.slots }, targetLeafColumnId, sourceColumnId, direction);
+        this.columns = next.columns;
+        this.slots = next.slots;
+    }
+
+    moveLeafToSplit(sourceColumnId: string, targetColumnId: string, direction: 'row' | 'column' = 'column', sourceFirst = false) {
+        const next = moveLeafToSplit({ columns: this.columns, slots: this.slots }, sourceColumnId, targetColumnId, direction, sourceFirst);
+        this.columns = next.columns;
+        this.slots = next.slots;
+    }
+
+    moveLeafToSlot(sourceColumnId: string, slotIndex: number) {
+        const next = moveLeafToSlot({ columns: this.columns, slots: this.slots }, sourceColumnId, slotIndex, () => self.crypto.randomUUID());
+        this.columns = next.columns;
+        this.slots = next.slots;
+    }
+
+    isInSplit(columnId: string): boolean {
+        const slotIndex = slotIndexOfColumn(this.slots, columnId);
+        return slotIndex !== -1 && flattenLeafIds(this.slots[slotIndex].layout).length > 1;
+    }
+
+    setNodeSizes(node: LayoutNode, sizes: number[]) {
+        if (node && node.type === 'split') {
+            node.sizes = sizes;
         }
     }
 
@@ -421,10 +436,6 @@ export class ColumnState {
         try {
             for (const column of this.columns) {
                 this.updateLikeForColumn(column, pulse, targetUri);
-
-                if (column.splitColumn) {
-                    this.updateLikeForColumn(column.splitColumn as Column, pulse, targetUri);
-                }
             }
         } catch (e) {
             console.error(e);
@@ -457,10 +468,6 @@ export class ColumnState {
         try {
             for (const column of this.columns) {
                 this.applyEmbedDetachForColumn(column, uri, embed);
-
-                if (column.splitColumn) {
-                    this.applyEmbedDetachForColumn(column.splitColumn as Column, uri, embed);
-                }
             }
         } catch (e) {
             console.error(e);
@@ -552,10 +559,6 @@ export class ColumnState {
         try {
             for (const column of this.columns) {
                 this.updateRepostForColumn(column, pulse, targetUri);
-
-                if (column.splitColumn) {
-                    this.updateRepostForColumn(column.splitColumn as Column, pulse, targetUri);
-                }
             }
         } catch (e) {
             console.error(e);
@@ -574,10 +577,6 @@ export class ColumnState {
         try {
             this.columns.forEach(column => {
                 this.deletePostForColumn(column, uri);
-
-                if (column.splitColumn) {
-                    this.deletePostForColumn(column.splitColumn as Column, uri);
-                }
             });
         } catch (e) {
             console.error(e);
@@ -596,10 +595,6 @@ export class ColumnState {
         try {
             this.columns.forEach(column => {
                 this.deletePostsFromDidForColumn(column, did);
-
-                if (column.splitColumn) {
-                    this.deletePostsFromDidForColumn(column.splitColumn as Column, did);
-                }
             });
         } catch (e) {
             console.error(e);

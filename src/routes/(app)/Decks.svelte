@@ -1,11 +1,13 @@
 <script lang="ts">
     import Ghost from '@lucide/svelte/icons/ghost';
     import {agentsByDid, isColumnModalOpen} from '$lib/stores';
-    import DeckRow from "./DeckRow.svelte";
+    import DeckSlot from "./DeckSlot.svelte";
     import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
     import ColumnsLoadError from "$lib/components/column/ColumnsLoadError.svelte";
     import ColumnErrorPanel from "$lib/components/column/ColumnErrorPanel.svelte";
     import BootStatus from "$lib/components/utils/BootStatus.svelte";
+    import TilingDragOverlay from "$lib/components/deck/TilingDragOverlay.svelte";
+    import TilingDragGhost from "$lib/components/deck/TilingDragGhost.svelte";
     import {recordError} from "$lib/errorLog";
     import {_} from "tokimeki-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
@@ -15,6 +17,9 @@
     const columnState = getColumnState();
 </script>
 
+<TilingDragOverlay></TilingDragOverlay>
+<TilingDragGhost></TilingDragGhost>
+
 <div class="deck-wrap">
   <div class="deck-divider" class:deck-divider--compact={publishState.isBottom}></div>
 
@@ -22,10 +27,11 @@
     <div class="deck-empty">
       <ColumnsLoadError></ColumnsLoadError>
     </div>
-  {:else if columnState.columns.length}
+  {:else if columnState.slots.length}
     <div class="deck">
       {#if appState.ready}
-        {#each columnState.columns as column, index (column.id)}
+        {#each columnState.slots as slot, index (slot.id)}
+          {@const column = columnState.getSlotColumn(index)}
           {@const gate = appState.getColumnResumeGate($agentsByDid, column?.did)}
           {#if gate !== 'mount'}
             {#if !column?.settings?.isPopup}
@@ -33,7 +39,7 @@
             {/if}
           {:else if !column?.settings?.isPopup}
             <svelte:boundary onerror={(error) => recordError(error, 'column')}>
-              <DeckRow {index}></DeckRow>
+              <DeckSlot {index}></DeckSlot>
 
               {#snippet failed(error, reset)}
                 <ColumnErrorPanel {column} {reset}></ColumnErrorPanel>
@@ -41,7 +47,7 @@
             </svelte:boundary>
           {:else}
             <svelte:boundary onerror={(error) => recordError(error, 'column')}>
-              <DeckPopupWrap {column} {index}></DeckPopupWrap>
+              <DeckPopupWrap {index}></DeckPopupWrap>
 
               {#snippet failed(error, reset)}{/snippet}
             </svelte:boundary>

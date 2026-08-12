@@ -106,10 +106,8 @@ export function claimNotificationChime(columnId: string, newestIndexedAt: string
 
 export function clearNotificationBadgesForDid(columns: Column[], did: string): void {
     for (const column of columns) {
-        for (const target of [column, column.splitColumn]) {
-            if (target?.algorithm?.type === 'notification' && target.did === did) {
-                target.unreadCount = 0;
-            }
+        if (column?.algorithm?.type === 'notification' && column.did === did) {
+            column.unreadCount = 0;
         }
     }
 }

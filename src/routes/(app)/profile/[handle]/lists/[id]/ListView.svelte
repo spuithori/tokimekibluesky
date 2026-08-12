@@ -6,7 +6,7 @@
   import OfficialListItem from "$lib/components/list/OfficialListItem.svelte";
   import {isDid} from "$lib/util";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import DeckRow from "../../../../DeckRow.svelte";
+  import DeckSlot from "../../../../DeckSlot.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
 
   interface Props {
@@ -157,7 +157,7 @@
 
   {#if !isModerationList}
     {#if (columnState.hasColumn('list_' + id))}
-      <DeckRow index={columnState.getColumnIndex('list_' + id)} isJunk={true} name={title}></DeckRow>
+      <DeckSlot index={columnState.getColumnIndex('list_' + id)} isJunk={true} name={title}></DeckSlot>
     {/if}
   {:else}
     <div class="mod-list-cover">

@@ -1,7 +1,7 @@
 <script lang="ts">
     import {agent} from '$lib/stores';
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-    import DeckRow from "../../DeckRow.svelte";
+    import DeckSlot from "../../DeckSlot.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
 
     let { _agent = $agent, id } = $props();
@@ -33,4 +33,4 @@
     }
 </script>
 
-<DeckRow index={columnState.getColumnIndex('chat_' + id)} isJunk={true}></DeckRow>
+<DeckSlot index={columnState.getColumnIndex('chat_' + id)} isJunk={true}></DeckSlot>

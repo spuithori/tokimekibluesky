@@ -3,7 +3,7 @@
     import {onDestroy, onMount} from "svelte";
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import {getColumnState} from "$lib/classes/columnState.svelte";
-    import DeckRow from "../../../routes/(app)/DeckRow.svelte";
+    import DeckSlot from "../../../routes/(app)/DeckSlot.svelte";
     import {agent} from "$lib/stores";
 
     let { _agent = $agent }: Props = $props();
@@ -37,5 +37,5 @@
 </script>
 
 {#if (columnState.hasColumn(columnId))}
-  <DeckRow index={columnState.getColumnIndex(columnId)} isJunk={true} {_agent}></DeckRow>
+  <DeckSlot index={columnState.getColumnIndex(columnId)} isJunk={true} {_agent}></DeckSlot>
 {/if}

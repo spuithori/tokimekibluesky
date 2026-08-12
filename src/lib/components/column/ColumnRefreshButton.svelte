@@ -19,7 +19,6 @@
         unique?: any;
         isJunk?: boolean;
         isRefreshing?: boolean | string;
-        isSplit?: boolean;
         column?: any;
     }
 
@@ -29,13 +28,12 @@
         unique = $bindable(Symbol()),
         isJunk = false,
         isRefreshing = $bindable(false),
-        isSplit = false,
         column: columnProp = undefined
     }: Props = $props();
 
     const columnState = getColumnState(isJunk);
     const fixedColumnState = getColumnState(false);
-    let column = columnProp ?? columnState.getColumn(index);
+    const column = $derived(columnProp ?? columnState.getColumn(index));
     let currentRefresh: Promise<unknown> | null = null;
 
     function getScrollElement(): HTMLElement {
@@ -64,8 +62,8 @@
     const serviceHost = getServiceHost();
     const host = serviceHost === 'bsky.social' ? 'Jetstream (us-east2)' : serviceHost;
 
-    watch(() => column.unreadCount, (curr, prev) => {
-      if (curr && curr > (prev ?? 0) && column.data.cursor) {
+    watch(() => column?.unreadCount, (curr, prev) => {
+      if (curr && curr > (prev ?? 0) && column?.data?.cursor) {
         refresh(true).catch((e) => console.error(e));
       }
     }, { lazy: true })
@@ -78,7 +76,7 @@
     }
 
     export async function refresh(isAutoRefresh: boolean = false) {
-        if ($pauseColumn || !_agent) {
+        if ($pauseColumn || !_agent || !column) {
             return false;
         }
 
@@ -346,7 +344,7 @@
     });
 
     function handleTimer(e) {
-        if (column.settings?.autoRefresh && column.settings?.autoRefresh > 0) {
+        if (column?.settings?.autoRefresh && column.settings.autoRefresh > 0) {
             if (e.data % Number(column.settings.autoRefresh) === 0) {
                 refresh(true).catch((err) => console.error(err));
             }
@@ -361,7 +359,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if column.settings?.autoRefresh === -1}
+{#if column?.settings?.autoRefresh === -1}
   <button
           class="refresh-button refresh-button--realtime refresh-button--decks"
           aria-label="Realtime Connecting"

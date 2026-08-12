@@ -18,7 +18,7 @@
   }: Props = $props();
 
   const columnState = getColumnState(isJunk);
-  const column = columnState.getColumn(index);
+  const column = $derived(columnState.getColumn(index));
 
   let rootIndex = $state<number>();
 

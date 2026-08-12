@@ -26,7 +26,6 @@
 
       for (const column of columnState.columns) {
           register(column);
-          register(column.splitColumn);
       }
 
       return columnsByTarget;

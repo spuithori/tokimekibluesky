@@ -51,7 +51,7 @@
   async function changeProfile() {
       currentTimeline.set(0);
       appState.changeProfile(profile.id);
-      columnState.replaceAllColumns(profile.columns);
+      columnState.replaceAllColumns(profile.columns, profile.slots, profile.deckVersion);
   }
 
   async function deleteProfile(id) {

@@ -7,7 +7,7 @@
     import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
     import { PUBLIC_SUICIDE_WORDS } from '$env/static/public';
     import SuicideSafety from "$lib/components/safety/SuicideSafety.svelte";
-    import DeckRow from "../DeckRow.svelte";
+    import DeckSlot from "../DeckSlot.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {parseSearchParams, buildSearchQuery, searchColumnId, isEmptySearch} from "$lib/search/searchParams";
     import {searchColumnName} from "$lib/search/searchDisplay";
@@ -70,7 +70,7 @@
 {/if}
 
 {#if hasSearch && junkColumnState.hasColumn(columnId)}
-    <DeckRow index={junkColumnState.getColumnIndex(columnId)} isJunk={true}></DeckRow>
+    <DeckSlot index={junkColumnState.getColumnIndex(columnId)} isJunk={true}></DeckSlot>
 {:else}
     <div class="search-empty">
         <Rainbow size={128} color="var(--border-color-1)" />

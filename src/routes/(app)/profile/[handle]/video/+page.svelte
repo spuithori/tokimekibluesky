@@ -3,7 +3,7 @@
   import type { LayoutData } from '../$types';
   import {getAgentContext} from "../state.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  import DeckRow from "../../../DeckRow.svelte";
+  import DeckSlot from "../../../DeckSlot.svelte";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
 
   interface Props {
@@ -41,5 +41,5 @@
 </svelte:head>
 
 {#if (columnState.hasColumn(columnId))}
-  <DeckRow index={columnState.getColumnIndex(columnId)} isJunk={true}></DeckRow>
+  <DeckSlot index={columnState.getColumnIndex(columnId)} isJunk={true}></DeckSlot>
 {/if}

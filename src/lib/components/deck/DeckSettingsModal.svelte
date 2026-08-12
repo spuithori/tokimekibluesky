@@ -18,13 +18,16 @@
     import AdvancedSearchModal from "$lib/components/search/AdvancedSearchModal.svelte";
     import {countActiveFilters, type ParsedSearch} from "$lib/search/searchParams";
     import {searchColumnName, filterChips} from "$lib/search/searchDisplay";
-    import SplitSquareVertical from '@lucide/svelte/icons/split-square-vertical';
     import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
     import Unlink from '@lucide/svelte/icons/unlink';
     import { fly } from 'svelte/transition';
     import Notice from "$lib/components/ui/Notice.svelte";
-    import ColumnChoices from "$lib/components/column/ColumnChoices.svelte";
-    import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
+    import {animateLayout} from "$lib/animations/flip";
+    import {
+        resolveDeckWidthPx, resolveSingleWidthPx, clampDeckWidth, clampSingleWidth,
+        DECK_WIDTH_MIN, DECK_WIDTH_MAX, DECK_WIDTH_DEFAULT,
+        SINGLE_WIDTH_MIN, SINGLE_WIDTH_MAX, SINGLE_WIDTH_DEFAULT,
+    } from "$lib/deckWidth";
     import {resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
 
     interface Props {
@@ -47,6 +50,7 @@
 
     const columnState = getColumnState();
     let column = columnProp ?? columnState.getColumn(index);
+    let slotIndex = columnState.slotIndexOf(column.id);
 
     const defaultSettings = {
         timeline: {
@@ -205,36 +209,21 @@
         })
     }
 
-    const widthSettings = [
-        {
-            name: $_('width_xxs'),
-            value: 'xxs',
-        },
-        {
-            name: $_('width_xs'),
-            value: 'xs',
-        },
-        {
-            name: $_('width_small'),
-            value: 'small',
-        },
-        {
-            name: $_('width_medium'),
-            value: 'medium',
-        },
-        {
-            name: $_('width_large'),
-            value: 'large',
-        },
-        {
-            name: $_('width_xl'),
-            value: 'xl',
-        },
-        {
-            name: $_('width_xxl'),
-            value: 'xxl',
-        },
-    ];
+    const isDecksLayout = $derived($settings.design?.layout === 'decks');
+    const widthMin = $derived(isDecksLayout ? DECK_WIDTH_MIN : SINGLE_WIDTH_MIN);
+    const widthMax = $derived(isDecksLayout ? DECK_WIDTH_MAX : SINGLE_WIDTH_MAX);
+    const widthDefault = $derived(isDecksLayout ? DECK_WIDTH_DEFAULT : SINGLE_WIDTH_DEFAULT);
+    const currentWidthPx = $derived(isDecksLayout
+        ? resolveDeckWidthPx(column.settings?.width)
+        : resolveSingleWidthPx($settings.design?.singleWidth));
+
+    function setWidth(px: number) {
+        if (isDecksLayout) {
+            column.settings.width = clampDeckWidth(px);
+        } else {
+            $settings.design.singleWidth = clampSingleWidth(px);
+        }
+    }
 
     const autoScrollSpeedSettings = [
         {
@@ -261,14 +250,14 @@
 
     function deleteColumn() {
         if (isSplit) {
-            columnState.unsplitColumnAt(index, false);
+            animateLayout(() => columnState.unsplitColumnAt(column.id, false), {exiting: [column.id]});
             onclose(false);
             return;
         }
-        if ($currentTimeline === index) {
+        if ($currentTimeline === slotIndex) {
             currentTimeline.set(0);
         }
-        columnState.remove(column.id);
+        animateLayout(() => columnState.remove(column.id), {exiting: [column.id]});
     }
 
     function clearColumn() {
@@ -282,11 +271,9 @@
     }
 
     function popupColumn() {
-        if (column.settings.isPopup) {
-            column.settings = {...column.settings, isPopup: false};
-        } else {
-            column.settings = {...column.settings, isPopup: true};
-        }
+        animateLayout(() => {
+            column.settings = {...column.settings, isPopup: !column.settings.isPopup};
+        });
     }
 
     let isAdvancedSearchOpen = $state(false);
@@ -330,62 +317,15 @@
         onclose(true);
     }
 
-    let isSplitModalOpen = $state(false);
     let isUnsplitConfirmOpen = $state(false);
-    let splitModalTab = $state<'new' | 'existing'>('new');
-
-    let existingColumnsForSplit = $derived(
-        columnState.columns.filter((col, i) =>
-            i !== index &&
-            !col.splitColumn &&
-            col.id !== column.id
-        )
-    );
-
-    function openSplitModal() {
-        splitModalTab = 'new';
-        isSplitModalOpen = true;
-    }
-
-    function closeSplitModal() {
-        isSplitModalOpen = false;
-    }
-
-    function handleSplitColumnAdd(event: CustomEvent) {
-        const newColumn = event.detail.column;
-        newColumn.id = self.crypto.randomUUID();
-        columnState.splitColumnAt(index, newColumn);
-        isSplitModalOpen = false;
-        onclose(true);
-    }
-
-    function handleSplitExistingColumn(existingColumnId: string) {
-        const existingColumnIndex = columnState.columns.findIndex(c => c.id === existingColumnId);
-        const existingColumn = columnState.columns[existingColumnIndex];
-        if (!existingColumn) return;
-
-        const splitColumn = {
-            ...existingColumn,
-            id: existingColumn.id,
-            scrollElement: undefined,
-        };
-
-        columnState.remove(existingColumn.id);
-
-        const adjustedIndex = existingColumnIndex < index ? index - 1 : index;
-
-        columnState.splitColumnAt(adjustedIndex, splitColumn);
-        isSplitModalOpen = false;
-        onclose(true);
-    }
 
     function handleSwapSplit() {
-        columnState.swapSplitColumn(index);
+        animateLayout(() => columnState.swapSplitColumn(column.id));
         onclose(true);
     }
 
     function handleUnsplit(keepAsSeparate: boolean) {
-        columnState.unsplitColumnAt(index, keepAsSeparate);
+        animateLayout(() => columnState.unsplitColumnAt(column.id, keepAsSeparate), keepAsSeparate ? {} : {exiting: [column.id]});
         isUnsplitConfirmOpen = false;
         onclose(true);
     }
@@ -479,25 +419,39 @@
                     </dl>
                 {/if}
 
-                {#if (!column.settings?.isPopup && (!isSplit || column.splitColumn))}
+                {#if (!column.settings?.isPopup && (!isSplit || columnState.isInSplit(column.id)))}
                     <dl class="settings-group only-pc">
                         <dt class="settings-group__name">
                             {$_('column_width')}
                         </dt>
 
                         <dd class="settings-group__content">
-                            <div class="radio-v-group radio-v-group--dwidth">
-                                {#each widthSettings as option}
-                                    {#if ($settings.design?.layout === 'decks')}
-                                        <div class="radio-v-group__item">
-                                            <input type="radio" id={column.id + option.value} bind:group={column.settings.width} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
-                                        </div>
-                                    {:else}
-                                        <div class="radio-v-group__item">
-                                            <input type="radio" id={column.id + option.value} bind:group={$settings.design.singleWidth} name="{column.id}_width" value={option.value}><label for={column.id + option.value}>{option.name}</label>
-                                        </div>
-                                    {/if}
-                                {/each}
+                            <div class="column-width-control">
+                                <input
+                                    class="column-width-control__range"
+                                    type="range"
+                                    min={widthMin}
+                                    max={widthMax}
+                                    step="10"
+                                    value={currentWidthPx}
+                                    oninput={(e) => setWidth(+e.currentTarget.value)}
+                                    aria-label={$_('column_width')}
+                                >
+                                <div class="column-width-control__row">
+                                    <input
+                                        class="column-width-control__number"
+                                        type="number"
+                                        min={widthMin}
+                                        max={widthMax}
+                                        step="10"
+                                        value={currentWidthPx}
+                                        onchange={(e) => setWidth(+e.currentTarget.value)}
+                                    >
+                                    <span class="column-width-control__unit">px</span>
+                                    <button type="button" class="column-width-control__reset" onclick={() => setWidth(widthDefault)}>
+                                        {$_('column_width_reset')}
+                                    </button>
+                                </div>
                             </div>
                         </dd>
                     </dl>
@@ -805,16 +759,12 @@
                 {/if}
 
                 {#if ($settings.design?.layout === 'decks' && !column.settings?.isPopup)}
-                    {#if column.splitColumn}
+                    {#if columnState.isInSplit(column.id)}
                         <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={handleSwapSplit}>
                             <ArrowUpDown size="20" color="var(--primary-color)"></ArrowUpDown>{$_('swap_split')}
                         </button>
                         <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={() => {isUnsplitConfirmOpen = true}}>
                             <Unlink size="20" color="var(--primary-color)"></Unlink>{$_('unsplit_column')}
-                        </button>
-                    {:else if !isSplit}
-                        <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={openSplitModal}>
-                            <SplitSquareVertical size="20" color="var(--primary-color)"></SplitSquareVertical>{$_('split_column')}
                         </button>
                     {/if}
                 {/if}
@@ -828,63 +778,6 @@
     </div>
 
 </div>
-
-{#if isSplitModalOpen}
-    <div class="split-modal-overlay" onclick={closeSplitModal}>
-        <div class="split-modal" onclick={(e) => e.stopPropagation()} transition:fly={{duration: 200, y: 20}}>
-            <div class="split-modal__header">
-                <h3 class="split-modal__title">{$_('split_select_column')}</h3>
-                <button class="split-modal__close" onclick={closeSplitModal}>×</button>
-            </div>
-
-            <div class="split-modal__tabs">
-                <button
-                    class="split-modal__tab"
-                    class:split-modal__tab--active={splitModalTab === 'new'}
-                    onclick={() => {splitModalTab = 'new'}}
-                >
-                    {$_('new_create')}
-                </button>
-                <button
-                    class="split-modal__tab"
-                    class:split-modal__tab--active={splitModalTab === 'existing'}
-                    onclick={() => {splitModalTab = 'existing'}}
-                >
-                    {$_('split_use_existing')}
-                </button>
-            </div>
-
-            <div class="split-modal__content">
-                {#if splitModalTab === 'new'}
-                    <ColumnChoices {_agent} on:add={handleSplitColumnAdd}></ColumnChoices>
-                {:else}
-                    {#if existingColumnsForSplit.length > 0}
-                        <div class="split-existing-list">
-                            {#each existingColumnsForSplit as existingCol, i}
-                                <button
-                                    class="split-existing-item"
-                                    onclick={() => handleSplitExistingColumn(existingCol.id)}
-                                >
-                                    <div class="split-existing-item__icon">
-                                        <ColumnIcon type={existingCol.algorithm.type}></ColumnIcon>
-                                    </div>
-                                    <div class="split-existing-item__content">
-                                        <div class="split-existing-item__name">{existingCol.algorithm.name}</div>
-                                        {#if existingCol.handle}
-                                            <div class="split-existing-item__handle">{existingCol.handle}</div>
-                                        {/if}
-                                    </div>
-                                </button>
-                            {/each}
-                        </div>
-                    {:else}
-                        <p class="split-existing-empty">{$_('split_no_existing_columns')}</p>
-                    {/if}
-                {/if}
-            </div>
-        </div>
-    </div>
-{/if}
 
 {#if isUnsplitConfirmOpen}
     <div class="split-modal-overlay" onclick={() => {isUnsplitConfirmOpen = false}}>
@@ -923,6 +816,7 @@
 
         &--split {
             top: 48px;
+            right: 0;
             bottom: 0;
             height: auto;
         }
@@ -1161,89 +1055,52 @@
         &__option-text {
             font-weight: 500;
         }
-
-        &__tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border-color-1);
-        }
-
-        &__tab {
-            flex: 1;
-            padding: 12px 16px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-color-3);
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px;
-            transition: color 0.15s ease, border-color 0.15s ease;
-
-            &:hover {
-                color: var(--text-color-1);
-            }
-
-            &--active {
-                color: var(--primary-color);
-                border-bottom-color: var(--primary-color);
-            }
-        }
     }
 
-    .split-existing-list {
+    .column-width-control {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-    }
+        gap: 10px;
 
-    .split-existing-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px;
-        border-radius: var(--border-radius-2);
-        background-color: var(--bg-color-2);
-        text-align: left;
-        transition: background-color 0.15s ease;
-
-        &:hover {
-            background-color: var(--bg-color-3);
+        &__range {
+            width: 100%;
+            accent-color: var(--primary-color);
+            cursor: ew-resize;
         }
 
-        &__icon {
-            width: 24px;
-            height: 24px;
-            display: grid;
-            place-content: center;
-            flex-shrink: 0;
+        &__row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        &__content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        &__name {
-            font-size: 14px;
-            font-weight: 500;
+        &__number {
+            width: 84px;
+            height: 34px;
+            padding: 0 8px;
+            border-radius: var(--border-radius-2, 6px);
+            border: 1px solid var(--border-color-1);
+            background-color: var(--bg-color-1);
             color: var(--text-color-1);
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
+            font-size: 14px;
         }
 
-        &__handle {
-            font-size: 12px;
+        &__unit {
             color: var(--text-color-3);
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
+            font-size: 14px;
         }
-    }
 
-    .split-existing-empty {
-        text-align: center;
-        color: var(--text-color-3);
-        font-size: 14px;
-        padding: 24px;
+        &__reset {
+            margin-left: auto;
+            height: 34px;
+            padding: 0 12px;
+            border-radius: var(--border-radius-2, 6px);
+            border: 1px solid var(--border-color-1);
+            background-color: var(--bg-color-2);
+            color: var(--text-color-2);
+            font-size: 13px;
+            cursor: pointer;
+        }
     }
 
     .deck-search-filters {

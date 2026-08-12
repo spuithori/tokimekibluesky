@@ -17,12 +17,12 @@
   import {trimFeedAtBorder} from "$lib/components/timeline/feedTrim";
   import {makeFeedKeys} from "$lib/components/timeline/feedKeys";
 
-  let { index, _agent = $agent, isJunk, unique, isSplit = false, column: columnProp = undefined, isTopScrolling = false } = $props();
+  let { index, _agent = $agent, isJunk, unique, column: columnProp = undefined, isTopScrolling = false } = $props();
 
   let virtualTimelineRef: ReturnType<typeof VirtualTimeline> | undefined = $state();
 
   const columnState = getColumnState(isJunk);
-  const column = columnProp ?? columnState.getColumn(index);
+  const column = $derived(columnProp ?? columnState.getColumn(index));
   const useVirtualList = $derived(isVirtualTimelineEnabled(column));
   let isActorsListFinished = false;
   let actorsDid: string | undefined = undefined;

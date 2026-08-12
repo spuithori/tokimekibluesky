@@ -15,8 +15,9 @@ vi.mock("$lib/classes/settingsState.svelte", () => ({
     settingsState: { settings: { markedUnread: false } },
 }));
 
-import { createRealColumnState } from "$lib/classes/columnState.perf.harness.svelte";
+import { createRealColumnState, createRealDeckColumnState } from "$lib/classes/columnState.perf.harness.svelte";
 import { getNotificationLedger } from "$lib/components/notification/notificationLedger";
+import { flattenLeafIds } from "$lib/classes/deckLayout";
 
 function notificationGroup(subjectUri: string, opts: any = {}) {
     return {
@@ -163,16 +164,17 @@ describe("notification groups through generic pulse path", () => {
         cleanup();
     });
 
-    it("swapSplitColumn resets the ledgers of both ids", () => {
-        const { cs, cleanup } = createRealColumnState();
+    it("swapSplitColumn reverses pane order while keeping ids and ledgers intact", () => {
+        const { cs, cleanup } = createRealDeckColumnState();
         addNotificationColumn(cs, "lc-swap-main", []);
-        const index = cs.columns.length - 1;
-        cs.columns[index].splitColumn = {
+        cs.add({
             id: "lc-swap-split",
             algorithm: { type: "default" },
             did: "did:plc:me",
+            settings: {},
             data: { feed: [], cursor: "" },
-        };
+        });
+        cs.moveLeafToSplit("lc-swap-split", "lc-swap-main", "column", false);
         const mainLedger = getNotificationLedger("lc-swap-main");
         mainLedger.notifications = [{ uri: "at://x" }] as any;
         mainLedger.fetchedReasons = ["like"];
@@ -180,50 +182,55 @@ describe("notification groups through generic pulse path", () => {
         const mainEpoch = mainLedger.epoch;
         const splitEpoch = splitLedger.epoch;
 
-        cs.swapSplitColumn(index);
+        cs.swapSplitColumn("lc-swap-main");
 
-        expect(mainLedger.notifications).toEqual([]);
-        expect(mainLedger.fetchedReasons).toBeUndefined();
-        expect(mainLedger.epoch).toBe(mainEpoch + 1);
-        expect(splitLedger.epoch).toBe(splitEpoch + 1);
+        expect(flattenLeafIds(cs.slots[0].layout)).toEqual(["lc-swap-split", "lc-swap-main"]);
+        expect(getNotificationLedger("lc-swap-main")).toBe(mainLedger);
+        expect(mainLedger.notifications).toEqual([{ uri: "at://x" }]);
+        expect(mainLedger.fetchedReasons).toEqual(["like"]);
+        expect(mainLedger.epoch).toBe(mainEpoch);
+        expect(splitLedger.epoch).toBe(splitEpoch);
         cleanup();
     });
 
-    it("unsplit with keep moves the ledger to the promoted column id", () => {
-        const { cs, cleanup } = createRealColumnState();
+    it("unsplit with keep keeps the same column id and its ledger", () => {
+        const { cs, cleanup } = createRealDeckColumnState();
         addNotificationColumn(cs, "lc-unsplit-main", []);
-        const index = cs.columns.length - 1;
-        cs.columns[index].splitColumn = {
+        cs.add({
             id: "lc-unsplit-old",
             algorithm: { type: "notification" },
             did: "did:plc:me",
+            settings: {},
             data: { feed: [], cursor: "" },
-        };
+        });
+        cs.moveLeafToSplit("lc-unsplit-old", "lc-unsplit-main", "column", false);
         const splitLedger = getNotificationLedger("lc-unsplit-old");
         splitLedger.fetchedReasons = ["like"];
 
-        cs.unsplitColumnAt(index, true);
+        cs.unsplitColumnAt("lc-unsplit-old", true);
 
-        const promoted = cs.columns[index + 1];
-        expect(getNotificationLedger(promoted.id)).toBe(splitLedger);
-        expect(getNotificationLedger("lc-unsplit-old")).not.toBe(splitLedger);
+        expect(cs.slots.length).toBe(2);
+        expect(cs.slots[1].layout).toEqual({ type: "leaf", columnId: "lc-unsplit-old" });
+        expect(getNotificationLedger("lc-unsplit-old")).toBe(splitLedger);
+        expect(splitLedger.fetchedReasons).toEqual(["like"]);
         cleanup();
     });
 
     it("unsplit without keeping deletes the split ledger", () => {
-        const { cs, cleanup } = createRealColumnState();
+        const { cs, cleanup } = createRealDeckColumnState();
         addNotificationColumn(cs, "lc-drop-main", []);
-        const index = cs.columns.length - 1;
-        cs.columns[index].splitColumn = {
+        cs.add({
             id: "lc-drop-old",
             algorithm: { type: "notification" },
             did: "did:plc:me",
+            settings: {},
             data: { feed: [], cursor: "" },
-        };
+        });
+        cs.moveLeafToSplit("lc-drop-old", "lc-drop-main", "column", false);
         const splitLedger = getNotificationLedger("lc-drop-old");
         const epoch = splitLedger.epoch;
 
-        cs.unsplitColumnAt(index, false);
+        cs.unsplitColumnAt("lc-drop-old", false);
 
         expect(splitLedger.epoch).toBe(epoch + 1);
         expect(getNotificationLedger("lc-drop-old")).not.toBe(splitLedger);
@@ -247,16 +254,17 @@ describe("notification groups through generic pulse path", () => {
         cleanup();
     });
 
-    it("patches notification feeds inside splitColumn", () => {
-        const { cs, cleanup } = createRealColumnState();
+    it("patches notification feeds of split pane leaves", () => {
+        const { cs, cleanup } = createRealDeckColumnState();
         addNotificationColumn(cs, "main", []);
-        const column = cs.columns[cs.columns.length - 1];
-        column.splitColumn = {
+        cs.add({
             id: "split-notif",
             algorithm: { type: "notification" },
             did: "did:plc:me",
+            settings: {},
             data: { feed: [], cursor: "" },
-        };
+        });
+        cs.moveLeafToSplit("split-notif", "main", "column", false);
         cs.setFeed("split-notif", [notificationGroup("at://did:plc:me/app.bsky.feed.post/1")]);
 
         cs.updateLike({

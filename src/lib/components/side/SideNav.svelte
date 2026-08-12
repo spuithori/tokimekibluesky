@@ -117,11 +117,12 @@
         column.scrollElement.scrollIntoView({inline: 'end', behavior: 'instant'});
       }
     } else {
-      if ($currentTimeline === index) {
+      const slotIndex = columnState.slotIndexOf(column.id);
+      if (slotIndex === -1 || $currentTimeline === slotIndex) {
         return false;
       }
 
-      currentTimeline.set(index);
+      currentTimeline.set(slotIndex);
     }
 
     isColumnsModalOpen = false;

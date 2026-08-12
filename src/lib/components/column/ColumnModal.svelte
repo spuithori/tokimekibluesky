@@ -51,7 +51,9 @@
 
     function handleBookmarkClose(clear: boolean, id) {
         if (clear) {
-            columns.columns = columns.columns.filter(_column => _column.algorithm.type !== 'bookmark' || Number(_column.algorithm.algorithm) !== id)
+            columns.columns
+                .filter(_column => _column.algorithm.type === 'bookmark' && Number(_column.algorithm.algorithm) === id)
+                .forEach(_column => columns.remove(_column.id));
         }
     }
 
@@ -61,8 +63,9 @@
 
     function handleListClose(event) {
         if (event.detail.id) {
-            console.log(event.detail.id)
-            columns.columns = columns.columns.filter(_column => _column.algorithm.type !== 'list' || _column.algorithm.algorithm !== event.detail.id)
+            columns.columns
+                .filter(_column => _column.algorithm.type === 'list' && _column.algorithm.algorithm === event.detail.id)
+                .forEach(_column => columns.remove(_column.id));
         }
     }
 

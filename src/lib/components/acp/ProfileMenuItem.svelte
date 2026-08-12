@@ -21,7 +21,7 @@
         isDisabled = true;
 
         appState.changeProfile(profile.id);
-        columnState.replaceAllColumns(profile.columns);
+        columnState.replaceAllColumns(profile.columns, profile.slots, profile.deckVersion);
     }
 </script>
 

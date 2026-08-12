@@ -28,7 +28,7 @@
 
     let { index, isJunk, _agent = $agent, unique, column: columnProp = undefined } = $props();
     let columnState = getColumnState(isJunk);
-    let column = columnProp ?? columnState.getColumn(index);
+    const column = $derived(columnProp ?? columnState.getColumn(index));
     let sound = $derived(column.settings?.playSound);
     let isOnlyShowUnread = $derived(column.settings?.onlyShowUnread);
     let id = $derived(column.id);

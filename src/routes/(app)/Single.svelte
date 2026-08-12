@@ -1,7 +1,9 @@
 <script lang="ts">
-    import {agent, agentsByDid, currentTimeline} from '$lib/stores';
+    import {agent, agentsByDid, currentTimeline, settings} from '$lib/stores';
     import {page} from '$app/stores';
-    import DeckRow from "./DeckRow.svelte";
+    import {clampSingleWidth} from "$lib/deckWidth";
+    import {startPointerDrag} from "$lib/pointerDrag";
+    import DeckSlot from "./DeckSlot.svelte";
     import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
     import ColumnsLoadError from "$lib/components/column/ColumnsLoadError.svelte";
     import ColumnErrorPanel from "$lib/components/column/ColumnErrorPanel.svelte";
@@ -12,6 +14,7 @@
     import {scrollDirection} from "$lib/scrollDirection";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {appState} from "$lib/classes/appState.svelte";
+    import {isMobileViewport} from "$lib/viewportQuery.svelte";
 
     const columnState = getColumnState();
 
@@ -36,7 +39,7 @@
         }
     });
 
-    if (!columnState.columns[$currentTimeline]) {
+    if (!columnState.slots[$currentTimeline]) {
         currentTimeline.set(0);
     }
 
@@ -44,6 +47,27 @@
       const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
         scrollDirectionState.direction = scrollDir;
       });
+    }
+
+    let wrapEl = $state<HTMLElement | undefined>();
+    let resizeWidth = $state<number | null>(null);
+    const isMobile = $derived(isMobileViewport.current);
+
+    const showWidthBar = $derived(!isMobile);
+
+    function startWidthResize(event: PointerEvent) {
+        if (isMobile || !wrapEl) return;
+        const startX = event.clientX;
+        const startWidth = wrapEl.offsetWidth;
+        resizeWidth = startWidth;
+        startPointerDrag(
+            event,
+            (e) => { resizeWidth = clampSingleWidth(startWidth + (e.clientX - startX)); },
+            () => {
+                if (resizeWidth != null) $settings.design.singleWidth = resizeWidth;
+                resizeWidth = null;
+            },
+        );
     }
 
     $effect(() => {
@@ -82,33 +106,52 @@
 
 <svelte:window onscroll={handleScroll}></svelte:window>
 
-<div class="single-wrap" class:single-wrap--page={$page.url.pathname !== '/'} class:single-wrap--bottom={publishState.isBottom}>
+<div
+  class="single-wrap"
+  class:single-wrap--page={$page.url.pathname !== '/'}
+  class:single-wrap--bottom={publishState.isBottom}
+  style:--single-column-width={resizeWidth != null ? `${resizeWidth}px` : null}
+  bind:this={wrapEl}
+>
   <div class="single-timeline-wrap">
     {#if columnState.loadFailed}
       <ColumnsLoadError></ColumnsLoadError>
     {/if}
 
     {#key $currentTimeline}
-      {#if (columnState.columns.length && columnState.columns[$currentTimeline])}
-        {@const gate = appState.getColumnResumeGate($agentsByDid, columnState.columns[$currentTimeline]?.did)}
+      {#if (columnState.slots.length && columnState.slots[$currentTimeline])}
+        {@const column = columnState.getSlotColumn($currentTimeline)}
+        {@const gate = appState.getColumnResumeGate($agentsByDid, column?.did)}
         {#if gate !== 'mount'}
-          <ColumnResumePlaceholder column={columnState.columns[$currentTimeline]}></ColumnResumePlaceholder>
+          <ColumnResumePlaceholder {column}></ColumnResumePlaceholder>
         {:else}
           <svelte:boundary onerror={(error) => recordError(error, 'column')}>
-            <DeckRow index={$currentTimeline}></DeckRow>
+            <DeckSlot index={$currentTimeline}></DeckSlot>
 
             {#snippet failed(error, reset)}
-              <ColumnErrorPanel column={columnState.columns[$currentTimeline]} {reset}></ColumnErrorPanel>
+              <ColumnErrorPanel {column} {reset}></ColumnErrorPanel>
             {/snippet}
           </svelte:boundary>
         {/if}
       {/if}
     {/key}
   </div>
+
+  {#if showWidthBar}
+    <div
+      class="deck-width-bar"
+      class:deck-width-bar--active={resizeWidth != null}
+      onpointerdown={startWidthResize}
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize column width"
+    ></div>
+  {/if}
 </div>
 
 <style lang="postcss">
     .single-wrap {
+        position: relative;
         border-left: var(--single-border);
         border-right: var(--single-border);
         min-height: 100vh;

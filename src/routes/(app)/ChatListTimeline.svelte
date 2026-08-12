@@ -16,10 +16,10 @@
     import ArrowLeft from '@lucide/svelte/icons/arrow-left';
     import Inbox from '@lucide/svelte/icons/inbox';
 
-    let { index, _agent = $agent, onrefresh, unique, isJunk, isSplit = false, column: columnProp = undefined } = $props();
+    let { index, _agent = $agent, onrefresh, unique, isJunk, column: columnProp = undefined } = $props();
 
     const columnState = getColumnState(isJunk);
-    const column = columnProp ?? columnState.getColumn(index);
+    const column = $derived(columnProp ?? columnState.getColumn(index));
 
     let currentView: 'list' | 'detail' | 'requests' = $state('list');
     const requestCount = $derived(chatState.getRequestCount((_agent || $agent)?.did?.()));
@@ -228,7 +228,7 @@
     </div>
 {:else}
     <div class="chat-detail">
-        <ChatTimeline {index} _agent={_agent || $agent} {unique} {isJunk} {onrefresh} {isSplit} {column} onback={handleBack} onleave={handleLeave}></ChatTimeline>
+        <ChatTimeline {index} _agent={_agent || $agent} {unique} {isJunk} {onrefresh} {column} onback={handleBack} onleave={handleLeave}></ChatTimeline>
     </div>
 {/if}
 

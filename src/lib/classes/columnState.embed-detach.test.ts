@@ -76,14 +76,17 @@ describe("applyEmbedDetach", () => {
             id: "col-1",
             algorithm: { type: "default" },
             did: "did:plc:viewer",
+            settings: {},
             data: { feed: [], cursor: "" },
-            splitColumn: {
-                id: "split-1",
-                algorithm: { type: "default" },
-                did: "did:plc:viewer",
-                data: { feed: [], cursor: "" },
-            },
         });
+        cs.add({
+            id: "split-1",
+            algorithm: { type: "default" },
+            did: "did:plc:viewer",
+            settings: {},
+            data: { feed: [], cursor: "" },
+        });
+        cs.moveLeafToSplit("split-1", "col-1", "column", false);
         cs.setFeed("split-1", [post("at://a", { old: true })]);
         flushSync();
 

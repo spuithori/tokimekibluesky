@@ -25,7 +25,7 @@ export type deckSettings = {
     refreshToTop?: boolean,
     autoScroll?: boolean,
     autoScrollSpeed?: 'auto' | 'slow' | 'normal' | 'fast',
-    width?: 'large' | 'medium' | 'small',
+    width?: number | 'xxs' | 'xs' | 'small' | 'medium' | 'large' | 'xl' | 'xxl',
     icon?: string | null,
     onlyShowUnread?: boolean,
     notificationPriority?: boolean,
@@ -57,7 +57,7 @@ export type Column = {
     settings: deckSettings,
     data: {
         feed?: any[],
-        cursor?: string | number,
+        cursor?: string | number | any[],
         hitsTotal?: number,
         scrollState?: ScrollState,
         _heightCache?: [string, number][],
@@ -65,7 +65,5 @@ export type Column = {
         activeTab?: string,
         starterPackCache?: any,
     },
-    scrollElement?: HTMLDivElement,
-    splitColumn?: Column,
-    splitRatio?: number,
+    scrollElement?: HTMLDivElement | null,
 }

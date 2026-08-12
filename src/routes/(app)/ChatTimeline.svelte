@@ -21,11 +21,11 @@
     import ChevronDown from '@lucide/svelte/icons/chevron-down';
     import {DELETED_MESSAGE_VIEW_TYPE, SYSTEM_MESSAGE_VIEW_TYPE, getConvoName, isGroupConvo} from "$lib/components/chat/convoUtil";
 
-    let { index, _agent = $agent, onrefresh, unique, isJunk, isSplit = false, column: columnProp = undefined, onback = undefined, onleave = undefined } = $props();
+    let { index, _agent = $agent, onrefresh, unique, isJunk, column: columnProp = undefined, onback = undefined, onleave = undefined } = $props();
     let firstLoad = true;
 
     const columnState = getColumnState(isJunk);
-    const column = columnProp ?? columnState.getColumn(index);
+    const column = $derived(columnProp ?? columnState.getColumn(index));
 
     let convo = $state.raw<any>(undefined);
     let memberMap = $state.raw<Record<string, any>>({});

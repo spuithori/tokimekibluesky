@@ -2,6 +2,7 @@ import Dexie, { type Table } from 'dexie';
 import type {SessionData as AtpSessionData} from '$lib/password-session';
 import type {Theme} from "$lib/types/theme";
 import type {Column} from "$lib/types/column";
+import type {Slot} from "$lib/classes/deckLayout";
 
 export interface Feed {
     id?: number;
@@ -64,6 +65,8 @@ export interface Profile {
     accounts: number[],
     primary: number | null,
     columns: Column[],
+    slots?: Slot[],
+    deckVersion?: number,
     appViewProxy?: string,
 }
 

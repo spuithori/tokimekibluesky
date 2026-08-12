@@ -5,10 +5,10 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import MochottArticleCard from "$lib/components/mochott/MochottArticleCard.svelte";
 
-    let { index, _agent, isJunk = false, unique, isSplit = false, column: columnProp = undefined } = $props();
+    let { index, _agent, isJunk = false, unique, column: columnProp = undefined } = $props();
 
     const columnState = getColumnState(isJunk);
-    const column = columnProp ?? columnState.getColumn(index);
+    const column = $derived(columnProp ?? columnState.getColumn(index));
 
     let isEmpty = $state(false);
     let isError = $state(false);

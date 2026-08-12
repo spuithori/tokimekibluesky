@@ -628,15 +628,16 @@ describe('clearNotificationBadgesForDid', () => {
         ...over,
     });
 
-    it('clears every notification column of the did, including splits', () => {
-        const split = makeColumn();
+    it('clears every notification column of the did, including split pane leaves', () => {
+        const splitLeaf = makeColumn();
         const columns: any[] = [
             makeColumn(),
-            makeColumn({ splitColumn: split, algorithm: { type: 'default' } }),
+            makeColumn({ algorithm: { type: 'default' } }),
+            splitLeaf,
         ];
         clearNotificationBadgesForDid(columns, 'did:plc:me');
         expect(columns[0].unreadCount).toBe(0);
-        expect(split.unreadCount).toBe(0);
+        expect(splitLeaf.unreadCount).toBe(0);
         expect(columns[1].unreadCount).toBe(5);
     });
 

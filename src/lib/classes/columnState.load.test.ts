@@ -75,7 +75,7 @@ describe('columnState load failure handling', () => {
         cleanup();
     });
 
-    it('reconciles refreshed handles into matching columns and splitColumns, once per change', async () => {
+    it('reconciles refreshed handles into matching columns including migrated split leaves, once per change', async () => {
         db.profile = {
             id: 1,
             columns: [
@@ -100,7 +100,8 @@ describe('columnState load failure handling', () => {
 
         expect(cs.columns[0].handle).toBe('renamed.example');
         expect(cs.columns[1].handle).toBe('other.example');
-        expect(cs.columns[1].splitColumn.handle).toBe('renamed.example');
+        expect(cs.columns[2].id).toBe('c2s');
+        expect(cs.columns[2].handle).toBe('renamed.example');
         expect(db.updates).toHaveLength(1);
 
         listener('did:plc:one', 'renamed.example');
