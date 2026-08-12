@@ -18,6 +18,10 @@
     position: static;
 }
 
+.deck-row-slot.deck-row-slot--junk:has(.chat-view) {
+    height: 100%;
+}
+
 .deck-row.deck-row--junk:has(> .svelte-refresher-host .chat-view) {
     height: 100%;
     overflow-y: hidden;
