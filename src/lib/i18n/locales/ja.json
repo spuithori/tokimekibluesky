@@ -246,6 +246,8 @@
     "data_saver": "データセーバー",
     "disable_virtual_list": "バーチャルリストを使用しない",
     "disable_virtual_list_description": "タイムラインの仮想スクロールを無効にします。スレッド表示では常にバーチャルリストが使用されます。",
+    "disable_column_drag_resize": "ドラッグによるカラム幅変更を無効にする",
+    "disable_column_drag_resize_description": "カラム境界のリサイズハンドルを非表示にします。スクロールバーがつかみにくい場合にオンにしてください。",
     "data_saver_description": "Android Chrome系のみ対応。\nモバイル通信時、画像を折りたたみアバター画像を非表示にします。",
     "finnhub_api_key_description": "$タグで株価・仮想通貨の情報を表示するために必要です。APIキーは無料で取得できます:",
     "user": "ユーザー",

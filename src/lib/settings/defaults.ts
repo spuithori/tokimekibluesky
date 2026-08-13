@@ -72,6 +72,7 @@ export function createDefaultSettings(): Settings {
             disableMochiHoppe: false,
             dataSaver: false,
             disableVirtualList: false,
+            disableColumnDragResize: false,
             translationModel: 'nmt',
             autoTranslate: false,
             markedUnread: false,

@@ -63,6 +63,7 @@
         && !isMobile
         && !isJunk
         && !column?.settings?.isPopup
+        && !$settings.general?.disableColumnDragResize
     );
 
     function startWidthResize(event: PointerEvent) {

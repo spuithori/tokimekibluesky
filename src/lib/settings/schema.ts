@@ -188,6 +188,18 @@ const rawSettingsSchema = [
         default: false,
     },
     {
+        key: "general.disableColumnDragResize",
+        category: "general",
+        scope: "global",
+        type: "toggle",
+        section: "settings_section_behavior",
+        label: "disable_column_drag_resize",
+        description: "disable_column_drag_resize_description",
+        isNew: true,
+        platform: "pc",
+        default: false,
+    },
+    {
         key: "embed.disableEmbedVia",
         category: "general",
         scope: "global",

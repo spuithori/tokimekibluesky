@@ -53,7 +53,7 @@
     let resizeWidth = $state<number | null>(null);
     const isMobile = $derived(isMobileViewport.current);
 
-    const showWidthBar = $derived(!isMobile);
+    const showWidthBar = $derived(!isMobile && !$settings.general?.disableColumnDragResize);
 
     function startWidthResize(event: PointerEvent) {
         if (isMobile || !wrapEl) return;
