@@ -1,7 +1,7 @@
 <script lang="ts">
     import SendHorizontal from '@lucide/svelte/icons/send-horizontal';
     import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
-    import {createEventDispatcher, onMount, onDestroy} from 'svelte'
+    import {onMount, onDestroy} from 'svelte'
     import {Editor} from '@tiptap/core'
     import Link from '@tiptap/extension-link';
     import Document from '@tiptap/extension-document';
@@ -17,8 +17,6 @@
     import HashtagList from "$lib/components/editor/HashtagList.svelte";
     import {Hashtag} from "$lib/components/editor/hashtag";
     import {TAG_REGEX, MENTION_REGEX} from '$lib/atproto-richtext';
-    const dispatch = createEventDispatcher();
-
   interface Props {
     json: any;
     text?: string;
@@ -28,6 +26,7 @@
     top?: import('svelte').Snippet;
     avatar?: import('svelte').Snippet;
     normal?: import('svelte').Snippet;
+    onpublish?: () => void;
   }
 
   let {
@@ -38,7 +37,8 @@
     isSending = false,
     top,
     avatar,
-    normal
+    normal,
+    onpublish
   }: Props = $props();
 
     let element = $state();
@@ -101,7 +101,7 @@
                     addKeyboardShortcuts() {
                         return {
                             'Mod-Enter': () => {
-                                dispatch('publish');
+                                onpublish?.();
                             },
                         }
                     }
@@ -208,7 +208,6 @@
                 text = jsonToText(json);
             },
             onFocus() {
-                // dispatch('focus');
             },
         })
     })
@@ -264,7 +263,7 @@
 
     <div class="chat-editor" bind:this={element}></div>
 
-    <button class="chat-editor-submit" disabled={disabled || isSending} onclick={() => {dispatch('publish')}} aria-label="Send">
+    <button class="chat-editor-submit" disabled={disabled || isSending} onclick={() => {onpublish?.()}} aria-label="Send">
       {#if isSending}
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chat-editor-submit__spinner"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
       {:else}

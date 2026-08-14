@@ -5,10 +5,8 @@
   import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";
   import LoginModal from "$lib/components/acp/LoginModal.svelte";
-  import {createEventDispatcher} from "svelte";
-  const dispatch = createEventDispatcher();
 
-  let { exclude = [] } = $props();
+  let { exclude = [], onsuccess } = $props();
   let isOpen = $state(false);
   let isLoginModalOpen = $state(false);
 
@@ -16,19 +14,17 @@
       () => accountsDb.accounts.toArray()
   );
 
-  async function handleSuccess(event) {
+  async function handleSuccess(id) {
       isLoginModalOpen = false;
       isOpen = false;
 
-      dispatch('success', event.detail);
+      onsuccess?.(id);
   }
 
   function handleSelect(id) {
       isOpen = false;
 
-      dispatch('success', {
-          id: id,
-      });
+      onsuccess?.(id);
   }
 
   function handleCancel() {
@@ -63,7 +59,7 @@
 </div>
 
 {#if (isLoginModalOpen)}
-  <LoginModal on:success={handleSuccess} on:cancel={handleCancel}></LoginModal>
+  <LoginModal onsuccess={handleSuccess} oncancel={handleCancel}></LoginModal>
 {/if}
 
 <style lang="postcss">

@@ -80,7 +80,7 @@
         bind:text={text}
         bind:json={json}
         bind:this={editor}
-        on:publish={publish}
+        onpublish={publish}
         _agent={currentAgent}
         disabled={cannotSend}
         {isSending}

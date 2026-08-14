@@ -4,7 +4,7 @@
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import ColumnListAdder from "$lib/components/column/ColumnListAdder.svelte";
 
-  let { _agent = $agent } = $props();
+  let { _agent = $agent, onadd } = $props();
   let feeds = $state([]);
   let pinnedColumns = $derived.by(() => {
     return feeds.map(feed => {
@@ -86,5 +86,5 @@
 </script>
 
 {#if (pinnedColumns.length)}
-  <ColumnListAdder {_agent} items={pinnedColumns} on:add></ColumnListAdder>
+  <ColumnListAdder {_agent} items={pinnedColumns} {onadd}></ColumnListAdder>
 {/if}

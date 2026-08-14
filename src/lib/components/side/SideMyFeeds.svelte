@@ -2,7 +2,7 @@
     import {agent} from "$lib/stores";
     import {liveQuery} from "dexie";
     import {accountsDb, db} from "$lib/db";
-    import {createEventDispatcher, onMount} from "svelte";
+    import {onMount} from "svelte";
     import Bookmark from '@lucide/svelte/icons/bookmark';
     import List from '@lucide/svelte/icons/list';
     import Newspaper from '@lucide/svelte/icons/newspaper';
@@ -10,9 +10,8 @@
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import {getAccountIdByDidFromDb} from "$lib/util";
     import {feedHintState} from "$lib/classes/feedHintState.svelte";
-    const dispatch = createEventDispatcher();
 
-  let { _agent = $agent } = $props();
+  let { _agent = $agent, onclose } = $props();
 
     type tab = 'all' | 'feeds' | 'lists' | 'bookmarks';
     let currentTab: tab = $state('all');
@@ -79,7 +78,7 @@
     }
 
     function handleSelect() {
-        dispatch('close');
+        onclose?.();
     }
 
     function handleSelectFeed(feed) {
@@ -94,7 +93,7 @@
                 creator: feed.creator,
             });
         }
-        dispatch('close');
+        onclose?.();
     }
 
     onMount(async () => {

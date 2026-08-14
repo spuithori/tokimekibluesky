@@ -1,16 +1,15 @@
 <script lang="ts">
   import {_} from "tokimeki-i18n";
-  import {createEventDispatcher} from "svelte";
   import {liveQuery} from "dexie";
   import {accountsDb} from "$lib/db";
-  const dispatch = createEventDispatcher();
 
   interface Props {
     account: any;
     isEnabled?: boolean;
+    onchange?: (payload: {enabled: boolean, did: string}) => void;
   }
 
-  let { account, isEnabled = $bindable(false) }: Props = $props();
+  let { account, isEnabled = $bindable(false), onchange }: Props = $props();
   const category = ['reply', 'like', 'repost', 'follow', 'quote', 'mention'];
   let selectedCategory = $state(account.notification);
 
@@ -20,7 +19,7 @@
   }))
 
   function changeToggle() {
-      dispatch('change', {
+      onchange?.({
           enabled: isEnabled,
           did: account.did,
       });

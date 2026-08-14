@@ -74,7 +74,7 @@
 </div>
 
 {#if isAccountManagementModalOpen}
-  <AccountsManagementModal on:close={handleAccountsManagementModalClose}></AccountsManagementModal>
+  <AccountsManagementModal onclose={handleAccountsManagementModalClose}></AccountsManagementModal>
 {/if}
 
 <style lang="postcss">

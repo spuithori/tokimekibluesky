@@ -80,8 +80,7 @@
         return goto(`/chat/${convo.id}`);
     }
 
-    async function handleSelect(e) {
-        const actor = e.detail.member;
+    async function handleSelect(actor) {
 
         try {
             const res = await _agent.xrpc.get('chat.bsky.convo.getConvoForMembers',
@@ -158,7 +157,7 @@
                   member={member}
                   action={'chat'}
                   exclude={member?.associated?.chat?.allowIncoming === 'none' || (!member?.viewer?.followedBy && member?.associated?.chat?.allowIncoming === 'following') || !member?.associated?.chat?.allowIncoming}
-                  on:add={handleSelect}
+                  onadd={handleSelect}
           ></ListMember>
         {/if}
       {/each}

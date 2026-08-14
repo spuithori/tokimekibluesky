@@ -1,26 +1,29 @@
 <script lang="ts">
-    import {createEventDispatcher, onMount} from "svelte";
+    import {onMount} from "svelte";
   import {_} from "tokimeki-i18n";
   import {settings} from "$lib/stores";
 
-  const dispatch = createEventDispatcher();
   interface Props {
     yesText?: string;
     cancelText?: string;
     confirmationName?: any;
     children?: import('svelte').Snippet;
+    onok?: () => void;
+    oncancel?: () => void;
   }
 
   let {
     yesText = 'OK',
     cancelText = 'Cancel',
     confirmationName = undefined,
-    children
+    children,
+    onok,
+    oncancel
   }: Props = $props();
   let el = $state();
 
   function ok() {
-      dispatch('ok');
+      onok?.();
       el.close();
   }
 
@@ -29,7 +32,7 @@
   }
 
   function close() {
-      dispatch('cancel');
+      oncancel?.();
   }
 
   export function open() {

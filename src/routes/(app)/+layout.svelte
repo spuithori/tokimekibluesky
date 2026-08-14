@@ -415,7 +415,7 @@
             {/if}
 
             {#if !isRepeater}
-                <WelcomeModal on:close={() => (isRepeater = true)}></WelcomeModal>
+                <WelcomeModal onclose={() => (isRepeater = true)}></WelcomeModal>
             {/if}
 
             <NotificationCountObserver></NotificationCountObserver>

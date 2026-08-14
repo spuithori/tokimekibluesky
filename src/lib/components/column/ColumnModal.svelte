@@ -63,10 +63,10 @@
         unique = Symbol();
     }
 
-    function handleListClose(event) {
-        if (event.detail.id) {
+    function handleListClose(id) {
+        if (id) {
             columns.columns
-                .filter(_column => _column.algorithm.type === 'list' && _column.algorithm.algorithm === event.detail.id)
+                .filter(_column => _column.algorithm.type === 'list' && _column.algorithm.algorithm === id)
                 .forEach(_column => columns.remove(_column.id));
         }
     }
@@ -75,13 +75,13 @@
         unique = Symbol();
     }
 
-    function handleSelect(event) {
-        currentAccount = event.detail.id;
+    function handleSelect(selected) {
+        currentAccount = selected.id;
     }
 
-    function handleColumnAdd(event) {
+    function handleColumnAdd(column) {
         try {
-            let addedColumn = structuredClone($state.snapshot(event.detail.column));
+            let addedColumn = structuredClone($state.snapshot(column));
             columns.add({
                 ...addedColumn,
                 id: self.crypto.randomUUID(),
@@ -99,7 +99,7 @@
     <Modal title={$_('column_settings')} onclose={save}>
         {#if (profile && currentAccount)}
             <div class="column-modal-account">
-                <AgentsSelector _agent={$agents.get(currentAccount)} on:select={handleSelect}></AgentsSelector>
+                <AgentsSelector _agent={$agents.get(currentAccount)} onselect={handleSelect}></AgentsSelector>
             </div>
         {/if}
 
@@ -130,15 +130,15 @@
                 {#key unique}
                     {#if (currentTab === 'all')}
                         <div class="column-group">
-                            <ColumnChoices _agent={$agents.get(currentAccount)} on:add={handleColumnAdd}></ColumnChoices>
+                            <ColumnChoices _agent={$agents.get(currentAccount)} onadd={handleColumnAdd}></ColumnChoices>
                         </div>
                     {:else if (currentTab === 'pinned')}
                         <div class="column-group column-group--single">
-                            <ColumnChoicesPinned _agent={$agents.get(currentAccount)} on:add={handleColumnAdd}></ColumnChoicesPinned>
+                            <ColumnChoicesPinned _agent={$agents.get(currentAccount)} onadd={handleColumnAdd}></ColumnChoicesPinned>
                         </div>
                     {:else if (currentTab === 'merge')}
                         <div class="column-group column-group--single">
-                            <ColumnChoicesMerge _agent={$agents.get(currentAccount)} on:add={handleColumnAdd}></ColumnChoicesMerge>
+                            <ColumnChoicesMerge _agent={$agents.get(currentAccount)} onadd={handleColumnAdd}></ColumnChoicesMerge>
                         </div>
                     {:else if (currentTab === 'list')}
                         <div class="column-group column-group--single">
@@ -152,8 +152,8 @@
 
     <BookmarkObserver close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
     <CloudBookmarkObserver close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>
-    <ListObserver on:close={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
-    <OfficialListObserver _agent={$agents.get(currentAccount)} on:close={handleOfficialListClose}></OfficialListObserver>
+    <ListObserver onclose={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
+    <OfficialListObserver _agent={$agents.get(currentAccount)} onclose={handleOfficialListClose}></OfficialListObserver>
 {/if}
 
 <style lang="postcss">

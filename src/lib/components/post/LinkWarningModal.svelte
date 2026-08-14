@@ -23,8 +23,8 @@
 {#if $linkWarning}
   <ConfirmModal
       bind:this={dialog}
-      on:ok={() => {handleOk($linkWarning)}}
-      on:cancel={handleCancel}
+      onok={() => {handleOk($linkWarning)}}
+      oncancel={handleCancel}
       confirmationName="linkWarningConfirmSkip"
       yesText="{$_('open')}"
       cancelText="{$_('cancel')}"

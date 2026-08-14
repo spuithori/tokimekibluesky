@@ -96,7 +96,7 @@
   </div>
 </div>
 
-<OfficialListObserver _agent={$agent} on:close={() => {unique = Symbol()}} purpose={'app.bsky.graph.defs#modlist'}></OfficialListObserver>
+<OfficialListObserver _agent={$agent} onclose={() => {unique = Symbol()}} purpose={'app.bsky.graph.defs#modlist'}></OfficialListObserver>
 
 <style lang="postcss">
   .mod-list-new-buttons {

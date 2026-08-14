@@ -145,8 +145,8 @@
 
 {#if (isDialogRender)}
   <ConfirmModal
-      on:ok={() => {repost(post.cid, post.uri)}}
-      on:cancel={() => {isDialogRender = false; temporaryAgent = undefined;}}
+      onok={() => {repost(post.cid, post.uri)}}
+      oncancel={() => {isDialogRender = false; temporaryAgent = undefined;}}
       confirmationName="repostConfirmSkip"
       yesText={$_('repost')}
       cancelText={$_('cancel')}

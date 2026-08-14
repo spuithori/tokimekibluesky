@@ -1,16 +1,13 @@
 <script lang="ts">
     import Pen from '@lucide/svelte/icons/pen';
     import { fade, fly } from 'svelte/transition';
-    import {createEventDispatcher, onDestroy, onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import {pauseColumn} from "$lib/stores";
-    const dispatch = createEventDispatcher();
 
-  let { name = $bindable() } = $props();
+  let { name = $bindable(), onnameChange } = $props();
 
     async function close() {
-        dispatch('nameChange', {
-            name: name,
-        });
+        onnameChange?.(name);
     }
 
     onMount(() => {

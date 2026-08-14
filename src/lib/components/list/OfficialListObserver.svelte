@@ -1,23 +1,22 @@
 <script lang="ts">
     import {agent, officialListModal} from "$lib/stores";
-    import {createEventDispatcher} from 'svelte';
     import OfficialListModal from "$lib/components/list/OfficialListModal.svelte";
-    const dispatch = createEventDispatcher();
 
   interface Props {
     _agent?: any;
     purpose?: string;
+    onclose?: () => void;
   }
 
-  let { _agent = $agent, purpose = 'app.bsky.graph.defs#curatelist' }: Props = $props();
+  let { _agent = $agent, purpose = 'app.bsky.graph.defs#curatelist', onclose }: Props = $props();
 
-    function handleListClose(event) {
+    function handleListClose() {
         $officialListModal = {
             open: false,
             uri: '',
         }
 
-        dispatch('close');
+        onclose?.();
     }
 </script>
 

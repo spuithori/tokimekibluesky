@@ -1,35 +1,29 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-  const dispatch = createEventDispatcher();
 
   interface Props {
     member: any;
     action: any;
     exclude?: boolean;
+    onadd?: (member: any) => void;
+    ondelete?: (member: any) => void;
   }
 
-  let { member, action, exclude = false }: Props = $props();
+  let { member, action, exclude = false, onadd, ondelete }: Props = $props();
   let isPreparing = $state(false);
 
   function add() {
-      dispatch('add', {
-          member: member
-      });
+      onadd?.(member);
   }
 
   function deleteMember() {
-      dispatch('delete', {
-          member: member
-      });
+      ondelete?.(member);
   }
 
   function chat() {
       isPreparing = true;
 
-      dispatch('add', {
-          member: member
-      });
+      onadd?.(member);
   }
 </script>
 

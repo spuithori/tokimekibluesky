@@ -2,7 +2,7 @@
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {agent} from "$lib/stores";
   import {_} from "tokimeki-i18n";
-  import {onMount, createEventDispatcher} from "svelte";
+  import {onMount} from "svelte";
   import {accountsDb} from "$lib/db";
   import {getAccountIdByDidFromDb} from "$lib/util";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
@@ -11,9 +11,7 @@
   import {MERGE_PALETTE} from "$lib/merge/mergePalette";
   import type {MergeSourceType} from "$lib/merge/mergeEngine";
 
-  const dispatch = createEventDispatcher();
-
-  let { _agent = $agent } = $props();
+  let { _agent = $agent, onadd } = $props();
 
   type Candidate = {
       key: string,
@@ -79,22 +77,20 @@
           name: c.name,
       }));
 
-      dispatch('add', {
-          column: {
-              id: self.crypto.randomUUID(),
-              algorithm: {
-                  type: 'merge',
-                  name: selection.map(c => c.name).join(' + '),
-                  sources,
-              },
-              style: 'default',
-              settings: defaultDeckSettings,
-              did: _agent.did(),
-              handle: _agent.handle(),
-              data: {
-                  feed: [],
-                  cursor: '',
-              },
+      onadd?.({
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'merge',
+              name: selection.map(c => c.name).join(' + '),
+              sources,
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
           },
       });
 

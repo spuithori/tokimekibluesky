@@ -12,7 +12,7 @@
 
   let bookmarks = liveQuery(() => db.bookmarks.toArray());
 
-  let { _agent = $agent } = $props();
+  let { _agent = $agent, onadd } = $props();
 
   let basicColumns = [
       {
@@ -355,7 +355,7 @@
             <p class="column-adder-group__title">{$_('basic_columns')}</p>
         </div>
 
-        <ColumnListAdder {_agent} items={basicColumns} on:add></ColumnListAdder>
+        <ColumnListAdder {_agent} items={basicColumns} {onadd}></ColumnListAdder>
     </div>
 
     <div class="column-adder-group">
@@ -363,7 +363,7 @@
             <p class="column-adder-group__title">Atmosphere</p>
         </div>
 
-        <ColumnListAdder {_agent} items={atmosphereColumns} on:add></ColumnListAdder>
+        <ColumnListAdder {_agent} items={atmosphereColumns} {onadd}></ColumnListAdder>
     </div>
 
     <div class="column-adder-group">
@@ -379,7 +379,7 @@
         </div>
 
         {#if (cloudBookmarkColumns.length)}
-            <ColumnListAdder {_agent} items={cloudBookmarkColumns} on:add></ColumnListAdder>
+            <ColumnListAdder {_agent} items={cloudBookmarkColumns} {onadd}></ColumnListAdder>
         {:else}
             <p class="column-adder-text">{$_('there_is_no_bookmark')}</p>
         {/if}
@@ -398,7 +398,7 @@
         </div>
 
         {#if (officialListColumns.length)}
-            <ColumnListAdder {_agent} items={officialListColumns} on:add></ColumnListAdder>
+            <ColumnListAdder {_agent} items={officialListColumns} {onadd}></ColumnListAdder>
         {:else}
             <p class="column-adder-text">{$_('there_is_no_official_list')}</p>
         {/if}
@@ -413,7 +413,7 @@
         </div>
 
         {#if (bookmarkColumns.length)}
-            <ColumnListAdder {_agent} items={bookmarkColumns} on:add></ColumnListAdder>
+            <ColumnListAdder {_agent} items={bookmarkColumns} {onadd}></ColumnListAdder>
         {:else}
             <p class="column-adder-text">{$_('there_is_no_bookmark')}</p>
         {/if}
@@ -428,7 +428,7 @@
         </div>
 
         {#if (localListColumns.length)}
-            <ColumnListAdder {_agent} items={localListColumns} on:add></ColumnListAdder>
+            <ColumnListAdder {_agent} items={localListColumns} {onadd}></ColumnListAdder>
         {:else}
             <p class="column-adder-text">{$_('there_is_no_local_list')}</p>
         {/if}
@@ -446,7 +446,7 @@
                 {/if}
             </div>
 
-            <ColumnListAdder {_agent} items={feedColumns} on:add></ColumnListAdder>
+            <ColumnListAdder {_agent} items={feedColumns} {onadd}></ColumnListAdder>
         </div>
     {/if}
 </div>

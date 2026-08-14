@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { on } from 'svelte/events';
 
     let {
         refresherHeight = 70,
@@ -285,6 +286,18 @@
             }
         }, parseFloat(duration.replace('s', '')) * 1000 + 50);
     }
+
+    function touchEvents(node: HTMLElement) {
+        const offs = [
+            on(node, 'touchstart', onTouchStart, { passive: true }),
+            on(node, 'touchmove', onTouchMove, { passive: false }),
+            on(node, 'touchend', onTouchEnd, { passive: true }),
+            on(node, 'touchcancel', onTouchEnd, { passive: true }),
+        ];
+        return () => {
+            for (const off of offs) off();
+        };
+    }
 </script>
 
 <div
@@ -292,10 +305,7 @@
     class="svelte-refresher-host"
     class:mode-ios={_isIos}
     class:mode-md={!_isIos}
-    on:touchstart|passive={onTouchStart}
-    on:touchmove={onTouchMove}
-    on:touchend|passive={onTouchEnd}
-    on:touchcancel|passive={onTouchEnd}
+    {@attach touchEvents}
     style="--refresher-height-val: {refresherHeight}px;"
 >
     <div class="refresher-indicator-area">

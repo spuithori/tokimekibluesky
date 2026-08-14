@@ -30,8 +30,7 @@
         keywordMuteState.keywords.splice(index, 1);
     }
 
-    function handleImport(event: CustomEvent<{ word: { word: string } }>) {
-        const incoming = event.detail.word;
+    function handleImport(incoming: { word: string }) {
         if (!keywordMuteState.keywords.some((k) => k.word === incoming.word)) {
             keywordMuteState.keywords.push(incoming as never);
         }
@@ -77,7 +76,7 @@
     </section>
 
     <section data-testid="official">
-        <OfficialMuteList on:add={handleImport} />
+        <OfficialMuteList onadd={handleImport} />
     </section>
 </main>
 

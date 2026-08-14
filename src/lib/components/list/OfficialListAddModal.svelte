@@ -95,7 +95,7 @@
 </Modal>
 
 {#if (isModalOpen)}
-  <OfficialListModal {_agent} on:close={initLists}></OfficialListModal>
+  <OfficialListModal {_agent} onclose={initLists}></OfficialListModal>
 {/if}
 
 <style lang="postcss">

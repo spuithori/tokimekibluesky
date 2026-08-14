@@ -14,13 +14,13 @@
         keywordMuteState.keywords.splice(index, 1);
     }
 
-    function handleImport(event) {
+    function handleImport(word) {
         const alreadyWords = keywordMuteState.keywords.map(keyword => {
             return keyword.word;
         })
 
-        if (!alreadyWords.includes(event.detail.word.word)) {
-            keywordMuteState.keywords.push(event.detail.word);
+        if (!alreadyWords.includes(word.word)) {
+            keywordMuteState.keywords.push(word);
         }
     }
 </script>
@@ -55,7 +55,7 @@
       <h2>{$_('mute_keywords_import')}</h2>
       <p class="settings-description">{$_('mute_keywords_import_description')}</p>
 
-      <OfficialMuteList on:add={handleImport}></OfficialMuteList>
+      <OfficialMuteList onadd={handleImport}></OfficialMuteList>
     </div>
   </div>
 </div>

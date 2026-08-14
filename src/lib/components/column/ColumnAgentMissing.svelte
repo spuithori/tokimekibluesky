@@ -30,11 +30,11 @@
       }
   }
 
-  async function handleLoginSuccess(event: CustomEvent<{ id: number }>) {
+  async function handleLoginSuccess(id: number) {
       isLoginModalOpen = false;
       try {
-          if (event?.detail?.id) {
-              await addAccountToCurrentWorkspace(event.detail.id);
+          if (id) {
+              await addAccountToCurrentWorkspace(id);
           }
       } catch (e) {
           console.error(e);
@@ -67,7 +67,7 @@
 </div>
 
 {#if isLoginModalOpen}
-  <LoginModal identifier={column.handle || ''} on:success={handleLoginSuccess} on:cancel={() => {isLoginModalOpen = false}}></LoginModal>
+  <LoginModal identifier={column.handle || ''} onsuccess={handleLoginSuccess} oncancel={() => {isLoginModalOpen = false}}></LoginModal>
 {/if}
 
 <style lang="postcss">

@@ -8,9 +8,9 @@
     let _agent = $agent;
     let ready = $state(false);
 
-    async function handleAgentSelect(event) {
+    async function handleAgentSelect(selected) {
         ready = false;
-        _agent = event.detail.agent;
+        _agent = selected.agent;
         await loadLabelers();
         ready = true;
     }
@@ -34,7 +34,7 @@
 
 {#if $agents.size > 1}
   <div class="import-word-agents-selector">
-    <AgentsSelector on:select={handleAgentSelect}></AgentsSelector>
+    <AgentsSelector onselect={handleAgentSelect}></AgentsSelector>
   </div>
 {/if}
 

@@ -345,8 +345,8 @@
 
         {#if isDeleteOpen}
             <ConfirmModal
-                on:ok={deleteMessage}
-                on:cancel={() => {
+                onok={deleteMessage}
+                oncancel={() => {
                     isDeleteOpen = false;
                 }}
                 yesText={$_("chat_message_delete")}

@@ -2,15 +2,15 @@
   import {_} from 'tokimeki-i18n';
   import {agent, agents} from "$lib/stores";
   import {onMount} from "svelte";
-  import {createEventDispatcher} from "svelte";
   import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
   import type {KeywordMute} from "$lib/settings/types";
-  const dispatch = createEventDispatcher<{ add: { word: KeywordMute } }>();
+
+  let { onadd }: { onadd?: (word: KeywordMute) => void } = $props();
   let words = $state<{ value: string }[]>([]);
   let _agent = $agent;
 
-  async function handleAgentSelect(event) {
-      _agent = event.detail.agent;
+  async function handleAgentSelect(selected) {
+      _agent = selected.agent;
       words = await _agent.getMuteWords();
   }
 
@@ -20,24 +20,22 @@
   })
 
   function importWord(word: string) {
-      dispatch('add', {
-          word:  {
-              enabled: true,
-              word: word,
-              period: {
-                  start: '00:00',
-                  end: '23:59'
-              },
-              ignoreCaseSensitive: false,
-              regExp: false,
-          }
+      onadd?.({
+          enabled: true,
+          word: word,
+          period: {
+              start: '00:00',
+              end: '23:59'
+          },
+          ignoreCaseSensitive: false,
+          regExp: false,
       })
   }
 </script>
 
 {#if $agents.size > 1}
   <div class="import-word-agents-selector">
-    <AgentsSelector on:select={handleAgentSelect}></AgentsSelector>
+    <AgentsSelector onselect={handleAgentSelect}></AgentsSelector>
   </div>
 {/if}
 

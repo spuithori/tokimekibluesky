@@ -2,15 +2,15 @@
     import CheckCircle from '@lucide/svelte/icons/check-circle';
     import {_} from "tokimeki-i18n";
     import { confetti } from '@neoconfetti/svelte';
-    import {createEventDispatcher, onMount} from "svelte";
+    import {onMount} from "svelte";
     import {settings} from "$lib/stores";
-    const dispatch = createEventDispatcher();
 
+    let { onclose } = $props();
     let el = $state();
 
     function handleClose() {
         localStorage.setItem('isRepeater', 'true');
-        dispatch('close');
+        onclose?.();
     }
 </script>
 

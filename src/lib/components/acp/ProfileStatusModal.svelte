@@ -18,12 +18,12 @@
         profile = value;
     });
 
-  async function handleSuccess(event) {
+  async function handleSuccess(accountId) {
       try {
-          const _accounts = [...profile.accounts, event.detail.id]
+          const _accounts = [...profile.accounts, accountId]
           const id = await accountsDb.profiles.update(profile.id, {
               accounts: _accounts,
-              primary: event.detail.id
+              primary: accountId
           });
 
           appState.status = 0;
@@ -46,7 +46,7 @@
       <p class="modal-text modal-text--center">{$_('no_account_in_profile_description')}</p>
 
       <div class="acp-select-account-wrap">
-        <AcpAccountSelector exclude={profile.accounts || []} on:success={handleSuccess}></AcpAccountSelector>
+        <AcpAccountSelector exclude={profile.accounts || []} onsuccess={handleSuccess}></AcpAccountSelector>
       </div>
     </div>
 

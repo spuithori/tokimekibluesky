@@ -754,8 +754,8 @@
 
       {#if (isDialogRender)}
         <ConfirmModal
-                on:ok={() => {deletePost(data.post.uri)}}
-                on:cancel={() => {isDialogRender = false}}
+                onok={() => {deletePost(data.post.uri)}}
+                oncancel={() => {isDialogRender = false}}
                 confirmationName="deleteConfirmSkip"
                 yesText={$_('delete')}
                 cancelText={$_('cancel')}
@@ -766,8 +766,8 @@
 
       {#if (isEditDialogRender)}
         <ConfirmModal
-                on:ok={editPost}
-                on:cancel={() => {isEditDialogRender = false}}
+                onok={editPost}
+                oncancel={() => {isEditDialogRender = false}}
                 confirmationName="deleteConfirmSkip"
                 yesText={$_('delete')}
                 cancelText={$_('cancel')}

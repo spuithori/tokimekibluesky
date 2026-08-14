@@ -3,10 +3,8 @@
     import Check from '@lucide/svelte/icons/check';
   import {_} from "tokimeki-i18n";
   import {agent} from "$lib/stores";
-  import {createEventDispatcher} from "svelte";
   import { toast } from "svelte-sonner";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-  const dispatch = createEventDispatcher();
 
   let { feed, _agent = $agent, uri } = $props();
 
@@ -53,7 +51,6 @@
 
           status = 'success';
           toast.success($_('bluefeed_add_success'));
-          dispatch('success');
       } catch (e) {
           console.error(e);
           toast.error('Error!');

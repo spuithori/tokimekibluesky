@@ -95,8 +95,8 @@
 
 {#if (isUnfollowDialogRender)}
   <ConfirmModal
-          on:ok={unfollow}
-          on:cancel={() => {isUnfollowDialogRender = false}}
+          onok={unfollow}
+          oncancel={() => {isUnfollowDialogRender = false}}
           yesText="{$_('unfollow_button')}"
           cancelText="{$_('cancel')}"
   >

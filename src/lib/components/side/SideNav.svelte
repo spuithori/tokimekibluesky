@@ -183,7 +183,7 @@
 {#if isWorkspaceModalOpen}
   <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--workspace'}} onoutclick={() => {isWorkspaceModalOpen = false}}>
     <div class="side-modal__content">
-      <SideWorkspace on:close={() => {isWorkspaceModalOpen = false}}></SideWorkspace>
+      <SideWorkspace onclose={() => {isWorkspaceModalOpen = false}}></SideWorkspace>
     </div>
 
     <button class="side-modal__close only-mobile" onclick={() => {isWorkspaceModalOpen = false}}>
@@ -195,7 +195,7 @@
 {#if isFeedsModalOpen}
   <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--feeds'}} onoutclick={() => {isFeedsModalOpen = false}}>
     <div class="side-modal__content">
-      <SideMyFeeds on:close={() => {isFeedsModalOpen = false}}></SideMyFeeds>
+      <SideMyFeeds onclose={() => {isFeedsModalOpen = false}}></SideMyFeeds>
     </div>
 
     <button class="side-modal__close only-mobile" onclick={() => {isFeedsModalOpen = false}}>

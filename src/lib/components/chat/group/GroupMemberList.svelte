@@ -100,7 +100,7 @@
 </div>
 
 {#if (removeTarget)}
-  <ConfirmModal on:ok={removeMember} on:cancel={() => {removeTarget = undefined}} yesText={$_('chat_group_remove_member')} cancelText={$_('cancel')}>
+  <ConfirmModal onok={removeMember} oncancel={() => {removeTarget = undefined}} yesText={$_('chat_group_remove_member')} cancelText={$_('cancel')}>
     <p class="group-member-remove-confirm">{$_('chat_group_remove_member_confirm', {name: removeTarget.displayName || removeTarget.handle})}</p>
   </ConfirmModal>
 {/if}

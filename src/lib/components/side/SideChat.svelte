@@ -35,8 +35,8 @@
   let id = $derived(path?.split('/').slice(-1)[0]);
   const requestCount = $derived(chatState.getRequestCount(_agent?.did?.()));
 
-  async function handleAgentSelect(event) {
-      _agent = event.detail.agent;
+  async function handleAgentSelect(selected) {
+      _agent = selected.agent;
       unique = Symbol();
       convos = [];
       cursor = '';
@@ -121,7 +121,7 @@
 <div class="side-chat">
   {#if $agents.size > 1}
     <div class="side-agents-selector">
-      <AgentsSelector on:select={handleAgentSelect}></AgentsSelector>
+      <AgentsSelector onselect={handleAgentSelect}></AgentsSelector>
     </div>
   {/if}
 

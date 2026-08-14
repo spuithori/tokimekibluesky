@@ -6,7 +6,6 @@
   import { slide } from 'svelte/transition';
   import { _ } from 'tokimeki-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
-  import { createEventDispatcher } from 'svelte';
   import {agent} from "$lib/stores";
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import { toast } from "svelte-sonner";
@@ -15,7 +14,6 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
   import {feedHintState} from "$lib/classes/feedHintState.svelte";
-  const dispatch = createEventDispatcher();
   const columnState = getColumnState();
   const postState = getPostState();
 
@@ -38,11 +36,6 @@
 
   async function setCurrentFeed () {
       feedHintState.set(feed);
-
-      dispatch('close', {
-          clear: false,
-          allClose: true,
-      });
   }
 
   async function addColumn() {
@@ -66,7 +59,6 @@
       try {
           columnState.add(_column);
 
-          dispatch('add');
           toast.success($_('column_added'));
           isColumnAdded = true;
       } catch (e) {

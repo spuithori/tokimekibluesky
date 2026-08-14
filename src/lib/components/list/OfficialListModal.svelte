@@ -15,6 +15,7 @@
       _agent?: any;
       purpose?: string;
       uri?: string;
+      onclose?: () => void;
     }
 
     let { _agent = $agent, purpose = 'app.bsky.graph.defs#curatelist', uri = $bindable(''), onclose }: Props = $props();
@@ -99,16 +100,16 @@
         memberSearch.cancel();
     });
 
-    function handleDelete(event) {
+    function handleDelete(deletedMember) {
         members = members.filter(member => {
-            return member.did !== event.detail.member.did;
+            return member.did !== deletedMember.did;
         });
         members = members.filter(v => v);
         // handleListChange();
     }
 
-    function handleAdd(event) {
-        members = [...members, event.detail.member];
+    function handleAdd(member) {
+        members = [...members, member];
         // handleListChange();
     }
 
@@ -194,7 +195,7 @@
             }
 
             isDisabled = false;
-            onclose();
+            onclose?.();
         } catch(e) {
             isDisabled = false;
             console.error(e);
@@ -257,7 +258,7 @@
             <div class="list-modal-members">
               {#each members as member}
                 {#if (typeof member !== 'string')}
-                  <ListMember member={member} action={'delete'} on:delete={handleDelete}></ListMember>
+                  <ListMember member={member} action={'delete'} ondelete={handleDelete}></ListMember>
                 {/if}
               {:else}
                 <p class="list-modal-members__none">{$_('there_is_no_list_member')}</p>
@@ -284,7 +285,7 @@
 
               {#each searchMembers as member}
                 {#if (!members.find(m => m.did === member.did))}
-                  <ListMember member={member} action={'add'} on:add={handleAdd}></ListMember>
+                  <ListMember member={member} action={'add'} onadd={handleAdd}></ListMember>
                 {/if}
               {/each}
             </div>
@@ -293,7 +294,7 @@
       </div>
     </div>
 
-    <OfficialListMenu {_agent} {uri} {existingMembers} on:close></OfficialListMenu>
+    <OfficialListMenu {_agent} {uri} {existingMembers} {onclose}></OfficialListMenu>
   {:else}
     <LoadingSpinner></LoadingSpinner>
   {/if}

@@ -2,11 +2,11 @@
     import {_} from "tokimeki-i18n";
     import { fly } from 'svelte/transition';
     import {accountsDb} from "$lib/db";
-    import {createEventDispatcher} from "svelte";
     import {liveQuery} from "dexie";
     import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
     import LoginModal from "$lib/components/acp/LoginModal.svelte";
-    const dispatch = createEventDispatcher();
+
+    let { onclose } = $props();
 
     let accounts = $derived(liveQuery(async () => {
         const accounts = await accountsDb.accounts.toArray();
@@ -18,17 +18,17 @@
     let loginModalIdentifier = $state('');
 
     function close() {
-        dispatch('close');
+        onclose?.();
     }
 
-    async function handleDelete(event) {
+    async function handleDelete(deletedId) {
         try {
-            const id = await accountsDb.accounts.delete(event.detail.id);
+            const id = await accountsDb.accounts.delete(deletedId);
             const profiles = await accountsDb.profiles.toArray();
 
             profiles.forEach(profile => {
                 const pid = accountsDb.profiles.update(profile.id, {
-                    accounts: profile.accounts.filter(account => account !== event.detail.id)
+                    accounts: profile.accounts.filter(account => account !== deletedId)
                 });
             })
         } catch (e) {
@@ -36,8 +36,8 @@
         }
     }
 
-    async function handleSwitchAuth(event) {
-        const { id, isOAuth } = event.detail;
+    async function handleSwitchAuth(payload) {
+        const { id, isOAuth } = payload;
         const account = await accountsDb.accounts.get(id);
 
         if (!account) return;
@@ -52,7 +52,7 @@
         isLoginModalOpen = true;
     }
 
-    async function handleLoginSuccess(event) {
+    async function handleLoginSuccess() {
         isLoginModalOpen = false;
         switchingAccount = null;
         loginModalIdentifier = '';
@@ -72,7 +72,7 @@
     {#if $accounts}
       <div class="accounts-management-list">
         {#each $accounts as account (account.id)}
-          <AcpAccountCard isManagement={true} id={account.id} on:delete={handleDelete} on:switchAuth={handleSwitchAuth}></AcpAccountCard>
+          <AcpAccountCard isManagement={true} id={account.id} ondelete={handleDelete} onswitchAuth={handleSwitchAuth}></AcpAccountCard>
         {/each}
       </div>
     {/if}
@@ -87,7 +87,7 @@
     identifier={loginModalIdentifier}
     initialAuthMode={switchingAccount?.isOAuth ? 'password' : 'oauth'}
     lockAuthMode={true}
-    on:success={handleLoginSuccess}
-    on:cancel={handleLoginCancel}
+    onsuccess={handleLoginSuccess}
+    oncancel={handleLoginCancel}
   ></LoginModal>
 {/if}

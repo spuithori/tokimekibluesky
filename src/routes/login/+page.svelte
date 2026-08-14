@@ -55,7 +55,7 @@
 </section>
 
 {#if isLoginModalOpen}
-  <LoginModal on:success={handleSuccess} on:cancel={() => {isLoginModalOpen = false}}></LoginModal>
+  <LoginModal onsuccess={handleSuccess} oncancel={() => {isLoginModalOpen = false}}></LoginModal>
 {/if}
 
 <Toaster position="top-center"></Toaster>

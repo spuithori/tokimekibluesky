@@ -4,13 +4,10 @@
   import { _ } from "tokimeki-i18n";
   import { PasswordSession, type SessionData } from "$lib/password-session";
   import { accountsDb } from "$lib/db";
-  import { createEventDispatcher } from "svelte";
   import { toast } from "svelte-sonner";
   import { signIn } from '$lib/oauth';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import HandleTypeahead from "$lib/components/acp/HandleTypeahead.svelte";
-
-  const dispatch = createEventDispatcher();
 
   interface Props {
     existingId?: any;
@@ -18,9 +15,11 @@
     isMissing?: boolean;
     initialAuthMode?: 'password' | 'oauth';
     lockAuthMode?: boolean;
+    onsuccess?: (id: any) => void;
+    oncancel?: () => void;
   }
 
-  let { existingId = undefined, identifier = $bindable(''), isMissing = false, initialAuthMode = undefined, lockAuthMode = false }: Props = $props();
+  let { existingId = undefined, identifier = $bindable(''), isMissing = false, initialAuthMode = undefined, lockAuthMode = false, onsuccess, oncancel }: Props = $props();
 
   let authMode = $state<'password' | 'oauth'>(initialAuthMode || 'oauth');
   const lockIdentifier = isMissing && identifier.trim() !== '';
@@ -69,9 +68,7 @@
         });
       }
 
-      dispatch('success', {
-        id: id,
-      });
+      onsuccess?.(id);
     } catch (e) {
       if (e.name === 'ConstraintError') {
         toast.error($_('login_duplicate_account'));
@@ -102,7 +99,7 @@
   }
 
   function cancel() {
-    dispatch('cancel');
+    oncancel?.();
   }
 </script>
 

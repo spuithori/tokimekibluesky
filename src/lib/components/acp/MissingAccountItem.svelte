@@ -22,7 +22,7 @@
       isLoginModalOpen = true;
   }
 
-  async function handleSuccess(event) {
+  async function handleSuccess() {
       isLoginModalOpen = false;
       location.reload();
   }
@@ -73,8 +73,8 @@
       identifier={account.handle || account.session?.handle || ''}
       isMissing={true}
       initialAuthMode={account.isOAuth ? 'oauth' : 'password'}
-      on:success={handleSuccess}
-      on:cancel={handleCancel}></LoginModal>
+      onsuccess={handleSuccess}
+      oncancel={handleCancel}></LoginModal>
 {/if}
 
 <style lang="postcss">

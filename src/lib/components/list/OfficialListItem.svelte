@@ -4,12 +4,10 @@
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
   import {agent, officialListModal} from "$lib/stores";
   import { toast } from "svelte-sonner";
-  import {createEventDispatcher} from "svelte";
   import List from '@lucide/svelte/icons/list';
   import OfficialListMembersModal from "$lib/components/list/OfficialListMembersModal.svelte";
   import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
-  const dispatch = createEventDispatcher();
 
   const columnState = getColumnState();
 
@@ -79,7 +77,6 @@
       try {
           columnState.add(_column);
 
-          dispatch('add');
           toast.success($_('column_added'));
           isColumnAdded = true;
       } catch (e) {

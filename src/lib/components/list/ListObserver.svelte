@@ -1,17 +1,15 @@
 <script lang="ts">
     import {agent, listModal, userLists} from "$lib/stores";
     import ListModal from "$lib/components/list/ListModal.svelte";
-    import {createEventDispatcher} from 'svelte';
-    const dispatch = createEventDispatcher();
 
-  let { _agent = $agent } = $props();
+  let { _agent = $agent, onclose } = $props();
 
-    function handleListRemove(event) {
+    function handleListRemove(id) {
         userLists.update(lists => {
-            return lists.filter(list => list.id !== event.detail.id);
+            return lists.filter(list => list.id !== id);
         });
         localStorage.setItem('lists', JSON.stringify($userLists));
-        dispatch('close', event.detail);
+        onclose?.(id);
 
         $listModal.open = false;
     }
@@ -22,5 +20,5 @@
 </script>
 
 {#if ($listModal.open)}
-  <ListModal id={$listModal.data} on:remove={handleListRemove} on:close={handleListClose} {_agent}></ListModal>
+  <ListModal id={$listModal.data} onremove={handleListRemove} onclose={handleListClose} {_agent}></ListModal>
 {/if}

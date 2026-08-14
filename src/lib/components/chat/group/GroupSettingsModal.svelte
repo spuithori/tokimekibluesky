@@ -194,7 +194,7 @@
 </Modal>
 
 {#if (isLeaveOpen)}
-  <ConfirmModal on:ok={leaveChat} on:cancel={() => {isLeaveOpen = false}} yesText={$_('chat_menu_leave')} cancelText={$_('cancel')}>
+  <ConfirmModal onok={leaveChat} oncancel={() => {isLeaveOpen = false}} yesText={$_('chat_menu_leave')} cancelText={$_('cancel')}>
     <p class="group-leave-confirm">{$_('chat_group_leave_confirm')}</p>
   </ConfirmModal>
 {/if}

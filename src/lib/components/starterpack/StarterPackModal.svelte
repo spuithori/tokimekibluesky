@@ -119,16 +119,16 @@
         feedSearchRunner.cancel();
     });
 
-    function handleDelete(event) {
-        members = members.filter(member => member.did !== event.detail.member.did);
+    function handleDelete(deletedMember) {
+        members = members.filter(member => member.did !== deletedMember.did);
     }
 
-    function handleAdd(event) {
+    function handleAdd(member) {
         if (members.length >= MAX_MEMBERS) {
             toast.error($_('starter_pack_members_max', { max: MAX_MEMBERS }));
             return;
         }
-        members = [...members, event.detail.member];
+        members = [...members, member];
     }
 
     function addFeed(feed) {
@@ -309,7 +309,7 @@
             <div class="list-modal-members">
               {#each members as member (member.did)}
                 {#if (typeof member !== 'string')}
-                  <ListMember member={member} action={'delete'} on:delete={handleDelete}></ListMember>
+                  <ListMember member={member} action={'delete'} ondelete={handleDelete}></ListMember>
                 {/if}
               {:else}
                 <p class="list-modal-members__none">{$_('there_is_no_list_member')}</p>
@@ -336,7 +336,7 @@
 
               {#each searchMembers as member (member.did)}
                 {#if (!members.find(m => m.did === member.did))}
-                  <ListMember member={member} action={'add'} on:add={handleAdd}></ListMember>
+                  <ListMember member={member} action={'add'} onadd={handleAdd}></ListMember>
                 {/if}
               {/each}
             </div>

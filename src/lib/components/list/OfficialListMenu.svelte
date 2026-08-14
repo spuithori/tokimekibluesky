@@ -1,14 +1,11 @@
 <script lang="ts">
     import Trash2 from '@lucide/svelte/icons/trash-2';
-    import {createEventDispatcher} from "svelte";
     import {agent, reportModal} from "$lib/stores";
     import {_} from "tokimeki-i18n";
     import Menu from "$lib/components/ui/Menu.svelte";
     import Flag from '@lucide/svelte/icons/flag';
 
-    const dispatch = createEventDispatcher();
-
-  let { _agent = $agent, uri, cid = '', existingMembers = [] } = $props();
+  let { _agent = $agent, uri, cid = '', existingMembers = [], onclose } = $props();
 
     let isMenuOpen = $state(false);
 
@@ -39,7 +36,7 @@
                 writes: writes,
             });
 
-            dispatch('close');
+            onclose?.();
         } catch (e) {
             console.error(e)
         }

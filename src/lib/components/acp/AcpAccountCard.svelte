@@ -5,21 +5,25 @@
   import {accountsDb} from "$lib/db";
   import {_} from "tokimeki-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
-  import {createEventDispatcher} from "svelte";
-  const dispatch = createEventDispatcher();
 
   interface Props {
     id: any;
     index?: number;
     isPrimary?: boolean;
     isManagement?: boolean;
+    onswitch?: (id: any) => void;
+    ondelete?: (id: any) => void;
+    onswitchAuth?: (payload: {id: any, isOAuth: boolean}) => void;
   }
 
   let {
     id,
     index = 0,
     isPrimary = false,
-    isManagement = false
+    isManagement = false,
+    onswitch,
+    ondelete,
+    onswitchAuth
   }: Props = $props();
 
   let isMenuOpen = $state(false);
@@ -31,24 +35,17 @@
   async function switchMain(id) {
       isMenuOpen = false;
 
-      dispatch('switch', {
-          id: id,
-      });
+      onswitch?.(id);
   }
 
   async function deleteAccount(id) {
       isMenuOpen = false;
 
-      dispatch('delete', {
-          id: id,
-      });
+      ondelete?.(id);
   }
 
   async function switchAuthMethod(id, isOAuth) {
-      dispatch('switchAuth', {
-          id: id,
-          isOAuth: isOAuth,
-      });
+      onswitchAuth?.({id, isOAuth});
   }
 </script>
 

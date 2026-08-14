@@ -28,15 +28,15 @@
   let isNameModalOpen = $state(false);
   let isAppViewProxyModalOpen = $state(false);
 
-  async function handleSuccess(event) {
+  async function handleSuccess(accountId) {
       try {
-          const _accounts = [...profile.accounts, event.detail.id]
+          const _accounts = [...profile.accounts, accountId]
           const id = await accountsDb.profiles.update(profile.id, {
               accounts: _accounts,
           });
 
           if (_accounts.length === 1) {
-              await handleSwitchMain(event);
+              await handleSwitchMain(accountId);
           }
 
           if (isCurrent) {
@@ -64,24 +64,24 @@
       }
   }
 
-  async function handleSwitchMain(event) {
+  async function handleSwitchMain(accountId) {
       try {
           const id = await accountsDb.profiles.update(profile.id, {
-              primary: event.detail.id,
+              primary: accountId,
           });
 
           if (isCurrent) {
-              await agent.set($agents.get(event.detail.id));
+              await agent.set($agents.get(accountId));
           }
       } catch (e) {
           console.error(e);
       }
   }
 
-  async function handleDeleteAccount(event) {
+  async function handleDeleteAccount(accountId) {
       try {
-          const removedDid = $agents.get(event.detail.id)?.did();
-          const _accounts = profile.accounts.filter(account => account !== event.detail.id)
+          const removedDid = $agents.get(accountId)?.did();
+          const _accounts = profile.accounts.filter(account => account !== accountId)
           const id = await accountsDb.profiles.update(profile.id, {
               accounts: _accounts,
           });
@@ -95,10 +95,10 @@
       }
   }
 
-  async function handleNameChange(event) {
+  async function handleNameChange(name) {
       try {
           const id = await accountsDb.profiles.update(profile.id, {
-              name: event.detail.name,
+              name: name,
           });
 
           isNameModalOpen = false;
@@ -177,20 +177,20 @@
             id={account}
             {index}
             isPrimary={profile.primary === account}
-            on:switch={handleSwitchMain}
-            on:delete={handleDeleteAccount}
+            onswitch={handleSwitchMain}
+            ondelete={handleDeleteAccount}
         ></AcpAccountCard>
       {/each}
     </div>
   {/if}
 
   <div class="acp-select-account-wrap">
-    <AcpAccountSelector exclude={profile.accounts} on:success={handleSuccess}></AcpAccountSelector>
+    <AcpAccountSelector exclude={profile.accounts} onsuccess={handleSuccess}></AcpAccountSelector>
   </div>
 </div>
 
 {#if isNameModalOpen}
-  <AcpProfileNameModal name={profile.name} on:nameChange={handleNameChange}></AcpProfileNameModal>
+  <AcpProfileNameModal name={profile.name} onnameChange={handleNameChange}></AcpProfileNameModal>
 {/if}
 
 {#if isAppViewProxyModalOpen}

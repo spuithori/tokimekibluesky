@@ -41,11 +41,11 @@
         isDisabled = false;
     }
 
-    async function handleAccountEnablingChange(event) {
-        if (event.detail.enabled) {
-            enableAccounts = [...enableAccounts, event.detail.did];
+    async function handleAccountEnablingChange(payload) {
+        if (payload.enabled) {
+            enableAccounts = [...enableAccounts, payload.did];
         } else {
-            enableAccounts = enableAccounts.filter(account => account !== event.detail.did);
+            enableAccounts = enableAccounts.filter(account => account !== payload.did);
         }
 
         enableAccounts = Array.from(new Set(enableAccounts));
@@ -109,7 +109,7 @@
             <PushNotificationAccountItem
                 {account}
                 isEnabled={enableAccounts.includes(account.did)}
-                on:change={handleAccountEnablingChange}
+                onchange={handleAccountEnablingChange}
             ></PushNotificationAccountItem>
           {/each}
         </div>

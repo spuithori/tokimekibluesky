@@ -1,7 +1,6 @@
 <script lang="ts">
     import {bookmarkModal, cloudBookmarkModal, listModal, officialListModal} from "$lib/stores";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
-    import {createEventDispatcher} from "svelte";
     import Bell from '@lucide/svelte/icons/bell';
     import Bookmark from '@lucide/svelte/icons/bookmark';
     import Heart from '@lucide/svelte/icons/heart';
@@ -15,13 +14,10 @@
     import MessageCircle from '@lucide/svelte/icons/message-circle';
     import BookType from '@lucide/svelte/icons/book-type';
 
-    const dispatch = createEventDispatcher();
-    let { items, _agent } = $props();
+    let { items, _agent, onadd } = $props();
 
     function addColumn(column) {
-        dispatch('add', {
-            column: column,
-        });
+        onadd?.(column);
     }
 </script>
 

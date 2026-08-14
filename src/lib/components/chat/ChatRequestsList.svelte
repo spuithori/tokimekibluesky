@@ -159,7 +159,7 @@
 </div>
 
 {#if (declineTarget)}
-  <ConfirmModal on:ok={decline} on:cancel={() => {declineTarget = undefined}} yesText={$_('chat_request_decline')} cancelText={$_('cancel')}>
+  <ConfirmModal onok={decline} oncancel={() => {declineTarget = undefined}} yesText={$_('chat_request_decline')} cancelText={$_('cancel')}>
     <p class="chat-request-decline-confirm">{$_('chat_request_decline_confirm')}</p>
   </ConfirmModal>
 {/if}

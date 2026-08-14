@@ -4,11 +4,9 @@
     import {createDebouncedSearch} from "$lib/typeaheadSearch";
     import type {ProfileView, ProfileViewBasic} from "$lib/types/atproto";
     import ListMember from "./ListMember.svelte";
-    import {createEventDispatcher} from 'svelte';
     import { toast } from "svelte-sonner";
     import {_} from "tokimeki-i18n";
   import Modal from "$lib/components/ui/Modal.svelte";
-    const dispatch = createEventDispatcher();
 
 
     type list = {
@@ -21,7 +19,7 @@
     let lists: list[] = localStorage.getItem('lists')
         ? JSON.parse(localStorage.getItem('lists'))
         : [];
-  let { _agent = $agent, id = new Date().getTime().toString() } = $props();
+  let { _agent = $agent, id = new Date().getTime().toString(), onclose, onremove } = $props();
     let name = $state('');
     let owner = '';
     let members = $state<ProfileView[]>([]);
@@ -91,27 +89,25 @@
         memberSearch.cancel();
     });
 
-    function handleDelete(event) {
+    function handleDelete(deletedMember) {
         members = members.filter(member => {
-            return member.did !== event.detail.member.did;
+            return member.did !== deletedMember.did;
         });
         members = members.filter(v => v);
         handleListChange();
     }
 
-    function handleAdd(event) {
-        members = [...members, event.detail.member];
+    function handleAdd(member) {
+        members = [...members, member];
         handleListChange();
     }
 
     function close() {
-        dispatch('close');
+        onclose?.();
     }
 
     function remove() {
-        dispatch('remove', {
-            id: id,
-        });
+        onremove?.(id);
     }
 
     function exporting() {
@@ -173,7 +169,7 @@
           <div class="list-modal-members">
             {#each members as member}
               {#if (typeof member !== 'string')}
-                <ListMember member={member} action={'delete'} on:delete={handleDelete}></ListMember>
+                <ListMember member={member} action={'delete'} ondelete={handleDelete}></ListMember>
               {/if}
             {:else}
               <p class="list-modal-members__none">{$_('there_is_no_list_member')}</p>
@@ -200,7 +196,7 @@
 
             {#each searchMembers as member}
               {#if (!members.find(m => m.did === member.did))}
-                <ListMember member={member} action={'add'} on:add={handleAdd}></ListMember>
+                <ListMember member={member} action={'add'} onadd={handleAdd}></ListMember>
               {/if}
             {/each}
           </div>

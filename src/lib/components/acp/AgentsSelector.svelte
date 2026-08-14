@@ -1,23 +1,22 @@
 <script lang="ts">
     import ChevronDown from '@lucide/svelte/icons/chevron-down';
     import {agent, agents} from "$lib/stores";
-    import {createEventDispatcher} from "svelte";
     import { clickOutside } from '$lib/clickOutSide';
-    const dispatch = createEventDispatcher();
 
   interface Props {
     _agent?: any;
     isDisabled?: boolean;
     style?: string;
+    onselect?: (selected: {id: string, agent: any}) => void;
   }
 
-  let { _agent = $bindable($agent), isDisabled = false, style = 'default' }: Props = $props();
+  let { _agent = $bindable($agent), isDisabled = false, style = 'default', onselect }: Props = $props();
     let isOpen = $state(false);
 
     function selectAgent(key, agent) {
         _agent = agent;
 
-        dispatch('select', {
+        onselect?.({
             id: key,
             agent: _agent,
         });
@@ -38,7 +37,7 @@
       </button>
 
       <div class="agents-selector__choices">
-        {#each $agents as [key, agent]}
+        {#each $agents as [key, agent] (key)}
           {#if (agent.did())}
             {#if (agent.handle() !== _agent.handle())}
               <button class="agents-selector__item" onclick={() => {selectAgent(key, agent)}}>

@@ -674,7 +674,7 @@
 </div>
 
 {#if declineConfirmOpen}
-  <ConfirmModal on:ok={declineRequest} on:cancel={() => {declineConfirmOpen = false}} yesText={$_('chat_request_decline')} cancelText={$_('cancel')}>
+  <ConfirmModal onok={declineRequest} oncancel={() => {declineConfirmOpen = false}} yesText={$_('chat_request_decline')} cancelText={$_('cancel')}>
     <p class="chat-decline-confirm">{$_('chat_request_decline_confirm')}</p>
   </ConfirmModal>
 {/if}

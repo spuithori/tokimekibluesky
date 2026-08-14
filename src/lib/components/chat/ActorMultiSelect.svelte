@@ -28,8 +28,7 @@
         actorSearch.cancel();
     });
 
-    function handleAdd(e: CustomEvent<{ member: any }>) {
-        const actor = e.detail.member;
+    function handleAdd(actor: any) {
 
         if (selected.length + excluded.length >= max || selected.some(member => member.did === actor.did) || excluded.some(member => member.did === actor.did)) {
             return;
@@ -116,7 +115,7 @@
         member={member}
         action={'add'}
         exclude={isExcluded(member)}
-        on:add={handleAdd}
+        onadd={handleAdd}
     ></ListMember>
   {/each}
 </div>
