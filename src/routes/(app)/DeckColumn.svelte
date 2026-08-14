@@ -31,6 +31,11 @@
     import {clearNotificationBadgesForDid, markAllNotificationsRead} from "$lib/components/notification/notificationPipeline";
     import {resetColumnForRefresh} from "$lib/components/column/forceRefresh";
     import {getProfileRefreshContext} from "$lib/classes/profileRefreshContext.svelte";
+    import {MERGE_PALETTE} from "$lib/merge/mergePalette";
+    import {extractMergeSource} from "$lib/merge/mergeColumnOps";
+    import {initialSoloState, soloFeedKey} from "$lib/merge/mergeSolo";
+    import {startPointerDrag} from "$lib/pointerDrag";
+    import {insertionIndexAt, quadrantZone, type DropPreview, type Quad} from "$lib/attachments/sortable.svelte";
 
     interface Props {
         index: number;
@@ -139,12 +144,12 @@
     async function handleRefresh(event?: any) {
         try {
             await (refreshEl as any)?.refresh();
-
+        } catch (e) {
+            console.error(e);
+        } finally {
             if (event?.complete) {
                 event.complete();
             }
-        } catch (e) {
-            console.error(e);
         }
     }
 
@@ -160,6 +165,134 @@
             console.error(e);
             toast.error('Error: ' + e);
         }
+    }
+
+    let suppressChipClick = false;
+
+    function toggleMergeSolo(sourceId: string) {
+        if (suppressChipClick) {
+            suppressChipClick = false;
+            return;
+        }
+        if (!column?.data) {
+            return;
+        }
+
+        if (column.data.mergeSolo === sourceId) {
+            column.data.mergeSolo = undefined;
+            column.data.mergeSoloCursor = undefined;
+            column.data.mergeSoloComplete = undefined;
+            columnState.deleteFeed(soloFeedKey(column.id));
+        } else {
+            const soloState = initialSoloState(column.data.cursor, column.algorithm?.sources ?? [], sourceId);
+            column.data.mergeSolo = sourceId;
+            column.data.mergeSoloCursor = soloState.cursor;
+            column.data.mergeSoloComplete = soloState.complete;
+            columnState.setFeed(soloFeedKey(column.id), []);
+        }
+
+        unique = Symbol();
+        if (scrollEl) {
+            scrollEl.scrollTop = 0;
+        }
+    }
+
+    const CHIP_CANCEL_MARGIN = 16;
+
+    function detectChipDrop(x: number, y: number, originRect: DOMRect | null): DropPreview | null {
+        if (originRect
+            && x >= originRect.left - CHIP_CANCEL_MARGIN && x <= originRect.right + CHIP_CANCEL_MARGIN
+            && y >= originRect.top - CHIP_CANCEL_MARGIN && y <= originRect.bottom + CHIP_CANCEL_MARGIN) {
+            return null;
+        }
+
+        const hit = document.elementFromPoint(x, y);
+        const el = hit?.closest('[data-tile-id]') as HTMLElement | null;
+        const id = el?.dataset.tileId;
+
+        if (el && id && id !== column?.id) {
+            const r = el.getBoundingClientRect();
+            const prev = tilingDrag.preview;
+            const cur: Quad | null = prev?.kind === 'split' && prev.id === id ? prev.zone : null;
+            const zone = quadrantZone(r.width, r.height, x - r.left, y - r.top, cur, 0.06);
+            return { kind: 'split', id, zone, rect: { x: r.left, y: r.top, w: r.width, h: r.height } };
+        }
+
+        const cols = Array.from(document.querySelectorAll<HTMLElement>('.deck > .deck-row-wrap'));
+        if (!cols.length) {
+            return null;
+        }
+        const rects = cols.map(c => c.getBoundingClientRect());
+        if (y < Math.min(...rects.map(r => r.top)) || y > Math.max(...rects.map(r => r.bottom))) {
+            return null;
+        }
+        const index = insertionIndexAt(rects, x);
+        const lineX =
+            index <= 0 ? rects[0].left
+            : index >= rects.length ? rects[rects.length - 1].right
+            : (rects[index - 1].right + rects[index].left) / 2;
+        const ref = cols[index] as HTMLElement | undefined;
+        const beforeId = ref ? ((ref.querySelector('[data-tile-id]') as HTMLElement | null)?.dataset.tileId ?? null) : null;
+        return { kind: 'extract', beforeId, lineX, top: rects[0].top, height: rects[0].height };
+    }
+
+    function handleMergeChipPointerDown(event: PointerEvent, sourceId: string) {
+        if (isJunk || $settings.design?.layout !== 'decks' || column?.settings?.isPopup) {
+            return;
+        }
+        const sources = column?.algorithm?.sources ?? [];
+        if (column?.algorithm?.type !== 'merge' || sources.length < 2) {
+            return;
+        }
+        const sourceIndex = sources.findIndex(s => s.id === sourceId);
+        if (sourceIndex === -1) {
+            return;
+        }
+
+        const startX = event.clientX;
+        const startY = event.clientY;
+        const originRect = (event.currentTarget as HTMLElement | null)?.closest('.deck-row-wrap')?.getBoundingClientRect() ?? null;
+        let started = false;
+        let cancelled = false;
+
+        const handleEscape = (ke: KeyboardEvent) => {
+            if (ke.key === 'Escape' && started && !cancelled) {
+                cancelled = true;
+                tilingDrag.end();
+            }
+        };
+        window.addEventListener('keydown', handleEscape);
+
+        startPointerDrag(event, (e) => {
+            if (cancelled) {
+                return;
+            }
+            if (!started) {
+                if (Math.hypot(e.clientX - startX, e.clientY - startY) < 6) {
+                    return;
+                }
+                started = true;
+                suppressChipClick = true;
+                tilingDrag.beginChip(column.id, {
+                    name: sources[sourceIndex].name ?? '',
+                    color: MERGE_PALETTE[sourceIndex % MERGE_PALETTE.length],
+                });
+            }
+            tilingDrag.setPointer(e.clientX, e.clientY);
+            tilingDrag.setPreview(detectChipDrop(e.clientX, e.clientY, originRect));
+        }, () => {
+            window.removeEventListener('keydown', handleEscape);
+            if (cancelled) {
+                return;
+            }
+            const drop = tilingDrag.preview;
+            const wasStarted = started;
+            tilingDrag.end();
+            if (!wasStarted || !drop || drop.kind === 'merge') {
+                return;
+            }
+            animateLayout(() => extractMergeSource(columnState, column.id, sourceId, drop));
+        });
     }
 
     function forceRefresh() {
@@ -317,7 +450,26 @@
                     aria-label="Back to top."
             >
                 <div class="deck-heading__title">
-                    {column?.algorithm?.name} <span class="deck-heading__subhead">{column?.handle}</span>
+                    {column?.algorithm?.name}
+                    {#if (column?.algorithm?.type === 'merge' && column?.algorithm?.sources?.length)}
+                        <span class="merge-chips" role="group" aria-label={$_('merge_sources')}>
+                            {#each column.algorithm.sources as source, sourceIndex (source.id)}
+                                <button
+                                        class="merge-chip"
+                                        class:merge-chip--solo={column.data?.mergeSolo === source.id}
+                                        class:merge-chip--dimmed={column.data?.mergeSolo && column.data?.mergeSolo !== source.id}
+                                        style:--merge-source-color={MERGE_PALETTE[sourceIndex % MERGE_PALETTE.length]}
+                                        title="{source.name} — {$_('merge_chip_hint')}"
+                                        aria-pressed={column.data?.mergeSolo === source.id}
+                                        data-merge-source-id={source.id}
+                                        onclick={(e) => {e.stopPropagation(); toggleMergeSolo(source.id)}}
+                                        onpointerdown={(e) => {handleMergeChipPointerDown(e, source.id)}}
+                                >{source.name}</button>
+                            {/each}
+                        </span>
+                    {:else}
+                        <span class="deck-heading__subhead">{column?.handle}</span>
+                    {/if}
                 </div>
             </div>
         {:else}
@@ -672,6 +824,53 @@
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;
+        }
+
+        .merge-chips {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .merge-chip {
+            flex-shrink: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            min-width: 26px;
+            height: 18px;
+            padding: 0 7px;
+            border-radius: 9px;
+            font-size: 11px;
+            font-weight: normal;
+            letter-spacing: 0;
+            line-height: 1;
+            color: var(--deck-heading-subhead-color);
+            background-color: color-mix(in srgb, var(--merge-source-color) 18%, transparent);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            touch-action: none;
+
+            &::before {
+                content: '';
+                flex-shrink: 0;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background-color: var(--merge-source-color);
+            }
+
+            &--solo {
+                color: var(--deck-heading-title-color);
+                box-shadow: inset 0 0 0 1.5px var(--merge-source-color);
+            }
+
+            &--dimmed {
+                opacity: .45;
+            }
         }
 
         &__buttons {

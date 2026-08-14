@@ -16,6 +16,7 @@
     import MessageCircleMore from '@lucide/svelte/icons/message-circle-more';
     import MessagesSquare from '@lucide/svelte/icons/messages-square';
     import BookType from '@lucide/svelte/icons/book-type';
+    import Combine from '@lucide/svelte/icons/combine';
 
     interface Props {
         type?: string;
@@ -62,4 +63,6 @@
     <MessagesSquare {color} {strokeWidth} />
 {:else if type === "networkFeed" || type === "mochottTimeline"}
     <BookType {color} {strokeWidth} />
+{:else if type === "merge"}
+    <Combine {color} {strokeWidth} />
 {/if}

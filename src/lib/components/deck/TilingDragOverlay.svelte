@@ -1,5 +1,7 @@
 <script lang="ts">
+    import { _ } from "tokimeki-i18n";
     import { tilingDrag } from "$lib/classes/tilingDragState.svelte";
+    import Combine from '@lucide/svelte/icons/combine';
 
     const BAR = 5;
 
@@ -8,6 +10,10 @@
         if (!p) return null;
         if (p.kind === 'extract') {
             return { kind: 'extract' as const, left: p.lineX - BAR / 2, top: p.top, width: BAR, height: p.height };
+        }
+        if (p.kind === 'merge') {
+            const { x, y, w, h } = p.rect;
+            return { kind: 'merge' as const, left: x, top: y, width: w, height: h };
         }
         const { x, y, w, h } = p.rect;
         switch (p.zone) {
@@ -23,11 +29,19 @@
     <div
         class="tile-drop-hint"
         class:tile-drop-hint--extract={box.kind === 'extract'}
+        class:tile-drop-hint--merge={box.kind === 'merge'}
         style:left="{box.left}px"
         style:top="{box.top}px"
         style:width="{box.width}px"
         style:height="{box.height}px"
-    ></div>
+    >
+        {#if box.kind === 'merge'}
+            <span class="tile-drop-hint__merge-label">
+                <Combine size="18" color="currentColor"></Combine>
+                {$_('merge_drop_to_merge')}
+            </span>
+        {/if}
+    </div>
 {/if}
 
 <style lang="postcss">
@@ -50,6 +64,27 @@
         background-color: var(--primary-color);
         border: none;
         box-shadow: 0 0 16px color-mix(in srgb, var(--primary-color) 70%, transparent);
+    }
+
+    .tile-drop-hint--merge {
+        display: grid;
+        place-content: center;
+        background-color: color-mix(in srgb, var(--primary-color) 32%, transparent);
+        border-style: dashed;
+    }
+
+    .tile-drop-hint__merge-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 20px;
+        background-color: var(--bg-color-1);
+        color: var(--primary-color);
+        font-weight: bold;
+        font-size: 14px;
+        letter-spacing: .03em;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, .25);
     }
 
     @keyframes tile-hint-in {

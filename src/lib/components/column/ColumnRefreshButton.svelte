@@ -119,7 +119,7 @@
             column.unreadCount = 0
         }
 
-        if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList' || column.algorithm.type === 'myPost' || column.algorithm.type === 'myMedia') {
+        if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList' || column.algorithm.type === 'merge' || column.algorithm.type === 'myPost' || column.algorithm.type === 'myMedia') {
             const shouldMaintainPosition = !column.settings?.refreshToTop;
             const scrollEl: HTMLElement = getScrollElement();
 
@@ -135,7 +135,7 @@
                 .filter(feed => !existingKeys.has(getPostKey(feed)))
                 .map(feed => ({...feed, memoryCursor: res.cursor}));
 
-            if (newFeed.length === res.feed.length && currentFeed.length !== 0) {
+            if (newFeed.length > 0 && newFeed.length === res.feed.length && currentFeed.length !== 0) {
                 const dividerPost = newFeed.slice(-1)[0];
                 dividerPost.isDivider = true;
             }
@@ -298,6 +298,10 @@
     }
 
     function releasePosts(feed) {
+        if (column?.data?.mergeSolo) {
+            return false;
+        }
+
         const scrollTop = getScrollTop();
 
         if (isJunk && !isRefreshing) {

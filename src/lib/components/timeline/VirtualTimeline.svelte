@@ -15,6 +15,7 @@
   import Annoyed from '@lucide/svelte/icons/annoyed';
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {makeFeedKeys, getFeedKey} from "$lib/components/timeline/feedKeys";
+  import {soloFeedKey} from "$lib/merge/mergeSolo";
 
   let {
     column,
@@ -85,7 +86,7 @@
       lastUnique = unique;
       onScrollStateClear?.();
       queueMicrotask(() => {
-        if (columnState.getFeed(column.id).length === 0 && !isLoading && !isComplete) {
+        if (rawFeed.length === 0 && !isLoading && !isComplete) {
           triggerLoad();
         }
       });
@@ -97,7 +98,13 @@
       ?? parent?.closest('.deck-column-content') as HTMLElement | null;
   });
 
-  const feedKeys = $derived(makeFeedKeys(columnState.getFeed(column.id)));
+  const rawFeed = $derived(columnState.getFeed(column.id));
+  const mergeSolo = $derived(column.algorithm?.type === 'merge' ? (column.data?.mergeSolo ?? null) : null);
+  const soloExtraFeed = $derived(mergeSolo ? columnState.getFeed(soloFeedKey(column.id)) : []);
+  const displayFeed = $derived(mergeSolo
+    ? [...rawFeed.filter(item => item?.__sourceId === mergeSolo), ...soloExtraFeed]
+    : rawFeed);
+  const feedKeys = $derived(makeFeedKeys(displayFeed));
 
   function getKey(data: any, index: number): string {
     return feedKeys[index] ?? getFeedKey(data, index);
@@ -158,7 +165,7 @@
   }
 
   $effect(() => {
-    const feedLength = columnState.getFeed(column.id).length;
+    const feedLength = rawFeed.length;
     if (feedLength === 0 && scrollContainer && !isLoading && !isComplete) {
       triggerLoad();
     }
@@ -239,7 +246,7 @@
 
 <div class="timeline timeline--default virtual-timeline" bind:this={parent}>
   <VirtualList
-    items={columnState.getFeed(column.id)}
+    items={displayFeed}
     {getKey}
     {scrollContainer}
     {topMargin}
@@ -259,7 +266,7 @@
             {index}
             {column}
             {_agent}
-            feed={columnState.getFeed(column.id)}
+            feed={displayFeed}
             isReplyExpanded={(column.algorithm.type === 'author' || column.algorithm.type === 'authorReplies') && !item.isRootHide}
             isPinned={isReasonPin(item?.reason)}
           ></TimelineItem>
@@ -270,7 +277,7 @@
         </svelte:boundary>
       {/if}
 
-      {#if item?.isDivider}
+      {#if item?.isDivider && !mergeSolo}
         <MoreDivider
           onDividerClick={(pos) => {handleDividerClick(index, item.memoryCursor, pos)}}
           onDividerUp={(dividerEl) => {handleDividerUp(index, item.memoryCursor, dividerEl)}}

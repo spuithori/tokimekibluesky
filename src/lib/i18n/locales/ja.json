@@ -1175,5 +1175,13 @@
     "blog_error": "ブログの読み込みに失敗しました",
     "mochott_timeline": "タイムライン (mochott)",
     "network_feed": "standard.site",
-    "monochrome": "白黒モード"
+    "monochrome": "白黒モード",
+    "merge_timeline": "合成タイムライン",
+    "merge_select_sources": "合成するソースを2〜5個選択してひとつの時系列カラムにまとめます。",
+    "merge_create_column": "合成カラムを作成",
+    "merge_sources": "合成ソース",
+    "merge_remove_source": "このソースを外す",
+    "merge_drop_to_merge": "合成",
+    "merge_chip_hint": "タップでソロ表示、ドラッグで別カラムに分離します。",
+    "merge_non_chrono_note": "ソースは時系列順に統合されます。時系列でないフィード(ランキング型・おすすめ系など)は一部の投稿が取り込まれないことがあり、新着はカラム更新時にのみ反映されます。"
 }

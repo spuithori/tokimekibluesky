@@ -1176,5 +1176,13 @@
     "blog_error": "Failed to load blog posts",
     "mochott_timeline": "Timeline (mochott)",
     "network_feed": "standard.site",
-    "monochrome": "Monochrome mode"
+    "monochrome": "Monochrome mode",
+    "merge_timeline": "Merged timeline",
+    "merge_select_sources": "Select 2–5 sources to merge into one chronological column.",
+    "merge_create_column": "Create merged column",
+    "merge_sources": "Merged sources",
+    "merge_remove_source": "Remove this source",
+    "merge_drop_to_merge": "Merge",
+    "merge_chip_hint": "Tap to solo. Drag out to split into its own column.",
+    "merge_non_chrono_note": "Sources are merged in chronological order. Non-chronological feeds (ranked or discovery-style) may have some posts skipped, and their new posts may only appear when the column is refreshed."
 }

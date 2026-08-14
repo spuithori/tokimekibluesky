@@ -20,6 +20,9 @@
     import {searchColumnName, filterChips} from "$lib/search/searchDisplay";
     import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
     import Unlink from '@lucide/svelte/icons/unlink';
+    import X from '@lucide/svelte/icons/x';
+    import {removeMergeSource} from "$lib/merge/mergeColumnOps";
+    import {MERGE_PALETTE} from "$lib/merge/mergePalette";
     import { fly } from 'svelte/transition';
     import Notice from "$lib/components/ui/Notice.svelte";
     import {animateLayout} from "$lib/animations/flip";
@@ -758,6 +761,28 @@
                     </button>
                 {/if}
 
+                {#if (column.algorithm?.type === 'merge' && column.algorithm.sources?.length)}
+                    <div class="merge-sources-settings">
+                        <p class="merge-sources-settings__title">{$_('merge_sources')}</p>
+                        <ul class="merge-sources-settings__list">
+                            {#each column.algorithm.sources as source, sourceIndex (source.id)}
+                                <li class="merge-sources-settings__item" style:--merge-source-color={MERGE_PALETTE[sourceIndex % MERGE_PALETTE.length]}>
+                                    <span class="merge-sources-settings__dot"></span>
+                                    <span class="merge-sources-settings__name">{source.name}</span>
+                                    <button
+                                            class="merge-sources-settings__remove"
+                                            aria-label={$_('merge_remove_source')}
+                                            title={$_('merge_remove_source')}
+                                            onclick={() => {removeMergeSource(columnState, column.id, source.id)}}
+                                    >
+                                        <X size="16" color="var(--text-color-3)"></X>
+                                    </button>
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                {/if}
+
                 {#if ($settings.design?.layout === 'decks' && !column.settings?.isPopup)}
                     {#if columnState.isInSplit(column.id)}
                         <button class="deck-column-delete-button deck-column-delete-button--split only-pc" onclick={handleSwapSplit}>
@@ -935,6 +960,61 @@
     .deck-settings-content {
         padding: 16px 12px;
         min-height: calc(100% + 1px);
+    }
+
+    .merge-sources-settings {
+        margin: 28px 0 24px;
+
+        &__title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        &__list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        &__item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color-2);
+            border-radius: var(--border-radius-2);
+            font-size: 14px;
+        }
+
+        &__dot {
+            flex-shrink: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--merge-source-color);
+        }
+
+        &__name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        &__remove {
+            margin-left: auto;
+            flex-shrink: 0;
+            display: grid;
+            place-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+
+            &:hover {
+                background-color: var(--border-color-2);
+            }
+        }
     }
 
     .deck-column-delete-button {

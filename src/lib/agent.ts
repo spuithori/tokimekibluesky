@@ -8,6 +8,7 @@ import { XrpcClient, type FetchHandler } from '$lib/xrpc-client';
 import type { PasswordSession, SessionData } from '$lib/password-session';
 import { interpretLabelValueDefinitions } from '$lib/atproto-moderation';
 import { listRecords as listRecordsFromPds } from '$lib/util';
+import { getMergedTimeline } from '$lib/merge/mergeFetch';
 
 type timelineOpt = {
     limit: number,
@@ -275,6 +276,8 @@ export class Agent {
                 }, {headers: {'Accept-Language': timelineOpt.lang}, signal});
             case 'list':
                 return await this.getAuthorsFeed(timelineOpt.actors, timelineOpt.count);
+            case 'merge':
+                return await getMergedTimeline(this, timelineOpt, signal);
             case 'officialList':
                 return await this.xrpc.get('app.bsky.feed.getListFeed', {
                     limit: timelineOpt.limit, cursor: timelineOpt.cursor, list: timelineOpt.algorithm.algorithm

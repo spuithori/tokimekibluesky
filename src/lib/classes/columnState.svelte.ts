@@ -9,6 +9,7 @@ import {settingsState} from "$lib/classes/settingsState.svelte";
 import {appState} from "$lib/classes/appState.svelte";
 import {recordError} from "$lib/errorLog";
 import {clearAllNotificationLedgers, deleteNotificationLedger} from "$lib/components/notification/notificationLedger";
+import {SOLO_FEED_SUFFIX, soloFeedKey} from "$lib/merge/mergeSolo";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
@@ -219,6 +220,7 @@ export class ColumnState {
 
     remove(id: string) {
         this.deleteFeed(id);
+        this.deleteFeed(soloFeedKey(id));
         this.clearFeedStatus(id);
         deleteNotificationLedger(id);
 
@@ -244,6 +246,11 @@ export class ColumnState {
 
     replaceAllColumns(columns: Column[], slots?: Slot[], version?: number) {
         clearAllNotificationLedgers();
+        for (const key of [...this._feeds.keys()]) {
+            if (key.endsWith(SOLO_FEED_SUFFIX)) {
+                this._feeds.delete(key);
+            }
+        }
         const deck = loadDeckState(
             { version, columns, slots },
             () => self.crypto.randomUUID(),
@@ -304,6 +311,7 @@ export class ColumnState {
         if (slotIndex === -1) return;
         if (!keepAsSeparate) {
             this.deleteFeed(leafColumnId);
+            this.deleteFeed(soloFeedKey(leafColumnId));
             this.clearFeedStatus(leafColumnId);
             deleteNotificationLedger(leafColumnId);
         }

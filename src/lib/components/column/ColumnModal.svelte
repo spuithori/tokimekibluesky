@@ -15,7 +15,9 @@
     import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
     import LayoutGrid from '@lucide/svelte/icons/layout-grid';
     import Pin from '@lucide/svelte/icons/pin';
+    import Combine from '@lucide/svelte/icons/combine';
     import ColumnChoicesPinned from "$lib/components/column/ColumnChoicesPinned.svelte";
+    import ColumnChoicesMerge from "$lib/components/column/ColumnChoicesMerge.svelte";
     import ColumnList from "$lib/components/column/ColumnList.svelte";
     import {appState} from "$lib/classes/appState.svelte";
 
@@ -28,7 +30,7 @@
     let currentAccount = $state();
     let profile = $state();
     let unique = $state(Symbol());
-    let currentTab: 'all' | 'pinned' | 'list' = $state('all');
+    let currentTab: 'all' | 'pinned' | 'merge' | 'list' = $state('all');
 
     accountsDb.profiles.get(profileId)
         .then(value => {
@@ -112,6 +114,11 @@
                 {$_('pinned_feed')}
             </button>
 
+            <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'merge'} onclick={() => {currentTab = 'merge'}}>
+                <Combine size="18"></Combine>
+                {$_('merge_timeline')}
+            </button>
+
             <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'list'} onclick={() => {currentTab = 'list'}}>
                 <ArrowUpDown size="18"></ArrowUpDown>
                 {$_('columns_reorder')}
@@ -128,6 +135,10 @@
                     {:else if (currentTab === 'pinned')}
                         <div class="column-group column-group--single">
                             <ColumnChoicesPinned _agent={$agents.get(currentAccount)} on:add={handleColumnAdd}></ColumnChoicesPinned>
+                        </div>
+                    {:else if (currentTab === 'merge')}
+                        <div class="column-group column-group--single">
+                            <ColumnChoicesMerge _agent={$agents.get(currentAccount)} on:add={handleColumnAdd}></ColumnChoicesMerge>
                         </div>
                     {:else if (currentTab === 'list')}
                         <div class="column-group column-group--single">

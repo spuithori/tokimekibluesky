@@ -39,6 +39,7 @@
   import MediaTimelineSingleItem from "$lib/components/media/MediaTimelineSingleItem.svelte";
   import {getEditPost} from "$lib/components/post/timelineUtil";
   import {getPollUrl} from "$lib/components/post/embedUtil";
+  import {mergeSourceColor} from "$lib/merge/mergePalette";
 
     let {
         _agent = $agent,
@@ -77,6 +78,9 @@
     let simpleReply = $derived(column?.settings?.timeline?.simpleReply
       ? column.settings.timeline.simpleReply
       : $settings.timeline?.simpleReply || false);
+    const mergeAccent = $derived(column?.algorithm?.type === 'merge'
+      ? mergeSourceColor(column.algorithm.sources, data?.__sourceId)
+      : null);
     let threadContext = $derived.by(() => {
       if (!isThread || column?.algorithm?.type !== 'thread') {
         return undefined;
@@ -526,6 +530,8 @@
              class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
              class:timeline__item--hide={isHide}
              class:timeline__item--bubble={$settings?.design?.bubbleTimeline}
+             class:timeline__item--merge-source={mergeAccent}
+             style:--merge-source-color={mergeAccent}
              onclick={handleClick}
     >
       {#if isPinned}
@@ -783,6 +789,27 @@
 {/if}
 
 <style lang="postcss">
+  .timeline__item--merge-source {
+      &::before {
+          content: '';
+          position: absolute;
+          left: calc(-1 * var(--timeline-padding-x, var(--default-padding, 16px)));
+          top: 0;
+          bottom: calc(0px - var(--timeline-border-width, 1px));
+          width: 3px;
+          background-color: var(--merge-source-color);
+      }
+
+      &.timeline__item--bubble {
+          &::before {
+              left: 0;
+              top: 12px;
+              bottom: 12px;
+              border-radius: 0 2px 2px 0;
+          }
+      }
+  }
+
   .timeline-hidden-item {
       margin-bottom: 16px;
   }

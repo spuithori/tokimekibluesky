@@ -15,14 +15,19 @@
         style:transform="translate3d({tilingDrag.pointer.x}px, {tilingDrag.pointer.y}px, 0)"
     >
         <div class="tile-ghost__card">
-            <span class="tile-ghost__icon">
-                {#if CustomIcon}
-                    <CustomIcon color="var(--primary-color)" strokeWidth="var(--icon-stroke-width, 2px)" />
-                {:else}
-                    <ColumnIcon type={column.algorithm?.type} color="var(--primary-color)" />
-                {/if}
-            </span>
-            <span class="tile-ghost__name">{column.algorithm?.name}</span>
+            {#if tilingDrag.chip}
+                <span class="tile-ghost__chip-dot" style:--merge-source-color={tilingDrag.chip.color}></span>
+                <span class="tile-ghost__name">{tilingDrag.chip.name}</span>
+            {:else}
+                <span class="tile-ghost__icon">
+                    {#if CustomIcon}
+                        <CustomIcon color="var(--primary-color)" strokeWidth="var(--icon-stroke-width, 2px)" />
+                    {:else}
+                        <ColumnIcon type={column.algorithm?.type} color="var(--primary-color)" />
+                    {/if}
+                </span>
+                <span class="tile-ghost__name">{column.algorithm?.name}</span>
+            {/if}
         </div>
     </div>
 {/if}
@@ -58,6 +63,14 @@
         flex-shrink: 0;
         width: 22px;
         height: 22px;
+    }
+
+    .tile-ghost__chip-dot {
+        flex-shrink: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: var(--merge-source-color, var(--primary-color));
     }
 
     .tile-ghost__name {

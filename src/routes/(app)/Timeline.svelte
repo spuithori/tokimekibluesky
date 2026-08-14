@@ -16,6 +16,7 @@
   import {isVirtualTimelineEnabled} from "$lib/components/timeline/virtualGate";
   import {trimFeedAtBorder} from "$lib/components/timeline/feedTrim";
   import {makeFeedKeys} from "$lib/components/timeline/feedKeys";
+  import {appendSoloPage, soloFeedKey, visibleSoloKeys} from "$lib/merge/mergeSolo";
 
   let { index, _agent = $agent, isJunk, unique, column: columnProp = undefined, isTopScrolling = false } = $props();
 
@@ -129,6 +130,10 @@
   }
 
   function releaseOldPosts() {
+      if (column.data?.mergeSolo) {
+          return;
+      }
+
       const scrollEl = getReleaseScrollElement();
       const scrollTop = scrollEl?.scrollTop ?? 0;
 
@@ -249,7 +254,65 @@
           : oldFeed.post.uri === newFeed.post.uri;
   }
 
+  const handleSoloLoadMore = async (loaded: () => void, complete: () => void) => {
+      const sourceId = column.data?.mergeSolo;
+      const source = column.algorithm?.sources?.find((s: any) => s.id === sourceId);
+
+      if (!sourceId || !source || column.data?.mergeSoloComplete) {
+          complete();
+          return;
+      }
+
+      try {
+          controller = new AbortController();
+          const epoch = unique;
+          const res = await _agent.getTimelineByAlgo({
+              limit: 20,
+              cursor: column.data?.mergeSoloCursor ?? '',
+              algorithm: { type: source.type, algorithm: source.algorithm },
+              type: 'default',
+              lang: $settings?.general?.userLanguage,
+          }, controller.signal);
+
+          if (unique !== epoch || column.data?.mergeSolo !== sourceId) {
+              return;
+          }
+
+          const extraKey = soloFeedKey(column.id);
+          const keys = visibleSoloKeys(columnState.getFeed(column.id), columnState.getFeed(extraKey), sourceId);
+          const page = appendSoloPage(keys, res, sourceId);
+
+          if (page.items.length > 0) {
+              columnState.updateFeed(extraKey, f => { f.push(...page.items); });
+          }
+          column.data.mergeSoloCursor = page.cursor;
+          column.data.mergeSoloComplete = page.complete;
+
+          if (page.complete) {
+              complete();
+          } else {
+              loaded();
+          }
+      } catch (e: any) {
+          if (e?.name === 'AbortError' || controller?.signal.aborted) {
+              complete();
+              return;
+          }
+          console.error(e);
+          complete();
+      }
+  }
+
   const handleLoadMore = async (loaded, complete) => {
+      if (column.algorithm?.type === 'merge' && column.data?.mergeSolo) {
+          return await handleSoloLoadMore(loaded, complete);
+      }
+
+      if (column.algorithm?.type === 'merge' && !column.data?.cursor && columnState.getFeed(column.id).length > 0) {
+          complete();
+          return;
+      }
+
       let addedCount = 0;
       try {
         controller = new AbortController();
@@ -366,7 +429,13 @@
     }
   })
 
-  const feedKeys = $derived(makeFeedKeys(columnState.getFeed(column.id)));
+  const rawFeed = $derived(columnState.getFeed(column.id));
+  const mergeSolo = $derived(column.algorithm?.type === 'merge' ? (column.data?.mergeSolo ?? null) : null);
+  const soloExtraFeed = $derived(mergeSolo ? columnState.getFeed(soloFeedKey(column.id)) : []);
+  const displayFeed = $derived(mergeSolo
+      ? [...rawFeed.filter(item => item?.__sourceId === mergeSolo), ...soloExtraFeed]
+      : rawFeed);
+  const feedKeys = $derived(makeFeedKeys(displayFeed));
 </script>
 
 {#if useVirtualList}
@@ -389,7 +458,7 @@
 {:else}
   <div class="timeline timeline--{column.style || 'default'}">
     <div class:media-list={column.style === 'media'} class:media-list--1={column.style === 'media' && column?.settings?.mediaColumns === 1} class:media-list--2={column.style === 'media' && column?.settings?.mediaColumns === 2} class:video-list={column.style === 'video'}>
-      {#each columnState.getFeed(column.id) as data, index (feedKeys[index])}
+      {#each displayFeed as data, index (feedKeys[index])}
         {#if (data?.post?.author?.did)}
           <svelte:boundary>
             <TimelineItem
@@ -397,7 +466,7 @@
                     {index}
                     {column}
                     {_agent}
-                    feed={columnState.getFeed(column.id)}
+                    feed={displayFeed}
                     isReplyExpanded={(column.algorithm.type === 'author' || column.algorithm.type === 'authorReplies') && !data.isRootHide}
                     isPinned={isReasonPin(data?.reason)}
             ></TimelineItem>
@@ -408,7 +477,7 @@
           </svelte:boundary>
         {/if}
 
-        {#if data?.isDivider}
+        {#if data?.isDivider && !mergeSolo}
           <MoreDivider onDividerClick={(pos) => {handleDividerClick(index, data.memoryCursor, pos)}} onDividerUp={(el) => {handleDividerUp(index, data.memoryCursor, el)}}></MoreDivider>
         {/if}
       {/each}

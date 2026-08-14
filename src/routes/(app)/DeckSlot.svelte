@@ -7,6 +7,7 @@
     import {clampDeckWidth} from "$lib/deckWidth";
     import {startPointerDrag} from "$lib/pointerDrag";
     import { sortable } from "$lib/attachments/sortable.svelte";
+    import { canMergeColumns } from "$lib/merge/mergeColumnOps";
     import {publishState} from "$lib/classes/publishState.svelte";
     import {isMobileViewport} from "$lib/viewportQuery.svelte";
     import LayoutView from "./LayoutView.svelte";
@@ -101,6 +102,8 @@
              const i = target.beforeId ? columnState.slotIndexOf(target.beforeId) : columnState.slots.length;
              animateLayout(() => columnState.moveLeafToSlot(sourceId, i));
          },
+         canMerge: (sourceId, targetId) => canMergeColumns(columnState.columnById.get(targetId), columnState.columnById.get(sourceId)),
+         onMerge: (sourceId, target) => animateLayout(() => tilingDrag.applyMerge(columnState, sourceId, target)),
      }))}
 >
     <div

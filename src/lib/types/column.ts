@@ -1,14 +1,17 @@
 import type { searchFilters } from '$lib/search/filterSpec';
 import type { ScrollState } from '$lib/components/virtual/types';
+import type { MergeSource } from '$lib/merge/mergeEngine';
 export type { searchFilters };
+export type { MergeSource };
 
 export type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorReplies' | 'authorReposts' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'thread' | 'realtime',
+    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorReplies' | 'authorReposts' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'thread' | 'realtime' | 'merge',
     algorithm?: string,
     name?: string,
     list?: object,
     sort?: 'top' | 'latest',
     searchFilters?: searchFilters,
+    sources?: MergeSource[],
 }
 
 export type deckSettings = {
@@ -64,6 +67,9 @@ export type Column = {
         _heightCacheWidth?: number,
         activeTab?: string,
         starterPackCache?: any,
+        mergeSolo?: string,
+        mergeSoloCursor?: string,
+        mergeSoloComplete?: boolean,
     },
     scrollElement?: HTMLDivElement | null,
 }

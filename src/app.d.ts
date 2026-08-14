@@ -8,9 +8,10 @@ declare global {
 		// interface Platform {}
 
 		interface currentAlgorithm {
-			type: 'default' | 'custom' | 'list',
+			type: 'default' | 'custom' | 'list' | 'merge',
 			algorithm?: string,
 			list?: object,
+			sources?: Array<{ id: string, type: string, algorithm?: string, name?: string }>,
 		}
 	}
 

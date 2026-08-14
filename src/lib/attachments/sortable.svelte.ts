@@ -18,7 +18,13 @@ export interface ExtractTarget {
 	height: number;
 }
 
-export type DropPreview = TileTarget | ExtractTarget;
+export interface MergeTarget {
+	kind: 'merge';
+	id: string;
+	rect: Rect;
+}
+
+export type DropPreview = TileTarget | ExtractTarget | MergeTarget;
 
 export interface SortableOptions {
 	axis: 'x' | 'y';
@@ -36,6 +42,8 @@ export interface SortableOptions {
 	onTile?: (sourceId: string, target: TileTarget) => void;
 	onExtract?: (sourceId: string, target?: ExtractTarget) => void;
 	onDragMove?: (clientX: number, clientY: number) => void;
+	canMerge?: (sourceId: string, targetId: string) => boolean;
+	onMerge?: (sourceId: string, target: MergeTarget) => void;
 }
 
 const DEFAULT_DURATION = 220;
@@ -44,6 +52,8 @@ const EDGE_PX = 12;
 const QUAD_DEADBAND = 0.06;
 const REORDER_BAND = 0.25;
 const BAND_DEADBAND = 10;
+const MERGE_ZONE = 0.21;
+const MERGE_DEADBAND = 0.04;
 
 export type Quad = 'top' | 'bottom' | 'left' | 'right';
 
@@ -150,9 +160,20 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 				t?.kind !== dropTarget?.kind ||
 				(t?.kind === 'split' &&
 					(t.id !== (dropTarget as TileTarget)?.id || t.zone !== (dropTarget as TileTarget)?.zone)) ||
-				(t?.kind === 'extract' && t.beforeId !== (dropTarget as ExtractTarget)?.beforeId);
+				(t?.kind === 'extract' && t.beforeId !== (dropTarget as ExtractTarget)?.beforeId) ||
+				(t?.kind === 'merge' && t.id !== (dropTarget as MergeTarget)?.id);
 			dropTarget = t;
 			if (changed) opts.onTilePreview?.(t);
+		}
+
+		function mergeZoneAt(id: string, r: DOMRect): MergeTarget | null {
+			if (!dragId || !opts.canMerge?.(dragId, id)) return null;
+			const dx = r.width > 0 ? (clientX - r.left) / r.width - 0.5 : 1;
+			const dy = r.height > 0 ? (clientY - r.top) / r.height - 0.5 : 1;
+			const wasMerge = dropTarget?.kind === 'merge' && dropTarget.id === id;
+			const limit = wasMerge ? MERGE_ZONE + MERGE_DEADBAND : MERGE_ZONE - MERGE_DEADBAND;
+			if (Math.abs(dx) > limit || Math.abs(dy) > limit) return null;
+			return { kind: 'merge', id, rect: { x: r.left, y: r.top, w: r.width, h: r.height } };
 		}
 
 		function detectTile() {
@@ -166,6 +187,13 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 					const wrapper = (el.closest(opts.participantSelector) as HTMLElement | null) ?? el;
 					if (wrapper === node) return setDrop(null);
 					const pr = el.getBoundingClientRect();
+					if (id !== dragId) {
+						const merge = mergeZoneAt(id, pr);
+						if (merge) {
+							setDrop(merge);
+							return;
+						}
+					}
 					const cur: Quad | null =
 						dropTarget?.kind === 'split' && dropTarget.id === id ? dropTarget.zone : null;
 					const zone = quadrantZone(pr.width, pr.height, clientX - pr.left, clientY - pr.top, cur, QUAD_DEADBAND);
@@ -194,7 +222,12 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 				const band = reorderBandPx(r.height);
 				const bandThresh = isSplitting ? band - BAND_DEADBAND : band + BAND_DEADBAND;
 				if (localY >= bandThresh) {
-					const cur: Quad | null = isSplitting ? dropTarget.zone : null;
+					const merge = mergeZoneAt(id, r);
+					if (merge) {
+						setDrop(merge);
+						return;
+					}
+					const cur: Quad | null = dropTarget?.kind === 'split' && dropTarget.id === id ? dropTarget.zone : null;
 					const zone = quadrantZone(r.width, r.height, clientX - r.left, localY, cur, QUAD_DEADBAND);
 					setDrop({ kind: 'split', id, zone, rect: { x: r.left, y: r.top, w: r.width, h: r.height } });
 					return;
@@ -367,6 +400,17 @@ export function sortable(getOptions: () => SortableOptions): Attachment<HTMLElem
 
 			document.body.style.userSelect = '';
 			document.body.style.cursor = '';
+
+			if (drop?.kind === 'merge' && dragId && opts.onMerge) {
+				off = 0;
+				node.style.transform = '';
+				settle();
+				const sourceId = dragId;
+				dragId = null;
+				opts.onMerge(sourceId, drop);
+				opts.onDragEnd?.();
+				return;
+			}
 
 			if (drop?.kind === 'split' && dragId && opts.onTile) {
 				off = 0;
